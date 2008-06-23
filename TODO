@@ -1,0 +1,7 @@
+This file contains a list of items to do.
+
+o Create HyperColumn classes based on Garrett's design.
+
+o Modify architecture for multiple layers within a HyperColumn.  The C structures should
+  reflect the HyperColumn class design.
+
