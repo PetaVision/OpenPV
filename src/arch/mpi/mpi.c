@@ -28,7 +28,7 @@ int MPI_Comm_size(MPI_Comm comm, int* size)
 int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
     void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
   {
-
+    return 0;
   }
 
 int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
