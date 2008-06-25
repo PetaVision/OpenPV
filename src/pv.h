@@ -1,8 +1,6 @@
 #ifndef PV_H_
 #define PV_H_
 
-#include <mpi.h>
-
 #define DEBUG		0	/* turns on debugging output */
 #define OUTPUT_PS		/* output as postscript file */
 #undef OUTPUT_BIN		/* output as binary file */
@@ -10,6 +8,8 @@
 #define OUTPUT_PATH "./output"	/* location of the output files */
 
 #define NUM_SPUS	8
+
+#define MAX_LAYERS      2
 
 #define NX    36			/* 48  */
 #define NY    36			/* 48  */
@@ -63,44 +63,10 @@
 /**
  * data type for event mask (floats for now, could be compressed to bits)
  */
+// TODO - number of neurons per layer will have to change, redo this
 typedef struct eventmask_ {
     eventtype_t event[NUM_MASK_EVENTS];
 } eventmask;
-
-
-typedef struct PVLocation_ {
-    float	row;
-    float	col;
-    float	x0;
-    float	y0;
-    float*	x;
-    float*	y;
-    float*	o;
-} PVLocation;
-
-
-typedef struct PVState_ {
-    int      comm_id;
-    int      comm_size;
-    int      n_rows;
-    int      n_cols;
-    int      n_neighbors;
-    int      neighbors[NUM_NEIGHBORS];	/* mapping from neighbor index to neighbor rank */
-
-    double   mpi_wait_time;
-
-    float*   phi;	/* potential for partial updates */
-    float*   I;		/* image */
-    float*   V;		/* membrane potential */
-    float*   H;		/* membrane potential for inhibitory neurons */
-    float*	 h;		/* inhibition events (local only) */
-    
-    PVLocation  loc;
-    eventmask*  events;			/* event masks */
-
-    unsigned char* event_store;		/* storage for local bit masks */
-    
-} PVState;
 
 
 /* API's */
@@ -108,28 +74,8 @@ typedef struct PVState_ {
 int comm_init(int* pargc, char*** pargv, int* rank, int* size);
 int comm_finalize();
 
-int recver_rank(PVState* s, int id);
-int sender_rank(PVState* s, int id);
-
-int pv_row(PVState* s, int comm_id);
-int pv_col(PVState* s, int comm_id);
-
-eventmask* column_event(PVState* s, int conn_id);
-
-void pv_init(PVState* s, int nx, int ny, int no);
-
-int init_state(PVState* s, int comm_id, int comm_size, int n_steps);
-
-int init_state_ppu(PVState* s);
-
-int update_partial_state(PVState* s, int hc);
-
-int update_state(PVState* s);
-
-void output_state(PVState* s, int time_step);
-
-void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], float thc[],
-		float xp[], float yp[], float thp[], float fp[]);
+//int recver_rank(PVState* s, int id);
+//int sender_rank(PVState* s, int id);
 
 void pv_output(char* path, float threshold, float x0, float y0,
 	       float x[], float y[], float o[], float I[]);
@@ -137,14 +83,5 @@ void pv_output(char* path, float threshold, float x0, float y0,
 void compress_float_mask(int size, float buf[], unsigned char bits[]);
 
 void post(float threshold, float x0, float y0, float x[], float y[], float th[], float F[]);
-
-/* MPI communication functions */
-
-int send_state(PVState* s, MPI_Request* req);
-int recv_state(PVState* s, MPI_Request* req, int* comm_id);
-
-/* error reporting */
-
-void error_msg(PVState* s, int err, char* loc);
 
 #endif /* PV_H_ */
