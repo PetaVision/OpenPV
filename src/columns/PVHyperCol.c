@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int hc_init_layers(PVHyperCol* hc);
 
 PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps)
   {
@@ -73,12 +74,14 @@ PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps)
   }
 
 
-int hc_init_layers(PVHyperCol* hc)
+static int hc_init_layers(PVHyperCol* hc)
   {
     // initially just retina and Zucker
     hc->n_layers = 2;
-    hc->layer[0] = pv_new_layer_retina(hc, 0, NX, NY, NO);
-    hc->layer[1] = pv_new_layer_zucker(hc, 1, NX, NY, NO);
+
+    // TODO - fix the circular dependencies in PVHyperCol and PVLayer
+    hc->layer[0] = (struct PVLayer *) pv_new_layer_retina(hc, 0, NX, NY, NO);
+    hc->layer[1] = (struct PVLayer *) pv_new_layer_zucker(hc, 1, NX, NY, NO);
     
     return 0;
   }
@@ -99,7 +102,8 @@ int pv_hypercol_begin_update(PVHyperCol* hc, int ihc, int t)
     
     for (l = 0; l < hc->n_layers; l++)
       {
-        pv_layer_send(hc->layer[l], ihc);
+        // TODO - fix the circular dependencies in PVHyperCol and PVLayer
+        pv_layer_send((PVLayer*) hc->layer[l], ihc);
       }
 
     // TODO - make layers a C++ object so that layer updates are polymorphic
@@ -108,12 +112,14 @@ int pv_hypercol_begin_update(PVHyperCol* hc, int ihc, int t)
     //pv_layer_begin_update(hc->layer[l], ihc, t);
       //}
     // for now only update layer 1 (zucker)
-    pv_layer_begin_update(hc->layer[1], ihc, t);
+    // TODO - fix the circular dependencies in PVHyperCol and PVLayer
+    pv_layer_begin_update((PVLayer*) hc->layer[1], ihc, t);
     
     
     for (l = 1; l < hc->n_layers; l++)
       {
-        pv_layer_add_feed_forward(hc->layer[l], hc->layer[l-1], ihc, t);
+        // TODO - fix the circular dependencies in PVHyperCol and PVLayer
+        pv_layer_add_feed_forward((PVLayer*) hc->layer[l], (PVLayer*) hc->layer[l-1], ihc, t);
       }
 
     return 0;
@@ -121,7 +127,6 @@ int pv_hypercol_begin_update(PVHyperCol* hc, int ihc, int t)
 
 int pv_hypercol_finish_update(PVHyperCol* hc, int t)
   {
-    int l;
     
     // TODO - make layers a C++ object so that layer updates are polymorphic
     // for now only update layer 1 (zucker)
@@ -129,7 +134,8 @@ int pv_hypercol_finish_update(PVHyperCol* hc, int t)
       //{
           //pv_layer_finish_update(hc->layer[l], t);
       //}
-    pv_layer_finish_update(hc->layer[1], t);
+    // TODO - fix the circular dependencies in PVHyperCol and PVLayer
+    pv_layer_finish_update((PVLayer*) hc->layer[1], t);
 
     return 0;
   }
