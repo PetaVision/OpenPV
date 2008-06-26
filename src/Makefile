@@ -1,13 +1,14 @@
-#MPI_INC = -I./mpi
-#MPI_OBJ = mpi/mpi.o
+MPI_INC = -I./arch/mpi
+MPI_OBJ = mpi.o
 
-CC = mpicc
+#CC = mpicc
+CC = cc
 
 CFLAGS = -g -I./ $(MPI_INC) -ftree-vectorize -ftree-vectorizer-verbose=2
 
 all: pv
 
-pv: pv.o PVHyperCol.o PVLayer.o retina.o zucker.o neighbor.o pv_output.o mpi_harness.o
+pv: pv.o PVHyperCol.o PVLayer.o retina.o zucker.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ)
 	$(CC) -o pv pv.o PVHyperCol.o PVLayer.o retina.o zucker.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ) -lm
 
 pv.o: pv.c pv.h
@@ -33,6 +34,9 @@ pv_output.o: io/pv_output.c pv.h columns/PVHyperCol.h layers/PVLayer.h
 
 mpi_harness.o: arch/mpi/mpi_harness.c pv.h
 	$(CC) $(CFLAGS) -c arch/mpi/mpi_harness.c
+
+mpi.o: arch/mpi/mpi.c
+	$(CC) $(CFLAGS) -c arch/mpi/mpi.c
 
 clean:
 	rm -f *.o pv
