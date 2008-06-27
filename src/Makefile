@@ -4,7 +4,8 @@ MPI_OBJ = mpi.o
 #CC = mpicc
 CC = cc
 
-CFLAGS = -g -I./ $(MPI_INC) -ftree-vectorize -ftree-vectorizer-verbose=2
+# VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2
+CFLAGS = -g -I./ $(MPI_INC) $(VEC_FLAGS)
 
 all: pv
 
