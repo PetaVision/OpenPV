@@ -6,6 +6,7 @@
 #define OUTPUT_BIN		/* output as binary file */
 
 #define OUTPUT_PATH "./output"	/* location of the output files */
+#define INPUT_PATH  "./io/input/circle1_input.bin"   /*name of the input file*/
 
 #define NUM_SPUS	8
 
@@ -50,10 +51,15 @@
 #define NOISE_FREQ_INH  NOISE_FREQ  // prob of noise input on each time step
 #define INHIBIT_AMP     10.0           // amplitude of inhibitory input
 
+
+#define INHIB_R2        4            //square of radius of inhibition to be used later
+#define INHIB_FRACTION        0.9
+
 #define I_MAX       (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
 #define CLUTTER_PROB     0.01            // prob of clutter in image
 
 #define PI				3.1415926535897931
+
 #define RAD_TO_DEG_x2	(2.0*180.0/PI)
 
 #define NUM_NEIGHBORS   8	/* number of neighboring HyperColumns */
@@ -63,6 +69,8 @@
 
 #define NUM_MASK_EVENTS	N	/* number of elements in event mask */
 #define SEED 1
+
+
 
 
 /**
