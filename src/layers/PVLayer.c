@@ -36,8 +36,8 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
     o = l->o;
 
     phi = l->phi;
-    V = l->phi;
-    f = l->phi;
+    V = l->V;
+    f = l->f;
 
     k = 0;
     for (j = 0; j < ny; j++)
