@@ -48,10 +48,16 @@ int main(int argc, char* argv[])
     hc = pv_new_hypercol(comm_id, comm_size, n_time_steps);
 
     // TODO - add initial output
-    //    sprintf(filename, "input_%d", hc->comm_id);
-    //    pv_output(filename, 0.2, hc->loc.x0, hc->loc.y0, hc->loc.x, hc->loc.y,
-    //        hc->loc.o, hc->I);
-
+/*     sprintf(filename, "f%d", hc->comm_id); */
+/*     pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, f); */
+    char filename[75];
+    sprintf(filename, "input_%d", hc->comm_id);
+    PVLayer* layer_ptr = (PVLayer*) hc->layer[0];
+    pv_output(filename, 0.5, 
+	      hc->x0, hc->y0, 
+	      layer_ptr->x, layer_ptr->y, layer_ptr->o, 
+	      layer_ptr->f);
+    
     /* time loop */
 
     tstart = MPI_Wtime();
@@ -84,7 +90,7 @@ int main(int argc, char* argv[])
         //     update_state(hc);
 
 #ifdef PARTIAL_OUTPUT
-        //     output_state(hc, t);
+             output_state(hc, t);
 #endif
       }
 
@@ -165,15 +171,15 @@ int output_state(PVHyperCol* hc, int time_step)
         fave += f[i];
       }
 
-    pv_output_on_circle(time_step, "V  ", 0.6, V);
+    //pv_output_on_circle(time_step, "V  ", 0.6, V);
     //pv_output_events_on_circle(time_step, f, h);
 
-    sprintf(filename, "f%d_%d", time_step, hc->comm_id);
-    //sprintf(filename, "f%d", s->comm_id);
+    //sprintf(filename, "f%d_%d", time_step, hc->comm_id);
+    sprintf(filename, "f%d", hc->comm_id);
     pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, f);
 
-    sprintf(filename, "V%d_%d", time_step, hc->comm_id);
-    //sprintf(filename, "V%d", hc->comm_id);
+    //sprintf(filename, "V%d_%d", time_step, hc->comm_id);
+    sprintf(filename, "V%d", hc->comm_id);
     pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, V);
 
     //sprintf(filename, "h%d_%d", time_step, hc->comm_id);
