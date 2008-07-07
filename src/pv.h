@@ -2,8 +2,8 @@
 #define PV_H_
 
 #define DEBUG		0	/* turns on debugging output */
-#define OUTPUT_PS		/* output as postscript file */
-#undef OUTPUT_BIN		/* output as binary file */
+#undef OUTPUT_PS		/* output as postscript file */
+#define OUTPUT_BIN		/* output as binary file */
 
 #define OUTPUT_PATH "./output"	/* location of the output files */
 
@@ -30,23 +30,28 @@
 #define DY    1.0			/* pixel units, origianl 80.0/10. */
 #define DTH   (180.0/NO)	/* degrees */
 
-#define SIG_C_D_x2	(2*9.0*9.0)	// (squared and times 2)
+#define SIG_C_D_x2	(2*8.0*8.0)	// (squared and times 2)
 #define SIG_C_P_x2	(2*1*DTH*DTH)
 
 #define V_TH_0			0.5			// threshold potential
 #define V_TH_0_INH      0.5         // threshold potential for inhibitory neurons
-#define DT_d_TAU		0.25		// rate of change of excitation
-#define DT_d_TAU_INH	0.1 // (DT_d_TAU/2)// rate of change of inhibition
+#define DT_d_TAU		0.125		// rate of change of excitation
+#define DT_d_TAU_INH	0.05 // (DT_d_TAU/2)// rate of change of inhibition
 #define ALPHA			0.01		// desired fraction active per time step
+#define INHIB_FRACTION  0.9             // fraction of inhibitory connections
 #define INHIBIT_SCALE	1.0			// reduce inhibition (w < 0) by this amount
-#define COCIRC_SCALE	(0.5*V_TH_0/DT_d_TAU)	// (.025,0)->stable, (.05,0)->unstable
+#define COCIRC_SCALE	0.33*(V_TH_0 / DT_d_TAU / (1 - INHIB_FRACTION))	
+//#define COCIRC_SCALE	(0.5*V_TH_0/DT_d_TAU)	// (.025,0)->stable, (.05,0)->unstable
 
 #define NOISE_AMP       (1.0*0.5*V_TH_0/DT_d_TAU) // maximum amplitude of noise if present
-#define NOISE_FREQ      .0001  //0.5                    // prob of noise input on each time step
+#define NOISE_FREQ      1.0  //0.5                    // prob of noise input on each time step
 
 #define NOISE_AMP_INH   NOISE_AMP   // maximum amplitude of noise if present
 #define NOISE_FREQ_INH  NOISE_FREQ  // prob of noise input on each time step
-#define INHIBIT_AMP     .1           // amplitude of inhibitory input
+#define INHIBIT_AMP     10.0           // amplitude of inhibitory input
+
+#define I_MAX       (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
+#define CLUTTER_PROB     0.01            // prob of clutter in image
 
 #define PI				3.1415926535897931
 #define RAD_TO_DEG_x2	(2.0*180.0/PI)
