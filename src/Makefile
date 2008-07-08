@@ -41,3 +41,4 @@ mpi.o: arch/mpi/mpi.c
 
 clean:
 	rm -f *.o pv
+	rm -f ./output/*.ps ./output/*.bin
