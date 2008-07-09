@@ -24,10 +24,22 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
     char filename[75];
     strcpy(filename, INPUT_PATH);
     FILE* input= fopen(filename, "rb");
-    fread(f,sizeof(eventtype_t),l->n_neurons,input);
+    if (input == NULL)
+      {
+	printf("Error: input file specified in pv.h was not found.\n Please make sure file exists or use an input constructor to make it.\n Using default random clutter.\n");
+	int k;
+	for(k=0; k < l->n_neurons; k++) 
+	  {
+	    const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
+	    r = rand() * INV_RAND_MAX; 
+	    f[k] = (r < CLUTTER_PROB) ? I_MAX : 0.0;
+	  }
+      }
+    else
+      fread(f,sizeof(eventtype_t),l->n_neurons,input);
+       
     fclose(input);
-    
-    return l;
+return l;
   }
 
 
@@ -89,11 +101,11 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
 /*         float xc = x[k] + x0; */
 /*         float yc = y[k] + y0; */
 
-/*         /* turn on random edges */ */
+/*         turn on random edges  */
 /*         r = rand() * INV_RAND_MAX; */
 /*         f[k] = (r < CLUTTER_PROB) ? I_MAX : 0.0; */
 
-/*         /* turn on circle pixels */ */
+/*         turn on circle pixels */
 /*         dx = (xc - X0); */
 /*         dy = (yc - Y0); */
 /*         r2 = dx*dx + dy*dy; */
@@ -105,7 +117,7 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
 /*             kk = 0.5 + (a / DTH); */
 /*             kk = kk % NO; */
 /* 	    // kk = rand() * NO; //randomize orientations */
-/*             t = k % NO; /* t is the orientation index */ */
+/*             t = k % NO;  t is the orientation index  */
 /*             if (t == kk) // && f[k] == 0.0) */
 /*               { */
 /*                 f[k] += I_MAX; */
@@ -121,7 +133,7 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
 /*       } */
 /*     fclose(fo); */
 /*     FILE* num = fopen(number_of_in, "ab"); */
-    fwrite(&u, sizeof(int), 1, num);
-    fclose(num);
-    return l;
-  }
+/*     fwrite(&u, sizeof(int), 1, num); */
+/*     fclose(num); */
+/*     return l; */
+/*   } */
