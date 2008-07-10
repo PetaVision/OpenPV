@@ -80,6 +80,12 @@ int pv_layer_finish_update(PVLayer* l, int time_index)
 /**
  * update the partial sums for membrane potential
  *
+ * Iterates over all neurons and updates postsynaptic membrane potentials,
+ * conditionally (for performance) based on whether a given neuron fired.
+ *
+ * Uses chunking, so first triple (xc,yc,thc) identify current chunk subset
+ * next triple (xp,yp,thp) represents all neurons 
+ *
  * nc is the number of neurons to process in this chunk
  * np is the total number of neurons on this processor (size of event mask fp)
  */
@@ -88,31 +94,47 @@ void update_phi(int nc, int np, float phi_c[], float xc[], float yc[],
 {
   int i, j, ii, jj;
   
-  // changed to loop only over cells that fire
-  for (j = 0; j < np; j+=NO) {	/* loop over all stored neurons to form pairs */
-    for (jj = 0; jj < NO; jj++) {
-      if (fp[j+jj]==0.0) 
+
+  // Each neuron is identified by location (xp/xc), iterated by i and j,
+  // and orientation (thp/thc), iterated by ii and jj
+
+  for (j = 0; j < np; j+=NO) {		// loop over all x,y locations
+
+    for (jj = 0; jj < NO; jj++) {	// loop over all orientations
+
+      if (fp[j+jj]==0.0) 		// If this neuron didn't fire, skip it.
 	continue;
-      for (i = 0; i < nc; i+=NO) {	/* loop over incoming neuron stream */
+
+      for (i = 0; i < nc; i+=NO) {	// loop over other neurons, first by x,y
 	float dx, dy, d2, gd, gt, ww;
 	float gr = 1.0;
-	//float w[2*NO];
 	float atanx2;
 	float chi;
+
 	// use periodic (or mirror) boundary conditions	
+	// Calc euclidean distance between neurons.
 	dx = xp[j] - xc[i];
 	dx = fabs(dx) > NX/2 ? -(dx/fabs(dx))*(NX* - fabs(dx)) : dx; // PBCs
 	dy = yp[j] - yc[i];
 	dy = fabs(dy) > NY/2 ? -(dy/fabs(dy))*(NY - fabs(dy)) : dy;
-	d2 = dx*dx + dy*dy;
-	gd = expf(-d2/SIG_C_D_x2);
+	
+	// Calc angular diff btw this orientation and angle of adjoining line
+	// 2nd term is theta(i,j) (5.1) from ParentZucker89
 	atanx2 = thp[j+jj] - RAD_TO_DEG_x2*atan2f(dy,dx);
-	for (ii = 0; ii < NO; ii++) {
-	  chi = atanx2 + thc[i+ii];
-	  chi = chi + 360.0f;
+
+	d2 = dx*dx + dy*dy;		// d2=sqr of euclidean distance
+	gd = expf(-d2/SIG_C_D_x2);	// normalize dist for weight multiplier
+
+	for (ii = 0; ii < NO; ii++) {	// now loop over each orienation
+
+	  chi = atanx2 + thc[i+ii];	// Calc int. angle of this orienation 
+	  chi = chi + 360.0f;		// range correct: (5.3) from ParentZucker89
 	  chi = fmodf(chi,180.0f);
 	  if (chi >= 90.0f) chi = 180.0f - chi;
-	  gt = expf(-chi*chi/SIG_C_P_x2);
+
+	  gt = expf(-chi*chi/SIG_C_P_x2); // normalize angle multiplier 
+
+	  // Calculate and apply connection efficacy/weight 
 	  ww = COCIRC_SCALE*gd*(gt - INHIB_FRACTION);
 	  ww = (ww < 0.0) ? ww*INHIBIT_SCALE : ww;
 	  phi_c[i+ii] = phi_c[i+ii] + ww;//*gr*fp[j+jj];
