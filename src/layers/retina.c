@@ -1,3 +1,4 @@
+#include "pv.h"
 #include <columns/PVHyperCol.h>
 #include <layers/PVLayer.h>
 
@@ -22,7 +23,13 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
     eventtype_t* f = l->f;
 
     char filename[75];
-    strcpy(filename, INPUT_PATH);
+
+    // If the user passed a filename on the command line use that.
+    if (input_filename[0] != 0)
+        strcpy(filename, input_filename);
+    else
+        strcpy(filename, INPUT_PATH);
+    
     FILE* input= fopen(filename, "rb");
     if (input == NULL)
       {

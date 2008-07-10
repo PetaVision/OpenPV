@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <unistd.h> // for options parsing
+
 #define PARTIAL_OUTPUT 1
 
 /* declaration of internal functions (should these be static) */
@@ -16,6 +18,13 @@ int output_partial_state(PVHyperCol* hc, int time_step);
 int output_final_state(PVHyperCol* hc, int time_step);
 void pv_output_events_circle(int step, float f[], float h[]);
 void pv_output_on_circle(int step, const char* name, float max, float buf[]);
+static void parse_options(int argc, char* argv[]);
+
+// System-wide GLOBAL variables defined here:
+char input_filename[MAX_FILENAME];
+
+// Variables global to this file:
+int n_time_steps = 1;
 
 static void print_result(int length, int cycles, double time)
   {
@@ -30,13 +39,35 @@ static void print_result(int length, int cycles, double time)
     printf("%8d\t%.6f\t%.4f MB/s\n", length, time / cycles, bandwidth);
   }
 
+static void parse_options(int argc, char* argv[])
+{
+    int index;
+    int c;
+     
+    opterr = 0;
+     
+    while ((c = getopt (argc, argv, "i:n:")) != -1)
+    switch (c) {
+        case 'i':
+	    strcpy(input_filename, optarg);
+            break;
+        case 'n':
+            n_time_steps = atoi(optarg);
+	    break;
+        default:
+            printf("Unrecognized option '%c'. Aborting.", c);
+            exit(-1);
+    }
+}
+
 int main(int argc, char* argv[])
   {
     int ihc, t;
-    int n_time_steps = 1;
     int hc_id, comm_id, comm_size;
     double tstart, tend;
     PVHyperCol* hc;
+
+    input_filename[0] = 0; // clear so we know if user set 
 
     comm_init(&argc, &argv, &comm_id, &comm_size);
 
@@ -44,6 +75,10 @@ int main(int argc, char* argv[])
       {
         n_time_steps = atoi(argv[1]);
       }
+    else {
+	// Parse the input options, modifying global variables as nec.
+	parse_options(argc, argv);
+    }
 
     hc = pv_new_hypercol(comm_id, comm_size, n_time_steps);
 

@@ -71,6 +71,9 @@
 #define SEED 1
 
 
+// GLOBAL variables:
+#define MAX_FILENAME 128
+char input_filename[MAX_FILENAME];	// Input image file. See pv.c.
 
 
 /**
