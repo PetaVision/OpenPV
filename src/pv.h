@@ -70,10 +70,7 @@
 #define NUM_MASK_EVENTS	N	/* number of elements in event mask */
 #define SEED 1
 
-
-// GLOBAL variables:
 #define MAX_FILENAME 128
-char input_filename[MAX_FILENAME];	// Input image file. See pv.c.
 
 
 /**

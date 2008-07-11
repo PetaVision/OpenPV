@@ -10,7 +10,7 @@
 
 static int hc_init_layers(PVHyperCol* hc);
 
-PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps)
+PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps, char *input_filename)
   {
     int my_seed;
     int nrows, ncols;
@@ -41,6 +41,8 @@ PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps)
     hc->y0 = 0.0 + hc->row*DY*NY;
 
     hc->mpi_wait_time = 0.0;
+
+    strcpy(hc->input_filename, input_filename);
 
     pv_neighbor_init(hc);
     

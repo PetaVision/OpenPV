@@ -25,8 +25,8 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
     char filename[75];
 
     // If the user passed a filename on the command line use that.
-    if (input_filename[0] != 0)
-        strcpy(filename, input_filename);
+    if (hc->input_filename[0] != 0)
+        strcpy(filename, hc->input_filename);
     else
         strcpy(filename, INPUT_PATH);
     

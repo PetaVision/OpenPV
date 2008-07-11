@@ -25,11 +25,13 @@ typedef struct PVHyperCol_
     unsigned char* event_store; /* storage for local bit masks */
 
     double mpi_wait_time;
+
+    char input_filename[MAX_FILENAME]; // image input to the retina
   } PVHyperCol;
 
 /* "Methods" */
 
-PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps);
+PVHyperCol* pv_new_hypercol(int comm_id, int comm_size, int nsteps, char *input_filename);
 
 int pv_hypercol_begin_update(PVHyperCol* hc, int neighbor_index, int time_step);
 int pv_hypercol_finish_update(PVHyperCol* hc, int time_step);

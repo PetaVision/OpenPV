@@ -18,13 +18,8 @@ int output_partial_state(PVHyperCol* hc, int time_step);
 int output_final_state(PVHyperCol* hc, int time_step);
 void pv_output_events_circle(int step, float f[], float h[]);
 void pv_output_on_circle(int step, const char* name, float max, float buf[]);
-static void parse_options(int argc, char* argv[]);
+static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps);
 
-// System-wide GLOBAL variables defined here:
-char input_filename[MAX_FILENAME];
-
-// Variables global to this file:
-int n_time_steps = 1;
 
 static void print_result(int length, int cycles, double time)
   {
@@ -39,7 +34,7 @@ static void print_result(int length, int cycles, double time)
     printf("%8d\t%.6f\t%.4f MB/s\n", length, time / cycles, bandwidth);
   }
 
-static void parse_options(int argc, char* argv[])
+static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps)
 {
     int index;
     int c;
@@ -52,7 +47,7 @@ static void parse_options(int argc, char* argv[])
 	    strcpy(input_filename, optarg);
             break;
         case 'n':
-            n_time_steps = atoi(optarg);
+            *n_time_steps = atoi(optarg);
 	    break;
         default:
             printf("Unrecognized option '%c'. Aborting.", c);
@@ -66,6 +61,8 @@ int main(int argc, char* argv[])
     int hc_id, comm_id, comm_size;
     double tstart, tend;
     PVHyperCol* hc;
+    char input_filename[MAX_FILENAME];
+    int n_time_steps = 1;
 
     input_filename[0] = 0; // clear so we know if user set 
 
@@ -76,11 +73,11 @@ int main(int argc, char* argv[])
         n_time_steps = atoi(argv[1]);
       }
     else {
-	// Parse the input options, modifying global variables as nec.
-	parse_options(argc, argv);
+	// Parse the input options.
+	parse_options(argc, argv, input_filename, &n_time_steps);
     }
 
-    hc = pv_new_hypercol(comm_id, comm_size, n_time_steps);
+    hc = pv_new_hypercol(comm_id, comm_size, n_time_steps, input_filename);
 
     // TODO - add initial output
 /*     sprintf(filename, "f%d", hc->comm_id); */
