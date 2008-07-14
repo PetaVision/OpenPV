@@ -114,7 +114,7 @@ void update_phi(int nc, int np, float phi_c[], float xc[], float yc[],
 	// use periodic (or mirror) boundary conditions	
 	// Calc euclidean distance between neurons.
 	dx = xp[j] - xc[i];
-	dx = fabs(dx) > NX/2 ? -(dx/fabs(dx))*(NX* - fabs(dx)) : dx; // PBCs
+	dx = fabs(dx) > NX/2 ? -(dx/fabs(dx))*(NX - fabs(dx)) : dx; // PBCs
 	dy = yp[j] - yc[i];
 	dy = fabs(dy) > NY/2 ? -(dy/fabs(dy))*(NY - fabs(dy)) : dy;
 	
