@@ -4,17 +4,20 @@ clear all
 
 % set simulation parameters
 begin_step = 3;%201;%
-n_time_steps = 100;
-NX = 36;
-NY = 36;
-NO = 8;
-N = NX * NY * NO;
-DTH  = 180./NO;
+
 %output_path = 'C:\cygwin\home\gkenyon\syn_cogn\output\';
 %output_path = 'C:\cygwin\home\gkenyon\PetaVision\src\output\';
-output_path = 'C:\cygwin\home\gkenyon\trunk\src\output\';
-%output_path = 'C:\Users\admin\linux\petavision\trunk\src\output\'; % Dan
+%output_path = 'C:\cygwin\home\gkenyon\trunk\src\output\';
+output_path = 'C:\Users\admin\linux\petavision\trunk\src\output\'; % Dan
 
+% Read parameters from file which pv created
+load([output_path, 'params.txt'],'-ascii')
+NX = params(1);
+NY = params(2);
+NO = params(3);
+N = params(4);
+DTH  = params(5)
+n_time_steps = params(6);
 
 %read spike events
 spike_array = cell(2,1);
@@ -87,10 +90,12 @@ n_time_steps = size(spike_array{1},1);
 if ~exist('NO', 'var')
     NO = 8;
 end
-N = size(spike_array{1},2);
-NX = floor( sqrt( N/NO ) );
-NY = NX;
-DTH  = 180./NO;
+
+% These params should already be set?
+%N = size(spike_array{1},2);
+%NX = floor( sqrt( N/NO ) );
+%NY = NX;
+%DTH  = 180./NO;
 
 % raster plot
 if ~isempty(spike_array{1})
