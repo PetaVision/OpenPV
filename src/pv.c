@@ -55,6 +55,40 @@ static void parse_options(int argc, char* argv[], char* input_filename, int* n_t
     }
 }
 
+// For MATLAB use, just save a number with name as comment
+#define LOGINTPARM(paramfile, which) \
+    fprintf(paramfile, "%d %% %s\n", which, #which)
+#define LOGFPARM(paramfile, which) \
+    fprintf(paramfile, "%f %% %s\n", which, #which)
+#define LOGSPARM(paramfile, which) \
+    fprintf(paramfile, #which "=%s\n", which)
+
+static void log_parameters(int n_time_steps, char *input_filename)
+{
+    // Write our runtime parameters to a logfile, so that
+    // anyone using using the output can extract this
+    // information for analysis, rather than hardcoding.
+    char param_filename[MAX_FILENAME];
+    FILE *paramfile;
+    sprintf(param_filename, OUTPUT_PATH "/" PARAMS_FILE);
+
+    paramfile = fopen(param_filename,"w");
+
+    if (paramfile < 0) {
+        printf("Couldn't open parameter logfile. Aborting.\n");
+        exit(-1);
+    }
+
+    LOGINTPARM(paramfile,NX);
+    LOGINTPARM(paramfile,NY);
+    LOGINTPARM(paramfile,NO);
+    LOGINTPARM(paramfile,N);
+    LOGFPARM(paramfile,DTH);
+    LOGINTPARM(paramfile,n_time_steps);
+    // LOGSPARM(paramfile,input_filename);
+    fclose(paramfile);
+}
+
 int main(int argc, char* argv[])
   {
     int ihc, t;
@@ -76,6 +110,9 @@ int main(int argc, char* argv[])
 	// Parse the input options.
 	parse_options(argc, argv, input_filename, &n_time_steps);
     }
+
+    // Dump out our runtime parameters
+    log_parameters(n_time_steps, input_filename);
 
     hc = pv_new_hypercol(comm_id, comm_size, n_time_steps, input_filename);
 

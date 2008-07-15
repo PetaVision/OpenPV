@@ -8,6 +8,8 @@
 #define OUTPUT_PATH "./output"	/* location of the output files */
 #define INPUT_PATH  "./io/input/circle1_input.bin"   /*name of the input file*/
 
+#define PARAMS_FILE "params.txt" // log runtime parameters
+
 #define NUM_SPUS	8
 
 #define MAX_LAYERS      2
