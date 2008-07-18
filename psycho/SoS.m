@@ -91,9 +91,9 @@ try
     SoS_num_target_vals = 1;
     SoS_target_min = 1.0;  %max/min percent target segments
     SoS_target_max = 1.0;
-    SoS_num_clutter_vals = 3;
+    SoS_num_clutter_vals = 2;
     SoS_clutter_min = 0.1;  %min/max percent clutter
-    SoS_clutter_max = 0.5;
+    SoS_clutter_max = 0.25;
     SoS_gray_mid = mean(grayCLUTndx);
     SoS_gray_min = blackCLUTndx;%
     SoS_gray_max = whiteCLUTndx;%
@@ -187,9 +187,8 @@ try
     SoS_incorrect_tally = 0;
     SoS_num_edges = SoS_height * SoS_width * SoS_num_theta;
     SoS_I = repmat(SoS_gray_mid, [SoS_height, SoS_width, SoS_num_theta] );
-    SoS_edge_len = (sqrt(2)/2);
+    SoS_edge_len = 16*sqrt(2);
     SoS_penWidth = 3;
-%     [SoS_w1, SoS_foreground_rect] = Screen('OpenWindow', 0, SoS_gray_mid, SoS_foreground_rect);
     for SoS_trial = 1 : SoS_tot_trials
         [SoS_duration_ndx, SoS_target_ndx, SoS_clutter_ndx] = ...
             ind2sub([SoS_num_duration_vals, SoS_num_target_vals, SoS_num_clutter_vals], ...
@@ -221,24 +220,42 @@ try
         end % rand
         % make clutter
         SoS_num_clutter = round( SoS_num_edges * SoS_clutter(SoS_trial) );
-        [SoS_I_clutter, SoS_clutter_ndx] = sort(rand( SoS_num_edges , 1));
-        for SoS_edge = 1 : SoS_num_clutter
-            [SoS_x_i, SoS_y_i, SoS_theta_i] = ...
-                ind2sub([SoS_height, SoS_width, SoS_num_theta], ...
-                SoS_clutter_ndx(SoS_edge));
-            SoS_theta = ( SoS_theta_i - 1 ) * SoS_delta_theta * pi / 180;
-            SoS_x = SoS_foreground_left + 0.5 + ( SoS_x_i - 0.5 ) / SoS_scale;
-            SoS_y = SoS_foreground_bottom + 0.5 + ( SoS_y_i - 0.5 ) / SoS_scale;
-            SoS_delta_x = ( SoS_edge_len * abs(cos(SoS_theta)) ) / SoS_scale;
-            SoS_delta_y = ( SoS_edge_len * abs(sin(SoS_theta)) ) / SoS_scale;
-            SoS_clutter_left = ( SoS_x - SoS_delta_x );
-            SoS_clutter_bottom = ( SoS_y - SoS_delta_y );
-            SoS_clutter_right = ( SoS_x + SoS_delta_x );
-            SoS_clutter_top = ( SoS_y + SoS_delta_y );
-            Screen('DrawLine', SoS_w0, SoS_gray_max, ...
-                SoS_clutter_left, SoS_clutter_bottom, SoS_clutter_right, SoS_clutter_top, ...
-                SoS_penWidth);
-        end
+        SoS_clutter_lines = zeros(2, 2*SoS_num_clutter);
+        SoS_theta = rand(SoS_num_clutter,1) * pi;
+        SoS_x = ( rand(SoS_num_clutter,1) - 0.5 ) * SoS_foreground_width;
+        SoS_y = ( rand(SoS_num_clutter,1) - 0.5 ) * SoS_foreground_height;
+        SoS_delta_x = SoS_edge_len * abs(cos(SoS_theta));
+        SoS_delta_y = SoS_edge_len * abs(sin(SoS_theta));
+        SoS_clutter_lines( 1, 1:2:2*SoS_num_clutter) = SoS_x - SoS_delta_x;
+        SoS_clutter_lines( 2, 1:2:2*SoS_num_clutter) = SoS_y - SoS_delta_y;
+        SoS_clutter_lines( 1, 2:2:2*SoS_num_clutter) = SoS_x + SoS_delta_x;
+        SoS_clutter_lines( 2, 2:2:2*SoS_num_clutter) = SoS_y + SoS_delta_y;
+        Screen('DrawLines', SoS_w0, SoS_clutter_lines, SoS_penWidth, SoS_gray_max, [SoS_x_1_2, SoS_y_1_2]);
+%         [SoS_I_clutter, SoS_clutter_ndx] = sort(rand( SoS_num_edges , 1));
+%         [SoS_x_i, SoS_y_i, SoS_theta_i] = ...
+%             ind2sub([SoS_height, SoS_width, SoS_num_theta], ...
+%             SoS_clutter_ndx);
+%         for SoS_line = 1 : SoS_num_clutter
+%             [SoS_x_i, SoS_y_i, SoS_theta_i] = ...
+%                 ind2sub([SoS_height, SoS_width, SoS_num_theta], ...
+%                 SoS_clutter_ndx(SoS_line));
+%             SoS_theta = ( SoS_theta_i - 1 ) * SoS_delta_theta * pi / 180;
+%             SoS_x = SoS_foreground_left + 0.5 + ( SoS_x_i - 0.5 ) / SoS_scale;
+%             SoS_y = SoS_foreground_bottom + 0.5 + ( SoS_y_i - 0.5 ) / SoS_scale;
+%             SoS_delta_x = ( SoS_edge_len * abs(cos(SoS_theta)) ) / SoS_scale;
+%             SoS_delta_y = ( SoS_edge_len * abs(sin(SoS_theta)) ) / SoS_scale;
+%             SoS_clutter_left = ( SoS_x - SoS_delta_x );
+%             SoS_clutter_bottom = ( SoS_y - SoS_delta_y );
+%             SoS_clutter_right = ( SoS_x + SoS_delta_x );
+%             SoS_clutter_top = ( SoS_y + SoS_delta_y );
+%             SoS_clutter_lines( 1, 2*SoS_line-1) = SoS_clutter_left;
+%             SoS_clutter_lines( 2, 2*SoS_line-1) = SoS_clutter_bottom;
+%             SoS_clutter_lines( 1, 2*SoS_line) = SoS_clutter_right;
+%             SoS_clutter_lines( 2, 2*SoS_line) = SoS_clutter_top;
+%             Screen('DrawLine', SoS_w0, SoS_gray_max, ...
+%                 SoS_clutter_left, SoS_clutter_bottom, SoS_clutter_right, SoS_clutter_top, ...
+%                 SoS_penWidth);
+%         end
 %         Screen('Flip', SoS_w1, 0, 1);  %use to view rendered image and bypass experiment 
 %         WaitSecs(2);
 %         Screen('CloseAll');
