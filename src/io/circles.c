@@ -54,6 +54,8 @@ int main(int argc, char* argv[])
               } // jjj < no
           } // jj < nx
       } // j < ny
+    for(i=0;i<NUM_CIRC;i++)
+      u[i]=0;
     
     float pi = 2.0*acos(0.0);
 
@@ -98,8 +100,8 @@ int main(int argc, char* argv[])
 
 	/* turn on random edges */
 	r = rand() * INV_RAND_MAX;
-	f[k] = (r < clutter_prob) ? 1 : 0.0;
-	
+	f[k] = (r < clutter_prob) ? I_MAX : 0.0;
+	FILE* fo;
 	for(i=0;i<NUM_CIRC;i++)
 	  {
 	    sprintf(index,"%d",i);
@@ -107,13 +109,19 @@ int main(int argc, char* argv[])
 	    strncat(filename_circlein, "figure_",8);
 	    strncat(filename_circlein, index, 2);
 	    strncat(filename_circlein, ".bin", 5);
-	
-	    FILE* fo = fopen(filename_circlein, "wb");
-	    if (fo == NULL)
+	    if (k==0)
+	      {    fo = fopen(filename_circlein, "wb");
+   if (fo == NULL)
 	      {
 	      printf ("ERROR: FAILED TO OPEN FIGURE FILE NO. %d",k);
 	      continue;
 	      }
+	      }
+	    else
+	      {
+	       fo = fopen(filename_circlein, "ab");
+	      }
+	   
 	    r_circle = NX*ncols * REL_RADIUS[i];
 
 	    r2_min = r_circle * r_circle * (1 - r_tolerance) * (1 - r_tolerance);
@@ -142,9 +150,11 @@ int main(int argc, char* argv[])
 		t = k % NO; /* t is the orientation index */
 		if (t == kk )//&& f[k] == 0.0)
 		  {
-		    f[k] = 1;
-		    fwrite(&k , sizeof(float), 1 , fo ); 
+		    f[k] = I_MAX;
+		    fwrite(&k , sizeof(int), 1 , fo ); 
 		    u[i]++;
+		    printf("we got %d now\n",u[i]);
+		    printf("index %d\n", k);
 		    //printf("t=%d kk=%d k=%d o = %f r = %f (%d, %d) (%f, %f)\n", t, kk, k, a, sqrt(r2), i, j, dx, dy);
 		  }
 	      }
@@ -155,9 +165,10 @@ int main(int argc, char* argv[])
 
 	  }
       }
+    printf("u = %d\n",u[0]);
     fclose(input_file);
     FILE* fnum = fopen(number_of_in, "ab");
-    if (fnum!= 0)
+    if (fnum!= NULL)
       {
 	for(i=0;i<NUM_CIRC;i++)
 	  {

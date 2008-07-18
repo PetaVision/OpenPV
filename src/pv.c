@@ -97,11 +97,9 @@ int main(int argc, char* argv[])
     PVHyperCol* hc;
     char input_filename[MAX_FILENAME];
     int n_time_steps = 1;
-
     input_filename[0] = 0; // clear so we know if user set 
-
     comm_init(&argc, &argv, &comm_id, &comm_size);
-
+    printf("SIGD= %f", SIG_C_D_x2);
     if (argc == 2)
       {
         n_time_steps = atoi(argv[1]);
@@ -110,13 +108,12 @@ int main(int argc, char* argv[])
 	// Parse the input options.
 	parse_options(argc, argv, input_filename, &n_time_steps);
     }
-
     // Dump out our runtime parameters
     log_parameters(n_time_steps, input_filename);
 
     hc = pv_new_hypercol(comm_id, comm_size, n_time_steps, input_filename);
-
     // TODO - add initial output
+
 /*     sprintf(filename, "f%d", hc->comm_id); */
 /*     pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, f); */
     char filename[75];
@@ -128,33 +125,31 @@ int main(int argc, char* argv[])
 	      layer_ptr->f);
     
     /* time loop */
-
-    tstart = MPI_Wtime();
-
     for (t = 0; t < n_time_steps; t++)
       {
         for (ihc = 0; ihc <= hc->n_neighbors; ihc++)
           {
             pv_hypercol_begin_update(hc, ihc, t);
-          }
-        pv_hypercol_finish_update(hc, t);
+	  }
+
+	pv_hypercol_finish_update(hc, t);
 
         // pv_hypercol_send_layer(hc, i, req);           send_state(hc, req);
-
+	
         /* update with local events first */
         //           update_partial_state(hc, 0);
-
+	
         /* loop over neighboring columns */
-        //           for (c = 0; c < hc->n_neighbors; c++)
-        //             {
-        //             recv_state(hc, req, &hc_id); /* hc_id is the index of neighbor */
-        //           update_partial_state(hc, hc_id + 1); /* 0 is local index, 1 first neighbor */
-        //       }
-
+	//	for (c = 0; c < hc->n_neighbors; c++)
+	//{
+	//  recv_state(hc, req, &hc_id); /* hc_id is the index of neighbor */
+	//  update_partial_state(hc, hc_id + 1); /* 0 is local index, 1 first neighbor */
+	//}
+	
 #ifdef PARTIAL_OUTPUT
         //     output_partial_state(hc, t);
 #endif
-
+	
         /* complete update (new V and local event mask) */
         //     update_state(hc);
 
@@ -215,8 +210,23 @@ int output_state(PVHyperCol* hc, int time_step)
     float* phi = l->phi;
     float* f = l->f;
     float* V = l->V;
-    //float* h = l->h;
-    //float* H = l->H;
+
+#ifdef INHIBIT_ON
+    float* h = l->h;
+    float* H = l->H;
+    float have = 0.0;
+    float Have = 0.0;
+    //graphics output
+    for (i = 0; i < N; i++)
+      {
+	have += h[i];
+      }
+    for (i = 0; i < N; i++)
+      {
+	Have += H[i];
+      }
+	
+#endif
 
     /* save event mask */
 
@@ -251,19 +261,25 @@ int output_state(PVHyperCol* hc, int time_step)
     sprintf(filename, "V%d", hc->comm_id);
     pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, V);
 
+#ifdef INHIBIT_ON
     //sprintf(filename, "h%d_%d", time_step, hc->comm_id);
-    //sprintf(filename, "h%d", hc->comm_id);
-    //pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, h);
+    sprintf(filename, "h%d", hc->comm_id);
+    pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, h);
 
     //sprintf(filename, "Vinh%d_%d", time_step, hc->comm_id);
-    //sprintf(filename, "Vinh%d", hc->comm_id);
-    //pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, H);
+    sprintf(filename, "Vinh%d", hc->comm_id);
+    pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, H);
+#endif
 
     /*     //    sprintf(filename, "phi%d_%d", time_loop, hc->comm_id); */
     /*     sprintf(filename, "./output/phi%d", hc->comm_id); */
     /*     pv_output(filename, -1000., hc->loc.x0, hc->loc.y0, hc->loc.x, hc->loc.y, hc->loc.o, phi); */
 
-    printf("loop=%d:  fave=%f, Vave=%f\n", time_step, 1000*fave/N, Vave/N);
+       printf("loop=%d:  fave=%f, Vave=%f\n", time_step, 1000*fave/N, Vave/N); 
+#ifdef INHIBIT_ON
+    printf("have=%f, Have=%f\n", 1000*have/N, Have/N);
+#endif
+
   }
 
 int output_final_state(PVHyperCol* hc, int nsteps)

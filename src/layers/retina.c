@@ -33,7 +33,7 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
     FILE* input= fopen(filename, "rb");
     if (input == NULL)
       {
-	printf("Error: input file specified in pv.h was not found.\n Please make sure file exists or use an input constructor to make it.\n Using default random clutter.\n");
+	printf("Error: input file specified was not found.\n Please make sure file exists or use an input constructor to make it.\n Using default random clutter.\n");
 	int k;
 	for(k=0; k < l->n_neurons; k++) 
 	  {

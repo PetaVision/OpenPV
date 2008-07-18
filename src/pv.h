@@ -37,12 +37,11 @@
 #define SIG_C_P_x2	(2*1*DTH*DTH)
 
 #define V_TH_0			0.5			// threshold potential
-#define V_TH_0_INH      0.5         // threshold potential for inhibitory neurons
-#define DT_d_TAU		0.125		// rate of change of excitation
-#define DT_d_TAU_INH	0.05 // (DT_d_TAU/2)// rate of change of inhibition
+#define DT_d_TAU		0.35		// rate of change of excitation
 #define ALPHA			0.01		// desired fraction active per time step
 #define INHIB_FRACTION  0.9             // fraction of inhibitory connections
-#define INHIBIT_SCALE	1.0			// reduce inhibition (w < 0) by this amount
+#define INHIBIT_SCALE	1.0
+	// reduce inhibition (w < 0) by this amount
 #define COCIRC_SCALE	0.33*(V_TH_0 / DT_d_TAU / (1 - INHIB_FRACTION))	
 //#define COCIRC_SCALE	(0.5*V_TH_0/DT_d_TAU)	// (.025,0)->stable, (.05,0)->unstable
 
@@ -51,11 +50,22 @@
 
 #define NOISE_AMP_INH   NOISE_AMP   // maximum amplitude of noise if present
 #define NOISE_FREQ_INH  NOISE_FREQ  // prob of noise input on each time step
+#define EXCITE_R2       20*(NX*NX+NY*NY)  //cut-off radius for excititory cells(infinite wrt the screen size for now)
+
+//Inhibition stuff
+#undef INHIBIT_ON                            //inhibition flag, define to turn on inhibition
 #define INHIBIT_AMP     10.0           // amplitude of inhibitory input
-
-
-#define INHIB_R2        4            //square of radius of inhibition to be used later
-#define INHIB_FRACTION        0.9
+#define INHIB_R2        16*(DX*DX+DY*DY)       //square of radius of inhibition 
+#define DT_d_TAU_INH	0.05 // (DT_d_TAU/2)// rate of change of inhibition
+#define V_TH_0_INH      0.77        // threshold potential for inhibitory neurons
+#define INHIB_DELAY     3                   //number of times steps delay (x times slower than excititory conections)   
+#define GAP_R2          (DX*DX+DY*DY)         //square of radius of gap junctions keep small
+#define SIG_I_D_x2      (2*2.0*2.0)           // sigma (square and time 2) for inhibition to exicititory connections 
+#define SIG_I_P_x2      (2*1.0*DTH*DTH)   
+#define SIG_G_D_x2      (2*1.0*1.0)           //sigma (square and times 2) for gap junctions (inhibit to inhibit) keep d large to negate distance effects
+#define SIG_G_P_x2      (4*1*DTH*DTH)
+#define SCALE_INH       0.00
+#define E_TO_I_SCALE    0.05
 
 #define I_MAX       (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
 #define CLUTTER_PROB     0.01            // prob of clutter in image

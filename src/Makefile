@@ -9,8 +9,8 @@ CFLAGS = -g -I./ $(MPI_INC) $(VEC_FLAGS)
 
 all: pv
 
-pv: pv.o PVHyperCol.o PVLayer.o retina.o zucker.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ)
-	$(CC) -o pv pv.o PVHyperCol.o PVLayer.o retina.o zucker.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ) -lm
+pv: pv.o PVHyperCol.o PVLayer.o retina.o zucker.o inhibit.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ)
+	$(CC) -o pv pv.o PVHyperCol.o PVLayer.o retina.o zucker.o inhibit.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ) -lm
 
 pv.o: pv.c pv.h
 	$(CC) $(CFLAGS) -c pv.c
@@ -29,6 +29,9 @@ retina.o: layers/retina.c layers/retina.h pv.h columns/PVHyperCol.h layers/PVLay
 
 zucker.o: layers/zucker.c layers/zucker.h pv.h columns/PVHyperCol.h layers/PVLayer.h
 	$(CC) $(CFLAGS) -c layers/zucker.c
+
+inhibit.o: layers/inhibit.c layers/inhibit.h pv.h columns/PVHyperCol.h layers/PVLayer.h
+	$(CC) $(CFLAGS) -c layers/inhibit.c
 
 pv_output.o: io/pv_output.c pv.h columns/PVHyperCol.h layers/PVLayer.h
 	$(CC) $(CFLAGS) -c io/pv_output.c

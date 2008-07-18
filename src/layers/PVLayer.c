@@ -14,17 +14,19 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
   {
 
     float xc, yc, oc;
-    int i, j, k, t;
+    int i, j, k, t, p;
 
     float *x, *y, *o;
     float *phi, *V;
     eventtype_t *f;
+    
+
 
     float x0 = hc->x0;
     float y0 = hc->y0;
 
     PVLayer* l = (PVLayer*) malloc(sizeof(PVLayer));
-
+  
     layer_alloc_mem(l);
 
     l->index = index;
@@ -39,6 +41,18 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
     V = l->V;
     f = l->f;
 
+#ifdef INHIBIT_ON
+    float *phi_h, *H;
+    eventtype_t *h;
+    // float* inhib_buffer[INHIB_DELAY];
+    l->buffer_index_get=0;
+    l->buffer_index_put=0;
+    phi_h = l->phi_h;
+    H = l->H;
+    h= l->h;
+
+#endif 
+   
     k = 0;
     for (j = 0; j < ny; j++)
       {
@@ -58,9 +72,15 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
                 V[k] = 0.0;
                 f[k] = 0.0;
 
-                k = k + 1;
-
-              } // t < no
+#ifdef INHIBIT_ON		
+		phi_h[k] = 0.0;
+		h[k] = 0.0;
+		H[k] = 0.0;
+		for (p=0; p<INHIB_DELAY; p++)
+		  l->inhib_buffer[p][k]= 0.0;
+#endif
+		k = k + 1;
+	      } // t < no
           } // i < nx
       } // j < ny
 
@@ -86,6 +106,16 @@ static int layer_alloc_mem(PVLayer* l)
     l->V = buf + 4*N;
     l->f = (eventtype_t*) (buf + 5*N);
 
+#ifdef INHIBIT_ON
+    int i;
+    float* buf2 = (float*) malloc ( 6*N*sizeof(float));
+    l->H = buf2 + 0*N;
+    l->phi_h= buf2 + 1*N;
+    l->h = (eventtype_t*) (buf2 + 2*N);
+    float* buf3 = (float*) malloc ( 6*N*sizeof(float));
+    for(i=0; i<INHIB_DELAY; i++)
+      l->inhib_buffer[i] = buf2 + i*N;
+#endif
     return 0;
   }
 
@@ -93,3 +123,4 @@ int pv_layer_send(PVLayer* l, int col_index)
   {
     return 0;
   }
+

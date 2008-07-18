@@ -138,7 +138,7 @@ int pv_hypercol_finish_update(PVHyperCol* hc, int t)
       //}
     // TODO - fix the circular dependencies in PVHyperCol and PVLayer
     pv_layer_finish_update((PVLayer*) hc->layer[1], t);
-
+ 
     return 0;
   }
 
