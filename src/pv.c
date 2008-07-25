@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     int n_time_steps = 1;
     input_filename[0] = 0; // clear so we know if user set 
     comm_init(&argc, &argv, &comm_id, &comm_size);
-    printf("SIGD= %f", SIG_C_D_x2);
+ 
     if (argc == 2)
       {
         n_time_steps = atoi(argv[1]);

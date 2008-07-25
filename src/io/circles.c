@@ -10,11 +10,11 @@
 
 int main(int argc, char* argv[])
   {
-    const int NUM_CIRC = 1;
-    const float REL_POS_X0[1]={1.0/2.0};
-    const float REL_POS_Y0[1]={1.0/2.0};
-    const float REL_RADIUS[1]={1.0/4.0};
-    const char input_path[64] = "./input/circle1_";
+    const int NUM_CIRC = 2;
+    const float REL_POS_X0[2]={1.0/4.0,3.0/4.0};
+    const float REL_POS_Y0[2]={1.0/2.0,1.0/2.0};
+    const float REL_RADIUS[2]={1.0/5.0,1.0/5.0};
+    const char input_path[64] = "./input/circle2_";
    
     int comm_size=1;    
 
@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
               } // jjj < no
           } // jj < nx
       } // j < ny
-    for(i=0;i<NUM_CIRC;i++)
-      u[i]=0;
+   /*  for(i=0;i<NUM_CIRC;i++) */
+   
     
     float pi = 2.0*acos(0.0);
 
@@ -95,42 +95,41 @@ int main(int argc, char* argv[])
     FILE* input_file = fopen(input_indices, "wb");
     if (input_file == NULL)
       printf("ERROR: FAILED TO OPEN INPUT FILE");
-    for (k = 0; k <N ; k++)
+    for(i=0;i<NUM_CIRC;i++)
       {
-
-	/* turn on random edges */
-	r = rand() * INV_RAND_MAX;
-	f[k] = (r < clutter_prob) ? I_MAX : 0.0;
+	u[i]=0;
+	r_circle = NX*ncols * REL_RADIUS[i];
+	
+	r2_min = r_circle * r_circle * (1 - r_tolerance) * (1 - r_tolerance);
+	r2_max= r_circle * r_circle * (1 + r_tolerance) * (1 + r_tolerance);
+	
+	X0 = ncols*NX*REL_POS_X0[i];
+	
+	Y0 = nrows*NY*REL_POS_Y0[i];
+	
 	FILE* fo;
-	for(i=0;i<NUM_CIRC;i++)
+	
+	sprintf(index,"%d",i);
+	strcpy(filename_circlein, input_path);
+	strncat(filename_circlein, "figure_",8);
+	strncat(filename_circlein, index, 2);
+	strncat(filename_circlein, ".bin", 5);
+	
+	fo = fopen(filename_circlein, "wb");
+	if (fo == NULL)
 	  {
-	    sprintf(index,"%d",i);
-	    strcpy(filename_circlein, input_path);
-	    strncat(filename_circlein, "figure_",8);
-	    strncat(filename_circlein, index, 2);
-	    strncat(filename_circlein, ".bin", 5);
-	    if (k==0)
-	      {    fo = fopen(filename_circlein, "wb");
-   if (fo == NULL)
-	      {
-	      printf ("ERROR: FAILED TO OPEN FIGURE FILE NO. %d",k);
-	      continue;
-	      }
-	      }
-	    else
-	      {
-	       fo = fopen(filename_circlein, "ab");
-	      }
-	   
-	    r_circle = NX*ncols * REL_RADIUS[i];
-
-	    r2_min = r_circle * r_circle * (1 - r_tolerance) * (1 - r_tolerance);
-	    r2_max= r_circle * r_circle * (1 + r_tolerance) * (1 + r_tolerance);
+		printf ("ERROR: FAILED TO OPEN FIGURE FILE NO. %d",k);
+		continue;
+	  }
+		
+	for (k = 0; k <N ; k++)
+	  {
 	    
-	    X0 = ncols*NX*REL_POS_X0[i];
-	   
-	    Y0 = nrows*NY*REL_POS_Y0[i];
-	  
+	    /* turn on random edges */
+	    r = rand() * INV_RAND_MAX;
+	    f[k] = (r < clutter_prob) ? I_MAX : 0.0;
+	    
+  
 	    xc = x[k] + x0;
 	    yc = y[k] + y0;
 	    
@@ -153,19 +152,20 @@ int main(int argc, char* argv[])
 		    f[k] = I_MAX;
 		    fwrite(&k , sizeof(int), 1 , fo ); 
 		    u[i]++;
-		    printf("we got %d now\n",u[i]);
-		    printf("index %d\n", k);
+		  /*   printf("we got %d now\n",u[i]); */
+/* 		    printf("index %d\n", k) */;
 		    //printf("t=%d kk=%d k=%d o = %f r = %f (%d, %d) (%f, %f)\n", t, kk, k, a, sqrt(r2), i, j, dx, dy);
 		  }
+	
 	      }
-	    if(input_file != NULL)
-	      fwrite(&f[k] , sizeof(float), 1 , input_file); 
-     
-	    fclose(fo);
-
+    
 	  }
+	fclose(fo);
+	if(input_file != NULL)
+	  fwrite(f , sizeof(float), N , input_file); 
+
       }
-    printf("u = %d\n",u[0]);
+    printf("u1 = %d\n u2= %d\n",u[0],u[1]);
     fclose(input_file);
     FILE* fnum = fopen(number_of_in, "ab");
     if (fnum!= NULL)

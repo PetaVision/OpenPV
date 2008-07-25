@@ -26,10 +26,12 @@ typedef struct PVLayer_
     
     eventtype_t* f;       /* event mask */
 #ifdef INHIBIT_ON
-    float* phi_h; /*potential for partial updates due to inhibition*/
+    float* phi_h; /*potential for partial updates due to inhibition to Excite*/
+    float* phi_i; /*potential for partial updates due to excitation of inhibitory*/
+    float* phi_g; /*potential for partial updates due to gap junction(Inhib to Inhib)*/
     float* H;     /*inhibitory membrane potential*/
     eventtype_t* h;   /*inhibitory event mask*/    
-    float* inhib_buffer[INHIB_DELAY]; /*inhibition delay buffer*/
+    eventtype_t* inhib_buffer[INHIB_DELAY]; /*inhibition delay buffer*/
     int buffer_index_get;
     int buffer_index_put;
 

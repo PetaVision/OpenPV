@@ -4,7 +4,7 @@ MPI_INC = -I./arch/mpi
 #CC = mpicc
 CC = cc
 
-CFLAGS = -g -I./ $(MPI_INC) 
+CCFLAGS = -g -I./ $(MPI_INC) 
 all: circles
 
 circles: circles.o #mpi_harness.o $(MPI_OBJ)
@@ -20,4 +20,4 @@ circles.o: circles.c ../pv.h
 #	$(CC) $(CCFLAGS) -c ../arch/mpi/mpi_harness.c
 clean:
 	rm -f *.o circles
-	rm -f ./input/*.bin
+#	rm -f ./input/*.bin

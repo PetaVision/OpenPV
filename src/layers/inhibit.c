@@ -1,6 +1,7 @@
 #include <columns/PVHyperCol.h>
 #include <layers/PVLayer.h>
-#include<layers/inhibit.h>
+#include <layers/inhibit.h>
+#include <layers/zucker.h>
 
 
 #include <math.h>
@@ -8,105 +9,78 @@
 #include <stdio.h>
 
 #ifdef INHIBIT_ON
-static float* buffer_get(int *index, float *inhib_buffer[]);
-static void buffer_put(int *index,float *inhib_buffer[],float* phi, int n);
+static float* buffer_get(int *index, eventtype_t *inhib_buffer[]);
+static void buffer_put(int *index,eventtype_t *inhib_buffer[],float* phi, int n);
 
 
 
 
 int inhibit_update( PVLayer *l) 
 {
-  const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
-  int k,i,j,kk,ii; 
-  float r;
+  int i; 
   float *x,*y,*o;
-  float *H, *phi, *phi_hi, *phi_ho; // phi_hi input for inhibitory cell, phi_ho output from inhibitory cell 
-  eventtype_t *h;
+  float *H, *phi_i, *phi_h, *phi_g; // phi_i input for inhibitory cell, phi_h output from inhibitory cell 
+  eventtype_t *h, *hb;
   x = l->x;
   y = l->y;
   o = l->o;
   H = l->H;
-  phi = l->phi;
-  phi_ho = l->phi_h;
+  phi_i = l->phi_i;
+  phi_h = l->phi_h;
+  phi_g = l->phi_g;
   h=l->h;
+  //f=l->f;
+
+   
+  //Update potential of inhib cells
+  update_V(l->n_neurons, phi_i, phi_g, H, h, DT_d_TAU_INH, MIN_H, NOISE_FREQ_INH, NOISE_AMP_INH, SCALE_GAP);
+  update_f(l->n_neurons,H, h, V_TH_0_INH);
+ 
+
+  //Get delayed h
+  hb = buffer_get(&(l->buffer_index_get), l->inhib_buffer);
+
+  //now update inhibition contribution to excitory potential (phi_h)
+  for(i=0;i<l->n_neurons; i+=CHUNK_SIZE)
+    {
+      
+      update_phi( CHUNK_SIZE, l->n_neurons,  &phi_h[i], &x[i], &y[i],
+		  &o[i], x, y, o, hb, INHIB_R2, SIG_I_D_x2, SIG_I_P_x2, SCALE_INH, INHIB_FRACTION_I, INHIBIT_SCALE_I);
+    }
   
-  // printf("before dump\n");
-/*   dump = (float*) malloc(6*N*sizeof(float)); */
-/*   phi_hi = dump + 1*N; */
-/*   if(dump == NULL || phi_hi == NULL) */
-/*     printf("Error in memory allocation of pointer in inhibit.c."); */
-/*   printf("assignment works\n"); */
-
-  //Get delayed phi from buffer
-  phi_hi = buffer_get(&(l->buffer_index_get), l->inhib_buffer);
-  //free up memory when not in use
-  // free(dump);
+  //Put h in buffer
+  buffer_put(&(l->buffer_index_put),l->inhib_buffer, h, l->n_neurons); 
+ 
   
-  //update phi input
-
- /*  for(i=0; i<l->n_neurons; i+=CHUNK_SIZE) */
-/*     { */
-/*       update_phi( CHUNK_SIZE, l->n_neurons,  &phi_hi[i], &x[i], &y[i], */
-/* 		    &o[i], x, y, o, h, GAP_R2, SIG_G_D_x2, SIG_G_P_x2, SCALE_GAP); */
-/*     } */
-
-
-  for(j=0; j<l->n_neurons; j++) 
-   {
-     //TODO - noise, image contribution?
-     if (rand()*INV_RAND_MAX < NOISE_FREQ_INH)
-       {
-	 r = NOISE_AMP_INH * 2 * ( rand() * INV_RAND_MAX - 0.5 );
-       }
-     
-     /* inhibition layer, uses same zucker weights as exicitory, but delayed + they get gap junction input */
-     H[j] += DT_d_TAU_INH*(r + phi_hi[j] - H[j]);
-     h[j] = ((H[j] - V_TH_0_INH) > 0.0) ? 1.0 : 0.0;
-     H[j] -= h[j]*H[j]; // reset cells that fired
-     phi[j]=(E_TO_I_SCALE/COCIRC_SCALE)*phi[j];    
-   }    
-
-
- //now update inhibition contribution to excitory potential (phi_h) 
- for(kk=0;kk<l->n_neurons; kk+=CHUNK_SIZE)
-   {
-
-     update_phi( CHUNK_SIZE, l->n_neurons,  &phi_ho[kk], &x[kk], &y[kk],
-		   &o[kk], x, y, o, h, INHIB_R2, SIG_I_D_x2, SIG_I_P_x2, SCALE_INH);
-   }
-
- buffer_put(&(l->buffer_index_put),l->inhib_buffer, phi, l->n_neurons); 
-
- for(k=0;k<l->n_neurons;k++)
-   phi[k]=0.0;
- return 0;
+  return 0;
 }
 
 
-static float* buffer_get(int *index,float *inhib_buffer[])
+static eventtype_t* buffer_get(int *index,eventtype_t *inhib_buffer[])
 {
-  float* h = inhib_buffer[*index];
-  *index++;
-  if (*index==10)
-    *index=0;
-  return h;
+  eventtype_t* f = inhib_buffer[*index];
+  (*index)++;
+  if ((*index)==INHIB_DELAY)
+    (*index)=0;
+  return f;
 }
 
-static void buffer_put(int *index, float *inhib_buffer[],float *phi, int n)
+static void buffer_put(int *index, eventtype_t *inhib_buffer[],eventtype_t *f, int n)
 {
   int k;
   for(k=0; k<n; k++)
     { 
-      inhib_buffer[*index][k] = phi[k];
+      inhib_buffer[*index][k] = f[k];
     }
-  *index++;
-  if (*index==10)
-    *index=0;
+  (*index)++;
+  if ((*index)==INHIB_DELAY)
+    (*index)=0;
   return;
 }
 #endif
 void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
-		  float thc[], float xp[], float yp[], float thp[], float hp[], int boundary, float sig_d2, float sig_p2, float scale)
+		float thc[], float xp[], float yp[], float thp[], float hp[], int boundary, float sig_d2, float sig_p2, float scale, 
+		float inhib_fraction, float inhibit_scale)
 {
   int i, j, ii, jj;
   
@@ -172,9 +146,9 @@ void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
 	  gt = expf(-chi*chi/sig_p2); // normalize angle multiplier 
 
 	  // Calculate and apply connection efficacy/weight 
-	  ww = scale*gd*(gt - INHIB_FRACTION);
-	  ww = (ww < 0.0) ? ww*INHIBIT_SCALE : ww;
-	  phi_h[i+ii] = phi_h[i+ii] + ww*inner;//*gr*hp[j+jj];
+	  ww = gd*(gt - inhib_fraction);
+	  ww = (ww < 0.0) ? ww*inhibit_scale : ww;
+	  phi_h[i+ii] = phi_h[i+ii] + scale*ww*inner;//*gr*hp[j+jj];
 	} // i
       } // ii
     } // for jj
@@ -186,4 +160,4 @@ void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
 
 
 
-//#endif
+

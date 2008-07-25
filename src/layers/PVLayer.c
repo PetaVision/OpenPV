@@ -42,12 +42,14 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
     f = l->f;
 
 #ifdef INHIBIT_ON
-    float *phi_h, *H;
+    float *phi_h, *phi_g, *phi_i, *H;
     eventtype_t *h;
     // float* inhib_buffer[INHIB_DELAY];
     l->buffer_index_get=0;
     l->buffer_index_put=0;
     phi_h = l->phi_h;
+    phi_i = l->phi_i;
+    phi_g = l->phi_g;
     H = l->H;
     h= l->h;
 
@@ -69,13 +71,18 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
                 o[k] = oc;
 
                 phi[k] = 0.0;
-                V[k] = 0.0;
-                f[k] = 0.0;
+                float Vinit=(rand()/(float)RAND_MAX)*(V_TH_0-MIN_V)+MIN_V;
+		V[k] = Vinit;
+                
+		f[k] = (float) (rand()/(float)RAND_MAX)<0.01;
 
 #ifdef INHIBIT_ON		
 		phi_h[k] = 0.0;
-		h[k] = 0.0;
-		H[k] = 0.0;
+		phi_i[k] = 0.0;
+		phi_g[k] = 0.0;
+		h[k] = (float) (rand()/(float)RAND_MAX)<0.01;
+		float Hinit= (rand()/(float) RAND_MAX)*(V_TH_0_INH-MIN_H)+MIN_H;
+		H[k] = Hinit;
 		for (p=0; p<INHIB_DELAY; p++)
 		  l->inhib_buffer[p][k]= 0.0;
 #endif
@@ -93,8 +100,11 @@ PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no)
 
 static int layer_alloc_mem(PVLayer* l)
   {
+#ifdef INHIBIT_ON
+    float* buf = (float*) malloc((11+INHIB_DELAY)*N*sizeof(float)); 
+#else
     float* buf = (float*) malloc( 6*N*sizeof(float));
-
+#endif
     // TODO - assume event mask type is a float for now
     assert(sizeof(eventtype_t) == sizeof(float));
 
@@ -108,13 +118,13 @@ static int layer_alloc_mem(PVLayer* l)
 
 #ifdef INHIBIT_ON
     int i;
-    float* buf2 = (float*) malloc ( 6*N*sizeof(float));
-    l->H = buf2 + 0*N;
-    l->phi_h= buf2 + 1*N;
-    l->h = (eventtype_t*) (buf2 + 2*N);
-    float* buf3 = (float*) malloc ( 6*N*sizeof(float));
+    l->H = buf + 6*N;
+    l->phi_h = buf + 7*N;
+    l->phi_i = buf + 8*N;
+    l->phi_g = buf + 9*N;
+    l->h = (eventtype_t*) (buf + 10*N);
     for(i=0; i<INHIB_DELAY; i++)
-      l->inhib_buffer[i] = buf2 + i*N;
+      l->inhib_buffer[i] = (eventtype_t*)buf +(10+ i)*N;
 #endif
     return 0;
   }
