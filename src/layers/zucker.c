@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time);
 
