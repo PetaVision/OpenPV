@@ -12,8 +12,9 @@
 static float* buffer_get(int *index, eventtype_t *inhib_buffer[]);
 static void buffer_put(int *index,eventtype_t *inhib_buffer[],float* phi, int n);
 
-
-
+#define YPOS_FROM_IDX(idx) ( (idx)/(NX*NO))
+#define XPOS_FROM_IDX(idx) ( ((idx)/NO) % NX)
+#define O_FROM_IDX(idx) ( (idx) % NO)
 
 int inhibit_update( PVLayer *l) 
 {
@@ -43,9 +44,8 @@ int inhibit_update( PVLayer *l)
   //now update inhibition contribution to excitory potential (phi_h)
   for(i=0;i<l->n_neurons; i+=CHUNK_SIZE)
     {
-      
-      update_phi( CHUNK_SIZE, l->n_neurons,  &phi_h[i], &x[i], &y[i],
-		  &o[i], x, y, o, hb, INHIB_R2, SIG_I_D_x2, SIG_I_P_x2, SCALE_INH, INHIB_FRACTION_I, INHIBIT_SCALE_I);
+	update_phi( i, CHUNK_SIZE, l->n_neurons,  phi_h,
+		  hb, INHIB_R2, SIG_I_D_x2, SIG_I_P_x2, SCALE_INH, INHIB_FRACTION_I, INHIBIT_SCALE_I);
     }
   
   //Put h in buffer
@@ -78,17 +78,17 @@ static void buffer_put(int *index, eventtype_t *inhib_buffer[],eventtype_t *f, i
   return;
 }
 #endif
-void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
-		float thc[], float xp[], float yp[], float thp[], eventtype_t hp[], int boundary, float sig_d2, float sig_p2, float scale, 
+
+void update_phi(int start_idx, int nc, int np, float phi_h[],
+		eventtype_t hp[], int boundary, float sig_d2, float sig_p2, float scale,
 		float inhib_fraction, float inhibit_scale)
 {
   int i, j, ii, jj;
-  
 
   // Each neuron is identified by location (xp/xc), iterated by i and j,
   // and orientation (thp/thc), iterated by ii and jj
 
-  for (j = 0; j < np; j+=NO) {		// loop over all x,y locations
+  for (j = start_idx; j < (start_idx+np); j+=NO) {		// loop over all x,y locations
 
     for (jj = 0; jj < NO; jj++) {	// loop over all orientations
 
@@ -105,9 +105,9 @@ void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
 	// use periodic (or mirror) boundary conditions	
 	// Calc euclidean distance between neurons.
 
-	dx = xp[j] - xc[i];
+	dx = XPOS_FROM_IDX(j) - XPOS_FROM_IDX(i);
 	dx = fabs(dx) > NX/2 ? -(dx/fabs(dx))*(NX - fabs(dx)) : dx; // PBCs
-	dy = yp[j] - yc[i];
+	dy = YPOS_FROM_IDX(j) - YPOS_FROM_IDX(i);
 	dy = fabs(dy) > NY/2 ? -(dy/fabs(dy))*(NY - fabs(dy)) : dy;
 	d2 = dx*dx + dy*dy;		// d2=sqr of euclidean distance	
 
@@ -117,28 +117,23 @@ void update_phi(int nc, int np, float phi_h[], float xc[], float yc[],
 	//1. assign 1 or 0 
 	//2. check and kick out if outside boundary
 	//inner =(d2 <= boundary) ? 1 : 0;
-	if (d2> boundary)
-	  {
-
+	if (d2> boundary) {
 	  continue;
-	 
-	  }
+	}
+
 	float gr = 1.0;
 	float atanx2;
 	float chi;
-
-
 	
 	// Calc angular diff btw this orientation and angle of adjoining line
 	// 2nd term is theta(i,j) (5.1) from ParentZucker89
-	atanx2 = thp[j+jj] - RAD_TO_DEG_x2*atan2f(dy,dx);
-
+	atanx2 = O_FROM_IDX(j+jj)*DTH - RAD_TO_DEG_x2*atan2f(dy,dx);
 
 	gd = expf(-d2/sig_d2);	// normalize dist for weight multiplier
 
 	for (ii = 0; ii < NO; ii++) {	// now loop over each orienation
 
-	  chi = atanx2 + thc[i+ii];	// Calc int. angle of this orienation 
+	  chi = atanx2 + O_FROM_IDX(i+ii)*DTH;	// Calc int. angle of this orienation 
 	  chi = chi + 360.0f;		// range correct: (5.3) from ParentZucker89
 	  chi = fmodf(chi,180.0f);
 	  if (chi >= 90.0f) chi = 180.0f - chi;

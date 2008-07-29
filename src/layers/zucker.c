@@ -39,7 +39,7 @@ int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index)
     for (k = 0; k < N; k += CHUNK_SIZE)
       {
 
-        update_phi(CHUNK_SIZE, N, &phi[k], &x[k], &y[k], &o[k], x, y, o, f, EXCITE_R2, SIG_C_D_x2, SIG_C_P_x2, COCIRC_SCALE, INHIB_FRACTION, INHIBIT_SCALE);
+        update_phi(k, CHUNK_SIZE, N, phi, f, EXCITE_R2, SIG_C_D_x2, SIG_C_P_x2, COCIRC_SCALE, INHIB_FRACTION, INHIBIT_SCALE);
         // if (DEBUG) fprintf(stderr, "  update chunk %d k=%d %f\n", k/CHUNK_SIZE, k, phi[0]);
       }
   
@@ -53,16 +53,16 @@ int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index)
 
     for(i=0; i<l->n_neurons; i+=CHUNK_SIZE)
       {
-	update_phi( CHUNK_SIZE, l->n_neurons,  &phi_i[i], &x[i], &y[i],
-		    &o[i], x, y, o, f, E2I_R2, SIG_E2I_D_x2, SIG_E2I_P_x2, E_TO_I_SCALE, INHIB_FRACTION_E2I, INHIBIT_SCALE_E2I);
+	update_phi( i, CHUNK_SIZE, l->n_neurons,  phi_i,
+		    f, E2I_R2, SIG_E2I_D_x2, SIG_E2I_P_x2, E_TO_I_SCALE, INHIB_FRACTION_E2I, INHIBIT_SCALE_E2I);
       }  
     
     //update phi input from gap junctions(phi_g)
     
     for(i=0; i<l->n_neurons; i+=CHUNK_SIZE)
       {
-	update_phi( CHUNK_SIZE, l->n_neurons,  &phi_g[i], &x[i], &y[i],
-		    &o[i], x, y, o, h,GAP_R2, SIG_G_D_x2, SIG_G_P_x2, SCALE_GAP, INHIB_FRACTION_G, INHIBIT_SCALE_G);
+	update_phi( i, CHUNK_SIZE, l->n_neurons,  phi_g,
+		    h,GAP_R2, SIG_G_D_x2, SIG_G_P_x2, SCALE_GAP, INHIB_FRACTION_G, INHIBIT_SCALE_G);
       }
 #endif
 
