@@ -19,7 +19,7 @@ int output_partial_state(PVHyperCol* hc, int time_step);
 int output_final_state(PVHyperCol* hc, int time_step);
 void pv_output_events_circle(int step, float f[], float h[]);
 void pv_output_on_circle(int step, const char* name, float max, float buf[]);
-static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps);
+static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps, int *wipe);
 
 
 static void print_result(int length, int cycles, double time)
@@ -35,20 +35,23 @@ static void print_result(int length, int cycles, double time)
     printf("%8d\t%.6f\t%.4f MB/s\n", length, time / cycles, bandwidth);
   }
 
-static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps)
+static void parse_options(int argc, char* argv[], char* input_filename, int* n_time_steps, int* wipe)
 {
     int index;
     int c;
      
     opterr = 0;
      
-    while ((c = getopt (argc, argv, "i:n:")) != -1)
+    while ((c = getopt (argc, argv, "i:n:w")) != -1)
     switch (c) {
         case 'i':
 	    strcpy(input_filename, optarg);
             break;
         case 'n':
             *n_time_steps = atoi(optarg);
+	    break;
+        case 'w':
+            *wipe = 1;
 	    break;
         default:
             printf("Unrecognized option '%c'. Aborting.", c);
@@ -86,7 +89,8 @@ static void log_parameters(int n_time_steps, char *input_filename)
     LOGINTPARM(paramfile,N);
     LOGFPARM(paramfile,DTH);
     LOGINTPARM(paramfile,n_time_steps);
-    // LOGSPARM(paramfile,input_filename);
+    LOGSPARM(paramfile,input_filename);
+
     fclose(paramfile);
 }
 
@@ -99,16 +103,25 @@ int main(int argc, char* argv[])
     char input_filename[MAX_FILENAME];
     int n_time_steps = 1;
     input_filename[0] = 0; // clear so we know if user set 
+    int wipe_output_dir=0;
+
     comm_init(&argc, &argv, &comm_id, &comm_size);
  
     if (argc == 2)
       {
+	// Legacy behavior, so: ./pv 100 still works.
         n_time_steps = atoi(argv[1]);
       }
     else {
 	// Parse the input options.
-	parse_options(argc, argv, input_filename, &n_time_steps);
+	parse_options(argc, argv, input_filename, &n_time_steps, &wipe_output_dir);
     }
+
+    if (wipe_output_dir) {
+    	// Wipe out the output directory
+    	system("rm -fr output/*");
+    }
+
     // Dump out our runtime parameters
     log_parameters(n_time_steps, input_filename);
 
