@@ -43,10 +43,11 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
 	    f[k] = (r < CLUTTER_PROB) ? I_MAX : 0.0;
 	  }
       }
-    else
+    else {
       fread(f,sizeof(eventtype_t),l->n_neurons,input);
-       
-    fclose(input);
+      fclose(input);
+    }
+
 return l;
   }
 
