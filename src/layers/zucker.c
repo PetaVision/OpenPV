@@ -86,9 +86,25 @@ int pv_layer_add_feed_forward(PVLayer* l, PVLayer* llow, int neighbor_index, int
     float* phi = l->phi;
     float* fl  = llow->f;
 
-    for (i = 0; i < n; i++)
-      {
-        phi[i] += w*fl[i];
+#if POISSON_INPUT
+    long prob;
+    prob = (float)(POISSON_RATE_TIMESTEPS*exp(-1.0 * POISSON_RATE_TIMESTEPS))*RAND_MAX;
+
+#endif //POISSON_INPUT
+
+    for (i = 0; i < n; i++) {
+#if POISSON_INPUT
+		// Make input fire probabilistically based on Poisson distr
+		// It's cheating to put it here, but we don't currently
+		// do dynamic updating for the input layer.
+		float fired = rand() > prob ? 0.0 : 1.0;
+       		phi[i] +=  fired*w*fl[i];
+#else
+		// Non-poisson: edge detectors fire each timestep
+       		phi[i] += w*fl[i];
+#endif //POISSON_INPUT
+		
+	
       }
     
     return 0;

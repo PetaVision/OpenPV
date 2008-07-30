@@ -33,7 +33,16 @@
 #define DX    1.0			/* pixel units, original 80.0/10. */
 #define DY    1.0			/* pixel units, origianl 80.0/10. */
 #define DTH   (180.0/NO)	/* degrees */
+
+#define MS_PER_TIMESTEP		1.0
 /*****************************************************************************************************/
+
+/*******************************************************/ 
+/*  Poissonian Input                                   */
+/*******************************************************/
+#define POISSON_INPUT		0			// 0=off: continuous spikes. 1=on, Poisson
+#define POISSON_INPUT_RATE	1000.0	 		// Firing rate of "on" edges in Hz
+#define POISSON_RATE_TIMESTEPS	((POISSON_INPUT_RATE*MS_PER_TIMESTEP)/1000.0)
 
 /*******************************************************/ 
 /*MEMBRANE POTENTIAL PARAMETERS                        */
@@ -101,7 +110,7 @@
 /**********************************************************************************************************/
 
 /*****************************************************************/
-/*MISCILANEOUS-(Image and other basic definitions)               */
+/*MISCELLANEOUS-(Image and other basic definitions)              */
 /*****************************************************************/
 
 // Image basics
