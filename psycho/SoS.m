@@ -89,15 +89,15 @@ if exit_experiment == 0
         %% init target and clutter params
         SoS_num_trials = 10; %number of trials for each condition
         SoS_num_duration_vals = 3; %number of durations per trial
-        SoS_duration_min = 1.0 * frame_duration; %min/max viewing duration
-        SoS_duration_max = 3.0 * frame_duration;
+        SoS_duration_min = 0.5 * frame_duration; %min/max viewing duration
+        SoS_duration_max = 2.5 * frame_duration;
         SoS_duration_delta = ( SoS_duration_max - SoS_duration_min + ( SoS_num_duration_vals <= 1 ) ) / ...
             ( SoS_num_duration_vals - 1 + ( SoS_num_duration_vals <= 1 ) ); %bin width for analysis
         SoS_duration_vals = ...
             SoS_duration_min : SoS_duration_delta : SoS_duration_max;
         SoS_IMAGE_FROM_DATABASE = 0;
         SoS_IMAGE_FROM_RENDER = 1;
-        SoS_image_source = SoS_IMAGE_FROM_RENDER;
+        SoS_image_source = SoS_IMAGE_FROM_DATABASE;
         SoS_grayscale_flag = 1; % 0 to use color (if available)
         SoS_resize_flag = 0; % 0 to use original image size, 1 rescales foreground rect
         SoS_file_new = ['SoSExp', num2str(round(SoS_seed)), '.mat'];
@@ -478,9 +478,9 @@ if exit_experiment == 0
 
         %% preprocess results
         SoS_actual_duration = cell(3,1);
-        SoS_actual_duration(1,1) = StimulusOnsetTime(1:SoS_trial,2) - StimulusOnsetTime(1:SoS_trial,1);
-        SoS_actual_duration(2,1) = FlipTimestamp(1:SoS_trial,1) - VBLTimestamp(1:SoS_trial,1);
-        SoS_actual_duration(3,1) = FlipTimestamp(1:SoS_trial,2) - VBLTimestamp(1:SoS_trial,2);
+        SoS_actual_duration{1,1} = StimulusOnsetTime(1:SoS_trial,2) - StimulusOnsetTime(1:SoS_trial,1);
+        SoS_actual_duration{2,1} = VBLTimestamp(1:SoS_trial,2) - VBLTimestamp(1:SoS_trial,1);
+        SoS_actual_duration{3,1} = FlipTimestamp(1:SoS_trial,2) - FlipTimestamp(1:SoS_trial,1);
         SoS_data.SoS_actual_duration = SoS_actual_duration;
         SoS_SaveData
         Screen('Close',SoS_w0)
@@ -587,7 +587,7 @@ if length(correct_ndx) > 0
         num_tot = num_correct + num_incorrect;
         percent_correct = num_correct ./ ( num_tot + (num_tot == 0) );
         figure
-        lh = plot( SoS_duration_vals, percent_correct );
+        lh = plot( (0.5 * SoS_duration_delta+SoS_duration_vals), percent_correct );
         set(lh, 'LineWidth', 2.0);
         SoS_markers = ['o', 'x', '+', '*', 's', 'd', 'v', '^', '<', '>'];
         for i_label = 1:SoS_num_target_labels
