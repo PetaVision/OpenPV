@@ -86,10 +86,12 @@ static void log_parameters(int n_time_steps, char *input_filename)
     LOGINTPARM(paramfile,NX);
     LOGINTPARM(paramfile,NY);
     LOGINTPARM(paramfile,NO);
+    LOGINTPARM(paramfile,NK);
     LOGINTPARM(paramfile,N);
     LOGFPARM(paramfile,DTH);
     LOGINTPARM(paramfile,n_time_steps);
-    LOGSPARM(paramfile,input_filename);
+    if(input_filename[0]!=0)
+      LOGSPARM(paramfile,input_filename);
 
     fclose(paramfile);
 }
@@ -136,7 +138,7 @@ int main(int argc, char* argv[])
     pv_output(filename, 0.5, 
 	      hc->x0, hc->y0, 
 	      layer_ptr->x, layer_ptr->y, layer_ptr->o, 
-	      layer_ptr->f);
+	      layer_ptr->f,layer_ptr->n_neurons);
     
     /* time loop */
     for (t = 0; t < n_time_steps; t++)
@@ -204,7 +206,7 @@ int output_partial_state(PVHyperCol* hc, int time_step)
           phimax = phi[i];
       }
 
-    pv_output(filename, phimax/2., hc->x0, hc->y0, l->x, l->y, l->o, phi);
+    pv_output(filename,phimax/2., hc->x0, hc->y0, l->x, l->y, l->o, phi,l->n_neurons);
     pv_output_on_circle(time_step, "phi", 1.0, phi);
 
     return 0;
@@ -231,11 +233,11 @@ int output_state(PVHyperCol* hc, int time_step)
     float have = 0.0;
     float Have = 0.0;
     //graphics output
-    for (i = 0; i < N; i++)
+    for (i = 0; i < l->n_neuronsi; i++)
       {
 	have += h[i];
       }
-    for (i = 0; i < N; i++)
+    for (i = 0; i < l->n_neuronsi; i++)
       {
 	Have += H[i];
       }
@@ -269,29 +271,29 @@ int output_state(PVHyperCol* hc, int time_step)
 
     //sprintf(filename, "f%d_%d", time_step, hc->comm_id);
     sprintf(filename, "f%d", hc->comm_id);
-    pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, f);
+    pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, f, l->n_neurons);
 
     //sprintf(filename, "V%d_%d", time_step, hc->comm_id);
     sprintf(filename, "V%d", hc->comm_id);
-    pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, V);
+    pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, V, l->n_neurons);
 
 #ifdef INHIBIT_ON
     //sprintf(filename, "h%d_%d", time_step, hc->comm_id);
     sprintf(filename, "h%d", hc->comm_id);
-    pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, h);
+    pv_output(filename, 0.5, hc->x0, hc->y0, l->x, l->y, l->o, h, l->n_neuronsi);
 
     //sprintf(filename, "Vinh%d_%d", time_step, hc->comm_id);
     sprintf(filename, "Vinh%d", hc->comm_id);
-    pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, H);
+    pv_output(filename, -1000., hc->x0, hc->y0, l->x, l->y, l->o, H,l->n_neuronsi);
 #endif
 
     /*     //    sprintf(filename, "phi%d_%d", time_loop, hc->comm_id); */
     /*     sprintf(filename, "./output/phi%d", hc->comm_id); */
     /*     pv_output(filename, -1000., hc->loc.x0, hc->loc.y0, hc->loc.x, hc->loc.y, hc->loc.o, phi); */
 
-       printf("loop=%d:  fave=%f, Vave=%f\n", time_step, 1000*fave/N, Vave/N); 
+       printf("loop=%d:  fave=%f, Vave=%f\n", time_step, 1000*fave/l->n_neurons, Vave/l->n_neurons); 
 #ifdef INHIBIT_ON
-    printf("have=%f, Have=%f\n", 1000*have/N, Have/N);
+    printf("have=%f, Have=%f\n", 1000*have/l->n_neuronsi, Have/l->n_neuronsi);
 #endif
 
   }
@@ -310,7 +312,7 @@ int output_final_state(PVHyperCol* hc, int nsteps)
 
     //    sprintf(filename, "f%d_%d", time_loop, hc->comm_id);
     sprintf(filename, "f%d", hc->comm_id);
-    pv_output(filename, fmax/2., hc->x0, hc->y0, l->x, l->y, l->o, f);
+    pv_output(filename, fmax/2., hc->x0, hc->y0, l->x, l->y, l->o, f, l->n_neurons);
 
     /* gather event masks and dump them one time step at a time */
 

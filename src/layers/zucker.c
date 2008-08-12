@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time);
+
 
 /* void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], */
 /*      float thc[], float xp[], float yp[], float thp[], float fp[]);  */
@@ -19,9 +19,9 @@ void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time)
  * This layer just contains the firing events for an input image (currently a circle with clutter).
  * 
  */
-PVLayer* pv_new_layer_zucker(PVHyperCol* hc, int index, int nx, int ny, int no)
+PVLayer* pv_new_layer_zucker(PVHyperCol* hc, int index, int nx, int ny, int no, int nk)
   {
-    PVLayer* l = pv_new_layer(hc, index, nx, ny, no);
+    PVLayer* l = pv_new_layer(hc, index, nx, ny, no, nk);
     return l;
   }
 
@@ -32,14 +32,20 @@ int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index)
     float* x = l->x;
     float* y = l->y;
     float* o = l->o;
+#ifdef INHIBIT_ON
+    float* xi = l->xi;
+    float* yi = l->yi;
+    float* oi = l->oi;   
+#endif
+    float* kappa = l->kappa;
 
     float* phi = l->phi;
     eventtype_t* f = l->f;
 
-    for (k = 0; k < N; k += CHUNK_SIZE)
+    for (k = 0; k < l->n_neurons; k += CHUNK_SIZE)
       {
+        update_phi(CHUNK_SIZE, l->n_neurons, NO, NO, NK, NK, &phi[k], &x[k], &y[k], &o[k], &kappa[k], x, y, o, f, EXCITE_R2, SIG_C_D_x2, SIG_C_P_x2, COCIRC_SCALE, INHIB_FRACTION, INHIBIT_SCALE, 1,SIG_C_K_x2, 1);
 
-        update_phi(k, CHUNK_SIZE, N, phi, f, EXCITE_R2, SIG_C_D_x2, SIG_C_P_x2, COCIRC_SCALE, INHIB_FRACTION, INHIBIT_SCALE);
         // if (DEBUG) fprintf(stderr, "  update chunk %d k=%d %f\n", k/CHUNK_SIZE, k, phi[0]);
       }
   
@@ -47,23 +53,8 @@ int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index)
 
     eventtype_t *h = l->h;
     float *phi_g = l->phi_g;
-    float *phi_i = l->phi_i;
-    int i;
-    //update phi input from excitatory cells to inhibitory(phi_i)
-
-    for(i=0; i<l->n_neurons; i+=CHUNK_SIZE)
-      {
-	update_phi( i, CHUNK_SIZE, l->n_neurons,  phi_i,
-		    f, E2I_R2, SIG_E2I_D_x2, SIG_E2I_P_x2, E_TO_I_SCALE, INHIB_FRACTION_E2I, INHIBIT_SCALE_E2I);
-      }  
-    
-    //update phi input from gap junctions(phi_g)
-    
-    for(i=0; i<l->n_neurons; i+=CHUNK_SIZE)
-      {
-	update_phi( i, CHUNK_SIZE, l->n_neurons,  phi_g,
-		    h,GAP_R2, SIG_G_D_x2, SIG_G_P_x2, SCALE_GAP, INHIB_FRACTION_G, INHIBIT_SCALE_G);
-      }
+   
+    inhibit_update(l, time_index);
 #endif
 
     // if (DEBUG) printf("[%d] update_partial_state: eventmask is %p, hc_id is %d\n",
@@ -77,12 +68,13 @@ int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index)
  */
 int pv_layer_add_feed_forward(PVLayer* l, PVLayer* llow, int neighbor_index, int time_index)
   {
-    int i;
+    int i, j;
     
     // TODO - add lateral feeds (need list of connections)
-    int n = l->n_neurons;
+    int n = llow->n_neurons;
     float w = 1.0;
-    
+    float wi = 0.0; 
+    float* phi_i = l->phi_i;
     float* phi = l->phi;
     float* fl  = llow->f;
 
@@ -92,19 +84,26 @@ int pv_layer_add_feed_forward(PVLayer* l, PVLayer* llow, int neighbor_index, int
 
 #endif //POISSON_INPUT
 
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i+=NK) {
 #if POISSON_INPUT
 		// Make input fire probabilistically based on Poisson distr
 		// It's cheating to put it here, but we don't currently
 		// do dynamic updating for the input layer.
 		float fired = rand() > prob ? 0.0 : 1.0;
-       		phi[i] +=  fired*w*fl[i];
+		for(j=0; j<NK; j++)
+		      phi[i+j] +=  fired*w*fl[i+j];
+
+		phi_i[(i/NK)]+= fired*wi*fl[i];
 #else
 		// Non-poisson: edge detectors fire each timestep
-       		phi[i] += w*fl[i];
+		for(j=0; j<NK; j++)
+		  phi[i] += w*fl[i];
+		
+		phi_i[(i/NK)]+= wi*fl[i];
 #endif //POISSON_INPUT
 		
 	
+
       }
     
     return 0;
@@ -118,18 +117,21 @@ int pv_layer_finish_update(PVLayer* l, int time_index)
 #ifdef INHIBIT_ON
     char filename1[64];
     char filename2[64];
-    inhibit_update(l);
+
+   
+    //finish inhibit update
+    update_V(l->n_neuronsi, l->phi_i, l->phi_g, l->H, l->h, DT_d_TAU_INH, MIN_H, NOISE_FREQ_INH, NOISE_AMP_INH, SCALE_GAP);
+    update_f(l->n_neuronsi,l->H, l->h, V_TH_0_INH); 
+   
+    //finish excite update
     update_V(N, l->phi,l->phi_h, l->V, l->f, DT_d_TAU, MIN_V, NOISE_FREQ, NOISE_AMP, COCIRC_SCALE);
     update_f(l->n_neurons, l->V, l->f, V_TH_0); 
    
-    sprintf(filename1, "exciting");
-    sprintf(filename2, "inhibiting");
-    debug_filer(filename1, l->f, l->phi, l->phi_h, time_index);
-    debug_filer(filename2, l->h, l->phi_i, l->phi_g, time_index);
+
     
 #else 
     float phi_h[N]={0.0}; 
-    update_V(N, l->phi, phi_h, l->V, l->f, DT_d_TAU, MIN_V, NOISE_FREQ, NOISE_AMP, COCIRC_SCALE);
+    update_V(l->n_neurons, l->phi, phi_h, l->V, l->f, DT_d_TAU, MIN_V, NOISE_FREQ, NOISE_AMP, COCIRC_SCALE);
     update_f(l->n_neurons, l->V, l->f, V_TH_0);  
 #endif
  
@@ -226,16 +228,19 @@ inline int update_V(int n, float phi[],float phi_h[], float V[], float f[], floa
       {
 	if (rand()*INV_RAND_MAX < noise_freq)
           {
-            r = noise_amp * 2 * ( rand() * INV_RAND_MAX - 0.5 );
+	    r = noise_amp * 2 * ( rand() * INV_RAND_MAX - 0.5 );
             //r = 0.0;
             // TODO - if noise only from image add to feed forward contribution
             // if (I[i] > 0.0) r = I[i];
             //      printf("adding noise, r = %f, phi = %f, %d\n", r, phi[i], i);
           }
+	else
+	  r = 0.0;
 
-        phi[i] -= scale*f[i]; // remove self excitation
+	// phi[i] -= scale*f[i]; // remove self excitation
 #ifdef INHIBIT_ON
 	V[i] += dt_d_tau*(r + phi[i] - V[i] +phi_h[i]);
+
 	phi_h[i]=0.0;
 	phi[i]=0.0;
 	V[i]= (V[i]<v_min)? v_min : V[i];
@@ -268,7 +273,7 @@ inline int update_f(int n, float V[], float f[], float Vth)
     
     return 0;
   }
-void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time)
+void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time, int n)
 {
   char* filename;
   int i, j;
@@ -296,10 +301,9 @@ void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time)
       fprintf(fid, "#%d TIME LOOP\n", time);
       fprintf(fid, "******************************************\n\n");
       fprintf(fid, " FIRING MASK\n\n");
-      for(i=0; i<N; i++)
+      for(i=0; i<n; i++)
 	{
-	   if ( phi2[i] !=0.0)
-	     printf("ERROR");
+	 
 	  if(h[i]==0)
 	    continue;
 	  if(u == 10)
@@ -313,7 +317,7 @@ void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time)
 	   	 
 	} 
       fprintf(fid, "\n\n PHI 1 MASK \n\n");
-      for(i=0; i<N; i++)
+      for(i=0; i<n; i++)
 	{
 	  if(phi1[i] == 0.0)
 	    continue;
@@ -327,7 +331,7 @@ void debug_filer (char* path,eventtype_t *h, float *phi1, float *phi2, int time)
 	  u++;	  	 
 	}
       fprintf(fid, "\n\n PHI 2 MASK \n\n");
-      for(i=0; i<N; i++)
+      for(i=0; i<n; i++)
 	{
 	  if(phi2[i]==0)
 	    continue;

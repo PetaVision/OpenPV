@@ -8,12 +8,12 @@
 /**
  * Dumps output to path, extension must be added
  */
-void pv_dump(char*, float, float, float[], float[], float[], float[]);
+void pv_dump(char*, int, float, float, float[], float[], float[], float[]);
 
-void ps_image(char*, float, float, float, float[], float[], float[], float[]);
+void ps_image(char*, int, float, float, float, float[], float[], float[], float[]);
 
 void pv_output(char* path, float threshold, float x0, float y0,
-	      float x[], float y[], float o[], float I[])
+	       float x[], float y[], float o[], float I[], int n)
 {
   char* filename;
   int path_len = strlen(OUTPUT_PATH) + 1 + strlen(path);
@@ -30,7 +30,7 @@ void pv_output(char* path, float threshold, float x0, float y0,
   strncat(filename, "/", 2);
   strcat(filename, path);
   strncat(filename, ".ps", 4);
-  ps_image(filename, threshold, x0, y0, x, y, o, I);
+  ps_image(filename, n, threshold, x0, y0, x, y, o, I);
 #endif
 
 #if defined(OUTPUT_BIN)
@@ -38,25 +38,37 @@ void pv_output(char* path, float threshold, float x0, float y0,
   strncat(filename, "/", 2);
   strcat(filename, path);
   strncat(filename, ".bin", 5);
-  pv_dump(filename, x0, y0, x, y, o, I);
+  pv_dump(filename, n, x0, y0, x, y, o, I);
 #endif
 
   free(filename);
 }
 
 
-void pv_dump(char* filename, float x0, float y0,
+void pv_dump(char* filename, int n, float x0, float y0,
 	     float x[], float y[], float o[], float I[])
 {
   FILE* fd = fopen(filename, "ab");
-  if (fd != NULL) {
-	fwrite( I, sizeof(float), N, fd );
-	fclose(fd);
-  }
+  if (fd != NULL)
+    {
+   /*    int k, i; */
+   /*    float *Inew;  */
+/*       Inew =(float*) malloc((N/NK)*sizeof(float));  */
+/*       for(i = 0; i<N; i+=NK)  */
+/* 	{  */
+/* 	  Inew[(i/NK)]=0;  */
+/* 	  for( k = 0; k < NK; k++)  */
+/* 	    {  */
+/* 	      Inew[(i/NK)]+= I[i+k]/NK;  */
+/* 	    }  */
+/* 	}  */
+      fwrite( I, sizeof(float), n , fd );
+      fclose(fd);
+    }
 }
 
-
-void ps_image(char* filename, float threshold, float x0, float y0,
+  
+void ps_image(char* filename, int n, float threshold, float x0, float y0,
 	      float x[], float y[], float o[], float I[])
 {
   int i;
@@ -69,7 +81,7 @@ void ps_image(char* filename, float threshold, float x0, float y0,
   fprintf(fd, "newpath\n\n");
   fprintf(fd, "10 pix 20 pix translate\n\n");
 
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < n; i++) {
     if (I[i] >= threshold) {
       //      if (i == 27885) {
       //	printf("ps_image: i = %d\n", i);
@@ -92,19 +104,19 @@ void ps_image(char* filename, float threshold, float x0, float y0,
 }
 
 
-void post(float threshold, float x0, float y0, float x[], float y[], float o[], float F[])
+void post(float threshold, int n,float x0, float y0, float x[], float y[], float o[], float F[])
 {
   FILE *fp;
   int j;
 
   fp = fopen("./pvout.dat", "w");
-  for (j = 0; j < N; j += 4) {
+  for (j = 0; j < n; j += 4) {
     fprintf(fp, "%6d:  %11.3f %11.3f %11.3f %11.3f\n", j,
 	    F[j], F[j+1], F[j+2], F[j+3]);
   }
   fclose(fp);
 
-  pv_output("output", threshold, x0, y0, x, y, o, F);
+  pv_output("output", threshold, x0, y0, x, y, o, F, n );
 }
 
 

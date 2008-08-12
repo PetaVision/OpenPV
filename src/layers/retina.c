@@ -14,12 +14,11 @@
  * 
  */
 
-PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
+PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no, int nk)
   {
     int k;
     float dx, dy, r, r2;
-
-    PVLayer* l = pv_new_layer(hc, index, nx, ny, no);
+    PVLayer* l = pv_new_layer(hc, index, nx, ny, no, nk);
 
     eventtype_t* f = l->f;
 
@@ -43,11 +42,16 @@ PVLayer* pv_new_layer_retina(PVHyperCol* hc, int index, int nx, int ny, int no)
 	    f[k] = (r < CLUTTER_PROB) ? I_MAX : 0.0;
 	  }
       }
-    else {
-      fread(f,sizeof(eventtype_t),l->n_neurons,input);
-      fclose(input);
-    }
-
+    else 
+      {
+	fread(f,sizeof(eventtype_t),l->n_neurons,input);
+      
+	for(k=0; k< l->n_neurons; k++)
+	  {
+	    f[k]=f[k]* I_MAX;
+	  }
+      }
+    fclose(input);
 return l;
   }
 

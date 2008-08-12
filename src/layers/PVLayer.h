@@ -20,12 +20,18 @@ typedef struct PVLayer_
     float* x;
     float* y;
     float* o;
-    
+    float* kappa;
+
     float* phi; /* potential for partial updates */
     float* V;   /* membrane potential */
     
     eventtype_t* f;       /* event mask */
 #ifdef INHIBIT_ON
+    int n_neuronsi;
+    float* xi;
+    float* yi;
+    float* oi;
+    float* phiII; /*potential for partial updates due to inhibition of inhibitory*/
     float* phi_h; /*potential for partial updates due to inhibition to Excite*/
     float* phi_i; /*potential for partial updates due to excitation of inhibitory*/
     float* phi_g; /*potential for partial updates due to gap junction(Inhib to Inhib)*/
@@ -41,7 +47,7 @@ typedef struct PVLayer_
 
 /* "Methods" */
 
-PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no);
+PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no, int nk);
 
 int pv_layer_send(PVLayer* l, int col_index);
 

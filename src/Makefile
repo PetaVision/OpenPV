@@ -45,6 +45,7 @@ mpi.o: arch/mpi/mpi.c
 clean:
 	rm -f *.o pv
 	rm -f ./output/*.ps ./output/*.bin ./output/*.txt
+	ls ./output
 
 tags:
 	ctags `find . -name "*.[ch]"`

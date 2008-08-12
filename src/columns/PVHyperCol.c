@@ -83,8 +83,8 @@ static int hc_init_layers(PVHyperCol* hc)
     hc->n_layers = 2;
 
     // TODO - fix the circular dependencies in PVHyperCol and PVLayer
-    hc->layer[0] = (struct PVLayer *) pv_new_layer_retina(hc, 0, NX, NY, NO);
-    hc->layer[1] = (struct PVLayer *) pv_new_layer_zucker(hc, 1, NX, NY, NO);
+    hc->layer[0] = (struct PVLayer *) pv_new_layer_retina(hc, 0, NX, NY, NO, NK);
+    hc->layer[1] = (struct PVLayer *) pv_new_layer_zucker(hc, 1, NX, NY, NO, NK);
     
     return 0;
   }
