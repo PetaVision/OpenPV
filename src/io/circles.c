@@ -51,11 +51,11 @@ int main(int argc, char* argv[])
 		oa= jjj*DTH;
 		for (jjjj= 0; jjjj<NK; jjjj++)
 		  {
-		    ka = jjj*DK;
+		    //ka = jjj*DK;
 		    x[p] = xa;
 		    o[p] = oa;
 		    y[p] = ya;
-		    kappa[p] = ka;
+		    // kappa[p] = ka;
 		    p++;
 		  }//jjjj<nk
               } // jjj < no
