@@ -4,19 +4,66 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
+#define  NUM_CIRC   1
 //#define PARTIAL_OUTPUT 1
+#define LOGINTPARM(paramfile, which) \
+    fprintf(paramfile, "%d %% %s\n", which, #which)
+#define INPUT_PARAMS_FILE "inparams.txt"   
 
+const float REL_POS_X0[NUM_CIRC]={1.0/2.0};
+const float REL_POS_Y0[NUM_CIRC]={1.0/2.0};
+const float REL_RADIUS[NUM_CIRC]={1.0/4.0};
+const char input_path[64] = "./input/circle1_";
+const int n= NX*NY*NO*NK;
+
+
+static void log_parameters(void)
+{
+    // Write our runtime parameters to a logfile, so that
+    // anyone using using the output can extract this
+    // information for analysis, rather than hardcoding.
+    char param_filename[MAX_FILENAME];
+    FILE *paramfile;
+    sprintf(param_filename,"%s%s", input_path, INPUT_PARAMS_FILE);
+
+    paramfile = fopen(param_filename,"w");
+
+    if (paramfile < 0) {
+        printf("Couldn't open parameter logfile. Aborting.\n");
+        exit(-1);
+    }
+
+    LOGINTPARM(paramfile,NUM_CIRC);
+   
+    fclose(paramfile);
+}
 
 int main(int argc, char* argv[])
   {
-    const int NUM_CIRC = 1;
-    const float REL_POS_X0[1]={1.0/2.0};
-    const float REL_POS_Y0[1]={1.0/2.0};
-    const float REL_RADIUS[1]={1.0/4.0};
-    const char input_path[64] = "./input/circle1_";
-    const int n= NX*NY*NO*NK;
+ 
     int comm_size=1;    
+    char removeCom[100];
+    char command;
+    command = (char)"c";
+    log_parameters();
+ 
+    /* if (argc == 1) */
+/*       { */
+/* 	printf("output may be contamentated check these files:\n"); */
+/* 	system("ls ./input"); */
+/*       }     */
+/*     else if( argv[1] == command) */
+/*       { */
+/* 	sprintf(removeCom, "rm %s", input_path); */
+/*     	strncat(removeCom, "*.bin", 6); */
+/*         system(removeCom); */
+/*       } */
+/*     else if( argv[1] != command) */
+/*       { */
+/* 	printf("Invalid argument:%s", argv[1]); */
+/* 	return 0; */
+/*       } */
 
     int k,i, kk, t, b;
     int uu= 0;
@@ -82,7 +129,12 @@ int main(int argc, char* argv[])
 
     //index string declaration
     char index[2];
-    
+   
+    //intialize u
+    for(i=0;i<NUM_CIRC;i++)
+      {
+	u[i]= 0;
+      }
 
     //file names
     strcpy(number_of_in, input_path);
@@ -98,61 +150,64 @@ int main(int argc, char* argv[])
     strncat(clutter_indices, ".bin", 5);
 
     //open num file and write out number of circles
-    FILE* num = fopen(number_of_in, "wb");
-    if(num==NULL)
+ /*    FILE* num = fopen(number_of_in, "wb"); */
+/*     if(num==NULL) */
       
-	printf("ERROR: FAILED TO OPEN NUMBER FILE");
+/* 	printf("ERROR: FAILED TO OPEN NUMBER FILE"); */
         
-    else fwrite(&NUM_CIRC, sizeof(int), 1 ,num);
-    
-    fclose(num);
+/*     else fprintf(num, "%d", NUM_CIRC);      */
+/*     fclose(num); */
     
     // open clutter indices file
     FILE* fclutter = fopen(clutter_indices, "wb");
     if(fclutter ==NULL)
       printf("ERROR: FAILED TO OPEN CLUTTER INDICES FILE");
-
-    //start for loop (am I on the circle or not)
-    for(i=0;i<NUM_CIRC;i++)
+    //first do clutter
+    for (k = 0; k <n ; k+= NO*NK)
       {
-	u[i]=0;
-	r_circle = NX*ncols * REL_RADIUS[i];
-	//kappaF = (1/r_circle);
-	r2_min = r_circle * r_circle * (1 - r_tolerance) * (1 - r_tolerance);
-	r2_max= r_circle * r_circle * (1 + r_tolerance) * (1 + r_tolerance);
-	
-	X0 = ncols*NX*REL_POS_X0[i];
-	
-	Y0 = nrows*NY*REL_POS_Y0[i];
-	
-	FILE* fo;
-	
-	sprintf(index,"%d",i);
-	strcpy(filename_circlein, input_path);
-	strncat(filename_circlein, "figure_",8);
-	strncat(filename_circlein, index, 2);
-	strncat(filename_circlein, ".bin", 5);
-	
-	fo = fopen(filename_circlein, "wb");
-	if (fo == NULL)
+	for ( t=0; t<NO*NK; t+=NK)
 	  {
-		printf ("ERROR: FAILED TO OPEN FIGURE FILE NO. %d",k);
-		continue;
-	  }
-		
-	for (k = 0; k <n ; k+= NO*NK)
-	  {
-	    for ( t=0; t<NO*NK; t+=NK)
+	    
+	    for (qi=0; qi<NK; qi++)
 	      {
-	 	
-		for (qi=0; qi<NK; qi++)
+		b = k+t+qi;
+		/* turn on random edges */
+		r = rand() * INV_RAND_MAX;
+		f[b] = (r < clutter_prob) ? 1.0 : 0.0;
+		xc = x[b] + x0;
+		yc = y[b] + y0;
+
+    
+    
+		//then start for loop (am I on the circle or not)
+		for(i=0;i<NUM_CIRC;i++)
 		  {
-		    b = k+t+qi;
-		    /* turn on random edges */
-		    r = rand() * INV_RAND_MAX;
-		    f[b] = (r < clutter_prob) ? 1.0 : 0.0;
-		    xc = x[b] + x0;
-		    yc = y[b] + y0;
+		  
+		    r_circle = NX*ncols * REL_RADIUS[i];
+		    //kappaF = (1/r_circle);
+		    r2_min = r_circle * r_circle * (1 - r_tolerance) * (1 - r_tolerance);
+		    r2_max= r_circle * r_circle * (1 + r_tolerance) * (1 + r_tolerance);
+		    
+		    X0 = ncols*NX*REL_POS_X0[i];
+		    
+		    Y0 = nrows*NY*REL_POS_Y0[i];
+		    
+		    FILE* fo;
+		    
+		    sprintf(index,"%d",i);
+		    strcpy(filename_circlein, input_path);
+		    strncat(filename_circlein, "figure_",8);
+		    strncat(filename_circlein, index, 2);
+		    strncat(filename_circlein, ".bin", 5);
+		    
+		    fo = fopen(filename_circlein, "ab");
+		    if (fo == NULL)
+		      {
+			printf ("ERROR: FAILED TO OPEN FIGURE FILE NO. %d",k);
+			continue;
+		      }
+		    
+		    ;
 		    
 		    /* turn on circle pixels */
 		    dx = (xc - X0);
@@ -183,20 +238,14 @@ int main(int argc, char* argv[])
 			fwrite(&k, sizeof(int),1, fclutter);
 			uu++;
 		      }
-		     e=0;
+		    e=0;
+		    //close circle indices file
+		    fclose(fo);
 		  }
 	      }
-	   
-	   
 	  }
-	
-	
-	//close circle indices file
-	fclose(fo);
-	
-	
-	  }
-	
+      }
+    
     //close clutter file
     fclose(fclutter);
 
@@ -215,7 +264,7 @@ int main(int argc, char* argv[])
     printf("u1 = %d\n",u[0]);
 
     //open the num file and write the number of indices for each thing (clutter and circles)
-    FILE* fnum = fopen(number_of_in, "ab");
+    FILE* fnum = fopen(number_of_in, "wb");
     if (fnum!= NULL)
       {
 	fwrite(&uu, sizeof(int),1, fnum);
@@ -225,11 +274,11 @@ int main(int argc, char* argv[])
 	    fwrite(&u[i], sizeof(int), 1, fnum);
 	  
 	  }
-	fclose(num);
+	fclose(fnum);
       }   
 
     //Tell the user to go look at results
-    printf("Please see input path for file results.");
+    printf("Please see input path for file results.\n");
     return 0;
   } 
 

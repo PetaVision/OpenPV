@@ -93,7 +93,7 @@
 #define SIG_I_D_x2        (2*2.0*2.0)            // sigma (square and time 2) for inhibition to exicititory connections 
 #define SIG_I_P_x2        (2*1.0*DTH*DTH)        
 #define INHIB_R2          4.0*4.0*(DX*DX+DY*DY)  //square of radius of inhibition
-#define SCALE_INH        (-100.0*WEIGHT_SCALE)
+#define SCALE_INH        (-125.0*WEIGHT_SCALE)
 #define INHIB_FRACTION_I  0.8                    // fraction of inhibitory connections
 #define INHIBIT_SCALE_I	  0*1.0	                 // reduce inhibition (w < 0) by this amount
 /**********************************************************************************************************/
