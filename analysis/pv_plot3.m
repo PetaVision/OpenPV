@@ -27,6 +27,10 @@ DTH  = params(6);
 n_time_steps = params(7);
 %input_filenae = params(8);
 %DK= 1/(sqrt(2)*(NK-1));
+
+load([input_path, 'inparams.txt'], '-ascii')
+num_fig = circle1_inparams(1);
+
 Ni= N/NK;
 
 %read spike events
@@ -120,14 +124,14 @@ num_filename = [input_path, num_filename];
 %disp (num_filename);
 if exist (num_filename, 'file');
     fid= fopen(num_filename,'r', 'native');
-    num_fig= fread(fid, 1, 'int');
+    %num_fig= fread(fid, 1, 'int');
     clutter_ind = fread(fid, 1, 'int');
     num_indices = fread(fid, num_fig,'int');
     fclose(fid);
 end
 
 %read indices of objects
-figure_ndx= cell(1,num_fig);
+figure_ndx= cell(num_fig,1);
 figure_ndxi= figure_ndx;
 for i_fig = 0:num_fig-1
     numstr = int2str(i_fig);
@@ -268,8 +272,25 @@ for i_fig=1:num_fig
     crosscorr = xcorr(figurePSTH, cPSTH, maxlag, 'unbiased');
     crosscorr = (crosscorr - mean(cPSTH)*mean(figurePSTH))/(mean(cPSTH)*mean(figurePSTH));  
     plot((-maxlag:maxlag)*bin_size, crosscorr, '--k');
-    axis tight
+    hold on
+    if i_fig ~= num_fig
+        for j_fig=i_fig+1:num_fig
 
+            plot_title = ['Cross correlation functions for objects ',int2str(i_fig)];
+            plot_title = [plot_title,' and '];
+            plot_title = [plot_title, int2str(j_fig)];
+            figure('Name',plot_title);
+            figure2PSTH = 1000 * sum(spike_array{1}(:,figure_ndx{j_fig}),2)/length(figure_ndx{j_fig});
+            figure2PSTHi = 1000 * sum(spike_array{2}(:,figure_ndxi{i_fig}),2)/length(figure_ndxi{i_fig});
+            crosscorr=xcorr(figurePSTH,figure2PSTH);
+            plot(crosscorr,'-r');
+            %hold on
+            %cosscorri=xcorr(figurePSTHi,figure2PSTHi);
+            % plot(crosscorri,'-r');
+
+        end
+    end
+    axis tight
     % cross corr fo figure with clutter
     %     plot_title = ['Crosscorrelation function for object ',int2str(i_fig)];
     %     figure('Name',plot_title);
@@ -330,23 +351,7 @@ for i_fig=1:num_fig
         %             hold on
         %         end
     end
-    if i_fig ~= num_fig
-        for j_fig=i_fig+1:num_fig
-            figure;
-            plot_title = ['Cross correlation functions for objects ',int2str(i_fig)];
-            plot_title = [plot_title,' and '];
-            plot_title = [plot_title, int2str(j_fig)];
-            figure('Name',plot_title);
-            figure2PSTH = 1000 * sum(spike_array{1}(:,figure_ndx{j_fig}),2)/length(figure_ndx{j_fig});
-            figure2PSTHi = 1000 * sum(spike_array{2}(:,figure_ndxi{i_fig}),2)/length(figure_ndxi{i_fig});
-            crosscorr=xcorr(figurePSTH,figure2PSTH);
-            plot(crosscorr,'-k');
-            hold on
-            cosscorri=xcorr(figurePSTHi,figure2PSTHi);
-            plot(crosscorri,'-r');
-            axis tight
-        end
-    end
+ 
 end
 
 
