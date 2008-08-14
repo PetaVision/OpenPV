@@ -4,16 +4,17 @@ clear all
 
 % set simulation parameters
 
-begin_step = 40;%201;%
+begin_step = 41;%201;%
 
 
 %output_path = 'C:\cygwin\home\gkenyon\syn_cogn\output\';
 %output_path = 'C:\cygwin\home\gkenyon\PetaVision\src\output\';
 
-output_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\output\';
-input_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\io\input\circle1_';
+% output_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\output\';
+% input_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\io\input\circle1_';
 %output_path = 'C:\Users\admin\linux\petavision\trunk\src\output\'; % Dan
-%output_path = 'C:\cygwin\home\gkenyon\trunk\src\output\';
+output_path = 'C:\cygwin\home\gkenyon\PetaVision\trunk\src\output\';
+input_path = 'C:\cygwin\home\gkenyon\PetaVision\trunk\src\io\input\circle1_';
 
 
 % Read parameters from file which pv created
@@ -152,6 +153,7 @@ clutter_filename = 'clutter.bin';
 clutter_filename = [input_path, clutter_filename];
 cfid= fopen(clutter_filename, 'r', 'native');
 clutter_index = fread (cfid, clutter_ind, 'int');
+clutter_index = clutter_index + 1;
 fclose(cfid);
 
 
@@ -167,6 +169,10 @@ for i_fig=1:num_fig
         (length(figure_ndxi{i_fig})* size(spike_array{i_fig},1));
     disp(['figure',num2str(i_fig),'rate{2} =', num2str(figure_ratei)]);
 end
+clutter_rate = ...
+    1000 * sum(sum(spike_array{1}(:,clutter_index))) / ...
+    (length(clutter_index) * size(spike_array{1},1) );
+disp(['clutter_rate = ', num2str(clutter_rate)]);
 
 
 
@@ -199,21 +205,21 @@ if ~isempty(spike_array{1})
 end
 
 %plot PSTH for just clutter first
-plot_title = ['Histogram for clutter'];
-figure('Name',plot_title);
-cPSTH = 1000 * sum(spike_array2{1},2)/(N*bin_size);
-lh = plot(cPSTH, '-k');
-set(lh, 'LineWidth', 2);
-axis tight
+% plot_title = ['Histogram for clutter'];
+% figure('Name',plot_title);
+cPSTH = 1000 * sum(spike_array2{1}(:,clutter_index),2)/(length(clutter_index)*bin_size);
+% lh = plot(cPSTH, '-k');
+% set(lh, 'LineWidth', 2);
+% axis tight
 
 %plot autocorr for clutter
-plot_title = ['Autocorrelation function for clutter '];
-figure('Name',plot_title);
-maxlag= fix(n_steps/(2*bin_size));
-autocorrc=xcorr(cPSTH, maxlag, 'unbiased');
-autocorrc= (autocorrc- mean(cPSTH)^2)/(mean(cPSTH)+(mean(cPSTH)==0));
-plot((-maxlag:maxlag)*bin_size, autocorrc, '-k');
-axis([-maxlag*bin_size,maxlag*bin_size, min(autocorrc(:)), max(autocorrc(:))+(max(autocorrc(:))==0)]);
+% plot_title = ['Autocorrelation function for clutter '];
+% figure('Name',plot_title);
+% maxlag = fix(n_steps/(2*bin_size));
+% autocorrc = xcorr(cPSTH, maxlag, 'unbiased');
+% autocorrc = ( autocorrc - mean(cPSTH)^2 ) / (mean(cPSTH)+(mean(cPSTH)==0))^2;
+% plot((-maxlag:maxlag)*bin_size, autocorrc, '-k');
+% axis([-maxlag*bin_size,maxlag*bin_size, min(autocorrc(:)), max(autocorrc(:))+(max(autocorrc(:))==0)]);
 
 %clutter power spectrum
 % plot_title = ['Power spectrum for clutter '];
@@ -230,12 +236,13 @@ for i_fig=1:num_fig
     if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
         plot_title = ['Histogram for object ',int2str(i_fig)];
         figure('Name',plot_title);
+        lh = plot((1:bin_size:n_steps),cPSTH, '-b');
+        axis tight
+        hold on
         if ~isempty(spike_array{1})
             mPSTH = 1000 * sum(spike_array2{1},2)/(N*bin_size);
             lh = plot((1:bin_size:n_steps),mPSTH, '--k');
             set(lh, 'LineWidth', 2);
-            hold on
-            axis tight
             figurePSTH = ...
                 1000 * sum(spike_array2{1}(:,figure_ndx{i_fig}),2)/(length(figure_ndx{i_fig})*bin_size);
             plot((1:bin_size:n_steps),figurePSTH, '-k');
@@ -260,22 +267,22 @@ for i_fig=1:num_fig
     figure('Name',plot_title);
     maxlag= fix(n_steps/(2*bin_size));
 
-    autocorr=xcorr(figurePSTH, maxlag, 'unbiased');
-    autocorri=xcorr(figurePSTHi, maxlag, 'unbiased');
-    autocorr= (autocorr- mean(figurePSTH)^2)/(mean(figurePSTH)+(mean(figurePSTH)==0));
-    autocorri= (autocorri- mean(figurePSTHi)^2)/(mean(figurePSTHi)+(mean(figurePSTHi)==0));
+    autocorr = xcorr( figurePSTH, maxlag, 'unbiased' );
+    autocorri = xcorr( figurePSTHi, maxlag, 'unbiased' );
+    autocorr = ( autocorr - mean(figurePSTH)^2 ) / (mean(figurePSTH)+(mean(figurePSTH)==0))^2;
+    autocorri = ( autocorri - mean(figurePSTHi)^2 ) / (mean(figurePSTHi)+(mean(figurePSTHi)==0))^2;
     plot((-maxlag:maxlag)*bin_size, autocorr, '-k');
     hold on
     plot((-maxlag:maxlag)*bin_size, autocorri, '-r');
     axis([-maxlag*bin_size,maxlag*bin_size, min(autocorr(:)), max(autocorr(:))+(max(autocorr(:))==0)]);
     hold on
     crosscorr = xcorr(figurePSTH, cPSTH, maxlag, 'unbiased');
-    crosscorr = (crosscorr - mean(cPSTH)*mean(figurePSTH))/(mean(cPSTH)*mean(figurePSTH));  
+    crosscorr = ( crosscorr - mean(cPSTH)*mean(figurePSTH) ) / ...
+        ( mean(cPSTH)*mean(figurePSTH) + (mean(cPSTH)*mean(figurePSTH) == 0 ));  
     plot((-maxlag:maxlag)*bin_size, crosscorr, '--k');
     hold on
     if i_fig ~= num_fig
         for j_fig=i_fig+1:num_fig
-
             plot_title = ['Cross correlation functions for objects ',int2str(i_fig)];
             plot_title = [plot_title,' and '];
             plot_title = [plot_title, int2str(j_fig)];
@@ -287,7 +294,6 @@ for i_fig=1:num_fig
             %hold on
             %cosscorri=xcorr(figurePSTHi,figure2PSTHi);
             % plot(crosscorri,'-r');
-
         end
     end
     axis tight
@@ -321,7 +327,6 @@ for i_fig=1:num_fig
 
     % plot power spectrum of mPSTH
     if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
-
         plot_title = ['Power spectrum for object ',int2str(i_fig)];
         figure('Name',plot_title);
         freq = 1000*(0:n_steps-1)/n_steps;
@@ -351,7 +356,6 @@ for i_fig=1:num_fig
         %             hold on
         %         end
     end
- 
 end
 
 
@@ -437,115 +441,155 @@ end
 
 %%
 %reconstrunction using oscillations
-% if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
-%     figure;
-%     if ~isempty(spike_array2{1})
-%         mPSTH_array = 1000 * spike_array2{1} / ( n_steps );
-%         fftmPSTH_array = fft(mPSTH_array);
-%         size(fftmPSTH_array);
-%         peakPowerSpec= max(fftmPSTH_array);
-%         sizem= size(peakPowerSpec);
-%         avePeakPower= sum(peakPowerSpec,2)/(sizem(2));
-%         maxPower = max(peakPowerSpec(2));
-%         edge_len = sqrt(2)/2;
-%         max_line_width = 3;
-%         axis([-1 NX -1 NY]);
-%         axis square
-%         box ON
-%         hold on;
-%         peakPowerSpec3D = reshape(peakPowerSpec(2), [NK, NO, NX, NY]);
-%         for i_k = 1:NK
-%             for i_theta = 0:NO-1
-%                 delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
-%                 delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
-%                 for i_x = 1:NX
-%                     for i_y = 1:NY
-%                         if  peakPowerSpec3D(i_k, i_theta+1,i_x,i_y) < avePeakPower
-%                             continue;
-%                         end
-%                         lh = line( [i_x - delta_x, i_x + delta_x]', ...
-%                             [i_y - delta_y, i_y + delta_y]' );
-%                         line_width = 0.05 + ...
-%                             max_line_width * peakPowerSpec3D( i_k, i_theta+1,i_x,i_y) / ...
-%                             max(1000/(N*n_steps), maxPower);
-%                         set( lh, 'LineWidth', line_width );
-%                         line_color = 1 - peakPowerSpec3D( i_k, i_theta+1,i_x,i_y) / ...
-%                             max(1000/(N*n_time_steps), maxPower);
-%                         set( lh, 'Color', line_color*[1 1 1]);
-%                     end
-%                 end
-%             end
-%         end
-%     end
-% end
-% if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
-%     figure;
-%     if ~isempty(spike_array2{1})
-%         mPSTH_array = 1000 * spike_array2{1} / ( n_steps );
-%         fftmPSTH_array = fft(mPSTH_array);
-%         size(fftmPSTH_array);
-%         freq = 1000*(0:n_steps-1)/n_steps;
-%         min_ndx = find(freq > 400, 1,'first');
-%         peakPowerSpec= max(fftmPSTH_array);
-%         sizem= size(peakPowerSpec);
-%         avePeakPower= sum(peakPowerSpec,2)/(sizem(2));
-%         for q = 1:N
-%             if  peakPowerSpec(q) < avePeakPower
-%                 continue;
-%                 plot(freq(2:min_ndx),...
-%                     abs(fftmPSTH_array(2:min_ndx,q))/max(1,abs(fftmPSTH_array(:,q))), '-k');
-%                 
-%             end
-%         end
-%     end
-% end
-%     plotinhibit = 1;
-%     if plotinhibit==1
-% 
-%         if ~isempty(spike_array{2})
-%             figure
-%             edge_len = sqrt(2)/2;
-%             max_line_width = 3;
-%             axis([-1 NX -1 NY]);
-%             axis square
-%             box ON
-%             hold on;
-%             rate_arrayi = 1000 * sum(spike_array{2},1) / ( n_time_steps );
-%             max_ratei = max(rate_arrayi(:));
-%             rate3Di = reshape(rate_arrayi, [NO, NX, NY]);
-% 
-%             for i_theta = 0:NO-1
-%                 delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
-%                 delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
-%                 for i_x = 1:NX
-%                     for i_y = 1:NY
-%                         if rate3Di(i_theta+1,i_x,i_y) <= ave_ratei
-%                             continue;
-%                         end
-%                         lh = line( [i_x - delta_x, i_x + delta_x]', ...
-%                             [i_y - delta_y, i_y + delta_y]' );
-%                         line_width = 0.05 + ...
-%                             max_line_width * rate3Di(i_theta+1,i_x,i_y) /  ...
-%                             max(1000/(Ni*n_time_steps), max_ratei);
-%                         %if (line_width < 0.0)
-%                         %   line_width = 0.0;
-%                         set( lh, 'LineWidth', line_width );
-%                         line_color = 1 - rate3Di(i_theta+1,i_x,i_y) /  ...
-%                             max(1000/(Ni*n_time_steps), max_ratei);
-%                         set( lh, 'Color', line_color*[1 0 0]);
-%                     end
-%                 end
-%             end
-%         end
-%     end
-%end
+if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
+    if ~isempty(spike_array{1})
+        figure;
+        num_steps_excite = size(spike_array{1},1);
+        freq_excite = 1000*(0:num_steps_excite-1)/num_steps_excite;
+        min_ndx = find(freq_excite >= 60, 1,'first');
+        max_ndx = find(freq_excite <= 90, 1,'last');
+        fft_array = abs(fft(spike_array{1})).^2;
+        peak_power= max(fft_array(min_ndx:max_ndx,:));
+        %peak_power = peak_power ./ (fft_array(1,:) + (fft_array(1,:)==0));
+        edge_len = sqrt(2)/2;
+        max_line_width = 3;
+        axis([-1 NX -1 NY]);
+        axis square
+        box ON
+        hold on;
+        ave_power = mean(peak_power(:));
+        max_power = max(peak_power(:));
+        peak_power = reshape(peak_power, [NK, NO, NX, NY]);
+        for i_k = 1:NK
+            for i_theta = 0:NO-1
+                delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
+                delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
+                for i_x = 1:NX
+                    for i_y = 1:NY
+                        if  peak_power(i_k, i_theta+1,i_x,i_y) < ave_power
+                            continue;
+                        end
+                        lh = line( [i_x - delta_x, i_x + delta_x]', ...
+                            [i_y - delta_y, i_y + delta_y]' );
+                        line_width = 0.05 + ...
+                            max_line_width * peak_power( i_k, i_theta+1,i_x,i_y) / ...
+                            ((max_power==0) + max_power);
+                        set( lh, 'LineWidth', line_width );
+                        line_color = 1 - peak_power( i_k, i_theta+1,i_x,i_y) / ...
+                            ((max_power==0) + max_power);
+                        set( lh, 'Color', line_color*[1 1 1]);
+                    end
+                end
+            end
+        end
+    end
+    if ~isempty(spike_array{2})
+        figure;
+        num_steps_inhibit = size(spike_array{2},1);
+        freq_inhibit = 1000*(0:num_steps_inhibit-1)/num_steps_inhibit;
+        min_ndx = find(freq_inhibit >= 60, 1,'first');
+        max_ndx = find(freq_inhibit <= 90, 1,'last');
+        fft_array_inhibit = abs(fft(spike_array{2})).^2;
+        peak_power_inhibit= max(fft_array_inhibit(min_ndx:max_ndx,:));
+        %peak_power = peak_power_inhibit ./ (fft_array_inhibit(1,:) + (fft_array_inhibit(1,:)==0));
+        edge_len = sqrt(2)/2;
+        max_line_width = 3;
+        axis([-1 NX -1 NY]);
+        axis square
+        box ON
+        hold on;
+        ave_power_inhibit = mean(peak_power_inhibit(:));
+        max_power_inhibit = max(peak_power_inhibit(:));
+        peak_power_inhibit = reshape(peak_power_inhibit, [NO, NX, NY]);
+        for i_theta = 0:NO-1
+            delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
+            delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
+            for i_x = 1:NX
+                for i_y = 1:NY
+                    if  peak_power_inhibit(i_theta+1,i_x,i_y) < ave_power_inhibit
+                        continue;
+                    end
+                    lh = line( [i_x - delta_x, i_x + delta_x]', ...
+                        [i_y - delta_y, i_y + delta_y]' );
+                    line_width = 0.05 + ...
+                        max_line_width * peak_power_inhibit( i_theta+1,i_x,i_y) / ...
+                        ((max_power_inhibit==0) + max_power_inhibit);
+                    set( lh, 'LineWidth', line_width );
+                    line_color = 1 - peak_power_inhibit( i_theta+1,i_x,i_y) / ...
+                        ((max_power_inhibit==0) + max_power_inhibit);
+                    set( lh, 'Color', line_color*[1 1 1]);
+                end
+            end
+        end
+    end
+end
 
+rate_mask = find(rate3D > ave_rate);
+power_mask = find(peak_power > ave_power);
+%power_mask = rate_mask;
+num_mask = length(power_mask);
+num_steps_corr = size(spike_array{1},1);
+maxlag= fix(num_steps_corr/4);
+pack
+sparse_corr = xcorr( spike_array{1}(:,power_mask), maxlag, 'unbiased' );
+sparse_corr = abs(fft(sparse_corr));
+freq_xcorr = 1000*(0:(2*maxlag))/(2*maxlag+1);
+min_ndx = find(freq_xcorr >= 60, 1,'first');
+max_ndx = find(freq_xcorr <= 90, 1,'last');
+sparse_corr = max(sparse_corr(min_ndx:max_ndx,:));
+sparse_row_ndx = repmat(power_mask,1,num_mask)';
+sparse_row_ndx = sparse_row_ndx(:);
+sparse_col_ndx = repmat(power_mask,num_mask,1);
+sparse_col_ndx = sparse_col_ndx(:);
+sparse_corr = sparse_corr - mean(sparse_corr(:));
+sparse_corr = sparse(sparse_row_ndx, sparse_col_ndx, sparse_corr, N, N, num_mask^2);
+sparse_corr = 0.5 * (sparse_corr + sparse_corr');
+options.issym = 1;
+num_eigen = 1;
+options.v0 = peak_power(:);
+[eigen_vec,eigen_value, eigen_flag] = eigs(sparse_corr, num_eigen, 'lm', options);
+for i_vec = 1:num_eigen
+    figure;
+    edge_len = sqrt(2)/2;
+    max_line_width = 3;
+    axis([-1 NX -1 NY]);
+    axis square
+    box ON
+    hold on;
+    largest_eigen_vec = reshape(eigen_vec(:,i_vec), [NK, NO, NX, NY]);
+    if mean(eigen_vec(power_mask,i_vec)) < 0
+        largest_eigen_vec = -largest_eigen_vec;
+    end
+    max_eigen = max(largest_eigen_vec(:));
+    for i_k = 1:NK
+        for i_theta = 0:NO-1
+            delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
+            delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
+            for i_x = 1:NX
+                for i_y = 1:NY
+                    if  largest_eigen_vec(i_k, i_theta+1,i_x,i_y) <= 0
+                        continue;
+                    end
+                    lh = line( [i_x - delta_x, i_x + delta_x]', ...
+                        [i_y - delta_y, i_y + delta_y]' );
+                    line_width = 0.05 + ...
+                        max_line_width * largest_eigen_vec( i_k, i_theta+1,i_x,i_y) / ...
+                        ((max_eigen==0) + max_eigen);
+                    set( lh, 'LineWidth', line_width );
+                    line_color = 1 - largest_eigen_vec( i_k, i_theta+1,i_x,i_y) / ...
+                        ((max_eigen==0) + max_eigen);
+                    set( lh, 'Color', line_color*[1 1 1]);
+                end
+            end
+        end
+    end
+end
 
 
 % plot maximum stimulated membrane potential
 if ~isempty(spike_array2{1}) || ~isempty(spike_array2{2})
     figure
-    offset_id = 2*NK;
+    offset_id = 0;%2*NK;
     if ~isempty(spike_array2{1})
         [max_vmem, max_id] = max(rate_array);
         max_id = max_id+offset_id;
