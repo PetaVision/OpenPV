@@ -1,60 +1,142 @@
-#ifndef PV_LAYER_H_
-#define PV_LAYER_H_
+/*
+ * HyPerLayer.h
+ *
+ *  Created on: Jul 29, 2008
+ *
+ */
 
-#include <columns/PVHyperCol.h>
+#ifndef HYPERLAYER_H_
+#define HYPERLAYER_H_
+
+#include "../include/pv_common.h"
+#include "elementals.h"
+
+typedef enum {
+   TypeGeneric,
+   TypeRetina,
+   TypeV1Simple,
+   TypeV1Simple2,
+   TypeV1FlankInhib,
+   TypeV1FeedbackInhib,
+   TypeV1Feedback2Inhib,
+   TypeV1SurroundInhib
+} PVLayerType;
 
 /**
- * A PVLayer is a collection of neurons of a specific class 
+ * PVLayer is a collection of neurons of a specific class
  */
-typedef struct PVLayer_
-  {
-    int index;          /* index of layer */
-    int n_neurons;      /* number of neurons in layer */
+typedef struct PVLayer_ {
+   int layerId;    // unique ID that identifies this layer in column
+   int columnId;   // column ID
+   int numNeurons; // # neurons in this layer
+   int numFeatures;// # features in this layer
+   int numActive;  // # neurons that fired
+   int numBorder;  // # extra neurons extended on any side for border regions
 
-    PVHyperCol* parent;
-    
-    struct PVLayer* layer_up;  /* pointer to layer below */
-    struct PVLayer* layer_dn;  /* pointer to layer above */
+   PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
 
-    /* location and orientation */
-    float* x;
-    float* y;
-    float* o;
-    float* kappa;
+   char * name;
 
-    float* phi; /* potential for partial updates */
-    float* V;   /* membrane potential */
-    
-    eventtype_t* f;       /* event mask */
-#ifdef INHIBIT_ON
-    int n_neuronsi;
-    float* xi;
-    float* yi;
-    float* oi;
-    float* phiII; /*potential for partial updates due to inhibition of inhibitory*/
-    float* phi_h; /*potential for partial updates due to inhibition to Excite*/
-    float* phi_i; /*potential for partial updates due to excitation of inhibitory*/
-    float* phi_g; /*potential for partial updates due to gap junction(Inhib to Inhib)*/
-    float* H;     /*inhibitory membrane potential*/
-    eventtype_t* h;   /*inhibitory event mask*/    
-    eventtype_t* inhib_buffer[INHIB_DELAY]; /*inhibition delay buffer*/
-    int buffer_index_get;
-    int buffer_index_put;
+   PVLayerLoc loc;
+   int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
+   float xOrigin, yOrigin; // origin of the layer (depends on iCol)
 
+   // Output activity buffers -- a ring buffer to implement delay
+   // TODO - get rid of this, belongs in connection?
+   int numDelayLevels; // # of delay levels for activity buffers
+   int writeIdx; // which one currently writing to
+
+   PVLayerCube * activity;  // activity buffer FROM this layer
+   int * activeIndices;     // indices of neurons that fired
+
+   pvdata_t * V;    // membrane potential
+   pvdata_t * Vth;
+
+   pvdata_t ** G;    // master pointer to all variable conductances (one for each phi)
+   pvdata_t *  G_E;  // fast exc conductance (convenience pointer to G[PHI_EXC])
+   pvdata_t *  G_I;  // fast inh conductance (convenience pointer to G[PHI_INH])
+   pvdata_t *  G_IB; // slow inh (GABAB) conductance (    pointer to G[PHI_INHB])
+
+   int numPhis; // how many membrane updates we have
+   pvdata_t ** phi; // membrane update
+
+   int numParams;
+   float * params; // layer-specific parameters
+   int (* updateFunc)(struct PVLayer_ * l);
+   int (* initFunc)(struct PVLayer_ * l); // this is called (if it exists) just after the params are set
+
+} PVLayer;
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-  } PVLayer;
+PVLayer * pvlayer_new(const char * name, int xScale, int yScale,
+                      int nx, int ny, int numFeatures, int nBorder);
+int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
+                 int nx, int ny, int numFeatures, int nBorder);
+int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
+int pvlayer_initFinish(PVLayer * l);
+int pvlayer_finalize(PVLayer * l);
 
-/* "Methods" */
+int pvlayer_copyUpdate(PVLayer * l);
 
-PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no, int nk);
+// static, hopefully fast, routines:
 
-int pv_layer_send(PVLayer* l, int col_index);
+static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float * kf)
+{
+   *x = xPos(k, l->xOrigin, l->loc.dx, l->loc.nx, l->loc.ny, l->numFeatures);
+   *y = yPos(k, l->yOrigin, l->loc.dy, l->loc.nx, l->loc.ny, l->numFeatures);
+   *kf = featureIndex(k, l->loc.nx, l->loc.ny, l->numFeatures);
 
-int pv_layer_begin_update(PVLayer* l, int neighbor_index, int time_index);
+   return 0;
+}
 
-int pv_layer_add_feed_forward(PVLayer* l, PVLayer* llow, int neighbor_index, int time_index);
+static inline int pvlayer_getIndex(PVLayer * l, float * pos, int * idx)
+{
+   float ky;
+   float kx;
 
-int pv_layer_finish_update(PVLayer* l, int time_index);
+   ky = pos[DIMY] / l->loc.dy - 0.5;
+   kx = pos[DIMX] / l->loc.dx - 0.5;
+   ky -= l->yOrigin;
+   kx -= l->xOrigin;
 
-#endif /*PV_LAYER_H_*/
+   // See if out of bounds of this patch
+   if (ky < 0 || ky >= l->loc.ny) return -1;
+
+   *idx = (int) (ky * (l->loc.nx * l->numFeatures) + kx * (l->numFeatures) + pos[DIMO]);
+
+   return 0;
+}
+
+float pvlayer_getWeight(float x0, float x, float r, float sigma);
+float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nxPatch);
+
+int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * params);
+int pvlayer_getParams(PVLayer * l, int * numParams, float ** params);
+int pvlayer_setFuncs (PVLayer * l, void * updateFunc, void * initFunc);
+
+PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
+int           pvcube_delete(PVLayerCube * cube);
+int           pvcube_setAddr(PVLayerCube * cube);
+
+PVPatch * pvpatch_new(int nx, int ny, int nf);
+int       pvpatch_delete(PVPatch * p);
+
+int pvpatch_accumulate(int nk, float * v, float a, float * w);
+
+int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
+                                   float aj, float decay, float fac);
+int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float * RESTRICT p,
+                           float * RESTRICT ai, float aj, float decay, float dWmax,
+                           float decayIncr, float facIncr,
+                           float decayDecr, float facDecr);
+
+int pvlayer_outputState(PVLayer * l); // default implementation: stats and activity files
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* HYPERLAYER_H_ */

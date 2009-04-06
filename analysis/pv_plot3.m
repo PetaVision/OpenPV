@@ -4,18 +4,22 @@ clear all
 
 % set simulation parameters
 
-begin_step = 41;%201;%
+begin_step = 21;%201;%
 
+if (ispc)
+    output_path = '..\src\output\';
+    input_path =  '..\src\io\input\t64_';
+    tiff_path =   '..\src\io\input\amoeba2X.tif';
+else
+    output_path = '../src/output/';
+    input_path =  '../src/io/input/t64_';
+    tiff_path =   '../src/io/input/amoeba2X.tif';
+end
 
-%output_path = 'C:\cygwin\home\gkenyon\syn_cogn\output\';
-%output_path = 'C:\cygwin\home\gkenyon\PetaVision\src\output\';
-
-% output_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\output\';
-% input_path = 'C:\cygwin\home\dave\petavision_v2.1\trunk\src\io\input\circle1_';
-%output_path = 'C:\Users\admin\linux\petavision\trunk\src\output\'; % Dan
-output_path = 'C:\cygwin\home\gkenyon\PetaVision\trunk\src\output\';
-input_path = 'C:\cygwin\home\gkenyon\PetaVision\trunk\src\io\input\circle1_';
-
+spike_name{1} = 'f1.bin';
+spike_name{2} = 'f2.bin';
+vmem_name{1} = 'V1.bin';
+vmem_name{2} = 'V2.bin';
 
 % Read parameters from file which pv created
 load([output_path, 'params.txt'],'-ascii')
@@ -26,11 +30,14 @@ NK = params(4);
 N = params(5);
 DTH  = params(6);
 n_time_steps = params(7);
-%input_filenae = params(8);
+%input_filenae = params(8); % causes problems.
 %DK= 1/(sqrt(2)*(NK-1));
 
-load([input_path, 'inparams.txt'], '-ascii')
-num_fig = circle1_inparams(1);
+%n_time_steps = 100;
+
+%load([input_path, 'inparams.txt'], '-ascii')
+%num_fig = circle1_inparams(1);
+num_fig=1;
 
 Ni= N/NK;
 
@@ -38,8 +45,7 @@ Ni= N/NK;
 spike_array = cell(2,1);
 spike_array2 = spike_array;
 spike_filename = cell(2,1);
-spike_filename{1} = 'f0.bin';
-spike_filename{1} = [output_path, spike_filename{1}];
+spike_filename{1} = [output_path, spike_name{1}];
 fid = fopen(spike_filename{1}, 'r', 'native');
 [spike_array{1}, num_read] = fread(fid, [N, n_time_steps], 'float');
 spike_array{1} = (spike_array{1}(:,begin_step:end))';
@@ -59,8 +65,7 @@ spike_array_tmp = reshape(spike_array_tmp, [N, n_steps / bin_size, bin_size] );
 spike_array_tmp = squeeze( sum( spike_array_tmp, 3 ) );
 spike_array2{1} = spike_array_tmp';
 
-spike_filename{2} = 'h0.bin';
-spike_filename{2} = [output_path, spike_filename{2}];
+spike_filename{2} = [output_path, spike_name{2}];
 if exist(spike_filename{2},'file')
     fid = fopen(spike_filename{2}, 'r', 'native');
     spike_array{2} = fread(fid, [Ni, n_time_steps], 'float');
@@ -83,11 +88,10 @@ end
 %read membrane potentials
 vmem_array = cell(2,1);
 vmem_filename = cell(2,1);
-vmem_filename{1} = 'V0.bin';
-vmem_filename{1} = [output_path, vmem_filename{1}];
+vmem_filename{1} = [output_path, vmem_name{1}];
 if exist(vmem_filename{1},'file')
     fid = fopen(vmem_filename{1}, 'r', 'native');
-    [vmem_array{1}, num_read]  = fread(fid, inf, 'float32'); %fread(fid, [N, n_time_steps], 'float');
+    [vmem_array{1}, num_read]  = fread(fid, [N, n_time_steps], 'float');
     if num_read ~= N * n_time_steps
         error('num_read ~= N * n_time_steps');
     end
@@ -96,12 +100,10 @@ if exist(vmem_filename{1},'file')
     fclose(fid);
 end
 
-vmem_filename{2} = 'Vinh0.bin';
-vmem_filename{2} = [output_path, vmem_filename{2}];
+vmem_filename{2} = [output_path, vmem_name{2}];
 if exist(vmem_filename{2},'file')
     fid = fopen(vmem_filename{2}, 'r', 'native');
-    %vmem_array{2} = fread(fid, [Ni, n_time_steps], 'float');
-    [vmem_array{2},num_read] = fread(fid, inf, 'float32');
+    [vmem_array{2},num_read] = fread(fid, [Ni, n_time_steps], 'float'); % fread(fid, inf, 'float32');
     if num_read ~= Ni * n_time_steps
         error('num_read ~= Ni * n_time_steps');
     end
@@ -131,31 +133,40 @@ if exist (num_filename, 'file');
     fclose(fid);
 end
 
-%read indices of objects
-figure_ndx= cell(num_fig,1);
-figure_ndxi= figure_ndx;
-for i_fig = 0:num_fig-1
-    numstr = int2str(i_fig);
-    input_indices_file = 'figure_';
-    input_indices_file = [input_indices_file,numstr];
-    input_indices_file = [input_indices_file, '.bin'];
-    input_indices_file = [input_path,input_indices_file];
-    fid = fopen(input_indices_file, 'r', 'native');
-    figure_ndx{i_fig+1}= fread(fid, num_indices(i_fig+1),'int');
-    figure_ndx{i_fig+1}= figure_ndx{i_fig+1} + 1;
-    %figure_ndx{i_fig+1} = figure_ndx{i_fig+1}(:NK:end);
-    figure_ndxi{i_fig+1}= fix((figure_ndx{i_fig+1} - 1)/NK)+1;
-    fclose(fid);
+parse_colored_tiff = 1
+if (parse_colored_tiff)
+    [targ,clutter] = pv_parseTiff( tiff_path );
+    % TODO: support for multiple objects--multiple calls to parseTiff?
+    figure_ndx{1} = pv_findo( spike_array{1}, targ, n_time_steps, NX, NY, NO, NK);
+    figure_ndxi{1} = pv_findo( spike_array{2}, targ, n_time_steps, NX, NY, NO, 1);
+    clutter_index = pv_findo( spike_array{1}, clutter, n_time_steps, NX, NY, NO, NK);
+    clutter_indexi = pv_findo( spike_array{2}, clutter, n_time_steps, NX, NY, NO, 1);    
+else
+    %read indices of objects
+    figure_ndx= cell(num_fig,1);
+    figure_ndxi= figure_ndx;
+    for i_fig = 0:num_fig-1
+        numstr = int2str(i_fig);
+        input_indices_file = 'figure_';
+        input_indices_file = [input_indices_file,numstr];
+        input_indices_file = [input_indices_file, '.bin'];
+        input_indices_file = [input_path,input_indices_file];
+        fid = fopen(input_indices_file, 'r', 'native');
+        figure_ndx{i_fig+1}= fread(fid, num_indices(i_fig+1),'int');
+        figure_ndx{i_fig+1}= figure_ndx{i_fig+1} + 1;
+        %figure_ndx{i_fig+1} = figure_ndx{i_fig+1}(:NK:end);
+        figure_ndxi{i_fig+1}= fix((figure_ndx{i_fig+1} - 1)/NK)+1;
+        fclose(fid);
+    end
+
+    %read indices of clutter
+    clutter_filename = 'clutter.bin';
+    clutter_filename = [input_path, clutter_filename];
+    cfid= fopen(clutter_filename, 'r', 'native');
+    clutter_index = fread (cfid, clutter_ind, 'int');
+    clutter_index = clutter_index + 1;
+    fclose(cfid);
 end
-
-%read indices of clutter
-clutter_filename = 'clutter.bin';
-clutter_filename = [input_path, clutter_filename];
-cfid= fopen(clutter_filename, 'r', 'native');
-clutter_index = fread (cfid, clutter_ind, 'int');
-clutter_index = clutter_index + 1;
-fclose(cfid);
-
 
 %print out rate
 for i_fig=1:num_fig
@@ -167,13 +178,12 @@ for i_fig=1:num_fig
     figure_ratei = ...
         1000* sum(sum(spike_array{2}(:,figure_ndxi{i_fig}))) / ...
         (length(figure_ndxi{i_fig})* size(spike_array{i_fig},1));
-    disp(['figure',num2str(i_fig),'rate{2} =', num2str(figure_ratei)]);
+    disp(['figure',num2str(i_fig),'_rate{2} = ', num2str(figure_ratei)]);
 end
 clutter_rate = ...
     1000 * sum(sum(spike_array{1}(:,clutter_index))) / ...
     (length(clutter_index) * size(spike_array{1},1) );
-disp(['clutter_rate = ', num2str(clutter_rate)]);
-
+disp(['clutter_rate{1} = ', num2str(clutter_rate)]);
 
 
 %%
@@ -193,7 +203,7 @@ if ~isempty(spike_array{1})
     figure;
     axis([0 n_steps 0 N]);
     hold on
-    box on
+    % box on
     axis tight
     [spike_id, spike_time, spike_val] = find((spike_array{1})');
     %plot(spike_time, spike_id, '.k');
@@ -364,7 +374,8 @@ end
 
 % plot reconstructed image
 if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
-    figure;
+    plot_title = ['Reconstruction using rate'];
+    figure ('Name',plot_title);
     if ~isempty(spike_array2{1})
         rate_array = 1000 * sum(spike_array2{1},1) / ( n_steps );
         max_rate = max(rate_array(:));
@@ -372,7 +383,7 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
         max_line_width = 3;
         axis([-1 NX -1 NY]);
         axis square
-        box ON
+        % box ON
         hold on;
         rate3D = reshape(rate_array, [NK, NO, NX, NY]);
         for i_k = 1:NK
@@ -402,12 +413,13 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
     if plotinhibit==1
 
         if ~isempty(spike_array{2})
-            figure
+            plot_title = ['Reconstruction of inhibition using rate'];
+            figure ('Name',plot_title);
             edge_len = sqrt(2)/2;
             max_line_width = 3;
             axis([-1 NX -1 NY]);
             axis square
-            box ON
+            % box ON
             hold on;
             rate_arrayi = 1000 * sum(spike_array{2},1) / ( n_time_steps );
             max_ratei = max(rate_arrayi(:));
@@ -439,12 +451,12 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
     end
 end
 
-%%
-%reconstrunction using oscillations
+%% reconstrunction using power
 if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
     if ~isempty(spike_array{1})
-        figure;
-        num_steps_excite = size(spike_array{1},1);
+        plot_title = ['Reconstruction using power'];
+       figure ('Name',plot_title);
+         num_steps_excite = size(spike_array{1},1);
         freq_excite = 1000*(0:num_steps_excite-1)/num_steps_excite;
         min_ndx = find(freq_excite >= 60, 1,'first');
         max_ndx = find(freq_excite <= 90, 1,'last');
@@ -455,7 +467,7 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
         max_line_width = 3;
         axis([-1 NX -1 NY]);
         axis square
-        box ON
+        % box ON
         hold on;
         ave_power = mean(peak_power(:));
         max_power = max(peak_power(:));
@@ -484,7 +496,8 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
         end
     end
     if ~isempty(spike_array{2})
-        figure;
+        plot_title = ['Reconstruction of inhibition using power'];
+       figure ('Name',plot_title);
         num_steps_inhibit = size(spike_array{2},1);
         freq_inhibit = 1000*(0:num_steps_inhibit-1)/num_steps_inhibit;
         min_ndx = find(freq_inhibit >= 60, 1,'first');
@@ -496,7 +509,7 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
         max_line_width = 3;
         axis([-1 NX -1 NY]);
         axis square
-        box ON
+        % box ON
         hold on;
         ave_power_inhibit = mean(peak_power_inhibit(:));
         max_power_inhibit = max(peak_power_inhibit(:));
@@ -524,32 +537,69 @@ if ~isempty(spike_array{1}) || ~isempty(spike_array{2})
     end
 end
 
+%% eigen reconstruction
+
+ave_power = mean(peak_power(find(peak_power > 0)));
 rate_mask = find(rate3D > ave_rate);
 power_mask = find(peak_power > ave_power);
+
+disp([num2str(length(power_mask)), ' in power_mask greater than ', num2str(ave_power)])
 %power_mask = rate_mask;
 num_mask = length(power_mask);
 num_steps_corr = size(spike_array{1},1);
 maxlag= fix(num_steps_corr/4);
-pack
-sparse_corr = xcorr( spike_array{1}(:,power_mask), maxlag, 'unbiased' );
-sparse_corr = abs(fft(sparse_corr));
+%pack
 freq_xcorr = 1000*(0:(2*maxlag))/(2*maxlag+1);
 min_ndx = find(freq_xcorr >= 60, 1,'first');
 max_ndx = find(freq_xcorr <= 90, 1,'last');
-sparse_corr = max(sparse_corr(min_ndx:max_ndx,:));
+
 sparse_row_ndx = repmat(power_mask,1,num_mask)';
 sparse_row_ndx = sparse_row_ndx(:);
 sparse_col_ndx = repmat(power_mask,num_mask,1);
 sparse_col_ndx = sparse_col_ndx(:);
-sparse_corr = sparse_corr - mean(sparse_corr(:));
-sparse_corr = sparse(sparse_row_ndx, sparse_col_ndx, sparse_corr, N, N, num_mask^2);
+
+sparse_corr = sparse(sparse_row_ndx, sparse_col_ndx, 0, N, N, num_mask*num_mask);
+
+stride = 1;
+for pre=1:stride:num_mask
+    for post=1:stride:num_mask
+%
+%        temp = xcorr( spike_array{1}(:,power_mask(pre:pre+stride)), spike_array{1}(:,power_mask(post:post+stride)), maxlag, 'unbiased' );
+        temp = xcorr( spike_array{1}(:,power_mask(pre)), spike_array{1}(:,power_mask(post)), maxlag, 'unbiased' );
+        
+        temp = abs(fft(temp));
+        temp = max(temp(min_ndx:max_ndx,:));
+       
+        sparse_corr(power_mask(pre),power_mask(post)) = temp;
+    end
+    if (mod(pre, 50) == 0)
+        disp(pre);
+    end
+end
+
+%sparse_corr = xcorr( spike_array{1}(:,power_mask), maxlag, 'unbiased' );
+%sparse_corr = abs(fft(spare_corr));
+%sparse_corr = max(sparse_corr(min_ndx:max_ndx,:));
+%sparse_corr = sparse(sparse_row_ndx, sparse_col_ndx, sparse_corr, N, N, num_mask^2);
+
+[row, col] = find(sparse_corr);
+meancorr = mean(sparse_corr(sparse_corr~=0));
+for idx = 1:size(row)
+    sparse_corr(row(idx), col(idx)) = sparse_corr(row(idx), col(idx)) - meancorr;
+    if (mod(idx, 50) == 0)
+        disp(pre);
+    end
+end
+
 sparse_corr = 0.5 * (sparse_corr + sparse_corr');
+
 options.issym = 1;
 num_eigen = 1;
 options.v0 = peak_power(:);
 [eigen_vec,eigen_value, eigen_flag] = eigs(sparse_corr, num_eigen, 'lm', options);
 for i_vec = 1:num_eigen
-    figure;
+    plot_title = ['Reconstruction using eigenvector ', num2str(i_vec)];
+    figure ('Name',plot_title);
     edge_len = sqrt(2)/2;
     max_line_width = 3;
     axis([-1 NX -1 NY]);
@@ -585,8 +635,7 @@ for i_vec = 1:num_eigen
     end
 end
 
-
-% plot maximum stimulated membrane potential
+%% plot maximum stimulated membrane potential
 if ~isempty(spike_array2{1}) || ~isempty(spike_array2{2})
     figure
     offset_id = 0;%2*NK;
@@ -612,7 +661,7 @@ if ~isempty(spike_array2{1}) || ~isempty(spike_array2{2})
 end
 
 
-plotinput=0;
+plotinput=1;
 if plotinput==1
     %plot raw input image
     figure;
@@ -656,52 +705,52 @@ end
 %
 % %%
 %
-% % plot "weights" (typically after turning on just one neuron)
-% plot_weights = 0;
-% if plot_weights == 1
-%     figure;
-%     weight3D = reshape(vmem_array(1,:), [NK, NO, NX, NY]);
-%     i_x0 = fix(NX/2) + 1;
-%     i_y0 = fix(NY/2) + 1;
-%     i_theta0 = 2;
-%     k0 = i_theta0+1 + i_x0 * NO + i_y0 * NX * NO;
-%     weight3D(i_theta0 + 1, i_x0, i_y0) = 0.0;
-%     min_weight = min(weight3D(:));
-%     %weight3D = weight3D - min_weight;
-%     ave_weight = mean(weight3D(:));
-%     max_weight = max(weight3D(:));
-%     edge_len = sqrt(2)/2;
-%     max_line_width = 3;
-%     axis([-1 NX -1 NY]);
-%     axis square;
-%     box ON
-%     hold on;
-%     delta_x = edge_len * ( cos(i_theta0 * DTH * pi / 180 ) );
-%     delta_y = edge_len * ( sin(i_theta0 * DTH * pi / 180 ) );
-%     lh = line( [i_x0 - delta_x, i_x0 + delta_x]', ...
-%         [i_y0 - delta_y, i_y0 + delta_y]' );
-%     line_width = max_line_width;
-%     set( lh, 'LineWidth', line_width );
-%     set( lh, 'Color', [1 0 0]);
-%     for i_theta = 0:NO-1
-%         delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
-%         delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
-%         for i_x = 1:NX
-%             for i_y = 1:NY
-%                 if weight3D(i_theta+1,i_x,i_y) < 0
-%                     continue;
-%                 end
-%                 lh = line( [i_x - delta_x, i_x + delta_x]', ...
-%                     [i_y - delta_y, i_y + delta_y]' );
-%                 line_width = 0.05 + ...
-%                     max_line_width * (weight3D(i_theta+1,i_x,i_y) - 0) / (max_weight - 0);
-%                 set( lh, 'LineWidth', line_width );
-%                 line_color = (weight3D(i_theta+1,i_x,i_y) - 0) / (max_weight - 0);
-%                 set( lh, 'Color', (1-line_color) * [1 1 1]);
-%             end
-%         end
-%     end
-% end
+% plot "weights" (typically after turning on just one neuron)
+plot_weights = 0;
+if plot_weights == 1
+    figure;
+    weight3D = reshape(vmem_array(1,:), [NK, NO, NX, NY]);
+    i_x0 = fix(NX/2) + 1;
+    i_y0 = fix(NY/2) + 1;
+    i_theta0 = 2;
+    k0 = i_theta0+1 + i_x0 * NO + i_y0 * NX * NO;
+    weight3D(i_theta0 + 1, i_x0, i_y0) = 0.0;
+    min_weight = min(weight3D(:));
+    %weight3D = weight3D - min_weight;
+    ave_weight = mean(weight3D(:));
+    max_weight = max(weight3D(:));
+    edge_len = sqrt(2)/2;
+    max_line_width = 3;
+    axis([-1 NX -1 NY]);
+    axis square;
+    box ON
+    hold on;
+    delta_x = edge_len * ( cos(i_theta0 * DTH * pi / 180 ) );
+    delta_y = edge_len * ( sin(i_theta0 * DTH * pi / 180 ) );
+    lh = line( [i_x0 - delta_x, i_x0 + delta_x]', ...
+        [i_y0 - delta_y, i_y0 + delta_y]' );
+    line_width = max_line_width;
+    set( lh, 'LineWidth', line_width );
+    set( lh, 'Color', [1 0 0]);
+    for i_theta = 0:NO-1
+        delta_x = edge_len * ( cos(i_theta * DTH * pi / 180 ) );
+        delta_y = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
+        for i_x = 1:NX
+            for i_y = 1:NY
+                if weight3D(i_theta+1,i_x,i_y) < 0
+                    continue;
+                end
+                lh = line( [i_x - delta_x, i_x + delta_x]', ...
+                    [i_y - delta_y, i_y + delta_y]' );
+                line_width = 0.05 + ...
+                    max_line_width * (weight3D(i_theta+1,i_x,i_y) - 0) / (max_weight - 0);
+                set( lh, 'LineWidth', line_width );
+                line_color = (weight3D(i_theta+1,i_x,i_y) - 0) / (max_weight - 0);
+                set( lh, 'Color', (1-line_color) * [1 1 1]);
+            end
+        end
+    end
+end
 %
 %
 %

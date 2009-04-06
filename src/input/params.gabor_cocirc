@@ -1,0 +1,104 @@
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "Retina" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   
+   nBorder = 0;
+   
+   invert  = 0.0;
+   uncolor = 1.0;               // if true, pixels>0 become 1.0
+   spikingFlag = 1.0;           // spike as poisson?
+
+   poissonEdgeProb  = 0.5;      // if so, prob
+   poissonBlankProb = 0.01;     // spike as poisson?
+   
+   marginWidth = 0.0;           // set input to 0 within margin
+   beginStim   = 200.0;
+   endStim     = 752.0;
+};
+
+HyPerLayer "V1" = {
+   nx = 64;
+   ny = 64;
+   nf = 8;
+   no = 8;
+   nBorder = 0;
+   
+   noiseAmpE = 0.0;
+};
+
+HyPerLayer "V1 Inhibit" = {
+   nx = 64;
+   ny = 64;
+   nf = 8;
+   no = 8;
+   nBorder = 0;
+   
+   noiseAmpE = 0.0;
+};
+
+HyPerConn "Retina to V1" = {
+   nxp = 7;
+   nyp = 7;
+
+   rotate = 0.0;
+   invert = 0.0;
+
+   aspect = 3.0;
+   sigma  = 3.0;
+   lambda = 6.0;
+   rMax   = 100.0;   // don't use
+
+// old gaussian parameters
+//   nxp = 5;
+//   nyp = 5;
+
+//   aspect = 3.0;
+//   sigma  = 3.0;
+//   rMax   = 100.0;   // don't use
+//   lambda = 100.0;   // don't use
+};
+
+HyPerConn "Retina to V1 Inhibit" = {
+   nxp = 9;
+   nyp = 9;
+
+   rotate = 0.0;
+   invert = 1.0;
+
+   aspect = 3.0;
+   sigma  = 3.0;
+   lambda = 6.0;
+   rMax   = 100.0;   // don't use
+};
+
+HyPerConn "V1 Inhibit to V1" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 0.5;
+   
+   aspect = 1.0;
+   sigma  = 100.0;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 to V1" = {
+   nxp = 25;
+   nyp = 25;
+
+   aspect = 1.0;
+   sigma  = 12.0;
+   rMax   = 25.0;
+   
+   deltaCurvature = 1.0;  // not used for now
+   cocirc_self = 0.0;
+   sigma_cocirc = 22.5;   // 180/no
+   sigma_kurve = 1.0;     // not used for now
+   gaussWeightScale = 1.0;
+};

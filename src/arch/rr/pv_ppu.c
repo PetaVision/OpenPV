@@ -22,6 +22,7 @@ int update_partial_state(PVState* s, int hc)
     float* y = s->loc.y;
     float* o = s->loc.o;
 
+    // TODO take into account extended border
     float* phi = s->phi;
     float* f   = s->events[hc].event;
 
@@ -45,8 +46,9 @@ int update_partial_state(PVState* s, int hc)
  */
 int update_state(PVState* s)
 {
-    update_V_and_f(N, s->phi, s->V, s->events[0].event, s->I, s->H, s->h);
-    return 0;
+   // TODO - take into account extended border
+   update_V_and_f(N, s->phi, s->V, s->events[0].event, s->I, s->H, s->h);
+   return 0;
 }
 
 
@@ -83,7 +85,7 @@ int ppu_main(int argc, char* argv[])
   float* V   = s.V;
   float* H   = s.H;
   float* h   = s.h;
-  
+
   double t_start = 0.0;
   double t_elapsed = 0.0;
 
@@ -182,7 +184,7 @@ void update_V_and_f(int nc, float phi_c[], float Vc[], float fc[], float I[],
   const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
 
   for (i = 0; i < nc; i++) {
-    
+
     /* inhibition layer, uses same zucker weights */
     // TODO - noise, image contribution?
 	if ( rand()*INV_RAND_MAX < NOISE_FREQ_INH ) {
@@ -199,7 +201,7 @@ void update_V_and_f(int nc, float phi_c[], float Vc[], float fc[], float I[],
       else r = 0.0;
       //      printf("adding noise, r = %f, phi = %f, %d\n", r, phi_c[i], i);
     }
-    
+
     phi_c[i] -= COCIRC_SCALE*fc[i];		// remove self excitation
 
     Vc[i] += DT_d_TAU*(/*I[i]*/ + r + phi_c[i] - Vc[i] - INHIBIT_AMP*hc[i]);

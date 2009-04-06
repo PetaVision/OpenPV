@@ -1,51 +1,82 @@
-MPI_INC = -I./arch/mpi
-MPI_OBJ = mpi.o
+SRCDIR = ../src
+BUILDDIR = build
+
+include $(SRCDIR)/include/sources.mk
+
+MPI_DIR = arch/mpi
+MPI_INC = -I./$(MPI_DIR)
+MPI_OBJ = $(MPI_DIR)/mpi.o
 
 #CC = mpicc
-CC = cc
+#CPP = mpic++
+CC = gcc
+CPP = g++
+
+MAKE = make
 
 # VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2
-CFLAGS = -g -I./ $(MPI_INC) $(VEC_FLAGS)
+CFLAGS = -g -std=c99 -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
+CPPFLAGS = -g -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
 
-all: pv
+EXES = pv_example pv_cocirc pv_gabor_cocirc
 
-pv: pv.o PVHyperCol.o PVLayer.o retina.o zucker.o inhibit.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ)
-	$(CC) -o pv pv.o PVHyperCol.o PVLayer.o retina.o zucker.o inhibit.o neighbor.o pv_output.o mpi_harness.o $(MPI_OBJ) -lm
+%.o: %.cpp
+	@echo 'Building file: $<'
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+	@echo 'Finished building: $<'
+	@echo ' '
 
-pv.o: pv.c pv.h
-	$(CC) $(CFLAGS) -c pv.c
+#all: $(EXES) pv libpv.a
 
-PVHyperCol.o: columns/PVHyperCol.c pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c columns/PVHyperCol.c
+all: make-in-subdirs $(EXES)
 
-neighbor.o: columns/neighbor.c pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c columns/neighbor.c
+pv_example: pv_example.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
+	$(CPP) -o $@ pv_example.o $(OBJS) $(MPI_OBJ) -lm -lpthread
 
-PVLayer.o: layers/PVLayer.c pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c layers/PVLayer.c
+pv_cocirc: pv_cocirc.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
+	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm -lpthread
 
-retina.o: layers/retina.c layers/retina.h pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c layers/retina.c
+pv_gabor_cocirc: pv_gabor_cocirc.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
+	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm -lpthread
 
-zucker.o: layers/zucker.c layers/zucker.h pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c layers/zucker.c
+pv_: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
+	$(CPP) -o $@ $+ -lm -lpthread
 
-inhibit.o: layers/inhibit.c layers/inhibit.h pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c layers/inhibit.c
+$(MPI_OBJ): $(MPI_DIR)/mpi.h $(MPI_DIR)/mpi.c
+	$(CC) -c -o $@ $(CFLAGS) $(MPI_DIR)/mpi.c
 
-pv_output.o: io/pv_output.c pv.h columns/PVHyperCol.h layers/PVLayer.h
-	$(CC) $(CFLAGS) -c io/pv_output.c
+libpv.so: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
+	$(CPP) -shared -Wl,-soname,$@ -o $@ $+ -lc
 
-mpi_harness.o: arch/mpi/mpi_harness.c pv.h
-	$(CC) $(CFLAGS) -c arch/mpi/mpi_harness.c
+libpv.a: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
+	ar rcs libpv.a $+
 
-mpi.o: arch/mpi/mpi.c
-	$(CC) $(CFLAGS) -c arch/mpi/mpi.c
+make-in-subdirs: force
+	@for subdir in $(SUBDIRS); do \
+	    if [ -d $$subdir -a -f $$subdir/Makefile ] ; then \
+	        echo "making in $$subdir" ; \
+	        (cd $$subdir && $(MAKE) all) ; \
+	    fi \
+	done
 
-clean:
-	rm -f *.o pv
+clean: clean-in-subdirs
+	rm -f $(BUILDDIR)/*.o $(BUILDDIR)/pv $(BUILDDIR)/*.P $(BUILDDIR)/tags
+	rm -f $(MPI_OBJ)
 	rm -f ./output/*.ps ./output/*.bin ./output/*.txt
-	ls ./output
+	rm -f $(BUILDDIR)/libpv.a $(BUILDDIR)/libpv.so
+	rm -f $(EXES)
+
+clean-in-subdirs: force
+	@for subdir in $(SUBDIRS); do \
+	    if [ -d $$subdir -a -f $$subdir/Makefile ] ; then \
+	        echo "cleaning in $$subdir" ; \
+	        (cd $$subdir && $(MAKE) clean) ; \
+	    fi \
+	done
+
+force:
 
 tags:
-	ctags `find . -name "*.[ch]"`
+	ctags `find . -name "*.[ch]"` `find . -name "*.[ch]pp"`
+
+include $(SRCDIR)/include/depend.mk

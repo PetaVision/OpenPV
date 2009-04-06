@@ -1,188 +1,313 @@
-#include "pv.h"
+/*
+ * PVLayer.c
+ *
+ *  Created on: Nov 18, 2008
+ *      Author: rasmussn
+ */
+
 #include "PVLayer.h"
-
+#include "../io/io.h"
 #include <assert.h>
-#include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-static int layer_alloc_mem(PVLayer* l);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+PVLayer* pvlayer_new(const char* name, int xScale, int yScale,
+                     int nx, int ny, int numFeatures, int nBorder)
+{
+   PVLayer* l = (PVLayer*) malloc(sizeof(PVLayer));
+   pvlayer_init(l, name, xScale, yScale, nx, ny, numFeatures, nBorder);
+   return l;
+}
+
+int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
+                 int nx, int ny, int numFeatures, int nBorder)
+{
+   l->layerId = -1; // the hypercolumn will set this
+   l->name = strdup(name);
+   l->numActive = 0;
+   l->numFeatures = numFeatures;
+   l->numBorder = nBorder;
+   l->numDelayLevels = MAX_F_DELAY;
+
+   l->loc.nxGlobal = nx;
+   l->loc.nyGlobal = ny;
+
+   l->loc.nx = nx;
+   l->loc.ny = ny;
+
+   l->xScale = xScale;
+   l->yScale = yScale;
+
+   l->loc.dx = powf(2.0f, (float) xScale);
+   l->loc.dy = powf(2.0f, (float) yScale);
+
+   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
+
+   l->loc.kx0 = 0.0;
+   l->loc.ky0 = 0.0;
+
+   l->xOrigin = 0.5;
+   l->yOrigin = 0.5;
+
+   l->columnId = 0;
+
+   l->writeIdx = 0; // which one currently writing to
+   // (readers are delayed, relative to this)
+
+   l->numParams = 0;
+   l->params = NULL;
+
+   l->initFunc = NULL;
+   l->updateFunc = NULL;
+
+   l->activity = NULL;
+
+   // TODO - check for out of memory conditions
+   l->activeIndices = (int *) calloc(l->numNeurons, sizeof(int));
+
+   l->numPhis = NUM_CHANNELS;
+
+   return 0;
+}
 
 /**
- * Constructor for a PVLayer
+ * Finish initialization with global parameters (multiple hypercolumns)
  */
-PVLayer* pv_new_layer(PVHyperCol* hc, int index, int nx, int ny, int no, int nk)
-  {
+int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows, int nCols)
+{
+   int m;
+   int ntotal = l->numNeurons;
 
-    float xc, yc, oc, kappac;
-    int i, j, k, t, p, q;
+   size_t extendNum = (l->loc.nx + 2.0*l->numBorder) * (l->loc.ny + 2.0*l->numBorder);
+   extendNum *= l->numFeatures;
 
-    float *x, *y, *o, *kappa; 
-    float *phi, *V;
-    eventtype_t *f;
-    
-    if(nk == 0) //set nk to min 1 before continuing
-      nk = 1;
+   l->columnId = colId;
 
-    float x0 = hc->x0;
-    float y0 = hc->y0;
-    
-    PVLayer* l = (PVLayer*) malloc(sizeof(PVLayer));
-    l->n_neurons = nx*ny*no*nk;
-#ifdef INHIBIT_ON
-    l->n_neuronsi= nx*ny*no;
-#endif
-    layer_alloc_mem(l);
+   l->loc.nx = l->loc.nx / nCols;
+   l->loc.ny = l->loc.ny / nRows;
+   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
+   if (l->numNeurons * nCols * nRows != ntotal) {
+      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
+             colId, (int)l->loc.nx, (int)l->loc.ny);
+   }
 
-    l->index = index;
+   l->loc.kx0 = l->loc.nx * colCol;
+   l->loc.ky0 = l->loc.ny * colRow;
 
-    l->parent = hc;
+   l->xOrigin = 0.5 + l->loc.kx0 * l->loc.dx;
+   l->yOrigin = 0.5 + l->loc.ky0 * l->loc.dy;
 
-    x = l->x;
-    y = l->y;
-    o = l->o;
- 
-    kappa = l->kappa;
+   l->activity = pvcube_new(&l->loc, l->numNeurons);
 
-    phi = l->phi;
-    V = l->V;
-    f = l->f;
+   // make a G (variable conductance) for each phi
+   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
+   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
 
-#ifdef INHIBIT_ON
-    float *xi, *yi, *oi;
-    float *phi_h, *phi_g, *phi_i, *phiII, *H;
-    eventtype_t *h;
-    int ki=0;
-    // float* inhib_buffer[INHIB_DELAY];
-    xi = l->xi;
-    yi = l->yi;
-    oi = l->oi;
-    l->buffer_index_get=0;
-    l->buffer_index_put=0;
-    phi_h = l->phi_h;
-    phi_i = l->phi_i;
-    phi_g = l->phi_g;
-    phiII = l->phiII;
-    H = l->H;
-    h= l->h;
+   l->G[0]   = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
+   l->phi[0] = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
 
-#endif 
+   for (m = 1; m < l->numPhis; m++) {
+      l->G[m]   = l->G[0]   + m * extendNum;
+      l->phi[m] = l->phi[0] + m * extendNum;
+   }
 
-    char filename[90];
-    sprintf( filename, OUTPUT_PATH);
-    strncat(filename, "/V_prob.txt",12);
-    FILE* fo= fopen(filename,"w");
-    if (fo== NULL)
-      printf("error");
-    k = 0;
-    for (j = 0; j < ny; j++)
-      {
-        yc = y0 + j*DY;
-        for (i = 0; i < nx; i++)
-          {
-            xc = x0 + i*DX;
-            for (t = 0; t < no; t++)
-              {
-                oc = t*DTH;
-#ifdef INHIBIT_ON 
-		xi[ki] = xc - x0;
-		yi[ki] = yc - y0;
-		oi[ki] = oc;
-		phi_i[ki] = 0.0; 
-		phi_g[ki] = 0.0;
-		h[ki] =(float) (rand()/(float)RAND_MAX)<0.01;
-		float Hinit = (rand()/(float) RAND_MAX)*(V_TH_0_INH-MIN_H)+MIN_H;
-		H[ki] =Hinit;
-		phiII[ki] = 0.0;
-		for (p=0; p<INHIB_DELAY; p++)
-		  l->inhib_buffer[p][ki]= (float) (rand()/(float)RAND_MAX)<0.01;
-#endif
-		for( q = 0; q < nk; q++)
-		  {
-		    kappac = q*DK;
+   l->V    = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
+   l->Vth  = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
 
-		    x[k] = xc - x0;
-		    y[k] = yc - y0;
-		    o[k] = oc;
-		    kappa[k] = kappac;
+   l->G_E  = l->G[PHI_EXC];
+   l->G_I  = l->G[PHI_INH];
+   l->G_IB = l->G[PHI_INHB];
 
-		    phi[k] = 0.0;
-		    float Vinit=(rand()/(float)RAND_MAX)*(V_TH_0-MIN_V)+MIN_V;
-		    if(fo!=NULL)
-		      fprintf( fo,"%f\n",(DT_d_TAU*Vinit/V_TH_0));
+   return 0;
+}
 
-		    V[k] = Vinit;
-		    
-		    f[k] = (float) (rand()/(float)RAND_MAX)<0.01;
-		    
-#ifdef INHIBIT_ON		
-		    phi_h[k] = 0.0;
-#endif
-		    k++;
-		  }//q < nk
-#ifdef INHIBIT_ON
-		ki++;
-#endif
-	      } // t < no
-	  } // i < nx
-      } // j < ny
-    
-   /*  i=18; */
-/*     j=18; */
-/*     t=2; */
-/*     q=2; */
-/*     k= t+i*NO+j*NO*NX; */
-/*     h[k] = 1.0; */
-/*     k= q+k*NK; */
-/*     f[k]=0.0;  */
+int pvlayer_initFinish(PVLayer * l)
+{  int err = 0;
 
-    if(fo!=NULL)     
-      fclose(fo); 
-    return l;
-  }
+   if (l->initFunc) {
+      err = l->initFunc(l);
+   }
+   return err;
+}
 
-/**
- * allocate and initialize Layer variable
- */
+int pvlayer_finalize(PVLayer * l)
+{
+   free(l->name);
 
-static int layer_alloc_mem(PVLayer* l)
-  {
-#ifdef INHIBIT_ON
-    float* buf = (float*) malloc(8*l->n_neurons*sizeof(float)+(8+INHIB_DELAY)*l->n_neuronsi*sizeof(float)); 
+   free(l->G[0]);
+   free(l->G);
+
+   free(l->phi[0]);
+   free(l->phi);
+
+   pvcube_delete(l->activity);
+
+   free(l->activeIndices);
+
+   free(l->V);
+   free(l->Vth);
+
+   free(l->params);
+
+   free(l);
+
+   return 0;
+}
+
+#if 0
+inline int pvlayer_getPos2(PVLayer * l, int idx, float * x, float * y)
+{
+   int kx = (idx / l->nfeatures) % l->nx;
+   int ky = (idx / (l->nx * l->nfeatures)) % l->ny;
+   *x = l->xOrigin + l->xMpiOrigin + kx*l->dx;
+   *y = l->yOrigin + l->yMpiOrigin + ky*l->dy;
+
+   return 0;
+}
+#endif //0
+float pvlayer_getWeight(float x0, float x, float r, float sigma)
+{
+   float dx = x - x0;
+   return expf(0.5 * dx * dx / (sigma * sigma));
+}
+
+int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * params)
+{
+   // check for existing parameters
+   if (l->numParams != 0) {
+      assert(l->numParams == numParams);
+      // TODO - for now must assume sizeParams are the same, FIX THIS
+   }
+   else {
+      l->numParams = numParams;
+      l->params = (float *) malloc(sizeParams);
+   }
+
+   assert(l->params != NULL);
+   memcpy(l->params, params, sizeParams);
+
+   return 0;
+}
+
+int pvlayer_getParams(PVLayer * l, int * numParams, float ** params)
+{
+   // Give the caller our buffer
+   *numParams = l->numParams;
+   *params = l->params;
+   return 0;
+}
+
+int pvlayer_setFuncs(PVLayer * l, void * initFunc, void * updateFunc)
+{
+   l->initFunc = (int(*)(PVLayer *l)) (initFunc);
+   l->updateFunc = (int(*)(PVLayer *l)) (updateFunc);
+   return 0;
+}
+
+// Default implementation -- output some stats and activity files
+int pvlayer_outputState(PVLayer *l)
+{
+   char str[16];
+   static int append = 0;
+   int cid = l->columnId;
+
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nf = l->numFeatures;
+
+   // Print avg, max/min, etc of f.
+   // Probably DO want to use writeIdx, since that's what was updated in this timestep.
+   sprintf(str, "[%d]:L%1.1d: f:", cid, l->layerId);
+   printStats(l->activity->data, l->numNeurons, str);
+
+   // Output spike events and V
+   sprintf(str, "[%d]:f%1.1d", cid, l->layerId);
+   pv_dump_sparse(str, append, l->activity->data, nx, ny, nf);
+   sprintf(str, "[%d]:V%1.1d", cid, l->layerId);
+   pv_dump(str, append, l->V, nx, ny, nf);
+
+   // append to dump file after original open
+   append = 1;
+
+   return 0;
+}
+
+int pvlayer_copyUpdate(PVLayer* l) {
+   int k;
+   pvdata_t * activity = l->activity->data;
+   float* V = l->V;
+
+   // copy from the V buffer to the activity buffer
+   for (k = 0; k < l->numNeurons; k++) {
+      activity[k] = V[k];
+   }
+   return 0;
+}
+
+int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
+                                   float aj, float decay, float fac)
+{
+   int k;
+   for (k = 0; k < nk; k++) {
+      p[k] = decay * p[k] + fac * aj;
+   }
+   return 0;
+}
+
+int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float * RESTRICT p,
+                           float * RESTRICT ai, float aj, float decay, float dWmax,
+                           float decayIncr, float facIncr,
+                           float decayDecr, float facDecr)
+{
+   int k;
+   for (k = 0; k < nk; k++) {
+       w[k] = decay * w[k]
+               + dWmax * ( aj * decayDecr * m[k]
+                         + ai[k] * decayIncr * p[k]
+                         + aj * ai[k] * (facIncr - facDecr));
+   }
+   return 0;
+}
+
+
+#ifdef COMPRESS_PHI
+void pvpatch_accumulate(int nk, float* restrict v, float a, float* restrict w,
+                        float* restrict m)
+{
+   const float scale = 33.3;
+   const float inv_scale = 1.0/scale;
+   const float shift = 2.0;
+   int k;
+
+   for (k = 0; k < nk; k++) {
+            v[k] = (((shift + scale*v[k]) + a*w[k]*m[k])
+                  - shift) * inv_scale;
+      // without mask
+      //      v[k] = (((shift + scale*v[k]) + a*w[k])
+      //                  - shift) * inv_scale;
+   }
+}
 #else
-    float* buf = (float*) malloc( 7*l->n_neurons*sizeof(float));
+int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+{
+   int k;
+   int err = 0;
+   for (k = 0; k < nk; k++) {
+      v[k] = v[k] + a*w[k];
+//      if (w[k] > 0.0) {
+//         printf("  w[%d] = %f %f %f %p\n", k, w[k], v[k], a, &v[k]);
+//         err = -1;
+//      }
+   }
+   return err;
+}
 #endif
-    // TODO - assume event mask type is a float for now
-    assert(sizeof(eventtype_t) == sizeof(float));
 
-    l->x = buf + 0*l->n_neurons;
-    l->y = buf + 1*l->n_neurons;
-    l->o = buf + 2*l->n_neurons;
-    l->kappa = buf + 3*l->n_neurons;
-    l->phi = buf + 4*l->n_neurons;
-    l->V = buf + 5*l->n_neurons;
-    l->f = (eventtype_t*) (buf + 6*l->n_neurons);
-
-#ifdef INHIBIT_ON
-    int i;
-    l->phi_h = buf + 7*l->n_neurons; 
-    l->xi = buf + 8*l->n_neurons + 0*l->n_neuronsi;
-    l->yi = buf + 8*l->n_neurons + 1*l->n_neuronsi;
-    l->oi = buf + 8*l->n_neurons + 2*l->n_neuronsi;
-    l->H =  buf + 8*l->n_neurons + 3*l->n_neuronsi;
-    l->phi_i = buf + 8*l->n_neurons + 4*l->n_neuronsi;
-    
-    l->phi_g = buf + 8*l->n_neurons + 5*l->n_neuronsi;
-    l->phiII = buf + 8*l->n_neurons + 6*l->n_neuronsi; 
-    l->h = (eventtype_t*) (buf + 8*l->n_neurons + 7*l->n_neuronsi);
-    for(i=0; i<INHIB_DELAY; i++)
-      l->inhib_buffer[i] = (eventtype_t*)(buf + 8*l->n_neurons + (8+i)*l->n_neuronsi);
+#ifdef __cplusplus
+}
 #endif
-    return 0;
-  }
-
-int pv_layer_send(PVLayer* l, int col_index)
-  {
-    return 0;
-  }
-

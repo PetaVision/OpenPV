@@ -1,0 +1,48 @@
+Petavision may be obtained from sourceforge.net using the subversion command:
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk petavision
+    
+If you want to use a branch (for example, the hyperstructure branch):
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/branches/hyperstructure petavision
+    
+From Eclipse, use the SVN Repository Perspective and:
+   1. Right click in the SVN Repositories window
+   2. Select new->Repository Location
+   3. Enter https://petavision.svn.sourceforge.net/svnroot/petavision for the URL
+      a. Double click on petavision repository 
+      b. Double click on trunk or branches
+   4. Right click on the trunk or the branch you want and choose the checkout command
+      a. accept the defaults and click Finish
+    
+Petavision should build correctly within Eclipse as soon as it is installed using
+the SVN checkout command (for 64 bit architectures, please see the INSTALL file).
+
+To run the application using Eclipse you must create a Run Configuration:
+   1. Click on the arrow just to the right of the debug or run icons:
+   2. Select Run Configurations... from the menu.
+   3. Click on the C/C++ Local Application
+   4. Click on the New button (left-most icon in the upper panel):
+      a. Fill in Name:
+      b. Select a project if not automatically entered (you may need to Browse for it)
+      c. Select an application (you may need to Search Project or Browse for it)
+   5. Select the arguments tab
+      a. add command line arguments (for example: -n 2)
+
+One a Run Configuration is setup you can debug or run PetaVision by clicking on the
+debug or run icons.
+
+To build petavision without Eclipse:
+   1. Undefine the ECLIPSE environment variable (see the INSTALL file).
+   2. cd to the src directory.
+   3. Type make
+
+To run petavision without Eclipse:
+   1. Type ./pv_example -n 2 (for example)
+   
+NOTE: There may be other more complete applications (e.g., pv.cpp) other than
+pv_example.cpp.  To build and run these files you will need to edit the files
+and add #define HAS_MAIN to the file.  If there is more than one main within
+a project, Eclipse will whine.
+
+   
