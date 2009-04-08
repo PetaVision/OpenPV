@@ -77,7 +77,7 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
 #define LOGSPARM(paramfile, which) \
     fprintf(paramfile, #which "=%s\n", which)
 
-void log_parameters(int n_time_steps, char *input_filename)
+int log_parameters(int n_time_steps, char *input_filename)
 {
    // Write our runtime parameters to a logfile, so that
    // anyone using using the output can extract this
@@ -90,7 +90,7 @@ void log_parameters(int n_time_steps, char *input_filename)
 
    if (paramfile == NULL) {
       printf("Couldn't open parameter logfile %s. Aborting.\n", param_filename);
-      exit(-1);
+      return -1;
    }
 
    // TODO: need to get these per-layer
@@ -103,6 +103,8 @@ void log_parameters(int n_time_steps, char *input_filename)
    LOGINTPARM(paramfile,n_time_steps);
    //LOGSPARM(paramfile,input_filename); //causes MATLAB problems
    fclose(paramfile);
+
+   return 0;
 }
 
 #define TIFF_FILE_TYPE    1
