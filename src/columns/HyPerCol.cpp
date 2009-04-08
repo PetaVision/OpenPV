@@ -40,8 +40,9 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    numThreads = 0;
 #endif
 
-   numSteps = 10;
+   numSteps = 2;
    input_file = NULL;
+   param_file = NULL;
    parse_options(argc, argv, &input_file, &param_file, &numSteps, &numThreads);
 
    // estimate for now
