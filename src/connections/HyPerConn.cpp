@@ -908,7 +908,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int xScale, int yScale
 // TODO---------------------------------------
    // NEED no (# of orientations)
    // pre-synaptic neuron is not at the center of the patch (0,0)
-   int no = 1;
+   int no = nf;
 
    const float nxPre = pre->clayer->loc.nx;
    const float nyPre = pre->clayer->loc.nx;
