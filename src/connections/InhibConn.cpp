@@ -84,6 +84,8 @@ int InhibConn::inhibWeights(PVPatch * wp, int featureIndex, float strength)
       }
    }
 
+   // TODO - normalize?
+
    return 0;
 }
 
