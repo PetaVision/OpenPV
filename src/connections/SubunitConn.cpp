@@ -92,6 +92,9 @@ int SubunitConn::weights(PVPatch * wp)
    for (int f = 0; f < nf; f++) {
       float sum = 0;
       for (int i = 0; i < nx*ny; i++) sum += w[f + i*nf];
+
+      if (sum == 0) continue;
+
       float factor = 1.0/sum;
       for (int i = 0; i < nx*ny; i++) w[f + i*nf] *= factor;
    }
