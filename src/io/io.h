@@ -24,7 +24,7 @@ int pv_text_write_patch(const char * filename, PVPatch * patch);
 int pv_tiff_write_patch(const char * filename, PVPatch * patch);
 int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf);
 
-void log_parameters(int n_time_steps, char * input_filename);
+int log_parameters(int n_time_steps, char * input_filename);
 
 int printStats(pvdata_t * buf, int nItems, char * msg);
 
