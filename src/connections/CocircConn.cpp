@@ -258,7 +258,7 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
       float sum = 0;
       for (int i = 0; i < nx*ny; i++) sum += w[f + i*nf];
 
-      if (sum == 0.0) return 0;  // all weights == zero is ok
+      if (sum == 0.0) continue;  // all weights == zero is ok
 
       float factor = strength/sum;
       for (int i = 0; i < nx*ny; i++) w[f + i*nf] *= factor;
