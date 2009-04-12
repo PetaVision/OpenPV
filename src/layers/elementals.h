@@ -103,6 +103,16 @@ static inline int strideF(float nx, float ny, float nf)
    return 1;
 }
 
+/**
+ * Assuming iPre connects to the nearest iPost, return the difference between these two positions
+ *    (xPost - xPre) or (yPost - yPre) in units of post-synaptic dx (or dy).
+ */
+static inline float deltaPosLayers(int iPre, int scale)
+{
+   int s = pow(2, scale);
+   return 0.5 * (1.0 - (1.0 + 2.0 * (iPre%s)) / s);
+}
+
 #endif // ifndef FEATURES_LAST
 
 #ifdef FEATURES_LAST
