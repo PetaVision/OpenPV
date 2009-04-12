@@ -19,7 +19,8 @@ CPPFLAGS = -g -Wall $(MPI_INC)
 
 DEPENDS = $(HEADERS)
 
-TESTS = test_kg test_kxpos test_kypos test_pos test_extend_border \
+TESTS = test_kg test_kxpos test_kypos \
+        test_pos test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_decode_msg \
         test_borders test_gs_io test_layer_direct
 
@@ -60,6 +61,9 @@ test_kxpos: $(BUILDDIR)/test_kxpos.o $(DEPENDS)
 test_kypos: $(BUILDDIR)/test_kypos.o $(DEPENDS)
 	$(CC) -o $@ $(BUILDDIR)/$@.o
 
+test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(DEPENDS)
+	$(CC) -o $@ $(BUILDDIR)/$@.o
+
 test_pos: $(BUILDDIR)/test_pos.o $(DEPENDS)
 	$(CC) -o $@ $(BUILDDIR)/$@.o
 
@@ -95,6 +99,8 @@ runtests: make-in-subdirs $(TESTS)
 	@test_kypos
 	@echo "Running test_pos ..."
 	@test_pos
+	@echo "Running test_delta_pos ..."
+	@test_delta_pos
 	@echo "Running test_extend_border ..."
 	@test_extend_border
 	@echo "Running test_patch_head ..."
