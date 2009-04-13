@@ -940,7 +940,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int xScale, int yScale
    const float y0 = +(ny/2.0 - 0.5) * dy;
 
    const float dth = PI/nf;
-   const float th0 = -PI/2.0 + rotate*dth/2.0;
+   const float th0 = rotate*dth/2.0;
 
    for (int f = 0; f < nf; f++) {
       int o = f % no;
