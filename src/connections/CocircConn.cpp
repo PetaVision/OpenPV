@@ -18,8 +18,7 @@ CocircConn::CocircConn(const char * name,
    this->connId = hc->numberOfConnections();
    this->name = strdup(name);
    this->parent = hc;
-
-   this->numBundles = pre->clayer->numFeatures;
+   this->numBundles = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -106,12 +105,24 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
 
    PVParams * params = parent->parameters();
 
-   const int no = (int) params->value(post->getName(), "no");
+   const int nfPre = (int) params->value(pre->getName(), "nf");
+   const int nfPst = (int) params->value(post->getName(), "nf");
+   const int noPre = (int) params->value(pre->getName(), "no");
+   const int noPst = (int) params->value(post->getName(), "no");
 
+   // from pv_common.h
+   // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
    const float dKv          = params->value(name, "deltaCurvature");
-   const float cocirc_self  = params->value(name, "cocirc_self");
+
    const float sigma_cocirc = params->value(name, "sigma_cocirc");
    const float sigma_kurve  = params->value(name, "sigma_kurve");
+
+   float rotate = 1;  // rotate/offset so orientations aren't aligned with axis
+   if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
+   float deltaThetaMax = PI/2.0;
+   if (params->present(name, "deltaThetaMax")) deltaThetaMax = params->value(name, "deltaThetaMax");
+   float cocirc_self = pre != post;
+   if (params->present(name, "cocirc_self")) cocirc_self = params->value(name, "cocirc_self");
 
    const float sigma2        = 2 * sigma * sigma;
    const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
@@ -134,29 +145,33 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
    const float x0 = -(nx/2.0 - 0.5) * dx;
    const float y0 = +(ny/2.0 - 0.5) * dy;
 
-   // TODO - is no the same for all layers (why are nfs diff)?
-   const int nfPre = nf;
-   const int nKurvePre = nfPre / no;
-   const int nKurvePst = nf    / no;
+   const int nKurvePre = nfPre / noPre;
+   const int nKurvePst = nfPst / noPst;
 
-   const float dTh =  PI/no;
-   const float th0 = -PI/2.0 + dTh/2.0;
+   const float dTh = PI/noPst;
+   const float th0 = rotate*dTh/2.0;
 
-   const int iKv = fPre % nKurvePre;
-   const int iTh = fPre / nKurvePre;
+   const int iKvPre = fPre % nKurvePre;
+   const int iThPre = fPre / nKurvePre;
 
-   const float kurvePre = 0.0 + iKv * dKv;
-   const float thetaPre = th0 + iTh * dTh;
+   const float kurvePre = 0.0 + iKvPre * dKv;
+   const float thetaPre = th0 + iThPre * dTh;
 
    // loop over all post synaptic neurons in patch
    for (int f = 0; f < nf; f++) {
-      int iKv = f % nKurvePst;
-      int iTh = f / nKurvePst;
+      int iKvPst = f % nKurvePst;
+      int iThPst = f / nKurvePst;
 
       int fPst = f;
 
-      float kurvePst = 0.0 + iKv * dKv;
-      float thetaPst = th0 + iTh * dTh;
+      float kurvePst = 0.0 + iKvPst * dKv;
+      float thetaPst = th0 + iThPst * dTh;
+
+      float deltaTheta = RAD_TO_DEG * fabs(thetaPre - thetaPst);
+      deltaTheta = deltaTheta <= 90. ? deltaTheta : 180. - deltaTheta;
+      if (deltaTheta > deltaThetaMax) {
+         continue;
+      }
 
       float gCocirc   = 1.0;
       float gKurvePre = 1.0;
@@ -166,24 +181,12 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
          float y = y0 - j * dy;
          for (int i = 0; i < nx; i++) {
             float x  = x0 + i*dx;
-
-            w[i*sx + j*sy + f*sf] = 0;
-
-            // TODO - I don't think purely local support should occur
-            // if ( (x == 0) && (y == 0) && (fPst == fPre) && (cocirc_self == 0) ) {
-            if ( (x == 0) && (y == 0) && (cocirc_self == 0) ) {
-               continue;
-            }
-
             float d2  = x * x + y * y;
-            if (d2 > r2Max) continue;
+            if (d2 > r2Max) continue;  // || (d2 < r2Min)
 
             gDist = expf(-d2/sigma2);
 
-            // TODO - why short range excitation?????????????
-            if (d2 == 0) {
-               float deltaTheta = RAD_TO_DEG * fabs(thetaPre - thetaPst);
-               deltaTheta = deltaTheta <= 90. ? deltaTheta : 180. - deltaTheta;
+            if (d2 == 0 && (cocirc_self == 0)  ) {
                gCocirc = sigma_cocirc > 0 ?
                          expf(-deltaTheta * deltaTheta / sigma_cocirc2 ) :
                          expf(-deltaTheta * deltaTheta / sigma_cocirc2 ) - 1.0;
@@ -200,29 +203,6 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
                 // orientations, although orthogonal angles are supported at
                 // 45 degrees in all four quadrants.
 
-#if 0 //USE_BOWTIE_FIELD
-
-                float atanx2 = 1.0 * atan2f(dyP, dxP);  // angle between segments
-
-                // Tricky: This mapping is not symmetric. Want to know how much
-                // The presynaptic angle needs to rotate to get to postsynaptic
-                float deltaTheta = (preTheta + postTheta)*DTH;
-                deltaTheta = deltaTheta <= 90. ? deltaTheta : 180. - deltaTheta;
-
-                // Total angular distance is just the sum of these two measures.
-                float chi = 1.0 * RAD_TO_DEG*(atanx2)+deltaTheta;
-
-                if (fabs(chi) < 90.0)
-                        ; // Noop. chi=fabs(chi), unnecessary since sqrd below.
-                else if (chi > 0.0)
-                        chi = chi - 180.0;
-                else
-                        chi = chi + 180.0;
-
-                gCocirc = ( post->nfeatures > 1 && pre->nfeatures > 1 ) ? expf(-chi * chi / COCIRC_PARAMS(COCIRC_SIGMA_COCIRC2)) : 1.0;
-
-#else // previous : radially symmetric
-
                 float atanx2 = thetaPre + 2. * atan2f(dyP, dxP);    // preferred angle (rad)
                 atanx2 += 2. * PI;
                 atanx2 = fmod( atanx2, PI );
@@ -230,19 +210,17 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
                 if ( chi >= 90. ) {
                     chi = 180. - chi;
                 }
-                if ( nf > 1 && nfPre > 1 ) {
+                if ( noPre > 1 && noPst > 1 ) {
                     gCocirc = sigma_cocirc2 > 0 ?
                         expf(-chi * chi / sigma_cocirc2 ) :
                         expf(-chi * chi / sigma_cocirc2 ) - 1.0;
                 }
 
-#endif // USE_BOWTIE_FIELD
-
                 float cocircKurve = fabs(2 * dyP) / d2;
                 gKurvePre = ( nKurvePre > 1 ) ?
                     exp( -pow( (cocircKurve - fabs(kurvePre)), 2 ) / sigma_kurve2 ) :
                     1.0;
-                gKurvePst =  ( (nKurvePst > 1) && (nKurvePst > 1) && (sigma_cocirc2 > 0) ) ?
+                gKurvePst =  ( (nKurvePre > 1) && (nKurvePst > 1) && (sigma_cocirc2 > 0) ) ?
                     exp( -pow( (cocircKurve - fabs(kurvePst)), 2 ) / sigma_kurve2 ) :
                     1.0;
             }
