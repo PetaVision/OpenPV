@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
       }
    }
 
-   scale = 1;
+   scale = -1;
    for (iPre = 0; iPre < 7; iPre++) {
       dx = deltaPosLayers(iPre, scale);
       float val = (iPre % 2) ? -0.25 : 0.25;
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
       }
    }
 
-   scale = 2;
+   scale = -2;
    for (iPre = 0; iPre < 7; iPre++) {
       dx = deltaPosLayers(iPre, scale);
       float val = 1./8.;
@@ -34,6 +34,26 @@ int main(int argc, char* argv[])
       if (iPre % 4 == 1) val =  1.0 * val;
       if (iPre % 4 == 2) val = -1.0 * val;
       if (iPre % 4 == 3) val = -3.0 * val;
+      if (dx != val) {
+         printf("FAILED:TEST_DELTA_POS: scale=%d, iPre=%d, dx=%f\n", scale, iPre, dx);
+         exit(1);
+      }
+   }
+
+   scale = 1;
+   for (iPre = 0; iPre < 7; iPre++) {
+      dx = deltaPosLayers(iPre, scale);
+      float val = -0.5;
+      if (dx != val) {
+         printf("FAILED:TEST_DELTA_POS: scale=%d, iPre=%d, dx=%f\n", scale, iPre, dx);
+         exit(1);
+      }
+   }
+
+   scale = 2;
+   for (iPre = 0; iPre < 7; iPre++) {
+      dx = deltaPosLayers(iPre, scale);
+      float val = -1.5;
       if (dx != val) {
          printf("FAILED:TEST_DELTA_POS: scale=%d, iPre=%d, dx=%f\n", scale, iPre, dx);
          exit(1);
