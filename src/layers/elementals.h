@@ -104,13 +104,25 @@ static inline int strideF(float nx, float ny, float nf)
 }
 
 /**
- * Assuming iPre connects to the nearest iPost, return the difference between these two positions
+ * Assuming iPre connects to the nearest iPost, return the distance between these two positions
  *    (xPost - xPre) or (yPost - yPre) in units of post-synaptic dx (or dy).
  */
 static inline float deltaPosLayers(int iPre, int scale)
 {
-   int s = pow(2, scale);
-   return 0.5 * (1.0 - (1.0 + 2.0 * (iPre%s)) / s);
+   if (scale == 0) {
+      return 0.0;
+   }
+   else if (scale > 0) {
+      // post-synaptic layer has smaller size scale
+      int s = pow(2, scale);
+      return 0.5 * (1.0 - s);
+   }
+   else {
+      // post-synaptic layer has larger size scale
+      int s = pow(2, -scale);
+      return 0.5 * (1.0 - (1.0 + 2.0 * (iPre%s)) / s);
+   }
+   return 0.0;
 }
 
 #endif // ifndef FEATURES_LAST
