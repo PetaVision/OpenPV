@@ -133,7 +133,7 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
 
    const float expExcite = exp(-dt / params->tauE );
    const float expInhib  = exp(-dt / params->tauI );
-   const float expInhibB = exp(-dt / params->tauIB);
+//   const float expInhibB = exp(-dt / params->tauIB);
 
    const float Vrest = params->Vrest;
    const float Vexc  = params->Vexc;
@@ -145,11 +145,11 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
 
    float * G_E  = l->G_E;
    float * G_I  = l->G_I;
-   float * G_IB = l->G_IB;
+//   float * G_IB = l->G_IB;
 
    float * phiExc  = l->phi[PHI_EXC];
    float * phiInh  = l->phi[PHI_INH];
-   float * phiInhB = l->phi[PHI_INHB];
+//   float * phiInhB = l->phi[PHI_INHB];
 
    add_noise(l, dt);
 
@@ -157,10 +157,13 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
    {
       G_E[i]  = phiExc[i]  + G_E[i]  * expExcite;
       G_I[i]  = phiInh[i]  + G_I[i]  * expInhib;
-      G_IB[i] = phiInhB[i] + G_IB[i] * expInhibB;
-      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i] + G_IB[i]);
-      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh + G_IB[i] * VinhB )
-                / (1.0 + G_E[i] + G_I[i] + G_IB[i]);
+//      G_IB[i] = phiInhB[i] + G_IB[i] * expInhibB;
+//      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i] + G_IB[i]);
+//      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh + G_IB[i] * VinhB )
+//                / (1.0 + G_E[i] + G_I[i] + G_IB[i]);
+      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i]);
+      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh )
+                / (1.0 + G_E[i] + G_I[i]);
       V[i] = VmemInf + (V[i] - VmemInf) * exp(-tauInf);
    }
 
