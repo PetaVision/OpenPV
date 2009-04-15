@@ -18,7 +18,7 @@ MAKE = make
 CFLAGS = -g -std=c99 -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
 CPPFLAGS = -g -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
 
-EXES = pv_example pv_cocirc pv_gabor_cocirc
+EXES = pv_example
 
 %.o: %.cpp
 	@echo 'Building file: $<'
@@ -26,9 +26,9 @@ EXES = pv_example pv_cocirc pv_gabor_cocirc
 	@echo 'Finished building: $<'
 	@echo ' '
 
-#all: $(EXES) pv libpv.a
+#all: libpv.a $(EXES)
 
-all: make-in-subdirs $(EXES)
+all: make-in-subdirs $(BUILDDIR)/libpv.a $(EXES)
 
 pv_example: pv_example.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
 	$(CPP) -o $@ pv_example.o $(OBJS) $(MPI_OBJ) -lm -lpthread
@@ -48,8 +48,8 @@ $(MPI_OBJ): $(MPI_DIR)/mpi.h $(MPI_DIR)/mpi.c
 libpv.so: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
 	$(CPP) -shared -Wl,-soname,$@ -o $@ $+ -lc
 
-libpv.a: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
-	ar rcs libpv.a $+
+$(BUILDDIR)/libpv.a: $(DEPENDS) $(OBJS) $(MPI_OBJ)
+	ar rcs $(BUILDDIR)/libpv.a $+
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
