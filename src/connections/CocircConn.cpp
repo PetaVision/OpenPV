@@ -162,8 +162,6 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
       int iKvPst = f % nKurvePst;
       int iThPst = f / nKurvePst;
 
-      int fPst = f;
-
       float kurvePst = 0.0 + iKvPst * dKv;
       float thetaPst = th0 + iThPst * dTh;
 
