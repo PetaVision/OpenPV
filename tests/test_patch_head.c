@@ -7,6 +7,7 @@ float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nxPatc
 
 /*
  * Only tests even X even patches (odd numbers may not be valid for the algorithm)
+ * Not true anymore, odd patches work better (at least for scale >= 0)
  */
 
 int main(int argc, char* argv[])
@@ -14,7 +15,229 @@ int main(int argc, char* argv[])
    int kh, scale;
    float kpre, k0l, nPatch;
 
-   // common usage tests
+   // common usage tests for nPatch odd, scale >=0 (feed-forward)
+
+   scale = 0;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 0;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 1;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 0) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 3;
+   k0l = 1;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 2) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 1;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 0;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 1;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 1;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 1;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 0) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 1;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 4;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 1;
+   nPatch = 3;
+   k0l = -5;
+   kpre = 7;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -3) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 2;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 0;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 2;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 1;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 2;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 2;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 3;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 2;
+   nPatch = 3;
+   k0l = 0;
+   kpre = 4;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 0) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   // common usage tests for scale <= 0 feedback
+
+   scale = 0;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 0;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -3) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 1;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = 0;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 3;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 1) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = -1;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 0;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != -2) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = -1;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 1;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 0) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = -1;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 2;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 2) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
+
+   scale = -1;
+   nPatch = 6;
+   k0l = 0;
+   kpre = 3;
+   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
+   if (kh != 4) {
+      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
+      exit(1);
+   }
 
    scale = 0;
    nPatch = 4;
@@ -41,7 +264,7 @@ int main(int argc, char* argv[])
    k0l = -1;
    kpre = 5;
    kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
+   if (kh != -2) {  // was -1
       printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
       exit(1);
    }
@@ -51,7 +274,7 @@ int main(int argc, char* argv[])
    k0l = -1;
    kpre = 6;
    kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
+   if (kh != -2) {  // was -1
       printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
       exit(1);
    }
@@ -61,7 +284,7 @@ int main(int argc, char* argv[])
    k0l = -1;
    kpre = 5;
    kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 1) {
+   if (kh != 0) {
       printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
       exit(1);
    }
@@ -71,10 +294,12 @@ int main(int argc, char* argv[])
    k0l = -1;
    kpre = 6;
    kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 1) {
+   if (kh != 0) {
       printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
       exit(1);
    }
+
+   printf("Finshed with known results\n");
 
    scale = 2;
    nPatch = 2;
