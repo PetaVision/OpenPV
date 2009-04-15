@@ -11,6 +11,8 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/connections/GaborConn.hpp \
           $(SRCDIR)/connections/CocircConn.hpp \
           $(SRCDIR)/connections/LongRangeConn.hpp \
+          $(SRCDIR)/connections/PoolConn.hpp \
+          $(SRCDIR)/connections/RuleConn.hpp \
           $(SRCDIR)/connections/PVConnection.h \
           $(SRCDIR)/layers/elementals.h \
           $(SRCDIR)/layers/LIF2.h \
@@ -30,6 +32,8 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/CocircConn.cpp \
           $(SRCDIR)/connections/InhibConn.cpp \
           $(SRCDIR)/connections/LongRangeConn.cpp \
+          $(SRCDIR)/connections/PoolConn.cpp \
+          $(SRCDIR)/connections/RuleConn.cpp \
           $(SRCDIR)/layers/Example.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
           $(SRCDIR)/layers/Retina.cpp \
@@ -51,6 +55,8 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/CocircConn.o \
           $(BUILDDIR)/InhibConn.o \
           $(BUILDDIR)/LongRangeConn.o \
+          $(BUILDDIR)/PoolConn.o \
+          $(BUILDDIR)/RuleConn.o \
           $(BUILDDIR)/Retina.o \
           $(BUILDDIR)/Example.o \
           $(BUILDDIR)/LGN.o \
@@ -63,7 +69,6 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/param_parser.o
 
 CSRCS   = $(SRCDIR)/connections/PVConnection.c \
-          $(SRCDIR)/connections/WeightCache.c \
           $(SRCDIR)/layers/fileread.c \
           $(SRCDIR)/layers/LIF2.c \
           $(SRCDIR)/layers/PVLayer.c \
@@ -72,7 +77,6 @@ CSRCS   = $(SRCDIR)/connections/PVConnection.c \
           $(SRCDIR)/io/parser/param_lexer.c
 
 COBJS   = $(BUILDDIR)/PVConnection.o \
-          $(BUILDDIR)/WeightCache.o \
           $(BUILDDIR)/fileread.o \
           $(BUILDDIR)/LIF2.o \
           $(BUILDDIR)/PVLayer.o \

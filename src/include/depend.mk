@@ -25,6 +25,12 @@ $(BUILDDIR)/InhibConn.o: $(SRCDIR)/connections/InhibConn.cpp $(HEADERS)
 $(BUILDDIR)/LongRangeConn.o: $(SRCDIR)/connections/LongRangeConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/PoolConn.o: $(SRCDIR)/connections/PoolConn.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/RuleConn.o: $(SRCDIR)/connections/RuleConn.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/Example.o: $(SRCDIR)/layers/Example.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -59,9 +65,6 @@ $(BUILDDIR)/param_parser.o: $(SRCDIR)/io/parser/param_parser.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/PVConnection.o: $(SRCDIR)/connections/PVConnection.c $(HEADERS)
-	$(CC) -c $(CFLAGS) -o $@ $<
-
-$(BUILDDIR)/WeightCache.o: $(SRCDIR)/connections/WeightCache.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/PVLayer.o: $(SRCDIR)/layers/PVLayer.c $(HEADERS)
