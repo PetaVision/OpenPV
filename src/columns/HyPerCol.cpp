@@ -9,7 +9,6 @@
 #include "InterColComm.hpp"
 #include "../arch/pthreads/pv_thread.h"
 #include "../connections/PVConnection.h"
-#include "../connections/WeightCache.h"
 #include "../io/io.h"
 
 #include <stdlib.h>
