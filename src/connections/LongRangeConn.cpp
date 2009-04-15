@@ -40,6 +40,11 @@ int LongRangeConn::initializeWeights(const char * filename)
 
    rMax = sqrt(nxp * nxp + nyp * nyp);
 
+   int noPost = 1;
+   if (params->present(post->getName(), "no")) {
+      noPost = params->value(post->getName(), "no");
+   }
+
    aspect = params->value(name, "aspect");
    sigma  = params->value(name, "sigma");
    lambda = params->value(name, "lambda");
@@ -57,7 +62,7 @@ int LongRangeConn::initializeWeights(const char * filename)
    for (int k = 0; k < numPatches; k++) {
       const int bundle = 0;
       PVPatch * patch = getWeights(k, bundle);
-      calcWeights(patch, k, xScale, yScale, aspect, sigma, r2Max, lambda, strength);
+      calcWeights(patch, k, noPost, xScale, yScale, aspect, sigma, r2Max, lambda, strength);
    }
 
    return 0;
@@ -66,7 +71,7 @@ int LongRangeConn::initializeWeights(const char * filename)
 /**
  * calculate synaptic weights for a patch
  */
-int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int xScale, int yScale,
+int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int no, int xScale, int yScale,
         float aspect, float sigma, float r2Max, float lambda, float strength)
 {
 
@@ -123,7 +128,7 @@ int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int xScale, int yScale,
       }
    }
 
-   return HyPerConn::gauss2DCalcWeights(wp, kPre, xScale, yScale,
+   return HyPerConn::gauss2DCalcWeights(wp, kPre, no, xScale, yScale,
                              numFlanks, shift, rotate,
                              aspect, sigma, r2Max, strength);
 

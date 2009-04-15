@@ -22,7 +22,7 @@ protected:
 
    virtual int createSynapseBundles(int numTasks);
 
-   int calcWeights(PVPatch * wp, int kPre, int xScale, int yScale,
+   int calcWeights(PVPatch * wp, int kPre, int no, int xScale, int yScale,
                    float aspect, float sigma, float r2Max, float lambda, float strength);
 
 };
