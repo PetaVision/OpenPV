@@ -233,6 +233,12 @@ int HyPerConn::initializeWeights(const char * filename)
       PVParams * params = parent->parameters();
 
       // default values (chosen for center on cell of one pixel)
+
+      int noPost = 1;
+      if (params->present(post->getName(), "no")) {
+         noPost = params->value(post->getName(), "no");
+      }
+
       float aspect   = 1.0;  // circular (not line oriented)
       float sigma    = 0.8;
       float rMax     = 1.4;
@@ -259,7 +265,7 @@ int HyPerConn::initializeWeights(const char * filename)
       const int xScale = post->clayer->xScale - pre->clayer->xScale;
       const int yScale = post->clayer->xScale - pre->clayer->yScale;
       for (int k = 0; k < numPatches; k++) {
-         gauss2DCalcWeights(wPatches[k], k, xScale, yScale,
+         gauss2DCalcWeights(wPatches[k], k, noPost, xScale, yScale,
                             numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
       }
    }
@@ -313,15 +319,60 @@ int HyPerConn::initializeWeights(const char * filename)
 
 int HyPerConn::writeWeights()
 {
+   int err = 0;
+
 #ifdef DEBUG_WEIGHTS
-   char outfile[64];
+   char outfile[128];
 
    // only write first weight patch
-   sprintf(outfile, "%sw%d.txt", OUTPUT_PATH, getConnectionId());
-   pv_text_write_patch(outfile, wPatches[0]);
+
    sprintf(outfile, "%sw%d.tif", OUTPUT_PATH, getConnectionId());
-   pv_tiff_write_patch(outfile, wPatches[0]);
+   FILE * fd = fopen(outfile, "wb");
+   if (fd == NULL) {
+      fprintf(stderr, "writeWeights: ERROR opening file %s\n", outfile);
+      return 1;
+   }
+   pv_tiff_write_patch(fd, wPatches[0]);
+   fclose(fd);
+
+   sprintf(outfile, "w%d.txt", getConnectionId());
+   err = writeWeights(outfile, 0);
+
 #endif
+
+   return err;
+}
+
+int HyPerConn::writeWeights(const char * filename, int k)
+{
+   FILE * fd;
+   char outfile[128];
+
+   if (filename != NULL) {
+      sprintf(outfile, "%s%s", OUTPUT_PATH, filename);
+      fd = fopen(outfile, "w");
+      if (fd == NULL) {
+         fprintf(stderr, "writeWeights: ERROR opening file %s\n", filename);
+         return 1;
+      }
+   }
+   else {
+      fd = stdout;
+   }
+
+   fprintf(fd, "Connection weights for connection %d, neuron %d\n", getConnectionId(), k);
+   fprintf(fd, "   (nxp,nyp,nfp)   = (%d,%d,%d)\n", (int)nxp, (int)nyp, (int)nfp);
+   fprintf(fd, "   pre  (nx,ny,nf) = (%d,%d,%d)\n",
+           (int)pre->clayer->loc.nx, (int)pre->clayer->loc.ny, (int)pre->clayer->numFeatures);
+   fprintf(fd, "   post (nx,ny,nf) = (%d,%d,%d)\n",
+           (int)post->clayer->loc.nx, (int)post->clayer->loc.ny, (int)post->clayer->numFeatures);
+   fprintf(fd, "\n");
+   pv_text_write_patch(fd, wPatches[k]);
+
+   if (fd != stdout) {
+      fclose(fd);
+   }
+
    return 0;
 }
 
@@ -888,7 +939,7 @@ int HyPerConn::createNorthernSynapseBundles(int numTasks)
 /**
  * calculate gaussian weights to segment lines
  */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int xScale, int yScale,
+int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, int yScale,
                                   int numFlanks, float shift, float rotate,
                                   float aspect, float sigma, float r2Max, float strength)
 {
@@ -902,13 +953,12 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int xScale, int yScale
    const int sy = (int) wp->sy;  assert(sy == nf*nx);
    const int sf = (int) wp->sf;  assert(sf == 1);
 
-   const float dx = powf(2, xScale);
-   const float dy = powf(2, yScale);
-
-// TODO---------------------------------------
-   // NEED no (# of orientations)
-   // pre-synaptic neuron is not at the center of the patch (0,0)
-   int no = nf;
+   //   const float dx = powf(2, xScale);
+   //   const float dy = powf(2, yScale);
+   // TODO - make sure this is correct
+   // sigma is in units of pre-synaptic layer
+   const float dx = 1.0;
+   const float dy = 1.0;
 
    const float nxPre = pre->clayer->loc.nx;
    const float nyPre = pre->clayer->loc.nx;
@@ -918,37 +968,33 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int xScale, int yScale
    const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
    const int fPre  = (int) featureIndex(kPre, nxPre, nyPre, nfPre);
 
-   float xPre = 0.0;
-   float yPre = 0.0;
+   // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
+   float xPre = -1.0 * deltaPosLayers(kxPre, xScale) * dx;
+   float yPre = -1.0 * deltaPosLayers(kyPre, yScale) * dy;
 
-   if (xScale != 0.0) {
-      xPre = -dx/4.0;
-      if (kxPre == 0 || (2 % kxPre) != 0) {
-         xPre *= -1;
-      }
-   }
-
-   if (yScale != 0.0) {
-      yPre = -dy/4.0;
-      if (kyPre != 0) {
-         if (2 % kyPre) yPre *= -1;
-      }
-   }
+   // closest post-synaptic neuron may not be at the center of the patch (0,0)
+   // so must shift pre-synaptic location
+   if (xPre < 0.0) xPre += 0.5 * dx;
+   if (xPre > 0.0) xPre -= 0.5 * dx;
+   if (yPre < 0.0) yPre += 0.5 * dy;
+   if (yPre > 0.0) yPre -= 0.5 * dy;
 
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
-   const float x0 = -(nx/2.0 - 0.5) * dx;
-   const float y0 = +(ny/2.0 - 0.5) * dy;
+   // and shift so pre-synaptic cell is at 0
+   const float x0 = -(nx/2.0 - 0.5) * dx - xPre;
+   const float y0 = +(ny/2.0 - 0.5) * dy - yPre;
 
    const float dth = PI/nf;
    const float th0 = rotate*dth/2.0;
 
+   // loop over all post-synaptic cells in patch
    for (int f = 0; f < nf; f++) {
       int o = f % no;
       float th = th0 + o * dth;
       for (int j = 0; j < ny; j++) {
-         float y = (y0 - yPre) - j * dy;
+         float y = y0 - j * dy;
          for (int i = 0; i < nx; i++) {
-            float x  = (x0 - xPre) + i*dx;
+            float x  = x0 + i*dx;
 
             // rotate the reference frame by th
             float xp = + x * cos(th) + y * sin(th);
