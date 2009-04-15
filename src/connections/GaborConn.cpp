@@ -27,8 +27,6 @@ GaborConn::GaborConn(const char * name,
 
 int GaborConn::initializeWeights(const char * filename)
 {
-   char outfile[64];
-
    float aspect = 4.0;
    float sigma  = 2.0;
    float rMax   = 8.0;

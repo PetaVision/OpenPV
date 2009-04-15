@@ -28,8 +28,6 @@ LongRangeConn::LongRangeConn(const char * name,
 
 int LongRangeConn::initializeWeights(const char * filename)
 {
-   char outfile[64];
-
    float aspect = 4.0;
    float sigma  = 2.0;
    float rMax   = 8.0;
@@ -117,7 +115,7 @@ int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int no, int xScale, int y
          for (int i = 0; i < nx; i++) {
             w[i*sx + j*sy + f*sf] = 0;
          }
-         int i = ixPre - 3;
+//         int i = ixPre - 3;
 //         w[(i++)*sx + j*sy + f*sf] = 0.2;
 //         w[(i++)*sx + j*sy + f*sf] = 0.5;
 //         w[(i++)*sx + j*sy + f*sf] = 0.8;

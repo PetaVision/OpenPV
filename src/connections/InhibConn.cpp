@@ -27,8 +27,6 @@ InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
 
 int InhibConn::initializeWeights(const char * filename)
 {
-   char outfile[64];
-
    float aspect = 4.0;
    float sigma  = 2.0;
    float rMax   = 8.0;

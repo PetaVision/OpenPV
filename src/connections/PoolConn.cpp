@@ -54,10 +54,6 @@ int PoolConn::poolWeights(PVPatch * wp, int fPre, int xScale, int yScale, float 
 {
    pvdata_t * w = wp->data;
 
-   // get parameters
-
-   PVParams * params = parent->parameters();
-
    const int nx = (int) wp->nx;
    const int ny = (int) wp->ny;
    const int nf = (int) wp->nf;
@@ -66,9 +62,6 @@ int PoolConn::poolWeights(PVPatch * wp, int fPre, int xScale, int yScale, float 
    const int sx = (int) wp->sx;  assert(sx == nf);
    const int sy = (int) wp->sy;  assert(sy == nf*nx);
    const int sf = (int) wp->sf;  assert(sf == 1);
-
-   const float dx = powf(2, xScale);
-   const float dy = powf(2, yScale);
 
    assert(fPre >= 0 && fPre <= 15);
    assert(nx == 1);
