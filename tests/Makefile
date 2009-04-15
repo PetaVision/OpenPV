@@ -1,8 +1,6 @@
 SRCDIR = ../src
 BUILDDIR = build
 
-include $(SRCDIR)/include/sources.mk
-
 INPARAMS = input/inparams.txt
 
 #CPP = mpic++
@@ -17,7 +15,7 @@ MPI_OBJ = $(MPI_DIR)/mpi.o
 CFLAGS = -g -std=c99 -Wall $(MPI_INC)
 CPPFLAGS = -g -Wall $(MPI_INC)
 
-DEPENDS = $(HEADERS)
+LIBS = -L../src/build -lpv
 
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
@@ -46,50 +44,47 @@ $(BUILDDIR)/%.o: %.c
 
 all: make-in-subdirs $(TESTS)
 
-test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $(BUILDDIR)/$@.o $(BUILDDIR)/TestLayer.o $(OBJS) $(MPI_OBJ)
+test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o
+	$(CPP) -o $@ $< $(BUILDDIR)/TestLayer.o $(LIBS)
 
-test_gs_io: $(BUILDDIR)/test_gs_io.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $(BUILDDIR)/$@.o $(OBJS) $(MPI_OBJ)
+test_gs_io: $(BUILDDIR)/test_gs_io.o
+	$(CPP) -o $@ $< $(LIBS)
 
-test_kg: $(BUILDDIR)/test_kg.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_kg: $(BUILDDIR)/test_kg.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_kxpos: $(BUILDDIR)/test_kxpos.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_kxpos: $(BUILDDIR)/test_kxpos.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_kypos: $(BUILDDIR)/test_kypos.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_kypos: $(BUILDDIR)/test_kypos.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o 
+	$(CC) -o $@ $< $(LIBS)
 
-test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_delta_pos: $(BUILDDIR)/test_delta_pos.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_pos: $(BUILDDIR)/test_pos.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_pos: $(BUILDDIR)/test_pos.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_decode_msg: $(BUILDDIR)/test_decode_msg.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_extend_border: $(BUILDDIR)/test_extend_border.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_extend_border: $(BUILDDIR)/test_extend_border.o
+	$(CC) -o $@ $< $(LIBS)
 
-test_borders: $(BUILDDIR)/test_borders.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $(BUILDDIR)/$@.o $(OBJS) $(MPI_OBJ)
+test_borders: $(BUILDDIR)/test_borders.o
+	$(CPP) -o $@ $< $(LIBS)
 
-test_patch_head: $(BUILDDIR)/test_patch_head.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $(BUILDDIR)/$@.o $(OBJS) $(MPI_OBJ)
+test_patch_head: $(BUILDDIR)/test_patch_head.o
+	$(CPP) -o $@ $< $(LIBS)
 
-test_delta: $(BUILDDIR)/test_delta.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
+test_delta: $(BUILDDIR)/test_delta.o
+	$(CC) -o $@ $<
 
-test_sign: $(BUILDDIR)/test_sign.o $(DEPENDS)
-	$(CC) -o $@ $(BUILDDIR)/$@.o
-
-$(MPI_OBJ): $(MPI_DIR)/mpi.h $(MPI_DIR)/mpi.c
-	$(CC) $(CFLAGS) -c $(MPI_DIR)/mpi.c -o $@
+test_sign: $(BUILDDIR)/test_sign.o
+	$(CC) -o $@ $<
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output
@@ -150,5 +145,3 @@ clean-in-subdirs: force
 	done
 
 force:
-
-include $(SRCDIR)/include/depend.mk
