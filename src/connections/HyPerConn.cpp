@@ -6,7 +6,6 @@
  */
 
 #include "HyPerConn.hpp"
-#include "WeightCache.h"
 #include "../io/io.h"
 #include <assert.h>
 #include <stdlib.h>
