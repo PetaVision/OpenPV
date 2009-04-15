@@ -92,24 +92,6 @@ static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float
    return 0;
 }
 
-static inline int pvlayer_getIndex(PVLayer * l, float * pos, int * idx)
-{
-   float ky;
-   float kx;
-
-   ky = pos[DIMY] / l->loc.dy - 0.5;
-   kx = pos[DIMX] / l->loc.dx - 0.5;
-   ky -= l->yOrigin;
-   kx -= l->xOrigin;
-
-   // See if out of bounds of this patch
-   if (ky < 0 || ky >= l->loc.ny) return -1;
-
-   *idx = (int) (ky * (l->loc.nx * l->numFeatures) + kx * (l->numFeatures) + pos[DIMO]);
-
-   return 0;
-}
-
 float pvlayer_getWeight(float x0, float x, float r, float sigma);
 float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nxPatch);
 
