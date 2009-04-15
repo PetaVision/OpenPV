@@ -64,8 +64,8 @@ int HyPerLayer::init(const char * name, PVLayerType type)
 
    if (params->present(name, "nBorder")) nBorder = params->value(name, "nBorder");
 
-   float xScalef = log2f(nx / parent->width());
-   float yScalef = log2f(ny / parent->height());
+   float xScalef = log2f(parent->width() / nx);
+   float yScalef = log2f(parent->height() / ny);
 
    int xScale = nearbyintf(xScalef);
    int yScale = nearbyintf(yScalef);
@@ -771,6 +771,17 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
  */
 float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nPatch)
 {
+   float shift = 0;
+   if ((int) nPatch % 2 == 0) {
+      // if even, can't shift evenly (at least for scale < 0)
+      // the later choice alternates direction so not always to left
+      shift = (xScale < 0) ? 1 : (int) kxPre % 2;
+   }
+   shift -= (int) (0.5 * nPatch);
+   return kxPost0Left + shift + nearby_neighbor((int) kxPre, xScale);
+
+#ifdef SHIFTED_CENTERS
+   // this works better? for nPatch even, not so well for odd
    if (xScale == 0 && ((int)nPatch % 2) == 1) {
       return kxPost0Left + kxPre + 0.5*(1 - nPatch);
    }
@@ -779,6 +790,7 @@ float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nPatch
       return floorf((kxPost0Left + a*kxPre) + 0.5*(1 - nPatch));
       //      return floorf((kxPost0Left + a*kxPre) + (1.5f - 0.5f*nPatch));
    }
+#endif
 }
 
 static size_t pvcube_size(int numItems)
