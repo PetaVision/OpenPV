@@ -34,24 +34,6 @@
 #define DTH (180.0/NO)
 #define DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
 
-// Common indices into coordinate arrays:
-#define DIMY 0
-#define DIMX 1
-#define DIMO 2
-#define DIMK 3
-#define MAX_DIMS 4
-
-// Layer params
-#define RETINA_NEURONS (NX*NY*NO*NK)
-#define RETINA_DIMS 4
-#define LGN_NEURONS (NX*NY)
-#define LGN_DIMS 3
-#define V1_NEURONS (NX*NY*NO*NK)
-#define V1_DIMS 3
-#define V1S1_NO 8
-#define V1_S1_NEURONS (NX*NY*V1S1_NO*NK)
-#define V1_S1_DIMS 3
-
 // Misc:
 #define eventtype_t float
 #define RAD_TO_DEG_x2   (2.0*180.0/PI)
@@ -76,7 +58,7 @@
 #define MAX_NEIGHBORS    8
 #define MAX_LAYERS      10
 #define MAX_CONNECTIONS 20
-#define MAX_F_DELAY     21 // can have 0:MAX_F_DELAY-1 buffers of delay
+#define MAX_F_DELAY     31 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 // TODO: As soon as the interfaces stabilize, use the type-checked/safer prototypes
 //#define UPDATE_FN int (*)( int numNeurons, float *V, float *phi, float *f, void *params)
