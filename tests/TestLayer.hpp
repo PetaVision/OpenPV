@@ -18,7 +18,7 @@ public:
    virtual ~TestLayer();
 
    virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube* cube, int neighbor);
-   virtual int updateState(float time);
+   virtual int updateState(float time, float dt);
 
    virtual int initFinish();
 
