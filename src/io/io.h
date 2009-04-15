@@ -20,8 +20,8 @@ int readFile(const char * filename, float * buf, int * nx, int * ny);
 int scatterReadFile(const char * filename, PVLayer * l, float * buf, MPI_Comm comm);
 int gatherWriteFile(const char * filename, PVLayer * l, float * ibuf, MPI_Comm comm);
 
-int pv_text_write_patch(const char * filename, PVPatch * patch);
-int pv_tiff_write_patch(const char * filename, PVPatch * patch);
+int pv_text_write_patch(FILE * fd, PVPatch * patch);
+int pv_tiff_write_patch(FILE * fd, PVPatch * patch);
 int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf);
 
 int log_parameters(int n_time_steps, char * input_filename);

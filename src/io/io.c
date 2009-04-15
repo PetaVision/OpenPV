@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <float.h>	// FLT_MAX/MIN
+#include <string.h>     // memcpy
 
 static int pv_getopt_int(int argc, char * argv[], char * opt, int *   iVal);
 static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal);
@@ -541,7 +542,7 @@ int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny
    return 0;
 }
 
-int pv_tiff_write_patch(const char * filename, PVPatch * patch)
+int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
 {
    int f, i, j, k;
    long nextLoc;
@@ -555,12 +556,6 @@ int pv_tiff_write_patch(const char * filename, PVPatch * patch)
    const int sf = (int) patch->sf;  assert(sf == 1);
 
    float * buf = (float *) malloc(nx * ny * sizeof(float));
-
-   FILE * fd = fopen(filename, "wb");
-   if (fd == NULL) {
-      fprintf(stderr, "pv_tiff_write_patch: ERROR opening file %s\n", filename);
-      return 1;
-   }
 
    tiff_write_header(fd, &nextLoc);
 
@@ -605,13 +600,12 @@ int pv_tiff_write_patch(const char * filename, PVPatch * patch)
    }
 
    tiff_write_finish(fd, nextLoc);
-   fclose(fd);
    free(buf);
 
    return 0;
 }
 
-int pv_text_write_patch(const char * filename, PVPatch * patch)
+int pv_text_write_patch(FILE * fd, PVPatch * patch)
 {
    int f, i, j;
 
@@ -620,14 +614,10 @@ int pv_text_write_patch(const char * filename, PVPatch * patch)
    const int nf = (int) patch->nf;
 
    const int sx = (int) patch->sx;  assert(sx == nf);
-   const int sy = (int) patch->sy;  assert(sy == nf*nx);
+   const int sy = (int) patch->sy;  //assert(sy == nf*nx);
    const int sf = (int) patch->sf;  assert(sf == 1);
 
-   FILE * fd = fopen(filename, "w");
-   if (fd == NULL) {
-      fprintf(stderr, "pv_text_write_patch: ERROR opening file %s\n", filename);
-      return 1;
-   }
+   assert(fd != NULL);
 
    for (f = 0; f < nf; f++) {
       for (j = 0; j < ny; j++) {
@@ -638,7 +628,6 @@ int pv_text_write_patch(const char * filename, PVPatch * patch)
       }
       fprintf(fd, "\n");
    }
-   fclose(fd);
 
    return 0;
 }
