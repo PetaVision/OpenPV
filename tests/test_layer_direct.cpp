@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
 
     params.invert = 0.0;
     params.uncolor = 0.0; // if true, pixels>0 become 1.0
-    params.IMax = 0.0;    // intensity for on pixels
-    params.poisson = 0.0; // spike as poisson?
+    //    params.IMax = 0.0;    // intensity for on pixels
+    //    params.poisson = 0.0; // spike as poisson?
     params.poissonEdgeProb = 0.0;  // if so, prob
     params.poissonBlankProb = 0.0; // spike as poisson?
     params.beginStim = 0.0;
