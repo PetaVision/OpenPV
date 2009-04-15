@@ -16,7 +16,7 @@
 #define MAX_THREADS 1
 
 /* For building using Eclipse */
-#define ECLIPSE
+#undef ECLIPSE
 
 /* controls usage of the C99 restrict keyword */
 #ifndef RESTRICT
