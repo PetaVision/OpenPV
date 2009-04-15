@@ -56,6 +56,13 @@ int Retina::init(const char * name, PVLayerType type)
    fileread_params * params = (fileread_params *) l->params;
    float marginWidth = params->marginWidth;
 
+   PVParams * pvParams = parent->parameters();
+
+   int fireOffPixels = 0;
+   if (pvParams->present(name, "fireOffPixels")) {
+      fireOffPixels = pvParams->value(name, "fireOffPixels");
+   }
+
    const int nx = l->loc.nx;
    const int ny = l->loc.ny;
    const int nf = l->numFeatures;
@@ -80,10 +87,18 @@ int Retina::init(const char * name, PVLayerType type)
       }
    }
    else {
-      // f[0] are ON, f[1] are OFF cells
-      for (int k = 0; k < nx*ny; k++) {
-         V[2*k]   = buf[k];
-         V[2*k+1] = buf[k];
+      // f[0] are OFF, f[1] are ON cells
+      if (fireOffPixels) {
+         for (int k = 0; k < nx*ny; k++) {
+            V[2*k]   = 1 - buf[k];
+            V[2*k+1] = buf[k];
+         }
+      }
+      else {
+         for (int k = 0; k < nx*ny; k++) {
+            V[2*k]   = buf[k];
+            V[2*k+1] = buf[k];
+         }
       }
    }
 
