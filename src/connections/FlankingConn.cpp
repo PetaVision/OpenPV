@@ -30,6 +30,11 @@ int FlankingConn::initializeWeights(const char * filename)
 
    float strength = 1.0;
 
+   int noPost = 1;
+   if (params->present(post->getName(), "no")) {
+      noPost = params->value(post->getName(), "no");
+   }
+
    const float aspect = params->value(name, "aspect");
    const float sigma  = params->value(name, "sigma");
    const float rMax   = params->value(name, "rMax");
@@ -54,7 +59,7 @@ int FlankingConn::initializeWeights(const char * filename)
       int xScale = post->clayer->xScale - pre->clayer->xScale;
       int yScale = post->clayer->xScale - pre->clayer->yScale;
       int fPre = i % nfPre;
-      gauss2DCalcWeights(wPatches[i], fPre, xScale, yScale,
+      gauss2DCalcWeights(wPatches[i], fPre, noPost, xScale, yScale,
                          numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
    }
 
