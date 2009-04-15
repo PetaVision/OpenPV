@@ -41,6 +41,7 @@ public:
 
    virtual int numberOfWeightPatches();
    virtual int writeWeights();
+   virtual int writeWeights(const char * filename, int k);
 
    virtual PVPatch * getWeights(int k, int bundle);
    virtual PVPatch * getPlasticityIncrement(int k, int bundle);
@@ -64,7 +65,7 @@ public:
 
    int setParams(PVParams * params, PVConnParams * p);
 
-   int gauss2DCalcWeights(PVPatch * wp, int fPre, int xScale, int yScale,
+   int gauss2DCalcWeights(PVPatch * wp, int fPre, int no, int xScale, int yScale,
                           int numFlanks, float flankShift, float rotate,
                           float aspect, float sigma, float r2Max, float strength);
 
