@@ -2,6 +2,10 @@ Petavision may be obtained from sourceforge.net using the subversion command:
 
     svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk petavision
     
+You should also check out one of the example projects, for example:
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/examples/CellularAutomata ca
+    
 If you want to use a branch (for example, the hyperstructure branch):
 
     svn co https://petavision.svn.sourceforge.net/svnroot/petavision/branches/hyperstructure petavision
@@ -27,22 +31,29 @@ To run the application using Eclipse you must create a Run Configuration:
       b. Select a project if not automatically entered (you may need to Browse for it)
       c. Select an application (you may need to Search Project or Browse for it)
    5. Select the arguments tab
-      a. add command line arguments (for example: -n 2)
+      a. add command line arguments (for example: -n 2 -p input/inparams.txt -i input/const_one_64x64.tif)
 
 One a Run Configuration is setup you can debug or run PetaVision by clicking on the
 debug or run icons.
 
 To build petavision without Eclipse:
-   1. Undefine the ECLIPSE environment variable (see the INSTALL file).
-   2. cd to the src directory.
-   3. Type make
+   1. cd to the root project directory
+   2. Type make (this will make src/pv_example and src/build/libpv.a)
 
 To run petavision without Eclipse:
-   1. Type ./pv_example -n 2 (for example)
+   1. cd to the root project directory
+   2. Type src/pv_example -n 2 -p input/inparams.txt -i input/const_one_64x64.tif
    
+To run one of the examples (using make to build):
+   1. First make the PetaVision library (see above)
+   2. cd to the example directory that you want to build
+   3. Type make
+   4. pv_ca -n 500 -p input/params.pv -i input/one-pixel.tif
+
 NOTE: There may be other more complete applications (e.g., pv.cpp) other than
-pv_example.cpp.  To build and run these files you will need to edit the files
-and add #define HAS_MAIN to the file.  If there is more than one main within
-a project, Eclipse will whine.
+pv_example.cpp in the primary PetaVision project directory.  To build and run
+these files from Eclipse you will need to edit the files and add #define HAS_MAIN
+to the file.  If there is more than one main within a project, Eclipse will whine.
+
 
    
