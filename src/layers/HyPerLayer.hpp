@@ -55,7 +55,6 @@ public:
 
    virtual int insertProbe(PVLayerProbe * probe);
 
-   virtual void getPos(int index, float * coordinates);
    virtual int  getActivityLength();
 
    virtual int copyToNorthWest(PVLayerCube * dest, PVLayerCube * src);

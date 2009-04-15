@@ -245,17 +245,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
    return 0;
 }
 
-#define UNNEEDED
-#ifdef UNNEEDED
-void HyPerLayer::getPos(int idx, float* coords)
-{
-   // TODO: this will be too slow. Must be inlined somehow.
-   coords[DIMY] = ((idx) / (NX * NO));
-   coords[DIMX] = (((idx) / NO) % NX);
-   coords[DIMO] = ((idx) % NO);
-}
-#endif
-
 int HyPerLayer::publish(InterColComm* comm, float time)
 {
    comm->publish(this, clayer->activity);
