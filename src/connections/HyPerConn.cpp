@@ -342,6 +342,11 @@ int HyPerConn::writeWeights()
    return err;
 }
 
+int HyPerConn::writeWeights(int k)
+{
+   return writeWeights(NULL, k);
+}
+
 int HyPerConn::writeWeights(const char * filename, int k)
 {
    FILE * fd;
@@ -359,7 +364,7 @@ int HyPerConn::writeWeights(const char * filename, int k)
       fd = stdout;
    }
 
-   fprintf(fd, "Connection weights for connection %d, neuron %d\n", getConnectionId(), k);
+   fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
    fprintf(fd, "   (nxp,nyp,nfp)   = (%d,%d,%d)\n", (int)nxp, (int)nyp, (int)nfp);
    fprintf(fd, "   pre  (nx,ny,nf) = (%d,%d,%d)\n",
            (int)pre->clayer->loc.nx, (int)pre->clayer->loc.ny, (int)pre->clayer->numFeatures);
@@ -367,6 +372,7 @@ int HyPerConn::writeWeights(const char * filename, int k)
            (int)post->clayer->loc.nx, (int)post->clayer->loc.ny, (int)post->clayer->numFeatures);
    fprintf(fd, "\n");
    pv_text_write_patch(fd, wPatches[k]);
+   fprintf(fd, "----------------------------\n");
 
    if (fd != stdout) {
       fclose(fd);

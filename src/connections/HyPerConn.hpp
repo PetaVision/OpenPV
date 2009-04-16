@@ -41,6 +41,7 @@ public:
 
    virtual int numberOfWeightPatches();
    virtual int writeWeights();
+   virtual int writeWeights(int k);
    virtual int writeWeights(const char * filename, int k);
 
    virtual PVPatch * getWeights(int k, int bundle);
