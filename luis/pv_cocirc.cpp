@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
    new PV::CocircConn("L1 to L1",    hc, l1,     l1, CHANNEL_EXC);
 
    int locX = 39;
-   int locY = 53; //31; // 53;
+   int locY = 31; // 53;
    int locF = 0;
 
    // add probes
