@@ -185,6 +185,8 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
             gDist = expf(-d2/sigma2);
 
             if (d2 == 0 && (cocirc_self == 0)  ) {
+               // TODO - why calculate anything else
+               gDist = 0.0;
                gCocirc = sigma_cocirc > 0 ?
                          expf(-deltaTheta * deltaTheta / sigma_cocirc2 ) :
                          expf(-deltaTheta * deltaTheta / sigma_cocirc2 ) - 1.0;
