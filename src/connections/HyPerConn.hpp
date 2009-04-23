@@ -78,6 +78,14 @@ protected:
    int stdpFlag;           // presence of spike timing dependent plasticity
    float nxp, nyp, nfp;    // size of weight dimensions
 
+   // STDP parameters for modifying weights
+   float facIncr;
+   float facDecr;
+   float tauIncr;
+   float tauDecr;
+   float tauSTDP;
+   float dWmax;
+
    HyPerLayer    * pre;
    HyPerLayer    * post;
    HyPerCol      * parent;
