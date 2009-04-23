@@ -119,7 +119,7 @@ static int filetype(const char * filename)
    return 0;
 }
 
-static int centerImage(float * V, int nx0, int ny0, int nx, int ny)
+int pv_center_image(float * V, int nx0, int ny0, int nx, int ny)
 {
    int i0, j0, i, j, ii;
 
@@ -214,7 +214,7 @@ int scatterReadFile(const char* filename, PVLayer* l, float* buf, MPI_Comm comm)
          assert(nx <= l->loc.nxGlobal);
          assert(ny <= l->loc.nyGlobal);
          if (nx < l->loc.nxGlobal || ny < l->loc.nyGlobal) {
-            err = centerImage(tmp, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
+            err = pv_center_image(tmp, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
          }
       }
    }

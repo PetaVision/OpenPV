@@ -23,6 +23,7 @@ int gatherWriteFile(const char * filename, PVLayer * l, float * ibuf, MPI_Comm c
 int pv_text_write_patch(FILE * fd, PVPatch * patch);
 int pv_tiff_write_patch(FILE * fd, PVPatch * patch);
 int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf);
+int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
 int log_parameters(int n_time_steps, char * input_filename);
 
