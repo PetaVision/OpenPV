@@ -41,14 +41,14 @@ int PointProbe::outputState(float time, PVLayer * l)
    int sy = nf * l->loc.nx;
    int offset = yLoc * sy + xLoc * sx + fLoc * sf;
 
-   fprintf(fd, "%s t=%4d", msg, (int)time);
-   fprintf(fd, " G_E=%1.4f", l->G_E[offset]);
-   fprintf(fd, " G_I=%1.4f", l->G_I[offset]);
-   fprintf(fd, " V=%1.4f", l->V[offset]);
-   fprintf(fd, " Vth=%1.4f", l->Vth[offset]);
-   fprintf(fd, " a=%1.1f\n", l->activity->data[offset]);
+   fprintf(fp, "%s t=%4d", msg, (int)time);
+   fprintf(fp, " G_E=%1.4f", l->G_E[offset]);
+   fprintf(fp, " G_I=%1.4f", l->G_I[offset]);
+   fprintf(fp, " V=%1.4f", l->V[offset]);
+   fprintf(fp, " Vth=%1.4f", l->Vth[offset]);
+   fprintf(fp, " a=%1.1f\n", l->activity->data[offset]);
 
-   fflush(fd);
+   fflush(fp);
 
    return 0;
 }
