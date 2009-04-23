@@ -53,16 +53,16 @@ int LinearActivityProbe::outputState(float time, PVLayer * l)
    }
 
    float freq = sum / (nk * dt * 0.001);
-   fprintf(fd, "t=%4d sum=%3d f=%6.1f Hz :", (int)time, (int)sum, freq);
+   fprintf(fp, "t=%4d sum=%3d f=%6.1f Hz :", (int)time, (int)sum, freq);
 
    for (int k = 0; k < nk; k++) {
       float a = line[f + k * sk];
-      if (a > 0.0) fprintf(fd, "*");
-      else         fprintf(fd, " ");
+      if (a > 0.0) fprintf(fp, "*");
+      else         fprintf(fp, " ");
    }
 
-   fprintf(fd, ":\n");
-   fflush(fd);
+   fprintf(fp, ":\n");
+   fflush(fp);
 
    return 0;
 }
