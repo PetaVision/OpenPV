@@ -11,20 +11,20 @@ namespace PV {
 
 PVLayerProbe::PVLayerProbe()
 {
-   fd = stdout;
+   fp = stdout;
 }
 
 PVLayerProbe::PVLayerProbe(const char * filename)
 {
    char path[PV_PATH_MAX];
    sprintf(path, "%s%s", OUTPUT_PATH, filename);
-   fd = fopen(path, "w");
+   fp = fopen(path, "w");
 }
 
 PVLayerProbe::~PVLayerProbe()
 {
-   if (fd != NULL && fd != stdout) {
-      fclose(fd);
+   if (fp != NULL && fp != stdout) {
+      fclose(fp);
    }
 }
 

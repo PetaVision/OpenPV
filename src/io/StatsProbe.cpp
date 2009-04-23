@@ -53,9 +53,9 @@ int StatsProbe::outputState(float time, PVLayer * l)
       if (a > fMax) fMax = a;
    }
 
-   fprintf(fd, "%s t=%4d N=%d Total=%f Min=%f, Avg=%f, Max=%f\n", msg, (int)time,
+   fprintf(fp, "%s t=%4d N=%d Total=%f Min=%f, Avg=%f, Max=%f\n", msg, (int)time,
            nk, (float)sum, fMin, (float)(sum / nk), fMax);
-   fflush(fd);
+   fflush(fp);
 
    // or just
    // printstats(l);

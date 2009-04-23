@@ -28,7 +28,7 @@ public:
    virtual int outputState(float time, PVLayer * l) = 0;
 
 protected:
-   FILE * fd;
+   FILE * fp;
 };
 
 }
