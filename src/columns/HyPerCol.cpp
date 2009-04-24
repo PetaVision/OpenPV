@@ -203,6 +203,11 @@ int HyPerCol::run(int nTimeSteps)
          layers[l]->publish(icComm, (float) currTime);
       }
 
+      // layer activity has been calculated, inform connections
+      for (int c = 0; c < numConnections; c++) {
+         connections[c]->updateState((float) currTime, deltaTime);
+      }
+
    }  // end run loop
 
 #ifdef DEBUG_OUTPUT
