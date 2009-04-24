@@ -37,6 +37,7 @@ public:
 
    virtual int deliver(PVLayerCube * cube, int neighbor);
 
+   virtual int updateState(float time, float dt);
    virtual int updateWeights(PVLayerCube * preActivity, int neighbor);
 
    virtual int numberOfWeightPatches();
@@ -79,17 +80,17 @@ protected:
    float nxp, nyp, nfp;    // size of weight dimensions
 
    // STDP parameters for modifying weights
-   float facIncr;
-   float facDecr;
-   float tauIncr;
-   float tauDecr;
-   float tauSTDP;
-   float dWmax;
+   float ampLTP;  // long term potentiation amplitude
+   float ampLTD;  // long term depression amplitude
+   float tauLTP;
+   float tauLTD;
+   float dWMax;
+   float wMax;
 
    HyPerLayer    * pre;
    HyPerLayer    * post;
    HyPerCol      * parent;
-   PVLayerCube   * pDecr;      // plasticity increment variable (Mi) for pre-synaptic layer
+   PVLayerCube   * pDecr;      // plasticity decrement variable (Mi) for pre-synaptic layer
    PVPatch      ** pIncr;      // list of stdp patches Psij variable
    PVPatch      ** wPatches;   // list of weight patches
    PVSynapseBundle ** bundles; // list of tasks for each pre-synaptic neuron

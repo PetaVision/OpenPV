@@ -142,12 +142,12 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
 
    // STDP parameters for modifying weights
    this->stdpFlag = 0;
-   this->facIncr = 1.0;
-   this->facDecr = 1.1;
-   this->tauIncr = 20;
-   this->tauDecr = 20;
-   this->tauSTDP = 20;
-   this->dWmax = 1;
+   this->ampLTP = 1.0;
+   this->ampLTD = 1.1;
+   this->tauLTP = 20;
+   this->tauLTD = 20;
+   this->dWMax  = 0.1;
+   this->wMax   = 1.0;  // reset to strength later
 
    assert(this->channel <= post->clayer->numPhis);
 
@@ -161,6 +161,10 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    assert(params->delay < MAX_F_DELAY);
 
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
+
+   if (inputParams->present(name, "strength")) {
+      this->wMax = inputParams->value(name, "strength");
+   }
 
    pvConnInit(pvconn, pre->clayer, post->clayer, params, channel);
 
@@ -378,6 +382,7 @@ int HyPerConn::writeWeights(const char * filename, int k)
    fprintf(fd, "   post (nx,ny,nf) = (%d,%d,%d)\n",
            (int)post->clayer->loc.nx, (int)post->clayer->loc.ny, (int)post->clayer->numFeatures);
    fprintf(fd, "\n");
+   pv_text_write_patch(fd, pIncr[k]);  // write the Ps variable
    pv_text_write_patch(fd, wPatches[k]);
    fprintf(fd, "----------------------------\n");
 
@@ -398,12 +403,30 @@ int HyPerConn::deliver(PVLayerCube * cube, int neighbor)
    return 0;
 }
 
+int HyPerConn::updateState(float time, float dt)
+{
+   if (stdpFlag) {
+      const float fac = ampLTD;
+      const float decay = expf(-dt/tauLTD);
+
+      float * a = post->clayer->activity->data;
+      float * m = pDecr->data;            // decrement (minus) variable
+      int nk = pDecr->numItems;
+
+      for (int k = 0; k < nk; k++) {
+         m[k] = decay * m[k] - fac * a[k];
+         if (a[k] > 0) fprintf(stderr, "k=%d, m=%f addr(m)=%p\n", k, m[k], &m[k]);
+      }
+   }
+
+   return 0;
+}
+
 int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
 {
    const float dt = this->parent->getDeltaTime();
-   const float decayIncr = expf(-dt/tauIncr);
-   const float decayDecr = expf(-dt/tauDecr);
-   const float decay     = expf(-dt/tauSTDP);
+   const float decayLTP = expf(-dt/tauLTP);
+   const float decayLTD = expf(-dt/tauLTD);
 
    // assume pDecr has been updated already, and weights have been used, so
    // 1. update Psij (pIncr) for each synapse
@@ -425,12 +448,16 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
    for (int kPre = 0; kPre < numActive; kPre++) {
       PVSynapseBundle * tasks = this->tasks(kPre, neighbor);
 
-      float preActivity = preActivityCube->data[kPre];
+      const float preActivity = preActivityCube->data[kPre];
 
       for (unsigned int i = 0; i < tasks->numTasks; i++) {
          PVPatch * pIncr = tasks->tasks[i]->plasticIncr;
          PVPatch * w     = tasks->tasks[i]->weights;
-         float   * ai    = tasks->tasks[i]->activity;
+         size_t offset   = tasks->tasks[i]->offset;
+
+         float * postActivity = &post->clayer->activity->data[offset];
+         float * M = &pDecr->data[offset];  // STDP decrement variable
+         float * P =  pIncr->data;          // STDP increment variable
 
          int nk  = (int) pIncr->nf * (int) pIncr->nx;
          int ny  = (int) pIncr->ny;
@@ -440,16 +467,14 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
 
          // update Psij (pIncr variable)
          for (int y = 0; y < ny; y++) {
-            pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayIncr, facIncr);
+            pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayLTP, ampLTP);
          }
 
          // update weights
          for (int y = 0; y < ny; y++) {
             int yOff = y*sy;
-            pvpatch_update_weights(nk, w->data + yOff, pDecr->data + yOff, pIncr->data + yOff,
-                                   ai + yOff, preActivity, decay, dWmax,
-                                   decayIncr, facIncr,
-                                   decayDecr, facDecr);
+            pvpatch_update_weights(nk, w->data + yOff, M + yOff, P + yOff,
+                                   preActivity, postActivity + yOff, dWMax, wMax);
          }
       }
    }
@@ -657,8 +682,7 @@ int HyPerConn::createSynapseBundles(int numTasks)
          assert(kl < post->clayer->numNeurons);
 
          pvdata_t * phi = post->clayer->phi[channel] + kl;
-         // TODO make sure this is correct.........
-         task->activity = post->clayer->activity->data + kl;
+         task->offset = kl;
 
          // TODO - shouldn't kPre vary first?
 //         offset = (i + kPre*numTasks) * sizeof(PVPatch);
