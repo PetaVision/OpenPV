@@ -250,26 +250,23 @@ int pvlayer_copyUpdate(PVLayer* l) {
 }
 
 int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
-                                   float aj, float decay, float fac)
+                                   float aPre, float decay, float ltpAmp)
 {
    int k;
    for (k = 0; k < nk; k++) {
-      p[k] = decay * p[k] + fac * aj;
+      p[k] = decay * p[k] + ltpAmp * aPre;
    }
    return 0;
 }
 
 int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float * RESTRICT p,
-                           float * RESTRICT ai, float aj, float decay, float dWmax,
-                           float decayIncr, float facIncr,
-                           float decayDecr, float facDecr)
+                           float aPre, float * RESTRICT aPost, float dWMax, float wMax)
 {
    int k;
    for (k = 0; k < nk; k++) {
-       w[k] = decay * w[k]
-               + dWmax * ( aj * decayDecr * m[k]
-                         + ai[k] * decayIncr * p[k]
-                         + aj * ai[k] * (facIncr - facDecr));
+       w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
+       w[k] = w[k] < 0    ? 0    : w[k];
+       w[k] = w[k] > wMax ? wMax : w[k];
    }
    return 0;
 }

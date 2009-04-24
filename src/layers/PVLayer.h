@@ -111,9 +111,8 @@ int pvpatch_accumulate(int nk, float * v, float a, float * w);
 int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
                                    float aj, float decay, float fac);
 int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float * RESTRICT p,
-                           float * RESTRICT ai, float aj, float decay, float dWmax,
-                           float decayIncr, float facIncr,
-                           float decayDecr, float facDecr);
+                           float aPre, float * RESTRICT aPost, float dWmax, float wMax);
+
 
 int pvlayer_outputState(PVLayer * l); // default implementation: stats and activity files
 
