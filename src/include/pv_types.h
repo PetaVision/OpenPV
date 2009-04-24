@@ -58,7 +58,7 @@ typedef struct PVPatch_ {
 } PVPatch __attribute__ ((aligned));
 
 /**
- * PVLayerCube is a 3D cube (features,y,x) of a layer's data,
+ * PVLayerCube is a 3D cube (features,x,y) of a layer's data,
  *    plus location information
  */
 typedef struct PVLayerCube_ {
@@ -72,8 +72,8 @@ typedef struct PVLayerCube_ {
 typedef struct PVSynapseTask_ {
    PVPatch * data;        // data for task to work on (e.g., phi data)
    PVPatch * weights;     // weights to apply to the data
-   PVPatch * plasticIncr; // patch for STDP
-   float   * activity;    // post-synaptic activity
+   PVPatch * plasticIncr; // STDP P variable
+   size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
 } PVSynapseTask;
 
 typedef struct PVSynapseBundle_ {
