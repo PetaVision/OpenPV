@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 
    int locX = 32;//39;  // image ON at 32 (so rule fires ON 33)
    int locY = 4;  // image ON
-   int locF = 0;   // 0 OFF, 1 ON cell, ...
+   int locF = 1;   // 0 OFF, 1 ON cell, ...
 
    int locK = 0 + 2*locX + 2*64*locY;
 
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
    conn->writeWeights(locK+1);
 
 //   retina->insertProbe(probeR);
-   retina->insertProbe(probe);
+   l1->insertProbe(probe);
 
    // run the simulation
    hc->initFinish();
