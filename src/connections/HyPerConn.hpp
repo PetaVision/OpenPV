@@ -17,6 +17,7 @@ namespace PV {
 
 class HyPerCol;
 class HyPerLayer;
+class ConnectionProbe;
 
 extern PVConnParams defaultConnParams;
 
@@ -37,9 +38,12 @@ public:
 
    virtual int deliver(PVLayerCube * cube, int neighbor);
 
+   virtual int insertProbe(ConnectionProbe * p);
+   virtual int outputState(float time);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(PVLayerCube * preActivity, int neighbor);
 
+   inline  int numberOfBundles()                     {return numBundles;}
    virtual int numberOfWeightPatches();
    virtual int writeWeights();
    virtual int writeWeights(int k);
@@ -47,6 +51,8 @@ public:
 
    virtual PVPatch * getWeights(int k, int bundle);
    virtual PVPatch * getPlasticityIncrement(int k, int bundle);
+
+   inline PVLayerCube * getPlasticityDecrement()     {return pDecr;}
 
    inline PVPatch         ** weights()               {return wPatches;}
    inline PVSynapseBundle ** cliques()               {return bundles;}
@@ -98,6 +104,9 @@ protected:
    int numParams;
    PVConnParams * params;
    PVConnection * pvconn;
+
+   int numProbes;
+   ConnectionProbe ** probes;   // probes used to output data
 
    int channel; // which channel of the post to update (e.g. inhibit)
 

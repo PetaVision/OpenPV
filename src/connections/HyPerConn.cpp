@@ -6,6 +6,7 @@
  */
 
 #include "HyPerConn.hpp"
+#include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -26,10 +27,12 @@ HyPerConn::HyPerConn()
    this->connId = 0;
    this->pre    = NULL;
    this->post   = NULL;
+   this->probes = NULL;
    this->pvconn = NULL;
    this->name   = strdup("Unknown");
-   this->channel  = 0;
-   this->stdpFlag = 0;
+   this->channel   = 0;
+   this->stdpFlag  = 0;
+   this->numProbes = 0;
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post)
@@ -70,7 +73,6 @@ HyPerConn::HyPerConn(const char * name, int argc, char ** argv, HyPerCol * hc,
    this->name   = strdup(name);
    this->parent = hc;
 
-// TODO - while ((c = getopt(*argc, *argv, "f:")) != -1) {
    for (int i = 1; i < argc; i++) {
       char * arg = argv[i];
       if (strcmp(arg, "-f") == 0) {
@@ -137,8 +139,11 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
 {
    this->pre = pre;
    this->post = post;
+   this->probes = NULL;
    this->channel = channel;
    this->pvconn = new PVConnection;
+
+   this->numProbes = 0;
 
    // STDP parameters for modifying weights
    this->stdpFlag = 0;
@@ -403,6 +408,30 @@ int HyPerConn::deliver(PVLayerCube * cube, int neighbor)
    return 0;
 }
 
+int HyPerConn::insertProbe(ConnectionProbe * p)
+{
+   ConnectionProbe ** tmp;
+   tmp = (ConnectionProbe **) malloc((numProbes + 1) * sizeof(ConnectionProbe *));
+
+   for (int i = 0; i < numProbes; i++) {
+      tmp[i] = probes[i];
+   }
+   delete probes;
+
+   probes = tmp;
+   probes[numProbes] = p;
+
+   return ++numProbes;
+}
+
+int HyPerConn::outputState(float time)
+{
+   for (int i = 0; i < numProbes; i++) {
+      probes[i]->outputState(time, this);
+   }
+   return 0;
+}
+
 int HyPerConn::updateState(float time, float dt)
 {
    if (stdpFlag) {
@@ -424,28 +453,22 @@ int HyPerConn::updateState(float time, float dt)
 
 int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
 {
-   const float dt = this->parent->getDeltaTime();
+   const float dt = parent->getDeltaTime();
    const float decayLTP = expf(-dt/tauLTP);
-   const float decayLTD = expf(-dt/tauLTD);
 
    // assume pDecr has been updated already, and weights have been used, so
    // 1. update Psij (pIncr) for each synapse
    // 2. update wij
-
-   const int numActive = preActivityCube->numItems;
 
    // TODO - handle neighbors
    if (neighbor != 0) {
       return 0;
    }
 
-#ifdef MULTITHREADED
-   pv_signal_threads_recv(activity, (unsigned char) neighbor);
-   pv_signal_threads_recv(conn->weights(), 0);
-   pv_signal_threads_recv(conn->cliques(), 0);
-#endif
+   const int numNeurons = preActivityCube->numItems;
+   assert(numNeurons == pre->clayer->numNeurons);
 
-   for (int kPre = 0; kPre < numActive; kPre++) {
+   for (int kPre = 0; kPre < numNeurons; kPre++) {
       PVSynapseBundle * tasks = this->tasks(kPre, neighbor);
 
       const float preActivity = preActivityCube->data[kPre];
@@ -479,7 +502,7 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
       }
    }
 
-return 0;
+   return 0;
 }
 
 int HyPerConn::numberOfWeightPatches()
