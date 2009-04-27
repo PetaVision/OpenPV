@@ -26,6 +26,7 @@ public:
    virtual int recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube);
    virtual int updateState(float time, float dt);
    virtual int writeState(const char * path, float time);
+   virtual int createImage(pvdata_t * buf);
 
 private:
 

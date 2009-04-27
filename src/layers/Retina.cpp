@@ -69,9 +69,9 @@ int Retina::init(const char * name, PVLayerType type)
    const int ny = l->loc.ny;
    const int nf = l->numFeatures;
 
+   buf = (pvdata_t *) malloc(nx*ny*nf*sizeof(pvdata_t));
+   assert(buf != NULL);
    if (params->filename != NULL) {
-      buf = (pvdata_t *) malloc(nx*ny*sizeof(pvdata_t));
-      assert(buf != NULL);
       err = scatterReadFile(params->filename, l, buf, MPI_COMM_WORLD);
       if (err != 0) {
          free(buf);
@@ -79,7 +79,11 @@ int Retina::init(const char * name, PVLayerType type)
       }
    }
    else {
-      return -1;
+      err = createImage(buf);
+      if (err != 0) {
+         free(buf);
+         return err;
+      }
    }
 
    assert(nf == 1 || nf == 2);
@@ -130,6 +134,9 @@ int Retina::init(const char * name, PVLayerType type)
       }
    }
 
+   if (buf != NULL){
+      free(buf);
+   }
    // TODO - add retina boundary conditions
 
    return 0;
@@ -275,9 +282,9 @@ int Retina::writeState(const char * path, float time)
 
    // print activity at center of image
 
-   int sx = clayer->numFeatures;
-   int sy = sx*clayer->loc.nx;
-   pvdata_t * a = clayer->activity->data;
+//   int sx = clayer->numFeatures;
+//   int sy = sx*clayer->loc.nx;
+//   pvdata_t * a = clayer->activity->data;
 
 #ifdef DEBUG_OUTPUT
    for (int i = 0; i < clayer->numNeurons; i++) {
@@ -291,6 +298,14 @@ int Retina::writeState(const char * path, float time)
   }
 #endif
 
+   return 0;
+}
+
+int Retina::createImage(pvdata_t * buf)
+{
+   for (int i = 0; i < clayer->numNeurons; i++) {
+      buf[i] = 0.0;
+   }
    return 0;
 }
 
