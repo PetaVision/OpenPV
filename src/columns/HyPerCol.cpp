@@ -206,6 +206,7 @@ int HyPerCol::run(int nTimeSteps)
       // layer activity has been calculated, inform connections
       for (int c = 0; c < numConnections; c++) {
          connections[c]->updateState((float) currTime, deltaTime);
+         connections[c]->outputState((float) currTime);
       }
 
    }  // end run loop
