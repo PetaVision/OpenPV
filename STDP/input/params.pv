@@ -1,6 +1,6 @@
 //
 // params.cocirc
-//  - input parameters for pv_cocirc.cpp
+//  - input parameters for pv_stdp.cpp
 //  - initially, this case study examines how a one dimensional object (line segment) can
 //    be synchronized
 //
@@ -12,20 +12,20 @@ HyPerCol "column" = {
 };
 
 //
-// Three layers, "Retina", "L1"
+// Three layers, "Retina1D", "L1"
 //
 
-HyPerLayer "Retina" = {
+HyPerLayer "Retina1D" = {
    nx = 64;
    ny = 8;
-   nf = 2;   // features = (OFF,ON}
+   nf = 1;   // features = (OFF,ON}
    
    nBorder = 0;
 
    beginStim = 1;
    endStim   = 500;
 
-   fireOffPixels = 1;          // if true, black (0) pixels fire as off
+   fireOffPixels = 0;          // if true, black (0) pixels fire as off
    invert  = 0.0;
    uncolor = 1.0;              // if true, pixels>0 become 1.0
 
@@ -44,7 +44,7 @@ HyPerLayer "L1" = {
    no = 1;
    nBorder = 0;
    
-   tau    = 50;  //2;    // 100;
+   tau    = 20;  //2;    // 100;
 //   tauE   = .25;  // 1;
 //   tauVth = .25;   // 10;
    
@@ -59,10 +59,11 @@ HyPerLayer "L1" = {
 //    "Retina to L1"
 //
 
-HyPerConn "Retina to L1" = {
+HyPerConn "Retina1D to L1" = {
    nxp = 3;
    nyp = 1;
    strength = 5;
+   delay = 10.0;
    
    stdpFlag = 1;
 

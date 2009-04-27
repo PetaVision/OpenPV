@@ -106,8 +106,8 @@ int STDPConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
       }
    }
 
-   outputState(stdout, 576);
-   outputState(stdout, 577);
+   outputState(stdout, 576+6);
+   outputState(stdout, 577+6);
 
    return 0;
 }

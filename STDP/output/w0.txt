@@ -1,0 +1,10 @@
+Weights for connection "Retina1D to L1", neuron 0
+   (nxp,nyp,nfp)   = (3,1,1)
+   pre  (nx,ny,nf) = (64,8,1)
+   post (nx,ny,nf) = (64,8,1)
+
+0.000 0.000 0.000 
+
+4.500 0.000 4.500 
+
+----------------------------

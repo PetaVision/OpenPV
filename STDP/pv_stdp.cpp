@@ -11,6 +11,7 @@
 #include <src/io/LinearActivityProbe.hpp>
 #include <src/io/PointProbe.hpp>
 #include <src/layers/Retina.hpp>
+#include "Retina1D.hpp"
 #include <src/layers/V1.hpp>
 #include "STDPConn.hpp"
 
@@ -20,11 +21,11 @@ int main(int argc, char* argv[])
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
 
    // create the layers
-   PV::HyPerLayer * retina = new PV::Retina("Retina", hc);
+   PV::HyPerLayer * retina1D = new PV::Retina1D("Retina1D", hc);
    PV::HyPerLayer * l1     = new PV::V1("L1", hc);
 
    // connect the layers
-   PV::HyPerConn * conn = new PV::STDPConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
+   PV::HyPerConn * conn = new PV::STDPConn("Retina1D to L1", hc, retina1D, l1, CHANNEL_EXC);
 
    int locX = 32;//39;  // image ON at 32 (so rule fires ON 33)
    int locY = 4;  // image ON
@@ -40,7 +41,7 @@ int main(int argc, char* argv[])
    conn->writeWeights(locK+1);
 
 //   retina->insertProbe(probeR);
-   l1->insertProbe(probe);
+   retina1D->insertProbe(probe);
 
    // run the simulation
    hc->initFinish();
