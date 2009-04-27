@@ -83,7 +83,9 @@ public:
 protected:
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
 
-   PVLayerProbe * probe;
+   int numProbes;
+   PVLayerProbe ** probes;
+
    int maxBorderSize;
    int outputOnPublish;
    int ioAppend;                // controls opening of binary files

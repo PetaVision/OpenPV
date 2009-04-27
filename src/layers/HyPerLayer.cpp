@@ -28,8 +28,9 @@ namespace PV {
 
 HyPerLayer::HyPerLayer()
 {
-   this->probe = NULL;
+   this->probes = NULL;
    this->ioAppend = 0;
+   this->numProbes = 0;
 }
 
 HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc)
@@ -50,9 +51,10 @@ HyPerLayer::~HyPerLayer()
 
 int HyPerLayer::init(const char * name, PVLayerType type)
 {
-   this->probe = NULL;
+   this->probes = NULL;
    this->ioAppend = 0;
    this->outputOnPublish = 1;
+   this->numProbes = 0;
 
    PVParams * params = parent->parameters();
 
@@ -254,11 +256,18 @@ int HyPerLayer::publish(InterColComm* comm, float time)
 
 int HyPerLayer::insertProbe(PVLayerProbe * p)
 {
-   if (probe != NULL) {
-      delete probe;
+   PVLayerProbe ** tmp;
+   tmp = (PVLayerProbe **) malloc((numProbes + 1) * sizeof(PVLayerProbe *));
+
+   for (int i = 0; i < numProbes; i++) {
+      tmp[i] = probes[i];
    }
-   probe = p;
-   return 0;
+   delete probes;
+
+   probes = tmp;
+   probes[numProbes] = p;
+
+   return ++numProbes;
 }
 
 int HyPerLayer::outputState(float time)
@@ -269,13 +278,8 @@ int HyPerLayer::outputState(float time)
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
-   if (probe != NULL) {
-      probe->outputState(time, clayer);
-   } else {
-      // TODO - move this to a probe
-      // Print avg, max/min, etc of f.
-      //sprintf(str, "[%d]: L%1.1d: f   :", clayer->columnId, clayer->layerId);
-      //printStats(clayer->activity->data, clayer->numNeurons, str);
+   for (int i = 0; i < numProbes; i++) {
+      probes[i]->outputState(time, clayer);
    }
 
    // Output spike events and V

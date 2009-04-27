@@ -48,10 +48,12 @@ int Retina::init(const char * name, PVLayerType type)
    pvdata_t * buf = NULL;
    pvdata_t * V   = l->V;
 
-   this->probe = NULL;
+   this->probes = NULL;
    this->ioAppend = 0;
    this->outputOnPublish = 1;
    this->clayer->layerType = type;
+
+   this->numProbes = 0;
 
    fileread_params * params = (fileread_params *) l->params;
    float marginWidth = params->marginWidth;
