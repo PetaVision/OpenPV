@@ -17,7 +17,7 @@
 #include "layers/Retina.hpp"
 #include "layers/V1.hpp"
 
-#define HAS_MAIN
+#undef HAS_MAIN
 
 #ifdef HAS_MAIN
 int pv_main(int argc, char* argv[]);
