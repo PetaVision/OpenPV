@@ -825,6 +825,7 @@ int HyPerConn::adjustWeightBundles(int numTasks)
 
          pvpatch_adjust(task->weights, nxPatch, nyPatch, dx, dy);
          if (stdpFlag == 1) {
+            task->offset += dx * task->weights->sx + dy * task->weights->sy;
             pvpatch_adjust(task->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
       }
