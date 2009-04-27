@@ -241,11 +241,32 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    return 0;
 }
 
+int HyPerConn::initializeRandomWeights(int seed)
+{
+   PVParams * params = parent->parameters();
+   float wMin = params->value(name, "wMin");
+   float wMax = params->value(name, "wMax");
+
+   const int numPatches = numberOfWeightPatches();
+   for (int k = 0; k < numPatches; k++) {
+      randomWeights(wPatches[k], wMin, wMax, seed);
+   }
+
+   return 0;
+}
+
 int HyPerConn::initializeWeights(const char * filename)
 {
    if (filename == NULL) {
-
       PVParams * params = parent->parameters();
+
+      float randomFlag = 0;
+      if (params->present(getName(), "randomFlag")) {
+         randomFlag = params->value(getName(), "randomFlag");
+      }
+      if (randomFlag > 0) {
+         return initializeRandomWeights(0);
+      }
 
       // default values (chosen for center on cell of one pixel)
 
@@ -993,6 +1014,28 @@ int HyPerConn::createNorthernSynapseBundles(int numTasks)
          task->data = (PVPatch*) ((char*) allData + offset);
          pvpatch_init(task->data, nxp, nyp, nfp, psx, psy, psf, phi);
       }
+   }
+
+   return 0;
+}
+
+/**
+ * calculate random weights for a patch given a range between wMin and wMax
+ */
+int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
+{
+   pvdata_t * w = wp->data;
+
+   const int nx = (int) wp->nx;
+   const int ny = (int) wp->ny;
+   const int nf = (int) wp->nf;
+   const int nk = nx * ny * nf;
+
+   double p = (wMax - wMin) / RAND_MAX;
+
+   // loop over all post-synaptic cells in patch
+   for (int k = 0; k < nk; k++) {
+      w[k] = p * rand();
    }
 
    return 0;

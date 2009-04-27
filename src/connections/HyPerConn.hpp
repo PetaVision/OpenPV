@@ -73,6 +73,8 @@ public:
 
    int setParams(PVParams * params, PVConnParams * p);
 
+   int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
+
    int gauss2DCalcWeights(PVPatch * wp, int fPre, int no, int xScale, int yScale,
                           int numFlanks, float flankShift, float rotate,
                           float aspect, float sigma, float r2Max, float strength);
@@ -114,6 +116,7 @@ protected:
    virtual int initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
                           int channel);
    virtual int initializeWeights(const char * filename);
+   virtual int initializeRandomWeights(int seed);
    virtual PVPatch ** createWeights();
    virtual int        deleteWeights();
 
