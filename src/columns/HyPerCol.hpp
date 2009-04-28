@@ -51,7 +51,7 @@ public:
    PVParams * parameters()                {return params;}
 
    float getDeltaTime()                   {return deltaTime;}
-   float simulationTime()                 {return (float) currTime;}
+   float simulationTime()                 {return time;}
 
    PVRect getImageRect()                  {return imageRect;}
    float  width()                         {return imageRect.width;}
@@ -68,13 +68,13 @@ public:
 
 private:
    int numSteps;
-   int currTime;        // increments as time increases
    int maxLayers;
    int numLayers;
    int maxConnections;
    int numConnections;
 
-   float deltaTime;            // time step interval
+   float time;                  // current time in milliseconds
+   float deltaTime;             // time step interval
 
    PVRect imageRect;
    HyPerLayer ** layers;

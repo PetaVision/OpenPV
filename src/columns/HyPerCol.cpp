@@ -27,7 +27,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    this->name = strdup(name);
 
    char * param_file;
-   currTime = 0;
+   time = 0;
    numLayers = 0;
    numConnections = 0;
    layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
@@ -161,7 +161,8 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
-   int stop = currTime + nTimeSteps;
+   int step = 0;
+   int stop = nTimeSteps;
    numSteps = nTimeSteps;
 
 #ifdef DEBUG_OUTPUT
@@ -172,14 +173,10 @@ int HyPerCol::run(int nTimeSteps)
 
    // publish initial conditions
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->publish(icComm, (float) currTime);
+      layers[l]->publish(icComm, time);
    }
 
-   while (currTime++ < stop) {
-
-      // if (columnId() == 0) {
-      //    printf("\n[0]: HyPerCol::run: beginning timestep %d\n", currTime);  fflush(stdout);
-      // }
+   while (step++ < stop) {
 
       // deliver published data for each layer
       for (int l = 0; l < numLayers; l++) {
@@ -198,17 +195,18 @@ int HyPerCol::run(int nTimeSteps)
 #endif
 
       for (int l = 0; l < numLayers; l++) {
-         layers[l]->updateState((float) currTime, deltaTime);
+         layers[l]->updateState(time, deltaTime);
          icComm->increaseTimeLevel(layers[l]->getLayerId());
-         layers[l]->publish(icComm, (float) currTime);
+         layers[l]->publish(icComm, time);
       }
 
       // layer activity has been calculated, inform connections
       for (int c = 0; c < numConnections; c++) {
-         connections[c]->updateState((float) currTime, deltaTime);
-         connections[c]->outputState((float) currTime);
+         connections[c]->updateState(time, deltaTime);
+         connections[c]->outputState(time);
       }
 
+      time += deltaTime;
    }  // end run loop
 
 #ifdef DEBUG_OUTPUT
@@ -222,7 +220,7 @@ int HyPerCol::run(int nTimeSteps)
 
 int HyPerCol::run_old(int nTimeSteps)
 {
-   int stop = currTime + nTimeSteps;
+   int stop = time + nTimeSteps;
    run_struct * tinfo;
 
 #ifdef MULTITHREAD
@@ -245,11 +243,11 @@ int HyPerCol::run_old(int nTimeSteps)
    pthread_attr_setdetachstate( &pattr, PTHREAD_CREATE_JOINABLE );
 #endif
 
-   while (currTime++ < stop) {
+   while (time++ < stop) {
 
 #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
-         printf("\n[0]:HyPerCol::run: beginning timestep %d\n", currTime);  fflush(stdout);
+         printf("\n[0]:HyPerCol::run: beginning timestep %d\n", time);  fflush(stdout);
       }
 #endif
 
@@ -303,7 +301,7 @@ int HyPerCol::run_old(int nTimeSteps)
             } // end thread join loop
 #endif
          } // end forall connections loop
-      } // end while (currTime < stop) loop
+      } // end while (time < stop) loop
 
       // Now, all synaptic input has been received.
 #ifdef DEBUG_OUTPUT
@@ -353,7 +351,7 @@ int HyPerCol::run_old(int nTimeSteps)
             // TODO - make this the default, but able to override with function pointers
             // C++ handler
             /* complete time step (i.e., update f & V) */
-            layers[l]->updateState((float) currTime, deltaTime);
+            layers[l]->updateState(time, deltaTime);
          } // For non-C, non parallel layers
 
          pvlayer_outputState(clayer);
@@ -464,7 +462,7 @@ int HyPerCol::loadState()
 int HyPerCol::writeState()
 {
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(OUTPUT_PATH, currTime);
+      layers[l]->writeState(OUTPUT_PATH, time);
    }
    return 0;
 }
