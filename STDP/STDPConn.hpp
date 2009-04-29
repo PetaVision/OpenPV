@@ -14,9 +14,7 @@ public:
    STDPConn(const char * name,
             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
 
-   virtual int updateWeights(PVLayerCube * preActivityCube, int neighbor);
    virtual int outputState(FILE * fp, int k);
-
 
    PVPatch* weights(int k)
    {

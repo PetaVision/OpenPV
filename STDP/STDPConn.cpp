@@ -12,34 +12,6 @@
 
 namespace PV {
 
-static int stdp_text_write_patch(FILE * fd, PVPatch * patch, float * data)
-{
-   int f, i, j;
-
-   const int nx = (int) patch->nx;
-   const int ny = (int) patch->ny;
-   const int nf = (int) patch->nf;
-
-   const int sx = (int) patch->sx;  assert(sx == nf);
-   const int sy = (int) patch->sy;  //assert(sy == nf*nx);
-   const int sf = (int) patch->sf;  assert(sf == 1);
-
-   assert(fd != NULL);
-
-   for (f = 0; f < nf; f++) {
-      for (j = 0; j < ny; j++) {
-         for (i = 0; i < nx; i++) {
-            fprintf(fd, "%5.3f ", data[i*sx + j*sy + f*sf]);
-         }
-         //fprintf(fd, "\n");
-      }
-      //fprintf(fd, "\n");
-   }
-
-   return 0;
-}
-
-
 STDPConn::STDPConn(const char * name,
                    HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
 {
@@ -54,66 +26,11 @@ STDPConn::STDPConn(const char * name,
    hc->addConnection(this);
 }
 
-int STDPConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
-{
-   const float dt = parent->getDeltaTime();
-   const float decayLTP = expf(-dt/tauLTP);
-//   const float decay    = expf(-dt/tauSTDP);
-
-   // assume pDecr has been updated already, and weights have been used, so
-   // 1. update Psij (pIncr) for each synapse
-   // 2. update wij
-
-   const int numActive = preActivityCube->numItems;
-
-   // TODO - handle neighbors
-   if (neighbor != 0) {
-      return 0;
-   }
-
-   // TODO - this loop should be over all kPre not just active
-   for (int kPre = 0; kPre < numActive; kPre++) {
-      PVSynapseBundle * tasks = this->tasks(kPre, neighbor);
-
-      const float preActivity = preActivityCube->data[kPre];
-
-      for (unsigned int i = 0; i < tasks->numTasks; i++) {
-         PVPatch * pIncr = tasks->tasks[i]->plasticIncr;
-         PVPatch * w     = tasks->tasks[i]->weights;
-         size_t offset   = tasks->tasks[i]->offset;
-
-         float * postActivity = &post->clayer->activity->data[offset];
-         float * M = &pDecr->data[offset];  // STDP decrement variable
-         float * P =  pIncr->data;          // STDP increment variable
-
-         int nk  = (int) pIncr->nf * (int) pIncr->nx;
-         int ny  = (int) pIncr->ny;
-         int sy  = (int) pIncr->sy;
-
-         // TODO - unroll
-
-         // update Psij (pIncr variable)
-         for (int y = 0; y < ny; y++) {
-            pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayLTP, ampLTP);
-         }
-
-         // update weights
-         for (int y = 0; y < ny; y++) {
-            int yOff = y*sy;
-            pvpatch_update_weights(nk, w->data + yOff, M + yOff, P + yOff,
-                                   preActivity, postActivity + yOff, dWMax, wMax);
-         }
-      }
-   }
-
-   outputState(stdout, 576+6);
-   outputState(stdout, 577+6);
-
-   return 0;
-}
-
 int STDPConn::outputState(FILE * fp, int kPre)
 {
+   return 0;
+
+#ifdef DELETEME
    PVSynapseBundle * tasks = this->tasks(kPre, 0);
    PVPatch * pIncr = tasks->tasks[0]->plasticIncr;
    PVPatch * w     = tasks->tasks[0]->weights;
@@ -129,6 +46,7 @@ int STDPConn::outputState(FILE * fp, int kPre)
    stdp_text_write_patch(fp, w, w->data);
    fprintf(fp, "\n");
    fflush(fp);
+#endif
 
    return 0;
 }
@@ -137,6 +55,15 @@ int STDPConn::initializeWeights(const char * filename)
 {
    if (filename == NULL) {
       PVParams * params = parent->parameters();
+
+      float randomFlag = 0;
+      if (params->present(getName(), "randomFlag")) {
+         randomFlag = params->value(getName(), "randomFlag");
+      }
+      if (randomFlag > 0) {
+         return initializeRandomWeights(0);
+      }
+
       const float strength = params->value(name, "strength");
 
       const int xScale = pre->clayer->xScale;
