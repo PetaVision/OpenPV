@@ -154,7 +154,7 @@ int Retina::setParams(PVParams * params, fileread_params * p, const char * filen
 #ifdef PV_ARCH_64
    clayer->numParams -= 1; // extra space for (char *) filename pointer (pointer not same sizeof float)
 #endif
-   assert(clayer->numParams == 9);
+   //assert(clayer->numParams == 9);
 
    fileread_params * cp = (fileread_params *) clayer->params;
 
@@ -169,6 +169,10 @@ int Retina::setParams(PVParams * params, fileread_params * p, const char * filen
       cp->poissonEdgeProb  = params->value(name, "poissonEdgeProb");
    if (params->present(name, "poissonBlankProb"))
       cp->poissonBlankProb = params->value(name, "poissonBlankProb");
+   if (params->present(name, "burstFreq"))
+      cp->burstFreq  = params->value(name, "burstFreq");
+   if (params->present(name, "burstDuration"))
+      cp->burstDuration  = params->value(name, "burstDuration");
    if (params->present(name, "marginWidth"))
       cp->marginWidth      = params->value(name, "marginWidth");
 
@@ -206,7 +210,15 @@ int Retina::updateState(float time, float dt)
       float poissonEdgeProb  = RAND_MAX * params->poissonEdgeProb;
       float poissonBlankProb = RAND_MAX * params->poissonBlankProb;
 
+      int burstStatus = 0;
+      if (params->burstDuration <= 0){
+         burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) > 0.;
+      }
+      else {
+         burstStatus = fmod(time, 1000. / params->burstFreq) < params->burstDuration;
+      }
       int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+      stimStatus = stimStatus && burstStatus;
 
       if (params->spikingFlag == 0.0) {
          // non-spiking code
