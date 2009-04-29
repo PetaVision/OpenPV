@@ -178,7 +178,7 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    }
 
    wPatches = createWeights();
-   if (stdpFlag == 1) {
+   if (stdpFlag) {
       pIncr = createWeights();
       pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
    }
@@ -198,7 +198,7 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
          w[i] = 0;
       }
    }
-   if (stdpFlag == 1) {
+   if (stdpFlag) {
       for (int k = 0; k < numBundles; k++) {
          pvdata_t * p = pIncr[k]->data;
          for (int i = 0; i < nxp*nyp*nfp; i++) {
@@ -408,7 +408,9 @@ int HyPerConn::writeWeights(const char * filename, int k)
    fprintf(fd, "   post (nx,ny,nf) = (%d,%d,%d)\n",
            (int)post->clayer->loc.nx, (int)post->clayer->loc.ny, (int)post->clayer->numFeatures);
    fprintf(fd, "\n");
-   pv_text_write_patch(fd, pIncr[k]);  // write the Ps variable
+   if (stdpFlag) {
+      pv_text_write_patch(fd, pIncr[k]);  // write the Ps variable
+   }
    pv_text_write_patch(fd, wPatches[k]);
    fprintf(fd, "----------------------------\n");
 
@@ -422,7 +424,7 @@ int HyPerConn::writeWeights(const char * filename, int k)
 int HyPerConn::deliver(PVLayerCube * cube, int neighbor)
 {
    post->recvSynapticInput(this, cube, neighbor);
-   if (stdpFlag == 1) {
+   if (stdpFlag) {
       updateWeights(cube, neighbor);
    }
 
@@ -486,6 +488,9 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
       return 0;
    }
 
+   // TODO - what is happening here
+   if (preActivityCube->numItems == 0) return 0;
+
    const int numNeurons = preActivityCube->numItems;
    assert(numNeurons == pre->clayer->numNeurons);
 
@@ -546,7 +551,7 @@ PVPatch * HyPerConn::getPlasticityIncrement(int k, int bundle)
    // TODO - make work with bundles as well
    assert(numBundles == 1);
    // a separate patch of plasticity for every neuron
-   if (stdpFlag == 1) {
+   if (stdpFlag) {
       return pIncr[k];
    }
    return NULL;
@@ -588,7 +593,7 @@ int HyPerConn::deleteWeights()
    }
    free(wPatches);
 
-   if (stdpFlag == 1) {
+   if (stdpFlag) {
       for (int k = 0; k < numPreNeurons; k++) {
          pvpatch_delete(pIncr[k]);
       }
@@ -824,7 +829,7 @@ int HyPerConn::adjustWeightBundles(int numTasks)
          }
 
          pvpatch_adjust(task->weights, nxPatch, nyPatch, dx, dy);
-         if (stdpFlag == 1) {
+         if (stdpFlag) {
             task->offset += dx * task->weights->sx + dy * task->weights->sy;
             pvpatch_adjust(task->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
