@@ -15,6 +15,8 @@ typedef struct fileread_params_
     float spikingFlag;        // spike as poisson?
     float poissonEdgeProb;    // if so, prob
     float poissonBlankProb;   // spike as poisson?
+    float burstFreq;          // frequency of bursts
+    float burstDuration;      // duration of each burst, <=0 -> sinusoidal
     float marginWidth; // width of margin around edge of figure in which only background activity allowed
     float beginStim;
     float endStim;
