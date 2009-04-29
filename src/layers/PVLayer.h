@@ -28,7 +28,7 @@ typedef enum {
 typedef struct PVLayer_ {
    int layerId;    // unique ID that identifies this layer in column
    int columnId;   // column ID
-   int numNeurons; // # neurons in this layer
+   int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numFeatures;// # features in this layer
    int numActive;  // # neurons that fired
    int numBorder;  // # extra neurons extended on any side for border regions
