@@ -282,11 +282,11 @@ int Retina::writeState(const char * path, float time)
 
    // print activity at center of image
 
-//   int sx = clayer->numFeatures;
-//   int sy = sx*clayer->loc.nx;
-//   pvdata_t * a = clayer->activity->data;
-
 #ifdef DEBUG_OUTPUT
+   int sx = clayer->numFeatures;
+   int sy = sx*clayer->loc.nx;
+   pvdata_t * a = clayer->activity->data;
+
    for (int i = 0; i < clayer->numNeurons; i++) {
       if (a[i] == 1.0) printf("a[%d] == 1\n", i);
    }
