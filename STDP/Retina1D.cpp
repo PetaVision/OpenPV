@@ -26,6 +26,12 @@ Retina1D::~Retina1D(){
 	free(targ1D);
 }
 
+int Retina1D::updateState(float time, float dt){
+	//update V[k]
+	createImage(clayer->V);
+	Retina::updateState(time, dt);
+}
+
 
 int Retina1D::createImage(pvdata_t * localBuf) {
 
@@ -42,11 +48,12 @@ int Retina1D::createImage(pvdata_t * localBuf) {
 	const int numNeuronsGlobal = nxGlobal * nyGlobal * nfGlobal;
 //	const int kx0 = clayer->loc.kx0; // assert(kx0 == 0);
 //	const int ky0 = clayer->loc.ky0;
-//	const int xMidGlobal = nxGlobal / 2.0;
+	const int xMidGlobal = nxGlobal / 2.0;
 	const int yMidGlobal = nyGlobal / 2.0;
 	pvdata_t * globalBuf = (pvdata_t *) malloc(sizeof(pvdata_t) * numNeuronsGlobal);
 
 	// only one MPI node creates global image
+	// TODO: each node should create its own local image patch
 	if (clayer->columnId == 0) {
 
 		// target is built from a specified number of
@@ -55,6 +62,14 @@ int Retina1D::createImage(pvdata_t * localBuf) {
 		int numTargs = 2;  // TODO: read from params file
 		int lenTarg = 8;   // TODO: read from params file
 		float clutterProb = 0.5;     // TODO: read from params file
+		int targShiftMax = 0 * lenTarg / 4;
+		float targZoomMin = 1.0;
+		float targZoomMax = 1.0;
+		int targZoomFlag = rand() % 2;
+		float targZoom = 1.0;
+		targZoom *= (targZoomFlag == 0) ? 1.0 - (rand() * (1.0 - targZoomMin)
+				/ RAND_MAX) : 1.0 + (rand() * (targZoomMax - 1.0) / RAND_MAX);
+		lenTarg *= targZoom;
 		lenTarg = (lenTarg > 0) ? lenTarg : 1; //can't have lenTarg == 0
 		float clutterProbMin = ((numTargs * lenTarg) > 0) ? (numTargs * lenTarg
 				/ (float) nxGlobal) : clutterProb;
@@ -70,7 +85,9 @@ int Retina1D::createImage(pvdata_t * localBuf) {
 				/ clutterProb) : 0;
 
 		// start 1D target at random location (in global coordinates)
-		int beginTargX = rand() % ( nxGlobal - numTargs * (lenGap + lenTarg) );
+		int targShift =  -targShiftMax + (targShiftMax > 0) ? rand() % (2 * targShiftMax ) : 0;
+		int beginTargX = xMidGlobal - (((lenTarg + lenGap) * numTargs) / 2)
+				+ targShift;
 		int beginTargY = yMidGlobal;
 		int beginTargF = 1;
 
