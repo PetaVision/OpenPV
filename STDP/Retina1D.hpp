@@ -18,6 +18,8 @@ public:
 	Retina1D(const char * name, HyPerCol * hc);
 	Retina1D::~Retina1D();
 	virtual int createImage(pvdata_t * buf);
+	virtual int updateState(float time, float dt);
+
 	pvdata_t * targ1D;
 };
 
