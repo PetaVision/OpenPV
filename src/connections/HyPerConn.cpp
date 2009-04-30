@@ -152,7 +152,7 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax  = 0.1;
-   this->wMax   = 1.0;  // reset to strength later
+   this->wMax   = 1.0;
 
    assert(this->channel <= post->clayer->numPhis);
 
@@ -169,6 +169,10 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
 
    if (inputParams->present(name, "strength")) {
       this->wMax = inputParams->value(name, "strength");
+   }
+   // let wMax override strength if user provides it
+   if (inputParams->present(name, "wMax")) {
+      this->wMax = inputParams->value(name, "wMax");
    }
 
    pvConnInit(pvconn, pre->clayer, post->clayer, params, channel);
@@ -244,8 +248,9 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 int HyPerConn::initializeRandomWeights(int seed)
 {
    PVParams * params = parent->parameters();
-   float wMin = params->value(name, "wMin");
-   float wMax = params->value(name, "wMax");
+
+   float wMin = 0.0;
+   if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
 
    const int numPatches = numberOfWeightPatches();
    for (int k = 0; k < numPatches; k++) {
@@ -467,7 +472,9 @@ int HyPerConn::updateState(float time, float dt)
 
       for (int k = 0; k < nk; k++) {
          m[k] = decay * m[k] - fac * a[k];
-         if (a[k] > 0) fprintf(stderr, "k=%d, m=%f addr(m)=%p\n", k, m[k], &m[k]);
+         if (a[k] > 0) {
+//            fprintf(stderr, "k=%d, m=%f addr(m)=%p\n", k, m[k], &m[k]);
+         }
       }
    }
 
@@ -1041,7 +1048,7 @@ int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
 
    // loop over all post-synaptic cells in patch
    for (int k = 0; k < nk; k++) {
-      w[k] = p * rand();
+      w[k] = wMin + p * rand();
    }
 
    return 0;
