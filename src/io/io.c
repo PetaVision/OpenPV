@@ -195,7 +195,24 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
    return err;
 }
 
-int scatterReadFile(const char* filename, PVLayer* l, float* buf, MPI_Comm comm)
+// copy local portion of globalBuf into localBuf
+int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
+{
+   int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
+  // everyone gets a copy of the entire input
+   MPI_Bcast(globalBuf, nTotal, MPI_FLOAT, 0, comm);
+
+   // everyone copies only their local patch of input
+   int kl, kg, err = 0;
+   int nLocal = l->loc.nx * l->loc.ny;
+   for (kl = 0; kl < nLocal; kl++) {
+      kg = globalIndexFromLocal(kl, l->loc, l->numFeatures);
+      localBuf[kl] = globalBuf[kg];
+   }
+   return err;
+}
+
+int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm comm)
 {
    int kl, kg, err = 0;
    int nx, ny;
@@ -203,18 +220,18 @@ int scatterReadFile(const char* filename, PVLayer* l, float* buf, MPI_Comm comm)
    int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
    int nLocal = l->loc.nx * l->loc.ny;
 
-   float* tmp = (float*) malloc(nTotal * sizeof(float));
-   if (tmp == NULL) return -1;
+   float* globalBuf = (float*) malloc(nTotal * sizeof(float));
+   if (globalBuf == NULL) return -1;
 
    if (l->columnId == 0) {
       nx = l->loc.nxGlobal;
       ny = l->loc.nyGlobal;
-      err = readFile(filename, tmp, &nx, &ny);
+      err = readFile(filename, globalBuf, &nx, &ny);
       if (err == 0) {
          assert(nx <= l->loc.nxGlobal);
          assert(ny <= l->loc.nyGlobal);
          if (nx < l->loc.nxGlobal || ny < l->loc.nyGlobal) {
-            err = pv_center_image(tmp, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
+            err = pv_center_image(globalBuf, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
          }
       }
    }
@@ -222,14 +239,17 @@ int scatterReadFile(const char* filename, PVLayer* l, float* buf, MPI_Comm comm)
    if (err != 0) return err;
 
    // everyone gets a copy of the entire input
-   MPI_Bcast(tmp, nTotal, MPI_FLOAT, 0, comm);
+   scatterReadBuf(l, globalBuf, localBuf, comm);
 
-   // everyone copies only their local patch of input
-   for (kl = 0; kl < nLocal; kl++) {
-      kg = globalIndexFromLocal(kl, l->loc, l->numFeatures);
-      buf[kl] = tmp[kg];
-   }
-   if (tmp) free(tmp);
+//   // everyone gets a copy of the entire input
+//   MPI_Bcast(tmp, nTotal, MPI_FLOAT, 0, comm);
+//
+//   // everyone copies only their local patch of input
+//   for (kl = 0; kl < nLocal; kl++) {
+//      kg = globalIndexFromLocal(kl, l->loc, l->numFeatures);
+//      buf[kl] = tmp[kg];
+//   }
+   if (globalBuf) free(globalBuf);
 
    return err;
 }
