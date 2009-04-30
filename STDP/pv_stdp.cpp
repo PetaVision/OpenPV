@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
    PV::HyPerConn * conn = new PV::RandomConn("Retina1D to L1", hc, retina1D, l1, CHANNEL_EXC);
 
    int locX = 32;//39;  // image ON at 32 (so rule fires ON 33)
-   int locY = 4;  // image ON
-   int locF = 1;   // 0 OFF, 1 ON cell, ...
+   int locY = 0;  // image ON
+   int locF = 0;   // 0 OFF, 1 ON cell, ...
 
    int locK = 0 + locX + 64*locY;
 
@@ -39,13 +39,13 @@ int main(int argc, char* argv[])
    PV::PVLayerProbe * probe   = new PV::LinearActivityProbe(hc, PV::DimX, locY, locF);
    PV::PVLayerProbe * ptprobe = new PV::PointProbe(locX, locY, locF, "l1:");
 
-   PV::ConnectionProbe * cprobe1 = new PV::ConnectionProbe(locK);
-   PV::ConnectionProbe * cprobe2 = new PV::ConnectionProbe(locK+1);
+   PV::ConnectionProbe * cprobe1 = new PV::ConnectionProbe(locK+4);
+   PV::ConnectionProbe * cprobe2 = new PV::ConnectionProbe(locK+8);
 
-//   retina->insertProbe(probeR);
-   retina1D->insertProbe(probe);
+//   retina1D->insertProbe(probe);
+//   l1->insertProbe(probe);
    conn->insertProbe(cprobe1);
-   conn->insertProbe(cprobe2);
+//   conn->insertProbe(cprobe2);
 
    // run the simulation
    hc->initFinish();
