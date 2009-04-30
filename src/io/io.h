@@ -17,6 +17,7 @@ extern "C"
 #endif
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
+int scatterReadBuf(PVLayer * l, float * globalBuf, float * localBuf, MPI_Comm comm);
 int scatterReadFile(const char * filename, PVLayer * l, float * buf, MPI_Comm comm);
 int gatherWriteFile(const char * filename, PVLayer * l, float * ibuf, MPI_Comm comm);
 
