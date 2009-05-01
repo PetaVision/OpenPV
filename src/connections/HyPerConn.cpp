@@ -33,6 +33,7 @@ HyPerConn::HyPerConn()
    this->channel   = 0;
    this->stdpFlag  = 0;
    this->numProbes = 0;
+   this->ioAppend = 0;
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post)
@@ -141,6 +142,7 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    this->post = post;
    this->probes = NULL;
    this->channel = channel;
+   this->ioAppend = 0;
    this->pvconn = new PVConnection;
 
    this->numProbes = 0;
@@ -457,6 +459,17 @@ int HyPerConn::outputState(float time)
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
    }
+
+   if (stdpFlag) {
+      // Output weights
+      char str[32];
+      sprintf(str, "w%1.1d", getConnectionId());
+      pv_dump_patches(str, ioAppend, wPatches, numberOfWeightPatches());
+   }
+
+   // append to dump file after original open
+   ioAppend = 1;
+
    return 0;
 }
 

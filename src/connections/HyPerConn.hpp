@@ -111,6 +111,7 @@ protected:
    ConnectionProbe ** probes;   // probes used to output data
 
    int channel; // which channel of the post to update (e.g. inhibit)
+   int ioAppend;                // controls opening of binary files
 
 protected:
    virtual int initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
