@@ -30,8 +30,9 @@ int log_parameters(int n_time_steps, char * input_filename);
 
 int printStats(pvdata_t * buf, int nItems, char * msg);
 
-int pv_dump(char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
-int pv_dump_sparse(char* filename, int append, pvdata_t * I, int nx, int ny, int nf);
+int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
+int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
+int pv_dump_patches(const char * filename, int append, PVPatch ** patches, int numPatches);
 
 FILE * pv_open_binary(char * filename, int * nx, int * ny, int * nf);
 int    pv_close_binary(FILE * fd);
