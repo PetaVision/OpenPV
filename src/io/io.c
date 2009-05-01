@@ -363,7 +363,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    return 0;
 }
 
-int pv_dump(char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
+int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
    int err = 0;
@@ -377,13 +377,13 @@ int pv_dump(char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
    else        fd = fopen(fullpath, "wb");
 
    if (!append) {
-      int nParams = 3;
-      int params[3];
-      params[0] = nx;
-      params[1] = ny;
-      params[2] = nf;
-      if ( fwrite(&nParams, sizeof(int), 1, fd) != 1) err = -3;
-      if ( fwrite(params, sizeof(int), nParams, fd) != nParams) err = -3;
+      const int nParams = 3;
+      int params[nParams+1];
+      params[0] = nParams;
+      params[1] = nx;
+      params[2] = ny;
+      params[3] = nf;
+      if ( fwrite(params, sizeof(int), nParams+1, fd) != nParams+1) err = -3;
       if (err != 0) {
          pv_log(stderr, "pv_dump: error writing params header\n");
       }
@@ -405,11 +405,11 @@ int pv_dump(char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
    return err;
 }
 
-int pv_dump_sparse(char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
+int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
    int err = 0;
-   FILE * fd;
+   FILE * fp;
    float m;
    float nSpikes = 0;
 
@@ -417,8 +417,8 @@ int pv_dump_sparse(char * filename, int append, pvdata_t * I, int nx, int ny, in
 
    sprintf(fullpath, "%s/%s_sparse.bin", OUTPUT_PATH, filename);
 
-   if (append) fd = fopen(fullpath, "ab");
-   else        fd = fopen(fullpath, "wb");
+   if (append) fp = fopen(fullpath, "ab");
+   else        fp = fopen(fullpath, "wb");
 
    if (!append) {
       int nParams = 3;
@@ -426,26 +426,26 @@ int pv_dump_sparse(char * filename, int append, pvdata_t * I, int nx, int ny, in
       params[0] = nx;
       params[1] = ny;
       params[2] = nf;
-      if ( fwrite(&nParams, sizeof(int), 1, fd) != 1) err = -3;
-      if ( fwrite(params, sizeof(int), nParams, fd) != nParams) err = -3;
+      if ( fwrite(&nParams, sizeof(int), 1, fp) != 1) err = -3;
+      if ( fwrite(params, sizeof(int), nParams, fp) != nParams) err = -3;
       if (err != 0) {
          pv_log(stderr, "pv_dump_sparse: error writing params header\n");
       }
    }
 
-   if (fd != NULL) {
+   if (fp != NULL) {
       for (m = 0; m < nItems; m++) {
          if (I[(int) m]) nSpikes++;
       }
 
-      if ( fwrite(&nSpikes, sizeof(float), 1, fd) != 1) err = -2;
+      if ( fwrite(&nSpikes, sizeof(float), 1, fp) != 1) err = -2;
 
       for (m = 0; m < nItems; m++)
          if (I[(int) m]) {
-            if ( fwrite(&m, sizeof(float), 1, fd) != 1) err = -2;
+            if ( fwrite(&m, sizeof(float), 1, fp) != 1) err = -2;
          }
 
-      fclose(fd);
+      fclose(fp);
    }
    else {
       err = -1;
@@ -455,6 +455,124 @@ int pv_dump_sparse(char * filename, int append, pvdata_t * I, int nx, int ny, in
    if (err == -2) {
       pv_log(stderr, "pv_dump_sparse: error writing data\n");
    }
+
+   return err;
+}
+
+static int pv_dump_patch(FILE * fp, PVPatch * p)
+{
+   int err = 0;
+
+   int nItems = p->nx * p->ny * p->nf;
+   if ( fwrite(p->data, sizeof(pvdata_t), nItems, fp) != nItems) err = -2;
+
+   return err;
+}
+
+static int pv_read_patch(FILE * fp, PVPatch * p)
+{
+   int err = 0;
+
+   int nItems = p->nx * p->ny * p->nf;
+   if ( fread(p->data, sizeof(pvdata_t), nItems, fp) != nItems) err = -2;
+
+   return err;
+}
+
+int pv_dump_patches(const char * filename, int append, PVPatch ** patches, int numPatches)
+{
+   char fullpath[PV_PATH_MAX];
+   int i, err = 0;
+   FILE * fp;
+
+   assert(numPatches > 0);
+   PVPatch * p = patches[0];
+
+   sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
+
+   if (append) fp = fopen(fullpath, "ab");
+   else        fp = fopen(fullpath, "wb");
+
+   if (fp == NULL) {
+      pv_log(stderr, "pv_dump_patches: couldn't open output file %s\n", fullpath);
+      return -1;
+   }
+
+   if (!append) {
+      const int nParams = 7;
+      int params[nParams+1];
+      params[0] = nParams;
+      params[1] = numPatches;
+      params[2] = p->nx;
+      params[3] = p->ny;
+      params[4] = p->nf;
+      params[5] = p->sx;
+      params[6] = p->sy;
+      params[7] = p->sf;
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) err = -3;
+      if (err != 0) {
+         pv_log(stderr, "pv_dump_patches: error writing params header\n");
+      }
+   }
+
+   for (i = 0; i < numPatches; i++) {
+      p = patches[i];
+      err = pv_dump_patch(fp, p);
+      if (err) {
+         pv_log(stderr, "pv_dump_patches: error writing patch %d\n", i);
+         break;
+      }
+   }
+   fclose(fp);
+
+   return err;
+}
+
+int pv_read_patches(const char * filename, int append, PVPatch ** patches, int numPatches)
+{
+   char fullpath[PV_PATH_MAX];
+   int i, err = 0;
+   FILE * fp;
+
+   assert(numPatches > 0);
+   PVPatch * p = patches[0];
+
+   sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
+
+   if (append) fp = fopen(fullpath, "rb");
+   else        fp = fopen(fullpath, "wb");
+
+   if (fp == NULL) {
+      pv_log(stderr, "pv_dump_patches: couldn't open output file %s\n", fullpath);
+      return -1;
+   }
+
+   if (!append) {
+      const int nParams = 7;
+      int params[nParams+1];
+      params[0] = nParams;
+      params[1] = numPatches;
+      params[2] = p->nx;
+      params[3] = p->ny;
+      params[4] = p->nf;
+      params[5] = p->sx;
+      params[6] = p->sy;
+      params[7] = p->sf;
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) err = -3;
+      if (err != 0) {
+         pv_log(stderr, "pv_dump_patches: error writing params header\n");
+      }
+   }
+
+   for (i = 0; i < numPatches; i++) {
+      p = patches[i];
+      err = pv_dump_patch(fp, p);
+      if (err) {
+         pv_log(stderr, "pv_dump_patches: error writing patch %d\n", i);
+         break;
+      }
+   }
+   fclose(fp);
 
    return err;
 }
