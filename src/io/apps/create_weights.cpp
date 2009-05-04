@@ -5,8 +5,8 @@
  *      Author: rasmussn
  */
 
-#include "../include/pv_common.h"
-#include "../connections/HyPerConn.hpp"
+#include "src/include/pv_common.h"
+#include "src/connections/HyPerConn.hpp"
 #include <math.h>
 #include <stdio.h>
 
@@ -74,9 +74,15 @@ int main(int argc, char * argv[])
    for (int i = 0; i < numBundles; i++) {
       int numFlanks = 0;
       float shift   = 0;
-      PV::HyPerConn::gauss2DCalcWeights(wPatches[i], xScale, yScale,
-                                        numFlanks, shift,
-                                        aspect, sigmaR, r2Max, strength);
+      int kPre = i;
+      int no = 0;
+      float rotate = 1.0;
+
+      // TODO - fixme, the interface changed and correctness needs to be checked
+//      PV::HyPerConn::gauss2DCalcWeights(wPatches[i], kPre, no, xScale, yScale,
+//                                        numFlanks, shift, rotate,
+//                                        aspect, sigmaR, r2Max, strength);
+
    }
 
    // output the weight patches
