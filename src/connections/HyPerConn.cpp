@@ -456,6 +456,8 @@ int HyPerConn::insertProbe(ConnectionProbe * p)
 
 int HyPerConn::outputState(float time)
 {
+   int err = 0;
+
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
    }
@@ -464,13 +466,15 @@ int HyPerConn::outputState(float time)
       // Output weights
       char str[32];
       sprintf(str, "w%1.1d", getConnectionId());
-      pv_dump_patches(str, ioAppend, wPatches, numberOfWeightPatches());
+      err = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
+                             0.0, wMax, numberOfWeightPatches(), wPatches);
+      assert(err == 0);
    }
 
    // append to dump file after original open
    ioAppend = 1;
 
-   return 0;
+   return err;
 }
 
 int HyPerConn::updateState(float time, float dt)
