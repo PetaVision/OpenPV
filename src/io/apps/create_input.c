@@ -6,7 +6,7 @@
  */
 
 
-#include "../include/pv_common.h"
+#include "src/include/pv_common.h"
 #include <stdio.h>
 
 int main(int argc, char* argv[])
