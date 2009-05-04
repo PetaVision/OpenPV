@@ -7,7 +7,7 @@
 
 // Like "cicles.c," except that it uses pixels instead of oriented segments
 #define PARTIAL_OUTPUT 1
-#include "../include/pv.h"
+#include "src/include/pv.h"
 
 #include <math.h>
 #include <stdio.h>
