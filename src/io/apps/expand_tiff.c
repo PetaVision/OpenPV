@@ -5,8 +5,8 @@
  *
  */
 
-#include "io.h"
-#include "tiff.h"
+#include "src/io/io.h"
+#include "src/io/tiff.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
