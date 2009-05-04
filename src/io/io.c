@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <float.h>	// FLT_MAX/MIN
+#include <math.h>
 #include <string.h>     // memcpy
 
 static int pv_getopt_int(int argc, char * argv[], char * opt, int *   iVal);
@@ -459,34 +460,74 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
    return err;
 }
 
-static int pv_dump_patch(FILE * fp, PVPatch * p)
+static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
 {
-   int err = 0;
+   const int bufSize = 4;
+   int i, ii, nItems;
+   unsigned char buf[bufSize];
+   unsigned short nxny[2];
 
-   int nItems = p->nx * p->ny * p->nf;
-   if ( fwrite(p->data, sizeof(pvdata_t), nItems, fp) != nItems) err = -2;
+   nxny[0] = (unsigned short) p->nx;
+   nxny[1] = (unsigned short) p->ny;
 
-   return err;
+   nItems = (int) nxny[0] * (int) nxny[1] * (int) p->nf;
+
+   if ( fwrite(nxny, sizeof(unsigned short), 2, fp) != 2 ) return -1;
+
+   i = 0;
+   while (i < nItems) {
+      // data are packed into chars
+      for (ii = 0; ii < bufSize; ii++) {
+         buf[ii] = (unsigned char) (255.0 * (p->data[i++] - minVal) / (maxVal - minVal));
+         if (i >= nItems) break;
+      }
+      if ( fwrite(buf, sizeof(unsigned char), bufSize, fp) != bufSize ) return -2;
+   }
+
+   return nItems;
 }
 
-static int pv_read_patch(FILE * fp, PVPatch * p)
+int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
 {
-   int err = 0;
+   const int bufSize = 4;
+   int i, ii, nItems;
+   unsigned char buf[bufSize];
+   unsigned short nxny[2];
 
-   int nItems = p->nx * p->ny * p->nf;
-   if ( fread(p->data, sizeof(pvdata_t), nItems, fp) != nItems) err = -2;
+   if ( fread(nxny, sizeof(unsigned short), 2, fp) != 2 ) return -1;
 
-   return err;
+   nItems = (int) nxny[0] * (int) nxny[1] * (int) nf;
+
+   p->nx = (float) nxny[0];
+   p->ny = (float) nxny[1];
+   p->nf = nf;
+
+   p->sf = 1;
+   p->sx = nf;
+   p->sy = (float) ( (int) p->nf * (int) p->nx );
+
+   i = 0;
+   while (i < nItems) {
+      if ( fread(buf, sizeof(unsigned char), bufSize, fp) != bufSize ) return -2;
+      // data are packed into chars
+      for (ii = 0; ii < bufSize; ii++) {
+         p->data[i++] = minVal + (maxVal - minVal) * ((float) buf[ii] / 255.0);
+         if (i >= nItems) break;
+      }
+   }
+
+   return nItems;
 }
 
-int pv_dump_patches(const char * filename, int append, PVPatch ** patches, int numPatches)
+int pv_write_patches(const char * filename, int append,
+                     int nx, int ny, int nf, float minVal, float maxVal,
+                     int numPatches, PVPatch ** patches)
 {
    char fullpath[PV_PATH_MAX];
    int i, err = 0;
    FILE * fp;
 
    assert(numPatches > 0);
-   PVPatch * p = patches[0];
 
    sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
 
@@ -499,123 +540,114 @@ int pv_dump_patches(const char * filename, int append, PVPatch ** patches, int n
    }
 
    if (!append) {
-      const int nParams = 7;
+      const int nParams = 6;
       int params[nParams+1];
       params[0] = nParams;
-      params[1] = numPatches;
-      params[2] = p->nx;
-      params[3] = p->ny;
-      params[4] = p->nf;
-      params[5] = p->sx;
-      params[6] = p->sy;
-      params[7] = p->sf;
-      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) err = -3;
+      params[1] = nx;
+      params[2] = ny;
+      params[3] = nf;
+      params[4] = (int) minVal;
+      params[5] = (int) ceilf(maxVal);
+      params[6] = numPatches;
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1 ) err = -3;
       if (err != 0) {
          pv_log(stderr, "pv_dump_patches: error writing params header\n");
+         return err;
       }
    }
 
    for (i = 0; i < numPatches; i++) {
-      p = patches[i];
-      err = pv_dump_patch(fp, p);
-      if (err) {
-         pv_log(stderr, "pv_dump_patches: error writing patch %d\n", i);
-         break;
+      err = pv_write_patch(fp, minVal, maxVal, patches[i]);
+      if (err < 0) {
+         pv_log(stderr, "pv_write_patches: error writing patch %d\n", i);
+         return err;
       }
    }
    fclose(fp);
 
-   return err;
-}
-
-int pv_read_patches(const char * filename, int append, PVPatch ** patches, int numPatches)
-{
-   char fullpath[PV_PATH_MAX];
-   int i, err = 0;
-   FILE * fp;
-
-   assert(numPatches > 0);
-   PVPatch * p = patches[0];
-
-   sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
-
-   if (append) fp = fopen(fullpath, "rb");
-   else        fp = fopen(fullpath, "wb");
-
-   if (fp == NULL) {
-      pv_log(stderr, "pv_dump_patches: couldn't open output file %s\n", fullpath);
-      return -1;
-   }
-
-   if (!append) {
-      const int nParams = 7;
-      int params[nParams+1];
-      params[0] = nParams;
-      params[1] = numPatches;
-      params[2] = p->nx;
-      params[3] = p->ny;
-      params[4] = p->nf;
-      params[5] = p->sx;
-      params[6] = p->sy;
-      params[7] = p->sf;
-      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) err = -3;
-      if (err != 0) {
-         pv_log(stderr, "pv_dump_patches: error writing params header\n");
-      }
-   }
-
-   for (i = 0; i < numPatches; i++) {
-      p = patches[i];
-      err = pv_dump_patch(fp, p);
-      if (err) {
-         pv_log(stderr, "pv_dump_patches: error writing patch %d\n", i);
-         break;
-      }
-   }
-   fclose(fp);
-
-   return err;
-}
-
-FILE * pv_open_binary(char * filename, int * nx, int * ny, int * nf)
-{
-   int nParams;
-   int * params;
-
-   FILE * fd = fopen(filename, "rb");
-   if (fd == NULL) return NULL;
-
-   if ( fread(&nParams, sizeof(int), 1, fd) != 1 ) {
-      fclose(fd);
-      return NULL;
-   }
-
-   params = (int *) malloc(nParams * sizeof(int));
-   if (params == NULL) return NULL;
-
-   if ( fread(params, sizeof(int), nParams, fd) != nParams ) {
-      fclose(fd);
-      return NULL;
-   }
-
-   *nx = params[0];
-   *ny = params[1];
-   *nf = params[2];
-
-   return fd;
-}
-
-int pv_close_binary(FILE * fd)
-{
-   return fclose(fd);
-}
-
-int pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems)
-{
-   if ( fread(buf, sizeof(pvdata_t), nItems, fd) != nItems ) {
-      return -1;
-   }
    return 0;
+}
+
+int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
+                    PVPatch ** patches, int numPatches)
+{
+   int i, err = 0;
+
+   for (i = 0; i < numPatches; i++) {
+      err = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
+      if (err < 0) {
+         pv_log(stderr, "pv_read_patches: error reading patch %d\n", i);
+         return err;
+      }
+   }
+
+   return 0;
+}
+
+int pv_read_binary_params(FILE * fp, int numParams, int params[])
+{
+   int nParams = 0;
+
+   rewind(fp);
+
+   if ( fread(&nParams, sizeof(int), 1, fp) != 1 ) {
+      return 0;
+   }
+   assert(nParams <= numParams);
+
+   return fread(params, sizeof(int), numParams, fp);
+}
+
+/**
+ * Open a PV binary file for reading.
+ * @numParams contains the number of integer parameters on return
+ * @nx contains the number of items in the x direction on return
+ * @ny contains the number of items in the y direction on return
+ * @nf contains the number of features on return
+ * returns the opened file (NULL if an error occurred)
+ */
+FILE * pv_open_binary(char * filename, int * numParams, int * nx, int * ny, int * nf)
+{
+   const int minParams = 3;
+   int params[minParams+1];
+
+   FILE * fp = fopen(filename, "rb");
+   if (fp == NULL) {
+      pv_log(stderr, "pv_open_binary: couldn't open output file %s\n", filename);
+      return NULL;
+   }
+
+   if ( fread(params, sizeof(int), minParams+1, fp) != minParams+1 ) {
+      fclose(fp);
+      return NULL;
+   }
+
+   *numParams = params[0];
+   *nx = params[1];
+   *ny = params[2];
+   *nf = params[3];
+
+   return fp;
+}
+
+/**
+ * Close a PV binary file.
+ */
+int pv_close_binary(FILE * fp)
+{
+   return fclose(fp);
+}
+
+/**
+ * Read a PV binary record.  This is a three dimensional array [ny][nx][nf].
+ * @fp a FILE pointer to the file
+ * @buf a buffer containing the record on return
+ * @numItems
+ * returns the number of items read (if 0, likely is end of file)
+ */
+size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int numItems)
+{
+   return fread(buf, sizeof(pvdata_t), numItems, fp);
 }
 
 int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf)
