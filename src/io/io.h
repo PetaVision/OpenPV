@@ -32,11 +32,16 @@ int printStats(pvdata_t * buf, int nItems, char * msg);
 
 int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
 int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
-int pv_dump_patches(const char * filename, int append, PVPatch ** patches, int numPatches);
+int pv_write_patches(const char * filename, int append,
+                     int nx, int ny, int nf, float minVal, float maxVal,
+                     int numPatches, PVPatch ** patches);
+int pv_read_patches(FILE *fp, int nf, float minVal, float maxVal,
+                    PVPatch ** patches, int numPatches);
 
-FILE * pv_open_binary(char * filename, int * nx, int * ny, int * nf);
+FILE * pv_open_binary(char * filename, int * numParams, int * nx, int * ny, int * nf);
+int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
 int    pv_close_binary(FILE * fd);
-int    pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems);
+size_t pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems);
 
 int parse_options(int argc, char * argv[], char ** input_file,
                   char ** param_file, int * n_time_steps, int *shmem_threads);
