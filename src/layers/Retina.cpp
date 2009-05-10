@@ -21,7 +21,10 @@ namespace PV {
 fileread_params RetinaParams =
 {
    0.0, 1.0, 1.0, 1.0*(NOISE_AMP==0.0)+0.5*(NOISE_AMP>0.0),
-   0.0*(NOISE_AMP==0.0)+0.01*(NOISE_AMP>0.0), 0.0, 0.0, 1000.0, NULL
+   0.0*(NOISE_AMP==0.0)+0.01*(NOISE_AMP>0.0),
+   0.0, 0.0,         /* burstFreg, burstDuration */
+   0.0, 0.0, 1000.0, /* marginWidth, beginStim, endStim */
+   NULL              /* filename */
 };
 
 Retina::Retina(const char * name, HyPerCol * hc)
@@ -202,7 +205,6 @@ int Retina::updateState(float time, float dt)
       clayer->updateFunc(clayer);
    }
    else {
-      static int wait = 0;
       fileread_params * params = (fileread_params *) clayer->params;
       pvdata_t * activity = clayer->activity->data;
       float* V = clayer->V;
@@ -211,18 +213,19 @@ int Retina::updateState(float time, float dt)
       float poissonBlankProb = RAND_MAX * params->poissonBlankProb;
 
       int burstStatus = 0;
-      if (params->burstDuration <= 0){
+      if (params->burstDuration <= 0 || params->burstFreq == 0) {
          burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) > 0.;
       }
       else {
-         burstStatus = fmod(time, 1000. / params->burstFreq) < params->burstDuration;
+         burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
+         burstStatus = burstStatus <= params->burstDuration;
       }
       int stimStatus = (time >= params->beginStim) && (time < params->endStim);
       stimStatus = stimStatus && burstStatus;
 
       if (params->spikingFlag == 0.0) {
          // non-spiking code
-         if (stimStatus && wait == 0) {
+         if (stimStatus) {
             for (int k = 0; k < clayer->numNeurons; k++) {
                activity[k] = V[k];
             }
@@ -230,14 +233,6 @@ int Retina::updateState(float time, float dt)
          else {
             for (int k = 0; k < clayer->numNeurons; k++) {
                activity[k] = 0.0;
-            }
-         }
-         wait -= 1;
-         if (wait < 0) {
-            // have the retina fire with a specific frequency
-            wait = 0;   // default is to fire every time step
-            if (params->poissonEdgeProb > 0.0) {
-               wait = 1.0 / params->poissonEdgeProb - 1;
             }
          }
       }
