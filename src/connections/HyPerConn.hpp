@@ -73,6 +73,8 @@ public:
 
    int setParams(PVParams * params, PVConnParams * p);
 
+   PVPatch ** convertPreSynapticWeights();
+
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 
    int gauss2DCalcWeights(PVPatch * wp, int fPre, int no, int xScale, int yScale,
@@ -101,6 +103,7 @@ protected:
    PVLayerCube   * pDecr;      // plasticity decrement variable (Mi) for pre-synaptic layer
    PVPatch      ** pIncr;      // list of stdp patches Psij variable
    PVPatch      ** wPatches;   // list of weight patches
+   PVPatch      ** wPostPatches;  // post-synaptic linkage of weights
    PVSynapseBundle ** bundles; // list of tasks for each pre-synaptic neuron
 
    int numParams;
@@ -118,7 +121,7 @@ protected:
                           int channel);
    virtual int initializeWeights(const char * filename);
    virtual int initializeRandomWeights(int seed);
-   virtual PVPatch ** createWeights();
+   virtual PVPatch ** createWeights(int nxPatch, int nyPatch, int nfPatch, int numPatches);
    virtual int        deleteWeights();
 
    virtual int createSynapseBundles(int numTasks);

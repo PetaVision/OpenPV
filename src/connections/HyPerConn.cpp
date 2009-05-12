@@ -156,6 +156,8 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    this->dWMax  = 0.1;
    this->wMax   = 1.0;
 
+   this->wPostPatches = NULL;
+
    assert(this->channel <= post->clayer->numPhis);
 
    PVParams * inputParams = parent->parameters();
@@ -183,9 +185,12 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
       stdpFlag = inputParams->value(name, "stdpFlag");
    }
 
-   wPatches = createWeights();
+
+   const int numPatches = numberOfWeightPatches();
+
+   wPatches = createWeights(nxp, nyp, nfp, numPatches);
    if (stdpFlag) {
-      pIncr = createWeights();
+      pIncr = createWeights(nxp, nyp, nfp, numPatches);
       pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
    }
    else {
@@ -584,20 +589,18 @@ PVPatch * HyPerConn::getPlasticityIncrement(int k, int bundle)
 /**
  * Create a separate patch of weights for every neuron
  */
-PVPatch ** HyPerConn::createWeights()
+PVPatch ** HyPerConn::createWeights(int nxPatch, int nyPatch, int nfPatch, int numPatches)
 {
    // could create only a single patch with following call
    //   return createPatches(numBundles, nxp, nyp, nfp);
 
    assert(numBundles == 1);
 
-   const int numPatches = numberOfWeightPatches();
-
    PVPatch ** patches = (PVPatch**) malloc(numPatches*sizeof(PVPatch*));
 
    // TODO - allocate space for them all at once
    for (int k = 0; k < numPatches; k++) {
-      patches[k] = pvpatch_new(nxp, nyp, nfp);
+      patches[k] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
 
    return patches;
@@ -616,6 +619,14 @@ int HyPerConn::deleteWeights()
       pvpatch_delete(wPatches[k]);
    }
    free(wPatches);
+
+   if (wPostPatches != NULL) {
+      const int numPostNeurons = post->clayer->numNeurons;
+      for (int k = 0; k < numPostNeurons; k++) {
+         pvpatch_delete(wPostPatches[k]);
+      }
+      free(wPostPatches);
+   }
 
    if (stdpFlag) {
       for (int k = 0; k < numPreNeurons; k++) {
@@ -1047,6 +1058,73 @@ int HyPerConn::createNorthernSynapseBundles(int numTasks)
    }
 
    return 0;
+}
+
+PVPatch ** HyPerConn::convertPreSynapticWeights()
+{
+   const int nxPre  = pre->clayer->loc.nx;
+   const int nyPre  = pre->clayer->loc.ny;
+   const int nfPre  = pre->clayer->numFeatures;
+
+   const int nxPost  = post->clayer->loc.nx;
+   const int nyPost  = post->clayer->loc.ny;
+   const int nfPost  = post->clayer->numFeatures;
+   const int numPost = post->clayer->numNeurons;
+
+   const int nxPrePatch = nxp;
+   const int nyPrePatch = nyp;
+
+   // TODO - use scale to size patches
+   const int nxPostPatch = nxp;
+   const int nyPostPatch = nyp;
+   const int nfPostPatch = pre->clayer->numFeatures;
+
+   // the number of features is the end-point value (normally post-synaptic)
+   const int numPostPatch = nxPostPatch * nyPostPatch * nfPre;
+
+   if (wPostPatches == NULL) {
+      wPostPatches = createWeights(nxPostPatch, nyPostPatch, nfPostPatch, numPost);
+   }
+
+   // loop through post-synaptic neurons
+
+   for (int kPost = 0; kPost < numPost; kPost++) {
+      int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
+      int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+      int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
+      int kxPreHead = kxPost - nxPostPatch/2;
+      int kyPreHead = kyPost - nyPostPatch/2;
+
+      for (int kp = 0; kp < numPostPatch; kp++) {
+         int kxPostPatch = kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
+         int kyPostPatch = kyPos(kp, nxPostPatch, nyPostPatch, nfPre);
+         int kfPostPatch = featureIndex(kp, nxPostPatch, nyPostPatch, nfPre);
+
+         int kxPre = kxPreHead + kxPostPatch;
+         int kyPre = kyPreHead + kyPostPatch;
+         int kfPre = kfPostPatch;
+         int kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
+
+         if (kPre < 0 || kPre >= nxPre*nyPre*nfPre) {
+            assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
+            wPostPatches[kPost]->data[kp] = 0.0;
+            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=?  kxPostPatch=%2d kPrePatch=?  w=%f\n", kxPost, kxPre, kPre, kp, kxPostPatch, postPatches[kPost]->data[kp]);
+         }
+         else {
+            PVPatch * p = wPatches[kPre];
+            int nxp = (kxPre < nxPrePatch/2) ? p->nx : nxPrePatch;
+            int nyp = (kyPre < nyPrePatch/2) ? p->ny : nyPrePatch;
+            int kxPrePatch = nxp - (1 + kxPostPatch);
+            int kyPrePatch = nyp - (1 + kyPostPatch);
+            int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
+
+            wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
+            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=%2d kxPostPatch=%2d kPrePatch=%2d w=%f\n", kxPost, kxPre, kPre, kp, kxPrePatch, kxPostPatch, kPrePatch, postPatches[kPost]->data[kp]);
+         }
+      }
+   }
+
+   return wPostPatches;
 }
 
 /**
