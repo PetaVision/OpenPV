@@ -981,7 +981,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactExtension="a" artifactName="PetaVision" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="Library" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1759988689" name="lib" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+<configuration artifactExtension="a" artifactName="pv" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="Library" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1759988689" name="lib" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
 <folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.1759988689." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.debug.1105535636" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.debug.1385055971" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.debug"/>
@@ -1092,6 +1092,6 @@
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<project id="PetaVision.cdt.managedbuild.target.macosx.exe.1505219028" name="Executable" projectType="cdt.managedbuild.target.macosx.exe"/>
+<project id="pv.cdt.managedbuild.target.macosx.exe.1505219028" name="Executable" projectType="cdt.managedbuild.target.macosx.exe"/>
 </storageModule>
 </cproject>
