@@ -156,6 +156,7 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    this->dWMax  = 0.1;
    this->wMax   = 1.0;
 
+   this->wPostTime    = -1.0;
    this->wPostPatches = NULL;
 
    assert(this->channel <= post->clayer->numPhis);
@@ -1060,8 +1061,13 @@ int HyPerConn::createNorthernSynapseBundles(int numTasks)
    return 0;
 }
 
-PVPatch ** HyPerConn::convertPreSynapticWeights()
+PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 {
+   if (time <= wPostTime) {
+      return wPostPatches;
+   }
+   wPostTime = time;
+
    const int nxPre  = pre->clayer->loc.nx;
    const int nyPre  = pre->clayer->loc.ny;
    const int nfPre  = pre->clayer->numFeatures;

@@ -60,6 +60,9 @@ public:
    inline const char * getName()                     {return name;}
    inline int          getDelay()                    {return params->delay;}
 
+   inline float minWeight()                          {return 0.0;}
+   inline float maxWeight()                          {return wMax;}
+
    virtual PVSynapseBundle * tasks(int k, int neighbor)   {return bundles[k];}
 
    HyPerLayer * preSynapticLayer()     {return pre;}
@@ -73,7 +76,7 @@ public:
 
    int setParams(PVParams * params, PVConnParams * p);
 
-   PVPatch ** convertPreSynapticWeights();
+   PVPatch ** convertPreSynapticWeights(float time);
 
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 
@@ -115,6 +118,7 @@ protected:
 
    int channel; // which channel of the post to update (e.g. inhibit)
    int ioAppend;                // controls opening of binary files
+   float wPostTime;             // time of last conversion to wPostPatches
 
 protected:
    virtual int initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
