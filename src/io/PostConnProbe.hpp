@@ -16,7 +16,6 @@ class PostConnProbe: public PV::ConnectionProbe {
 public:
    PostConnProbe(int kPost);
    PostConnProbe(const char * filename, int kPost);
-   virtual ~PostConnProbe();
 
    virtual int PostConnProbe::outputState(float time, HyPerConn * c);
 

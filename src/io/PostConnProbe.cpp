@@ -22,17 +22,12 @@ PostConnProbe::PostConnProbe(const char * filename, int kPost)
    this->kPost = kPost;
 }
 
-PostConnProbe::~PostConnProbe()
-{
-   // TODO Auto-generated destructor stub
-}
-
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
-   PVPatch ** wPost = c->convertPreSynapticWeights();
+   PVPatch ** wPost = c->convertPreSynapticWeights(time);
    PVPatch * w = wPost[kPost];
 
-   fprintf(fp, "w%d:      M=", kPost);
+   fprintf(fp, "w%d:     ", kPost);
    fprintf(fp, "w=");
    text_write_patch(fp, w, w->data);
    fprintf(fp, "\n");
