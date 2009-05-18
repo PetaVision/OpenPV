@@ -1,0 +1,111 @@
+//
+// params.pv
+//  - input parameters for pv_ca.cpp
+//  - initially, this case study examines how a one dimensional object (line segment) can
+//    be synchronized
+//
+
+HyPerCol "column" = {
+   nx = 64;
+   ny = 16;
+   dt = .2;
+};
+
+//
+// Three layers, "Retina", "L1", "L2"
+//
+
+HyPerLayer "Retina" = {
+   nx = 64;
+   ny = 16;
+   nf = 2;   // features = (OFF,ON}
+   
+   nBorder = 0;
+
+   beginStim = .0;
+   endStim   = .3;
+
+   fireOffPixels = 1;          // if true, black (0) pixels fire as off
+   invert  = 0.0;
+   uncolor = 1.0;              // if true, pixels>0 become 1.0
+
+   spikingFlag = 0;           // spike as poisson?
+   noiseOnFreq = 50;
+   poissonEdgeProb  = 0.0;//.20;  //.125;      // if so, on probability
+   poissonBlankProb = 0.0;//.075; //.0125;     //       off probability
+
+   marginWidth = 0.0;           // set input to 0 within margin
+};
+
+HyPerLayer "L1" = {
+   nx = 64;
+   ny = 16;
+   nf = 16;    // features=(OFF,ON} times 8 combinations
+   no = 1;
+   nBorder = 0;
+   
+   tau    = 2;    // 100;
+   tauE   = .25;  // 1;
+   tauVth = .25;   // 10;
+   
+   VthRest = -60; // -55;
+   
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L2" = {
+   nx = 64;
+   ny = 16;
+   nf = 2;    // features=(OFF,ON}
+   no = 1;
+   nBorder = 0;
+   
+   tau    = 2;    // 100;
+   tauE   = .25;   // 1;
+   tauVth = .25;   // 10;
+   
+   VthRest = -60; // -55;
+   
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+//
+// 2 connections, 
+//    "Retina to L1"
+//    "L1 to L2"
+//    "L2 to L1"
+//
+
+HyPerConn "Retina to L1" = {
+   nxp = 3;
+   nyp = 1;
+   strength = .5;
+   
+   wMin = 0.0;
+   wMax = 1.0;
+
+   rotate = 1.0;
+   invert = 0.0;
+};
+
+HyPerConn "L1 to L2" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 1.5;
+   delay = 30;
+
+   rotate = 1.0;
+   invert = 0.0;
+};
+
+HyPerConn "L2 to L1" = {
+   nxp = 3;
+   nyp = 1;
+   strength = .5;
+   delay = 30;
+
+   rotate = 1.0;
+   invert = 0.0;
+};
