@@ -1,5 +1,5 @@
 # Path to PetaVision workspace goes here 
-PVDIR = ../petavision
+PVDIR = ../pv
 SRCDIR = $(PVDIR)/src
 BUILDDIR = $(SRCDIR)/build
 
@@ -14,7 +14,7 @@ CPPFLAGS = -g -Wall -I$(PVDIR) -I$(MPI_DIR)
 
 LIBS = -lpv -pthread
 
-EXES = pv_cocirc
+EXES = pv_ca
 
 .SUFFIXES: .cpp .c .o
 
@@ -26,7 +26,7 @@ EXES = pv_cocirc
 
 all: $(EXES)
 
-pv_cocirc: pv_cocirc.o # $(BUILDDIR)/libpv.a
+pv_ca: pv_ca.o # $(BUILDDIR)/libpv.a
 	$(CPP) -o $@ $< -L$(BUILDDIR) $(LIBS)
 
 clean: force

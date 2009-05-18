@@ -2,7 +2,7 @@ Petavision may be obtained from sourceforge.net using the subversion command:
 
     svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk petavision
     
-You should also check out one of the example projects, (CellularAutomata, for example):
+You should also check out one of the example projects, (this project, for example):
 
     svn co https://petavision.svn.sourceforge.net/svnroot/petavision/examples/CellularAutomata ca
     
