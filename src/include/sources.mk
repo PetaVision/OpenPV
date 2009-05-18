@@ -18,9 +18,11 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/layers/elementals.h \
           $(SRCDIR)/layers/LIF2.h \
           $(SRCDIR)/layers/PVLayer.h \
+          $(SRCDIR)/io/ConnectionProbe.hpp \
           $(SRCDIR)/io/PVLayerProbe.hpp \
           $(SRCDIR)/io/LinearActivityProbe.hpp \
           $(SRCDIR)/io/PointProbe.hpp \
+          $(SRCDIR)/io/PostConnProbe.hpp \
           $(SRCDIR)/io/StatsProbe.hpp \
           $(SRCDIR)/io/PVParams.hpp \
           $(SRCDIR)/io/tiff.h
@@ -41,9 +43,11 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/layers/Retina.cpp \
           $(SRCDIR)/layers/LGN.cpp \
           $(SRCDIR)/layers/V1.cpp \
+          $(SRCDIR)/io/ConnectionProbe.cpp \
           $(SRCDIR)/io/PVLayerProbe.cpp \
           $(SRCDIR)/io/LinearActivityProbe.cpp \
           $(SRCDIR)/io/PointProbe.cpp \
+          $(SRCDIR)/io/PostConnProbe.cpp \
           $(SRCDIR)/io/StatsProbe.cpp \
           $(SRCDIR)/io/PVParams.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
@@ -64,9 +68,11 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/Example.o \
           $(BUILDDIR)/LGN.o \
           $(BUILDDIR)/V1.o \
+          $(BUILDDIR)/ConnectionProbe.o \
           $(BUILDDIR)/PVLayerProbe.o \
           $(BUILDDIR)/LinearActivityProbe.o \
           $(BUILDDIR)/PointProbe.o \
+          $(BUILDDIR)/PostConnProbe.o \
           $(BUILDDIR)/StatsProbe.o \
           $(BUILDDIR)/PVParams.o \
           $(BUILDDIR)/param_parser.o

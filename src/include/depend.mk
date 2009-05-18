@@ -52,6 +52,9 @@ $(BUILDDIR)/V1.o: $(SRCDIR)/layers/V1.cpp $(HEADERS)
 $(BUILDDIR)/PVParams.o: $(SRCDIR)/io/PVParams.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/ConnectionProbe.o: $(SRCDIR)/io/ConnectionProbe.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/PVLayerProbe.o: $(SRCDIR)/io/PVLayerProbe.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -59,6 +62,9 @@ $(BUILDDIR)/LinearActivityProbe.o: $(SRCDIR)/io/LinearActivityProbe.cpp $(HEADER
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/PointProbe.o: $(SRCDIR)/io/PointProbe.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/PostConnProbe.o: $(SRCDIR)/io/PostConnProbe.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/StatsProbe.o: $(SRCDIR)/io/StatsProbe.cpp $(HEADERS)
