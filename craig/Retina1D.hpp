@@ -17,7 +17,7 @@ class Retina1D: public PV::Retina {
 public:
    Retina1D();
    Retina1D(const char * name, HyPerCol * hc);
-   Retina1D::~Retina1D();
+   virtual ~Retina1D();
 
    virtual int createImage(pvdata_t * buf);
    virtual int createRandomImage(pvdata_t * buf);
