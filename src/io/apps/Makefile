@@ -17,6 +17,8 @@ DEPENDS = $(HEADERS)
 EXES = weights circles circle_pixels create_input test_read_tiff \
        bin_to_tiff expand_tiff # create_weights parse_params test_read_binary
 
+EXES = weights
+
 .SUFFIXES: .cpp .c .o
 
 %.o: %.cpp
