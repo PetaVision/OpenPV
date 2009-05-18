@@ -6,9 +6,9 @@
 //
 
 HyPerCol "column" = {
-   nx = 64;
-   ny = 16;
-   dt = .2;
+   nx = 16;
+   ny = 1;
+   dt = .5;
 };
 
 //
@@ -16,8 +16,8 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 16;
+   nx = 16;
+   ny = 1;
    nf = 2;   // features = (OFF,ON}
    
    nBorder = 0;
@@ -31,32 +31,49 @@ HyPerLayer "Retina" = {
 
    spikingFlag = 0;           // spike as poisson?
    noiseOnFreq = 50;
-   poissonEdgeProb  = 0.0;//.20;  //.125;      // if so, on probability
-   poissonBlankProb = 0.0;//.075; //.0125;     //       off probability
+   poissonEdgeProb  = .01;//.20;  //.125;      // if so, on probability
+   poissonBlankProb = .01;//.075; //.0125;     //       off probability
 
    marginWidth = 0.0;           // set input to 0 within margin
 };
 
 HyPerLayer "L1" = {
-   nx = 64;
-   ny = 16;
-   nf = 16;    // features=(OFF,ON} times 8 combinations
+   nx = 16;
+   ny = 1;
+   nf = 8;    // features=(OFF,ON} times 8 combinations
    no = 1;
    nBorder = 0;
    
-   tau    = 2;    // 100;
-   tauE   = .25;  // 1;
-   tauVth = .25;   // 10;
+   tau    = 100; // 2;    // 100;
+   tauE   = 1;   // .25;  // 1;
+   tauVth = 10;  // .25;   // 10;
    
-   VthRest = -60; // -55;
+   VthRest = -55; // -60; // -55;
+   
+   noiseAmpE = 0.0; //64.0;
+   noiseAmpI = 0.0; //4.0;
+};
+
+HyPerLayer "L1Inh" = {
+   nx = 16;
+   ny = 1;
+   nf = 1;    // features=(OFF,ON} times 8 combinations
+   no = 1;
+   nBorder = 0;
+   
+   tau    = 100; // 2;    // 100;
+   tauE   = 1;   // .25;  // 1;
+   tauVth = 10;  // .25;   // 10;
+   
+   VthRest = -55; // -60; // -55;
    
    noiseAmpE = 0;
    noiseAmpI = 0;
 };
 
 HyPerLayer "L2" = {
-   nx = 64;
-   ny = 16;
+   nx = 8;
+   ny = 1;
    nf = 2;    // features=(OFF,ON}
    no = 1;
    nBorder = 0;
@@ -81,11 +98,26 @@ HyPerLayer "L2" = {
 HyPerConn "Retina to L1" = {
    nxp = 3;
    nyp = 1;
-   strength = .5;
+   strength = 1.0;
+   
+   stdpFlag = 1;
    
    wMin = 0.0;
-   wMax = 1.0;
+   wMax = 10.0;
 
+   rotate = 1.0;
+   invert = 0.0;
+};
+
+HyPerConn "L1 to L1Inh" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 30.0;
+   
+   aspect = 1;
+   sigma  = 100;
+   rMax   = 100;
+   
    rotate = 1.0;
    invert = 0.0;
 };
