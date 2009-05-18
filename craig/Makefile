@@ -12,7 +12,7 @@ MPI_INC = -I$(MPI_DIR)
 CFLAGS = -g -Wall -std=c99 -Wall -I$(PVDIR) -I$(MPI_DIR)
 CPPFLAGS = -g -Wall -I$(PVDIR) -I$(MPI_DIR)
 
-LIBS = -lpv -pthread
+LIBS = -lpv -lpthread
 
 OBJS = LinearPostConnProbe.o Retina1D.o
 
