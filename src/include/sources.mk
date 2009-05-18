@@ -12,6 +12,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/connections/CocircConn.hpp \
           $(SRCDIR)/connections/LongRangeConn.hpp \
           $(SRCDIR)/connections/PoolConn.hpp \
+          $(SRCDIR)/connections/RandomConn.hpp \
           $(SRCDIR)/connections/RuleConn.hpp \
           $(SRCDIR)/connections/PVConnection.h \
           $(SRCDIR)/layers/elementals.h \
@@ -33,6 +34,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/InhibConn.cpp \
           $(SRCDIR)/connections/LongRangeConn.cpp \
           $(SRCDIR)/connections/PoolConn.cpp \
+          $(SRCDIR)/connections/RandomConn.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
           $(SRCDIR)/layers/Example.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
@@ -56,6 +58,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/InhibConn.o \
           $(BUILDDIR)/LongRangeConn.o \
           $(BUILDDIR)/PoolConn.o \
+          $(BUILDDIR)/RandomConn.o \
           $(BUILDDIR)/RuleConn.o \
           $(BUILDDIR)/Retina.o \
           $(BUILDDIR)/Example.o \

@@ -28,6 +28,9 @@ $(BUILDDIR)/LongRangeConn.o: $(SRCDIR)/connections/LongRangeConn.cpp $(HEADERS)
 $(BUILDDIR)/PoolConn.o: $(SRCDIR)/connections/PoolConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/RandomConn.o: $(SRCDIR)/connections/RandomConn.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/RuleConn.o: $(SRCDIR)/connections/RuleConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
