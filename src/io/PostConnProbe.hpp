@@ -17,7 +17,7 @@ public:
    PostConnProbe(int kPost);
    PostConnProbe(const char * filename, int kPost);
 
-   virtual int PostConnProbe::outputState(float time, HyPerConn * c);
+   virtual int outputState(float time, HyPerConn * c);
 
 protected:
    int kPost;  // index of post-synaptic neuron
