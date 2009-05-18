@@ -1,7 +1,7 @@
 # Path to PetaVision workspace goes here 
-PVDIR = ../pv
+PVDIR = ../PetaVision
 SRCDIR = $(PVDIR)/src
-BUILDDIR = $(SRCDIR)/build
+LIBDIR = $(PVDIR)/lib
 
 CPP = g++
 CC  = gcc
@@ -14,7 +14,9 @@ CPPFLAGS = -g -Wall -I$(PVDIR) -I$(MPI_DIR)
 
 LIBS = -lpv -pthread
 
-EXES = pv_ca
+OBJS = LinearPostConnProbe.o Retina1D.o
+
+EXES = stdp
 
 .SUFFIXES: .cpp .c .o
 
@@ -26,10 +28,10 @@ EXES = pv_ca
 
 all: $(EXES)
 
-pv_ca: pv_ca.o # $(BUILDDIR)/libpv.a
-	$(CPP) -o $@ $< -L$(BUILDDIR) $(LIBS)
+stdp: stdp.o $(OBJS) $(LIBDIR)/libpv.a
+	$(CPP) -o $@ $< $(OBJS) -L$(LIBDIR) $(LIBS)
 
 clean: force
-	rm -f $(EXES) *.o
+	rm -f $(EXES) $(OBJS) *.o
 
 force:
