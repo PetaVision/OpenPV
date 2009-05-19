@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
    retina->insertProbe(rProbe0);
    retina->insertProbe(rProbe1);
-   //r_l1->insertProbe(cProbe);
+   r_l1->insertProbe(cProbe0);
 
    l1->insertProbe(probe0);
    l1->insertProbe(probe1);
@@ -101,14 +101,14 @@ int main(int argc, char* argv[])
 //   r_l1->insertProbe(cProbe0);
 //   r_l1->insertProbe(cProbe1);
 
-//   r_l1->insertProbe(pcProbe0);
-//   r_l1->insertProbe(pcProbe1);
-//   r_l1->insertProbe(pcProbe2);
-//   r_l1->insertProbe(pcProbe3);
-//   r_l1->insertProbe(pcProbe4);
-//   r_l1->insertProbe(pcProbe5);
-//   r_l1->insertProbe(pcProbe6);
-//   r_l1->insertProbe(pcProbe7);
+    r_l1->insertProbe(pcProbe0);
+    r_l1->insertProbe(pcProbe1);
+    r_l1->insertProbe(pcProbe2);
+    r_l1->insertProbe(pcProbe3);
+    r_l1->insertProbe(pcProbe4);
+    r_l1->insertProbe(pcProbe5);
+    r_l1->insertProbe(pcProbe6);
+    r_l1->insertProbe(pcProbe7);
 
    // run the simulation
    hc->initFinish();

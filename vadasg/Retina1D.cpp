@@ -18,14 +18,17 @@ namespace PV {
 Retina1D::Retina1D(const char * name, HyPerCol * hc) :
    Retina(name, hc)
 {
-   targ1D = (pvdata_t *) malloc(clayer->numNeurons * sizeof(pvdata_t));;
+   mom = (pvdata_t *) malloc(clayer->numNeurons * sizeof(pvdata_t));;
 //   createImage(clayer->V);
    createRandomImage(clayer->V);
+   for (int i = 0; i < clayer->numNeurons; i++) {
+     mom[i] = clayer->V[i];
+   }
 }
 
 Retina1D::~Retina1D()
 {
-   free(targ1D);
+   free(mom);
 }
 
 int Retina1D::createImage(pvdata_t * buf) {
@@ -125,10 +128,13 @@ int Retina1D::updateState(float time, float dt)
    if (fire == 0) {
       fire = 30;
       for (int k = 0; k < clayer->numNeurons; k++) {
-         activity[k] = V[k];
+         activity[k] = mom[k];
       }
+//    if (time > 4000.0){
       // create a new image for next time
-      //this->createRandomImage(V);
+ //     this->createRandomImage(V);
+  //  }
+
    }
    else {
       fire -= 1;

@@ -1,7 +1,7 @@
 # Path to PetaVision workspace goes here 
 PVDIR = ../PetaVision
 SRCDIR = $(PVDIR)/src
-LIBDIR = $(PVDIR)/lib
+LIBDIR = $(PVDIR)/src/build
 
 CPP = g++
 CC  = gcc

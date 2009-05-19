@@ -24,7 +24,7 @@ public:
    virtual int updateState(float time, float dt);
 
 protected:
-   pvdata_t * targ1D;
+   pvdata_t * mom;
 };
 
 }

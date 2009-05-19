@@ -33,7 +33,7 @@ LinearPostConnProbe::LinearPostConnProbe(const char * filename, int kPost)
 int LinearPostConnProbe::outputState(float time, HyPerConn * conn)
 {
    float min = conn->minWeight() + 0.5;
-   float max = conn->maxWeight() - 1.0;
+   float max = .96*conn->maxWeight();
 
    assert(dim == DimX);
 
