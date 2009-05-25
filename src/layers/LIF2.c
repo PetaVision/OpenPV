@@ -317,9 +317,8 @@ int LIF2_init(PVLayer * l)
          l->V[n]   = params->Vrest;
       }
 
-      // TODO - add delay via the DataStore
-      // Initialize activity buffers with random noise
-      // TODO: use a parameter for RAND threshhold
+      // TODO - Initialize activity buffers with random noise
+      // TODO - use a parameter for RAND threshhold
 
       // TODO - actually use active indicies
       l->activeIndices[0] = 0;
