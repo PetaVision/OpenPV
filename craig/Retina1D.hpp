@@ -21,6 +21,7 @@ public:
 
    virtual int createImage(pvdata_t * buf);
    virtual int createRandomImage(pvdata_t * buf);
+   virtual int spike(float time, float dt, float prob, int * start);
    virtual int updateState(float time, float dt);
 
 protected:

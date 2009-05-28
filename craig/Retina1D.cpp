@@ -19,13 +19,16 @@ Retina1D::Retina1D(const char * name, HyPerCol * hc) :
    Retina(name, hc)
 {
    targ1D = (pvdata_t *) malloc(clayer->numNeurons * sizeof(pvdata_t));;
-//   createImage(clayer->V);
-   createRandomImage(clayer->V);
+   createImage(clayer->V);
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      targ1D[k] = 0.0;
+   }
+//   createRandomImage(clayer->V);
 }
 
 Retina1D::~Retina1D()
 {
-   free(targ1D);
+   if (targ1D) free(targ1D);
 }
 
 int Retina1D::createImage(pvdata_t * buf) {
@@ -33,15 +36,33 @@ int Retina1D::createImage(pvdata_t * buf) {
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
-   static int t = -1;
+   int min0 = 1;
+   int maxR = 15;
 
-   int min = 4; // 16;
-   int max = nx - min;
+// traversing mom
+   static int min = min0 - 4;
+   static int max = min + 3;
+   min += 2;
+   max = min + 3;
+
+   if (max > maxR) {
+      min = min0;
+      max = min + 3;
+   }
+
+// approaching mom
+//   static int t = 0;
+//   static int min = 11;  // not used first time through
+//   static int max = 4;
+//   if (t % 2) min -= 2;
+//   else       max += 2;
+//
+//   t += 1;
 
    // slide image left and right by one pixel
-   t += 1;
-   min += t % 2;
-   max += t % 2;
+//   t += 1;
+//   min += t % 2;
+//   max += t % 2;
 
    assert(this->clayer->numFeatures == 2);
 
@@ -117,30 +138,70 @@ int Retina1D::createRandomImage(pvdata_t * buf) {
 
 int Retina1D::updateState(float time, float dt)
 {
-   static int fire = 0;
+   int start;
+
+   fileread_params * params = (fileread_params *) clayer->params;
+   float prob = params->poissonEdgeProb;
 
    pvdata_t * V = clayer->V;
    pvdata_t * activity = clayer->activity->data;
 
-   if (fire == 0) {
-      fire = 30;
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         activity[k] = V[k];
-      }
-      // create a new image for next time
-      //this->createRandomImage(V);
-   }
-   else {
-      fire -= 1;
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         activity[k] = 0;
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      int flag = spike(time, dt, prob, &start);
+
+      if (start == 1) {  // start of a new burst cycle
+         for (int kk = 0; kk < clayer->numNeurons; kk++) {
+            targ1D[kk] = 0;
+         }
+         // create a new image for next time
+         createImage(V);
       }
 
+      if (targ1D[k] == 0 && flag) {
+         activity[k] = V[k];
+         targ1D[k] = 1;  // keep cell from firing again during burst period
+      }
+      else {
+         activity[k] = 0;
+      }
    }
 
    return 0;
 }
 
+/**
+ * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
+ */
+int Retina1D::spike(float time, float dt, float prob, int * start)
+{
+   static int burstState = 0;
 
+   fileread_params * params = (fileread_params *) clayer->params;
+   float poissonProb  = RAND_MAX * prob;
 
+   int burstStatus = 0;
+   if (params->burstDuration <= 0 || params->burstFreq == 0) {
+      burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) >= 0.;
+   }
+   else {
+      burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
+      burstStatus = burstStatus <= params->burstDuration;
+   }
+
+   *start = 0;
+   if (burstState == 0 && burstStatus == 1) {
+      *start = 1;
+      burstState = 1;
+   }
+   else if (burstState == 1 && burstStatus == 0) {
+      burstState = 0;
+   }
+
+   int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+   stimStatus = stimStatus && burstStatus;
+
+   if (stimStatus) return ( rand() < poissonProb );
+   else            return 0;
 }
+
+}  // namespace PV
