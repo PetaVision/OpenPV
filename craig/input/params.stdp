@@ -6,7 +6,7 @@
 //
 
 HyPerCol "column" = {
-   nx = 16;
+   nx = 18;
    ny = 1;
    dt = .5;
 };
@@ -16,7 +16,7 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Retina" = {
-   nx = 16;
+   nx = 18;
    ny = 1;
    nf = 2;   // features = (OFF,ON}
    
@@ -38,7 +38,7 @@ HyPerLayer "Retina" = {
 };
 
 HyPerLayer "L1" = {
-   nx = 16;
+   nx = 18;
    ny = 1;
    nf = 8;    // features=(OFF,ON} times 8 combinations
    no = 1;
@@ -55,7 +55,7 @@ HyPerLayer "L1" = {
 };
 
 HyPerLayer "L1Inh" = {
-   nx = 16;
+   nx = 18;
    ny = 1;
    nf = 1;    // features=(OFF,ON} times 8 combinations
    no = 1;
