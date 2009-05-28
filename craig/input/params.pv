@@ -1,111 +1,215 @@
 //
 // params.pv
-//  - input parameters for pv_ca.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+//  - input parameters for pv_stdp.cpp
+//  - initially, this case study examines a one dimensional object (line segment)
 //
 
 HyPerCol "column" = {
-   nx = 64;
-   ny = 16;
-   dt = .2;
+   nx = 16;
+   ny = 1;
+   dt = .5;
 };
 
 //
-// Three layers, "Retina", "L1", "L2"
+// Six layers, "Retina", "L1", "L2", "L3", "L4", "L4Inh"
 //
 
 HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 16;
-   nf = 2;   // features = (OFF,ON}
+   nx = 16;
+   ny = 1;
+   nf = 2;
    
-   nBorder = 0;
+//   poissonEdgeProb = .33;
+   poissonEdgeProb = 1;
+   
+   beginStim = 0.0;
+   endStim   = 9000.0;
 
-   beginStim = .0;
-   endStim   = .3;
-
-   fireOffPixels = 1;          // if true, black (0) pixels fire as off
-   invert  = 0.0;
-   uncolor = 1.0;              // if true, pixels>0 become 1.0
-
-   spikingFlag = 0;           // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = 0.0;//.20;  //.125;      // if so, on probability
-   poissonBlankProb = 0.0;//.075; //.0125;     //       off probability
-
-   marginWidth = 0.0;           // set input to 0 within margin
+   burstFreq     = 25.0;
+   burstDuration = 0.5;
 };
 
-HyPerLayer "L1" = {
-   nx = 64;
-   ny = 16;
-   nf = 16;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
+HyPerLayer "L1 Simple" = {
+   nx = 8;
+   ny = 1;
+   nf = 4;
    
-   tau    = 2;    // 100;
-   tauE   = .25;  // 1;
-   tauVth = .25;   // 10;
+   tau = 15.0;
+
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
+};
+
+HyPerLayer "L2 Simple" = {
+   nx = 4;
+   ny = 1;
+   nf = 7;  // off_s_2, on_s_2, ls_21, ls_22, rs_21, rs_22, ms_2
    
-   VthRest = -60; // -55;
-   
+   tau = 15.0;
+
    noiseAmpE = 0;
    noiseAmpI = 0;
 };
 
-HyPerLayer "L2" = {
-   nx = 64;
-   ny = 16;
-   nf = 2;    // features=(OFF,ON}
-   no = 1;
-   nBorder = 0;
+HyPerLayer "L2 Complex" = {
+   nx = 4;
+   ny = 1;
+   nf = 5;  // off_c_2, on_c_2, lc_2, rc_2, mc_2
    
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L3 Simple" = {
+   nx = 2;
+   ny = 1;
+   nf = 7;
    
-   VthRest = -60; // -55;
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L3 Complex" = {
+   nx = 2;
+   ny = 1;
+   nf = 5;  // off_c_3, on_c_3, lc_3, rc_3, mc_3
    
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L4 Simple" = {
+   nx = 1;
+   ny = 1;
+   nf = 3;  // ms_41, ms_42, ms_43
+   
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L4 Complex" = {
+   nx = 1;
+   ny = 1;
+   nf = 1;  // mc_4
+   
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "L1 Simple Inh" = {
+   nx = 8;
+   ny = 1;
+   nf = 1;
+   
+   tau = 15.0;
+
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
+};
+
+HyPerLayer "L4Inh" = {
+   nx = 1;
+   ny = 8;
+   nf = 2;
+   
+   tau = 15.0;
+
    noiseAmpE = 0;
    noiseAmpI = 0;
 };
 
 //
-// 2 connections, 
+// 6 connections, 
 //    "Retina to L1"
 //    "L1 to L2"
-//    "L2 to L1"
+//    "L2 to L3"
+//    "L3 to L4"
+//    "L4 to L4Inh"
+//    "L4Inh to L4"
 //
 
-HyPerConn "Retina to L1" = {
-   nxp = 3;
-   nyp = 1;
-   strength = .5;
-   
-   wMin = 0.0;
-   wMax = 1.0;
-
-   rotate = 1.0;
-   invert = 0.0;
-};
-
-HyPerConn "L1 to L2" = {
+HyPerConn "Retina to L1 Simple" = {
    nxp = 1;
    nyp = 1;
-   strength = 1.5;
-   delay = 30;
-
-   rotate = 1.0;
-   invert = 0.0;
+   strength = 2.5;
 };
 
-HyPerConn "L2 to L1" = {
-   nxp = 3;
+HyPerConn "L1 Simple to L2 Simple" = {
+   nxp = 1;
    nyp = 1;
-   strength = .5;
-   delay = 30;
+   strength = 2.5;
+};
 
-   rotate = 1.0;
-   invert = 0.0;
+HyPerConn "L2 Simple to L2 Complex" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 4.5;
+};
+
+HyPerConn "L2 Simple to L3 Simple" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 2.5;
+};
+
+HyPerConn "L2 Complex to L3 Simple" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 2.5;
+};
+
+HyPerConn "L3 Simple to L3 Complex" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 4.5;
+};
+
+HyPerConn "L3 Complex to L4 Simple" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 2.5;
+};
+
+HyPerConn "L4 Simple to L4 Complex" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 4.5;
+};
+
+HyPerConn "L1 Simple to L1 Simple Inh" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 8;  // inhibitatory connection so make it fire quickly
+};
+
+HyPerConn "L4 to L4Inh" = {
+   nxp = 1;
+   nyp = 1;
+   delay = 13;
+
+   wMin = 1;
+   wMax = 5;
+   
+   stdpFlag = 1;
+};
+
+HyPerConn "L4Inh to L4" = {
+   nxp = 1;
+   nyp = 1;
+   delay = 13;
+
+   wMin = 1;
+   wMax = 5;
+   
+   stdpFlag = 1;
 };
