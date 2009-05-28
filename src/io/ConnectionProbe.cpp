@@ -34,6 +34,7 @@ ConnectionProbe::~ConnectionProbe()
 
 int ConnectionProbe::outputState(float time, HyPerConn * c)
 {
+   float * M = NULL;
    PVSynapseBundle * tasks = c->tasks(kPre, 0);
    PVPatch * P   = tasks->tasks[0]->plasticIncr;
    PVPatch * w   = tasks->tasks[0]->weights;
@@ -41,12 +42,20 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    assert(c->numberOfBundles() == 1);
 
-   float * M = & (c->getPlasticityDecrement()->data[offset]);  // STDP decrement variable
+   if (c->getPlasticityDecrement() != NULL) {
+      M = & (c->getPlasticityDecrement()->data[offset]);  // STDP decrement variable
+   }
 
-   fprintf(fp, "w%d:      M=", kPre);
-   text_write_patch(fp, P, M);
-   fprintf(fp, "P=");
-   text_write_patch(fp, P, P->data);  // write the P variable
+   fprintf(fp, "w%d:      ", kPre);
+
+   if (P != NULL && M != NULL) {
+      fprintf(fp, "M=");
+      text_write_patch(fp, P, M);
+   }
+   if (P != NULL) {
+      fprintf(fp, "P=");
+      text_write_patch(fp, P, P->data);  // write the P variable
+   }
    fprintf(fp, "w=");
    text_write_patch(fp, w, w->data);
    fprintf(fp, "\n");
