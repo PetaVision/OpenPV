@@ -44,7 +44,7 @@ static inline int update_f(PVLayer *l, int start)
 
    for (i = start; i < (l->numNeurons + start); i++) {
       activity[i] = ((V[i] - Vth[i]) > 0.0) ? 1.0 : 0.0;
-      V[i] -= activity[i] * (V[i] - Vrest);  // reset cells that fired
+      V[i]   -= activity[i] * (V[i] - Vrest);  // reset cells that fired
       G_E[i] -= activity[i] * G_E[i];
       G_I[i] += activity[i] * 1.0;      // add hyperpolarizing current
       Vth[i] += activity[i] * deltaVth; // reset cells that fired
