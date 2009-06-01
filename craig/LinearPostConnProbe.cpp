@@ -58,13 +58,25 @@ int LinearPostConnProbe::outputState(float time, HyPerConn * conn)
 
       float w00 = w->data[0 + 0 * (int)w->sx];
       float w01 = w->data[0 + 1 * (int)w->sx];
+      float w10 = w->data[1 + 0 * (int)w->sx];
+      float w11 = w->data[1 + 1 * (int)w->sx];
+
+#ifdef THREE
+      float w00 = w->data[0 + 0 * (int)w->sx];
+      float w01 = w->data[0 + 1 * (int)w->sx];
       float w02 = w->data[0 + 2 * (int)w->sx];
       float w10 = w->data[1 + 0 * (int)w->sx];
       float w11 = w->data[1 + 1 * (int)w->sx];
       float w12 = w->data[1 + 2 * (int)w->sx];
+#endif
 
 #ifndef AVERAGE_WEIGHTS
+      if (w00 > max && w01 > max) c = '0';
+      if (w10 > max && w11 > max) c = '1';
+      if (w00 > max && w11 > max) c = 'l';
+      if (w10 > max && w01 > max) c = 'r';
 
+#ifdef THREE
       if (w00 > max && w01 > max && w12 > max) c = '1';
       if (w00 > max && w11 > max && w02 > max) c = '2';
       if (w00 > max && w11 > max && w12 > max) c = '3';
@@ -74,6 +86,7 @@ int LinearPostConnProbe::outputState(float time, HyPerConn * conn)
 // preferentially report '0' & '7'
       if (w00 > max && w01 > max && w02 > max) c = '0';
       if (w10 > max && w11 > max && w12 > max) c = '7';
+#endif
 
       fprintf(fp, "%c", c);
 
