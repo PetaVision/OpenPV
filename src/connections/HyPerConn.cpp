@@ -312,7 +312,7 @@ int HyPerConn::initializeWeights(const char * filename)
 
       const int numPatches = numberOfWeightPatches();
       const int xScale = post->clayer->xScale - pre->clayer->xScale;
-      const int yScale = post->clayer->xScale - pre->clayer->yScale;
+      const int yScale = post->clayer->yScale - pre->clayer->yScale;
       for (int k = 0; k < numPatches; k++) {
          gauss2DCalcWeights(wPatches[k], k, noPost, xScale, yScale,
                             numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
@@ -1068,6 +1068,11 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    }
    wPostTime = time;
 
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const float powXScale = powf(2, (float) xScale);
+   const float powYScale = powf(2, (float) yScale);
+
    const int nxPre  = pre->clayer->loc.nx;
    const int nyPre  = pre->clayer->loc.ny;
    const int nfPre  = pre->clayer->numFeatures;
@@ -1080,13 +1085,12 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const int nxPrePatch = nxp;
    const int nyPrePatch = nyp;
 
-   // TODO - use scale to size patches
-   const int nxPostPatch = nxp;
-   const int nyPostPatch = nyp;
+   const int nxPostPatch = nxp * powXScale;
+   const int nyPostPatch = nyp * powYScale;
    const int nfPostPatch = pre->clayer->numFeatures;
 
    // the number of features is the end-point value (normally post-synaptic)
-   const int numPostPatch = nxPostPatch * nyPostPatch * nfPre;
+   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
    if (wPostPatches == NULL) {
       wPostPatches = createWeights(nxPostPatch, nyPostPatch, nfPostPatch, numPost);
@@ -1098,8 +1102,11 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
       int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
       int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
-      int kxPreHead = kxPost - nxPostPatch/2;
-      int kyPreHead = kyPost - nyPostPatch/2;
+//      int kxPreHead = nearby_neighbor(kxPost, -xScale) - nxPostPatch/2;
+//      int kyPreHead = nearby_neighbor(kyPost, -yScale) - nyPostPatch/2;
+      // TODO - does patchHead work in general for post to pre mapping and -scale?
+      int kxPreHead = pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
+      int kyPreHead = pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
 
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
@@ -1120,8 +1127,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             PVPatch * p = wPatches[kPre];
             int nxp = (kxPre < nxPrePatch/2) ? p->nx : nxPrePatch;
             int nyp = (kyPre < nyPrePatch/2) ? p->ny : nyPrePatch;
-            int kxPrePatch = nxp - (1 + kxPostPatch);
-            int kyPrePatch = nyp - (1 + kyPostPatch);
+            int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
+            int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
             int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
 
             wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
