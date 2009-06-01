@@ -1,6 +1,6 @@
 //
 // params.pv
-//  - input parameters for pv_stdp.cpp
+//  - input parameters for heirarchy.cpp
 //  - initially, this case study examines a one dimensional object (line segment)
 //
 
@@ -141,6 +141,7 @@ HyPerLayer "L4Inh" = {
 HyPerConn "Retina to L1 Simple" = {
    nxp = 1;
    nyp = 1;
+   stdpFlag = 1;
    strength = 2.5;
 };
 
@@ -187,6 +188,12 @@ HyPerConn "L4 Simple to L4 Complex" = {
 };
 
 HyPerConn "L1 Simple to L1 Simple Inh" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 8;  // inhibitatory connection so make it fire quickly
+};
+
+HyPerConn "L1 Simple Inh to L1 Simple" = {
    nxp = 1;
    nyp = 1;
    strength = 8;  // inhibitatory connection so make it fire quickly
