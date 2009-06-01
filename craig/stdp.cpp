@@ -20,7 +20,7 @@
 #include <src/layers/V1.hpp>
 #include <src/connections/RandomConn.hpp>
 
-int main(int argc, char* argv[])
+int stdp_main(int argc, char* argv[])
 {
    // create the managing hypercolumn
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
