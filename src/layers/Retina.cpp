@@ -316,4 +316,39 @@ int Retina::createImage(pvdata_t * buf)
    return 0;
 }
 
+/**
+ * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
+ */
+int Retina::spike(float time, float dt, float prob, int * start)
+{
+   static int burstState = 0;
+
+   fileread_params * params = (fileread_params *) clayer->params;
+   float poissonProb  = RAND_MAX * prob;
+
+   int burstStatus = 0;
+   if (params->burstDuration <= 0 || params->burstFreq == 0) {
+      burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) >= 0.;
+   }
+   else {
+      burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
+      burstStatus = burstStatus <= params->burstDuration;
+   }
+
+   *start = 0;
+   if (burstState == 0 && burstStatus == 1) {
+      *start = 1;
+      burstState = 1;
+   }
+   else if (burstState == 1 && burstStatus == 0) {
+      burstState = 0;
+   }
+
+   int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+   stimStatus = stimStatus && burstStatus;
+
+   if (stimStatus) return ( rand() < poissonProb );
+   else            return 0;
+}
+
 }
