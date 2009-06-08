@@ -1,0 +1,149 @@
+//
+// params.pv
+//  - input parameters for heirarchy.cpp
+//  - initially, this case study examines a one dimensional object (line segment)
+//
+
+HyPerCol "column" = {
+   nx = 128;
+   ny = 128;
+   dt = .5; //timestep in ms
+};
+
+//
+// Four layers, "Retina", "LGN", "V1", "V1 Inhib"
+//
+
+HyPerLayer "Retina" = {
+   nx = 128;
+   ny = 128;
+   nf = 1; //number features
+   
+//   poissonEdgeProb = .33;
+   poissonEdgeProb = 1;
+   poissonBlankProb = 0.07;
+   
+   beginStim = 0.0;
+   endStim   = 9000.0;
+
+   burstFreq     = 50.0;
+   burstDuration = 0.5;
+};
+
+HyPerLayer "LGN" = {
+   nx = 128;
+   ny = 128;
+   nf = 1;
+   
+   tau = 15.0;
+
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
+};
+
+HyPerLayer "V1" = {
+   nx = 128;
+   ny = 128;
+   nf = 4;
+   no = 4; //number orientations
+   
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+   
+};
+
+HyPerLayer "V1 Inhib" = {
+   nx = 128;
+   ny = 128;
+   nf = 1;
+   
+   tau = 15.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+
+//
+// 6 connections, 
+//    "Retina to LGN"
+//    "LGN to V1"
+//    "V1 to V1 Inhib"
+//    "V1 to V1"
+//    "V1 Inhib to V1"
+//    "V1 Inhib to V1 Inhib"
+//
+
+HyPerConn "Retina to LGN" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 4.5;
+   delay = 10;
+   
+   aspect = 1.0;
+   sigma  = 100.0;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "LGN to V1" = {
+   nxp = 5;
+   nyp = 5;
+   strength = 2.5;
+   delay = 10;
+   
+   aspect = 3.0;
+   sigma  = 2.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 to V1 Inhib" = {
+   nxp = 9;
+   nyp = 9;
+   strength = 4.5;
+   delay = 10;
+   
+   aspect = 1.0;
+   sigma  = 4.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 Lateral" = {
+   nxp = 15;
+   nyp = 15;
+   strength = 4.5;
+   delay = 10;
+   
+   aspect = 1.0;
+   sigma  = 7.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 Inhib to V1" = {
+   nxp = 9;
+   nyp = 9;
+   strength = 4.5;
+   delay = 10;
+   
+   aspect = 1.0;
+   sigma  = 4.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 Inhib to V1 Inhib" = {
+   nxp = 9;
+   nyp = 9;
+   strength = 4.5;
+   delay = 10;
+   
+   aspect = 1.0;
+   sigma  = 4.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};

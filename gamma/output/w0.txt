@@ -1,0 +1,8 @@
+Weights for connection "Retina to LGN", neuron 0
+   (nxp,nyp,nfp)   = (1,1,1)
+   pre  (nx,ny,nf) = (128,128,1)
+   post (nx,ny,nf) = (128,128,1)
+
+4.500 
+
+----------------------------

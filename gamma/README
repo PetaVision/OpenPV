@@ -1,0 +1,57 @@
+About:
+   This code is attempting to implement a context-free method of analyzing images (so far 
+   only implemented in the 1-dimensional direction)
+
+
+To check out the repositories from Eclipse you must first install the Subclipse plug-in.
+   1. Right click in the SVN Repositories window
+   2. Select New -> Repository Location
+   3. Enter "https://petavision.svn.sourceforge.net/svnroot/petavision" for the URL
+      a. Double click on PetaVision repository 
+      b. Double click on trunk and the examples
+   4. Right click on the trunk and the example you want and choose the checkout command
+      a. accept the defaults and click Finish
+
+In Eclipse to run the craig sandbox:
+First, you must build the PetaVision library
+   1. Right click on PetaVision
+   2. Select Build Configurations -> Set Active -> 2 lib (Library)
+   3. Go to the Project menu and select "Build All"
+Second, you have to build the craig sandbox. The dependencies to the PetaVision code should
+already be set up if the default settings were selected during checkout.
+   Go to the Project menu and select "Build All"
+Finally, to run the code:
+   1. Right click on craig
+   2. Select Run as -> Run configurations...
+   3. Set up the hierarchy run configurations, click on the "Arguments" tab and type
+      "-n 2000 -p input/params.pv"
+
+Settings:
+   -n   number of runs
+   -i   the path to the input file
+   -p   the path to the paramaters file
+
+
+Petavision may be obtained from sourceforge.net using the subversion command:
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk petavision
+    
+You should also check out one of the example projects, (this project, for example):
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/sandbox/craig craig
+    
+
+First you must build the PetaVision library:
+   1. cd to the root petavision project directory
+   2. Type make (this will build petavision/src/build/libpv.a)
+
+To run one of the examples (this project, for example):
+   1. First make the PetaVision library (see above)
+   2. cd to the example directory that you want to build
+   3. Type make
+   4. pv_ca -n 500 -p input/params.pv -i input/one-pixel.tif
+
+NOTE: There may be other more complete applications (e.g., pv.cpp) other than
+pv_example.cpp in the primary PetaVision project directory.  To build and run
+these files from Eclipse you will need to edit the files and add #define HAS_MAIN
+to the file.  If there is more than one main within a project, Eclipse will whine.
