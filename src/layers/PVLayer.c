@@ -83,8 +83,14 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
    int m;
    int ntotal = l->numNeurons;
 
+   // extendNum includes regular size plus border
+   // hypothesis: should not in include border because handled by border regions
+#ifdef EXTEND_BORDER_INDEX
    size_t extendNum = (l->loc.nx + 2.0*l->numBorder) * (l->loc.ny + 2.0*l->numBorder);
    extendNum *= l->numFeatures;
+#else
+   size_t extendNum = l->loc.nx * l->loc.ny * l->numFeatures;
+#endif
 
    l->columnId = colId;
 
