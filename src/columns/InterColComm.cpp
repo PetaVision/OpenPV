@@ -420,7 +420,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 
    // deliver current (no delay) information last
    for (int n = 0; n < numNeighbors; n++) {
-      int neighborId = n; /* WARNING - this must be initialized to n to work with PV_PMI */
+      int neighborId = n; /* WARNING - this must be initialized to n to work with PV_MPI */
       MPI_Waitany(numNeighbors, request, &neighborId, MPI_STATUS_IGNORE);
 
       for (int ic = 0; ic < numSubscribers; ic++) {
@@ -445,11 +445,10 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 
       for (int ic = 0; ic < numSubscribers; ic++) {
          HyPerConn* conn = this->connection[ic];
-         if (conn->getDelay() == 0) {
-            PVLayerCube* border = (PVLayerCube*) store->buffer(borderIndex, 0);
-            pvcube_setAddr(border);  // fix data address arriving from MPI
-            conn->deliver(border, borderIndex);
-         }
+         int delay = conn->getDelay();
+         PVLayerCube* border = (PVLayerCube*) store->buffer(borderIndex, delay);
+         pvcube_setAddr(border);  // fix data address arriving from MPI
+         conn->deliver(border, borderIndex);
       }
    }
 
