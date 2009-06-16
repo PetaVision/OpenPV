@@ -35,8 +35,12 @@ int Example::updateState(float time, float dt)
    pvdata_t * phi = clayer->phi[CHANNEL_EXC];
 
    for (int k = 0; k < clayer->numNeurons; k++) {
+#ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
                                    clayer->numBorder);
+#else
+      int kPhi = k;
+#endif
       clayer->V[k] = phi[kPhi];
       clayer->activity->data[k] = phi[kPhi];
       phi[kPhi] = 0.0;     // reset accumulation buffer
