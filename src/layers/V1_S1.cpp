@@ -124,7 +124,11 @@ int V1_S1::updateState(float time, float dt)
             float tmp = 0.0;
             for (int kf = 0; kf < nf; kf++) {
                int k = kIndex(kx, ky, kf, nx, ny, nf);
+#ifdef EXTEND_BORDER_INDEX
                int kPhi = kIndexExtended(k, nx, ny, nf, clayer->numBorder);
+#else
+               int kPhi = k;
+#endif
                if (phi[kPhi] > 0.0) {
                   tmp += subWeights[kf]*phi[kPhi];
 //                  printf("subWeight[%d] = %f %f\n", kf, subWeights[kf], phi[kPhi]);
@@ -145,8 +149,12 @@ int V1_S1::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
+#ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
                                 clayer->numBorder);
+#else
+      int kPhi = k;
+#endif
       phi[kPhi] = 0.0;     // reset accumulation buffer
    }
 
