@@ -20,6 +20,7 @@
 #define TAU_INHB 10.0
 #define TAU_VTH  10.0
 #define DELTA_VTH 5.0
+#define DELTA_VTH_DECAY 0.0
 #define GLOBAL_GAIN  1.0
 #define ASPECT_RATIO 4.0
 #define RMAX_EDGE 4.0
