@@ -900,6 +900,7 @@ int HyPerConn::createSynapseBundles(int numTasks)
    const float yScale = post->clayer->yScale - pre->clayer->yScale;
 
    const float numBorder = post->clayer->numBorder;
+   assert(numBorder = 0);
 
 #ifndef FEATURES_LAST
    const float psf = 1;
@@ -992,6 +993,7 @@ int HyPerConn::createNorthernSynapseBundles(int numTasks)
    const float yScale = post->clayer->yScale - pre->clayer->yScale;
 
    const float numBorder = post->clayer->numBorder;
+   assert(numBorder == 0);
 
 #ifndef FEATURES_LAST
    const float psf = 1;
