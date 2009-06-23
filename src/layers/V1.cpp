@@ -25,7 +25,7 @@ V1Params V1DefaultParams =
 {
     V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
     TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
-    VTH_REST,  TAU_VTH, DELTA_VTH, DELTA_VTH_DECAY,	     // tau (ms)
+    VTH_REST,  TAU_VTH, DELTA_VTH,	     // tau (ms)
     250, NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
     250, NOISE_AMP*1.0,
     250, NOISE_AMP*1.0                       // noise (G)
@@ -61,7 +61,7 @@ int V1::setParams(PVParams * params, V1Params * p)
    memcpy(clayer->params, p, sizeof(*p));
 
    clayer->numParams = sizeof(*p) / sizeof(float);
-   assert(clayer->numParams == 18);
+   assert(clayer->numParams == 17);
 
    V1Params * cp = (V1Params *) clayer->params;
 
@@ -78,7 +78,6 @@ int V1::setParams(PVParams * params, V1Params * p)
    if (params->present(name, "VthRest"))  cp->VthRest  = params->value(name, "VthRest");
    if (params->present(name, "tauVth"))   cp->tauVth   = params->value(name, "tauVth");
    if (params->present(name, "deltaVth")) cp->deltaVth = params->value(name, "deltaVth");
-   if (params->present(name, "deltaVthDecay")) cp->deltaVthDecay = params->value(name, "deltaVthDecay");
 
    if (params->present(name, "noiseAmpE"))   cp->noiseAmpE   = params->value(name, "noiseAmpE");
    if (params->present(name, "noiseAmpI"))   cp->noiseAmpI   = params->value(name, "noiseAmpI");
