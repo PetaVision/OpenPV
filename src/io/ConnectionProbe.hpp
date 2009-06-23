@@ -15,6 +15,7 @@ namespace PV {
 class ConnectionProbe {
 public:
    ConnectionProbe(int kPre);
+   ConnectionProbe(int kxPre, int kyPre, int kfPre);
    ConnectionProbe(const char * filename, int kPre);
    virtual ~ConnectionProbe();
 
@@ -25,6 +26,7 @@ public:
 protected:
    FILE * fp;
    int    kPre;  // index of pre-synaptic neuron
+   int    kxPre, kyPre, kfPre;
 };
 
 } // namespace PV

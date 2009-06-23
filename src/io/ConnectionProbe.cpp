@@ -12,8 +12,20 @@ namespace PV {
 
 ConnectionProbe::ConnectionProbe(int kPre)
 {
-   this->kPre = kPre;
-   this->fp   = stdout;
+   this->kxPre = 0;
+   this->kyPre = 0;
+   this->kfPre = 0;
+   this->kPre  = kPre;
+   this->fp    = stdout;
+}
+
+ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
+{
+   this->kxPre = kxPre;
+   this->kyPre = kyPre;
+   this->kfPre = kfPre;
+   this->kPre  = -1;
+   this->fp    = stdout;
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
@@ -35,6 +47,17 @@ ConnectionProbe::~ConnectionProbe()
 int ConnectionProbe::outputState(float time, HyPerConn * c)
 {
    float * M = NULL;
+   int kPre = this->kPre;
+
+   if (kPre < 0) {
+      // calculate kPre
+      float nx = c->preSynapticLayer()->clayer->loc.nx;
+      float ny = c->preSynapticLayer()->clayer->loc.ny;
+      float nf = c->preSynapticLayer()->clayer->numFeatures;
+      kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
+   }
+
+
    PVSynapseBundle * tasks = c->tasks(kPre, 0);
    PVPatch * P   = tasks->tasks[0]->plasticIncr;
    PVPatch * w   = tasks->tasks[0]->weights;
