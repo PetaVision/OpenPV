@@ -1,0 +1,53 @@
+REQUIREMENTS:
+	Eclipse --> download at http://www.eclipse.org/
+	   the C/C++ perspective is required
+	Subclipse plug-in --> download at http://subclipse.tigris.org/
+
+About:
+   The PetaVision code is used to 
+
+From Eclipse, use the SVN Repository Perspective and:
+   1. Right click in the SVN Repositories window
+   2. Select New -> Repository Location
+   3. Enter "https://petavision.svn.sourceforge.net/svnroot/petavision" for the URL
+      a. Double click on PetaVision repository 
+      b. Double click on trunk and the examples
+   4. Right click on the trunk and the example you want and choose the checkout command
+      a. accept the defaults and click Finish
+    
+The PetaVision trunk should build correctly within Eclipse as soon as it is installed using
+the SVN checkout command (for 64 bit LINUX architectures, please see the INSTALL file).
+The trunk repository (project named "PetaVision") will build under the "Debug" configurations
+   1. Right click on PetaVision
+   2. Select Build Configurations -> Set Active -> 2 lib (Library)
+   3. Go to the Project menu and select "Build All"
+
+After PetaVision has built under the lib configuration, the example should build correctly.
+
+To run the application using Eclipse you must create a Run Configuration:
+   1. Click on the arrow just to the right of the debug or run icons:
+   2. Select Run Configurations... from the menu.
+   3. Click on the C/C++ Local Application
+   4. Click on the New button (left-most icon in the upper panel):
+      a. Fill in Name:
+      b. Select a project if not automatically entered (you may need to Browse for it)
+      c. Select an application (you may need to Search Project or Browse for it)
+   5. Select the arguments tab
+      a. add command line arguments (for example: -n 2 -p input/inparams.txt -i input/const_one_64x64.tif)
+      
+Flags for PetaVision      
+ -n <number of timesteps>
+ -i <input filename>
+ -p <parameters filename>
+ -t <number of threads for shared memory parallelism>
+
+Once a Run Configuration is set up you can debug or run PetaVision by clicking on the
+debug or run icons.
+
+NOTE: There may be other more complete applications (e.g., pv.cpp) other than
+pv_example.cpp in the primary PetaVision project directory.  To build and run
+these files from Eclipse you will need to edit the files and add #define HAS_MAIN
+to the file.  If there is more than one main within a project, Eclipse will whine.
+
+
+   
