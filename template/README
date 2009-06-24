@@ -1,6 +1,6 @@
 Petavision may be obtained from sourceforge.net using the subversion command:
 
-    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk petavision
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk PetaVision
     
 You should also check out one of the example projects, (CellularAutomata, for example):
 
@@ -14,7 +14,7 @@ To run one of the examples (this project, for example):
    1. First make the PetaVision library (see above)
    2. cd to the example directory that you want to build
    3. Type make
-   4. pv_ca -n 500 -p input/params.pv -i input/one-pixel.tif
+   4. pv -n 500 -p input/params.pv -i input/one-pixel.tif
 
 NOTE: There may be other more complete applications (e.g., pv.cpp) other than
 pv_example.cpp in the primary PetaVision project directory.  To build and run
