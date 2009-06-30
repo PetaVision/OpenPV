@@ -1,9 +1,9 @@
 function [spikes, ave_rate] = pv_readsparsespikes(fname)
 
-global output_path N n_time_steps begin_step
+global input_dir N n_time_steps begin_step NX NY NO NK
 
 filename = fname;
-filename = [output_path, filename];
+filename = [input_dir, filename];
 
 ave_rate = 0;
 if begin_step > n_time_steps
@@ -13,6 +13,17 @@ end
 if exist(filename,'file')
     total_spikes = 0;
     fid = fopen(filename, 'r', 'native');
+    % header
+    %      params[0] = nParams;
+    %      params[1] = nx;
+    %      params[2] = ny;
+    %      params[3] = nf;
+    num_params = fread(fid, 1, 'int');
+    NX = fread(fid, 1, 'int');
+    NY = fread(fid, 1, 'int');
+    NO = fread(fid, 1, 'int');
+    NK = 1;
+    N = NX * NY * NO;
     for i_step = 1 : n_time_steps
         num_spikes = fread(fid, 1, 'float');
         eofstat = feof(fid);
@@ -37,6 +48,9 @@ if exist(filename,'file')
     fclose(fid);
 %     pack;
     fid = fopen(filename, 'r', 'native');
+    for i_params = 1 : num_params + 1
+        tmp = fread(fid, 1, 'int');
+    end
     spike_id = [];
     spike_step = [];
     for i_step = 1 : n_time_steps

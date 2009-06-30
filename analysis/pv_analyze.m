@@ -7,17 +7,17 @@ global N NK NO NX NY n_time_steps begin_step
 global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_path input_path
 
-%input_dir = '/Users/rasmussn/eclipse/workspace.petavision/pv/';
-input_dir = '/nh/home/rasmussn/eclipse/workspace.petavision/pv/';
+input_dir = '/Users/gkenyon/Documents/eclipse-workspace/gar/output/';
+%input_dir = '/nh/home/rasmussn/eclipse/workspace.petavision/pv/';
 
-num_layers = 4;
-n_time_steps = 1000;
+num_layers = 3;
+n_time_steps = 4000;
 
 spike_array = cell(num_layers,1);
 spike_array_bkgrnd = spike_array;
 begin_step = 1;
-stim_begin = 200;%
-stim_end = 600;
+stim_begin = 1;%
+stim_end = 1000;
 stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
@@ -37,46 +37,49 @@ target_ndx = cell(num_layers,1);
 clutter_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
-parse_colored_tiff = 1;
+parse_colored_tiff = 0;
+targ = [];
+clutter = [];
 if parse_colored_tiff
     if (ispc)
-%         tiff_path =   '..\src\io\input\amoeba24X2Seg2Gap64x64.tif';
-%         tiff_path =   '..\src\io\input\amoeba12Segs4X64x64.tif';
-%         tiff_path =   '..\src\io\input\amoeba4X.tif';
-          tiff_path =   '..\src\io\input\amoeba2X.tif';
-%         tiff_path =   '..\src\io\input\line.tif'; % vertical line
-%         tiff_path =   '..\src\io\input\line135.tif'; % 135 degree line
+        %         tiff_path =   '..\src\io\input\amoeba24X2Seg2Gap64x64.tif';
+        %         tiff_path =   '..\src\io\input\amoeba12Segs4X64x64.tif';
+        %         tiff_path =   '..\src\io\input\amoeba4X.tif';
+        tiff_path =   '..\src\io\input\amoeba2X.tif';
+        %         tiff_path =   '..\src\io\input\line.tif'; % vertical line
+        %         tiff_path =   '..\src\io\input\line135.tif'; % 135 degree line
     else
         tiff_path = '../tests/input/horizontal-lines.tif';
     end
     [targ,clutter] = pv_parseTiff( tiff_path );
+    input_image = imread(tiff_path)';
+    %input_image = pv_read_bin_image(bin_path);
+    %size(input_image)
+    %pause
+    %input_image = input_image * 255;
+    %input_image = sum(input_image,3)';
+    %size(input_image)
+    %pause
+
+    [NX, NY] = size(input_image);
+    NK = 1;
+    NO = 1;
+    N = NX * NY;
+
+    plot_input = 0;
+    if plot_input
+        plot_title = 'input image';
+        pv_reconstruct( input_image(:), plot_title );
+        % input_image(:) transforms the MxN matrix into a MNx1 vector,
+        % column 1, followed by column 2, followed by column 3, etc.
+
+    end
 end
 
 %bin_path = [input_dir, '/src/io/input/const_one_64x64.bin'];
 %bin_path = [input_dir, '/src/input/verticalstripes_64x64.bin'];
 
-input_image = imread(tiff_path)';
-%input_image = pv_read_bin_image(bin_path);
-%size(input_image)
-%pause
-%input_image = input_image * 255;
-%input_image = sum(input_image,3)';
-%size(input_image)
-%pause
 
-[NX, NY] = size(input_image);
-NK = 1;
-NO = 1;
-N = NX * NY;
-
-plot_input = 1;
-if plot_input
-    plot_title = 'input image';
-    pv_reconstruct( input_image(:), plot_title ); 
-    % input_image(:) transforms the MxN matrix into a MNx1 vector,
-    % column 1, followed by column 2, followed by column 3, etc.
-    
-end
 
 
 for layer = 1:num_layers;
@@ -108,16 +111,22 @@ for layer = 1:num_layers;
         bkgrnd_ndx{layer}(target_ndx{layer, i_target}) = 0;
         bkgrnd_ndx{layer}(clutter_ndx{layer}) = 0;
         bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
+    else
+        targ = 1:N;
+        clutter = [];
+        target_ndx{layer, i_target} = 1:N;
+        clutter_ndx{layer} = [];
+        bkgrnd_ndx{layer} = [];
     end
 
-    %     spike_array_bkgrnd{layer} = spike_array{layer};
+%     spike_array_bkgrnd{layer} = spike_array{layer};
     %     spike_array_bkgrnd{layer}(target_ndx{i_target}) = 0;
     %     spike_array_bkgrnd{layer}(clutter_ndx) = 0;
     num_target_neurons = length( target_ndx{layer, i_target} );
     num_clutter_neurons = length( clutter_ndx{layer} );
     num_bkgrnd_neurons = N - num_target_neurons - num_clutter_neurons;
     ave_bkgrnd{layer} = ...
-        full( 1000*sum(spike_array{layer}(:,bkgrnd_ndx{layer}),2) / num_bkgrnd_neurons );
+        full( 1000*sum(spike_array{layer}(:,bkgrnd_ndx{layer}),2) / ( num_bkgrnd_neurons + (num_bkgrnd_neurons == 0) ) );
     ave_target{layer,i_target} = ...
         full( 1000*sum(spike_array{layer}(:,target_ndx{layer, i_target}),2) / ...
         ( num_target_neurons + ( num_target_neurons==0 ) ) );
@@ -244,7 +253,7 @@ for layer = 1:num_layers;
 
 end % loop over all layers
 
-plot_rates = tot_steps > 9;
+plot_rates = tot_steps > 9 ;
 if plot_rates
     plot_title = ['PSTH target pixels'];
     figure('Name',plot_title);
@@ -258,15 +267,14 @@ if plot_rates
     end
     leg_h = legend(lh(1:num_layers), ...
         [ ...
-        'LGN     '; ...
-        'LGN Inh '; ...
+        'Retina  '; ...
         'V1      '; ...
         'V1 Inh  ' ...
         ]);
 end
 
 %%
-plot_movie = tot_steps > 9;
+plot_movie = 0; %tot_steps > 9;
 if plot_movie
     for layer = [1 3 5 6]
         spike_movie = pv_reconstruct_movie( spike_array, layer);
@@ -292,7 +300,7 @@ end % plot_movie
 
 %%
 
-plot_xcorr = 1 && tot_steps > 9;
+plot_xcorr = 0 && tot_steps > 9;
 if plot_xcorr
     xcorr_eigenvector = cell( num_layers, 2);
     for layer = 1:num_layers

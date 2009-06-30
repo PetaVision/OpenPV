@@ -3,6 +3,10 @@ function [fh] = pv_reconstruct( recon_array, plot_title, fh )
 
 global NK NO NX NY DTH
 
+if isempty(DTH)
+    DTH = 180 / NO;
+end
+
 %size(recon_array)
 %pause
 
