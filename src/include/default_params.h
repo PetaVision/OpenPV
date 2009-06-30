@@ -14,9 +14,9 @@
 #define V_INH  -75.0
 #define V_INHB -90.0
 #define VTH_REST (V_REST + 15.0)
-#define TAU_VMEM 25.0
+#define TAU_VMEM 20.0
 #define TAU_EXC   1.0
-#define TAU_INH   (5.0 + 6.0)
+#define TAU_INH   (5.0 + 3.0)
 #define TAU_INHB 10.0
 #define TAU_VTH  10.0
 #define DELTA_VTH 5.0
