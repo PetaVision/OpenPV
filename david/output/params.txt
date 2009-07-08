@@ -4,4 +4,4 @@
 4 % NK
 131072 % (NX*NY*NO*NK)
 22.500000 % DTH
-40 % n_time_steps
+10 % n_time_steps

@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 //   PV::HyPerLayer * l2     = new PV::V1("L2", hc);
 
    // connect the layers
-   PV::HyPerConn * l1_l1Inh, * l1Inh_l1;
+   //PV::HyPerConn * l1_l1Inh, * l1Inh_l1;
    PV::HyPerConn * r_l1 = new PV::HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 //   l1_l1Inh = new PV::HyPerConn( "L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
 //   l1Inh_l1 = new PV::RandomConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
@@ -49,15 +49,16 @@ int main(int argc, char* argv[])
 
    // add probes
    PV::PVLayerProbe * rProbe0  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 0);
-   PV::PVLayerProbe * rProbe1  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 1);
+   //PV::PVLayerProbe * rProbe1  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 1);
+   // l1 probes
    PV::PVLayerProbe * probe0  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 0);
    PV::PVLayerProbe * probe1  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 1);
    PV::PVLayerProbe * probe2  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 2);
    PV::PVLayerProbe * probe3  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 3);
-   PV::PVLayerProbe * probe4  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 4);
-   PV::PVLayerProbe * probe5  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 5);
-   PV::PVLayerProbe * probe6  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 6);
-   PV::PVLayerProbe * probe7  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 7);
+   //PV::PVLayerProbe * probe4  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 4);
+   //PV::PVLayerProbe * probe5  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 5);
+   //PV::PVLayerProbe * probe6  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 6);
+   //PV::PVLayerProbe * probe7  = new PV::LinearActivityProbe(hc, PV::DimX, locY, 7);
 
    PV::PVLayerProbe * ptprobeI = new PV::PointProbe(61, locY, 0, "LI:x=61 f=0");
 
@@ -72,10 +73,16 @@ int main(int argc, char* argv[])
 
 //   PV::ConnectionProbe * cProbe0 = new PV::ConnectionProbe(2*5 + 0);
 //   PV::ConnectionProbe * cProbe1 = new PV::ConnectionProbe(2*5 + 1);
-   PV::ConnectionProbe * cProbe0 = new PV::PostConnProbe(0 + 5*nfPost);
-   PV::ConnectionProbe * cProbe1 = new PV::PostConnProbe(1 + 5*nfPost);
-   PV::ConnectionProbe * cProbe2 = new PV::PostConnProbe(2 + 5*nfPost);
-   PV::ConnectionProbe * cProbe3 = new PV::PostConnProbe(3 + 5*nfPost);
+   //PV::ConnectionProbe * cProbe0 = new PV::PostConnProbe(0 + 5*nfPost);
+   //PV::ConnectionProbe * cProbe1 = new PV::PostConnProbe(1 + 5*nfPost);
+   //PV::ConnectionProbe * cProbe2 = new PV::PostConnProbe(2 + 5*nfPost);
+   //PV::ConnectionProbe * cProbe3 = new PV::PostConnProbe(3 + 5*nfPost);
+
+   PV::ConnectionProbe * cProbe0 = new PV::PostConnProbe(0 + 0*nfPost);
+   PV::ConnectionProbe * cProbe1 = new PV::PostConnProbe(1 + 0*nfPost);
+   PV::ConnectionProbe * cProbe2 = new PV::PostConnProbe(2 + 0*nfPost);
+   PV::ConnectionProbe * cProbe3 = new PV::PostConnProbe(3 + 0*nfPost);
+
 
    PV::PostConnProbe * pcProbe0 = new PV::LinearPostConnProbe(PV::DimX, locY, 0);
    PV::PostConnProbe * pcProbe1 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
@@ -103,9 +110,9 @@ int main(int argc, char* argv[])
 //   l1Inh->insertProbe(probe0);
 
    r_l1->insertProbe(cProbe0);
-//   r_l1->insertProbe(cProbe1);
-//   r_l1->insertProbe(cProbe2);
-//   r_l1->insertProbe(cProbe3);
+   r_l1->insertProbe(cProbe1);
+   r_l1->insertProbe(cProbe2);
+   r_l1->insertProbe(cProbe3);
 
 //   r_l1->insertProbe(pcProbe0);
 //   r_l1->insertProbe(pcProbe1);
