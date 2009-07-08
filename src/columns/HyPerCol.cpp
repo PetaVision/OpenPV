@@ -5,11 +5,14 @@
  *      Author: rasmussn
  */
 
+#undef TIMER_ON
+
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
 #include "../arch/pthreads/pv_thread.h"
 #include "../connections/PVConnection.h"
 #include "../io/io.h"
+#include "../io/clock.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -178,6 +181,10 @@ int HyPerCol::run(int nTimeSteps)
 
    while (step++ < stop) {
 
+#ifdef TIMER_ON
+      if (step == 10) start_clock();
+#endif
+
       // deliver published data for each layer
       for (int l = 0; l < numLayers; l++) {
          // this function blocks until all data for a layer has been delivered
@@ -213,6 +220,10 @@ int HyPerCol::run(int nTimeSteps)
    if (columnId() == 0) {
       printf("[0]: HyPerCol::run done...\n");  fflush(stdout);
    }
+#endif
+
+#ifdef TIMER_ON
+      stop_clock();
 #endif
 
    return 0;
