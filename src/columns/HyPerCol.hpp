@@ -48,6 +48,8 @@ public:
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
 
+   InterColComm * icCommunicator()        {return icComm;}
+
    PVParams * parameters()                {return params;}
 
    float getDeltaTime()                   {return deltaTime;}
@@ -62,6 +64,9 @@ public:
    int numberOfColumns();
 
    int numberOfConnections()              {return numConnections;}
+
+   /** returns the number of border regions, either an actual image border or a neighbor **/
+   int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
 
    int commColumn(int colId);
    int commRow(int colId);
