@@ -6,9 +6,9 @@
 //
 
 HyPerCol "column" = {
-   nx = 18;
-   ny = 1;
-   dt = .5;
+   nx = 64;
+   ny = 64;   // image dimensions
+   dt = .5;   // time step (ms)
 };
 
 //
@@ -16,39 +16,39 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Retina" = {
-   nx = 18;
-   ny = 1;
-   nf = 2;   // features = (OFF,ON}
+   nx = 64;
+   ny = 64;
+   nf = 1;   // features = (OFF,ON}
    
-   nBorder = 0;
+  // nBorder = 0;
 
    beginStim = .0;
-   endStim   = .3;
+   endStim   = 10000; 
 
-   fireOffPixels = 1;          // if true, black (0) pixels fire as off
+ //  fireOffPixels = 1;          // if true, black (0) pixels fire as off
    invert  = 0.0;
-   uncolor = 1.0;              // if true, pixels>0 become 1.0
+   uncolor = 0;              // if true, pixels>0 become 1.0
 
-   spikingFlag = 0;           // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = .01;//.20;  //.125;      // if so, on probability
+   spikingFlag = 1;           // spike as poisson?
+ //  noiseOnFreq = 50;
+   poissonEdgeProb  = .125;      // if so, on probability
    poissonBlankProb = .01;//.075; //.0125;     //       off probability
 
-   marginWidth = 0.0;           // set input to 0 within margin
+ //  marginWidth = 0.0;           // set input to 0 within margin
 };
 
 HyPerLayer "L1" = {
-   nx = 18;
-   ny = 1;
-   nf = 8;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
+   nx = 64;
+   ny = 64;
+   nf = 4;    // features=(OFF,ON} times 8 combinations
+   no = 4;
+  // nBorder = 0;
    
-   tau    = 100; // 2;    // 100;
-   tauE   = 1;   // .25;  // 1;
-   tauVth = 10;  // .25;   // 10;
+  // tau    = 100; // 2;    // 100;
+  // tauE   = 1;   // .25;  // 1;
+  // tauVth = 10;  // .25;   // 10;
    
-   VthRest = -55; // -60; // -55;
+  // VthRest = -55; // -60; // -55;
    
    noiseAmpE = 0.0; //64.0;
    noiseAmpI = 0.0; //4.0;
@@ -96,14 +96,17 @@ HyPerLayer "L2" = {
 //
 
 HyPerConn "Retina to L1" = {
-   nxp = 3;
-   nyp = 1;
-   strength = 1.0;
-   
-   stdpFlag = 1;
-   
-   wMin = 0.0;
-   wMax = 10.0;
+   nxp = 5;
+   nyp = 5;
+   strength = 10;
+   delay = 10;
+   stdpFlag = 0;
+
+	aspect = 3;
+	sigma = 2.5;
+	rMax = 100; //weights set to 0 beyong this
+  // wMin = 0.0;
+ //  wMax = 10.0;
 
    rotate = 1.0;
    invert = 0.0;
@@ -126,7 +129,12 @@ HyPerConn "L1 to L2" = {
    nxp = 1;
    nyp = 1;
    strength = 1.5;
-   delay = 30;
+   delay = 10;
+
+   stdpFlag = 0;
+   
+   wMin = 0.0;
+   wMax = 10.0;
 
    rotate = 1.0;
    invert = 0.0;

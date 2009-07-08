@@ -18,31 +18,33 @@
 #include <src/io/PointProbe.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
+#include <src/connections/HyPerConn.hpp>
 #include <src/connections/RandomConn.hpp>
 
-int stdp(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
    // create the managing hypercolumn
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
 
    // create the layers
-//   PV::HyPerLayer * retina = new PV::Retina("Retina", hc);
-   PV::HyPerLayer * retina = new PV::Retina1D("Retina", hc);
+   PV::HyPerLayer * retina = new PV::Retina("Retina", hc);
+
+//   PV::HyPerLayer * retina = new PV::Retina1D("Retina", hc);
    PV::HyPerLayer * l1     = new PV::V1("L1", hc);
+
 //   PV::HyPerLayer * l1Inh  = new PV::V1("L1Inh", hc);
 //   PV::HyPerLayer * l2     = new PV::V1("L2", hc);
 
    // connect the layers
-   PV::HyPerConn * r_l1, * l1_l1Inh, * l1Inh_l1;
-   r_l1     = new PV::RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
+   PV::HyPerConn * l1_l1Inh, * l1Inh_l1;
+   PV::HyPerConn * r_l1 = new PV::HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 //   l1_l1Inh = new PV::HyPerConn( "L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
 //   l1Inh_l1 = new PV::RandomConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
-//   new PV::PoolConn("L1 to L2",     hc, l1,     l2, CHANNEL_EXC);
-//   new PV::RuleConn("L2 to L1",     hc, l2,     l1, CHANNEL_EXC);
+//   l1_l2     = new PV::RandomConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
 
-   int nfPost = 8;
+   int nfPost = 4;
    int locX = 5;
-   int locY = 0;
+   int locY = 32;
    int locF = 0;   // 0 OFF, 1 ON cell, ...
 
    // add probes
@@ -88,7 +90,7 @@ int stdp(int argc, char* argv[])
 //   retina->insertProbe(rProbe1);
    //r_l1->insertProbe(cProbe);
 
-//   l1->insertProbe(probe0);
+   retina->insertProbe(probe0);
 //   l1->insertProbe(probe1);
 //   l1->insertProbe(probe2);
 //   l1->insertProbe(probe3);
