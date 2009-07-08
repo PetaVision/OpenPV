@@ -15,7 +15,7 @@
 #include <src/connections/HyPerConn.hpp>
 #include <src/connections/CocircConn.hpp>
 
-int main(int argc, char* argv[])
+int pv_main(int argc, char* argv[])
 {
    // create the managing hypercolumn
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
