@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <iostream>
+
+using namespace std;
+
 namespace PV {
 
 // default values
@@ -1091,39 +1095,60 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const int nyPostPatch = nyp * powYScale;
    const int nfPostPatch = pre->clayer->numFeatures;
 
+
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
+
    if (wPostPatches == NULL) {
+      cout << " \nyes weights are created\n\n" << endl;
       wPostPatches = createWeights(nxPostPatch, nyPostPatch, nfPostPatch, numPost);
    }
 
    // loop through post-synaptic neurons
 
    for (int kPost = 0; kPost < numPost; kPost++) {
+//      if(kPost == 63*4)
+  //          cout << "nxPostPatch = " << nxPostPatch << " nyPostPatch = " << nyPostPatch
+    //             << " nfPostPatch = " << nfPostPatch << endl;
+//      if(kPost == 63*4)
+  //       cout << "kPost = " << kPost;
       int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
       int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
       int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
+    //  if(kPost == 63*4)
+      //   cout << " kxPost = " << kxPost << " kyPost = " << kyPost << " kfPost = " << kfPost << endl;
+
 //      int kxPreHead = nearby_neighbor(kxPost, -xScale) - nxPostPatch/2;
 //      int kyPreHead = nearby_neighbor(kyPost, -yScale) - nyPostPatch/2;
       // TODO - does patchHead work in general for post to pre mapping and -scale?
       int kxPreHead = pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
       int kyPreHead = pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
+//      if(kPost == 63*4)
+  //       cout << " kxPreHead = " << kxPreHead << " kyPreHead = " << kyPreHead << endl;
+
 
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
          int kyPostPatch = kyPos(kp, nxPostPatch, nyPostPatch, nfPre);
          int kfPostPatch = featureIndex(kp, nxPostPatch, nyPostPatch, nfPre);
+         //if(kPost == 63*4)
+          //  cout << " kxPostPatch = " << kxPostPatch << " kyPostPatch = " << kyPostPatch <<
+           //           " kfPostPatch = " << kfPostPatch << endl;
 
          int kxPre = kxPreHead + kxPostPatch;
          int kyPre = kyPreHead + kyPostPatch;
          int kfPre = kfPostPatch;
          int kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
 
-         if (kPre < 0 || kPre >= nxPre*nyPre*nfPre) {
+         //if(kPost == 63*4)
+           //          cout << " kxPre = " << kxPre << " kyPre = " << kyPre <<
+             //                  " kfPre= " << kfPre <<  " kPre = " << kPre << endl;
+
+         if (kxPre<0 || kyPre < 0 || kxPre >= nxPre|| kyPre >= nyPre) { //Marian, Shreyas, David changed conditions to fix boundary problems
             assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
             wPostPatches[kPost]->data[kp] = 0.0;
-            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=?  kxPostPatch=%2d kPrePatch=?  w=%f\n", kxPost, kxPre, kPre, kp, kxPostPatch, postPatches[kPost]->data[kp]);
+            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=?  kxPostPatch=%2d kPrePatch=?  w=%f\n", kxPost, kxPre, kPre, kp, kxPostPatch, wPostPatches[kPost]->data[kp]);
          }
          else {
             PVPatch * p = wPatches[kPre];
@@ -1132,12 +1157,17 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
             int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
             int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
-
+            //cout << " kPrePatch = " << kPrePatch << " " << p->data[kPrePatch] ;
             wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
-            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=%2d kxPostPatch=%2d kPrePatch=%2d w=%f\n", kxPost, kxPre, kPre, kp, kxPrePatch, kxPostPatch, kPrePatch, postPatches[kPost]->data[kp]);
+            //printf("kxPost=%2d kxPre=%2d kPre=%2d kp=%2d kxPrePatch=%2d kxPostPatch=%2d kPrePatch=%2d w=%f\n", kxPost, kxPre, kPre, kp, kxPrePatch, kxPostPatch, kPrePatch, wPostPatches[kPost]->data[kp]);
          }
+         //cout << wPostPatches[kPost]->data[kp] << " "
       }
+      if(kPost == 63*4)
+         getchar();
+
    }
+
 
    return wPostPatches;
 }
@@ -1233,10 +1263,9 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
             w[i*sx + j*sy + f*sf] = 0;
 
-            // figure out on/off connectivity
+            // TODO - figure out on/off connectivity
             //if (this->channel == CHANNEL_EXC && f != fPre) continue;
             //if (this->channel == CHANNEL_INH && f == fPre) continue;
-            if (f != fPre) continue;
 
             if (d2 <= r2Max) {
                w[i*sx + j*sy + f*sf] = expf(-d2 / (2.0*sigma*sigma));
@@ -1258,10 +1287,11 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
       float sum = 0;
       for (int i = 0; i < nx*ny; i++) sum += w[f + i*nf];
 
-      if (sum == 0.0) continue;  // all weights == zero is ok
+      if (sum == 0.0) continue;  // all weights == zero is ok //should this be here?
 
       float factor = strength/sum;
       for (int i = 0; i < nx*ny; i++) w[f + i*nf] *= factor;
+      //for (int i = 0; i < nx*ny; i++) w[f + i*nf] = kPre; //used for testing, bug-checking
    }
 
    return 0;
