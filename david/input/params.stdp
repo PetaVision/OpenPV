@@ -5,25 +5,31 @@
 //    be synchronized
 //
 
+
+
+/////////////////////////////////////////////////////////////////////
 HyPerCol "column" = {
    nx = 64;
    ny = 64;   // image dimensions
    dt = .5;   // time step (ms)
 };
 
+
+
+
 //
-// Three layers, "Retina", "L1", "L2"
+// Three layers, "Retina", "L1", "L2" ///////////////////////////////
 //
 
 HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;   // features = (OFF,ON}
+   nx = 64;  // 64 by 64 cells, should match image dimensions
+   ny = 64;  // 
+   nf = 1;   // only one retinal feature
    
-  // nBorder = 0;
+  // nBorder = 0; 
 
    beginStim = .0;
-   endStim   = 10000; 
+   endStim   = 10000;  // not sure how to set this, duration of stimulus time?
 
  //  fireOffPixels = 1;          // if true, black (0) pixels fire as off
    invert  = 0.0;
@@ -37,10 +43,12 @@ HyPerLayer "Retina" = {
  //  marginWidth = 0.0;           // set input to 0 within margin
 };
 
+
+
 HyPerLayer "L1" = {
-   nx = 64;
-   ny = 64;
-   nf = 4;    // features=(OFF,ON} times 8 combinations
+   nx = 64;	// same size as retinal layer, but multiplied by 4 features
+   ny = 64;  //
+   nf = 4;    // want sensitivity to 4 distinct orientations at this level
    no = 4;
   // nBorder = 0;
    
@@ -50,11 +58,100 @@ HyPerLayer "L1" = {
    
   // VthRest = -55; // -60; // -55;
    
-   noiseAmpE = 0.0; //64.0;
+   noiseAmpE = 0.0; //64.0;  // Can play with this later
    noiseAmpI = 0.0; //4.0;
 };
 
-HyPerLayer "L1Inh" = {
+
+
+HyPerLayer "L2" = {
+   nx = 4;    // may have to change this. Idea is that each of the 4 cells will specialize and become sensitive
+   ny = 4;    // to oriented edges at different locations, (translation invariance)
+   nf = 1;    // features=(OFF,ON}
+   //no = 1;
+   //nBorder = 0;
+   
+//  tau    = 2;    // 100;
+ //  tauE   = .25;   // 1;
+ //  tauVth = .25;   // 10;
+   
+   VthRest = -60; // -55;
+   
+   noiseAmpE = 0; // can play with this later too
+   noiseAmpI = 0;
+};
+
+
+// may need to include parameters for the l2 inhibition as well, code for this is down at the bottom:
+
+
+
+
+
+//
+// 2 connections,  ////////////////////////////////////////////////////////////////////////////////
+//    "Retina to L1"
+//    "L1 to L2"
+//  
+//
+
+HyPerConn "Retina to L1" = {
+   nxp = 5;			// 5 x 5 patch, can ry making this bigger or smaller as a parameter to play with
+   nyp = 5;         //
+   strength = 10;  // Strengh and delay will need to be played with
+   delay = 10;    // connection delay, will probably be important relative to stimulus presentation speed and STDP learning window 
+   stdpFlag = 0;  // learning OFF
+
+	aspect = 3;  // these are presumably parameters for the gabor receptive field patches 
+	sigma = 2.5; // don't know exactly what they do
+	rMax = 100; //weights set to 0 beyond this
+
+
+ // don't need these since learning is assumed to be inactive at this level
+  // wMin = 0.0;
+ //  wMax = 10.0;
+
+   rotate = 1.0;  // don't know what these do
+   invert = 0.0;  //
+};
+
+
+
+HyPerConn "L1 to L2" = {
+   nxp = 127;		//these may need to change, I'm not sure how to set them
+   nyp = 127;       // I want the l2 cells to recieve input from all the cells in the l2 layer
+   strength = 1.5;  // this is probably a free parameter that I'll need to play with
+   delay = 10;		// this is also a free parameter that I'll need to play with, potentialy crucial for learning
+
+   stdpFlag = 1;  // we want learning to take place here
+   
+   wMin = 0.0;    // minimum bound on weights
+   wMax = 10.0;   // Maximum bound on weights
+
+   rotate = 1.0;  //Don't know what these do exactly
+   invert = 0.0;  //
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HyPerLayer "L2Inh" = {
    nx = 18;
    ny = 1;
    nf = 1;    // features=(OFF,ON} times 8 combinations
@@ -71,48 +168,11 @@ HyPerLayer "L1Inh" = {
    noiseAmpI = 0;
 };
 
-HyPerLayer "L2" = {
-   nx = 8;
-   ny = 1;
-   nf = 2;    // features=(OFF,ON}
-   no = 1;
-   nBorder = 0;
-   
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
-   
-   VthRest = -60; // -55;
-   
-   noiseAmpE = 0;
-   noiseAmpI = 0;
-};
 
-//
-// 2 connections, 
-//    "Retina to L1"
-//    "L1 to L2"
-//    "L2 to L1"
-//
 
-HyPerConn "Retina to L1" = {
-   nxp = 5;
-   nyp = 5;
-   strength = 10;
-   delay = 10;
-   stdpFlag = 0;
 
-	aspect = 3;
-	sigma = 2.5;
-	rMax = 100; //weights set to 0 beyong this
-  // wMin = 0.0;
- //  wMax = 10.0;
 
-   rotate = 1.0;
-   invert = 0.0;
-};
-
-HyPerConn "L1 to L1Inh" = {
+HyPerConn "L2 to L2Inh" = {
    nxp = 1;
    nyp = 1;
    strength = 30.0;
@@ -125,22 +185,8 @@ HyPerConn "L1 to L1Inh" = {
    invert = 0.0;
 };
 
-HyPerConn "L1 to L2" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 1.5;
-   delay = 10;
 
-   stdpFlag = 0;
-   
-   wMin = 0.0;
-   wMax = 10.0;
-
-   rotate = 1.0;
-   invert = 0.0;
-};
-
-HyPerConn "L2 to L1" = {
+HyPerConn "L2Inh to L2" = {
    nxp = 3;
    nyp = 1;
    strength = .5;
