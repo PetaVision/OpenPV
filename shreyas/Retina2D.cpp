@@ -163,7 +163,7 @@ void Retina2D::clearImage() {
 	const int ny   = clayer->loc.ny;
 
 	for (int i = 0; i < (nx * ny); i++) {
-		pvdata_copy((buf + i), 0);
+		*(buf + i) = 0;
 	}
 }
 
@@ -462,7 +462,7 @@ void Retina2D::plot(unsigned int i, unsigned int j) {
    pvdata_t * buf = clayer->V;
    const unsigned int nx = clayer->loc.nx;
 
-   pvdata_copy((buf + (i + (j * nx))), 1);
+   *(buf + (i + (j * nx))) = 1;
 }
 
 /*
@@ -488,8 +488,7 @@ int Retina2D::createRandomImage() {
 
    for (unsigned int i = 0; i < nx; i++) {
       for (unsigned int j = 0; j < ny; j++) {
-         pvdata_copy((buf + (i + (j * nx))),
-                       (rand() % 2));
+         *(buf + (i + (j * nx))) = (rand() % 2);
       }
          //Fill in all pixels randomly
    }
