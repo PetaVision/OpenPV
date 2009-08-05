@@ -2,8 +2,6 @@
 #          $(BUILDDIR)/spu \
 #          $(BUILDDIR)/pthreads
 
-SUBDIRS = $(BUILDDIR)/pthreads
-
 HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/include/pv_common.h \
           $(SRCDIR)/columns/HyPerCol.hpp \
