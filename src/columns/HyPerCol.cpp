@@ -9,15 +9,15 @@
 
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
-#include "../arch/pthreads/pv_thread.h"
 #include "../connections/PVConnection.h"
 #include "../io/io.h"
 #include "../io/clock.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <memory.h>
+#include <assert.h>
 #include <math.h>
+#include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace PV {
 
@@ -229,239 +229,21 @@ int HyPerCol::run(int nTimeSteps)
    return 0;
 }
 
-int HyPerCol::run_old(int nTimeSteps)
-{
-   int stop = time + nTimeSteps;
-   run_struct * tinfo;
-
-#ifdef MULTITHREAD
-   pthread_t * thread;
-   static pthread_attr_t pattr;
-#endif
-
-#ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      printf("[0]:HyPerCol: running...\n");  fflush(stdout);
-   }
-#endif
-
-   int numTInfo = (numConnections > numLayers) ? numConnections : numLayers;
-   tinfo = (run_struct *) malloc(sizeof(run_struct) * numThreads * numTInfo);
-
-#ifdef MULTITHREAD
-   thread = (pthread_t *) malloc(sizeof(pthread_t) * numThreads * numTInfo);
-   pthread_attr_init( &pattr );
-   pthread_attr_setdetachstate( &pattr, PTHREAD_CREATE_JOINABLE );
-#endif
-
-   while (time++ < stop) {
-
-#ifdef DEBUG_OUTPUT
-      if (columnId() == 0) {
-         printf("\n[0]:HyPerCol::run: beginning timestep %d\n", time);  fflush(stdout);
-      }
-#endif
-
-      // each layer should deliver it data (previously published)
-      for (int ic = 0; ic < numLayers; ic++) {
-         icComm->deliver(ic);
-      }
-
-      // TODO - WARNNG - make sure that this works with initializeThreads (using numConnections)
-
-      // For each connection, pass the activity
-      for (int c = 0; c < numConnections; c++) {
-         if (connections[c]->pvconn->recvFunc == NULL) {
-//            HyPerConn *  conn = connections[c];
-//            HyPerLayer * pre  = conn->pre;
-//            conn->post->recvSynapticInput(pre, pre->clayer->numNeurons,
-//                                          pre->clayer->fActivity[conn->pvconn->readIdx]);
-//            conn->post->recvSynapticInput(pre, pre->clayer->activity);
-         }
-         else {
-            // we have a recvFunc, use it instead of C++ method
-            for (int t = 0; t < numThreads; t++) {
-               int ith = c * numThreads + t;
-               tinfo[ith].hc = this;
-               tinfo[ith].layer = connections[c]->pvconn->post->layerId * numThreads + t;
-               tinfo[ith].proc = c;
-
-#ifdef OLD_MULTITHREADED
-               if (pthread_create(&thread[ith], &pattr, run1connection, (void*)&tinfo[ith] ))
-               {
-                  // TODO - fail gracefully with MPI
-                  fprintf(stderr, "[%d]: pthread %d failed\n", columnId(), c);
-                  exit(-1);
-               }
-#else
-               run1connection(&tinfo[ith]);
-#endif
-            } // end thread creation loop
-
-#ifdef OLD_MULTITHREADED
-            // must wait for all threads of this connection to complete
-            for (int t = 0; t < numThreads; t++) {
-               void * retval;
-               int ith = c * numThreads + t;
-               if (pthread_join(thread[ith], &retval))
-               {
-                  // TODO -fail gracefully with MPI
-                  fprintf(stderr, "[%d]: pthread join %d failed\n", columnId(), ith);
-                  exit(-1);
-               }
-            } // end thread join loop
-#endif
-         } // end forall connections loop
-      } // end while (time < stop) loop
-
-      // Now, all synaptic input has been received.
-#ifdef DEBUG_OUTPUT
-      if (columnId() == 0) {
-         printf("[0]:HyPerCol::run: connections finished\n");  fflush(stdout);
-      }
-#endif
-
-      // update each layer
-      for (int l = 0; l < this->numLayers; l++) {
-         PVLayer * clayer = layers[l]->getCLayer();
-
-         if (clayer->updateFunc) {
-            for (int t = 0; t < numThreads; t++) {
-               int ith = l * numThreads + t;
-               tinfo[ith].hc = this;
-               tinfo[ith].layer = l;
-               tinfo[ith].proc = ith;
-
-#ifdef OLD_MULTITHREADED
-               if (pthread_create(&thread[ith], &pattr, update1layer, (void*)&tinfo[ith])) {
-                  // TODO - fail gracefully with MPI
-                  fprintf(stderr, "[%d]: pthread U %d failed\n", columnId(), ith);
-                  exit(-1);
-               }
-#else
-               update1layer((void*) &tinfo[ith]);
-#endif
-            } // end thread create
-
-#ifdef OLD_MULTITHREADED
-            // Don't really need to wait here, but it's easier implementation-wise.
-            for (int t = 0; t < numThreads; t++) {
-               void *retval;
-               int ith = l * numThreads + t;
-               if (pthread_join(thread[ith], &retval))
-               {
-                  // TODO - fail gracefully with MPI
-                  fprintf(stderr, "[%d]: pthread join %d failed\n", columnId(), ith);
-                  exit(-1);
-               }
-            }
-#endif
-         }
-         else if (layers[l]) {
-            // no clayer->updateFunc use virtual method
-            // TODO - make this the default, but able to override with function pointers
-            // C++ handler
-            /* complete time step (i.e., update f & V) */
-            layers[l]->updateState(time, deltaTime);
-         } // For non-C, non parallel layers
-
-         pvlayer_outputState(clayer);
-
-         // TODO: use clayer->activeIndices
-         //icComm->publish(clayer, clayer->numNeurons, clayer->fActivity[clayer->writeIdx]);
-      } // for each layer
-
-      // Do any ring buffer updates
-      for (int c = 0; c < numConnections; c++) {
-         connections[c]->pvconn->readIdx++;
-         connections[c]->pvconn->readIdx %= MAX_F_DELAY;
-      }
-
-// TODO - WARNING - this looks wrong in terms of numConns vs numLayers and numThreads count
-      for (int l = 0; l < this->numLayers; l++) {
-         PVLayer * clayer = layers[l]->getCLayer();
-         clayer->writeIdx = (clayer->writeIdx + 1) % clayer->numDelayLevels;
-         for (int t = 0; t < numThreads; t++) {
-            int ith = l * numThreads + t;
-            threadCLayers[ith].writeIdx = (threadCLayers[ith].writeIdx + 1)
-                  % threadCLayers[ith].numDelayLevels;
-         }
-      }
-
-      for (int ic = 0; ic < this->numLayers; ic++) {
-         icComm->deliver(ic);
-      }
-
-   }
-
-#ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      printf("[0]:HyPerCol: done...\n");  fflush(stdout);
-   }
-#endif
-
-   free(tinfo);
-
-#ifdef OLD_MULTITHREADED
-   free(thread);
-   pthread_attr_destroy(&pattr);
-#endif
-   return 0;
-}
-
 int HyPerCol::initializeThreads()
 {
    int err = 0;
-
 #ifdef IBM_CELL_BE
    err = pv_cell_thread_init(columnId(), numThreads);
-#else
-   err = pv_thread_init(columnId(), numThreads);
 #endif
-
-#ifdef OLD
-   // To parallelize on a shared memory multicore, create
-   // copies of the layers for this single process to execute using pthreads.
-
-   threadCLayers = (PVLayer *) malloc(sizeof(PVLayer) * numThreads * numLayers);
-
-   for (int th = 0; th < numThreads; th++) {
-      for (int l = 0; l < numLayers; l++) {
-         p = &threadCLayers[l * numThreads + th];
-         memcpy(p, layers[l]->getCLayer(), sizeof(PVLayer));
-
-         // Exact copies (of buffers, handlers, etc.) *except* for the following:
-         // TODO - check to see that divides properly for odd threads and ny
-         p->loc.ny     /= numThreads;
-         p->numNeurons /= numThreads;
-         p->xOrigin = 0;
-         p->yOrigin = th * p->loc.ny;
-      }
-#if 0
-      // TODO - check to see if numLayers must be greater than numConnections
-      for (l = 0; l < numConnections; l++)
-      {
-         c = &shmemConnections[l * procs + t];
-         memcpy(c, connections[l], sizeof(PVConnection));
-         c->post = &threadCLayers[l*procs+t];
-      }
-#endif //0
-   }
-#endif // OLD
-
    return err;
 }
 
 int HyPerCol::finalizeThreads()
 {
    int err = 0;
-
 #ifdef IBM_CELL_BE
    err = pv_cell_thread_finalize(columnId(), numThreads);
-#else
-   err = pv_thread_finalize(columnId(), numThreads);
 #endif
-
    return err;
 }
 
