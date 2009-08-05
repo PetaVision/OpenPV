@@ -573,5 +573,88 @@ inline *pvdata_t Retina2D::IndexedElement
 }
 #endif
 
+int Retina2D::updateState(float time, float dt)
+{
+   if (clayer->updateFunc != NULL) {
+      clayer->updateFunc(clayer);
+   }
+   else {
+      fileread_params * params = (fileread_params *) clayer->params;
+      pvdata_t * activity = clayer->activity->data;
+      float* V = clayer->V;
+
+      float poissonEdgeProb  = RAND_MAX * params->poissonEdgeProb;
+      float poissonBlankProb = RAND_MAX * params->poissonBlankProb;
+
+      int burstStatus = 0;
+      if (params->burstDuration <= 0 || params->burstFreq == 0) {
+         burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) > 0.;
+      }
+      else {
+         burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
+         burstStatus = burstStatus <= params->burstDuration;
+      }
+      int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+      stimStatus = stimStatus && burstStatus;
+
+      if (params->spikingFlag == 0.0) {
+         // non-spiking code
+         if (stimStatus) {
+            for (int k = 0; k < clayer->numNeurons; k++) {
+               activity[k] = V[k];
+            }
+         }
+         else {
+            for (int k = 0; k < clayer->numNeurons; k++) {
+               activity[k] = 0.0;
+            }
+         }
+      }
+      else {
+         // Poisson spiking...
+         const int nf = clayer->numFeatures;
+         const int numNeurons = clayer->numNeurons;
+
+         assert(nf > 0 && nf < 3);
+
+         if (stimStatus == 0) {
+            // fire at the background rate
+            for (int k = 0; k < numNeurons; k++) {
+               activity[k] = rand() < poissonBlankProb;
+            }
+         }
+         else {
+            // ON case (k even)
+            for (int k = 0; k < clayer->numNeurons; k += nf) {
+               if ( V[k] == 0.0 )
+                  // fire at the background rate
+                  activity[k] = (rand() < poissonBlankProb );
+               else if ( V[k] > 0.0 )
+                  // for gray scale use poissonEdgeProb * abs( V[k] )
+                  activity[k] = (rand() < poissonEdgeProb );
+               else // V[k] < 0.0
+                  // fire at the below background rate (treated as zero if P < 0)
+                  activity[k] = (rand() < ( 2 * poissonBlankProb - poissonEdgeProb ) );
+            }
+            // OFF case (k is odd)
+            if (nf == 2) {
+               for (int k = 1; k < clayer->numNeurons; k += nf) {
+                   if ( V[k] == 0.0 )
+                      // fire at the background rate
+                      activity[k] = (rand() < poissonBlankProb );
+                   else if ( V[k] < 0.0 )
+                      // for gray scale use poissonEdgeProb * abs( V[k] )
+                      activity[k] = (rand() < poissonEdgeProb );
+                   else // V[k] > 0.0
+                      // fire at the below background rate (treated as zero if P < 0)
+                      activity[k] = (rand() < ( 2 * poissonBlankProb - poissonEdgeProb ) );
+                }
+            } // nf == 2
+         } // stimStatus
+      }
+   }
+
+   return 0;
+}
 
 }
