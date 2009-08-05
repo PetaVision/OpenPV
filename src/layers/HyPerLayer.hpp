@@ -57,6 +57,9 @@ public:
 
    virtual int  getActivityLength();
 
+   /** returns the number of neurons in layer (for borderId=0) or a border region **/
+   virtual int numberOfNeurons(int borderId);
+
    virtual int copyToNorthWest(PVLayerCube * dest, PVLayerCube * src);
    virtual int copyToNorth    (PVLayerCube * dest, PVLayerCube* src);
    virtual int copyToNorthEast(PVLayerCube * dest, PVLayerCube * src);
