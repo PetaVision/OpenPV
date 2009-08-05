@@ -18,7 +18,7 @@ InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
    this->name = strdup(name);
    this->parent = hc;
    this->nfPre = pre->clayer->numFeatures;
-   this->numBundles = this->nfPre;
+   this->numBundles = (int) this->nfPre;
 
    initialize(NULL, pre, post, CHANNEL_INH);
 

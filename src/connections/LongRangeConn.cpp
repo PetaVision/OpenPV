@@ -40,7 +40,7 @@ int LongRangeConn::initializeWeights(const char * filename)
 
    int noPost = 1;
    if (params->present(post->getName(), "no")) {
-      noPost = params->value(post->getName(), "no");
+      noPost = (int) params->value(post->getName(), "no");
    }
 
    aspect = params->value(name, "aspect");
@@ -92,20 +92,20 @@ int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int no, int xScale, int y
    const int sy = (int) wp->sy;  assert(sy == nf*nx);
    const int sf = (int) wp->sf;  assert(sf == 1);
 
-   const float dx = powf(2, xScale);
-   const float dy = powf(2, yScale);
+   // const float dx = powf(2, xScale);
+   // const float dy = powf(2, yScale);
 
    // pre-synaptic neuron is at the center of the patch (0,0)
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
-   const float x0 = -(nx/2.0 - 0.5) * dx;
-   const float y0 = +(ny/2.0 - 0.5) * dy;
+   // const float x0 = -(nx/2.0 - 0.5) * dx;
+   // const float y0 = +(ny/2.0 - 0.5) * dy;
 
    /*
     * Need to get find xPre
     */
-   const int nxPre = pre->clayer->loc.nx;
+   const int nxPre = (int) pre->clayer->loc.nx;
    // pick one as center
-   int ixPre = nxPre * ( ((float) rand()) / (float) RAND_MAX);
+   int ixPre = (int) ( nxPre * ( ((float) rand()) / (float) RAND_MAX) );
 
    if (ixPre < 3) ixPre = 3;
    if (ixPre > (nxPre - 1) - 3) ixPre = (nxPre - 1) - 3;
@@ -162,8 +162,8 @@ int LongRangeConn::createSynapseBundles(int numTasks)
    const float ky0Post = post->clayer->loc.ky0;
    const float nfPost  = post->clayer->numFeatures;
 
-   const float xScale = post->clayer->xScale - pre->clayer->xScale;
-   const float yScale = post->clayer->yScale - pre->clayer->yScale;
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->yScale - pre->clayer->yScale;
 
    const float numBorder = post->clayer->numBorder;
    assert(numBorder == 0);
@@ -279,7 +279,7 @@ int LongRangeConn::createSynapseBundles(int numTasks)
          offset = (kPre + i*numTasks) * sizeof(PVPatch);
          task->data = (PVPatch*) ((char*) allData + offset);
 
-         pvpatch_init(task->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
+         pvpatch_init(task->data, (int)nxPatch, (int)nyPatch, (int)nfp, psx, psy, psf, phi);
       }
    }
 
