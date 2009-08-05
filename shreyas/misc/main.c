@@ -13,7 +13,7 @@
 void retrieve_args(int argc, char *argv[],
                    char **inputfile, char **outputfile);
 
-int main(int argc, char *argv[])
+int main_1(int argc, char *argv[])
 {
     char *inputfile = NULL, *outputfile = NULL;
     FILE *inputfp = NULL, *outputfp = NULL;
