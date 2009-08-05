@@ -31,16 +31,16 @@ EXES = pv_example
 all: make-in-subdirs $(BUILDDIR)/libpv.a $(EXES)
 
 pv_example: pv_example.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ pv_example.o $(OBJS) $(MPI_OBJ) -lm -lpthread
+	$(CPP) -o $@ pv_example.o $(OBJS) $(MPI_OBJ) -lm
 
 pv_cocirc: pv_cocirc.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm -lpthread
+	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm
 
 pv_gabor_cocirc: pv_gabor_cocirc.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
-	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm -lpthread
+	$(CPP) -o $@ $< $(OBJS) $(MPI_OBJ) -lm
 
 pv_: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
-	$(CPP) -o $@ $+ -lm -lpthread
+	$(CPP) -o $@ $+ -lm
 
 $(MPI_OBJ): $(MPI_DIR)/mpi.h $(MPI_DIR)/mpi.c
 	$(CC) -c -o $@ $(CFLAGS) $(MPI_DIR)/mpi.c
