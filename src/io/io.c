@@ -520,7 +520,7 @@ int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
 }
 
 int pv_write_patches(const char * filename, int append,
-                     int nx, int ny, int nf, float minVal, float maxVal,
+                     int nxp, int nyp, int nfp, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches)
 {
    char fullpath[PV_PATH_MAX];
@@ -543,9 +543,9 @@ int pv_write_patches(const char * filename, int append,
       const int nParams = 6;
       int params[nParams+1];
       params[0] = nParams;
-      params[1] = nx;
-      params[2] = ny;
-      params[3] = nf;
+      params[1] = nxp;
+      params[2] = nyp;
+      params[3] = nfp;
       params[4] = (int) minVal;
       params[5] = (int) ceilf(maxVal);
       params[6] = numPatches;

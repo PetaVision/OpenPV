@@ -106,6 +106,9 @@ int           pvcube_setAddr(PVLayerCube * cube);
 PVPatch * pvpatch_new(int nx, int ny, int nf);
 int       pvpatch_delete(PVPatch * p);
 
+PVPatch * pvpatch_inplace_new(int nx, int ny, int nf);
+int       pvpatch_inplace_delete(PVPatch * p);
+
 int pvpatch_accumulate(int nk, float * v, float a, float * w);
 
 int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,

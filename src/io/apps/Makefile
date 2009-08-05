@@ -15,7 +15,7 @@ LIBS = -L../../../lib -lpv -lm -lpthread
 DEPENDS = $(HEADERS)
 
 EXES = weights circles circle_pixels create_input test_read_tiff \
-       bin_to_tiff expand_tiff # create_weights parse_params test_read_binary
+       bin_to_tiff expand_tiff create_weights_geisler # create_weights parse_params test_read_binary
 
 EXES = weights
 
@@ -48,6 +48,9 @@ circle_pixels: circle_pixels.o
 	$(CC) -o $@ $< $(LIBS)
 
 create_weights: create_weights.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
+	$(CPP) -o $@ $< $(LIBS)
+
+create_weights_geisler: create_weights_geisler.o $(DEPENDS) $(OBJS) $(MPI_OBJ)
 	$(CPP) -o $@ $< $(LIBS)
 
 bin_to_tiff: bin_to_tiff.o

@@ -605,7 +605,7 @@ PVPatch ** HyPerConn::createWeights(int nxPatch, int nyPatch, int nfPatch, int n
 
    // TODO - allocate space for them all at once
    for (int k = 0; k < numPatches; k++) {
-      patches[k] = pvpatch_new(nxPatch, nyPatch, nfPatch);
+      patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
    }
 
    return patches;
@@ -621,21 +621,21 @@ int HyPerConn::deleteWeights()
    const int numPreNeurons = pre->clayer->numNeurons;
 
    for (int k = 0; k < numPreNeurons; k++) {
-      pvpatch_delete(wPatches[k]);
+      pvpatch_inplace_delete(wPatches[k]);
    }
    free(wPatches);
 
    if (wPostPatches != NULL) {
       const int numPostNeurons = post->clayer->numNeurons;
       for (int k = 0; k < numPostNeurons; k++) {
-         pvpatch_delete(wPostPatches[k]);
+         pvpatch_inplace_delete(wPostPatches[k]);
       }
       free(wPostPatches);
    }
 
    if (stdpFlag) {
       for (int k = 0; k < numPreNeurons; k++) {
-         pvpatch_delete(pIncr[k]);
+         pvpatch_inplace_delete(pIncr[k]);
       }
       free(pIncr);
       pvcube_delete(pDecr);

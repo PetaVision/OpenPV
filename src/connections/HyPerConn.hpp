@@ -140,7 +140,7 @@ public:
       PVPatch ** patches = (PVPatch**) malloc(numBundles*sizeof(PVPatch*));
 
       for (int i = 0; i < numBundles; i++) {
-         patches[i] = pvpatch_new(nx, ny, nf);
+         patches[i] = pvpatch_inplace_new(nx, ny, nf);
       }
 
       return patches;
@@ -149,7 +149,7 @@ public:
    static int deletePatches(int numBundles, PVPatch ** patches)
    {
       for (int i = 0; i < numBundles; i++) {
-         pvpatch_delete(patches[i]);
+         pvpatch_inplace_delete(patches[i]);
       }
       free(patches);
 

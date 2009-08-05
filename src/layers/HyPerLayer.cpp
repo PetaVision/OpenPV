@@ -732,26 +732,46 @@ int HyPerLayer::copyToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 extern "C" {
 #endif
 
-PVPatch * pvpatch_new(int nx, int ny, int nf)
-{
-   float sf = 1;
-   float sx = nf;
-   float sy = sx * nx;
+   PVPatch * pvpatch_new(int nx, int ny, int nf)
+   {
+      float sf = 1;
+      float sx = nf;
+      float sy = sx * nx;
 
-   size_t dataSize = nx * ny * nf * sizeof(float);
-   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
-   pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+      PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
+      pvdata_t * data = NULL;
 
-   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+      pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
-   return p;
-}
+      return p;
+   }
 
-int pvpatch_delete(PVPatch* p)
-{
-   free(p);
-   return 0;
-}
+   int pvpatch_delete(PVPatch* p)
+   {
+      free(p);
+      return 0;
+   }
+
+   PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
+   {
+      float sf = 1;
+      float sx = nf;
+      float sy = sx * nx;
+
+      size_t dataSize = nx * ny * nf * sizeof(float);
+      PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
+      pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+
+      pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+
+      return p;
+   }
+
+   int pvpatch_inplace_delete(PVPatch* p)
+   {
+      free(p);
+      return 0;
+   }
 
 // TODO - make this inline (gcc does it automatically)?
 #ifdef REMOVE
