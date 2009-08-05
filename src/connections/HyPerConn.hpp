@@ -48,6 +48,7 @@ public:
    virtual int writeWeights();
    virtual int writeWeights(int k);
    virtual int writeWeights(const char * filename, int k);
+   virtual int writePostPatchWeights(int ioAppend);
 
    virtual PVPatch * getWeights(int k, int bundle);
    virtual PVPatch * getPlasticityIncrement(int k, int bundle);
