@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -478,6 +479,9 @@ int HyPerConn::outputState(float time)
       sprintf(str, "w%1.1d", getConnectionId());
       err = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
                              0.0, wMax, numberOfWeightPatches(), wPatches);
+      assert(err == 0);
+
+      err = writePostPatchWeights(ioAppend);
       assert(err == 0);
    }
 
@@ -1095,13 +1099,12 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const int nyPostPatch = nyp * powYScale;
    const int nfPostPatch = pre->clayer->numFeatures;
 
-
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
 
    if (wPostPatches == NULL) {
-      cout << " \nyes weights are created\n\n" << endl;
+      cout << " \nWeights created\n\n" << endl;
       wPostPatches = createWeights(nxPostPatch, nyPostPatch, nfPostPatch, numPost);
    }
 
@@ -1167,9 +1170,75 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
          getchar();
 
    }
-
-
    return wPostPatches;
+}
+
+int HyPerConn::writePostPatchWeights(int ioAppend) {
+
+   char txtoutfile[128];
+   char binoutfile[128];
+
+   const int numPost   = post->clayer->numNeurons;
+   const int numParams = post->clayer->numParams;
+   const int nxPost  = post->clayer->loc.nx;
+   const int nyPost  = post->clayer->loc.ny;
+   const int nfPost  = post->clayer->numFeatures;
+
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const float powXScale = powf(2, (float) xScale);
+   const float powYScale = powf(2, (float) yScale);
+
+   const int nxPostPatch = nxp * powXScale;
+   const int nyPostPatch = nyp * powYScale;
+   const int nfPostPatch = pre->clayer->numFeatures;
+
+   FILE *txtoutput = NULL, *binoutput = NULL;
+
+   // the number of features is the end-point value (normally post-synaptic)
+   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
+
+   //TODO: take out magic number
+   snprintf(txtoutfile, 127, "%sw%d_Post.txt", OUTPUT_PATH, getConnectionId());
+   snprintf(txtoutfile, 127, "%sw%d_Post.bin", OUTPUT_PATH, getConnectionId());
+   printf("txt: %s, bin: %s\n", txtoutfile, binoutfile);
+
+   if (!ioAppend) {
+      txtoutput = fopen(txtoutfile, "w");
+      binoutput = fopen(binoutfile, "wb");
+
+      if ((NULL!= txtoutput) && (NULL != binoutput)) {
+         fprintf(txtoutput, "numParams: %d,\nnxPost: %d,\nnyPost: %d, ", \
+                            numParams, nxPost, nyPost);
+         fprintf(txtoutput, "nfPost: %d,\nnumPostPatch: %d, ", \
+                            nfPost, numPostPatch);
+
+         fprintf(binoutput, "%d%d%d%d%d", numParams, nxPost, nyPost, 
+                                          nfPost, numPostPatch);
+      }
+   }
+   else {
+      txtoutput = fopen(txtoutfile, "a");
+      binoutput = fopen(binoutfile, "ab");
+   }
+
+   if ((NULL != txtoutput) && (NULL != binoutput)) {
+      for (int i = 0; i < numPost; i++) {
+         for (int j = 0; j < numPostPatch; j++) {
+            fprintf(txtoutput, "%f ", wPostPatches[i]->data[j]);
+            fprintf(binoutput, "%f", wPostPatches[i]->data[j]);
+            }
+         fprintf(txtoutput, "\n");
+         fprintf(binoutput, "\n");
+         }
+      fclose(txtoutput);
+      fclose(binoutput);
+      }
+   else {
+      fprintf(stderr, "Error opening file: Cannot write post-patch weights. \n");
+      return 1;
+   }
+   return 0;
 }
 
 /**
@@ -1213,6 +1282,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
    //   const float dx = powf(2, xScale);
    //   const float dy = powf(2, yScale);
+
    // TODO - make sure this is correct
    // sigma is in units of pre-synaptic layer
    const float dx = 1.0;
