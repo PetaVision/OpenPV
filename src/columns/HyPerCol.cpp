@@ -52,7 +52,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    int maxGroups = 2*(maxLayers + maxConnections);
    params = new PVParams(param_file, maxGroups);
 
-   icComm = new InterColComm(&argc, &argv, this);
+   icComm = new InterColComm(&argc, &argv);
 
    if (param_file != NULL) free(param_file);
 
@@ -192,7 +192,7 @@ int HyPerCol::run(int nTimeSteps)
          printf("[%d]: HyPerCol::run will deliver layer %d\n", columnId(), l);
          fflush(stdout);
 #endif
-         icComm->deliver(l);
+         icComm->deliver(this, l);
       }
 
 #ifdef DEBUG_OUTPUT

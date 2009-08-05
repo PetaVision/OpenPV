@@ -16,7 +16,7 @@
 
 namespace PV {
 
-InterColComm::InterColComm(int* argc, char*** argv, HyPerCol* col)
+InterColComm::InterColComm(int* argc, char*** argv)
 {
    float r;
 
@@ -31,7 +31,6 @@ InterColComm::InterColComm(int* argc, char*** argv, HyPerCol* col)
 
    neighborInit();
 
-   hc = col;
    numPublishers = 0;
 
    for (int i = 0; i < MAX_PUBLISHERS; i++) {
@@ -105,7 +104,7 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 /**
  * deliver all outstanding published messages
  */
-int InterColComm::deliver(int pubId)
+int InterColComm::deliver(HyPerCol* hc, int pubId)
 {
 #ifdef DEBUG_OUTPUT
    printf("[%d]: InterColComm::deliver: pubId=%d\n", commRank, pubId);  fflush(stdout);

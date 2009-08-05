@@ -70,7 +70,7 @@ private:
 
 class InterColComm {
 public:
-   InterColComm(int* argc, char*** argv, HyPerCol* col);
+   InterColComm(int* argc, char*** argv);
    virtual ~InterColComm();
 
    int commInit(int* argc, char*** argv);
@@ -79,7 +79,7 @@ public:
    int addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int numLevels);
    int publish(HyPerLayer* pub, PVLayerCube* cube);
    int subscribe(HyPerConn* conn);
-   int deliver(int pubId);
+   int deliver(HyPerCol* hc, int pubId);
    int increaseTimeLevel(int pubId)       {return publishers[pubId]->increaseTimeLevel();}
 
    int rank()
@@ -99,7 +99,6 @@ public:
 
 private:
 
-   HyPerCol* hc; // the column that "owns" this communicator
    int commRank;
    int commSize;
    int numRows;
