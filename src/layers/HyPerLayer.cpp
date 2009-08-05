@@ -7,7 +7,6 @@
 
 #include "HyPerLayer.hpp"
 #include "../include/pv_common.h"
-#include "../arch/pthreads/pv_thread.h"
 #include "../columns/HyPerCol.hpp"
 #include "../io/io.h"
 #include <assert.h>
@@ -58,21 +57,21 @@ int HyPerLayer::init(const char * name, PVLayerType type)
 
    PVParams * params = parent->parameters();
 
-   float nBorder = 0.0;
+   int nBorder = 0;
 
    float nx = params->value(name, "nx");
    float ny = params->value(name, "ny");
-   int numFeatures = params->value(name, "nf");
+   int numFeatures = (int) params->value(name, "nf");
 
-   if (params->present(name, "nBorder")) nBorder = params->value(name, "nBorder");
+   if (params->present(name, "nBorder")) nBorder = (int) params->value(name, "nBorder");
 
    float xScalef = log2f(parent->width() / nx);
    float yScalef = log2f(parent->height() / ny);
 
-   int xScale = nearbyintf(xScalef);
-   int yScale = nearbyintf(yScalef);
+   int xScale = (int) nearbyintf(xScalef);
+   int yScale = (int) nearbyintf(yScalef);
 
-   clayer = pvlayer_new(name, xScale, yScale, nx, ny, numFeatures, nBorder);
+   clayer = pvlayer_new(name, xScale, yScale, (int)nx, (int)ny, numFeatures, nBorder);
    clayer->layerType = type;
 
    float width  = nBorder;
@@ -170,6 +169,45 @@ int HyPerLayer::initFinish()
 }
 
 /**
+ * returns the number of neurons in the layer or border region
+ * @param borderId the id of the border region (0 for interior/self)
+ **/
+int HyPerLayer::numberOfNeurons(int borderId)
+{
+   int numNeurons;
+   const int nx = (int) clayer->loc.nx;
+   const int ny = (int) clayer->loc.ny;
+   const int nf = clayer->numFeatures;
+   const int numBorder = clayer->numBorder;
+
+   switch (borderId) {
+   case 0:
+      numNeurons = clayer->numNeurons;           break;
+   case NORTHWEST:
+      numNeurons = numBorder * numBorder * nf;   break;
+   case NORTH:
+      numNeurons = nx * numBorder * nf;          break;
+   case NORTHEAST:
+      numNeurons = numBorder * numBorder * nf;   break;
+   case WEST:
+      numNeurons = ny * numBorder * nf;          break;
+   case EAST:
+      numNeurons = ny * numBorder * nf;          break;
+   case SOUTHWEST:
+      numNeurons = numBorder * numBorder * nf;   break;
+   case SOUTH:
+      numNeurons = nx * numBorder * nf;          break;
+   case SOUTHEAST:
+      numNeurons = numBorder * numBorder * nf;   break;
+   default:
+      fprintf(stderr, "ERROR:HyPerLayer:numberOfBorderNeurons: bad border index %d\n", borderId);
+   }
+
+   return numNeurons;
+}
+
+
+/**
  * Copy cube data to the border region while applying boundary conditions
  *   - this implements mirror boundary conditions
  */
@@ -224,17 +262,13 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
          PVPatch * phi = task->data;
          PVPatch * weights = task->weights;
 
-         // WARNING - assumes weight and phi patches from task same size
-         //         - assumes patch stride sf is 1
+      // WARNING - assumes weight and phi patches from task same size
+      //         - assumes patch stride sf is 1
 
          int nk  = (int) phi->nf * (int) phi->nx;
          int ny  = (int) phi->ny;
          int sy  = (int) phi->sy;
          int syw = (int) weights->sy;
-
-        // if (conn->getConnectionId() == 17) {
-        //    printf("%s\n", conn->getName());
-        // }
 
          // TODO - unroll
          for (int y = 0; y < ny; y++) {
@@ -274,8 +308,8 @@ int HyPerLayer::outputState(float time)
 {
    char str[32];
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
+   const int nx = (int) clayer->loc.nx;
+   const int ny = (int) clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
    for (int i = 0; i < numProbes; i++) {
@@ -301,7 +335,7 @@ int HyPerLayer::writeState(const char * path, float time)
 
    // print activity
    sprintf(fullpath, "%s/f%1.1d.tif", path, clayer->layerId);
-   pv_tiff_write_cube(fullpath, clayer->activity, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures);
+   pv_tiff_write_cube(fullpath, clayer->activity, (int)clayer->loc.nx, (int)clayer->loc.ny, clayer->numFeatures);
 
    return 0;
 }
@@ -387,7 +421,7 @@ int HyPerLayer::copyToNorthWest(PVLayerCube * dest, PVLayerCube * src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src-> data;
@@ -423,7 +457,7 @@ int HyPerLayer::copyToNorthEast(PVLayerCube* dest, PVLayerCube* src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src ->data + ((int) src->loc.nx - 1)*nf;
@@ -443,7 +477,7 @@ int HyPerLayer::copyToWest(PVLayerCube* dest, PVLayerCube* src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src ->data;
@@ -463,7 +497,7 @@ int HyPerLayer::copyToEast(PVLayerCube* dest, PVLayerCube* src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src ->data + ((int) src->loc.nx - 1)*nf;
@@ -483,7 +517,7 @@ int HyPerLayer::copyToSouthWest(PVLayerCube* dest, PVLayerCube* src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src-> data + ((int) src->loc.ny - 1)*sySrc;
@@ -519,7 +553,7 @@ int HyPerLayer::copyToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    int ny = (int) dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * src->loc.nx;
+   int sySrc = nf * (int) src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src-> data + ((int) src->loc.nx - 1)*nf
