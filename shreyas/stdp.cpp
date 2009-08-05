@@ -26,6 +26,8 @@ int main(int argc, char* argv[])
    // create the managing hypercolumn
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
 
+   int locY = 8;
+
    // create the layers
    PV::HyPerLayer * retina = new PV::Retina2D("Retina", hc);
    PV::HyPerLayer * l1     = new PV::V1("L1", hc);
@@ -44,6 +46,12 @@ int main(int argc, char* argv[])
 		   new PV::RandomConn("L3 to L4", hc, l3, l4, CHANNEL_EXC);
    PV::HyPerConn * l4_l5 =
 		   new PV::RandomConn("L4 to L5", hc, l4, l5, CHANNEL_EXC);
+
+   PV::PostConnProbe * pcProbe0 = new PV::LinearPostConnProbe(PV::DimX, locY, 0);
+   PV::PostConnProbe * pcProbe1 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
+
+   r_l1->insertProbe(pcProbe1);
+   r_l1->insertProbe(pcProbe0);
 
    // run the simulation
    hc->initFinish();
