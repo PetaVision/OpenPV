@@ -90,16 +90,19 @@ int Retina2D::createImage() {
 
    srand(time(NULL));
 
-   int posx = rand() % nx;
-   int posy = rand() % ny;
-   unsigned int length = nx / 8;
+   int posx = 8; //rand() % nx;
+   int posy = 8; //rand() % ny;
+   unsigned int length = 8; //nx / 8;
 
    unsigned int deltatime = 1000; //in microsecond for usleep
 
    Point2D start(posx, posy);
    drawSquare(start, length, 0);
+
+#if 0
    usleep(deltatime);
    clearImage();
+
 
    for (;;) {
 	   posx += threewaytoss();
@@ -116,6 +119,7 @@ int Retina2D::createImage() {
 	   usleep(deltatime);
 	   clearImage();
    }
+#endif
 
 
 #if 0
