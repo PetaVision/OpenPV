@@ -51,10 +51,10 @@ public:
    Retina2D(const char * name, HyPerCol * hc);
    virtual ~Retina2D();
 
-
-   virtual int createImage();
+   int          updateState(float time, float dt);
+   virtual int  createImage();
    virtual void clearImage();
-   virtual int createRandomImage();
+   virtual int  createRandomImage();
    //virtual int updateState(float time, float dt);
 
    void drawLine(Point2D pt1, Point2D pt2);
