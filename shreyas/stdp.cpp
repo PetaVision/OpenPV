@@ -49,9 +49,35 @@ int main(int argc, char* argv[])
 
    PV::PostConnProbe * pcProbe0 = new PV::LinearPostConnProbe(PV::DimX, locY, 0);
    PV::PostConnProbe * pcProbe1 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
+   PV::PostConnProbe * pcProbe2 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
+   PV::PostConnProbe * pcProbe3 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
+   PV::PostConnProbe * pcProbe4 = new PV::LinearPostConnProbe(PV::DimX, locY, 1);
 
-   r_l1->insertProbe(pcProbe1);
    r_l1->insertProbe(pcProbe0);
+   l1_l2->insertProbe(pcProbe1);
+   l2_l3->insertProbe(pcProbe2);
+   l3_l4->insertProbe(pcProbe3);
+   l4_l5->insertProbe(pcProbe4);
+
+   PV::PVParams* params = hc->parameters();
+
+   int ny;
+   //if (params->present("Retina", "ny")) ny  = params->value("Retina", "ny");
+   if (params->present("L1", "ny")) ny  = params->value("L1", "ny");
+
+   PV::LinearActivityProbe * rProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
+
+   for (unsigned int i = 0; i < ny; i++) {
+	   rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
+	   //retina->insertProbe(rProbes[i]);
+	   //l1->insertProbe(rProbes[i]);
+	   //l2->insertProbe(rProbes[i]);
+	   //l3->insertProbe(rProbes[i]);
+	   //l4->insertProbe(rProbes[i]);
+	   l5->insertProbe(rProbes[i]);
+
+   }
+
 
    // run the simulation
    hc->initFinish();
