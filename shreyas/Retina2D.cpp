@@ -30,11 +30,11 @@ Retina2D::Retina2D(const char * name, HyPerCol * hc) :
    mom = (pvdata_t *) malloc(clayer->numNeurons * sizeof(pvdata_t));;
 //   createImage(clayer->V);
 //   createRandomImage(clayer->V);
-   cout << "mom: ";
+   //cout << "mom: ";
    for (int i = 0; i < clayer->numNeurons; i++) {
      mom[i] = clayer->V[i];
      if (!(i % 2)){
-        cout << mom[i];
+        //cout << mom[i];
      }
    }
    cout << "\n";
@@ -86,18 +86,26 @@ int Retina2D::createImage() {
    min += t % 2;
    max += t % 2;
 
-   assert(this->clayer->numFeatures == 2);
+   //assert(this->clayer->numFeatures == 2);
 
    srand(time(NULL));
 
-   int posx = 8; //rand() % nx;
-   int posy = 8; //rand() % ny;
-   unsigned int length = 8; //nx / 8;
+   static int posx = 8; //rand() % nx;
+   static int posy = 8; //rand() % ny;
+   unsigned int length = 4; //nx / 8;
 
-   unsigned int deltatime = 1000; //in microsecond for usleep
+   clearImage();
 
-   Point2D start(posx, posy);
-   drawSquare(start, length, 0);
+   posx += threewaytoss();
+   if (posx < 0) posx = 0;
+   else if ((posx + length) >= nx) posx = (nx - length - 1);
+
+   posy += threewaytoss();
+   if (posy < 0) posy = posy;
+   else if ((posy + length) >= ny) posy = (ny - length - 1);
+
+   Point2D newpos(posx, posy);
+   drawSquare(newpos, length, 0);
 
 #if 0
    usleep(deltatime);
@@ -258,7 +266,7 @@ void Retina2D::drawSquare(Point2D origin, unsigned int length,
 
 /*
  * Description: Draw square. If the vertices passed do not form a
- *              square, a polygon is drawn if the points are valid.
+ *              square, a quadrilateral is drawn if the points are valid.
  *
  * Arguments: Vertices of the square either in clockwise or
  *            anti-clockwise order. Else behaviour undefined.
@@ -271,7 +279,7 @@ void Retina2D::drawSquare(Point2D pt1, Point2D pt2,
                           Point2D pt3, Point2D pt4) {
 
    //TODO: add validation
-   drawPolygon(pt1, pt2, pt3, pt4);
+   drawQuadrilateral(pt1, pt2, pt3, pt4);
 }
 
 /*
@@ -318,7 +326,7 @@ void Retina2D::drawRectangle(Point2D origin, unsigned int lengtha,
 
 /*
  * Description: Draw rectangle. If the vertices passed do not form a
- *              rectangle, a polygon is drawn if the points are valid.
+ *              rectangle, a quadrilateral is drawn if the points are valid.
  *
  * Arguments: Vertices of the rectangle either in clockwise or
  *            anti-clockwise order. Else behaviour undefined.
@@ -332,13 +340,13 @@ void Retina2D::drawRectangle(Point2D origin, unsigned int lengtha,
 void Retina2D::drawRectangle(Point2D pt1, Point2D pt2,
                              Point2D pt3, Point2D pt4) {
 
-   drawPolygon(pt1, pt2, pt3, pt4);
+   drawQuadrilateral(pt1, pt2, pt3, pt4);
 }
 
 /*
- * Description: Draw Polygon.
+ * Description: Draw quadrilateral.
  *
- * Arguments: Vertices of the polygon either in clockwise or
+ * Arguments: Vertices of the quadrilateral either in clockwise or
  *            anti-clockwise order. Else behaviour undefined.
  *
  * Return value: None.
@@ -347,7 +355,7 @@ void Retina2D::drawRectangle(Point2D pt1, Point2D pt2,
  * 09-June-2009          Shreyas              Function created
  *
  */
-void Retina2D::drawPolygon(Point2D pt1, Point2D pt2,
+void Retina2D::drawQuadrilateral(Point2D pt1, Point2D pt2,
                            Point2D pt3, Point2D pt4) {
 
    int x1 = pt1.getX();
@@ -625,6 +633,7 @@ int Retina2D::updateState(float time, float dt)
          }
          else {
             // ON case (k even)
+        	 createImage();
             for (int k = 0; k < clayer->numNeurons; k += nf) {
                if ( V[k] == 0.0 )
                   // fire at the background rate
