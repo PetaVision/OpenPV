@@ -147,15 +147,19 @@ int Retina2D::createImage() {
 }
 
 int Retina2D::threewaytoss() {
-	int decider = rand() % 3;
-	switch (decider) {
-	case 0:
+	int decider = rand() % 100;
+	float total_prob = decider / 100;
+
+	//these must add to 1.
+	float prob_stay = .33, prob_back = 0.33, prob_forward = 0.33;
+
+	if ((total_prob > 0) && (total_prob < prob_stay))
 		return 0;
-	case 1:
-		return 1;
-	case 2:
+	else if ((total_prob > prob_stay) &&
+			 (total_prob < (prob_stay + prob_back)))
 		return -1;
-	}
+	else
+		return 1;
 }
 /*
  * Description: Clears the image buffer.
