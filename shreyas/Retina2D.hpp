@@ -51,11 +51,10 @@ public:
    Retina2D(const char * name, HyPerCol * hc);
    virtual ~Retina2D();
 
-   int          updateState(float time, float dt);
+   virtual int  updateState(float time, float dt);
    virtual int  createImage();
    virtual void clearImage();
    virtual int  createRandomImage();
-   //virtual int updateState(float time, float dt);
 
    void drawLine(Point2D pt1, Point2D pt2);
 
@@ -75,7 +74,7 @@ public:
    void drawRectangle(Point2D pt1, Point2D pt2,
                       Point2D pt3, Point2D pt4);
 
-   void drawPolygon(Point2D pt1, Point2D pt2,
+   void drawQuadrilateral(Point2D pt1, Point2D pt2,
                     Point2D pt3, Point2D pt4);
 
    void testImage();
