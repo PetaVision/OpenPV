@@ -82,10 +82,9 @@ public:
    int deliver(HyPerCol* hc, int pubId);
    int increaseTimeLevel(int pubId)       {return publishers[pubId]->increaseTimeLevel();}
 
-   int rank()
-   {
-      return commRank;
-   }
+   int commRank()               { return icRank; }
+   int commSize()               { return icSize; }
+   MPI_Comm communicator()      { return icComm; }
 
    DataStore* publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
 
@@ -99,14 +98,18 @@ public:
 
 private:
 
-   int commRank;
-   int commSize;
+   int icRank;
+   int icSize;
+   int worldRank;
+   int worldSize;
    int numRows;
    int numCols;
    int numHyPerCols;
    int numNeighbors;
    int numBorders;
    int numPublishers;
+
+   MPI_Comm icComm;
 
    int neighbors[MAX_NEIGHBORS + 1];
    int borders[MAX_NEIGHBORS];

@@ -22,29 +22,71 @@ InterColComm::InterColComm(int* argc, char*** argv)
 
    commInit(argc, argv);
 
-   r = sqrt(commSize);
+   r = sqrt(worldSize);
    numRows = (int) r;
-   numCols = (int) commSize / numRows;
+   numCols = (int) worldSize / numRows;
    numHyPerCols = numRows * numCols;
+   assert (numHyPerCols <= worldSize);
 
-   // TODO - build a communicator based on the new processor grid (don't use MPI_COMM_WORLD)
+   int exclsize = worldSize - numHyPerCols;
 
-   neighborInit();
-
-   numPublishers = 0;
-
-   for (int i = 0; i < MAX_PUBLISHERS; i++) {
-      publishers[i] = NULL;
+   if (exclsize == 0) {
+      MPI_Comm_dup(MPI_COMM_WORLD, &icComm);
    }
+   else {
+      MPI_Group worldGroup, newGroup;
+      MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
+
+      int * ranks = (int *) malloc(exclsize * sizeof(int));
+      assert(ranks != NULL);
+
+      for (int i = 0; i < exclsize; i++) {
+         ranks[i] = i + numHyPerCols;
+      }
+
+      MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
+      MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
+
+#ifdef DEBUG_OUTPUT
+      printf("[%2d]: Formed resized communicator, size=%d cols=%d rows=%d\n", icRank, icSize, numCols, numRows);
+#endif
+
+      free(ranks);
+   }
+
+   if (worldRank < numHyPerCols) {
+      MPI_Comm_rank(icComm, &icRank);
+      MPI_Comm_size(icComm, &icSize);
+   }
+   else {
+      icSize = 0;
+      icRank = -worldRank;
+   }
+
+   if (icSize > 0) {
+      neighborInit();
+
+      numPublishers = 0;
+
+      for (int i = 0; i < MAX_PUBLISHERS; i++) {
+         publishers[i] = NULL;
+      }
+   }
+
+   MPI_Barrier(MPI_COMM_WORLD);
 }
 
 InterColComm::~InterColComm()
 {
+   MPI_Barrier(MPI_COMM_WORLD);
+
    commFinalize();
 
-   for (int i = 0; i < MAX_PUBLISHERS; i++) {
-      if (publishers[i] != NULL) {
-         delete publishers[i];
+   if (icSize > 0) {
+      for (int i = 0; i < MAX_PUBLISHERS; i++) {
+         if (publishers[i] != NULL) {
+            delete publishers[i];
+         }
       }
    }
 }
@@ -52,11 +94,11 @@ InterColComm::~InterColComm()
 int InterColComm::commInit(int* argc, char*** argv)
 {
    MPI_Init(argc, argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &commRank);
-   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
+   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: InterColComm::commInit: size=%d\n", commRank, commSize);  fflush(stdout);
+   printf("[%d]: InterColComm::commInit: size=%d\n", icRank, icSize);  fflush(stdout);
 #endif
 
    return 0;
@@ -107,7 +149,7 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 int InterColComm::deliver(HyPerCol* hc, int pubId)
 {
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: InterColComm::deliver: pubId=%d\n", commRank, pubId);  fflush(stdout);
+   printf("[%d]: InterColComm::deliver: pubId=%d\n", icRank, pubId);  fflush(stdout);
 #endif
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
@@ -128,12 +170,12 @@ int InterColComm::neighborInit()
 
    for (int i = 0; i < 1 + MAX_NEIGHBORS; i++) {
       neighbors[i] = 0;
-      int n = neighborIndex(commRank, i);
+      int n = neighborIndex(icRank, i);
       if (n >= 0) {
          neighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
          printf("[%d]: neighborInit: neighbor[%d] of %d is %d, i = %d\n",
-                commRank, num_neighbors - 1, this->numNeighbors, n, i);
+                icRank, num_neighbors - 1, this->numNeighbors, n, i);
          fflush(stdout);
 #endif
       } else {
@@ -186,7 +228,7 @@ bool InterColComm::hasEasternNeighbor(int commId)
  */
 bool InterColComm::hasNorthernNeighbor(int commId)
 {
-   return ((commId + this->numHyPerCols) > (this->commSize - 1)) ? 0 : 1;
+   return ((commId + this->numHyPerCols) > (this->icSize - 1)) ? 0 : 1;
 }
 
 /**
@@ -205,10 +247,10 @@ int InterColComm::numberNeighbors()
 {
    int n = 1;
 
-   int hasWest = hasWesternNeighbor(commRank);
-   int hasEast = hasEasternNeighbor(commRank);
-   int hasNorth = hasNorthernNeighbor(commRank);
-   int hasSouth = hasSouthernNeighbor(commRank);
+   int hasWest = hasWesternNeighbor(icRank);
+   int hasEast = hasEasternNeighbor(icRank);
+   int hasNorth = hasNorthernNeighbor(icRank);
+   int hasSouth = hasSouthernNeighbor(icRank);
 
    if (hasNorth > 0) n += 1;
    if (hasSouth > 0) n += 1;
