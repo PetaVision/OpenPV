@@ -7,7 +7,10 @@ $(BUILDDIR)/pthreads/%.o: $(SRCDIR)/arch/pthreads/%.c
 	@echo 'Finished building: $<'
 	@echo ' '
 
-all: $(BUILDDIR)/pthreads/pv_thread.o
+#all: $(BUILDDIR)/pthreads/pv_thread.o
+
+all:
+	@echo 'No longer building with pthreads'
 
 clean:
 	rm -f *.o
