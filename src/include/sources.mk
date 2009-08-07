@@ -89,8 +89,7 @@ COBJS   = $(BUILDDIR)/PVConnection.o \
           $(BUILDDIR)/PVLayer.o \
           $(BUILDDIR)/io.o \
           $(BUILDDIR)/tiff.o \
-          $(BUILDDIR)/param_lexer.o \
-          $(BUILDDIR)/pthreads/pv_thread.o
+          $(BUILDDIR)/param_lexer.o
 
 SRCS = $(CPPSRCS) $(CSRCS)
 
