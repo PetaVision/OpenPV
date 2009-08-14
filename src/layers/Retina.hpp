@@ -27,7 +27,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int writeState(const char * path, float time);
    virtual int createImage(pvdata_t * buf);
-   virtual int spike(float time, float dt, float prob, int * start);
+   virtual int spike(float time, float dt, float prob, float probStim, int * start);
 
 private:
 

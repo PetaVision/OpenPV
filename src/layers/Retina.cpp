@@ -199,7 +199,7 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
    return 0; //PV_Retina_recv_synaptic_input();
 }
 
-int Retina::updateState(float time, float dt)
+/*int Retina::updateState(float time, float dt)
 {
    if (clayer->updateFunc != NULL) {
       clayer->updateFunc(clayer);
@@ -213,6 +213,7 @@ int Retina::updateState(float time, float dt)
       float poissonBlankProb = RAND_MAX * params->poissonBlankProb;
 
       int burstStatus = 0;
+
       if (params->burstDuration <= 0 || params->burstFreq == 0) {
          burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) > 0.;
       }
@@ -220,6 +221,7 @@ int Retina::updateState(float time, float dt)
          burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
          burstStatus = burstStatus <= params->burstDuration;
       }
+
       int stimStatus = (time >= params->beginStim) && (time < params->endStim);
       stimStatus = stimStatus && burstStatus;
 
@@ -281,6 +283,27 @@ int Retina::updateState(float time, float dt)
    }
 
    return 0;
+} */
+
+int Retina::updateState(float time, float dt)
+{
+   int start;
+
+   fileread_params * params = (fileread_params *) clayer->params;
+
+   pvdata_t * V = clayer->V;
+   pvdata_t * activity = clayer->activity->data;
+
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      float probStim = params->poissonEdgeProb * V[k];
+      float prob = params->poissonBlankProb;
+
+      int flag = spike(time, dt, prob, probStim, &start);
+      activity[k] = (flag) ? 1.0 : 0.0;
+
+   }
+
+   return 0;
 }
 
 int Retina::writeState(const char * path, float time)
@@ -319,16 +342,21 @@ int Retina::createImage(pvdata_t * buf)
 /**
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
  */
-int Retina::spike(float time, float dt, float prob, int * start)
+int Retina::spike(float time, float dt, float prob, float probStim, int * start)
 {
    static int burstState = 0;
 
    fileread_params * params = (fileread_params *) clayer->params;
    float poissonProb  = RAND_MAX * prob;
+   probStim = RAND_MAX * probStim;
+
 
    int burstStatus = 0;
+   float sinAmp = 1.0;
+
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) >= 0.;
+      sinAmp = sin( 2 * PI * time * params->burstFreq / 1000. );
+      burstStatus = sinAmp >= 0.;
    }
    else {
       burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
@@ -345,10 +373,22 @@ int Retina::spike(float time, float dt, float prob, int * start)
    }
 
    int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+
    stimStatus = stimStatus && burstStatus;
 
-   if (stimStatus) return ( rand() < poissonProb );
-   else            return 0;
+   if (stimStatus) {
+      poissonProb = (2 * poissonProb) + (probStim * sinAmp);
+      return ( rand() < poissonProb );
+   }
+   else {
+      if (sinAmp <= 0)   poissonProb = (poissonProb * sinAmp) + poissonProb;
+      return ( rand() < poissonProb );
+   }
+/*
+ * This is if you wish to go back to on/off instead of sinusoidal
+   if (stimStatus) return (rand() < poissonProb);
+   else return 0;
+*/
 }
 
 }
