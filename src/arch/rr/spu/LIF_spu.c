@@ -1,9 +1,13 @@
-#include "spu_intrinsics.h" 
-#include "simdmath/copysignf4.h" 
-#include "simdmath/fabsf4.h" 
-#include "simdmath/fminf4.h" 
-#include "alf_accel.h" 
+#include "spu_intrinsics.h"
+#include "simdmath/copysignf4.h"
+#include "simdmath/fabsf4.h"
+#include "simdmath/fminf4.h"
+#include "alf_accel.h"
 
+/**
+ * @v
+ * @vth
+ */
 inline vec_float4 updateF(vec_float4 v,vec_float4 vth)
 {
   vec_float4 updateF_rtn;
@@ -12,7 +16,10 @@ inline vec_float4 updateF(vec_float4 v,vec_float4 vth)
   return updateF_rtn;
 }
 
-
+/**
+ * @v
+ * @f
+ */
 inline vec_float4 updateV(vec_float4 v,vec_float4 f)
 {
   vec_float4 updateV_rtn;
@@ -20,7 +27,15 @@ inline vec_float4 updateV(vec_float4 v,vec_float4 f)
   return updateV_rtn;
 }
 
-
+/**
+ * @p_tast_context
+ * @p_parm_ctx_buffer
+ * @p_input_buffer
+ * @p_output_buffer
+ * @p_inout_buffer
+ * @current_count
+ * @total_count
+ */
 int spu_update(void *p_task_context __attribute__ ((unused)),void *p_parm_ctx_buffer,void *p_input_buffer,void *p_output_buffer,void *p_inout_buffer,unsigned int current_count __attribute__ ((unused)),unsigned int total_count __attribute__ ((unused)))
 {
   vec_float4 *V;

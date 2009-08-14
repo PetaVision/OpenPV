@@ -366,7 +366,7 @@ int tiff_copy_image(FILE * fd, IFD * ifd, IFDEntry * entries, uint16_t numEntrie
    // read data
    for (i = 0; i < ifd->numStripOffsets; i++) {
       fseek(fd, offsets[i], SEEK_SET);
-      assert( fread(buf, 1, counts[i], fd) == counts[i] );
+//      assert( fread(buf, 1, counts[i], fd) == counts[i] );
       buf += counts[i];
    }
 

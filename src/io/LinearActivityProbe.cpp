@@ -9,6 +9,12 @@
 
 namespace PV {
 
+/**
+ * @hc
+ * @dim
+ * @loc
+ * @f
+ */
 LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int loc, int f)
    : PVLayerProbe()
 {
@@ -18,6 +24,13 @@ LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int loc, 
    this->f   = f;
 }
 
+/**
+ * @filename
+ * @hc
+ * @dim
+ * @loc
+ * @f
+ */
 LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, PVDimType dim, int loc, int f)
     : PVLayerProbe(filename)
 {
@@ -27,6 +40,10 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
    this->f   = f;
 }
 
+/**
+ * @time
+ * @l
+ */
 int LinearActivityProbe::outputState(float time, PVLayer * l)
 {
    int nk, sk;

@@ -9,8 +9,16 @@ float stop_clock();
 /**
  * update the partial sums for membrane potential
  *
- * nc is the number of neurons to process in this chunk
- * np is the total number of neurons on this processor (size of event mask fp)
+ * @nc is the number of neurons to process in this chunk
+ * @np is the total number of neurons on this processor (size of event mask fp)
+ * @phi_c
+ * @xc
+ * @yc
+ * @thc
+ * @xp
+ * @yp
+ * @thp
+ * @fp
  */
 void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], float thc[],
 		float xp[], float yp[], float thp[], float fp[])
@@ -55,9 +63,9 @@ void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], float thc
         /* end weight calculation */
 
       for (ii = 0; ii < NO; ii++) {
-	  
+
       /*** restrict d2 to band around radius of cocircle through points i,j ****/
-      const float R_CIRCLE = 36 / (float) 4;   // NX*s->n_cols / (float) 4; 
+      const float R_CIRCLE = 36 / (float) 4;   // NX*s->n_cols / (float) 4;
       const float MIN_DENOM = 1.0E-10;//1.0E-10;
       const float SIG_C_R_x2 = 1.0;  // tolerance from target cocircular radius: R_CIRCLE
       float r_cocirc;
@@ -69,7 +77,7 @@ void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], float thc
 	  float sgnz = z / ( MIN_DENOM + fabs(z) );
       r_cocirc = d2 * sgnz / ( MIN_DENOM + fabs(z) ); // fix denominator == 0
 	  gr = 1.0;//exp( -pow( (r_cocirc) - R_CIRCLE, 2 ) / SIG_C_R_x2 );
-     
+
         for (jj = 0; jj < NO; jj++) {
           phi_c[i+ii] = phi_c[i+ii] + w[ii+jj]*gr*fp[j+jj];
         }

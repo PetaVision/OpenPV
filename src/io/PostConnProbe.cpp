@@ -10,18 +10,29 @@
 
 namespace PV {
 
+/**
+ * @kPost
+ */
 PostConnProbe::PostConnProbe(int kPost)
    : ConnectionProbe(0)
 {
    this->kPost = kPost;
 }
 
+/**
+ * @filename
+ * @kPost
+ */
 PostConnProbe::PostConnProbe(const char * filename, int kPost)
    : ConnectionProbe(filename, 0)
 {
    this->kPost = kPost;
 }
 
+/**
+ * @time
+ * @c
+ */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
    PVPatch ** wPost = c->convertPreSynapticWeights(time);

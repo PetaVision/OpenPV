@@ -10,6 +10,9 @@
 
 extern spe_program_handle_t pv_spu;
 
+/**
+ * @arg
+ */
 void * ppu_pthread_run(void * arg)
 {
    thread_env_t * env = (thread_env_t *) arg;
@@ -22,6 +25,9 @@ void * ppu_pthread_run(void * arg)
    pthread_exit(NULL);
 }
 
+/**
+ * @numThreads
+ */
 int pv_cell_thread_init(int numThreads)
 {
    int spu;
@@ -65,6 +71,9 @@ int pv_cell_thread_init(int numThreads)
    return err;
 }
 
+/**
+ * @numThreads
+ */
 int pv_cell_thread_finalize(int numThreads)
 {
    int spu;

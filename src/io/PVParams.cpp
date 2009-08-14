@@ -15,6 +15,10 @@
 // define for debug output
 #undef DEBUG_PARSING
 
+/**
+ * @yyin
+ * @action_handler
+ */
 extern FILE* yyin;
 int pv_parseParameters(PV::PVParams* action_handler);
 
@@ -35,6 +39,10 @@ int main()
 
 namespace PV {
 
+/**
+ * @name
+ * @value
+ */
 Parameter::Parameter(char * name, double value)
 {
    paramName  = name;
@@ -46,6 +54,9 @@ Parameter::~Parameter()
    free(paramName);
 }
 
+/**
+ * @maxCount
+ */
 ParameterStack::ParameterStack(int maxCount)
 {
    this->maxCount = maxCount;
@@ -61,6 +72,9 @@ ParameterStack::~ParameterStack()
    free(parameters);
 }
 
+/**
+ * @param
+ */
 int ParameterStack::push(Parameter* param)
 {
    assert(count < maxCount);
@@ -74,6 +88,10 @@ Parameter * ParameterStack::pop()
    return parameters[count--];
 }
 
+/**
+ * @name
+ * @stack
+ */
 ParameterGroup::ParameterGroup(char * name, ParameterStack * stack)
 {
    this->groupName = name;
@@ -86,6 +104,9 @@ ParameterGroup::~ParameterGroup()
    delete stack;
 }
 
+/**
+ * @name
+ */
 int ParameterGroup::present(const char * name)
 {
    int count = stack->size();
@@ -98,6 +119,9 @@ int ParameterGroup::present(const char * name)
    return 0;
 }
 
+/**
+ * @name
+ */
 float ParameterGroup::value(const char * name)
 {
    int count = stack->size();
@@ -112,6 +136,10 @@ float ParameterGroup::value(const char * name)
    exit(1);
 }
 
+/**
+ * @filename
+ * @maxGroups
+ */
 PVParams::PVParams(const char * filename, int maxGroups)
 {
    const char * altfile = INPUT_PATH "inparams.txt";
@@ -137,7 +165,9 @@ PVParams::PVParams(const char * filename, int maxGroups)
    fclose(yyin);
 }
 
-
+/**
+ * @maxGroups
+ */
 PVParams::PVParams(int maxGroups)
 {
    this->numGroups = 0;
@@ -153,6 +183,10 @@ PVParams::~PVParams()
    delete stack;
 }
 
+/**
+ * @groupName
+ * @paramName
+ */
 int PVParams::present(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
@@ -165,6 +199,10 @@ int PVParams::present(const char * groupName, const char * paramName)
    return g->present(paramName);
 }
 
+/**
+ * @groupName
+ * @paramName
+ */
 float PVParams::value(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
@@ -177,6 +215,9 @@ float PVParams::value(const char * groupName, const char * paramName)
    return g->value(paramName);
 }
 
+/**
+ * @groupName
+ */
 ParameterGroup * PVParams::group(const char * groupName)
 {
    for (int i = 0; i < numGroups; i++) {
@@ -187,6 +228,10 @@ ParameterGroup * PVParams::group(const char * groupName)
    return NULL;
 }
 
+/**
+ * @keyword
+ * @name
+ */
 void PVParams::addGroup(char * keyword, char * name)
 {
    assert(numGroups < maxGroups);
@@ -198,6 +243,10 @@ void PVParams::addGroup(char * keyword, char * name)
    free(keyword);   // not used
 }
 
+/**
+ * @keyword
+ * @name
+ */
 void PVParams::action_parameter_group(char * keyword, char * name)
 {
    // remove surrounding quotes
@@ -214,6 +263,10 @@ void PVParams::action_parameter_group(char * keyword, char * name)
    addGroup(keyword, name);
 }
 
+/**
+ * @id
+ * @val
+ */
 void PVParams::action_parameter_def(char * id, double val)
 {
 #ifdef DEBUG_PARSING

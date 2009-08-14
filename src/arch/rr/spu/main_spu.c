@@ -40,7 +40,11 @@ uint64_t prev_mboard_ea;
 uint64_t next_mboard_ea;
 uint64_t next_chunk_ea;
 
-
+/**
+ * @tag_id
+ * @c
+ * @curr_buff
+ */
 void get_ppu_data(uint32_t tag_id, int c, int curr_buf)
 {
    int k;

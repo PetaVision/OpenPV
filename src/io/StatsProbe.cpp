@@ -11,6 +11,11 @@
 
 namespace PV {
 
+/**
+ * @filename
+ * @type
+ * @msg
+ */
 StatsProbe::StatsProbe(const char * filename, PVBufType type, const char * msg)
    : PVLayerProbe(filename)
 {
@@ -18,6 +23,10 @@ StatsProbe::StatsProbe(const char * filename, PVBufType type, const char * msg)
    this->type = type;
 }
 
+/**
+ * @type
+ * @msg
+ */
 StatsProbe::StatsProbe(PVBufType type, const char * msg)
    : PVLayerProbe()
 {
@@ -30,6 +39,10 @@ StatsProbe::~StatsProbe()
    free(msg);
 }
 
+/**
+ * @time
+ * @l
+ */
 int StatsProbe::outputState(float time, PVLayer * l)
 {
    pvdata_t * buf;

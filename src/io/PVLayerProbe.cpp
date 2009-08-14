@@ -14,6 +14,9 @@ PVLayerProbe::PVLayerProbe()
    fp = stdout;
 }
 
+/**
+ * @filename
+ */
 PVLayerProbe::PVLayerProbe(const char * filename)
 {
    char path[PV_PATH_MAX];
@@ -28,6 +31,10 @@ PVLayerProbe::~PVLayerProbe()
    }
 }
 
+/**
+ * @time
+ * @l
+ */
 int PVLayerProbe::outputState(float time, PVLayer * l)
 {
    return 0;

@@ -7,7 +7,7 @@ global N NK NO NX NY n_time_steps begin_step
 global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_path input_path
 
-input_dir = '/Users/gkenyon/Documents/eclipse-workspace/gar/output/';
+input_dir = '/Users/arick/Documents/workspace/gar/output/';
 %input_dir = '/nh/home/rasmussn/eclipse/workspace.petavision/pv/';
 
 num_layers = 3;
@@ -465,7 +465,7 @@ if plot_xcorr
             freq_vals = 1000*(0:2*maxlag)/(2*maxlag + 1);
             min_ndx = find(freq_vals >= 20, 1,'first');
             max_ndx = max(find(freq_vals <= 60, 1,'last'), min_ndx);
-            sparse_corr = ....
+            sparse_corr = ...
                 pv_xcorr( spike_array{layer}(stim_steps, power_mask), ...
                 spike_array{layer}(stim_steps, power_mask), ...
                 maxlag, min_ndx,  max_ndx);

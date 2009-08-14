@@ -69,6 +69,14 @@ static inline float kyPos(int k, float nx, float ny, float nf)
    return floorf( (k / (nx*nf)) );
 }
 
+/**
+ * @k
+ * @x0
+ * @dx
+ * @nx
+ * @ny
+ * @nf
+ */
 //#pragma FTT elemental, vectorize
 static inline float xPos(int k, float x0, float dx, float nx, float ny, float nf)
 {
@@ -76,6 +84,14 @@ static inline float xPos(int k, float x0, float dx, float nx, float ny, float nf
     return x0 + dx*(0.5f + kx);
 }
 
+/**
+ * @k
+ * @y0
+ * @dy
+ * @nx
+ * @ny
+ * @nf
+ */
 //#pragma FTT elemental, vectorize
 static inline float yPos(int k, float y0, float dy, float nx, float ny, float nf)
 {
@@ -83,21 +99,44 @@ static inline float yPos(int k, float y0, float dy, float nx, float ny, float nf
     return y0 + dy*(0.5f + ky);
 }
 
+/**
+ * @kx
+ * @ky
+ * @kf
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int kIndex(float kx, float ky, float kf, float nx, float ny, float nf)
 {
    return (int)kf + ((int)kx + (int)ky * (int)nx) * (int)nf;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideX(float nx, float ny, float nf)
 {
    return (int)nf;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideY(float nx, float ny, float nf)
 {
    return (int)nf * (int)nx;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideF(float nx, float ny, float nf)
 {
    return 1;
@@ -105,6 +144,9 @@ static inline int strideF(float nx, float ny, float nf)
 
 /**
  * Returns the k index of the nearest neighbor in another layer
+ *
+ * @kPre
+ * @scale
  */
 static inline int nearby_neighbor(int kPre, int scale)
 {
@@ -114,6 +156,9 @@ static inline int nearby_neighbor(int kPre, int scale)
 /**
  * Assuming kPre connects to the nearest kPost, return the distance between these two positions
  *    (xPost - xPre) or (yPost - yPre) in units of post-synaptic dx (or dy).
+ *
+ * @kPre
+ * @scale
  */
 static inline float deltaPosLayers(int kPre, int scale)
 {
@@ -175,6 +220,14 @@ static inline float kyPos(int k, float nx, float ny, float nf)
    return (int) fmod( k/nx, ny );
 }
 
+/**
+ * @k
+ * @x0
+ * @dx
+ * @nx
+ * @ny
+ * @nf
+ */
 //#pragma FTT elemental, vectorize
 static inline float xPos(int k, float x0, float dx, float nx, float ny, float nf)
 {
@@ -182,6 +235,14 @@ static inline float xPos(int k, float x0, float dx, float nx, float ny, float nf
     return x0 + dx*(0.5f + kx);
 }
 
+/**
+ * @k
+ * @y0
+ * @dy
+ * @nx
+ * @ny
+ * @nf
+ */
 //#pragma FTT elemental, vectorize
 static inline float yPos(int k, float y0, float dy, float nx, float ny, float nf)
 {
@@ -189,22 +250,45 @@ static inline float yPos(int k, float y0, float dy, float nx, float ny, float nf
     return y0 + dy*(0.5f + ky);
 }
 
+/**
+ * @kx
+ * @ky
+ * @kf
+ * @nx
+ * @ny
+ * @nf
+ */
 // TODO - should kx,... be integer
 static inline int kIndex(float kx, float ky, float kf, float nx, float ny, float nf)
 {
    return kx + (ky + kf * ny) * nx;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideX(float nx, float ny, float nf)
 {
    return 1;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideY(float nx, float ny, float nf)
 {
    return (int)nx;
 }
 
+/**
+ * @nx
+ * @ny
+ * @nf
+ */
 static inline int strideF(float nx, float ny, float nf)
 {
    return (int)nx * (int)ny;
@@ -212,6 +296,13 @@ static inline int strideF(float nx, float ny, float nf)
 
 #endif // FEATURES_LAST
 
+/**
+ * @k
+ * @nx
+ * @ny
+ * @nf
+ * @nb
+ */
 static inline int kIndexExtended(int k, float nx, float ny, float nf, float nb)
 {
    float kx = nb + kxPos(k, nx, ny, nf);
@@ -220,6 +311,11 @@ static inline int kIndexExtended(int k, float nx, float ny, float nf, float nb)
    return kIndex(kx, ky, kf, nx + 2.0f*nb, ny + 2.0f*nb, nf);
 }
 
+/**
+ * @kl
+ * @loc
+ * @nf
+ */
 // TODO - put back in nx,ny,... so that it will vectorize with vector of kl's
 static inline int globalIndexFromLocal(int kl, PVLayerLoc loc, float nf)
 {
@@ -243,6 +339,9 @@ static inline float pos(int k, float origin, int scale)
     return origin + ((float) k)*pow(2,scale);
 }
 
+/**
+ * @x
+ */
 //#pragma FTT elemental, vectorize
 static inline float sign(float x)
 {
@@ -271,6 +370,15 @@ static inline float deltaWithPBC(float x1, float x2, float max)
 /**
  * Return global k index from x,y position information
  * @kf the feature index (not the k index as other routines use)
+ * @x
+ * @y
+ * @x0
+ * @y0
+ * @dx
+ * @dy
+ * @nx
+ * @ny
+ * @nf
  */
 //#pragma FTT elemental, vectorize
 static inline int globalIndex(float kf, float x, float y, float x0, float y0,
@@ -285,6 +393,15 @@ static inline int globalIndex(float kf, float x, float y, float x0, float y0,
 /**
  * Return global index using floating point arithmetic
  * WARNING - this breaks if nx*ny*numFeatures > 16777217
+ * @kf
+ * @x
+ * @y
+ * @x0
+ * @y0
+ * @dx
+ * @dy
+ * @nx
+ * @nf
  */
 //#pragma FTT elemental, vectorize
 // TODO - remove?
@@ -302,6 +419,12 @@ static inline int globalIndexf_obsolete(int kf, float x, float y, float x0, floa
    return (int) nearbyintf((kx + nx*ky)*nf + kf);
 }
 
+/**
+ * @x0
+ * @x
+ * @sigma
+ * @max
+ */
 //#pragma FTT elemental, vectorize
 static inline float gaussianWeight(float x0, float x, float sigma, float max)
 {

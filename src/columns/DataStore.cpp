@@ -12,6 +12,11 @@
 namespace PV
 {
 
+/**
+ * @numBuffers
+ * @bufSize
+ * @numLevels
+ */
 DataStore::DataStore(int numBuffers, size_t bufSize, int numLevels)
 {
 	this->curLevel = numLevels - 1;  // start at bottom, work up

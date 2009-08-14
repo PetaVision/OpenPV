@@ -35,11 +35,20 @@ void * pv_pthread_run(void * tinfo);
 int thread_env_init(pv_thread_env_t * env, pv_thread_params_t * params, int numThreads, int column);
 int thread_params_init(pv_thread_env_t * env, int numThreads);
 
+/**
+ * @addr
+ * @size
+ */
+
 static inline
 void * get_data(void * addr, size_t size)
 {
    return addr;
 }
+/**
+ * @column
+ * @numThreads
+ */
 
 int pv_thread_init(int column, int numThreads)
 {
@@ -90,6 +99,11 @@ int pv_thread_init(int column, int numThreads)
    return 0;
 }
 
+/**
+ * @column
+ * @numThreads
+ */
+
 int pv_thread_finalize(int column, int numThreads)
 {
    int t;
@@ -114,6 +128,11 @@ int pv_thread_finalize(int column, int numThreads)
    return err;
 }
 
+/**
+ * @params
+ * @msg
+ */
+
 static
 int handle_run_msg(pv_thread_params_t * params, uint32_t msg)
 {
@@ -133,6 +152,10 @@ int handle_run_msg(pv_thread_params_t * params, uint32_t msg)
 
    return 0;
 }
+
+/**
+ * @tinfo
+ */
 
 void * pv_pthread_run(void * tinfo)
 {
@@ -179,6 +202,10 @@ void * pv_pthread_run(void * tinfo)
    pthread_exit(NULL);
 }
 
+/**
+ * @addr
+ * @msg
+ */
 int pv_signal_threads_recv(void * addr, unsigned char msg)
 {
    int t;
@@ -193,6 +220,12 @@ int pv_signal_threads_recv(void * addr, unsigned char msg)
    return err;
 }
 
+/**
+ * @ctx
+ * @mbox_data
+ * @count
+ * @behavior
+ */
 int pv_in_mbox_write(pv_thread_context_ptr_t ctx,
                      unsigned int * mbox_data, int count, unsigned int behavior)
 {
@@ -220,6 +253,12 @@ int pv_in_mbox_write(pv_thread_context_ptr_t ctx,
    return 0;
 }
 
+/**
+ * @env
+ * @params
+ * @numThreads
+ * @column
+ */
 int thread_env_init(pv_thread_env_t * env,
                     pv_thread_params_t * params, int numThreads, int column)
 {
@@ -235,6 +274,10 @@ int thread_env_init(pv_thread_env_t * env,
    return 0;
 }
 
+/**
+ * @env
+ * @numThreads
+ */
 int thread_params_init(pv_thread_env_t * env, int numThreads)
 {
    int t;

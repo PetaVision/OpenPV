@@ -30,6 +30,14 @@ void usage()
    printf("\nThen check results in Octave/MATLAB using analysis/pv_analyze.m\n\n");
 }
 
+/**
+ * @argc
+ * @argv
+ * @input_file
+ * @param_file
+ * @n_time_steps
+ * @threads
+ */
 int parse_options(int argc, char * argv[], char ** input_file,
                   char ** param_file, int * n_time_steps, int * threads)
 {
@@ -46,6 +54,12 @@ int parse_options(int argc, char * argv[], char ** input_file,
    return 0;
 }
 
+/**
+ * @argc
+ * @argv
+ * @opt
+ * @iVal
+ */
 static int pv_getopt_int(int argc, char * argv[], char * opt, int * iVal)
 {
    int i;
@@ -58,6 +72,12 @@ static int pv_getopt_int(int argc, char * argv[], char * opt, int * iVal)
    return -1;  // not found
 }
 
+/**
+ * @argc
+ * @argv
+ * @opt
+ * @sVal
+ */
 static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
 {
    int i;
@@ -79,6 +99,10 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
 #define LOGSPARM(paramfile, which) \
     fprintf(paramfile, #which "=%s\n", which)
 
+/**
+ * @n_time_steps
+ * @input@filename
+ */
 int log_parameters(int n_time_steps, char *input_filename)
 {
    // Write our runtime parameters to a logfile, so that
@@ -112,6 +136,9 @@ int log_parameters(int n_time_steps, char *input_filename)
 #define TIFF_FILE_TYPE    1
 #define BINARY_FILE_TYPE  2
 
+/**
+ * @filename
+ */
 static int filetype(const char * filename)
 {
    int n = strlen(filename);
@@ -120,6 +147,13 @@ static int filetype(const char * filename)
    return 0;
 }
 
+/**
+ * @V
+ * @nx0
+ * @ny0
+ * @nx
+ * @ny
+ */
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny)
 {
    int i0, j0, i, j, ii;
@@ -150,7 +184,12 @@ int pv_center_image(float * V, int nx0, int ny0, int nx, int ny)
    return 0;
 }
 
-
+/**
+ * @filename
+ * @buf
+ * @nx
+ * @ny
+ */
 int readFile(const char * filename, float * buf, int * nx, int * ny)
 {
    int result, nItems;
@@ -196,7 +235,13 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
    return err;
 }
 
-// copy local portion of globalBuf into localBuf
+/**
+ * copy local portion of globalBuf to localBuf
+ * @l
+ * @globalBuf
+ * @localBuf
+ * @comm
+ */
 int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
 {
    int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
@@ -213,6 +258,12 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
    return err;
 }
 
+/**
+ * @filename
+ * @l
+ * @localBuf
+ * @comm
+ */
 int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm comm)
 {
    int kl, kg, err = 0;
@@ -255,6 +306,12 @@ int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm 
    return err;
 }
 
+/**
+ * @filename
+ * @l
+ * @ibuf
+ * @comm
+ */
 int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm)
 {
    int commRank, commSize, err = 0;
@@ -333,6 +390,11 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
    return err;
 }
 
+/**
+ * @buf
+ * @nItems
+ * @msg
+ */
 int printStats(pvdata_t * buf, int nItems, char * msg)
 {
    int n;
@@ -364,6 +426,14 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    return 0;
 }
 
+/**
+ * @filename
+ * @append
+ * @I
+ * @nx
+ * @ny
+ * @nf
+ */
 int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
@@ -406,6 +476,14 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
    return err;
 }
 
+/**
+ * @filename
+ * @append
+ * @I
+ * @nx
+ * @ny
+ * @nf
+ */
 int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
@@ -460,6 +538,12 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
    return err;
 }
 
+/**
+ * @fp
+ * @minVal
+ * @maxVal
+ * @p
+ */
 static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
 {
    const int bufSize = 4;
@@ -487,6 +571,13 @@ static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
    return nItems;
 }
 
+/**
+ * @fp
+ * @nf
+ * @minVal
+ * @maxVal
+ * @p
+ */
 int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
 {
    const int bufSize = 4;
@@ -519,6 +610,17 @@ int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
    return nItems;
 }
 
+/**
+ * @filename
+ * @append
+ * @nx
+ * @ny
+ * @nf
+ * @minVal
+ * @maxVal
+ * @numPatches
+ * @patches
+ */
 int pv_write_patches(const char * filename, int append,
                      int nxp, int nyp, int nfp, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches)
@@ -568,6 +670,14 @@ int pv_write_patches(const char * filename, int append,
    return 0;
 }
 
+/**
+ * @fp
+ * @nf
+ * @minVal
+ * @maxVal
+ * @patches
+ * @numPatches
+ */
 int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
                     PVPatch ** patches, int numPatches)
 {
@@ -584,6 +694,11 @@ int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
    return 0;
 }
 
+/**
+ * @fp
+ * @numParams
+ * @params
+ */
 int pv_read_binary_params(FILE * fp, int numParams, int params[])
 {
    int nParams = 0;
@@ -632,6 +747,7 @@ FILE * pv_open_binary(char * filename, int * numParams, int * nx, int * ny, int 
 
 /**
  * Close a PV binary file.
+ * @fp
  */
 int pv_close_binary(FILE * fp)
 {
@@ -650,6 +766,13 @@ size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int numItems)
    return fread(buf, sizeof(pvdata_t), numItems, fp);
 }
 
+/**
+ * @filename
+ * @cube
+ * @nx
+ * @ny
+ * @nf
+ */
 int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf)
 {
    int f, i, j, k;
@@ -712,6 +835,10 @@ int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny
    return 0;
 }
 
+/**
+ * @fd
+ * @patch
+ */
 int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
 {
    int f, i, j, k;
@@ -775,6 +902,10 @@ int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
    return 0;
 }
 
+/**
+ * @fd
+ * @patch
+ */
 int pv_text_write_patch(FILE * fd, PVPatch * patch)
 {
    int f, i, j;

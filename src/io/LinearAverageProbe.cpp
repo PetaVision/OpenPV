@@ -12,6 +12,12 @@
 
 namespace PV {
 
+/**
+ * @hc
+ * @dim
+ * @f
+ * @gifFile
+ */
 LinearAverageProbe::LinearAverageProbe(HyPerCol * hc, PVDimType dim, int f, const char * gifFile)
    : LinearActivityProbe(hc, dim, 0, f)
 {
@@ -19,6 +25,13 @@ LinearAverageProbe::LinearAverageProbe(HyPerCol * hc, PVDimType dim, int f, cons
    this->fpGif   = NULL;
 }
 
+/**
+ * @filename
+ * @hc
+ * @dim
+ * @f
+ * @char
+ */
 LinearAverageProbe::LinearAverageProbe(const char * filename, HyPerCol * hc, PVDimType dim, int f, const char * gifFile)
     : LinearActivityProbe(filename, hc, dim, 0, f)
 {
@@ -33,6 +46,10 @@ LinearAverageProbe::~LinearAverageProbe()
    }
 }
 
+/**
+ * @time
+ * @l
+ */
 int LinearAverageProbe::outputState(float time, PVLayer * l)
 {
    int nk, sk;

@@ -7,12 +7,15 @@ void update_V_and_f(int nc, float phi_c[], float Vc[], float fc[], float I[],
 					float Hc[], float hc[]);
 
 
-/*
+/**
  * Phase II
  *
  * stream the neurons through the SPUs, O(N^2) operations
  *
  * a forall?, chunks go to available threads
+ *
+ * @s
+ * @hc
  */
 int update_partial_state(PVState* s, int hc)
 {
@@ -38,11 +41,12 @@ int update_partial_state(PVState* s, int hc)
 }
 
 
-/*
+/**
  * Phase V
  *
  * update V (with image and noise) and f
  *
+ * @s
  */
 int update_state(PVState* s)
 {
@@ -53,13 +57,15 @@ int update_state(PVState* s)
 
 
 
-/*
+/**
  *
  * variables:
- * x - x position of a neuron (in pixels?)
- * y - y position of a neuron
- * th - orientation of line segment that a neuron responds to
- * f - firing event mask
+ * @x - x position of a neuron (in pixels?)
+ * @y - y position of a neuron
+ * @th - orientation of line segment that a neuron responds to
+ * @f - firing event mask
+ * @argc
+ * @argv
  */
 int ppu_main(int argc, char* argv[])
 {
@@ -167,11 +173,13 @@ int ppu_main(int argc, char* argv[])
 /**
  * update the membrane potential and firing event mask
  *
- * nc is the number of neurons to process in this chunk
- * phi_c is the partial membrane potential
- * Vc is the membrane potential
- * fc is the firing event mask
- * I is the input image
+ * @nc is the number of neurons to process in this chunk
+ * @phi_c is the partial membrane potential
+ * @Vc is the membrane potential
+ * @fc is the firing event mask
+ * @I is the input image
+ * @Hc
+ * @hc
  */
 void update_V_and_f(int nc, float phi_c[], float Vc[], float fc[], float I[],
                     float Hc[], float hc[])

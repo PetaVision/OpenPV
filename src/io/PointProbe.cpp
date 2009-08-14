@@ -10,6 +10,13 @@
 
 namespace PV {
 
+/**
+ * @filename
+ * @xLoc
+ * @yLoc
+ * @fLoc
+ * @msg
+ */
 PointProbe::PointProbe(const char * filename, int xLoc, int yLoc, int fLoc, const char * msg)
    : PVLayerProbe(filename)
 {
@@ -19,6 +26,12 @@ PointProbe::PointProbe(const char * filename, int xLoc, int yLoc, int fLoc, cons
    this->msg = strdup(msg);
 }
 
+/**
+ * @xLoc
+ * @yLoc
+ * @fLoc
+ * @msg
+ */
 PointProbe::PointProbe(int xLoc, int yLoc, int fLoc, const char * msg)
    : PVLayerProbe()
 {
@@ -33,6 +46,10 @@ PointProbe::~PointProbe()
    free(msg);
 }
 
+/**
+ * @time
+ * @l
+ */
 int PointProbe::outputState(float time, PVLayer * l)
 {
    int nf = l->numFeatures;

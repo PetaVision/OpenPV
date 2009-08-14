@@ -6,8 +6,16 @@
 /**
  * update the partial sums for membrane potential
  *
- * nc is the number of neurons to process in this chunk
- * np is the total number of neurons on this processor (size of event mask fp)
+ * @nc is the number of neurons to process in this chunk
+ * @np is the total number of neurons on this processor (size of event mask fp)
+ * @phi_c
+ * @xc
+ * @yc
+ * @xp
+ * @xpoffset
+ * @yp
+ * @ypoffset
+ * @fp
  */
 void update_phi(int nc, int np, float phi_c[], float xc[], float yc[], float xp[],
                 float xpoffset, float yp[], float ypoffset, float fp[])

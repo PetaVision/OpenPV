@@ -1280,7 +1280,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    const float x0 = -(nx/2.0 - 0.5) * dx - xPre;
    const float y0 = +(ny/2.0 - 0.5) * dy - yPre;
 
-   const float dth = PI/nf;
+   const float dth = PI/nf; //should be no?
    const float th0 = rotate*dth/2.0;
 
    // loop over all post-synaptic cells in patch

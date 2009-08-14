@@ -10,6 +10,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @argc
+ * @argv[]
+ */
 int main(int argc, char* argv[])
 {
    FILE * fd;
