@@ -618,7 +618,7 @@ int InterColComm::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
       if (neighbors[n] == icRank) continue;  // don't send to self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
-      printf("[%d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      //      printf("[%d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
