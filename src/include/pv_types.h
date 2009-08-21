@@ -37,8 +37,8 @@ enum ChannelType {
 typedef struct PVLayerLoc_ {
    float nx, ny;
    float nxGlobal, nyGlobal; // total number of neurons in (x,y) across all hypercolumns
+   float nxBorder, nyBorder; // size of border region surrounding layer
    float kx0, ky0;  // origin of the layer in index space
-   float dx, dy;    // maybe not needed but can use for padding anyway
 } PVLayerLoc;
 
 typedef struct PVRect_ {
