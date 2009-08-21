@@ -3,14 +3,14 @@ BUILDDIR = build
 
 include $(SRCDIR)/include/sources.mk
 
-MPI_DIR = arch/mpi
-MPI_INC = -I./$(MPI_DIR)
-MPI_OBJ = $(MPI_DIR)/mpi.o
+#MPI_DIR = arch/mpi
+#MPI_INC = -I./$(MPI_DIR)
+#MPI_OBJ = $(MPI_DIR)/mpi.o
 
-#CC = mpicc
-#CPP = mpic++
-CC = gcc
-CPP = g++
+CC = mpicc
+CPP = mpic++
+#CC = gcc
+#CPP = g++
 
 MAKE = make
 
