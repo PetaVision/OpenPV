@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#define MPI
+
+#ifdef MPI
+#include <mpi.h>
+#endif
+
 #define MACH_TIMER 1
 #undef  MACH_TIMER
 
@@ -72,64 +78,71 @@ double mach_time_to_sec(uint64_t elapsed);
 
 void start_clock()
 {
-  struct rusage r;
-  struct timeval t;
+   struct rusage r;
+   struct timeval t;
 
-  start = clock();
+   start = clock();
 
-  getrusage(RUSAGE_SELF, &r);
-  rstart = r.ru_utime.tv_sec + r.ru_utime.tv_usec*1.0e-6;
+   getrusage(RUSAGE_SELF, &r);
+   rstart = r.ru_utime.tv_sec + r.ru_utime.tv_usec*1.0e-6;
 
-  gettimeofday( &t, (struct timezone *)0 );
-  tstart = t.tv_sec + t.tv_usec*1.0e-6;
-  tv_start = t;
+   gettimeofday( &t, (struct timezone *)0 );
+   tstart = t.tv_sec + t.tv_usec*1.0e-6;
+   tv_start = t;
 
 #ifdef MACH_TIMER
-    mach_start = mach_absolute_time();
+   mach_start = mach_absolute_time();
 #endif
 
 #ifdef CYCLE_TIMER
-  READ_CYCLE_COUNTER(cycle_start);
+   READ_CYCLE_COUNTER(cycle_start);
 #endif
 }
 
 void stop_clock()
 {
-  struct rusage r;
-  struct timeval t;
+   int rank = 0;
+   struct rusage r;
+   struct timeval t;
 
-  end = clock();
+   end = clock();
 
-  getrusage(RUSAGE_SELF, &r);
-  rend = r.ru_utime.tv_sec + r.ru_utime.tv_usec*1.0e-6;
+   getrusage(RUSAGE_SELF, &r);
+   rend = r.ru_utime.tv_sec + r.ru_utime.tv_usec*1.0e-6;
 
-  gettimeofday( &t, (struct timezone *)0 );
-  tend = t.tv_sec + t.tv_usec*1.0e-6;
-  tv_end = t;
+   gettimeofday( &t, (struct timezone *)0 );
+   tend = t.tv_sec + t.tv_usec*1.0e-6;
+   tv_end = t;
+
+#ifdef MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
 
 #ifdef MACH_TIMER
-    mach_end = mach_absolute_time();
+   mach_end = mach_absolute_time();
 #endif
 
 #ifdef CYCLE_TIMER
-  READ_CYCLE_COUNTER(cycle_end);
+   READ_CYCLE_COUNTER(cycle_end);
 #endif
 
-  fprintf(stderr, "%1.2f seconds elapsed (clock())\n",
-	  (float)((double)(end-start) / CLOCKS_PER_SEC));
-  fprintf(stderr, "%1.2f seconds elapsed (CPU)\n", (float)(rend-rstart));
-  fprintf(stderr, "%1.2f seconds elapsed (wallclock)\n", (float)(tend-tstart));
+   if (rank == 0) {
+      fprintf(stderr, "%1.2f seconds elapsed (clock())\n",
+              (float)((double)(end-start) / CLOCKS_PER_SEC));
+      fprintf(stderr, "%1.2f seconds elapsed (CPU)\n", (float)(rend-rstart));
+      fprintf(stderr, "%1.2f seconds elapsed (wallclock)\n", (float)(tend-tstart));
 
 #ifdef MACH_TIMER
-    mach_elapsed = mach_time_to_sec(mach_end - mach_start);
-    fprintf(stderr, "Mach processor cycle time = %f\n", (float) mach_elapsed);
+      mach_elapsed = mach_time_to_sec(mach_end - mach_start);
+      fprintf(stderr, "Mach processor cycle time == %f\n", (float) mach_elapsed);
 #endif
 
 #ifdef CYCLE_TIMER
-  fprintf(stderr, "%ld cycles elapsed\n", (long) (cycle_end - cycle_start));
-  fprintf(stderr, "%f seconds elapsed (cycle timer)\n",
-	  (float) ((double)(cycle_end - cycle_start))/CYCLES_PER_SEC);
+      fprintf(stderr, "%ld cycles elapsed\n", (long) (cycle_end - cycle_start));
+      fprintf(stderr, "%f seconds elapsed (cycle timer)\n",
+              (float) ((double)(cycle_end - cycle_start))/CYCLES_PER_SEC);
 #endif
+   }
 }
 
 double elapsed_time()
