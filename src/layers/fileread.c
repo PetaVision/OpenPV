@@ -45,11 +45,11 @@ int fileread_init(PVLayer* l)
    // TODO - make sure the origin information is working correctly
    if (marginWidth != 0.0f) {
       for (n = 0; n < l->numNeurons; n++) {
-         float x = xPos(n, l->xOrigin, l->loc.dx, l->loc.nx, l->loc.ny, l->numFeatures);
-         float y = yPos(n, l->yOrigin, l->loc.dy, l->loc.nx, l->loc.ny, l->numFeatures);
+         float x = xPos(n, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
+         float y = yPos(n, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
 
-         if ( x < marginWidth || x > l->loc.nxGlobal * l->loc.dx - marginWidth ||
-              y < marginWidth || y > l->loc.nyGlobal * l->loc.dy - marginWidth ) {
+         if ( x < marginWidth || x > l->loc.nxGlobal * l->dx - marginWidth ||
+              y < marginWidth || y > l->loc.nyGlobal * l->dy - marginWidth ) {
             l->V[n] = 0.0;
          }
       }
