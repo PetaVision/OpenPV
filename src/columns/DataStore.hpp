@@ -40,6 +40,6 @@ private:
    char*  recvBuffers;
 };
 
-}; // NAMESPACE
+} // NAMESPACE
 
 #endif /* DATASTORE_H_ */
