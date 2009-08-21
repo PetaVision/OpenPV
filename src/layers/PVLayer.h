@@ -39,6 +39,7 @@ typedef struct PVLayer_ {
 
    PVLayerLoc loc;
    int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
+   float dx, dy;           // distance between neurons in the layer
    float xOrigin, yOrigin; // origin of the layer (depends on iCol)
 
    // Output activity buffers -- a ring buffer to implement delay
@@ -85,8 +86,8 @@ int pvlayer_copyUpdate(PVLayer * l);
 
 static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float * kf)
 {
-   *x = xPos(k, l->xOrigin, l->loc.dx, l->loc.nx, l->loc.ny, l->numFeatures);
-   *y = yPos(k, l->yOrigin, l->loc.dy, l->loc.nx, l->loc.ny, l->numFeatures);
+   *x = xPos(k, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
+   *y = yPos(k, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
    *kf = featureIndex(k, l->loc.nx, l->loc.ny, l->numFeatures);
 
    return 0;
