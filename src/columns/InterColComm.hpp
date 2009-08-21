@@ -91,7 +91,7 @@ public:
 
    DataStore* publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
 
-   int numberOfNeighbors();
+   int numberOfNeighbors(); // includes interior (self) as a neighbor
    int numberOfBorders()                  {return numBorders;}
 
    bool hasNeighbor(int neighborId);
@@ -144,8 +144,6 @@ private:
    bool hasSouthwesternNeighbor(int commId);
    bool hasSouthernNeighbor(int commId);
    bool hasSoutheasternNeighbor(int commId);
-
-   int numberNeighbors();
 
    int northwest(int commId);
    int north(int commId);
