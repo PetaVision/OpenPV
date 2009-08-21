@@ -5,9 +5,10 @@
  *      Author: rasmussn
  */
 
+#include <assert.h>
+#include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 
 #include "InterColComm.hpp"
@@ -165,7 +166,7 @@ int InterColComm::neighborInit()
    // initialize neighbor and border lists
    // (local borders and remote neighbors form the complete neighborhood)
 
-   this->numNeighbors = numberNeighbors();
+   this->numNeighbors = numberOfNeighbors();
    this->numBorders   = 1 + MAX_NEIGHBORS - this->numNeighbors;
 
    for (int i = 0; i < 1 + MAX_NEIGHBORS; i++) {
@@ -256,7 +257,7 @@ bool InterColComm::hasNorthwesternNeighbor(int commId)
  */
 bool InterColComm::hasNorthernNeighbor(int commId)
 {
-   return ((commId - numCommColumns()) < 0) ? 0 : 1;
+   return ((commId - numCommColumns()) < 0) ? false : true;
 }
 
 /**
@@ -274,7 +275,7 @@ bool InterColComm::hasNortheasternNeighbor(int commId)
  */
 bool InterColComm::hasWesternNeighbor(int commId)
 {
-   return commId % numCommColumns();
+   return (commId % numCommColumns());
 }
 
 /**
@@ -283,7 +284,7 @@ bool InterColComm::hasWesternNeighbor(int commId)
  */
 bool InterColComm::hasEasternNeighbor(int commId)
 {
-   return (commId + 1) % numCommColumns();
+   return ((commId + 1) % numCommColumns());
 }
 
 /**
@@ -301,7 +302,7 @@ bool InterColComm::hasSouthwesternNeighbor(int commId)
  */
 bool InterColComm::hasSouthernNeighbor(int commId)
 {
-
+   return ((commId + numCommColumns()) < icSize) ? true : false;
 }
 
 /**
@@ -316,7 +317,7 @@ bool InterColComm::hasSoutheasternNeighbor(int commId)
 /**
  * Returns the number in communication neighborhood (local included)
  */
-int InterColComm::numberNeighbors()
+int InterColComm::numberOfNeighbors()
 {
    int n = 1;
 
@@ -348,8 +349,8 @@ int InterColComm::numberNeighbors()
  */
 int InterColComm::northwest(int commId)
 {
-   if (hasNorthernNeighbor(commId) == 0) return -NORTHWEST;
-   return west(commId + this->numHyPerCols);
+   if (not hasNorthwesternNeighbor(commId)) return -NORTHWEST;
+   return (commId - 1 - numCommColumns());
 }
 
 /**
@@ -357,8 +358,8 @@ int InterColComm::northwest(int commId)
  */
 int InterColComm::north(int commId)
 {
-   if (hasNorthernNeighbor(commId) == 0) return -NORTH;
-   return (commId + this->numHyPerCols);
+   if (not hasNorthernNeighbor(commId)) return -NORTH;
+   return (commId - numCommColumns());
 }
 
 /**
@@ -366,8 +367,8 @@ int InterColComm::north(int commId)
  */
 int InterColComm::northeast(int commId)
 {
-   if (hasNorthernNeighbor(commId) == 0) return -NORTHEAST;
-   return east(commId + this->numHyPerCols);
+   if (not hasNortheasternNeighbor(commId)) return -NORTHEAST;
+   return (commId + 1 - numCommColumns());
 }
 
 /**
@@ -375,8 +376,8 @@ int InterColComm::northeast(int commId)
  */
 int InterColComm::west(int commId)
 {
-   if (hasWesternNeighbor(commId) == 0) return -WEST;
-   return (commRow(commId) * numHyPerCols + ((commId - 1) % numHyPerCols));
+   if (not hasWesternNeighbor(commId)) return -WEST;
+   return (commId - 1);
 }
 
 /**
@@ -384,8 +385,8 @@ int InterColComm::west(int commId)
  */
 int InterColComm::east(int commId)
 {
-   if (hasEasternNeighbor(commId) == 0) return -EAST;
-   return (commRow(commId) * numHyPerCols + ((commId + 1) % numHyPerCols));
+   if (not hasEasternNeighbor(commId)) return -EAST;
+   return (commId + 1);
 }
 
 /**
@@ -393,9 +394,8 @@ int InterColComm::east(int commId)
  */
 int InterColComm::southwest(int commId)
 {
-   if (hasSouthernNeighbor(commId) == 0) return -SOUTHWEST;
-   int id = west(commId + numCommColumns());
-   return (id < 0) ? -SOUTHWEST : id;
+   if (not hasSouthwesternNeighbor(commId)) return -SOUTHWEST;
+   return (commId - 1 + numCommColumns());
 }
 
 /**
@@ -403,7 +403,7 @@ int InterColComm::southwest(int commId)
  */
 int InterColComm::south(int commId)
 {
-   if (hasSouthernNeighbor(commId) == 0) return -SOUTH;
+   if (not hasSouthernNeighbor(commId)) return -SOUTH;
    return (commId + numCommColumns());
 }
 
@@ -412,8 +412,8 @@ int InterColComm::south(int commId)
  */
 int InterColComm::southeast(int commId)
 {
-   if (hasSouthernNeighbor(commId) == 0) return -SOUTHEAST;
-   return east(commId - this->numHyPerCols);
+   if (not hasSoutheasternNeighbor(commId)) return -SOUTHEAST;
+   return (commId + 1 + numCommColumns());
 }
 
 /**
@@ -597,7 +597,7 @@ int InterColComm::recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
                        const PVLayerLoc * loc)
 {
    // don't recv interior
-   int count = numberNeighbors() - 1;
+   int count = numberOfNeighbors() - 1;
    //   printf("[%d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
@@ -618,7 +618,7 @@ int InterColComm::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
       if (neighbors[n] == icRank) continue;  // don't send to self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
-      printf("[%d]: recv,send to %d, n=%d recvOffset==%d sendOffset==%d send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      printf("[%d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
