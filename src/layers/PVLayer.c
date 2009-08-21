@@ -43,8 +43,8 @@ int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
    l->xScale = xScale;
    l->yScale = yScale;
 
-   l->loc.dx = powf(2.0f, (float) xScale);
-   l->loc.dy = powf(2.0f, (float) yScale);
+   l->dx = powf(2.0f, (float) xScale);
+   l->dy = powf(2.0f, (float) yScale);
 
    l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
 
@@ -105,8 +105,8 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
    l->loc.kx0 = l->loc.nx * colCol;
    l->loc.ky0 = l->loc.ny * colRow;
 
-   l->xOrigin = 0.5 + l->loc.kx0 * l->loc.dx;
-   l->yOrigin = 0.5 + l->loc.ky0 * l->loc.dy;
+   l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
+   l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
 
    l->activity = pvcube_new(&l->loc, l->numNeurons);
 
