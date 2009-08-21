@@ -5,15 +5,15 @@ include $(SRCDIR)/include/sources.mk
 
 INPARAMS = $(SRCDIR)/io/input/inparams.txt
 
-#CPP = mpic++
-#CC  = mpicc
-CPP = c++
-CC  = cc
+CPP = mpic++
+CC  = mpicc
+#CPP = c++
+#CC  = cc
 FC = ifort
 
-MPI_DIR = ../../src/arch/mpi
-MPI_INC = -I$(MPI_DIR)
-MPI_OBJ = $(MPI_DIR)/mpi.o
+#MPI_DIR = ../../src/arch/mpi
+#MPI_INC = -I$(MPI_DIR)
+#MPI_OBJ = $(MPI_DIR)/mpi.o
 
 VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=3
 
@@ -22,7 +22,9 @@ CPPFLAGS = -O3 -Wall $(VEC_FLAGS) $(MPI_INC)
 
 DEPENDS = $(HEADERS) clock.h
 
-TESTS = time_accumulate time_recv_input time_accumulate_f
+LIBS = ../../src/build/libpv.a clock.o
+
+TESTS = time_accumulate time_recv_input time_accumulate_f time_mpi
 
 .SUFFIXES: .cpp .c .o
 
@@ -42,6 +44,9 @@ time_accumulate: time_accumulate.o $(DEPENDS) $(OBJS) $(MPI_OBJ) clock.o
 
 time_recv_input: time_recv_input.o $(DEPENDS) $(OBJS) $(MPI_OBJ) clock.o
 	$(CPP) -o $@ $@.o $(OBJS) $(MPI_OBJ) clock.o
+
+time_mpi: $(BUILDDIR)/time_mpi.o $(LIBS)
+	$(CPP) -o $@ $< $(LIBS)
 
 $(MPI_OBJ): $(MPI_DIR)/mpi.h $(MPI_DIR)/mpi.c
 	$(CC) $(CFLAGS) -c $(MPI_DIR)/mpi.c -o $@
