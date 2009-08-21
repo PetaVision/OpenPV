@@ -3,24 +3,24 @@ BUILDDIR = build
 
 INPARAMS = input/inparams.txt
 
-#CPP = mpic++
-#CC  = mpicc
-CPP = c++
-CC  = cc
+CPP = mpic++
+CC  = mpicc
+#CPP = c++
+#CC  = cc
 
-MPI_DIR = ../src/arch/mpi
-MPI_INC = -I$(MPI_DIR)
-MPI_OBJ = $(MPI_DIR)/mpi.o
+#MPI_DIR = ../src/arch/mpi
+#MPI_INC = -I$(MPI_DIR)
+#MPI_OBJ = $(MPI_DIR)/mpi.o
 
 CFLAGS = -g -std=c99 -Wall $(MPI_INC)
 CPPFLAGS = -g -Wall $(MPI_INC)
 
-LIBS = -L../src/build -lpv
+LIBS = ../src/build/libpv.a
 
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_decode_msg \
-        test_borders test_gs_io test_layer_direct
+        test_borders test_datatypes test_gs_io test_layer_direct
 
 .SUFFIXES: .cpp .c .o
 
@@ -44,46 +44,49 @@ $(BUILDDIR)/%.o: %.c
 
 all: make-in-subdirs $(TESTS)
 
-test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o
+test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(LIBS)
 	$(CPP) -o $@ $< $(BUILDDIR)/TestLayer.o $(LIBS)
 
-test_gs_io: $(BUILDDIR)/test_gs_io.o
+test_gs_io: $(BUILDDIR)/test_gs_io.o $(LIBS)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_kg: $(BUILDDIR)/test_kg.o
+test_kg: $(BUILDDIR)/test_kg.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_kxpos: $(BUILDDIR)/test_kxpos.o
+test_kxpos: $(BUILDDIR)/test_kxpos.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_kypos: $(BUILDDIR)/test_kypos.o
+test_kypos: $(BUILDDIR)/test_kypos.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o 
+test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o  $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_delta_pos: $(BUILDDIR)/test_delta_pos.o
+test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_pos: $(BUILDDIR)/test_pos.o
+test_pos: $(BUILDDIR)/test_pos.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_decode_msg: $(BUILDDIR)/test_decode_msg.o
+test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_extend_border: $(BUILDDIR)/test_extend_border.o
+test_extend_border: $(BUILDDIR)/test_extend_border.o $(LIBS)
 	$(CC) -o $@ $< $(LIBS)
 
-test_borders: $(BUILDDIR)/test_borders.o
+test_borders: $(BUILDDIR)/test_borders.o $(LIBS)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_patch_head: $(BUILDDIR)/test_patch_head.o
+test_datatypes: $(BUILDDIR)/test_datatypes.o $(LIBS)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_delta: $(BUILDDIR)/test_delta.o
+test_patch_head: $(BUILDDIR)/test_patch_head.o $(LIBS)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_delta: $(BUILDDIR)/test_delta.o $(LIBS)
 	$(CC) -o $@ $<
 
-test_sign: $(BUILDDIR)/test_sign.o
+test_sign: $(BUILDDIR)/test_sign.o $(LIBS)
 	$(CC) -o $@ $<
 
 runtests: make-in-subdirs $(TESTS)
