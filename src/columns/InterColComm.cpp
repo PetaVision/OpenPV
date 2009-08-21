@@ -37,8 +37,7 @@ InterColComm::InterColComm(int* argc, char*** argv)
       MPI_Group worldGroup, newGroup;
       MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
 
-      int * ranks = (int *) malloc(exclsize * sizeof(int));
-      assert(ranks != NULL);
+      int * ranks = new int [exclsize];
 
       for (int i = 0; i < exclsize; i++) {
          ranks[i] = i + numHyPerCols;
@@ -51,7 +50,7 @@ InterColComm::InterColComm(int* argc, char*** argv)
       printf("[%2d]: Formed resized communicator, size=%d cols=%d rows=%d\n", icRank, icSize, numCols, numRows);
 #endif
 
-      free(ranks);
+      delete ranks;
    }
 
    if (worldRank < numHyPerCols) {
@@ -114,6 +113,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int 
 {
    int pubId = pub->getLayerId();
    publishers[pubId] = new Publisher(pubId, numNeighbors, size1, numBorders, size2, numLevels);
+   publishers[pubId]->setCommunicator(icComm);
    numPublishers += 1;
 
    DataStore* store = publishers[pubId]->dataStore();
@@ -140,7 +140,7 @@ int InterColComm::subscribe(HyPerConn* conn)
 int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
+   return publishers[pubId]->publish(pub, remoteNeighbors, numNeighbors, borders, numBorders, cube);
 }
 
 /**
@@ -155,7 +155,7 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
 }
 
 /**
- * Initialize the communication neighbors
+ * Initialize the communication neighborhood
  */
 int InterColComm::neighborInit()
 {
@@ -169,17 +169,23 @@ int InterColComm::neighborInit()
    this->numBorders   = 1 + MAX_NEIGHBORS - this->numNeighbors;
 
    for (int i = 0; i < 1 + MAX_NEIGHBORS; i++) {
-      neighbors[i] = 0;
       int n = neighborIndex(icRank, i);
+      neighbors[i] = icRank;   // default neighbor is self
+      remoteNeighbors[i] = 0;
       if (n >= 0) {
-         neighbors[num_neighbors++] = n;
+         neighbors[i] = n;
+         remoteNeighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
-         printf("[%d]: neighborInit: neighbor[%d] of %d is %d, i = %d\n",
-                icRank, num_neighbors - 1, this->numNeighbors, n, i);
+         printf("[%d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
+                icRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
          fflush(stdout);
 #endif
       } else {
          borders[num_borders++] = -n;
+#ifdef DEBUG_OUTPUT
+         printf("[%d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
+         fflush(stdout);
+#endif
       }
    }
    assert(this->numNeighbors == num_neighbors);
@@ -205,21 +211,43 @@ int InterColComm::commColumn(int commId)
 }
 
 /**
- * Returns true if the given commId has a western neighbor
+ * Returns true if the given neighbor is present
  * (false otherwise)
  */
-bool InterColComm::hasWesternNeighbor(int commId)
+bool InterColComm::hasNeighbor(int neighbor)
 {
-   return commId % this->numHyPerCols;
+   switch (neighbor) {
+   case LOCAL: /* local */
+      return true;
+   case NORTHWEST : /* northwest */
+      return hasNorthwesternNeighbor(icRank);
+   case NORTH     : /* north */
+      return hasNorthernNeighbor(icRank);
+   case NORTHEAST : /* northeast */
+      return hasNortheasternNeighbor(icRank);
+   case WEST      : /* west */
+      return hasWesternNeighbor(icRank);
+   case EAST      : /* east */
+      return hasEasternNeighbor(icRank);
+   case SOUTHWEST : /* southwest */
+      return hasSouthwesternNeighbor(icRank);
+   case SOUTH     : /* south */
+      return hasSouthernNeighbor(icRank);
+   case SOUTHEAST : /* southeast */
+      return hasSoutheasternNeighbor(icRank);
+   default:
+      fprintf(stderr, "ERROR:hasNeighbor: bad index\n");
+   }
+   return false;
 }
 
 /**
- * Returns true if the given commId has an eastern neighbor
+ * Returns true if the given commId has a northwestern neighbor
  * (false otherwise)
  */
-bool InterColComm::hasEasternNeighbor(int commId)
+bool InterColComm::hasNorthwesternNeighbor(int commId)
 {
-   return (commId + 1) % this->numHyPerCols;
+   return (hasNorthernNeighbor(commId) && hasWesternNeighbor(commId));
 }
 
 /**
@@ -228,7 +256,43 @@ bool InterColComm::hasEasternNeighbor(int commId)
  */
 bool InterColComm::hasNorthernNeighbor(int commId)
 {
-   return ((commId + this->numHyPerCols) > (this->icSize - 1)) ? 0 : 1;
+   return ((commId - numCommColumns()) < 0) ? 0 : 1;
+}
+
+/**
+ * Returns true if the given commId has a northeastern neighbor
+ * (false otherwise)
+ */
+bool InterColComm::hasNortheasternNeighbor(int commId)
+{
+   return (hasNorthernNeighbor(commId) && hasEasternNeighbor(commId));
+}
+
+/**
+ * Returns true if the given commId has a western neighbor
+ * (false otherwise)
+ */
+bool InterColComm::hasWesternNeighbor(int commId)
+{
+   return commId % numCommColumns();
+}
+
+/**
+ * Returns true if the given commId has an eastern neighbor
+ * (false otherwise)
+ */
+bool InterColComm::hasEasternNeighbor(int commId)
+{
+   return (commId + 1) % numCommColumns();
+}
+
+/**
+ * Returns true if the given commId has a southwestern neighbor
+ * (false otherwise)
+ */
+bool InterColComm::hasSouthwesternNeighbor(int commId)
+{
+   return (hasSouthernNeighbor(commId) && hasWesternNeighbor(commId));
 }
 
 /**
@@ -237,7 +301,16 @@ bool InterColComm::hasNorthernNeighbor(int commId)
  */
 bool InterColComm::hasSouthernNeighbor(int commId)
 {
-   return ((commId - this->numHyPerCols) < 0) ? 0 : 1;
+
+}
+
+/**
+ * Returns true if the given commId has a southeastern neighbor
+ * (false otherwise)
+ */
+bool InterColComm::hasSoutheasternNeighbor(int commId)
+{
+   return (hasSouthernNeighbor(commId) && hasEasternNeighbor(commId));
 }
 
 /**
@@ -321,7 +394,8 @@ int InterColComm::east(int commId)
 int InterColComm::southwest(int commId)
 {
    if (hasSouthernNeighbor(commId) == 0) return -SOUTHWEST;
-   return west(commId - this->numHyPerCols);
+   int id = west(commId + numCommColumns());
+   return (id < 0) ? -SOUTHWEST : id;
 }
 
 /**
@@ -330,7 +404,7 @@ int InterColComm::southwest(int commId)
 int InterColComm::south(int commId)
 {
    if (hasSouthernNeighbor(commId) == 0) return -SOUTH;
-   return (commId - this->numHyPerCols);
+   return (commId + numCommColumns());
 }
 
 /**
@@ -372,10 +446,192 @@ int InterColComm::neighborIndex(int commId, int index)
    return -1;
 }
 
+/**
+ * Returns the recv data offset for the given neighbor
+ *  - recv into borders
+ */
+size_t InterColComm::recvOffset(int n, const PVLayerLoc * loc)
+{
+   const size_t nx = loc->nx;
+   const size_t ny = loc->nx;
+   const size_t nxBorder = loc->nxBorder;
+   const size_t nyBorder = loc->nyBorder;
+
+   const size_t sy = 2 * nxBorder + nx;
+
+   switch (n) {
+   case LOCAL:
+      return (nxBorder      + sy * nyBorder);
+   case NORTHWEST:
+      return ((size_t) 0                   );
+   case NORTH:
+      return (nxBorder                     );
+   case NORTHEAST:
+      return (nxBorder + nx                );
+   case WEST:
+      return (                sy * nyBorder);
+   case EAST:
+      return (nxBorder + nx + sy * nyBorder);
+   case SOUTHWEST:
+      return (              + sy * (nyBorder + ny));
+   case SOUTH:
+      return (nxBorder      + sy * (nyBorder + ny));
+   case SOUTHEAST:
+      return (nxBorder + nx + sy * (nyBorder + ny));
+   default:
+      fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
+   }
+   return 0;
+}
+
+/**
+ * Returns the send data offset for the given neighbor
+ *  - send from interior
+ */
+size_t InterColComm::sendOffset(int n, const PVLayerLoc * loc)
+{
+   const size_t nx = loc->nx;
+   const size_t ny = loc->nx;
+   const size_t nxBorder = loc->nxBorder;
+   const size_t nyBorder = loc->nyBorder;
+
+   const size_t sy = 2 * nxBorder + nx;
+
+   switch (n) {
+   case LOCAL:
+      return (nxBorder + sy * nyBorder);
+   case NORTHWEST:
+      return (nxBorder + sy * nyBorder);
+   case NORTH:
+      return (nxBorder + sy * nyBorder);
+   case NORTHEAST:
+      return (nx       + sy * nyBorder);
+   case WEST:
+      return (nxBorder + sy * nyBorder);
+   case EAST:
+      return (nx       + sy * nyBorder);
+   case SOUTHWEST:
+      return (nxBorder + sy * ny);
+   case SOUTH:
+      return (nxBorder + sy * ny);
+   case SOUTHEAST:
+      return (nx       + sy * ny);
+   default:
+      fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
+   }
+   return 0;
+}
+
+/**
+ * Create a set of data types for inter-neighbor communication
+ *   - caller must free the data-type array
+ */
+MPI_Datatype * InterColComm::newDatatypes(const PVLayerLoc * loc)
+{
+   int count, blocklength, stride;
+
+   MPI_Datatype * comms = new MPI_Datatype [MAX_NEIGHBORS+1];
+
+   count       = loc->ny;
+   blocklength = loc->nx;
+   stride      = 2*loc->nxBorder + loc->nx;
+
+   /* local interior */
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[LOCAL]);
+   MPI_Type_commit(&comms[LOCAL]);
+
+   count = loc->nyBorder;
+
+   /* northwest */
+   blocklength = loc->nxBorder;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHWEST]);
+   MPI_Type_commit(&comms[NORTHWEST]);
+
+   /* north */
+   blocklength = loc->nx;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTH]);
+   MPI_Type_commit(&comms[NORTH]);
+
+   /* northeast */
+   blocklength = loc->nxBorder;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHEAST]);
+   MPI_Type_commit(&comms[NORTHEAST]);
+
+   count       = loc->ny;
+   blocklength = loc->nxBorder;
+
+   /* west */
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[WEST]);
+   MPI_Type_commit(&comms[WEST]);
+
+   /* east */
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[EAST]);
+   MPI_Type_commit(&comms[EAST]);
+
+   count = loc->nyBorder;
+
+   /* southwest */
+   blocklength = loc->nxBorder;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHWEST]);
+   MPI_Type_commit(&comms[SOUTHWEST]);
+
+   /* south */
+   blocklength = loc->nx;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTH]);
+   MPI_Type_commit(&comms[SOUTH]);
+
+   /* southeast */
+   blocklength = loc->nxBorder;
+   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHEAST]);
+   MPI_Type_commit(&comms[SOUTHEAST]);
+
+   return comms;
+}
+
+/**
+ * Recv data from neighbors
+ *   - wait for delivery as recv has already been posted
+ *   - the data regions to be sent are described by the datatypes
+ */
+int InterColComm::recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
+                       const PVLayerLoc * loc)
+{
+   // don't recv interior
+   int count = numberNeighbors() - 1;
+   //   printf("[%d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
+
+   return 0;
+}
+
+/**
+ * Send data to neighbors
+ *   - the data regions to be sent are described by the datatypes
+ *   - do irecv first so there is a location for send data to be received
+ */
+int InterColComm::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
+                       const PVLayerLoc * loc)
+{
+   // don't send interior
+   int nreq = 0;
+   for (int n = 1; n < MAX_NEIGHBORS+1; n++) {
+      if (neighbors[n] == icRank) continue;  // don't send to self
+      pvdata_t * recvBuf = data + recvOffset(n, loc);
+      pvdata_t * sendBuf = data + sendOffset(n, loc);
+      printf("[%d]: recv,send to %d, n=%d recvOffset==%d sendOffset==%d send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
+                &requests[nreq++]);
+      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
+   }
+
+   return 0;
+}
+
 Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels)
 {
    size_t maxSize = (size1 > size2) ? size1 : size2;
    this->pubId = pubId;
+   this->comm  = MPI_COMM_WORLD;
    this->numSubscribers = 0;
    this->store = new DataStore(numType1+numType2, maxSize, numLevels);
    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
@@ -405,14 +661,12 @@ int Publisher::publish(HyPerLayer* pub,
    for (int i = 0; i < numNeighbors; i++) {
       // Note - cube->data addr need not be correct as it will be wrong copied in from MPI
       void* recvBuf = recvBuffer(i);
-      MPI_Irecv(recvBuf, size, MPI_CHAR, neighbors[i], pubId, MPI_COMM_WORLD,
+      MPI_Irecv(recvBuf, size, MPI_CHAR, neighbors[i], pubId, comm,
             &request[i]);
-      MPI_Send(cube, size, MPI_CHAR, neighbors[i], pubId, MPI_COMM_WORLD);
+      MPI_Send(cube, size, MPI_CHAR, neighbors[i], pubId, comm);
 #ifdef DEBUG_OUTPUT
-      int rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       printf("[%d]: Publisher::publish: neighbor=%d pubId=%d sendbuf=%p recvbuf=%p\n",
-             rank, neighbors[i], i, cube, recvBuf);
+             icRank, neighbors[i], i, cube, recvBuf);
       fflush(stdout);
 #endif
    }
@@ -449,9 +703,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
             PVLayerCube* cube = (PVLayerCube*) store->buffer(n, delay);
             pvcube_setAddr(cube);  // fix data address arriving from MPI
 #ifdef DEBUG_OUTPUT
-            int rank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", rank, n, cube);
+            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", icRank, n, cube);
             fflush(stdout);
 #endif
             conn->deliver(cube, n);
@@ -470,9 +722,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
             PVLayerCube* cube = (PVLayerCube*) store->buffer(neighborId, 0);
             pvcube_setAddr(cube);  // fix data address arriving from MPI
 #ifdef DEBUG_OUTPUT
-            int rank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", rank, neighborId, cube);
+            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", icRank, neighborId, cube);
             fflush(stdout);
 #endif
             conn->deliver(cube, neighborId);
