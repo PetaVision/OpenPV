@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
    int commRow = ic->commRow(ic->commRank());
    int commCol = ic->commColumn(ic->commRank());
 
-   printf("[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d\n", ic->commRank(), nxProc, nyProc, commRow, commCol);  fflush(stdout);
+   printf("[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n", ic->commRank(), nxProc, nyProc, commRow, commCol, ic->numberOfNeighbors());  fflush(stdout);
 
    //   for (int n = 0; n < MAX_NEIGHBORS+1; n++) {
    //      printf("[%d]: hasNeighbor(%d)=%d\n", ic->commRank(), n, ic->hasNeighbor(n));  fflush(stdout);
