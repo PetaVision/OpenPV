@@ -42,44 +42,47 @@ public:
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
    virtual ~Publisher();
 
-   int publish(HyPerLayer* pub,
+   int publish(HyPerLayer * pub,
                int neighbors[], int numNeighbors,
-               int borders[], int numBorders, PVLayerCube* data);
-   int subscribe(HyPerConn* conn);
-   int deliver(HyPerCol* hc, int numNeighbors, int numBorders);
+               int borders[], int numBorders, PVLayerCube * data);
+   int subscribe(HyPerConn * conn);
+   int deliver(HyPerCol * hc, int numNeighbors, int numBorders);
 
    static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
-   int increaseTimeLevel()  {return store->newLevelIndex();}
+   int increaseTimeLevel()   {return store->newLevelIndex();}
 
-   DataStore* dataStore()   {return store;}
+   void setCommunicator(MPI_Comm comm)  {this->comm = comm;}
+
+   DataStore * dataStore()   {return store;}
 
 private:
 
-   PVLayerCube* recvBuffer(int neighborId)
-         {return (PVLayerCube*) store->buffer(neighborId);}
-   PVLayerCube* recvBuffer(int neighborId, int delay)
-         {return (PVLayerCube*) store->buffer(neighborId, delay);}
+   PVLayerCube * recvBuffer(int neighborId)
+         {return (PVLayerCube *) store->buffer(neighborId);}
+   PVLayerCube * recvBuffer(int neighborId, int delay)
+         {return (PVLayerCube *) store->buffer(neighborId, delay);}
 
    int pubId;
    int numSubscribers;
-   HyPerConn* connection[MAX_SUBSCRIBERS];
-   MPI_Request request[MAX_MESSAGES];
-   DataStore* store;
+   HyPerConn *  connection[MAX_SUBSCRIBERS];
+   MPI_Request  request[MAX_MESSAGES];
+   MPI_Comm     comm;
+   DataStore *  store;
 };
 
 class InterColComm {
 public:
-   InterColComm(int* argc, char*** argv);
+   InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
 
-   int commInit(int* argc, char*** argv);
+   int commInit(int * argc, char *** argv);
    int commFinalize();
 
-   int addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int numLevels);
-   int publish(HyPerLayer* pub, PVLayerCube* cube);
-   int subscribe(HyPerConn* conn);
-   int deliver(HyPerCol* hc, int pubId);
+   int addPublisher(HyPerLayer * pub, size_t size1, size_t size2, int numLevels);
+   int publish(HyPerLayer * pub, PVLayerCube * cube);
+   int subscribe(HyPerConn * conn);
+   int deliver(HyPerCol * hc, int pubId);
    int increaseTimeLevel(int pubId)       {return publishers[pubId]->increaseTimeLevel();}
 
    int commRank()               { return icRank; }
@@ -91,10 +94,22 @@ public:
    int numberOfNeighbors();
    int numberOfBorders()                  {return numBorders;}
 
+   bool hasNeighbor(int neighborId);
+
    int commRow(int commId);
    int commColumn(int commId);
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}
+
+   size_t recvOffset(int n, const PVLayerLoc * loc);
+   size_t sendOffset(int n, const PVLayerLoc * loc);
+   MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
+
+   int send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
+            const PVLayerLoc * loc);
+
+   int recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
+            const PVLayerLoc * loc);
 
 private:
 
@@ -110,19 +125,25 @@ private:
    int numPublishers;
 
    MPI_Comm icComm;
+   MPI_Request requests[MAX_NEIGHBORS];
 
-   int neighbors[MAX_NEIGHBORS + 1];
    int borders[MAX_NEIGHBORS];
+   int neighbors[MAX_NEIGHBORS + 1];        // [0] is interior (local)
+   int remoteNeighbors[MAX_NEIGHBORS + 1];
    Publisher* publishers[MAX_PUBLISHERS];
 
    // These methods are private for now, move to public as needed
 
    int neighborInit();
 
+   bool hasNorthwesternNeighbor(int commId);
+   bool hasNorthernNeighbor(int commId);
+   bool hasNortheasternNeighbor(int commId);
    bool hasWesternNeighbor(int commId);
    bool hasEasternNeighbor(int commId);
-   bool hasNorthernNeighbor(int commId);
+   bool hasSouthwesternNeighbor(int commId);
    bool hasSouthernNeighbor(int commId);
+   bool hasSoutheasternNeighbor(int commId);
 
    int numberNeighbors();
 
