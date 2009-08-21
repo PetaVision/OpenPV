@@ -122,7 +122,7 @@ int HyPerCol::initFinish(void)
 
 int HyPerCol::columnId()
 {
-   return icComm->rank();
+   return icComm->commRank();
 }
 
 int HyPerCol::numberOfColumns()
