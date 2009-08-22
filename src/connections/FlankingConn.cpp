@@ -17,7 +17,7 @@ FlankingConn::FlankingConn(const char * name, HyPerCol * hc, HyPerLayer * pre, H
    this->connId = hc->numberOfConnections();
    this->name = strdup(name);
    this->parent = hc;
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, CHANNEL_EXC);
 
@@ -54,12 +54,13 @@ int FlankingConn::initializeWeights(const char * filename)
 
    int nfPre = pre->clayer->numFeatures;
 
-   const int numPatches = numberOfWeightPatches();
+   const int borderId = 0;
+   const int numPatches = numberOfWeightPatches(borderId);
    for (int i = 0; i < numPatches; i++) {
       int xScale = post->clayer->xScale - pre->clayer->xScale;
       int yScale = post->clayer->xScale - pre->clayer->yScale;
       int fPre = i % nfPre;
-      gauss2DCalcWeights(wPatches[i], fPre, noPost, xScale, yScale,
+      gauss2DCalcWeights(wPatches[borderId][i], fPre, noPost, xScale, yScale,
                          numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
    }
 
