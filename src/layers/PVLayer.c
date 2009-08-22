@@ -31,7 +31,6 @@ int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
    l->name = strdup(name);
    l->numActive = 0;
    l->numFeatures = numFeatures;
-   l->numBorder = nBorder;
    l->numDelayLevels = MAX_F_DELAY;
 
    l->loc.nxGlobal = nx;
@@ -39,6 +38,9 @@ int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
 
    l->loc.nx = nx;
    l->loc.ny = ny;
+
+   l->loc.nxBorder = nBorder;
+   l->loc.nyBorder = nBorder;
 
    l->xScale = xScale;
    l->yScale = yScale;
