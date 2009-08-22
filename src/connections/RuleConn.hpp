@@ -17,9 +17,10 @@ public:
    RuleConn(const char * name,
             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
 
-   PVPatch* weights(int k)
+   PVPatch * weights(int k)
    {
-      return wPatches[k];
+      int arbor = 0;
+      return wPatches[arbor][k];
    }
 
 private:

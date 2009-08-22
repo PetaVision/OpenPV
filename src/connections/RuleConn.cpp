@@ -18,7 +18,7 @@ RuleConn::RuleConn(const char * name,
    this->name   = strdup(name);
    this->parent = hc;
 
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -36,10 +36,11 @@ int RuleConn::initializeWeights(const char * filename)
 
       int nfPre = pre->clayer->numFeatures;
 
-      const int numPatches = numberOfWeightPatches();
+      const int arbor = 0;
+      const int numPatches = numberOfWeightPatches(arbor);
       for (int i = 0; i < numPatches; i++) {
          int fPre = i % nfPre;
-         ruleWeights(wPatches[i], fPre, xScale, yScale, strength);
+         ruleWeights(wPatches[arbor][i], fPre, xScale, yScale, strength);
       }
    }
    else {
