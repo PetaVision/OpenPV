@@ -25,7 +25,7 @@ SubunitConn::SubunitConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyP
    this->parent = hc;
 
    // default for this connection is 1 weight patch
-   this->numBundles = pre->clayer->numFeatures;
+   this->numAxonalArborLists = pre->clayer->numFeatures;
 
    initialize(NULL, pre, post, CHANNEL_EXC);
 
@@ -39,9 +39,10 @@ int SubunitConn::initializeWeights(const char * filename)
 {
    assert(post->clayer->numFeatures == 4*16);
 
-   const int numPatches = numberOfWeightPatches();
+   const int arbor = 0;
+   const int numPatches = numberOfWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
-      weights(wPatches[i]);
+      weights(wPatches[arbor][i]);
    }
 
    return 0;
