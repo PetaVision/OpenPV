@@ -18,7 +18,7 @@ RandomConn::RandomConn(const char * name,
    this->name   = strdup(name);
    this->parent = hc;
 
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
