@@ -87,17 +87,17 @@ int pv_main(int argc, char* argv[])
    const int sx  = nf;
    const int sy  = sx*nxp;
 
-   tl->numTasks = 1;
-   tl->tasks = &tPtr;
+   tl->numArbors = 1;
+   tl->arbors = &tPtr;
 
    pvpatch_init(&w_patch,   nxp, nyp, nf, sf, sx, sy, myWeights);
    pvpatch_init(&phi_patch, NX+2*NB, NY+2*NB, nf, sf, sx, sx*(NX+2*NB), myPhi);
 
-   tl->tasks[0]->weights = &w_patch;
-   tl->tasks[0]->data    = &phi_patch;
+   tl->arbors[0]->weights = &w_patch;
+   tl->arbors[0]->data    = &phi_patch;
 
    // unroll loop by 1
-   PVAxonalArbor * arbor = tl->tasks[0];
+   PVAxonalArbor * arbor = tl->arbors[0];
    float* w   = arbor->weights->data;
    float* phi = arbor->data->data;
 
@@ -109,8 +109,8 @@ int pv_main(int argc, char* argv[])
    pvpatch_accumulate(nf*nxp, phi + 2*sy, a, w);
    pvpatch_accumulate(nf*nxp, phi + 3*sy, a, w);
 
-   for (unsigned int i = 0; i < tl->numTasks; i++) {
-      arbor = tl->tasks[0];
+   for (unsigned int i = 0; i < tl->numArbors; i++) {
+      arbor = tl->arbors[0];
       w    = arbor->weights->data;
       phi  = arbor->data->data;
 
