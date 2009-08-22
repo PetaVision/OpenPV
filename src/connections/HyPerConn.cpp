@@ -1211,7 +1211,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
    const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
    const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
-   const int fPre  = (int) featureIndex(kPre, nxPre, nyPre, nfPre);
 
    // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
    float xPre = -1.0 * deltaPosLayers(kxPre, xScale) * dx;
