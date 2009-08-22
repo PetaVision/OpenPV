@@ -69,17 +69,17 @@ typedef struct PVLayerCube_ {
    PVLayerLoc loc;       // location of cube in global layer
 } PVLayerCube;
 
-typedef struct PVSynapseTask_ {
+typedef struct PVAxonalArbor_ {
    PVPatch * data;        // data for task to work on (e.g., phi data)
    PVPatch * weights;     // weights to apply to the data
    PVPatch * plasticIncr; // STDP P variable
    size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
-} PVSynapseTask;
+} PVAxonalArbor;
 
-typedef struct PVSynapseBundle_ {
-   unsigned int numTasks;
-   PVSynapseTask ** tasks;
-} PVSynapseBundle;
+typedef struct PVAxonalArborList_ {
+   unsigned int     numArbors;
+   PVAxonalArbor ** arbors;
+} PVAxonalArborList;
 
 /*
  * function declarations and inline definitions
