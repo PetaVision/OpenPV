@@ -57,13 +57,12 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
       kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
    }
 
+   const int neighbor = 0;
+   PVAxonalArbor * arbor = c->axonalArbor(0,neighbor);
 
-   PVSynapseBundle * tasks = c->tasks(kPre, 0);
-   PVPatch * P   = tasks->tasks[0]->plasticIncr;
-   PVPatch * w   = tasks->tasks[0]->weights;
-   size_t offset = tasks->tasks[0]->offset;
-
-   assert(c->numberOfBundles() == 1);
+   PVPatch * P   = arbor->plasticIncr;
+   PVPatch * w   = arbor->weights;
+   size_t offset = arbor->offset;
 
    if (c->getPlasticityDecrement() != NULL) {
       M = & (c->getPlasticityDecrement()->data[offset]);  // STDP decrement variable
