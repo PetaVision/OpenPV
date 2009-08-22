@@ -31,7 +31,6 @@ typedef struct PVLayer_ {
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numFeatures;// # features in this layer
    int numActive;  // # neurons that fired
-   int numBorder;  // # extra neurons extended on any side for border regions
 
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
 
