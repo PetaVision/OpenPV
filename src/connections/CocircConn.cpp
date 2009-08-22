@@ -18,7 +18,7 @@ CocircConn::CocircConn(const char * name,
    this->connId = hc->numberOfConnections();
    this->name = strdup(name);
    this->parent = hc;
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -40,10 +40,11 @@ int CocircConn::initializeWeights(const char * filename)
 
       int nfPre = pre->clayer->numFeatures;
 
-      const int numPatches = numberOfWeightPatches();
+      const int borderId = 0;
+      const int numPatches = numberOfWeightPatches(borderId);
       for (int i = 0; i < numPatches; i++) {
          int fPre = i % nfPre;
-         cocircWeights(wPatches[i], fPre, xScale, yScale, sigma, r2Max, strength);
+         cocircWeights(wPatches[borderId][i], fPre, xScale, yScale, sigma, r2Max, strength);
       }
    }
    else {
@@ -70,7 +71,7 @@ int CocircConn::initializeWeights(const char * filename)
       if (dim[0] != (size_t) nfp) err = -1;
       if (dim[1] != (size_t) nxp) err = -1;
       if (dim[2] != (size_t) nyp) err = -1;
-      if ((int) count != numBundles) err = -1;
+      if ((int) count != numAxonalArborLists) err = -1;
       if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
 
       if (err) {
@@ -79,7 +80,7 @@ int CocircConn::initializeWeights(const char * filename)
       }
 
       for (unsigned int i = 0; i < count; i++) {
-         PVPatch* patch = wPatches[i];
+         PVPatch* patch = wPatches[0][i];
          if ( fread(patch, size, 1, fd) != 1) {
             fprintf(stderr, "FileConn:: ERROR reading patch %d\n", i);
             return -1;
