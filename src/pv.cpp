@@ -67,7 +67,7 @@ int pv_main(int argc, char* argv[])
 #define NF 8
 #define NB NBORDER
 
-   PVSynapseBundle taskList;
+   PVAxonalArborList arborList;
 
    PVPatch phi_patch;
    PVPatch w_patch;
@@ -79,9 +79,9 @@ int pv_main(int argc, char* argv[])
    float myPhi[nf*(NX+2*NB)*(NY+2*NB)];
    float myWeights[nf*nxp*nyp];
 
-   PVSynapseTask myTask;
-   PVSynapseBundle * tl = &taskList;
-   PVSynapseTask * tPtr = &myTask;
+   PVAxonalArbor myArbor;
+   PVAxonalArborList * tl = &arborList;
+   PVAxonalArbor * tPtr   = &myArbor;
 
    const int sf  = 1;
    const int sx  = nf;
@@ -97,9 +97,9 @@ int pv_main(int argc, char* argv[])
    tl->tasks[0]->data    = &phi_patch;
 
    // unroll loop by 1
-   PVSynapseTask * task = tl->tasks[0];
-   float* w   = task->weights->data;
-   float* phi = task->data->data;
+   PVAxonalArbor * arbor = tl->tasks[0];
+   float* w   = arbor->weights->data;
+   float* phi = arbor->data->data;
 
    float a = 1.0;
 
@@ -110,9 +110,9 @@ int pv_main(int argc, char* argv[])
    pvpatch_accumulate(nf*nxp, phi + 3*sy, a, w);
 
    for (unsigned int i = 0; i < tl->numTasks; i++) {
-      task = tl->tasks[0];
-      w    = task->weights->data;
-      phi  = task->data->data;
+      arbor = tl->tasks[0];
+      w    = arbor->weights->data;
+      phi  = arbor->data->data;
 
       // TODO - add y loop
       int j = 0;
