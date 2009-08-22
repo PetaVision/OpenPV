@@ -91,46 +91,45 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
    // TODO - does global patch need to expand to take into account border regions (probably)
 
    PVLayerLoc loc = clayer->loc;
-   int numBorder = clayer->numBorder;
 
    switch (borderId) {
    case NORTHWEST:
-      loc.nx = numBorder;
-      loc.ny = numBorder;
-      loc.kx0 = clayer->loc.kx0 - numBorder;
-      loc.ky0 = clayer->loc.ky0 - numBorder;
+      loc.nx = loc.nxBorder;
+      loc.ny = loc.nyBorder;
+      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
+      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
       break;
    case NORTH:
-      loc.ny = numBorder;
-      loc.ky0 = clayer->loc.ky0 - numBorder;
+      loc.ny = loc.nyBorder;
+      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
       break;
    case NORTHEAST:
-      loc.nx = numBorder;
-      loc.ny = numBorder;
+      loc.nx = loc.nxBorder;
+      loc.ny = loc.nyBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
-      loc.ky0 = clayer->loc.ky0 - numBorder;
+      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
       break;
    case WEST:
-      loc.nx = numBorder;
-      loc.kx0 = clayer->loc.kx0 - numBorder;
+      loc.nx = loc.nxBorder;
+      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
       break;
    case EAST:
-      loc.nx = numBorder;
+      loc.nx = loc.nxBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
       break;
    case SOUTHWEST:
-      loc.nx = numBorder;
-      loc.ny = numBorder;
-      loc.kx0 = clayer->loc.kx0 - numBorder;
+      loc.nx = loc.nxBorder;
+      loc.ny = loc.nxBorder;
+      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
    case SOUTH:
-      loc.ny = numBorder;
+      loc.ny = loc.nyBorder;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
    case SOUTHEAST:
-      loc.nx = numBorder;
-      loc.ny = numBorder;
+      loc.nx = loc.nxBorder;
+      loc.ny = loc.nyBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
@@ -178,27 +177,28 @@ int HyPerLayer::numberOfNeurons(int borderId)
    const int nx = (int) clayer->loc.nx;
    const int ny = (int) clayer->loc.ny;
    const int nf = clayer->numFeatures;
-   const int numBorder = clayer->numBorder;
+   const int nxBorder = clayer->loc.nxBorder;
+   const int nyBorder = clayer->loc.nyBorder;
 
    switch (borderId) {
    case 0:
-      numNeurons = clayer->numNeurons;           break;
+      numNeurons = clayer->numNeurons;         break;
    case NORTHWEST:
-      numNeurons = numBorder * numBorder * nf;   break;
+      numNeurons = nxBorder * nyBorder * nf;   break;
    case NORTH:
-      numNeurons = nx * numBorder * nf;          break;
+      numNeurons = nx       * nyBorder * nf;   break;
    case NORTHEAST:
-      numNeurons = numBorder * numBorder * nf;   break;
+      numNeurons = nxBorder * nyBorder * nf;   break;
    case WEST:
-      numNeurons = ny * numBorder * nf;          break;
+      numNeurons = nxBorder * ny       * nf;   break;
    case EAST:
-      numNeurons = ny * numBorder * nf;          break;
+      numNeurons = nxBorder * ny       * nf;   break;
    case SOUTHWEST:
-      numNeurons = numBorder * numBorder * nf;   break;
+      numNeurons = nxBorder * nyBorder * nf;   break;
    case SOUTH:
-      numNeurons = nx * numBorder * nf;          break;
+      numNeurons = nx       * nyBorder * nf;   break;
    case SOUTHEAST:
-      numNeurons = numBorder * numBorder * nf;   break;
+      numNeurons = nxBorder * nyBorder * nf;   break;
    default:
       fprintf(stderr, "ERROR:HyPerLayer:numberOfBorderNeurons: bad border index %d\n", borderId);
    }
@@ -239,12 +239,19 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
-   const int numActive = activity->numItems;
+   const int n = this->numberOfNeurons(neighbor);
+   int numActive = activity->numItems;
 
-   // TODO - handle neighbors
-   if (neighbor != 0) {
-      return 0;
-   }
+#ifdef DEBUG_OUTPUT
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numActive, activity, this, conn);
+   fflush(stdout);
+#endif
+
+   // WARNING, GROSS HACK
+   // need to copy to size of border region (or something equivalent)
+   if (numActive > n) numActive = n;
 
 #ifdef MULTITHREADED
    pv_signal_threads_recv(activity, (unsigned char) neighbor);
@@ -256,25 +263,26 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       float a = activity->data[kPre];
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
-      PVSynapseBundle * tasks = conn->tasks(kPre, neighbor);
-      for (unsigned int i = 0; i < tasks->numTasks; i++) {
-         PVSynapseTask * task = tasks->tasks[i];
-         PVPatch * phi = task->data;
-         PVPatch * weights = task->weights;
+      PVAxonalArbor * arbor = conn->axonalArbor(kPre, neighbor);
+      PVPatch * phi = arbor->data;
+      PVPatch * weights = arbor->weights;
+
+      // kPre is index from neighbor/border region
+      // kPreLocal is the index of layer interior
+      // int kPreLocal = kIndexFromNeighbor(kPre, n);
 
       // WARNING - assumes weight and phi patches from task same size
       //         - assumes patch stride sf is 1
 
-         int nk  = (int) phi->nf * (int) phi->nx;
-         int ny  = (int) phi->ny;
-         int sy  = (int) phi->sy;
-         int syw = (int) weights->sy;
+      int nk  = (int) phi->nf * (int) phi->nx;
+      int ny  = (int) phi->ny;
+      int sy  = (int) phi->sy;
+      int syw = (int) weights->sy;
 
-         // TODO - unroll
-         for (int y = 0; y < ny; y++) {
-            pvpatch_accumulate(nk, phi->data + y*sy, a, weights->data + y*syw);
-//          if (err != 0) printf("  ERROR kPre = %d\n", kPre);
-         }
+      // TODO - unroll
+      for (int y = 0; y < ny; y++) {
+         pvpatch_accumulate(nk, phi->data + y*sy, a, weights->data + y*syw);
+//       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }
 
@@ -732,46 +740,46 @@ int HyPerLayer::copyToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 extern "C" {
 #endif
 
-   PVPatch * pvpatch_new(int nx, int ny, int nf)
-   {
-      float sf = 1;
-      float sx = nf;
-      float sy = sx * nx;
+PVPatch * pvpatch_new(int nx, int ny, int nf)
+{
+   float sf = 1;
+   float sx = nf;
+   float sy = sx * nx;
 
-      PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
-      pvdata_t * data = NULL;
+   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
+   pvdata_t * data = NULL;
 
-      pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
-      return p;
-   }
+   return p;
+}
 
-   int pvpatch_delete(PVPatch* p)
-   {
-      free(p);
-      return 0;
-   }
+int pvpatch_delete(PVPatch* p)
+{
+   free(p);
+   return 0;
+}
 
-   PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
-   {
-      float sf = 1;
-      float sx = nf;
-      float sy = sx * nx;
+PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
+{
+   float sf = 1;
+   float sx = nf;
+   float sy = sx * nx;
 
-      size_t dataSize = nx * ny * nf * sizeof(float);
-      PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
-      pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+   size_t dataSize = nx * ny * nf * sizeof(float);
+   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
+   pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
 
-      pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
-      return p;
-   }
+   return p;
+}
 
-   int pvpatch_inplace_delete(PVPatch* p)
-   {
-      free(p);
-      return 0;
-   }
+int pvpatch_inplace_delete(PVPatch* p)
+{
+   free(p);
+   return 0;
+}
 
 // TODO - make this inline (gcc does it automatically)?
 #ifdef REMOVE
