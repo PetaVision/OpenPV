@@ -18,7 +18,7 @@ InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
    this->name = strdup(name);
    this->parent = hc;
    this->nfPre = pre->clayer->numFeatures;
-   this->numBundles = (int) this->nfPre;
+   this->numAxonalArborLists = this->nfPre;
 
    initialize(NULL, pre, post, CHANNEL_INH);
 
@@ -44,9 +44,10 @@ int InhibConn::initializeWeights(const char * filename)
       strength = params->value(name, "gaussWeightScale");
    }
 
-   const int numPatches = numberOfWeightPatches();
+   int arbor = 0;
+   const int numPatches = numberOfWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
-      inhibWeights(wPatches[i], i, strength);
+      inhibWeights(wPatches[arbor][i], i, strength);
    }
 
    return 0;
