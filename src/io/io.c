@@ -266,11 +266,10 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
  */
 int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm comm)
 {
-   int kl, kg, err = 0;
+   int err = 0;
    int nx, ny;
 
    int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
-   int nLocal = l->loc.nx * l->loc.ny;
 
    float* globalBuf = (float*) malloc(nTotal * sizeof(float));
    if (globalBuf == NULL) return -1;

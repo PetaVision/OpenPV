@@ -67,7 +67,6 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
 
       int sx = strideX(nx, ny, nf);
       int sy = strideY(nx, ny, nf);
-      int sf = strideF(nx, ny, nf);
 
       float * buf = (float *) malloc(nx * ny * sizeof(float));
       assert(buf != NULL);
