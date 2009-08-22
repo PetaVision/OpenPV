@@ -20,7 +20,7 @@ public:
 protected:
    virtual int initializeWeights(const char * filename);
 
-   virtual int createSynapseBundles(int numTasks);
+   virtual int createAxonalArbors();
 
    int calcWeights(PVPatch * wp, int kPre, int no, int xScale, int yScale,
                    float aspect, float sigma, float r2Max, float lambda, float strength);
