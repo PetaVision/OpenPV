@@ -42,8 +42,9 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
    this->name   = strdup(name);
    this->parent = hc;
 
-   // default for this connection is 1 weight patch
-   this->numBundles = 1;
+   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
+   // and all postsynaptic border regions.
+   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
 
    initialize(NULL, pre, post, CHANNEL_EXC);
 
@@ -57,8 +58,9 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
    this->name   = strdup(name);
    this->parent = hc;
 
-   // default for this connection is 1 weight patch
-   this->numBundles = 1;
+   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
+   // and all postsynaptic border regions.
+   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
 
    initialize(NULL, pre, post, channel);
 
@@ -88,8 +90,9 @@ HyPerConn::HyPerConn(const char * name, int argc, char ** argv, HyPerCol * hc,
       }
    }
 
-   // default for this connection is 1 weight patch
-   this->numBundles = 1;
+   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
+   // and all postsynaptic border regions.
+   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
 
    initialize(filename, pre, post, CHANNEL_EXC);
 
@@ -104,8 +107,9 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
    this->name   = strdup(name);
    this->parent = hc;
 
-   // default for this connection is 1 weight patch
-   this->numBundles = 1;
+   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
+   // and all postsynaptic border regions.
+   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
 
    initialize(filename, pre, post, CHANNEL_EXC);
 
@@ -128,11 +132,12 @@ HyPerConn::~HyPerConn()
 
    // free the task information
 
-   free(bundles[0]->tasks[0]->data);   // allData
-   free(bundles[0]->tasks[0]);         // allTasks
-   free(bundles[0]->tasks);            // allTPtrs
-   free(bundles[0]);                   // allLists
-   free(bundles);                      // allLPtrs
+   for (int l = 0; l < numAxonalArborLists; l++) {
+      // following frees all data patches for border region l because all
+      // patches are allocated together, so freeing freeing first one will do
+      free(this->axonalArbor(0,l)->data);
+      free(this->axonalArborList[l]);
+   }
 }
 
 int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
@@ -186,12 +191,12 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
       stdpFlag = (int) inputParams->value(name, "stdpFlag");
    }
 
+   createWeights(nxp, nyp, nfp);
 
-   const int numPatches = numberOfWeightPatches();
-
-   wPatches = createWeights((int)nxp, (int)nyp, (int)nfp, numPatches);
+   // TODO - create STDP variables for border regions
    if (stdpFlag) {
-      pIncr = createWeights((int)nxp, (int)nyp, (int)nfp, numPatches);
+      int numPatches = numberOfWeightPatches(0);
+      pIncr = createWeights(nxp, nyp, nfp, numPatches);
       pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
    }
    else {
@@ -199,19 +204,11 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
       pDecr = NULL;
    }
 
-   // create synapse bundles
-   createSynapseBundles(numBundles);
+   // create list of axonal arbors containing pointers to {phi,w,P,M} patches
+   createAxonalArbors();
 
-   // temporarily set weights to 0 as default
-
-   for (int k = 0; k < numBundles; k++) {
-      pvdata_t * w = wPatches[k]->data;
-      for (int i = 0; i < nxp*nyp*nfp; i++) {
-         w[i] = 0;
-      }
-   }
    if (stdpFlag) {
-      for (int k = 0; k < numBundles; k++) {
+      for (int k = 0; k < numAxonalArborLists; k++) {
          pvdata_t * p = pIncr[k]->data;
          for (int i = 0; i < nxp*nyp*nfp; i++) {
             p[i] = 0;
@@ -223,8 +220,8 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
    }
 
    initializeWeights(filename);
-   writeWeights();
-   adjustWeightBundles(numBundles);
+   //writeWeights();
+   adjustAxonalArborWeights();
 
    return 0;
 }
@@ -260,9 +257,11 @@ int HyPerConn::initializeRandomWeights(int seed)
    float wMin = 0.0;
    if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
 
-   const int numPatches = numberOfWeightPatches();
-   for (int k = 0; k < numPatches; k++) {
-      randomWeights(wPatches[k], wMin, wMax, seed);
+   for (int n = 0; n < 1 + parent->numberOfBorderRegions(); n++) {
+      int numPatches = numberOfWeightPatches(n);
+      for (int k = 0; k < numPatches; k++) {
+         randomWeights(wPatches[n][k], wMin, wMax, seed);
+      }
    }
 
    return 0;
@@ -310,12 +309,15 @@ int HyPerConn::initializeWeights(const char * filename)
       if (params->present(name, "flankShift")) shift     = params->value(name, "flankShift");
       if (params->present(name, "rotate"))     rotate    = params->value(name, "rotate");
 
-      const int numPatches = numberOfWeightPatches();
       const int xScale = post->clayer->xScale - pre->clayer->xScale;
       const int yScale = post->clayer->yScale - pre->clayer->yScale;
-      for (int k = 0; k < numPatches; k++) {
-         gauss2DCalcWeights(wPatches[k], k, noPost, xScale, yScale,
+      for (int n = 0; n < numAxonalArborLists; n++) {
+         int numPatches = numberOfWeightPatches(n);
+         for (int k = 0; k < numPatches; k++) {
+            int kPre = kIndexFromNeighbor(k, n);
+            gauss2DCalcWeights(wPatches[n][k], kPre, noPost, xScale, yScale,
                             numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
+         }
       }
    }
    else {
@@ -342,7 +344,7 @@ int HyPerConn::initializeWeights(const char * filename)
       if (dim[0] != (size_t) nfp) err = -1;
       if (dim[1] != (size_t) nxp) err = -1;
       if (dim[2] != (size_t) nyp) err = -1;
-      if ((int) count != numBundles) err = -1;
+      if ((int) count != numAxonalArborLists) err = -1;
       if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
 
       if (err) {
@@ -350,8 +352,10 @@ int HyPerConn::initializeWeights(const char * filename)
          return err;
       }
 
+      // TODO - fix reading patches from file
       for (unsigned int i = 0; i < count; i++) {
-         PVPatch* patch = wPatches[i];
+         int neighbor = 0;
+         PVPatch* patch = wPatches[neighbor][i];
          if ( fread(patch, size, 1, fd) != 1) {
             fprintf(stderr, "FileConn:: ERROR reading patch %d\n", i);
             return -1;
@@ -381,7 +385,8 @@ int HyPerConn::writeWeights()
       fprintf(stderr, "writeWeights: ERROR opening file %s\n", outfile);
       return 1;
    }
-   pv_tiff_write_patch(fd, wPatches[0]);
+   int arbor = 0;
+   pv_tiff_write_patch(fd, wPatches[arbor][0]);
    fclose(fd);
 
    sprintf(outfile, "w%d.txt", getConnectionId());
@@ -424,7 +429,8 @@ int HyPerConn::writeWeights(const char * filename, int k)
    if (stdpFlag) {
       pv_text_write_patch(fd, pIncr[k]);  // write the Ps variable
    }
-   pv_text_write_patch(fd, wPatches[k]);
+   int arbor = 0;
+   pv_text_write_patch(fd, wPatches[arbor][k]);
    fprintf(fd, "----------------------------\n");
 
    if (fd != stdout) {
@@ -436,7 +442,17 @@ int HyPerConn::writeWeights(const char * filename, int k)
 
 int HyPerConn::deliver(PVLayerCube * cube, int neighbor)
 {
+#ifdef DEBUG_OUTPUT
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   printf("[%d]: HyPerConn::deliver: neighbor=%d cube=%p post=%p this=%p\n", rank, neighbor, cube, post, this);
+   fflush(stdout);
+#endif
    post->recvSynapticInput(this, cube, neighbor);
+#ifdef DEBUG_OUTPUT
+   printf("[%d]: HyPerConn::delivered: \n", rank);
+   fflush(stdout);
+#endif
    if (stdpFlag) {
       updateWeights(cube, neighbor);
    }
@@ -472,8 +488,9 @@ int HyPerConn::outputState(float time)
       // Output weights
       char str[32];
       sprintf(str, "w%1.1d", getConnectionId());
+      int arbor = 0;
       err = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
-                             0.0, wMax, numberOfWeightPatches(), wPatches);
+                             0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
       assert(err == 0);
 
       err = writePostPatchWeights(ioAppend);
@@ -528,66 +545,73 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
    assert(numNeurons == pre->clayer->numNeurons);
 
    for (int kPre = 0; kPre < numNeurons; kPre++) {
-      PVSynapseBundle * tasks = this->tasks(kPre, neighbor);
+      PVAxonalArbor * arbor  = axonalArbor(kPre, neighbor);
 
       const float preActivity = preActivityCube->data[kPre];
 
-      for (unsigned int i = 0; i < tasks->numTasks; i++) {
-         PVPatch * pIncr = tasks->tasks[i]->plasticIncr;
-         PVPatch * w     = tasks->tasks[i]->weights;
-         size_t offset   = tasks->tasks[i]->offset;
+      PVPatch * pIncr = arbor->plasticIncr;
+      PVPatch * w     = arbor->weights;
+      size_t offset   = arbor->offset;
 
-         float * postActivity = &post->clayer->activity->data[offset];
-         float * M = &pDecr->data[offset];  // STDP decrement variable
-         float * P =  pIncr->data;          // STDP increment variable
+      float * postActivity = &post->clayer->activity->data[offset];
+      float * M = &pDecr->data[offset];  // STDP decrement variable
+      float * P =  pIncr->data;          // STDP increment variable
 
-         int nk  = (int) pIncr->nf * (int) pIncr->nx;
-         int ny  = (int) pIncr->ny;
-         int sy  = (int) pIncr->sy;
+      int nk  = (int) pIncr->nf * (int) pIncr->nx;
+      int ny  = (int) pIncr->ny;
+      int sy  = (int) pIncr->sy;
 
-         // TODO - unroll
+      // TODO - unroll
 
-         // update Psij (pIncr variable)
-         for (int y = 0; y < ny; y++) {
-            pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayLTP, ampLTP);
-         }
+      // update Psij (pIncr variable)
+      for (int y = 0; y < ny; y++) {
+         pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayLTP, ampLTP);
+      }
 
-         // update weights
-         for (int y = 0; y < ny; y++) {
-            int yOff = y*sy;
-            pvpatch_update_weights(nk, w->data + yOff, M + yOff, P + yOff,
-                                   preActivity, postActivity + yOff, dWMax, wMax);
-         }
+      // update weights
+      for (int y = 0; y < ny; y++) {
+         int yOff = y*sy;
+         pvpatch_update_weights(nk, w->data + yOff, M + yOff, P + yOff,
+                                preActivity, postActivity + yOff, dWMax, wMax);
       }
    }
 
    return 0;
 }
 
-int HyPerConn::numberOfWeightPatches()
+/**
+ * returns the number of weight patches for the given neighbor
+ * @param neighbor the id of the neighbor (0 for interior/self)
+ */
+int HyPerConn::numberOfWeightPatches(int arbor)
 {
-   // TODO - fix for bundles
-   assert(numBundles == 1);
-   return pre->clayer->numNeurons;
+   int neighbor = arbor; // for now there is one axonal arbor per neighbor
+   return pre->numberOfNeurons(neighbor);
 }
 
-PVPatch * HyPerConn::getWeights(int k, int bundle)
+PVPatch * HyPerConn::getWeights(int k, int arbor)
 {
-   // TODO - make work with bundles as well
-   assert(numBundles == 1);
-   // a separate patch of weights for every neuron
-   return wPatches[k];
+   // a separate arbor/patch of weights for every neuron
+   return wPatches[arbor][k];
 }
 
-PVPatch * HyPerConn::getPlasticityIncrement(int k, int bundle)
+PVPatch * HyPerConn::getPlasticityIncrement(int k, int arbor)
 {
-   // TODO - make work with bundles as well
-   assert(numBundles == 1);
-   // a separate patch of plasticity for every neuron
+   // a separate arbor/patch of plasticity for every neuron
    if (stdpFlag) {
       return pIncr[k];
    }
    return NULL;
+}
+
+int HyPerConn::createWeights(int nxPatch, int nyPatch, int nfPatch)
+{
+   for (int n = 0; n < numAxonalArborLists; n++) {
+      // for STDP, an axonal arbor (patch) is required for every presynaptic neuron
+      int numPatches = numberOfWeightPatches(n);
+      wPatches[n] = createWeights(nxp, nyp, nfp, numPatches);
+   }
+   return 0;
 }
 
 /**
@@ -598,9 +622,7 @@ PVPatch ** HyPerConn::createWeights(int nxPatch, int nyPatch, int nfPatch, int n
    // could create only a single patch with following call
    //   return createPatches(numBundles, nxp, nyp, nfp);
 
-   assert(numBundles == 1);
-
-   PVPatch ** patches = (PVPatch**) malloc(numPatches*sizeof(PVPatch*));
+   PVPatch ** patches = (PVPatch**) calloc(numPatches*sizeof(PVPatch*), sizeof(char));
 
    // TODO - allocate space for them all at once
    for (int k = 0; k < numPatches; k++) {
@@ -615,14 +637,13 @@ int HyPerConn::deleteWeights()
    // to be used if createPatches is used above
    // HyPerConn::deletePatches(numBundles, wPatches);
 
-   assert(numBundles == 1);
-
-   const int numPreNeurons = pre->clayer->numNeurons;
-
-   for (int k = 0; k < numPreNeurons; k++) {
-      pvpatch_inplace_delete(wPatches[k]);
+   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+      int numPatches = numberOfWeightPatches(arbor);
+      for (int k = 0; k < numPatches; k++) {
+         pvpatch_delete(wPatches[arbor][k]);
+      }
+      free(wPatches[arbor]);
    }
-   free(wPatches);
 
    if (wPostPatches != NULL) {
       const int numPostNeurons = post->clayer->numNeurons;
@@ -633,7 +654,8 @@ int HyPerConn::deleteWeights()
    }
 
    if (stdpFlag) {
-      for (int k = 0; k < numPreNeurons; k++) {
+      int numPatches = numberOfWeightPatches(0);
+      for (int k = 0; k < numPatches; k++) {
          pvpatch_inplace_delete(pIncr[k]);
       }
       free(pIncr);
@@ -643,7 +665,7 @@ int HyPerConn::deleteWeights()
    return 0;
 }
 
-int HyPerConn::createSynapseBundles(int numTasks)
+int HyPerConn::createAxonalArbors()
 {
    // TODO - these needs to be an input parameter obtained from the connection
    const float kxPost0Left = 0.0f;
@@ -661,50 +683,36 @@ int HyPerConn::createSynapseBundles(int numTasks)
    const float ky0Post = post->clayer->loc.ky0;
    const float nfPost  = post->clayer->numFeatures;
 
+   const float nxBorderPost = post->clayer->loc.nxBorder;
+
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
 
-   const float numBorder = post->clayer->numBorder;
-   assert(numBorder == 0);
+   const int numNeighbors = numAxonalArborLists;
 
 #ifndef FEATURES_LAST
    const float psf = 1;
    const float psx = nfp;
-   const float psy = psx * (nxPost + 2.0f*numBorder);
+   const float psy = psx * (nxPost + 2.0f*nxBorderPost);
 #else
    const float psx = 1;
-   const float psy = nxPost + 2.0f*numBorder;
-   const float psf = psy * (nyPost + 2.0f*numBorder);
+   const float psy = nxPost + 2.0f*nxBorderPost;
+   const float psf = psy * (nyPost + 2.0f*nxBorderPost);
 #endif
 
-   int nNeurons = pre->clayer->numNeurons;
-   int nTotalTasks = nNeurons * numTasks;
+   for (int n = 0; n < numNeighbors; n++) {
+      int numArbors = pre->numberOfNeurons(n);
+      axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
+   }
 
-   PVSynapseBundle ** allBPtrs   = (PVSynapseBundle**) malloc(nNeurons*sizeof(PVSynapseBundle*));
-   PVSynapseBundle  * allBundles = (PVSynapseBundle *) malloc(nNeurons*sizeof(PVSynapseBundle));
-   PVSynapseTask** allTPtrs = (PVSynapseTask**) malloc(nTotalTasks*sizeof(PVSynapseTask*));
-   PVSynapseTask * allTasks = (PVSynapseTask*)  malloc(nTotalTasks*sizeof(PVSynapseTask));
-   PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
+   // there is an arbor list for every neighbor
+   for (int n = 0; n < numNeighbors; n++) {
+      int numArbors = pre->numberOfNeurons(n);
+      PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
 
-   bundles = allBPtrs;
-
-   for (int kPre = 0; kPre < nNeurons; kPre++) {
-      int offset = kPre*sizeof(PVSynapseBundle);
-      bundles[kPre] = (PVSynapseBundle*) ((char*) allBundles + offset);
-      bundles[kPre]->numTasks = numTasks;
-      bundles[kPre]->tasks = allTPtrs + kPre*numTasks;
-
-      PVSynapseBundle * list = bundles[kPre];
-      for (int i = 0; i < numTasks; i++) {
-         offset = (i + kPre*numTasks) * sizeof(PVSynapseTask);
-         list->tasks[i] = (PVSynapseTask*) ((char*) allTasks + offset);
-      }
-
-      for (int i = 0; i < numTasks; i++) {
-         PVSynapseTask * task = list->tasks[i];
-
-         task->weights = this->getWeights(kPre, i);
-         task->plasticIncr = this->getPlasticityIncrement(kPre, i);
+      for (int k = 0; k < numArbors; k++) {
+         PVAxonalArbor * arbor = axonalArbor(k, n);
+         int kPre = kIndexFromNeighbor(k, n);
 
          // global indices
          float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
@@ -769,22 +777,22 @@ int HyPerConn::createSynapseBundles(int numTasks)
          assert(kl >= 0);
          assert(kl < post->clayer->numNeurons);
 
+         arbor->data = &dataPatches[k];  // patches allocated above to fit border region
+         arbor->weights = this->getWeights(kPre, n);
+         arbor->plasticIncr = this->getPlasticityIncrement(kPre, n);
+         arbor->offset = kl;
+
+         // initialize
          pvdata_t * phi = post->clayer->phi[channel] + kl;
-         task->offset = kl;
+         pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
 
-         // TODO - shouldn't kPre vary first?
-//         offset = (i + kPre*numTasks) * sizeof(PVPatch);
-         offset = (kPre + i*numTasks) * sizeof(PVPatch);
-         task->data = (PVPatch*) ((char*) allData + offset);
-
-         pvpatch_init(task->data, (int)nxPatch, (int)nyPatch, (int)nfp, psx, psy, psf, phi);
-      }
-   }
+      } // loop over arbors (pre-synaptic neurons in neighbor region)
+   } // loop over neighbors
 
    return 0;
 }
 
-int HyPerConn::adjustWeightBundles(int numTasks)
+int HyPerConn::adjustAxonalArborWeights()
 {
    // TODO - these needs to be an input parameter obtained from the connection
    const float kxPost0Left = 0.0f;
@@ -804,14 +812,14 @@ int HyPerConn::adjustWeightBundles(int numTasks)
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
 
-   const float numBorder = post->clayer->numBorder;
-   assert(numBorder == 0);
+   const int numNeighbors = numAxonalArborLists;
 
-   int nNeurons = pre->clayer->numNeurons;
+   for (int n = 0; n < numNeighbors; n++) {
+      int numArbors = pre->numberOfNeurons(n);
 
-   for (int kPre = 0; kPre < nNeurons; kPre++) {
-      for (int i = 0; i < numTasks; i++) {
-         PVSynapseTask * task = bundles[kPre]->tasks[i];
+      for (int k = 0; k < numArbors; k++) {
+         PVAxonalArbor * arbor = axonalArbor(k, n);
+         int kPre = kIndexFromNeighbor(k, n);
 
          // global indices
          float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
@@ -867,11 +875,11 @@ int HyPerConn::adjustWeightBundles(int numTasks)
             nyPatch = 0.0;
          }
 
-         pvpatch_adjust(task->weights, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+         pvpatch_adjust(arbor->weights, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
          if (stdpFlag) {
-            task->offset += (size_t)dx * (size_t)task->weights->sx +
-                            (size_t)dy * (size_t)task->weights->sy;
-            pvpatch_adjust(task->plasticIncr, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+            arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
+                             (size_t)dy * (size_t)arbor->weights->sy;
+            pvpatch_adjust(arbor->plasticIncr, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
          }
       }
    }
@@ -882,7 +890,7 @@ int HyPerConn::adjustWeightBundles(int numTasks)
 #ifdef USE_OLD_CODE
 // this version has borders in it, need to keep until sure that image doesn't needs to
 // have border
-int HyPerConn::createSynapseBundles(int numTasks)
+int HyPerConn::createAxonalArbors(int numArbors)
 {
    // TODO - these needs to be an input parameter obtained from the connection
    const float kxPost0Left = 0.0f;
@@ -917,30 +925,30 @@ int HyPerConn::createSynapseBundles(int numTasks)
 #endif
 
    int nNeurons = pre->clayer->numNeurons;
-   int nTotalTasks = nNeurons * numTasks;
+   int nTotalTasks = nNeurons * numArbors;
 
-   PVSynapseBundle ** allBPtrs   = (PVSynapseBundle**) malloc(nNeurons*sizeof(PVSynapseBundle*));
-   PVSynapseBundle  * allBundles = (PVSynapseBundle *) malloc(nNeurons*sizeof(PVSynapseBundle));
-   PVSynapseTask** allTPtrs = (PVSynapseTask**) malloc(nTotalTasks*sizeof(PVSynapseTask*));
-   PVSynapseTask * allTasks = (PVSynapseTask*)  malloc(nTotalTasks*sizeof(PVSynapseTask));
+   PVAxonalArborList ** allBPtrs   = (PVAxonalArborList**) malloc(nNeurons*sizeof(PVAxonalArborList*));
+   PVAxonalArborList  * allBundles = (PVAxonalArborList *) malloc(nNeurons*sizeof(PVAxonalArborList));
+   PVAxonalArbor** allTPtrs = (PVAxonalArbor**) malloc(nTotalTasks*sizeof(PVAxonalArbor*));
+   PVAxonalArbor * allTasks = (PVAxonalArbor*)  malloc(nTotalTasks*sizeof(PVAxonalArbor));
    PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
 
    bundles = allBPtrs;
 
    for (int kPre = 0; kPre < nNeurons; kPre++) {
-      int offset = kPre*sizeof(PVSynapseBundle);
-      bundles[kPre] = (PVSynapseBundle*) ((char*) allBundles + offset);
-      bundles[kPre]->numTasks = numTasks;
-      bundles[kPre]->tasks = allTPtrs + kPre*numTasks;
+      int offset = kPre*sizeof(PVAxonalArborList);
+      bundles[kPre] = (PVAxonalArborList*) ((char*) allBundles + offset);
+      bundles[kPre]->numArbors = numArbors;
+      bundles[kPre]->axonalArbor = allTPtrs + kPre*numArbors;
 
-      PVSynapseBundle * list = bundles[kPre];
-      for (int i = 0; i < numTasks; i++) {
-         offset = (i + kPre*numTasks) * sizeof(PVSynapseTask);
-         list->tasks[i] = (PVSynapseTask*) ((char*) allTasks + offset);
+      PVAxonalArborList * list = bundles[kPre];
+      for (int i = 0; i < numArbors; i++) {
+         offset = (i + kPre*numArbors) * sizeof(PVAxonalArbor);
+         list->axonalArbor[i] = (PVAxonalArbor*) ((char*) allTasks + offset);
       }
 
-      for (int i = 0; i < numTasks; i++) {
-         PVSynapseTask * task = list->tasks[i];
+      for (int i = 0; i < numArbors; i++) {
+         PVAxonalArbor * task = list->axonalArbor[i];
 
          // get weights from virtual method
          task->weights = this->getWeights(kPre, i);
@@ -965,7 +973,7 @@ int HyPerConn::createSynapseBundles(int numTasks)
          // TODO get the correct phi index
          pvdata_t * phi = post->clayer->phi[channel] + kl;
 
-         offset = (i + kPre*numTasks) * sizeof(PVPatch);
+         offset = (i + kPre*numArbors) * sizeof(PVPatch);
          task->data = (PVPatch*) ((char*) allData + offset);
          pvpatch_init(task->data, nxp, nyp, nfp, psx, psy, psf, phi);
       }
@@ -975,96 +983,34 @@ int HyPerConn::createSynapseBundles(int numTasks)
 }
 #endif
 
-int HyPerConn::createNorthernSynapseBundles(int numTasks)
+int HyPerConn::kIndexFromNeighbor(int kNeighbor, int neighbor)
 {
-   // TODO - these needs to be an input parameter obtained from the connection
-   const float kxPost0Left = 0.0f;
-   const float kyPost0Left = 0.0f;
+   int kl;
 
-   const float nxPre  = pre->clayer->loc.nx;
-   const float nyPre  = nyp;
-   const float kx0Pre = pre->clayer->loc.kx0;
-   const float ky0Pre = pre->clayer->loc.ky0 - nyp;
-   const float nfPre  = pre->clayer->numFeatures;
-
-   const float nxPost  = post->clayer->loc.nx;
-   const float nyPost  = post->clayer->loc.ny;
-   const float kx0Post = post->clayer->loc.kx0;
-   const float ky0Post = post->clayer->loc.ky0;
-   const float nfPost  = post->clayer->numFeatures;
-
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
-
-   const float numBorder = post->clayer->numBorder;
-   assert(numBorder == 0);
-
-#ifndef FEATURES_LAST
-   const float psf = 1;
-   const float psx = nfp;
-   const float psy = psx * (nxPost + 2.0f*numBorder);
-#else
-   const float psx = 1;
-   const float psy = nxPost + 2.0f*numBorder;
-   const float psf = psy * (nyPost + 2.0f*numBorder);
-#endif
-
-   int nNeurons = pre->clayer->numNeurons;
-   int nTotalTasks = nNeurons * numTasks;
-
-   PVSynapseBundle ** allBPtrs   = (PVSynapseBundle**) malloc(nNeurons*sizeof(PVSynapseBundle*));
-   PVSynapseBundle  * allBundles = (PVSynapseBundle *) malloc(nNeurons*sizeof(PVSynapseBundle));
-   PVSynapseTask** allTPtrs = (PVSynapseTask**) malloc(nTotalTasks*sizeof(PVSynapseTask*));
-   PVSynapseTask * allTasks = (PVSynapseTask*)  malloc(nTotalTasks*sizeof(PVSynapseTask));
-   PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
-
-   bundles = allBPtrs;
-
-   for (int kPre = 0; kPre < nNeurons; kPre++) {
-      int offset = kPre*sizeof(PVSynapseBundle);
-      bundles[kPre] = (PVSynapseBundle*) ((char*) allBundles + offset);
-      bundles[kPre]->numTasks = numTasks;
-      bundles[kPre]->tasks = allTPtrs + kPre*numTasks;
-
-      PVSynapseBundle * list = bundles[kPre];
-      for (int i = 0; i < numTasks; i++) {
-         offset = (i + kPre*numTasks) * sizeof(PVSynapseTask);
-         list->tasks[i] = (PVSynapseTask*) ((char*) allTasks + offset);
-      }
-
-      for (int i = 0; i < numTasks; i++) {
-         PVSynapseTask * task = list->tasks[i];
-
-         // use the translation invariant set of weights (default)
-         task->weights = this->wPatches[i];
-
-         // global indices
-         float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
-         float kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
-
-         // global indices
-         float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
-         float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
-
-         // TODO - can get nf from weight patch but what about kf0?
-         float kfPost = 0.0f;
-
-         // convert to local in extended frame
-         kxPost = kxPost - (kx0Post - numBorder);
-         kyPost = kyPost - (ky0Post - numBorder);
-
-         // phi is in extended frame
-         int kl = kIndex(kxPost, kyPost, kfPost, nxPost+2.0f*numBorder, nyPost+2.0f*numBorder, nfPost);
-         // TODO get the correct phi index
-         pvdata_t * phi = post->clayer->phi[0] + kl;
-
-         offset = (i + kPre*numTasks) * sizeof(PVPatch);
-         task->data = (PVPatch*) ((char*) allData + offset);
-         pvpatch_init(task->data, (int)nxp, (int)nyp, (int)nfp, psx, psy, psf, phi);
-      }
+   switch (neighbor) {
+   case 0:
+      kl = kNeighbor;  break;
+   case NORTHWEST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case NORTH:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case NORTHEAST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case WEST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case EAST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case SOUTHWEST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case SOUTH:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   case SOUTHEAST:
+      kl = kNeighbor % pre->numberOfNeurons(neighbor);  break;
+   default:
+      fprintf(stderr, "ERROR:HyPerConn:kIndexFromNeighbor: bad border index %d\n", neighbor);
    }
 
-   return 0;
+   return kl;
 }
 
 PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
@@ -1129,16 +1075,18 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             wPostPatches[kPost]->data[kp] = 0.0;
          }
          else {
-            PVPatch * p = wPatches[kPre];
-            int nxp = (kxPre < nxPrePatch/2) ? (int) p->nx : nxPrePatch;
-            int nyp = (kyPre < nyPrePatch/2) ? (int) p->ny : nyPrePatch;
-            int kxPrePatch = nxp - (1 + (int) (kxPostPatch / powXScale));
-            int kyPrePatch = nyp - (1 + (int) (kyPostPatch / powYScale));
+            int arbor = 0;
+            PVPatch * p = wPatches[arbor][kPre];
+            int nxp = (kxPre < nxPrePatch/2) ? p->nx : nxPrePatch;
+            int nyp = (kyPre < nyPrePatch/2) ? p->ny : nyPrePatch;
+            int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
+            int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
             int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
             wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
          }
       }
    }
+
    return wPostPatches;
 }
 
@@ -1263,6 +1211,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
    const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
    const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
+   const int fPre  = (int) featureIndex(kPre, nxPre, nyPre, nfPre);
 
    // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
    float xPre = -1.0 * deltaPosLayers(kxPre, xScale) * dx;
@@ -1280,7 +1229,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    const float x0 = -(nx/2.0 - 0.5) * dx - xPre;
    const float y0 = +(ny/2.0 - 0.5) * dy - yPre;
 
-   const float dth = PI/nf; //should be no?
+   const float dth = PI/nf;
    const float th0 = rotate*dth/2.0;
 
    // loop over all post-synaptic cells in patch
@@ -1302,6 +1251,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
             w[i*sx + j*sy + f*sf] = 0;
 
             // TODO - figure out on/off connectivity
+            // don't break it for nfPre==1 going to nfPost=numOrientations
             //if (this->channel == CHANNEL_EXC && f != fPre) continue;
             //if (this->channel == CHANNEL_INH && f == fPre) continue;
 
