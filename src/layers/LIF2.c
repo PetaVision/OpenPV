@@ -138,7 +138,7 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
    const float Vrest = params->Vrest;
    const float Vexc  = params->Vexc;
    const float Vinh  = params->Vinh;
-   const float VinhB = params->VinhB;
+//   const float VinhB = params->VinhB;
    const float tau   = params->tau;
 
    float * V = l->V;

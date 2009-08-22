@@ -43,7 +43,6 @@ int LIF_update(PVLayer *l)
    float r = 0.0;
    float phiAve = 0.0, phiMax = FLT_MIN, phiMin = FLT_MAX;
    float VAve = 0.0, VMax = FLT_MIN, VMin = FLT_MAX;
-   char msg[128];
 
    const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
 
@@ -73,12 +72,15 @@ int LIF_update(PVLayer *l)
    }
 
 #ifdef DEBUG_OUTPUT
-   sprintf(msg, "IF1: phi: Max: %1.4f, Avg=%1.4f Min=%1.4f\n", phiMax, phiAve
-         / l->numNeurons, phiMin);
-   pv_log(stderr, msg);
-   sprintf(msg, "IF1: V  : Max: %1.4f, Avg=%1.4f Min=%1.4f\n", VMax,
-         VAve / l->numNeurons, VMin);
-   pv_log(stderr, msg);
+   {
+      char msg[128];
+      sprintf(msg, "IF1: phi: Max: %1.4f, Avg=%1.4f Min=%1.4f\n", phiMax, phiAve
+            / l->numNeurons, phiMin);
+      pv_log(stderr, msg);
+      sprintf(msg, "IF1: V  : Max: %1.4f, Avg=%1.4f Min=%1.4f\n", VMax,
+            VAve / l->numNeurons, VMin);
+      pv_log(stderr, msg);
+   }
 #endif
 
    update_f(l);
