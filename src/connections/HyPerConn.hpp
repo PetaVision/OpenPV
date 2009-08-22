@@ -13,6 +13,8 @@
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
 
+#define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
+
 namespace PV {
 
 class HyPerCol;
@@ -41,22 +43,21 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time);
    virtual int updateState(float time, float dt);
-   virtual int updateWeights(PVLayerCube * preActivity, int neighbor);
+   virtual int updateWeights(PVLayerCube * preActivity, int arbor);
 
-   inline  int numberOfBundles()                     {return numBundles;}
-   virtual int numberOfWeightPatches();
+   inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
+   virtual int numberOfWeightPatches(int arbor);
    virtual int writeWeights();
    virtual int writeWeights(int k);
    virtual int writeWeights(const char * filename, int k);
    virtual int writePostPatchWeights(int ioAppend);
 
-   virtual PVPatch * getWeights(int k, int bundle);
-   virtual PVPatch * getPlasticityIncrement(int k, int bundle);
+   virtual PVPatch * getWeights(int kPre, int arbor);
+   virtual PVPatch * getPlasticityIncrement(int k, int arbor);
 
    inline PVLayerCube * getPlasticityDecrement()     {return pDecr;}
 
-   inline PVPatch         ** weights()               {return wPatches;}
-   inline PVSynapseBundle ** cliques()               {return bundles;}
+   inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
 
    inline const char * getName()                     {return name;}
    inline int          getDelay()                    {return params->delay;}
@@ -64,7 +65,8 @@ public:
    inline float minWeight()                          {return 0.0;}
    inline float maxWeight()                          {return wMax;}
 
-   virtual PVSynapseBundle * tasks(int k, int neighbor)   {return bundles[k];}
+   inline PVAxonalArbor * axonalArbor(int kPre, int neighbor)
+      {return &axonalArborList[neighbor][kPre];}
 
    HyPerLayer * preSynapticLayer()     {return pre;}
    HyPerLayer * postSynapticLayer()    {return post;}
@@ -89,7 +91,7 @@ protected:
    char * name;
 
    int connId;             // connection id
-   int numBundles;         // number of synapse bundles
+   int numAxonalArborLists;    // number of axonal arbors (weight patches) for presynaptic layer
    int stdpFlag;           // presence of spike timing dependent plasticity
    float nxp, nyp, nfp;    // size of weight dimensions
 
@@ -101,14 +103,14 @@ protected:
    float dWMax;
    float wMax;
 
-   HyPerLayer    * pre;
-   HyPerLayer    * post;
-   HyPerCol      * parent;
-   PVLayerCube   * pDecr;      // plasticity decrement variable (Mi) for pre-synaptic layer
-   PVPatch      ** pIncr;      // list of stdp patches Psij variable
-   PVPatch      ** wPatches;   // list of weight patches
-   PVPatch      ** wPostPatches;  // post-synaptic linkage of weights
-   PVSynapseBundle ** bundles; // list of tasks for each pre-synaptic neuron
+   HyPerLayer     * pre;
+   HyPerLayer     * post;
+   HyPerCol       * parent;
+   PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for pre-synaptic layer
+   PVPatch       ** pIncr;      // list of stdp patches Psij variable
+   PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
+   PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
+   PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 
    int numParams;
    PVConnParams * params;
@@ -126,12 +128,14 @@ protected:
                           int channel);
    virtual int initializeWeights(const char * filename);
    virtual int initializeRandomWeights(int seed);
+   virtual int createWeights(int nxPatch, int nyPatch, int nfPatch);
    virtual PVPatch ** createWeights(int nxPatch, int nyPatch, int nfPatch, int numPatches);
    virtual int        deleteWeights();
 
-   virtual int createSynapseBundles(int numTasks);
-   virtual int adjustWeightBundles(int numTasks);
-   int createNorthernSynapseBundles(int numTasks);
+   virtual int createAxonalArbors();
+   virtual int adjustAxonalArborWeights();
+
+   int kIndexFromNeighbor(int k, int neighbor);
 
    // static member functions
 
