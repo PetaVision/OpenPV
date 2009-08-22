@@ -19,7 +19,7 @@ LongRangeConn::LongRangeConn(const char * name,
    this->name = strdup(name);
    this->parent = hc;
 
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -56,10 +56,10 @@ int LongRangeConn::initializeWeights(const char * filename)
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->xScale - pre->clayer->yScale;
 
-   const int numPatches = numberOfWeightPatches();
+   const int arbor = 0;
+   const int numPatches = numberOfWeightPatches(arbor);
    for (int k = 0; k < numPatches; k++) {
-      const int bundle = 0;
-      PVPatch * patch = getWeights(k, bundle);
+      PVPatch * patch = getWeights(k, arbor);
       calcWeights(patch, k, noPost, xScale, yScale, aspect, sigma, r2Max, lambda, strength);
    }
 
@@ -144,8 +144,9 @@ int LongRangeConn::calcWeights(PVPatch * wp, int kPre, int no, int xScale, int y
    return 0;
 }
 
-int LongRangeConn::createSynapseBundles(int numTasks)
+int LongRangeConn::createAxonalArbors()
 {
+#ifdef FIXME
    // TODO - these needs to be an input parameter obtained from the connection
    const float kxPost0Left = 0.0f;
    const float kyPost0Left = 0.0f;
@@ -179,30 +180,30 @@ int LongRangeConn::createSynapseBundles(int numTasks)
 #endif
 
    int nNeurons = pre->clayer->numNeurons;
-   int nTotalTasks = nNeurons * numTasks;
+   int nTotalTasks = nNeurons * numArbors;
 
-   PVSynapseBundle ** allBPtrs   = (PVSynapseBundle**) malloc(nNeurons*sizeof(PVSynapseBundle*));
-   PVSynapseBundle  * allBundles = (PVSynapseBundle *) malloc(nNeurons*sizeof(PVSynapseBundle));
-   PVSynapseTask** allTPtrs = (PVSynapseTask**) malloc(nTotalTasks*sizeof(PVSynapseTask*));
-   PVSynapseTask * allTasks = (PVSynapseTask*)  malloc(nTotalTasks*sizeof(PVSynapseTask));
+   PVAxonalArborList ** allBPtrs   = (PVAxonalArborList**) malloc(nNeurons*sizeof(PVAxonalArborList*));
+   PVAxonalArborList  * allBundles = (PVAxonalArborList *) malloc(nNeurons*sizeof(PVAxonalArborList));
+   PVAxonalArbor** allTPtrs = (PVAxonalArbor**) malloc(nTotalTasks*sizeof(PVAxonalArbor*));
+   PVAxonalArbor * allTasks = (PVAxonalArbor*)  malloc(nTotalTasks*sizeof(PVAxonalArbor));
    PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
 
    bundles = allBPtrs;
 
    for (int kPre = 0; kPre < nNeurons; kPre++) {
-      int offset = kPre*sizeof(PVSynapseBundle);
-      bundles[kPre] = (PVSynapseBundle*) ((char*) allBundles + offset);
-      bundles[kPre]->numTasks = numTasks;
-      bundles[kPre]->tasks = allTPtrs + kPre*numTasks;
+      int offset = kPre*sizeof(PVAxonalArborList);
+      bundles[kPre] = (PVAxonalArborList*) ((char*) allBundles + offset);
+      bundles[kPre]->numArbors = numArbors;
+      bundles[kPre]->arbors = allTPtrs + kPre*numArbors;
 
-      PVSynapseBundle * list = bundles[kPre];
-      for (int i = 0; i < numTasks; i++) {
-         offset = (i + kPre*numTasks) * sizeof(PVSynapseTask);
-         list->tasks[i] = (PVSynapseTask*) ((char*) allTasks + offset);
+      PVAxonalArborList * list = bundles[kPre];
+      for (int i = 0; i < numArbors; i++) {
+         offset = (i + kPre*numArbors) * sizeof(PVAxonalArbor);
+         list->arbors[i] = (PVAxonalArbor*) ((char*) allTasks + offset);
       }
 
-      for (int i = 0; i < numTasks; i++) {
-         PVSynapseTask * task = list->tasks[i];
+      for (int i = 0; i < numArbors; i++) {
+         PVAxonalArbor * task = list->arbors[i];
 
          task->weights = this->getWeights(kPre, i);
 
@@ -276,13 +277,13 @@ int LongRangeConn::createSynapseBundles(int numTasks)
 
          // TODO - shouldn't kPre vary first?
 //         offset = (i + kPre*numTasks) * sizeof(PVPatch);
-         offset = (kPre + i*numTasks) * sizeof(PVPatch);
+         offset = (kPre + i*numArbors) * sizeof(PVPatch);
          task->data = (PVPatch*) ((char*) allData + offset);
 
          pvpatch_init(task->data, (int)nxPatch, (int)nyPatch, (int)nfp, psx, psy, psf, phi);
       }
    }
-
+#endif // FIXME
    return 0;
 }
 
