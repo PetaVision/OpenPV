@@ -18,7 +18,7 @@ GaborConn::GaborConn(const char * name,
    this->connId = hc->numberOfConnections();
    this->name = strdup(name);
    this->parent = hc;
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -46,11 +46,12 @@ int GaborConn::initializeWeights(const char * filename)
 
    float r2Max = rMax * rMax;
 
-   const int numPatches = numberOfWeightPatches();
+   const int borderId = 0;
+   const int numPatches = numberOfWeightPatches(borderId);
    for (int i = 0; i < numPatches; i++) {
       int xScale = post->clayer->xScale - pre->clayer->xScale;
       int yScale = post->clayer->xScale - pre->clayer->yScale;
-      gaborWeights(wPatches[i], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
+      gaborWeights(wPatches[borderId][i], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
    }
 
    return 0;
