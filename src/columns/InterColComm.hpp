@@ -96,8 +96,8 @@ public:
 
    bool hasNeighbor(int neighborId);
 
-   int commRow(int commId);
-   int commColumn(int commId);
+   int commRow()          {return commRow(icRank);}
+   int commColumn()       {return commColumn(icRank);}
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}
 
@@ -110,6 +110,11 @@ public:
 
    int recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
             const PVLayerLoc * loc);
+
+protected:
+
+   int commRow(int commId);
+   int commColumn(int commId);
 
 private:
 
