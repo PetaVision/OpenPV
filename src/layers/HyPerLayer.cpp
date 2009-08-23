@@ -154,7 +154,7 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
    // complete initialization now that we have a parent and a communicator
    // WARNING - this must be done before addPublisher is called
    int id = parent->columnId();
-   initGlobal(id, comm->commRow(id), comm->commColumn(id),
+   initGlobal(id, comm->commRow(), comm->commColumn(),
                   comm->numCommRows(), comm->numCommColumns());
 
    comm->addPublisher(this, clayer->activity->size, maxBorderSize, MAX_F_DELAY);
