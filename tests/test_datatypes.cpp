@@ -5,27 +5,27 @@
 
 #undef DEBUG_PRINT
 
-#include "../src/columns/InterColComm.hpp"
+#include "../src/columns/Communicator.hpp"
 
-static int check_borders(pvdata_t * buf, PV::InterColComm * ic, PVLayerLoc loc);
+static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc);
 
 int main(int argc, char * argv[])
 {
    int err = 0;
    PVLayerLoc loc;
 
-   PV::InterColComm * ic = new PV::InterColComm(&argc, &argv);
+   PV::Communicator * comm = new PV::Communicator(&argc, &argv);
 
-   int nxProc = ic->numCommColumns();
-   int nyProc = ic->numCommRows();
+   int nxProc = comm->numCommColumns();
+   int nyProc = comm->numCommRows();
 
-   int commRow = ic->commRow(ic->commRank());
-   int commCol = ic->commColumn(ic->commRank());
+   int commRow = comm->commRow();
+   int commCol = comm->commColumn();
 
-   printf("[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n", ic->commRank(), nxProc, nyProc, commRow, commCol, ic->numberOfNeighbors());  fflush(stdout);
+   printf("[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n", comm->commRank(), nxProc, nyProc, commRow, commCol, comm->numberOfNeighbors());  fflush(stdout);
 
    //   for (int n = 0; n < MAX_NEIGHBORS+1; n++) {
-   //      printf("[%d]: hasNeighbor(%d)=%d\n", ic->commRank(), n, ic->hasNeighbor(n));  fflush(stdout);
+   //      printf("[%d]: hasNeighbor(%d)=%d\n", comm->commRank(), n, comm->hasNeighbor(n));  fflush(stdout);
    //   }
 
    loc.nx = 128;
@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
    const int nxBorder = loc.nxBorder;
    const int nyBorder = loc.nyBorder;
 
-   MPI_Datatype * datatypes = ic->newDatatypes(&loc);
+   MPI_Datatype * datatypes = comm->newDatatypes(&loc);
 
    // create a local portion of the "image"
    float * image = new float [numItems];
@@ -60,36 +60,34 @@ int main(int argc, char * argv[])
       }
    }
 
-   //   printf("[%d]: k0==%d image[2579]==%f addr==%p\n", ic->commRank(), k0, image[2579], &image[2579]);  fflush(stdout);
+   //   printf("[%d]: k0==%d image[2579]==%f addr==%p\n", comm->commRank(), k0, image[2579], &image[2579]);  fflush(stdout);
 
    // send and recv the "image"
 
-   //   printf("[%d]: sending, k0==%d\n", ic->commRank(), k0);  fflush(stdout);
-   ic->send(image, datatypes, &loc);
+   //   printf("[%d]: sending, k0==%d\n", comm->commRank(), k0);  fflush(stdout);
+   comm->send(image, datatypes, &loc);
 
-   //   printf("[%d]: receiving...\n", ic->commRank());  fflush(stdout);
-   ic->recv(image, datatypes, &loc);
+   //   printf("[%d]: receiving...\n", comm->commRank());  fflush(stdout);
+   comm->recv(image, datatypes, &loc);
 
-   //   printf("[%d]: border check...\n", ic->commRank());  fflush(stdout);
-   err = check_borders(image, ic, loc);
+   //   printf("[%d]: border check...\n", comm->commRank());  fflush(stdout);
+   err = check_borders(image, comm, loc);
    if (err != 0) {
-      printf("[%d]: check_borders failed\n", ic->commRank());
+      printf("[%d]: check_borders failed\n", comm->commRank());
    }
    else {
-      printf("[%d]: check_borders succeeded\n", ic->commRank());
+      printf("[%d]: check_borders succeeded\n", comm->commRank());
    }
 
    delete datatypes;
-   delete ic;
+   delete comm;
 
    return 0;
 }
 
-static int check_borders(pvdata_t * image, PV::InterColComm * ic, PVLayerLoc loc)
+static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc loc)
 {
    int err = 0;
-
-   const int rank = ic->commRank();
 
    const int nx = (int) loc.nx;
    const int ny = (int) loc.ny;
@@ -97,14 +95,14 @@ static int check_borders(pvdata_t * image, PV::InterColComm * ic, PVLayerLoc loc
    const int nxBorder = loc.nxBorder;
    const int nyBorder = loc.nyBorder;
 
-   const int commRow = ic->commRow(rank);
-   const int commCol = ic->commColumn(rank);
+   const int commRow = comm->commRow();
+   const int commCol = comm->commColumn();
 
    int k0 = commCol * nx + commRow * ny * loc.nxGlobal;
    int sy = 2 * loc.nxBorder + nx;
 
    // northwest
-   if (ic->hasNeighbor(NORTHWEST)) {
+   if (comm->hasNeighbor(NORTHWEST)) {
       for (int ky = 0; ky < nyBorder; ky++) {
          int k = k0 + ky * loc.nxGlobal;
          float * buf = image + ky * sy;
@@ -118,7 +116,7 @@ static int check_borders(pvdata_t * image, PV::InterColComm * ic, PVLayerLoc loc
    }
 
    // west
-   if (ic->hasNeighbor(WEST)) {
+   if (comm->hasNeighbor(WEST)) {
       for (int ky = 0; ky < ny; ky++) {
          int k = k0 - loc.nxBorder + ky * loc.nxGlobal;
          float * buf = image + (ky + nyBorder) * sy;
@@ -132,7 +130,7 @@ static int check_borders(pvdata_t * image, PV::InterColComm * ic, PVLayerLoc loc
    }
 
    // east
-   if (ic->hasNeighbor(EAST)) {
+   if (comm->hasNeighbor(EAST)) {
       for (int ky = 0; ky < ny; ky++) {
          int k = k0 + nx + ky * loc.nxGlobal;
          float * buf = image + (nx + nxBorder) + (ky + nyBorder) * sy;
