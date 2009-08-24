@@ -1,6 +1,9 @@
 $(BUILDDIR)/HyPerCol.o: $(SRCDIR)/columns/HyPerCol.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/Communicator.o: $(SRCDIR)/columns/Communicator.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/InterColComm.o: $(SRCDIR)/columns/InterColComm.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 

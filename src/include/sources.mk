@@ -26,6 +26,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/tiff.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
+          $(SRCDIR)/columns/Communicator.cpp \
           $(SRCDIR)/columns/InterColComm.cpp \
           $(SRCDIR)/columns/DataStore.cpp \
           $(SRCDIR)/connections/HyPerConn.cpp \
@@ -51,6 +52,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
 CPPOBJS = $(BUILDDIR)/HyPerCol.o \
+          $(BUILDDIR)/Communicator.o \
           $(BUILDDIR)/InterColComm.o \
           $(BUILDDIR)/DataStore.o \
           $(BUILDDIR)/HyPerLayer.o \
