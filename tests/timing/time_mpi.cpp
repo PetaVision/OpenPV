@@ -5,7 +5,7 @@
 #undef DEBUG_PRINT
 
 #include "clock.h"
-#include "../../src/columns/InterColComm.hpp"
+#include "../../src/columns/Communicator.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -14,18 +14,18 @@ int main(int argc, char * argv[])
 
    const int nloops = 1000;
 
-   PV::InterColComm * ic = new PV::InterColComm(&argc, &argv);
+   PV::Communicator * comm = new PV::Communicator(&argc, &argv);
 
-   const int rank = ic->commRank();
+   const int rank = comm->commRank();
 
-   const int nxProc = ic->numCommColumns();
-   const int nyProc = ic->numCommRows();
+   const int nxProc = comm->numCommColumns();
+   const int nyProc = comm->numCommRows();
 
-   const int commRow = ic->commRow(rank);
-   const int commCol = ic->commColumn(rank);
+   const int commRow = comm->commRow();
+   const int commCol = comm->commColumn();
 
    if (rank == 0) {
-      fprintf(stderr, "\n[0]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n\n", nxProc, nyProc, commRow, commCol, ic->numberOfNeighbors());
+      fprintf(stderr, "\n[0]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n\n", nxProc, nyProc, commRow, commCol, comm->numberOfNeighbors());
    }
 
    loc.nx = 128;
@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
    const int nxBorder = loc.nxBorder;
    const int nyBorder = loc.nyBorder;
 
-   MPI_Datatype * datatypes = ic->newDatatypes(&loc);
+   MPI_Datatype * datatypes = comm->newDatatypes(&loc);
 
    // create a local portion of the "image"
    float * image = new float [numItems];
@@ -66,8 +66,8 @@ int main(int argc, char * argv[])
    double start = MPI_Wtime();
 
    for (int n = 0; n < nloops; n++) {
-      ic->send(image, datatypes, &loc);
-      ic->recv(image, datatypes, &loc);
+      comm->send(image, datatypes, &loc);
+      comm->recv(image, datatypes, &loc);
    }
 
    MPI_Barrier(MPI_COMM_WORLD);
@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
    }
 
    delete datatypes;
-   delete ic;
+   delete comm;
 
    return err;
 }
