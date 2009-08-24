@@ -61,6 +61,13 @@ protected:
    int commRow(int commId);
    int commColumn(int commId);
 
+   int numNeighbors;
+   int numBorders;
+
+   //TODO - can this be cleaned up?
+   int borders[NUM_NEIGHBORHOOD-1];
+   int remoteNeighbors[NUM_NEIGHBORHOOD];
+
 private:
 
    int icRank;
@@ -69,16 +76,12 @@ private:
    int worldSize;
    int numRows;
    int numCols;
-   int numNeighbors;
-   int numBorders;
 
    MPI_Comm    icComm;
    MPI_Request requests[NUM_NEIGHBORHOOD-1];
 
    //TODO - can this be cleaned up?
-   int borders[NUM_NEIGHBORHOOD-1];
    int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
-   int remoteNeighbors[NUM_NEIGHBORHOOD];
 
    // These methods are private for now, move to public as needed
 
