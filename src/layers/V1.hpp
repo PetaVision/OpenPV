@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef V1_H_
-#define V1_H_
+#ifndef V1_HPP_
+#define V1_HPP_
 
 #include "HyPerLayer.hpp"
 #include "LIF2.h"
@@ -54,4 +54,4 @@ extern "C"
 }
 #endif
 
-#endif /* V1_H_ */
+#endif /* V1_HPP_ */
