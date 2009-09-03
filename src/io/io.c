@@ -343,7 +343,7 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
    if (commRank == 0) {
       FILE* fp;
       int result;
-      PVLayerLoc loc;
+      LayerLoc loc;
 
       loc = l->loc;
 
