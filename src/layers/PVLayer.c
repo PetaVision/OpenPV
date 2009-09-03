@@ -39,8 +39,8 @@ int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
    l->loc.nx = nx;
    l->loc.ny = ny;
 
-   l->loc.nxBorder = nBorder;
-   l->loc.nyBorder = nBorder;
+   l->loc.nPad   = nBorder;
+   l->loc.nBands = 1;
 
    l->xScale = xScale;
    l->yScale = yScale;
