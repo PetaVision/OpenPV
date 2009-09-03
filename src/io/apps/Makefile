@@ -1,15 +1,20 @@
 PVDIR = ../../..
 SRCDIR = ../../../src
 
-CPP = g++
-CC  = gcc
+GDALDIR = /Users/rasmussn/Codes/PANN/
 
-MPI_DIR = $(SRCDIR)/arch/mpi
-MPI_INC = -I$(MPI_DIR)
+#CPP = g++
+#CC  = gcc
+CPP = mpic++
+CC  = mpicc
+
+#MPI_DIR = $(SRCDIR)/arch/mpi
+#MPI_INC = -I$(MPI_DIR)
 
 CFLAGS = -g -Wall -std=c99 -Wall -I$(PVDIR) $(MPI_INC)
-CPPFLAGS = -g -Wall -I$(PVDIR) $(MPI_INC)
+CPPFLAGS = -g -Wall -I$(PVDIR) $(MPI_INC) -I$(GDALDIR)/include
 
+GDALLIBS = -L$(GDALDIR)/lib -lgdal
 LIBS = -L../../../lib -lpv -lm -lpthread
 
 DEPENDS = $(HEADERS)
@@ -34,6 +39,9 @@ EXES = weights
 	@echo ' '
 
 all: $(EXES)
+
+imageio: imageio.o
+	$(CPP) -o $@ $< $(LIBS) $(GDALLIBS)
 
 weights: weights.o
 	$(CPP) -o $@ $< $(LIBS)
