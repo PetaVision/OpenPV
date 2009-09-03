@@ -683,7 +683,7 @@ int HyPerConn::createAxonalArbors()
    const float ky0Post = post->clayer->loc.ky0;
    const float nfPost  = post->clayer->numFeatures;
 
-   const float nxBorderPost = post->clayer->loc.nxBorder;
+   const float nxBorderPost = post->clayer->loc.nPad;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
