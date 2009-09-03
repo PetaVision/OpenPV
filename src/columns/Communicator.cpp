@@ -11,8 +11,6 @@
 
 #include "Communicator.hpp"
 
-#define DEBUG_OUTPUT
-
 namespace PV {
 
 Communicator::Communicator(int* argc, char*** argv)
@@ -20,6 +18,8 @@ Communicator::Communicator(int* argc, char*** argv)
    float r;
 
    commInit(argc, argv);
+
+   sprintf(commName, "[%2d]: ", icRank);
 
    r = sqrt(worldSize);
    numRows = (int) r;
@@ -45,7 +45,7 @@ Communicator::Communicator(int* argc, char*** argv)
       MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
 
 #ifdef DEBUG_OUTPUT
-      printf("[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
+      fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
 #endif
 
       delete ranks;
@@ -59,6 +59,11 @@ Communicator::Communicator(int* argc, char*** argv)
    else {
       icSize = 0;
       icRank = -worldRank;
+   }
+
+   commName[0] = '\0';
+   if (icSize > 1) {
+      sprintf(commName, "[%2d]: ", icRank);
    }
 
    if (icSize > 0) {
@@ -81,7 +86,7 @@ int Communicator::commInit(int* argc, char*** argv)
    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);  fflush(stdout);
+   fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
 #endif
 
    return 0;
@@ -115,15 +120,13 @@ int Communicator::neighborInit()
          neighbors[i] = n;
          remoteNeighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
-         printf("[%d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
+         fprintf(stderr, "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
                 icRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
-         fflush(stdout);
 #endif
       } else {
          borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
-         printf("[%d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
-         fflush(stdout);
+         fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
 #endif
       }
    }
@@ -388,14 +391,14 @@ int Communicator::neighborIndex(int commId, int index)
  * Returns the recv data offset for the given neighbor
  *  - recv into borders
  */
-size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
+size_t Communicator::recvOffset(int n, const LayerLoc * loc)
 {
    const size_t nx = loc->nx;
-   const size_t ny = loc->nx;
-   const size_t nxBorder = loc->nxBorder;
-   const size_t nyBorder = loc->nyBorder;
+   const size_t ny = loc->ny;
+   const size_t nxBorder = loc->nPad;
+   const size_t nyBorder = loc->nPad;
 
-   const size_t sy = 2 * nxBorder + nx;
+   const size_t sy = nx + 2 * nxBorder;
 
    switch (n) {
    case LOCAL:
@@ -426,14 +429,14 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
  * Returns the send data offset for the given neighbor
  *  - send from interior
  */
-size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
+size_t Communicator::sendOffset(int n, const LayerLoc * loc)
 {
    const size_t nx = loc->nx;
-   const size_t ny = loc->nx;
-   const size_t nxBorder = loc->nxBorder;
-   const size_t nyBorder = loc->nyBorder;
+   const size_t ny = loc->ny;
+   const size_t nxBorder = loc->nPad;
+   const size_t nyBorder = loc->nPad;
 
-   const size_t sy = 2 * nxBorder + nx;
+   const size_t sy = nx + 2 * nxBorder;
 
    switch (n) {
    case LOCAL:
@@ -462,26 +465,29 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 
 /**
  * Create a set of data types for inter-neighbor communication
- *   - caller must free the data-type array
+ *   - caller must delete the data-type array
  */
-MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
+MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
 {
    int count, blocklength, stride;
 
    MPI_Datatype * comms = new MPI_Datatype [NUM_NEIGHBORHOOD];
+   
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
 
    count       = loc->ny;
    blocklength = loc->nx;
-   stride      = 2*loc->nxBorder + loc->nx;
+   stride      = 2*nxBorder + loc->nx;
 
    /* local interior */
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[LOCAL]);
    MPI_Type_commit(&comms[LOCAL]);
 
-   count = loc->nyBorder;
+   count = nyBorder;
 
    /* northwest */
-   blocklength = loc->nxBorder;
+   blocklength = nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHWEST]);
    MPI_Type_commit(&comms[NORTHWEST]);
 
@@ -491,12 +497,12 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    MPI_Type_commit(&comms[NORTH]);
 
    /* northeast */
-   blocklength = loc->nxBorder;
+   blocklength = nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHEAST]);
    MPI_Type_commit(&comms[NORTHEAST]);
 
    count       = loc->ny;
-   blocklength = loc->nxBorder;
+   blocklength = nxBorder;
 
    /* west */
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[WEST]);
@@ -506,10 +512,10 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[EAST]);
    MPI_Type_commit(&comms[EAST]);
 
-   count = loc->nyBorder;
+   count = nyBorder;
 
    /* southwest */
-   blocklength = loc->nxBorder;
+   blocklength = nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHWEST]);
    MPI_Type_commit(&comms[SOUTHWEST]);
 
@@ -519,7 +525,7 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    MPI_Type_commit(&comms[SOUTH]);
 
    /* southeast */
-   blocklength = loc->nxBorder;
+   blocklength = nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHEAST]);
    MPI_Type_commit(&comms[SOUTHEAST]);
 
@@ -532,11 +538,13 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
  *   - the data regions to be sent are described by the datatypes
  */
 int Communicator::recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-                       const PVLayerLoc * loc)
+                       const LayerLoc * loc)
 {
    // don't recv interior
    int count = numberOfNeighbors() - 1;
-   //   printf("[%d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+#endif
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
    return 0;
@@ -548,7 +556,7 @@ int Communicator::recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
  *   - do irecv first so there is a location for send data to be received
  */
 int Communicator::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-                       const PVLayerLoc * loc)
+                       const LayerLoc * loc)
 {
    // don't send interior
    int nreq = 0;
@@ -556,7 +564,9 @@ int Communicator::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
       if (neighbors[n] == icRank) continue;  // don't send to self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
-      //      printf("[%d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+#endif
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);

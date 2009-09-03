@@ -32,6 +32,8 @@ public:
    int commInit(int * argc, char *** argv);
    int commFinalize();
 
+   char * name()                { return commName; }
+
    int commRank()               { return icRank; }
    int commSize()               { return icSize; }
    MPI_Comm communicator()      { return icComm; }
@@ -46,26 +48,27 @@ public:
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}
 
-   size_t recvOffset(int n, const PVLayerLoc * loc);
-   size_t sendOffset(int n, const PVLayerLoc * loc);
-   MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
+   size_t recvOffset(int n, const LayerLoc * loc);
+   size_t sendOffset(int n, const LayerLoc * loc);
+   MPI_Datatype * newDatatypes(const LayerLoc * loc);
 
    int send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-            const PVLayerLoc * loc);
+            const LayerLoc * loc);
 
    int recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-            const PVLayerLoc * loc);
+            const LayerLoc * loc);
 
 protected:
 
    int commRow(int commId);
    int commColumn(int commId);
 
-   int numNeighbors;
-   int numBorders;
+   int numNeighbors;  // # of remote neighbors plus local
+   int numBorders;    // # of border regions (no communicating neighbor)
 
    //TODO - can this be cleaned up?
    int borders[NUM_NEIGHBORHOOD-1];
+   int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
 
 private:
@@ -77,11 +80,10 @@ private:
    int numRows;
    int numCols;
 
+   char commName[16];
+
    MPI_Comm    icComm;
    MPI_Request requests[NUM_NEIGHBORHOOD-1];
-
-   //TODO - can this be cleaned up?
-   int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
 
    // These methods are private for now, move to public as needed
 
