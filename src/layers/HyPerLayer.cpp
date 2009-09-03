@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-static int    pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems);
+static int    pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems);
 static size_t pvcube_size(int numItems);
 
 #ifdef __cplusplus
@@ -90,46 +90,49 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
    // TODO - is this correct, kx0 or ky0 < 0
    // TODO - does global patch need to expand to take into account border regions (probably)
 
-   PVLayerLoc loc = clayer->loc;
+   LayerLoc loc = clayer->loc;
+   
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
 
    switch (borderId) {
    case NORTHWEST:
-      loc.nx = loc.nxBorder;
-      loc.ny = loc.nyBorder;
-      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
-      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
+      loc.nx = nxBorder;
+      loc.ny = nyBorder;
+      loc.kx0 = clayer->loc.kx0 - nxBorder;
+      loc.ky0 = clayer->loc.ky0 - nyBorder;
       break;
    case NORTH:
-      loc.ny = loc.nyBorder;
-      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
+      loc.ny = nyBorder;
+      loc.ky0 = clayer->loc.ky0 - nyBorder;
       break;
    case NORTHEAST:
-      loc.nx = loc.nxBorder;
-      loc.ny = loc.nyBorder;
+      loc.nx = nxBorder;
+      loc.ny = nyBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
-      loc.ky0 = clayer->loc.ky0 - loc.nyBorder;
+      loc.ky0 = clayer->loc.ky0 - nyBorder;
       break;
    case WEST:
-      loc.nx = loc.nxBorder;
-      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
+      loc.nx = nxBorder;
+      loc.kx0 = clayer->loc.kx0 - nxBorder;
       break;
    case EAST:
-      loc.nx = loc.nxBorder;
+      loc.nx = nxBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
       break;
    case SOUTHWEST:
-      loc.nx = loc.nxBorder;
-      loc.ny = loc.nxBorder;
-      loc.kx0 = clayer->loc.kx0 - loc.nxBorder;
+      loc.nx = nxBorder;
+      loc.ny = nyBorder;
+      loc.kx0 = clayer->loc.kx0 - nxBorder;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
    case SOUTH:
-      loc.ny = loc.nyBorder;
+      loc.ny = nyBorder;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
    case SOUTHEAST:
-      loc.nx = loc.nxBorder;
-      loc.ny = loc.nyBorder;
+      loc.nx = nxBorder;
+      loc.ny = nyBorder;
       loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
       loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
       break;
@@ -177,8 +180,8 @@ int HyPerLayer::numberOfNeurons(int borderId)
    const int nx = (int) clayer->loc.nx;
    const int ny = (int) clayer->loc.ny;
    const int nf = clayer->numFeatures;
-   const int nxBorder = clayer->loc.nxBorder;
-   const int nyBorder = clayer->loc.nyBorder;
+   const int nxBorder = clayer->loc.nPad;
+   const int nyBorder = clayer->loc.nPad;
 
    switch (borderId) {
    case 0:
@@ -855,7 +858,7 @@ static size_t pvcube_size(int numItems)
    return size + numItems*sizeof(float);
 }
 
-static int pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
+static int pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems)
 {
    cube->size = pvcube_size(numItems);
    cube->numItems = numItems;
@@ -864,7 +867,7 @@ static int pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
    return 0;
 }
 
-PVLayerCube* pvcube_new(PVLayerLoc * loc, int numItems)
+PVLayerCube* pvcube_new(LayerLoc * loc, int numItems)
 {
    PVLayerCube* cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
    pvcube_init(cube, loc, numItems);
