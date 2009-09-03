@@ -59,8 +59,8 @@ int Retina::init(const char * name, PVLayerType type)
    this->numProbes = 0;
 
    fileread_params * params = (fileread_params *) l->params;
-   l->loc.nxBorder = params->marginWidth;
-   l->loc.nyBorder = params->marginWidth;
+   l->loc.nPad   = params->marginWidth;
+   l->loc.nBands = 1;
 
    PVParams * pvParams = parent->parameters();
 
@@ -114,13 +114,16 @@ int Retina::init(const char * name, PVLayerType type)
 
    // check margins/border region
 
+   const int nxBorder = l->loc.nPad;
+   const int nyBorder = l->loc.nPad;
+
    // TODO - make sure the origin information is working correctly
-   if (l->loc.nxBorder != 0.0f || l->loc.nyBorder != 0.0f) {
+   if (nxBorder != 0.0f || nyBorder != 0.0f) {
       for (n = 0; n < l->numNeurons; n++) {
          float x = xPos(n, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
          float y = yPos(n, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
-         if ( x < l->loc.nxBorder || x > l->loc.nxGlobal * l->dx - l->loc.nxBorder ||
-              y < l->loc.nyBorder || y > l->loc.nyGlobal * l->dy - l->loc.nyBorder ) {
+         if ( x < nxBorder || x > l->loc.nxGlobal * l->dx - nxBorder ||
+              y < nyBorder || y > l->loc.nyGlobal * l->dy - nyBorder ) {
             clayer->V[n] = 0.0;
          }
       }
