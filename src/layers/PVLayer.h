@@ -36,7 +36,7 @@ typedef struct PVLayer_ {
 
    char * name;
 
-   PVLayerLoc loc;
+   LayerLoc loc;
    int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
    float dx, dy;           // distance between neurons in the layer
    float xOrigin, yOrigin; // origin of the layer (depends on iCol)
@@ -99,7 +99,7 @@ int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * para
 int pvlayer_getParams(PVLayer * l, int * numParams, float ** params);
 int pvlayer_setFuncs (PVLayer * l, void * updateFunc, void * initFunc);
 
-PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
+PVLayerCube * pvcube_new(LayerLoc * loc, int numItems);
 int           pvcube_delete(PVLayerCube * cube);
 int           pvcube_setAddr(PVLayerCube * cube);
 
