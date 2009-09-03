@@ -317,7 +317,7 @@ static inline int kIndexExtended(int k, float nx, float ny, float nf, float nb)
  * @nf
  */
 // TODO - put back in nx,ny,... so that it will vectorize with vector of kl's
-static inline int globalIndexFromLocal(int kl, PVLayerLoc loc, float nf)
+static inline int globalIndexFromLocal(int kl, LayerLoc loc, float nf)
 {
    float kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, nf);
    float kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, nf);
