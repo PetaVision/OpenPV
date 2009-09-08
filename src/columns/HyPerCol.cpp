@@ -10,8 +10,9 @@
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
 #include "../connections/PVConnection.h"
-#include "../io/io.h"
 #include "../io/clock.h"
+#include "../io/imageio.hpp"
+#include "../io/io.h"
 
 #include <assert.h>
 #include <math.h>
@@ -43,9 +44,9 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
 #endif
 
    numSteps = 2;
-   input_file = NULL;
+   image_file = NULL;
    param_file = NULL;
-   parse_options(argc, argv, &input_file, &param_file, &numSteps, &numThreads);
+   parse_options(argc, argv, &image_file, &param_file, &numSteps, &numThreads);
 
    // estimate for now
    // TODO -get rid of maxGroups
@@ -59,10 +60,21 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    deltaTime = DELTA_T;
    if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
 
-   imageRect.x = 0.0;
-   imageRect.y = 0.0;
-   imageRect.width  = params->value(name, "nx");
-   imageRect.height = params->value(name, "ny");
+   int status = -1;
+   if (image_file) {
+      status = getImageInfo(image_file, icComm, &imageLoc);
+   }
+
+   if (status) {
+      imageLoc.nx = params->value(name, "nx");
+      imageLoc.ny = params->value(name, "ny");
+      imageLoc.nxGlobal = imageLoc.nx;
+      imageLoc.nyGlobal = imageLoc.ny;
+      imageLoc.kx0 = imageLoc.nx * icComm->numCommColumns();
+      imageLoc.ky0 = imageLoc.ny * icComm->numCommRows();
+      imageLoc.nPad = 0;
+      imageLoc.nBands = 1;
+   }
 }
 
 HyPerCol::~HyPerCol()
@@ -73,7 +85,7 @@ HyPerCol::~HyPerCol()
    finalizeThreads();
 #endif
 
-   if (input_file != NULL) free(input_file);
+   if (image_file != NULL) free(image_file);
 
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
@@ -111,7 +123,7 @@ int HyPerCol::initFinish(void)
       }
    }
 
-   log_parameters(numSteps, input_file);
+   log_parameters(numSteps, image_file);
 
 #ifdef MULTITHREADED
    initializeThreads();
