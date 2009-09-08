@@ -25,6 +25,7 @@ class HyPerLayer;
 class HyPerConn;
 
 class Publisher {
+
 public:
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
    virtual ~Publisher();
@@ -58,7 +59,8 @@ private:
    DataStore *  store;
 };
 
-class InterColComm: public PV::Communicator {
+class InterColComm : public Communicator {
+
 public:
    InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
@@ -77,6 +79,6 @@ private:
    Publisher* publishers[MAX_PUBLISHERS];
 };
 
-}
+} // namespace PV
 
 #endif /* INTERCOLCOMM_HPP_ */
