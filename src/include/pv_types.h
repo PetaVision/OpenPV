@@ -32,13 +32,6 @@ enum ChannelType {
   CHANNEL_INHB = 2
 };
 
-typedef struct PVRect_ {
-	float x;
-	float y;
-	float width;
-	float height;
-} PVRect;
-
 typedef struct PVPatch_ {
    pvdata_t * __attribute__ ((aligned)) data;
    float nx, ny, nf;    // number of items in x,y,features
