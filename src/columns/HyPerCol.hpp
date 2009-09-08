@@ -38,7 +38,7 @@ public:
    int writeState();
 
    int columnId();
-   const char * inputFile()              {return input_file;}
+   const char * inputFile()              {return image_file;}
 
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
 
@@ -55,9 +55,9 @@ public:
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return time;}
 
-   PVRect getImageRect()                  {return imageRect;}
-   float  width()                         {return imageRect.width;}
-   float  height()                        {return imageRect.height;}
+   LayerLoc getImageLoc()                 {return imageloc;}
+   float  width()                         {return imageLoc.nx;}
+   float  height()                        {return imageLoc.ny;}
 
    int numberOfTimeSteps()                {return numSteps;}
 
@@ -80,8 +80,8 @@ private:
 
    float time;                  // current time in milliseconds
    float deltaTime;             // time step interval
+   LayerLoc imageLoc;
 
-   PVRect imageRect;
    HyPerLayer ** layers;
    HyPerConn  ** connections;
 
@@ -89,7 +89,7 @@ private:
    PVLayer* threadCLayers;
 
    char * name;
-   char * input_file;
+   char * image_file;
 
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
