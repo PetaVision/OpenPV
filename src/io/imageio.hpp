@@ -8,13 +8,13 @@
 #ifndef IMAGEIO_HPP_
 #define IMAGEIO_HPP_
 
-#include "Communicator.hpp"
-#include "../pann_types.h"
+#include "../columns/Communicator.hpp"
+#include "../include/pv_types.h"
 
-int getImageInfo(const char* filename, PV::Communicator * comm, LayerLoc * loc);
-int scatterImageFile(const char* filename,
+int getImageInfo(const char * filename, PV::Communicator * comm, LayerLoc * loc);
+int scatterImageFile(const char * filename,
                      PV::Communicator * comm, LayerLoc * loc, float * buf);
-int gatherImageFile( const char* filename,
+int gatherImageFile( const char * filename,
                      PV::Communicator * comm, LayerLoc * loc, float * buf);
 
 int scatter(PV::Communicator * comm, LayerLoc * loc, float * buf);
