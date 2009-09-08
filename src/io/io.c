@@ -26,7 +26,7 @@ void usage()
    printf(" -p <parameters filename>\n");
    printf(" -t <number of threads for shared memory parallelism>\n");
    printf("\nA good test is:\n");
-   printf(" ./Debug/pv -n 100 -p src/input/params.pv -i tests/input/horizontal-lines.tif\n");
+   printf(" ./Debug/pv -n 100 -p input/params.pv -i input/horizontal-lines.tif\n");
    printf("\nThen check results in Octave/MATLAB using analysis/pv_analyze.m\n\n");
 }
 
