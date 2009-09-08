@@ -111,6 +111,6 @@ private:
 
 };
 
-}
+} // namespace PV
 
 #endif /* COMMUNICATOR_HPP_ */
