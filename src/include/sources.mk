@@ -23,6 +23,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/PostConnProbe.hpp \
           $(SRCDIR)/io/StatsProbe.hpp \
           $(SRCDIR)/io/PVParams.hpp \
+          $(SRCDIR)/io/imageio.hpp \
           $(SRCDIR)/io/tiff.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
@@ -49,6 +50,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/PostConnProbe.cpp \
           $(SRCDIR)/io/StatsProbe.cpp \
           $(SRCDIR)/io/PVParams.cpp \
+          $(SRCDIR)/io/imageio.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
 CPPOBJS = $(BUILDDIR)/HyPerCol.o \
@@ -75,6 +77,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/PostConnProbe.o \
           $(BUILDDIR)/StatsProbe.o \
           $(BUILDDIR)/PVParams.o \
+          $(BUILDDIR)/imageio.o \
           $(BUILDDIR)/param_parser.o
 
 CSRCS   = $(SRCDIR)/connections/PVConnection.c \

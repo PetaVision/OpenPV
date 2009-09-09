@@ -88,6 +88,9 @@ $(BUILDDIR)/fileread.o: $(SRCDIR)/layers/fileread.c $(HEADERS)
 $(BUILDDIR)/io.o: $(SRCDIR)/io/io.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
+$(BUILDDIR)/imageio.o: $(SRCDIR)/io/imageio.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/tiff.o: $(SRCDIR)/io/tiff.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
