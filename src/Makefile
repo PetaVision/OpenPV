@@ -12,21 +12,21 @@ CPP = mpic++
 #CC = gcc
 #CPP = g++
 
+LIBS = -L /usr/local/lib -lgdal
+
 MAKE = make
 
 # VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2
 CFLAGS = -g -std=c99 -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
 CPPFLAGS = -g -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
 
-EXES = pv_example
+#EXES = pv_example
 
 %.o: %.cpp
 	@echo 'Building file: $<'
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 	@echo 'Finished building: $<'
 	@echo ' '
-
-#all: libpv.a $(EXES)
 
 all: make-in-subdirs $(BUILDDIR)/libpv.a $(EXES)
 
