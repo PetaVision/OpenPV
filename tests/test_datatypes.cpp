@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 /**
  * This file tests copying to boundary regions (no boundary conditions)
  * using MPI.
@@ -7,12 +9,12 @@
 
 #include "../src/columns/Communicator.hpp"
 
-static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc);
+static int check_borders(pvdata_t * buf, PV::Communicator * comm, LayerLoc loc);
 
 int main(int argc, char * argv[])
 {
    int err = 0;
-   PVLayerLoc loc;
+   LayerLoc loc;
 
    PV::Communicator * comm = new PV::Communicator(&argc, &argv);
 
@@ -37,12 +39,13 @@ int main(int argc, char * argv[])
    // this info not used for send/recv
    loc.kx0 = 0; loc.ky0 = 0;
 
-   loc.nxBorder = 16;
-   loc.nyBorder = 16;
-   int numItems = (2*loc.nxBorder + loc.nx) * (2*loc.nyBorder + loc.ny);
+   loc.nPad = 16;
 
-   const int nxBorder = loc.nxBorder;
-   const int nyBorder = loc.nyBorder;
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
+
+   int numItems = (2*nxBorder + loc.nx) * (2*nyBorder + loc.ny);
+
 
    MPI_Datatype * datatypes = comm->newDatatypes(&loc);
 
@@ -50,7 +53,7 @@ int main(int argc, char * argv[])
    float * image = new float [numItems];
 
    int k0 = commCol * loc.nx + commRow * loc.ny * loc.nxGlobal;
-   int sy = 2 * loc.nxBorder + loc.nx;
+   int sy = 2 * nxBorder + loc.nx;
 
    for (int ky = 0; ky < loc.ny; ky++) {
       int k = k0 + ky * loc.nxGlobal;
@@ -85,21 +88,21 @@ int main(int argc, char * argv[])
    return 0;
 }
 
-static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc loc)
+static int check_borders(pvdata_t * image, PV::Communicator * comm, LayerLoc loc)
 {
    int err = 0;
 
    const int nx = (int) loc.nx;
    const int ny = (int) loc.ny;
 
-   const int nxBorder = loc.nxBorder;
-   const int nyBorder = loc.nyBorder;
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
 
    const int commRow = comm->commRow();
    const int commCol = comm->commColumn();
 
    int k0 = commCol * nx + commRow * ny * loc.nxGlobal;
-   int sy = 2 * loc.nxBorder + nx;
+   int sy = 2 * nxBorder + nx;
 
    // northwest
    if (comm->hasNeighbor(NORTHWEST)) {
@@ -118,7 +121,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
    // west
    if (comm->hasNeighbor(WEST)) {
       for (int ky = 0; ky < ny; ky++) {
-         int k = k0 - loc.nxBorder + ky * loc.nxGlobal;
+         int k = k0 - nxBorder + ky * loc.nxGlobal;
          float * buf = image + (ky + nyBorder) * sy;
          for (int kx = 0; kx < nxBorder; kx++) {
             if ((int) buf[kx] != k++) {
