@@ -7,10 +7,12 @@
 #include "clock.h"
 #include "../../src/columns/Communicator.hpp"
 
+#include <stdio.h>
+
 int main(int argc, char * argv[])
 {
    int err = 0;
-   PVLayerLoc loc;
+   LayerLoc loc;
 
    const int nloops = 1000;
 
@@ -37,12 +39,11 @@ int main(int argc, char * argv[])
    // this info not used for send/recv
    loc.kx0 = 0; loc.ky0 = 0;
 
-   loc.nxBorder = 16;
-   loc.nyBorder = 16;
-   int numItems = (2*loc.nxBorder + loc.nx) * (2*loc.nyBorder + loc.ny);
+   loc.nPad = 16;
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
 
-   const int nxBorder = loc.nxBorder;
-   const int nyBorder = loc.nyBorder;
+   int numItems = (2*nxBorder + loc.nx) * (2*nyBorder + loc.ny);
 
    MPI_Datatype * datatypes = comm->newDatatypes(&loc);
 
@@ -50,7 +51,7 @@ int main(int argc, char * argv[])
    float * image = new float [numItems];
 
    int k0 = commCol * loc.nx + commRow * loc.ny * loc.nxGlobal;
-   int sy = 2 * loc.nxBorder + loc.nx;
+   int sy = 2 * nxBorder + loc.nx;
 
    for (int ky = 0; ky < loc.ny; ky++) {
       int k = k0 + ky * loc.nxGlobal;
