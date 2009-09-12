@@ -11,6 +11,8 @@
 #include "../layers/PVLayer.h"
 #include <mpi.h>
 
+#define MAX_BIN_PARAMS 7
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -36,9 +38,9 @@ int pv_write_patches(const char * filename, int append,
                      int nx, int ny, int nf, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches);
 int pv_read_patches(FILE *fp, int nf, float minVal, float maxVal,
-                    PVPatch ** patches, int numPatches);
+                    int numPatches, PVPatch ** patches);
 
-FILE * pv_open_binary(char * filename, int * numParams, int * nx, int * ny, int * nf);
+FILE * pv_open_binary(const char * filename, int * numParams, int * nx, int * ny, int * nf);
 int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
 int    pv_close_binary(FILE * fd);
 size_t pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems);

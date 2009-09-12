@@ -193,7 +193,7 @@ int pv_center_image(float * V, int nx0, int ny0, int nx, int ny)
 int readFile(const char * filename, float * buf, int * nx, int * ny)
 {
    int result, nItems;
-   int err = 0;
+   int status = 0;
    FILE * fd;
    const char * altfile = INPUT_PATH "const_one_64x64.bin";
 
@@ -223,7 +223,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
       if (result != nItems) {
          pv_log(stderr, "[ ]: Warning: readFile %s, expected %d, got %d.\n",
                 filename, nItems, result);
-         err = 1;
+         status = 1;
       }
       else {
 #ifdef DEBUG_OUTPUT
@@ -232,7 +232,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
       }
    }
 
-   return err;
+   return status;
 }
 
 /**
@@ -249,13 +249,13 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
    MPI_Bcast(globalBuf, nTotal, MPI_FLOAT, 0, comm);
 
    // everyone copies only their local patch of input
-   int kl, kg, err = 0;
+   int kl, kg, status = 0;
    int nLocal = l->loc.nx * l->loc.ny;
    for (kl = 0; kl < nLocal; kl++) {
       kg = globalIndexFromLocal(kl, l->loc, l->numFeatures);
       localBuf[kl] = globalBuf[kg];
    }
-   return err;
+   return status;
 }
 
 /**
@@ -266,7 +266,7 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
  */
 int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm comm)
 {
-   int err = 0;
+   int status = 0;
    int nx, ny;
 
    int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
@@ -277,17 +277,17 @@ int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm 
    if (l->columnId == 0) {
       nx = l->loc.nxGlobal;
       ny = l->loc.nyGlobal;
-      err = readFile(filename, globalBuf, &nx, &ny);
-      if (err == 0) {
+      status = readFile(filename, globalBuf, &nx, &ny);
+      if (status == 0) {
          assert(nx <= l->loc.nxGlobal);
          assert(ny <= l->loc.nyGlobal);
          if (nx < l->loc.nxGlobal || ny < l->loc.nyGlobal) {
-            err = pv_center_image(globalBuf, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
+            status = pv_center_image(globalBuf, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
          }
       }
    }
 
-   if (err != 0) return err;
+   if (status != 0) return status;
 
    // everyone gets a copy of the entire input
    scatterReadBuf(l, globalBuf, localBuf, comm);
@@ -302,7 +302,7 @@ int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm 
 //   }
    if (globalBuf) free(globalBuf);
 
-   return err;
+   return status;
 }
 
 /**
@@ -313,7 +313,7 @@ int scatterReadFile(const char* filename, PVLayer* l, float* localBuf, MPI_Comm 
  */
 int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm)
 {
-   int commRank, commSize, err = 0;
+   int commRank, commSize, status = 0;
    int c, kl, nLocal, nTotal;
    float kxy[2], *kbuf, *tbuf;
 
@@ -364,29 +364,29 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
 
       fp = fopen(filename, "wb");
       if (fp == NULL) {
-         err = -1;
+         status = -1;
          fprintf(stderr, "[0]: ERROR: gatherWriteFile: open failure on file %s\n",
                filename);
          // TODO - exit mpi gracefully
          free(obuf);
-         return err;
+         return status;
       }
       result = fwrite(obuf, sizeof(float), nTotal, fp);
       fclose(fp);
       free(obuf);
 
       if (result != nTotal) {
-         err = -1;
+         status = -1;
          fprintf(stderr, "[%d]: ERROR: gatherWriteFile: write result wrong = %d\n",
                commRank, result);
-         return err;
+         return status;
       }
    }
 
    free(tbuf);
    free(kbuf);
 
-   return err;
+   return status;
 }
 
 /**
@@ -436,7 +436,8 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
 int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
-   int err = 0;
+   int params[MAX_BIN_PARAMS];
+   int status = 0;
    FILE* fd;
 
    int nItems = nx * ny * nf;
@@ -448,31 +449,30 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
 
    if (!append) {
       const int nParams = 3;
-      int params[nParams+1];
       params[0] = nParams;
       params[1] = nx;
       params[2] = ny;
       params[3] = nf;
-      if ( fwrite(params, sizeof(int), nParams+1, fd) != nParams+1) err = -3;
-      if (err != 0) {
+      if ( fwrite(params, sizeof(int), nParams+1, fd) != nParams+1) status = -3;
+      if (status != 0) {
          pv_log(stderr, "pv_dump: error writing params header\n");
       }
    }
 
    if (fd != NULL) {
-      if ( fwrite(I, sizeof(pvdata_t), nItems, fd) != nItems) err = -2;
+      if ( fwrite(I, sizeof(pvdata_t), nItems, fd) != nItems) status = -2;
       fclose(fd);
    }
    else {
-      err = -1;
+      status = -1;
       pv_log(stderr, "pv_dump: couldn't open output file %s\n", fullpath);
    }
 
-   if (err == -2) {
+   if (status == -2) {
       pv_log(stderr, "pv_dump: error writing %d items\n", nItems);
    }
 
-   return err;
+   return status;
 }
 
 /**
@@ -486,7 +486,8 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
 int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
-   int err = 0;
+   int params[MAX_BIN_PARAMS];
+   int status = 0;
    FILE * fp;
    float m;
    float nSpikes = 0;
@@ -500,13 +501,12 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
 
    if (!append) {
       int nParams = 3;
-      int params[3];
       params[0] = nx;
       params[1] = ny;
       params[2] = nf;
-      if ( fwrite(&nParams, sizeof(int), 1, fp) != 1) err = -3;
-      if ( fwrite(params, sizeof(int), nParams, fp) != nParams) err = -3;
-      if (err != 0) {
+      if ( fwrite(&nParams, sizeof(int), 1, fp) != 1) status = -3;
+      if ( fwrite(params, sizeof(int), nParams, fp) != nParams) status = -3;
+      if (status != 0) {
          pv_log(stderr, "pv_dump_sparse: error writing params header\n");
       }
    }
@@ -516,25 +516,25 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
          if (I[(int) m]) nSpikes++;
       }
 
-      if ( fwrite(&nSpikes, sizeof(float), 1, fp) != 1) err = -2;
+      if ( fwrite(&nSpikes, sizeof(float), 1, fp) != 1) status = -2;
 
       for (m = 0; m < nItems; m++)
          if (I[(int) m]) {
-            if ( fwrite(&m, sizeof(float), 1, fp) != 1) err = -2;
+            if ( fwrite(&m, sizeof(float), 1, fp) != 1) status = -2;
          }
 
       fclose(fp);
    }
    else {
-      err = -1;
+      status = -1;
       pv_log(stderr, "pv_dump_sparse: couldn't open output file %s\n", fullpath);
    }
 
-   if (err == -2) {
+   if (status == -2) {
       pv_log(stderr, "pv_dump_sparse: error writing data\n");
    }
 
-   return err;
+   return status;
 }
 
 /**
@@ -625,7 +625,8 @@ int pv_write_patches(const char * filename, int append,
                      int numPatches, PVPatch ** patches)
 {
    char fullpath[PV_PATH_MAX];
-   int i, err = 0;
+   int params[MAX_BIN_PARAMS];
+   int i, status = 0;
    FILE * fp;
 
    assert(numPatches > 0);
@@ -642,7 +643,6 @@ int pv_write_patches(const char * filename, int append,
 
    if (!append) {
       const int nParams = 6;
-      int params[nParams+1];
       params[0] = nParams;
       params[1] = nxp;
       params[2] = nyp;
@@ -650,23 +650,23 @@ int pv_write_patches(const char * filename, int append,
       params[4] = (int) minVal;
       params[5] = (int) ceilf(maxVal);
       params[6] = numPatches;
-      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1 ) err = -3;
-      if (err != 0) {
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1 ) status = -3;
+      if (status != 0) {
          pv_log(stderr, "pv_dump_patches: error writing params header\n");
-         return err;
+         return status;
       }
    }
 
    for (i = 0; i < numPatches; i++) {
-      err = pv_write_patch(fp, minVal, maxVal, patches[i]);
-      if (err < 0) {
+      status = pv_write_patch(fp, minVal, maxVal, patches[i]);
+      if (status < 0) {
          pv_log(stderr, "pv_write_patches: error writing patch %d\n", i);
-         return err;
+         return status;
       }
    }
    fclose(fp);
 
-   return 0;
+   return status;
 }
 
 /**
@@ -678,19 +678,19 @@ int pv_write_patches(const char * filename, int append,
  * @numPatches
  */
 int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
-                    PVPatch ** patches, int numPatches)
+                    int numPatches, PVPatch ** patches)
 {
-   int i, err = 0;
+   int i, status = 0;
 
    for (i = 0; i < numPatches; i++) {
-      err = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
-      if (err < 0) {
+      status = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
+      if (status < 0) {
          pv_log(stderr, "pv_read_patches: error reading patch %d\n", i);
-         return err;
+         return status;
       }
    }
 
-   return 0;
+   return status;
 }
 
 /**
@@ -720,10 +720,10 @@ int pv_read_binary_params(FILE * fp, int numParams, int params[])
  * @nf contains the number of features on return
  * returns the opened file (NULL if an error occurred)
  */
-FILE * pv_open_binary(char * filename, int * numParams, int * nx, int * ny, int * nf)
+FILE * pv_open_binary(const char * filename, int * numParams, int * nx, int * ny, int * nf)
 {
    const int minParams = 3;
-   int params[minParams+1];
+   int params[MAX_BIN_PARAMS];
 
    FILE * fp = fopen(filename, "rb");
    if (fp == NULL) {
