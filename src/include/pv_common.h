@@ -14,9 +14,12 @@
 
 // For debugging/control:
 #undef  DEBUG_OUTPUT
-#define  DEBUG_WEIGHTS
+#undef  DEBUG_WEIGHTS
 #define LIF_STATS 1
 #define DEBUG 0
+
+// pad layer activity with border
+#undef EXTEND_BORDER_INDEX
 
 // TODO: move to HyPerCol, set as runtime param, link each layer back to its HyPerCol
 // numerical integration parameters
@@ -58,7 +61,7 @@
 #define MAX_NEIGHBORS    8
 #define MAX_LAYERS      10
 #define MAX_CONNECTIONS 20
-#define MAX_F_DELAY     31 // can have 0:MAX_F_DELAY-1 buffers of delay
+#define MAX_F_DELAY     21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 // TODO: As soon as the interfaces stabilize, use the type-checked/safer prototypes
 //#define UPDATE_FN int (*)( int numNeurons, float *V, float *phi, float *f, void *params)
