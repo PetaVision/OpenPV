@@ -42,7 +42,7 @@ int LGN::updateState(float time, float dt)
    for (int k = 0; k < clayer->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->numBorder);
+                                   clayer->loc.nPad);
 #else
       int kPhi = k;
 #endif
@@ -155,7 +155,7 @@ int PV_LGN_updateState(PVLayer * l)
    if (spiking) {
       for (int k = 0; k < l->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
-         int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->numBorder);
+         int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->loc.nPad);
 #else
          int kPhi = k;
 #endif
@@ -167,7 +167,7 @@ int PV_LGN_updateState(PVLayer * l)
    else {
       for (int k = 0; k < l->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
-         int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->numBorder);
+         int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->loc.nPad);
 #else
          int kPhi = k;
 #endif
