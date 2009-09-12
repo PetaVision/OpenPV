@@ -37,7 +37,7 @@ int Example::updateState(float time, float dt)
    for (int k = 0; k < clayer->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->numBorder);
+                                   clayer->loc.nPad);
 #else
       int kPhi = k;
 #endif
