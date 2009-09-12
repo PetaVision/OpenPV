@@ -9,6 +9,7 @@
 #define RETINA_HPP_
 
 #include "HyPerLayer.hpp"
+#include "Image.hpp"
 #include "fileread.h"
 
 namespace PV
@@ -18,16 +19,19 @@ class Retina: public PV::HyPerLayer
 {
 public:
    Retina(const char * name, HyPerCol * hc);
+   Retina(const char * name, HyPerCol * hc, Image * img);
    Retina(const char * name, HyPerCol * hc, const char * filename);
 
    int init(const char * name, PVLayerType type);
-   int setParams(PVParams * params, fileread_params * p, const char * filename);
+   int setParams(PVParams * params, fileread_params * p);
 
    virtual int recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube);
    virtual int updateState(float time, float dt);
    virtual int writeState(const char * path, float time);
    virtual int createImage(pvdata_t * buf);
    virtual int spike(float time, float dt, float prob, float probStim, int * start);
+
+   Image * getImage()  { return img; }
 
 private:
 
@@ -45,18 +49,9 @@ private:
 
    int calculateWeights(HyPerLayer * lSource, float * pos, float * vPos, float * vfWeights );
 
+   Image * img;
 };
 
-}
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-
-#ifdef __cplusplus
-}
-#endif
+} // namespace PV
 
 #endif /* RETINA_HPP_ */
