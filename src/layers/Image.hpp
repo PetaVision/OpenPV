@@ -1,101 +1,44 @@
 /*
  * Image.hpp
  *
- *  Created on: Aug 25, 2009
- *      Author: Shreyas
+ *  Created on: Sep 8, 2009
+ *      Author: rasmussn
  */
 
 #ifndef IMAGE_HPP_
 #define IMAGE_HPP_
 
-#include "../include/pv_common.h"
-#include "../include/pv_types.h"
-
-#include <iostream>
+#include "Image.hpp"
+#include "../columns/HyPerCol.hpp"
 
 namespace PV {
 
-const unsigned int BIN = 1;
-const unsigned int TXT = 2;
-const unsigned int TIF = 4;
-
-class Point2D {
-public:
-   Point2D(const unsigned int x, const unsigned int y):
-             posx(x), posy(y) { };
-
-   unsigned int getX() { return posx; };
-   unsigned int getY() { return posy; };
-
-private:
-   unsigned int posx, posy;
-};
-
 class Image {
+protected:
+
+   Image();
 
 public:
-    Image(unsigned int nxInit, unsigned int nyInit);
-    Image(unsigned int nxInit, unsigned int nyInit, pvdata_t *targetbuf);
+   Image(const char * filename, HyPerCol * hc);
+   virtual ~Image();
 
-	int clearImage();
-	int fillImage(pvdata_t val);
-	virtual int updateImage(float time, float dt, pvdata_t *targetbuf);
+   int read(const char * filename);
+   int write(const char * filename);
 
-	int createRandomImage();
-	int drawMultipleRandomShapes(int n_images);
-	int createMultipleImages();
+   int  toGrayScale();
+   int  convolution();
+   void setTau(int t)             { tau = t; }
 
-	int drawLine(Point2D pt1, Point2D pt2);
+   LayerLoc getImageLoc()         { return loc; }
 
-	int drawLine(Point2D origin,
-			unsigned int length, float theta);
+protected:
 
-	int drawSquare(Point2D origin,
-			unsigned int length, unsigned int theta);
-
-	int drawSquare(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
-
-	int drawRectangle(Point2D origin,
-			unsigned int lengtha, unsigned int lengthb,
-			unsigned int theta);
-
-	int drawRectangle(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
-
-	int drawQuadrilateral(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
-
-	int copyImage(pvdata_t *targetbuf);
-
-	void testImage();
-
-	void mark(unsigned int i, unsigned int j, int value);
-	void mark(unsigned int i, int value);
-	pvdata_t getmark(unsigned int i, unsigned int j);
-
-	virtual int writeImageToFile(const float time,
-			                     const unsigned char options);
-
-	void setModified(bool val) { modified = val; };
-	bool ifModified() { return modified; };
-
-private:
-	bool     modified;
-	pvdata_t *buf;
-	unsigned int nx;
-	unsigned int ny;
-
-	int writeImageToTxt(const char *filename);
-	int writeImageToBin(const char *filename);
-	int           drawBresenhamLine(int x0, int y0, int x1, int y1);
-	void          swap(int &a, int &b);
-	inline double deg2rad(int angleInDegrees);
-	inline int    approx(double n);
-	int           threewaytoss(double probStay,
-			                   double probBack,
-			                   double probForward);
+   Communicator * comm;  // the communicator object for reading/writing files
+   LayerLoc loc;         // size/location of image
+   float *  data;        // buffer containing image
+   float tau;
 };
 
 }
+
 #endif /* IMAGE_HPP_ */
