@@ -108,12 +108,12 @@
 /**********************************************************************************************************/
 
 /*****************************************************************/
-/*MISCELLANEOUS-(Image and other basic definitions)              */
+/*MISCELLANEOUS-(ImageCreator and other basic definitions)       */
 /*****************************************************************/
 
-// Image basics
-#define I_MAX       (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
-#define CLUTTER_PROB     0.01            // prob of clutter in image
+// ImageCreator basics
+#define I_MAX          (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
+#define CLUTTER_PROB   0.01                      // prob of clutter in image
 
 
 //Basic definitons
