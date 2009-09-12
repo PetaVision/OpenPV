@@ -43,7 +43,7 @@ int getImageInfo(const char* filename, PV::Communicator * comm, LayerLoc * loc)
 {
    const int locSize = sizeof(LayerLoc) / sizeof(int);
    int locBuf[locSize];
-   int err = 0;
+   int status = 0;
 
    // LayerLoc should contain 8 ints
    assert(locSize == 8);
@@ -95,7 +95,7 @@ int getImageInfo(const char* filename, PV::Communicator * comm, LayerLoc * loc)
    loc->kx0 = loc->nx * icCol;
    loc->ky0 = loc->ny * icRow;
 
-   return err;
+   return status;
 }
 
 /**
@@ -104,10 +104,11 @@ int getImageInfo(const char* filename, PV::Communicator * comm, LayerLoc * loc)
 int scatterImageFile(const char * filename,
                      PV::Communicator * comm, LayerLoc * loc, float * buf)
 {
-   int err = 0;
+   int status = 0;
    const int tag = 13;
+   const int maxBands = 3;
 
-   const MPI_Comm icComm = comm->communicator();
+   const MPI_Comm mpi_comm = comm->communicator();
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -117,12 +118,20 @@ int scatterImageFile(const char * filename,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
+   const int numBands = loc->nBands;
+   assert(numBands <= maxBands);
+
+   const int nxny     = nx * ny;
+   const int numTotal = nxny * numBands;
+
    if (icRank > 0) {
       const int src = 0;
-      MPI_Recv(buf, nx*ny, MPI_FLOAT, src, tag, icComm, MPI_STATUS_IGNORE);
+      for (int b = 0; b < numBands; b++) {
+         MPI_Recv(&buf[b*nxny], numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, nx*ny);
+              comm->commRank(), nx, ny, numTotal);
 #endif
    }
    else {
@@ -146,9 +155,13 @@ int scatterImageFile(const char * filename,
          return -1;
       }
 
-      // TODO - decide what to do about multiband images (color)
-      // include each band
-      GDALRasterBand * band = dataset->GetRasterBand(1);
+      GDALRasterBand * band[maxBands];
+
+      assert(numBands <= dataset->GetRasterCount());
+
+      for (int b = 0; b < numBands; b++) {
+         band[b] = dataset->GetRasterBand(b+1);
+      }
 
       int dest = -1;
       for (int py = 0; py < nyProcs; py++) {
@@ -162,19 +175,23 @@ int scatterImageFile(const char * filename,
                     comm->commRank(), dest, nx, ny, nx*ny,
                     nx*ny*comm->commSize());
 #endif
-            band->RasterIO(GF_Read, kx, ky, nx, ny, 
-                           buf, nx, ny, GDT_Float32, 0, 0);
-            MPI_Send(buf, nx*ny, MPI_FLOAT, dest, tag, icComm);
+            for (int b = 0; b < numBands; b++) {
+               band[b]->RasterIO(GF_Read, kx, ky, nx, ny,
+                                 &buf[b*nxny], nx, ny, GDT_Float32, 0, 0);
+               MPI_Send(&buf[b*nxny], nx*ny, MPI_FLOAT, dest, tag, mpi_comm);
+            }
          }
       }
 
       // get local image portion
-      band->RasterIO(GF_Read, 0, 0, nx, ny,
-                     buf, nx, ny, GDT_Float32, 0, 0);
+      for (int b = 0; b < numBands; b++) {
+         band[b]->RasterIO(GF_Read, 0, 0, nx, ny,
+                           &buf[b*nxny], nx, ny, GDT_Float32, 0, 0);
+      }
       GDALClose(dataset);
    }
 
-   return err;
+   return status;
 }
 
 
@@ -184,10 +201,11 @@ int scatterImageFile(const char * filename,
 int gatherImageFile(const char * filename,
                     PV::Communicator * comm, LayerLoc * loc, float * buf)
 {
-   int err = 0;
+   int status = 0;
    const int tag = 14;
+   const int maxBands = 3;
 
-   const MPI_Comm icComm = comm->communicator();
+   const MPI_Comm mpi_comm = comm->communicator();
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -197,12 +215,17 @@ int gatherImageFile(const char * filename,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   //TODO - color
    const int numBands = loc->nBands;
+   assert(numBands <= maxBands);
+
+   const int nxny     = nx * ny;
+   const int numTotal = nxny * numBands;
 
    if (icRank > 0) {
       const int dest = 0;
-      MPI_Send(buf, nx*ny, MPI_FLOAT, dest, tag, icComm);
+      for (int b = 0; b < numBands; b++) {
+         MPI_Send(&buf[b*nxny], nx*ny, MPI_FLOAT, dest, tag, mpi_comm);
+      }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
               comm->commRank(), nx, ny, nx*ny);
@@ -232,7 +255,7 @@ int gatherImageFile(const char * filename,
       int yImageSize = ny * nyProcs;
 
       dataset = driver->Create(filename, xImageSize, yImageSize, numBands,
-                                 GDT_Byte, options);
+                               GDT_Byte, options);
 
       if (dataset == NULL) {
           fprintf(stderr, "[%2d]: gather: failed to open file %s\n", comm->commRank(), filename);
@@ -243,25 +266,31 @@ int gatherImageFile(const char * filename,
 #endif
       }
 
-      double adfGeoTransform[6] = { 444720, 30, 0, 3751320, 0, -30 };
-      OGRSpatialReference oSRS;
-      char *pszSRS_WKT = NULL;
+//      double adfGeoTransform[6] = { 444720, 30, 0, 3751320, 0, -30 };
+//      OGRSpatialReference oSRS;
+//      char *pszSRS_WKT = NULL;
 
-      dataset->SetGeoTransform( adfGeoTransform );
+//      dataset->SetGeoTransform( adfGeoTransform );
 
-      oSRS.SetUTM( 11, TRUE );
-      oSRS.SetWellKnownGeogCS( "NAD27" );
-      oSRS.exportToWkt( &pszSRS_WKT );
-      dataset->SetProjection( pszSRS_WKT );
-      CPLFree( pszSRS_WKT );
+//      oSRS.SetUTM( 11, TRUE );
+//      oSRS.SetWellKnownGeogCS( "NAD27" );
+//      oSRS.exportToWkt( &pszSRS_WKT );
+//      dataset->SetProjection( pszSRS_WKT );
+//      CPLFree( pszSRS_WKT );
 
-      // TODO - decide what to do about multiband images (color)
-      // include each band
-      GDALRasterBand * band = dataset->GetRasterBand(1);
+      GDALRasterBand * band[maxBands];
+
+      assert(numBands <= dataset->GetRasterCount());
+
+      for (int b = 0; b < numBands; b++) {
+         band[b] = dataset->GetRasterBand(b+1);
+      }
 
       // write local image portion
-      band->RasterIO(GF_Write, 0, 0, nx, ny,
-                     buf, nx, ny, GDT_Float32, 0, 0);
+      for (int b = 0; b < numBands; b++) {
+         band[b]->RasterIO(GF_Write, 0, 0, nx, ny,
+                           &buf[b*nxny], nx, ny, GDT_Float32, 0, 0);
+      }
 
       int src = -1;
       for (int py = 0; py < nyProcs; py++) {
@@ -272,24 +301,26 @@ int gatherImageFile(const char * filename,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: gather: receiving from %d xSize==%d"
                     " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), src, nx, ny, nx*ny,
-                    nx*ny*comm->commSize());
+                    comm->commRank(), src, nx, ny, numTotal,
+                    numTotal*comm->commSize());
 #endif
-            MPI_Recv(buf, nx*ny, MPI_FLOAT, src, tag, icComm, MPI_STATUS_IGNORE);
-            band->RasterIO(GF_Write, kx, ky, nx, ny,
-                           buf, nx, ny, GDT_Float32, 0, 0);
+            for (int b = 0; b < numBands; b++) {
+               MPI_Recv(&buf[b*nxny], numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+               band[b]->RasterIO(GF_Write, kx, ky, nx, ny,
+                                 &buf[b*nxny], nx, ny, GDT_Float32, 0, 0);
+            }
          }
       }
       GDALClose(dataset);
    }
 
-   return err;
+   return status;
 }
 
 int scatterImageBlocks(const char* filename,
                        PV::Communicator * comm, LayerLoc * loc, float * buf)
 {
-   int err = 0;
+   int status = 0;
 #ifdef UNIMPLEMENTED
 
    const MPI_Comm icComm = comm->communicator();
@@ -342,7 +373,7 @@ int scatterImageBlocks(const char* filename,
    }
 #endif
 
-   return err;
+   return status;
 }
 
 /**
