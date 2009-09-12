@@ -50,6 +50,8 @@ HyPerLayer::~HyPerLayer()
 
 int HyPerLayer::init(const char * name, PVLayerType type)
 {
+   float nx, ny;
+
    this->probes = NULL;
    this->ioAppend = 0;
    this->outputOnPublish = 1;
@@ -59,8 +61,22 @@ int HyPerLayer::init(const char * name, PVLayerType type)
 
    int nBorder = 0;
 
-   float nx = params->value(name, "nx");
-   float ny = params->value(name, "ny");
+   LayerLoc imageLoc = parent->getImageLoc();
+
+   if (params->present(name, "nx")) {
+      nx = (int) params->value(name, "nx");
+   }
+   else {
+      nx = imageLoc.nx;
+   }
+
+   if (params->present(name, "ny")) {
+      ny = (int) params->value(name, "ny");
+   }
+   else {
+      ny = imageLoc.ny;
+   }
+
    int numFeatures = (int) params->value(name, "nf");
 
    if (params->present(name, "nBorder")) nBorder = (int) params->value(name, "nBorder");
@@ -74,12 +90,12 @@ int HyPerLayer::init(const char * name, PVLayerType type)
    clayer = pvlayer_new(name, xScale, yScale, (int)nx, (int)ny, numFeatures, nBorder);
    clayer->layerType = type;
 
-   float width  = nBorder;
+   float width  = clayer->loc.nPad;
    float height = (clayer->loc.nx > clayer->loc.ny) ? clayer->loc.nx : clayer->loc.ny;
-   int numBorderItems = (int) width * (int) height * clayer->numFeatures;
+   int maxBorderItems = (int) width * (int) height * clayer->numFeatures;
 
    // calculate maximum size of a border cube
-   maxBorderSize = pvcube_size(numBorderItems);
+   maxBorderSize = pvcube_size(maxBorderItems);
 
    return 0;
 }
