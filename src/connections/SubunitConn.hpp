@@ -14,7 +14,8 @@ namespace PV {
 
 class SubunitConn: public PV::HyPerConn {
 public:
-   SubunitConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+   SubunitConn(const char * name,
+               HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
 
    static int weights(PVPatch * wp);
 
@@ -24,6 +25,6 @@ protected:
 
 };
 
-}
+} // namespace PV
 
 #endif /* LINESEGMENTS_HPP_ */
