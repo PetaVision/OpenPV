@@ -13,15 +13,10 @@ namespace PV {
 
 PoolConn::PoolConn(const char * name,
                    HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
+        : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
-
    this->numAxonalArborLists = 1;
-
-   initialize(NULL, pre, post, channel);
-
+   initialize();
    hc->addConnection(this);
 }
 
