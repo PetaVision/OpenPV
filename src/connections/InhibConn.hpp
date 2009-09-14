@@ -24,6 +24,6 @@ private:
    float nfPre;    // number of orientations in pre-synaptic layer
 };
 
-}
+} // namespace PV
 
 #endif /* INHIBCONN_HPP_ */
