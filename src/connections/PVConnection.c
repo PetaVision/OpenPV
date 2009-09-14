@@ -17,6 +17,8 @@ extern "C"
 {
 #endif
 
+#ifdef USE_PVCONNECTION
+
 // TODO - use HyPerConn class to do much of this?
 int pvConnInit(PVConnection * pvConn, PVLayer * pre, PVLayer * post, PVConnParams * p, int channel)
 {
@@ -60,6 +62,7 @@ int pvConnFinalize(PVConnection * pvConn)
 
    return 0;
 }
+#endif // USE_PVCONNECTION
 
 #ifdef __cplusplus
 }
