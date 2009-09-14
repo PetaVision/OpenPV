@@ -14,13 +14,14 @@ namespace PV {
 
 class FlankingConn: public PV::HyPerConn {
 public:
-   FlankingConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+   FlankingConn(const char * name,
+                HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
 
 protected:
    virtual int initializeWeights(const char * filename);
 
 };
 
-}
+} // namespace PV
 
 #endif /* FLANKINGCONN_HPP_ */
