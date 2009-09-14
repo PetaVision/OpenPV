@@ -13,15 +13,11 @@
 namespace PV {
 
 InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post)
+         : HyPerConn(name, hc, pre, post, CHANNEL_INH, PROTECTED_NUMBER)
 {
-   this->connId = hc->numberOfConnections();
-   this->name = strdup(name);
-   this->parent = hc;
    this->nfPre = pre->clayer->numFeatures;
    this->numAxonalArborLists = this->nfPre;
-
-   initialize(NULL, pre, post, CHANNEL_INH);
-
+   initialize();
    hc->addConnection(this);
 }
 
