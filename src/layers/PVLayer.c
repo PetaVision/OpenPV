@@ -88,7 +88,7 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
    // extendNum includes regular size plus border
    // hypothesis: should not in include border because handled by border regions
 #ifdef EXTEND_BORDER_INDEX
-   size_t extendNum = (l->loc.nx + 2.0*l->numBorder) * (l->loc.ny + 2.0*l->numBorder);
+   size_t extendNum = (l->loc.nx + 2.0*l->loc.nPad) * (l->loc.ny + 2.0*l->loc.nPad);
    extendNum *= l->numFeatures;
 #else
    size_t extendNum = l->loc.nx * l->loc.ny * l->numFeatures;
@@ -96,16 +96,19 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
 
    l->columnId = colId;
 
-   l->loc.nx = l->loc.nx / nCols;
-   l->loc.ny = l->loc.ny / nRows;
+////////////////
+// Assume loc parameters are already set as HyPerCol comes up
+//
+//   l->loc.nx = l->loc.nx / nCols;
+//   l->loc.ny = l->loc.ny / nRows;
+//   l->loc.kx0 = l->loc.nx * colCol;
+//   l->loc.ky0 = l->loc.ny * colRow;
+
    l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
    if (l->numNeurons * nCols * nRows != ntotal) {
       printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
              colId, (int)l->loc.nx, (int)l->loc.ny);
    }
-
-   l->loc.kx0 = l->loc.nx * colCol;
-   l->loc.ky0 = l->loc.ny * colRow;
 
    l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
    l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
