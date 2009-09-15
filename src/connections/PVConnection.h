@@ -10,20 +10,7 @@
 
 #include "../layers/PVLayer.h"
 
-/**
- * A PVConnection identifies a connection between two layers
- */
-typedef struct {
-   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
-   int fixDelay; // fixed output delay. TODO: should be float
-   int varDelayMin; // minimum variable conduction delay
-   int varDelayMax; // maximum variable conduction delay
-   int numDelay;
-   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
-   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
-   float rmin; // minimum connection distance
-   float rmax; // maximum connection distance
-} PVConnParams;
+#ifdef USE_PVCONNECTION
 
 /**
  * A PVConnection identifies a connection between two layers
@@ -83,7 +70,7 @@ typedef struct PVConnection_ {
    int * postKernelLUT; // index into postNormF
    float * weightLUT; // weight value
 
-} PVConnection;
+} PVConnection_REMOVE;
 
 #ifdef __cplusplus
 extern "C"
@@ -101,8 +88,11 @@ int PVConnection_default_rcv(PVConnection * con, PVLayer * post, int nActivity,
 int pvConnInit(PVConnection * pvConn, PVLayer * pre, PVLayer * post, PVConnParams * p, int channel);
 int pvConnFinalize(PVConnection * pvConn);
 
+
 #ifdef __cplusplus
 }
 #endif
+
+#endif // USE_PVCONNECTION
 
 #endif /* PVCONNECTION_H_ */
