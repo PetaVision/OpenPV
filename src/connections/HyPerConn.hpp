@@ -13,6 +13,7 @@
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
 
+#define PROTECTED_NUMBER 13
 #define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
 
 namespace PV {
@@ -21,7 +22,20 @@ class HyPerCol;
 class HyPerLayer;
 class ConnectionProbe;
 
-extern PVConnParams defaultConnParams;
+/**
+ * A PVConnection identifies a connection between two layers
+ */
+typedef struct {
+   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
+   int fixDelay; // fixed output delay. TODO: should be float
+   int varDelayMin; // minimum variable conduction delay
+   int varDelayMax; // maximum variable conduction delay
+   int numDelay;
+   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
+   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
+   float rmin; // minimum connection distance
+   float rmax; // maximum connection distance
+} PVConnParams;
 
 class HyPerConn {
 
@@ -29,13 +43,8 @@ class HyPerConn {
 
 public:
    HyPerConn();
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
              int channel);
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             const char * filename);
-   HyPerConn(const char * name, int argc, char ** argv, HyPerCol * hc,
-             HyPerLayer * pre, HyPerLayer * post);
    virtual ~HyPerConn();
 
    virtual int deliver(PVLayerCube * cube, int neighbor);
@@ -88,21 +97,6 @@ public:
                           float aspect, float sigma, float r2Max, float strength);
 
 protected:
-   char * name;
-
-   int connId;             // connection id
-   int numAxonalArborLists;    // number of axonal arbors (weight patches) for presynaptic layer
-   int stdpFlag;           // presence of spike timing dependent plasticity
-   float nxp, nyp, nfp;    // size of weight dimensions
-
-   // STDP parameters for modifying weights
-   float ampLTP;  // long term potentiation amplitude
-   float ampLTD;  // long term depression amplitude
-   float tauLTP;
-   float tauLTD;
-   float dWMax;
-   float wMax;
-
    HyPerLayer     * pre;
    HyPerLayer     * post;
    HyPerCol       * parent;
@@ -112,23 +106,47 @@ protected:
    PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
    PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 
+   int channel;              // which channel of the post to update (e.g. inhibit)
+   int connId;               // connection id
+
+   char * name;
+   float nxp, nyp, nfp;      // size of weight dimensions
+
    int numParams;
    PVConnParams * params;
-   PVConnection * pvconn;
+
+   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
+
+   // STDP parameters for modifying weights
+   float ampLTP;  // long term potentiation amplitude
+   float ampLTD;  // long term depression amplitude
+   float tauLTP;
+   float tauLTD;
+   float dWMax;
+   float wMax;
 
    int numProbes;
    ConnectionProbe ** probes;   // probes used to output data
 
-   int channel; // which channel of the post to update (e.g. inhibit)
+   int stdpFlag;                // presence of spike timing dependent plasticity
    int ioAppend;                // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
 
+private:
+   // this is only called from primary constructor
+   int initialize_base();
+
 protected:
-   virtual int initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
-                          int channel);
+
+   // this is protected so that only derived classes can call it
+   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+             int channel, int primary_constructor);
+
+   virtual int initialize();
    virtual int initializeWeights(const char * filename);
    virtual int initializeRandomWeights(int seed);
    virtual int createWeights(int nxPatch, int nyPatch, int nfPatch);
+   virtual int readWeights(const char * filename);
    virtual PVPatch ** createWeights(int nxPatch, int nyPatch, int nfPatch, int numPatches);
    virtual int        deleteWeights();
 
