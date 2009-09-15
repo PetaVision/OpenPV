@@ -23,24 +23,30 @@ fileread_params RetinaParams =
    0.0, 1.0, 1.0, 1.0*(NOISE_AMP==0.0)+0.5*(NOISE_AMP>0.0),
    0.0*(NOISE_AMP==0.0)+0.01*(NOISE_AMP>0.0),
    0.0, 0.0,         /* burstFreg, burstDuration */
-   0.0, 0.0, 1000.0, /* marginWidth, beginStim, endStim */
-   NULL              /* filename */
+   0.0, 0.0, 1000.0  /* marginWidth, beginStim, endStim */
 };
 
 Retina::Retina(const char * name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
-   setParams(parent->parameters(), &RetinaParams, hc->inputFile());
+   this->img = new Image(hc->inputFile(), hc);
+   setParams(parent->parameters(), &RetinaParams);
+   init(name, TypeRetina);
+}
+
+Retina::Retina(const char * name, HyPerCol * hc, Image * img)
+  : HyPerLayer(name, hc)
+{
+   this->img = img;
+   setParams(parent->parameters(), &RetinaParams);
    init(name, TypeRetina);
 }
 
 Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
   : HyPerLayer(name, hc)
 {
-   if (filename == NULL) {
-      filename = hc->inputFile();
-   }
-   setParams(parent->parameters(), &RetinaParams, filename);
+   this->img = new Image(filename, hc);
+   setParams(parent->parameters(), &RetinaParams);
    init(name, TypeRetina);
 }
 
@@ -59,6 +65,8 @@ int Retina::init(const char * name, PVLayerType type)
    this->numProbes = 0;
 
    fileread_params * params = (fileread_params *) l->params;
+
+   l->loc = img->getImageLoc();
    l->loc.nPad   = params->marginWidth;
    l->loc.nBands = 1;
 
@@ -149,7 +157,7 @@ int Retina::init(const char * name, PVLayerType type)
    return 0;
 }
 
-int Retina::setParams(PVParams * params, fileread_params * p, const char * filename)
+int Retina::setParams(PVParams * params, fileread_params * p)
 {
    const char * name = getName();
    float dt = parent->getDeltaTime() * .001;  // seconds
@@ -158,14 +166,8 @@ int Retina::setParams(PVParams * params, fileread_params * p, const char * filen
    memcpy(clayer->params, p, sizeof(*p));
 
    clayer->numParams = sizeof(*p) / sizeof(float);
-#ifdef PV_ARCH_64
-   clayer->numParams -= 1; // extra space for (char *) filename pointer (pointer not same sizeof float)
-#endif
-   //assert(clayer->numParams == 9);
 
    fileread_params * cp = (fileread_params *) clayer->params;
-
-   cp->filename = filename;
 
    if (params->present(name, "invert"))  cp->invert  = params->value(name, "invert");
    if (params->present(name, "uncolor")) cp->uncolor = params->value(name, "uncolor");
