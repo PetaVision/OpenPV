@@ -22,13 +22,6 @@ PVConnParams defaultConnParams =
    /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
 };
 
-HyPerConn::HyPerConn()
-   : pre(NULL), post(NULL), parent(NULL), channel(CHANNEL_EXC),
-     connId(0), name(strdup("Unknown")),
-     numProbes(0), probes(NULL), stdpFlag(0), ioAppend(0)
-{
-}
-
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                      int channel)
          : pre(pre), post(post), parent(hc), channel(channel),
@@ -65,10 +58,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLa
 
 HyPerConn::~HyPerConn()
 {
+   free(name);
+
    assert(params != NULL);
    free(params);
-
-   if (name != NULL) free(name);
 
    deleteWeights();
 
@@ -452,29 +445,38 @@ int HyPerConn::insertProbe(ConnectionProbe * p)
 
 int HyPerConn::outputState(float time)
 {
-   int err = 0;
+   char str[PV_PATH_MAX];
+   int status = 0;
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
    }
 
-   if (stdpFlag) {
+   if (time == FINAL_TIME) {
+      // Output final weights
+      sprintf(str, "w%1.1d_final", getConnectionId());
+      int arbor = 0;
+      status = pv_write_patches(str, false, (int) nxp, (int) nyp, (int) nfp,
+                                0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
+      assert(status == 0);
+   }
+   else if (stdpFlag)
+   {
       // Output weights
-      char str[32];
       sprintf(str, "w%1.1d", getConnectionId());
       int arbor = 0;
-      err = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
-                             0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
-      assert(err == 0);
+      status = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
+                                0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
+      assert(status == 0);
 
-      err = writePostPatchWeights(ioAppend);
-      assert(err == 0);
+      status = writePostPatchWeights(ioAppend);
+      assert(status == 0);
    }
 
    // append to dump file after original open
    ioAppend = 1;
 
-   return err;
+   return status;
 }
 
 int HyPerConn::updateState(float time, float dt)

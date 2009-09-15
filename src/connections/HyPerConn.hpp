@@ -42,7 +42,7 @@ class HyPerConn {
    friend class HyPerCol;
 
 public:
-   HyPerConn();
+
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
              int channel);
    virtual ~HyPerConn();
@@ -79,9 +79,6 @@ public:
 
    HyPerLayer * preSynapticLayer()     {return pre;}
    HyPerLayer * postSynapticLayer()    {return post;}
-
-   // TODO - remove pvconn?
-   // PVConnection * getCConnection()     {return pvconn;}
 
    int  getConnectionId()              {return connId;}
    void setConnectionId(int id)        {connId = id;}
@@ -181,6 +178,6 @@ public:
 
 };
 
-}
+} // namespace PV
 
 #endif /* HYPERCONN_HPP_ */
