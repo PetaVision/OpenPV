@@ -27,7 +27,9 @@ class HyPerConn;
 class Publisher {
 
 public:
+   // deprecated constructor that separates borders from the layer data structure
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
+   Publisher(int pubId, Communicator * comm, LayerLoc loc, int numLevels);
    virtual ~Publisher();
 
    int publish(HyPerLayer * pub,
@@ -53,10 +55,12 @@ private:
 
    int pubId;
    int numSubscribers;
-   HyPerConn *  connection[MAX_SUBSCRIBERS];
-   MPI_Request  request[MAX_MESSAGES];
-   MPI_Comm     comm;
-   DataStore *  store;
+   HyPerConn * connection[MAX_SUBSCRIBERS];
+   DataStore * store;
+
+   MPI_Request    request[MAX_MESSAGES];
+   MPI_Datatype * mpi_datatypes;
+   MPI_Comm       comm;
 };
 
 class InterColComm : public Communicator {

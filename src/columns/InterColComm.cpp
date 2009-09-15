@@ -38,12 +38,19 @@ InterColComm::~InterColComm()
 int InterColComm::addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int numLevels)
 {
    int pubId = pub->getLayerId();
+
+#ifdef EXTEND_BORDER_INDEX
+   publishers[pubId] = new Publisher(pubId, this, pub->clayer->loc, numLevels);
+#else
    publishers[pubId] = new Publisher(pubId, numNeighbors, size1, numBorders, size2, numLevels);
    publishers[pubId]->setCommunicator(communicator());
+#endif
+
    numPublishers += 1;
 
    DataStore* store = publishers[pubId]->dataStore();
 
+#ifndef EXTEND_BORDER_INDEX
    for (int i = 0; i < numBorders; i++) {
       for (int delay = 0; delay < numLevels; delay++) {
          int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
@@ -52,6 +59,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int 
          pub->initBorder(border, borders[i]);
       }
    }
+#endif
 
    return pubId;
 }
@@ -80,6 +88,7 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
 
+// deprecated constructor that separates borders from the layer data structure
 Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels)
 {
    size_t maxSize = (size1 > size2) ? size1 : size2;
@@ -87,6 +96,18 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
    this->comm  = MPI_COMM_WORLD;
    this->numSubscribers = 0;
    this->store = new DataStore(numType1+numType2, maxSize, numLevels);
+   for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
+      this->connection[i] = NULL;
+   }
+}
+
+Publisher::Publisher(int pubId, Communicator * comm, LayerLoc loc, int numLevels)
+{
+   size_t size = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad);
+   this->pubId = pubId;
+   this->comm  = comm->communicator();
+   this->numSubscribers = 0;
+   this->store = new DataStore(1, size, numLevels);
    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
       this->connection[i] = NULL;
    }
