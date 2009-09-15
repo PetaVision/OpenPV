@@ -23,108 +23,50 @@ PVConnParams defaultConnParams =
 };
 
 HyPerConn::HyPerConn()
+   : pre(NULL), post(NULL), parent(NULL), channel(CHANNEL_EXC),
+     connId(0), name(strdup("Unknown")),
+     numProbes(0), probes(NULL), stdpFlag(0), ioAppend(0)
 {
-   this->connId = 0;
-   this->pre    = NULL;
-   this->post   = NULL;
-   this->probes = NULL;
-   this->pvconn = NULL;
-   this->name   = strdup("Unknown");
-   this->channel   = 0;
-   this->stdpFlag  = 0;
-   this->numProbes = 0;
-   this->ioAppend = 0;
-}
-
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post)
-{
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
-
-   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
-   // and all postsynaptic border regions.
-   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
-
-   initialize(NULL, pre, post, CHANNEL_EXC);
-
-   hc->addConnection(this);
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                      int channel)
+         : pre(pre), post(post), parent(hc), channel(channel),
+           connId(hc->numberOfConnections()), name(strdup(name))
 {
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
-
    // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
    // and all postsynaptic border regions.
-   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
+   // TODO - fix the number of lists
+//   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
+   this->numAxonalArborLists = 1;
 
-   initialize(NULL, pre, post, channel);
+   // this is only called from protected constructor by derived classes
+   initialize_base();
+
+   // this is virtual but will be HyPerConn version when called from constructor
+   initialize();
 
    hc->addConnection(this);
 }
 
-HyPerConn::HyPerConn(const char * name, int argc, char ** argv, HyPerCol * hc,
-                     HyPerLayer * pre, HyPerLayer * post)
-{
-   char * filename = NULL;
-
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
-
-   for (int i = 1; i < argc; i++) {
-      char * arg = argv[i];
-      if (strcmp(arg, "-f") == 0) {
-         if (++i < argc) {
-            filename = argv[i++];
-         }
-      }
-
-      if (filename != NULL) {
-         // TODO - strip off args as used
-         break;
-      }
-   }
-
-   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
-   // and all postsynaptic border regions.
-   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
-
-   initialize(filename, pre, post, CHANNEL_EXC);
-
-   hc->addConnection(this);
-}
-
-
+///////
+// This constructor is protected so that only derived classes can call it.
+// It should be called as the normal method of object construction by
+// derived classes.  It should NOT call any virtual methods
+//
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                     const char * filename)
+                     int channel, int magic_number)
+         : pre(pre), post(post), parent(hc), channel(channel),
+           connId(hc->numberOfConnections()), name(strdup(name))
 {
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
-
-   // Every presynaptic neuron has a weight patch connecting to postsynaptic layer
-   // and all postsynaptic border regions.
-   this->numAxonalArborLists = 1 + parent->numberOfBorderRegions();
-
-   initialize(filename, pre, post, CHANNEL_EXC);
-
-   hc->addConnection(this);
+   assert(magic_number == PROTECTED_NUMBER);
+   initialize_base();
 }
 
 HyPerConn::~HyPerConn()
 {
    assert(params != NULL);
    free(params);
-
-   if (pvconn != NULL) {
-      pvConnFinalize(pvconn);
-      delete pvconn;
-   }
 
    if (name != NULL) free(name);
 
@@ -140,15 +82,11 @@ HyPerConn::~HyPerConn()
    }
 }
 
-int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * post,
-                          int channel)
+// base (and private) initializer
+int HyPerConn::initialize_base()
 {
-   this->pre = pre;
-   this->post = post;
    this->probes = NULL;
-   this->channel = channel;
    this->ioAppend = 0;
-   this->pvconn = new PVConnection;
 
    this->numProbes = 0;
 
@@ -172,11 +110,6 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
 
    nfp = post->clayer->numFeatures;
 
-   setParams(inputParams, &defaultConnParams);
-   assert(params->delay < MAX_F_DELAY);
-
-   params->numDelay = params->varDelayMax - params->varDelayMin + 1;
-
    if (inputParams->present(name, "strength")) {
       this->wMax = inputParams->value(name, "strength");
    }
@@ -185,11 +118,21 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
       this->wMax = inputParams->value(name, "wMax");
    }
 
-   pvConnInit(pvconn, pre->clayer, post->clayer, params, channel);
-
    if (inputParams->present(name, "stdpFlag")) {
       stdpFlag = (int) inputParams->value(name, "stdpFlag");
    }
+
+   return 0;
+}
+
+// virtual initializer
+int HyPerConn::initialize()
+{
+   PVParams * inputParams = parent->parameters();
+   setParams(inputParams, &defaultConnParams);
+   assert(params->delay < MAX_F_DELAY);
+
+   params->numDelay = params->varDelayMax - params->varDelayMin + 1;
 
    createWeights(nxp, nyp, nfp);
 
@@ -219,7 +162,8 @@ int HyPerConn::initialize(const char * filename, HyPerLayer * pre, HyPerLayer * 
       }
    }
 
-   initializeWeights(filename);
+   const char * filename = NULL;
+   initializeWeights( filename );
    //writeWeights();
    adjustAxonalArborWeights();
 
@@ -321,48 +265,38 @@ int HyPerConn::initializeWeights(const char * filename)
       }
    }
    else {
-      int err = 0;
-      size_t size, count, dim[3];
+      char name[PV_PATH_MAX];
+      sprintf(name, "output/w%1.1d_last.bin", getConnectionId());
 
-       // TODO rank 0 should read and distribute file
+      int status = this->readWeights(name);
 
-      FILE * fd = fopen(filename, "rb");
-
-      if (fd == NULL) {
+      if (status != 0) {
          fprintf(stderr,
                  "FileConn:: couldn't open file %s, using 8x8 weights = 1\n",
                   filename);
          return -1;
       }
 
-      if ( fread(dim,    sizeof(size_t), 3, fd) != 3 ) err = 1;
-      if ( fread(&size,  sizeof(size_t), 1, fd) != 1 ) err = -1;
-      if ( fread(&count, sizeof(size_t), 1, fd) != 1 ) err = -1;
-
       // check for consistency
 
-      if (dim[0] != (size_t) nfp) err = -1;
-      if (dim[1] != (size_t) nxp) err = -1;
-      if (dim[2] != (size_t) nyp) err = -1;
-      if ((int) count != numAxonalArborLists) err = -1;
-      if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
+//      if (dim[0] != (size_t) nfp) err = -1;
+//      if (dim[1] != (size_t) nxp) err = -1;
+//      if (dim[2] != (size_t) nyp) err = -1;
+//      if ((int) count != numAxonalArborLists) err = -1;
+//      if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
 
-      if (err) {
+      if (status) {
          fprintf(stderr, "FileConn:: ERROR: difference in dim, size or count of patches\n");
-         return err;
+         return status;
       }
 
       // TODO - fix reading patches from file
-      for (unsigned int i = 0; i < count; i++) {
-         int neighbor = 0;
-         PVPatch* patch = wPatches[neighbor][i];
-         if ( fread(patch, size, 1, fd) != 1) {
-            fprintf(stderr, "FileConn:: ERROR reading patch %d\n", i);
-            return -1;
-         }
+//      for (unsigned int i = 0; i < count; i++) {
+//         int neighbor = 0;
+//         PVPatch* patch = wPatches[neighbor][i];
          // TODO fix address with a function
-         patch->data = (pvdata_t*) ((char*) patch + sizeof(PVPatch));
-      }
+//         patch->data = (pvdata_t*) ((char*) patch + sizeof(PVPatch));
+//      }
 
       // TODO - adjust strides sy, sf in weight patches
    } // end if for filename
@@ -370,9 +304,49 @@ int HyPerConn::initializeWeights(const char * filename)
    return 0;
 }
 
+int HyPerConn::readWeights(const char * filename)
+{
+   FILE * fp;
+   int numParams, nxIn, nyIn, nfIn;
+   int params[MAX_BIN_PARAMS];
+   int status = 0;
+
+   fp = pv_open_binary(filename, &numParams, &nxIn, &nyIn, &nfIn);
+
+   assert(fp != NULL);
+   assert(nxIn == nxp);
+   assert(nyIn == nyp);
+   assert(nfIn == nfp);
+
+   pv_read_binary_params(fp, numParams, params);
+   int wMaxIn = params[numParams-2];
+   int numPatchesIn = params[numParams-1];
+
+   int arbor = 0;
+   int numPatches = this->numberOfWeightPatches(arbor);
+   assert(numPatches == numPatchesIn);
+   this->wMax = wMaxIn;
+
+   status = pv_read_patches(fp, nfp, 0.0, wMax, numPatches, wPatches[arbor]);
+   assert(status == 0);
+
+   status = pv_close_binary(fp);
+
+   return status;
+}
+
 int HyPerConn::writeWeights()
 {
-   int err = 0;
+   char name[PV_PATH_MAX];
+   int status = 0;
+
+   sprintf(name, "w%1.1d_last", getConnectionId());
+
+   int arbor = 0;
+   int numPatches = numberOfWeightPatches(arbor);
+   status = pv_write_patches(name, ioAppend, (int) nxp, (int) nyp, (int) nfp,
+                             0.0, wMax, numPatches, wPatches[arbor]);
+   assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
    char outfile[128];
@@ -394,7 +368,7 @@ int HyPerConn::writeWeights()
 
 #endif
 
-   return err;
+   return status;
 }
 
 int HyPerConn::writeWeights(int k)
