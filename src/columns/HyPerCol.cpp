@@ -23,6 +23,7 @@
 namespace PV {
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
+   : warmStart(false)
 {
    // TODO - fix these numbers to dynamically grow
    maxLayers = MAX_LAYERS;

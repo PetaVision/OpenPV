@@ -38,7 +38,6 @@ public:
    int writeState();
 
    int columnId();
-   const char * inputFile()              {return image_file;}
 
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
 
@@ -52,12 +51,16 @@ public:
 
    PVParams * parameters()                {return params;}
 
+   bool  warmStartup()                    {return warmStart;}
+
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return time;}
 
    LayerLoc getImageLoc()                 {return imageLoc;}
    float  width()                         {return imageLoc.nx;}
    float  height()                        {return imageLoc.ny;}
+
+   const char * inputFile()               {return image_file;}
 
    int numberOfTimeSteps()                {return numSteps;}
 
@@ -78,9 +81,10 @@ private:
    int maxConnections;
    int numConnections;
 
+   bool warmStart;
+
    float time;                  // current time in milliseconds
    float deltaTime;             // time step interval
-   LayerLoc imageLoc;
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;
@@ -90,6 +94,7 @@ private:
 
    char * name;
    char * image_file;
+   LayerLoc imageLoc;
 
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
@@ -97,14 +102,6 @@ private:
 }; // class HyPerCol
 
 } // namespace PV
-
-// TODO - move thread stuff somewhere else
-
-typedef struct run_struct_ {
-   PV::HyPerCol *hc;
-   int layer;
-   int proc;
-} run_struct;
 
 extern "C" {
 void *run1connection(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
