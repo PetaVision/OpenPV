@@ -18,6 +18,9 @@
 #define LIF_STATS 1
 #define DEBUG 0
 
+// time value for saving final output
+#define FINAL_TIME (-1)
+
 // pad layer activity with border
 #undef EXTEND_BORDER_INDEX
 
