@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
    PV::HyPerLayer * example = new PV::Example("Example Layer", hc);
 
    // connect the layers
-   new PV::HyPerConn("Retina to Example", hc, retina, example);
+   new PV::HyPerConn("Retina to Example", hc, retina, example, CHANNEL_EXC);
 
    // finish initialization now that everything is connected
    hc->initFinish();
