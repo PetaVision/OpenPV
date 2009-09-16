@@ -52,11 +52,9 @@ public:
    size_t sendOffset(int n, const LayerLoc * loc);
    MPI_Datatype * newDatatypes(const LayerLoc * loc);
 
-   int send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-            const LayerLoc * loc);
-
-   int recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-            const LayerLoc * loc);
+   int exchange(pvdata_t * data,
+                const MPI_Datatype neighborDatatypes [],
+                const LayerLoc * loc);
 
 protected:
 

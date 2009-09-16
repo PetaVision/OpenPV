@@ -533,35 +533,18 @@ MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
 }
 
 /**
- * Recv data from neighbors
- *   - wait for delivery as recv has already been posted
- *   - the data regions to be sent are described by the datatypes
- */
-int Communicator::recv(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-                       const LayerLoc * loc)
-{
-   // don't recv interior
-   int count = numberOfNeighbors() - 1;
-#ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
-#endif
-   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
-
-   return 0;
-}
-
-/**
- * Send data to neighbors
+ * Exchange data with neighbors
  *   - the data regions to be sent are described by the datatypes
  *   - do irecv first so there is a location for send data to be received
  */
-int Communicator::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
-                       const LayerLoc * loc)
+int Communicator::exchange(pvdata_t * data,
+                           const MPI_Datatype neighborDatatypes [],
+                           const LayerLoc * loc)
 {
    // don't send interior
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == icRank) continue;  // don't send to self
+      if (neighbors[n] == icRank) continue;  // don't send interior/self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
@@ -571,6 +554,13 @@ int Communicator::send(pvdata_t * data, const MPI_Datatype neighborDatatypes [],
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
    }
+
+   // don't recv interior
+   int count = numberOfNeighbors() - 1;
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+#endif
+   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
    return 0;
 }
