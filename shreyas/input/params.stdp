@@ -1,13 +1,13 @@
 //
 // params.pv
-//  - input parameters for pv_ca.cpp
+//  - input parameters for stdp.cpp
 //  - initially, this case study examines how a one dimensional object (line segment) can
 //    be synchronized
 //
 
 HyPerCol "column" = {
-   nx = 16;
-   ny = 1;
+   nx = 32;
+   ny = 32;
    dt = .5;
 };
 
@@ -18,104 +18,114 @@ HyPerCol "column" = {
 HyPerLayer "Retina" = {
    nx = 32;
    ny = 32;
-   nf = 2;   // features = (OFF,ON}
+   nf = 1;   // features = (OFF,ON}
    
    nBorder = 0;
 
    beginStim = .0;
-   endStim   = .3;
+   endStim   = 200000.0;
 
    fireOffPixels = 1;          // if true, black (0) pixels fire as off
    invert  = 0.0;
    uncolor = 1.0;              // if true, pixels>0 become 1.0
 
-   spikingFlag = 0;           // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = .01;//.20;  //.125;      // if so, on probability
-   poissonBlankProb = .01;//.075; //.0125;     //       off probability
-
+   spikingFlag = 1;           // spike as poisson?
+   //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank 
+                              //are overwritten
+   poissonEdgeProb  = 0.5;//0.50;//.125;      // if so, on probability
+   poissonBlankProb = 0.01;//0.02;//.01;//.075; //.0125;     //       off probability
+   
+   burstDuration = 10;
+   burstFreq = 40;
+   
    marginWidth = 0.0;           // set input to 0 within margin
 };
 
 HyPerLayer "L1" = {
-   nx = 16;
-   ny = 16;
-   nf = 8;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
-   
-   tau    = 100; // 2;    // 100;
-   tauE   = 1;   // .25;  // 1;
-   tauVth = 10;  // .25;   // 10;
-   
-   VthRest = -55; // -60; // -55;
-   
-   noiseAmpE = 0.0; //64.0;
-   noiseAmpI = 0.0; //4.0;
-};
-
-HyPerLayer "L2" = {
-   nx = 8;
-   ny = 8;
+   nx = 32;
+   ny = 32;
    nf = 1;    // features=(OFF,ON} times 8 combinations
    no = 1;
    nBorder = 0;
    
+   spikingFlag = 1; // ?
+   
    tau    = 100; // 2;    // 100;
    tauE   = 1;   // .25;  // 1;
    tauVth = 10;  // .25;   // 10;
    
    VthRest = -55; // -60; // -55;
    
-   noiseAmpE = 0;
-   noiseAmpI = 0;
+   noiseAmpE = 0.5; //64.0;
+   noiseAmpI = 0.5; //4.0;
 };
 
-HyPerLayer "L3" = {
-   nx = 4;
-   ny = 4;
-   nf = 2;    // features=(OFF,ON}
+HyPerLayer "L2" = {
+   nx = 32;
+   ny = 32;
+   nf = 1;    // features=(OFF,ON} times 8 combinations
    no = 1;
    nBorder = 0;
    
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
+   spikingFlag = 1; //?
    
-   VthRest = -60; // -55;
+   tau    = 100; // 2;    // 100;
+   tauE   = 1;   // .25;  // 1;
+   tauVth = 10;  // .25;   // 10;
    
-   noiseAmpE = 0;
-   noiseAmpI = 0;
+   VthRest = -55; // -60; // -55;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
+};
+
+HyPerLayer "L3" = {
+   nx = 32;
+   ny = 32;
+   nf = 1;    // features=(OFF,ON}
+   no = 1;
+   nBorder = 0;
+   
+   spikingFlag = 1; // ?
+   
+   tau    = 100;    // 100;
+   tauE   = 1;   // 1;
+   tauVth = 10;   // 10;
+   
+   VthRest = -55; // -55;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
 };
 
 
 HyPerLayer "L4" = {
-   nx = 2;
-   ny = 2;
-   nf = 2;    // features=(OFF,ON}
+   nx = 32;
+   ny = 32;
+   nf = 1;    // features=(OFF,ON}
    no = 1;
    nBorder = 0;
    
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
+   tau    = 100;    // 100;
+   tauE   = 1;   // 1;
+   tauVth = 10;   // 10;
    
-   VthRest = -60; // -55;
+   VthRest = -55; // -55;
    
-   noiseAmpE = 0;
-   noiseAmpI = 0;
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
 };
 
 HyPerLayer "L5" = {
-   nx = 1;
-   ny = 1;
-   nf = 2;    // features=(OFF,ON}
+   nx = 32;
+   ny = 32;
+   nf = 1;    // features=(OFF,ON}
    no = 1;
    nBorder = 0;
    
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
+   tau    = 100; // 2;    // 100;
+   tauE   = 1;//.25;   // 1;
+   tauVth = 10;//.25;   // 10;
    
    VthRest = -60; // -55;
    
@@ -126,8 +136,49 @@ HyPerLayer "L5" = {
 
 HyPerConn "Retina to L1" = {
    nxp = 3;
-   nyp = 1;
+   nyp = 3;
    strength = 1.0;
+   
+   stdpFlag = 1;
+   
+   wMinInit = 4.0;  // default values if Gaussian is not defined
+   wMaxInit = 6.0; // if not defined uses wMin and wMax.
+   
+   wGaussMean = 3.00;
+   wGaussStdev = 0.50;//1.00;
+   
+   idum = 3940284; // rnadom number generator seed
+   
+   wMin = 0.0;
+   wMax = 10.0;
+
+   rotate = 1.0;
+   invert = 0.0;
+};
+
+HyPerConn "L1 to L2" = {
+   nxp = 3;
+   nyp = 3;
+   strength = 1.0;
+   
+   stdpFlag = 1;
+   
+   wMin = 0.0;
+   wMax = 10.0;
+   
+   //aspect = 1;
+   //sigma  = 100;
+   //rMax   = 100;
+   
+   rotate = 1.0;
+   invert = 0.0;
+};
+
+HyPerConn "L2 to L3" = {
+   nxp = 3;
+   nyp = 3;
+   strength = 1;
+   //delay = 30;
    
    stdpFlag = 1;
    
@@ -138,34 +189,16 @@ HyPerConn "Retina to L1" = {
    invert = 0.0;
 };
 
-HyPerConn "L1 to L2" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 30.0;
-   
-   aspect = 1;
-   sigma  = 100;
-   rMax   = 100;
-   
-   rotate = 1.0;
-   invert = 0.0;
-};
-
-HyPerConn "L2 to L3" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 1.5;
-   delay = 30;
-
-   rotate = 1.0;
-   invert = 0.0;
-};
-
 HyPerConn "L3 to L4" = {
    nxp = 3;
-   nyp = 1;
-   strength = .5;
-   delay = 30;
+   nyp = 3;
+   strength = 1;
+   //delay = 30;
+
+   stdpFlag = 1;
+   
+   wMin = 0.0;
+   wMax = 10.0;
 
    rotate = 1.0;
    invert = 0.0;
@@ -173,9 +206,14 @@ HyPerConn "L3 to L4" = {
 
 HyPerConn "L4 to L5" = {
    nxp = 3;
-   nyp = 1;
-   strength = .5;
-   delay = 30;
+   nyp = 3;
+   strength = 1;
+   //delay = 30;
+
+   stdpFlag = 1;
+   
+   wMin = 0.0;
+   wMax = 10.0;
 
    rotate = 1.0;
    invert = 0.0;
