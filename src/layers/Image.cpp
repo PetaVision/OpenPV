@@ -10,6 +10,19 @@
 
 namespace PV {
 
+Image::Image(HyPerCol * hc)
+{
+   this->data = NULL;
+   this->comm = hc->icCommunicator();
+
+   loc = hc->getImageLoc();
+
+   const int N = loc.nx * loc.ny * loc.nBands;
+   data = new float [N];
+
+   for (int i = 0; i < N; ++i) data[i] = 0;
+}
+
 Image::Image(const char * filename, HyPerCol * hc)
 {
    this->data = NULL;

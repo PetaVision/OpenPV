@@ -14,9 +14,9 @@
 namespace PV {
 
 class Image {
-protected:
 
-   Image();
+protected:
+   Image(HyPerCol * hc);
 
 public:
    Image(const char * filename, HyPerCol * hc);
@@ -24,6 +24,8 @@ public:
 
    int read(const char * filename);
    int write(const char * filename);
+
+   pvdata_t * getImageBuffer()    { return data; }
 
    int  toGrayScale();
    int  convolution();
@@ -35,7 +37,7 @@ protected:
 
    Communicator * comm;  // the communicator object for reading/writing files
    LayerLoc loc;         // size/location of image
-   float *  data;        // buffer containing image
+   pvdata_t *  data;     // buffer containing image
    float tau;
 };
 
