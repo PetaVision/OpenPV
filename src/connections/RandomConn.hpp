@@ -41,8 +41,6 @@ private:
    float          wGaussStdev;  // std deviation of the Gaussian distribution
    long           idum;
 
-   void InitRandomConn(const char *name, HyPerCol *hc,
-                       HyPerLayer *pre, HyPerLayer *post, int channel);
 
    float ranf();
    float ran1(long *);
