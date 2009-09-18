@@ -81,22 +81,9 @@ int Retina::init(const char * name, PVLayerType type)
    const int ny = l->loc.ny;
    const int nf = l->numFeatures;
 
-   buf = (pvdata_t *) malloc(nx*ny*nf*sizeof(pvdata_t));
-   assert(buf != NULL);
-   if (params->filename != NULL) {
-      err = scatterReadFile(params->filename, l, buf, MPI_COMM_WORLD);
-      if (err != 0) {
-         free(buf);
-         return err;
-      }
-   }
-   else {
-      err = createImage(buf);
-      if (err != 0) {
-         free(buf);
-         return err;
-      }
-   }
+   // use image's data buffer
+
+   buf = img->getImageBuffer();
 
    assert(nf == 1 || nf == 2);
    if (nf == 1) {
@@ -148,11 +135,6 @@ int Retina::init(const char * name, PVLayerType type)
          V[n] = (V[n] == 0.0) ? 0.0 : 1.0;
       }
    }
-
-   if (buf != NULL){
-      free(buf);
-   }
-   // TODO - add retina boundary conditions
 
    return 0;
 }
@@ -334,14 +316,6 @@ int Retina::writeState(const char * path, float time)
   }
 #endif
 
-   return 0;
-}
-
-int Retina::createImage(pvdata_t * buf)
-{
-   for (int i = 0; i < clayer->numNeurons; i++) {
-      buf[i] = 0.0;
-   }
    return 0;
 }
 
