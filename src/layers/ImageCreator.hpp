@@ -35,12 +35,11 @@ private:
 class ImageCreator : public Image {
 
 public:
-    ImageCreator(unsigned int nxInit, unsigned int nyInit);
-    ImageCreator(unsigned int nxInit, unsigned int nyInit, pvdata_t *targetbuf);
+    ImageCreator(HyPerCol * hc);
 
 	int clearImage();
 	int fillImage(pvdata_t val);
-	virtual int updateImage(float time, float dt, pvdata_t *targetbuf);
+	virtual int updateImage(float time, float dt);
 
 	int createRandomImage();
 	int drawMultipleRandomShapes(int n_images);
@@ -83,9 +82,6 @@ public:
 
 private:
 	bool     modified;
-	pvdata_t *buf;
-	unsigned int nx;
-	unsigned int ny;
 
 	int writeImageToTxt(const char *filename);
 	int writeImageToBin(const char *filename);

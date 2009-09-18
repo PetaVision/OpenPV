@@ -17,30 +17,9 @@ namespace PV {
 /*
  * Constructor for ImageCreator class.
  */
-ImageCreator::ImageCreator(unsigned int nxInit, unsigned int nyInit)
-   : Image()
+ImageCreator::ImageCreator(HyPerCol * hc) : Image(hc)
 {
-	ImageCreator(nxInit, nyInit, NULL);
-}
-
-ImageCreator::ImageCreator(unsigned int nxInit, unsigned int nyInit, pvdata_t *targetbuf)
-   : Image()
-{
-	if (0 == (nxInit * nyInit)) {
-		std::cerr << "Error: ImageCreator: Illegal arguments.\n";
-		exit(1);
-	}
-
-	nx = nxInit;
-	ny = nyInit;
-
-	modified = false;
-
-	if ((buf = (pvdata_t *) malloc(nx * ny * sizeof(pvdata_t))) == NULL) {
-		std::cerr << "Error: ImageCreator: Out of memory.\n";
-		exit(1);
-	}
-	updateImage(0, 0, targetbuf);
+   updateImage(0.0, 0.0);
 }
 
 /*
@@ -59,26 +38,26 @@ ImageCreator::ImageCreator(unsigned int nxInit, unsigned int nyInit, pvdata_t *t
  * NOTE: THIS METHOD NEEDS TO BE DESIGNED FOR EACH EXPERIMENT!!!
  *
  */
-int ImageCreator::updateImage(float time_step, float dt, pvdata_t * targetbuf)
+int ImageCreator::updateImage(float time_step, float dt)
 {
 
    static int prevposx = 0, prevposy = 0;
 
    srand(time(NULL));
 
-   static unsigned int posx = 5;
-   static unsigned int posy = 10;
-   unsigned int length = 12;
+   static int posx = 5;
+   static int posy = 10;
+   int length = 12;
 
    clearImage();
 
    posx += threewaytoss(0, 1, 0); // go back, stay, go ahead
    if (posx < 0) posx = 0;
-   else if ((posx + length) >= nx) posx = (nx - length - 1);
+   else if ((posx + length) >= loc.nx) posx = (loc.nx - length - 1);
 
    posy += threewaytoss(0, 1, 0);
    if (posy < 0) posy = 0;
-   else if ((posy + length) >= ny) posy = (ny - length - 1);
+   else if ((posy + length) >= loc.ny) posy = (loc.ny - length - 1);
 
    if ((prevposx != posx) || (prevposy != posy)) {
       modified = true;
@@ -96,12 +75,6 @@ int ImageCreator::updateImage(float time_step, float dt, pvdata_t * targetbuf)
    prevposx = posx;
    prevposy = posy;
 
-
-
-   if (targetbuf != NULL) {
-      copyImage(targetbuf);
-   }
-
    return 0;
 }
 
@@ -115,7 +88,10 @@ int ImageCreator::updateImage(float time_step, float dt, pvdata_t * targetbuf)
  */
 int ImageCreator::clearImage()
 {
-   for (unsigned int i = 0; i < (nx * ny); i++) {
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
+   for (int i = 0; i < (nx * ny); i++) {
       mark(i, 0);
    }
    return 0;
@@ -129,9 +105,12 @@ int ImageCreator::clearImage()
  *
  * Return value: 0 if successful, else non-zero.
  */
-int ImageCreator::fillImage(pvdata_t val) {
+int ImageCreator::fillImage(pvdata_t val)
+{
+   const int nx = loc.nx;
+   const int ny = loc.ny;
 
-   for (unsigned int i = 0; i < (nx * ny); i++) {
+   for (int i = 0; i < (nx * ny); i++) {
       mark(i, val);
    }
    return 0;
@@ -147,12 +126,15 @@ int ImageCreator::fillImage(pvdata_t val) {
  */
 int ImageCreator::createRandomImage()
 {
-   assert(buf != NULL); //ToDo: Validation inadequate.
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
+   assert(data != NULL); //ToDo: Validation inadequate.
                         //      Check for buf size > (nx * ny)
 
-   for (unsigned int i = 0; i < nx; i++) {
-      for (unsigned int j = 0; j < ny; j++) {
-         *(buf + (i + (j * nx))) = (rand() % 2);
+   for (int i = 0; i < nx; i++) {
+      for (int j = 0; j < ny; j++) {
+         *(data + (i + (j * nx))) = (rand() % 2);
       }
          //Fill in all pixels randomly
    }
@@ -170,6 +152,9 @@ int ImageCreator::createRandomImage()
  */
 int ImageCreator::drawMultipleRandomShapes(int n_images)
 {
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
    clearImage();
    srand(time(NULL));
    unsigned int posx; //rand() % nx;
@@ -204,15 +189,15 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
  */
 int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta) {
 
-   unsigned int x1 = origin.getX();
-   unsigned int y1 = origin.getY();
-   unsigned int x2 = approx(x1 + ((length - 1) * cos(deg2rad(theta))));
-   unsigned int y2 = approx(y1 + ((length - 1) * sin(deg2rad(theta))));
+   int x1 = origin.getX();
+   int y1 = origin.getY();
+   int x2 = approx(x1 + ((length - 1) * cos(deg2rad(theta))));
+   int y2 = approx(y1 + ((length - 1) * sin(deg2rad(theta))));
    /** length is decreased by one since the start point, (x1, y1) is also
     *  included in the line.
     */
 
-   if ((x1 <= 0) || (y1 <= 0) || (x2 > nx) || (y2 > ny)) {
+   if ((x1 <= 0) || (y1 <= 0) || (x2 > loc.nx) || (y2 > loc.ny)) {
       std::cerr << "Error: Cannot draw line from (%d, %d) of length at an angle .\n";
       return 1;
    }
@@ -228,12 +213,12 @@ int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta) {
  */
 int ImageCreator::drawLine(Point2D pt1, Point2D pt2) {
 
-   unsigned int x1 = pt1.getX();
-   unsigned int y1 = pt1.getY();
-   unsigned int x2 = pt2.getX();
-   unsigned int y2 = pt2.getY();
+   int x1 = pt1.getX();
+   int y1 = pt1.getY();
+   int x2 = pt2.getX();
+   int y2 = pt2.getY();
 
-   if ((x1 <= 0) || (y1 <= 0) || (x2 > nx) || (y2 > ny)) {
+   if ((x1 <= 0) || (y1 <= 0) || (x2 > loc.nx) || (y2 > loc.ny)) {
       std::cerr << "Error: Cannot draw line between"; // << pt1 << " and "<< pt2 << ".\n";
       return 1;
    }
@@ -274,7 +259,10 @@ int ImageCreator::drawSquare(Point2D pt1, Point2D pt2, Point2D pt3, Point2D pt4)
  *                   theta must be in degrees.
  */
 int ImageCreator::drawRectangle(Point2D origin, unsigned int lengtha,
-                             unsigned int lengthb, unsigned int theta) {
+                             unsigned int lengthb, unsigned int theta)
+{
+   const int nx = loc.nx;
+   const int ny = loc.ny;
 
    int err = 0;
    int x1 = origin.getX();
@@ -291,8 +279,8 @@ int ImageCreator::drawRectangle(Point2D origin, unsigned int lengtha,
 
    if ((x1 <= 0) || (x2 <= 0) || (x3 <= 0) || (x4 <= 0) ||
        (y1 <= 0) || (y2 <= 0) || (y3 <= 0) || (y4 <= 0) ||
-       (x1 > (int)nx) || (x2 > (int)nx) || (x3 > (int)nx) || (x4 > (int)nx) ||
-       (y1 > (int)ny) || (y2 > (int)ny) || (y3 > (int)ny) || (y4 > (int)ny)) {
+       (x1 > nx) || (x2 > nx) || (x3 > nx) || (x4 > nx) ||
+       (y1 > ny) || (y2 > ny) || (y3 > ny) || (y4 > ny)) {
 
       std::cout << "ImageCreator: Error drawing 2D figure at "; // << origin << ".\n";
       return 1;
@@ -330,7 +318,10 @@ int ImageCreator::drawRectangle(Point2D pt1, Point2D pt2,
  * Return value: None.
  */
 int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
-                           Point2D pt3, Point2D pt4) {
+                           Point2D pt3, Point2D pt4)
+{
+   const int nx = loc.nx;
+   const int ny = loc.ny;
 
    int err = 0;
    int x1 = pt1.getX();
@@ -347,8 +338,8 @@ int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
 
    if ((x1 <= 0) || (x2 <= 0) || (x3 <= 0) || (x4 <= 0) ||
        (y1 <= 0) || (y2 <= 0) || (y3 <= 0) || (y4 <= 0) ||
-       (x1 > (int)nx) || (x2 > (int)nx) || (x3 > (int)nx) || (x4 > (int)nx) ||
-       (y1 > (int)ny) || (y2 > (int)ny) || (y3 > (int)ny) || (y4 > (int)ny)) {
+       (x1 > nx) || (x2 > nx) || (x3 > nx) || (x4 > nx) ||
+       (y1 > ny) || (y2 > ny) || (y3 > ny) || (y4 > ny)) {
 
          std::cout << "ImageCreator: Error drawing 2D figure at ";// << pt1 << ".\n";
          return 1;
@@ -428,7 +419,7 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
  */
 inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
 {
-   *(buf + ((i - 1) + ((j - 1) * nx))) = value;
+   *(data + ((i - 1) + ((j - 1) * loc.nx))) = value;
 }
 
 /*
@@ -444,7 +435,7 @@ inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
  */
 inline void ImageCreator::mark(unsigned int i, int value)
 {
-   *(buf + i) = value;
+   data[i] = value;
 }
 
 /*
@@ -459,7 +450,7 @@ inline void ImageCreator::mark(unsigned int i, int value)
  */
 inline pvdata_t ImageCreator::getmark(unsigned int i, unsigned int j)
 {
-   return (*(buf + ((i - 1) + ((j - 1) * nx))));
+   return (*(data + ((i - 1) + ((j - 1) * loc.nx))));
 }
 
 
@@ -491,7 +482,7 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
 
    if (istifon) {
       snprintf(tiffilename, 255, "%simages/%s.tif", OUTPUT_PATH, basicfilename);
-      err |= tiff_write_file(tiffilename, buf, nx, ny);
+      err |= tiff_write_file(tiffilename, data, loc.nx, loc.ny);
    }
    if (istxton) {
 	  snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
@@ -514,7 +505,10 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
 int ImageCreator::writeImageToTxt(const char *filename)
 {
    FILE *txtfile = NULL;
-   unsigned int i, j;
+   int i, j;
+
+   const int nx = loc.nx;
+   const int ny = loc.ny;
 
    if ((txtfile = fopen(filename, "w"))) {
       for (i = 1; i <= nx; i++) {
@@ -542,7 +536,10 @@ int ImageCreator::writeImageToTxt(const char *filename)
 int ImageCreator::writeImageToBin(const char *filename)
 {
    FILE *binfile = NULL;
-   unsigned int i, j;
+   int i, j;
+
+   const int nx = loc.nx;
+   const int ny = loc.ny;
 
    if ((binfile = fopen(filename, "wb"))) {
       for (i = 1; i <= nx; i++) {
@@ -571,10 +568,13 @@ int ImageCreator::writeImageToBin(const char *filename)
  */
 int ImageCreator::copyImage(pvdata_t *targetbuf)
 {
-	for (unsigned int i = 0; i < (nx * ny); i++) {
-		targetbuf[i] = buf[i];
-	}
-	return 0;
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
+   for (int i = 0; i < (nx * ny); i++) {
+      targetbuf[i] = data[i];
+   }
+   return 0;
 }
 
 /*
@@ -654,10 +654,13 @@ inline int ImageCreator::approx(double temp)
  */
 void ImageCreator::testImage()
 {
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
    std::cout << "\n\n";
-   for (unsigned int i = 0; i < nx; i++) {
-      for (unsigned int j = 0; j < ny; j++) {
-         if ( *(buf + (i + (j * nx))) == 1)
+   for (int i = 0; i < nx; i++) {
+      for (int j = 0; j < ny; j++) {
+         if ( *(data + (i + (j * nx))) == 1)
             std::cout << "* ";
          else
             std::cout << ". ";
