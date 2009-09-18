@@ -41,7 +41,6 @@ private:
    float          wGaussStdev;  // std deviation of the Gaussian distribution
    long           idum;
 
-
    float ranf();
    float ran1(long *);
 };

@@ -14,25 +14,23 @@ namespace PV {
 
 RandomConn::RandomConn(const char * name,
                        HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-          : HyPerConn(name, hc, pre, post, channel)
+          : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
    randDistType = UNIFORM; //Uniform distribution is the default
 
-   //this->numAxonalArborLists = 1;
-   //initialize();
-   initialize(name, pre, post,channel);
+   this->numAxonalArborLists = 1;
+   initialize();
    hc->addConnection(this);
 }
 
 RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                        HyPerLayer * post, int channel, RandDistType distrib)
-          : HyPerConn(name, hc, pre, post, channel)
+          : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
    randDistType = distrib;
 
-   //this->numAxonalArborLists = 1;
-   //initialize();
-   initialize(name, pre, post,channel);
+   this->numAxonalArborLists = 1;
+   initialize();
    hc->addConnection(this);
 }
 
@@ -57,6 +55,8 @@ int RandomConn::initializeWeights(const char * filename)
 
 int RandomConn::initializeUniformWeights(int seed)
 {
+   float wMinInit, wMaxInit;
+
    PVParams * params = parent->parameters();
 
    wMin = 0.0;
@@ -64,18 +64,14 @@ int RandomConn::initializeUniformWeights(int seed)
       wMin = params->value(name, "wMin");
    }
 
+   wMinInit = wMin;
    if (params->present(name, "wMinInit")) {
       wMinInit = params->value(name, "wMinInit");
    }
-   else {
-      wMinInit = wMin;
-   }
 
+   wMaxInit = wMax;
    if (params->present(name, "wMaxInit")) {
       wMaxInit = params->value(name, "wMaxInit");
-   }
-   else {
-      wMaxInit = wMax;
    }
 
    if (params->present(name, "idum")){
@@ -85,9 +81,10 @@ int RandomConn::initializeUniformWeights(int seed)
           idum = -1;
    }
 
-   const int numPatches = numberOfWeightPatches();
+   const int arbor = 0;
+   const int numPatches = numberOfWeightPatches(arbor);
    for (int k = 0; k < numPatches; k++) {
-      uniformWeights(wPatches[k], wMinInit, wMaxInit, seed);
+      uniformWeights(wPatches[arbor][k], wMinInit, wMaxInit, seed);
    }
 
    return 0;
@@ -124,7 +121,7 @@ int RandomConn::initializeGaussianWeights(int seed)
       wGaussMean = params->value(name, "wGaussMean");
    }
    else {
-      wGaussMean = (wMinInit + wMaxInit) / 2.0;
+      wGaussMean = (wMin + wMax) / 2.0;
    }
 
    if (params->present(name, "wGaussStdev")){
@@ -141,13 +138,14 @@ int RandomConn::initializeGaussianWeights(int seed)
        idum = -1;
    }
 
-   const int numPatches = numberOfWeightPatches();
+   const int arbor = 0;
+   const int numPatches = numberOfWeightPatches(0);
    printf("numPatches = %d  wGaussMean = %f wGaussStdev = %f idum = %ld ",
          numPatches, wGaussMean , wGaussStdev, idum);
 
    for (int k = 0; k < numPatches; k++) {
       //gaussianWeights(wPatches[k], wGaussMean, wGaussStdev, seed);
-      gaussianWeightsMA(wPatches[k], wGaussMean, wGaussStdev, &idum); // ma
+      gaussianWeightsMA(wPatches[arbor][k], wGaussMean, wGaussStdev, &idum); // ma
    }
 
    return 0;
