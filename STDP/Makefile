@@ -1,20 +1,17 @@
 # Path to PetaVision workspace goes here 
-PVDIR = ../pv-trunk
+PVDIR = ../PetaVision
 SRCDIR = $(PVDIR)/src
-BUILDDIR = $(SRCDIR)/build
+LIBDIR = $(PVDIR)/lib
 
-CPP = g++
-CC  = gcc
+CPP = mpic++
+CC  = mpicc
 
-MPI_DIR = $(SRCDIR)/arch/mpi
-MPI_INC = -I$(MPI_DIR)
+CFLAGS = -g -Wall -std=c99 -I$(PVDIR) -I/usr/local/include
+CPPFLAGS = -g -Wall -I$(PVDIR) -I/usr/local/include
 
-CFLAGS = -g -Wall -std=c99 -Wall -I$(PVDIR) -I$(MPI_DIR)
-CPPFLAGS = -g -Wall -I$(PVDIR) -I$(MPI_DIR)
+LIBS = -lpv -lgdal
 
-LIBS = -lpv -pthread
-
-EXES = pv_cocirc
+EXES = stdp
 
 .SUFFIXES: .cpp .c .o
 
@@ -26,8 +23,8 @@ EXES = pv_cocirc
 
 all: $(EXES)
 
-pv_cocirc: pv_cocirc.o # $(BUILDDIR)/libpv.a
-	$(CPP) -o $@ $< -L$(BUILDDIR) $(LIBS)
+stdp: stdp.o
+	$(CPP) -o $@ $< -L$(LIBDIR) $(LIBS)
 
 clean: force
 	rm -f $(EXES) *.o
