@@ -32,6 +32,7 @@ typedef struct PVLayer_ {
    int numFeatures;// # features in this layer
    int numActive;  // # neurons that fired
 
+   // TODO - deprecate?
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
 
    char * name;
