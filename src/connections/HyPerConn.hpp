@@ -56,10 +56,10 @@ public:
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
    virtual int numberOfWeightPatches(int arbor);
-   virtual int writeWeights();
+   virtual int writeWeights(float time);
    virtual int writeWeights(int k);
    virtual int writeWeights(const char * filename, int k);
-   virtual int writePostPatchWeights(int ioAppend);
+   virtual int writePostSynapticWeights(int ioAppend);
 
    virtual PVPatch * getWeights(int kPre, int arbor);
    virtual PVPatch * getPlasticityIncrement(int k, int arbor);
@@ -140,7 +140,7 @@ protected:
              int channel, int primary_constructor);
 
    virtual int initialize();
-   virtual int initializeWeights(const char * filename);
+   virtual int initializeGaussianWeights();
    virtual int initializeRandomWeights(int seed);
    virtual int createWeights(int nxPatch, int nyPatch, int nfPatch);
    virtual int readWeights(const char * filename);

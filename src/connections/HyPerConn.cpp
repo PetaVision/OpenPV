@@ -121,6 +121,8 @@ int HyPerConn::initialize_base()
 // virtual initializer
 int HyPerConn::initialize()
 {
+   int status = 0;
+
    PVParams * inputParams = parent->parameters();
    setParams(inputParams, &defaultConnParams);
    assert(params->delay < MAX_F_DELAY);
@@ -156,11 +158,41 @@ int HyPerConn::initialize()
    }
 
    const char * filename = NULL;
-   initializeWeights( filename );
-   //writeWeights();
-   adjustAxonalArborWeights();
+   status = -1;
 
-   return 0;
+   if (filename != NULL) {
+      status = readWeights(filename);
+   }
+
+   if (status != 0) {
+      char name[PV_PATH_MAX];
+      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin",
+                     OUTPUT_PATH, getConnectionId());
+      status = this->readWeights(name);
+   }
+
+   if (status != 0) {
+      PVParams * params = parent->parameters();
+
+      float randomFlag = 0;
+      if (params->present(getName(), "randomFlag")) {
+         randomFlag = params->value(getName(), "randomFlag");
+      }
+      if (randomFlag > 0) {
+         float seed = 0;
+         if (params->present(getName(), "randomSeed")) {
+            seed = params->value(getName(), "randomFlag");
+         }
+         status = initializeRandomWeights(seed);
+      }
+      else {
+         status = initializeGaussianWeights();
+      }
+   }
+
+   status = adjustAxonalArborWeights();
+
+   return status;
 }
 
 int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
@@ -204,95 +236,49 @@ int HyPerConn::initializeRandomWeights(int seed)
    return 0;
 }
 
-int HyPerConn::initializeWeights(const char * filename)
+int HyPerConn::initializeGaussianWeights()
 {
-   if (filename == NULL) {
-      PVParams * params = parent->parameters();
+   PVParams * params = parent->parameters();
 
-      float randomFlag = 0;
-      if (params->present(getName(), "randomFlag")) {
-         randomFlag = params->value(getName(), "randomFlag");
-      }
-      if (randomFlag > 0) {
-         return initializeRandomWeights(0);
-      }
+   // default values (chosen for center on cell of one pixel)
 
-      // default values (chosen for center on cell of one pixel)
+   int noPost = 1;
+   if (params->present(post->getName(), "no")) {
+      noPost = (int) params->value(post->getName(), "no");
+   }
 
-      int noPost = 1;
-      if (params->present(post->getName(), "no")) {
-         noPost = (int) params->value(post->getName(), "no");
-      }
+   float aspect   = 1.0;  // circular (not line oriented)
+   float sigma    = 0.8;
+   float rMax     = 1.4;
+   float strength = 1.0;
 
-      float aspect   = 1.0;  // circular (not line oriented)
-      float sigma    = 0.8;
-      float rMax     = 1.4;
-      float strength = 1.0;
+   aspect = params->value(name, "aspect");
+   sigma  = params->value(name, "sigma");
+   rMax   = params->value(name, "rMax");
+   if (params->present(name, "strength")) {
+      strength = params->value(name, "strength");
+   }
 
-      aspect = params->value(name, "aspect");
-      sigma  = params->value(name, "sigma");
-      rMax   = params->value(name, "rMax");
-      if (params->present(name, "strength")) {
-         strength = params->value(name, "strength");
-      }
+   float r2Max = rMax * rMax;
 
-      float r2Max = rMax * rMax;
+   int numFlanks = 1;
+   float shift   = 0.0;
+   float rotate  = 1.0;  // rotate so that axis isn't aligned
 
-      int numFlanks = 1;
-      float shift   = 0.0;
-      float rotate  = 1.0;  // rotate so that axis isn't aligned
+   if (params->present(name, "numFlanks"))  numFlanks = (int) params->value(name, "numFlanks");
+   if (params->present(name, "flankShift")) shift     = params->value(name, "flankShift");
+   if (params->present(name, "rotate"))     rotate    = params->value(name, "rotate");
 
-      if (params->present(name, "numFlanks"))  numFlanks = (int) params->value(name, "numFlanks");
-      if (params->present(name, "flankShift")) shift     = params->value(name, "flankShift");
-      if (params->present(name, "rotate"))     rotate    = params->value(name, "rotate");
-
-      const int xScale = post->clayer->xScale - pre->clayer->xScale;
-      const int yScale = post->clayer->yScale - pre->clayer->yScale;
-      for (int n = 0; n < numAxonalArborLists; n++) {
-         int numPatches = numberOfWeightPatches(n);
-         for (int k = 0; k < numPatches; k++) {
-            int kPre = kIndexFromNeighbor(k, n);
-            gauss2DCalcWeights(wPatches[n][k], kPre, noPost, xScale, yScale,
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   for (int n = 0; n < numAxonalArborLists; n++) {
+      int numPatches = numberOfWeightPatches(n);
+      for (int k = 0; k < numPatches; k++) {
+         int kPre = kIndexFromNeighbor(k, n);
+         gauss2DCalcWeights(wPatches[n][k], kPre, noPost, xScale, yScale,
                             numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
-         }
       }
    }
-   else {
-      char name[PV_PATH_MAX];
-      sprintf(name, "output/w%1.1d_last.bin", getConnectionId());
-
-      int status = this->readWeights(name);
-
-      if (status != 0) {
-         fprintf(stderr,
-                 "FileConn:: couldn't open file %s, using 8x8 weights = 1\n",
-                  filename);
-         return -1;
-      }
-
-      // check for consistency
-
-//      if (dim[0] != (size_t) nfp) err = -1;
-//      if (dim[1] != (size_t) nxp) err = -1;
-//      if (dim[2] != (size_t) nyp) err = -1;
-//      if ((int) count != numAxonalArborLists) err = -1;
-//      if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
-
-      if (status) {
-         fprintf(stderr, "FileConn:: ERROR: difference in dim, size or count of patches\n");
-         return status;
-      }
-
-      // TODO - fix reading patches from file
-//      for (unsigned int i = 0; i < count; i++) {
-//         int neighbor = 0;
-//         PVPatch* patch = wPatches[neighbor][i];
-         // TODO fix address with a function
-//         patch->data = (pvdata_t*) ((char*) patch + sizeof(PVPatch));
-//      }
-
-      // TODO - adjust strides sy, sf in weight patches
-   } // end if for filename
 
    return 0;
 }
@@ -306,7 +292,10 @@ int HyPerConn::readWeights(const char * filename)
 
    fp = pv_open_binary(filename, &numParams, &nxIn, &nyIn, &nfIn);
 
-   assert(fp != NULL);
+   if (fp == NULL) {
+      return -1;
+   }
+
    assert(nxIn == nxp);
    assert(nyIn == nyp);
    assert(nfIn == nfp);
@@ -328,21 +317,26 @@ int HyPerConn::readWeights(const char * filename)
    return status;
 }
 
-int HyPerConn::writeWeights()
+int HyPerConn::writeWeights(float time)
 {
-   char name[PV_PATH_MAX];
    int status = 0;
+   char name[PV_PATH_MAX];
 
-   sprintf(name, "w%1.1d_last", getConnectionId());
+   if (time == FINAL_TIME) {
+      snprintf(name, PV_PATH_MAX-1, "w%d_last", getConnectionId());
+   }
+   else {
+      snprintf(name, PV_PATH_MAX-1, "w%d", getConnectionId());
+   }
 
    int arbor = 0;
    int numPatches = numberOfWeightPatches(arbor);
-   status = pv_write_patches(name, ioAppend, (int) nxp, (int) nyp, (int) nfp,
+   status = pv_write_patches(name, false, (int) nxp, (int) nyp, (int) nfp,
                              0.0, wMax, numPatches, wPatches[arbor]);
    assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
-   char outfile[128];
+   char outfile[PV_PATH_MAX];
 
    // only write first weight patch
 
@@ -372,7 +366,7 @@ int HyPerConn::writeWeights(int k)
 int HyPerConn::writeWeights(const char * filename, int k)
 {
    FILE * fd;
-   char outfile[128];
+   char outfile[PV_PATH_MAX];
 
    if (filename != NULL) {
       sprintf(outfile, "%s%s", OUTPUT_PATH, filename);
@@ -445,7 +439,6 @@ int HyPerConn::insertProbe(ConnectionProbe * p)
 
 int HyPerConn::outputState(float time)
 {
-   char str[PV_PATH_MAX];
    int status = 0;
 
    for (int i = 0; i < numProbes; i++) {
@@ -453,27 +446,20 @@ int HyPerConn::outputState(float time)
    }
 
    if (time == FINAL_TIME) {
-      // Output final weights
-      sprintf(str, "w%1.1d_final", getConnectionId());
-      int arbor = 0;
-      status = pv_write_patches(str, false, (int) nxp, (int) nyp, (int) nfp,
-                                0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
+      status = writeWeights(time);
       assert(status == 0);
    }
    else if (stdpFlag)
    {
-      // Output weights
-      sprintf(str, "w%1.1d", getConnectionId());
-      int arbor = 0;
-      status = pv_write_patches(str, ioAppend, (int) nxp, (int) nyp, (int) nfp,
-                                0.0, wMax, numberOfWeightPatches(arbor), wPatches[arbor]);
+      status = writeWeights(time);
       assert(status == 0);
 
-      status = writePostPatchWeights(ioAppend);
+      convertPreSynapticWeights(time);
+      status = writePostSynapticWeights(ioAppend);
       assert(status == 0);
    }
 
-   // append to dump file after original open
+   // append to output file after original open
    ioAppend = 1;
 
    return status;
@@ -1066,13 +1052,16 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
-int HyPerConn::writePostPatchWeights(int ioAppend) {
+int HyPerConn::writePostSynapticWeights(int ioAppend)
+{
+   char txtfile[PV_PATH_MAX];
+   char poststr[PV_PATH_MAX];
 
-   char txtoutfile[128];
-   char binoutfile[128];
+   int status = 0;
+
+   FILE * fp = NULL;
 
    const int numPost   = post->clayer->numNeurons;
-   const int numParams = post->clayer->numParams;
    const int nxPost  = post->clayer->loc.nx;
    const int nyPost  = post->clayer->loc.ny;
    const int nfPost  = post->clayer->numFeatures;
@@ -1086,51 +1075,46 @@ int HyPerConn::writePostPatchWeights(int ioAppend) {
    const int nyPostPatch = nyp * powYScale;
    const int nfPostPatch = pre->clayer->numFeatures;
 
-   FILE *txtoutput = NULL, *binoutput = NULL;
-
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
-   //TODO: take out magic number
-   snprintf(txtoutfile, 127, "%sw%d_Post.txt", OUTPUT_PATH, getConnectionId());
-   snprintf(txtoutfile, 127, "%sw%d_Post.bin", OUTPUT_PATH, getConnectionId());
-   printf("txt: %s, bin: %s\n", txtoutfile, binoutfile);
+   snprintf(txtfile, PV_PATH_MAX-1, "%sw%d_post.txt", OUTPUT_PATH, getConnectionId());
+   snprintf(poststr, PV_PATH_MAX-1, "w%d_post", getConnectionId());
+
+   status = pv_write_patches(poststr, ioAppend, nxPostPatch, nyPostPatch, nfPostPatch,
+                             0.0, wMax, numPost, wPostPatches);
 
    if (!ioAppend) {
-      txtoutput = fopen(txtoutfile, "w");
-      binoutput = fopen(binoutfile, "wb");
+      fp = fopen(txtfile, "w");
 
-      if ((NULL!= txtoutput) && (NULL != binoutput)) {
-         fprintf(txtoutput, "numParams: %d,\nnxPost: %d,\nnyPost: %d, ", \
-                            numParams, nxPost, nyPost);
-         fprintf(txtoutput, "nfPost: %d,\nnumPostPatch: %d, ", \
-                            nfPost, numPostPatch);
-
-         fprintf(binoutput, "%d%d%d%d%d", numParams, nxPost, nyPost, 
-                                          nfPost, numPostPatch);
+      if (fp != NULL) {
+         fprintf(fp, "nxPost==%d nyPost==%d nfPost==%d numPostPatch==%d\n",
+                     nxPost, nyPost, nfPost, numPostPatch);
       }
    }
    else {
-      txtoutput = fopen(txtoutfile, "a");
-      binoutput = fopen(binoutfile, "ab");
+      fp = fopen(txtfile, "a");
    }
 
-   if ((NULL != txtoutput) && (NULL != binoutput)) {
+   if (fp != NULL) {
       for (int i = 0; i < numPost; i++) {
-         for (int j = 0; j < numPostPatch; j++) {
-            fprintf(txtoutput, "%f ", wPostPatches[i]->data[j]);
-            fprintf(binoutput, "%f", wPostPatches[i]->data[j]);
-            }
-         fprintf(txtoutput, "\n");
-         fprintf(binoutput, "\n");
+         if (wPostPatches[i] == NULL) {
+            fprintf(stderr, "Post-patch weights are NULL\n");
+            fclose(fp);
+            return -1;
          }
-      fclose(txtoutput);
-      fclose(binoutput);
+         for (int j = 0; j < numPostPatch; j++) {
+            fprintf(fp, "%f ", wPostPatches[i]->data[j]);
+         }
+         fprintf(fp, "\n");
       }
-   else {
-      fprintf(stderr, "Error opening file: Cannot write post-patch weights. \n");
-      return 1;
+      fclose(fp);
    }
+   else {
+      fprintf(stderr, "Error opening file: Cannot write post-patch weights.\n");
+      return -1;
+   }
+
    return 0;
 }
 
