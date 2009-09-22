@@ -52,7 +52,7 @@ Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
 
 int Retina::init(const char * name, PVLayerType type)
 {
-   int n, err = 0;
+   int n, status = 0;
    PVLayer  * l   = clayer;
    pvdata_t * buf = NULL;
    pvdata_t * V   = l->V;
@@ -136,7 +136,7 @@ int Retina::init(const char * name, PVLayerType type)
       }
    }
 
-   return 0;
+   return status;
 }
 
 int Retina::setParams(PVParams * params, fileread_params * p)
