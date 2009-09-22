@@ -658,10 +658,11 @@ int pv_write_patches(const char * filename, int append,
    }
 
    for (i = 0; i < numPatches; i++) {
-      status = pv_write_patch(fp, minVal, maxVal, patches[i]);
-      if (status < 0) {
+      int numItems = pv_write_patch(fp, minVal, maxVal, patches[i]);
+      if (numItems < 0) {
+         status = numItems;
          pv_log(stderr, "pv_write_patches: error writing patch %d\n", i);
-         return status;
+         break;
       }
    }
    fclose(fp);
@@ -683,10 +684,11 @@ int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
    int i, status = 0;
 
    for (i = 0; i < numPatches; i++) {
-      status = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
-      if (status < 0) {
+      int numItems = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
+      if (numItems < 0) {
+         status = numItems;
          pv_log(stderr, "pv_read_patches: error reading patch %d\n", i);
-         return status;
+         break;
       }
    }
 
