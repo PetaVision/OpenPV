@@ -235,6 +235,11 @@ int HyPerCol::run(int nTimeSteps)
    }
 #endif
 
+   // output final state of connections
+   for (int c = 0; c < numConnections; c++) {
+      connections[c]->outputState(FINAL_TIME);
+   }
+
 #ifdef TIMER_ON
       stop_clock();
 #endif
