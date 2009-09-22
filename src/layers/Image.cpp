@@ -51,6 +51,13 @@ Image::~Image()
    if (data != NULL) delete data;
 }
 
+int Image::updateImage(float time, float dt)
+{
+   // default is to do nothing for now
+   // eventually should go through a list of images
+   return 0;
+}
+
 int Image::read(const char * filename)
 {
    int status = 0;
@@ -98,7 +105,6 @@ int Image::toGrayScale()
 
    return 0;
 }
-
 
 int Image::convolution()
 {
@@ -163,6 +169,5 @@ int Image::convolution()
 
    return 0;
 }
-
 
 } // namespace PV
