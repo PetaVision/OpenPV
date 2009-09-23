@@ -22,7 +22,7 @@ public:
    Retina(const char * name, HyPerCol * hc, Image * img);
    Retina(const char * name, HyPerCol * hc, const char * filename);
 
-   int init(const char * name, PVLayerType type);
+   int init(PVLayerType type);
    int setParams(PVParams * params, fileread_params * p);
 
    virtual int recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube);

@@ -31,7 +31,7 @@ Retina::Retina(const char * name, HyPerCol * hc)
 {
    this->img = new Image(hc->inputFile(), hc);
    setParams(parent->parameters(), &RetinaParams);
-   init(name, TypeRetina);
+   init(TypeRetina);
 }
 
 Retina::Retina(const char * name, HyPerCol * hc, Image * img)
@@ -39,7 +39,7 @@ Retina::Retina(const char * name, HyPerCol * hc, Image * img)
 {
    this->img = img;
    setParams(parent->parameters(), &RetinaParams);
-   init(name, TypeRetina);
+   init(TypeRetina);
 }
 
 Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
@@ -47,10 +47,10 @@ Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
 {
    this->img = new Image(filename, hc);
    setParams(parent->parameters(), &RetinaParams);
-   init(name, TypeRetina);
+   init(TypeRetina);
 }
 
-int Retina::init(const char * name, PVLayerType type)
+int Retina::init(PVLayerType type)
 {
    int n, status = 0;
    PVLayer  * l   = clayer;
@@ -141,7 +141,6 @@ int Retina::init(const char * name, PVLayerType type)
 
 int Retina::setParams(PVParams * params, fileread_params * p)
 {
-   const char * name = getName();
    float dt = parent->getDeltaTime() * .001;  // seconds
 
    clayer->params = (float *) malloc(sizeof(*p));
