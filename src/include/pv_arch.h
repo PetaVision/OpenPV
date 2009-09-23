@@ -4,8 +4,14 @@
 /* define this for 64 bit architectures */
 #undef PV_ARCH_64
 
+/* define this if using a vendor supplied MPI library */
+#define PV_USE_MPI
+
 /* maximum length of a path */
 #define PV_PATH_MAX 127
+
+/* define if using pthreads */
+#undef PV_USE_PTHREADS
 
 /* define this for the IBM Cell architecture */
 #undef IBM_CELL_BE
