@@ -11,7 +11,7 @@ namespace PV {
 
 SimplePoggio::SimplePoggio(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
 {
-   init(TypeGeneric);
+   initialize(TypeGeneric);
 }
 
 int SimplePoggio::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
