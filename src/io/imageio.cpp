@@ -1,8 +1,7 @@
-#include "../columns/Communicator.hpp"
+#include "imageio.hpp"
 
 #include <assert.h>
 #include <gdal_priv.h>
-#include <mpi.h>
 #include <ogr_spatialref.h>
 
 #undef DEBUG_OUTPUT
@@ -86,8 +85,10 @@ int getImageInfo(const char* filename, PV::Communicator * comm, LayerLoc * loc)
       GDALClose(dataset);
    }
 
+#ifdef PV_USE_MPI
    // broadcast location information
    MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
+#endif
 
    copyFromLocBuffer(locBuf, loc);
 
@@ -105,10 +106,7 @@ int scatterImageFile(const char * filename,
                      PV::Communicator * comm, LayerLoc * loc, float * buf)
 {
    int status = 0;
-   const int tag = 13;
    const int maxBands = 3;
-
-   const MPI_Comm mpi_comm = comm->communicator();
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -122,10 +120,15 @@ int scatterImageFile(const char * filename,
    assert(numBands <= maxBands);
 
    const int nxny     = nx * ny;
-   const int numTotal = nxny * numBands;
 
    if (icRank > 0) {
+#ifdef PV_USE_MPI
+      const int numTotal = nxny * numBands;
+
       const int src = 0;
+      const int tag = 13;
+      const MPI_Comm mpi_comm = comm->communicator();
+
       for (int b = 0; b < numBands; b++) {
          MPI_Recv(&buf[b*nxny], numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
       }
@@ -133,6 +136,7 @@ int scatterImageFile(const char * filename,
       fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d size==%d\n",
               comm->commRank(), nx, ny, numTotal);
 #endif
+#endif // PV_USE_MPI
    }
    else {
       GDALAllRegister();
@@ -163,7 +167,11 @@ int scatterImageFile(const char * filename,
          band[b] = dataset->GetRasterBand(b+1);
       }
 
+#ifdef PV_USE_MPI
       int dest = -1;
+      const int tag = 13;
+      const MPI_Comm mpi_comm = comm->communicator();
+
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++dest == 0) continue;
@@ -182,6 +190,7 @@ int scatterImageFile(const char * filename,
             }
          }
       }
+#endif // PV_USE_MPI
 
       // get local image portion
       for (int b = 0; b < numBands; b++) {
@@ -194,7 +203,6 @@ int scatterImageFile(const char * filename,
    return status;
 }
 
-
 /**
  * @filename
  */
@@ -202,10 +210,7 @@ int gatherImageFile(const char * filename,
                     PV::Communicator * comm, LayerLoc * loc, float * buf)
 {
    int status = 0;
-   const int tag = 14;
    const int maxBands = 3;
-
-   const MPI_Comm mpi_comm = comm->communicator();
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -218,11 +223,18 @@ int gatherImageFile(const char * filename,
    const int numBands = loc->nBands;
    assert(numBands <= maxBands);
 
-   const int nxny     = nx * ny;
+   const int nxny = nx * ny;
+
+#ifdef PV_USE_MPI
+   const int tag = 14;
    const int numTotal = nxny * numBands;
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
 
    if (icRank > 0) {
+#ifdef PV_USE_MPI
       const int dest = 0;
+
       for (int b = 0; b < numBands; b++) {
          MPI_Send(&buf[b*nxny], nx*ny, MPI_FLOAT, dest, tag, mpi_comm);
       }
@@ -230,10 +242,9 @@ int gatherImageFile(const char * filename,
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
               comm->commRank(), nx, ny, nx*ny);
 #endif
+#endif // PV_USE_MPI
    }
    else {
-//#include "cpl_string.h"
-
       GDALAllRegister();
 
       char ** metadata;
@@ -292,6 +303,7 @@ int gatherImageFile(const char * filename,
                            &buf[b*nxny], nx, ny, GDT_Float32, 0, 0);
       }
 
+#ifdef PV_USE_MPI
       int src = -1;
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
@@ -311,6 +323,7 @@ int gatherImageFile(const char * filename,
             }
          }
       }
+#endif // PV_USE_MPI
       GDALClose(dataset);
    }
 
