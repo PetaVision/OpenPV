@@ -6,6 +6,7 @@
  */
 
 #include "DataStore.hpp"
+#include <assert.h>
 
 #include <stdlib.h>
 
@@ -24,6 +25,7 @@ DataStore::DataStore(int numBuffers, size_t bufSize, int numLevels)
 	this->numLevels = numLevels;
 	this->numBuffers = numBuffers;
 	this->recvBuffers = (char*) calloc(numBuffers * numLevels * bufSize, sizeof(char));
+	assert(this->recvBuffers != NULL);
 }
 
 DataStore::~DataStore()
