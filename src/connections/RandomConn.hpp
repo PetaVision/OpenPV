@@ -26,7 +26,7 @@ public:
    RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
               HyPerLayer * post, int channel, RandDistType distrib);
 
-   virtual int initializeWeights(const char * filename);
+   virtual int initializeRandomWeights(int seed);
    int initializeUniformWeights(int seed);
    int uniformWeights(PVPatch * wp, float wMin, float wMax, int seed);
    int initializeGaussianWeights(int seed);

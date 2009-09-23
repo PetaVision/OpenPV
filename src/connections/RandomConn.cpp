@@ -34,11 +34,8 @@ RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    hc->addConnection(this);
 }
 
-int RandomConn::initializeWeights(const char * filename)
+int RandomConn::initializeRandomWeights(int seed)
 {
-   assert(filename == NULL);
-
-   int seed = 0;
    srand(time(NULL));
 
    switch(randDistType) {
