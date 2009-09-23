@@ -12,7 +12,7 @@ namespace PV {
 
 Example::Example(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
 {
-   init(TypeGeneric);
+   initialize(TypeGeneric);
 }
 
 int Example::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
