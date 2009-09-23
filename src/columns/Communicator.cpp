@@ -4,7 +4,6 @@
 
 #include <assert.h>
 #include <math.h>
-#include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,6 +25,8 @@ Communicator::Communicator(int* argc, char*** argv)
    numCols = (int) worldSize / numRows;
 
    int commSize = numRows * numCols;
+
+#ifdef PV_USE_MPI
    int exclsize = worldSize - commSize;
 
    if (exclsize == 0) {
@@ -44,12 +45,13 @@ Communicator::Communicator(int* argc, char*** argv)
       MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
       MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
 
+      delete ranks;
+   }
+#endif // PV_USE_MPI
+
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
 #endif
-
-      delete ranks;
-   }
 
    // some ranks are excluded if they don't fit in the processor quilt
    if (worldRank < commSize) {
@@ -469,6 +471,7 @@ size_t Communicator::sendOffset(int n, const LayerLoc * loc)
  */
 MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
 {
+#ifdef PV_USE_MPI
    int count, blocklength, stride;
 
    MPI_Datatype * comms = new MPI_Datatype [NUM_NEIGHBORHOOD];
@@ -530,6 +533,9 @@ MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
    MPI_Type_commit(&comms[SOUTHEAST]);
 
    return comms;
+#else
+   return NULL;
+#endif // PV_USE_MPI
 }
 
 /**
@@ -541,6 +547,8 @@ int Communicator::exchange(pvdata_t * data,
                            const MPI_Datatype neighborDatatypes [],
                            const LayerLoc * loc)
 {
+#ifdef PV_USE_MPI
+
    // don't send interior
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
@@ -561,6 +569,8 @@ int Communicator::exchange(pvdata_t * data,
    fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
 #endif
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
+
+#endif // PV_USE_MPI
 
    return 0;
 }

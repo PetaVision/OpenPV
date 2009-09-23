@@ -5,8 +5,15 @@
 #ifndef COMMUNICATOR_HPP_
 #define COMMUNICATOR_HPP_
 
+#include "../include/pv_arch.h"
 #include "../include/pv_types.h"
-#include <mpi.h>
+#include <stdlib.h>
+
+#ifdef PV_USE_MPI
+#  include <mpi.h>
+#else
+#  include "mpi_stubs.h"
+#endif
 
 // number in communicating neighborhood
 #define NUM_NEIGHBORHOOD 9
