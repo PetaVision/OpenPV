@@ -128,6 +128,8 @@ protected:
    int stdpFlag;                // presence of spike timing dependent plasticity
    int ioAppend;                // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
+   float writeTime;             // time of next output
+   float writeStep;             // output time interval
 
 private:
    // this is only called from primary constructor

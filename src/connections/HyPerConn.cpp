@@ -115,6 +115,12 @@ int HyPerConn::initialize_base()
       stdpFlag = (int) inputParams->value(name, "stdpFlag");
    }
 
+   writeStep = parent->getDeltaTime();
+   writeTime = parent->simulationTime();
+   if (inputParams->present(name, "writeStep")) {
+      writeStep = inputParams->value(name, "writeStep");
+   }
+
    return 0;
 }
 
@@ -178,12 +184,13 @@ int HyPerConn::initialize()
       if (params->present(getName(), "randomFlag")) {
          randomFlag = params->value(getName(), "randomFlag");
       }
-      if (randomFlag > 0) {
-         float seed = 0;
-         if (params->present(getName(), "randomSeed")) {
-            seed = params->value(getName(), "randomFlag");
-         }
-         status = initializeRandomWeights(seed);
+      float randomSeed = 0;
+      if (params->present(getName(), "randomSeed")) {
+         randomSeed = params->value(getName(), "randomSeed");
+      }
+
+      if (randomFlag != 0 || randomSeed != 0) {
+         status = initializeRandomWeights(randomSeed);
       }
       else {
          status = initializeGaussianWeights();
@@ -449,8 +456,10 @@ int HyPerConn::outputState(float time)
       status = writeWeights(time);
       assert(status == 0);
    }
-   else if (stdpFlag)
+   else if (stdpFlag && time >= writeTime)
    {
+      writeTime += writeStep;
+
       status = writeWeights(time);
       assert(status == 0);
 
