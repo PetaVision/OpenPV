@@ -44,7 +44,7 @@ HyPerLayer::~HyPerLayer()
    free(name);
 }
 
-int HyPerLayer::init(PVLayerType type)
+int HyPerLayer::initialize(PVLayerType type)
 {
    clayer->layerType = type;
    parent->addLayer(this);
@@ -334,6 +334,7 @@ int HyPerLayer::insertProbe(PVLayerProbe * p)
 {
    PVLayerProbe ** tmp;
    tmp = (PVLayerProbe **) malloc((numProbes + 1) * sizeof(PVLayerProbe *));
+   assert(tmp != NULL);
 
    for (int i = 0; i < numProbes; i++) {
       tmp[i] = probes[i];
@@ -781,6 +782,8 @@ PVPatch * pvpatch_new(int nx, int ny, int nf)
    float sy = sx * nx;
 
    PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
+   assert(p != NULL);
+
    pvdata_t * data = NULL;
 
    pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
@@ -802,6 +805,8 @@ PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
 
    size_t dataSize = nx * ny * nf * sizeof(float);
    PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
+   assert(p != NULL);
+
    pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
 
    pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
@@ -901,6 +906,7 @@ static int pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems)
 PVLayerCube* pvcube_new(LayerLoc * loc, int numItems)
 {
    PVLayerCube* cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
+   assert(cube !=NULL);
    pvcube_init(cube, loc, numItems);
    return cube;
 }
