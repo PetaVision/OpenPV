@@ -16,19 +16,18 @@
 extern "C" {
 #endif
 
-PVLayer* pvlayer_new(const char* name, int xScale, int yScale,
+PVLayer* pvlayer_new(int xScale, int yScale,
                      int nx, int ny, int numFeatures, int nBorder)
 {
    PVLayer* l = (PVLayer*) malloc(sizeof(PVLayer));
-   pvlayer_init(l, name, xScale, yScale, nx, ny, numFeatures, nBorder);
+   pvlayer_init(l, xScale, yScale, nx, ny, numFeatures, nBorder);
    return l;
 }
 
-int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
+int pvlayer_init(PVLayer* l, int xScale, int yScale,
                  int nx, int ny, int numFeatures, int nBorder)
 {
    l->layerId = -1; // the hypercolumn will set this
-   l->name = strdup(name);
    l->numActive = 0;
    l->numFeatures = numFeatures;
    l->numDelayLevels = MAX_F_DELAY;
@@ -157,8 +156,6 @@ int pvlayer_initFinish(PVLayer * l)
 
 int pvlayer_finalize(PVLayer * l)
 {
-   free(l->name);
-
    free(l->G[0]);
    free(l->G);
 

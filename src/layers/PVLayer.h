@@ -35,8 +35,6 @@ typedef struct PVLayer_ {
    // TODO - deprecate?
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
 
-   char * name;
-
    LayerLoc loc;
    int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
    float dx, dy;           // distance between neurons in the layer
@@ -72,9 +70,9 @@ typedef struct PVLayer_ {
 extern "C" {
 #endif
 
-PVLayer * pvlayer_new(const char * name, int xScale, int yScale,
+PVLayer * pvlayer_new(int xScale, int yScale,
                       int nx, int ny, int numFeatures, int nBorder);
-int pvlayer_init(PVLayer* l, const char* name, int xScale, int yScale,
+int pvlayer_init(PVLayer* l, int xScale, int yScale,
                  int nx, int ny, int numFeatures, int nBorder);
 int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
 int pvlayer_initFinish(PVLayer * l);
