@@ -39,7 +39,7 @@ public:
 
 	int clearImage();
 	int fillImage(pvdata_t val);
-	virtual int updateImage(float time, float dt);
+	virtual bool updateImage(float time, float dt);
 
 	int createRandomImage();
 	int drawMultipleRandomShapes(int n_images);

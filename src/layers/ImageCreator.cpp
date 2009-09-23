@@ -38,7 +38,7 @@ ImageCreator::ImageCreator(HyPerCol * hc) : Image(hc)
  * NOTE: THIS METHOD NEEDS TO BE DESIGNED FOR EACH EXPERIMENT!!!
  *
  */
-int ImageCreator::updateImage(float time_step, float dt)
+bool ImageCreator::updateImage(float time_step, float dt)
 {
 
    static int prevposx = 0, prevposy = 0;
@@ -75,7 +75,7 @@ int ImageCreator::updateImage(float time_step, float dt)
    prevposx = posx;
    prevposy = posy;
 
-   return 0;
+   return true;
 }
 
 
