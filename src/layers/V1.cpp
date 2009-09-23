@@ -34,16 +34,16 @@ V1Params V1DefaultParams =
 V1::V1(const char* name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
-   init(TypeV1Simple);
+   initialize(TypeV1Simple);
 }
 
 V1::V1(const char* name, HyPerCol * hc, PVLayerType type)
   : HyPerLayer(name, hc)
 {
-   init(type);
+   initialize(type);
 }
 
-int V1::init(PVLayerType type)
+int V1::initialize(PVLayerType type)
 {
    setParams(parent->parameters(), &V1DefaultParams);
 
