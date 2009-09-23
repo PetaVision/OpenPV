@@ -1,3 +1,5 @@
+#ifdef PV_USE_LOCAL_MPI
+
 #include "mpi.h"
 #include <assert.h>
 #include <string.h>
@@ -161,3 +163,5 @@ double MPI_Wtick()
 {
    return CLOCKS_PER_SEC;
 }
+
+#endif // PV_USE_LOCAL_MPI
