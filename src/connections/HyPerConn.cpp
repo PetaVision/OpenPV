@@ -207,6 +207,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    const char * name = getName();
 
    params = (PVConnParams *) malloc(sizeof(*p));
+   assert(params != NULL);
    memcpy(params, p, sizeof(*p));
 
    numParams = sizeof(*p) / sizeof(float);
@@ -432,6 +433,7 @@ int HyPerConn::insertProbe(ConnectionProbe * p)
 {
    ConnectionProbe ** tmp;
    tmp = (ConnectionProbe **) malloc((numProbes + 1) * sizeof(ConnectionProbe *));
+   assert(tmp != NULL);
 
    for (int i = 0; i < numProbes; i++) {
       tmp[i] = probes[i];
@@ -594,6 +596,7 @@ PVPatch ** HyPerConn::createWeights(int nxPatch, int nyPatch, int nfPatch, int n
    //   return createPatches(numBundles, nxp, nyp, nfp);
 
    PVPatch ** patches = (PVPatch**) calloc(numPatches*sizeof(PVPatch*), sizeof(char));
+   assert(patches != NULL);
 
    // TODO - allocate space for them all at once
    for (int k = 0; k < numPatches; k++) {
@@ -674,12 +677,14 @@ int HyPerConn::createAxonalArbors()
    for (int n = 0; n < numNeighbors; n++) {
       int numArbors = pre->numberOfNeurons(n);
       axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
+      assert(axonalArborList[n] != NULL);
    }
 
    // there is an arbor list for every neighbor
    for (int n = 0; n < numNeighbors; n++) {
       int numArbors = pre->numberOfNeurons(n);
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
+      assert(dataPatches != NULL);
 
       for (int k = 0; k < numArbors; k++) {
          PVAxonalArbor * arbor = axonalArbor(k, n);
@@ -903,6 +908,12 @@ int HyPerConn::createAxonalArbors(int numArbors)
    PVAxonalArbor** allTPtrs = (PVAxonalArbor**) malloc(nTotalTasks*sizeof(PVAxonalArbor*));
    PVAxonalArbor * allTasks = (PVAxonalArbor*)  malloc(nTotalTasks*sizeof(PVAxonalArbor));
    PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
+
+   assert(allBPtrs != NULL);
+   assert(allBundles != NULL);
+   assert(allTPtrs != NULL);
+   assert(allTasks != NULL);
+   assert(allData != NULL);
 
    bundles = allBPtrs;
 
