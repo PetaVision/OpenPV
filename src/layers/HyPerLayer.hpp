@@ -40,7 +40,7 @@ public:
    virtual int
        recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
 
-   virtual int init(PVLayerType type);
+   virtual int initialize(PVLayerType type);
    virtual int initBorder(PVLayerCube * border, int borderId);
    virtual int initFinish();
 
