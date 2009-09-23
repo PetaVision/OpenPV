@@ -30,38 +30,32 @@ Retina::Retina(const char * name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
    this->img = new Image(hc->inputFile(), hc);
-   setParams(parent->parameters(), &RetinaParams);
-   init(TypeRetina);
+   initialize(TypeRetina);
 }
 
 Retina::Retina(const char * name, HyPerCol * hc, Image * img)
   : HyPerLayer(name, hc)
 {
    this->img = img;
-   setParams(parent->parameters(), &RetinaParams);
-   init(TypeRetina);
+   initialize(TypeRetina);
 }
 
 Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
   : HyPerLayer(name, hc)
 {
    this->img = new Image(filename, hc);
-   setParams(parent->parameters(), &RetinaParams);
-   init(TypeRetina);
+   initialize(TypeRetina);
 }
 
-int Retina::init(PVLayerType type)
+int Retina::initialize(PVLayerType type)
 {
    int n, status = 0;
    PVLayer  * l   = clayer;
    pvdata_t * V   = l->V;
 
-   this->probes = NULL;
-   this->ioAppend = 0;
-   this->outputOnPublish = 1;
    this->clayer->layerType = type;
 
-   this->numProbes = 0;
+   setParams(parent->parameters(), &RetinaParams);
 
    fileread_params * params = (fileread_params *) l->params;
 
@@ -108,6 +102,8 @@ int Retina::init(PVLayerType type)
          V[n] = (V[n] == 0.0) ? 0.0 : 1.0;
       }
    }
+
+   status = parent->addLayer(this);
 
    return status;
 }
