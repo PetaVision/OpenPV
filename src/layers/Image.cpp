@@ -46,6 +46,9 @@ Image::Image(const char * filename, HyPerCol * hc)
    }
 
    read(filename);
+
+   // for now convert images to grayscale
+   this->toGrayScale();
 }
 
 Image::~Image()
@@ -89,6 +92,8 @@ int Image::toGrayScale()
    const int sx = 1;
    const int sy = nx;
    const int sb = nx * ny;
+
+   if (numBands < 2) return 0;
 
    for (int j = 0; j < ny; j++) {
       for (int i = 0; i < nx; i++) {
