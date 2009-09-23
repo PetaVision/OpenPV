@@ -11,14 +11,14 @@ namespace PV {
 
 SimplePoggio::SimplePoggio(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
 {
+   init(TypeGeneric);
 }
 
 int SimplePoggio::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
-   HyPerLayer * lPre = conn->preSynapticLayer();
-
    pv_debug_info("[%d]: SimplePoggio::recvSynapticInput: layer %d from %d)",
-                 clayer->columnId, lPre->clayer->layerId, clayer->layerId);
+                 clayer->columnId,
+                 conn->preSynapticLayer()->clayer->layerId, clayer->layerId);
 
    // use implementation in base class
    HyPerLayer::recvSynapticInput(conn, activity, neighbor);
