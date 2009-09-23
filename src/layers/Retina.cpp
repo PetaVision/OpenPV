@@ -145,6 +145,7 @@ int Retina::setParams(PVParams * params, fileread_params * p)
    float dt = parent->getDeltaTime() * .001;  // seconds
 
    clayer->params = (float *) malloc(sizeof(*p));
+   assert(clayer->params != NULL);
    memcpy(clayer->params, p, sizeof(*p));
 
    clayer->numParams = sizeof(*p) / sizeof(float);
