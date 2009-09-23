@@ -6,6 +6,9 @@
  */
 
 #include "pv_thread.h"
+
+#ifdef PV_USE_PTHREADS
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,3 +292,5 @@ int thread_params_init(pv_thread_env_t * env, int numThreads)
 
    return 0;
 }
+
+#endif /* PV_USE_PTHREADS */

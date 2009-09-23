@@ -9,6 +9,9 @@
 #define PV_THREAD_H_
 
 #include "../../include/pv_arch.h"
+
+#ifdef PV_USE_PTHREADS
+
 #include "../../include/pv_types.h"
 #include <assert.h>
 #include <pthread.h>
@@ -123,5 +126,7 @@ char decode_msg(uint32_t msg, void ** addr)
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* PV_USE_PTHREADS */
 
 #endif /* PV_THREAD_H_ */
