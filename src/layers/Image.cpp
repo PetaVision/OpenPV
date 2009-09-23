@@ -41,7 +41,9 @@ Image::Image(const char * filename, HyPerCol * hc)
    const int N = loc.nx * loc.ny * loc.nBands;
    data = new float [N];
 
-   for (int i = 0; i < N; ++i) data[i] = 0;
+   for (int i = 0; i < N; ++i) {
+      data[i] = 0;
+   }
 
    read(filename);
 }
