@@ -15,15 +15,17 @@
 
 #include "layers/fileread.h"
 
+using namespace PV;
+
 int main(int argc, char* argv[])
 {
    const char input[] = INPUT_PATH "const_one_64x64.tif";
 
-   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
+   HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    // construct layers
-   PV::HyPerLayer * retina  = new PV::Retina("Example Retina", hc, input);
-   PV::HyPerLayer * example = new PV::Example("Example Layer", hc);
+   HyPerLayer * retina  = new Retina("Example Retina", hc, input);
+   HyPerLayer * example = new Example("Example Layer", hc);
 
    // connect the layers
    new PV::HyPerConn("Retina to Example", hc, retina, example, CHANNEL_EXC);
