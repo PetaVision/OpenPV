@@ -50,8 +50,6 @@ HyPerLayer::~HyPerLayer()
 
 int HyPerLayer::init(const char * name, PVLayerType type)
 {
-   float nx, ny;
-
    this->probes = NULL;
    this->ioAppend = 0;
    this->outputOnPublish = 1;
@@ -59,27 +57,37 @@ int HyPerLayer::init(const char * name, PVLayerType type)
 
    PVParams * params = parent->parameters();
 
-   int nBorder = 0;
-
    LayerLoc imageLoc = parent->getImageLoc();
 
+   int nx = imageLoc.nx;
    if (params->present(name, "nx")) {
       nx = (int) params->value(name, "nx");
    }
-   else {
-      nx = imageLoc.nx;
-   }
 
+   int ny = imageLoc.ny;
    if (params->present(name, "ny")) {
       ny = (int) params->value(name, "ny");
    }
-   else {
-      ny = imageLoc.ny;
+
+   int numFeatures = 1;
+   if (params->present(name, "nf")) {
+      numFeatures = (int) params->value(name, "nf");
    }
 
-   int numFeatures = (int) params->value(name, "nf");
+   int nBorder = 0;
+   if (params->present(name, "nBorder")) {
+      nBorder = (int) params->value(name, "nBorder");
+   }
 
-   if (params->present(name, "nBorder")) nBorder = (int) params->value(name, "nBorder");
+   // let nxScale, nyScale supersede nx, ny
+   if (params->present(name, "nxScale")) {
+      float nxScale = params->value(name, "nxScale");
+      nx = (int) nearbyintf( nxScale * imageLoc.nx );
+   }
+   if (params->present(name, "nyScale")) {
+      float nyScale = params->value(name, "nyScale");
+      ny = (int) nearbyintf( nyScale * imageLoc.ny );
+   }
 
    float xScalef = log2f(parent->width() / nx);
    float yScalef = log2f(parent->height() / ny);
@@ -87,12 +95,12 @@ int HyPerLayer::init(const char * name, PVLayerType type)
    int xScale = (int) nearbyintf(xScalef);
    int yScale = (int) nearbyintf(yScalef);
 
-   clayer = pvlayer_new(name, xScale, yScale, (int)nx, (int)ny, numFeatures, nBorder);
+   clayer = pvlayer_new(name, xScale, yScale, nx, ny, numFeatures, nBorder);
    clayer->layerType = type;
 
-   float width  = clayer->loc.nPad;
-   float height = (clayer->loc.nx > clayer->loc.ny) ? clayer->loc.nx : clayer->loc.ny;
-   int maxBorderItems = (int) width * (int) height * clayer->numFeatures;
+   int width  = (int) clayer->loc.nPad;
+   int height = (clayer->loc.nx > clayer->loc.ny) ? clayer->loc.nx : clayer->loc.ny;
+   int maxBorderItems = width * height * clayer->numFeatures;
 
    // calculate maximum size of a border cube
    maxBorderSize = pvcube_size(maxBorderItems);
