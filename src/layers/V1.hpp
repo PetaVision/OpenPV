@@ -29,7 +29,7 @@ public:
    int setParams(PVParams * params, V1Params * p);
 
 private:
-   void initialize(const char* name, HyPerCol * hc, PVLayerType type);
+   virtual int init(PVLayerType type);
 
    int findPostSynaptic(int dim, int maxSize, int col,
 	// input: which layer, which neuron

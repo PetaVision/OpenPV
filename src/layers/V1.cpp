@@ -32,32 +32,35 @@ V1Params V1DefaultParams =
 };
 
 V1::V1(const char* name, HyPerCol * hc)
+  : HyPerLayer(name, hc)
 {
-   initialize(name, hc, TypeV1Simple);
+   init(TypeV1Simple);
 }
 
 V1::V1(const char* name, HyPerCol * hc, PVLayerType type)
+  : HyPerLayer(name, hc)
 {
-   initialize(name, hc, type);
+   init(type);
 }
 
-void V1::initialize(const char* name, HyPerCol * hc, PVLayerType type)
+int V1::init(PVLayerType type)
 {
-   setParent(hc);
-   init(name, type);
-
    setParams(parent->parameters(), &V1DefaultParams);
-   pvlayer_setFuncs(clayer, (INIT_FN) &LIF2_init, (UPDATE_FN) &LIF2_update_exact_linear);
 
-   hc->addLayer(this);
+   pvlayer_setFuncs(clayer, (INIT_FN) &LIF2_init, (UPDATE_FN) &LIF2_update_exact_linear);
+   this->clayer->layerType = type;
+
+   parent->addLayer(this);
+
+   return 0;
 }
 
 int V1::setParams(PVParams * params, V1Params * p)
 {
-   const char * name = getName();
    float dt = .001 * parent->getDeltaTime();  // seconds
 
    clayer->params = (float *) malloc(sizeof(*p));
+   assert(clayer->params != NULL);
    memcpy(clayer->params, p, sizeof(*p));
 
    clayer->numParams = sizeof(*p) / sizeof(float);
@@ -106,8 +109,8 @@ int V1::updateState(float time, float dt)
 
    pv_debug_info("[%d]: V1::updateState:", clayer->columnId);
 
-   if (params->present(clayer->name, "spikingFlag")) {
-      spikingFlag = params->value(clayer->name, "spikingFlag");
+   if (params->present(name, "spikingFlag")) {
+      spikingFlag = params->value(name, "spikingFlag");
    }
 
    if (spikingFlag != 0) {
