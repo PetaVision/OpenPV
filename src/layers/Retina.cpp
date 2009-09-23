@@ -54,7 +54,6 @@ int Retina::init(PVLayerType type)
 {
    int n, status = 0;
    PVLayer  * l   = clayer;
-   pvdata_t * buf = NULL;
    pvdata_t * V   = l->V;
 
    this->probes = NULL;
@@ -72,40 +71,14 @@ int Retina::init(PVLayerType type)
 
    PVParams * pvParams = parent->parameters();
 
-   int fireOffPixels = 0;
+   fireOffPixels = 0;
    if (pvParams->present(name, "fireOffPixels")) {
       fireOffPixels = pvParams->value(name, "fireOffPixels");
    }
 
-   const int nx = l->loc.nx;
-   const int ny = l->loc.ny;
-   const int nf = l->numFeatures;
-
    // use image's data buffer
-
-   buf = img->getImageBuffer();
-
-   assert(nf == 1 || nf == 2);
-   if (nf == 1) {
-      for (int k = 0; k < l->numNeurons; k++) {
-         V[k] = buf[k];
-      }
-   }
-   else {
-      // f[0] are OFF, f[1] are ON cells
-      if (fireOffPixels) {
-         for (int k = 0; k < nx*ny; k++) {
-            V[2*k]   = 1 - buf[k];
-            V[2*k+1] = buf[k];
-         }
-      }
-      else {
-         for (int k = 0; k < nx*ny; k++) {
-            V[2*k]   = buf[k];
-            V[2*k+1] = buf[k];
-         }
-      }
-   }
+   updateImage(parent->simulationTime(), parent->getDeltaTime());
+   copyFromImageBuffer();
 
    // check margins/border region
 
@@ -273,6 +246,49 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
    return 0;
 } */
 
+int Retina::copyFromImageBuffer()
+{
+   const int nf = clayer->numFeatures;
+   pvdata_t * V = clayer->V;
+
+   int count = clayer->loc.nx * clayer->loc.ny;
+   assert(count == img->getImageLoc().nx * img->getImageLoc().ny);
+
+   pvdata_t * ibuf = img->getImageBuffer();
+
+   assert(nf == 1 || nf == 2);
+   if (nf == 1) {
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         V[k] = ibuf[k];
+      }
+   }
+   else {
+      // f[0] are OFF, f[1] are ON cells
+      if (fireOffPixels) {
+         for (int k = 0; k < count; k++) {
+            V[2*k]   = 1 - ibuf[k];
+            V[2*k+1] = ibuf[k];
+         }
+      }
+      else {
+         for (int k = 0; k < count; k++) {
+            V[2*k]   = ibuf[k];
+            V[2*k+1] = ibuf[k];
+         }
+      }
+   }
+
+   return 0;
+}
+
+int Retina::updateImage(float time, float dt)
+{
+   bool changed = img->updateImage(time, dt);
+   if (not changed) return 0;
+
+   return copyFromImageBuffer();
+}
+
 int Retina::updateState(float time, float dt)
 {
    int start;
@@ -281,6 +297,8 @@ int Retina::updateState(float time, float dt)
 
    pvdata_t * V = clayer->V;
    pvdata_t * activity = clayer->activity->data;
+
+   updateImage(time, dt);
 
    for (int k = 0; k < clayer->numNeurons; k++) {
       float probStim = params->poissonEdgeProb * V[k];

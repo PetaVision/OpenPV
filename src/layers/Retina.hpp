@@ -34,6 +34,9 @@ public:
 
 private:
 
+   int updateImage(float time, float dt);
+   int copyFromImageBuffer();
+
    // For input from a given source input layer, determine which
    // cells in this layer will respond to the input activity.
    // Return the feature vectors for both the input and the sensitive
@@ -48,7 +51,8 @@ private:
 
    int calculateWeights(HyPerLayer * lSource, float * pos, float * vPos, float * vfWeights );
 
-   Image * img;
+   Image * img;        // image object
+   int fireOffPixels;  // controls firing of off (0) pixels
 };
 
 } // namespace PV
