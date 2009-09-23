@@ -25,18 +25,13 @@ static size_t pvcube_size(int numItems);
 
 namespace PV {
 
-HyPerLayer::HyPerLayer()
-{
-   this->probes = NULL;
-   this->ioAppend = 0;
-   this->numProbes = 0;
-}
-
+///////
+// This constructor is protected so that only derived classes can call it.
+// It should be called as the normal method of object construction by
+// derived classes.  It should NOT call any virtual methods
 HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc)
 {
-   setParent(hc);
-   init(name, TypeGeneric);
-   hc->addLayer(this);
+   init_base(name, hc);
 }
 
 HyPerLayer::~HyPerLayer()
@@ -46,10 +41,22 @@ HyPerLayer::~HyPerLayer()
       pvlayer_finalize(clayer);
       clayer = NULL;
    }
+   free(name);
 }
 
-int HyPerLayer::init(const char * name, PVLayerType type)
+int HyPerLayer::init(PVLayerType type)
 {
+   clayer->layerType = type;
+   parent->addLayer(this);
+   return 0;
+}
+
+int HyPerLayer::init_base(const char * name, HyPerCol * hc)
+{
+   // name should be initialize first as other methods may use it
+   this->name = strdup(name);
+   setParent(hc);
+
    this->probes = NULL;
    this->ioAppend = 0;
    this->outputOnPublish = 1;
@@ -95,8 +102,8 @@ int HyPerLayer::init(const char * name, PVLayerType type)
    int xScale = (int) nearbyintf(xScalef);
    int yScale = (int) nearbyintf(yScalef);
 
-   clayer = pvlayer_new(name, xScale, yScale, nx, ny, numFeatures, nBorder);
-   clayer->layerType = type;
+   clayer = pvlayer_new(xScale, yScale, nx, ny, numFeatures, nBorder);
+   clayer->layerType = TypeGeneric;
 
    int width  = (int) clayer->loc.nPad;
    int height = (clayer->loc.nx > clayer->loc.ny) ? clayer->loc.nx : clayer->loc.ny;

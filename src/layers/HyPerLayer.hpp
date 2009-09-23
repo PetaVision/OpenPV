@@ -23,9 +23,11 @@ class HyPerLayer {
 
 protected:
 
-   HyPerLayer();
-   HyPerLayer(const char* name, HyPerCol * hc);
+   HyPerLayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLayer() = 0;
+
+private:
+   int init_base(const char * name, HyPerCol * hc);
 
 public:
 
@@ -38,7 +40,7 @@ public:
    virtual int
        recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
 
-   virtual int init(const char * name, PVLayerType type);
+   virtual int init(PVLayerType type);
    virtual int initBorder(PVLayerCube * border, int borderId);
    virtual int initFinish();
 
@@ -71,7 +73,7 @@ public:
 
    // Public access functions:
 
-   const char * getName()            {return clayer->name;}
+   const char * getName()            {return name;}
 
    int  getLayerId()                 {return clayer->layerId;}
    void setLayerId(int id)           {clayer->layerId = id;}
@@ -85,6 +87,8 @@ public:
 
 protected:
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
+
+   char * name;  // well known name of layer
 
    int numProbes;
    PVLayerProbe ** probes;
