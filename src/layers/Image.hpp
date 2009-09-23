@@ -22,7 +22,7 @@ public:
    Image(const char * filename, HyPerCol * hc);
    virtual ~Image();
 
-   virtual int updateImage(float time, float dt);
+   virtual bool updateImage(float time, float dt);
 
    int read(const char * filename);
    int write(const char * filename);

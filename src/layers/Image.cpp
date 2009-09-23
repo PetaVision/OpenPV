@@ -56,11 +56,16 @@ Image::~Image()
    if (data != NULL) delete data;
 }
 
-int Image::updateImage(float time, float dt)
+/**
+ * update the image buffers
+ *
+ * return true if buffers have changed
+ */
+bool Image::updateImage(float time, float dt)
 {
    // default is to do nothing for now
-   // eventually should go through a list of images
-   return 0;
+   // eventually could go through a list of images
+   return false;
 }
 
 int Image::read(const char * filename)
@@ -140,7 +145,6 @@ int Image::convolution()
 
    const int nPad = 15;
    const int nPad_2 = nPad/2;
-   const float mid = 255./2.;
 
    float * buf = new float[nx*ny];
    for (int i = 0; i < nx*ny; i++) buf[i] = 0;
