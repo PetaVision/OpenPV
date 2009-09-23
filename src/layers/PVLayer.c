@@ -119,8 +119,14 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
    l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
    l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
 
+   assert(l->G   != NULL);
+   assert(l->phi != NULL);
+
    l->G[0]   = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
    l->phi[0] = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
+
+   assert(l->G[0]   != NULL);
+   assert(l->phi[0] != NULL);
 
    for (m = 1; m < l->numPhis; m++) {
       l->G[m]   = l->G[0]   + m * extendNum;
@@ -129,6 +135,9 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
 
    l->V    = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
    l->Vth  = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
+
+   assert(l->V   != NULL);
+   assert(l->Vth != NULL);
 
    l->G_E  = l->G[PHI_EXC];
    l->G_I  = l->G[PHI_INH];
