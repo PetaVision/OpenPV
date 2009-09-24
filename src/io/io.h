@@ -9,7 +9,12 @@
 #define IO_H_
 
 #include "../layers/PVLayer.h"
-#include <mpi.h>
+
+#ifdef PV_USE_MPI
+#  include <mpi.h>
+#else
+#  include "../include/mpi_stubs.h"
+#endif
 
 #define MAX_BIN_PARAMS 7
 
