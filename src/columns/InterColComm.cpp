@@ -6,7 +6,6 @@
  */
 
 #include <assert.h>
-#include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -131,10 +130,11 @@ int Publisher::publish(HyPerLayer* pub,
       return 0;
    }
 
+#ifdef PV_USE_MPI
    // send/recv to/from neighbors
    for (int i = 0; i < numNeighbors; i++) {
       // Note - cube->data addr need not be correct as it will be wrong copied in from MPI
-      void* recvBuf = recvBuffer(i);
+      void * recvBuf = recvBuffer(i);
       MPI_Irecv(recvBuf, size, MPI_CHAR, neighbors[i], pubId, comm,
             &request[i]);
       MPI_Send(cube, size, MPI_CHAR, neighbors[i], pubId, comm);
@@ -144,6 +144,9 @@ int Publisher::publish(HyPerLayer* pub,
       fflush(stdout);
 #endif
    }
+#else // PV_USE_MPI
+   memcpy(recvBuffer(0), cube, size);
+#endif // PV_USE_MPI
 
    //
    // transform cube (and copy) for boundary conditions of neighbor slots that
@@ -188,7 +191,10 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    // deliver current (no delay) information last
    for (int n = 0; n < numNeighbors; n++) {
       int neighborId = n; /* WARNING - this must be initialized to n to work with PV_MPI */
+
+#ifdef PV_USE_MPI
       MPI_Waitany(numNeighbors, request, &neighborId, MPI_STATUS_IGNORE);
+#endif // PV_USE_MPI
 
       for (int ic = 0; ic < numSubscribers; ic++) {
          HyPerConn* conn = this->connection[ic];
