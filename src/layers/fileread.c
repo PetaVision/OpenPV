@@ -14,7 +14,6 @@
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
-#include <mpi.h>
 
 typedef fileread_params params_t;
 
