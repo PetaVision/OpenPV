@@ -9,7 +9,7 @@
 
 #include <src/columns/HyPerCol.hpp>
 #include <src/connections/RandomConn.hpp>
-#include <src/layers/ImageCreator.hpp>
+#include <src/layers/Image.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
 #include <src/io/ConnectionProbe.hpp>
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    // read an image
-   ImageCreator * image = new ImageCreator(hc);
+   Image * image = new Image(hc->inputFile(), hc);
 
    // create the layers
    HyPerLayer * retina = new Retina("Retina", hc, image);
