@@ -1,13 +1,9 @@
 //
-// params.pv
-//  - input parameters for pv_ca.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+// params.stdp
+//  - input parameters for stdp.cpp, a study of STDP on natural images
 //
 
 HyPerCol "column" = {
-   nx = 18;
-   ny = 1;
    dt = .5;
 };
 
@@ -16,20 +12,13 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Retina" = {
-   nx = 18;
-   ny = 1;
-   nf = 2;   // features = (OFF,ON}
-   
-   nBorder = 0;
-
    beginStim = .0;
    endStim   = .3;
 
-   fireOffPixels = 1;          // if true, black (0) pixels fire as off
    invert  = 0.0;
    uncolor = 1.0;              // if true, pixels>0 become 1.0
 
-   spikingFlag = 0;           // spike as poisson?
+   spikingFlag = 1;           // spike as poisson?
    noiseOnFreq = 50;
    poissonEdgeProb  = .01;//.20;  //.125;      // if so, on probability
    poissonBlankProb = .01;//.075; //.0125;     //       off probability
@@ -38,15 +27,12 @@ HyPerLayer "Retina" = {
 };
 
 HyPerLayer "L1" = {
-   nx = 18;
-   ny = 1;
-   nf = 8;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
+   nxScale = 8;
+   nyScale = 8;
    
    tau    = 100; // 2;    // 100;
    tauE   = 1;   // .25;  // 1;
-   tauVth = 10;  // .25;   // 10;
+   tauVth = 10;  // .25;  // 10;
    
    VthRest = -55; // -60; // -55;
    
@@ -96,17 +82,18 @@ HyPerLayer "L2" = {
 //
 
 HyPerConn "Retina to L1" = {
-   nxp = 3;
-   nyp = 1;
+   nxp = 64;
+   nyp = 64;
    strength = 1.0;
    
    stdpFlag = 1;
+   randomFlag = 1;
    
    wMin = 0.0;
    wMax = 10.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+   //rotate = 1.0;
+   //invert = 0.0;
 };
 
 HyPerConn "L1 to L1Inh" = {
