@@ -246,7 +246,9 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
 {
    int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
   // everyone gets a copy of the entire input
+#ifdef PV_USE_MPI
    MPI_Bcast(globalBuf, nTotal, MPI_FLOAT, 0, comm);
+#endif // PV_USE_MPI
 
    // everyone copies only their local patch of input
    int kl, kg, status = 0;
@@ -319,8 +321,13 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
 
    // WARNING, this assumes layers in separate hypercolumns have the same (nx,ny)
 
+#ifdef PV_USE_MPI
    MPI_Comm_rank(comm, &commRank);
    MPI_Comm_size(comm, &commSize);
+#else // PV_USE_MPI
+   commRank = 0;
+   commSize = 1;
+#endif // PV_USE_MPI
    assert(commRank == l->columnId);
 
    nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
@@ -337,8 +344,13 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
    kxy[0] = l->loc.kx0;
    kxy[1] = l->loc.ky0;
 
+#ifdef PV_USE_MPI
    MPI_Gather(kxy, 2, MPI_FLOAT, kbuf, 2, MPI_FLOAT, 0, comm);
    MPI_Gather(ibuf, nLocal, MPI_FLOAT, tbuf, nLocal, MPI_FLOAT, 0, comm);
+#else // PV_USE_MPI
+   memcpy(kbuf, kxy, 2*sizeof(float));
+   memcpy(tbuf, ibuf, nLocal*sizeof(float));
+#endif // PV_USE_MPI
 
    if (commRank == 0) {
       FILE* fp;
@@ -348,7 +360,7 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
       loc = l->loc;
 
       // copy image patch to global layer output buffer
-      float* obuf = (float*) malloc(nTotal * sizeof(float));
+      float * obuf = (float*) malloc(nTotal * sizeof(float));
 
       for (c = 0; c < commSize; c++) {
          for (kl = 0; kl < nLocal; kl++) {
@@ -401,7 +413,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    double tot = 0.0;
    char txt[128];
 #ifdef _MSC_VER
-   FILE *f;
+   FILE * f;
 #endif
 
    for (n = 0; n < nItems; n++) {
@@ -438,14 +450,14 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
    char fullpath[PV_PATH_MAX];
    int params[MAX_BIN_PARAMS];
    int status = 0;
-   FILE* fd;
+   FILE * fp;
 
    int nItems = nx * ny * nf;
 
    sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
 
-   if (append) fd = fopen(fullpath, "ab");
-   else        fd = fopen(fullpath, "wb");
+   if (append) fp = fopen(fullpath, "ab");
+   else        fp = fopen(fullpath, "wb");
 
    if (!append) {
       const int nParams = 3;
@@ -453,15 +465,15 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
       params[1] = nx;
       params[2] = ny;
       params[3] = nf;
-      if ( fwrite(params, sizeof(int), nParams+1, fd) != nParams+1) status = -3;
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) status = -3;
       if (status != 0) {
          pv_log(stderr, "pv_dump: error writing params header\n");
       }
    }
 
-   if (fd != NULL) {
-      if ( fwrite(I, sizeof(pvdata_t), nItems, fd) != nItems) status = -2;
-      fclose(fd);
+   if (fp != NULL) {
+      if ( fwrite(I, sizeof(pvdata_t), nItems, fp) != nItems) status = -2;
+      fclose(fp);
    }
    else {
       status = -1;
