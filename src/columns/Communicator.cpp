@@ -55,8 +55,13 @@ Communicator::Communicator(int* argc, char*** argv)
 
    // some ranks are excluded if they don't fit in the processor quilt
    if (worldRank < commSize) {
+#ifdef PV_USE_MPI
       MPI_Comm_rank(icComm, &icRank);
       MPI_Comm_size(icComm, &icSize);
+#else // PV_USE_MPI
+      icRank = 0;
+      icSize = 1;
+#endif // PV_USE_MPI
    }
    else {
       icSize = 0;
@@ -72,20 +77,30 @@ Communicator::Communicator(int* argc, char*** argv)
       neighborInit();
    }
 
+#ifdef PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
+#endif // PV_USE_MPI
 }
 
 Communicator::~Communicator()
 {
+#ifdef PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
+#endif // PV_USE_MPI
+
    commFinalize();
 }
 
 int Communicator::commInit(int* argc, char*** argv)
 {
+#ifdef PV_USE_MPI
    MPI_Init(argc, argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+#else // PV_USE_MPI
+   worldRank = 0;
+   worldSize = 1;
+#endif // PV_USE_MPI
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
@@ -96,7 +111,9 @@ int Communicator::commInit(int* argc, char*** argv)
 
 int Communicator::commFinalize()
 {
+#ifdef PV_USE_MPI
    MPI_Finalize();
+#endif // PV_USE_MPI
    return 0;
 }
 
@@ -533,7 +550,7 @@ MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
    MPI_Type_commit(&comms[SOUTHEAST]);
 
    return comms;
-#else
+#else // PV_USE_MPI
    return NULL;
 #endif // PV_USE_MPI
 }

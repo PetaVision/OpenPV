@@ -12,7 +12,7 @@
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "mpi_stubs.h"
+#  include "../include/mpi_stubs.h"
 #endif
 
 // number in communicating neighborhood
