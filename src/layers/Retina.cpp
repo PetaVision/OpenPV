@@ -51,7 +51,6 @@ int Retina::initialize(PVLayerType type)
 {
    int n, status = 0;
    PVLayer  * l   = clayer;
-   pvdata_t * V   = l->V;
 
    this->clayer->layerType = type;
 
@@ -70,11 +69,15 @@ int Retina::initialize(PVLayerType type)
       fireOffPixels = pvParams->value(name, "fireOffPixels");
    }
 
+   status = parent->addLayer(this);
+
    // use image's data buffer
    updateImage(parent->simulationTime(), parent->getDeltaTime());
    copyFromImageBuffer();
 
    // check margins/border region
+
+   pvdata_t * V = l->V;
 
    const int nxBorder = l->loc.nPad;
    const int nyBorder = l->loc.nPad;
@@ -102,8 +105,6 @@ int Retina::initialize(PVLayerType type)
          V[n] = (V[n] == 0.0) ? 0.0 : 1.0;
       }
    }
-
-   status = parent->addLayer(this);
 
    return status;
 }
