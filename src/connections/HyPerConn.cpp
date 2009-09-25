@@ -1074,7 +1074,6 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 
 int HyPerConn::writePostSynapticWeights(int ioAppend)
 {
-   char txtfile[PV_PATH_MAX];
    char poststr[PV_PATH_MAX];
 
    int status = 0;
@@ -1098,12 +1097,14 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
-   snprintf(txtfile, PV_PATH_MAX-1, "%sw%d_post.txt", OUTPUT_PATH, getConnectionId());
    snprintf(poststr, PV_PATH_MAX-1, "w%d_post", getConnectionId());
 
    status = pv_write_patches(poststr, ioAppend, nxPostPatch, nyPostPatch, nfPostPatch,
                              0.0, wMax, numPost, wPostPatches);
 
+#ifdef SHOULD_NOT_WRITE_TEXT_FILES_BUT_DO_IT_ANYWAY
+   char txtfile[PV_PATH_MAX];
+   snprintf(txtfile, PV_PATH_MAX-1, "%sw%d_post.txt", OUTPUT_PATH, getConnectionId());
    if (!ioAppend) {
       fp = fopen(txtfile, "w");
 
@@ -1134,6 +1135,7 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
       fprintf(stderr, "Error opening file: Cannot write post-patch weights.\n");
       return -1;
    }
+#endif // write text files
 
    return 0;
 }
