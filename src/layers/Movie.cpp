@@ -50,8 +50,10 @@ Movie::Movie(const char * fileOfFileNames, HyPerCol * hc, float displayPeriod)
 
 Movie::~Movie()
 {
-   if (data != NULL) delete data;
-   if (imageData != NULL) delete imageData;
+   if (imageData != NULL) {
+      delete imageData;
+      imageData = NULL;
+   }
 }
 
 pvdata_t * Movie::getImageBuffer()

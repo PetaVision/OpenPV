@@ -39,7 +39,10 @@ Image::Image(const char * filename, HyPerCol * hc)
 
 Image::~Image()
 {
-   if (data != NULL) delete data;
+   if (data != NULL) {
+      delete data;
+      data = NULL;
+   }
 }
 
 int Image::init_base(HyPerCol * hc)
