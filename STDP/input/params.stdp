@@ -4,6 +4,8 @@
 //
 
 HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
    dt = .5;
 };
 
