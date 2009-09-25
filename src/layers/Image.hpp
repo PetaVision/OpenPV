@@ -22,18 +22,20 @@ public:
    Image(const char * filename, HyPerCol * hc);
    virtual ~Image();
 
+   int init_base(HyPerCol * hc);
+
    virtual bool updateImage(float time, float dt);
+
+   virtual pvdata_t * getImageBuffer();
+   virtual LayerLoc   getImageLoc();
 
    int read(const char * filename);
    int write(const char * filename);
 
-   pvdata_t * getImageBuffer()    { return data; }
 
    int  toGrayScale();
    int  convolution();
    void setTau(int t)             { tau = t; }
-
-   LayerLoc getImageLoc()         { return loc; }
 
 protected:
 

@@ -12,26 +12,12 @@ namespace PV {
 
 Image::Image(HyPerCol * hc)
 {
-   this->data = NULL;
-   this->comm = hc->icCommunicator();
-
-   loc = hc->getImageLoc();
-
-   const int N = loc.nx * loc.ny * loc.nBands;
-   data = new float [N];
-
-   for (int i = 0; i < N; ++i) data[i] = 0;
+   init_base(hc);
 }
 
 Image::Image(const char * filename, HyPerCol * hc)
 {
-   this->data = NULL;
-   this->comm = hc->icCommunicator();
-
-   loc.nx       = 0;   loc.ny       = 0;
-   loc.nxGlobal = 0;   loc.nyGlobal = 0;
-   loc.kx0      = 0;   loc.ky0      = 0;
-   loc.nPad     = 0;   loc.nBands   = 0;
+   init_base(hc);
 
    // get size info from image so that data buffer can be allocated
    int status = getImageInfo(filename, comm, &loc);
@@ -54,6 +40,29 @@ Image::Image(const char * filename, HyPerCol * hc)
 Image::~Image()
 {
    if (data != NULL) delete data;
+}
+
+int Image::init_base(HyPerCol * hc)
+{
+   this->data = NULL;
+   this->comm = hc->icCommunicator();
+
+   loc.nx       = 0;   loc.ny       = 0;
+   loc.nxGlobal = 0;   loc.nyGlobal = 0;
+   loc.kx0      = 0;   loc.ky0      = 0;
+   loc.nPad     = 0;   loc.nBands   = 0;
+
+   return 0;
+}
+
+pvdata_t * Image::getImageBuffer()
+{
+   return data;
+}
+
+LayerLoc Image::getImageLoc()
+{
+   return loc;
 }
 
 /**
