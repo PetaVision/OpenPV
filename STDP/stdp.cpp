@@ -10,6 +10,7 @@
 #include <src/columns/HyPerCol.hpp>
 #include <src/connections/RandomConn.hpp>
 #include <src/layers/Image.hpp>
+#include <src/layers/Movie.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
 #include <src/io/ConnectionProbe.hpp>
@@ -21,14 +22,17 @@ using namespace PV;
 
 int main(int argc, char* argv[])
 {
+   const char * files = "input/movies/movies.files";
+
    // create the managing hypercolumn
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    // read an image
-   Image * image = new Image(hc->inputFile(), hc);
+   float displayPeriod = 20;  // ms
+   Movie * movie = new Movie(files, hc, displayPeriod);
 
    // create the layers
-   HyPerLayer * retina = new Retina("Retina", hc, image);
+   HyPerLayer * retina = new Retina("Retina", hc, movie);
    HyPerLayer * l1     = new V1("L1", hc);
 
    // connect the layers
@@ -54,7 +58,7 @@ int main(int argc, char* argv[])
    hc->run();
 
    /* clean up (HyPerCol owns layers and connections, don't delete them) */
-   delete image;
+   delete movie;
    delete hc;
 
    return 0;
