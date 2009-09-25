@@ -23,11 +23,12 @@
 <tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.854605235" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 <tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.2126999639" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
 <option id="macosx.cpp.link.option.libs.974160252" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="gdal"/>
 <listOptionValue builtIn="false" value="pv"/>
-<listOptionValue builtIn="false" value="pthread"/>
 </option>
-<option id="macosx.cpp.link.option.paths.961395971" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
+<option id="macosx.cpp.link.option.paths.961395971" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/lib}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
 <inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.885542081" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
