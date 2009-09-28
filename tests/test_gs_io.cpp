@@ -11,9 +11,14 @@
 #include "../src/layers/fileread.h"
 #include "../src/io/io.h"
 
-#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef PV_USE_MPI
+#  include <mpi.h>
+#else
+#  include "../include/mpi_stubs.h"
+#endif
 
 #undef DEBUG_OUTPUT
 
