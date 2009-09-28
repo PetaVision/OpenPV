@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#define MPI
-
-#ifdef MPI
-#include <mpi.h>
+#ifdef PV_USE_MPI
+#  include <mpi.h>
+#else
+#  include "../include/mpi_stubs.h"
 #endif
 
 #define MACH_TIMER 1
@@ -114,7 +114,7 @@ void stop_clock()
    tend = t.tv_sec + t.tv_usec*1.0e-6;
    tv_end = t;
 
-#ifdef MPI
+#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
