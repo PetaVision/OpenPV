@@ -32,8 +32,8 @@ HyPerLayer "Retina" = {
    spikingFlag = 1;           // spike as poisson?
    //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank 
                               //are overwritten
-   poissonEdgeProb  = 0.5;//0.50;//.125;      // if so, on probability
-   poissonBlankProb = 0.01;//0.02;//.01;//.075; //.0125;     //       off probability
+   poissonEdgeProb  = 1.0;//0.5;//0.50;//.125;      // if so, on probability
+   poissonBlankProb = 0.0;//0.01;//0.02;//.01;//.075; //.0125;     //       off probability
    
    burstDuration = 10;
    burstFreq = 40;
@@ -56,8 +56,8 @@ HyPerLayer "L1" = {
    
    VthRest = -55; // -60; // -55;
    
-   noiseAmpE = 0.5; //64.0;
-   noiseAmpI = 0.5; //4.0;
+   noiseAmpE = 0.0;//0.5; //64.0;
+   noiseAmpI = 0.0;//0.5; //4.0;
 };
 
 HyPerLayer "L2" = {
@@ -135,7 +135,7 @@ HyPerLayer "L5" = {
 
 
 HyPerConn "Retina to L1" = {
-   nxp = 3;
+   nxp = 3;   // from retina to L1
    nyp = 3;
    strength = 1.0;
    
@@ -144,8 +144,8 @@ HyPerConn "Retina to L1" = {
    wMinInit = 4.0;  // default values if Gaussian is not defined
    wMaxInit = 6.0; // if not defined uses wMin and wMax.
    
-   wGaussMean = 3.00;
-   wGaussStdev = 0.50;//1.00;
+   wGaussMean = 5.00;
+   wGaussStdev = 0.0;//1.00;
    
    idum = 3940284; // random number generator seed
    
@@ -154,7 +154,7 @@ HyPerConn "Retina to L1" = {
    wMin = 0.0;
    wMax = 10.0;
    
-   writeStep = 100;
+   writeStep = 100; // writes to output file every writeStep
 
    rotate = 1.0;
    invert = 0.0;
