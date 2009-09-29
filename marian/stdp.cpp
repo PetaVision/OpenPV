@@ -87,11 +87,11 @@ int main(int argc, char* argv[])
    //if (params->present("Retina", "ny")) ny  = params->value("Retina", "ny");
    if (params->present("L1", "ny")) ny  = params->value("L1", "ny");
 
-   //PV::LinearActivityProbe * rProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
+   PV::LinearActivityProbe * rProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
 
    for (unsigned int i = 0; i < ny; i++) {
-	   //rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
-	   //retina->insertProbe(rProbes[i]);
+	   rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
+	   retina->insertProbe(rProbes[i]);
 	   //l1->insertProbe(rProbes[i]);
 	   //l2->insertProbe(rProbes[i]);
 	   //l3->insertProbe(rProbes[i]);
