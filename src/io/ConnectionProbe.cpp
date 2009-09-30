@@ -58,7 +58,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    }
 
    const int neighbor = 0;
-   PVAxonalArbor * arbor = c->axonalArbor(0,neighbor);
+   PVAxonalArbor * arbor = c->axonalArbor(kPre,neighbor);
 
    PVPatch * P   = arbor->plasticIncr;
    PVPatch * w   = arbor->weights;
@@ -95,7 +95,7 @@ int ConnectionProbe::text_write_patch(FILE * fd, PVPatch * patch, float * data)
    const int nf = (int) patch->nf;
 
    const int sx = (int) patch->sx;  assert(sx == nf);
-   const int sy = (int) patch->sy;  //assert(sy == nf*nx);
+   const int sy = (int) patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
    const int sf = (int) patch->sf;  assert(sf == 1);
 
    assert(fd != NULL);
