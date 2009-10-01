@@ -14,8 +14,8 @@
 
 namespace PV {
 
-Movie::Movie(const char * fileOfFileNames, HyPerCol * hc, float displayPeriod)
-     : Image(hc)
+Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
+     : Image(name, hc)
 {
    this->displayPeriod = displayPeriod;
    this->nextDisplayTime = hc->simulationTime() + displayPeriod;
@@ -45,7 +45,8 @@ Movie::Movie(const char * fileOfFileNames, HyPerCol * hc, float displayPeriod)
       imageData[i] = 0;
    }
 
-   getReducedImage(filename);
+   read(filename);
+   copyReducedImagePortion();
 }
 
 Movie::~Movie()
@@ -82,12 +83,13 @@ bool Movie::updateImage(float time, float dt)
    const char * filename = getNextFileName();
    assert(filename != NULL);
 
-   getReducedImage(filename);
+   read(filename);
+   copyReducedImagePortion();
 
    return true;
 }
 
-int Movie::getReducedImage(const char * filename)
+int Movie::copyReducedImagePortion()
 {
    int i0, j0, i, j, ii;
 
@@ -99,8 +101,6 @@ int Movie::getReducedImage(const char * filename)
 
    assert(nx0 <= nx);
    assert(ny0 <= ny);
-
-   read(filename);
 
    i0 = nx/2 - nx0/2;
    j0 = ny/2 - ny0/2;

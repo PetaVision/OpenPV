@@ -14,7 +14,7 @@ namespace PV {
 
 class Movie: public PV::Image {
 public:
-   Movie(const char * fileOfFileNames, HyPerCol * hc, float displayPeriod);
+   Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
    virtual ~Movie();
 
    virtual pvdata_t * getImageBuffer();
@@ -22,7 +22,7 @@ public:
 
    bool updateImage(float time, float dt);
 
-   int getReducedImage(const char * filename);
+   int copyReducedImagePortion();
    const char * getNextFileName();
 
    LayerLoc   imageLoc;
