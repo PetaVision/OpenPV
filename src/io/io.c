@@ -714,14 +714,10 @@ int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
  */
 int pv_read_binary_params(FILE * fp, int numParams, int params[])
 {
-   int nParams = 0;
-
-   rewind(fp);
-
-   if ( fread(&nParams, sizeof(int), 1, fp) != 1 ) {
-      return 0;
+   if (numParams > MAX_BIN_PARAMS) {
+      numParams = MAX_BIN_PARAMS;
    }
-   assert(nParams <= numParams);
+   rewind(fp);
 
    return fread(params, sizeof(int), numParams, fp);
 }
@@ -734,10 +730,9 @@ int pv_read_binary_params(FILE * fp, int numParams, int params[])
  * @nf contains the number of features on return
  * returns the opened file (NULL if an error occurred)
  */
-FILE * pv_open_binary(const char * filename, int * numParams, int * nx, int * ny, int * nf)
+FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf)
 {
-   const int minParams = 3;
-   int params[MAX_BIN_PARAMS];
+   int params[MIN_BIN_PARAMS];
 
    FILE * fp = fopen(filename, "rb");
    if (fp == NULL) {
@@ -745,15 +740,16 @@ FILE * pv_open_binary(const char * filename, int * numParams, int * nx, int * ny
       return NULL;
    }
 
-   if ( fread(params, sizeof(int), minParams+1, fp) != minParams+1 ) {
+   if ( fread(params, sizeof(int), MIN_BIN_PARAMS, fp) != MIN_BIN_PARAMS ) {
       fclose(fp);
       return NULL;
    }
 
-   *numParams = params[0];
-   *nx = params[1];
-   *ny = params[2];
-   *nf = params[3];
+   *numParams = params[INDEX_NUM_PARAMS];
+   *type      = params[INDEX_FILE_TYPE];
+   *nx        = params[INDEX_NX];
+   *ny        = params[INDEX_NY];
+   *nf        = params[INDEX_NF];
 
    return fp;
 }
