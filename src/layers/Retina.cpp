@@ -29,7 +29,7 @@ fileread_params RetinaParams =
 Retina::Retina(const char * name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
-   this->img = new Image(hc->inputFile(), hc);
+   this->img = new Image("Image", hc, hc->inputFile());
    initialize(TypeRetina);
 }
 
@@ -43,7 +43,7 @@ Retina::Retina(const char * name, HyPerCol * hc, Image * img)
 Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
   : HyPerLayer(name, hc)
 {
-   this->img = new Image(filename, hc);
+   this->img = new Image("Image", hc, filename);
    initialize(TypeRetina);
 }
 
