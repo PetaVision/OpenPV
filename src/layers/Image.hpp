@@ -32,7 +32,11 @@ public:
    int read(const char * filename);
    int write(const char * filename);
 
-   int  toGrayScale();
+   static
+   int convertToGrayScale(LayerLoc * loc, unsigned char * buf);
+
+   int toGrayScale();
+
    int  convolution();
    void setTau(int t)             { tau = t; }
 

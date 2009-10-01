@@ -112,8 +112,7 @@ int Image::read(const char * filename)
    assert(buf != NULL);
 
    // read the image and scatter the local portions
-   status = scatterParByteFile(filename, comm, &loc, buf);
-//   status = scatterImageFile(filename, comm, &loc, buf);
+   status = scatterImageFile(filename, comm, &loc, buf);
 
    if (status == 0) {
       status = copyFromInteriorBuffer(buf);
@@ -192,7 +191,6 @@ int Image::copyFromInteriorBuffer(const unsigned char * buf)
 
 int Image::toGrayScale()
 {
-
    const int nx_ex = loc.nx + 2*loc.nPad;
    const int ny_ex = loc.ny + 2*loc.nPad;
 
@@ -218,6 +216,35 @@ int Image::toGrayScale()
    }
 
    loc.nBands = 1;
+
+   return 0;
+}
+
+int Image::convertToGrayScale(LayerLoc * loc, unsigned char * buf)
+{
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+
+   const int numBands = loc->nBands;
+
+   const int sx = 1;
+   const int sy = nx;
+   const int sb = nx * ny;
+
+   if (numBands < 2) return 0;
+
+   for (int j = 0; j < ny; j++) {
+      for (int i = 0; i < nx; i++) {
+         float val = 0;
+         for (int b = 0; b < numBands; b++) {
+            float d = buf[i*sx + j*sy + b*sb];
+            val += d*d;
+         }
+         buf[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
+      }
+   }
+
+   loc->nBands = 1;
 
    return 0;
 }
