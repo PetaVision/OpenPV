@@ -17,7 +17,7 @@ namespace PV {
 /*
  * Constructor for ImageCreator class.
  */
-ImageCreator::ImageCreator(HyPerCol * hc) : Image(hc)
+ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
 {
    updateImage(0.0, 0.0);
 }

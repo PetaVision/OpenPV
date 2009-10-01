@@ -35,7 +35,7 @@ private:
 class ImageCreator : public Image {
 
 public:
-    ImageCreator(HyPerCol * hc);
+    ImageCreator(const char * name, HyPerCol * hc);
 
 	int clearImage();
 	int fillImage(pvdata_t val);
