@@ -8,52 +8,75 @@
 #include "Image.hpp"
 #include "../io/imageio.hpp";
 
+#include <assert.h>
+
 namespace PV {
 
-Image::Image(HyPerCol * hc)
+Image::Image(const char * name, HyPerCol * hc)
 {
-   init_base(hc);
+   init_base(name, hc);
 }
 
-Image::Image(const char * filename, HyPerCol * hc)
+Image::Image(const char * name, HyPerCol * hc, const char * filename)
 {
-   init_base(hc);
+   init_base(name, hc);
 
    // get size info from image so that data buffer can be allocated
    int status = getImageInfo(filename, comm, &loc);
 
    if (status) return;
 
-   const int N = loc.nx * loc.ny * loc.nBands;
+   double time = MPI_Wtime();
+
+   const int N = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad) * loc.nBands;
    data = new float [N];
 
    for (int i = 0; i < N; ++i) {
       data[i] = 0;
    }
 
+   time = MPI_Wtime() - time;
+   fprintf(stdout, "alloc: elapsed time = %f\n", (float) time*1000.);
+
+   time = MPI_Wtime();
+
    read(filename);
 
+   time = MPI_Wtime() - time;
+   fprintf(stdout, "copy: elapsed time = %f\n", (float) time*1000.);
+
    // for now convert images to grayscale
-   this->toGrayScale();
+   if (loc.nBands > 1) {
+      this->toGrayScale();
+   }
 }
 
 Image::~Image()
 {
+   free(name);
+
    if (data != NULL) {
       delete data;
       data = NULL;
    }
 }
 
-int Image::init_base(HyPerCol * hc)
+int Image::init_base(const char * name, HyPerCol * hc)
 {
+   this->name = strdup(name);
    this->data = NULL;
    this->comm = hc->icCommunicator();
+
+   PVParams * params = hc->parameters();
 
    loc.nx       = 0;   loc.ny       = 0;
    loc.nxGlobal = 0;   loc.nyGlobal = 0;
    loc.kx0      = 0;   loc.ky0      = 0;
    loc.nPad     = 0;   loc.nBands   = 0;
+
+   if (params->present(name, "marginWidth")) {
+      loc.nPad = (int) params->value(name, "marginWidth");
+   }
 
    return 0;
 }
@@ -84,8 +107,18 @@ int Image::read(const char * filename)
 {
    int status = 0;
 
+   const int n = loc.nx * loc.ny * loc.nBands;
+   unsigned char * buf = new unsigned char[n];
+   assert(buf != NULL);
+
    // read the image and scatter the local portions
-   status = scatterImageFile(filename, comm, &loc, data);
+   status = scatterParByteFile(filename, comm, &loc, buf);
+//   status = scatterImageFile(filename, comm, &loc, buf);
+
+   if (status == 0) {
+      status = copyFromInteriorBuffer(buf);
+   }
+   delete buf;
 
    return status;
 }
@@ -94,33 +127,92 @@ int Image::write(const char * filename)
 {
    int status = 0;
 
+   const int n = loc.nx * loc.ny * loc.nBands;
+   unsigned char * buf = new unsigned char[n];
+   assert(buf != NULL);
+
    // gather the local portions and write the image
-   status = gatherImageFile(filename, comm, &loc, data);
+   status = gatherImageFile(filename, comm, &loc, buf);
+
+   if (status == 0) {
+      status = copyToInteriorBuffer(buf);
+   }
+   delete buf;
 
    return status;
 }
 
-int Image::toGrayScale()
+int Image::copyToInteriorBuffer(unsigned char * buf)
 {
    const int nx = loc.nx;
    const int ny = loc.ny;
+
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   int ii = 0;
+   for (int b = 0; b < loc.nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            buf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+         }
+      }
+   }
+   return 0;
+}
+
+int Image::copyFromInteriorBuffer(const unsigned char * buf)
+{
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   int ii = 0;
+   for (int b = 0; b < loc.nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            data[iex + jex*sy + b*sb] = (pvdata_t) buf[ii++];
+         }
+      }
+   }
+   return 0;
+}
+
+int Image::toGrayScale()
+{
+
+   const int nx_ex = loc.nx + 2*loc.nPad;
+   const int ny_ex = loc.ny + 2*loc.nPad;
+
    const int numBands = loc.nBands;
 
    const int sx = 1;
-   const int sy = nx;
-   const int sb = nx * ny;
+   const int sy = nx_ex;
+   const int sb = nx_ex * ny_ex;
 
    if (numBands < 2) return 0;
 
-   for (int j = 0; j < ny; j++) {
-      for (int i = 0; i < nx; i++) {
+   for (int j = 0; j < ny_ex; j++) {
+      for (int i = 0; i < nx_ex; i++) {
          float val = 0;
          for (int b = 0; b < numBands; b++) {
             float d = data[i*sx + j*sy + b*sb];
             val += d*d;
 //            val += d;
          }
-         data[i*sx + j*sy + 0*sb] = sqrt(val)/numBands;
+         data[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
 //         data[i*sx + j*sy + 0*sb] = val/numBands;
       }
    }

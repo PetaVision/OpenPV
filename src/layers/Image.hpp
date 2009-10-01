@@ -16,13 +16,13 @@ namespace PV {
 class Image {
 
 protected:
-   Image(HyPerCol * hc);
+   Image(const char * name, HyPerCol * hc);
 
 public:
-   Image(const char * filename, HyPerCol * hc);
+   Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
 
-   int init_base(HyPerCol * hc);
+   int init_base(const char * name, HyPerCol * hc);
 
    virtual bool updateImage(float time, float dt);
 
@@ -32,12 +32,16 @@ public:
    int read(const char * filename);
    int write(const char * filename);
 
-
    int  toGrayScale();
    int  convolution();
    void setTau(int t)             { tau = t; }
 
 protected:
+
+   int copyFromInteriorBuffer(const unsigned char * buf);
+   int copyToInteriorBuffer(unsigned char * buf);
+
+   char * name;          // the name of the image object
 
    Communicator * comm;  // the communicator object for reading/writing files
    LayerLoc loc;         // size/location of image
