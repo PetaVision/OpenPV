@@ -16,7 +16,32 @@
 #  include "../include/mpi_stubs.h"
 #endif
 
-#define MAX_BIN_PARAMS 7
+#define MIN_BIN_PARAMS  6
+#define MAX_BIN_PARAMS 18
+
+#define NUM_PAR_BYTE_PARAMS (MAX_BIN_PARAMS)
+
+#define PV_BYTE_TYPE       1
+#define PVP_FILE_TYPE      1
+
+#define INDEX_HEADER_SIZE  0
+#define INDEX_NUM_PARAMS   1
+#define INDEX_FILE_TYPE    2
+#define INDEX_NX           3
+#define INDEX_NY           4
+#define INDEX_NF           (MIN_BIN_PARAMS - 1)
+#define INDEX_NUM_RECORDS  6
+#define INDEX_RECORD_SIZE  7
+#define INDEX_DATA_SIZE    8
+#define INDEX_DATA_TYPE    9
+#define INDEX_NX_PROCS    10
+#define INDEX_NY_PROCS    11
+#define INDEX_NX_GLOBAL   12
+#define INDEX_NY_GLOBAL   13
+#define INDEX_KX0         14
+#define INDEX_KY0         15
+#define INDEX_NPAD        16
+#define INDEX_NBANDS      (MAX_BIN_PARAMS - 1)
 
 #ifdef __cplusplus
 extern "C"
@@ -45,7 +70,7 @@ int pv_write_patches(const char * filename, int append,
 int pv_read_patches(FILE *fp, int nf, float minVal, float maxVal,
                     int numPatches, PVPatch ** patches);
 
-FILE * pv_open_binary(const char * filename, int * numParams, int * nx, int * ny, int * nf);
+FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf);
 int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
 int    pv_close_binary(FILE * fd);
 size_t pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems);
