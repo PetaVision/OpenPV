@@ -12,13 +12,11 @@
 
 namespace PV {
 
-InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post)
-         : HyPerConn(name, hc, pre, post, CHANNEL_INH, PROTECTED_NUMBER)
+InhibConn::InhibConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+                     int channel)
 {
-   this->nfPre = pre->clayer->numFeatures;
-   this->numAxonalArborLists = this->nfPre;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int InhibConn::initializeWeights(const char * filename)
@@ -40,8 +38,8 @@ int InhibConn::initializeWeights(const char * filename)
       strength = params->value(name, "gaussWeightScale");
    }
 
-   int arbor = 0;
-   const int numPatches = numberOfWeightPatches(arbor);
+   const int arbor = 0;
+   const int numPatches = numWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
       inhibWeights(wPatches[arbor][i], i, strength);
    }

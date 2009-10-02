@@ -42,9 +42,11 @@ class HyPerConn {
    friend class HyPerCol;
 
 public:
-
+   HyPerConn();
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             int channel);
+         int channel);
+   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+         int channel, const char * filename);
    virtual ~HyPerConn();
 
    virtual int deliver(PVLayerCube * cube, int neighbor);
@@ -55,11 +57,16 @@ public:
    virtual int updateWeights(PVLayerCube * preActivity, int arbor);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
-   virtual int numberOfWeightPatches(int arbor);
+   virtual int numWeightPatches(int arbor);
+   virtual int numDataPatches(int arbor);
    virtual int writeWeights(float time);
-   virtual int writeWeights(int k);
-   virtual int writeWeights(const char * filename, int k);
+   virtual int writeWeights(const char * filename, float time);
+   virtual int writeTextWeights(const char * filename, int k);
    virtual int writePostSynapticWeights(int ioAppend);
+
+   int readWeights(const char * filename);
+   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
+                                  const char * filename);
 
    virtual PVPatch * getWeights(int kPre, int arbor);
    virtual PVPatch * getPlasticityIncrement(int k, int arbor);
@@ -93,6 +100,8 @@ public:
                           int numFlanks, float flankShift, float rotate,
                           float aspect, float sigma, float r2Max, float strength);
 
+   PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
+
 protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
@@ -115,15 +124,15 @@ protected:
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
    // STDP parameters for modifying weights
-   float ampLTP;  // long term potentiation amplitude
-   float ampLTD;  // long term depression amplitude
+   float ampLTP; // long term potentiation amplitude
+   float ampLTD; // long term depression amplitude
    float tauLTP;
    float tauLTD;
    float dWMax;
    float wMax;
 
    int numProbes;
-   ConnectionProbe ** probes;   // probes used to output data
+   ConnectionProbe ** probes; // probes used to output data
 
    int stdpFlag;                // presence of spike timing dependent plasticity
    int ioAppend;                // controls opening of binary files
@@ -131,23 +140,30 @@ protected:
    float writeTime;             // time of next output
    float writeStep;             // output time interval
 
-private:
-   // this is only called from primary constructor
-   int initialize_base();
-
 protected:
+   int setPatchSize(const char * filename);
 
-   // this is protected so that only derived classes can call it
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             int channel, int primary_constructor);
+   int initialize(const char * name, HyPerCol * hc,
+         HyPerLayer * pre, HyPerLayer * post, int channel, const char * filename);
+   int initialize(const char * name, HyPerCol * hc,
+         HyPerLayer * pre, HyPerLayer * post, int channel);
+   int initialize_base();
+   int initialize(const char * filename);
+   PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+         const char * filename);
+   int checkWeightsHeader(const char * filename, int numParamsFile,
+         int nxpFile, int nypFile, int nfpFile);
+   PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
+   PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
+   PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch);
 
-   virtual int initialize();
-   virtual int initializeGaussianWeights();
-   virtual int initializeRandomWeights(int seed);
-   virtual int createWeights(int nxPatch, int nyPatch, int nfPatch);
-   virtual int readWeights(const char * filename);
-   virtual PVPatch ** createWeights(int nxPatch, int nyPatch, int nfPatch, int numPatches);
-   virtual int        deleteWeights();
+   PVPatch ** createWeights(PVPatch ** patches);
+   PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch);
+   PVPatch ** allocWeights(PVPatch ** patches);
+
+   virtual int deleteWeights();
 
    virtual int createAxonalArbors();
    virtual int adjustAxonalArborWeights();

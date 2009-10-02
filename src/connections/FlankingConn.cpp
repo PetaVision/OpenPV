@@ -12,13 +12,11 @@
 
 namespace PV {
 
-FlankingConn::FlankingConn(const char * name,
-                           HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-            : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
+FlankingConn::FlankingConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+                           int channel)
 {
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int FlankingConn::initializeWeights(const char * filename)
@@ -51,13 +49,13 @@ int FlankingConn::initializeWeights(const char * filename)
 
    int nfPre = pre->clayer->numFeatures;
 
-   const int borderId = 0;
-   const int numPatches = numberOfWeightPatches(borderId);
+   const int arbor = 0;
+   const int numPatches = numWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
       int xScale = post->clayer->xScale - pre->clayer->xScale;
       int yScale = post->clayer->xScale - pre->clayer->yScale;
       int fPre = i % nfPre;
-      gauss2DCalcWeights(wPatches[borderId][i], fPre, noPost, xScale, yScale,
+      gauss2DCalcWeights(wPatches[arbor][i], fPre, noPost, xScale, yScale,
                          numFlanks, shift, rotate, aspect, sigma, r2Max, strength);
    }
 

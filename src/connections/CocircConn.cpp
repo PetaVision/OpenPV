@@ -14,11 +14,9 @@ namespace PV {
 
 CocircConn::CocircConn(const char * name,
                        HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-          : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int CocircConn::initializeWeights(const char * filename)
@@ -36,11 +34,11 @@ int CocircConn::initializeWeights(const char * filename)
 
       int nfPre = pre->clayer->numFeatures;
 
-      const int borderId = 0;
-      const int numPatches = numberOfWeightPatches(borderId);
+      const int arbor = 0;
+      const int numPatches = numWeightPatches(arbor);
       for (int i = 0; i < numPatches; i++) {
          int fPre = i % nfPre;
-         cocircWeights(wPatches[borderId][i], fPre, xScale, yScale, sigma, r2Max, strength);
+         cocircWeights(wPatches[arbor][i], fPre, xScale, yScale, sigma, r2Max, strength);
       }
    }
    else {
@@ -75,8 +73,9 @@ int CocircConn::initializeWeights(const char * filename)
          return err;
       }
 
+      int arbor = 0;
       for (unsigned int i = 0; i < count; i++) {
-         PVPatch* patch = wPatches[0][i];
+         PVPatch* patch = wPatches[arbor][i];
          if ( fread(patch, size, 1, fd) != 1) {
             fprintf(stderr, "FileConn:: ERROR reading patch %d\n", i);
             return -1;

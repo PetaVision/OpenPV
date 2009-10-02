@@ -14,11 +14,9 @@ namespace PV {
 
 GaborConn::GaborConn(const char * name,
                      HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-         : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int GaborConn::initializeWeights(const char * filename)
@@ -42,12 +40,12 @@ int GaborConn::initializeWeights(const char * filename)
 
    float r2Max = rMax * rMax;
 
-   const int borderId = 0;
-   const int numPatches = numberOfWeightPatches(borderId);
+   const int arbor = 0;
+   const int numPatches = numWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
       int xScale = post->clayer->xScale - pre->clayer->xScale;
       int yScale = post->clayer->xScale - pre->clayer->yScale;
-      gaborWeights(wPatches[borderId][i], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
+      gaborWeights(wPatches[arbor][i], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
    }
 
    return 0;
@@ -133,4 +131,4 @@ int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
    return 0;
 }
 
-} // namespace PV
+} // Namespace PV
