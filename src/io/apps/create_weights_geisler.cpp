@@ -51,25 +51,20 @@ int main(int argc, char * argv[])
    }
 
    // header information
-   int numParams;
+   const int numParams = 7;
+   int params[numParams];
+   int nParams;
    int nxp, nyp, nfp, numNeurons;
    int minVal, maxVal;
    int numInPatches;
 
-   // open input file and read parameters
-   fp = fopen(inFilename, "rb");
-   assert(fp != NULL);
+   fp = pv_open_binary(inFilename, &nParams, &nxp, &nyp, &nfp);
+   pv_read_binary_params(fp, numParams, params);
+   minVal = params[4];
+   maxVal = params[5];
+   numInPatches = params[6];
 
-   // read header
-   fread(&numParams, sizeof(int), 1, fp );
-   fread(&nxp, sizeof(int), 1, fp );
-   fread(&nyp, sizeof(int), 1, fp );
-   fread(&nfp, sizeof(int), 1, fp );
-   fread(&minVal, sizeof(int), 1, fp );
-   fread(&maxVal, sizeof(int), 1, fp );
-   fread(&numInPatches, sizeof(int), 1, fp );
-
-   int numItems = nxp*nyp*nfp;
+   //int numItems = nxp*nyp*nfp;
 
    PVPatch ** inPatches = PV::HyPerConn::createPatches(numInPatches, nxp, nyp, nfp);
    PVPatch ** wPatches  = createPatches(numNeurons, nxp, nyp, nfp);
@@ -81,7 +76,7 @@ int main(int argc, char * argv[])
          wPatches[i+f]->data = inPatches[f]->data;
       }
    }
-   fclose(fp);
+   pv_close_binary(fp);
 
 
    // output the weight patches
