@@ -26,6 +26,9 @@
 /* The common type for data */
 #define pvdata_t float
 
+/* The common type for integer sizes (e.g. nxp patch size) */
+#define pvdim_t float
+
 enum ChannelType {
   CHANNEL_EXC  = 0,
   CHANNEL_INH  = 1,
