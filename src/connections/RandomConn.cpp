@@ -14,24 +14,20 @@ namespace PV {
 
 RandomConn::RandomConn(const char * name,
                        HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-          : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   randDistType = UNIFORM; //Uniform distribution is the default
+   initialize_base();
 
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   randDistType = UNIFORM; //Uniform distribution is the default
+   initialize(name, hc, pre, post, channel);
 }
 
 RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                        HyPerLayer * post, int channel, RandDistType distrib)
-          : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   randDistType = distrib;
+   initialize_base();
 
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   randDistType = distrib;
+   initialize(name, hc, pre, post, channel);
 }
 
 int RandomConn::initializeRandomWeights(int seed)
@@ -79,7 +75,7 @@ int RandomConn::initializeUniformWeights(int seed)
    }
 
    const int arbor = 0;
-   const int numPatches = numberOfWeightPatches(arbor);
+   const int numPatches = numWeightPatches(arbor);
    for (int k = 0; k < numPatches; k++) {
       uniformWeights(wPatches[arbor][k], wMinInit, wMaxInit, seed);
    }
@@ -136,7 +132,7 @@ int RandomConn::initializeGaussianWeights(int seed)
    }
 
    const int arbor = 0;
-   const int numPatches = numberOfWeightPatches(0);
+   const int numPatches = numWeightPatches(0);
    printf("numPatches = %d  wGaussMean = %f wGaussStdev = %f idum = %ld ",
          numPatches, wGaussMean , wGaussStdev, idum);
 

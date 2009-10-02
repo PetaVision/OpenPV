@@ -17,13 +17,11 @@ namespace PV {
  * exhaustively computes presence of a hierarchy of 4 x 2x2 (on/off) patch of pixels
  * (embedded in a 3x3 pixel patch).
  */
-SubunitConn::SubunitConn(const char * name,
-                         HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-           : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
+SubunitConn::SubunitConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+                         int channel)
 {
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 /**
@@ -34,7 +32,7 @@ int SubunitConn::initializeWeights(const char * filename)
    assert(post->clayer->numFeatures == 4*16);
 
    const int arbor = 0;
-   const int numPatches = numberOfWeightPatches(arbor);
+   const int numPatches = numWeightPatches(arbor);
    for (int i = 0; i < numPatches; i++) {
       weights(wPatches[arbor][i]);
    }

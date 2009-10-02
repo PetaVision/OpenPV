@@ -13,11 +13,9 @@ namespace PV {
 
 RuleConn::RuleConn(const char * name,
                    HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
-        : HyPerConn(name, hc, pre, post, channel, PROTECTED_NUMBER)
 {
-   this->numAxonalArborLists = 1;
-   initialize();
-   hc->addConnection(this);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int RuleConn::initializeWeights(const char * filename)
@@ -32,7 +30,7 @@ int RuleConn::initializeWeights(const char * filename)
       int nfPre = pre->clayer->numFeatures;
 
       const int arbor = 0;
-      const int numPatches = numberOfWeightPatches(arbor);
+      const int numPatches = numWeightPatches(arbor);
       for (int i = 0; i < numPatches; i++) {
          int fPre = i % nfPre;
          ruleWeights(wPatches[arbor][i], fPre, xScale, yScale, strength);
