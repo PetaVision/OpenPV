@@ -280,7 +280,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    // default values (chosen for center on cell of one pixel)
    int noPost = 1;
    if (params->present(post->getName(), "no")) {
-      noPost = params->value(post->getName(), "no");
+      noPost = (int) params->value(post->getName(), "no");
    }
 
    float aspect = 1.0; // circular (not line oriented)
@@ -308,7 +308,8 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
    for (int k = 0; k < numPatches; k++) {
-      gauss2DCalcWeights(patches[k], k, noPost, xScale, yScale, numFlanks, shift, rotate,
+      int kPre = kIndexFromNeighbor(k, n);
+      gauss2DCalcWeights(patches[k], kPre, noPost, xScale, yScale, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength);
    }
 
