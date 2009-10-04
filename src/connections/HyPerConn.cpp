@@ -304,9 +304,8 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
    for (int k = 0; k < numPatches; k++) {
-      int kPre = kIndexFromNeighbor(k, n);
-      gauss2DCalcWeights(patches[k], kPre, noPost, xScale, yScale, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength);
+      gauss2DCalcWeights(patches[k], k, noPost, xScale, yScale, numFlanks, shift, rotate,
+                         aspect, sigma, r2Max, strength);
    }
 
    return patches;
@@ -1346,7 +1345,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    return 0;
 }
 
-// normalize
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    float strength = 1.0;
@@ -1515,6 +1513,5 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches)
 
    return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 }
-
 
 } // namespace PV
