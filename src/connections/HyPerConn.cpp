@@ -209,6 +209,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    const char * name = getName();
 
    params = (PVConnParams *) malloc(sizeof(*p));
+   assert(params != 0);
    memcpy(params, p, sizeof(*p));
 
    numParams = sizeof(*p) / sizeof(float);
