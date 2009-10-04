@@ -44,7 +44,7 @@ int pv_gabor_cocirc_main(int argc, char* argv[])
    // connect the layers
    new PV::GaborConn("Retina to V1",  hc, retina, v1, CHANNEL_EXC);
    new PV::GaborConn("Retina to V1 Inhibit", hc, retina, v1Inh, CHANNEL_EXC);
-   new PV::InhibConn("V1 Inhibit to V1", hc, v1Inh, v1);
+   new PV::InhibConn("V1 Inhibit to V1", hc, v1Inh, v1, CHANNEL_INH);
    //   new PV::CocircConn("V1 to V1", hc, v1, v1, CHANNEL_EXC);
 
    // finish initialization now that everything is connected
