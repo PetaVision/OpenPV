@@ -209,27 +209,22 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    const char * name = getName();
 
    params = (PVConnParams *) malloc(sizeof(*p));
-   assert(params != 0);
+   assert(params != NULL);
    memcpy(params, p, sizeof(*p));
 
    numParams = sizeof(*p) / sizeof(float);
    assert(numParams == 9); // catch changes in structure
 
-   if (filep->present(name, "delay")) params->delay = filep->value(name, "delay");
-   if (filep->present(name, "fixDelay")) params->fixDelay
-         = filep->value(name, "fixDelay");
-   if (filep->present(name, "vel")) params->vel = filep->value(name, "vel");
-   if (filep->present(name, "rmin")) params->rmin = filep->value(name, "rmin");
-   if (filep->present(name, "rmax")) params->rmax = filep->value(name, "rmax");
+   if (filep->present(name, "delay"))    params->delay    = (int) filep->value(name, "delay");
+   if (filep->present(name, "fixDelay")) params->fixDelay = (int) filep->value(name, "fixDelay");
+   if (filep->present(name, "vel"))      params->vel      = filep->value(name, "vel");
+   if (filep->present(name, "rmin"))     params->rmin     = filep->value(name, "rmin");
+   if (filep->present(name, "rmax"))     params->rmax     = filep->value(name, "rmax");
 
-   if (filep->present(name, "varDelayMin")) params->varDelayMin = filep->value(name,
-         "varDelayMin");
-   if (filep->present(name, "varDelayMax")) params->varDelayMax = filep->value(name,
-         "varDelayMax");
-   if (filep->present(name, "numDelay")) params->numDelay
-         = filep->value(name, "numDelay");
-   if (filep->present(name, "isGraded")) params->isGraded
-         = filep->value(name, "isGraded");
+   if (filep->present(name, "varDelayMin")) params->varDelayMin = (int) filep->value(name, "varDelayMin");
+   if (filep->present(name, "varDelayMax")) params->varDelayMax = (int) filep->value(name, "varDelayMax");
+   if (filep->present(name, "numDelay"))    params->numDelay    = (int) filep->value(name, "numDelay");
+   if (filep->present(name, "isGraded"))    params->isGraded    = (int) filep->value(name, "isGraded");
 
    assert(params->delay < MAX_F_DELAY);
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
