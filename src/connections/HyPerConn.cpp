@@ -653,11 +653,9 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
-PVPatch * HyPerConn::getPlasticityIncrement(int k, int bundle)
+PVPatch * HyPerConn::getPlasticityIncrement(int k, int arbor)
 {
-   // TODO - make work with bundles as well
-   assert(numAxonalArborLists == 1);
-   // a separate patch of plasticity for every neuron
+   // a separate arbor/patch of plasticity for every neuron
    if (stdpFlag) {
       return pIncr[k];
    }
@@ -676,7 +674,7 @@ PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatc
       free(patches);
    }
 
-   patches = (PVPatch**) malloc(nPatches * sizeof(PVPatch*));
+   patches = (PVPatch**) calloc(nPatches * sizeof(PVPatch*), sizeof(char));
    assert(patches != NULL);
 
    // TODO - allocate space for them all at once
