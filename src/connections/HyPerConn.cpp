@@ -576,7 +576,7 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
    if (preActivityCube->numItems == 0) return 0;
 
    const int numNeurons = preActivityCube->numItems;
-   assert(numNeurons == pre->clayer->numNeurons);
+   assert(numNeurons == numWeightPatches(neighbor));
 
    for (int kPre = 0; kPre < numNeurons; kPre++) {
       PVAxonalArbor * arbor  = axonalArbor(kPre, neighbor);
