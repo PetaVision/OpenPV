@@ -184,8 +184,8 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
    initGlobal(id, comm->commRow(), comm->commColumn(),
                   comm->numCommRows(), comm->numCommColumns());
 
-   comm->addPublisher(this, clayer->activity->size, maxBorderSize, MAX_F_DELAY);
-//   comm->addPublisher(this, clayer->activity->size, MAX_F_DELAY);
+//   comm->addPublisher(this, clayer->activity->size, maxBorderSize, MAX_F_DELAY);
+   comm->addPublisher(this, clayer->activity->numItems, MAX_F_DELAY);
 
    return 0;
 }
@@ -303,7 +303,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
 
    // WARNING, GROSS HACK
    // need to copy to size of border region (or something equivalent)
-   if (numActive > n) numActive = n;
+   //   if (numActive > n) numActive = n;  // WHAT IS THIS ABOUT????
 
 #ifdef MULTITHREADED
    pv_signal_threads_recv(activity, (unsigned char) neighbor);
