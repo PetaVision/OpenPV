@@ -9,6 +9,7 @@
 #include "../io/imageio.hpp";
 
 #include <assert.h>
+#include <string.h>
 
 namespace PV {
 
@@ -155,7 +156,7 @@ int Image::write(const char * filename)
 
 int Image::exchange()
 {
-   comm->exchange(data, mpi_datatypes, &loc);
+   return comm->exchange(data, mpi_datatypes, &loc);
 }
 
 int Image::copyToInteriorBuffer(unsigned char * buf)
