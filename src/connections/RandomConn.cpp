@@ -15,10 +15,10 @@ namespace PV {
 RandomConn::RandomConn(const char * name,
                        HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
 {
-   initialize_base();
+   HyPerConn::initialize_base();
 
    randDistType = UNIFORM; //Uniform distribution is the default
-   initialize(name, hc, pre, post, channel);
+   HyPerConn::initialize(name, hc, pre, post, channel);
 }
 
 RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
