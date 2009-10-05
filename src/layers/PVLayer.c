@@ -16,15 +16,16 @@
 extern "C" {
 #endif
 
-PVLayer* pvlayer_new(int xScale, int yScale,
-                     int nx, int ny, int numFeatures, int nBorder)
+PVLayer * pvlayer_new(int xScale, int yScale,
+                      int nx, int ny, int numFeatures, int nBorder)
 {
-   PVLayer* l = (PVLayer*) malloc(sizeof(PVLayer));
+   PVLayer * l = (PVLayer *) calloc(sizeof(PVLayer), sizeof(char));
+   assert(l != NULL);
    pvlayer_init(l, xScale, yScale, nx, ny, numFeatures, nBorder);
    return l;
 }
 
-int pvlayer_init(PVLayer* l, int xScale, int yScale,
+int pvlayer_init(PVLayer * l, int xScale, int yScale,
                  int nx, int ny, int numFeatures, int nBorder)
 {
    l->layerId = -1; // the hypercolumn will set this
@@ -47,7 +48,12 @@ int pvlayer_init(PVLayer* l, int xScale, int yScale,
    l->dx = powf(2.0f, (float) xScale);
    l->dy = powf(2.0f, (float) yScale);
 
-   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
+   l->numNeurons  = nx * ny * l->numFeatures;
+#ifdef EXTEND_BORDER_INDEX
+   l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
+#else
+   l->numExtended = l->numNeurons;
+#endif // EXTEND_BORDER_INDEX
 
    l->loc.kx0 = 0.0;
    l->loc.ky0 = 0.0;
@@ -57,9 +63,6 @@ int pvlayer_init(PVLayer* l, int xScale, int yScale,
 
    l->columnId = 0;
 
-   l->writeIdx = 0; // which one currently writing to
-   // (readers are delayed, relative to this)
-
    l->numParams = 0;
    l->params = NULL;
 
@@ -68,8 +71,10 @@ int pvlayer_init(PVLayer* l, int xScale, int yScale,
 
    l->activity = NULL;
 
-   // TODO - check for out of memory conditions
-   l->activeIndices = (int *) calloc(l->numNeurons, sizeof(int));
+   // TODO - actually use active indices
+   // l->activeIndices = (int *) calloc(l->numNeurons, sizeof(int));
+   // assert(l->activeIndices != NULL);
+   l->activeIndices = NULL;
 
    l->numPhis = NUM_CHANNELS;
 
@@ -79,19 +84,11 @@ int pvlayer_init(PVLayer* l, int xScale, int yScale,
 /**
  * Finish initialization with global parameters (multiple hypercolumns)
  */
-int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows, int nCols)
+int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols)
 {
    int m;
-   int ntotal = l->numNeurons;
-
-   // extendNum includes regular size plus border
-   // hypothesis: should not in include border because handled by border regions
-#ifdef EXTEND_BORDER_INDEX
-   size_t extendNum = (l->loc.nx + 2.0*l->loc.nPad) * (l->loc.ny + 2.0*l->loc.nPad);
-   extendNum *= l->numFeatures;
-#else
-   size_t extendNum = l->loc.nx * l->loc.ny * l->numFeatures;
-#endif
+   const int numNeurons  = l->numNeurons;
+   const int numExtended = l->numExtended;
 
    l->columnId = colId;
 
@@ -102,17 +99,17 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
 //   l->loc.ny = l->loc.ny / nRows;
 //   l->loc.kx0 = l->loc.nx * colCol;
 //   l->loc.ky0 = l->loc.ny * colRow;
-
-   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
-   if (l->numNeurons * nCols * nRows != ntotal) {
-      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
-             colId, (int)l->loc.nx, (int)l->loc.ny);
-   }
+//
+//   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
+//   if (l->numNeurons * nCols * nRows != ntotal) {
+//      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
+//             colId, (int)l->loc.nx, (int)l->loc.ny);
+//   }
 
    l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
    l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
 
-   l->activity = pvcube_new(&l->loc, l->numNeurons);
+   l->activity = pvcube_new(&l->loc, numExtended);
 
    // make a G (variable conductance) for each phi
    l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
@@ -121,19 +118,19 @@ int pvlayer_initGlobal(PVLayer* l, int colId, int colRow, int colCol, int nRows,
    assert(l->G   != NULL);
    assert(l->phi != NULL);
 
-   l->G[0]   = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
-   l->phi[0] = (pvdata_t *) calloc(extendNum*l->numPhis, sizeof(pvdata_t));
+   l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
+   l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
 
    assert(l->G[0]   != NULL);
    assert(l->phi[0] != NULL);
 
    for (m = 1; m < l->numPhis; m++) {
-      l->G[m]   = l->G[0]   + m * extendNum;
-      l->phi[m] = l->phi[0] + m * extendNum;
+      l->G[m]   = l->G[0]   + m * numNeurons;
+      l->phi[m] = l->phi[0] + m * numNeurons;
    }
 
-   l->V    = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
-   l->Vth  = (pvdata_t *) calloc(l->numNeurons, sizeof(pvdata_t));
+   l->V    = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   l->Vth  = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
 
    assert(l->V   != NULL);
    assert(l->Vth != NULL);
@@ -176,17 +173,6 @@ int pvlayer_finalize(PVLayer * l)
    return 0;
 }
 
-#if 0
-inline int pvlayer_getPos2(PVLayer * l, int idx, float * x, float * y)
-{
-   int kx = (idx / l->nfeatures) % l->nx;
-   int ky = (idx / (l->nx * l->nfeatures)) % l->ny;
-   *x = l->xOrigin + l->xMpiOrigin + kx*l->dx;
-   *y = l->yOrigin + l->yMpiOrigin + ky*l->dy;
-
-   return 0;
-}
-#endif //0
 float pvlayer_getWeight(float x0, float x, float r, float sigma)
 {
    float dx = x - x0;
@@ -238,7 +224,6 @@ int pvlayer_outputState(PVLayer *l)
    const int nf = l->numFeatures;
 
    // Print avg, max/min, etc of f.
-   // Probably DO want to use writeIdx, since that's what was updated in this timestep.
    sprintf(str, "[%d]:L%1.1d: f:", cid, l->layerId);
    printStats(l->activity->data, l->numNeurons, str);
 
@@ -287,7 +272,6 @@ int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float
    }
    return 0;
 }
-
 
 #ifdef COMPRESS_PHI
 void pvpatch_accumulate(int nk, float* restrict v, float a, float* restrict w,
