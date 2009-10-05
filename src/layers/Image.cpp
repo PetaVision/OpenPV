@@ -14,15 +14,18 @@ namespace PV {
 
 Image::Image(const char * name, HyPerCol * hc)
 {
-   init_base(name, hc);
+   initialize_base(name, hc);
 }
 
 Image::Image(const char * name, HyPerCol * hc, const char * filename)
 {
-   init_base(name, hc);
+   initialize_base(name, hc);
 
    // get size info from image so that data buffer can be allocated
    int status = getImageInfo(filename, comm, &loc);
+
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(&loc);
 
    if (status) return;
 
@@ -36,19 +39,28 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
    }
 
    time = MPI_Wtime() - time;
-   fprintf(stdout, "alloc: elapsed time = %f\n", (float) time*1000.);
+//   fprintf(stdout, "alloc: elapsed time = %f\n", (float) time*1000.);
 
    time = MPI_Wtime();
 
    read(filename);
 
    time = MPI_Wtime() - time;
-   fprintf(stdout, "copy: elapsed time = %f\n", (float) time*1000.);
+//   fprintf(stdout, "copy: elapsed time = %f\n", (float) time*1000.);
+
 
    // for now convert images to grayscale
    if (loc.nBands > 1) {
       this->toGrayScale();
    }
+
+   time = MPI_Wtime();
+
+   // exchange border information
+   exchange();
+
+   time = MPI_Wtime() - time;
+//   fprintf(stdout, "exchange: elapsed time = %f\n", (float) time*1000.);
 }
 
 Image::~Image()
@@ -61,11 +73,12 @@ Image::~Image()
    }
 }
 
-int Image::init_base(const char * name, HyPerCol * hc)
+int Image::initialize_base(const char * name, HyPerCol * hc)
 {
    this->name = strdup(name);
    this->data = NULL;
    this->comm = hc->icCommunicator();
+   mpi_datatypes = NULL;
 
    PVParams * params = hc->parameters();
 
@@ -130,15 +143,19 @@ int Image::write(const char * filename)
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
+   status = copyToInteriorBuffer(buf);
+
    // gather the local portions and write the image
    status = gatherImageFile(filename, comm, &loc, buf);
 
-   if (status == 0) {
-      status = copyToInteriorBuffer(buf);
-   }
    delete buf;
 
    return status;
+}
+
+int Image::exchange()
+{
+   comm->exchange(data, mpi_datatypes, &loc);
 }
 
 int Image::copyToInteriorBuffer(unsigned char * buf)

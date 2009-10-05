@@ -22,7 +22,7 @@ public:
    Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
 
-   int init_base(const char * name, HyPerCol * hc);
+   int initialize_base(const char * name, HyPerCol * hc);
 
    virtual bool updateImage(float time, float dt);
 
@@ -32,10 +32,10 @@ public:
    int read(const char * filename);
    int write(const char * filename);
 
-   static
-   int convertToGrayScale(LayerLoc * loc, unsigned char * buf);
+   int exchange();
 
    int toGrayScale();
+   static int convertToGrayScale(LayerLoc * loc, unsigned char * buf);
 
    int  convolution();
    void setTau(int t)             { tau = t; }
@@ -47,9 +47,13 @@ protected:
 
    char * name;          // the name of the image object
 
-   Communicator * comm;  // the communicator object for reading/writing files
+   Communicator * comm;           // the communicator object for reading/writing files
+   MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
+
    LayerLoc loc;         // size/location of image
    pvdata_t *  data;     // buffer containing image
+
+
    float tau;
 };
 
