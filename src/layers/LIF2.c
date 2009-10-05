@@ -318,10 +318,10 @@ int LIF2_init(PVLayer * l)
       }
 
       // TODO - Initialize activity buffers with random noise
-      // TODO - use a parameter for RAND threshhold
+      // TODO - use a parameter for RAND threshold
 
-      // TODO - actually use active indicies
-      l->activeIndices[0] = 0;
+      // TODO - actually use active indices
+      // l->activeIndices[0] = 0;
 
       if (params->noiseAmpE > 0) {
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
