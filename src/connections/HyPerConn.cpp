@@ -24,7 +24,6 @@ PVConnParams defaultConnParams =
 
 HyPerConn::HyPerConn()
 {
-   printf("HyPerConn::HyPerConn: running default constructor\n");
    initialize_base();
 }
 
@@ -64,10 +63,10 @@ HyPerConn::~HyPerConn()
 
 int HyPerConn::initialize_base()
 {
+   this->name = "Unknown";
    this->nxp = 1;
    this->nyp = 1;
    this->nfp = 1;
-   this->name = strdup("Unknown");
    this->parent = NULL;
    this->connId = 0;
    this->pre = NULL;
@@ -103,10 +102,23 @@ int HyPerConn::initialize(const char * filename)
    numAxonalArborLists = 1;
 
    assert(this->channel <= post->clayer->numPhis);
-   setPatchSize(filename);
 
    PVParams * inputParams = parent->parameters();
    setParams(inputParams, &defaultConnParams);
+
+   setPatchSize(filename);
+
+   if (inputParams->present(name, "strength")) {
+      this->wMax = inputParams->value(name, "strength");
+   }
+   // let wMax override strength if user provides it
+   if (inputParams->present(name, "wMax")) {
+      this->wMax = inputParams->value(name, "wMax");
+   }
+
+   if (inputParams->present(name, "stdpFlag")) {
+      stdpFlag = inputParams->value(name, "stdpFlag");
+   }
 
    wPatches[arbor] = createWeights(wPatches[arbor]);
 
@@ -118,21 +130,6 @@ int HyPerConn::initialize(const char * filename)
    else {
       pIncr = NULL;
       pDecr = NULL;
-   }
-
-   // create list of axonal arbors containing pointers to {phi,w,P,M} patches
-   createAxonalArbors();
-
-   if (stdpFlag) {
-      for (int k = 0; k < numAxonalArborLists; k++) {
-         pvdata_t * p = pIncr[k]->data;
-         for (int i = 0; i < nxp*nyp*nfp; i++) {
-            p[i] = 0;
-         }
-      }
-      for (int k = 0; k < pDecr->numItems; k++) {
-         pDecr->data[k] = 0.0;
-      }
    }
 
    status = -1;
@@ -169,7 +166,10 @@ int HyPerConn::initialize(const char * filename)
       }
    }
 
-   status = adjustAxonalArborWeights();
+   // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
+   // This should be done after initialization of weights because it will shrink
+   // weight patches (ALTHOUGH reading of weights from file may expect shrunken patch)
+   createAxonalArbors();
 
 //////////////////
 // FIXME - this is from Gar's code
@@ -190,11 +190,14 @@ int HyPerConn::initialize(const char * filename)
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, int channel, const char * filename)
 {
-   this->name = strdup(name);
    this->parent = hc;
    this->pre = pre;
    this->post = post;
    this->channel = channel;
+
+   this->name = strdup(name);
+   assert(this->name != NULL);
+
    return initialize(filename);
 }
 
@@ -229,23 +232,6 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    assert(params->delay < MAX_F_DELAY);
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
 
-   if (filep->present(name, "strength")) {
-      this->wMax = filep->value(name, "strength");
-   }
-   // let wMax override strength if user provides it
-   if (filep->present(name, "wMax")) {
-      this->wMax = filep->value(name, "wMax");
-   }
-
-   if (filep->present(name, "stdpFlag")) {
-      stdpFlag = filep->value(name, "stdpFlag");
-   }
-
-   nxp = filep->value(name, "nxp");
-   nyp = filep->value(name, "nyp");
-
-   nfp = post->clayer->numFeatures;
-
    return 0;
 }
 
@@ -256,13 +242,9 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    float wMin = 0.0;
    if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
 
-   for (int n = 0; n < 1 + parent->numberOfBorderRegions(); n++) {
-      int numPatches = numWeightPatches(n);
-      for (int k = 0; k < numPatches; k++) {
-         randomWeights(patches[k], wMin, wMax, seed);
-      }
+   for (int k = 0; k < numPatches; k++) {
+      randomWeights(patches[k], wMin, wMax, seed);
    }
-
    return patches;
 }
 
@@ -642,8 +624,9 @@ int HyPerConn::numDataPatches(int arbor)
  */
 int HyPerConn::numWeightPatches(int arbor)
 {
-   int neighbor = arbor; // for now there is one axonal arbor per neighbor
-   return pre->numberOfNeurons(neighbor);
+   // for now there is just one axonal arbor
+   // extending to all neurons in extended layer
+   return pre->clayer->numExtended;
 }
 
 PVPatch * HyPerConn::getWeights(int k, int arbor)
@@ -669,14 +652,15 @@ PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatc
 
    assert(numAxonalArborLists == 1);
 
+   // TODO IMPORTANT ################# free memory in patches as well
    if (patches != NULL) {
       free(patches);
    }
 
-   patches = (PVPatch**) calloc(nPatches * sizeof(PVPatch*), sizeof(char));
+   patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    assert(patches != NULL);
 
-   // TODO - allocate space for them all at once
+   // TODO - allocate space for them all at once (inplace)
    allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 
    return patches;
@@ -736,19 +720,26 @@ int HyPerConn::createAxonalArbors()
    const float kxPost0Left = 0.0f;
    const float kyPost0Left = 0.0f;
 
-   const float nxPre  = pre->clayer->loc.nx;
-   const float nyPre  = pre->clayer->loc.ny;
-   const float kx0Pre = pre->clayer->loc.kx0;
-   const float ky0Pre = pre->clayer->loc.ky0;
+   const float nxBorderPre  = pre->clayer->loc.nPad;
+   const float nyBorderPre  = pre->clayer->loc.nPad;
+   const float nxBorderPost = post->clayer->loc.nPad;
+
+   // use the extended reference frame (with margins) for pre-synaptic layer
+
+   const float nxPre  = pre->clayer->loc.nx + 2.0f * nxBorderPre;
+   const float nyPre  = pre->clayer->loc.ny + 2.0f * nyBorderPre;
+   const float kx0Pre = pre->clayer->loc.kx0 - nxBorderPre;
+   const float ky0Pre = pre->clayer->loc.ky0 - nyBorderPre;
    const float nfPre  = pre->clayer->numFeatures;
+
+   // use the non-extended reference frame for post-synaptic layer
+   // because phi data structure is not extended
 
    const float nxPost  = post->clayer->loc.nx;
    const float nyPost  = post->clayer->loc.ny;
    const float kx0Post = post->clayer->loc.kx0;
    const float ky0Post = post->clayer->loc.ky0;
    const float nfPost  = post->clayer->numFeatures;
-
-   const float nxBorderPost = post->clayer->loc.nPad;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -765,15 +756,21 @@ int HyPerConn::createAxonalArbors()
    const float psf = psy * (nyPost + 2.0f*nxBorderPost);
 #endif
 
+   // Neighbor stuff may change, currently activity is extended beyond
+   // layer region into margins that are copied into by neighbors.
+   // So currently there is only one neighbor (index 0 for self).
+   // Instead of a loop over neighbors this probably should be
+   // a loop over the arbor list.
+
    for (int n = 0; n < numNeighbors; n++) {
-      int numArbors = pre->numberOfNeurons(n);
+      int numArbors = numWeightPatches(n);
       axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
       assert(axonalArborList[n] != NULL);
    }
 
    // there is an arbor list for every neighbor
    for (int n = 0; n < numNeighbors; n++) {
-      int numArbors = pre->numberOfNeurons(n);
+      int numArbors = numWeightPatches(n);
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
       assert(dataPatches != NULL);
 
@@ -844,7 +841,7 @@ int HyPerConn::createAxonalArbors()
          assert(kl >= 0);
          assert(kl < post->clayer->numNeurons);
 
-         arbor->data = &dataPatches[k];  // patches allocated above to fit border region
+         arbor->data = &dataPatches[k];
          arbor->weights = this->getWeights(kPre, n);
          arbor->plasticIncr = this->getPlasticityIncrement(kPre, n);
          arbor->offset = kl;
@@ -853,23 +850,43 @@ int HyPerConn::createAxonalArbors()
          pvdata_t * phi = post->clayer->phi[channel] + kl;
          pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
 
-      } // loop over arbors (pre-synaptic neurons in neighbor region)
+         // adjust patch size (shrink) to fit within interior of post-synaptic layer
+
+         pvpatch_adjust(arbor->weights, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+         if (stdpFlag) {
+            arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
+                             (size_t)dy * (size_t)arbor->weights->sy;
+            pvpatch_adjust(arbor->plasticIncr, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+         }
+
+      } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
 
    return 0;
 }
 
+//////////////
+// This code should no longer be needed as the shrinking of weight patches is no
+// done in createAxonalArbors
 int HyPerConn::adjustAxonalArborWeights()
 {
    // TODO - these needs to be an input parameter obtained from the connection
    const float kxPost0Left = 0.0f;
    const float kyPost0Left = 0.0f;
 
-   const float nxPre  = pre->clayer->loc.nx;
-   const float nyPre  = pre->clayer->loc.ny;
-   const float kx0Pre = pre->clayer->loc.kx0;
-   const float ky0Pre = pre->clayer->loc.ky0;
+   const float nxBorderPre  = pre->clayer->loc.nPad;
+   const float nyBorderPre  = pre->clayer->loc.nPad;
+
+   // use the extended reference frame (with margins) for pre-synaptic layer
+
+   const float nxPre  = pre->clayer->loc.nx + 2.0f * nxBorderPre;
+   const float nyPre  = pre->clayer->loc.ny + 2.0f * nyBorderPre;
+   const float kx0Pre = pre->clayer->loc.kx0 - nxBorderPre;
+   const float ky0Pre = pre->clayer->loc.ky0 - nyBorderPre;
    const float nfPre  = pre->clayer->numFeatures;
+
+   // use the non-extended reference frame for post-synaptic layer
+   // because phi data structure is not extended
 
    const float nxPost  = post->clayer->loc.nx;
    const float nyPost  = post->clayer->loc.ny;
@@ -882,7 +899,7 @@ int HyPerConn::adjustAxonalArborWeights()
    const int numNeighbors = numAxonalArborLists;
 
    for (int n = 0; n < numNeighbors; n++) {
-      int numArbors = pre->numberOfNeurons(n);
+      int numArbors = numWeightPatches(n);
 
       for (int k = 0; k < numArbors; k++) {
          PVAxonalArbor * arbor = axonalArbor(k, n);
@@ -1493,12 +1510,6 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch
 {
    for (int k = 0; k < nPatches; k++) {
       patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-   }
-   for (int k = 0; k < nPatches; k++) {
-      pvdata_t * w = patches[k]->data;
-      for (int i = 0; i < nxPatch * nyPatch * nfPatch; i++) {
-         w[i] = 0;
-      }
    }
    return patches;
 }
