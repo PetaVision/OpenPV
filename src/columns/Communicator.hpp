@@ -33,6 +33,12 @@ namespace PV {
 
 class Communicator {
 public:
+
+   static size_t recvOffset(int n, const LayerLoc * loc);
+   static size_t sendOffset(int n, const LayerLoc * loc);
+
+   static MPI_Datatype * newDatatypes(const LayerLoc * loc);
+
    Communicator(int * argc, char *** argv);
    virtual ~Communicator();
 
@@ -54,10 +60,6 @@ public:
    int commColumn()       {return commColumn(icRank);}
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}
-
-   size_t recvOffset(int n, const LayerLoc * loc);
-   size_t sendOffset(int n, const LayerLoc * loc);
-   MPI_Datatype * newDatatypes(const LayerLoc * loc);
 
    int exchange(pvdata_t * data,
                 const MPI_Datatype neighborDatatypes [],
