@@ -42,7 +42,7 @@ public:
 
    int increaseTimeLevel()   {return store->newLevelIndex();}
 
-   void setCommunicator(MPI_Comm comm)  {this->comm = comm;}
+//   void setCommunicator(MPI_Comm comm)  {this->comm = comm;}
 
    DataStore * dataStore()   {return store;}
 
@@ -58,9 +58,10 @@ private:
    HyPerConn * connection[MAX_SUBSCRIBERS];
    DataStore * store;
 
-   MPI_Request    request[MAX_MESSAGES];
-   MPI_Datatype * mpi_datatypes;
-   MPI_Comm       comm;
+   Communicator * comm;
+
+   MPI_Request    requests[NUM_NEIGHBORHOOD-1];
+   MPI_Datatype * neighborDatatypes;
 };
 
 class InterColComm : public Communicator {
@@ -69,7 +70,7 @@ public:
    InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
 
-   int addPublisher(HyPerLayer * pub, size_t size1, size_t size2, int numLevels);
+   int addPublisher(HyPerLayer * pub, size_t size, int numLevels);
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int pubId);
