@@ -34,12 +34,12 @@ InterColComm::~InterColComm()
    }
 }
 
-int InterColComm::addPublisher(HyPerLayer* pub, size_t size, int numLevels)
+int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 {
    int pubId = pub->getLayerId();
 
 #ifdef EXTEND_BORDER_INDEX
-   publishers[pubId] = new Publisher(pubId, this, pub->clayer->loc, numLevels);
+   publishers[pubId] = new Publisher(pubId, this, numItems, pub->clayer->loc, numLevels);
 #else
    publishers[pubId] = new Publisher(pubId, numNeighbors, size1, numBorders, size2, numLevels);
    publishers[pubId]->setCommunicator(communicator());
@@ -100,15 +100,21 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
    }
 }
 
-Publisher::Publisher(int pubId, Communicator * comm, LayerLoc loc, int numLevels)
+Publisher::Publisher(int pubId, Communicator * comm, int numItems, LayerLoc loc, int numLevels)
 {
-   size_t size = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad) * sizeof(float);
+   size_t dataSize  = numItems * sizeof(float);
+
    this->pubId = pubId;
    this->comm  = comm;
    this->numSubscribers = 0;
 
+   cube.data = NULL;
+   cube.loc = loc;
+   cube.numItems = numItems;
+   cube.size = dataSize + sizeof(PVLayerCube);  // not really inplace but ok
+
    const int numBuffers = 1;
-   this->store = new DataStore(numBuffers, size, numLevels);
+   this->store = new DataStore(numBuffers, dataSize, numLevels);
 
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
@@ -127,12 +133,11 @@ int Publisher::publish(HyPerLayer* pub,
                        int borders[], int numBorders,
                        PVLayerCube* cube)
 {
-   size_t size = cube->size;
-   assert(size == store->size());
+   size_t dataSize = cube->numItems * sizeof(pvdata_t);
+   assert(dataSize == store->size());
 
    if (numSubscribers < 1) {
-      // no one to deliver to
-      return 0;
+      return 0;  // no one to deliver to
    }
 
 #ifdef PV_USE_MPI
@@ -142,7 +147,7 @@ int Publisher::publish(HyPerLayer* pub,
    // don't send interior
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == icRank) continue;  // don't send interior or borders to self
+      if (neighbors[n] == icRank) continue;  // don't send interior to self
       pvdata_t * recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
       pvdata_t * sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
 #ifdef DEBUG_OUTPUT
@@ -152,18 +157,14 @@ int Publisher::publish(HyPerLayer* pub,
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
    }
-
-   // don't recv interior
-   int count = comm->numberOfNeighbors() - 1;
-#ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
-#endif
-   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
+   assert(nreq == comm->numberOfNeighbors() - 1);
 
 #endif // PV_USE_MPI
 
-   // copy interior (non-border regions)
-   memcpy(recvBuffer(0), cube, size);
+   pvdata_t * sendBuf = cube->data + Communicator::sendOffset(LOCAL, &cube->loc);
+
+   // copy layer interior (no margins)
+   memcpy(recvBuffer(LOCAL), sendBuf, dataSize);
 
 #ifdef PV_OLD_MPI
    // send/recv to/from neighbors
@@ -185,11 +186,11 @@ int Publisher::publish(HyPerLayer* pub,
    // transform cube (and copy) for boundary conditions of neighbor slots that
    // don't exist in processor topology (i.e., a hypercolumn at edge of image)
    //
-   for (int i = 0; i < numBorders; i++) {
-      int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
-      PVLayerCube* border = (PVLayerCube*) recvBuffer(borderIndex);
-      pub->copyToBorder(borders[i], cube, border);
-   }
+//   for (int i = 0; i < numBorders; i++) {
+//      int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
+//      PVLayerCube* border = (PVLayerCube*) recvBuffer(borderIndex);
+//      pub->copyToBorder(borders[i], cube, border);
+//   }
 
    return 0;
 }
@@ -200,8 +201,7 @@ int Publisher::publish(HyPerLayer* pub,
 int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 {
    if (numSubscribers < 1) {
-      // no one to deliver to
-      return 0;
+      return 0;  // no one to deliver to
    }
 
    // deliver delayed information first
@@ -209,50 +209,33 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       HyPerConn* conn = connection[ic];
       int delay = conn->getDelay();
       if (delay > 0) {
-         for (int n = 0; n < numNeighbors; n++) {
-            PVLayerCube* cube = (PVLayerCube*) store->buffer(n, delay);
-            pvcube_setAddr(cube);  // fix data address arriving from MPI
+         cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
 #ifdef DEBUG_OUTPUT
-            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", icRank, n, cube);
-            fflush(stdout);
+         printf("[%d]: Publisher::deliver: buf=%p\n", icRank, cube.data);
+         fflush(stdout);
 #endif
-            conn->deliver(cube, n);
-         }
+         conn->deliver(&cube, LOCAL);
       }
    }
 
    // deliver current (no delay) information last
-   for (int n = 0; n < numNeighbors; n++) {
-      int neighborId = n; /* WARNING - this must be initialized to n to work with PV_MPI */
 
 #ifdef PV_USE_MPI
-      MPI_Waitany(numNeighbors, requests, &neighborId, MPI_STATUS_IGNORE);
+   MPI_Waitall(numNeighbors, requests, MPI_STATUSES_IGNORE);
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+#endif
 #endif // PV_USE_MPI
 
-      for (int ic = 0; ic < numSubscribers; ic++) {
-         HyPerConn* conn = this->connection[ic];
-         if (conn->getDelay() == 0) {
-            PVLayerCube* cube = (PVLayerCube*) store->buffer(neighborId, 0);
-            pvcube_setAddr(cube);  // fix data address arriving from MPI
+   for (int ic = 0; ic < numSubscribers; ic++) {
+      HyPerConn* conn = this->connection[ic];
+      if (conn->getDelay() == 0) {
+         cube.data = (pvdata_t *) store->buffer(LOCAL);
 #ifdef DEBUG_OUTPUT
-            printf("[%d]: Publisher::deliver: neighbor=%d buf=%p\n", icRank, neighborId, cube);
-            fflush(stdout);
+         printf("[%d]: Publisher::deliver: buf=%p\n", icRank, cube.data);
+         fflush(stdout);
 #endif
-            conn->deliver(cube, neighborId);
-         }
-      }
-   }
-
-   // deliver border regions
-   for (int i = 0; i < numBorders; i++) {
-      int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
-
-      for (int ic = 0; ic < numSubscribers; ic++) {
-         HyPerConn* conn = this->connection[ic];
-         int delay = conn->getDelay();
-         PVLayerCube* border = (PVLayerCube*) store->buffer(borderIndex, delay);
-         pvcube_setAddr(border);  // fix data address arriving from MPI
-         conn->deliver(border, borderIndex);
+         conn->deliver(&cube, LOCAL);
       }
    }
 

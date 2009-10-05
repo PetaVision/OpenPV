@@ -29,7 +29,7 @@ class Publisher {
 public:
    // deprecated constructor that separates borders from the layer data structure
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
-   Publisher(int pubId, Communicator * comm, LayerLoc loc, int numLevels);
+   Publisher(int pubId, Communicator * comm, int numItems, LayerLoc loc, int numLevels);
    virtual ~Publisher();
 
    int publish(HyPerLayer * pub,
@@ -58,6 +58,8 @@ private:
    HyPerConn * connection[MAX_SUBSCRIBERS];
    DataStore * store;
 
+   PVLayerCube cube;
+
    Communicator * comm;
 
    MPI_Request    requests[NUM_NEIGHBORHOOD-1];
@@ -70,7 +72,7 @@ public:
    InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
 
-   int addPublisher(HyPerLayer * pub, size_t size, int numLevels);
+   int addPublisher(HyPerLayer * pub, int numItems, int numLevels);
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int pubId);
