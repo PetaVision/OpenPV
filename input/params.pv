@@ -6,9 +6,11 @@
 //
 
 HyPerCol "column" = {
-   nx = 64;
-   ny = 64;
    dt = .5;
+};
+
+HyPerLayer "Image" = {
+   nPad = 0;   
 };
 
 //
