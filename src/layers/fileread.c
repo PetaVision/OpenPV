@@ -112,7 +112,6 @@ void fileread_update(PVLayer *l)
       lProb[1] = params->poissonBlankProb;
       for (k = 0; k < l->numNeurons; k++) {
          l->activity->data[k] = lProb[(l->V[k] > 0.0 ? 0 : 1)];
-      // l->fActivity[l->writeIdx][k] = stimStatus ? l->V[k] * 1.0 : 0.0;
       }
    }
    else {
