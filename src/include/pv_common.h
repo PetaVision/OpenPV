@@ -22,7 +22,7 @@
 #define FINAL_TIME (-1)
 
 // pad layer activity with border
-#undef EXTEND_BORDER_INDEX
+#define EXTEND_BORDER_INDEX
 
 // TODO: move to HyPerCol, set as runtime param, link each layer back to its HyPerCol
 // numerical integration parameters
