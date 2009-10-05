@@ -29,6 +29,7 @@ typedef struct PVLayer_ {
    int layerId;    // unique ID that identifies this layer in column
    int columnId;   // column ID
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
+   int numExtended;// # neurons in layer including extended border regions
    int numFeatures;// # features in this layer
    int numActive;  // # neurons that fired
 
@@ -43,7 +44,6 @@ typedef struct PVLayer_ {
    // Output activity buffers -- a ring buffer to implement delay
    // TODO - get rid of this, belongs in connection?
    int numDelayLevels; // # of delay levels for activity buffers
-   int writeIdx; // which one currently writing to
 
    PVLayerCube * activity;  // activity buffer FROM this layer
    int * activeIndices;     // indices of neurons that fired
