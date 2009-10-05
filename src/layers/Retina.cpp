@@ -20,7 +20,7 @@ namespace PV {
 // default values
 fileread_params RetinaParams =
 {
-   0.0, 1.0, 1.0, 1.0*(NOISE_AMP==0.0)+0.5*(NOISE_AMP>0.0),
+   0.0, 0.0, 1.0, 1.0*(NOISE_AMP==0.0)+0.5*(NOISE_AMP>0.0),
    0.0*(NOISE_AMP==0.0)+0.01*(NOISE_AMP>0.0),
    0.0, 0.0,         /* burstFreg, burstDuration */
    0.0, 0.0, 1000.0  /* marginWidth, beginStim, endStim */
@@ -71,6 +71,14 @@ int Retina::initialize(PVLayerType type)
 
    status = parent->addLayer(this);
 
+   // at least for the Retina, V is extended size, so resize
+   if (l->numExtended != l->numNeurons) {
+      free(l->V);
+      l->V = (pvdata_t *) calloc(l->numExtended, sizeof(float));
+   }
+
+   // TODO - could free other layer parameters as they are not used
+
    // use image's data buffer
    updateImage(parent->simulationTime(), parent->getDeltaTime());
    copyFromImageBuffer();
@@ -83,25 +91,26 @@ int Retina::initialize(PVLayerType type)
    const int nyBorder = l->loc.nPad;
 
    // TODO - make sure the origin information is working correctly
-   if (nxBorder != 0.0f || nyBorder != 0.0f) {
-      for (n = 0; n < l->numNeurons; n++) {
-         float x = xPos(n, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
-         float y = yPos(n, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
-         if ( x < nxBorder || x > l->loc.nxGlobal * l->dx - nxBorder ||
-              y < nyBorder || y > l->loc.nyGlobal * l->dy - nyBorder ) {
-            clayer->V[n] = 0.0;
-         }
-      }
-   }
+   // TODO - I don't think this is needed any longer
+//   if (nxBorder != 0.0f || nyBorder != 0.0f) {
+//      for (n = 0; n < l->numExtended; n++) {
+//         float x = xPos(n, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
+//         float y = yPos(n, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
+//         if ( x < nxBorder || x > l->loc.nxGlobal * l->dx - nxBorder ||
+//              y < nyBorder || y > l->loc.nyGlobal * l->dy - nyBorder ) {
+//            clayer->V[n] = 0.0;
+//         }
+//      }
+//   }
 
    if (params->invert) {
-      for (n = 0; n < l->numNeurons; n++) {
+      for (n = 0; n < l->numExtended; n++) {
          V[n] = (V[n] == 0.0) ? 1.0 : 0.0;
       }
    }
 
    if (params->uncolor) {
-      for (n = 0; n < l->numNeurons; n++) {
+      for (n = 0; n < l->numExtended; n++) {
          V[n] = (V[n] == 0.0) ? 0.0 : 1.0;
       }
    }
@@ -186,12 +195,12 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
       if (params->spikingFlag == 0.0) {
          // non-spiking code
          if (stimStatus) {
-            for (int k = 0; k < clayer->numNeurons; k++) {
+            for (int k = 0; k < clayer->numExtended; k++) {
                activity[k] = V[k];
             }
          }
          else {
-            for (int k = 0; k < clayer->numNeurons; k++) {
+            for (int k = 0; k < clayer->numExtended; k++) {
                activity[k] = 0.0;
             }
          }
@@ -199,19 +208,19 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
       else {
          // Poisson spiking...
          const int nf = clayer->numFeatures;
-         const int numNeurons = clayer->numNeurons;
+         const int numExtended = clayer->numExtended;
 
          assert(nf > 0 && nf < 3);
 
          if (stimStatus == 0) {
             // fire at the background rate
-            for (int k = 0; k < numNeurons; k++) {
+            for (int k = 0; k < numExtended; k++) {
                activity[k] = rand() < poissonBlankProb;
             }
          }
          else {
             // ON case (k even)
-            for (int k = 0; k < clayer->numNeurons; k += nf) {
+            for (int k = 0; k < clayer->numExtended; k += nf) {
                if ( V[k] == 0.0 )
                   // fire at the background rate
                   activity[k] = (rand() < poissonBlankProb );
@@ -224,7 +233,7 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
             }
             // OFF case (k is odd)
             if (nf == 2) {
-               for (int k = 1; k < clayer->numNeurons; k += nf) {
+               for (int k = 1; k < clayer->numExtended; k += nf) {
                    if ( V[k] == 0.0 )
                       // fire at the background rate
                       activity[k] = (rand() < poissonBlankProb );
@@ -248,19 +257,22 @@ int Retina::copyFromImageBuffer()
    const int nf = clayer->numFeatures;
    pvdata_t * V = clayer->V;
 
-   int count = clayer->loc.nx * clayer->loc.ny;
-   assert(count == img->getImageLoc().nx * img->getImageLoc().ny);
+   LayerLoc imageLoc = img->getImageLoc();
+
+   assert(clayer->loc.nx == imageLoc.nx && clayer->loc.ny * imageLoc.ny);
 
    pvdata_t * ibuf = img->getImageBuffer();
 
-   assert(nf == 1 || nf == 2);
+   // for now
+   assert(nf == 1);
    if (nf == 1) {
-      for (int k = 0; k < clayer->numNeurons; k++) {
+      for (int k = 0; k < clayer->numExtended; k++) {
          V[k] = ibuf[k];
       }
    }
    else {
       // f[0] are OFF, f[1] are ON cells
+      const int count = imageLoc.nx * imageLoc.ny;
       if (fireOffPixels) {
          for (int k = 0; k < count; k++) {
             V[2*k]   = 1 - ibuf[k];
@@ -297,7 +309,7 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
-   for (int k = 0; k < clayer->numNeurons; k++) {
+   for (int k = 0; k < clayer->numExtended; k++) {
       float probStim = params->poissonEdgeProb * V[k];
       float prob = params->poissonBlankProb;
 
@@ -320,7 +332,7 @@ int Retina::writeState(const char * path, float time)
    int sy = sx*clayer->loc.nx;
    pvdata_t * a = clayer->activity->data;
 
-   for (int i = 0; i < clayer->numNeurons; i++) {
+   for (int i = 0; i < clayer->numExtended; i++) {
       if (a[i] == 1.0) printf("a[%d] == 1\n", i);
    }
 
