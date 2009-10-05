@@ -34,7 +34,7 @@ InterColComm::~InterColComm()
    }
 }
 
-int InterColComm::addPublisher(HyPerLayer* pub, size_t size1, size_t size2, int numLevels)
+int InterColComm::addPublisher(HyPerLayer* pub, size_t size, int numLevels)
 {
    int pubId = pub->getLayerId();
 
@@ -92,7 +92,7 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
 {
    size_t maxSize = (size1 > size2) ? size1 : size2;
    this->pubId = pubId;
-   this->comm  = MPI_COMM_WORLD;
+   this->comm  = NULL;
    this->numSubscribers = 0;
    this->store = new DataStore(numType1+numType2, maxSize, numLevels);
    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
@@ -102,11 +102,16 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
 
 Publisher::Publisher(int pubId, Communicator * comm, LayerLoc loc, int numLevels)
 {
-   size_t size = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad);
+   size_t size = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad) * sizeof(float);
    this->pubId = pubId;
-   this->comm  = comm->communicator();
+   this->comm  = comm;
    this->numSubscribers = 0;
-   this->store = new DataStore(1, size, numLevels);
+
+   const int numBuffers = 1;
+   this->store = new DataStore(numBuffers, size, numLevels);
+
+   this->neighborDatatypes = Communicator::newDatatypes(&loc);
+
    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
       this->connection[i] = NULL;
    }
@@ -131,6 +136,36 @@ int Publisher::publish(HyPerLayer* pub,
    }
 
 #ifdef PV_USE_MPI
+   int icRank = comm->commRank();
+   MPI_Comm mpiComm = comm->communicator();
+
+   // don't send interior
+   int nreq = 0;
+   for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
+      if (neighbors[n] == icRank) continue;  // don't send interior or borders to self
+      pvdata_t * recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
+      pvdata_t * sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+#endif
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
+                &requests[nreq++]);
+      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
+   }
+
+   // don't recv interior
+   int count = comm->numberOfNeighbors() - 1;
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+#endif
+   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
+
+#endif // PV_USE_MPI
+
+   // copy interior (non-border regions)
+   memcpy(recvBuffer(0), cube, size);
+
+#ifdef PV_OLD_MPI
    // send/recv to/from neighbors
    for (int i = 0; i < numNeighbors; i++) {
       // Note - cube->data addr need not be correct as it will be wrong copied in from MPI
@@ -144,9 +179,7 @@ int Publisher::publish(HyPerLayer* pub,
       fflush(stdout);
 #endif
    }
-#else // PV_USE_MPI
-   memcpy(recvBuffer(0), cube, size);
-#endif // PV_USE_MPI
+#endif // PV_OLD_MPI
 
    //
    // transform cube (and copy) for boundary conditions of neighbor slots that
@@ -193,7 +226,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       int neighborId = n; /* WARNING - this must be initialized to n to work with PV_MPI */
 
 #ifdef PV_USE_MPI
-      MPI_Waitany(numNeighbors, request, &neighborId, MPI_STATUS_IGNORE);
+      MPI_Waitany(numNeighbors, requests, &neighborId, MPI_STATUS_IGNORE);
 #endif // PV_USE_MPI
 
       for (int ic = 0; ic < numSubscribers; ic++) {
