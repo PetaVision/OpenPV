@@ -150,7 +150,8 @@ static inline int strideF(float nx, float ny, float nf)
  */
 static inline int nearby_neighbor(int kPre, int scale)
 {
-   return (int) (kPre * powf(2.0, (float) -scale));
+   float a = powf(2.0, (float) -scale);
+   return (int) (kPre * a) + (int) (0.5f * a);
 }
 
 /**
