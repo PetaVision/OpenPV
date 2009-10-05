@@ -27,7 +27,7 @@ protected:
    virtual ~HyPerLayer() = 0;
 
 private:
-   int init_base(const char * name, HyPerCol * hc);
+   int initialize_base(const char * name, HyPerCol * hc);
 
 public:
 
@@ -40,12 +40,14 @@ public:
    virtual int
        recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
 
-   virtual int initialize(PVLayerType type);
-   virtual int initBorder(PVLayerCube * border, int borderId);
-   virtual int initFinish();
+   int initialize(PVLayerType type);
+   int initBorder(PVLayerCube * border, int borderId);
+   int initFinish();
+
+   int copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
+   static int copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc);
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
-   virtual int copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int setParams(int numParams, size_t sizeParams, float * params);
    virtual int getParams(int * numParams, float ** params);
@@ -56,8 +58,6 @@ public:
    virtual int writeState(const char * path, float time);
 
    virtual int insertProbe(PVLayerProbe * probe);
-
-   virtual int  getActivityLength();
 
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
@@ -74,6 +74,8 @@ public:
    // Public access functions:
 
    const char * getName()            {return name;}
+
+   int numActivity()                 {return clayer->numExtended;}
 
    int  getLayerId()                 {return clayer->layerId;}
    void setLayerId(int id)           {clayer->layerId = id;}
@@ -93,7 +95,6 @@ protected:
    int numProbes;
    PVLayerProbe ** probes;
 
-   int maxBorderSize;
    int outputOnPublish;
    int ioAppend;                // controls opening of binary files
 };

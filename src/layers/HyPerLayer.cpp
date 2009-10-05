@@ -31,7 +31,7 @@ namespace PV {
 // derived classes.  It should NOT call any virtual methods
 HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc)
 {
-   init_base(name, hc);
+   initialize_base(name, hc);
 }
 
 HyPerLayer::~HyPerLayer()
@@ -51,7 +51,7 @@ int HyPerLayer::initialize(PVLayerType type)
    return 0;
 }
 
-int HyPerLayer::init_base(const char * name, HyPerCol * hc)
+int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 {
    // name should be initialize first as other methods may use it
    this->name = strdup(name);
@@ -82,8 +82,8 @@ int HyPerLayer::init_base(const char * name, HyPerCol * hc)
    }
 
    int nBorder = 0;
-   if (params->present(name, "nBorder")) {
-      nBorder = (int) params->value(name, "nBorder");
+   if (params->present(name, "marginWidth")) {
+      nBorder = (int) params->value(name, "marginWidth");
    }
 
    // let nxScale, nyScale supersede nx, ny
@@ -104,13 +104,6 @@ int HyPerLayer::init_base(const char * name, HyPerCol * hc)
 
    clayer = pvlayer_new(xScale, yScale, nx, ny, numFeatures, nBorder);
    clayer->layerType = TypeGeneric;
-
-   int width  = (int) clayer->loc.nPad;
-   int height = (clayer->loc.nx > clayer->loc.ny) ? clayer->loc.nx : clayer->loc.ny;
-   int maxBorderItems = width * height * clayer->numFeatures;
-
-   // calculate maximum size of a border cube
-   maxBorderSize = pvcube_size(maxBorderItems);
 
    return 0;
 }
@@ -192,6 +185,7 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
                   comm->numCommRows(), comm->numCommColumns());
 
    comm->addPublisher(this, clayer->activity->size, maxBorderSize, MAX_F_DELAY);
+//   comm->addPublisher(this, clayer->activity->size, MAX_F_DELAY);
 
    return 0;
 }
@@ -269,6 +263,30 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
    }
 
    return -1;
+}
+
+int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc)
+{
+   const int nx = sameLoc->nx;
+   const int ny = sameLoc->ny;
+
+   const int nxBorder = sameLoc->nPad;
+   const int nyBorder = sameLoc->nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   int ii = 0;
+   for (int b = 0; b < sameLoc->nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            dst[ii++] = src[iex + jex*sy + b*sb];
+         }
+      }
+   }
+   return 0;
 }
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
@@ -397,11 +415,6 @@ int HyPerLayer::setFuncs(void * initFunc, void * updateFunc)
 int HyPerLayer::getParams(int * numParams, float ** params)
 {
    return pvlayer_getParams(clayer, numParams, params);
-}
-
-int HyPerLayer::getActivityLength(void)
-{
-   return getCLayer()->numNeurons;
 }
 
 #ifndef FEATURES_LAST
@@ -804,7 +817,7 @@ PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
    float sy = sx * nx;
 
    size_t dataSize = nx * ny * nf * sizeof(float);
-   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch) + dataSize);
+   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
    assert(p != NULL);
 
    pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
@@ -869,7 +882,7 @@ float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nPatch
    if ((int) nPatch % 2 == 0) {
       // if even, can't shift evenly (at least for scale < 0)
       // the later choice alternates direction so not always to left
-      shift = (xScale < 0) ? 1 : (int) kxPre % 2;
+      shift = (xScale < 0) ? 0 : (int) kxPre % 2;
    }
    shift -= (int) (0.5 * nPatch);
    return kxPost0Left + shift + nearby_neighbor((int) kxPre, xScale);
