@@ -5,7 +5,7 @@
 #undef PV_ARCH_64
 
 /* define this if using a vendor supplied MPI library */
-#define PV_USE_MPI
+#undef PV_USE_MPI
 
 /* maximum length of a path */
 #define PV_PATH_MAX 127
