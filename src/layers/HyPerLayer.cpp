@@ -8,6 +8,7 @@
 #include "HyPerLayer.hpp"
 #include "../include/pv_common.h"
 #include "../columns/HyPerCol.hpp"
+#include "../io/imageio.hpp"
 #include "../io/io.h"
 #include <assert.h>
 #include <string.h>
@@ -265,6 +266,30 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
    return -1;
 }
 
+static int copyToInteriorByteBuffer(unsigned char * buf, pvdata_t * data, const LayerLoc * loc)
+{
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   int ii = 0;
+   for (int b = 0; b < loc->nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            buf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+         }
+      }
+   }
+   return 0;
+}
+
 int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc)
 {
    const int nx = sameLoc->nx;
@@ -394,13 +419,34 @@ int HyPerLayer::writeState(const char * path, float time)
 {
    char fullpath[PV_PATH_MAX];
 
+   const int nx = clayer->loc.nx + 2*clayer->loc.nPad;
+   const int ny = clayer->loc.ny + 2*clayer->loc.nPad;
+
    // print activity
    sprintf(fullpath, "%s/f%1.1d.tif", path, clayer->layerId);
-   pv_tiff_write_cube(fullpath, clayer->activity, (int)clayer->loc.nx, (int)clayer->loc.ny, clayer->numFeatures);
+   pv_tiff_write_cube(fullpath, clayer->activity, nx, ny, clayer->numFeatures);
 
    return 0;
 }
 
+int HyPerLayer::writeActivity(const char * filename)
+{
+   int status = 0;
+   LayerLoc * loc = &clayer->loc;
+
+   const int n = loc->nx * loc->ny * loc->nBands;
+   unsigned char * buf = new unsigned char[n];
+   assert(buf != NULL);
+
+   status = copyToInteriorByteBuffer(buf, clayer->activity->data, loc);
+
+   // gather the local portions and write the image
+   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
+
+   delete buf;
+
+   return status;
+}
 
 int HyPerLayer::setParams(int numParams, size_t sizeParams, float * params)
 {

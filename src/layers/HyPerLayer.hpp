@@ -56,6 +56,8 @@ public:
    virtual int publish(InterColComm* comm, float time);
    virtual int outputState(float time);
    virtual int writeState(const char * path, float time);
+   virtual int writeActivity(const char * filename);
+
 
    virtual int insertProbe(PVLayerProbe * probe);
 
