@@ -20,7 +20,7 @@ HyPerLayer "Retina" = {
    ny = 32;
    nf = 1;   // features = (OFF,ON}
    
-   nBorder = 0;
+   nBorder = 0;//0; MA change- just a hunch
 
    beginStim = .0;
    endStim   = 200000.0;
@@ -32,7 +32,7 @@ HyPerLayer "Retina" = {
    spikingFlag = 1;           // spike as poisson?
    //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank 
                               //are overwritten
-   poissonEdgeProb  = 1.0;//0.5;//0.50;//.125;      // if so, on probability
+   poissonEdgeProb  = 1.00;//0.5;//0.50;//.125;      // if so, on probability
    poissonBlankProb = 0.0;//0.01;//0.02;//.01;//.075; //.0125;     //       off probability
    
    burstDuration = 10;
@@ -46,7 +46,7 @@ HyPerLayer "L1" = {
    ny = 32;
    nf = 1;    // features=(OFF,ON} times 8 combinations
    no = 1;
-   nBorder = 0;
+   nBorder = 0;//0; MA change- just a hunch
    
    spikingFlag = 1; // ?
    
@@ -144,7 +144,7 @@ HyPerConn "Retina to L1" = {
    wMinInit = 4.0;  // default values if Gaussian is not defined
    wMaxInit = 6.0; // if not defined uses wMin and wMax.
    
-   wGaussMean = 5.00;
+   wGaussMean = 5.0;//5.00;
    wGaussStdev = 0.0;//1.00;
    
    idum = 3940284; // random number generator seed
@@ -152,7 +152,8 @@ HyPerConn "Retina to L1" = {
    randomFlag = 1; // 
    
    wMin = 0.0;
-   wMax = 10.0;
+   wMax = 10.0;   //10.0;
+   dWMax = 0.01;
    
    writeStep = 100; // writes to output file every writeStep
 
