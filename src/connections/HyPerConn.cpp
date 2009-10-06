@@ -143,7 +143,8 @@ int HyPerConn::initialize(const char * filename)
 
    if (status != 0) {
 
-      float randomFlag = 0;
+      float randomFlag = inputParams->value(getName(), "randomFlag", 0.0);
+;
       if (inputParams->present(getName(), "randomFlag")) {
          randomFlag = inputParams->value(getName(), "randomFlag");
       }
@@ -1455,10 +1456,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches,
 
       PVParams * params = parent->parameters();
 
-      float randomFlag = 0;
-      if (params->present(getName(), "randomFlag")) {
-         randomFlag = params->value(getName(), "randomFlag");
-      }
+      float randomFlag = params->value(getName(), "randomFlag", 0);
       if (randomFlag > 0) {
          return initializeRandomWeights(patches, numPatches, 0);
       }
