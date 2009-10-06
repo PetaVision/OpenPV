@@ -108,18 +108,6 @@ int HyPerConn::initialize(const char * filename)
 
    setPatchSize(filename);
 
-   if (inputParams->present(name, "strength")) {
-      this->wMax = inputParams->value(name, "strength");
-   }
-   // let wMax override strength if user provides it
-   if (inputParams->present(name, "wMax")) {
-      this->wMax = inputParams->value(name, "wMax");
-   }
-
-   if (inputParams->present(name, "stdpFlag")) {
-      stdpFlag = inputParams->value(name, "stdpFlag");
-   }
-
    wPatches[arbor] = createWeights(wPatches[arbor]);
 
    if (stdpFlag) {
@@ -138,23 +126,24 @@ int HyPerConn::initialize(const char * filename)
       status = readWeights(filename);
    }
 
-   if (status != 0) {
-      char name[PV_PATH_MAX];
-      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin",
-                     OUTPUT_PATH, getConnectionId());
-      status = this->readWeights(name);
+   if (status != 0 && inputParams->present(getName(), "initFromLastFlag")) {
+      if ((int) inputParams->value(getName(), "initFromLastFlag") != 1) {
+         char name[PV_PATH_MAX];
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin",
+                        OUTPUT_PATH, getConnectionId());
+         status = this->readWeights(name);
+      }
    }
 
    if (status != 0) {
-      PVParams * params = parent->parameters();
 
       float randomFlag = 0;
-      if (params->present(getName(), "randomFlag")) {
-         randomFlag = params->value(getName(), "randomFlag");
+      if (inputParams->present(getName(), "randomFlag")) {
+         randomFlag = inputParams->value(getName(), "randomFlag");
       }
       float randomSeed = 0;
-      if (params->present(getName(), "randomSeed")) {
-         randomSeed = params->value(getName(), "randomSeed");
+      if (inputParams->present(getName(), "randomSeed")) {
+         randomSeed = inputParams->value(getName(), "randomSeed");
       }
 
       const int numPatches = numWeightPatches(arbor);
@@ -231,6 +220,15 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 
    assert(params->delay < MAX_F_DELAY);
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
+
+   //
+   // now set params that are not in the params struct (instance varibles)
+
+   if (filep->present(name, "strength")) wMax = filep->value(name, "strength");
+   // let wMax override strength if user provides it
+   if (filep->present(name, "wMax"))     wMax = filep->value(name, "wMax");
+
+   if (filep->present(name, "stdpFlag")) stdpFlag = filep->value(name, "stdpFlag");
 
    return 0;
 }
@@ -808,7 +806,7 @@ int HyPerConn::createAxonalArbors()
          }
          else if (kxPost + nxp > nxPost) {
             nxPatch -= kxPost + nxp - nxPost;
-            if (nxPatch < 0.0) {
+            if (nxPatch <= 0.0) {
                nxPatch = 0.0;
                kxPost  = nxPost - 1.0;
             }
@@ -822,7 +820,7 @@ int HyPerConn::createAxonalArbors()
          }
          else if (kyPost + nyp > nyPost) {
             nyPatch -= kyPost + nyp - nyPost;
-            if (nyPatch < 0.0) {
+            if (nyPatch <= 0.0) {
                nyPatch = 0.0;
                kyPost  = nyPost - 1.0;
             }
