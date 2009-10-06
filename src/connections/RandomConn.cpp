@@ -133,7 +133,7 @@ int RandomConn::initializeGaussianWeights(int seed)
 
    const int arbor = 0;
    const int numPatches = numWeightPatches(0);
-   printf("numPatches = %d  wGaussMean = %f wGaussStdev = %f idum = %ld ",
+   printf("numPatches = %d  wGaussMean = %f wGaussStdev = %f idum = %ld\n",
          numPatches, wGaussMean , wGaussStdev, idum);
 
    for (int k = 0; k < numPatches; k++) {
