@@ -5,7 +5,7 @@
  *      Author: rasmussn
  */
 
-#include "src/io/tiff.h"
+#include "../tiff.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
