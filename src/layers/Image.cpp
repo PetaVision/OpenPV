@@ -30,8 +30,6 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
 
    if (status) return;
 
-   double time = MPI_Wtime();
-
    const int N = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad) * loc.nBands;
    data = new float [N];
 
@@ -39,29 +37,15 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
       data[i] = 0;
    }
 
-   time = MPI_Wtime() - time;
-//   fprintf(stdout, "alloc: elapsed time = %f\n", (float) time*1000.);
-
-   time = MPI_Wtime();
-
    read(filename);
-
-   time = MPI_Wtime() - time;
-//   fprintf(stdout, "copy: elapsed time = %f\n", (float) time*1000.);
-
 
    // for now convert images to grayscale
    if (loc.nBands > 1) {
       this->toGrayScale();
    }
 
-   time = MPI_Wtime();
-
    // exchange border information
    exchange();
-
-   time = MPI_Wtime() - time;
-//   fprintf(stdout, "exchange: elapsed time = %f\n", (float) time*1000.);
 }
 
 Image::~Image()
