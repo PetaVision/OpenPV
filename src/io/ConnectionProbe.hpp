@@ -17,6 +17,7 @@ public:
    ConnectionProbe(int kPre);
    ConnectionProbe(int kxPre, int kyPre, int kfPre);
    ConnectionProbe(const char * filename, int kPre);
+   ConnectionProbe(const char * filename,int kxPre, int kyPre, int kfPre);
    virtual ~ConnectionProbe();
 
    virtual int outputState(float time, HyPerConn * c);
