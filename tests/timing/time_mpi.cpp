@@ -61,17 +61,20 @@ int main(int argc, char * argv[])
       }
    }
 
+#ifdef PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
    start_clock();
    double start = MPI_Wtime();
 
    for (int n = 0; n < nloops; n++) {
-      comm->send(image, datatypes, &loc);
-      comm->recv(image, datatypes, &loc);
+      comm->exchange(image, datatypes, &loc);
    }
 
+#ifdef PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
    stop_clock();
    double elapsed = MPI_Wtime() - start;

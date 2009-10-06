@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#include "../../src/include/pv_arch.h"
+
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "../include/mpi_stubs.h"
+#  include "../../src/include/mpi_stubs.h"
 #endif
 
 #define MACH_TIMER 1
