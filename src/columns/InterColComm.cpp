@@ -221,7 +221,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    // deliver current (no delay) information last
 
 #ifdef PV_USE_MPI
-   MPI_Waitall(numNeighbors, requests, MPI_STATUSES_IGNORE);
+   MPI_Waitall(numNeighbors-1, requests, MPI_STATUSES_IGNORE);
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
 #endif
