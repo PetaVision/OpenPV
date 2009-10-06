@@ -67,11 +67,8 @@ int main(int argc, char * argv[])
 
    // send and recv the "image"
 
-   //   printf("[%d]: sending, k0==%d\n", comm->commRank(), k0);  fflush(stdout);
-   comm->send(image, datatypes, &loc);
-
-   //   printf("[%d]: receiving...\n", comm->commRank());  fflush(stdout);
-   comm->recv(image, datatypes, &loc);
+   //   printf("[%d]: exchanging, k0==%d\n", comm->commRank(), k0);  fflush(stdout);
+   comm->exchange(image, datatypes, &loc);
 
    //   printf("[%d]: border check...\n", comm->commRank());  fflush(stdout);
    err = check_borders(image, comm, loc);
