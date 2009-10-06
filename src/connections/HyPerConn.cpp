@@ -234,6 +234,11 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    // let wMax override strength if user provides it
    if (filep->present(name, "wMax"))     wMax = filep->value(name, "wMax");
 
+   //override dWMax if user provides it
+   if (filep->present(name, "dWMax")) {
+      dWMax = filep->value(name, "dWMax");
+   }
+
    if (filep->present(name, "stdpFlag")) stdpFlag = filep->value(name, "stdpFlag");
 
    return 0;
