@@ -47,9 +47,8 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 
    numPublishers += 1;
 
-   DataStore* store = publishers[pubId]->dataStore();
-
 #ifndef EXTEND_BORDER_INDEX
+   DataStore* store = publishers[pubId]->dataStore();
    for (int i = 0; i < numBorders; i++) {
       for (int delay = 0; delay < numLevels; delay++) {
          int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
@@ -73,7 +72,7 @@ int InterColComm::subscribe(HyPerConn* conn)
 int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, remoteNeighbors, numNeighbors, borders, numBorders, cube);
+   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
 }
 
 /**
@@ -82,7 +81,7 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 int InterColComm::deliver(HyPerCol* hc, int pubId)
 {
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: InterColComm::deliver: pubId=%d\n", icRank, pubId);  fflush(stdout);
+   printf("[%d]: InterColComm::deliver: pubId=%d\n", commRank(), pubId);  fflush(stdout);
 #endif
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
@@ -151,7 +150,9 @@ int Publisher::publish(HyPerLayer* pub,
       pvdata_t * recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
       pvdata_t * sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      size_t recvOff = Communicator::recvOffset(n, &cube->loc);
+      size_t sendOff = Communicator::recvOffset(n, &cube->loc);
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", comm->commRank(), neighbors[n], n, recvOff, sendOff, sendBuf[0]); fflush(stdout);
 #endif
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
                 &requests[nreq++]);
@@ -211,7 +212,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       if (delay > 0) {
          cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
 #ifdef DEBUG_OUTPUT
-         printf("[%d]: Publisher::deliver: buf=%p\n", icRank, cube.data);
+         printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
          fflush(stdout);
 #endif
          conn->deliver(&cube, LOCAL);
@@ -221,9 +222,10 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    // deliver current (no delay) information last
 
 #ifdef PV_USE_MPI
-   MPI_Waitall(numNeighbors-1, requests, MPI_STATUSES_IGNORE);
+   int numRequests = numNeighbors-1;  // TODO - change name of numNeighbors as it includes local
+   MPI_Waitall(numRequests, requests, MPI_STATUSES_IGNORE);
 #ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+   fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRequests); fflush(stdout);
 #endif
 #endif // PV_USE_MPI
 
@@ -232,7 +234,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       if (conn->getDelay() == 0) {
          cube.data = (pvdata_t *) store->buffer(LOCAL);
 #ifdef DEBUG_OUTPUT
-         printf("[%d]: Publisher::deliver: buf=%p\n", icRank, cube.data);
+         printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
          fflush(stdout);
 #endif
          conn->deliver(&cube, LOCAL);
