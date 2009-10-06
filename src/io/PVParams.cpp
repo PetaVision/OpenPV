@@ -217,6 +217,21 @@ float PVParams::value(const char * groupName, const char * paramName)
 
 /**
  * @groupName
+ * @paramName
+ * @initialValue
+ */
+float PVParams::value(const char * groupName, const char * paramName, float initialValue)
+{
+   if (present(groupName, paramName)) {
+      return value(groupName, paramName);
+   }
+   else {
+      return initialValue;
+   }
+}
+
+/**
+ * @groupName
  */
 ParameterGroup * PVParams::group(const char * groupName)
 {

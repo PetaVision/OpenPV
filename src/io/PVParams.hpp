@@ -68,6 +68,7 @@ public:
 
    int   present(const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName);
+   float value  (const char * groupName, const char * paramName, float initialValue);
    ParameterGroup * group(const char * groupName);
 
    void action_parameter_group(char * keyword, char * name);
