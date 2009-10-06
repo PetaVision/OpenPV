@@ -309,13 +309,19 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
-   for (int k = 0; k < clayer->numExtended; k++) {
-      float probStim = params->poissonEdgeProb * V[k];
-      float prob = params->poissonBlankProb;
+   if (params->spikingFlag = 0) {
+      for (int k = 0; k < clayer->numExtended; k++) {
+         float probStim = params->poissonEdgeProb * V[k];
+         float prob = params->poissonBlankProb;
 
-      int flag = spike(time, dt, prob, probStim, &start);
-      activity[k] = (flag) ? 1.0 : 0.0;
-
+         int flag = spike(time, dt, prob, probStim, &start);
+         activity[k] = (flag) ? 1.0 : 0.0;
+      }
+   }
+   else {
+      for (int k = 0; k < clayer->numExtended; k++) {
+         activity[k] = V[k];
+      }
    }
 
    return 0;
