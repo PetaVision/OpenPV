@@ -37,6 +37,18 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
    this->fp   = fopen(path, "w");
 }
 
+ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, int kfPre)
+{
+   char path[PV_PATH_MAX];
+   sprintf(path, "%s%s", OUTPUT_PATH, filename);
+   this->fp   = fopen(path, "w");
+
+   this->kxPre = kxPre;
+   this->kyPre = kyPre;
+   this->kfPre = kfPre;
+   this->kPre  = -1;
+
+}
 ConnectionProbe::~ConnectionProbe()
 {
    if (fp != NULL && fp != stdout) {
@@ -71,14 +83,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    fprintf(fp, "w%d:      ", kPre);
 
    if (P != NULL && M != NULL) {
-      fprintf(fp, "M=");
+      fprintf(fp, "M= ");
       text_write_patch(fp, P, M);
    }
    if (P != NULL) {
-      fprintf(fp, "P=");
+      fprintf(fp, "P= ");
       text_write_patch(fp, P, P->data);  // write the P variable
    }
-   fprintf(fp, "w=");
+   fprintf(fp, "w= ");
    text_write_patch(fp, w, w->data);
    fprintf(fp, "\n");
    fflush(fp);
