@@ -92,6 +92,12 @@ int HyPerConn::initialize_base()
 
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
+
+   for (int i = 0; i < MAX_ARBOR_LIST; i++) {
+      wPatches[i] = NULL;
+      axonalArborList[i] = NULL;
+   }
+
    return 0;
 }
 
@@ -649,11 +655,7 @@ PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatc
    //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
 
    assert(numAxonalArborLists == 1);
-
-   // TODO IMPORTANT ################# free memory in patches as well
-   if (patches != NULL) {
-      free(patches);
-   }
+   assert(patches == NULL);
 
    patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    assert(patches != NULL);
