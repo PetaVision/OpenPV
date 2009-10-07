@@ -103,6 +103,7 @@ int HyPerConn::initialize_base()
 
 int HyPerConn::initialize(const char * filename)
 {
+   int status = 0;
    const int arbor = 0;
    numAxonalArborLists = 1;
 
@@ -115,6 +116,8 @@ int HyPerConn::initialize(const char * filename)
 
    wPatches[arbor] = createWeights(wPatches[arbor]);
 
+   initializeSTDP();
+
    // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
    //  weight patches may shrink
    // readWeights() should expect shrunken patches
@@ -124,8 +127,6 @@ int HyPerConn::initialize(const char * filename)
    wPatches[arbor]
          = initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
 
-   initializeSTDP();
-
    writeStep = parent->getDeltaTime();
    writeTime = parent->simulationTime();
    if (inputParams->present(name, "writeStep")) {
@@ -134,8 +135,7 @@ int HyPerConn::initialize(const char * filename)
 
    parent->addConnection(this);
 
-   return 0;
-
+   return status;
 }
 
 int HyPerConn::initializeSTDP()
@@ -145,7 +145,7 @@ int HyPerConn::initializeSTDP()
       int numPatches = numWeightPatches(arbor);
       pIncr = createWeights(NULL, numPatches, nxp, nyp, nfp);
       assert(pIncr != NULL);
-      pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
+      pDecr = pvcube_new(&post->clayer->loc, post->clayer->numExtended);
       assert(pDecr != NULL);
    }
    else {
@@ -538,70 +538,84 @@ int HyPerConn::updateState(float time, float dt)
       const float fac = ampLTD;
       const float decay = expf(-dt/tauLTD);
 
+      //
+      // both pDecr and activity are extended regions (plus margins)
+      // to make processing them together simpler
+
       float * a = post->clayer->activity->data;
       float * m = pDecr->data;            // decrement (minus) variable
       int nk = pDecr->numItems;
 
       for (int k = 0; k < nk; k++) {
          m[k] = decay * m[k] - fac * a[k];
-         if (a[k] > 0) {
+//         if (a[k] > 0) {
 //            fprintf(stderr, "k=%d, m=%f addr(m)=%p\n", k, m[k], &m[k]);
-         }
+//         }
       }
    }
 
    return 0;
 }
 
-int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int neighbor)
+int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
 {
+   // TODO - should no longer have remote neighbors if extended activity works out
+   assert(remoteNeighbor == 0);
+   
    const float dt = parent->getDeltaTime();
    const float decayLTP = expf(-dt/tauLTP);
+
+   const int postStrideY = post->clayer->loc.nx + 2*post->clayer->loc.nPad;
 
    // assume pDecr has been updated already, and weights have been used, so
    // 1. update Psij (pIncr) for each synapse
    // 2. update wij
 
-   // TODO - handle neighbors
-   if (neighbor != 0) {
-      return 0;
-   }
+   int axonId = 0;
 
-   // TODO - what is happening here
+   // TODO - what is happening here (I think this refers to remote neighbors)
    if (preActivityCube->numItems == 0) return 0;
 
-   const int numNeurons = preActivityCube->numItems;
-   assert(numNeurons == numWeightPatches(neighbor));
+   const int numExtended = preActivityCube->numItems;
+   assert(numExtended == numWeightPatches(axonId));
 
-   for (int kPre = 0; kPre < numNeurons; kPre++) {
-      PVAxonalArbor * arbor  = axonalArbor(kPre, neighbor);
+   for (int kPre = 0; kPre < numExtended; kPre++) {
+      PVAxonalArbor * arbor  = axonalArbor(kPre, axonId);
 
       const float preActivity = preActivityCube->data[kPre];
 
-      PVPatch * pIncr = arbor->plasticIncr;
-      PVPatch * w     = arbor->weights;
-      size_t offset   = arbor->offset;
+      PVPatch * pIncr   = arbor->plasticIncr;
+      PVPatch * w       = arbor->weights;
+      size_t postOffset = arbor->offset;
 
-      float * postActivity = &post->clayer->activity->data[offset];
-      float * M = &pDecr->data[offset];  // STDP decrement variable
-      float * P =  pIncr->data;          // STDP increment variable
+      float * postActivity = &post->clayer->activity->data[postOffset];
+      float * W = w->data;
+      float * M = &pDecr->data[postOffset];  // STDP decrement variable
+      float * P =  pIncr->data;              // STDP increment variable
 
-      int nk  = (int) pIncr->nf * (int) pIncr->nx;
+      int nk  = (int) pIncr->nf * (int) pIncr->nx; // one line in x at a time
       int ny  = (int) pIncr->ny;
       int sy  = (int) pIncr->sy;
 
       // TODO - unroll
 
       // update Psij (pIncr variable)
+      // we are processing patches, one line in y at a time
       for (int y = 0; y < ny; y++) {
-         pvpatch_update_plasticity_incr(nk, pIncr->data + y*sy, preActivity, decayLTP, ampLTP);
+         pvpatch_update_plasticity_incr(nk, P + y*sy, preActivity, decayLTP, ampLTP);
       }
 
       // update weights
       for (int y = 0; y < ny; y++) {
-         int yOff = y*sy;
-         pvpatch_update_weights(nk, w->data + yOff, M + yOff, P + yOff,
-                                preActivity, postActivity + yOff, dWMax, wMax);
+         pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMax);
+         //
+         // advance pointers in y
+         W += sy;
+         P += sy;
+         //
+         // postActivity and M are extended layer
+         postActivity += postStrideY;
+         M += postStrideY;
       }
    }
 
@@ -735,7 +749,7 @@ int HyPerConn::createAxonalArbors()
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
 
-   const int numNeighbors = numAxonalArborLists;
+   const int numAxons = numAxonalArborLists;
 
 #ifndef FEATURES_LAST
    const float psf = 1;
@@ -747,20 +761,16 @@ int HyPerConn::createAxonalArbors()
    const float psf = psy * (nyPost + 2.0f*nxBorderPost);
 #endif
 
-   // Neighbor stuff may change, currently activity is extended beyond
-   // layer region into margins that are copied into by neighbors.
-   // So currently there is only one neighbor (index 0 for self).
-   // Instead of a loop over neighbors this probably should be
-   // a loop over the arbor list.
+   //
+   // activity is extended beyond hyper column layer region
 
-   for (int n = 0; n < numNeighbors; n++) {
+   for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
       axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
       assert(axonalArborList[n] != NULL);
    }
 
-   // there is an arbor list for every neighbor
-   for (int n = 0; n < numNeighbors; n++) {
+   for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
       assert(dataPatches != NULL);
@@ -1180,9 +1190,9 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
    FILE * fp = NULL;
 
    const int numPost = post->clayer->numNeurons;
-   //   const int nxPost = post->clayer->loc.nx;
-   //   const int nyPost = post->clayer->loc.ny;
-   //   const int nfPost = post->clayer->numFeatures;
+   const int nxPost  = post->clayer->loc.nx;
+   const int nyPost  = post->clayer->loc.ny;
+   const int nfPost  = post->clayer->numFeatures;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -1274,8 +1284,12 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    const int ny = (int) wp->ny;
    const int nf = (int) wp->nf;
 
+   if (nx * ny * nf == 0) {
+      return 0;  // reduced patch size is zero
+   }
+
    const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  assert(sy == nf*nx);
+   const int sy = (int) wp->sy;  // no assert here because patch may be shrunken
    const int sf = (int) wp->sf;  assert(sf == 1);
 
    //   const float dx = powf(2, xScale);
