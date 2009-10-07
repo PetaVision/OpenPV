@@ -185,7 +185,6 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
    initGlobal(id, comm->commRow(), comm->commColumn(),
                   comm->numCommRows(), comm->numCommColumns());
 
-//   comm->addPublisher(this, clayer->activity->size, maxBorderSize, MAX_F_DELAY);
    comm->addPublisher(this, clayer->activity->numItems, MAX_F_DELAY);
 
    return 0;
@@ -316,27 +315,18 @@ int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const Layer
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
-   const int n = this->numberOfNeurons(neighbor);
-   int numActive = activity->numItems;
+   assert(neighbor == 0);
+
+   const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numActive, activity, this, conn);
+   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
    fflush(stdout);
 #endif
 
-   // WARNING, GROSS HACK
-   // need to copy to size of border region (or something equivalent)
-   //   if (numActive > n) numActive = n;  // WHAT IS THIS ABOUT????
-
-#ifdef MULTITHREADED
-   pv_signal_threads_recv(activity, (unsigned char) neighbor);
-   pv_signal_threads_recv(conn->weights(), 0);
-   pv_signal_threads_recv(conn->cliques(), 0);
-#endif
-
-   for (int kPre = 0; kPre < numActive; kPre++) {
+   for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre];
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
@@ -344,17 +334,13 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       PVPatch * phi = arbor->data;
       PVPatch * weights = arbor->weights;
 
-      // kPre is index from neighbor/border region
-      // kPreLocal is the index of layer interior
-      // int kPreLocal = kIndexFromNeighbor(kPre, n);
-
       // WARNING - assumes weight and phi patches from task same size
       //         - assumes patch stride sf is 1
 
       int nk  = (int) phi->nf * (int) phi->nx;
       int ny  = (int) phi->ny;
-      int sy  = (int) phi->sy;
-      int syw = (int) weights->sy;
+      int sy  = (int) phi->sy;        // stride in layer
+      int syw = (int) weights->sy;    // stride in patch
 
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
@@ -398,14 +384,17 @@ int HyPerLayer::outputState(float time)
    const int ny = (int) clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
+   const int nxex = (int) clayer->loc.nx + 2*clayer->loc.nPad;
+   const int nyex = (int) clayer->loc.ny + 2*clayer->loc.nPad;
+
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, clayer);
    }
 
    // Output spike events and V
    sprintf(str, "f%1.1d", clayer->layerId);
-   pv_dump(str, ioAppend, clayer->activity->data, nx, ny, nf);
-   pv_dump_sparse(str, ioAppend, clayer->activity->data, nx, ny, nf);
+   pv_dump(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
+   pv_dump_sparse(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
    sprintf(str, "V%1.1d", clayer->layerId);
    pv_dump(str, ioAppend, clayer->V, nx, ny, nf);
 
