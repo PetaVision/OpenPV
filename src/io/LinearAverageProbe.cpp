@@ -95,12 +95,12 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
             }
          }
 
-         line = l->activity->data + nf * nk * loc;
+         line = l->activity->data + nf * nk * linePos;
       }
       else {
          nk = l->activity->loc.ny;
          sk = nf * l->activity->loc.nx;
-         line = l->activity->data + nf * loc;
+         line = l->activity->data + nf * linePos;
       }
 
       // get list of locations
@@ -112,12 +112,12 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
    if (dim == DimX) {
       nk = l->activity->loc.nx;
       sk = nf;
-      line = l->activity->data + nf * nk * loc;
+      line = l->activity->data + nf * nk * linePos;
    }
    else {
       nk = l->activity->loc.ny;
       sk = nf * l->activity->loc.nx;
-      line = l->activity->data + nf * loc;
+      line = l->activity->data + nf * linePos;
    }
 
    double sum = 0.0;
