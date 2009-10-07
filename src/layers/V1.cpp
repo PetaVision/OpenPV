@@ -120,24 +120,24 @@ int V1::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
+   const float nx = clayer->loc.nx;
+   const float ny = clayer->loc.ny;
+   const float nf = clayer->numFeatures;
+   const float marginWidth = clayer->loc.nPad;
+
    pvdata_t * V = clayer->V;
    pvdata_t * phiExc   = clayer->phi[PHI_EXC];
    pvdata_t * phiInh   = clayer->phi[PHI_INH];
    pvdata_t * activity = clayer->activity->data;
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
-      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->loc.nPad);
-#else
-      int kPhi = k;
-#endif
-      V[k] = phiExc[kPhi] - phiInh[kPhi];
-      activity[k] = V[k];
+      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      V[k] = phiExc[k] - phiInh[k];
+      activity[kex] = V[k];
 
       // reset accumulation buffers
-      phiExc[kPhi] = 0.0;
-      phiInh[kPhi] = 0.0;
+      phiExc[k] = 0.0;
+      phiInh[k] = 0.0;
    }
 
    return 0;
