@@ -19,7 +19,24 @@ namespace PV {
  */
 ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
 {
+   initialize_data(&loc);
+   initialize();
    updateImage(0.0, 0.0);
+}
+
+ImageCreator::~ImageCreator()
+{
+   free(drawBuffer);
+}
+
+int ImageCreator::initialize()
+{
+   int numItems = loc.nx * loc.ny * loc.nBands;
+
+   drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
+   assert(drawBuffer != 0);
+
+   return 0;
 }
 
 /*
@@ -81,12 +98,14 @@ bool ImageCreator::updateImage(float time_step, float dt)
    drawRectangle(newpos,lengtha,lengthb,0);
 
    if (modified) {
-      writeImageToFile(time_step, TXT | TIF | BIN); // writeImageToFile(time, BIN | TXT | TIF);
+      //writeImageToFile(time_step, TXT | TIF | BIN); // writeImageToFile(time, BIN | TXT | TIF);
       modified = false;
    }
 
    prevposx = posx;
    prevposy = posy;
+
+   this->copyFromInteriorBuffer(drawBuffer);
 
    return true;
 }
@@ -142,12 +161,12 @@ int ImageCreator::createRandomImage()
    const int nx = loc.nx;
    const int ny = loc.ny;
 
-   assert(data != NULL); //ToDo: Validation inadequate.
+   assert(drawBuffer != NULL); //ToDo: Validation inadequate.
                         //      Check for buf size > (nx * ny)
 
    for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
-         *(data + (i + (j * nx))) = (rand() % 2);
+         drawBuffer[i + j * nx] = (unsigned char) (rand() % 2);
       }
          //Fill in all pixels randomly
    }
@@ -436,7 +455,7 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
  */
 inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
 {
-   *(data + (i + j * loc.nx)) = value;
+   drawBuffer[i + j * loc.nx] = value;
 }
 
 /*
@@ -452,7 +471,7 @@ inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
  */
 inline void ImageCreator::mark(unsigned int i, int value)
 {
-   data[i] = value;
+   drawBuffer[i] = (unsigned char) value;
 }
 
 /*
@@ -465,9 +484,9 @@ inline void ImageCreator::mark(unsigned int i, int value)
  *
  * Return value: the value at (i, j) in the image.
  */
-inline pvdata_t ImageCreator::getmark(unsigned int i, unsigned int j)
+inline unsigned char ImageCreator::getmark(unsigned int i, unsigned int j)
 {
-   return (*(data + (i + j * loc.nx)));
+   return drawBuffer[i + j * loc.nx];
 }
 
 
@@ -583,13 +602,13 @@ int ImageCreator::writeImageToBin(const char *filename)
  *
  * Return value: 0 if successful, non-zero otherwise.
  */
-int ImageCreator::copyImage(pvdata_t *targetbuf)
+int ImageCreator::copyImage(pvdata_t * targetbuf)
 {
    const int nx = loc.nx;
    const int ny = loc.ny;
 
    for (int i = 0; i < (nx * ny); i++) {
-      targetbuf[i] = data[i];
+      targetbuf[i] = (pvdata_t) drawBuffer[i];
    }
    return 0;
 }
@@ -677,7 +696,7 @@ void ImageCreator::testImage()
    std::cout << "\n\n";
    for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
-         if ( *(data + (i + (j * nx))) == 1)
+         if ( drawBuffer[i + j * nx] == 1)
             std::cout << "* ";
          else
             std::cout << ". ";

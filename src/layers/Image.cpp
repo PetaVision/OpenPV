@@ -30,12 +30,7 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
 
    if (status) return;
 
-   const int N = (loc.nx + 2*loc.nPad) * (loc.ny + 2*loc.nPad) * loc.nBands;
-   data = new float [N];
-
-   for (int i = 0; i < N; ++i) {
-      data[i] = 0;
-   }
+   initialize_data(&loc);
 
    read(filename);
 
@@ -53,7 +48,7 @@ Image::~Image()
    free(name);
 
    if (data != NULL) {
-      delete data;
+      free(data);
       data = NULL;
    }
 }
@@ -67,15 +62,23 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
 
    PVParams * params = hc->parameters();
 
-   loc.nx       = 0;   loc.ny       = 0;
-   loc.nxGlobal = 0;   loc.nyGlobal = 0;
-   loc.kx0      = 0;   loc.ky0      = 0;
-   loc.nPad     = 0;   loc.nBands   = 0;
+   loc = hc->getImageLoc();
+   loc.nPad   = 0;
+   loc.nBands = 1;
 
    if (params->present(name, "marginWidth")) {
       loc.nPad = (int) params->value(name, "marginWidth");
    }
 
+   return 0;
+}
+
+int Image::initialize_data(const LayerLoc * imageLoc)
+{
+   const int N = (imageLoc->nx + 2*imageLoc->nPad) *
+                 (imageLoc->ny + 2*imageLoc->nPad) * imageLoc->nBands;
+   data = (pvdata_t *) calloc(sizeof(pvdata_t), N);
+   assert(data != NULL);
    return 0;
 }
 

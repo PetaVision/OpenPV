@@ -22,7 +22,8 @@ public:
    Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
 
-   int initialize_base(const char * name, HyPerCol * hc);
+   virtual int initialize_base(const char * name, HyPerCol * hc);
+   virtual int initialize_data(const LayerLoc * loc);
 
    virtual bool updateImage(float time, float dt);
 

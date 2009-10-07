@@ -36,8 +36,11 @@ class ImageCreator : public Image {
 
 public:
     ImageCreator(const char * name, HyPerCol * hc);
+    virtual ~ImageCreator();
 
-	int clearImage();
+    int initialize();
+
+    int clearImage();
 	int fillImage(pvdata_t val);
 	virtual bool updateImage(float time, float dt);
 
@@ -72,7 +75,7 @@ public:
 
 	void mark(unsigned int i, unsigned int j, int value);
 	void mark(unsigned int i, int value);
-	pvdata_t getmark(unsigned int i, unsigned int j);
+	unsigned char getmark(unsigned int i, unsigned int j);
 
 	virtual int writeImageToFile(const float time,
 			                     const unsigned char options);
@@ -82,6 +85,8 @@ public:
 
 private:
 	bool     modified;
+
+	unsigned char * drawBuffer;
 
 	int writeImageToTxt(const char *filename);
 	int writeImageToBin(const char *filename);
