@@ -23,6 +23,7 @@
 
 #define PV_BYTE_TYPE       1
 #define PVP_FILE_TYPE      1
+#define KERNEL_FILE_TYPE  6996
 
 #define INDEX_HEADER_SIZE  0
 #define INDEX_NUM_PARAMS   1
