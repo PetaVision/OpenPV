@@ -64,7 +64,7 @@ bool ImageCreator::updateImage(float time_step, float dt)
 
    static int posx = 5;
    static int posy = 10;
-   int lengtha = 5;
+   int lengtha = 10;
    int lengthb = 15;
 
    clearImage();
