@@ -9,13 +9,14 @@
 //  Common leaky integrate-and-fire layer routines
 // ---------------------------------------------------
 
+#include "../include/pv_common.h"
+#include "PVLayer.h"
+
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
-
-#include "../include/pv_common.h"
-#include "PVLayer.h"
 
 #ifdef _MSC_VER
 #define inline _inline
@@ -28,7 +29,7 @@ int LIF2_update_finish(PVLayer * l, float dt);
 // Default handlers for a layer of leaky integrate-and-fire neurons.
 static inline int update_f(PVLayer *l, int start)
 {
-   int i;
+   int k;
 
    LIF2_params * params = (LIF2_params *) l->params;
 
@@ -42,12 +43,20 @@ static inline int update_f(PVLayer *l, int start)
    float * G_I = l->G_I;
    float * activity = l->activity->data;
 
-   for (i = start; i < (l->numNeurons + start); i++) {
-      activity[i] = ((V[i] - Vth[i]) > 0.0) ? 1.0 : 0.0;
-      V[i]   -= activity[i] * (V[i] - Vrest);  // reset cells that fired
-      G_E[i] -= activity[i] * G_E[i];
-      G_I[i] += activity[i] * 1.0;      // add hyperpolarizing current
-      Vth[i] += activity[i] * deltaVth; // reset cells that fired
+   assert(start == 0);
+
+   const float nx = l->loc.nx;
+   const float ny = l->loc.ny;
+   const float nf = l->numFeatures;
+   const float marginWidth = l->loc.nPad;
+
+   for (k = start; k < (l->numNeurons + start); k++) {
+      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      activity[kex] = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
+      V[k]   -= activity[kex] * (V[k] - Vrest);  // reset cells that fired
+      G_E[k] -= activity[kex] * G_E[k];
+      G_I[k] += activity[kex] * 1.0;      // add hyperpolarizing current
+      Vth[k] += activity[kex] * deltaVth; // reset cells that fired
    }
 
    return 0;
@@ -274,47 +283,54 @@ int LIF2_update_finish(PVLayer * l, float dt)
 
 int LIF2_init(PVLayer * l)
 {
-   int n, m;
+   int k, m, kex;
    LIF2_params * params = (LIF2_params *) l->params;
 
-   for (n = 0; n < l->numNeurons; n++) {
+   const float nx = l->loc.nx;
+   const float ny = l->loc.ny;
+   const float nf = l->numFeatures;
+   const float marginWidth = l->loc.nPad;
+
+   for (k = 0; k < l->numNeurons; k++) {
       for (m = 0; m < l->numPhis; m++) {
-         l->phi[m][n] = 0.0;
+         l->phi[m][k] = 0.0;
       }
 
+      kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+
       if (params->noiseAmpE > 0) {
-         l->Vth[n] = params->VthRest + (rand() / (float) RAND_MAX) * params->deltaVth;
-         l->V[n] = (rand() / (float) RAND_MAX) * (params->VthRest - params->Vinh) + params->Vinh;
+         l->Vth[k] = params->VthRest + (rand() / (float) RAND_MAX) * params->deltaVth;
+         l->V[k] = (rand() / (float) RAND_MAX) * (params->VthRest - params->Vinh) + params->Vinh;
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->G_E[n] = -log( rand() / (float) RAND_MAX ) * 0.6860;
-            l->G_I[n] = -log( rand() / (float) RAND_MAX ) * 1.0031;
-            l->G_IB[n] = -log( rand() / (float) RAND_MAX ) * 5.5048;
+            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.6860;
+            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 1.0031;
+            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 5.5048;
          }
          else if (l->layerType == TypeV1FlankInhib) {
-            l->G_E[n] = -log( rand() / (float) RAND_MAX ) * 0.4514;
-            l->G_I[n] = -log( rand() / (float) RAND_MAX ) * 3.2228;
-            l->G_IB[n] = -log( rand() / (float) RAND_MAX ) * 5.8198;
+            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.4514;
+            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 3.2228;
+            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 5.8198;
          }
          else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->G_E[n] = -log( rand() / (float) RAND_MAX ) * 0.3932;
-            l->G_I[n] = -log( rand() / (float) RAND_MAX ) * 0.7572;
-            l->G_IB[n] = -log( rand() / (float) RAND_MAX ) * 1.8671;
+            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.3932;
+            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 0.7572;
+            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 1.8671;
          }
          else if (l->layerType == TypeV1SurroundInhib) {
-            l->G_E[n] = -log( rand() / (float) RAND_MAX ) * 0.4159;
-            l->G_I[n] = -log( rand() / (float) RAND_MAX ) * 0.4956;
-            l->G_IB[n] = -log( rand() / (float) RAND_MAX ) * 0.9782;
+            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.4159;
+            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 0.4956;
+            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 0.9782;
          }
          else {
-            l->G_E[n] = -log( rand() / (float) RAND_MAX );
-            l->G_I[n] = -log( rand() / (float) RAND_MAX );
-            l->G_IB[n] = -log( rand() / (float) RAND_MAX );
+            l->G_E[k] = -log( rand() / (float) RAND_MAX );
+            l->G_I[k] = -log( rand() / (float) RAND_MAX );
+            l->G_IB[k] = -log( rand() / (float) RAND_MAX );
          }
       }
       else
       {
-         l->Vth[n] = params->VthRest;
-         l->V[n]   = params->Vrest;
+         l->Vth[k] = params->VthRest;
+         l->V[k]   = params->Vrest;
       }
 
       // TODO - Initialize activity buffers with random noise
@@ -325,27 +341,27 @@ int LIF2_init(PVLayer * l)
 
       if (params->noiseAmpE > 0) {
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->activity->data[n] = (float) (rand() / (float) RAND_MAX)
+            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
             < 0.001;
          }
          else if (l->layerType == TypeV1FlankInhib) {
-            l->activity->data[n] = (float) (rand() / (float) RAND_MAX)
+            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
             < 0.001;
          }
          else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->activity->data[n] = (float) (rand() / (float) RAND_MAX)
+            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
             < 0.0016;
          }
          else if (l->layerType == TypeV1SurroundInhib) {
-            l->activity->data[n] = (float) (rand() / (float) RAND_MAX)
+            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
             < 0.01;
          }
          else {
-            l->activity->data[n] = 0.0;
+            l->activity->data[kex] = 0.0;
          }
       }
       else
-         l->activity->data[n] = 0.0;
+         l->activity->data[kex] = 0.0;
 
    }
 
@@ -356,16 +372,19 @@ int LIF2_init(PVLayer * l)
       /* 				* NK + i_theta * NK + i_kurve); */
       int k = (int) ((l->loc.ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO
             + i_theta);
-      l->activity->data[k] = 1.0;
+      kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      l->activity->data[kex] = 1.0;
    }
    else if ( (params->noiseAmpE == 0.0) && (l->layerType == TypeV1FlankInhib) ) {
       int i_theta = 0;
       int k = (int) ((l->loc.ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO
             + i_theta);
-      l->activity->data[k] = 1.0;
+      kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      l->activity->data[kex] = 1.0;
    }
    else if (l->layerType == -TypeV1SurroundInhib)
    {
+      assert(0 == 1);  // TODO - fix this code (never used?)
       /* int i_theta = 5; */
       /* int k = (int) ((l->ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO */
       /* 	+ i_theta); */
