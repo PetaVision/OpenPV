@@ -35,16 +35,16 @@ int Example::updateState(float time, float dt)
 
    pvdata_t * phi = clayer->phi[CHANNEL_EXC];
 
+   const float nx = clayer->loc.nx;
+   const float ny = clayer->loc.ny;
+   const float nf = clayer->numFeatures;
+   const float marginWidth = clayer->loc.nPad;
+
    for (int k = 0; k < clayer->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
-      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->loc.nPad);
-#else
-      int kPhi = k;
-#endif
-      clayer->V[k] = phi[kPhi];
-      clayer->activity->data[k] = phi[kPhi];
-      phi[kPhi] = 0.0;     // reset accumulation buffer
+      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      clayer->V[k] = phi[k];
+      clayer->activity->data[kex] = phi[k];
+      phi[k] = 0.0;     // reset accumulation buffer
    }
 
    return 0;
