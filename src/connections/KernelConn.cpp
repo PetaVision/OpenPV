@@ -48,39 +48,45 @@ int KernelConn::initialize_base(){
    return HyPerConn::initialize_base();
 }
 
-PVPatch ** KernelConn::allocWeights(PVPatch ** patches)
+PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+      int nyPatch, int nfPatch)
 {
    const int arbor = 0;
    int numKernelPatches = numDataPatches(arbor);
 
-   PVPatch ** kernel_patches = (PVPatch**) malloc( numKernelPatches * sizeof(PVPatch*));
+   PVPatch ** kernel_patches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
    assert(kernel_patches != NULL);
 
    for (int k = 0; k < numKernelPatches; k++) {
-      kernel_patches[k] = pvpatch_inplace_new(nxp, nyp, nfp);
+      kernel_patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
    }
-   for (int k = 0; k < numWeightPatches(arbor); k++) {
-      patches[k] = pvpatch_new(nxp, nyp, nfp);
+   for (int k = 0; k < nPatches; k++) {
+      patches[k] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
-   for (int k = 0; k < numWeightPatches(arbor); k++) {
+   for (int k = 0; k < nPatches; k++) {
       patches[k]->data = kernel_patches[k % numKernelPatches]->data;
    }
    return kernel_patches;
 }
 
-PVPatch ** KernelConn::createWeights(PVPatch ** patches)
+PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+      int nyPatch, int nfPatch)
 {
-   const int arbor = 0;
-
    // could create only a single patch with following call
-   //   return createPatches(numBundles, nxp, nyp, nfp);
+   //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
+
    assert(numAxonalArborLists == 1);
 
-   patches = (PVPatch**) malloc(numWeightPatches(arbor) * sizeof(PVPatch*));
+   // TODO IMPORTANT ################# free memory in patches as well
+   if (patches != NULL) {
+      free(patches);
+   }
+
+   patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    assert(patches != NULL);
 
-   // TODO - allocate space for them all at once
-   kernelPatches = allocWeights(patches);
+   // TODO - allocate space for them all at once (inplace)
+   kernelPatches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 
    return patches;
 }

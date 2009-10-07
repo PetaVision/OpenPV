@@ -30,8 +30,10 @@ protected:
    PVPatch      ** kernelPatches;   // list of weight patches
    virtual int deleteWeights();
    virtual int initialize_base();
-   virtual PVPatch **  allocWeights(PVPatch ** patches);
-   virtual PVPatch ** createWeights(PVPatch ** patches);
+   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch);
+   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
    virtual int writeWeights(const char * filename, float time);

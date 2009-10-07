@@ -61,6 +61,8 @@ public:
    virtual int numDataPatches(int arbor);
    virtual int writeWeights(float time);
    virtual int writeWeights(const char * filename, float time);
+   virtual int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
+         const char * filename, float time);
    virtual int writeTextWeights(const char * filename, int k);
    virtual int writePostSynapticWeights(int ioAppend);
 
@@ -149,17 +151,17 @@ protected:
          HyPerLayer * pre, HyPerLayer * post, int channel);
    int initialize_base();
    int initialize(const char * filename);
-   PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+   int initializeSTDP();
+   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
    int checkWeightsHeader(const char * filename, int numParamsFile,
          int nxpFile, int nypFile, int nfpFile);
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
    PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
-   PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
-
    PVPatch ** createWeights(PVPatch ** patches);
-   PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
 

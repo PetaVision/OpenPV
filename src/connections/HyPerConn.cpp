@@ -103,7 +103,6 @@ int HyPerConn::initialize_base()
 
 int HyPerConn::initialize(const char * filename)
 {
-   int status = 0;
    const int arbor = 0;
    numAxonalArborLists = 1;
 
@@ -116,61 +115,16 @@ int HyPerConn::initialize(const char * filename)
 
    wPatches[arbor] = createWeights(wPatches[arbor]);
 
-   if (stdpFlag) {
-      int numPatches = numWeightPatches(arbor);
-      pIncr = createWeights(NULL, numPatches, nxp, nyp, nfp);
-      pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
-   }
-   else {
-      pIncr = NULL;
-      pDecr = NULL;
-   }
-
-   status = -1;
-
-   if (filename != NULL) {
-      status = readWeights(filename);
-   }
-
-   if (status != 0 && inputParams->present(getName(), "initFromLastFlag")) {
-      if ((int) inputParams->value(getName(), "initFromLastFlag") != 1) {
-         char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin",
-                        OUTPUT_PATH, getConnectionId());
-         status = this->readWeights(name);
-      }
-   }
-
-   if (status != 0) {
-
-      float randomFlag = inputParams->value(getName(), "randomFlag", 0.0);
-;
-      if (inputParams->present(getName(), "randomFlag")) {
-         randomFlag = inputParams->value(getName(), "randomFlag");
-      }
-      float randomSeed = 0;
-      if (inputParams->present(getName(), "randomSeed")) {
-         randomSeed = inputParams->value(getName(), "randomSeed");
-      }
-
-      const int numPatches = numWeightPatches(arbor);
-      if (randomFlag != 0 || randomSeed != 0) {
-         wPatches[arbor] = initializeRandomWeights(wPatches[arbor], numPatches, randomSeed);
-      }
-      else {
-         wPatches[arbor] = initializeGaussianWeights(wPatches[arbor], numPatches);
-      }
-   }
-
    // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
-   // This should be done after initialization of weights because it will shrink
-   // weight patches (ALTHOUGH reading of weights from file may expect shrunken patch)
+   //  weight patches may shrink
+   // readWeights() should expect shrunken patches
+   // initializeWeights() must be aware that patches may not be uniform
    createAxonalArbors();
 
-//////////////////
-// FIXME - this is from Gar's code
-//   initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
-//   writeWeights(parent->simulationTime());
+   wPatches[arbor]
+         = initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
+
+   initializeSTDP();
 
    writeStep = parent->getDeltaTime();
    writeTime = parent->simulationTime();
@@ -180,6 +134,24 @@ int HyPerConn::initialize(const char * filename)
 
    parent->addConnection(this);
 
+   return 0;
+
+}
+
+int HyPerConn::initializeSTDP()
+{
+   int arbor = 0;
+   if (stdpFlag) {
+      int numPatches = numWeightPatches(arbor);
+      pIncr = createWeights(NULL, numPatches, nxp, nyp, nfp);
+      assert(pIncr != NULL);
+      pDecr = pvcube_new(&post->clayer->loc, post->clayer->numNeurons);
+      assert(pDecr != NULL);
+   }
+   else {
+      pIncr = NULL;
+      pDecr = NULL;
+   }
    return 0;
 }
 
@@ -245,7 +217,8 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    return 0;
 }
 
-PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches, int seed)
+PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
+      int seed)
 {
    PVParams * params = parent->parameters();
 
@@ -297,12 +270,13 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
    for (int k = 0; k < numPatches; k++) {
       gauss2DCalcWeights(patches[k], k, noPost, xScale, yScale, numFlanks, shift, rotate,
-                         aspect, sigma, r2Max, strength);
+            aspect, sigma, r2Max, strength);
    }
 
    return patches;
 }
 
+// Craig's version.  not used. assumes weights read into wPatches
 int HyPerConn::readWeights(const char * filename)
 {
    FILE * fp;
@@ -346,36 +320,39 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches,
    int fileType, nxpFile, nypFile, nfpFile;
 
    fp = pv_open_binary(filename, &numParamsFile, &fileType, &nxpFile, &nypFile, &nfpFile);
+   if (fp == NULL) {
+      return NULL;
+   }
    checkWeightsHeader(filename, numParamsFile, nxpFile, nypFile, nfpFile);
 
    int err = 0;
    //   int append = 0; // only write one time step
 
    // header information
-   const int numWeightHeaderParams = 6;
+   const int numWeightHeaderParams = MIN_BIN_PARAMS + 3;
    int params[numWeightHeaderParams];
    float minVal, maxVal;
    int numPatchesFile;
 
    pv_read_binary_params(fp, numParamsFile, params);
 
-   if (numParamsFile >= 4) {
-      minVal = params[3];
+   if (numParamsFile >= (MIN_BIN_PARAMS + 1)) {
+      minVal = params[MIN_BIN_PARAMS + 0];
    }
    else {
       minVal = 0;
    }
 
-   if (numParamsFile >= 5) {
-      maxVal = params[4];
+   if (numParamsFile >= (MIN_BIN_PARAMS + 2)) {
+      maxVal = params[MIN_BIN_PARAMS + 1];
    }
    else {
       maxVal = 1.0;
    }
 
    // numPatches should equal numDataPatches should equal numPatchesFile (if present)
-   if (numParamsFile >= 6) {
-      numPatchesFile = params[5];
+   if (numParamsFile >= (MIN_BIN_PARAMS + 3)) {
+      numPatchesFile = params[MIN_BIN_PARAMS + 2];
    }
    else {
       const int arbor = 0;
@@ -402,6 +379,15 @@ int HyPerConn::writeWeights(float time)
 
 int HyPerConn::writeWeights(const char * filename, float time)
 {
+   int arbor = 0;
+   int numPatches = numWeightPatches(arbor);
+   return writeWeights(wPatches[arbor], numPatches, NULL, time);
+}
+
+int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
+      const char * filename, float time)
+{
+
    int status = 0;
    char name[PV_PATH_MAX];
 
@@ -417,10 +403,8 @@ int HyPerConn::writeWeights(const char * filename, float time)
       snprintf(name, PV_PATH_MAX-1, "%s", filename);
    }
 
-   int arbor = 0;
-   int numPatches = numWeightPatches(arbor);
-   status = pv_write_patches(name, false, (int) nxp, (int) nyp, (int) nfp,
-                             minWeight(), maxWeight(), numPatches, wPatches[arbor]);
+   status = pv_write_patches(name, false, (int) nxp, (int) nyp, (int) nfp, minWeight(),
+         maxWeight(), numPatches, patches);
    assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
@@ -435,11 +419,12 @@ int HyPerConn::writeWeights(const char * filename, float time)
       return 1;
    }
    int arbor = 0;
-   pv_tiff_write_patch(fd, wPatches[arbor][0]);
+   pv_tiff_write_patch(fd, patches);
    fclose(fd);
 
-   sprintf(outfile, "w%d.txt", getConnectionId());
-   err = writeWeights(outfile, 0);
+   // circular
+//   sprintf(outfile, "w%d.txt", getConnectionId());
+//   err = writeWeights(outfile, 0);
 #endif
 
    return status;
@@ -1194,10 +1179,10 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
 
    FILE * fp = NULL;
 
-   const int numPost   = post->clayer->numNeurons;
-   const int nxPost  = post->clayer->loc.nx;
-   const int nyPost  = post->clayer->loc.ny;
-   const int nfPost  = post->clayer->numFeatures;
+   const int numPost = post->clayer->numNeurons;
+   //   const int nxPost = post->clayer->loc.nx;
+   //   const int nyPost = post->clayer->loc.ny;
+   //   const int nfPost = post->clayer->numFeatures;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -1209,7 +1194,7 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
    const int nfPostPatch = pre->clayer->numFeatures;
 
    // the number of features is the end-point value (normally post-synaptic)
-   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
+   //   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
 
    snprintf(poststr, PV_PATH_MAX-1, "w%d_post", getConnectionId());
 
@@ -1452,26 +1437,39 @@ int HyPerConn::setPatchSize(const char * filename)
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
-   if (filename == NULL) {
 
-      PVParams * params = parent->parameters();
-
-      float randomFlag = params->value(getName(), "randomFlag", 0);
-      if (randomFlag > 0) {
-         return initializeRandomWeights(patches, numPatches, 0);
-      }
-      else {
-         initializeGaussianWeights(patches, numPatches);
-         return normalizeWeights(patches, numPatches);
-      }
-
-   }
-   else {
+   if (filename != NULL) {
       readWeights(patches, numPatches, filename);
       return normalizeWeights(patches, numPatches);
-   } // end if for filename
+   }
 
-   return 0;
+   PVParams * inputParams = parent->parameters();
+   if (inputParams->present(getName(), "initFromLastFlag")) {
+      if ((int) inputParams->value(getName(), "initFromLastFlag") != 1) {
+         char name[PV_PATH_MAX];
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin", OUTPUT_PATH,
+         getConnectionId());
+         readWeights(patches, numPatches, name);
+         return normalizeWeights(patches, numPatches);
+      }
+   }
+
+   float randomFlag = 0;
+   if (inputParams->present(getName(), "randomFlag")) {
+      randomFlag = inputParams->value(getName(), "randomFlag");
+   }
+   float randomSeed = 0;
+   if (inputParams->present(getName(), "randomSeed")) {
+      randomSeed = inputParams->value(getName(), "randomSeed");
+   }
+
+   if (randomFlag != 0 || randomSeed != 0) {
+      return initializeRandomWeights(patches, numPatches, randomSeed);
+   }
+   else {
+      initializeGaussianWeights(patches, numPatches);
+      return normalizeWeights(patches, numPatches);
+   }
 }
 
 int HyPerConn::checkWeightsHeader(const char * filename, int numParamsFile, int nxpFile,
