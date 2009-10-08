@@ -28,7 +28,7 @@ public:
    virtual int recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube);
    virtual int updateState(float time, float dt);
    virtual int writeState(const char * path, float time);
-   virtual int spike(float time, float dt, float prob, float probStim, int * start);
+   virtual int spike(float time, float dt, float prob, float probStim, float * probSpike);
 
    Image * getImage()  { return img; }
 

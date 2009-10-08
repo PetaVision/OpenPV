@@ -87,8 +87,8 @@ int Retina::initialize(PVLayerType type)
 
    pvdata_t * V = l->V;
 
-   const int nxBorder = l->loc.nPad;
-   const int nyBorder = l->loc.nPad;
+//   const int nxBorder = l->loc.nPad;
+//   const int nyBorder = l->loc.nPad;
 
    // TODO - make sure the origin information is working correctly
    // TODO - I don't think this is needed any longer
@@ -166,91 +166,6 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
    return 0; //PV_Retina_recv_synaptic_input();
 }
 
-/*int Retina::updateState(float time, float dt)
-{
-   if (clayer->updateFunc != NULL) {
-      clayer->updateFunc(clayer);
-   }
-   else {
-      fileread_params * params = (fileread_params *) clayer->params;
-      pvdata_t * activity = clayer->activity->data;
-      float* V = clayer->V;
-
-      float poissonEdgeProb  = RAND_MAX * params->poissonEdgeProb;
-      float poissonBlankProb = RAND_MAX * params->poissonBlankProb;
-
-      int burstStatus = 0;
-
-      if (params->burstDuration <= 0 || params->burstFreq == 0) {
-         burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) > 0.;
-      }
-      else {
-         burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
-         burstStatus = burstStatus <= params->burstDuration;
-      }
-
-      int stimStatus = (time >= params->beginStim) && (time < params->endStim);
-      stimStatus = stimStatus && burstStatus;
-
-      if (params->spikingFlag == 0.0) {
-         // non-spiking code
-         if (stimStatus) {
-            for (int k = 0; k < clayer->numExtended; k++) {
-               activity[k] = V[k];
-            }
-         }
-         else {
-            for (int k = 0; k < clayer->numExtended; k++) {
-               activity[k] = 0.0;
-            }
-         }
-      }
-      else {
-         // Poisson spiking...
-         const int nf = clayer->numFeatures;
-         const int numExtended = clayer->numExtended;
-
-         assert(nf > 0 && nf < 3);
-
-         if (stimStatus == 0) {
-            // fire at the background rate
-            for (int k = 0; k < numExtended; k++) {
-               activity[k] = rand() < poissonBlankProb;
-            }
-         }
-         else {
-            // ON case (k even)
-            for (int k = 0; k < clayer->numExtended; k += nf) {
-               if ( V[k] == 0.0 )
-                  // fire at the background rate
-                  activity[k] = (rand() < poissonBlankProb );
-               else if ( V[k] > 0.0 )
-                  // for gray scale use poissonEdgeProb * abs( V[k] )
-                  activity[k] = (rand() < poissonEdgeProb );
-               else // V[k] < 0.0
-                  // fire at the below background rate (treated as zero if P < 0)
-                  activity[k] = (rand() < ( 2 * poissonBlankProb - poissonEdgeProb ) );
-            }
-            // OFF case (k is odd)
-            if (nf == 2) {
-               for (int k = 1; k < clayer->numExtended; k += nf) {
-                   if ( V[k] == 0.0 )
-                      // fire at the background rate
-                      activity[k] = (rand() < poissonBlankProb );
-                   else if ( V[k] < 0.0 )
-                      // for gray scale use poissonEdgeProb * abs( V[k] )
-                      activity[k] = (rand() < poissonEdgeProb );
-                   else // V[k] > 0.0
-                      // fire at the below background rate (treated as zero if P < 0)
-                      activity[k] = (rand() < ( 2 * poissonBlankProb - poissonEdgeProb ) );
-                }
-            } // nf == 2
-         } // stimStatus
-      }
-   }
-
-   return 0;
-} */
 
 int Retina::copyFromImageBuffer()
 {
@@ -263,11 +178,21 @@ int Retina::copyFromImageBuffer()
 
    pvdata_t * ibuf = img->getImageBuffer();
 
+   // normalize so that V <= 1.0
+   pvdata_t Imax = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      Imax = ibuf[k] > Imax ? ibuf[k] : Imax;
+   }
+   if (Imax == 0){
+      Imax = 1.0; // avoid divide by zero
+   }
+
+
    // for now
    assert(nf == 1);
    if (nf == 1) {
       for (int k = 0; k < clayer->numExtended; k++) {
-         V[k] = ibuf[k];
+         V[k] = ibuf[k] / Imax;
       }
    }
    else {
@@ -275,14 +200,14 @@ int Retina::copyFromImageBuffer()
       const int count = imageLoc.nx * imageLoc.ny;
       if (fireOffPixels) {
          for (int k = 0; k < count; k++) {
-            V[2*k]   = 1 - ibuf[k];
-            V[2*k+1] = ibuf[k];
+            V[2*k]   = 1 - ( ibuf[k] / Imax );
+            V[2*k+1] = ibuf[k] / Imax;
          }
       }
       else {
          for (int k = 0; k < count; k++) {
-            V[2*k]   = ibuf[k];
-            V[2*k+1] = ibuf[k];
+            V[2*k]   = ibuf[k] / Imax;
+            V[2*k+1] = ibuf[k] / Imax;
          }
       }
    }
@@ -300,8 +225,7 @@ int Retina::updateImage(float time, float dt)
 
 int Retina::updateState(float time, float dt)
 {
-   int start;
-
+   float probSpike = 0.0;
    fileread_params * params = (fileread_params *) clayer->params;
 
    pvdata_t * V = clayer->V;
@@ -309,18 +233,19 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
-   if (params->spikingFlag = 0) {
+   if (params->spikingFlag == 1) {
       for (int k = 0; k < clayer->numExtended; k++) {
          float probStim = params->poissonEdgeProb * V[k];
-         float prob = params->poissonBlankProb;
-
-         int flag = spike(time, dt, prob, probStim, &start);
-         activity[k] = (flag) ? 1.0 : 0.0;
+         float probBase = params->poissonBlankProb;
+         activity[k] = spike(time, dt, probBase, probStim, &probSpike);
       }
    }
    else {
       for (int k = 0; k < clayer->numExtended; k++) {
-         activity[k] = V[k];
+         float probStim = params->poissonEdgeProb * V[k];
+         float probBase = params->poissonBlankProb;
+         spike(time, dt, probBase, probStim, &probSpike);
+         activity[k] = probSpike;
       }
    }
 
@@ -352,56 +277,32 @@ int Retina::writeState(const char * path, float time)
    return 0;
 }
 
+
+
 /**
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
  */
-int Retina::spike(float time, float dt, float prob, float probStim, int * start)
+int Retina::spike(float time, float dt, float probBase, float probStim, float * probSpike)
 {
-   static int burstState = 0;
-
    fileread_params * params = (fileread_params *) clayer->params;
-   float poissonProb  = RAND_MAX * prob;
-   probStim = RAND_MAX * probStim;
-
-
-   int burstStatus = 0;
+   int burstStatus = 1;
    float sinAmp = 1.0;
 
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      sinAmp = sin( 2 * PI * time * params->burstFreq / 1000. );
-      burstStatus = sinAmp >= 0.;
+      sinAmp = cos( 2 * PI * time * params->burstFreq / 1000. );
    }
    else {
       burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
       burstStatus = burstStatus <= params->burstDuration;
    }
 
-   *start = 0;
-   if (burstState == 0 && burstStatus == 1) {
-      *start = 1;
-      burstState = 1;
-   }
-   else if (burstState == 1 && burstStatus == 0) {
-      burstState = 0;
-   }
+   burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
+   *probSpike = probBase;
 
-   int stimStatus = (time >= params->beginStim) && (time < params->endStim);
-
-   stimStatus = stimStatus && burstStatus;
-
-   if (stimStatus) {
-      poissonProb = (2 * poissonProb) + (probStim * sinAmp);
-      return ( rand() < poissonProb );
-   }
-   else {
-      if (sinAmp <= 0)   poissonProb = (poissonProb * sinAmp) + poissonProb;
-      return ( rand() < poissonProb );
-   }
-/*
- * This is if you wish to go back to on/off instead of sinusoidal
-   if (stimStatus) return (rand() < poissonProb);
-   else return 0;
-*/
+   if (burstStatus) {
+      *probSpike += probStim * sinAmp;  // negative prob is OK
+    }
+   return ( rand() < (*probSpike * RAND_MAX));
 }
 
 }
