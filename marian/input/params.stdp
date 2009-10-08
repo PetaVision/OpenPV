@@ -1,8 +1,7 @@
 //
 // params.pv
 //  - input parameters for stdp.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+//  - PV lives in a virtual world o rectangle images.
 //
 
 HyPerCol "column" = {
@@ -12,22 +11,24 @@ HyPerCol "column" = {
 };
 
 //
-// Three layers, "Retina", "L1", "L2"
+// Four layers, "Image", "Retina", "L1", "L2"
 //
 
+HyPerLayer "Image" = {
+   marginWidth = 1;   
+};
+
 HyPerLayer "Retina" = {
-   nx = 32;
-   ny = 32;
+   nxScale = 1;
+   nyScale = 1;
    nf = 1;   // features = (OFF,ON}
    
-   nBorder = 0;//0; MA change- just a hunch
+   marginWidth = 1;
 
    beginStim = .0;
    endStim   = 200000.0;
 
    fireOffPixels = 1;          // if true, black (0) pixels fire as off
-   invert  = 0.0;
-   uncolor = 1.0;              // if true, pixels>0 become 1.0
 
    spikingFlag = 1;           // spike as poisson?
    //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank 
@@ -37,17 +38,16 @@ HyPerLayer "Retina" = {
    
    burstDuration = 10;
    burstFreq = 40;
-   
-   marginWidth = 0.0;           // set input to 0 within margin
 };
 
 HyPerLayer "L1" = {
-   nx = 32;
-   ny = 32;
+   nxScale = 1;
+   nyScale = 1;
    nf = 1;    // features=(OFF,ON} times 8 combinations
    no = 1;
-   nBorder = 0;//0; MA change- just a hunch
    
+   marginWidth = 1;
+
    spikingFlag = 1; // ?
    
    tau    = 100; // 2;    // 100;
@@ -135,30 +135,31 @@ HyPerLayer "L5" = {
 
 
 HyPerConn "Retina to L1" = {
-   nxp = 3;   // from retina to L1
-   nyp = 3;
-   strength = 1.0;
+   nxp = 1;   // from retina to L1
+   nyp = 1;
+   strength = 5.0;
    
    stdpFlag = 1;
    
    wMinInit = 4.0;  // default values if Gaussian is not defined
-   wMaxInit = 6.0; // if not defined uses wMin and wMax.
+   wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
    
    wGaussMean = 5.0;//5.00;
    wGaussStdev = 0.0;//1.00;
    
    idum = 3940284; // random number generator seed
    
-   randomFlag = 1; // 
+   randomFlag = 0; // 
+   
+   aspect = 1;
+   sigma = 100;
+   rMax = 100;
    
    wMin = 0.0;
    wMax = 10.0;   //10.0;
    dWMax = 0.01;
    
    writeStep = 100; // writes to output file every writeStep
-
-   rotate = 1.0;
-   invert = 0.0;
 };
 
 HyPerConn "L1 to L2" = {
@@ -175,8 +176,6 @@ HyPerConn "L1 to L2" = {
    //sigma  = 100;
    //rMax   = 100;
    
-   rotate = 1.0;
-   invert = 0.0;
 };
 
 HyPerConn "L2 to L3" = {
@@ -189,9 +188,6 @@ HyPerConn "L2 to L3" = {
    
    wMin = 0.0;
    wMax = 10.0;
-
-   rotate = 1.0;
-   invert = 0.0;
 };
 
 HyPerConn "L3 to L4" = {
