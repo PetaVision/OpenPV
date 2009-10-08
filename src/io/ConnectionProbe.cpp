@@ -61,23 +61,26 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    float * M = NULL;
    int kPre = this->kPre;
 
+   const PVLayer * l = c->preSynapticLayer()->clayer;
+
+   float nx = l->loc.nx;
+   float ny = l->loc.ny;
+   float nf = l->numFeatures;
+
    if (kPre < 0) {
       // calculate kPre
-      float nx = c->preSynapticLayer()->clayer->loc.nx + 2 * c->preSynapticLayer()->clayer->loc.nPad;
-      float ny = c->preSynapticLayer()->clayer->loc.ny + 2 * c->preSynapticLayer()->clayer->loc.nPad;
-      float nf = c->preSynapticLayer()->clayer->numFeatures;
       kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
    }
 
    const int axonId = 0;
    PVAxonalArbor * arbor = c->axonalArbor(kPre, axonId);
 
-   PVPatch * P   = arbor->plasticIncr;
-   PVPatch * w   = arbor->weights;
-   size_t offset = arbor->offset;
+   PVPatch * P = arbor->plasticIncr;
+   PVPatch * w = arbor->weights;
+   size_t postOffset = arbor->offset;
 
    if (c->getPlasticityDecrement() != NULL) {
-      M = & (c->getPlasticityDecrement()->data[offset]);  // STDP decrement variable
+      M = & (c->getPlasticityDecrement()->data[postOffset]);  // STDP decrement variable
    }
 
    fprintf(fp, "w%d:      ", kPre);
