@@ -93,21 +93,21 @@ int main(int argc, char* argv[])
 
    // file probes
 //   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 5,10, 0);
-   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 9,12, 0);
-   ConnectionProbe * cp_ur = new ConnectionProbe("r9-10.probe",9, 10, 0);
-   ConnectionProbe * cp_ll = new ConnectionProbe("r5-24.probe", 5,24, 0);
-   ConnectionProbe * cp_lr = new ConnectionProbe("r9-24.probe",9,24, 0);
+//   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 9,12, 0);
+//   ConnectionProbe * cp_ur = new ConnectionProbe("r9-10.probe",9, 10, 0);
+//   ConnectionProbe * cp_ll = new ConnectionProbe("r5-24.probe", 5,24, 0);
+//   ConnectionProbe * cp_lr = new ConnectionProbe("r9-24.probe",9,24, 0);
 
-   r_l1->insertProbe(cp_ul);
-   r_l1->insertProbe(cp_ur);
-   r_l1->insertProbe(cp_ll);
-   r_l1->insertProbe(cp_lr);
+//   r_l1->insertProbe(cp_ul);
+//   r_l1->insertProbe(cp_ur);
+//   r_l1->insertProbe(cp_ll);
+//   r_l1->insertProbe(cp_lr);
 
    LinearActivityProbe * rProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
 
    for (unsigned int i = 0; i < ny; i++) {
 	   rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
-	   retina->insertProbe(rProbes[i]);
+	   //retina->insertProbe(rProbes[i]);
 	   //l1->insertProbe(rProbes[i]);
 	   //l2->insertProbe(rProbes[i]);
 	   //l3->insertProbe(rProbes[i]);
@@ -116,6 +116,13 @@ int main(int argc, char* argv[])
 
    }
 
+   ConnectionProbe * cp_ul = new ConnectionProbe(4, 9, 0);
+   r_l1->insertProbe(cp_ul);
+
+   PointProbe* ptprobeR = new PointProbe(4, 9, 0, "R :");
+   PointProbe* ptprobe1 = new PointProbe(4, 9, 0, "ul:");
+   retina->insertProbe(ptprobeR);
+   l1->insertProbe(ptprobe1);
 
    // run the simulation
    hc->initFinish();
