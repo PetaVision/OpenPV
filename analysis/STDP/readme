@@ -1,0 +1,25 @@
+x = normrnd(10,2,20,1);
+[f,xf] = ecdf(x);
+
+stairs(xf,f)
+hold on
+xx=linspace(5,15,100);
+yy = normcdf(xx,10,2);
+plot(xx,yy,'r:')
+hold off
+legend('Empirical cdf','Normal cdf',2)
+
+???Undefined function or method 'ecdf' for input arguments of type 'double'.
+newW=cast(W,'single');
+
+
+>  stdp_compAverageWeightsEvol.m for each neuron computes the sum of 
+its synapse weights as a fucntion of time.
+
+> stdp_analyzeWeightsRate.m it looks at the average rate versus
+average weights. For each neuron, we first compute the sum of its
+synaptic weights as a fucntion of time. Then, we average this sum in a
+time window and we plot the average rate fro all neurons that have the
+average sum of weights in a given bin.
+
+
