@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
    int locY = 8;
 
    // create the layers
-   ImageCreator * image = new ImageCreator(hc);
+   ImageCreator * image = new ImageCreator("Image", hc);
    HyPerLayer * retina = new Retina("Retina", hc, image);
 
    HyPerLayer * l1     = new V1("L1", hc);
@@ -48,8 +48,10 @@ int main(int argc, char* argv[])
 
    //PV::HyPerConn * r_l1 =
    //		   new PV::RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
+//   HyPerConn * r_l1 =
+//      new RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC,PV::GAUSSIAN);
    HyPerConn * r_l1 =
-      new RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC,PV::GAUSSIAN);
+      new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 
    //PV::HyPerConn * r_l1 =
    //      new PV::RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC,PV::UNIFORM);
@@ -83,16 +85,15 @@ int main(int argc, char* argv[])
 
    PVParams* params = hc->parameters();
 
-   int ny;
-   //if (params->present("Retina", "ny")) ny  = params->value("Retina", "ny");
-   if (params->present("L1", "ny")) ny  = params->value("L1", "ny");
+   int ny = retina->clayer->loc.ny;
 
    // stdout probes
    //ConnectionProbe * cp_ul = new ConnectionProbe(5, 10, 0);
    //ConnectionProbe * cp_ur = new ConnectionProbe(10, 10, 0);
 
    // file probes
-   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 5,10, 0);
+//   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 5,10, 0);
+   ConnectionProbe * cp_ul = new ConnectionProbe("r5-10.probe", 9,12, 0);
    ConnectionProbe * cp_ur = new ConnectionProbe("r9-10.probe",9, 10, 0);
    ConnectionProbe * cp_ll = new ConnectionProbe("r5-24.probe", 5,24, 0);
    ConnectionProbe * cp_lr = new ConnectionProbe("r9-24.probe",9,24, 0);
@@ -105,8 +106,8 @@ int main(int argc, char* argv[])
    LinearActivityProbe * rProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
 
    for (unsigned int i = 0; i < ny; i++) {
-	   //rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
-	   //retina->insertProbe(rProbes[i]);
+	   rProbes[i] = new PV::LinearActivityProbe(hc,PV::DimX, i, 0);
+	   retina->insertProbe(rProbes[i]);
 	   //l1->insertProbe(rProbes[i]);
 	   //l2->insertProbe(rProbes[i]);
 	   //l3->insertProbe(rProbes[i]);
