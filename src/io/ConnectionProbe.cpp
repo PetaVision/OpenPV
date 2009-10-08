@@ -63,14 +63,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    if (kPre < 0) {
       // calculate kPre
-      float nx = c->preSynapticLayer()->clayer->loc.nx;
-      float ny = c->preSynapticLayer()->clayer->loc.ny;
+      float nx = c->preSynapticLayer()->clayer->loc.nx + 2 * c->preSynapticLayer()->clayer->loc.nPad;
+      float ny = c->preSynapticLayer()->clayer->loc.ny + 2 * c->preSynapticLayer()->clayer->loc.nPad;
       float nf = c->preSynapticLayer()->clayer->numFeatures;
       kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
    }
 
-   const int neighbor = 0;
-   PVAxonalArbor * arbor = c->axonalArbor(kPre,neighbor);
+   const int axonId = 0;
+   PVAxonalArbor * arbor = c->axonalArbor(kPre, axonId);
 
    PVPatch * P   = arbor->plasticIncr;
    PVPatch * w   = arbor->weights;
