@@ -61,8 +61,8 @@ public:
    virtual int numDataPatches(int arbor);
    virtual int writeWeights(float time);
    virtual int writeWeights(const char * filename, float time);
-   virtual int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
-         const char * filename, float time);
+   virtual int writeWeights(PVPatch ** patches, int numPatches,
+                            const char * filename, float time);
    virtual int writeTextWeights(const char * filename, int k);
    virtual int writePostSynapticWeights(int ioAppend);
 
