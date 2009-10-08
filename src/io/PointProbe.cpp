@@ -55,7 +55,7 @@ int PointProbe::outputState(float time, PVLayer * l)
    int nf = l->numFeatures;
    int sf = 1;
    int sx = nf;
-   int sy = nf * l->loc.nx;
+   int sy = nf * (l->loc.nx + 2*l->loc.nPad);
    int offset = yLoc * sy + xLoc * sx + fLoc * sf;
 
    fprintf(fp, "%s t=%6.1f", msg, time);
