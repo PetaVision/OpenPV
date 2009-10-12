@@ -62,7 +62,7 @@ int PointProbe::outputState(float time, PVLayer * l)
    fprintf(fp, "%s t=%6.1f", msg, time);
    fprintf(fp, " G_E=%6.3f", l->G_E[k]);
    fprintf(fp, " G_I=%6.3f", l->G_I[k]);
-   fprintf(fp, " V=%6.3f", l->V[k]);
+   fprintf(fp, " V=%6.3f",   l->V[k]);
    fprintf(fp, " Vth=%6.3f", l->Vth[k]);
    fprintf(fp, " a=%3.1f\n", l->activity->data[kex]);
 

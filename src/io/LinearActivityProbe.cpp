@@ -46,23 +46,29 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
  */
 int LinearActivityProbe::outputState(float time, PVLayer * l)
 {
-   int width, sLine;
+   int width, sLine, k, kex;
    float * line;
-   const LayerLoc * loc = &l->activity->loc;
+
+   const float nx = l->loc.nx;
+   const float ny = l->loc.ny;
+   const float nf = l->numFeatures;
+
+   const float marginWidth = l->loc.nPad;
 
    float dt = parent->getDeltaTime();
-   int nf = l->numFeatures;
 
    if (dim == DimX) {
-      width = loc->nx + 2*loc->nPad;
+      width = nx + 2*marginWidth;
+      k = kIndex(0, linePos, f, nx, ny, nf);
       sLine = nf;
-      line  = l->activity->data + linePos * width * nf;
    }
    else {
-      width = loc->ny + 2*loc->nPad;
-      sLine = nf * (loc->nx + 2*loc->nPad);
-      line  = l->activity->data + linePos * nf;
+      width = ny + 2*marginWidth;
+      k = kIndex(linePos, 0, f, nx, ny, nf);
+      sLine = nf * (nx + 2*marginWidth);
    }
+   kex = kIndexExtended(k, nx, ny, nf, marginWidth) - marginWidth;  // shift so as to display margins
+   line = l->activity->data + kex;
 
    double sum = 0.0;
    for (int k = 0; k < width; k++) {
