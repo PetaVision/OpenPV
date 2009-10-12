@@ -293,4 +293,8 @@ int thread_params_init(pv_thread_env_t * env, int numThreads)
    return 0;
 }
 
+#else
+
+void pv_thread_noop() { }
+
 #endif /* PV_USE_PTHREADS */
