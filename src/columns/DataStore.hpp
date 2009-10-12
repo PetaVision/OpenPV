@@ -23,6 +23,8 @@ public:
 
    int numberOfLevels()  {return numLevels;}
    int numberOfBuffers() {return numBuffers;}
+   int lastLevelIndex()
+         {return ((numLevels + curLevel + 1) % numLevels);}
    int levelIndex(int level)
          {return ((level + curLevel) % numLevels);}
    int newLevelIndex()
