@@ -62,6 +62,10 @@ int pvConnFinalize(PVConnection * pvConn)
 
    return 0;
 }
+#else
+
+void pv_connection_noop() { }
+
 #endif // USE_PVCONNECTION
 
 #ifdef __cplusplus
