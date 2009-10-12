@@ -65,11 +65,13 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    float nx = l->loc.nx;
    float ny = l->loc.ny;
-   float nf = l->numFeatures;
+   float nf   = l->numFeatures;
 
+   // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
       kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
+      kPre = kIndexExtended(kPre, nx, ny, nf, l->loc.nPad);
    }
 
    const int axonId = 0;
@@ -77,10 +79,10 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    PVPatch * P = arbor->plasticIncr;
    PVPatch * w = arbor->weights;
-   size_t postOffset = arbor->offset;
+   int kPost = arbor->offset;
 
    if (c->getPlasticityDecrement() != NULL) {
-      M = & (c->getPlasticityDecrement()->data[postOffset]);  // STDP decrement variable
+      M = & (c->getPlasticityDecrement()->data[kPost]);  // STDP decrement variable
    }
 
    fprintf(fp, "w%d:      ", kPre);
