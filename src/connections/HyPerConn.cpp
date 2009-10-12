@@ -465,7 +465,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
-int HyPerConn::deliver(PVLayerCube * cube, int neighbor)
+int HyPerConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
 {
 #ifdef DEBUG_OUTPUT
    int rank;
@@ -725,20 +725,17 @@ int HyPerConn::createAxonalArbors()
    const float kxPost0Left = 0.0f;
    const float kyPost0Left = 0.0f;
 
-   const float nxBorderPre  = pre->clayer->loc.nPad;
-   const float nyBorderPre  = pre->clayer->loc.nPad;
-   const float nxBorderPost = post->clayer->loc.nPad;
+   const float prePad  = pre->clayer->loc.nPad;
+   const float postPad = post->clayer->loc.nPad;
 
-   // use the extended reference frame (with margins) for pre-synaptic layer
-
-   const float nxPre  = pre->clayer->loc.nx + 2.0f * nxBorderPre;
-   const float nyPre  = pre->clayer->loc.ny + 2.0f * nyBorderPre;
-   const float kx0Pre = pre->clayer->loc.kx0 - nxBorderPre;
-   const float ky0Pre = pre->clayer->loc.ky0 - nyBorderPre;
+   const float nxPre  = pre->clayer->loc.nx;
+   const float nyPre  = pre->clayer->loc.ny;
+   const float kx0Pre = pre->clayer->loc.kx0;
+   const float ky0Pre = pre->clayer->loc.ky0;
    const float nfPre  = pre->clayer->numFeatures;
 
-   // use the non-extended reference frame for post-synaptic layer
-   // because phi data structure is not extended
+   const float nxexPre = nxPre + 2.0f*prePad;
+   const float nyexPre = nyPre + 2.0f*prePad;
 
    const float nxPost  = post->clayer->loc.nx;
    const float nyPost  = post->clayer->loc.ny;
@@ -746,23 +743,28 @@ int HyPerConn::createAxonalArbors()
    const float ky0Post = post->clayer->loc.ky0;
    const float nfPost  = post->clayer->numFeatures;
 
+   const float nxexPost = nxPost + 2.0f*postPad;
+   const float nyexPost = nyPost + 2.0f*postPad;
+
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
 
    const int numAxons = numAxonalArborLists;
 
+//
+// these strides are for post-synaptic phi variable, a non-extended layer variable
 #ifndef FEATURES_LAST
    const float psf = 1;
    const float psx = nfp;
-   const float psy = psx * (nxPost + 2.0f*nxBorderPost);
+   const float psy = psx * nxPost; // (nxPost + 2.0f*postPad); // TODO- check me///////////
 #else
    const float psx = 1;
-   const float psy = nxPost + 2.0f*nxBorderPost;
-   const float psf = psy * (nyPost + 2.0f*nxBorderPost);
+   const float psy = nxPost; // + 2.0f*postPad;
+   const float psf = psy * nyPost; // (nyPost + 2.0f*postPad);
 #endif
 
    //
-   // activity is extended beyond hyper column layer region
+   // activity and STDP M variable are extended into margins
 
    for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
@@ -775,15 +777,20 @@ int HyPerConn::createAxonalArbors()
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
       assert(dataPatches != NULL);
 
-      for (int k = 0; k < numArbors; k++) {
-         PVAxonalArbor * arbor = axonalArbor(k, n);
-         int kPre = kIndexFromNeighbor(k, n);
+      for (int kex = 0; kex < numArbors; kex++) {
+         PVAxonalArbor * arbor = axonalArbor(kex, n);
 
-         // global indices
-         float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
-         float kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
+         // k is in extended frame, this makes transformations more difficult
 
-         // global indices
+         // local indices in extended frame
+         float kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
+         float kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
+
+         // convert to global non-extended frame
+         kxPre += kx0Pre - prePad;
+         kyPre += ky0Pre - prePad;
+
+         // global non-extended post-synaptic frame
          float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
          float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
 
@@ -791,7 +798,7 @@ int HyPerConn::createAxonalArbors()
          // weight patch is actually a pencil and so kfPost is always 0?
          float kfPost = 0.0f;
 
-         // convert to local frame
+         // convert to local non-extended post-synaptic frame
          kxPost = kxPost - kx0Post;
          kyPost = kyPost - ky0Post;
 
@@ -837,19 +844,30 @@ int HyPerConn::createAxonalArbors()
             nyPatch = 0.0;
          }
 
-         // local index
+         // local non-extended index but shifted to be in bounds
          int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
          assert(kl >= 0);
          assert(kl < post->clayer->numNeurons);
 
-         arbor->data = &dataPatches[k];
-         arbor->weights = this->getWeights(kPre, n);
-         arbor->plasticIncr = this->getPlasticityIncrement(kPre, n);
-         arbor->offset = kl;
+         arbor->data = &dataPatches[kex];
+         arbor->weights = this->getWeights(kex, n);
+         arbor->plasticIncr = this->getPlasticityIncrement(kex, n);
 
-         // initialize
+         // initialize the receiving (of spiking data) phi variable
          pvdata_t * phi = post->clayer->phi[channel] + kl;
          pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
+
+         //
+         // get offset in extended frame for post-synaptic M STDP variable
+
+         kxPost += postPad;
+         kyPost += postPad;
+
+         kl = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
+         assert(kl >= 0);
+         assert(kl < post->clayer->numExtended);
+
+         arbor->offset = kl;
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
 
