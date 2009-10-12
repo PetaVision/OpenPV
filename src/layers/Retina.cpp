@@ -166,7 +166,6 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
    return 0; //PV_Retina_recv_synaptic_input();
 }
 
-
 int Retina::copyFromImageBuffer()
 {
    const int nf = clayer->numFeatures;
@@ -190,27 +189,29 @@ int Retina::copyFromImageBuffer()
 
    // for now
    assert(nf == 1);
-   if (nf == 1) {
-      for (int k = 0; k < clayer->numExtended; k++) {
-         V[k] = ibuf[k] / Imax;
-      }
+
+   HyPerLayer::copyToInteriorBuffer(V, ibuf, &imageLoc);
+   
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      V[k] = ibuf[k] / Imax;
    }
-   else {
-      // f[0] are OFF, f[1] are ON cells
-      const int count = imageLoc.nx * imageLoc.ny;
-      if (fireOffPixels) {
-         for (int k = 0; k < count; k++) {
-            V[2*k]   = 1 - ( ibuf[k] / Imax );
-            V[2*k+1] = ibuf[k] / Imax;
-         }
-      }
-      else {
-         for (int k = 0; k < count; k++) {
-            V[2*k]   = ibuf[k] / Imax;
-            V[2*k+1] = ibuf[k] / Imax;
-         }
-      }
-   }
+
+   //
+   // otherwise handle OFF/ON cells
+
+   // f[0] are OFF, f[1] are ON cells
+//   const int count = imageLoc.nx * imageLoc.ny;
+//   if (fireOffPixels) {
+//      for (int k = 0; k < count; k++) {
+//         V[2*k]   = 1 - ibuf[k] / Imax;
+//         V[2*k+1] = ibuf[k] / Imax;
+//      }
+//   }
+//   else {
+//      for (int k = 0; k < count; k++) {
+//         V[2*k]   = ibuf[k] / Imax;
+//         V[2*k+1] = ibuf[k] / Imax;
+//      }
 
    return 0;
 }
@@ -231,21 +232,29 @@ int Retina::updateState(float time, float dt)
    pvdata_t * V = clayer->V;
    pvdata_t * activity = clayer->activity->data;
 
+   const float nx = clayer->loc.nx;
+   const float ny = clayer->loc.ny;
+   const float nf = clayer->numFeatures;
+
+   const float marginWidth = clayer->loc.nPad;
+
    updateImage(time, dt);
 
    if (params->spikingFlag == 1) {
-      for (int k = 0; k < clayer->numExtended; k++) {
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          float probStim = params->poissonEdgeProb * V[k];
          float probBase = params->poissonBlankProb;
-         activity[k] = spike(time, dt, probBase, probStim, &probSpike);
+         activity[kex]  = spike(time, dt, probBase, probStim, &probSpike);
       }
    }
    else {
-      for (int k = 0; k < clayer->numExtended; k++) {
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          float probStim = params->poissonEdgeProb * V[k];
          float probBase = params->poissonBlankProb;
          spike(time, dt, probBase, probStim, &probSpike);
-         activity[k] = probSpike;
+         activity[kex] = probSpike;
       }
    }
 
@@ -277,8 +286,6 @@ int Retina::writeState(const char * path, float time)
    return 0;
 }
 
-
-
 /**
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
  */
@@ -305,4 +312,4 @@ int Retina::spike(float time, float dt, float probBase, float probStim, float * 
    return ( rand() < (*probSpike * RAND_MAX));
 }
 
-}
+} // namespace PV
