@@ -48,10 +48,10 @@ public:
 
 private:
 
-   PVLayerCube * recvBuffer(int neighborId)
-         {return (PVLayerCube *) store->buffer(neighborId);}
-   PVLayerCube * recvBuffer(int neighborId, int delay)
-         {return (PVLayerCube *) store->buffer(neighborId, delay);}
+   pvdata_t * recvBuffer(int neighborId)
+         {return (pvdata_t *) store->buffer(neighborId);}
+   pvdata_t * recvBuffer(int neighborId, int delay)
+         {return (pvdata_t *) store->buffer(neighborId, delay);}
 
    int pubId;
    int numSubscribers;
