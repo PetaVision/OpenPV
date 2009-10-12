@@ -164,4 +164,8 @@ double MPI_Wtick()
    return CLOCKS_PER_SEC;
 }
 
+#else
+
+void pv_mpi_noop() { }
+
 #endif // PV_USE_LOCAL_MPI
