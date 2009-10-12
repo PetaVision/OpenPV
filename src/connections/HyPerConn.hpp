@@ -9,6 +9,7 @@
 #define HYPERCONN_HPP_
 
 #include "PVConnection.h"
+#include "../columns/InterColComm.hpp"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
@@ -49,7 +50,7 @@ public:
          int channel, const char * filename);
    virtual ~HyPerConn();
 
-   virtual int deliver(PVLayerCube * cube, int neighbor);
+   virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
 
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time);
