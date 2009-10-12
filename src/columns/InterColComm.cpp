@@ -110,7 +110,10 @@ Publisher::Publisher(int pubId, Communicator * comm, int numItems, LayerLoc loc,
    cube.data = NULL;
    cube.loc = loc;
    cube.numItems = numItems;
-   cube.size = dataSize + sizeof(PVLayerCube);  // not really inplace but ok
+
+   // not really inplace but ok as is only used to deliver
+   // to provide cube information for data from store
+   cube.size = dataSize + sizeof(PVLayerCube);
 
    const int numBuffers = 1;
    this->store = new DataStore(numBuffers, dataSize, numLevels);
@@ -139,6 +142,12 @@ int Publisher::publish(HyPerLayer* pub,
       return 0;  // no one to deliver to
    }
 
+   pvdata_t * sendBuf = cube->data;
+   pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
+
+   // copy entire layer and let neighbors overwrite
+   memcpy(recvBuf, sendBuf, dataSize);
+
 #ifdef PV_USE_MPI
    int icRank = comm->commRank();
    MPI_Comm mpiComm = comm->communicator();
@@ -161,11 +170,6 @@ int Publisher::publish(HyPerLayer* pub,
    assert(nreq == comm->numberOfNeighbors() - 1);
 
 #endif // PV_USE_MPI
-
-   pvdata_t * sendBuf = cube->data + Communicator::sendOffset(LOCAL, &cube->loc);
-
-   // copy layer interior (no margins)
-   memcpy(recvBuffer(LOCAL), sendBuf, dataSize);
 
 #ifdef PV_OLD_MPI
    // send/recv to/from neighbors
@@ -210,12 +214,12 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       HyPerConn* conn = connection[ic];
       int delay = conn->getDelay();
       if (delay > 0) {
-         cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
+         cube.data = recvBuffer(LOCAL, delay);
 #ifdef DEBUG_OUTPUT
          printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
          fflush(stdout);
 #endif
-         conn->deliver(&cube, LOCAL);
+         conn->deliver(this, &cube, LOCAL);
       }
    }
 
@@ -232,12 +236,12 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = this->connection[ic];
       if (conn->getDelay() == 0) {
-         cube.data = (pvdata_t *) store->buffer(LOCAL);
+         cube.data = recvBuffer(LOCAL);
 #ifdef DEBUG_OUTPUT
          printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
          fflush(stdout);
 #endif
-         conn->deliver(&cube, LOCAL);
+         conn->deliver(this, &cube, LOCAL);
       }
    }
 
