@@ -316,7 +316,6 @@ int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const Layer
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
    assert(neighbor == 0);
-
    const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
@@ -349,6 +348,14 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       }
    }
 
+   return 0;
+}
+
+int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
+{
+   // TODO - implement
+   printf("[%d]: HyPerLayer::reconstruct: to layer %d from %d\n",
+          clayer->columnId, clayer->layerId, conn->preSynapticLayer()->clayer->layerId);
    return 0;
 }
 
