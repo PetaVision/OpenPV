@@ -196,11 +196,11 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
    for (int image = 0; image < n_images; image++) {
       do {
          posx = rand() % nx;
-      } while(posx < 0 && posx > (nx - length - 1));
+      } while(posx < 0 && posx > (nx - length));
 
       do{
          posy = rand() % ny;
-      } while(posy < 0 || posy > (nx - length - 1));
+      } while(posy < 0 || posy > (nx - length));
 
       Point2D newpos(posx, posy);
       drawSquare(newpos, length, 0);
@@ -372,10 +372,10 @@ int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
    int x4 = pt4.getX();
    int y4 = pt4.getY();
 
-   if ((x1 <= 0) || (x2 <= 0) || (x3 <= 0) || (x4 <= 0) ||
-       (y1 <= 0) || (y2 <= 0) || (y3 <= 0) || (y4 <= 0) ||
-       (x1 > nx) || (x2 > nx) || (x3 > nx) || (x4 > nx) ||
-       (y1 > ny) || (y2 > ny) || (y3 > ny) || (y4 > ny)) {
+   if ((x1 < 0) || (x2 < 0) || (x3 < 0) || (x4 < 0) ||
+       (y1 < 0) || (y2 < 0) || (y3 < 0) || (y4 < 0) ||
+       (x1 >= nx) || (x2 >= nx) || (x3 >= nx) || (x4 >= nx) ||
+       (y1 >= ny) || (y2 >= ny) || (y3 >= ny) || (y4 >= ny)) {
 
          std::cout << "ImageCreator: Error drawing 2D figure at ";// << pt1 << ".\n";
          return 1;
