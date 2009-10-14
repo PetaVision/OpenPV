@@ -177,25 +177,22 @@ int Retina::copyFromImageBuffer()
 
    pvdata_t * ibuf = img->getImageBuffer();
 
-   // normalize so that V <= 1.0
-   pvdata_t Imax = 0;
-   for (int k = 0; k < clayer->numExtended; k++) {
-      Imax = ibuf[k] > Imax ? ibuf[k] : Imax;
-   }
-   if (Imax == 0){
-      Imax = 1.0; // avoid divide by zero
-   }
-
-
    // for now
    assert(nf == 1);
 
    HyPerLayer::copyToInteriorBuffer(V, ibuf, &imageLoc);
-   
-   for (int k = 0; k < clayer->numNeurons; k++) {
-      V[k] = ibuf[k] / Imax;
-   }
 
+   // normalize so that V <= 1.0
+   pvdata_t vmax = 0;
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      vmax = V[k] > vmax ? V[k] : vmax;
+   }
+   if (vmax != 0){
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         V[k] = V[k] / vmax;
+      }
+   }
+   
    //
    // otherwise handle OFF/ON cells
 
