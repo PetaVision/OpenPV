@@ -303,6 +303,7 @@ static inline int strideF(float nx, float ny, float nf)
  * @ny
  * @nf
  * @nb
+ * k is the index in the restricted space
  */
 static inline int kIndexExtended(int k, float nx, float ny, float nf, float nb)
 {
