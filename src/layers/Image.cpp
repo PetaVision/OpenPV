@@ -172,6 +172,8 @@ int Image::copyToInteriorBuffer(unsigned char * buf)
 
 int Image::copyFromInteriorBuffer(const unsigned char * buf)
 {
+   float * a = data;
+
    const int nx = loc.nx;
    const int ny = loc.ny;
 
