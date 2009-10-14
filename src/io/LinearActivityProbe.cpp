@@ -49,6 +49,8 @@ int LinearActivityProbe::outputState(float time, PVLayer * l)
    int width, sLine, k, kex;
    float * line;
 
+   float * activity = l->activity->data;
+
    const float nx = l->loc.nx;
    const float ny = l->loc.ny;
    const float nf = l->numFeatures;
