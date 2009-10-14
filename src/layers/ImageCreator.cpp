@@ -521,11 +521,11 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
       err |= tiff_write_file(tiffilename, data, loc.nx, loc.ny);
    }
    if (istxton) {
-	  snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
+      snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
       err |= writeImageToTxt(txtfilename);
    }
    if (isbinon) {
-	  snprintf(binfilename, 255, "%simages/%s.bin", OUTPUT_PATH, basicfilename);
+      snprintf(binfilename, 255, "%simages/%s.bin", OUTPUT_PATH, basicfilename);
       err |= writeImageToBin(binfilename);
    }
    return err;
