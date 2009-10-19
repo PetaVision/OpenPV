@@ -118,11 +118,14 @@ int ConnectionProbe::text_write_patch(FILE * fd, PVPatch * patch, float * data)
    assert(fd != NULL);
 
    for (f = 0; f < nf; f++) {
+      fprintf(fd, "f = %i\n ", f);
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
             fprintf(fd, "%5.3f ", data[i*sx + j*sy + f*sf]);
          }
+         fprintf(fd, "\n");
       }
+      fprintf(fd, "\n");
    }
 
    return 0;

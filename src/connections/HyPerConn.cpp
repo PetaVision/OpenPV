@@ -239,7 +239,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
 
    // default values (chosen for center on cell of one pixel)
-   int noPost = 1;
+   int noPost = nfp;
    if (params->present(post->getName(), "no")) {
       noPost = (int) params->value(post->getName(), "no");
    }
@@ -260,7 +260,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
 
    int numFlanks = 1;
    float shift = 0.0;
-   float rotate = 1.0; // rotate so that axis isn't aligned
+   float rotate = 0.0; // rotate so that axis isn't aligned
 
    if (params->present(name, "numFlanks")) numFlanks = params->value(name, "numFlanks");
    if (params->present(name, "flankShift")) shift = params->value(name, "flankShift");
@@ -561,7 +561,7 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
 {
    // TODO - should no longer have remote neighbors if extended activity works out
    assert(remoteNeighbor == 0);
-   
+
    const float dt = parent->getDeltaTime();
    const float decayLTP = expf(-dt/tauLTP);
 
@@ -1319,7 +1319,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    const float dy = 1.0;
 
    const float nxPre = pre->clayer->loc.nx;
-   const float nyPre = pre->clayer->loc.nx;
+   const float nyPre = pre->clayer->loc.ny;
+//   const float nyPre = pre->clayer->loc.nx;  // looks wrong
    const float nfPre = pre->clayer->numFeatures;
 
    const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);

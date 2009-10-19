@@ -116,7 +116,7 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
    // TODO - does global patch need to expand to take into account border regions (probably)
 
    LayerLoc loc = clayer->loc;
-   
+
    const int nxBorder = loc.nPad;
    const int nyBorder = loc.nPad;
 
@@ -289,6 +289,30 @@ static int copyToInteriorByteBuffer(unsigned char * buf, pvdata_t * data, const 
    return 0;
 }
 
+static int copyAndScaleToByteBuffer(unsigned char * buf, pvdata_t * data, const LayerLoc * loc)
+{
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   int ii = 0;
+   for (int b = 0; b < loc->nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            buf[ii++] = (unsigned char) ( 255 * data[iex + jex*sy + b*sb] );
+         }
+      }
+   }
+   return 0;
+}
+
 int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc)
 {
    const int nx = sameLoc->nx;
@@ -434,7 +458,7 @@ int HyPerLayer::writeActivity(const char * filename)
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
-   status = copyToInteriorByteBuffer(buf, clayer->activity->data, loc);
+   status = copyAndScaleToByteBuffer(buf, clayer->activity->data, loc);
 
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
