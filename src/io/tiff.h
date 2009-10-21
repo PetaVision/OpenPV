@@ -74,7 +74,9 @@ int tiff_copy_image_float(FILE * fd, long * nextLoc, float * data, size_t numIte
 int tiff_write_header(FILE * fd, long * nextLoc);
 int tiff_write_ifd(FILE * fd, long * nextLoc, int width, int height);
 int tiff_write_image(FILE * fd, float * buf, int width, int height);
+int tiff_write_image_drawBuffer(FILE * fd, unsigned char * buf, int width, int height);
 int tiff_write_file(const char * filename, float * buf, int width, int height);
+int tiff_write_file_drawBuffer(const char * filename, unsigned char * buf, int width, int height);
 int tiff_write_finish(FILE * fd, long nextLoc);
 
 #ifdef __cplusplus
