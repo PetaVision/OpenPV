@@ -37,9 +37,6 @@ int main(int argc, char* argv[])
    // run the simulation for 2 time steps
    hc->run(1);
 
-   retina->writeActivity(OUTPUT_PATH "retina_last.jpg");
-   retina->writeActivity(OUTPUT_PATH "l1_last.jpg");
-
    // clean up (HyPerCol owns the layers, so don't delete them here)
    delete hc;
 
