@@ -14,8 +14,13 @@
 #include "ImageCreator.hpp"
 
 namespace PV {
-/*
- * Constructor for ImageCreator class.
+/** Constructor for ImageCreator class.
+ * initialize_data() allocates memory for data;
+ * data lives in an extended frame of size
+ * (nx+2nPad)*(ny+2nPad)*nBands
+ * initialize() allocates memory for drawBuffer;
+ *  drawBuffer lives in a restricted frame
+ * of size nx*ny*nBands
  */
 ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
 {
@@ -29,6 +34,11 @@ ImageCreator::~ImageCreator()
    free(drawBuffer);
 }
 
+/**
+ *
+ * drawBuffer lives in a restricted frame
+ * of size nx*ny*nBands
+ */
 int ImageCreator::initialize()
 {
    int numItems = loc.nx * loc.ny * loc.nBands;
@@ -39,8 +49,8 @@ int ImageCreator::initialize()
    return 0;
 }
 
-/*
- * Description: Updates the image buffer. Can be called for
+/**
+ * Description: Updates the image drawBuffer. Can be called for
  *              every iteration from Retina. Desired periodic changes
  *              to the images to be done here.
  *
@@ -52,7 +62,8 @@ int ImageCreator::initialize()
  *
  * Return value: 0 if successful, else non-zero.
  *
- * NOTE: THIS METHOD NEEDS TO BE DESIGNED FOR EACH EXPERIMENT!!!
+ * NOTE: 1) drawBuffer lives in an restricted frame (no bundaries)
+ *       2) THIS METHOD NEEDS TO BE DESIGNED FOR EACH EXPERIMENT!!!
  *
  */
 bool ImageCreator::updateImage(float time_step, float dt)
@@ -85,6 +96,7 @@ bool ImageCreator::updateImage(float time_step, float dt)
          posy = (loc.ny - lengthb);//loc.ny-length?
       }
    }
+
    if ((prevposx != posx) || (prevposy != posy)) {
       modified = true;
       //printf("%f: new image posx = %d posy = %d\n",time_step, posx,posy);
@@ -98,7 +110,7 @@ bool ImageCreator::updateImage(float time_step, float dt)
    drawRectangle(newpos,lengtha,lengthb,0);
 
    if (modified) {
-      //writeImageToFile(time_step, TXT | TIF | BIN); // writeImageToFile(time, BIN | TXT | TIF);
+      writeImageToFile(time_step, TXT | TIF | BIN);
       modified = false;
    }
 
@@ -111,7 +123,7 @@ bool ImageCreator::updateImage(float time_step, float dt)
 }
 
 
-/*
+/**
  * Description: Clears the image buffer.
  *
  * Arguments: None
@@ -130,7 +142,7 @@ int ImageCreator::clearImage()
 }
 
 
-/*
+/**
  * Description: Creates an image with all its pixels set.
  *
  * Arguments: None
@@ -501,6 +513,10 @@ inline unsigned char ImageCreator::getmark(unsigned int i, unsigned int j)
  *                      For eg: BIN | TIF would create both bin and tif files
  *                      with the same filename but different file extensions.
  *
+ * Problem: tiff_write_file() needs a float * argument (data in the extended frame)
+ * while we want to write unsigned char * drawBuffer, which lives
+ * in the restricted frame.
+ *
  * Return value: 0 if successful, non-zero otherwise.
  */
 int ImageCreator::writeImageToFile(const float time, const unsigned char options)
@@ -518,7 +534,8 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
 
    if (istifon) {
       snprintf(tiffilename, 255, "%simages/%s.tif", OUTPUT_PATH, basicfilename);
-      err |= tiff_write_file(tiffilename, data, loc.nx, loc.ny);
+      //err |= tiff_write_file(tiffilename, data, loc.nx, loc.ny);
+      err |= tiff_write_file_drawBuffer(tiffilename, drawBuffer, loc.nx, loc.ny);
    }
    if (istxton) {
       snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
@@ -531,10 +548,13 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
    return err;
 }
 
-/*
+/**
  * Description: Writes image to .txt file.
  *
  * Arguments: filename - file to be written to.
+ *
+ * getmark() returns information from drawBuffer which lives
+ * in the restricted frame.
  *
  * Return value: 0 if successful, non-zero otherwise.
  */
@@ -562,10 +582,13 @@ int ImageCreator::writeImageToTxt(const char *filename)
    }
 }
 
-/*
+/**
  * Description: Writes image to .bin file.
  *
  * Arguments: filename - file to be written to.
+ *
+ * getmark() returns information from drawBuffer which lives
+ * in the restricted frame.
  *
  * Return value: 0 if successful, non-zero otherwise.
  */
