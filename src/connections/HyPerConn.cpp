@@ -1138,8 +1138,11 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
-   const int nxPre  = (int) pre->clayer->loc.nx;
-   const int nyPre  = (int) pre->clayer->loc.ny;
+   const int prePad = pre->clayer->loc.nPad;
+
+   // pre-synaptic weights are in extended layer reference frame
+   const int nxPre  = (int) pre->clayer->loc.nx + 2 * prePad;
+   const int nyPre  = (int) pre->clayer->loc.ny + 2 * prePad;
    const int nfPre  = pre->clayer->numFeatures;
 
    const int nxPost  = (int) post->clayer->loc.nx;
@@ -1171,6 +1174,10 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       // TODO - does patchHead work in general for post to pre mapping and -scale?
       int kxPreHead = (int) pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
       int kyPreHead = (int) pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
+
+      // convert kxPreHead and kyPreHead to extended indices
+      kxPreHead += prePad;
+      kyPreHead += prePad;
 
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
