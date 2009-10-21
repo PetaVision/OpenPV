@@ -235,7 +235,13 @@ int HyPerCol::run(int nTimeSteps)
    }
 #endif
 
-   // output final state of connections
+   //
+   // output final state of layers and connections
+
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->writeState(layers[l]->getName(), FINAL_TIME);
+   }
+
    for (int c = 0; c < numConnections; c++) {
       connections[c]->outputState(FINAL_TIME);
    }
