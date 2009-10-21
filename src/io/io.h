@@ -17,11 +17,13 @@
 #endif
 
 #define MIN_BIN_PARAMS  6
-#define MAX_BIN_PARAMS 18
+#define MAX_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
 
 #define NUM_PAR_BYTE_PARAMS (MAX_BIN_PARAMS)
 
 #define PV_BYTE_TYPE       1
+#define PV_FLOAT_TYPE      2
+
 #define PVP_FILE_TYPE      1
 #define KERNEL_FILE_TYPE  6996
 
@@ -42,7 +44,8 @@
 #define INDEX_KX0         14
 #define INDEX_KY0         15
 #define INDEX_NPAD        16
-#define INDEX_NBANDS      (MAX_BIN_PARAMS - 1)
+#define INDEX_NBANDS      17
+#define INDEX_TIME        18
 
 #ifdef __cplusplus
 extern "C"
