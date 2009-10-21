@@ -3,7 +3,7 @@
 input_dir = '/Users/manghel/Documents/workspace/marian/output/';
 global input_dir N n_time_steps begin_step NX NY 
 
-n_time_steps = 10000; % the argument of -n; even when dt = 0.5 
+n_time_steps = 5000; % the argument of -n; even when dt = 0.5 
 patch_size = 9;  % nxp * nyp
 write_step = 100; % set in input/params.stdp
 
@@ -11,7 +11,7 @@ write_step = 100; % set in input/params.stdp
 begin_step = 1;  % where we start the analysis
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
-stim_end = 1000;
+stim_end = 5000;
 stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
@@ -22,7 +22,7 @@ NY=32;
 N=NX*NY;
 
 %% analysis parameters
-read_data = 0;
+read_data = 1;
 print_data = 0;
 plot_data = 0;
 num_layers = 2;% retina + V1

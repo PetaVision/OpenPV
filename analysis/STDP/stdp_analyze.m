@@ -12,7 +12,7 @@ input_dir = '/Users/manghel/Documents/workspace/marian/output/';
 %input_dir = '/nh/home/manghel/petavision/experiments/output3/';
 
 num_layers = 1;
-n_time_steps = 1000; % the argument of -n; even when dt = 0.5 
+n_time_steps = 10000; % the argument of -n; even when dt = 0.5 
 patch_size = 9;  % nxp * nyp
 write_step = 100; % set in writePostPatch() in HyPerConn.cpp
 
@@ -20,7 +20,7 @@ write_step = 100; % set in writePostPatch() in HyPerConn.cpp
 begin_step = 1;  % where we start the analysis
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
-stim_end = 1000;
+stim_end = 10000;
 stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
@@ -35,14 +35,14 @@ my_gray = [.666 .666 .666];
 target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
-parse_tiff = 0;
+parse_tiff = 1;
 read_spikes = 1;
 simple_movie = 0;
-plot_raster = 1;
+plot_raster = 0;
 plot_spike_activity = 1;
 plot_weights_rate_evolution = 0;
-plot_membrane_potential = 1;
-plot_weights_field = 0;
+plot_membrane_potential = 0;
+plot_weights_field = 1;
 plot_weights_histogram = 1;
 plot_patch = 1;
 
@@ -56,7 +56,8 @@ if parse_tiff
    tiff_path = [input_dir 'images/img2D_0.00.tif'];
    %imshow(tiff_path);
    [targ, Xtarg, Ytarg] = stdp_parseTiff( tiff_path );
-   %pause
+   disp('parse tiff -> done');
+   pause
 end
 
 
@@ -70,7 +71,7 @@ for layer = 1:num_layers;
     
     if read_spikes
         disp('read spikes')
-        [spike_array{layer}, ave_rate] = stdp_readsparsespikes(f_file);
+        [spike_array{layer}, ave_rate] = stdp_readSparseSpikes(f_file);
         disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
         tot_steps = size( spike_array{layer}, 1 );
         num_bins = fix( tot_steps / bin_size );
@@ -86,7 +87,7 @@ for layer = 1:num_layers;
         disp('simple movie')
         for t=1:n_time_steps
             fprintf('%d\n',t);
-            A = reshape(spike_array{layer}(t,:),32,32);
+            A = reshape(spike_array{layer}(t,:),NX,NY);
             imagesc(A')
             pause(0.1)
         end

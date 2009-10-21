@@ -1,14 +1,23 @@
-function stdp_plotWeightsOnly(fname, Xtarg,Ytarg)
+function stdp_plotWeightsOnly(fname, Xtarg, Ytarg)
 % plot "weights" (typically after turning on just one neuron)
 % Xtarg and Ytarg contain the X and Y coordinates of the target
-global input_dir n_time_steps NK NO NX NY DTH 
+global input_dir n_time_steps % NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
 %fprintf('NX = %d NY = %d\n',NX,NY);
 colormap(jet);
     
-    
+NX = 32;NY=32;
+PLOT_STEP = 50;
+
+figure('Name','Weights Fields');
+
+debug = 0;
+bufSize = 4; % see pv_write_patch() in io.c
+nPad = 1;    % size of the layer padding
+nf = 1;      % number of features
+
 if exist(filename,'file')
     
     W_array = [];
@@ -34,7 +43,7 @@ if exist(filename,'file')
         num_params,NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
-    %pause
+    pause
     
     patch_size = NXP*NYP;
     
@@ -52,7 +61,7 @@ if exist(filename,'file')
     
     b_color = 1;     % use to scale weights to the full range
                  % of the color map
-    a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal
+    a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal;
 
     n_time_steps = 0;
     %W_array = zeros(NX*NY,patch_size);
@@ -61,32 +70,61 @@ if exist(filename,'file')
     
     avWeights = [];  % time averaged weights array
     
+     % Think of nx and ny as defining the size of the neuron's
+    % receptive field that receives spikes from the retina.
     while (~feof(fid))
         
         % read the weights for this time step 
         W_array = []; % reset every time step: this is N x patch_size array
                       % where N =NX x NY
+                      
+        % read boundary neurons
+%         for i=1:(NX+2*nPad)
+%             nx = fread(fid, 1, 'uint16'); % unsigned short
+%             ny = fread(fid, 1, 'uint16'); % unsigned short
+%             nItems = nx*ny*nf;
+%             fprintf('nx = %d ny = %d ',nx,ny);
+%             %pause
+%             if mod(nItems,bufSize)
+%                 nRead = (floor(nItems/bufSize) + 1)*bufSize;
+%             else
+%                 nRead = floor(nItems/bufSize) * bufSize;
+%             end
+%             fprintf(' nRead = %d\n',nRead);
+%             w = fread(fid, nRead, 'uchar'); % unsigned char
+% 
+%         end
+%         pause              
+                      
         k=0;
         
         for j=1:NY
             for i=1:NX
                 k=k+1;
-                nxp = fread(fid, 1, 'uint16'); % unsigned short
-                nyp = fread(fid, 1, 'uint16'); % unsigned short
-                if(j==100 & i==1)
-                    fprintf('nxp = %d nyp = %d : ',nxp,nyp);
+                nx = fread(fid, 1, 'uint16'); % unsigned short
+                ny = fread(fid, 1, 'uint16'); % unsigned short
+                nItems = nx*ny*nf;
+                if mod(nItems,bufSize)
+                    nRead = (floor(nItems/bufSize) + 1)*bufSize;
+                else
+                    nRead = floor(nItems/bufSize) * bufSize;
                 end
-                w = fread(fid, patch_size+3, 'uchar'); % unsigned char
-                % scale weights: they are quantized before are written
-                w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
-                if(j==100 & i==1)
+                if debug
+                    fprintf('nx = %d ny = %d nRead = %d: ',nx,ny,nRead);
+                end
+                if nRead~= 0
+                    w = fread(fid, nRead, 'uchar'); % unsigned char
+                    % scale weights: they are quantized before are written
+                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                end
+                if debug
                     for r=1:patch_size
                         fprintf('%f ',w(r));
                     end
                     fprintf('\n');
                     %pause
                 end
-                if(~isempty(w))
+                if(~isempty(w) & nRead ~= 0)
                     W_array(k,:) = w(1:patch_size);
                     %pause
                 end
@@ -126,7 +164,7 @@ if exist(filename,'file')
             else
                 %imagesc(a_color*A+b_color);
                 %imagesc(A-Ainit,'CDataMapping','direct');
-                if (mod(n_time_steps,50) == 0)
+                if (mod(n_time_steps,PLOT_STEP) == 0)
                     fprintf('%d\n',n_time_steps);
                     imagesc(A','CDataMapping','direct');
                     colorbar
@@ -146,7 +184,7 @@ if exist(filename,'file')
                 avWeights = avWeights + A;
             end
         end
-    end
+    end % reading from weights file
     fclose(fid);
     fprintf('feof reached: n_time_steps = %d\n',n_time_steps);
     avWeights = avWeights / n_time_steps;

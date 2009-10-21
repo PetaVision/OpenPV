@@ -8,6 +8,9 @@ filename = fname;
 filename = [input_dir, filename];
 
 N=NX*NY;
+bufSize = 4; % see pv_write_patch() in io.c
+nPad = 1;    % size of the layer padding
+nf = 1;      % number of features
 
 if exist(filename,'file')
     
@@ -39,18 +42,36 @@ if exist(filename,'file')
     
     T = 0;
     
-    
+    % Think of nx and ny as defining the size of the neuron's
+    % receptive field that receives spikes from the retina.
     while (~feof(fid))
         W_array = []; % reset every time step: this is N x patch_size array
         % where N =NX x NY
+        
+        % read boundary neurons
+        for i=1:(NX+2*nPad)
+            nx = fread(fid, 1, 'uint16'); % unsigned short
+            ny = fread(fid, 1, 'uint16'); % unsigned short
+            nItems = nx*ny*nf;
+            fprintf('nx = %d ny = %d \n',nx,ny);
+            %pause
+
+            w = fread(fid, nItems, 'uchar'); % unsigned char
+
+        end
+        pause
+                
         k = 0;
         for j=1:NY
             for i=1:NX
-                nxp = fread(fid, 1, 'uint16'); % unsigned short
-                nyp = fread(fid, 1, 'uint16'); % unsigned short
-                %fprintf('nxp = %d nyp = %d \n',nxp,nyp);
+                nx = fread(fid, 1, 'uint16'); % unsigned short
+                ny = fread(fid, 1, 'uint16'); % unsigned short
+                nItems = nx*ny*nf;
+                fprintf('nx = %d ny = %d \n',nx,ny);
                 %pause
-                w = fread(fid, patch_size+3, 'uchar'); % unsigned char
+                if nItems <= 4
+                w = fread(fid, 4, 'uchar'); % unsigned char
+                else if nItmes <= 8
                 %pause
                 % scale weights: they are quantized before are written
                 w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
