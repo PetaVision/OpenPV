@@ -387,6 +387,7 @@ int HyPerConn::writeWeights(const char * filename, float time)
 int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
       const char * filename, float time)
 {
+   if (patches == NULL) return 0;
 
    int status = 0;
    char name[PV_PATH_MAX];
@@ -692,10 +693,13 @@ int HyPerConn::deleteWeights()
 
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
       int numPatches = numWeightPatches(arbor);
-      for (int k = 0; k < numPatches; k++) {
-         pvpatch_inplace_delete(wPatches[arbor][k]);
+      if (wPatches[arbor] != NULL) {
+         for (int k = 0; k < numPatches; k++) {
+            pvpatch_inplace_delete(wPatches[arbor][k]);
+         }
+         free(wPatches[arbor]);
+         wPatches[arbor] = NULL;
       }
-      free(wPatches[arbor]);
    }
 
    if (wPostPatches != NULL) {
@@ -780,7 +784,7 @@ int HyPerConn::createAxonalArbors()
       for (int kex = 0; kex < numArbors; kex++) {
          PVAxonalArbor * arbor = axonalArbor(kex, n);
 
-         // k is in extended frame, this makes transformations more difficult
+         // kex is in extended frame, this makes transformations more difficult
 
          // local indices in extended frame
          float kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
@@ -1320,7 +1324,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
    const float nxPre = pre->clayer->loc.nx;
    const float nyPre = pre->clayer->loc.ny;
-//   const float nyPre = pre->clayer->loc.nx;  // looks wrong
    const float nfPre = pre->clayer->numFeatures;
 
    const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
