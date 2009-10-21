@@ -15,7 +15,7 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-   marginWidth = 1;   
+   marginWidth = 1;   // sets nPad in Image.
 };
 
 HyPerLayer "Retina" = {
@@ -33,8 +33,8 @@ HyPerLayer "Retina" = {
    spikingFlag = 1;           // spike as poisson?
    //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank 
                               //are overwritten
-   poissonEdgeProb  = 1.00;//0.5;//0.50;//.125;      // if so, on probability
-   poissonBlankProb = 0.0;//0.01;//0.02;//.01;//.075; //.0125;     //       off probability
+   poissonEdgeProb  = 0.5;//0.5;//0.50;//.125;      // if so, on probability
+   poissonBlankProb = 0.1;//0.01;//0.02;//.01;//.075; //.0125;     //       off probability
    
    burstDuration = 10;
    burstFreq = 40;
@@ -48,7 +48,7 @@ HyPerLayer "L1" = {
    
    marginWidth = 1;
 
-   spikingFlag = 1; // ?
+   spikingFlag = 1; // Poisson spiking, otherwise activity set to image value
    
    tau    = 100; // 2;    // 100;
    tauE   = 1;   // .25;  // 1;
@@ -61,11 +61,11 @@ HyPerLayer "L1" = {
 };
 
 HyPerConn "Retina to L1" = {
-   nxp = 1;   // from retina to L1
-   nyp = 1;
+   nxp = 3;   // from retina to L1
+   nyp = 3;
    strength = 5.0;
    
-   stdpFlag = 1;
+   stdpFlag = 1; // to turn on STDP weights update
    
    wMinInit = 4.0;  // default values if Gaussian is not defined
    wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
@@ -75,7 +75,7 @@ HyPerConn "Retina to L1" = {
    
    idum = 3940284; // random number generator seed
    
-   randomFlag = 0; // 
+   randomFlag = 0; // to generate random weights
    
    aspect = 1;
    sigma = 100;
