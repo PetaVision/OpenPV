@@ -16,15 +16,19 @@ class AvgConn: public PV::HyPerConn {
 public:
 
    AvgConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-          int channel, HyPerConn * delagate);
+           int channel, HyPerConn * delegate);
    virtual ~AvgConn();
+
+   virtual int createAxonalArbors();
 
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
    virtual int write(const char * filename);
 
 protected:
 
-   int initialize(HyPerConn * companion);
+   int initialize();
+   virtual PVPatch ** initializeWeights(PVPatch ** patches,
+                                        int numPatches, const char * filename);
 
    PVLayerCube * avgActivity;
    HyPerConn   * delegate;
