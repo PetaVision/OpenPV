@@ -133,6 +133,27 @@ int tiff_write_file(const char * filename, float * buf, int width, int height)
    return 0;
 }
 
+int tiff_write_file_drawBuffer(const char * filename, unsigned char * buf, int width, int height)
+{
+   long nextLoc;
+
+      FILE * fd = fopen(filename, "wb");
+      if (fd == NULL) {
+         fprintf(stderr, "tiff_write_file: ERROR opening file %s\n", filename);
+         return 1;
+      }
+
+      tiff_write_header(fd, &nextLoc);
+      tiff_write_ifd(fd, &nextLoc, width, height);
+      tiff_write_image_drawBuffer(fd, buf, width, height);
+      tiff_write_finish(fd, nextLoc);
+
+      fclose(fd);
+
+      return 0;
+}
+
+
 static int tiff_write_next_offset(FILE * fd, long nextLoc, uint32_t val)
 {
    uint32_t value = val;
@@ -624,6 +645,23 @@ int tiff_write_image(FILE * fd, float * buf, int width, int height)
    for (i = 0; i < imageSize; i++) {
      // TODO - check that range is 0:1
       value = 255 * buf[i];
+      assert( fwrite(&value, 1, 1, fd) == 1 );
+   }
+   return 0;
+}
+/**
+ * Writes from the restricted frame.
+ *
+ */
+int tiff_write_image_drawBuffer(FILE * fd, unsigned char * buf, int width, int height)
+{
+   int i;
+   unsigned char value;
+   int imageSize = width * height;
+
+   for (i = 0; i < imageSize; i++) {
+     // TODO - check that range is 0:1
+      value = 255 * (float) buf[i];
       assert( fwrite(&value, 1, 1, fd) == 1 );
    }
    return 0;
