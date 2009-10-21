@@ -72,7 +72,10 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
 
    return 0;
 }
-
+/**
+ * data lives in an extended frame of size
+ * (nx+2nPad)*(ny+2nPad)*nBands
+ */
 int Image::initialize_data(const LayerLoc * imageLoc)
 {
    const int N = (imageLoc->nx + 2*imageLoc->nPad) *
