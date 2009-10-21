@@ -554,6 +554,21 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
  * @minVal
  * @maxVal
  * @p
+ *
+ * NOTES: p->nx and p->ny reflect the location inside PVPatch that information
+ * is extracted from. For example, for a neuron in the padding layer, that
+ * sees only a corner of the "retina" we have p->nx=1 and p->ny=1 and
+ * we only write one weight (nItems=1).
+ *         +++
+ *         +++
+ *         ++o
+ * For the following neuron we have
+ *         +++
+ *         +++
+ *         +oo
+ * p->nx =2 and p->ny =1 (nItems=2) and we write 2 weights.
+ * Think of p->nx and p->ny as defining the size of the neuron's
+ * receptive field that receives spikes from the retina.
  */
 static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
 {
@@ -668,7 +683,7 @@ int pv_write_patches(const char * filename, int append,
          return status;
       }
    }
-
+   // numPatches - each neuron has a patch; these are neurons that live in the extended layer
    for (i = 0; i < numPatches; i++) {
       int numItems = pv_write_patch(fp, minVal, maxVal, patches[i]);
       if (numItems < 0) {
