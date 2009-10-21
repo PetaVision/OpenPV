@@ -799,7 +799,7 @@ int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny
 
    FILE * fd = fopen(filename, "wb");
    if (fd == NULL) {
-      fprintf(stderr, "pv_tiff_write_patch: ERROR opening file %s\n", filename);
+      fprintf(stderr, "pv_tiff_write_cube: ERROR opening file %s\n", filename);
       return 1;
    }
 
