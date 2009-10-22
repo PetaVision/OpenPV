@@ -45,12 +45,18 @@ V1::V1(const char* name, HyPerCol * hc, PVLayerType type)
 
 int V1::initialize(PVLayerType type)
 {
+   float time = 0.0f;
+
    setParams(parent->parameters(), &V1DefaultParams);
 
    pvlayer_setFuncs(clayer, (INIT_FN) &LIF2_init, (UPDATE_FN) &LIF2_update_exact_linear);
    this->clayer->layerType = type;
 
    parent->addLayer(this);
+
+   if (parent->parameters()->value(name, "restart", 0) != 0) {
+      readState(name, &time);
+   }
 
    return 0;
 }
