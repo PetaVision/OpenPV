@@ -118,17 +118,7 @@ pv_tiff_write_frame(FILE * fp, pvdata_t * data, const LayerLoc * loc, pvdata_t *
    max = 1.0;
    scale = 1.0;
 
-   PV::HyPerLayer::copyToInteriorBuffer(buf, data, loc);
-
-//   for (f = 0; f < nf; f++) {
-//      k = 0;
-//      for (j = 0; j < ny; j++) {
-//         for (i = 0; i < nx; i++) {
-//            float val = cube->data[i*sx + j*sy + f*sf];
-//            buf[k++] = scale * (val - min);
-//         }
-//      }
-//   }
+   PV::HyPerLayer::copyToBuffer(buf, data, loc, true, scale);
 
    tiff_write_ifd(fp, nextLoc, nx, ny);
    tiff_write_image(fp, buf, nx, ny);
