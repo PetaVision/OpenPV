@@ -8,6 +8,7 @@
 #include "HyPerLayer.hpp"
 #include "../include/pv_common.h"
 #include "../columns/HyPerCol.hpp"
+#include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
 #include <assert.h>
@@ -47,8 +48,14 @@ HyPerLayer::~HyPerLayer()
 
 int HyPerLayer::initialize(PVLayerType type)
 {
+   float time = 0.0;
+
    clayer->layerType = type;
    parent->addLayer(this);
+
+   if (parent->parameters()->value(name, "restart", 0) != 0) {
+      readState(name, &time);
+   }
    return 0;
 }
 
@@ -63,29 +70,15 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    this->outputOnPublish = 1;
    this->numProbes = 0;
 
-   PVParams * params = parent->parameters();
-
    LayerLoc imageLoc = parent->getImageLoc();
 
-   int nx = imageLoc.nx;
-   if (params->present(name, "nx")) {
-      nx = (int) params->value(name, "nx");
-   }
+   PVParams * params = parent->parameters();
 
-   int ny = imageLoc.ny;
-   if (params->present(name, "ny")) {
-      ny = (int) params->value(name, "ny");
-   }
+   int nx = (int) params->value(name, "nx", imageLoc.nx);
+   int ny = (int) params->value(name, "ny", imageLoc.ny);
 
-   int numFeatures = 1;
-   if (params->present(name, "nf")) {
-      numFeatures = (int) params->value(name, "nf");
-   }
-
-   int nBorder = 0;
-   if (params->present(name, "marginWidth")) {
-      nBorder = (int) params->value(name, "marginWidth");
-   }
+   int numFeatures = (int) params->value(name, "nf", 1);
+   int nBorder     = (int) params->value(name, "marginWidth", 0);
 
    // let nxScale, nyScale supersede nx, ny
    if (params->present(name, "nxScale")) {
@@ -265,72 +258,128 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
    return -1;
 }
 
-static int copyToInteriorByteBuffer(unsigned char * buf, pvdata_t * data, const LayerLoc * loc)
+int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
+                             const LayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
+   const int nf = loc->nBands;
 
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   int nxBorder = 0;
+   int nyBorder = 0;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   if (extended) {
+      nxBorder = loc->nPad;
+      nyBorder = loc->nPad;
+   }
+
+   const int sf = 1;
+   const int sx = nf * sf;
+   const int sy = sx * (nx + 2*nxBorder);
 
    int ii = 0;
-   for (int b = 0; b < loc->nBands; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            buf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            buf[ii++] = (unsigned char) (scale * data[iex*sx + jex*sy + f*sf]);
          }
       }
    }
    return 0;
 }
 
-static int copyAndScaleToByteBuffer(unsigned char * buf, pvdata_t * data, const LayerLoc * loc)
+int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
+                             const LayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
+   const int nf = loc->nBands;
 
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   int nxBorder = 0;
+   int nyBorder = 0;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   if (extended) {
+      nxBorder = loc->nPad;
+      nyBorder = loc->nPad;
+   }
+
+   const int sf = 1;
+   const int sx = nf * sf;
+   const int sy = sx * (nx + 2*nxBorder);
 
    int ii = 0;
-   for (int b = 0; b < loc->nBands; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            buf[ii++] = (unsigned char) ( 255 * data[iex + jex*sy + b*sb] );
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            buf[ii++] = scale * data[iex*sx + jex*sy + f*sf];
          }
       }
    }
    return 0;
 }
 
-int HyPerLayer::copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc)
+int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
+                               const LayerLoc * loc, bool extended, float scale)
 {
-   const int nx = sameLoc->nx;
-   const int ny = sameLoc->ny;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nBands;
 
-   const int nxBorder = sameLoc->nPad;
-   const int nyBorder = sameLoc->nPad;
+   int nxBorder = 0;
+   int nyBorder = 0;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   if (extended) {
+      nxBorder = loc->nPad;
+      nyBorder = loc->nPad;
+   }
+
+   const int sf = 1;
+   const int sx = nf * sf;
+   const int sy = sx * (nx + 2*nxBorder);
 
    int ii = 0;
-   for (int b = 0; b < sameLoc->nBands; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            dst[ii++] = src[iex + jex*sy + b*sb];
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            data[iex*sx + jex*sy + f*sf] = scale * (pvdata_t) buf[ii++];
+         }
+      }
+   }
+   return 0;
+}
+
+int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
+                               const LayerLoc * loc, bool extended, float scale)
+{
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nBands;
+
+   int nxBorder = 0;
+   int nyBorder = 0;
+
+   if (extended) {
+      nxBorder = loc->nPad;
+      nyBorder = loc->nPad;
+   }
+
+   const int sf = 1;
+   const int sx = nf * sf;
+   const int sy = sx * (nx + 2*nxBorder);
+
+   int ii = 0;
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            data[iex*sx + jex*sy + f*sf] = scale * buf[ii++];
          }
       }
    }
@@ -435,21 +484,93 @@ int HyPerLayer::outputState(float time)
    return 0;
 }
 
-int HyPerLayer::writeState(const char * path, float time)
+int HyPerLayer::readState(const char * name, float * time)
 {
-   char fullpath[PV_PATH_MAX];
+   int status = 0;
+   char path[PV_PATH_MAX];
 
-   const int nx = clayer->loc.nx + 2*clayer->loc.nPad;
-   const int ny = clayer->loc.ny + 2*clayer->loc.nPad;
+   double dtime;
 
-   // print activity
-   sprintf(fullpath, "%s/f%1.1d.tif", path, clayer->layerId);
-   pv_tiff_write_cube(fullpath, clayer->activity, nx, ny, clayer->numFeatures);
+   bool contiguous = false;
+   bool extended   = false;
+
+   Communicator * comm = parent->icCommunicator();
+
+   const char * last = "_last";
+   const char * name_str = (name_str != NULL  ) ?  name   : "";
+
+   pvdata_t * G_E  = clayer->G_E;
+   pvdata_t * G_I  = clayer->G_I;
+
+   pvdata_t * V   = clayer->V;
+   pvdata_t * Vth = clayer->Vth;
+
+   pvdata_t * A = clayer->activity->data;
+
+   LayerLoc * loc = & clayer->loc;
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, V, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   extended = true;
+   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   return status;
+}
+
+int HyPerLayer::writeState(const char * name, float time)
+{
+   int status = 0;
+   char path[PV_PATH_MAX];
+
+   bool contiguous = false;
+   bool extended   = false;
+
+   Communicator * comm = parent->icCommunicator();
+
+   const char * last     = (time == FINAL_TIME) ? "_last" : "";
+   const char * name_str = (name_str != NULL  ) ?  name   : "";
+
+   pvdata_t * G_E  = clayer->G_E;
+   pvdata_t * G_I  = clayer->G_I;
+
+   pvdata_t * V   = clayer->V;
+   pvdata_t * Vth = clayer->Vth;
+
+   pvdata_t * A = clayer->activity->data;
+
+   LayerLoc * loc = & clayer->loc;
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
+   status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last);
+   status = write(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
+   status = write(path, comm, time, V, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last);
+   status = write(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   extended = true;
+   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last);
+   status = write(path, comm, time, A, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return 0;
 }
 
-int HyPerLayer::writeActivity(const char * filename)
+int HyPerLayer::writeActivity(const char * filename, float time)
 {
    int status = 0;
    LayerLoc * loc = &clayer->loc;
@@ -458,7 +579,8 @@ int HyPerLayer::writeActivity(const char * filename)
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
-   status = copyAndScaleToByteBuffer(buf, clayer->activity->data, loc);
+   const bool extended = true;
+   status = copyToBuffer(buf, clayer->activity->data, loc, extended, 255);
 
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);

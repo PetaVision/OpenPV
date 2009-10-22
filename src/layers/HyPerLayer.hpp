@@ -31,6 +31,16 @@ private:
 
 public:
 
+   static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
+                           const LayerLoc * loc, bool extended, float scale);
+   static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
+                           const LayerLoc * loc, bool extended, float scale);
+
+   static int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
+                                         const LayerLoc * loc, bool extended, float scale);
+   static int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
+                                         const LayerLoc * loc, bool extended, float scale);
+
    // TODO - make protected
    PVLayer*  clayer;
    HyPerCol* parent;
@@ -47,7 +57,6 @@ public:
    int initFinish();
 
    int copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
-   static int copyToInteriorBuffer(pvdata_t * dst, pvdata_t * src, const LayerLoc * sameLoc);
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
@@ -57,9 +66,9 @@ public:
 
    virtual int publish(InterColComm* comm, float time);
    virtual int outputState(float time);
-   virtual int writeState(const char * path, float time);
-   virtual int writeActivity(const char * filename);
-
+   virtual int writeState(const char * name, float time);
+   virtual int writeActivity(const char * filename, float time);
+   virtual int readState(const char * name, float * time);
 
    virtual int insertProbe(PVLayerProbe * probe);
 
