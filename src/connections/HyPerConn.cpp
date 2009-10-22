@@ -127,11 +127,8 @@ int HyPerConn::initialize(const char * filename)
    wPatches[arbor]
          = initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
 
-   writeStep = parent->getDeltaTime();
    writeTime = parent->simulationTime();
-   if (inputParams->present(name, "writeStep")) {
-      writeStep = inputParams->value(name, "writeStep");
-   }
+   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
 
    parent->addConnection(this);
 
@@ -186,16 +183,17 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    numParams = sizeof(*p) / sizeof(float);
    assert(numParams == 9); // catch changes in structure
 
-   if (filep->present(name, "delay"))    params->delay    = (int) filep->value(name, "delay");
-   if (filep->present(name, "fixDelay")) params->fixDelay = (int) filep->value(name, "fixDelay");
-   if (filep->present(name, "vel"))      params->vel      = filep->value(name, "vel");
-   if (filep->present(name, "rmin"))     params->rmin     = filep->value(name, "rmin");
-   if (filep->present(name, "rmax"))     params->rmax     = filep->value(name, "rmax");
+   params->delay    = (int) filep->value(name, "delay", params->delay);
+   params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
-   if (filep->present(name, "varDelayMin")) params->varDelayMin = (int) filep->value(name, "varDelayMin");
-   if (filep->present(name, "varDelayMax")) params->varDelayMax = (int) filep->value(name, "varDelayMax");
-   if (filep->present(name, "numDelay"))    params->numDelay    = (int) filep->value(name, "numDelay");
-   if (filep->present(name, "isGraded"))    params->isGraded    = (int) filep->value(name, "isGraded");
+   params->vel      = filep->value(name, "vel", params->vel);
+   params->rmin     = filep->value(name, "rmin", params->rmin);
+   params->rmax     = filep->value(name, "rmax", params->rmax);
+
+   params->varDelayMin = (int) filep->value(name, "varDelayMin", params->varDelayMin);
+   params->varDelayMax = (int) filep->value(name, "varDelayMax", params->varDelayMax);
+   params->numDelay    = (int) filep->value(name, "numDelay"   , params->numDelay);
+   params->isGraded    = (int) filep->value(name, "isGraded"   , params->isGraded);
 
    assert(params->delay < MAX_F_DELAY);
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
@@ -203,16 +201,14 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //
    // now set params that are not in the params struct (instance varibles)
 
-   if (filep->present(name, "strength")) wMax = filep->value(name, "strength");
+   wMax = filep->value(name, "strength", wMax);
    // let wMax override strength if user provides it
-   if (filep->present(name, "wMax"))     wMax = filep->value(name, "wMax");
+   wMax = filep->value(name, "wMax", wMax);
 
    //override dWMax if user provides it
-   if (filep->present(name, "dWMax")) {
-      dWMax = filep->value(name, "dWMax");
-   }
+   dWMax = filep->value(name, "dWMax", dWMax);
 
-   if (filep->present(name, "stdpFlag")) stdpFlag = filep->value(name, "stdpFlag");
+   stdpFlag = filep->value(name, "stdpFlag", stdpFlag);
 
    return 0;
 }
@@ -222,8 +218,7 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 {
    PVParams * params = parent->parameters();
 
-   float wMin = 0.0;
-   if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
+   float wMin = params->value(name, "wMin", 0.0f);
 
    for (int k = 0; k < numPatches; k++) {
       randomWeights(patches[k], wMin, wMax, seed);
@@ -235,36 +230,30 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
 {
    PVParams * params = parent->parameters();
 
-   float wMin = 0.0;
-   if (params->present(name, "wMin")) wMin = params->value(name, "wMin");
+   float wMin = params->value(name, "wMin", 0.0);
 
    // default values (chosen for center on cell of one pixel)
-   int noPost = nfp;
-   if (params->present(post->getName(), "no")) {
-      noPost = (int) params->value(post->getName(), "no");
-   }
+   int noPost = (int) params->value(post->getName(), "no", nfp);
 
    float aspect = 1.0; // circular (not line oriented)
    float sigma = 0.8;
    float rMax = 1.4;
    float strength = 1.0;
 
-   aspect = params->value(name, "aspect");
-   sigma = params->value(name, "sigma");
-   rMax = params->value(name, "rMax");
-   if (params->present(name, "strength")) {
-      strength = params->value(name, "strength");
-   }
+   aspect   = params->value(name, "aspect", aspect);
+   sigma    = params->value(name, "sigma", sigma);
+   rMax     = params->value(name, "rMax", rMax);
+   strength = params->value(name, "strength", strength);
 
    float r2Max = rMax * rMax;
 
    int numFlanks = 1;
-   float shift = 0.0;
-   float rotate = 0.0; // rotate so that axis isn't aligned
+   float shift   = 0.0f;
+   float rotate  = 0.0f; // rotate so that axis isn't aligned
 
-   if (params->present(name, "numFlanks")) numFlanks = params->value(name, "numFlanks");
-   if (params->present(name, "flankShift")) shift = params->value(name, "flankShift");
-   if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
+   numFlanks = params->value(name, "numFlanks", numFlanks);
+   shift     = params->value(name, "flankShift", shift);
+   rotate    = params->value(name, "rotate", rotate);
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -368,8 +357,8 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches,
 
    err = pv_read_patches(fp, nfp, minVal, maxVal, numPatchesFile, patches);
    pv_close_binary(fp);
-   return patches;
 
+   return patches;
 }
 
 int HyPerConn::writeWeights(float time)
@@ -1398,11 +1387,9 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
 
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
-   float strength = 1.0;
    PVParams * params = parent->parameters();
-   if (params->present(name, "strength")) {
-      strength = params->value(name, "strength");
-   }
+   float strength = params->value(name, "strength", 1.0);
+
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
       pvdata_t * w = wp->data;
@@ -1434,33 +1421,10 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 int HyPerConn::setPatchSize(const char * filename)
 {
    PVParams * inputParams = parent->parameters();
-   int nxpParams = 0;
-   int nypParams = 0;
-   int nfpParams = 0;
-   if (inputParams->present(name, "nxp")) {
-      nxpParams = (int) inputParams->value(name, "nxp");
-      nxp = (float) nxpParams;
-   }
-   else {
-      nxpParams = post->clayer->loc.nx;
-      nxp = (float) nxpParams;
-   }
-   if (inputParams->present(name, "nyp")) {
-      nypParams = (int) inputParams->value(name, "nyp");
-      nyp = (float) nypParams;
-   }
-   else {
-      nypParams = post->clayer->loc.ny;
-      nyp = (float) nypParams;
-   }
-   if (inputParams->present(name, "nfp")) {
-      nfpParams = (int) inputParams->value(name, "nfp");
-      nfp = (float) nfpParams;
-   }
-   else {
-      nfpParams = post->clayer->numFeatures;
-      nfp = (float) nfpParams;
-   }
+
+   nxp = inputParams->value(name, "nxp", post->clayer->loc.nx);
+   nyp = inputParams->value(name, "nyp", post->clayer->loc.ny);
+   nfp = inputParams->value(name, "nfp", post->clayer->numFeatures);
 
    // use patch dimensions from file if (filename != NULL)
    if (filename != NULL) {
@@ -1497,14 +1461,8 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches,
       }
    }
 
-   float randomFlag = 0;
-   if (inputParams->present(getName(), "randomFlag")) {
-      randomFlag = inputParams->value(getName(), "randomFlag");
-   }
-   float randomSeed = 0;
-   if (inputParams->present(getName(), "randomSeed")) {
-      randomSeed = inputParams->value(getName(), "randomSeed");
-   }
+   float randomFlag = inputParams->value(getName(), "randomFlag", 0.0f);
+   float randomSeed = inputParams->value(getName(), "randomSeed", 0.0f);
 
    if (randomFlag != 0 || randomSeed != 0) {
       return initializeRandomWeights(patches, numPatches, randomSeed);
