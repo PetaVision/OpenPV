@@ -83,25 +83,7 @@ int Retina::initialize(PVLayerType type)
    updateImage(parent->simulationTime(), parent->getDeltaTime());
    copyFromImageBuffer();
 
-   // check margins/border region
-
    pvdata_t * V = l->V;
-
-//   const int nxBorder = l->loc.nPad;
-//   const int nyBorder = l->loc.nPad;
-
-   // TODO - make sure the origin information is working correctly
-   // TODO - I don't think this is needed any longer
-//   if (nxBorder != 0.0f || nyBorder != 0.0f) {
-//      for (n = 0; n < l->numExtended; n++) {
-//         float x = xPos(n, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
-//         float y = yPos(n, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
-//         if ( x < nxBorder || x > l->loc.nxGlobal * l->dx - nxBorder ||
-//              y < nyBorder || y > l->loc.nyGlobal * l->dy - nyBorder ) {
-//            clayer->V[n] = 0.0;
-//         }
-//      }
-//   }
 
    if (params->invert) {
       for (n = 0; n < l->numExtended; n++) {
@@ -180,7 +162,7 @@ int Retina::copyFromImageBuffer()
    // for now
    assert(nf == 1);
 
-   HyPerLayer::copyToInteriorBuffer(V, ibuf, &imageLoc);
+   HyPerLayer::copyToBuffer(V, ibuf, &imageLoc, true, 1.0f);
 
    // normalize so that V <= 1.0
    pvdata_t vmax = 0;
