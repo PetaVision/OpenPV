@@ -36,10 +36,10 @@ public:
    static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
                            const LayerLoc * loc, bool extended, float scale);
 
-   static int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
-                                         const LayerLoc * loc, bool extended, float scale);
-   static int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-                                         const LayerLoc * loc, bool extended, float scale);
+   static int copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
+                             const LayerLoc * loc, bool extended, float scale);
+   static int copyFromBuffer(const unsigned char * buf, pvdata_t * data,
+                             const LayerLoc * loc, bool extended, float scale);
 
    // TODO - make protected
    PVLayer*  clayer;
