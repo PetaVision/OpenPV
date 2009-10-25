@@ -63,9 +63,9 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    const PVLayer * l = c->preSynapticLayer()->clayer;
 
-   float nx = l->loc.nx;
-   float ny = l->loc.ny;
-   float nf   = l->numFeatures;
+   const float nx = l->loc.nx;
+   const float ny = l->loc.ny;
+   const float nf = l->numFeatures;
 
    // convert to extended frame
    if (kPre < 0) {
@@ -118,12 +118,12 @@ int ConnectionProbe::text_write_patch(FILE * fd, PVPatch * patch, float * data)
    assert(fd != NULL);
 
    for (f = 0; f < nf; f++) {
-      fprintf(fd, "f = %i\n ", f);
+      fprintf(fd, "f = %i\n  ", f);
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
             fprintf(fd, "%5.3f ", data[i*sx + j*sy + f*sf]);
          }
-         fprintf(fd, "\n");
+         fprintf(fd, "\n  ");
       }
       fprintf(fd, "\n");
    }
