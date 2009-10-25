@@ -577,6 +577,8 @@ static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
    unsigned char buf[bufSize];
    unsigned short nxny[2];
 
+   const pvdata_t * data = p->data;
+
    nxny[0] = (unsigned short) p->nx;
    nxny[1] = (unsigned short) p->ny;
 
@@ -588,7 +590,8 @@ static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
    while (i < nItems) {
       // data are packed into chars
       for (ii = 0; ii < bufSize; ii++) {
-         buf[ii] = (unsigned char) (255.0 * (p->data[i++] - minVal) / (maxVal - minVal));
+         float val = 255.0 * (data[i++] - minVal) / (maxVal - minVal);
+         buf[ii] = (unsigned char) val;
          if (i >= nItems) break;
       }
       if ( fwrite(buf, sizeof(unsigned char), bufSize, fp) != bufSize ) return -2;
@@ -611,6 +614,8 @@ int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
    unsigned char buf[bufSize];
    unsigned short nxny[2];
 
+   pvdata_t * data = p->data;
+
    if ( fread(nxny, sizeof(unsigned short), 2, fp) != 2 ) return -1;
 
    nItems = (int) nxny[0] * (int) nxny[1] * (int) nf;
@@ -628,7 +633,8 @@ int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
       if ( fread(buf, sizeof(unsigned char), bufSize, fp) != bufSize ) return -2;
       // data are packed into chars
       for (ii = 0; ii < bufSize; ii++) {
-         p->data[i++] = minVal + (maxVal - minVal) * ((float) buf[ii] / 255.0);
+         float val = (float) buf[ii];
+         data[i++] = minVal + (maxVal - minVal) * (val / 255.0);
          if (i >= nItems) break;
       }
    }
@@ -652,11 +658,14 @@ int pv_write_patches(const char * filename, int append,
                      int numPatches, PVPatch ** patches)
 {
    char fullpath[PV_PATH_MAX];
-   int params[MAX_BIN_PARAMS];
+   int params[NUM_WEIGHT_PARAMS];
    int i, status = 0;
    FILE * fp;
 
    assert(numPatches > 0);
+
+   // write maxVal as an integer so round up
+   const float newMaxVal = ceilf(maxVal);
 
    sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
 
@@ -669,23 +678,27 @@ int pv_write_patches(const char * filename, int append,
    }
 
    if (!append) {
-      const int nParams = 6;
-      params[0] = nParams;
-      params[1] = nxp;
-      params[2] = nyp;
-      params[3] = nfp;
-      params[4] = (int) minVal;
-      params[5] = (int) ceilf(maxVal);
-      params[6] = numPatches;
-      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1 ) status = -3;
+      const int nParams = NUM_WEIGHT_PARAMS;
+      assert(nParams == MIN_BIN_PARAMS + 3);
+      params[INDEX_HEADER_SIZE] = nParams * sizeof(int);
+      params[INDEX_NUM_PARAMS]  = nParams;
+      params[INDEX_FILE_TYPE]   = PV_WEIGHTS_FILE_TYPE;
+      params[INDEX_NX] = nxp;
+      params[INDEX_NY] = nyp;
+      params[INDEX_NF] = nfp;
+      params[MIN_BIN_PARAMS + 0] = (int) minVal;
+      params[MIN_BIN_PARAMS + 1] = (int) newMaxVal;
+      params[MIN_BIN_PARAMS + 2] = numPatches;
+      if ( fwrite(params, sizeof(int), nParams, fp) != nParams ) status = -3;
       if (status != 0) {
          pv_log(stderr, "pv_dump_patches: error writing params header\n");
          return status;
       }
    }
+
    // numPatches - each neuron has a patch; these are neurons that live in the extended layer
    for (i = 0; i < numPatches; i++) {
-      int numItems = pv_write_patch(fp, minVal, maxVal, patches[i]);
+      int numItems = pv_write_patch(fp, minVal, newMaxVal, patches[i]);
       if (numItems < 0) {
          status = numItems;
          pv_log(stderr, "pv_write_patches: error writing patch %d\n", i);
