@@ -45,18 +45,23 @@ StatsProbe::~StatsProbe()
  */
 int StatsProbe::outputState(float time, PVLayer * l)
 {
+   int nk;
    pvdata_t * buf;
    float fMin = FLT_MAX, fMax = FLT_MIN;
    double sum = 0.0;
 
    switch (type) {
-   case BufV:         buf = l->V;               break;
-   case BufActivity:  buf = l->activity->data;  break;
+   case BufV:
+      nk  = l->numNeurons;
+      buf = l->V;
+      break;
+   case BufActivity:
+      nk  = l->numExtended;
+      buf = l->activity->data;
+      break;
    default:
       return 1;
    }
-
-   int nk = l->numNeurons;
 
    for (int k = 0; k < nk; k++) {
       pvdata_t a = buf[k];
@@ -66,8 +71,16 @@ int StatsProbe::outputState(float time, PVLayer * l)
       if (a > fMax) fMax = a;
    }
 
-   fprintf(fp, "%s t=%4d N=%d Total=%f Min=%f, Avg=%f, Max=%f\n", msg, (int)time,
-           nk, (float)sum, fMin, (float)(sum / nk), fMax);
+   if (type == BufActivity) {
+      float freq = 1000.0 * (sum/nk);
+      fprintf(fp, "%st==%4d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, (int)time,
+              nk, (float)sum, fMin, freq, fMax);
+   }
+   else {
+      fprintf(fp, "%st==%4d N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, (int)time,
+              nk, (float)sum, fMin, (float)(sum / nk), fMax);
+   }
+
    fflush(fp);
 
    // or just
