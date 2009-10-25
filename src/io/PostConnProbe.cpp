@@ -16,6 +16,9 @@ namespace PV {
 PostConnProbe::PostConnProbe(int kPost)
    : ConnectionProbe(0)
 {
+   this->kxPost = 0;
+   this->kyPost = 0;
+   this->kfPost = 0;
    this->kPost = kPost;
 }
 
@@ -26,7 +29,19 @@ PostConnProbe::PostConnProbe(int kPost)
 PostConnProbe::PostConnProbe(const char * filename, int kPost)
    : ConnectionProbe(filename, 0)
 {
+   this->kxPost = 0;
+   this->kyPost = 0;
+   this->kfPost = 0;
    this->kPost = kPost;
+}
+
+PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
+   : ConnectionProbe(0)
+{
+   this->kxPost = kxPost;
+   this->kyPost = kyPost;
+   this->kfPost = kfPost;
+   this->kPost = -1;
 }
 
 /**
@@ -35,13 +50,24 @@ PostConnProbe::PostConnProbe(const char * filename, int kPost)
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
+   PVPatch * w;
    PVPatch ** wPost = c->convertPreSynapticWeights(time);
-   PVPatch * w = wPost[kPost];
+
+   const PVLayer * l = c->postSynapticLayer()->clayer;
+
+   const float nx = l->loc.nx;
+   const float ny = l->loc.ny;
+   const float nf = l->numFeatures;
+
+   // calc kPost if needed
+   if (kPost < 0) {
+      kPost = kIndex((float) kxPost, (float) kyPost, (float) kfPost, nx, ny, nf);
+   }
+
+   w = wPost[kPost];
 
    fprintf(fp, "w%d:     ", kPost);
-   fprintf(fp, "w=");
    text_write_patch(fp, w, w->data);
-   fprintf(fp, "\n");
    fflush(fp);
 
    return 0;

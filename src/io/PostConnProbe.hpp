@@ -15,12 +15,14 @@ namespace PV {
 class PostConnProbe: public PV::ConnectionProbe {
 public:
    PostConnProbe(int kPost);
+   PostConnProbe(int kxPost, int kyPost, int kfPost);
    PostConnProbe(const char * filename, int kPost);
 
    virtual int outputState(float time, HyPerConn * c);
 
 protected:
-   int kPost;  // index of post-synaptic neuron
+   int kPost;   // index of post-synaptic neuron
+   int kxPost, kyPost, kfPost;
 };
 
 }
