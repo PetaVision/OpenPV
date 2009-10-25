@@ -109,6 +109,8 @@ int HyPerConn::initialize(const char * filename)
 
    assert(this->channel <= post->clayer->numPhis);
 
+   this->connId = parent->numberOfConnections();
+
    PVParams * inputParams = parent->parameters();
    setParams(inputParams, &defaultConnParams);
 
@@ -213,6 +215,67 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    return 0;
 }
 
+// returns handle to initialized weight patches
+PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
+{
+   if (filename != NULL) {
+      return readWeights(patches, numPatches, filename);
+      //return normalizeWeights(patches, numPatches);
+   }
+
+   PVParams * inputParams = parent->parameters();
+   if (inputParams->present(getName(), "initFromLastFlag")) {
+      if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
+         char name[PV_PATH_MAX];
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin", OUTPUT_PATH, getConnectionId());
+         return readWeights(patches, numPatches, name);
+         //return normalizeWeights(patches, numPatches);
+      }
+   }
+
+   float randomFlag = inputParams->value(getName(), "randomFlag", 0.0f);
+   float randomSeed = inputParams->value(getName(), "randomSeed", 0.0f);
+
+   if (randomFlag != 0 || randomSeed != 0) {
+      return initializeRandomWeights(patches, numPatches, randomSeed);
+   }
+   else {
+      initializeGaussianWeights(patches, numPatches);
+      return normalizeWeights(patches, numPatches);
+   }
+}
+
+int HyPerConn::checkWeightsHeader(const char * filename, int numParamsFile, int nxpFile,
+      int nypFile, int nfpFile)
+{
+   const int numWeightHeaderParams = NUM_WEIGHT_PARAMS;
+   if (numWeightHeaderParams != numParamsFile) {
+      fprintf(
+            stderr,
+            "numWeightHeaderParams = %i in HyPerConn %s, using numParamsFile = %i in binary file %s\n",
+            numWeightHeaderParams, name, numParamsFile, filename);
+   }
+   if (nxp != nxpFile) {
+      fprintf(stderr,
+      "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n", nxp, name,
+            nxpFile, filename);
+      nxp = nxpFile;
+   }
+   if ((nyp > 0) && (nyp != nypFile)) {
+      fprintf(stderr,
+      "ignoring nyp = %f in HyPerCol %s, using nyp = %i in binary file %s\n", nyp, name,
+            nypFile, filename);
+      nyp = nypFile;
+   }
+   if ((nfp > 0) && (nfp != nfpFile)) {
+      fprintf(stderr,
+      "ignoring nfp = %f in HyPerCol %s, using nfp = %i in binary file %s\n", nfp, name,
+            nfpFile, filename);
+      nfp = nfpFile;
+   }
+   return 0;
+}
+
 PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
       int seed)
 {
@@ -229,8 +292,6 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
-
-   float wMin = params->value(name, "wMin", 0.0);
 
    // default values (chosen for center on cell of one pixel)
    int noPost = (int) params->value(post->getName(), "no", nfp);
@@ -265,6 +326,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    return patches;
 }
 
+#ifdef DELETE_ME
 // Craig's version.  not used. assumes weights read into wPatches
 int HyPerConn::readWeights(const char * filename)
 {
@@ -299,11 +361,10 @@ int HyPerConn::readWeights(const char * filename)
 
    return status;
 }
+#endif
 
-PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches,
-      const char * filename)
+PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
-
    FILE * fp;
    int numParamsFile;
    int fileType, nxpFile, nypFile, nfpFile;
@@ -314,11 +375,11 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches,
    }
    checkWeightsHeader(filename, numParamsFile, nxpFile, nypFile, nfpFile);
 
-   int err = 0;
    //   int append = 0; // only write one time step
+   int status = 0;
 
    // header information
-   const int numWeightHeaderParams = MIN_BIN_PARAMS + 3;
+   const int numWeightHeaderParams = NUM_WEIGHT_PARAMS;
    int params[numWeightHeaderParams];
    float minVal, maxVal;
    int numPatchesFile;
@@ -355,7 +416,7 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches,
       nxp = nxpFile;
    }
 
-   err = pv_read_patches(fp, nfp, minVal, maxVal, numPatchesFile, patches);
+   status = pv_read_patches(fp, nfp, minVal, maxVal, numPatchesFile, patches);
    pv_close_binary(fp);
 
    return patches;
@@ -1439,73 +1500,6 @@ int HyPerConn::setPatchSize(const char * filename)
    }
    return 0;
 }
-
-// returns handle to initialized weight patches
-PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches,
-      const char * filename)
-{
-
-   if (filename != NULL) {
-      readWeights(patches, numPatches, filename);
-      return normalizeWeights(patches, numPatches);
-   }
-
-   PVParams * inputParams = parent->parameters();
-   if (inputParams->present(getName(), "initFromLastFlag")) {
-      if ((int) inputParams->value(getName(), "initFromLastFlag") != 1) {
-         char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin", OUTPUT_PATH,
-         getConnectionId());
-         readWeights(patches, numPatches, name);
-         return normalizeWeights(patches, numPatches);
-      }
-   }
-
-   float randomFlag = inputParams->value(getName(), "randomFlag", 0.0f);
-   float randomSeed = inputParams->value(getName(), "randomSeed", 0.0f);
-
-   if (randomFlag != 0 || randomSeed != 0) {
-      return initializeRandomWeights(patches, numPatches, randomSeed);
-   }
-   else {
-      initializeGaussianWeights(patches, numPatches);
-      return normalizeWeights(patches, numPatches);
-   }
-}
-
-int HyPerConn::checkWeightsHeader(const char * filename, int numParamsFile, int nxpFile,
-      int nypFile, int nfpFile)
-{
-
-   // TODO: numWeightHeaderParams should be set by DEFINE
-   const int numWeightHeaderParams = 7;
-   if (numWeightHeaderParams != numParamsFile) {
-      fprintf(
-            stderr,
-            "numWeightHeaderParams = %i in HyPerConn %s, using numParamsFile = %i in binary file %s\n",
-            numWeightHeaderParams, name, numParamsFile, filename);
-   }
-   if (nxp != nxpFile) {
-      fprintf(stderr,
-      "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n", nxp, name,
-            nxpFile, filename);
-      nxp = nxpFile;
-   }
-   if ((nyp > 0) && (nyp != nypFile)) {
-      fprintf(stderr,
-      "ignoring nyp = %f in HyPerCol %s, using nyp = %i in binary file %s\n", nyp, name,
-            nypFile, filename);
-      nyp = nypFile;
-   }
-   if ((nfp > 0) && (nfp != nfpFile)) {
-      fprintf(stderr,
-      "ignoring nfp = %f in HyPerCol %s, using nfp = %i in binary file %s\n", nfp, name,
-            nfpFile, filename);
-      nfp = nfpFile;
-   }
-   return 0;
-}
-
 
 PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
