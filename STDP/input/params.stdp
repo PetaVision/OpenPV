@@ -14,31 +14,35 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-	marginWidth = 4;
+   marginWidth = 2;
 };
 
 HyPerLayer "Retina" = {
-   marginWidth = 1; // 4;
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2;
 
-   beginStim = 132.;
-   endStim   = 132.5;
+   beginStim = 0;
+   endStim   = 200000;
 
-   burstDuration = 20;
    burstFreq = 40;
+   burstDuration = 20;
 
    spikingFlag = 1;        // spike as poisson
-   poissonEdgeProb  = 1;//.2;  // gives on rate of about 390 Hz during burst
-   poissonBlankProb = 0;//.01; // gives background rate of 10-20 Hz
-   //noiseOnFreq = 50;        // when this is defined poissonEdge and poissonBlank overridden?
+   poissonEdgeProb  = .2;  // gives on rate of about 390 Hz during burst
+   poissonBlankProb = .01; // gives background rate of 10-20 Hz
+
+   noiseOnFreq  = 400;//100;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 20;//50;     // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "L1" = {
-   nxScale = 1; // 8;
-   nyScale = 1; // 8;
+   nxScale = 2; // 8;
+   nyScale = 2; // 8;
    
    //restart = 1;
 
-   marginWidth = 1; // 4;
+   marginWidth = 4;
    
    noiseAmpE = 1.0;
    noiseAmpI = 0.2;
@@ -50,8 +54,8 @@ HyPerLayer "L1Inh" = {
 
    marginWidth = 1; // 4;
    
-   noiseAmpE = 0.0; //64.0;
-   noiseAmpI = 0.0; //4.0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
 };
 
 ///////
@@ -61,63 +65,56 @@ HyPerLayer "L1Inh" = {
 //    "L1Inh to L1"
 
 HyPerConn "Retina to L1" = {
-   nxp = 3; // 64;
-   nyp = 3; // 64;
-   strength = 25.0;
+   nxp = 8; // 64;
+   nyp = 8; // 64;
    
-   stdpFlag = 1;
-   randomFlag = 0; 
+   stdpFlag   = 1;
+   randomFlag = 0;
    
-   wMinInit = 4.0;  // default values if Gaussian is not defined
-   wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   initFromLastFlag = 1;  // restart
+
+   //
+   // strength used if randomFlag==0
+
+   strength = 5;//180;//25.0;  // max strength should be ~3*nxp*nyp
+
+   //
+   // these weights used if randomFlag==1
+
+   wMin = 0.0;     
+   wMax = 1.5;
+   dWMax = 0.01;
    
-   wGaussMean = 5.0;//5.00;
-   wGaussStdev = 0.0;//1.00;
+   //wMinInit = 4.0;  // default values if Gaussian is not defined
+   //wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   
+   //wGaussMean = 5.0;//5.00;
+   //wGaussStdev = 0.0;//1.00;
    
    idum = 3940284; // random number generator seed
    
-   
-   aspect = 1;
    sigma = 100;
-   rMax = 100;
-   
-   wMin = 0.0;
-   wMax = 10.0;   //10.0;
-   dWMax = 0.01;
+   rMax  = 100;
    
    writeStep = 100; // writes to output file every writeStep
 };
 
 HyPerConn "L1 to L1Inh" = {
-   nxp = 4; // 64;
-   nyp = 4; // 64;
-   strength = 5.0;
+   nxp = 4;
+   nyp = 4;
+   strength = 12;
    
-   stdpFlag = 1;
-   randomFlag = 0; 
+   delay = 0;
    
-   wMinInit = 4.0;  // default values if Gaussian is not defined
-   wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
-   
-   wGaussMean = 5.0;//5.00;
-   wGaussStdev = 0.0;//1.00;
-   
-   idum = 3940284; // random number generator seed
-
-   aspect = 1;
    sigma = 100;
    rMax  = 100;
-   
-   wMin = 0.0;
-   wMax = 10.0;   //10.0;
-   dWMax = 0.01;
-   
+
    writeStep = 100; // writes to output file every writeStep
 };
 
-HyPerConn "L1Ing to L1" = {
+HyPerConn "L1Inh to L1" = {
    nxp = 4;
    nyp = 4;
    strength = 1.5;
-   delay = 20;
+   delay = 0;
 };
