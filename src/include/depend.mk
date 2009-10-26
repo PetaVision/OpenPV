@@ -13,6 +13,9 @@ $(BUILDDIR)/DataStore.o: $(SRCDIR)/columns/DataStore.cpp $(HEADERS)
 $(BUILDDIR)/HyPerLayer.o: $(SRCDIR)/layers/HyPerLayer.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/Image.o: $(SRCDIR)/layers/Image.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/HyPerConn.o: $(SRCDIR)/connections/HyPerConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -87,6 +90,9 @@ $(BUILDDIR)/fileread.o: $(SRCDIR)/layers/fileread.c $(HEADERS)
 
 $(BUILDDIR)/io.o: $(SRCDIR)/io/io.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/fileio.o: $(SRCDIR)/io/fileio.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/imageio.o: $(SRCDIR)/io/imageio.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<

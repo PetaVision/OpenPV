@@ -14,6 +14,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/connections/RuleConn.hpp \
           $(SRCDIR)/connections/PVConnection.h \
           $(SRCDIR)/layers/elementals.h \
+          $(SRCDIR)/layers/Image.hpp \
           $(SRCDIR)/layers/LIF2.h \
           $(SRCDIR)/layers/PVLayer.h \
           $(SRCDIR)/io/ConnectionProbe.hpp \
@@ -23,6 +24,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/PostConnProbe.hpp \
           $(SRCDIR)/io/StatsProbe.hpp \
           $(SRCDIR)/io/PVParams.hpp \
+          $(SRCDIR)/io/fileio.hpp \
           $(SRCDIR)/io/imageio.hpp \
           $(SRCDIR)/io/tiff.h
 
@@ -40,6 +42,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
           $(SRCDIR)/layers/Example.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
+          $(SRCDIR)/layers/Image.cpp \
           $(SRCDIR)/layers/Retina.cpp \
           $(SRCDIR)/layers/LGN.cpp \
           $(SRCDIR)/layers/V1.cpp \
@@ -50,6 +53,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/PostConnProbe.cpp \
           $(SRCDIR)/io/StatsProbe.cpp \
           $(SRCDIR)/io/PVParams.cpp \
+          $(SRCDIR)/io/fileio.cpp \
           $(SRCDIR)/io/imageio.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
@@ -58,6 +62,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/InterColComm.o \
           $(BUILDDIR)/DataStore.o \
           $(BUILDDIR)/HyPerLayer.o \
+          $(BUILDDIR)/Image.o \
           $(BUILDDIR)/HyPerConn.o \
           $(BUILDDIR)/GaborConn.o \
           $(BUILDDIR)/CocircConn.o \
@@ -77,6 +82,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/PostConnProbe.o \
           $(BUILDDIR)/StatsProbe.o \
           $(BUILDDIR)/PVParams.o \
+          $(BUILDDIR)/fileio.o \
           $(BUILDDIR)/imageio.o \
           $(BUILDDIR)/param_parser.o
 
