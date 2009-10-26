@@ -1,24 +1,22 @@
 SRCDIR = ../src
 BUILDDIR = build
+GDALDIR = /usr/local
 
 include $(SRCDIR)/include/sources.mk
-
-#MPI_DIR = arch/mpi
-#MPI_INC = -I./$(MPI_DIR)
-#MPI_OBJ = $(MPI_DIR)/mpi.o
 
 CC = mpicc
 CPP = mpic++
 #CC = gcc
 #CPP = g++
 
-LIBS = -L /usr/local/lib -lgdal
+INCLUDES = -I. -I$(GDALDIR)/include
+LIBS = -L $(GDALDIR)/lib -lgdal
 
 MAKE = make
 
 # VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2
-CFLAGS = -g -std=c99 -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
-CPPFLAGS = -g -Wall -I./ $(MPI_INC) $(VEC_FLAGS) -DHAS_MAIN=1
+CFLAGS = -g -std=c99 -Wall $(INCLUDES) $(VEC_FLAGS) -DHAS_MAIN=1
+CPPFLAGS = -g -Wall $(INCLUDES) $(VEC_FLAGS) -DHAS_MAIN=1
 
 #EXES = pv_example
 
@@ -50,6 +48,7 @@ libpv.so: $(notdir $(CPPSRCS:.cpp=.o)) $(notdir $(CSRCS:.c=.o))
 
 $(BUILDDIR)/libpv.a: $(DEPENDS) $(OBJS) $(MPI_OBJ)
 	ar rcs $(BUILDDIR)/libpv.a $+
+	ar rcs ../lib/libpv.a $+
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
