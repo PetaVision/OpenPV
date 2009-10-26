@@ -2,12 +2,15 @@
 PVDIR = ../PetaVision
 SRCDIR = $(PVDIR)/src
 LIBDIR = $(PVDIR)/lib
+GDALDIR = /usr/local
 
 CPP = mpic++
 CC  = mpicc
 
-CFLAGS = -g -Wall -std=c99 -I$(PVDIR) -I/usr/local/include
-CPPFLAGS = -g -Wall -I$(PVDIR) -I/usr/local/include
+INCLUDES = -I$(PVDIR) -I$(GDALDIR)/include
+
+CFLAGS = -g -Wall -std=c99 $(INCLUDES)
+CPPFLAGS = -g -Wall $(INCLUDES)
 
 LIBS = -lpv -lgdal
 
@@ -23,8 +26,8 @@ EXES = stdp
 
 all: $(EXES)
 
-stdp: stdp.o
-	$(CPP) -o $@ $< -L$(LIBDIR) $(LIBS)
+stdp: stdp.o Gratings.o
+	$(CPP) -o $@ $+ -L$(LIBDIR) $(LIBS)
 
 clean: force
 	rm -f $(EXES) *.o
