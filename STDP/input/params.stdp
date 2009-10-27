@@ -15,6 +15,7 @@ HyPerCol "column" = {
 
 HyPerLayer "Image" = {
    marginWidth = 2;
+   burstFreq = 25;
 };
 
 HyPerLayer "Retina" = {
@@ -25,8 +26,8 @@ HyPerLayer "Retina" = {
    beginStim = 0;
    endStim   = 200000;
 
-   burstFreq = 40;
-   burstDuration = 20;
+   burstFreq = 25;      // Hz
+   burstDuration = 10;  // ms
 
    spikingFlag = 1;        // spike as poisson
    poissonEdgeProb  = .2;  // gives on rate of about 390 Hz during burst
@@ -71,7 +72,7 @@ HyPerConn "Retina to L1" = {
    stdpFlag   = 1;
    randomFlag = 0;
    
-   initFromLastFlag = 1;  // restart
+   initFromLastFlag = 0;  // restart
 
    //
    // strength used if randomFlag==0
