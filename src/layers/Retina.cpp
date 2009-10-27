@@ -271,21 +271,21 @@ int Retina::writeState(const char * path, float time)
 int Retina::spike(float time, float dt, float probBase, float probStim, float * probSpike)
 {
    fileread_params * params = (fileread_params *) clayer->params;
-   int burstStatus = 1;
+   float burstStatus = 1;
    float sinAmp = 1.0;
 
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
       sinAmp = cos( 2 * PI * time * params->burstFreq / 1000. );
    }
    else {
-      burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
+      burstStatus = fmodf(time, 1000. / params->burstFreq);
       burstStatus = burstStatus <= params->burstDuration;
    }
 
    burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
    *probSpike = probBase;
 
-   if (burstStatus) {
+   if ((int)burstStatus) {
       *probSpike += probStim * sinAmp;  // negative prob is OK
     }
    return ( rand() < (*probSpike * RAND_MAX));
