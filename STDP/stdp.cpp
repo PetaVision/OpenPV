@@ -39,18 +39,18 @@ int main(int argc, char* argv[])
    HyPerLayer * l1Inh = new V1("L1Inh", hc);
 
    HyPerConn * r_l1   = new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
-   HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
+   //HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
 
    // add probes
 
-   HyPerLayer * displayLayer = l1;
+   HyPerLayer * displayLayer = retina;
 
    const int ny = displayLayer->clayer->loc.ny;
    PVLayerProbe * laProbes[ny]; // array of ny pointers to LinearActivityProbe
 
    for (int iy = 1; iy < ny-1; iy++) {
-	   laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
-       displayLayer->insertProbe(laProbes[iy]);
+      laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
+      displayLayer->insertProbe(laProbes[iy]);
    }
 
    PVLayerProbe * statsR     = new StatsProbe(BufActivity, "R    :");
