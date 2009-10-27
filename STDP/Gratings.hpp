@@ -17,8 +17,14 @@ public:
    Gratings(const char * name, HyPerCol * hc);
    virtual ~Gratings();
 
-   virtual bool updateImage(float time_step, float dt);
+   virtual bool updateImage(float time, float dt);
 
+protected:
+
+   float calcPhase(float time, float dt);
+
+   float phase;
+   float period;
 };
 
 }
