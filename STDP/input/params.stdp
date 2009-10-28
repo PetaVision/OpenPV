@@ -15,7 +15,7 @@ HyPerCol "column" = {
 
 HyPerLayer "Image" = {
    marginWidth = 2;
-   burstFreq = 25;
+   burstFreq = 12;
 };
 
 HyPerLayer "Retina" = {
@@ -24,17 +24,15 @@ HyPerLayer "Retina" = {
    marginWidth = 2;
 
    beginStim = 0;
-   endStim   = 200000;
+   endStim   = 400000;
 
-   burstFreq = 25;      // Hz
+   burstFreq = 12;      // Hz
    burstDuration = 10;  // ms
 
    spikingFlag = 1;        // spike as poisson
-   poissonEdgeProb  = .2;  // gives on rate of about 390 Hz during burst
-   poissonBlankProb = .01; // gives background rate of 10-20 Hz
 
-   noiseOnFreq  = 400;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 20;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 100;//100;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 10;//50;     // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "L1" = {
@@ -70,9 +68,9 @@ HyPerConn "Retina to L1" = {
    nyp = 8; // 64;
    
    stdpFlag   = 1;
-   randomFlag = 0;
+   randomFlag = 1;
    
-   initFromLastFlag = 0;  // restart
+   initFromLastFlag = 1;  // restart
 
    //
    // strength used if randomFlag==0
@@ -83,7 +81,7 @@ HyPerConn "Retina to L1" = {
    // these weights used if randomFlag==1
 
    wMin = 0.0;     
-   wMax = 1.5;
+   wMax = 3.0;
    dWMax = 0.01;
    
    //wMinInit = 4.0;  // default values if Gaussian is not defined
