@@ -244,9 +244,9 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
  */
 int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
 {
-   int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
   // everyone gets a copy of the entire input
 #ifdef PV_USE_MPI
+   int nTotal = l->loc.nxGlobal * l->loc.nyGlobal;
    MPI_Bcast(globalBuf, nTotal, MPI_FLOAT, 0, comm);
 #endif // PV_USE_MPI
 
@@ -501,8 +501,7 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
    int params[MAX_BIN_PARAMS];
    int status = 0;
    FILE * fp;
-   float m;
-   float nSpikes = 0;
+   int k, nSpikes = 0;
 
    int nItems = nx * ny * nf;
 
@@ -524,15 +523,15 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
    }
 
    if (fp != NULL) {
-      for (m = 0; m < nItems; m++) {
-         if (I[(int) m]) nSpikes++;
+      for (k = 0; k < nItems; k++) {
+         if (I[k] > 0.0f) nSpikes++;
       }
 
-      if ( fwrite(&nSpikes, sizeof(float), 1, fp) != 1) status = -2;
+      if ( fwrite(&nSpikes, sizeof(int), 1, fp) != 1) status = -2;
 
-      for (m = 0; m < nItems; m++)
-         if (I[(int) m]) {
-            if ( fwrite(&m, sizeof(float), 1, fp) != 1) status = -2;
+      for (k = 0; k < nItems; k++)
+         if (I[k] > 0.0f) {
+            if ( fwrite(&k, sizeof(int), 1, fp) != 1) status = -2;
          }
 
       fclose(fp);
