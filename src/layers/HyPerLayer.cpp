@@ -460,6 +460,8 @@ int HyPerLayer::outputState(float time)
 {
    char str[32];
 
+   const bool dumpNonSparse = false;
+
    const int nx = (int) clayer->loc.nx;
    const int ny = (int) clayer->loc.ny;
    const int nf = clayer->numFeatures;
@@ -471,12 +473,14 @@ int HyPerLayer::outputState(float time)
       probes[i]->outputState(time, clayer);
    }
 
-   // Output spike events and V
    sprintf(str, "f%1.1d", clayer->layerId);
-   pv_dump(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
    pv_dump_sparse(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
-   sprintf(str, "V%1.1d", clayer->layerId);
-   pv_dump(str, ioAppend, clayer->V, nx, ny, nf);
+
+   if (dumpNonSparse) {
+      pv_dump(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
+      sprintf(str, "V%1.1d", clayer->layerId);
+      pv_dump(str, ioAppend, clayer->V, nx, ny, nf);
+   }
 
    // append to dump file after original open
    this->ioAppend = 1;
