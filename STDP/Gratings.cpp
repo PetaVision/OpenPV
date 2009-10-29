@@ -65,7 +65,6 @@ float Gratings::calcPhase(float time, float dt)
     	else if (p < 0.50)  phase = 0.5 * PI;
     	else if (p < 0.75)  phase = 1.0 * PI;
     	else                phase = 1.5 * PI;
-    	printf("switching time==%f phase==%f\n", time, phase);
     }
 
 	return phase;
