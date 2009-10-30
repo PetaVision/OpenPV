@@ -210,6 +210,7 @@ int Retina::updateState(float time, float dt)
 
    pvdata_t * V = clayer->V;
    pvdata_t * activity = clayer->activity->data;
+   float    * prevActivity = clayer->prevActivity;
 
    const float nx = clayer->loc.nx;
    const float ny = clayer->loc.ny;
@@ -224,7 +225,9 @@ int Retina::updateState(float time, float dt)
          int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          float probStim = params->poissonEdgeProb * V[k];
          float probBase = params->poissonBlankProb;
-         activity[kex]  = spike(time, dt, probBase, probStim, &probSpike);
+         float prevTime = prevActivity[kex];
+         activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
+         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
       }
    }
    else {
@@ -232,8 +235,10 @@ int Retina::updateState(float time, float dt)
          int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          float probStim = params->poissonEdgeProb * V[k];
          float probBase = params->poissonBlankProb;
-         spike(time, dt, probBase, probStim, &probSpike);
+         float prevTime = prevActivity[kex];
+         spike(time, dt, prevTime, probBase, probStim, &probSpike);
          activity[kex] = probSpike;
+         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
       }
    }
 
@@ -268,11 +273,23 @@ int Retina::writeState(const char * path, float time)
 /**
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
  */
-int Retina::spike(float time, float dt, float probBase, float probStim, float * probSpike)
+int Retina::spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
 {
    fileread_params * params = (fileread_params *) clayer->params;
    float burstStatus = 1;
    float sinAmp = 1.0;
+
+   // see if neuron is in a refactory period
+   //
+   if ((time - prev) < ABS_REFACTORY_PERIOD) {
+      return 0;
+   }
+   else {
+      float delta = time - prev - ABS_REFACTORY_PERIOD;
+      float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
+      probBase *= refact;
+      probStim *= refact;
+   }
 
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
       sinAmp = cos( 2 * PI * time * params->burstFreq / 1000. );
