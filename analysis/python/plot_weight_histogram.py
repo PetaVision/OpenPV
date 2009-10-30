@@ -15,6 +15,15 @@ if len(sys.argv) < 2:
 w = rw.PVReadWeights(sys.argv[1])
 h = w.histogram()
 
+low = 0
+high = 0
+
+for i in range(len(h)):
+  if i < 126 and h[i] > 200: low += h[i]
+  if i > 126 and h[i] > 200: high += h[i]
+
+print "low==", low, "high==", high, "total==", np.add.reduce(h)
+
 fig = plt.figure()
 ax = fig.add_subplot(111, axisbg='darkslategray')
 
