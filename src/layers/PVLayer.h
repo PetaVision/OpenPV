@@ -47,6 +47,7 @@ typedef struct PVLayer_ {
    int numDelayLevels; // # of delay levels for activity buffers
 
    PVLayerCube * activity;  // activity buffer FROM this layer
+   float * prevActivity;    // time of previous activity
    int * activeIndices;     // indices of neurons that fired
 
    pvdata_t * V;    // membrane potential

@@ -110,6 +110,7 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
    l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
 
    l->activity = pvcube_new(&l->loc, numExtended);
+   l->prevActivity = (float *) calloc(numExtended, sizeof(float));
 
    // make a G (variable conductance) for each phi
    l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
@@ -161,6 +162,7 @@ int pvlayer_finalize(PVLayer * l)
 
    pvcube_delete(l->activity);
 
+   free(l->prevActivity);
    free(l->activeIndices);
 
    free(l->V);
