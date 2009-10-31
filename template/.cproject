@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?>
 
 <cproject>
@@ -15,7 +15,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="pv" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+<configuration artifactName="pv" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
 <folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.1617026610" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO" id="cdt.managedbuild.target.gnu.platform.macosx.base.912646449" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
@@ -23,11 +23,12 @@
 <tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.965898316" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 <tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.1837255070" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
 <option id="macosx.cpp.link.option.libs.2135668979" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
-<listOptionValue builtIn="false" value="-pv"/>
-<listOptionValue builtIn="false" value="-pthread"/>
+<listOptionValue builtIn="false" value="pv"/>
+<listOptionValue builtIn="false" value="gdal"/>
 </option>
 <option id="macosx.cpp.link.option.paths.1516321056" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/lib}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
 <inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.903922767" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -476,6 +477,7 @@
 </scannerConfigBuildInfo>
 </storageModule>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.macosx.exe.release.242873088">
 <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.macosx.exe.release.242873088" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -489,7 +491,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="luis" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.242873088" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
+<configuration artifactName="luis" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.242873088" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
 <folderInfo id="cdt.managedbuild.config.macosx.exe.release.242873088." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.release.889697569" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.release">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.release.415762130" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.release"/>
@@ -935,6 +937,7 @@
 </scannerConfigBuildInfo>
 </storageModule>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
