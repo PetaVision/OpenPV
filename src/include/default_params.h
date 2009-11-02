@@ -35,4 +35,8 @@
 #define EXCITE_VEL 999999.0 // 2*RMAX
 #define INHIB_VEL 999999.0
 
+// refactory period for neurons (retina for now)
+#define ABS_REFACTORY_PERIOD 3
+#define REFACTORY_PERIOD     5
+
 #endif /* DEFAULT_PARAMS_H_ */
