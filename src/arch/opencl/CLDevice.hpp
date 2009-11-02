@@ -8,6 +8,8 @@
 #ifndef CLDEVICE_HPP_
 #define CLDEVICE_HPP_
 
+#ifdef PV_USE_OPENCL
+
 #include <OpenCL/opencl.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,4 +51,5 @@ protected:
 
 } // namespace PV
 
+#endif // PV_USE_OPENCL
 #endif /* CLDEVICE_HPP_ */

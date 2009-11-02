@@ -7,6 +7,8 @@
 
 #include "CLDevice.hpp"
 
+#ifdef PV_USE_OPENCL
+
 #include <stdio.h>
 
 namespace PV {
@@ -124,3 +126,7 @@ int CLDevice::query_device_info(int id, cl_device_id device)
 }
 
 } // namespace PV
+
+#else
+   void noop() { ; }
+#endif // PV_USE_OPENCL
