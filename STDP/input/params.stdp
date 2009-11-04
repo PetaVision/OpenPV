@@ -24,7 +24,7 @@ HyPerLayer "Retina" = {
    marginWidth = 2;
 
    beginStim = 0;
-   endStim   = 400000;
+   endStim   = 0;//900000;
 
    burstFreq = 12;      // Hz
    burstDuration = 10;  // ms
@@ -32,7 +32,7 @@ HyPerLayer "Retina" = {
    spikingFlag = 1;        // spike as poisson
 
    noiseOnFreq  = 100;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 10;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 50;//50;     // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "L1" = {
@@ -51,7 +51,7 @@ HyPerLayer "L1Inh" = {
    nxScale = 1; // 8;
    nyScale = 1; // 8;
 
-   marginWidth = 1; // 4;
+   marginWidth = 2; // 4;
    
    noiseAmpE = 0.0;
    noiseAmpI = 0.0;
@@ -67,7 +67,7 @@ HyPerConn "Retina to L1" = {
    nxp = 8; // 64;
    nyp = 8; // 64;
    
-   stdpFlag   = 1;
+   stdpFlag   = 0;//1;
    randomFlag = 1;
    
    initFromLastFlag = 1;  // restart
@@ -95,25 +95,28 @@ HyPerConn "Retina to L1" = {
    sigma = 100;
    rMax  = 100;
    
-   writeStep = 100; // writes to output file every writeStep
+   writeStep = 1000; // writes to output file every writeStep
 };
 
 HyPerConn "L1 to L1Inh" = {
    nxp = 4;
    nyp = 4;
-   strength = 12;
+   strength = 16;
    
    delay = 0;
    
    sigma = 100;
    rMax  = 100;
 
-   writeStep = 100; // writes to output file every writeStep
+   writeStep = 1000; // writes to output file every writeStep
 };
 
 HyPerConn "L1Inh to L1" = {
-   nxp = 4;
-   nyp = 4;
-   strength = 1.5;
+   nxp = 8;
+   nyp = 8;
+   strength = 16;
    delay = 0;
+
+   sigma = 100;
+   rMax  = 100;
 };
