@@ -28,29 +28,35 @@ using namespace PV;
 int main(int argc, char* argv[])
 {
    // create the managing hypercolumn
+   //
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
-   // create the layers
-   //   ImageCreator * image = new ImageCreator("Image", hc);
+   // create the image
+   //
    Image * image = new Gratings("Image", hc);
 
+   // create the layers
+   //
    HyPerLayer * retina = new Retina("Retina", hc, image);
    HyPerLayer * l1 = new V1("L1", hc);
    HyPerLayer * l1Inh = new V1("L1Inh", hc);
 
+   // create the connections
+   //
    HyPerConn * r_l1   = new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
-   //HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
+//   HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
+//   HyPerConn * inh_l1 = new HyPerConn("L1Inh to L1", hc, l1Inh, l1, CHANNEL_INH);
 
    // add probes
 
-   HyPerLayer * displayLayer = retina;
+   HyPerLayer * displayLayer = l1;
 
    const int ny = displayLayer->clayer->loc.ny;
    PVLayerProbe * laProbes[ny]; // array of ny pointers to LinearActivityProbe
 
    for (int iy = 1; iy < ny-1; iy++) {
-      laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
-      displayLayer->insertProbe(laProbes[iy]);
+   //   laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
+   //   displayLayer->insertProbe(laProbes[iy]);
    }
 
    PVLayerProbe * statsR     = new StatsProbe(BufActivity, "R    :");
@@ -59,14 +65,19 @@ int main(int argc, char* argv[])
 
    retina->insertProbe(statsR);
    l1->insertProbe(statsL1);
-//   l1Inh->insertProbe(statsL1Inh);
+   l1Inh->insertProbe(statsL1Inh);
 
    PVLayerProbe * ptprobe = new PointProbe(16, 16, 0, "L1:(16,16)");
-   l1->insertProbe(ptprobe);
+//   l1->insertProbe(ptprobe);
 
-//   ConnectionProbe * cProbe0 = new ConnectionProbe(2*5 + 0);
-   ConnectionProbe * cProbe = new PostConnProbe(24, 16, 0);
-   r_l1->insertProbe(cProbe);
+   ConnectionProbe * cProbe0 = new PostConnProbe(16, 16, 0);
+   ConnectionProbe * cProbe1 = new PostConnProbe(17, 16, 0);
+   ConnectionProbe * cProbe2 = new PostConnProbe(18, 16, 0);
+   ConnectionProbe * cProbe3 = new PostConnProbe(19, 16, 0);
+   r_l1->insertProbe(cProbe0);
+   r_l1->insertProbe(cProbe1);
+   r_l1->insertProbe(cProbe2);
+   r_l1->insertProbe(cProbe3);
 
    // run the simulation
    hc->initFinish();
