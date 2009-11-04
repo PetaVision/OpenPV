@@ -564,6 +564,12 @@ int HyPerConn::outputState(float time)
    if (time == FINAL_TIME) {
       status = writeWeights(time);
       assert(status == 0);
+      // make sure post-synaptic weights get written at least once
+      // this needs to be improved (with last in filename)
+      convertPreSynapticWeights(time);
+      ioAppend = 0;
+      status = writePostSynapticWeights(ioAppend);
+      assert(status == 0);
    }
    else if (stdpFlag && time >= writeTime)
    {
