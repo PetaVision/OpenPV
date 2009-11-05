@@ -54,7 +54,6 @@ protected:
    LayerLoc loc;         // size/location of image
    pvdata_t *  data;     // buffer containing image
 
-
    float tau;
 };
 
