@@ -287,6 +287,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
    else {
       float delta = time - prev - ABS_REFACTORY_PERIOD;
       float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
+      refact = (refact < 0) ? 0 : refact;
       probBase *= refact;
       probStim *= refact;
    }
