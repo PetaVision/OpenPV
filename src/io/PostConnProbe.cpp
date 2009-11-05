@@ -50,6 +50,7 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
+   int kxPre, kyPre;
    PVPatch * w;
    PVPatch ** wPost = c->convertPreSynapticWeights(time);
 
@@ -64,9 +65,11 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
       kPost = kIndex((float) kxPost, (float) kyPost, (float) kfPost, nx, ny, nf);
    }
 
+   c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
+
    w = wPost[kPost];
 
-   fprintf(fp, "w%d:     ", kPost);
+   fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
    text_write_patch(fp, w, w->data);
    fflush(fp);
 
