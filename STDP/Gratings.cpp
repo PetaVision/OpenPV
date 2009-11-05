@@ -41,14 +41,19 @@ bool Gratings::updateImage(float time, float dt)
    const int sx = 1;
    const int sy = sx * nx;
 
+   int marginWidth = loc.nPad;
+
    const float kx  = 2.0*PI/4.0;   // wavenumber
    const float phi = calcPhase(time, dt);
 
    for (int iy = 0; iy < ny; iy++) {
-      for (int ix = 0; ix < nx; ix++) {
-         float x = (float) ix;
-         data[ix*sx + iy*sy] = sin(kx * x + phi);
-      }
+	   int ix = 6 + marginWidth;
+//      for (int ix = 0; ix < nx; ix++) {
+//         float x = (float) (ix + marginWidth);
+	   //         data[ix*sx + iy*sy] = sin(kx * x + phi);
+//      }
+	   data[ix*sx + iy*sy] = 1;
+
    }
 
    return true;
