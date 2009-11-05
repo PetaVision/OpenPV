@@ -128,6 +128,7 @@ int HyPerConn::initialize(const char * filename)
 
    wPatches[arbor]
          = initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
+   assert(wPatches[arbor] != NULL);
 
    writeTime = parent->simulationTime();
    writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
@@ -566,10 +567,12 @@ int HyPerConn::outputState(float time)
       assert(status == 0);
       // make sure post-synaptic weights get written at least once
       // this needs to be improved (with last in filename)
-      convertPreSynapticWeights(time);
-      ioAppend = 0;
-      status = writePostSynapticWeights(ioAppend);
-      assert(status == 0);
+      if (stdpFlag) {
+         convertPreSynapticWeights(time);
+         int append = 0;  // start new file (a hack)
+         status = writePostSynapticWeights(append);
+         assert(status == 0);
+      }
    }
    else if (stdpFlag && time >= writeTime)
    {
@@ -1191,8 +1194,12 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
-   const float powXScale = powf(2, (float) xScale);
-   const float powYScale = powf(2, (float) yScale);
+   const float powXScale = powf(2.0, (float) xScale);
+   const float powYScale = powf(2.0, (float) yScale);
+
+   // TODO - fix this
+   assert(xScale < 0);
+   assert(yScale < 0);
 
    const int prePad = pre->clayer->loc.nPad;
 
@@ -1235,6 +1242,12 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       kxPreHead += prePad;
       kyPreHead += prePad;
 
+      // TODO - FIXME for powXScale > 1
+      int ax = 1.0f/powXScale;
+      int ay = 1.0f/powYScale;
+      int xShift = ax - (kxPost + (int)(0.5f * ax)) % ax;
+      int yShift = ay - (kyPost + (int)(0.5f * ay)) % ay;
+
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
          int kyPostPatch = (int) kyPos(kp, nxPostPatch, nyPostPatch, nfPre);
@@ -1257,6 +1270,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             int nyp = (kyPre < nyPrePatch/2) ? p->ny : nyPrePatch;
             int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
             int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
+            kxPrePatch = nxp - ax * kxPostPatch - xShift;
+            kyPrePatch = nyp - ay * kyPostPatch - yShift;
             int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
             wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
          }
@@ -1266,18 +1281,32 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
+void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
+{
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const float powXScale = powf(2, (float) xScale);
+   const float powYScale = powf(2, (float) yScale);
+
+   const int nxPostPatch = (int) (nxp * powXScale);
+   const int nyPostPatch = (int) (nyp * powYScale);
+
+   // TODO - does patchHead work in general for post to pre mapping and -scale?
+   //      - it seems to work
+   int kxPreHead = (int) pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
+   int kyPreHead = (int) pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
+
+   *kxPre = kxPreHead;
+   *kyPre = kyPreHead;
+}
+
 int HyPerConn::writePostSynapticWeights(int ioAppend)
 {
    char poststr[PV_PATH_MAX];
 
    int status = 0;
 
-   FILE * fp = NULL;
-
    const int numPost = post->clayer->numNeurons;
-   const int nxPost  = post->clayer->loc.nx;
-   const int nyPost  = post->clayer->loc.ny;
-   const int nfPost  = post->clayer->numFeatures;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -1295,41 +1324,6 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
 
    status = pv_write_patches(poststr, ioAppend, nxPostPatch, nyPostPatch, nfPostPatch,
                              0.0, wMax, numPost, wPostPatches);
-
-#ifdef SHOULD_NOT_WRITE_TEXT_FILES_BUT_DO_IT_ANYWAY
-   char txtfile[PV_PATH_MAX];
-   snprintf(txtfile, PV_PATH_MAX-1, "%sw%d_post.txt", OUTPUT_PATH, getConnectionId());
-   if (!ioAppend) {
-      fp = fopen(txtfile, "w");
-
-      if (fp != NULL) {
-         fprintf(fp, "nxPost==%d nyPost==%d nfPost==%d numPostPatch==%d\n",
-                     nxPost, nyPost, nfPost, numPostPatch);
-      }
-   }
-   else {
-      fp = fopen(txtfile, "a");
-   }
-
-   if (fp != NULL) {
-      for (int i = 0; i < numPost; i++) {
-         if (wPostPatches[i] == NULL) {
-            fprintf(stderr, "Post-patch weights are NULL\n");
-            fclose(fp);
-            return -1;
-         }
-         for (int j = 0; j < numPostPatch; j++) {
-            fprintf(fp, "%f ", wPostPatches[i]->data[j]);
-         }
-         fprintf(fp, "\n");
-      }
-      fclose(fp);
-   }
-   else {
-      fprintf(stderr, "Error opening file: Cannot write post-patch weights.\n");
-      return -1;
-   }
-#endif // write text files
 
    return 0;
 }

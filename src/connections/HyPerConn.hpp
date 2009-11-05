@@ -97,6 +97,8 @@ public:
 
    PVPatch ** convertPreSynapticWeights(float time);
 
+   void preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre);
+
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 
    int gauss2DCalcWeights(PVPatch * wp, int fPre, int no, int xScale, int yScale,
