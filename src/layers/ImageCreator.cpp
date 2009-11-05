@@ -43,6 +43,9 @@ int ImageCreator::initialize()
 {
    int numItems = loc.nx * loc.ny * loc.nBands;
 
+   // TODO - should this only be called once, say from the hypercolumn?
+   srand(time(NULL));
+
    drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
    assert(drawBuffer != 0);
 
@@ -68,10 +71,7 @@ int ImageCreator::initialize()
  */
 bool ImageCreator::updateImage(float time_step, float dt)
 {
-
    static int prevposx = 0, prevposy = 0;
-
-   srand(time(NULL));
 
    static int posx = 5;
    static int posy = 10;
