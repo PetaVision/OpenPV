@@ -7,6 +7,7 @@
 
 #include "PVLayer.h"
 #include "../io/io.h"
+#include "../include/default_params.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,7 +87,7 @@ int pvlayer_init(PVLayer * l, int xScale, int yScale,
  */
 int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols)
 {
-   int m;
+   int k, m;
    const int numNeurons  = l->numNeurons;
    const int numExtended = l->numExtended;
 
@@ -111,6 +112,10 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
 
    l->activity = pvcube_new(&l->loc, numExtended);
    l->prevActivity = (float *) calloc(numExtended, sizeof(float));
+
+   for (k = 0; k < numExtended; k++) {
+      l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
+   }
 
    // make a G (variable conductance) for each phi
    l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
