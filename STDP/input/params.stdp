@@ -24,15 +24,15 @@ HyPerLayer "Retina" = {
    marginWidth = 2;
 
    beginStim = 0;
-   endStim   = 0;//900000;
+   endStim   = 900000;
 
    burstFreq = 12;      // Hz
    burstDuration = 10;  // ms
 
    spikingFlag = 1;        // spike as poisson
 
-   noiseOnFreq  = 100;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 50;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 5000;//100;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 0;//50;     // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "L1" = {
@@ -43,8 +43,8 @@ HyPerLayer "L1" = {
 
    marginWidth = 4;
    
-   noiseAmpE = 1.0;
-   noiseAmpI = 0.2;
+   noiseAmpE = 0.0;//1.0;
+   noiseAmpI = 0.0;//0.2;
 };
 
 HyPerLayer "L1Inh" = {
@@ -67,7 +67,7 @@ HyPerConn "Retina to L1" = {
    nxp = 8; // 64;
    nyp = 8; // 64;
    
-   stdpFlag   = 0;//1;
+   stdpFlag   = 1;
    randomFlag = 1;
    
    initFromLastFlag = 1;  // restart
@@ -103,8 +103,6 @@ HyPerConn "L1 to L1Inh" = {
    nyp = 4;
    strength = 16;
    
-   delay = 0;
-   
    sigma = 100;
    rMax  = 100;
 
@@ -115,7 +113,6 @@ HyPerConn "L1Inh to L1" = {
    nxp = 8;
    nyp = 8;
    strength = 16;
-   delay = 0;
 
    sigma = 100;
    rMax  = 100;
