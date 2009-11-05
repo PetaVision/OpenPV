@@ -73,11 +73,11 @@ int StatsProbe::outputState(float time, PVLayer * l)
 
    if (type == BufActivity) {
       float freq = 1000.0 * (sum/nk);
-      fprintf(fp, "%st==%4d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, (int)time,
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, time,
               nk, (float)sum, fMin, freq, fMax);
    }
    else {
-      fprintf(fp, "%st==%4d N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, (int)time,
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, time,
               nk, (float)sum, fMin, (float)(sum / nk), fMax);
    }
 
