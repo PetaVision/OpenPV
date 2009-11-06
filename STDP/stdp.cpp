@@ -13,6 +13,7 @@
 #include <src/connections/RandomConn.hpp>
 #include <src/layers/Image.hpp>
 #include <src/layers/ImageCreator.hpp>
+#include <src/layers/Movie.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
 #include <src/io/ConnectionProbe.hpp>
@@ -33,7 +34,17 @@ int main(int argc, char* argv[])
 
    // create the image
    //
-   Image * image = new Gratings("Image", hc);
+//   Image * image = new Gratings("Image", hc);
+
+   // or create movie frames with the Movie class
+   //
+   float displayPeriod = 20;  // ms
+   const char * files = "input/movies/movies.files";
+   Movie * image = new Movie("Image", hc, files, displayPeriod);
+
+   //
+   // output first image frame
+   image->write("frame0.tif");
 
    // create the layers
    //
