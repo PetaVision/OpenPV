@@ -12,7 +12,7 @@ INCLUDES = -I$(PVDIR) -I$(GDALDIR)/include
 CFLAGS = -g -Wall -std=c99 $(INCLUDES)
 CPPFLAGS = -g -Wall $(INCLUDES)
 
-LIBS = -lpv -lgdal
+LIBS = -lpv -L$(GDALDIR)/lib -lgdal
 
 EXES = stdp
 
