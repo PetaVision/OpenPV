@@ -148,6 +148,17 @@ int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
    return 0; //PV_Retina_recv_synaptic_input();
 }
 
+//! Sets the V data buffer
+/*!
+ *
+ * REMARKS:
+ *      - this method is called from  updateImage()
+ *      - copies from the Image data buffer into the V buffer
+ *      - it normalizes the V buffer so that V <= 1.
+ *      .
+ *
+ *
+ */
 int Retina::copyFromImageBuffer()
 {
    const int nf = clayer->numFeatures;
@@ -195,6 +206,15 @@ int Retina::copyFromImageBuffer()
    return 0;
 }
 
+//! updates the Image that Retina is exposed to
+/*!
+ *
+ * REMARKS:
+ *      - This depends on the Image class. The data buffer is generally modulated
+ *      by the intensity at the image location.
+ *
+ *
+ */
 int Retina::updateImage(float time, float dt)
 {
    bool changed = img->updateImage(time, dt);
@@ -203,6 +223,21 @@ int Retina::updateImage(float time, float dt)
    return copyFromImageBuffer();
 }
 
+//! Updates the state of the Retina
+/*!
+ * REMARKS:
+ *      - prevActivity[] buffer holds the time when a neuron last spiked.
+ *      - it sets the probStim and probBase.
+ *              - probStim = poissonEdgeProb * V[k];
+ *              - probBase = poissonBlankProb
+ *              .
+ *      - activity[] is set to 0 or 1 depending on the return of spike()
+ *      - this depends on the last time a neuron spiked as well as on V[]
+ *      at the location of the neuron. This V[] is set by calling updateImage()
+ *      .
+ *
+ *
+ */
 int Retina::updateState(float time, float dt)
 {
    float probSpike = 0.0;
@@ -270,8 +305,30 @@ int Retina::writeState(const char * path, float time)
    return 0;
 }
 
-/**
+//! Spiking method for Retina
+/*!
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
+ * REMARKS:
+ *      - During ABS_REFACTORY_PERIOD does not spike
+ *      - The neurons that correspond to stimuly (on Image pixels)
+ *       spike with probability probStim.
+ *      - The neurons that correspond to background image pixels
+ *      spike with probability probBase.
+ *      - After ABS_REFACTORY_PERIOD the spiking probability
+ *        grows exponentially to probBase and probStim respectively.
+ *      - The burst of the retina is periodic with period T set by
+ *        T = 1000/burstFrq in miliseconds
+ *      - When the time t is such that mT < t < mT + burstDuration, where m is
+ *      an integer, the burstStatus is set to 1.
+ *      - The burstStatus is also condition by the condition that
+ *      beginStim < t < endStim. These parameters are set in the input
+ *      params file params.stdp
+ *      - sinAmp modulates the spiking probability only when burstDuration <= 0
+ *      or burstFreq = 0
+ *      - probSpike is set to probBase for all neurons.
+ *      - for neurons exposed to Image on pixels, probSpike increases
+ *       with probStim.
+ *      - When the probability is negative, the neuron does not spike.
  */
 int Retina::spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
 {
