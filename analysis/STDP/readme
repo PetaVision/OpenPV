@@ -23,3 +23,7 @@ time window and we plot the average rate fro all neurons that have the
 average sum of weights in a given bin.
 
 
+> stdp_plotHistograms.m reads the histograms already computed by
+rate.py code. This code runs PV for a sequence of retina background
+firing rates. For each rate it computes the average firing rate in L1
+and it computes the histogram of synaptic weights.

@@ -1,4 +1,4 @@
-function stdp_plotWeightsOnly(fname, Xtarg, Ytarg)
+function A = stdp_plotWeightsOnly(fname, Xtarg, Ytarg)
 % plot "weights" (typically after turning on just one neuron)
 % Xtarg and Ytarg contain the X and Y coordinates of the target
 global input_dir n_time_steps % NX NY 
@@ -8,14 +8,21 @@ filename = [input_dir, filename];
 %fprintf('NX = %d NY = %d\n',NX,NY);
 colormap(jet);
     
-NX = 32;NY=32;
-PLOT_STEP = 50;
+NX = 32;
+NY = 32;
+xScale = 2;
+yScale = 2;
+NX = NX * xScale;
+NY = NY * yScale;
+
+PLOT_STEP = 1;
+plotTarget = 0;
 
 figure('Name','Weights Fields');
 
-debug = 0;
+debug = 1;
 bufSize = 4; % see pv_write_patch() in io.c
-nPad = 1;    % size of the layer padding
+nPad = 2;    % size of the layer padding
 nf = 1;      % number of features
 
 if exist(filename,'file')
@@ -24,7 +31,9 @@ if exist(filename,'file')
     
     fid = fopen(filename, 'r', 'native');
     %     header
+    %     params[0] = header_size
     %     params[0] = nParams;
+    %     params[0] = file_type
     %     params[1] = nxp;
     %     params[2] = nyp;
     %     params[3] = nfp;
@@ -32,32 +41,58 @@ if exist(filename,'file')
     %     params[5] = (int) ceilf(maxVal); // stdp value
     %     params[6] = numPatches;
     %
-    num_params = fread(fid, 1, 'int');
-    NXP = fread(fid, 1, 'int');
-    NYP = fread(fid, 1, 'int');
-    NFP = fread(fid, 1, 'int');
-    minVal = fread(fid, 1, 'int');
-    maxVal = fread(fid, 1, 'int');
+    header_size = fread(fid, 1, 'int');
+    num_params  = fread(fid, 1, 'int');
+    file_type   = fread(fid, 1, 'int');   
+    NXP         = fread(fid, 1, 'int');
+    NYP         = fread(fid, 1, 'int');
+    NFP         = fread(fid, 1, 'int');
+    minVal      = fread(fid, 1, 'int');
+    maxVal      = fread(fid, 1, 'int');
     numPatches = fread(fid, 1, 'int');
-    fprintf('num_params = %d NXP = %d NYP = %d NFP = %d ',...
-        num_params,NXP,NYP,NFP);
+    fprintf('header_size = %d num_params = %d file_type = %d \n',...
+        header_size,num_params,file_type);
+    fprintf('NXP = %d NYP = %d NFP = %d ',...
+       NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
-    pause
-    
+    %pause
+    if numPatches ~= NX*NY
+        disp('mismatch between numPatches and NX*NY')
+        return
+    end
     patch_size = NXP*NYP;
     
-    a= (NXP-1)/2;    % NXP = 2a+1;
-    b= (NYP-1)/2;    % NYP = 2b+1;
-    NXPold = NXP;
-    NYPold = NYP;
-    NXP = NXP+2;
-    NYP = NYP+2;
-    a1= (NXP-1)/2;    % NXP = 2a+1;
-    b1= (NYP-1)/2;    % NYP = 2b+1;
-    
-    dX = (NXP+1)/2;  % used in ploting the target
-    dY = (NYP+1)/2;
+    if (mod(NXP,2) & mod(NYP,2))  % odd size patches
+        a= (NXP-1)/2;    % NXP = 2a+1;
+        b= (NYP-1)/2;    % NYP = 2b+1;
+        NXPold = NXP;
+        NYPold = NYP;
+        NXP = NXP+2;
+        NYP = NYP+2;
+        a1= (NXP-1)/2;    % NXP = 2a+1;
+        b1= (NYP-1)/2;    % NYP = 2b+1;
+
+        dX = (NXP+1)/2;  % used in ploting the target
+        dY = (NYP+1)/2;
+        
+    else                 % even size patches
+        
+        a= NXP/2;    % NXP = 2a;
+        b= NYP/2;    % NYP = 2b;
+        NXPold = NXP;
+        NYPold = NYP;
+        NXP = NXP+2;   % add border pixels for visualization purposes
+        NYP = NYP+2;
+        a1=  NXP/2;    % NXP = 2a1;
+        b1=  NYP/2;    % NYP = 2b1;
+
+        dX = NXP/2;  % used in ploting the target
+        dY = NYP/2;
+
+
+
+    end
     
     b_color = 1;     % use to scale weights to the full range
                  % of the color map
@@ -66,7 +101,7 @@ if exist(filename,'file')
     n_time_steps = 0;
     %W_array = zeros(NX*NY,patch_size);
     %PATCH = ones(NXP,NYP) * (length(get(gcf,'Colormap'))/2);
-    PATCH = ones(NXP,NYP) * maxVal;
+    PATCH = ones(NXP,NYP) * (0.5*(maxVal+minVal));
     
     avWeights = [];  % time averaged weights array
     
@@ -76,7 +111,7 @@ if exist(filename,'file')
         
         % read the weights for this time step 
         W_array = []; % reset every time step: this is N x patch_size array
-                      % where N =NX x NY
+                      % where N =NX * NY
                       
         % read boundary neurons
 %         for i=1:(NX+2*nPad)
@@ -110,7 +145,8 @@ if exist(filename,'file')
                     nRead = floor(nItems/bufSize) * bufSize;
                 end
                 if debug
-                    fprintf('nx = %d ny = %d nRead = %d: ',nx,ny,nRead);
+                    fprintf('nx = %d ny = %d nItems = %d nRead = %d: ',...
+                        nx,ny,nItems,nRead);
                 end
                 if nRead~= 0
                     w = fread(fid, nRead, 'uchar'); % unsigned char
@@ -132,7 +168,7 @@ if exist(filename,'file')
         end
         if ~feof(fid)
             n_time_steps = n_time_steps + 1;
-            %fprintf('%d\n',n_time_steps);
+            fprintf('time = %d\n',n_time_steps);
         end
         
         
@@ -144,14 +180,14 @@ if exist(filename,'file')
             
             
             k=0;
-            for j=((NYP+1)/2):NYP:(NY*NYP)
-                for i=((NXP+1)/2):NXP:(NX*NXP)
+            for j=(NYP/2):NYP:(NY*NYP)
+                for i=(NXP/2):NXP:(NX*NXP)
                     
                     k=k+1;
                     patch = reshape(W_array(k,:),[NXPold NYPold]);
-                    PATCH(a1+1-a:a1+1+a,b1+1-b:b1+1+b) = patch;
+                    PATCH(a1+1-a:a1+a,b1+1-b:b1+b) = patch;
                     %pause
-                    A(i-a1:i+a1,j-b1:j+b1) = PATCH;
+                    A(j-b1+1:j+b1,i-a1+1:i+a1) = PATCH;
                     %imagesc(A,'CDataMapping','direct');
                     %pause
                 end
@@ -165,17 +201,19 @@ if exist(filename,'file')
                 %imagesc(a_color*A+b_color);
                 %imagesc(A-Ainit,'CDataMapping','direct');
                 if (mod(n_time_steps,PLOT_STEP) == 0)
-                    fprintf('%d\n',n_time_steps);
-                    imagesc(A','CDataMapping','direct');
+                    fprintf('time = %d\n',n_time_steps);
+                    imagesc(A,'CDataMapping','direct');
                     colorbar
                     axis square
                     axis off
                     hold on
                     % plot target pixels
-                    for t=1:length(Xtarg)
-                        I=Xtarg(t);
-                        J=Ytarg(t);
-                        plot([(I-1)*NXP+dX],[(J-1)*NXP+dY],'.r','MarkerSize',12)
+                    if plotTarget
+                        for t=1:length(Xtarg)
+                            I=Xtarg(t);
+                            J=Ytarg(t);
+                            plot([(J-1)*NXP+dY],[(I-1)*NXP+dX],'.r','MarkerSize',12)
+                        end
                     end
                     pause(0.1)
                     hold off
@@ -184,12 +222,13 @@ if exist(filename,'file')
                 avWeights = avWeights + A;
             end
         end
+        pause
     end % reading from weights file
     fclose(fid);
     fprintf('feof reached: n_time_steps = %d\n',n_time_steps);
     avWeights = avWeights / n_time_steps;
     figure('Name','Time Averaged Weights');
-    imagesc(avWeights','CDataMapping','direct');
+    imagesc(avWeights,'CDataMapping','direct');
     colorbar
     axis square
     axis off

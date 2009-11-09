@@ -8,12 +8,12 @@ global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_path input_path
 global patch_size write_step
 
-input_dir = '/Users/manghel/Documents/workspace/marian/output/';
-%input_dir = '/nh/home/manghel/petavision/experiments/output3/';
+%input_dir = '/Users/manghel/Documents/workspace/marian/output/';
+input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 
 num_layers = 1;
 n_time_steps = 10000; % the argument of -n; even when dt = 0.5 
-patch_size = 9;  % nxp * nyp
+patch_size = 16;  % nxp * nyp
 write_step = 100; % set in writePostPatch() in HyPerConn.cpp
 
 
@@ -36,15 +36,15 @@ target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
 parse_tiff = 1;
-read_spikes = 1;
+read_spikes = 0;
 simple_movie = 0;
 plot_raster = 0;
-plot_spike_activity = 1;
+plot_spike_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
 plot_weights_field = 1;
-plot_weights_histogram = 1;
-plot_patch = 1;
+plot_weights_histogram = 0;
+plot_patch = 0;
 
 if read_spikes
     spike_array = cell(num_layers,1);
@@ -57,7 +57,7 @@ if parse_tiff
    %imshow(tiff_path);
    [targ, Xtarg, Ytarg] = stdp_parseTiff( tiff_path );
    disp('parse tiff -> done');
-   pause
+   %pause
 end
 
 

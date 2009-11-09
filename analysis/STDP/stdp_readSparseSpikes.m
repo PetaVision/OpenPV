@@ -23,11 +23,11 @@ if exist(filename,'file')
     NY = fread(fid, 1, 'int');
     NO = fread(fid, 1, 'int');
     fprintf('num_params = %d NX = %d NY = %d NO = %d \n',num_params,NX,NY,NO);
-    %pause
+    pause
     NK = 1;
     N = NX * NY * NO;
     for i_step = 1 : n_time_steps
-        num_spikes = fread(fid, 1, 'float');
+        num_spikes = fread(fid, 1, 'int');
         eofstat = feof(fid);
 %         fprintf('eofstat = %d\n', eofstat);
         if (feof(fid))
@@ -35,10 +35,19 @@ if exist(filename,'file')
             fprintf('feof reached: n_time_steps = %d\n',n_time_steps);
             break;
         end
-         
-        %fprintf('%d: number of spikes = %f\n', i_step, num_spikes);
-
-        fread(fid, num_spikes, 'float');
+        if num_spikes
+            fprintf('%d: number of spikes = %f: ', i_step, num_spikes);
+        else
+            fprintf('%d: number of spikes = %f: \n', i_step, num_spikes);
+        end
+        %pause
+        S =fread(fid, num_spikes, 'int');
+        for i=1:length(S)
+            fprintf('%f ',S(i));
+        end
+        fprintf('\n');
+        %pause
+        
         if i_step < begin_step
             continue
         end
@@ -54,19 +63,20 @@ if exist(filename,'file')
     spike_id = [];
     spike_step = [];
     for i_step = 1 : n_time_steps
-        num_spikes = fread(fid, 1, 'float');
+        num_spikes = fread(fid, 1, 'int');
 %         if num_spikes == []
 %             fprintf('end of file\n');
 %         else
 %             fprintf('number of spikes = %f\n', num_spikes);
 %         end
         
-        spike_id_tmp = fread(fid, num_spikes, 'float');
+        spike_id_tmp = fread(fid, num_spikes, 'int');
         if i_step < begin_step
             continue
         end
         spike_id = [spike_id; spike_id_tmp+1];
         spike_step = [spike_step; repmat(i_step - begin_step + 1, num_spikes, 1)];
+        %pause
          if mod(i_step - begin_step + 1, 1000) == 0
              disp(['i_step = ', num2str(i_step)]);
          end
