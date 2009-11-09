@@ -99,7 +99,12 @@ int Retina::initialize(PVLayerType type)
 
    return status;
 }
-
+//!
+/*!
+ *
+ * dt is in seconds here!
+ *
+ */
 int Retina::setParams(PVParams * params, fileread_params * p)
 {
    float dt = parent->getDeltaTime() * .001;  // seconds
