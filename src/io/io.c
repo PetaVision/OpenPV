@@ -448,7 +448,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
 int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
-   int params[MAX_BIN_PARAMS];
+   int params[NUM_BIN_PARAMS];
    int status = 0;
    FILE * fp;
 
@@ -498,7 +498,7 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
 int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
-   int params[MAX_BIN_PARAMS];
+   int params[NUM_BIN_PARAMS];
    int status = 0;
    FILE * fp;
    int k, nSpikes = 0;
@@ -569,11 +569,9 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
  * Think of p->nx and p->ny as defining the size of the neuron's
  * receptive field that receives spikes from the retina.
  */
-static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
+int pv_write_patch(FILE * fp, int numTotal, float minVal, float maxVal, PVPatch * p)
 {
-   const int bufSize = 4;
-   int i, ii, nItems;
-   unsigned char buf[bufSize];
+   int i, nItems, nExtra;
    unsigned short nxny[2];
 
    const pvdata_t * data = p->data;
@@ -585,28 +583,71 @@ static int pv_write_patch(FILE * fp, float minVal, float maxVal, PVPatch * p)
 
    if ( fwrite(nxny, sizeof(unsigned short), 2, fp) != 2 ) return -1;
 
-   i = 0;
-   while (i < nItems) {
+   for (i = 0; i < nItems; i++) {
+      float val = 255.0 * (data[i] - minVal) / (maxVal - minVal);
+//      unsigned char c = (unsigned char) fval;
+//      if ( fwrite(&c, sizeof(unsigned char), 1, fp) != 1 ) return -2;
+      int c = (unsigned char) val;
+      if (putc_unlocked(c, fp) == EOF) return -2;
+   }
+
+   // write leftover null characters
+   nExtra = numTotal - nItems;
+
+   for (i = 0; i < nExtra; i++) {
+      int c = 0;
+      if (putc_unlocked(c, fp) == EOF) return -2;
+   }
+   fflush(fp);
+
+   return numTotal;
+}
+
+/**
+ * @fp        file pointer
+ * @nxp       size of patch in x dimension
+ * @nyp       size of patch in y dimension
+ * @nfp       size of patch in f dimension
+ * @minVal    minimum of a patch value
+ * @maxVal    maximum of a patch value
+ * @p         the patch
+ * @buf       a temporary buffer for patch compressed char values
+ */
+int pv_read_patch(FILE * fp, int nxp, int nyp, int nfp,
+                  float minVal, float maxVal, PVPatch * p, unsigned char * buf)
+{
+   int i;
+   unsigned short nxny[2];
+
+   pvdata_t * data = p->data;
+
+   if ( fread(nxny, sizeof(unsigned short), 2, fp) != 2 ) return -1;
+
+   // read the patch values which are padded to full size
+   int nItems = nxp * nyp * nfp;
+   if ( fread(buf, sizeof(unsigned char), nItems, fp) != nItems ) return -2;
+
+   nItems = (int) nxny[0] * (int) nxny[1] * (int) nfp;
+
+   p->nx = (float) nxny[0];
+   p->ny = (float) nxny[1];
+   p->nf = nfp;
+
+   p->sf = 1;
+   p->sx = nfp;
+   p->sy = (float) ( (int) p->nf * (int) p->nx );
+
+   for (i = 0; i < nItems; i++) {
       // data are packed into chars
-      for (ii = 0; ii < bufSize; ii++) {
-         float val = 255.0 * (data[i++] - minVal) / (maxVal - minVal);
-         buf[ii] = (unsigned char) val;
-         if (i >= nItems) break;
-      }
-      if ( fwrite(buf, sizeof(unsigned char), bufSize, fp) != bufSize ) return -2;
+      float val = (float) buf[i];
+      data[i] = minVal + (maxVal - minVal) * (val / 255.0);
    }
 
    return nItems;
 }
 
-/**
- * @fp
- * @nf
- * @minVal
- * @maxVal
- * @p
- */
-int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
+#ifdef DONT_COMPILE
+int pv_read_patch_old(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
 {
    const int bufSize = 4;
    int i, ii, nItems;
@@ -640,6 +681,7 @@ int pv_read_patch(FILE * fp, float nf, float minVal, float maxVal, PVPatch * p)
 
    return nItems;
 }
+#endif
 
 /**
  * @filename
@@ -697,7 +739,7 @@ int pv_write_patches(const char * filename, int append,
 
    // numPatches - each neuron has a patch; these are neurons that live in the extended layer
    for (i = 0; i < numPatches; i++) {
-      int numItems = pv_write_patch(fp, minVal, newMaxVal, patches[i]);
+      int numItems = pv_write_patch(fp, nxp*nyp*nfp, minVal, newMaxVal, patches[i]);
       if (numItems < 0) {
          status = numItems;
          pv_log(stderr, "pv_write_patches: error writing patch %d\n", i);
@@ -717,19 +759,25 @@ int pv_write_patches(const char * filename, int append,
  * @patches
  * @numPatches
  */
-int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
+int pv_read_patches(FILE * fp, int nxp, int nyp, int nfp, float minVal, float maxVal,
                     int numPatches, PVPatch ** patches)
 {
    int i, status = 0;
 
+   const int total = nxp * nyp * nfp;
+
+   unsigned char * buf = (unsigned char *) malloc(total * sizeof(unsigned char));
+   assert(buf != NULL);
+
    for (i = 0; i < numPatches; i++) {
-      int numItems = pv_read_patch(fp, nf, minVal, maxVal, patches[i]);
+      int numItems = pv_read_patch(fp, nxp, nyp, nfp, minVal, maxVal, patches[i], buf);
       if (numItems < 0) {
          status = numItems;
          pv_log(stderr, "pv_read_patches: error reading patch %d\n", i);
          break;
       }
    }
+   free(buf);
 
    return status;
 }
@@ -741,8 +789,8 @@ int pv_read_patches(FILE * fp, int nf, float minVal, float maxVal,
  */
 int pv_read_binary_params(FILE * fp, int numParams, int params[])
 {
-   if (numParams > MAX_BIN_PARAMS) {
-      numParams = MAX_BIN_PARAMS;
+   if (numParams > NUM_BIN_PARAMS) {
+      numParams = NUM_BIN_PARAMS;
    }
    rewind(fp);
 

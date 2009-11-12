@@ -17,17 +17,26 @@
 #endif
 
 #define MIN_BIN_PARAMS  6
-#define MAX_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
+#define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
 
+#define NUM_WGT_EXTRA_PARAMS  6
+#define NUM_WGT_PARAMS (NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS)
+#define MAX_BIN_PARAMS NUM_WGT_PARAMS
+
+// deprecated, use writeWeights and NUM_WGT_PARAMS
 #define NUM_WEIGHT_PARAMS  (MIN_BIN_PARAMS + 3)
 
-#define NUM_PAR_BYTE_PARAMS (MAX_BIN_PARAMS)
+#define NUM_PAR_BYTE_PARAMS (NUM_BIN_PARAMS)
 
 #define PV_BYTE_TYPE       1
-#define PV_FLOAT_TYPE      2
+#define PV_INT_TYPE        2
+#define PV_FLOAT_TYPE      3
 
-#define PVP_FILE_TYPE        1
-#define PV_WEIGHTS_FILE_TYPE 2
+#define PVP_FILE_TYPE      1
+#define PVP_ACT_FILE_TYPE  2
+#define PVP_WGT_FILE_TYPE  3
+// deprecated
+#define PV_WEIGHTS_FILE_TYPE 3
 #define KERNEL_FILE_TYPE     6996
 
 #define INDEX_HEADER_SIZE  0
@@ -50,6 +59,15 @@
 #define INDEX_NBANDS      17
 #define INDEX_TIME        18
 
+// these are extra parameters used by weight files
+//
+#define INDEX_WGT_NXP        0
+#define INDEX_WGT_NYP        1
+#define INDEX_WGT_NFP        2
+#define INDEX_WGT_MIN        3
+#define INDEX_WGT_MAX        4
+#define INDEX_WGT_NUMPATCHES 5
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -71,10 +89,13 @@ int printStats(pvdata_t * buf, int nItems, char * msg);
 
 int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
 int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
+
+int pv_write_patch(FILE * fp, int numTotal, float minVal, float maxVal, PVPatch * p);
+
 int pv_write_patches(const char * filename, int append,
                      int nx, int ny, int nf, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches);
-int pv_read_patches(FILE *fp, int nf, float minVal, float maxVal,
+int pv_read_patches(FILE *fp, int nxp, int nyp, int nfp, float minVal, float maxVal,
                     int numPatches, PVPatch ** patches);
 
 FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf);
