@@ -67,7 +67,6 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 
    this->probes = NULL;
    this->ioAppend = 0;
-   this->outputOnPublish = 1;
    this->numProbes = 0;
 
    LayerLoc imageLoc = parent->getImageLoc();
@@ -165,6 +164,12 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
 
 int HyPerLayer::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
 {
+   char filename[PV_PATH_MAX];
+   bool append = false;
+
+   sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
+   clayer->activeFP = PV::pvp_open_write_file(filename, append);
+
    return pvlayer_initGlobal(clayer, colId, colRow, colCol, nRows, nCols);
 }
 
@@ -435,7 +440,6 @@ int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
 int HyPerLayer::publish(InterColComm* comm, float time)
 {
    comm->publish(this, clayer->activity);
-   if (outputOnPublish) outputState(time);
    return 0;
 }
 
@@ -456,9 +460,10 @@ int HyPerLayer::insertProbe(PVLayerProbe * p)
    return ++numProbes;
 }
 
-int HyPerLayer::outputState(float time)
+int HyPerLayer::outputState(float time, bool last)
 {
    char str[32];
+   int status = 0;
 
    const bool dumpNonSparse = false;
 
@@ -473,19 +478,18 @@ int HyPerLayer::outputState(float time)
       probes[i]->outputState(time, clayer);
    }
 
-   sprintf(str, "f%1.1d", clayer->layerId);
-   pv_dump_sparse(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
+   // always write activity in sparse format
+   status = writeActivitySparse(time);
 
    if (dumpNonSparse) {
       pv_dump(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
       sprintf(str, "V%1.1d", clayer->layerId);
       pv_dump(str, ioAppend, clayer->V, nx, ny, nf);
+      // append to dump file after original open
+      this->ioAppend = 1;
    }
 
-   // append to dump file after original open
-   this->ioAppend = 1;
-
-   return 0;
+   return status;
 }
 
 int HyPerLayer::readState(const char * name, float * time)
@@ -532,7 +536,7 @@ int HyPerLayer::readState(const char * name, float * time)
    return status;
 }
 
-int HyPerLayer::writeState(const char * name, float time)
+int HyPerLayer::writeState(const char * name, float time, bool last)
 {
    int status = 0;
    char path[PV_PATH_MAX];
@@ -542,7 +546,7 @@ int HyPerLayer::writeState(const char * name, float time)
 
    Communicator * comm = parent->icCommunicator();
 
-   const char * last     = (time == FINAL_TIME) ? "_last" : "";
+   const char * last_str = (last) ? "_last" : "";
    const char * name_str = (name_str != NULL  ) ?  name   : "";
 
    pvdata_t * G_E  = clayer->G_E;
@@ -555,23 +559,28 @@ int HyPerLayer::writeState(const char * name, float time)
 
    LayerLoc * loc = & clayer->loc;
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last);
+   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
+   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last);
+   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    extended = true;
-   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last);
+   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, A, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return 0;
+}
+
+int HyPerLayer::writeActivitySparse(float time)
+{
+   return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
 
 int HyPerLayer::writeActivity(const char * filename, float time)

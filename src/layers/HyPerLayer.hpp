@@ -65,9 +65,10 @@ public:
    virtual int setFuncs(void * initFunc, void * updateFunc);
 
    virtual int publish(InterColComm* comm, float time);
-   virtual int outputState(float time);
-   virtual int writeState(const char * name, float time);
+   virtual int outputState(float time, bool last=false);
+   virtual int writeState(const char * name, float time, bool last=false);
    virtual int writeActivity(const char * filename, float time);
+   virtual int writeActivitySparse(float time);
    virtual int readState(const char * name, float * time);
 
    virtual int insertProbe(PVLayerProbe * probe);
@@ -93,8 +94,6 @@ public:
    int  getLayerId()                 {return clayer->layerId;}
    void setLayerId(int id)           {clayer->layerId = id;}
 
-   void setOutputOnPublish(int flag) {outputOnPublish = flag;}
-
    PVLayer*  getCLayer()             {return clayer;}
 
    HyPerCol* getParent()             {return parent;}
@@ -108,7 +107,6 @@ protected:
    int numProbes;
    PVLayerProbe ** probes;
 
-   int outputOnPublish;
    int ioAppend;                // controls opening of binary files
 };
 
