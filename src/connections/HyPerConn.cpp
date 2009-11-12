@@ -8,6 +8,7 @@
 #include "HyPerConn.hpp"
 #include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
+#include "../io/fileio.hpp"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,8 +74,7 @@ int HyPerConn::initialize_base()
    this->post = NULL;
    this->numAxonalArborLists = 1;
    this->channel = CHANNEL_EXC;
-   this->stdpFlag = 0;
-   this->ioAppend = 0;
+   this->ioAppend = false;
 
    this->probes = NULL;
    this->numProbes = 0;
@@ -82,7 +82,7 @@ int HyPerConn::initialize_base()
    // STDP parameters for modifying weights
    this->pIncr = NULL;
    this->pDecr = NULL;
-   this->stdpFlag = 0;
+   this->stdpFlag = false;
    this->ampLTP = 1.0;
    this->ampLTD = 1.1;
    this->tauLTP = 20;
@@ -211,7 +211,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //override dWMax if user provides it
    dWMax = filep->value(name, "dWMax", dWMax);
 
-   stdpFlag = filep->value(name, "stdpFlag", stdpFlag);
+   stdpFlag = (bool) filep->value(name, "stdpFlag", stdpFlag);
 
    return 0;
 }
@@ -228,7 +228,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    if (inputParams->present(getName(), "initFromLastFlag")) {
       if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
          char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.bin", OUTPUT_PATH, getConnectionId());
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", OUTPUT_PATH, getConnectionId());
          return readWeights(patches, numPatches, name);
          //return normalizeWeights(patches, numPatches);
       }
@@ -327,45 +327,14 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    return patches;
 }
 
-#ifdef DELETE_ME
-// Craig's version.  not used. assumes weights read into wPatches
-int HyPerConn::readWeights(const char * filename)
-{
-   FILE * fp;
-   int numParams, fileType, nxIn, nyIn, nfIn;
-   int params[MAX_BIN_PARAMS];
-   int status = 0;
-
-   fp = pv_open_binary(filename, &numParams, &fileType, &nxIn, &nyIn, &nfIn);
-
-   if (fp == NULL) {
-      return -1;
-   }
-
-   assert(nxIn == nxp);
-   assert(nyIn == nyp);
-   assert(nfIn == nfp);
-
-   pv_read_binary_params(fp, numParams, params);
-   int wMaxIn = params[numParams-2];
-   int numPatchesIn = params[numParams-1];
-
-   int arbor = 0;
-   int numPatches = this->numWeightPatches(arbor);
-   assert(numPatches == numPatchesIn);
-   this->wMax = wMaxIn;
-
-   status = pv_read_patches(fp, nfp, 0.0, wMax, numPatches, wPatches[arbor]);
-   assert(status == 0);
-
-   status = pv_close_binary(fp);
-
-   return status;
-}
-#endif
-
 PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
+   double time;
+   int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
+                                &time, &pre->clayer->loc, true);
+   assert(status == 0);
+
+#ifdef DONT_COMPILE
    FILE * fp;
    int numParamsFile;
    int fileType, nxpFile, nypFile, nfpFile;
@@ -419,44 +388,50 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
 
    status = pv_read_patches(fp, nfp, minVal, maxVal, numPatchesFile, patches);
    pv_close_binary(fp);
+#endif
 
    return patches;
 }
 
-int HyPerConn::writeWeights(float time)
+int HyPerConn::writeWeights(float time, bool last)
 {
-   return writeWeights(NULL, time);
-}
-
-int HyPerConn::writeWeights(const char * filename, float time)
-{
-   int arbor = 0;
-   int numPatches = numWeightPatches(arbor);
-   return writeWeights(wPatches[arbor], numPatches, NULL, time);
+   const int arbor = 0;
+   const int numPatches = numWeightPatches(arbor);
+   return writeWeights(wPatches[arbor], numPatches, NULL, time, last);
 }
 
 int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
-      const char * filename, float time)
+                            const char * filename, float time, bool last)
 {
+   int status = 0;
+   char path[PV_PATH_MAX];
+
+   const float minVal = minWeight();
+   const float maxVal = maxWeight();
+
+   const LayerLoc * loc = &pre->clayer->loc;
+
    if (patches == NULL) return 0;
 
-   int status = 0;
-   char name[PV_PATH_MAX];
-
    if (filename == NULL) {
-      if (time == FINAL_TIME) {
-         snprintf(name, PV_PATH_MAX-1, "w%d_last", getConnectionId());
+      if (last) {
+         snprintf(path, PV_PATH_MAX-1, "%sw%d_last.pvp", OUTPUT_PATH, getConnectionId());
       }
       else {
-         snprintf(name, PV_PATH_MAX-1, "w%d", getConnectionId());
+         snprintf(path, PV_PATH_MAX-1, "%sw%d.pvp", OUTPUT_PATH, getConnectionId());
       }
    }
    else {
-      snprintf(name, PV_PATH_MAX-1, "%s", filename);
+      snprintf(path, PV_PATH_MAX-1, "%s", filename);
    }
 
-   status = pv_write_patches(name, false, (int) nxp, (int) nyp, (int) nfp, minWeight(),
-         maxWeight(), numPatches, patches);
+   Communicator * comm = parent->icCommunicator();
+
+   bool append = (last) ? false : ioAppend;
+
+   status = PV::writeWeights(path, comm, (double) time, append,
+                             loc, nxp, nyp, nfp, minVal, maxVal,
+                             patches, numPatches);
    assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
@@ -473,10 +448,6 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
    int arbor = 0;
    pv_tiff_write_patch(fd, patches);
    fclose(fd);
-
-   // circular
-//   sprintf(outfile, "w%d.txt", getConnectionId());
-//   err = writeWeights(outfile, 0);
 #endif
 
    return status;
@@ -554,7 +525,7 @@ int HyPerConn::insertProbe(ConnectionProbe * p)
    return ++numProbes;
 }
 
-int HyPerConn::outputState(float time)
+int HyPerConn::outputState(float time, bool last)
 {
    int status = 0;
 
@@ -562,32 +533,29 @@ int HyPerConn::outputState(float time)
       probes[i]->outputState(time, this);
    }
 
-   if (time == FINAL_TIME) {
-      status = writeWeights(time);
+   if (last) {
+      status = writeWeights(time, last);
       assert(status == 0);
-      // make sure post-synaptic weights get written at least once
-      // this needs to be improved (with last in filename)
+
       if (stdpFlag) {
          convertPreSynapticWeights(time);
-         int append = 0;  // start new file (a hack)
-         status = writePostSynapticWeights(append);
+         status = writePostSynapticWeights(time, last);
          assert(status == 0);
       }
    }
-   else if (stdpFlag && time >= writeTime)
-   {
+   else if (stdpFlag && time >= writeTime) {
       writeTime += writeStep;
 
-      status = writeWeights(time);
+      status = writeWeights(time, last);
       assert(status == 0);
 
       convertPreSynapticWeights(time);
-      status = writePostSynapticWeights(ioAppend);
+      status = writePostSynapticWeights(time, last);
       assert(status == 0);
-   }
 
-   // append to output file after original open
-   ioAppend = 1;
+      // append to output file after original open
+      ioAppend = true;
+   }
 
    return status;
 }
@@ -1300,13 +1268,15 @@ void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * k
    *kyPre = kyPreHead;
 }
 
-int HyPerConn::writePostSynapticWeights(int ioAppend)
+int HyPerConn::writePostSynapticWeights(float time, bool last)
 {
-   char poststr[PV_PATH_MAX];
-
    int status = 0;
+   char path[PV_PATH_MAX];
 
-   const int numPost = post->clayer->numNeurons;
+   const float minVal = minWeight();
+   const float maxVal = maxWeight();
+
+   const int numPostPatches = post->clayer->numNeurons;
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
    const int yScale = post->clayer->yScale - pre->clayer->yScale;
@@ -1317,13 +1287,18 @@ int HyPerConn::writePostSynapticWeights(int ioAppend)
    const int nyPostPatch = nyp * powYScale;
    const int nfPostPatch = pre->clayer->numFeatures;
 
-   // the number of features is the end-point value (normally post-synaptic)
-   //   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
+   const char * last_str = (last) ? "_last" : "";
+   snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", OUTPUT_PATH, getConnectionId(), last_str);
 
-   snprintf(poststr, PV_PATH_MAX-1, "w%d_post", getConnectionId());
+   const LayerLoc * loc  = &post->clayer->loc;
+   Communicator   * comm = parent->icCommunicator();
 
-   status = pv_write_patches(poststr, ioAppend, nxPostPatch, nyPostPatch, nfPostPatch,
-                             0.0, wMax, numPost, wPostPatches);
+   bool append = (last) ? false : ioAppend;
+
+   status = PV::writeWeights(path, comm, (double) time, append,
+                             loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
+                             wPostPatches, numPostPatches);
+   assert(status == 0);
 
    return 0;
 }

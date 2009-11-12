@@ -32,7 +32,6 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize(name, hc, pre, post, channel, NULL); // use default channel
 }
 
-
 // provide filename or set to NULL
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, int channel, const char * filename)
@@ -40,8 +39,6 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
 }
-
-
 
 int KernelConn::initialize_base(){
    kernelPatches = NULL;
@@ -117,23 +114,22 @@ int KernelConn::numDataPatches(int arbor)
    return numKernelPatches;
 }
 
-
 // k is ignored, writes all weights
-int KernelConn::writeWeights(const char * filename, float time)
+int KernelConn::writeWeights(float time, bool last)
 {
+   const int arbor = 0;
+   const int numPatches = numDataPatches(arbor);
+   return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
+
+#ifdef GARS_ORIGINAL_CODE
    int status = 0;
    char name[PV_PATH_MAX];
 
-   if (filename == NULL) {
-      if (time == FINAL_TIME) {
-         snprintf(name, PV_PATH_MAX-1, "w%d_last", getConnectionId());
-      }
-      else {
-         snprintf(name, PV_PATH_MAX-1, "w%d", getConnectionId());
-      }
+   if (last) {
+      snprintf(name, PV_PATH_MAX-1, "w%d_last", getConnectionId());
    }
    else {
-      snprintf(name, PV_PATH_MAX-1, "%s", filename);
+      snprintf(name, PV_PATH_MAX-1, "w%d", getConnectionId());
    }
 
    const int arbor = 0;
@@ -144,7 +140,7 @@ int KernelConn::writeWeights(const char * filename, float time)
    assert(status == 0);
 
    return status;
-
+#endif
 }
 
 } // namespace PV

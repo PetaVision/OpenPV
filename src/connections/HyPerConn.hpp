@@ -53,19 +53,18 @@ public:
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
 
    virtual int insertProbe(ConnectionProbe * p);
-   virtual int outputState(float time);
+   virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(PVLayerCube * preActivity, int arbor);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
    virtual int numWeightPatches(int arbor);
    virtual int numDataPatches(int arbor);
-   virtual int writeWeights(float time);
-   virtual int writeWeights(const char * filename, float time);
+   virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(PVPatch ** patches, int numPatches,
-                            const char * filename, float time);
+                            const char * filename, float time, bool last);
    virtual int writeTextWeights(const char * filename, int k);
-   virtual int writePostSynapticWeights(int ioAppend);
+   virtual int writePostSynapticWeights(float time, bool last=false);
 
    int readWeights(const char * filename);
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
@@ -139,8 +138,8 @@ protected:
    int numProbes;
    ConnectionProbe ** probes; // probes used to output data
 
-   int stdpFlag;                // presence of spike timing dependent plasticity
-   int ioAppend;                // controls opening of binary files
+   bool stdpFlag;               // presence of spike timing dependent plasticity
+   bool ioAppend;               // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
    float writeTime;             // time of next output
    float writeStep;             // output time interval

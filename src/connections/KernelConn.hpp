@@ -27,7 +27,7 @@ public:
    virtual int numDataPatches(int arbor);
 
 protected:
-   PVPatch      ** kernelPatches;   // list of weight patches
+   PVPatch ** kernelPatches;   // list of weight patches
    virtual int deleteWeights();
    virtual int initialize_base();
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
@@ -36,7 +36,7 @@ protected:
          int nyPatch, int nfPatch);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
-   virtual int writeWeights(const char * filename, float time);
+   virtual int writeWeights(float time, bool last=false);
 
 };
 
