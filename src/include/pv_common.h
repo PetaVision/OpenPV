@@ -18,9 +18,6 @@
 #define LIF_STATS 1
 #define DEBUG 0
 
-// time value for saving final output
-#define FINAL_TIME (-1)
-
 // pad layer activity with border
 #define EXTEND_BORDER_INDEX
 
@@ -65,6 +62,9 @@
 #define MAX_LAYERS      10
 #define MAX_CONNECTIONS 20
 #define MAX_F_DELAY     21 // can have 0:MAX_F_DELAY-1 buffers of delay
+
+// estimate of maximum activity in a local layer
+#define EST_MAX_ACTIVITY 256
 
 // TODO: As soon as the interfaces stabilize, use the type-checked/safer prototypes
 //#define UPDATE_FN int (*)( int numNeurons, float *V, float *phi, float *f, void *params)
