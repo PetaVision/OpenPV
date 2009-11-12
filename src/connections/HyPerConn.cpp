@@ -100,7 +100,16 @@ int HyPerConn::initialize_base()
 
    return 0;
 }
-
+//!
+/*!
+ * REMARKS:
+ *      - Each neuron in the pre-synaptic layer can project "up"
+ *      a number of arbors. Each arbor connects to a patch in the post-synaptic
+ *      layer.
+ *      - writeTime and writeStep are used to write post-synaptic pataches.These
+ *      patches are written every writeStep.
+ *      .
+ */
 int HyPerConn::initialize(const char * filename)
 {
    int status = 0;
