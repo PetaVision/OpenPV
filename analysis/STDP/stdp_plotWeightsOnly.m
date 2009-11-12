@@ -15,12 +15,12 @@ yScale = 2;
 NX = NX * xScale;
 NY = NY * yScale;
 
-PLOT_STEP = 1;
+PLOT_STEP = 5;
 plotTarget = 0;
 
 figure('Name','Weights Fields');
 
-debug = 1;
+debug = 0;
 bufSize = 4; % see pv_write_patch() in io.c
 nPad = 2;    % size of the layer padding
 nf = 1;      % number of features
@@ -32,14 +32,14 @@ if exist(filename,'file')
     fid = fopen(filename, 'r', 'native');
     %     header
     %     params[0] = header_size
-    %     params[0] = nParams;
-    %     params[0] = file_type
-    %     params[1] = nxp;
-    %     params[2] = nyp;
-    %     params[3] = nfp;
-    %     params[4] = (int) minVal;        // stdp value
-    %     params[5] = (int) ceilf(maxVal); // stdp value
-    %     params[6] = numPatches;
+    %     params[1] = nParams;
+    %     params[2] = file_type
+    %     params[3] = nxp;
+    %     params[4] = nyp;
+    %     params[5] = nfp;
+    %     params[6] = (int) minVal;        // stdp value
+    %     params[7] = (int) ceilf(maxVal); // stdp value
+    %     params[8] = numPatches;
     %
     header_size = fread(fid, 1, 'int');
     num_params  = fread(fid, 1, 'int');
@@ -135,40 +135,42 @@ if exist(filename,'file')
         
         for j=1:NY
             for i=1:NX
-                k=k+1;
-                nx = fread(fid, 1, 'uint16'); % unsigned short
-                ny = fread(fid, 1, 'uint16'); % unsigned short
-                nItems = nx*ny*nf;
-                if mod(nItems,bufSize)
-                    nRead = (floor(nItems/bufSize) + 1)*bufSize;
-                else
-                    nRead = floor(nItems/bufSize) * bufSize;
-                end
-                if debug
-                    fprintf('nx = %d ny = %d nItems = %d nRead = %d: ',...
-                        nx,ny,nItems,nRead);
-                end
-                if nRead~= 0
-                    w = fread(fid, nRead, 'uchar'); % unsigned char
-                    % scale weights: they are quantized before are written
-                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
-                end
-                if debug
-                    for r=1:patch_size
-                        fprintf('%f ',w(r));
+                if ~feof(fid)
+                    k=k+1;
+                    nx = fread(fid, 1, 'uint16'); % unsigned short
+                    ny = fread(fid, 1, 'uint16'); % unsigned short
+                    nItems = nx*ny*nf;
+                    if mod(nItems,bufSize)
+                        nRead = (floor(nItems/bufSize) + 1)*bufSize;
+                    else
+                        nRead = floor(nItems/bufSize) * bufSize;
                     end
-                    fprintf('\n');
-                    %pause
-                end
-                if(~isempty(w) & nRead ~= 0)
-                    W_array(k,:) = w(1:patch_size);
-                    %pause
-                end
+                    if debug & n_time_steps >= 0
+                        fprintf('k = %d nx = %d ny = %d nItems = %d nRead = %d: ',...
+                            k,nx,ny,nItems,nRead);
+                    end
+                    if nRead~= 0
+                        w = fread(fid, nRead, 'uchar'); % unsigned char
+                        % scale weights: they are quantized before written
+                        w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                    end
+                    if debug & n_time_steps >= 0
+                        for r=1:patch_size
+                            fprintf('%f ',w(r));
+                        end
+                        fprintf('\n');
+                        pause
+                    end
+                    if(~isempty(w) & nRead ~= 0)
+                        W_array(k,:) = w(1:patch_size);
+                        %pause
+                    end
+                end % if ~ feof 
             end
-        end
+        end % loop over post-synaptic neurons
         if ~feof(fid)
             n_time_steps = n_time_steps + 1;
-            fprintf('time = %d\n',n_time_steps);
+            fprintf('k = %d time = %d\n',k,n_time_steps);
         end
         
         
@@ -182,10 +184,11 @@ if exist(filename,'file')
             k=0;
             for j=(NYP/2):NYP:(NY*NYP)
                 for i=(NXP/2):NXP:(NX*NXP)
-                    
                     k=k+1;
+                    %W_array(k,:)
                     patch = reshape(W_array(k,:),[NXPold NYPold]);
-                    PATCH(a1+1-a:a1+a,b1+1-b:b1+b) = patch;
+                    PATCH(b1+1-b:b1+b,a1+1-a:a1+a) = patch';
+                    %patch'
                     %pause
                     A(j-b1+1:j+b1,i-a1+1:i+a1) = PATCH;
                     %imagesc(A,'CDataMapping','direct');
@@ -197,6 +200,12 @@ if exist(filename,'file')
                 Ainit = A;
                 Aold = A;
                 avWeights = A;
+                fprintf('time = %d\n',n_time_steps);
+                imagesc(A,'CDataMapping','direct');
+                colorbar
+                axis square
+                axis off
+                hold on
             else
                 %imagesc(a_color*A+b_color);
                 %imagesc(A-Ainit,'CDataMapping','direct');
@@ -222,7 +231,7 @@ if exist(filename,'file')
                 avWeights = avWeights + A;
             end
         end
-        pause
+        %pause
     end % reading from weights file
     fclose(fid);
     fprintf('feof reached: n_time_steps = %d\n',n_time_steps);

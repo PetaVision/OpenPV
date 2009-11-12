@@ -12,7 +12,7 @@ global patch_size write_step
 input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 
 num_layers = 1;
-n_time_steps = 10000; % the argument of -n; even when dt = 0.5 
+n_time_steps = 1000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
 write_step = 100; % set in writePostPatch() in HyPerConn.cpp
 
