@@ -216,6 +216,7 @@ int HyPerCol::run(int nTimeSteps)
 
       for (int l = 0; l < numLayers; l++) {
          layers[l]->updateState(time, deltaTime);
+         layers[l]->outputState(time+deltaTime);
          icComm->increaseTimeLevel(layers[l]->getLayerId());
          layers[l]->publish(icComm, time);
       }
@@ -223,7 +224,7 @@ int HyPerCol::run(int nTimeSteps)
       // layer activity has been calculated, inform connections
       for (int c = 0; c < numConnections; c++) {
          connections[c]->updateState(time, deltaTime);
-         connections[c]->outputState(time);
+         connections[c]->outputState(time+deltaTime);
       }
 
       time += deltaTime;
@@ -235,15 +236,16 @@ int HyPerCol::run(int nTimeSteps)
    }
 #endif
 
-   //
    // output final state of layers and connections
+   //
+   bool last = true;
 
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(layers[l]->getName(), FINAL_TIME);
+      layers[l]->writeState(layers[l]->getName(), time, last);
    }
 
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(FINAL_TIME);
+      connections[c]->outputState(time, last);
    }
 
 #ifdef TIMER_ON
