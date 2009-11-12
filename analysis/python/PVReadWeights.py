@@ -30,18 +30,12 @@ class PVReadWeights(object):
    
    def next_patch(self):
       """Read the next patch and return an ndarray"""
-      
-      nx,ny = fromfile(self.file, int16(), 2)
-      count = nx*ny
-      bytes = fromfile(self.file, uint8(), count)
 
-      n_extra = count%4
-      extras = fromfile(self.file, uint8(), n_extra)
+      bytes = self.next_patch_bytes()
 
-      w = zeros(count, dtype=float) + bytes/255.
+      w = zeros(len(bytes), dtype=float) + bytes/255.
       w = self.min + (self.max - self.min) * w      
 
-      self.patch += 1
       return w
    # end next
 
@@ -50,36 +44,49 @@ class PVReadWeights(object):
       
       nx,ny = fromfile(self.file, int16(), 2)
       count = nx*ny
-      bytes = fromfile(self.file, uint8(), count)
+      total = self.nxp * self.nyp * self.nfp
 
-      n_extra = (4 - count%4) % 4
-      extras = fromfile(self.file, uint8(), n_extra)
+      bytes = fromfile(self.file, uint8(), total)
 
       self.patch += 1
-      return bytes
+      return bytes[0:count]
    # end next
 
    def read_params(self):
       """Read the file metadata parameters"""
 
       head = fromfile(self.file, 'i', 3)
-      if head[2] != 2:
+      if head[2] != 3:
          print "Incorrect file type"
          return
 
+      numWgtParams = 6
+
       self.headerSize = head[0]
-      self.numParams  = head[1]
+      self.numParams  = head[1] - 8  # 6 + two for time (a double)
 
       self.file.seek(0)
       self.params = fromfile(self.file, 'i', self.numParams)
 
       self.nx,self.ny,self.nf = self.params[3:6]
+      self.nxprocs,self.nyprocs = self.params[6:8]
+      self.numRecords = self.params[8]
+      self.recSize = self.params[9]
+      self.elemSize = self.params[10]
+      self.dataType = self.params[11]
+      self.nxBlocks,self.nyBlocks = self.params[12:14]
+      self.nxGlobal,self.nyGlobal = self.params[14:16]
+      self.kx0,self.ky0 = self.params[14:16]
+      self.nPad = self.params[16]
+      self.nf = self.params[17]
 
-      self.min = self.params[6]
-      self.max = self.params[7]
-      self.numPatches = self.params[8]
+      self.time = fromfile(self.file, 'd', 1)
 
-      self.numItems = multiply.reduce(self.params[3:6])
+      self.wgtParams = fromfile(self.file, 'i', numWgtParams)
+
+      self.nxp,self.nyp,self.nfp = self.wgtParams[0:3]
+      self.min,self.max = self.wgtParams[3:5]
+      self.numPatches = self.wgtParams[5]
    # end read_params
 
    def rewind(self):
