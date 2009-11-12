@@ -30,7 +30,6 @@ int pvlayer_init(PVLayer * l, int xScale, int yScale,
                  int nx, int ny, int numFeatures, int nBorder)
 {
    l->layerId = -1; // the hypercolumn will set this
-   l->numActive = 0;
    l->numFeatures = numFeatures;
    l->numDelayLevels = MAX_F_DELAY;
 
@@ -72,10 +71,10 @@ int pvlayer_init(PVLayer * l, int xScale, int yScale,
 
    l->activity = NULL;
 
-   // TODO - actually use active indices
-   // l->activeIndices = (int *) calloc(l->numNeurons, sizeof(int));
-   // assert(l->activeIndices != NULL);
-   l->activeIndices = NULL;
+   l->numActive = 0;
+   l->activeFP  = NULL;
+   l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
+   assert(l->activeIndices != NULL);
 
    l->numPhis = NUM_CHANNELS;
 
@@ -166,6 +165,8 @@ int pvlayer_finalize(PVLayer * l)
    free(l->phi);
 
    pvcube_delete(l->activity);
+
+   if (l->activeFP != NULL) fclose(l->activeFP);
 
    free(l->prevActivity);
    free(l->activeIndices);

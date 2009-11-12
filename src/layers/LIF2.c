@@ -50,14 +50,22 @@ static inline int update_f(PVLayer *l, int start)
    const float nf = l->numFeatures;
    const float marginWidth = l->loc.nPad;
 
+   int numActive = 0;
    for (k = start; k < (l->numNeurons + start); k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-      activity[kex] = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
+      int active = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
+      activity[kex] = active;
       V[k]   -= activity[kex] * (V[k] - Vrest);  // reset cells that fired
       G_E[k] -= activity[kex] * G_E[k];
       G_I[k] += activity[kex] * 1.0;      // add hyperpolarizing current
       Vth[k] += activity[kex] * deltaVth; // reset cells that fired
+
+      if (active) {
+         // these indices are in local frame
+         l->activeIndices[numActive++] = k;
+      }
    }
+   l->numActive = numActive;
 
    return 0;
 }
@@ -335,9 +343,6 @@ int LIF2_init(PVLayer * l)
 
       // TODO - Initialize activity buffers with random noise
       // TODO - use a parameter for RAND threshold
-
-      // TODO - actually use active indices
-      // l->activeIndices[0] = 0;
 
       if (params->noiseAmpE > 0) {
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
