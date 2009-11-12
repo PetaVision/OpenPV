@@ -7,14 +7,18 @@ global N NK NO NX NY n_time_steps begin_step
 global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_path input_path
 
-input_dir = '/Users/arick/Documents/workspace/gar/output/';
-%input_dir = '/nh/home/rasmussn/eclipse/workspace.petavision/pv/';
+input_dir = '/Users/gkenyon/Documents/eclipse-workspace/gar/output/';
 
-num_layers = 3;
-n_time_steps = 4000;
+num_layers = 2;
+n_time_steps = 1000;
+marginWidth = 4;
+patch_size = 7*7;  % nxp * nyp
+write_step = 1000; % set in writePostPatch() in HyPerConn.cpp
+
 
 spike_array = cell(num_layers,1);
 spike_array_bkgrnd = spike_array;
+
 begin_step = 1;
 stim_begin = 1;%
 stim_end = 1000;
@@ -22,7 +26,7 @@ stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
 stim_steps = stim_begin : stim_end;
-bin_size = 4;
+bin_size = 10;
 num_target=1;
 i_target = 1;
 ave_target = cell(num_layers,num_target);
@@ -97,6 +101,7 @@ for layer = 1:num_layers;
     stim_bin_begin = fix( ( stim_begin - begin_step + 1 ) / bin_size );
     stim_bin_end = fix( ( stim_end - begin_step + 1 ) / bin_size );
     stim_bins = stim_bin_begin : stim_bin_end;
+    
 
     
     %parse the object identification files
@@ -194,7 +199,7 @@ for layer = 1:num_layers;
 
 
     if tot_steps > min(stim_steps)
-    rate_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),1) );
+        rate_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),1) );
     end
     
     % plot reconstructed image
@@ -208,7 +213,6 @@ for layer = 1:num_layers;
     plot_membrane_potential = tot_steps > 9;
     %read membrane potentials
     if plot_membrane_potential
-        vmem_array = pv_readV(v_file, target_ndx{layer, i_target});
         num_max = 1;
         if ~isempty(spike_array{layer})
             plot_title = ['Membrane potential for layer = ',int2str(layer)];
@@ -219,9 +223,10 @@ for layer = 1:num_layers;
                 [sorted_rate, sorted_ndx] = sort(rate_array2, 2, 'descend');
                 spike_array2 = spike_array{layer}( :, target_ndx{layer, i_target} );
                 vmem_rate = zeros(num_max,1);
+                vmem_array = pv_readV(v_file, sorted_ndx(i_max));
                 for i_max = 1:num_max
                     vmem_color = color_order(i_max,:);
-                    lh = plot(vmem_array(:,sorted_ndx(i_max)), '-k');
+                    lh = plot(vmem_array(:,i_max), '-k');
                     set(lh, 'Color', vmem_color);
                     set(lh, 'LineWidth', 2.0);
                     hold on;

@@ -29,11 +29,11 @@ function [ffile, vfile] = pv_globals(layer)
 	elseif (layer == 2 ) %V1
 		ffile = 'f1_sparse.bin';
 		vfile = 'V1.bin';
-        NO = 2;
+        NO = 12;
 	elseif (layer == 3) %V1 Inhib
 		ffile = 'f2_sparse.bin';
 		vfile = 'V2.bin';
-        NO = 2;
+        NO = 12;
 	end
 	
 end
