@@ -12,9 +12,9 @@ global patch_size write_step
 input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 
 num_layers = 1;
-n_time_steps = 1000; % the argument of -n; even when dt = 0.5 
+n_time_steps = 1000000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
-write_step = 100; % set in writePostPatch() in HyPerConn.cpp
+write_step = 1000; % set in writePostPatch() in HyPerConn.cpp
 
 
 begin_step = 1;  % where we start the analysis
@@ -61,10 +61,10 @@ if parse_tiff
 end
 
 
-for layer = 1:num_layers;
+for layer = 1:num_layers; % skip retina, otherwise start from 0
 
     % Read parameters from file which pv created: LAYER
-    [f_file, v_file, w_file] = stdp_globals( layer );
+    [f_file, v_file, w_file, xScale, yScale] = stdp_globals( layer );
 
     % Read spike events
     
@@ -232,7 +232,7 @@ for layer = 1:num_layers;
         if isempty(Xtarg) 
             disp('No target image: random retina noise only');
         end
-        stdp_plotWeightsOnly(w_file,Xtarg,Ytarg);
+        stdp_plotWeightsOnly(w_file,xScale,yScale,Xtarg,Ytarg);
         
         % this is 
         %pv_reconstruct( vmem_array(:), ['Weights for layer = ', int2str(layer)] );
