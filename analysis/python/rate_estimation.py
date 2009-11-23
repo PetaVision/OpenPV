@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # script to estimate the firing rate in L1 versus the background rate in retina
-#
+# copy this script to the location of your sandbox (STDP, marian, etc)
 
 import os
 import re     # regular expression module
@@ -46,11 +46,14 @@ def modify_input(p):
 
 def compute_rate(p,timeSteps, rateSteps):
 
-    infile = path + 'output/' + 'f1_sparse.bin'
+    infile = path + 'output/' + 'a1.pvp'
     output = open(path + 'output/rate.stdp','a')
 
-    s = rs.PVReadSparse(infile,timeSteps,rateSteps);
-    rate = s.average_rate()
+    beginTime = float(timeSteps)-float(rateSteps))*float(dT)
+    endTime = float(timeSteps)*float(dT),float(dT) )
+
+    s = rs.PVReadSparse(infile);
+    rate = s.average_rate(beginTime,endTime,float(dT))
 
     output.write(str(p) + ' ' + str(rate) + '\n')
     output.close()
@@ -87,17 +90,18 @@ background noise.
 
 p = 10                      # starting background retina noise (Hz)
 timeSteps = sys.argv[1]     # length of simulation (timeSteps)
-rateSteps = sys.argv[2]    # asymptotic time steps used to compute rate
-print '\ntimeSteps = %s rateSteps = %s\n' % (timeSteps,rateSteps)
+rateSteps = sys.argv[2]     # asymptotic time steps used to compute rate
+dT        = sys.argv[3]     # simulation time step interval
+print '\ntimeSteps = %s rateSteps = %s dT = %s \n' % (timeSteps,rateSteps,dT)
 
 while p <= 100:
-    #print 'run model for noiseOffFreq = %f' % p
+    print 'run model for noiseOffFreq = %f' % p
     modify_input(p)
-    #time.sleep(10)
+    time.sleep(10)
     cmd = path + '/Debug/stdp -n ' + timeSteps + ' -p ' + path + '/input/params.stdp'
     #print cmd
     os.system(cmd)
-    rate = compute_rate(p,int(timeSteps),int(rateSteps))
+    rate = compute_rate(p, timeSteps, rateSteps )
     print ' p = %f rate = %f \n' % (p,rate) 
     
     # compute histogram
@@ -105,12 +109,6 @@ while p <= 100:
 
     # remove files
     cmd = 'rm ' + path + '/output/images/*'
-    os.system(cmd)
-
-    cmd = 'mv ' + path + '/output/w0_post.bin ' +  path + '/output/w0_post_' + str(p) + '.dat'
-    os.system(cmd)
-
-    cmd = 'rm ' + path + '/output/*.bin'
     os.system(cmd)
 
     cmd = 'rm ' + path + '/output/*.pvp'
