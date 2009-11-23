@@ -14,7 +14,7 @@ input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 num_layers = 1;
 n_time_steps = 1000000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
-write_step = 1000; % set in writePostPatch() in HyPerConn.cpp
+write_step = 1000; % set in params.stdp
 
 
 begin_step = 1;  % where we start the analysis
@@ -43,7 +43,7 @@ plot_spike_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
 plot_weights_field = 1;
-plot_weights_histogram = 0;
+plot_weights_histogram = 1;
 plot_patch = 0;
 
 if read_spikes
@@ -232,7 +232,7 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
         if isempty(Xtarg) 
             disp('No target image: random retina noise only');
         end
-        stdp_plotWeightsOnly(w_file,xScale,yScale,Xtarg,Ytarg);
+        stdp_plotWeightsField(w_file,xScale,yScale,Xtarg,Ytarg);
         
         % this is 
         %pv_reconstruct( vmem_array(:), ['Weights for layer = ', int2str(layer)] );
@@ -242,9 +242,8 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
     
     if plot_weights_histogram == 1
         disp('plot weights histogram')
-        nbins = 200;
-        TSTEP = 10;
-        W = stdp_plotWeightsHistogramOnly(w_file,nbins,TSTEP);% W is t
+        TSTEP = 1;
+        W = stdp_plotWeightsHistogramOnly(w_file,xScale,yScale,TSTEP);% W is t
         %pause
     end
     

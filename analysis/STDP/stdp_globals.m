@@ -23,7 +23,7 @@ function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
     %fifile = 'nofile';
     %vifile = 'nofile';
     if (layer == 0) %retina
-        ffile = 'f0_sparse.pvp';
+        ffile = 'a0.pvp';
         vfile = 'V0.pvp';
         %wfile = 'w0_Post.pvp';
         wfile='';
@@ -31,35 +31,35 @@ function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
         yScale = 1;
         NO = 1;
     elseif (layer == 1 ) %V1
-        ffile = 'f1_sparse.pvp';
+        ffile = 'a1.pvp';
         vfile = 'V1.pvp';
         wfile = 'w0_post.pvp';  % this is connection 0 from layer 0 to layer 1
         xScale = 2;
         yScale = 2;
         NO = 1;
     elseif (layer == 2) %V2
-        ffile = 'f2_sparse.pvp';
+        ffile = 'a2.pvp';
         vfile = 'V2.pvp';
         wfile = 'w1_post.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
     elseif (layer == 3) %V2
-        ffile = 'f3_sparse.pvp';
+        ffile = 'a3.pvp';
         vfile = 'V3.pvp';
         wfile = 'w2_post.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
     elseif (layer == 4) %V2
-        ffile = 'f4_sparse.pvp';
+        ffile = 'a4.pvp';
         vfile = 'V4.pvp';
         wfile = 'w3_post.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
     elseif (layer == 5) %V2
-        ffile = 'f5_sparse.pvp';
+        ffile = 'a5.pvp';
         vfile = 'V5.pvp';
         wfile = 'w4_post.pvp';
         xScale = 1;

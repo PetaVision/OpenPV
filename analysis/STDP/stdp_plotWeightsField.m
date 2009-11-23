@@ -1,4 +1,4 @@
-function A = stdp_plotWeightsOnly(fname, xScale, yScale,Xtarg, Ytarg)
+function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
 % plot "weights" (typically after turning on just one neuron)
 % Xtarg and Ytarg contain the X and Y coordinates of the target
 % xScale and yScale are scale factors for this layer
@@ -16,14 +16,14 @@ NY = 32;
 NX = NX * xScale; % L1 size
 NY = NY * yScale;
 
-PLOT_STEP = 5;
+PLOT_STEP = 1;
 plotTarget = 0;
 
 figure('Name','Weights Fields');
 
 debug = 0;
 weightsChange = 0;
-
+numRecords = 0;  % numver of weights records (configurations)
 
 if exist(filename,'file')
     
@@ -50,13 +50,13 @@ if exist(filename,'file')
                  % of the color map
     a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal;
 
-    numRecords = 0;   % number of weights records (configs)
     
     if weightsChange
        PATCH = zeros(NXPbor,NYPbor);
                       % PATCH contains borders
     else
-        PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
+        %PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
+        PATCH = ones(NXPbor,NYPbor) * 122;
     end
                       
     avWeights = [];  % time averaged weights array
@@ -69,17 +69,9 @@ if exist(filename,'file')
         W_array = []; % reset every time step: this is N x patch_size array
                       % where N =NX * NY
                       
-        if numRecords > 0
-          [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
-              readHeader(fid,numParams,numWgtParams);
-          if time >= 0
-             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
-                time,numPatches,NXP,NYP,NFP);
-          else
-              disp('eof found')
-              break
-          end
-        end
+        % read time
+        time = fread(fid,1,'float64');
+        %fprintf('time = %f\n',time); 
         
         k=0;
         
@@ -116,6 +108,7 @@ if exist(filename,'file')
             numRecords = numRecords + 1;
             fprintf('k = %d numRecords = %d time = %f\n',...
                 k,numRecords,time);
+            pause
         end
         
         % make the matrix of patches and plot patches for this time step
@@ -144,7 +137,7 @@ if exist(filename,'file')
                 Ainit = A;
                 Aold = A;
                 avWeights = A;
-                fprintf('time = %f\n',time);
+                %fprintf('time = %f\n',time);
                 imagesc(A,'CDataMapping','direct');
                 colorbar
                 axis square
@@ -158,7 +151,7 @@ if exist(filename,'file')
                     if weightsChange
                        imagesc(A-Ainit,'CDataMapping','direct');
                     else
-                       imagesc(A-Ainit,'CDataMapping','direct');
+                       imagesc(A,'CDataMapping','direct');
                     end
                     colorbar
                     axis square

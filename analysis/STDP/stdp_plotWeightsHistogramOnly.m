@@ -1,124 +1,114 @@
-function A = stdp_plotWeightsHistogramOnly(fname, nbins, TSTEP)
+function A = stdp_plotWeightsHistogramOnly(fname, xScale,yScale, TSTEP)
 % At each time step plots the weights histopgram.
 % Returns the last weights distribution.
+% NOTE: The weights are quantized in the range [0,255].
 
-global input_dir n_time_steps NK NO NX NY 
+global input_dir  % NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
 
+NX = 32;        % retina size
+NY = 32;
+
+NX = NX * xScale; % L1 size
+NY = NY * yScale;
+
 N=NX*NY;
-bufSize = 4; % see pv_write_patch() in io.c
-nPad = 1;    % size of the layer padding
-nf = 1;      % number of features
+
+debug = 0;
+edges = 0:255;      % bin locations
 
 if exist(filename,'file')
     
     fid=fopen(filename,'r','native');
-    %     header
-    %     params[0] = nParams;
-    %     params[1] = nxp;
-    %     params[2] = nyp;
-    %     params[3] = nfp;
-    %     params[4] = (int) minVal;        // stdp value
-    %     params[5] = (int) ceilf(maxVal); // stdp value
-    %     params[6] = numPatches;
-    %
-    num_params = fread(fid, 1, 'int');
-    NXP = fread(fid, 1, 'int');
-    NYP = fread(fid, 1, 'int');
-    NFP = fread(fid, 1, 'int');
-    minVal = fread(fid, 1, 'int');
-    maxVal = fread(fid, 1, 'int');
-    numPatches = fread(fid, 1, 'int');
+
+    [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+        readFirstHeader(fid);
+    fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+        time,numPatches,NXP,NYP,NFP);
     
-    fprintf('num_params = %d NXP = %d NYP = %d NFP = %d ',...
-        num_params,NXP,NYP,NFP);
-    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
-        minVal,maxVal,numPatches);
-    %pause
-    
+    if numPatches ~= NX*NY
+        disp('mismatch between numPatches and NX*NY')
+        return
+    end
     patch_size = NXP*NYP;
     
-    T = 0;
-    
-    % Think of nx and ny as defining the size of the neuron's
-    % receptive field that receives spikes from the retina.
+    numRecords = 0; % number of weights records (configs)
+   
     while (~feof(fid))
         W_array = []; % reset every time step: this is N x patch_size array
-        % where N =NX x NY
+                      % where N =NX x NY
         
-        % read boundary neurons
-        for i=1:(NX+2*nPad)
-            nx = fread(fid, 1, 'uint16'); % unsigned short
-            ny = fread(fid, 1, 'uint16'); % unsigned short
-            nItems = nx*ny*nf;
-            fprintf('nx = %d ny = %d \n',nx,ny);
-            %pause
-
-            w = fread(fid, nItems, 'uchar'); % unsigned char
-
-        end
-        pause
+        % read time
+        time = fread(fid,1,'float64');
+        %fprintf('time = %f\n',time);
                 
         k = 0;
         for j=1:NY
             for i=1:NX
-                nx = fread(fid, 1, 'uint16'); % unsigned short
-                ny = fread(fid, 1, 'uint16'); % unsigned short
-                nItems = nx*ny*nf;
-                fprintf('nx = %d ny = %d \n',nx,ny);
-                %pause
-                if nItems <= 4
-                w = fread(fid, 4, 'uchar'); % unsigned char
-                else if nItmes <= 8
-                %pause
-                % scale weights: they are quantized before are written
-                w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
-                
-                if(~isempty(w))
+                if ~feof(fid)
                     k=k+1;
-                    W_array(k,:) = w(1:patch_size);
-                    %pause
-                end
+                    nx = fread(fid, 1, 'uint16'); % unsigned short
+                    ny = fread(fid, 1, 'uint16'); % unsigned short
+                    nItems = nx*ny*NFP;
+                    if debug
+                        fprintf('k = %d nx = %d ny = %d nItems = %d: ',...
+                            k,nx,ny,nItems);
+                    end
+
+                    w = fread(fid, nItems, 'uchar'); % unsigned char
+                    if debug
+                        for r=1:patch_size
+                            fprintf('%d ',w(r));
+                        end
+                        fprintf('\n');
+                        %pause
+                    end
+                    if(~isempty(w) & nItems ~= 0)
+                        W_array(k,:) = w(1:patch_size);
+                        %pause
+                    end
+                end % if ~feof
             end
-        end
+        end % loop over post-synaptic neurons
         if ~feof(fid)
-            T = T + 1;
-            %fprintf('%d\n',T);
+            numRecords = numRecords + 1;
+            fprintf('k = %d numRecords = %d time = %f\n',...
+                k,numRecords,time);
         end
         
         % plot the weights histogram for the first time step
         
-        if ( T == 1 && ~isempty(W_array) )
+        if ( numRecords == 1 && ~isempty(W_array) )
             [m,n]=size(W_array);
-            fprintf('%d %d %d\n',T,m,n);
+            fprintf('%d %d %d\n',numRecords,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
-            [n,xout] = hist(A,nbins);
+            n = histc(A,edges);
             %plot(xout,n,'-g','LineWidth',3);
-            figure('Name', ['Time ' num2str(T) ' Weights Histogram']);
-            %bar(xout,n);
-            hist(A,nbins);
+            figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
+            bar(edges,n);
+            %hist(A,nbins);
             %hold on
-            pause
+            pause(0.1)
             
         end
         
         
         % plot the weights histogram for this time step
         
-        if ( ~mod(T,TSTEP) && ~isempty(W_array) )
+        if ( ~mod(numRecords-1,TSTEP) && ~isempty(W_array) )
             [m,n]=size(W_array);
-            fprintf('%d %d %d \n',T,m,n);
+            fprintf('%d %d %d \n',numRecords,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
-            [n,xout] = hist(A,nbins);
+            n = histc(A,edges);
             %plot(xout,n,'-r');
-            figure('Name', ['Time ' num2str(T) ' Weights Histogram']);
-            bar(xout,n,'r');
+            figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
+            bar(edges,n,'r');
             %hold on
             pause(0.1)
             
@@ -126,8 +116,6 @@ if exist(filename,'file')
         
     end
     fclose(fid);
-    plot(xout,n,'-b','LineWidth',3);
-    
 
 
 else
@@ -135,3 +123,102 @@ else
      disp(['Skipping, could not open ', filename]);
     
 end
+
+%
+% End primary function
+
+
+function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+        readFirstHeader(fid)
+
+
+% NOTE: see analysis/python/PVReadWeights.py for reading params
+    head = fread(fid,3,'int');
+    if head(3) ~= 3
+       disp('incorrect file type')
+       return
+    end
+    numWgtParams = 6;
+    numParams = head(2)-8;
+    fseek(fid,0,'bof'); % rewind file
+    
+    params = fread(fid, numParams, 'int') 
+    %pause
+    NXP         = params(4);
+    NYP         = params(5);
+    NFP         = params(6);
+    fprintf('numParams = %d ',numParams);
+    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    % read time
+    time = fread(fid,1,'float64');
+    fprintf('time = %f\n',time);
+    
+    wgtParams = fread(fid,numWgtParams,'int');
+    NXP = wgtParams(1);
+    NYP = wgtParams(2);
+    NFP = wgtParams(3);
+    minVal      = wgtParams(4);
+    maxVal      = wgtParams(5);
+    numPatches  = wgtParams(6);
+    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
+        minVal,maxVal,numPatches);
+    %pause
+    
+% End subfunction 
+%
+    
+    
+function [time,varargout] = ...
+        readHeader(fid,numParams,numWgtParams)
+
+% NOTE: see analysis/python/PVReadWeights.py for reading params
+    
+if ~feof(fid)
+    params = fread(fid, numParams, 'int') 
+    if numel(params)
+    NXP         = params(4);
+    NYP         = params(5);
+    NFP         = params(6);
+    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    % read time
+    time = fread(fid,1,'float64');
+    fprintf('time = %f\n',time);
+    
+    wgtParams = fread(fid,numWgtParams,'int');
+    NXP = wgtParams(1);
+    NYP = wgtParams(2);
+    NFP = wgtParams(3);
+    minVal      = wgtParams(4);
+    maxVal      = wgtParams(5);
+    numPatches  = wgtParams(6);
+    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
+        minVal,maxVal,numPatches);
+    
+    varargout{1} = numPatches;
+    varargout{2} = NXP;
+    varargout{3} = NYP;
+    varargout{4} = NFP;
+    varargout{5} = minVal;
+    varargout{6} = maxVal;
+    %pause
+    else
+       disp('eof found: return'); 
+       time = -1;
+       varargout{1} = numPatches;
+    varargout{2} = 0;
+    varargout{3} = 0;
+    varargout{4} = 0;
+    varargout{5} = 0;
+    varargout{6} = 0;
+    end
+else
+   disp('eof found: return'); 
+   time = -1;
+end
+% End subfunction 
+%
+        
+    
+
