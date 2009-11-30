@@ -341,7 +341,11 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
    double time;
    int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
                                 &time, &pre->clayer->loc, true);
-   assert(status == 0);
+
+   if (status != 0) {
+      fprintf(stderr, "SHUTTING DOWN");
+      exit(1);
+   }
 
 #ifdef DONT_COMPILE
    FILE * fp;
