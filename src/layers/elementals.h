@@ -29,12 +29,18 @@ extern "C"
  */
 
 #ifndef FEATURES_LAST
+ //! RETURNS FEATURE INDEX FROM LINEAR INDEX
 /**
  * Return the feature index for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
  * @ny the number of neurons in the y direction
  * @nf the number of neurons in the feature direction
+ * REMARKS:
+ *      - since k = ky * (nf*nx) + kx * nf + kf, we easily see that
+ *      kf = mod(k,nf), i.e. kf it is the reminder of the division of k by nf,
+ *      since kf <= nf-1.
+ *      .
  */
 //#pragma FTT elemental, vectorize
 static inline float featureIndex(int k, float nx, float ny, float nf)
@@ -42,34 +48,46 @@ static inline float featureIndex(int k, float nx, float ny, float nf)
 //   return k % (int) nf;
    return fmodf((float)k, nf);
 }
-
-/**
+//! RETURNS X INDEX FROM LINEAR INDEX
+/*!
  * Return the position kx for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
  * @ny the number of neurons in the y direction
  * @nf the number of neurons in the feature direction
+ * REMARKS:
+ *   - since k = ky * (nf*nx) + kx * nf + kf, we easily see first that
+ *    a = floor(k/nf) = ky*nx + kx, and then that
+ *    kx = mod(a,nx), i.e. kx is the reminder of the division of a by nx,
+ *    since kx <= nx-1.
+ *
+ *    .
  */
 //#pragma FTT elemental, vectorize
 static inline float kxPos(int k, float nx, float ny, float nf)
 {
    return floorf( fmodf( floorf((float) k / nf), nx ) );
 }
-
-/**
+//! RETURNS Y INDEX FROM LINEAR INDEX
+/*!
  * Return the position ky for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
  * @nx the number of neurons in the x direction
  * @ny the number of neurons in the y direction
  * @nf the number of neurons in the feature direction
+ * REMARKS:
+ *   - since k = ky * (nf*nx) + kx * nf + kf, we easily see first that
+ *    kx = floor(k/(nx*nf)) since kx*nf + kf < nx*nf
+ *    (note that kx <= nx-1 and kf <= nf-1).
+ *   .
  */
 //#pragma FTT elemental, vectorize
 static inline float kyPos(int k, float nx, float ny, float nf)
 {
    return floorf( (k / (nx*nf)) );
 }
-
-/**
+//! RETURNS X POSITION IN PHYSICAL SPACE
+/*!
  * @k
  * @x0
  * @dx
@@ -99,43 +117,64 @@ static inline float yPos(int k, float y0, float dy, float nx, float ny, float nf
     return y0 + dy*(0.5f + ky);
 }
 
-/**
+//! RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
+/*!
  * @kx
  * @ky
  * @kf
  * @nx
  * @ny
  * @nf
+ * REMARKS:
+ *      - This simply says that:
+ *      k = ky * (nf*nx) + kx * nf + kf
+ *      .
  */
 static inline int kIndex(float kx, float ky, float kf, float nx, float ny, float nf)
 {
    return (int)kf + ((int)kx + (int)ky * (int)nx) * (int)nf;
 }
 
-/**
+//! RETURNS STRIDE IN X DIRECTION FOR LINEAR INDEXING
+/*!
  * @nx
  * @ny
  * @nf
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
  */
 static inline int strideX(float nx, float ny, float nf)
 {
    return (int)nf;
 }
-
-/**
+//! RETURNS STRIDE IN Y DIRECTION FOR LINEAR INDEXING
+/*!
  * @nx
  * @ny
  * @nf
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
  */
 static inline int strideY(float nx, float ny, float nf)
 {
    return (int)nf * (int)nx;
 }
-
+//! RETURNS STRIDE IN Y DIRECTION FOR LINEAR INDEXING
 /**
  * @nx
  * @ny
  * @nf
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
  */
 static inline int strideF(float nx, float ny, float nf)
 {
@@ -297,13 +336,23 @@ static inline int strideF(float nx, float ny, float nf)
 
 #endif // FEATURES_LAST
 
-/**
+//! RETURNS LINEAR INDEX IN THE EXTENDED SPACE FROM INDICES IN RESTRICTED SPACE
+/*!
  * @k
  * @nx
  * @ny
  * @nf
  * @nb
  * k is the index in the restricted space
+ * REMARKS:
+ *   - the linear indexing of neurons is done by varying first along these directions:
+ *   feature direction, X direction, Y direction.
+ *   - for given indices kf,kx,ky, the linear index k is given by:
+ *     k = (ky-1)*(nf*nx)+(kx-1)*nf+kf
+ *   - kx is the X direction index in extended space
+ *   - ky is the Y direction index in extended space
+ *   - kx is the X direction index in extended space
+ *   .
  */
 static inline int kIndexExtended(int k, float nx, float ny, float nf, float nb)
 {
