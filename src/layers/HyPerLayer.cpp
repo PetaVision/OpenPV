@@ -1069,7 +1069,7 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
 #endif
 
 /**
- * Return the _global_ leading index in a direction of a patch in the post layer
+ * Return the _global_ (non-extended) leading index in a direction of a patch in the post layer
  *   NOTE: float OK size for kxPre because only k index in a specific direction
  * @kPre is the _global_ pre-synaptic index in a direction
  * @k0Post is the index offset in the post layer
