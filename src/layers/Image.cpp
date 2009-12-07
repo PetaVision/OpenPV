@@ -74,7 +74,7 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
 }
 /**
  * data lives in an extended frame of size
- * (nx+2nPad)*(ny+2nPad)*nBands
+ * (nx+2*nPad)*(ny+2*nPad)*nBands
  */
 int Image::initialize_data(const LayerLoc * imageLoc)
 {
@@ -105,6 +105,23 @@ bool Image::updateImage(float time, float dt)
    // default is to do nothing for now
    // eventually could go through a list of images
    return false;
+}
+
+//! CLEAR IMAGE
+/*!
+ * this is Image specific.
+ * NOTE:
+ *      - Shall I modify this method to return a bool as
+ * updateImage() does?
+ *      - If I do so, I should also modify clearImage() in ImagrCreator().
+ *      .
+ */
+int Image::clearImage()
+{
+   // default is to do nothing for now
+   // it could, for example, set the data buffer to zero.
+
+   return 0;
 }
 
 int Image::read(const char * filename)
