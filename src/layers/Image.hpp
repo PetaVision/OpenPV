@@ -26,6 +26,7 @@ public:
    virtual int initialize_data(const LayerLoc * loc);
 
    virtual bool updateImage(float time, float dt);
+   virtual int clearImage();
 
    virtual pvdata_t * getImageBuffer();
    virtual LayerLoc   getImageLoc();
