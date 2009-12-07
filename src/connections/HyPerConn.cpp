@@ -61,7 +61,12 @@ HyPerConn::~HyPerConn()
       free(this->axonalArborList[l]);
    }
 }
-
+//!
+/*!
+ *
+ *
+ *
+ */
 int HyPerConn::initialize_base()
 {
    this->name = "Unknown";
@@ -211,7 +216,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    params->numDelay = params->varDelayMax - params->varDelayMin + 1;
 
    //
-   // now set params that are not in the params struct (instance varibles)
+   // now set params that are not in the params struct (instance variables)
 
    wMax = filep->value(name, "strength", wMax);
    // let wMax override strength if user provides it
@@ -292,6 +297,7 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    PVParams * params = parent->parameters();
 
    float wMin = params->value(name, "wMin", 0.0f);
+   float wMax = params->value(name, "wMax", 3.0f);
 
    for (int k = 0; k < numPatches; k++) {
       randomWeights(patches[k], wMin, wMax, seed);
@@ -762,7 +768,25 @@ int HyPerConn::deleteWeights()
 
    return 0;
 }
-
+//!
+/*!
+ *
+ *      - Each neuron in the pre-synaptic layer projects a number of axonal
+ *      arbors to the post-synaptic layer (Can they be projected accross columns too?).
+ *      - numAxons is the number of axonal arbors projected by each neuron.
+ *      - Each axonal arbor (PVAxonalArbor) connects to a patch of neurons in the post-synaptic layer.
+ *      - The PVAxonalArbor structure contains STDP P variable.
+ *      -
+ *      .
+ *
+ * REMARKS:
+ *      - numArbors = (nxPre + 2*prePad)*(nyPre+2*prePad) = nxexPre * nyexPre
+ *      This is the total number of weight patches for a given axon.
+ *      Is the number of pre-synaptic neurons including margins.
+ *      - activity and STDP M variable are extended into margins
+ *      .
+ *
+ */
 int HyPerConn::createAxonalArbors()
 {
    // TODO - these needs to be an input parameter obtained from the connection
