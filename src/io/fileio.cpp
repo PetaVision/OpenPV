@@ -576,7 +576,16 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    return status;
 }
-
+/*!
+ *
+ * numPatches is NX x NY x NF
+ * patchSize includes these records:
+ * - nx
+ * - ny
+ * - nxp x nyp weights
+ * .
+ *
+ */
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
                  const LayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch ** patches, int numPatches)
