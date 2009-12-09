@@ -34,14 +34,26 @@ if exist(filename,'file')
     end
     patch_size = NXP*NYP;
     
-    numRecords = 0; % number of weights records (configs)
+    recordID = 0; % number of weights records (configs)
    
+    % NOTE: The file may have the full header written before each record,
+    % or only a time stamp
     while (~feof(fid))
         W_array = []; % reset every time step: this is N x patch_size array
                       % where N =NX x NY
         
+        % read header if not first record (for which header is already read)
+        
+        if recordID
+            [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
+                readHeader(fid,numParams,numWgtParams);
+            fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+                time,numPatches,NXP,NYP,NFP);
+            %pause
+        end
+        
         % read time
-        time = fread(fid,1,'float64');
+        %time = fread(fid,1,'float64');
         %fprintf('time = %f\n',time);
                 
         k = 0;
@@ -73,16 +85,16 @@ if exist(filename,'file')
             end
         end % loop over post-synaptic neurons
         if ~feof(fid)
-            numRecords = numRecords + 1;
-            fprintf('k = %d numRecords = %d time = %f\n',...
-                k,numRecords,time);
+            recordID = recordID + 1;
+            fprintf('k = %d recordID = %d time = %f\n',...
+                k,recordID,time);
         end
         
         % plot the weights histogram for the first time step
         
-        if ( numRecords == 1 && ~isempty(W_array) )
+        if ( recordID == 1 && ~isempty(W_array) )
             [m,n]=size(W_array);
-            fprintf('%d %d %d\n',numRecords,m,n);
+            fprintf('%d %d %d\n',recordID,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
@@ -99,9 +111,9 @@ if exist(filename,'file')
         
         % plot the weights histogram for this time step
         
-        if ( ~mod(numRecords-1,TSTEP) && ~isempty(W_array) )
+        if ( ~mod(recordID-1,TSTEP) && ~isempty(W_array) )
             [m,n]=size(W_array);
-            fprintf('%d %d %d \n',numRecords,m,n);
+            fprintf('%d %d %d \n',recordID,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
@@ -133,6 +145,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
+    fprintf('read first header\n');
     head = fread(fid,3,'int');
     if head(3) ~= 3
        disp('incorrect file type')
@@ -144,11 +157,11 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     
     params = fread(fid, numParams, 'int') 
     %pause
-    NXP         = params(4);
-    NYP         = params(5);
-    NFP         = params(6);
+    NX         = params(4);
+    NY         = params(5);
+    NF         = params(6);
     fprintf('numParams = %d ',numParams);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
     % read time
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
@@ -169,49 +182,48 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 %
     
     
-function [time,varargout] = ...
-        readHeader(fid,numParams,numWgtParams)
+function [time,varargout] = readHeader(fid,numParams,numWgtParams)
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     
 if ~feof(fid)
     params = fread(fid, numParams, 'int') 
     if numel(params)
-    NXP         = params(4);
-    NYP         = params(5);
-    NFP         = params(6);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
-    % read time
-    time = fread(fid,1,'float64');
-    fprintf('time = %f\n',time);
-    
-    wgtParams = fread(fid,numWgtParams,'int');
-    NXP = wgtParams(1);
-    NYP = wgtParams(2);
-    NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
-    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
-        minVal,maxVal,numPatches);
-    
-    varargout{1} = numPatches;
-    varargout{2} = NXP;
-    varargout{3} = NYP;
-    varargout{4} = NFP;
-    varargout{5} = minVal;
-    varargout{6} = maxVal;
-    %pause
+        NX         = params(4);
+        NY         = params(5);
+        NF         = params(6);
+        fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
+        % read time
+        time = fread(fid,1,'float64');
+        fprintf('time = %f\n',time);
+
+        wgtParams = fread(fid,numWgtParams,'int');
+        NXP = wgtParams(1);
+        NYP = wgtParams(2);
+        NFP = wgtParams(3);
+        minVal      = wgtParams(4);
+        maxVal      = wgtParams(5);
+        numPatches  = wgtParams(6);
+        fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+        fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
+            minVal,maxVal,numPatches);
+
+        varargout{1} = numPatches;
+        varargout{2} = NXP;
+        varargout{3} = NYP;
+        varargout{4} = NFP;
+        varargout{5} = minVal;
+        varargout{6} = maxVal;
+        %pause
     else
-       disp('eof found: return'); 
-       time = -1;
-       varargout{1} = numPatches;
-    varargout{2} = 0;
-    varargout{3} = 0;
-    varargout{4} = 0;
-    varargout{5} = 0;
-    varargout{6} = 0;
+        disp('eof found: return');
+        time = -1;
+        varargout{1} = numPatches;
+        varargout{2} = 0;
+        varargout{3} = 0;
+        varargout{4} = 0;
+        varargout{5} = 0;
+        varargout{6} = 0;
     end
 else
    disp('eof found: return'); 

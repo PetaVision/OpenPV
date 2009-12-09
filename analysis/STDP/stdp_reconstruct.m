@@ -1,8 +1,5 @@
 
-function [fh] = stdp_reconstruct( recon_array, plot_title, fh )
-
-global NK NO NX NY 
-
+function [fh] = stdp_reconstruct( recon_array, NX, NY, plot_title, fh )
 
 
 %size(recon_array)

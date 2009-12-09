@@ -1,6 +1,6 @@
 %%
 close all
-%clear all
+clear all
 
 % Make the global parameters available at the command-line for convenience.
 global N  NX NY n_time_steps begin_step tot_steps
@@ -11,16 +11,16 @@ global patch_size write_step
 %input_dir = '/Users/manghel/Documents/workspace/marian/output/';
 input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 
-num_layers = 1;
-n_time_steps = 1000000; % the argument of -n; even when dt = 0.5 
+num_layers = 2;
+n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
 write_step = 1000; % set in params.stdp
 
 
-begin_step = 1;  % where we start the analysis
+begin_step = 90000;  % where we start the analysis
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
-stim_end = 10000;
+stim_end = 100000;
 stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
@@ -35,7 +35,7 @@ my_gray = [.666 .666 .666];
 target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
-parse_tiff = 1;
+parse_tiff = 0;
 read_spikes = 0;
 simple_movie = 0;
 plot_raster = 0;
@@ -43,28 +43,32 @@ plot_spike_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
 plot_weights_field = 1;
-plot_weights_histogram = 1;
+plot_weights_histogram = 0;
 plot_patch = 0;
-
+comp_PCA = 0;
+    
 if read_spikes
     spike_array = cell(num_layers,1);
     spike_array_bkgrnd = spike_array;
 end
 
 if parse_tiff
-    targ = [];
+    
    tiff_path = [input_dir 'images/img2D_0.00.tif'];
    %imshow(tiff_path);
    [targ, Xtarg, Ytarg] = stdp_parseTiff( tiff_path );
    disp('parse tiff -> done');
    %pause
+else
+    Xtarg = [];
+    Ytarg = [];
 end
 
 
 for layer = 1:num_layers; % skip retina, otherwise start from 0
 
     % Read parameters from file which pv created: LAYER
-    [f_file, v_file, w_file, xScale, yScale] = stdp_globals( layer );
+    [f_file, v_file, w_file, w_last, xScale, yScale] = stdp_globals( layer );
 
     % Read spike events
     
@@ -87,7 +91,7 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
         disp('simple movie')
         for t=1:n_time_steps
             fprintf('%d\n',t);
-            A = reshape(spike_array{layer}(t,:),NX,NY);
+            A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
             imagesc(A')
             pause(0.1)
         end
@@ -112,6 +116,7 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
     
     if plot_raster
         disp('plot_raster')
+        N = NX*xScale * NY *yScale;
         if ~isempty(spike_array{layer})
             plot_title = ['Raster for layer = ',int2str(layer)];
             figure('Name',plot_title);
@@ -131,13 +136,14 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
      
     if plot_spike_activity 
         disp('compute rate array and spike activity array')
-        rate_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),1) );
+        rate_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),1) );
         % this is a 1xN array where N=NX*NY
         disp('plot_rate_reconstruction')
-        stdp_reconstruct(rate_array{layer}, ['Rate reconstruction for layer  ', int2str(layer)]);
+        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
+            ['Rate reconstruction for layer  ', int2str(layer)]);
         pause
 
-        spikes_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),2) );
+        spikes_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),2) );
         % this is Tx1 array
         plot_title = ['Spiking activity for layer  ',int2str(layer)];
         figure('Name',plot_title);
@@ -172,7 +178,7 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
     if plot_weights_rate_evolution
         disp('plot weights rate evolution');
         % this is a cell aray: for each neuron it returns a temporal
-        % array for the sum of its synaptic weights, i.e. symW{n} is 
+        % array for the sum of its synaptic weights, i.e. sumW{n} is 
         % a T x 1 array where T is the number of weights snapshots
         [sumW, T] = stdp_compAverageWeightsEvol(w_file);
         % pass T-1
@@ -301,6 +307,13 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
             end
             
         end
+    end
+    
+    if comp_PCA == 1
+        disp('compute PCA of the  weight fields: ')
+        
+        stdp_compPCA(w_last,xScale,yScale);
+        
     end
     
 end % loop over all layers

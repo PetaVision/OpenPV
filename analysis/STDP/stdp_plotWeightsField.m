@@ -8,7 +8,7 @@ global input_dir % NX NY
 
 filename = fname;
 filename = [input_dir, filename];
-colormap(jet);
+%colormap(jet);
     
 NX = 32;        % retina size
 NY = 32;
@@ -19,11 +19,11 @@ NY = NY * yScale;
 PLOT_STEP = 1;
 plotTarget = 0;
 
-figure('Name','Weights Fields');
+%figure('Name','Weights Fields');
 
 debug = 0;
 weightsChange = 0;
-numRecords = 0;  % numver of weights records (configurations)
+numRecords = 0;  % number of weights records (configurations)
 
 if exist(filename,'file')
     
@@ -46,9 +46,9 @@ if exist(filename,'file')
     fprintf('a = %d b = %d a1 = %d b1 = %d NXPbor = %d NYPbor = %d\n',...
         a,b,a1,b1,NXPbor,NYPbor);
     
-    b_color = 1; % use to scale weights to the full range
+    %b_color = 1; % use to scale weights to the full range
                  % of the color map
-    a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal;
+    %a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal;
 
     
     if weightsChange
@@ -63,14 +63,31 @@ if exist(filename,'file')
     
     % Think of NXP and NYP as defining the size of the neuron's
     % receptive field that receives spikes from the retina.
+    % NOTE: The file may have the full header written before each record,
+    % or only a time stamp
+    
+    first_record = 1;
+    
     while (~feof(fid))
         
         % read the weights for this time step 
         W_array = []; % reset every time step: this is N x patch_size array
                       % where N =NX * NY
                       
+        % read header if not first record (for which header is already read)
+        
+        if ~first_record
+            [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
+                readHeader(fid,numParams,numWgtParams);
+            fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+                time,numPatches,NXP,NYP,NFP);
+            %pause
+        else
+            first_record = 0;
+        end
+    
         % read time
-        time = fread(fid,1,'float64');
+        %time = fread(fid,1,'float64');
         %fprintf('time = %f\n',time); 
         
         k=0;
@@ -108,7 +125,7 @@ if exist(filename,'file')
             numRecords = numRecords + 1;
             fprintf('k = %d numRecords = %d time = %f\n',...
                 k,numRecords,time);
-            pause
+            %pause
         end
         
         % make the matrix of patches and plot patches for this time step
@@ -133,24 +150,27 @@ if exist(filename,'file')
                 end
             end
             
-            if numRecords==1
+            if numRecords==1 % first record (plot)
                 Ainit = A;
                 Aold = A;
                 avWeights = A;
                 %fprintf('time = %f\n',time);
-                imagesc(A,'CDataMapping','direct');
-                colorbar
-                axis square
-                axis off
-                hold on
-            else
-                %imagesc(a_color*A+b_color);
-                %imagesc(A-Ainit,'CDataMapping','direct');
+                if ~weightsChange
+                    figure('Name',['Weights Field ' num2str(time)]);
+                    imagesc(A,'CDataMapping','direct');
+                    colorbar
+                    axis square
+                    axis off
+                    hold on
+                end
+            else            % other records (not first)
                 if (mod(numRecords,PLOT_STEP) == 0)
                     %fprintf('time = %f\n',time);
                     if weightsChange
+                       figure('Name',['Weights Change Field ' num2str(time)]); 
                        imagesc(A-Ainit,'CDataMapping','direct');
                     else
+                       figure('Name',['Weights Field ' num2str(time)]);
                        imagesc(A,'CDataMapping','direct');
                     end
                     colorbar
@@ -199,6 +219,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
+    fprintf('read first header\n');
     head = fread(fid,3,'int');
     if head(3) ~= 3
        disp('incorrect file type')
@@ -210,11 +231,11 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     
     params = fread(fid, numParams, 'int') 
     %pause
-    NXP         = params(4);
-    NYP         = params(5);
-    NFP         = params(6);
+    NX         = params(4);
+    NY         = params(5);
+    NF         = params(6);
     fprintf('numParams = %d ',numParams);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+    fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
     % read time
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
@@ -235,40 +256,39 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 %
     
     
-function [time,varargout] = ...
-        readHeader(fid,numParams,numWgtParams)
+function [time,varargout] = readHeader(fid,numParams,numWgtParams)
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     
 if ~feof(fid)
     params = fread(fid, numParams, 'int') 
     if numel(params)
-    NXP         = params(4);
-    NYP         = params(5);
-    NFP         = params(6);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
-    % read time
-    time = fread(fid,1,'float64');
-    fprintf('time = %f\n',time);
-    
-    wgtParams = fread(fid,numWgtParams,'int');
-    NXP = wgtParams(1);
-    NYP = wgtParams(2);
-    NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
-    fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
-    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
-        minVal,maxVal,numPatches);
-    
-    varargout{1} = numPatches;
-    varargout{2} = NXP;
-    varargout{3} = NYP;
-    varargout{4} = NFP;
-    varargout{5} = minVal;
-    varargout{6} = maxVal;
-    %pause
+        NX         = params(4);
+        NY         = params(5);
+        NF         = params(6);
+        fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
+        % read time
+        time = fread(fid,1,'float64');
+        fprintf('time = %f\n',time);
+
+        wgtParams = fread(fid,numWgtParams,'int');
+        NXP = wgtParams(1);
+        NYP = wgtParams(2);
+        NFP = wgtParams(3);
+        minVal      = wgtParams(4);
+        maxVal      = wgtParams(5);
+        numPatches  = wgtParams(6);
+        fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
+        fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
+            minVal,maxVal,numPatches);
+
+        varargout{1} = numPatches;
+        varargout{2} = NXP;
+        varargout{3} = NYP;
+        varargout{4} = NFP;
+        varargout{5} = minVal;
+        varargout{6} = maxVal;
+        %pause
     else
        disp('eof found: return'); 
        time = -1;

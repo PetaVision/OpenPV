@@ -1,4 +1,4 @@
-function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
+function [ffile, vfile, wfile, wlast, xScale,yScale] = stdp_globals(layer)
 
 %    global NO
 
@@ -34,6 +34,7 @@ function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
         ffile = 'a1.pvp';
         vfile = 'V1.pvp';
         wfile = 'w0_post.pvp';  % this is connection 0 from layer 0 to layer 1
+        wlast = 'w0_post_last.pvp';
         xScale = 2;
         yScale = 2;
         NO = 1;
@@ -41,6 +42,7 @@ function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
         ffile = 'a2.pvp';
         vfile = 'V2.pvp';
         wfile = 'w1_post.pvp';
+        wlast = 'w0_post_last.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
@@ -48,6 +50,7 @@ function [ffile, vfile, wfile, xScale,yScale] = stdp_globals(layer)
         ffile = 'a3.pvp';
         vfile = 'V3.pvp';
         wfile = 'w2_post.pvp';
+        wlast = 'w0_post_last.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
