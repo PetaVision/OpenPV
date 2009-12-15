@@ -18,8 +18,14 @@ public:
    virtual ~Gratings();
 
    virtual bool updateImage(float time, float dt);
+   virtual int clearImage();
+
+   void setModified(bool val) { modified = val; };
+   bool ifModified() { return modified; };
 
 protected:
+
+   bool     modified;
 
    float calcPhase(float time, float dt);
 
