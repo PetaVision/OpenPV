@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <?fileVersion 4.0.0?>
 
 <cproject>
@@ -42,7 +42,6 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.1308151898" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base">
 <option id="gnu.cpp.compiler.option.include.paths.1035125974" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src/arch/mpi}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.optimization.level.1970737402" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.1795414610" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -51,7 +50,6 @@
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.base.730699285" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.base">
 <option id="gnu.c.compiler.option.include.paths.1638776820" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src/arch/mpi}&quot;"/>
 </option>
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.551281991" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.799446301" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
