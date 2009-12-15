@@ -39,7 +39,24 @@ Gratings::Gratings(const char * name, HyPerCol * hc) :
 Gratings::~Gratings() {
 }
 
-//! Updates the image
+//! CLEAR IMAGE
+/*!
+ * sets the data buffer to zero.
+ *
+ */
+int Gratings::clearImage()
+{
+   // set the data buffer to zero.
+   //
+   const int N = (loc.nx + 2*loc.nPad) *
+                    (loc.ny + 2*loc.nPad) * loc.nBands;
+   for(int i=0; i<N;i++){
+      data[i] = 0;
+   }
+   return 0;
+}
+
+//! UPDATES IMAGE
 
 /*!
  * REMARKS:
@@ -53,8 +70,8 @@ Gratings::~Gratings() {
  *	.
  *
  * NOTES:
- *	- We should make this time longer by modifying
- *        calcPhase().
+ *	- We should increase the time that the phase remain constant
+ *	 by modifying calcPhase().
  *
  *	.
  */
@@ -67,19 +84,26 @@ bool Gratings::updateImage(float time, float dt) {
 
 	int marginWidth = loc.nPad;
 
-	const float kx = 2.0 * PI / 4.0; // wavenumber
-	const float phi = calcPhase(time, dt);
+	//const float kx = 2.0 * PI / 4.0; // wavenumber
+	//const float phi = calcPhase(time, dt);
+	//const float phi = 0.5*PI;
+    //double r =  ((double) rand()) / (double) RAND_MAX;
+	//int ix = (int) (r * nx);
+    //printf("ix = %d\n",ix);
+
+    clearImage();
 
 	for (int iy = 0; iy < ny; iy++) {
-		//	   int ix = 6 + marginWidth;
-		//      for (int ix = 0; ix < nx; ix++) {
-		//         float x = (float) (ix + marginWidth);
-		//         data[ix*sx + iy*sy] = sin(kx * x + phi);
-		//      }
-		for (int ix = 6; ix < nx; ix += 6) {
-			data[ix * sx + iy * sy] = 1;
-		}
-
+			   int ix = 6 + marginWidth;
+		     //for (int ix = 0; ix < nx; ix++) {
+		       //  float x = (float) (ix + marginWidth);
+		         //float x = (float) (ix);
+		         //data[ix*sx + iy*sy] = 1 + sin(kx * x + phi);
+		      //}
+		//for (int ix = 10; ix < nx; ix += 14) {
+		//	data[ix * sx + iy * sy] = 1;
+		//}
+		data[ix * sx + iy * sy] = 1;
 	}
 
 	return true;
