@@ -33,6 +33,7 @@ PostConnProbe::PostConnProbe(const char * filename, int kPost)
    this->kyPost = 0;
    this->kfPost = 0;
    this->kPost = kPost;
+   this->outputIndices = false;
 }
 
 PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
@@ -42,6 +43,7 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->kyPost = kyPost;
    this->kfPost = kfPost;
    this->kPost = -1;
+   this->outputIndices = false;
 }
 
 /**
@@ -70,8 +72,14 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    w = wPost[kPost];
 
    fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
+
    text_write_patch(fp, w, w->data);
    fflush(fp);
+
+   if (outputIndices) {
+      write_patch_indices(fp, w, &l->loc, kxPre, kyPre, 0);
+      fflush(fp);
+   }
 
    return 0;
 }
