@@ -103,7 +103,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    return 0;
 }
 
-int ConnectionProbe::text_write_patch(FILE * fd, PVPatch * patch, float * data)
+int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
 {
    int f, i, j;
 
@@ -115,17 +115,71 @@ int ConnectionProbe::text_write_patch(FILE * fd, PVPatch * patch, float * data)
    const int sy = (int) patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
    const int sf = (int) patch->sf;  assert(sf == 1);
 
-   assert(fd != NULL);
+   assert(fp != NULL);
 
    for (f = 0; f < nf; f++) {
-      fprintf(fd, "f = %i\n  ", f);
+      fprintf(fp, "f = %i\n  ", f);
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
-            fprintf(fd, "%5.3f ", data[i*sx + j*sy + f*sf]);
+            fprintf(fp, "%5.3f ", data[i*sx + j*sy + f*sf]);
          }
-         fprintf(fd, "\n  ");
+         fprintf(fp, "\n  ");
       }
-      fprintf(fd, "\n");
+      fprintf(fp, "\n");
+   }
+
+   return 0;
+}
+
+/**
+ * Write out the layer indices of the positions in a patch.
+ * The inputs to the function (patch,loc)can either be from
+ * the point of view of the pre- or post-synaptic layer.
+ *
+ * @patch the patch to iterate over
+ * @loc the location information in the layer that the patch projects to
+ * @nf the number of features in the patch (should be the same as in the layer)
+ * @kx0 the kx index location of the head (neuron) of the patch projection
+ * @ky0 the ky index location of the head of the patch projection
+ * @kf0 the kf index location of the head of the patch (should be 0)
+ *
+ * NOTE: indices are in the local space
+ */
+int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
+                                         const LayerLoc * loc, int kx0, int ky0, int kf0)
+{
+   int f, i, j;
+
+   const int nx = (int) patch->nx;
+   const int ny = (int) patch->ny;
+   const int nf = (int) patch->nf;
+
+   // these strides are from the layer, not the patch
+   // NOTE: assumes nf from layer == nf from patch
+   //
+   const int sx = nf;
+   const int sy = loc->nx * nf;
+
+   assert(fp != NULL);
+
+   const int k0 = kIndex(kx0, ky0, kf0, loc->nx, loc->ny, nf);
+
+   fprintf(fp, "  ");
+
+   // loop over patch indices (writing out layer indices)
+   //
+   for (f = 0; f < nf; f++) {
+      for (j = 0; j < ny; j++) {
+         for (i = 0; i < nx; i++) {
+            int kf = f;
+            int kx = kx0 + i;
+            int ky = ky0 + j;
+            int k  = k0 + kf + i*sx + j*sy;
+            fprintf(fp, "(%4d, (%4d,%4d,%4d)) ", k, kx, ky, kf);
+         }
+         fprintf(fp, "\n  ");
+      }
+      fprintf(fp, "\n");
    }
 
    return 0;
