@@ -1,0 +1,142 @@
+//
+// params.pv
+//  - input parameters for gamma.cpp
+//  - goal: to study inhibitory stabilized network
+//
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   dt = 1.0;
+};
+
+//
+// Three layers, "Retina", "L1", "L2"
+//
+
+HyPerLayer "Retina" = {
+   nx = 16;
+   ny = 16;
+   nf = 1;
+   
+   beginStim = 1;
+   endStim   = 4000;
+
+   spikingFlag = 1;             // spike as poisson?
+   poissonEdgeProb  = 0.1;      // if so, on probability
+   poissonBlankProb = 0.01;     //       off probability
+   
+   burstFreq     = 2.0;
+   burstDuration = 0.0;
+   lambda        = 2.0;
+};
+
+
+HyPerLayer "V1" = {
+   nx = 8;
+   ny = 8;
+   nf = 2;
+   no = 2;
+   
+   tau = 10.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+HyPerLayer "V1 Inhib" = {
+   nx = 8;
+   ny = 8;
+   nf = 2;
+   no = 2;
+   
+   tau = 10.0;
+
+   noiseAmpE = 0;
+   noiseAmpI = 0;
+};
+
+//
+// 6 connection2, 
+//    "Retina to V1"
+//    "Retina to V1 inh"
+//
+
+
+HyPerConn "Retina to V1" = {
+   nxp = 7;
+   nyp = 7;
+   strength = 4.5;
+
+   delay = 10.0;
+   
+   aspect = 5;
+   sigma  = 3.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "Retina to V1Inh" = {
+   nxp = 7;
+   nyp = 7;
+   strength = 1.0;
+
+   delay = 10.0;
+   
+   aspect = 5;
+   sigma  = 3.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 to V1" = {
+   nxp = 15;
+   nyp = 15;
+   strength = 10;
+
+   delay = 5.0;
+   
+   aspect = 5;
+   sigma  = 7.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1 to V1Inh" = {
+   nxp = 15;
+   nyp = 15;
+   strength = 10;
+
+   delay = 5.0;
+   
+   aspect = 5;
+   sigma  = 7.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1Inh to V1" = {
+   nxp = 15;
+   nyp = 15;
+   strength = 20;
+
+   delay = 5.0;
+   
+   aspect = 5;
+   sigma  = 7.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};
+
+HyPerConn "V1Inh to V1Inh" = {
+   nxp = 15;
+   nyp = 15;
+   strength = 4.5;
+
+   delay = 1.0;
+   
+   aspect = 5;
+   sigma  = 7.5;
+   lambda = 100.0;
+   rMax   = 100.0;
+};

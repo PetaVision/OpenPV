@@ -1,0 +1,7 @@
+64 % NX
+64 % NY
+8 % NO
+4 % NK
+131072 % (NX*NY*NO*NK)
+22.500000 % DTH
+4000 % n_time_steps
