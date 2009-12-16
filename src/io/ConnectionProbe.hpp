@@ -27,10 +27,13 @@ public:
    static int write_patch_indices(FILE * fp, PVPatch * patch,
                                   const LayerLoc * loc, int kx0, int ky0, int kf0);
 
+   void setOutputIndices(bool flag)   {outputIndices = flag;}
+
 protected:
    FILE * fp;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
+   bool   outputIndices;
 };
 
 } // namespace PV

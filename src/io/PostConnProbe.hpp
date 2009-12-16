@@ -20,12 +20,9 @@ public:
 
    virtual int outputState(float time, HyPerConn * c);
 
-   void setOutputIndices(bool flag)   {outputIndices = flag;}
-
 protected:
    int kPost;   // index of post-synaptic neuron
    int kxPost, kyPost, kfPost;
-   bool outputIndices;
 };
 
 }

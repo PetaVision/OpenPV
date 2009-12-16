@@ -17,6 +17,7 @@ ConnectionProbe::ConnectionProbe(int kPre)
    this->kfPre = 0;
    this->kPre  = kPre;
    this->fp    = stdout;
+   this->outputIndices = false;
 }
 
 ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
@@ -26,6 +27,7 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->kfPre = kfPre;
    this->kPre  = -1;
    this->fp    = stdout;
+   this->outputIndices = false;
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
@@ -35,6 +37,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
 
    this->kPre = kPre;
    this->fp   = fopen(path, "w");
+   this->outputIndices = false;
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, int kfPre)
@@ -48,6 +51,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, in
    this->kfPre = kfPre;
    this->kPre  = -1;
 
+   this->outputIndices = false;
 }
 ConnectionProbe::~ConnectionProbe()
 {
@@ -61,17 +65,17 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    float * M = NULL;
    int kPre = this->kPre;
 
-   const PVLayer * l = c->preSynapticLayer()->clayer;
+   const PVLayer * lPre = c->preSynapticLayer()->clayer;
 
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
+   const float nx = lPre->loc.nx;
+   const float ny = lPre->loc.ny;
+   const float nf = lPre->numFeatures;
 
    // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
       kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
-      kPre = kIndexExtended(kPre, nx, ny, nf, l->loc.nPad);
+      kPre = kIndexExtended(kPre, nx, ny, nf, lPre->loc.nPad);
    }
 
    const int axonId = 0;
@@ -99,6 +103,25 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    text_write_patch(fp, w, w->data);
    fprintf(fp, "\n");
    fflush(fp);
+
+   if (outputIndices) {
+      const PVLayer * lPost = c->postSynapticLayer()->clayer;
+
+      const int xScale = lPost->xScale - lPre->xScale;
+      const int yScale = lPost->yScale - lPre->yScale;
+
+      // global non-extended post-synaptic frame but I think is
+      // local if kxPost0Left and kyPost0Left are zero.
+      //
+      float kxPost0Left = 0.0;
+      float kyPost0Left = 0.0;
+
+      float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, w->nx);
+      float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, w->ny);
+
+      write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
+      fflush(fp);
+   }
 
    return 0;
 }
