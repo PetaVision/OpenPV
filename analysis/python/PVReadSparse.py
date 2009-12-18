@@ -8,7 +8,7 @@ class PVReadSparse(object):
       
       self.open(filename)
       self.read_params()
-      self.time = 0
+      self.time = 0.0
       self.timestep = 0
    # end __init__
 
@@ -39,58 +39,54 @@ class PVReadSparse(object):
 
       self.nx,self.ny,self.nf = self.params[3:6]
       self.nxProcs,self.nyProcs = self.params[5:7]
-      #print 'nx = %d ny = %d nf = %d' % (self.nx,self.ny,self.nf)
+      print 'nx = %d ny = %d nf = %d' % (self.nx,self.ny,self.nf)
    # end read_params
 
    def rewind(self):
       """Rewind the file to the start of the data (just past metadata)"""
-      self.file.seek(4 * (self.numParams + 1))
+      self.file.seek(4 * (self.numParams ))
+      
    # end rewind
 
-   def average_rate(self,timeSteps, rateSteps,dT):
+   def average_rate(self,beginTime, endTime):
    
-      self.timeSteps = timeSteps
-      self.rateSteps = rateSteps
-      self.dT = dT    # 0.5; integration time step (miliseconds)
       self.rewind()
       average_rate = 0
-      #print 'timeSteps = %d rateSteps = %d' % (self.timeSteps,self.rateSteps)
+      print 'beginTime = %f endTime = %f' % (beginTime,endTime)
+      debug = 0
 
       # read transient time steps
-      #print 'read transient time steps'
-      while self.timestep < (self.timeSteps-self.rateSteps):
-         #k = self.next_record()
-         numItems = fromfile(self.file, 'i', 1)[0]
-         if numItems > 0:
-            #print 'timestep = %d numItems = %d: ' % (self.timestep,numItems),
-            k = fromfile(self.file, 'i', numItems)
-            #for i in range(len(k)):
-            #   print '%d ' % k[i],
-            #print '\n'
+      print 'read transient time steps'
+      while self.time < beginTime:
+         k = self.next_record()
+         if len(k) > 0:
+            if debug:
+               print 'time = %f timestep = %i numItems = %i: ' % (self.time,self.timestep,len(k)),
+               for i in range(len(k)):
+                  print '%d ' % k[i],
+               print '\n'
          else:
-            average_rate += 0
-            #print 'timestep = %d numItems = %d' % (self.timestep,numItems)
-         self.timestep += 1
+            if debug:
+               print 'time = %f timestep = %i numItems = %i' % (self.time,self.timestep,len(k))
          
-      self.timestep = 0
+         
       # read time steps used to compute rate
-      #print 'read time steps to compute rate'
-      while self.timestep < self.rateSteps:
-         #k = self.next_record()
-         numItems = fromfile(self.file, 'i', 1)[0]
-         if numItems > 0:
-            #print 'timestep = %d numItems = %d: ' % (self.timestep,numItems),
-            k = fromfile(self.file, 'i', numItems)
-            #for i in range(len(k)):
-            #   print '%d ' % k[i],
-            #print '\n'
+      print 'read time steps to compute rate'
+      while self.time < endTime:
+         k = self.next_record()
+         if len(k) > 0:
             average_rate += len(k)
+            if debug:
+               print 'time = %f timestep = %i numItems = %i: ' % (self.time,self.timestep,len(k)),
+               for i in range(len(k)):
+                  print '%d ' % k[i],
+               print '\n'
          else:
             average_rate += 0
-            #print 'timestep = %d numItems = %d' % (self.timestep,numItems)
-         self.timestep += 1
+            if debug:
+               print 'time = %f timestep = %i numItems = %i' % (self.time,self.timestep,len(k))
          
-      average_rate = (average_rate * 1000.0) / (self.timestep*self.nx*self.ny*self.nf*self.dT)
+      average_rate = (average_rate * 1000.0) / ((endTime-beginTime)*self.nx*self.ny*self.nf)
       return average_rate
 
    # end average_rate
