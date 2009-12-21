@@ -120,6 +120,7 @@ def read_histD():
     plt.title('Weight Histogram Distance')
     plt.hold(True)
     plt.draw()
+    return histD
 
 def compute_histogram(totalSteps, writeSteps, dT):
     infile = path + 'output/' + 'w0_last.pvp'
@@ -249,7 +250,13 @@ minD      = float(sys.argv[5])         # stoping condition
 print '\ntotalSteps = %d timeSteps = %s writeSteps = %s dT = %f minD = %f \n' \
      % (totalSteps,timeSteps,writeSteps,dT, minD)
 
-histD = 1000;
+
+if totalSteps == 0:
+   histD = 1000.0
+else:
+   read_histogram(totalSteps)
+   read_rate()
+   histD = read_histD()
 
 while histD > minD and totalSteps < int(timeSteps):
     
@@ -257,9 +264,6 @@ while histD > minD and totalSteps < int(timeSteps):
     if totalSteps == 0:
        modify_input(0)
     else:
-       read_histogram(totalSteps)
-       read_rate()
-       read_histD()
        modify_input(1)
 
     #time.sleep(10)
