@@ -1,10 +1,14 @@
 REQUIREMENTS:
 	Eclipse --> download at http://www.eclipse.org/
 	   the C/C++ perspective is required
-	Subclipse plug-in --> download at http://subclipse.tigris.org/
-
+	Subclipse plug-in --> download instructions at http://subclipse.tigris.org/
+	GDAL --> http://www.gdal.org/
 About:
    The PetaVision code is used to 
+   
+Install GDAL: 
+	1. Download latest stable release at http://trac.osgeo.org/gdal/wiki/DownloadSource
+	2. Install instructions at http://home.gdal.org/projects/wcts/install.html
 
 From Eclipse, use the SVN Repository Perspective and:
    1. Right click in the SVN Repositories window
