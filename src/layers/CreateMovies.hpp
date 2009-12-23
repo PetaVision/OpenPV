@@ -39,7 +39,7 @@ typedef struct CreateMovies_Params_ {
 	//moving patterns
 	int isshiftx;
 	int isshifty;
-	float isrotate;
+	int isrotate;
 
 }CreateMovies_Params;
 
@@ -56,6 +56,9 @@ public:
 	virtual int Rotate(const float DAngle, const int centerx = 0, const int centery = 0);
 	virtual int Shift(const int Dx,const int Dy = 0)  {return Transform(0,Dx,Dy);}
 	virtual int Transform(const float DAngle,const int Dx=0,const int Dy=0);
+
+	float getLastDisplayTime(){return lastDisplayTime;}
+	float getNextDisplayTime(){return nextDisplayTime;}
 
 	virtual bool updateImage(float time, float dt);
 	virtual bool CreateImages();

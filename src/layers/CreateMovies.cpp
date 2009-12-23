@@ -233,82 +233,92 @@ bool CreateMovies::updateImage(float time, float dt){
 	return true;
 }
 
+
+
 bool CreateMovies::CreateImages(){
 
-	CreateMovies_Params *param = (CreateMovies_Params *)CMParams;
+   //CreateMovies_Params *param = (CreateMovies_Params *)CMParams;
 
-	int isshiftx = param->isshiftx;
-	int isshifty = param->isshifty;
-	int isrotate = param->isrotate;
+   int isshiftx = CMParams->isshiftx;
+   int isshifty = CMParams->isshifty;
+   int isrotate = CMParams->isrotate;
+   int flag;
 
-	/*Transform(param->vr,param->vx,param->vy);*/
-	// Create different pattern image sequences
-	while(1){
-	int flag = 0;
-	if (isshiftx != 0){
-		if (isshiftx<0)
-			Transform(0,param->vx,0);
-		else{
-			flag = flagx % (int)isshiftx;
-			if (flag != 0){
-				Transform(0,param->vx,0);
-				flagy = 0;
-				flagr = 0;
-				flagx++;
-			}
-			else{
-				flagx = 0;
-				flagy = 1;
-				flagr = 1;
-			}
-			break;
-		}
-	}
+   // Create different pattern image sequences
+   while(1){
 
-	if (isshifty != 0){
-		if (isshifty<0)
-			Transform(0,0,param->vy);
-		else{
-			flag = flagy % (int)isshifty;
-			if (flag != 0){
-				Transform(0,0,param->vy);
-				flagx = 0;
-				flagr = 0;
-				flagy++;
-			}
-			else{
-				flagx = 1;
-				flagy = 0;
-				flagr = 1;
-			}
-			break;
-		}
+   if (isshiftx != 0 && flagx != 0){
+        if (isshiftx<0)
+                Transform(0,CMParams->vx,0);
+        else{
+             flag = flagx % (isshiftx+1);
+             if (flag != 0){
+                     Transform(0,CMParams->vx,0);
+                     flagy = 0;
+                     flagr = 0;
+                     flagx++;
+                     break;
+             }
+             else{
+                     flagx = 0;
+                     flagy = 1;
+                     flagr = 1;
+                     continue;
+             }
 
-	}
+        }
+        break;
+   }
 
-	if (isrotate != 0){
-		if (isrotate<0)
-			Transform(param->vr,0,0);
-		else{
-			flag = flagr % (int)isrotate;
-			if (flag != 0){
-				Transform(param->vr,0,0);
-				flagx = 0;
-				flagy = 0;
-				flagr++;
-			}
-			else{
-				flagx = 1;
-				flagy = 1;
-				flagr = 0;
-			}
-			break;
-		}
-	}
+   if (isshifty != 0 && flagy != 0){
+        if (isshifty<0)
+                Transform(0,0,CMParams->vy);
+        else{
+                flag = flagy % (isshifty+1);
+                if (flag != 0){
+                        Transform(0,0,CMParams->vy);
+                        flagx = 0;
+                        flagr = 0;
+                        flagy++;
+                        break;
+                }
+                else{
+                        flagx = 1;
+                        flagy = 0;
+                        flagr = 1;
+                        continue;
+                }
 
-	break;
-	}//while
-	return true;
+        }
+        break;
+   }
+
+   if (isrotate != 0 && flagr != 0){
+        if (isrotate<0)
+                Transform(CMParams->vr,0,0);
+        else{
+                flag = flagr % (isrotate+1);
+                if (flag != 0){
+                        Transform(CMParams->vr,0,0);
+                        flagx = 0;
+                        flagy = 0;
+                        flagr++;
+                        break;
+                }
+                else{
+                        flagx = 1;
+                        flagy = 1;
+                        flagr = 0;
+                        continue;
+                }
+
+        }
+        break;
+   }
+
+   break;
+   }//while
+   return true;
 }
 
 }//namespace PV
