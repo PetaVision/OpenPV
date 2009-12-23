@@ -40,7 +40,7 @@ int pvlayer_init(PVLayer * l, int xScale, int yScale,
    l->loc.ny = ny;
 
    l->loc.nPad   = nBorder;
-   l->loc.nBands = 1;
+   l->loc.nBands = numFeatures;
 
    l->xScale = xScale;
    l->yScale = yScale;
