@@ -51,42 +51,42 @@ int LinearActivityProbe::outputState(float time, PVLayer * l)
 
    float * activity = l->activity->data;
 
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nf = l->numFeatures;
 
-   const float marginWidth = l->loc.nPad;
+   const int marginWidth = l->loc.nPad;
 
    float dt = parent->getDeltaTime();
 
+   double sum = 0.0;
+   float freq;
+
    if (dim == DimX) {
       width = nx + 2*marginWidth;
-      k = kIndex(0, linePos, f, nx, ny, nf);
+      line = l->activity->data + (linePos+marginWidth) * width * nf;
       sLine = nf;
    }
    else {
       width = ny + 2*marginWidth;
-      k = kIndex(linePos, 0, f, nx, ny, nf);
+      line = l->activity->data + (linePos+marginWidth)*nf;
       sLine = nf * (nx + 2*marginWidth);
-   }
-   kex = kIndexExtended(k, nx, ny, nf, marginWidth) - marginWidth;  // shift so as to display margins
-   line = l->activity->data + kex;
 
-   double sum = 0.0;
+   }
+
    for (int k = 0; k < width; k++) {
-      float a = line[f + k * sLine];
-      sum += a;
+     float a = line[f + k * sLine];
+     sum += a;
    }
 
-   float freq = sum / (width * dt * 0.001);
+   freq = sum / (width * dt * 0.001);
    fprintf(fp, "t=%6.1f sum=%3d f=%6.1f Hz :", time, (int)sum, freq);
 
    for (int k = 0; k < width; k++) {
-      float a = line[f + k * sLine];
-      if (a > 0.0) fprintf(fp, "*");
-      else         fprintf(fp, " ");
+     float a = line[f + k * sLine];
+     if (a > 0.0) fprintf(fp, "*");
+     else         fprintf(fp, " ");
    }
-
    fprintf(fp, ":\n");
    fflush(fp);
 
