@@ -190,7 +190,7 @@ int Retina::copyFromImageBuffer()
          V[k] = V[k] / vmax;
       }
    }
-   
+
    //
    // otherwise handle OFF/ON cells
 
@@ -315,7 +315,7 @@ int Retina::writeState(const char * path, float time)
  * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
  * REMARKS:
  *      - During ABS_REFACTORY_PERIOD does not spike
- *      - The neurons that correspond to stimuly (on Image pixels)
+ *      - The neurons that correspond to stimuli (on Image pixels)
  *       spike with probability probStim.
  *      - The neurons that correspond to background image pixels
  *      spike with probability probBase.
@@ -325,7 +325,7 @@ int Retina::writeState(const char * path, float time)
  *        T = 1000/burstFrq in miliseconds
  *      - When the time t is such that mT < t < mT + burstDuration, where m is
  *      an integer, the burstStatus is set to 1.
- *      - The burstStatus is also condition by the condition that
+ *      - The burstStatus is also set by the condition that
  *      beginStim < t < endStim. These parameters are set in the input
  *      params file params.stdp
  *      - sinAmp modulates the spiking probability only when burstDuration <= 0
