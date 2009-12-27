@@ -39,7 +39,7 @@ public:
    int toGrayScale();
    static int convertToGrayScale(LayerLoc * loc, unsigned char * buf);
 
-   int  convolution();
+   int  convolve(int width);
    void setTau(int t)             { tau = t; }
 
 protected:
