@@ -237,11 +237,13 @@ int Image::toGrayScale()
             val += d*d;
 //            val += d;
          }
+         // store the converted image in the first color band
          data[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
 //         data[i*sx + j*sy + 0*sb] = val/numBands;
       }
    }
 
+   // turn off the color
    loc.nBands = 1;
 
    return 0;
@@ -267,74 +269,70 @@ int Image::convertToGrayScale(LayerLoc * loc, unsigned char * buf)
             float d = buf[i*sx + j*sy + b*sb];
             val += d*d;
          }
+         // store the converted image in the first color band
          buf[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
       }
    }
 
+   // turn off the color
    loc->nBands = 1;
 
    return 0;
 }
 
-int Image::convolution()
+int Image::convolve(int width)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
-   const int numBands = loc.nBands;
+   const int nx_ex = loc.nx + 2*loc.nPad;
+   const int ny_ex = loc.ny + 2*loc.nPad;
+   const int nb = loc.nBands;
 
+   const int size_ex = nx_ex * ny_ex;
+
+   // an image is different from normal layers as features (bands) vary last
    const int sx = 1;
-   const int sy = nx;
-   const int sb = nx * ny;
+   const int sy = nx_ex;
+   const int sb = nx_ex * ny_ex;
 
-   for (int j = 0; j < ny; j++) {
-      for (int i = 0; i < nx; i++) {
-         float val = 0;
-         for (int b = 0; b < numBands; b++) {
-            float d = data[i*sx + j*sy + b*sb];
-//            val += d*d;
-            val += d;
-         }
-//         data[i*sx + j*sy + 0*sb] = sqrt(val)/numBands;
-         data[i*sx + j*sy + 0*sb] = val/numBands;
-      }
-   }
+   const int npx = width;
+   const int npy = width;
+   const int npx_2 = width/2;
+   const int npy_2 = width/2;
 
-   loc.nBands = 1;
+   assert(npx <= loc.nPad);
+   assert(npy <= loc.nPad);
 
-   const int nPad = 15;
-   const int nPad_2 = nPad/2;
-
-   float * buf = new float[nx*ny];
-   for (int i = 0; i < nx*ny; i++) buf[i] = 0;
+   float * buf = new float[size_ex];
+   //for (int i = 0; i < size_ex; i++) buf[i] = 0;
 
    float max = -1.0e9;
    float min = -max;
 
-   for (int j = nPad_2; j < ny-nPad_2; j++) {
-      for (int i = nPad_2; i < nx-nPad_2; i++) {
+   // ignore image bands for now
+   for (int jex = npy_2; jex < ny_ex - npy_2; jex++) {
+      for (int iex = npx_2; iex < nx_ex - npx_2; iex++) {
          float av = 0;
          float sq = 0;
-         for (int kj = 0; kj < nPad; kj++) {
-            for (int ki = 0; ki < nPad; ki++) {
-               int ix = i + ki - nPad_2;
-               int iy = j + kj - nPad_2;
-               float val = data[ix*sx + iy*sy];
-               av += val;
-               sq += val * val;
+         for (int jp = 0; jp < npy; jp++) {
+            for (int ip = 0; ip < npx; ip++) {
+   //            int ix = i + ip - npx_2;
+   //            int iy = j + jp - npy_2;
+   //            float val = data[ix*sx + iy*sy];
+   //            av += val;
+   //            sq += val * val;
             }
          }
-         av = av / (nPad*nPad);
-         if (av < min) min = av;
-         if (av > max) max = av;
-         sq  = sqrt( sq/(nPad*nPad) - av*av ) + tau;
+         av = av / (npx*npy);
+         min = (av < min) ? av : min;
+         max = (av > max) ? av : max;
+//         sq  = sqrt( sq/(nPad*nPad) - av*av ) + tau;
 //         buf[i*sx + j*sy] = data[i*sx + j*sy] + mid - av;
-         buf[i*sx + j*sy] = .95*255 * (data[i*sx + j*sy] - .95*av) / sq;
+         buf[iex*sx + jex*sy] = .95*255 * (data[iex*sx + jex*sy] - .95*av) / sq;
       }
    }
 
    printf("min==%f max==%f\n", min, max);
 
-   for (int i = 0; i < nx*ny; i++) data[i] = buf[i];
+   for (int k = 0; k < size_ex; k++) data[k] = buf[k];
 
    return 0;
 }
