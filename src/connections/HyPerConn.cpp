@@ -260,16 +260,14 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
 }
 
-int HyPerConn::checkWeightsHeader(const char * filename, int numParamsFile, int nxpFile,
-      int nypFile, int nfpFile)
+int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 {
-   const int numWeightHeaderParams = NUM_WEIGHT_PARAMS;
-   if (numWeightHeaderParams != numParamsFile) {
-      fprintf(
-            stderr,
-            "numWeightHeaderParams = %i in HyPerConn %s, using numParamsFile = %i in binary file %s\n",
-            numWeightHeaderParams, name, numParamsFile, filename);
-   }
+   // extra weight parameters
+   //
+   const int nxpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NXP];
+   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
+   const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
+
    if (nxp != nxpFile) {
       fprintf(stderr,
       "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n", nxp, name,
@@ -352,62 +350,6 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
       fprintf(stderr, "SHUTTING DOWN");
       exit(1);
    }
-
-#ifdef DONT_COMPILE
-   FILE * fp;
-   int numParamsFile;
-   int fileType, nxpFile, nypFile, nfpFile;
-
-   fp = pv_open_binary(filename, &numParamsFile, &fileType, &nxpFile, &nypFile, &nfpFile);
-   if (fp == NULL) {
-      return NULL;
-   }
-   checkWeightsHeader(filename, numParamsFile, nxpFile, nypFile, nfpFile);
-
-   //   int append = 0; // only write one time step
-   int status = 0;
-
-   // header information
-   const int numWeightHeaderParams = NUM_WEIGHT_PARAMS;
-   int params[numWeightHeaderParams];
-   float minVal, maxVal;
-   int numPatchesFile;
-
-   pv_read_binary_params(fp, numParamsFile, params);
-
-   if (numParamsFile >= (MIN_BIN_PARAMS + 1)) {
-      minVal = params[MIN_BIN_PARAMS + 0];
-   }
-   else {
-      minVal = 0;
-   }
-
-   if (numParamsFile >= (MIN_BIN_PARAMS + 2)) {
-      maxVal = params[MIN_BIN_PARAMS + 1];
-   }
-   else {
-      maxVal = 1.0;
-   }
-
-   // numPatches should equal numDataPatches should equal numPatchesFile (if present)
-   if (numParamsFile >= (MIN_BIN_PARAMS + 3)) {
-      numPatchesFile = params[MIN_BIN_PARAMS + 2];
-   }
-   else {
-      const int arbor = 0;
-      numPatchesFile = numDataPatches(arbor);
-   }
-   if (numPatchesFile != numPatches) {
-      fprintf(
-            stderr,
-            "ignoring numPatches = %i in HyPerCol %s, using numPatchesFile = %i in binary file %s\n",
-            numPatches, name, numPatchesFile, filename);
-      nxp = nxpFile;
-   }
-
-   status = pv_read_patches(fp, nfp, minVal, maxVal, numPatchesFile, patches);
-   pv_close_binary(fp);
-#endif
 
    return patches;
 }
@@ -1501,13 +1443,21 @@ int HyPerConn::setPatchSize(const char * filename)
 
    // use patch dimensions from file if (filename != NULL)
    if (filename != NULL) {
-      FILE * fp;
-      int numParamsFile;
-      int nxpFile, nypFile, nfpFile;
-      int fileType;
+      int filetype;
+      int datatype;
+      double time = 0.0;
+      const LayerLoc loc = this->pre->clayer->loc;
 
-      fp = pv_open_binary(filename, &numParamsFile, &fileType, &nxpFile, &nypFile, &nfpFile);
-      checkWeightsHeader(filename, numParamsFile, nxpFile, nypFile, nfpFile);
+      //fp = pv_open_binary(filename, &numParamsFile, &fileType, &nxpFile, &nypFile, &nfpFile);
+      int wgtParams[NUM_WGT_PARAMS];
+
+      FILE * fp = pvp_open_read_file(filename);
+
+      int numWgtParams = NUM_WGT_PARAMS;
+      pvp_read_header(fp, &time, &loc, &filetype, &datatype,
+                               wgtParams, &numWgtParams);
+
+      checkWeightsHeader(filename, wgtParams); // reconcile differences with inputParams
       pv_close_binary(fp);
    }
    return 0;
