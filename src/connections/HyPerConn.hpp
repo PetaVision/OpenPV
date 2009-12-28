@@ -156,8 +156,6 @@ protected:
    int initializeSTDP();
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
-   int checkWeightsHeader(const char * filename, int numParamsFile,
-         int nxpFile, int nypFile, int nfpFile);
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
    PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
@@ -166,6 +164,7 @@ protected:
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
+   int checkWeightsHeader(const char * filename, int * wgtParams);
 
    virtual int deleteWeights();
 
