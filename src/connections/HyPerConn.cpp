@@ -260,6 +260,14 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
 }
 
+int HyPerConn::checkPVPFileHeader(const LayerLoc * loc, int params[], int numParams)
+{
+   // use default header checker
+   //
+   return pvp_check_file_header(loc, params, numParams);
+}
+
+
 int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 {
    // extra weight parameters
@@ -270,20 +278,20 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 
    if (nxp != nxpFile) {
       fprintf(stderr,
-      "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n", nxp, name,
-            nxpFile, filename);
+              "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n",
+              nxp, name, nxpFile, filename);
       nxp = nxpFile;
    }
-   if ((nyp > 0) && (nyp != nypFile)) {
+   if (nyp != nypFile) {
       fprintf(stderr,
-      "ignoring nyp = %f in HyPerCol %s, using nyp = %i in binary file %s\n", nyp, name,
-            nypFile, filename);
+              "ignoring nyp = %f in HyPerCol %s, using nyp = %i in binary file %s\n",
+              nyp, name, nypFile, filename);
       nyp = nypFile;
    }
-   if ((nfp > 0) && (nfp != nfpFile)) {
+   if (nfp != nfpFile) {
       fprintf(stderr,
-      "ignoring nfp = %f in HyPerCol %s, using nfp = %i in binary file %s\n", nfp, name,
-            nfpFile, filename);
+              "ignoring nfp = %f in HyPerCol %s, using nfp = %i in binary file %s\n",
+              nfp, name, nfpFile, filename);
       nfp = nfpFile;
    }
    return 0;
@@ -1435,6 +1443,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 
 int HyPerConn::setPatchSize(const char * filename)
 {
+   int status = 0;
    PVParams * inputParams = parent->parameters();
 
    nxp = inputParams->value(name, "nxp", post->clayer->loc.nx);
@@ -1442,25 +1451,27 @@ int HyPerConn::setPatchSize(const char * filename)
    nfp = inputParams->value(name, "nfp", post->clayer->numFeatures);
 
    // use patch dimensions from file if (filename != NULL)
+   //
    if (filename != NULL) {
-      int filetype;
-      int datatype;
+      int filetype, datatype;
       double time = 0.0;
       const LayerLoc loc = this->pre->clayer->loc;
 
-      //fp = pv_open_binary(filename, &numParamsFile, &fileType, &nxpFile, &nypFile, &nfpFile);
       int wgtParams[NUM_WGT_PARAMS];
-
-      FILE * fp = pvp_open_read_file(filename);
-
       int numWgtParams = NUM_WGT_PARAMS;
-      pvp_read_header(fp, &time, &loc, &filetype, &datatype,
-                               wgtParams, &numWgtParams);
 
-      checkWeightsHeader(filename, wgtParams); // reconcile differences with inputParams
-      pv_close_binary(fp);
+      Communicator * comm = parent->icCommunicator();
+
+      status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
+      if (status < 0) return status;
+
+      status = checkPVPFileHeader(&loc, wgtParams, numWgtParams);
+      if (status < 0) return status;
+
+      // reconcile differences with inputParams
+      status = checkWeightsHeader(filename, wgtParams);
    }
-   return 0;
+   return status;
 }
 
 PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
