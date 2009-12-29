@@ -164,7 +164,9 @@ protected:
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
-   int checkWeightsHeader(const char * filename, int * wgtParams);
+
+   virtual int checkPVPFileHeader(const LayerLoc * loc, int params[], int numParams);
+   virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 
    virtual int deleteWeights();
 
