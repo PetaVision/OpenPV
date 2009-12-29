@@ -100,8 +100,8 @@ int pv_read_patches(FILE *fp, int nxp, int nyp, int nfp, float minVal, float max
 
 FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf);
 int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
-int    pv_close_binary(FILE * fd);
-size_t pv_read_binary_record(FILE * fd, pvdata_t * buf, int nItems);
+int    pv_close_binary(FILE * fp);
+size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
 
 int parse_options(int argc, char * argv[], char ** input_file,
                   char ** param_file, int * n_time_steps, int *shmem_threads);
