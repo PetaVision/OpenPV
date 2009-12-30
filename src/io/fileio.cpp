@@ -164,11 +164,6 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    int status = 0;
    const int icRank = comm->commRank();
 
-#ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif
-
    if (icRank == 0) {
        FILE * fp = pvp_open_read_file(filename);
        if (fp == NULL) return -1;
@@ -176,16 +171,12 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
        status = pvp_read_header(fp, time, filetype, datatype, params, numParams);
        pvp_close_file(fp);
        if (status != 0) return status;
+   }
 
 #ifdef PV_USE_MPI
-   status = MPI_Bcast(params, numParams, MPI_Int, 0, mpi_comm);
+   const int tag = PVP_FILE_TYPE;
+   status = MPI_Bcast(params, *numParams, MPI_INT, tag, comm->communicator());
 #endif // PV_USE_MPI
-   }
-   else {
-#ifdef PV_USE_MPI
-   status = MPI_Bcast(params, numParams, MPI_Int, 0, mpi_comm);
-#endif // PV_USE_MPI
-   }
 
    return status;
 }
@@ -299,9 +290,6 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
 #ifdef PV_USE_MPI
       const int src = 0;
-      const int tag = PVP_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
-
       MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
@@ -309,16 +297,6 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
               comm->commRank(), nx, ny, numItems);
 #endif
 #endif // PV_USE_MPI
-
-#ifdef PV_USE_MPI
-      const int dest = 0;
-      MPI_Send(cbuf, size, MPI_BYTE, dest, tag, mpi_comm);
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: write: sent to 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numItems);
-#endif
-#endif // PV_USE_MPI
-
    }
    else {
       int params[NUM_PAR_BYTE_PARAMS];
@@ -352,7 +330,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
       *time = timeFromParams(&params[INDEX_TIME]);
 
-      assert(dataSize == pv_sizeof(datatype));
+      assert(dataSize == (int) pv_sizeof(datatype));
       assert(dataType == PV_FLOAT_TYPE);
       assert(nxBlocks == comm->numCommColumns());
       assert(nyBlocks == comm->numCommRows());
@@ -360,24 +338,19 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
 #ifdef PV_USE_MPI
       int dest = -1;
-      const int tag = PVP_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
-
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++dest == 0) continue;
 
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: read: sending to %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), dest, nx, ny, nx*ny,
-                    nx*ny*comm->commSize());
+            fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
+                    comm->commRank(), dest, nx, ny, numItems);
 #endif
             long offset = headerSize + dest * recordSize;
             fseek(fp, offset, SEEK_SET);
-            numRead = fread(buf, sizeof(unsigned char), localSize, fp);
-            assert(numRead == localSize);
-            MPI_Send(sbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+            numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
+            assert(numRead == (int) localSize);
+            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
          }
       }
 #endif // PV_USE_MPI
@@ -385,7 +358,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       // get local image portion
       fseek(fp, (long) headerSize, SEEK_SET);
       numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
-      assert(numRead == localSize);
+      assert(numRead == (int) localSize);
 
       // copy from buffer communication buffer
       //
@@ -461,18 +434,17 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
 
    }
    else {
-      bool append = false;
-      FILE * fp = pvp_open_write_file(filename, append);
+      const bool append = false;
+      const int numParams = NUM_PAR_BYTE_PARAMS;
+      const int headerSize = numParams * sizeof(int);
 
-//      int params[NUM_PAR_BYTE_PARAMS];
-      int numParams = NUM_PAR_BYTE_PARAMS;
+      FILE * fp = pvp_open_write_file(filename, append);
 
       status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE,
                                 datatype, pv_sizeof(datatype), extended, contiguous, numParams);
       if (status != 0) return status;
 
       // write local image portion
-//      fseek(fp, (long) headerSize, SEEK_SET);
       size_t numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
       assert(numWrite == localSize);
 
@@ -482,17 +454,15 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: gather: receiving from %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), src, nx, ny, numTotal,
-                    numTotal*comm->commSize());
+            fprintf(stderr, "[%2d]: write: receiving from %d nx==%d ny==%d numItems==%d\n",
+                    comm->commRank(), src, nx, ny, numItems);
 #endif
-            MPI_Recv(buf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+            MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             long offset = headerSize + src * localSize;
             fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(buf, sizeof(unsigned char), numItems, fp);
-            assert(numWrite == numItems);
+            numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+            assert(numWrite == localSize);
          }
       }
 #endif // PV_USE_MPI
@@ -510,8 +480,8 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
-   const int localActive = l->numActive;
-   const unsigned int * indices = l->activeIndices;
+   int localActive = l->numActive;
+   unsigned int * indices = l->activeIndices;
 
 #ifdef PV_USE_MPI
    const int tag = PVP_ACT_FILE_TYPE;
@@ -522,11 +492,11 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 
 #ifdef PV_USE_MPI
       const int dest = icRoot;
-      MPI_Send(&localActive, 1, MPI_INTEGER, dest, tag, mpi_comm);
-      MPI_Send(indices, numActive, MPI_INTEGER, dest, tag, mpi_comm);
+      MPI_Send(&localActive, 1, MPI_INT, dest, tag, mpi_comm);
+      MPI_Send(indices, localActive, MPI_INT, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeActivity: sent to 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numActive);
+      fprintf(stderr, "[%2d]: writeActivitySparse: sent to 0, localActive==%d\n",
+              comm->commRank(), localActive);
 #endif
 #endif // PV_USE_MPI
 
@@ -543,7 +513,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       const int icSize = comm->commSize();
       unsigned int * numActive = (unsigned int *) malloc(icSize*sizeof(int));
       for (int p = 1; p < icSize; p++) {
-         MPI_Recv(&numActive[p], 1, MPI_INTEGER, p, tag, mpi_comm);
+         MPI_Recv(&numActive[p], 1, MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
          totalActive += numActive[p];
       }
 #else
@@ -579,14 +549,11 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 #ifdef PV_USE_MPI
       for (int p = 1; p < icSize; p++) {
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d xSize==%d"
-                    " ySize==%d numActive==%d total==%d\n",
-                    comm->commRank(), p, nx, ny, numActive[p], numTotal*comm->commSize());
+            fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d numActive==%d\n",
+                    comm->commRank(), p, numActive[p]);
 #endif
-            MPI_Recv(indices, numActive[p], MPI_INTEGER, p, tag, mpi_comm);
+            MPI_Recv(indices, numActive[p], MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
             if ( fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] ) return -1;
-            assert(numWrite == numActive);
-         }
       }
       free(numActive);
 #endif // PV_USE_MPI
@@ -691,8 +658,8 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       const int dest = 0;
       MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: write: sent to 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numItems);
+      fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+              comm->commRank(), nxBlocks, nyBlocks, numPatches);
 #endif
 #endif // PV_USE_MPI
 
@@ -703,6 +670,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
+      const int headerSize = numParams * sizeof(int);
 
       status = pvp_write_header(fp, comm, time, loc, PVP_WGT_FILE_TYPE,
                                 datatype, patchSize, extended, contiguous, numParams);
@@ -720,7 +688,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       numParams = NUM_WGT_EXTRA_PARAMS;
       if ( fwrite(params, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
 
-      // write local image portion
+      // write local portion
       // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
       //
       if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
@@ -731,17 +699,14 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeWeights: receiving from %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), src, nx, ny, localSize,
-                    numTotal*comm->commSize());
+            fprintf(stderr, "[%2d]: writeWeights: receiving from %d nxProcs==%d nyProcs==%d localSize==%ld\n",
+                    comm->commRank(), src, nxProcs, nyProcs, localSize);
 #endif
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             long offset = headerSize + src * localSize;
             fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(buf, sizeof(unsigned char), numItems, fp);
-            assert(numWrite == numItems);
+            if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
          }
       }
 #endif // PV_USE_MPI
