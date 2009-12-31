@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 
     Retina->setFuncs((INIT_FN) fileread_init, (UPDATE_FN) pvlayer_copyUpdate);
 
-    new PV::HyPerConn("Test Connection", hc, Retina, TLayer);
+    new PV::HyPerConn("Test Connection", hc, Retina, TLayer, CHANNEL_EXC);
 
     hc->initFinish();
 

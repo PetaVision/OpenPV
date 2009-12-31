@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
    int kg, kl, kb;
 
-   PVLayerLoc loc;
+   LayerLoc loc;
 
    float nf = 3;
 
@@ -21,14 +21,14 @@ int main(int argc, char* argv[])
    float kx0 = nb;
    float ky0 = nb;
 
-   loc.dx = 0.0;
-   loc.dy = 0.0;
    loc.nx = nx;
    loc.ny = ny;
    loc.nxGlobal = nxGlobal;
    loc.nyGlobal = nyGlobal;
    loc.kx0 = kx0;
    loc.ky0 = ky0;
+   loc.nPad = nb;
+   loc.nBands = nf;
 
    for (kl = 0; kl < nf*nxGlobal*nyGlobal; kl++) {
       kg = globalIndexFromLocal(kl, loc, nf);

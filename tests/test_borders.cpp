@@ -16,7 +16,7 @@ static int check_north_south(PVLayerCube* c, int nf, float start[]);
 int main(int argc, char * argv[])
 {
    float start[8];
-   PVLayerLoc sLoc, bLoc;
+   LayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
@@ -29,7 +29,8 @@ int main(int argc, char * argv[])
    sLoc.nxGlobal = sLoc.nyGlobal = nxS + 2*nxB;  // add borders to global
    sLoc.kx0 = sLoc.ky0 = nxB;                    // shouldn't be used
    sLoc.nx = sLoc.ny = nxS;
-   sLoc.dx = sLoc.dy = 1;
+   sLoc.nPad = nxB;
+   sLoc.nBands = nf;
 
    bLoc = sLoc;
    bLoc.nx = bLoc.ny = nxB;

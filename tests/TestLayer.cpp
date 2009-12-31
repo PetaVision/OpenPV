@@ -18,8 +18,8 @@ TestLayer::~TestLayer()
 
 int TestLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
 {
-   HyPerLayer * src = conn->preSynapticLayer();
 #ifdef DEBUG_OUTPUT
+   HyPerLayer * src = conn->preSynapticLayer();
    fprintf(stderr, "[%d]: TestLayer::recvSynapticInput: to layer %d from layer %d, cube=%p cube->data=%p\n",
            clayer->columnId, clayer->layerId, src->clayer->layerId, cube, cube->data);
    fprintf(stderr, "[%d]:      (nx,ny)=(%f,%f) (kx0,ky0)=(%f,%f) numItems=%d\n",

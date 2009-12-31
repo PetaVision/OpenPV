@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[])
 {
-   PVLayerLoc loc;
+   LayerLoc loc;
    int kl, kg;
    int kx, ky, kf, kxg, kyg, kfg;
 #ifdef FEATURES_LAST
