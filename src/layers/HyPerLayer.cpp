@@ -168,7 +168,7 @@ int HyPerLayer::initGlobal(int colId, int colRow, int colCol, int nRows, int nCo
    bool append = false;
 
    sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
-   clayer->activeFP = PV::pvp_open_write_file(filename, append);
+   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
    return pvlayer_initGlobal(clayer, colId, colRow, colCol, nRows, nCols);
 }
