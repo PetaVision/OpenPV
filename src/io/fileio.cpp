@@ -83,23 +83,32 @@ int copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int nu
    return 0;
 }
 
-FILE * pvp_open_read_file(const char * filename)
+FILE * pvp_open_read_file(const char * filename, Communicator * comm)
 {
-   return fopen(filename, "rb");
-}
-
-FILE * pvp_open_write_file(const char * filename, bool append)
-{
-   FILE * fp;
-   if (append) fp = fopen(filename, "ab");
-   else        fp = fopen(filename, "wb");
-
+   FILE * fp = NULL;
+   if (comm->commRank() == 0) {
+      fp = fopen(filename, "rb");
+   }
    return fp;
 }
 
-int pvp_close_file(FILE * fp)
+FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append)
 {
-   return fclose(fp);
+   FILE * fp = NULL;
+   if (comm->commRank() == 0) {
+      if (append) fp = fopen(filename, "ab");
+      else        fp = fopen(filename, "wb");
+   }
+   return fp;
+}
+
+int pvp_close_file(FILE * fp, Communicator * comm)
+{
+   int status = 0;
+   if (fp != NULL) {
+      status = fclose(fp);
+   }
+   return status;
 }
 
 int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams)
@@ -119,6 +128,7 @@ int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams)
    return status;
 }
 
+static
 int pvp_read_header(FILE * fp, double * time, int * filetype,
                     int * datatype, int params[], int * numParams)
 {
@@ -165,18 +175,22 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    const int icRank = comm->commRank();
 
    if (icRank == 0) {
-       FILE * fp = pvp_open_read_file(filename);
+       FILE * fp = pvp_open_read_file(filename, comm);
        if (fp == NULL) return -1;
 
        status = pvp_read_header(fp, time, filetype, datatype, params, numParams);
-       pvp_close_file(fp);
+       pvp_close_file(fp, comm);
        if (status != 0) return status;
    }
 
 #ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
-   status = MPI_Bcast(params, *numParams, MPI_INT, tag, comm->communicator());
+   const int icRoot = 0;
+   status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
 #endif // PV_USE_MPI
+
+   *filetype = params[INDEX_FILE_TYPE];
+   *datatype = params[INDEX_DATA_TYPE];
+   *time = timeFromParams(&params[INDEX_TIME]);
 
    return status;
 }
@@ -187,6 +201,8 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc
    int status = 0;
    int nxBlocks, nyBlocks;
    int params[NUM_BIN_PARAMS];
+
+   if (comm->commRank() != 0) return status;
 
    const int headerSize = numParams * sizeof(int);
 
@@ -208,7 +224,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc
       nyBlocks = nyProcs;
    }
 
-   const size_t localSize  = numItems * subRecordSize;
+   const int localSize = numItems * subRecordSize;
    const size_t globalSize = localSize * nxBlocks * nyBlocks;
 
    // make sure we don't blow out size of int for record size
@@ -221,7 +237,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc
    params[INDEX_NY]          = loc->ny;
    params[INDEX_NF]          = loc->nBands;
    params[INDEX_NUM_RECORDS] = nxBlocks * nyBlocks;  // one record could be one node or all nodes
-   params[INDEX_RECORD_SIZE] = (unsigned int) globalSize;
+   params[INDEX_RECORD_SIZE] = localSize;
    params[INDEX_DATA_SIZE]   = pv_sizeof(datatype);
    params[INDEX_DATA_TYPE]   = datatype;
    params[INDEX_NX_PROCS]    = nxBlocks;
@@ -368,7 +384,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       }
 
       free(cbuf);
-      status = pvp_close_file(fp);
+      status = pvp_close_file(fp, comm);
    }
 
    return status;
@@ -438,7 +454,7 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
       const int numParams = NUM_PAR_BYTE_PARAMS;
       const int headerSize = numParams * sizeof(int);
 
-      FILE * fp = pvp_open_write_file(filename, append);
+      FILE * fp = pvp_open_write_file(filename, comm, append);
 
       status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE,
                                 datatype, pv_sizeof(datatype), extended, contiguous, numParams);
@@ -468,7 +484,7 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
 #endif // PV_USE_MPI
 
       free(cbuf);
-      status = pvp_close_file(fp);
+      status = pvp_close_file(fp, comm);
    }
 
    return status;
@@ -569,7 +585,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    int filetype, datatype, numParams;
    int params[NUM_WGT_PARAMS];
 
-   FILE * fp = pvp_open_read_file(filename);
+   FILE * fp = pvp_open_read_file(filename, comm);
    if (fp == NULL) {
       fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
       return -1;
@@ -595,7 +611,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    assert(numPatches = wgtParams[INDEX_WGT_NUMPATCHES]);
 
    status = pv_read_patches(fp, nxp, nyp, nfp, minVal, maxVal, numPatches, patches);
-   pvp_close_file(fp);
+   pvp_close_file(fp, comm);
 
    return status;
 }
@@ -665,7 +681,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
    }
    else {
-      FILE * fp = pvp_open_write_file(filename, append);
+      FILE * fp = pvp_open_write_file(filename, comm, append);
 
       int params[NUM_WGT_EXTRA_PARAMS];
 
@@ -712,7 +728,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 #endif // PV_USE_MPI
 
       free(cbuf);
-      status = pvp_close_file(fp);
+      status = pvp_close_file(fp, comm);
    }
 
    return status;
