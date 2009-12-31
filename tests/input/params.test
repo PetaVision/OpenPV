@@ -1,0 +1,48 @@
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerCol "Image" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "Test Retina" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+HyPerLayer "Test Example" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+HyPerLayer "Test Layer" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+HyPerLayer "Test Borders" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+HyPerConn "Test Connection" = {
+   nxp = 4;
+   nyp = 4;
+   delay = 0;
+
+   r2 = 12;
+   sigma = 2;
+   aspect = 4;
+   gaussWeightScale = 1.0;
+};
