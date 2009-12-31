@@ -14,7 +14,9 @@
 
 namespace PV {
 
-FILE * pvp_open_write_file(const char * filename, bool append);
+FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
+
+int pvp_close_file(FILE * fp, Communicator * comm);
 
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams);
