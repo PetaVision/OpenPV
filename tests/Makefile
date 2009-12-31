@@ -1,26 +1,28 @@
 SRCDIR = ../src
 BUILDDIR = build
+GDALDIR = /usr/local
+LIBPV = ../lib/libpv.a
 
-INPARAMS = input/inparams.txt
+INPARAMS = input/params.test
 
 CPP = mpic++
 CC  = mpicc
 #CPP = c++
 #CC  = cc
 
-#MPI_DIR = ../src/arch/mpi
-#MPI_INC = -I$(MPI_DIR)
-#MPI_OBJ = $(MPI_DIR)/mpi.o
+CFLAGS = -g -std=c99 -Wall -I../src
+CPPFLAGS = -g -Wall -I../src
 
-CFLAGS = -g -std=c99 -Wall $(MPI_INC)
-CPPFLAGS = -g -Wall $(MPI_INC)
-
-LIBS = ../src/build/libpv.a
+LIBS = $(LIBPV) -L$(GDALDIR)/lib -lgdal
 
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
-        test_patch_head test_delta test_sign test_decode_msg \
-        test_borders test_datatypes test_gs_io test_layer_direct
+        test_patch_head test_delta test_sign test_borders \
+        test_datatypes test_layer_direct
+
+MPI_TESTS = test_read_header test_gs_io
+
+DEPRECATED_TESTS = test_decode_msg 
 
 .SUFFIXES: .cpp .c .o
 
@@ -42,56 +44,73 @@ $(BUILDDIR)/%.o: %.c
 	@echo 'Finished building: $<'
 	@echo ' '
 
-all: make-in-subdirs $(TESTS)
+all: make-in-subdirs $(TESTS) $(MPI_TESTS)
 
-test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(LIBS)
+test_read_header: $(BUILDDIR)/test_read_header.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(PVLIB)
 	$(CPP) -o $@ $< $(BUILDDIR)/TestLayer.o $(LIBS)
 
-test_gs_io: $(BUILDDIR)/test_gs_io.o $(LIBS)
+test_gs_io: $(BUILDDIR)/test_gs_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_kg: $(BUILDDIR)/test_kg.o $(LIBS)
+test_kg: $(BUILDDIR)/test_kg.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_kxpos: $(BUILDDIR)/test_kxpos.o $(LIBS)
+test_kxpos: $(BUILDDIR)/test_kxpos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_kypos: $(BUILDDIR)/test_kypos.o $(LIBS)
+test_kypos: $(BUILDDIR)/test_kypos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o  $(LIBS)
+test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o  $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(LIBS)
+test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_pos: $(BUILDDIR)/test_pos.o $(LIBS)
+test_pos: $(BUILDDIR)/test_pos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(LIBS)
+test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_extend_border: $(BUILDDIR)/test_extend_border.o $(LIBS)
+test_extend_border: $(BUILDDIR)/test_extend_border.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_borders: $(BUILDDIR)/test_borders.o $(LIBS)
+test_borders: $(BUILDDIR)/test_borders.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_datatypes: $(BUILDDIR)/test_datatypes.o $(LIBS)
+test_datatypes: $(BUILDDIR)/test_datatypes.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_patch_head: $(BUILDDIR)/test_patch_head.o $(LIBS)
+test_patch_head: $(BUILDDIR)/test_patch_head.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_delta: $(BUILDDIR)/test_delta.o $(LIBS)
+test_delta: $(BUILDDIR)/test_delta.o $(PVLIB)
 	$(CC) -o $@ $<
 
-test_sign: $(BUILDDIR)/test_sign.o $(LIBS)
+test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 	$(CC) -o $@ $<
+
+runMPItests: make-in-subdirs $(MPI_TESTS)
+	@rm -rf output/*.pvp
+	@echo "Running test_read_header with 1 node ..."
+	@test_read_header -n 1 -p $(INPARAMS)
+	@echo "Running test_read_header with 2 nodes ..."
+	@mpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
+	@echo "Running test_read_header with 4 nodes ..."
+	@mpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
+#	@echo "Running test_gs_io with 1 node ..."
+#	@test_gs_io -i 1 -p $(INPARAMS)
+#	@echo "Running test_gs_io with 2 nodes ..."
+#	@mpirun -np 2 test_gs_io -i 1 -p $(INPARAMS)
+#	@echo "Running test_gs_io with 4 nodes ..."
+#	@mpirun -np 4 test_gs_io -i 1 -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
-	@rm -rf output
-	@mkdir output
+	@rm -rf output/*.pvp
 	@echo "Running test_kg ..."
 	@test_kg
 	@echo "Running test_kxpos ..."
@@ -114,12 +133,6 @@ runtests: make-in-subdirs $(TESTS)
 	@test_decode_msg
 	@echo "Running test_borders ..."
 	@test_borders -i 1 -p $(INPARAMS)
-	@echo "Running test_gs_io with 1 node ..."
-	@test_gs_io -i 1 -p $(INPARAMS)
-	@echo "Running test_gs_io with 2 nodes ..."
-	@mpirun -np 2 test_gs_io -i 1 -p $(INPARAMS)
-	@echo "Running test_gs_io with 4 nodes ..."
-	@mpirun -np 4 test_gs_io -i 1 -p $(INPARAMS)
 	@echo "Running test_layer_direct with 1 node ..."
 	@test_layer_direct -i 1 -p $(INPARAMS)
 
@@ -132,7 +145,8 @@ make-in-subdirs: force
 	done
 
 clean: clean-in-subdirs
-	rm -f $(TESTS) *.o *.bin
+	rm -f *.o *.bin output/*.pvp
+	rm -f $(TESTS) $(MPI_TESTS) *.o *.bin output/*.pvp
 	rm -f $(BUILDDIR)/*.o
 
 cleanall: clean
