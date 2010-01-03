@@ -27,8 +27,8 @@
 int createTestFile(const char* filename, int count, float* buf);
 int testOutput(const char* filename, PV::HyPerLayer* l, float* inBuf, float* outBuf);
 
-const char filename[] = "test_layer_direct.bin";
-const char outfile[]  = "test_layer_direct_out.bin";
+const char filename[] = "output/test_layer_direct.bin";
+const char outfile[]  = "output/test_layer_direct_out.bin";
 
 int main(int argc, char* argv[])
 {
