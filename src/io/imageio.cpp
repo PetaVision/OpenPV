@@ -65,13 +65,12 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, LayerLoc * l
    // LayerLoc should contain 8 ints
    assert(locSize == 8);
 
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-
    const int icCol = comm->commColumn();
    const int icRow = comm->commRow();
 
 #ifdef DEBUG_OUTPUT
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
    fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
 #endif
@@ -265,6 +264,8 @@ int gatherImageFilePVP(const char * filename,
 
 #ifdef PV_USE_MPI
       int src = -1;
+      unsigned char * tmp = (unsigned char *) malloc(numItems * sizeof(unsigned char));
+      assert(tmp != NULL);
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
@@ -274,14 +275,15 @@ int gatherImageFilePVP(const char * filename,
                     comm->commRank(), src, nx, ny, numTotal,
                     numTotal*comm->commSize());
 #endif
-            MPI_Recv(buf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+            MPI_Recv(tmp, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             long offset = headerSize + src * recordSize;
             fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(buf, sizeof(unsigned char), numItems, fp);
+            numWrite = fwrite(tmp, sizeof(unsigned char), numItems, fp);
             assert(numWrite == numItems);
          }
       }
+      free(tmp);
 #endif // PV_USE_MPI
 
       status = fclose(fp);
@@ -311,7 +313,6 @@ int gatherImageFileGDAL(const char * filename,
 
 #ifdef PV_USE_MPI
    const int tag = 14;
-   const int numTotal = nxny * numBands;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
@@ -320,11 +321,11 @@ int gatherImageFileGDAL(const char * filename,
       const int dest = 0;
 
       for (int b = 0; b < numBands; b++) {
-         MPI_Send(&buf[b*nxny], nx*ny, MPI_BYTE, dest, tag, mpi_comm);
+         MPI_Send(&buf[b*nxny], nxny, MPI_BYTE, dest, tag, mpi_comm);
       }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, nx*ny);
+              comm->commRank(), nx, ny, nxny);
 #endif
 #endif // PV_USE_MPI
    }
@@ -367,6 +368,8 @@ int gatherImageFileGDAL(const char * filename,
 
 #ifdef PV_USE_MPI
       int src = -1;
+      unsigned char * tmp = (unsigned char *) malloc(nxny * sizeof(unsigned char));
+      assert(tmp != NULL);
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
@@ -375,16 +378,17 @@ int gatherImageFileGDAL(const char * filename,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: gather: receiving from %d xSize==%d"
                     " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), src, nx, ny, numTotal,
+                    comm->commRank(), src, nx, ny, nxny*numBands,
                     numTotal*comm->commSize());
 #endif
             for (int b = 0; b < numBands; b++) {
-               MPI_Recv(&buf[b*nxny], numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+               MPI_Recv(tmp, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
                band[b]->RasterIO(GF_Write, kx, ky, nx, ny,
-                                 &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
+                                 tmp, nx, ny, GDT_Byte, 0, 0);
             }
          }
       }
+      free(tmp);
 #endif // PV_USE_MPI
       GDALClose(dataset);
    }
