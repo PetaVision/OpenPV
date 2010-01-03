@@ -21,13 +21,15 @@ plotTarget = 0;
 
 %figure('Name','Weights Fields');
 
-debug = 0;
+debug = 1;
 weightsChange = 0;
 numRecords = 0;  % number of weights records (configurations)
 
 if exist(filename,'file')
     
     W_array = [];
+    
+    fprintf('read weights from file %s\n',filename);
     
     fid = fopen(filename, 'r', 'native');
 
@@ -61,8 +63,8 @@ if exist(filename,'file')
                       
     avWeights = [];  % time averaged weights array
     
-    % Think of NXP and NYP as defining the size of the neuron's
-    % receptive field that receives spikes from the retina.
+    % Think of NXP and NYP as defining the size of the receptive field 
+    % of the neuron that receives spikes from the retina.
     % NOTE: The file may have the full header written before each record,
     % or only a time stamp
     
@@ -106,13 +108,13 @@ if exist(filename,'file')
                     
                     w = fread(fid, nItems, 'uchar'); % unsigned char
                     % scale weights: they are quantized before written
-                    %w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
                     if debug 
                         for r=1:patch_size
                             fprintf('%d ',w(r));
                         end
                         fprintf('\n');
-                        %pause
+                        pause
                     end
                     if(~isempty(w) & nItems ~= 0)
                         W_array(k,:) = w(1:patch_size);
@@ -192,7 +194,7 @@ if exist(filename,'file')
                 avWeights = avWeights + A;
             end
         end   
-        %pause % after reading one set of weights
+        pause % after reading one set of weights
     end % reading from weights file
     
     fclose(fid);
@@ -220,7 +222,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     fprintf('read first header\n');
-    head = fread(fid,3,'int');
+    head = fread(fid,3,'int')
     if head(3) ~= 3
        disp('incorrect file type')
        return
@@ -250,13 +252,16 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
-    %pause
+    pause
     
 % End subfunction 
 %
     
     
-function [time,varargout] = readHeader(fid,numParams,numWgtParams)
+%function [time,varargout] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
+
+
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     
@@ -282,12 +287,12 @@ if ~feof(fid)
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
 
-        varargout{1} = numPatches;
-        varargout{2} = NXP;
-        varargout{3} = NYP;
-        varargout{4} = NFP;
-        varargout{5} = minVal;
-        varargout{6} = maxVal;
+        %varargout{1} = numPatches;
+        %varargout{2} = NXP;
+        %varargout{3} = NYP;
+        %varargout{4} = NFP;
+        %varargout{5} = minVal;
+        %varargout{6} = maxVal;
         %pause
     else
        disp('eof found: return'); 
