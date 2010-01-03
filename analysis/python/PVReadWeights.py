@@ -13,7 +13,8 @@ class PVReadWeights(object):
       self.ny = 0
       self.nf = 0
       self.numItems = 0
-
+      self.numWgtParams = 6
+      print 'open ' + filename
       self.open(filename)
       self.read_params()
 
@@ -34,7 +35,9 @@ class PVReadWeights(object):
       bytes = self.next_patch_bytes()
 
       w = zeros(len(bytes), dtype=float) + bytes/255.
-      w = self.min + (self.max - self.min) * w      
+      w = self.min + (self.max - self.min) * w   
+
+      self.patch += 1   
 
       return w
    # end next
@@ -54,13 +57,15 @@ class PVReadWeights(object):
 
    def read_params(self):
       """Read the file metadata parameters"""
+      #print 'read file header'
 
       head = fromfile(self.file, 'i', 3)
-      if head[2] != 3:
-         print "Incorrect file type"
+      #print str(head[0]) + ' ' + str(head[1]) + ' ' + str(head[2])
+      if head[2] != 3:  
+         print 'Incorrect file type ' + str(head[2])
          return
 
-      numWgtParams = 6
+      # self.numWgtParams = 6
 
       self.headerSize = head[0]
       self.numParams  = head[1] - 8  # 6 + two for time (a double)
@@ -82,17 +87,76 @@ class PVReadWeights(object):
 
       self.time = fromfile(self.file, 'd', 1)
 
-      self.wgtParams = fromfile(self.file, 'i', numWgtParams)
+      self.wgtParams = fromfile(self.file, 'i', self.numWgtParams)
 
       self.nxp,self.nyp,self.nfp = self.wgtParams[0:3]
       self.min,self.max = self.wgtParams[3:5]
       self.numPatches = self.wgtParams[5]
+
+      # define the numWeights
+      self.patchSize = self.nxp * self.nyp * self.nfp
+      self.numWeights = self.numPatches * self.patchSize
+
+      #print 'finish reading file header'
    # end read_params
 
+   def print_params(self):
+      """Print the file metadata parameters"""
+
+      print "numParams = %i" % (self.params[1]-8)  
+      print "nx = %i ny = %i nf = %i" \
+          % (self.params[3],self.params[4],self.params[5])
+      print "numRecords = %i" % self.params[8]
+      print "recSize = %i" %self.params[9]
+      print "nPad = %i" % self.params[16]
+      print "nf = %i " % self.params[17]
+      print "time = %f" % self.time 
+      print "nxp = %i nyp = %i nfp= %i" \
+         % (self.wgtParams[0],self.wgtParams[1],self.wgtParams[2])
+      print "min = %i max = %i" % (self.wgtParams[3],self.wgtParams[4])
+      print "numPatches = %i" % self.wgtParams[5]
+   # end print_params
+
+   def print_params_old(self):
+      """Print the file metadata parameters"""
+
+      print "numParams = %i" % self.numParams  
+      print "nx = %i ny = %i nf = %i" % (self.nx,self.ny,self.nf)
+      print "numRecords = %i" % self.numRecords
+      print "recSize = %i" %self.recSize
+      print "nPad = %i" % self.nPad 
+      print "nf = %i " % self.nf 
+      print "time = %d" % self.time 
+      print "nxp = %i nyp = %i nfp= %i" % (self.nxp,self.nyp,self.nfp)
+      print "min = %i max = %i" % (self.min,self.max)
+      print "numPatches = %i" % self.numPatches
+   # end print_params
+
+
+   def read_header(self):
+      """Read the header of each record"""
+
+      self.params = fromfile(self.file, 'i', self.numParams)
+
+      self.time = fromfile(self.file, 'd', 1)
+
+      self.wgtParams = fromfile(self.file, 'i', self.numWgtParams)
+
+      self.patch = 0
+
+   # end read_header
+
+ 
    def rewind(self):
       """Rewind the file to the start of the data (just past metadata)"""
       self.file.seek(self.headerSize)
    # end rewind
+
+   def just_rewind(self):
+      """Rewind the file to the start of the file"""
+      self.file.seek(0)
+
+   # end just_rewind
 
    def histogram(self):
       self.rewind()
@@ -104,6 +168,30 @@ class PVReadWeights(object):
       return h
    # end histogram
 
+   def next_record(self):
+      self.read_header()
+      self.print_params()
+      #r = []
+      r = zeros(self.numWeights,dtype = float32) 
+      #print r.shape
+      for p in range(self.numPatches):
+         #print p
+         w = self.next_patch()
+         for k in range(self.patchSize):
+           r[p*self.patchSize + k ] = w[k]
+         if p == -1:
+            for k in range(p*self.patchSize,(p+1)*self.patchSize):
+               print r[k],
+            print
+         #s = raw_input('--> ')
+         self.patch += 1
+
+      return r
+
+   # end next_record
+
+   # NOTE: self.next_record was not defined.
+   # my definition might be different from the one Craig had in mind
    def valuesAt(self, k):
       """Return an ndarray of values at index k in each time slice (record)"""
       n = 0
@@ -111,7 +199,7 @@ class PVReadWeights(object):
       self.rewind()
       try:
          while True:
-            v.append( self.next_record() [k] )
+            v.append( self.next_record() [k] ) # should be next_patch?
             n += 1
       except:
          print "Finished reading, read", n, "records"
@@ -123,5 +211,5 @@ class PVReadWeights(object):
       return a
    # end valuesAt
 
-# end class PVReadBin
+# end class PVReadWeights
 
