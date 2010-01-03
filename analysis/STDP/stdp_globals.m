@@ -22,15 +22,15 @@ function [ffile, vfile, wfile, wlast, xScale,yScale] = stdp_globals(layer)
 
     %fifile = 'nofile';
     %vifile = 'nofile';
-    if (layer == 0) %retina
+    if (layer == 1) %retina
         ffile = 'a0.pvp';
         vfile = 'V0.pvp';
-        %wfile = 'w0_Post.pvp';
         wfile='';
+        wlast='';
         xScale = 1;
         yScale = 1;
         NO = 1;
-    elseif (layer == 1 ) %V1
+    elseif (layer == 2 ) %V1
         ffile = 'a1.pvp';
         vfile = 'V1.pvp';
         wfile = 'w0_post.pvp';  % this is connection 0 from layer 0 to layer 1
@@ -38,33 +38,35 @@ function [ffile, vfile, wfile, wlast, xScale,yScale] = stdp_globals(layer)
         xScale = 2;
         yScale = 2;
         NO = 1;
-    elseif (layer == 2) %V2
+    elseif (layer == 3) %V2
         ffile = 'a2.pvp';
         vfile = 'V2.pvp';
         wfile = 'w1_post.pvp';
-        wlast = 'w0_post_last.pvp';
-        xScale = 1;
-        yScale = 1;
-        NO = 1;
-    elseif (layer == 3) %V2
-        ffile = 'a3.pvp';
-        vfile = 'V3.pvp';
-        wfile = 'w2_post.pvp';
-        wlast = 'w0_post_last.pvp';
+        wlast = 'w1_post_last.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
     elseif (layer == 4) %V2
-        ffile = 'a4.pvp';
-        vfile = 'V4.pvp';
-        wfile = 'w3_post.pvp';
+        ffile = 'a3.pvp';
+        vfile = 'V3.pvp';
+        wfile = 'w2_post.pvp';
+        wlast = 'w2_post_last.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
     elseif (layer == 5) %V2
+        ffile = 'a4.pvp';
+        vfile = 'V4.pvp';
+        wfile = 'w3_post.pvp';
+        wlast = 'w2_post_last.pvp';
+        xScale = 1;
+        yScale = 1;
+        NO = 1;
+    elseif (layer == 6) %V2
         ffile = 'a5.pvp';
         vfile = 'V5.pvp';
         wfile = 'w4_post.pvp';
+        wlast = 'w2_post_last.pvp';
         xScale = 1;
         yScale = 1;
         NO = 1;
