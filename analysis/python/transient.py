@@ -1,7 +1,14 @@
 #!/usr/bin/python
 
-# script to estimate the firing rate in L1 versus the background rate in retina
-# copy this script to the location of your sandbox (STDP, marian, etc)
+# Script to estimate:
+#     - the evolution of the STDP controlled weights between the Retina and 
+#       the L1 layer;
+#     - the rate of change of the histogram distance between two weight 
+#       distributions separated by writeSteps simulation steps;
+#     - the evolution of the number of weights in the smalest and largest
+#       histogram bin;
+#     - the evolution of the average (space and time) firing rate in each layer;
+# NOTE: copy this script to the location of your sandbox (STDP, marian, etc)
 
 import os
 import re     # regular expression module
@@ -18,10 +25,6 @@ import PVReadWeights as rw
 import PVReadSparse as rs
 
 path = '/Users/manghel/Documents/workspace/STDP/'
-
-if len(sys.argv) < 6:
-   print "usage: python transient.py totalSteps timeSteps writeSteps dT minD"
-   exit()
 
 def modify_input(flag):
     print 'modify param.stdp for initFromLastFlag = %d' %  flag
@@ -67,27 +70,29 @@ def read_histogram(totalSteps):
     plt.draw()
 
 # read and plot evolution of average firing rate
-def read_rate():
+def read_rate(numLayers):
 
-   # initialize rate subplot
+    sym = np.array(['r','b','g'])
+    # initialize rate subplot
     plt.figure(1)
     plt.subplot(2,2,4)
 
-    # read rate evolution 
-    input = open(path + 'output/rate.stdp','r')
+    for i in range(numLayers):
+       # read rate evolution 
+       input = open(path + 'output/rate' + str(i) + '.stdp','r')
 
-    while 1:
-       line = input.readline()
-       if line == '':break
-       data = string.split(line,' ')
-       time = eval(data[0])
-       rate = eval(data[1])
-       plt.plot(time/1000,rate,'o',color='b')
+       while 1:
+          line = input.readline()
+          if line == '':break
+          data = string.split(line,' ')
+          time = eval(data[0])
+          rate = eval(data[1])
+          plt.plot(time/1000,rate,'o',color=sym[i])
        
-    input.close()
+       input.close()
 
-    plt.xlabel('TIME')
-    plt.ylabel('AVERAGE RATE')
+    plt.xlabel('Time')
+    plt.ylabel('Average Rate')
     plt.title('Firing Rate Evolution')
     plt.hold(True)
     plt.draw()
@@ -122,7 +127,39 @@ def read_histD():
     plt.draw()
     return histD
 
+
+# read and plot evolution of histogram distance
+def read_small_large_bins():
+
+   # initialize small/large bins evolution subplot
+    plt.figure(1)
+    plt.subplot(2,2,2)
+
+    # read rate evolution 
+    input = open(path + 'output/small_large_bins.dat','r')
+
+    while 1:
+       line = input.readline()
+       if line == '':break
+       data = string.split(line,' ')
+       time = eval(data[0])
+       small_bin = eval(data[1])
+       large_bin = eval(data[2])
+       plt.plot(time/1000,small_bin,'o',color='b')
+       plt.plot(time/1000,large_bin,'o',color='r')
+
+    input.close()
+
+    plt.xlabel('Time')
+    plt.ylabel('Smallest/Largest weight bins')
+    plt.title('Evolution of small/large weights')
+    plt.hold(True)
+    plt.draw()
+
 def compute_histogram(totalSteps, writeSteps, dT):
+
+    binDistance = 0  # when 1 plots the relative bin distance
+
     infile = path + 'output/' + 'w0_last.pvp'
     output = open(path + 'output/w0_last_hist_' + str(totalSteps) + '.dat','w')
 
@@ -141,13 +178,28 @@ def compute_histogram(totalSteps, writeSteps, dT):
     # plot histogram
     fig = plt.figure(1)
     plt.subplot(2,2,1)
+    plt.hold(False)
     plt.plot(np.arange(len(h)), h, 'o', color='y')
     plt.xlabel('Weight Bins')
     plt.ylabel('Count')
     plt.title('Weight Histogram')
     plt.xlim(0, 256)
     plt.grid(True)
+    plt.hold(True)
     plt.draw()
+
+    # evolution of the smallest and largest weight bins
+    plt.subplot(2,2,2)
+    plt.plot(time/1000, h[0], 'o', color='b')
+    plt.xlabel('Time')
+    plt.ylabel('Smallest/Largest weight bins')
+    plt.title('Evolution of small/large weights')
+    plt.hold(True)
+    plt.plot(time/1000, h[255], 'o', color='r')
+    plt.draw()
+    output = open(path + 'output/small_large_bins.dat','a')
+    output.write(str(time) + ' ' + str(h[0]) + ' ' + str(h[255]) + '\n')
+    output.close()
 
     # read and plot previous histogram
     # compute histogram distance
@@ -162,28 +214,39 @@ def compute_histogram(totalSteps, writeSteps, dT):
           line = input.readline()
           if line == '':break
           h_old[k] = int(line);
-          dh[k] = (1.0*abs((h[k]-h_old[k])))/max(h[k],h_old[k])
+          maxH = max(h[k],h_old[k])
+          if maxH > 0:
+             dh[k] = (1.0*abs((h[k]-h_old[k])))/maxH
+          else:
+             dh[k] = -1
           k+=1   
        input.close()
-       histD = max(dh)     # histogram distance
+       histD = (max(dh)*1000.0)/writeSteps     # histogram distance per unit time (s)
        print 'histD = %f\n' % (histD)
        output.write(str(time) + ' ' + str(histD) + '\n')
        output.close()
 
+       # overplot old histogram
+       plt.subplot(2,2,1)
        plt.plot(np.arange(len(h_old)), h_old, 'o', color='r')
+       plt.xlim(0, 256)
+       #plt.hold(False)
        plt.draw()
 
        #bx = fig.add_subplot(122, axisbg='darkslategray')
-       plt.subplot(2,2,2)
-       plt.plot(np.arange(len(dh)), dh, 'o', color='y')
-       plt.xlabel('Weight Bins')
-       plt.ylabel('Relative Bin Distance')
-       plt.title('Weight Histogram Bin Distance')
-       plt.xlim(0, 256)
-       plt.grid(True)
-       plt.hold(False)
-       plt.draw()
+       if binDistance:
+          plt.subplot(2,2,2)
+          plt.plot(np.arange(len(dh)), dh, 'o', color='y')
+          plt.xlabel('Weight Bins')
+          plt.ylabel('Relative Bin Distance')
+          plt.title('Weight Histogram Bin Distance')
+          plt.xlim(0, 256)
+          plt.grid(True)
+          plt.hold(False)
+          plt.draw()
 
+
+       # evolution of histogram distance per unit time
        plt.subplot(2,2,3)
        plt.plot(time/1000, histD, 'o', color='b')
        plt.xlabel('Time')
@@ -199,29 +262,33 @@ def compute_histogram(totalSteps, writeSteps, dT):
 # time is the time when the rate estimation is done from the last 
 # writeSteps spike records: we use the last rateSteps from timeSteps
 
-def compute_rate(time, timeSteps, rateSteps, dT):
+def compute_rate(numLayers, time, timeSteps, rateSteps, dT):
 
-    infile = path + 'output/' + 'a1.pvp'
-    output = open(path + 'output/rate.stdp','a')
+    sym = np.array(['r','b','g'])
+    rate = np.zeros(numLayers,dtype=float)
+    for i in range(numLayers):
 
-    beginTime = (timeSteps - rateSteps)*dT
-    endTime = timeSteps*dT
+       infile = path + 'output/' + 'a' + str(i) + '.pvp'
+       output = open(path + 'output/rate' + str(i) + '.stdp','a')
 
-    s = rs.PVReadSparse(infile);
-    rate = s.average_rate(beginTime,endTime) 
+       beginTime = (timeSteps - rateSteps)*dT
+       endTime = timeSteps*dT
 
-    output.write(str(time) + ' ' + str(rate) + '\n')
-    output.close()
+       s = rs.PVReadSparse(infile);
+       rate[i] = s.average_rate(beginTime,endTime) 
 
-    # append rate subplot
-    plt.figure(1)
-    plt.subplot(2,2,4)
-    plt.plot(time/1000, rate, 'o', color='b')
-    plt.xlabel('TIME')
-    plt.ylabel('AVERAGE RATE')
-    plt.title('Firing Rate Evolution')
-    plt.hold(True)
-    plt.draw()
+       output.write(str(time) + ' ' + str(rate[i]) + '\n')
+       output.close()
+
+       # append rate subplot
+       plt.figure(1)
+       plt.subplot(2,2,4)
+       plt.plot(time/1000, rate[i], 'o', color=sym[i])
+       plt.xlabel('Time')
+       plt.ylabel('Average Rate')
+       plt.title('Firing Rate Evolution')
+       plt.hold(True)
+       plt.draw()
 
     return rate
 # end compute_rate
@@ -231,7 +298,7 @@ Main code:
  
 - modifies the params.stdp file to set initFromLastFlag
 
-- run PV for writeSteps
+- run PV for runSteps
 
 - compute the histogram of the weights distribution.
 
@@ -239,23 +306,38 @@ Main code:
 
 """
 
-totalSteps = int(sys.argv[1])    # length of previous simulation
-timeSteps = sys.argv[2]     # length of simulation (timeSteps) from the beginning of 
-                            # simulation
-writeSteps = sys.argv[3]    # estimate histogram every writeSteps
-dT         = float(sys.argv[4])    # simulation time step
-minD      = float(sys.argv[5])         # stoping condition
-#start_flag = int(sys.argv[5])    # starting flag
+if len(sys.argv) < 7:
+   print "usage: python transient.py totalSteps timeSteps writeSteps numLayers dT minD"
+   print "where: - totalSteps is the number of time steps up to this run"
+   print "       - timeSteps (> totalSteps) is the number of steps at the"
+   print "         end of this simulation"
+   print "       - runSteps is the number of steps used to segment the"
+   print "         current simulation (also used to define the firing rate)"
+   print "       - numLayers is the number of neural layers"
+   print "       - dT is the duration of each time step (in milliseconds)"
+   print "       - minD is the minimum histogram distance that stops this"
+   print "         simulation"
+   exit()
 
-print '\ntotalSteps = %d timeSteps = %s writeSteps = %s dT = %f minD = %f \n' \
-     % (totalSteps,timeSteps,writeSteps,dT, minD)
+
+totalSteps = int(sys.argv[1])    
+timeSteps  = sys.argv[2]         
+runSteps   = sys.argv[3]         
+numLayers  = int(sys.argv[4])    
+dT         = float(sys.argv[5])  
+minD       = float(sys.argv[6])  
+
+
+print '\ntotalSteps = %d timeSteps = %s runSteps = %s numLayers = %d dT = %f minD = %f \n' \
+     % (totalSteps,timeSteps,runSteps,numLayers,dT, minD)
 
 
 if totalSteps == 0:
    histD = 1000.0
 else:
    read_histogram(totalSteps)
-   read_rate()
+   read_rate(numLayers)
+   read_small_large_bins()
    histD = read_histD()
 
 while histD > minD and totalSteps < int(timeSteps):
@@ -267,17 +349,20 @@ while histD > minD and totalSteps < int(timeSteps):
        modify_input(1)
 
     #time.sleep(10)
-    cmd = path + '/Debug/stdp -n ' + writeSteps + ' -p ' + path + '/input/params.stdp'
+    cmd = path + '/Debug/stdp -n ' + runSteps + ' -p ' + path + '/input/params.stdp'
     #print cmd
     os.system(cmd)
-    totalSteps = totalSteps + int(writeSteps)
+    totalSteps = totalSteps + int(runSteps)
 
     # compute, write, and plot histogram
-    histD = compute_histogram(totalSteps, int(writeSteps), dT)
+    histD = compute_histogram(totalSteps, int(runSteps), dT)
 
     # compute rate: arguments are: time, timeSteps, rateSteps, dT
-    rate = compute_rate(totalSteps*dT,int(writeSteps), int(writeSteps),dT)
-    print '\n average rate = %f \n' % rate
+    rate = compute_rate(numLayers,totalSteps*dT,int(runSteps), int(runSteps),dT)
+    print '\n average rate: ' 
+    for i in range(numLayers):
+       print '%f ' % rate[i]
+    print '\n'
 
     #if abs(rate-old_rate) < 0.1:
     # remove files
