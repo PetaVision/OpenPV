@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import PVReadWeights as rw
 
+sys.path.append('/Users/manghel/Documents/workspace/PetaVision/analysis/python/')
+
 if len(sys.argv) < 2:
    print "usage: plot_weight_histogram filename"
    exit()
