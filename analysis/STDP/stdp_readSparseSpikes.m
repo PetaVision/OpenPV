@@ -6,7 +6,7 @@ filename = fname;
 filename = [input_dir, filename];
 fprintf('read spikes from %s\n',filename);
 
-debug = 0;  % if 1 prints spiking neurons
+debug = 1;  % if 1 prints spiking neurons
 
 ave_rate = 0;
 if begin_step > n_time_steps
@@ -28,7 +28,7 @@ if exist(filename,'file')
     for i_step = 1 : n_time_steps
         
         
-        if (feof(fid) | i_step == 100001)
+        if (feof(fid) | i_step == 5000)
             n_time_steps = i_step - 1;
             eofstat = feof(fid);
             fprintf('feof reached: n_time_steps = %d eof = %d\n',...
