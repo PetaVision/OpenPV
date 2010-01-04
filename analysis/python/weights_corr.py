@@ -43,7 +43,7 @@ def modify_input(strParam, valParam):
     return 0
 # end modify_input
 
-def compute_correlations(timeSteps, writeSteps, dT, p):
+def compute_correlations(timeSteps, writeStep, dT, p):
 
     infile = path + 'output/' + 'w0_post.pvp'
 
@@ -51,7 +51,7 @@ def compute_correlations(timeSteps, writeSteps, dT, p):
     print 'numWeights = ' + str(w.numWeights) + ' patchSize = ' + str(w.patchSize)
     w.print_params()
     w.just_rewind()
-    T = int(timeSteps*dT)/writeSteps
+    T = int(timeSteps*dT)/writeStep
     weights = np.zeros((T,w.patchSize),dtype=np.float32)
     # read the first record (time 0.5)
     r = w.next_record() # read header and next record (returns numWeights array)
@@ -73,15 +73,26 @@ def compute_correlations(timeSteps, writeSteps, dT, p):
     except:
          print "Finished reading, read", n, "records"
 
+    # plot weights evolution
     sym = np.array(['r','b','g','r','b','g','r','b','g','r','b','g','r','b','g','r'])
     fig = plt.figure(1)
-    plt.subplot(2,2,1)
+    plt.subplot(2,1,1)
     for k in range(w.patchSize):
        plt.plot(np.arange(T), weights[:,k], '-o', color=sym[k])
 
     plt.xlabel('Time')
     plt.ylabel('Weights')
     plt.title('Weights Evolution')
+    plt.hold(True)
+    plt.draw()
+
+    # compute and plot correlations
+    plt.subplot(2,1,2)
+    for k in range(w.patchSize):
+       plt.acorr(weights[:,k], normed=True, maxlags=3,linestyle = 'solid', color = sym[k])
+    plt.xlabel('Time')
+    plt.ylabel('Corr')
+    plt.title('Weights Autocorrelations')
     plt.hold(True)
     plt.draw()
 
