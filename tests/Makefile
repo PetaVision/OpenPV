@@ -20,7 +20,7 @@ TESTS = test_kg test_kxpos test_kypos test_pos \
         test_patch_head test_delta test_sign test_borders \
         test_datatypes test_layer_direct
 
-MPI_TESTS = test_read_header test_image_io
+MPI_TESTS = test_read_header test_image_io test_weights_io
 
 DEPRECATED_TESTS = test_decode_msg 
 
@@ -53,6 +53,9 @@ test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(PVL
 	$(CPP) -o $@ $< $(BUILDDIR)/TestLayer.o $(LIBS)
 
 test_image_io: $(BUILDDIR)/test_image_io.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_weights_io: $(BUILDDIR)/test_weights_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_kg: $(BUILDDIR)/test_kg.o $(PVLIB)
@@ -112,6 +115,14 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@mpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_image_io with 6 nodes ..."
 	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
+	@echo "Running test_weights_io with 1 node ..."
+	@test_weights_io -n 1 -p $(INPARAMS)
+	@echo "Running test_weights_io with 2 nodes ..."
+	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
+	@echo "Running test_weights_io with 4 nodes ..."
+	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
+	@echo "Running test_weights_io with 6 nodes ..."
+	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
