@@ -42,21 +42,22 @@ def modify_input(strParam, valParam):
     
     return 0
 # end modify_input
-
-def compute_correlations(timeSteps, writeStep, dT, p):
+ 
+def patch_correlations(timeSteps, writeStep, dT, p):
 
     infile = path + 'output/' + 'w0_post.pvp'
 
     w = rw.PVReadWeights(infile) # opens file and reads params!!
-    print 'numWeights = ' + str(w.numWeights) + ' patchSize = ' + str(w.patchSize)
+    print 'numPatches = ' + str(w.numPatches) + ' numWeights = ' + str(w.numWeights) + ' patchSize = ' + str(w.patchSize)
     w.print_params()
     w.just_rewind()
     T = int(timeSteps*dT)/writeStep
     weights = np.zeros((T,w.patchSize),dtype=np.float32)
-    # read the first record (time 0.5)
+    # read the first record (which is always at time 0.5)
     r = w.next_record() # read header and next record (returns numWeights array)
 
-    # from now on, with writeSteps = 1, we write weights every integer time
+    # from now on, we read weights written every writeStep
+    output = open(path + 'output/p' + str(p) +'.dat','a')
     n = 0
     try:
          while True:
@@ -67,11 +68,15 @@ def compute_correlations(timeSteps, writeStep, dT, p):
                weights[n,m] = r[k]
                m += 1
                print r[k],
+               output.write(str(r[k]) + ' ')
+            output.write('\n')
             print
             n+=1
             #s = raw_input('--> ')
     except:
-         print "Finished reading, read", n, "records"
+         print "Finished reading, read ", n+1, "records"
+
+    output.close()
 
     # plot weights evolution
     sym = np.array(['r','b','g','r','b','g','r','b','g','r','b','g','r','b','g','r'])
@@ -89,14 +94,56 @@ def compute_correlations(timeSteps, writeStep, dT, p):
     # compute and plot correlations
     plt.subplot(2,1,2)
     for k in range(w.patchSize):
-       plt.acorr(weights[:,k], normed=True, maxlags=3,linestyle = 'solid', color = sym[k])
+       #plt.acorr(weights[:,k], normed=True, maxlags=3,linestyle = 'solid', color = sym[k])
+       plt.acorr(weights[:,k], normed=True, maxlags=3,usevlines=False, color = sym[k])
     plt.xlabel('Time')
     plt.ylabel('Corr')
     plt.title('Weights Autocorrelations')
     plt.hold(True)
     plt.draw()
 
-# end compute_correlations
+# end patch_correlations
+
+ 
+def extract_patches(timeSteps, writeStep, dT):
+
+    infile = path + 'output/' + 'w0_post.pvp'
+
+    w = rw.PVReadWeights(infile) # opens file and reads params!!
+    print 'numPatches = ' + str(w.numPatches) + ' numWeights = ' + str(w.numWeights) + ' patchSize = ' + str(w.patchSize)
+    #w.print_params()
+    w.just_rewind()
+    T = int(timeSteps*dT)/writeStep
+
+    # read the first record (time 0.5)
+    r = w.next_record() # read header and next record (returns numWeights array)
+
+    # from now on, with writeSteps = 1, we write weights every integer time
+    n = 0
+    try:
+         while True:
+            r = w.next_record() # read header and next record (returns numWeights array)
+            #print str(n+1) + ':'
+            print n+1            
+            for p in range(w.numPatches):
+               output = open(path + 'output/p' + str(p) +'.dat','a')
+               #print '\tp' + str(p+1) + ': ',
+               for k in range(p*w.patchSize,(p+1)*w.patchSize):
+                  #print r[k],
+                  output.write(str(r[k]) + ' ')
+               #print '\n',
+               output.write('\n')
+               output.close()
+            
+            n+=1
+            #s = raw_input('--> ')
+    except:
+         print "Finished reading, read", n+1, "records"
+
+
+
+# end extract_patches
+
 
 """ 
 Main code:
@@ -111,10 +158,10 @@ Main code:
 """
 
 if len(sys.argv) < 6:
-   print "usage: python weights_corr.py timeSteps writeSteps numLayers dT run_flag"
+   print "usage: python weights_corr.py timeSteps writeStep numLayers dT run_flag"
    print "where: - timeSteps is the number of steps used to compute"
    print "         the weights correlations"
-   print "       - writeSteps is the number of steps used to write the post-synaptic"
+   print "       - writeStep is the number of steps used to write the post-synaptic"
    print "         weights"
    print "       - numLayers is the number of neural layers"
    print "       - dT is the duration of each time step (in milliseconds)"
@@ -139,11 +186,13 @@ if run_flag == 1:
    print cmd
    os.system(cmd)
     
+# extract the evolution of weights for each patch
+#extract_patches(timeSteps, int(writeStep), dT)
 
 # compute, write, and plot correlations
-p = 635 # patch to analyze
-compute_correlations(timeSteps, int(writeStep), dT, p)
-
-
-print 'pass control to plot'
-plt.show()
+patch_corr = 1
+if patch_corr == 1:
+   p = 605 # patch to analyze
+   patch_correlations(timeSteps, int(writeStep), dT, p)
+   print 'pass control to plot'
+   plt.show()
