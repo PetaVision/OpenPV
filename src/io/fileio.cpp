@@ -165,10 +165,13 @@ int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams)
    if (loc->nBands   != params[INDEX_NF])        status = -1;
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) status = -1;
    if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) status = -1;
-//   if (loc->kx0      != params[INDEX_KX0])       status = -1;
-//   if (loc->ky0      != params[INDEX_KY0])       status = -1;
    if (loc->nPad     != params[INDEX_NPAD])      status = -1;
    if (loc->nBands   != params[INDEX_NBANDS])    status = -1;
+
+   // (kx0,ky0) is for node 0 only (can be calculated otherwise)
+   //
+   //   if (loc->kx0      != params[INDEX_KX0])       status = -1;
+   //   if (loc->ky0      != params[INDEX_KY0])       status = -1;
 
    if (status != 0) {
       for (int i = 0; i < numParams; i++) {
