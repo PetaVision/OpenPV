@@ -26,8 +26,8 @@ import PVReadSparse as rs
 
 path = '/Users/manghel/Documents/workspace/STDP/'
 
-def modify_input(flag):
-    print 'modify param.stdp for initFromLastFlag = %d' %  flag
+def modify_input(strParam, valParam):
+    print 'modify param.stdp for ' + strParam + ' = ' + valParam
 
     input = open(path + 'input/params.base','r')
     output = open(path + 'input/params.stdp','w')
@@ -36,8 +36,8 @@ def modify_input(flag):
         line = input.readline()
         if line == '':break
 
-        if line.find('initFromLastFlag') >= 0:
-            S = '   initFromLastFlag = ' + str(flag) + ';'
+        if line.find(strParam) >= 0:
+            S = strParam + ' = ' + valParam + ';'
             output.write(S)
         else:
             output.write(line)
@@ -344,9 +344,9 @@ while histD > minD and totalSteps < int(timeSteps):
     
     print '\ntotalSteps = %d \n' % totalSteps
     if totalSteps == 0:
-       modify_input(0)
+       modify_input('initFromLastFlag','0')
     else:
-       modify_input(1)
+       modify_input('initFromLastFlag','1')
 
     #time.sleep(10)
     cmd = path + '/Debug/stdp -n ' + runSteps + ' -p ' + path + '/input/params.stdp'
