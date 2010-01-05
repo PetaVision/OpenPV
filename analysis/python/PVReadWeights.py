@@ -170,7 +170,7 @@ class PVReadWeights(object):
 
    def next_record(self):
       self.read_header()
-      self.print_params()
+      #self.print_params()
       #r = []
       r = zeros(self.numWeights,dtype = float32) 
       #print r.shape
