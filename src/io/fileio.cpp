@@ -10,6 +10,8 @@
 
 #include <assert.h>
 
+#undef DEBUG_OUTPUT
+
 namespace PV {
 
 static void timeToParams(double time, void * params)
@@ -49,8 +51,11 @@ size_t pv_sizeof_patch(int count, int datatype)
    return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
-int copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int numPatches,
-                 int numPatchItems, float minVal, float maxVal)
+/**
+ * Copy patches into an unsigned char buffer
+ */
+int pvp_copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int numPatches,
+                     int numPatchItems, float minVal, float maxVal)
 {
    unsigned char * cptr = buf;
 
@@ -78,6 +83,46 @@ int copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int nu
       for (int i = 0; i < nExtra; i++) {
          *cptr++ = (unsigned char) 0;
       }
+   }
+
+   return 0;
+}
+
+/**
+ * Set patches given an unsigned char input buffer
+ */
+int pvp_set_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int numPatches,
+                    int numPatchItems, int nfp, float minVal, float maxVal)
+{
+   unsigned char * cptr = buf;
+
+   for (int k = 0; k < numPatches; k++) {
+      PVPatch * p = patches[k];
+      pvdata_t * data = p->data;
+
+      unsigned short * nxny = (unsigned short *) cptr;
+
+      p->nx = nxny[0];
+      p->ny = nxny[1];
+      p->nf = nfp;
+
+      p->sf = 1;
+      p->sx = p->nf;
+      p->sy = p->sx * p->nx;
+
+      cptr += 2 * sizeof(unsigned short);
+
+      int nItems = (int) p->nx * (int) p->ny * (int) p->nf;
+
+      for (int i = 0; i < nItems; i++) {
+         // data are packed into chars
+         float val = (float) *cptr++;
+         data[i] = minVal + (maxVal - minVal) * (val / 255.0);
+      }
+
+      // skip leftover null characters
+      int nExtra = numPatchItems - nItems;
+      cptr += nExtra;
    }
 
    return 0;
@@ -115,15 +160,22 @@ int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams)
 {
    int status = 0;
 
-   if (loc->nx       != params[INDEX_NX])        return -1;
-   if (loc->ny       != params[INDEX_NY])        return -1;
-   if (loc->nBands   != params[INDEX_NF])        return -1;
-   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) return -1;
-   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) return -1;
-   if (loc->kx0      != params[INDEX_KX0])       return -1;
-   if (loc->ky0      != params[INDEX_KY0])       return -1;
-   if (loc->nPad     != params[INDEX_NPAD])      return -1;
-   if (loc->nBands   != params[INDEX_NBANDS])    return -1;
+   if (loc->nx       != params[INDEX_NX])        status = -1;
+   if (loc->ny       != params[INDEX_NY])        status = -1;
+   if (loc->nBands   != params[INDEX_NF])        status = -1;
+   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) status = -1;
+   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) status = -1;
+//   if (loc->kx0      != params[INDEX_KX0])       status = -1;
+//   if (loc->ky0      != params[INDEX_KY0])       status = -1;
+   if (loc->nPad     != params[INDEX_NPAD])      status = -1;
+   if (loc->nBands   != params[INDEX_NBANDS])    status = -1;
+
+   if (status != 0) {
+      for (int i = 0; i < numParams; i++) {
+         fprintf(stderr, "params[%d]==%d ", i, params[i]);
+      }
+      fprintf(stderr, "\n");
+   }
 
    return status;
 }
@@ -185,7 +237,17 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 
 #ifdef PV_USE_MPI
    const int icRoot = 0;
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
+           comm->commRank(), *numParams);
+#endif
+
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
+
+#ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
+           comm->commRank(), *numParams);
+#endif
 #endif // PV_USE_MPI
 
    *filetype = params[INDEX_FILE_TYPE];
@@ -582,21 +644,31 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
                 Communicator * comm, double * time, const LayerLoc * loc, bool extended)
 {
    int status = 0;
-   int filetype, datatype, numParams;
+   int filetype, datatype;
+
+   int numParams = NUM_WGT_PARAMS;
    int params[NUM_WGT_PARAMS];
 
-   FILE * fp = pvp_open_read_file(filename, comm);
-   if (fp == NULL) {
-      fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
-      return -1;
-   }
+   int nxBlocks, nyBlocks;
 
-   numParams = NUM_WGT_PARAMS;
-   status = pvp_read_header(fp, time, &filetype, &datatype, params, &numParams);
-   if (status < 0) return status;
+   bool contiguous = false;   // for now
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int icRank = comm->commRank();
+
+   // read file header (uses MPI to broadcast the results)
+   //
+   status = pvp_read_header(filename, comm, time, &filetype, &datatype, params, &numParams);
+   if (status != 0) return status;
 
    status = pvp_check_file_header(loc, params, numParams);
-   if (status < 0) return status;
+   if (status < 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
+              comm->commRank(), numParams);
+      return status;
+   }
 
    // extra weight parameters
    //
@@ -608,13 +680,99 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    const float minVal = wgtParams[INDEX_WGT_MIN];
    const float maxVal = wgtParams[INDEX_WGT_MAX];
 
-   assert(numPatches = wgtParams[INDEX_WGT_NUMPATCHES]);
+   if (numPatches != wgtParams[INDEX_WGT_NUMPATCHES]) return -1;
+   if (datatype != PV_BYTE_TYPE)                      return -1;
 
-   status = pv_read_patches(fp, nxp, nyp, nfp, minVal, maxVal, numPatches, patches);
-   pvp_close_file(fp, comm);
+   const int numPatchItems = nxp * nyp * nfp;
+   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
+   const size_t localSize = numPatches * patchSize;
+
+   if (contiguous) {
+      nxBlocks = 1;
+      nyBlocks = 1;
+   }
+   else {
+      nxBlocks = nxProcs;
+      nyBlocks = nyProcs;
+   }
+
+   unsigned char * cbuf = (unsigned char *) malloc(localSize);
+   assert(cbuf != NULL);
+
+#ifdef PV_USE_MPI
+   const int tag = PVP_WGT_FILE_TYPE;
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
+
+   // read weights and send using MPI
+   //
+   if (icRank > 0) {
+
+#ifdef PV_USE_MPI
+      const int src = 0;
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: readWeights: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+              comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
+#endif
+      MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: readWeights: recv from %d completed\n",
+              comm->commRank(), src);
+#endif
+#endif // PV_USE_MPI
+
+   }
+   else {
+      FILE * fp = pvp_open_read_file(filename, comm);
+      const int headerSize = numParams * sizeof(int);
+
+      if (fp == NULL) {
+         fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
+         return -1;
+      }
+
+#ifdef PV_USE_MPI
+      int dest = -1;
+      for (int py = 0; py < nyProcs; py++) {
+         for (int px = 0; px < nxProcs; px++) {
+            if (++dest == 0) continue;
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: sending to %d nxProcs==%d nyProcs==%d localSize==%ld\n",
+                    comm->commRank(), dest, nxProcs, nyProcs, localSize);
+#endif
+            long offset = headerSize + dest * localSize;
+            fseek(fp, offset, SEEK_SET);
+            if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
+
+            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: sending to %d completed\n",
+                    comm->commRank(), dest);
+#endif
+         }
+      }
+#endif // PV_USE_MPI
+
+      // read local portion
+      // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
+      //
+      long offset = headerSize + 0 * localSize;
+      fseek(fp, offset, SEEK_SET);
+      if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
+
+      status = pvp_close_file(fp, comm);
+   }
+
+   // set the contents of the weights patches from the unsigned character buffer, cbuf
+   //
+   status = pvp_set_patches(cbuf, localSize, patches,
+                            numPatches, numPatchItems, nfp, minVal, maxVal);
+
+   free(cbuf);
 
    return status;
 }
+
 /*!
  *
  * numPatches is NX x NY x NF
@@ -661,10 +819,10 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    assert(cbuf != NULL);
 
-   copy_patches(cbuf, localSize, patches, numPatches, numPatchItems, minVal, maxVal);
+   pvp_copy_patches(cbuf, localSize, patches, numPatches, numPatchItems, minVal, maxVal);
 
 #ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
+   const int tag = PVP_WGT_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
@@ -681,12 +839,17 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
    }
    else {
-      FILE * fp = pvp_open_write_file(filename, comm, append);
-
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
       const int headerSize = numParams * sizeof(int);
+
+      FILE * fp = pvp_open_write_file(filename, comm, append);
+
+      if (fp == NULL) {
+         fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
+         return -1;
+      }
 
       status = pvp_write_header(fp, comm, time, loc, PVP_WGT_FILE_TYPE,
                                 datatype, patchSize, extended, contiguous, numParams);
