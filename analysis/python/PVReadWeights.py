@@ -117,7 +117,7 @@ class PVReadWeights(object):
       print "numPatches = %i" % self.wgtParams[5]
    # end print_params
 
-   def print_params_old(self):
+   def print_self_params(self):
       """Print the file metadata parameters"""
 
       print "numParams = %i" % self.numParams  
@@ -159,7 +159,8 @@ class PVReadWeights(object):
    # end just_rewind
 
    def histogram(self):
-      self.rewind()
+      #self.rewind()
+      self.read_header()	
       h = zeros(256, dtype=int)
       for p in range(self.numPatches):
          b = self.next_patch_bytes()
@@ -170,7 +171,7 @@ class PVReadWeights(object):
 
    def next_record(self):
       self.read_header()
-      #self.print_params()
+      self.print_params()
       #r = []
       r = zeros(self.numWeights,dtype = float32) 
       #print r.shape
