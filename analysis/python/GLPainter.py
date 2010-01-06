@@ -10,104 +10,137 @@ __author__ = 'Soren Christian Rasmussen <soren.rasmussen@aggiemail.usu.edu>'
 '''Global parameters'''
 glWindowWidth = 512
 glWindowHeight = 512
-nx = 64
-ny = 64
+xScale = 2.0
+yScale = 2.0
+g_rs = None
+g_nx = None
+g_ny = None
+g_msecs = 100
+g_z = 0
+nf = 1
+activity = []
+ESCAPE = '\033'
 
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
+from PVTransforms import *
+from PVReadSparse import *
+import OpenGL.GL as gl
+import OpenGL.GLU as glu
+import OpenGL.GLUT as glut
 import sys
 
-
-
-def drawRec(x, y, dx, dy):
-   glVertex3f(x+dx, y+0.0, 0.0)
-   glVertex3f(x+dx, y+dy, 0.0)
-   glVertex3f(x+0.0, y+dy, 0.0)
-   glVertex3f(x+0.0, y+0.0, 0.0)
+def drawRect(x, y, dx, dy):
+   gl.glBegin(gl.GL_QUADS) #Draw a square
+   gl.glVertex3f(x+dx, -y+0.0, g_z)
+   gl.glVertex3f(x+dx, -y+dy, g_z)
+   gl.glVertex3f(x+0.0, -y+dy, g_z)
+   gl.glVertex3f(x+0.0, -y+0.0, g_z)
+   gl.glEnd() #Done with the polygon
 #end drawRect
    
 def reSizeGLScene(wWidth, wHeight):
-      if Height == 0:						# Prevent A Divide By Zero If The Window Is Too Small 
-            Height = 1
+      if wHeight == 0:				      # Prevent A Divide By Zero If The Window Is Too Small 
+            wHeight = 1
 
-      glViewport(0, 0, wWidth, wHeight)		# Reset The Current Viewport And Perspective Transformation
-      glMatrixMode(GL_PROJECTION)
-      glLoadIdentity()
-      gluPerspective(45.0, float(wWidth)/float(wHeight), 0.1, 100.0)
-      glMatrixMode(GL_MODELVIEW)
+      gl.glViewport(0, 0, wWidth, wHeight)		# Reset The Current Viewport And Perspective Transformation
+      gl.glMatrixMode(gl.GL_PROJECTION)
+      gl.glLoadIdentity()
+      glu.gluPerspective(45.0, float(wWidth)/float(wHeight), 0.1, 100.0)
+      gl.glMatrixMode(gl.GL_MODELVIEW)
 #end reSizeGLScene
 
 def drawGLScene():
-   dx = 1.0/nx
-   dy = 1.0/ny
+   dx = xScale/g_nx
+   dy = yScale/g_ny
+
+   gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+   gl.glColor3f( 0.8,0.6, 0.0)
    
-   # Clear The Screen And The Depth Buffer
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-   glLoadIdentity()					# Reset The View 
+   for k in activity:
+      kx = kxPos(k, g_nx, g_ny, nf)
+      ky = kyPos(k, g_nx, g_ny, nf)
+      x = xScale*kx/g_nx
+      y = yScale*ky/g_ny
+      drawRect(x,y,dx,dy)
 
-   glTranslatef(-1.0, -1.0, -2.5)
+      '''draw borders'''
+      #drawRect(0.0, 0.0, dx, dy)
+      #drawRect(xScale*1.0, 0.0, dx, dy)
+      #drawRect(xScale*1.0, yScale*1.0, dx, dy)
+      #drawRect(0.0, yScale*1.0, dx, dy)
 
-   glColor3f(0.8,0.6,0.0)
-      
-   # Draw a square (quadrilateral)
-   glBegin(GL_QUADS)                   # Start drawing a 4 sided polygon
-   drawRec(0,0,dx,dy)
-   drawRec(0,1.7,dx,dy)
-   drawRec(1.7,0,dx,dy)
-   drawRec(1.7,1.7,dx,dy)
-
-   glEnd()                             # We are done with the polygon
-
-   #  since this is double buffered, swap the buffers to display what just got drawn. 
-   glutSwapBuffers()
+   #since this is double buffered, swap the buffers to display what just got drawn. 
+   glut.glutSwapBuffers()
+   
 #end drawGLScene
    
 def keyPressed(*args):
-   print "key pressed"
-   # If escape is pressed, kill everything.
    if args[0] == ESCAPE:
          sys.exit()
+   else:
+      print "key pressed"
+      print "press esc to exit"
 #end keyPressed    
 
+def getNextRecord(value):
+   global activity
+   
+   activity = g_rs.next_record()
+   if len(activity) > 0:
+      glut.glutPostRedisplay()
+      glut.glutTimerFunc(g_msecs, getNextRecord, 1)
+      print "next_record==", activity
+   else:
+      glut.glutTimerFunc(g_msecs, getNextRecord, 1)
+#end getNextRecord
 
 class GLPainter:
-   def __init__ (self, width, height):
-      glutInit(sys.argv)
-      glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-      glutInitWindowSize(width, height)
-      glutInitWindowPosition(100, 100)
-      window = glutCreateWindow("Soren's GL Box")
-      glutDisplayFunc(drawGLScene)
+   def __init__ (self, wWidth, wHeight, filename):
+      global g_rs, g_nx, g_ny, g_msecs
 
-      print "nx==", nx
-      print "ny==", ny
+      g_rs = PVReadSparse(filename)
+      g_nx = g_rs.nx
+      g_ny = g_rs.ny
+
+      glut.glutInit(sys.argv)
+      glut.glutInitDisplayMode(glut.GLUT_RGBA | glut.GLUT_DOUBLE | glut.GLUT_DEPTH)
+      glut.glutInitWindowSize(wWidth, wHeight)
+      glut.glutInitWindowPosition(0, 0)
+      window = glut.glutCreateWindow("Soren's GL Box")
+      gl.glTranslatef( -1.0 , 1.0 , -2.5)
       
-      self.initGL(width, height)
-   
+      # register callbacks
+      glut.glutReshapeFunc(reSizeGLScene)
+      glut.glutTimerFunc(g_msecs, getNextRecord, 1)
+      glut.glutDisplayFunc(drawGLScene)
+      glut.glutKeyboardFunc(keyPressed)
+      
+      print "nx==", g_nx
+      print "ny==", g_ny
 
+      self.initGL(wWidth, wHeight)
+      
    def initGL (self, wWidth, wHeight):
-      glClearColor(0.0, 0.0, 0.25, 0.0)	# This Will Clear The Background Color To Black
-      glClearDepth(1.0)					# Enables Clearing Of The Depth Buffer
-      glDepthFunc(GL_LESS)				# The Type Of Depth Test To Do
-      glEnable(GL_DEPTH_TEST)				# Enables Depth Testing
-      glShadeModel(GL_SMOOTH)				# Enables Smooth Color Shading
+      gl.glClearColor(0.0, 0.0, 0.25, 0.0)	# This Will Clear The Background Color To Black
+      gl.glClearDepth(1.0)					# Enables Clearing Of The Depth Buffer
+      gl.glDepthFunc(gl.GL_LESS)				# The Type Of Depth Test To Do
+      gl.glEnable(gl.GL_DEPTH_TEST)				# Enables Depth Testing
+      gl.glShadeModel(gl.GL_SMOOTH)				# Enables Smooth Color Shading
 
-      glMatrixMode(GL_PROJECTION)
-      glLoadIdentity()					# Reset The Projection Matrix
+      gl.glMatrixMode(gl.GL_PROJECTION)
+      gl.glLoadIdentity()					# Reset The Projection Matrix
 						    	# Calculate The Aspect Ratio Of The Window
-      gluPerspective(45.0, float(wWidth)/float(wHeight), 0.1, 100.0)
+      glu.gluPerspective(45.0, float(wWidth)/float(wHeight), 0.1, 100.0)
 
-      glMatrixMode(GL_MODELVIEW)
-
-
+      gl.glMatrixMode(gl.GL_MODELVIEW)
 # end class GLPainter
 
 
 def main():
    global window
-   p = GLPainter(glWindowWidth, glWindowHeight)
-   glutMainLoop()
+   p = GLPainter(glWindowWidth, glWindowHeight, "a1.pvp")
+   print type(g_rs)
+   glut.glutMainLoop()
 # end main()
 
 main()
