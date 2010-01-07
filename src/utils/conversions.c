@@ -61,6 +61,7 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
       int scaleFac = pow(2, log2ScalePost) / pow(2, log2ScalePre);
       *distPre = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);
       *distPost = *distPre / scaleFac;
+      kzPost = kzPre / scaleFac;
    }
    return kzPre;
 }
