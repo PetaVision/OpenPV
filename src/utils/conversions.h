@@ -21,6 +21,11 @@ extern "C"
 {
 #endif
 
+   int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost, float * distPre,
+      float * distPost);
+
+   int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
+
 /*
  * The following functions are simple, static inline functions.  They have been given the
  * compiler directive elemental (with same semantics as in Fortran).  The elemental functions are
