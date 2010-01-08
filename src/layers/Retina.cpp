@@ -87,7 +87,7 @@ int Retina::initialize(PVLayerType type)
 
    if (params->invert) {
       for (n = 0; n < l->numExtended; n++) {
-         V[n] = (V[n] == 0.0) ? 1.0 : 0.0;
+         V[n] = 1 - V[n];
       }
    }
 
@@ -355,7 +355,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
    }
    else {
       float delta = time - prev - ABS_REFACTORY_PERIOD;
-      float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
+      float refact = 1.0f- expf(-delta/REFACTORY_PERIOD);//
       refact = (refact < 0) ? 0 : refact;
       probBase *= refact;
       probStim *= refact;
