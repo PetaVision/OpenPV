@@ -85,12 +85,18 @@ def keyPressed(*args):
 def getNextRecord(value):
    global activity
    
-   activity = g_rs.next_record()
+   try:
+      activity = g_rs.next_record()
+   except:
+      print "end of file detected"
+      sys.exit()
+
    if len(activity) > 0:
+      print "time==", g_rs.time, "num_records==", len(activity)
       glut.glutPostRedisplay()
       glut.glutTimerFunc(g_msecs, getNextRecord, 1)
-      print "next_record==", activity
    else:
+      print "time==", g_rs.time, "num_records==", len(activity)
       glut.glutTimerFunc(g_msecs, getNextRecord, 1)
 #end getNextRecord
 
@@ -106,7 +112,7 @@ class GLPainter:
       glut.glutInitDisplayMode(glut.GLUT_RGBA | glut.GLUT_DOUBLE | glut.GLUT_DEPTH)
       glut.glutInitWindowSize(wWidth, wHeight)
       glut.glutInitWindowPosition(0, 0)
-      window = glut.glutCreateWindow("Soren's GL Box")
+      window = glut.glutCreateWindow("PetaVision Activity")
       gl.glTranslatef( -1.0 , 1.0 , -2.5)
       
       # register callbacks
@@ -122,14 +128,14 @@ class GLPainter:
       
    def initGL (self, wWidth, wHeight):
       gl.glClearColor(0.0, 0.0, 0.25, 0.0)	# This Will Clear The Background Color To Black
-      gl.glClearDepth(1.0)					# Enables Clearing Of The Depth Buffer
-      gl.glDepthFunc(gl.GL_LESS)				# The Type Of Depth Test To Do
-      gl.glEnable(gl.GL_DEPTH_TEST)				# Enables Depth Testing
-      gl.glShadeModel(gl.GL_SMOOTH)				# Enables Smooth Color Shading
+      gl.glClearDepth(1.0)			# Enables Clearing Of The Depth Buffer
+      gl.glDepthFunc(gl.GL_LESS)		# The Type Of Depth Test To Do
+      gl.glEnable(gl.GL_DEPTH_TEST)		# Enables Depth Testing
+      gl.glShadeModel(gl.GL_SMOOTH)		# Enables Smooth Color Shading
 
       gl.glMatrixMode(gl.GL_PROJECTION)
-      gl.glLoadIdentity()					# Reset The Projection Matrix
-						    	# Calculate The Aspect Ratio Of The Window
+      gl.glLoadIdentity()			# Reset The Projection Matrix
+						# Calculate The Aspect Ratio Of The Window
       glu.gluPerspective(45.0, float(wWidth)/float(wHeight), 0.1, 100.0)
 
       gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -137,10 +143,19 @@ class GLPainter:
 
 
 def main():
+   import sys
    global window
-   p = GLPainter(glWindowWidth, glWindowHeight, "a1.pvp")
+
+   if len(sys.argv) < 2:
+      print "\nusage: python GLPainter.py filename\n"
+      return
+
+   p = GLPainter(glWindowWidth, glWindowHeight, sys.argv[1])
+
    print type(g_rs)
    glut.glutMainLoop()
+
+
 # end main()
 
 main()
