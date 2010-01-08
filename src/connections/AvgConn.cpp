@@ -14,7 +14,7 @@ namespace PV {
 AvgConn::AvgConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                  int channel, HyPerConn * delegate)
 {
-   this->delegate = delegate;
+   this->delegate = (delegate == NULL) ? this : delegate;
    HyPerConn::initialize(name, hc, pre, post, channel);
    initialize();
 }
@@ -42,15 +42,20 @@ int AvgConn::initialize()
 PVPatch ** AvgConn::initializeWeights(PVPatch ** patches,
                                       int numPatches, const char * filename)
 {
-   if (delegate != this) {
-      // using weights from delegate so can free weight memory
-      if (patches != NULL) {
-         for (int k = 0; k < numPatches; k++) {
-            pvpatch_inplace_delete(patches[k]);
-         }
-         free(patches);
-         patches = NULL;
+   // If I'm my own delegate, I need my own weights
+   //
+   if (delegate == this) {
+      return HyPerConn::initializeWeights(patches, numPatches, filename);
+   }
+
+   // otherwise using weights from delegate so can free weight memory
+   //
+   if (patches != NULL) {
+      for (int k = 0; k < numPatches; k++) {
+         pvpatch_inplace_delete(patches[k]);
       }
+      free(patches);
+      patches = NULL;
    }
 
    return NULL;
@@ -93,6 +98,14 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
 
 int AvgConn::createAxonalArbors()
 {
+   // If I'm my own delegate, I need my own weights
+   //
+   if (delegate == this) {
+      return HyPerConn::createAxonalArbors();
+   }
+
+   // otherwise just use weights from the delegate
+   //
    pvdata_t * phi_base = post->clayer->phi[channel];
    pvdata_t * del_phi_base = delegate->postSynapticLayer()->clayer->phi[channel];
 
