@@ -260,6 +260,7 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
+   int numActive = 0;
    if (params->spikingFlag == 1) {
       for (int k = 0; k < clayer->numNeurons; k++) {
          int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
@@ -268,6 +269,9 @@ int Retina::updateState(float time, float dt)
          float prevTime = prevActivity[kex];
          activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
          prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
+         if (activity[kex] > 0.0) {
+            clayer->activeIndices[numActive++] = k;
+         }
       }
    }
    else {
@@ -279,8 +283,11 @@ int Retina::updateState(float time, float dt)
          spike(time, dt, prevTime, probBase, probStim, &probSpike);
          activity[kex] = probSpike;
          prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
-      }
+         if (activity[kex] > 0.0) {
+            clayer->activeIndices[numActive++] = k;
+         }      }
    }
+   clayer->numActive = numActive;
 
    return 0;
 }
