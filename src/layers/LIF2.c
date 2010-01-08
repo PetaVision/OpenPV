@@ -27,7 +27,7 @@
 int LIF2_update_finish(PVLayer * l, float dt);
 
 // Default handlers for a layer of leaky integrate-and-fire neurons.
-static inline int update_f(PVLayer *l, int start)
+static inline int update_f(PVLayer * l, int start)
 {
    int k;
 
