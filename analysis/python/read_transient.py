@@ -20,15 +20,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 
-sys.path.append('/nh/home/manghel/petavision/workspace.pv/PetaVision/analysis/python/')
+
+
+MAC = True
+if MAC == True:
+   path = '/Users/manghel/Documents/workspace/STDP/'
+   sys.path.append('/Users/manghel/Documents/workspace/PetaVision/analysis/python/')
+else:
+   path = '/nh/home/manghel/petavision/workspace.pv/STDP/'
+   sys.path.append('/nh/home/manghel/petavision/workspace.pv/PetaVision/analysis/python/')
 import PVReadWeights as rw
 import PVReadSparse as rs
 
-path = '/nh/home/manghel/petavision/workspace.pv/STDP/'
-
 def write_histogram(h,conn, time):	  
     
-    output = open(path + 'output/w' + str(conn) + '_last_hist_' + str(time) + '.dat','w')
+    output = open(path + 'data3/w' + str(conn) + '_hist_' + str(time) + '.dat','w')
     for i in range(len(h)):
       output.write(str(h[i]) + '\n')
     output.close()
@@ -39,7 +45,7 @@ def plot_histogram(h, conn, time):
 
    fig = plt.figure(1)
    plt.subplot(2,2,1)
-   plt.plot(np.arange(len(h)), h, 'o', color='y')
+   plt.plot(np.arange(len(h)), h, '-', color='b')
    plt.xlabel('Weight Bins')
    plt.ylabel('Count')
    plt.title('Weight Histogram')
@@ -51,20 +57,20 @@ def plot_histogram(h, conn, time):
 
 # end plot histogram
     
-def plot_small_large_bins(hmin, hmax, conn, time)
+def plot_small_large_bins(hmin, hmax, conn, time):
     
-    	  # evolution of the smallest and largest weight bins
-	  plt.subplot(2,2,2)
-	  plt.plot(time/1000, hmin, 'o', color='b')
-	  plt.xlabel('Time')
-	  plt.ylabel('Smallest/Largest weight bins')
-	  plt.title('Evolution of small/large weights')
-	  plt.hold(True)
-	  plt.plot(time/1000, hmax, 'o', color='r')
-	  plt.draw()
-	  output = open(path + 'output/small_large_bins.dat','a')
-	  output.write(str(time) + ' ' + str(h[0]) + ' ' + str(h[255]) + '\n')
-	  output.close()
+  # evolution of the smallest and largest weight bins
+  plt.subplot(2,2,2)
+  plt.plot(time/1000, hmin, 'o', color='b')
+  plt.xlabel('Time')
+  plt.ylabel('Smallest/Largest weight bins')
+  plt.title('Evolution of small/large weights')
+  plt.hold(True)
+  plt.plot(time/1000, hmax, 'o', color='r')
+  plt.draw()
+  output = open(path + 'output/small_large_bins.dat','a')
+  output.write(str(time) + ' ' + str(h[0]) + ' ' + str(h[255]) + '\n')
+  output.close()
     
 # end plot small and large bins    
 
@@ -72,8 +78,7 @@ def compute_histograms(conn, totalSteps, writeSteps, dT):
 
     infile = path + 'output/' + 'w' + str(conn) + '_post.pvp'
 
-
-    time = totalSteps * dT
+    print 'compute histogram evolution for connection ' + str(conn)
 
     w = rw.PVReadWeights(infile)
 
@@ -87,18 +92,18 @@ def compute_histograms(conn, totalSteps, writeSteps, dT):
     	  write_histogram(h,conn,w.time)
 
 	  # plot histogram
-          plot_histogram(h,w.time)
+          plot_histogram(h,conn,w.time)
 
           # plot small and large bins
-          plot_small_large_bins(h[0], h[255], conn, time)
+          plot_small_large_bins(h[0], h[255], conn, w.time)
 
     except:
-       print "Finished reading, read", n, "records"
+       print 'Finished reading ' + str(n) + 'records: time = ' + str(w.time)
+       s = raw_input('--> ')
 
 # end compute_histograms
 
-# time is the time when the rate estimation is done from the last 
-# writeSteps spike records: we use the last rateSteps from timeSteps
+# 
 
 def compute_rate(layer, totalSteps, writeStep, dT):
 
@@ -107,28 +112,30 @@ def compute_rate(layer, totalSteps, writeStep, dT):
     
 
     infile = path + 'output/' + 'a' + str(layer) + '.pvp'
-    output = open(path + 'output/rate' + str(i) + '.stdp','a')
-
-    beginTime = (timeSteps - rateSteps)*dT
-    endTime = timeSteps*dT
+    output = open(path + 'data3/rate' + str(layer) + '.stdp','a')
 
     s = rs.PVReadSparse(infile);
-    rate[i] = s.average_rate(beginTime,endTime) 
 
-    output.write(str(time) + ' ' + str(rate[i]) + '\n')
-    output.close()
+    endTime = writeStep*dT
 
-    # append rate subplot
-    plt.figure(1)
-    plt.subplot(2,2,4)
-    plt.plot(time/1000, rate[i], 'o', color=sym[i])
-    plt.xlabel('Time')
-    plt.ylabel('Average Rate')
-    plt.title('Firing Rate Evolution')
-    plt.hold(True)
-    plt.draw()
+    try:
+       while True:
+           rate = s.increment_rate(endTime) 
+           output.write(str(endTime) + ' ' + str(rate) + '\n')
+           # append rate subplot
+           plt.figure(1)
+           plt.subplot(2,2,4)
+           plt.plot(endTime/1000, rate, 'o', color=sym[layer])
+           plt.xlabel('Time')
+           plt.ylabel('Average Rate')
+           plt.title('Firing Rate Evolution')
+           plt.hold(True)
+           plt.draw()
+           endTime += writeStep*dT
+    except:
+       print 'finished reading rate: time = ' + str(s.time)
+       output.close()
 
-    return rate
 # end compute_rate
 
 """ 
@@ -144,7 +151,7 @@ Main code:
 
 """
 
-if len(sys.argv) < 7:
+if len(sys.argv) < 6:
    print "usage: python read_transient.py totalSteps writeStep numLayers numConns dT"
    print "where: - totalSteps is the number of simulation steps "
    print "where: - writeStep is the writing time "
@@ -162,14 +169,17 @@ dT         = float(sys.argv[5])
 
 
 
-print '\ntotalSteps = %d numLayers = %d dT = %f  \n' \
-     % (totalSteps,numLayers,dT)
+print '\ntotalSteps = %d writeStep = %d numLayers = %d numConns = %d dT = %f  \n' \
+     % (totalSteps,writeStep,numLayers,numConns,dT)
+
+s = raw_input('--> ')
 
 for conn in range(numConns):
-   compute_histograms(layer, totalSteps,writeStep,dT)
+   compute_histograms(conn, totalSteps,writeStep,dT)
 
 for layer in range(numLayers):
-   compute_rate(layer,totalSteps,writeStep,dT)
+   print 'rate evolution for layer ' + str(layer)
+   #compute_rate(layer,totalSteps,writeStep,dT)
 
 
 
