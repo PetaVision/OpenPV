@@ -91,5 +91,33 @@ class PVReadSparse(object):
 
    # end average_rate
 
+   def increment_rate(self,endTime):
+      
+      average_rate = 0
+      beginTime = self.time
+      print 'beginTime = %f endTime = %f' % (beginTime,endTime)
+      debug = 0
+         
+      # read time steps used to compute rate
+      print 'read time steps to compute rate'
+      while self.time < endTime:
+         k = self.next_record()
+         if len(k) > 0:
+            average_rate += len(k)
+            if debug:
+               print 'time = %f timestep = %i numItems = %i: ' % (self.time,self.timestep,len(k)),
+               for i in range(len(k)):
+                  print '%d ' % k[i],
+               print '\n'
+         else:
+            average_rate += 0
+            if debug:
+               print 'time = %f timestep = %i numItems = %i' % (self.time,self.timestep,len(k))
+         
+      average_rate = (average_rate * 1000.0) / ((endTime-beginTime)*self.nx*self.ny*self.nf)
+      return average_rate
+
+   # end increment_rate
+
 # end class PVReadSparse
 
