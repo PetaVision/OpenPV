@@ -303,10 +303,13 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    PVParams * params = parent->parameters();
 
    float wMin = params->value(name, "wMin", 0.0f);
-   float wMax = params->value(name, "wMax", 3.0f);
+   float wMax = params->value(name, "wMax", 10.0f);
+
+   float wMinInit = params->value(name,"wMinInit",wMin);
+   float wMaxInit = params->value(name,"wMaxInit",wMax);
 
    for (int k = 0; k < numPatches; k++) {
-      randomWeights(patches[k], wMin, wMax, seed);
+      randomWeights(patches[k], wMinInit, wMaxInit, seed); // MA
    }
    return patches;
 }
