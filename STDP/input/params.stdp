@@ -24,10 +24,11 @@ HyPerLayer "Retina" = {
    marginWidth = 2;
 
    beginStim = 0;
-   endStim   = 900000;
+   endStim   = 10000000;
 
    burstFreq = 12;      // Hz
    burstDuration = 10;  // ms
+
 
    spikingFlag = 1;        // spike as poisson
 
@@ -39,12 +40,20 @@ HyPerLayer "L1" = {
    nxScale = 2; // 8;
    nyScale = 2; // 8;
    
+   //tau    = 10; // 2;    // 100;
+   //tauE   = 1;   // .25;  // 1;
+   //tauVth = 10;  // .25;  // 10;
+
    //restart = 1;
 
    marginWidth = 4;
+
    
-   noiseAmpE = 0.0;//1.0;
-   noiseAmpI = 0.0;//0.2;
+   //VthRest = -55; // -60; // -55;
+   
+   noiseAmpE = 1.0; //64.0;
+   noiseAmpI = 0.2; //4.0;
+
 };
 
 HyPerLayer "L1Inh" = {
@@ -53,8 +62,8 @@ HyPerLayer "L1Inh" = {
 
    marginWidth = 2; // 4;
    
-   noiseAmpE = 0.0;
-   noiseAmpI = 0.0;
+   noiseAmpE = 1.0;
+   noiseAmpI = 0.2;
 };
 
 ///////
@@ -68,24 +77,28 @@ HyPerConn "Retina to L1" = {
    nyp = 8; // 64;
    
    stdpFlag   = 1;
-   randomFlag = 1;
+   randomFlag = 1;  // to generate random weights
    
-   initFromLastFlag = 1;  // restart
+   initFromLastFlag = 0;  // restart
 
    //
    // strength used if randomFlag==0
 
    strength = 5;//180;//25.0;  // max strength should be ~3*nxp*nyp
 
+
+   //rotate = 1.0;
+   //invert = 0.0;
+
    //
    // these weights used if randomFlag==1
 
    wMin = 0.0;     
-   wMax = 3.0;
+   wMax = 1.0;
    dWMax = 0.01;
    
-   //wMinInit = 4.0;  // default values if Gaussian is not defined
-   //wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   wMinInit = 4.0;  // default values if Gaussian is not defined
+   wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
    
    //wGaussMean = 5.0;//5.00;
    //wGaussStdev = 0.0;//1.00;
@@ -95,7 +108,9 @@ HyPerConn "Retina to L1" = {
    sigma = 100;
    rMax  = 100;
    
-   writeStep = 1000; // writes to output file every writeStep
+   writeStep = 10000;
+   ioAppend = 1;
+
 };
 
 HyPerConn "L1 to L1Inh" = {
@@ -106,14 +121,16 @@ HyPerConn "L1 to L1Inh" = {
    sigma = 100;
    rMax  = 100;
 
-   writeStep = 1000; // writes to output file every writeStep
+writeStep = 10000;
 };
 
 HyPerConn "L1Inh to L1" = {
    nxp = 8;
    nyp = 8;
-   strength = 16;
+   strength = 32;//16;
 
    sigma = 100;
    rMax  = 100;
+   
+writeStep = 10000;
 };
