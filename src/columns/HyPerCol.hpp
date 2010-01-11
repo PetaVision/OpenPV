@@ -2,12 +2,13 @@
  * HyPerCol.h
  *
  *  Created on: Jul 30, 2008
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#include "HyPerColDelegate.hpp"
 #include "../layers/PVLayer.h"
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"
@@ -30,9 +31,11 @@ public:
    int initializeThreads();
    int finalizeThreads();
 
+   int run()  {return run(numSteps);}
    int run(int nTimeSteps);
-   int run_old(int nTimeSteps); // has thread usage that needs to be moved
-   int run()            {return run(numSteps);}
+
+   float advanceTime(float time);
+   int   exitRunLoop(bool exitOnFinish);
 
    int loadState();
    int writeState();
@@ -74,6 +77,8 @@ public:
    int commColumn(int colId);
    int commRow(int colId);
 
+   void setDelegate(HyPerColDelegate * delegate)  {runDelegate = delegate;}
+
 private:
    int numSteps;
    int maxLayers;
@@ -98,6 +103,8 @@ private:
 
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
+
+   HyPerColDelegate * runDelegate; // runs time loop
 
 }; // class HyPerCol
 
