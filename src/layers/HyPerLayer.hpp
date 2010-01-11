@@ -9,6 +9,7 @@
 #define HYPERLAYER_HPP_
 
 #include "../layers/PVLayer.h"
+#include "../layers/LIF2.h"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
@@ -16,6 +17,9 @@
 #include "../include/pv_types.h"
 
 namespace PV {
+
+// HyPerLayer uses C code from PVLayer.{h,c}, and LIF2.{h,c}
+typedef LIF2_params HyPerLayerParams;
 
 class HyPerLayer {
 
@@ -108,6 +112,8 @@ protected:
    PVLayerProbe ** probes;
 
    int ioAppend;                // controls opening of binary files
+   float writeTime;             // time of next output
+   float writeStep;             // output time interval
 };
 
 } // namespace PV
