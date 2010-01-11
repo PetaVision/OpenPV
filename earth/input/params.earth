@@ -1,0 +1,138 @@
+//
+// params.stdp
+//  - input parameters for stdp.cpp, a study of STDP with natural images
+//
+
+HyPerCol "column" = {
+   nx = 64; //32;   // until we get going with images
+   ny = 64; //32;
+   dt = .5;
+};
+
+//
+// Three layers, "Retina"+"Image", "L1", "L1Inh"
+//
+
+HyPerLayer "Image" = {
+   marginWidth = 2;
+   burstFreq = 12;
+};
+
+HyPerLayer "Retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2;
+
+   beginStim = 0;
+   endStim   = 900000;
+
+   burstFreq = 12;      // Hz
+   burstDuration = 10;  // ms
+
+   spikingFlag = 1;        // spike as poisson
+
+   noiseOnFreq  = 500;//100;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 50;//50;     // (Hz) when this is defined poissonEdge overridden
+};
+
+HyPerLayer "RetinaAvg" = {
+   nxScale = 1;
+   nyScale = 1;
+   
+   marginWidth = 2;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 0.2;
+};
+
+HyPerLayer "L1" = {
+   nxScale = 4;
+   nyScale = 4;
+   
+   //restart = 1;
+
+   marginWidth = 4;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 0.2;
+};
+
+HyPerLayer "L1Inh" = {
+   nxScale = 1; // 8;
+   nyScale = 1; // 8;
+
+   marginWidth = 2; // 4;
+   
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
+};
+
+///////
+// 3 connections: 
+//    "Retina to L1"
+//    "L1 to L1Inh"
+//    "L1Inh to L1"
+
+HyPerConn "Retina to L1" = {
+   nxp = 32; // 8x8 afferent patch
+   nyp = 32;
+   
+   stdpFlag   = 1;
+   randomFlag = 0;
+   
+   initFromLastFlag = 0;  // restart
+
+   //
+   // strength used if randomFlag==0
+
+   strength = 1024;  // max strength should be ~3*nxp*nyp
+
+   //
+   // these weights used if randomFlag==1
+
+   wMin = 0.0;     
+   wMax = 3.0;
+   dWMax = 0.01;
+   
+   //wMinInit = 4.0;  // default values if Gaussian is not defined
+   //wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   
+   //wGaussMean = 5.0;//5.00;
+   //wGaussStdev = 0.0;//1.00;
+   
+   idum = 3940284; // random number generator seed
+   
+   sigma = 100;
+   rMax  = 100;
+   
+   writeStep = 1000; // writes to output file every writeStep
+};
+HyPerConn "Retina to Average" = {
+   nxp = 1;
+   nyp = 1;
+   
+   strength = 1;
+};
+
+HyPerConn "L1 to L1Inh" = {
+   nxp = 4;
+   nyp = 4;
+   strength = 16;
+   
+   delay = 0;
+   
+   sigma = 100;
+   rMax  = 100;
+
+   writeStep = 1000; // writes to output file every writeStep
+};
+
+HyPerConn "L1Inh to L1" = {
+   nxp = 8;
+   nyp = 8;
+   strength = 16;
+   delay = 0;
+
+   sigma = 100;
+   rMax  = 100;
+};

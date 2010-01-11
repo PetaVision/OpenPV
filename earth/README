@@ -1,0 +1,21 @@
+Petavision may be obtained from sourceforge.net using the subversion command:
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk PetaVision
+    
+You should also check out one of the example projects, (CellularAutomata, for example):
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/examples/CellularAutomata ca
+    
+First build the PetaVision library:
+   1. cd to the root petavision project directory
+   2. Type make (this will build petavision/src/build/libpv.a)
+
+To run this project:
+   1. First make the PetaVision library (see above)
+   2. cd to the earth project directory
+   3. Type make
+   4. earth -n 500 -p input/params.earth
+
+
+
+   
