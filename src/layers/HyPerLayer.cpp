@@ -7,6 +7,7 @@
 
 #include "HyPerLayer.hpp"
 #include "../include/pv_common.h"
+#include "../include/default_params.h"
 #include "../columns/HyPerCol.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
@@ -26,6 +27,16 @@ static size_t pvcube_size(int numItems);
 #endif
 
 namespace PV {
+
+HyPerLayerParams defaultParams =
+{
+    V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
+    TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
+    VTH_REST,  TAU_VTH, DELTA_VTH,           // tau (ms)
+    250, NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
+    250, NOISE_AMP*1.0,
+    250, NOISE_AMP*1.0                       // noise (G)
+};
 
 ///////
 // This constructor is protected so that only derived classes can call it.
@@ -56,6 +67,8 @@ int HyPerLayer::initialize(PVLayerType type)
    if (parent->parameters()->value(name, "restart", 0) != 0) {
       readState(name, &time);
    }
+   writeTime = parent->simulationTime();
+
    return 0;
 }
 
@@ -97,6 +110,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 
    clayer = pvlayer_new(xScale, yScale, nx, ny, numFeatures, nBorder);
    clayer->layerType = TypeGeneric;
+
+   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
    return 0;
 }
@@ -462,10 +477,8 @@ int HyPerLayer::insertProbe(PVLayerProbe * p)
 
 int HyPerLayer::outputState(float time, bool last)
 {
-   char str[32];
+   char path[PV_PATH_MAX];
    int status = 0;
-
-   const bool dumpNonSparse = false;
 
    const int nx = (int) clayer->loc.nx;
    const int ny = (int) clayer->loc.ny;
@@ -481,12 +494,23 @@ int HyPerLayer::outputState(float time, bool last)
    // always write activity in sparse format
    status = writeActivitySparse(time);
 
-   if (dumpNonSparse) {
-      pv_dump(str, ioAppend, clayer->activity->data, nxex, nyex, nf);
-      sprintf(str, "V%1.1d", clayer->layerId);
-      pv_dump(str, ioAppend, clayer->V, nx, ny, nf);
+   if (time >= writeTime) {
+      writeTime += writeStep;
+
+      // should use a probe to get runtime information
+      //
+
+      //snprintf(path, PV_PATH_MAX-1, "%s%s_A.gif", OUTPUT_PATH, name);
+      //writeActivity(path, time);
+
+      // this output format is decrecated as it doesn't use MPI
+      //
+      //sprintf(path, "A%1.1d", clayer->layerId);
+      //pv_dump(path, ioAppend, clayer->activity->data, nxex, nyex, nf);
+      //sprintf(path, "V%1.1d", clayer->layerId);
+      //pv_dump(path, ioAppend, clayer->V, nx, ny, nf);
       // append to dump file after original open
-      this->ioAppend = 1;
+      //this->ioAppend = 1;
    }
 
    return status;
