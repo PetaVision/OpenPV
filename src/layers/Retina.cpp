@@ -62,6 +62,19 @@ int Retina::initialize(PVLayerType type)
    l->loc.nPad   = params->marginWidth;
    l->loc.nBands = 1;
 
+   // the size of the Retina may have changed due size of image
+   //
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nBorder = l->loc.nPad;
+   l->numFeatures = l->loc.nBands;
+   l->numNeurons  = nx * ny * l->numFeatures;
+#ifdef EXTEND_BORDER_INDEX
+   l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
+#else
+   l->numExtended = l->numNeurons;
+#endif // EXTEND_BORDER_INDEX
+
    PVParams * pvParams = parent->parameters();
 
    fireOffPixels = 0;
@@ -171,7 +184,7 @@ int Retina::copyFromImageBuffer()
 
    LayerLoc imageLoc = img->getImageLoc();
 
-   assert(clayer->loc.nx == imageLoc.nx && clayer->loc.ny * imageLoc.ny);
+   assert(clayer->loc.nx == imageLoc.nx && clayer->loc.ny == imageLoc.ny);
 
    pvdata_t * ibuf = img->getImageBuffer();
 
@@ -355,7 +368,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
    }
    else {
       float delta = time - prev - ABS_REFACTORY_PERIOD;
-      float refact = 1.0f- expf(-delta/REFACTORY_PERIOD);//
+      float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
       refact = (refact < 0) ? 0 : refact;
       probBase *= refact;
       probStim *= refact;
