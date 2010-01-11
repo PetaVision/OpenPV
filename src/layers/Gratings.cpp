@@ -14,12 +14,16 @@ Gratings::Gratings(const char * name, HyPerCol * hc) : Image(name, hc)
 {
    initialize_data(&loc);
 
+   // initialize to unused phase to trigger update
+   //
+   this->lastPhase = -PI;
+
    PVParams * params = hc->parameters();
    float freq = params->value(name, "burstFreq", 40.0);
 
    period = 25;
    if (freq > 0.0) {
-	   period = 1000/freq;
+      period = 1000/freq;
    }
 
    float dt = hc->getDeltaTime();
@@ -49,6 +53,11 @@ bool Gratings::updateImage(float time, float dt)
          float x = (float) ix;
          data[ix*sx + iy*sy] = sin(kx * x + phi);
       }
+   }
+
+   if (lastPhase != phi) {
+      lastPhase = phi;
+      lastUpdateTime = time;
    }
 
    return true;
