@@ -25,9 +25,6 @@ public:
    int copyReducedImagePortion();
    const char * getNextFileName();
 
-   LayerLoc   imageLoc;
-   pvdata_t * imageData;
-
    float displayPeriod;     // length of time a frame is displayed
    float nextDisplayTime;   // time of next frame
 
