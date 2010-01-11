@@ -76,6 +76,8 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
       imageLoc.nPad = 0;
       imageLoc.nBands = 1;
    }
+
+   runDelegate = NULL;
 }
 
 HyPerCol::~HyPerCol()
@@ -178,7 +180,9 @@ int HyPerCol::addConnection(HyPerConn * conn)
 int HyPerCol::run(int nTimeSteps)
 {
    int step = 0;
-   int stop = nTimeSteps;
+   float stopTime = time + nTimeSteps * deltaTime;
+   const bool exitOnFinish = false;
+
    numSteps = nTimeSteps;
 
 #ifdef DEBUG_OUTPUT
@@ -188,53 +192,83 @@ int HyPerCol::run(int nTimeSteps)
 #endif
 
    // publish initial conditions
+   //
    for (int l = 0; l < numLayers; l++) {
       layers[l]->publish(icComm, time);
    }
 
-   while (step++ < stop) {
+   if (runDelegate) {
+      // let delegate advance the time
+      //
+      runDelegate->run(time, stopTime);
+   }
+
+   // time loop
+   //
+   while (time < stopTime) {
+      time = advanceTime(time);
+      step += 1;
 
 #ifdef TIMER_ON
       if (step == 10) start_clock();
 #endif
 
-      // deliver published data for each layer
-      for (int l = 0; l < numLayers; l++) {
-         // this function blocks until all data for a layer has been delivered
-#ifdef DEBUG_OUTPUT
-         printf("[%d]: HyPerCol::run will deliver layer %d\n", columnId(), l);
-         fflush(stdout);
-#endif
-         icComm->deliver(this, l);
-      }
-
-#ifdef DEBUG_OUTPUT
-      if (columnId() == 0) {
-         printf("[0]: HyPerCol::run: data delivery finished\n");  fflush(stdout);
-      }
-#endif
-
-      for (int l = 0; l < numLayers; l++) {
-         layers[l]->updateState(time, deltaTime);
-         layers[l]->outputState(time+deltaTime);
-         icComm->increaseTimeLevel(layers[l]->getLayerId());
-         layers[l]->publish(icComm, time);
-      }
-
-      // layer activity has been calculated, inform connections
-      for (int c = 0; c < numConnections; c++) {
-         connections[c]->updateState(time, deltaTime);
-         connections[c]->outputState(time+deltaTime);
-      }
-
-      time += deltaTime;
-   }  // end run loop
+   }  // end time loop
 
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
       printf("[0]: HyPerCol::run done...\n");  fflush(stdout);
    }
 #endif
+
+   exitRunLoop(exitOnFinish);
+
+#ifdef TIMER_ON
+      stop_clock();
+#endif
+
+   return 0;
+}
+
+float HyPerCol::advanceTime(float simTime)
+{
+   // deliver published data for each layer
+   //
+   for (int l = 0; l < numLayers; l++) {
+#ifdef DEBUG_OUTPUT
+      printf("[%d]: HyPerCol::run will deliver layer %d\n", columnId(), l);
+      fflush(stdout);
+#endif
+      // this function blocks until all data for a layer has been delivered
+      //
+      icComm->deliver(this, l);
+   }
+
+#ifdef DEBUG_OUTPUT
+   if (columnId() == 0) {
+      printf("[0]: HyPerCol::run: data delivery finished\n");  fflush(stdout);
+   }
+#endif
+
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->updateState(simTime, deltaTime);
+      layers[l]->outputState(simTime+deltaTime);
+      icComm->increaseTimeLevel(layers[l]->getLayerId());
+      layers[l]->publish(icComm, simTime);
+   }
+
+   // layer activity has been calculated, inform connections
+   for (int c = 0; c < numConnections; c++) {
+      connections[c]->updateState(simTime, deltaTime);
+      connections[c]->outputState(simTime+deltaTime);
+   }
+
+   return simTime + deltaTime;
+}
+
+int HyPerCol::exitRunLoop(bool exitOnFinish)
+{
+   int status = 0;
 
    // output final state of layers and connections
    //
@@ -248,11 +282,12 @@ int HyPerCol::run(int nTimeSteps)
       connections[c]->outputState(time, last);
    }
 
-#ifdef TIMER_ON
-      stop_clock();
-#endif
+   if (exitOnFinish) {
+      delete this;
+      exit(0);
+   }
 
-   return 0;
+   return status;
 }
 
 int HyPerCol::initializeThreads()
@@ -287,52 +322,3 @@ int HyPerCol::writeState()
 }
 
 }; // PV namespace
-
-extern "C" {
-
-void * run1connection(void * arg)
-{
-#ifdef DELETE
-   int layers = ((run_struct *) arg)->layers;
-   int proc = ((run_struct *) arg)->proc;
-   PV::HyPerCol * hc = ((run_struct *) arg)->hc;
-   clock_t ticks;
-   ticks = clock();
-   srand(ticks + proc);
-
-   printf("c%d start: %ld\n", i, ticks);
-   hc->connections[layers].recvFunc(hc->connections[layers].pre,
-   	hc->connections[proc].recvFunc(&hc->connections[proc],
-   	&hc->shmemCLayers[layers], hc->connections[proc].pre->numNeurons,
-   	hc->connections[proc].pre->fActivity[hc->connections[proc].readIdx]);
-   ticks = clock() - ticks;
-   printf("c%d diff : %ld\n", i, ticks);
-#ifdef MULTITHREADED
-   pthread_exit(0);
-#endif
-#endif
-   return NULL;
-}
-
-void * update1layer(void * arg)
-{
-#ifdef DELETE
-   run_struct * info = (run_struct *) arg;
-
-   int itl = info->proc;
-   PV::HyPerCol * hc = info->hc;
-
-   clock_t ticks;
-   ticks = clock();
-   srand(ticks + itl);
-   hc->threadCLayers[itl].updateFunc(&hc->threadCLayers[itl]);
-#ifdef MULTITHREADED
-   pthread_exit(0);
-#endif
-#endif
-   return NULL;
-}
-
-}
-; // extern "C"
-
