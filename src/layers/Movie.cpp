@@ -27,26 +27,41 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
    assert(filename != NULL);
 
    // get size info from image so that data buffer can be allocated
-   int status = getImageInfo(filename, comm, &loc);
+   int status = getImageInfo(filename, comm, &imageLoc);
    assert(status == 0);
 
-   int N = loc.nx * loc.ny * loc.nBands;
-   data = new float [N];
-   for (int i = 0; i < N; ++i) {
-      data[i] = 0;
-   }
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(&loc);
 
-   // no single input file so must provide (nx,ny) to hc
-   imageLoc = hc->getImageLoc();
+//   int N = imageLoc.nx * imageLoc.ny * imageLoc.nBands;
+//   imageData = new float [N];
+//   for (int i = 0; i < N; ++i) {
+//      imageData[i] = 0;
+//   }
+   imageData = NULL;
 
-   N = loc.nx * loc.ny * loc.nBands;
-   imageData = new float [N];
-   for (int i = 0; i < N; ++i) {
-      imageData[i] = 0;
-   }
+   // need all image bands until converted to gray scale
+   loc.nBands = imageLoc.nBands;
+
+   initialize_data(&loc);
+
+//   N = loc.nx * loc.ny * loc.nBands;
+//   imageData = new float [N];
+//   for (int i = 0; i < N; ++i) {
+//      imageData[i] = 0;
+//   }
+//
 
    read(filename);
-   copyReducedImagePortion();
+// copyReducedImagePortion();
+
+   // for now convert images to grayscale
+   if (loc.nBands > 1) {
+      this->toGrayScale();
+   }
+
+   // exchange border information
+   exchange();
 }
 
 Movie::~Movie()
@@ -59,12 +74,14 @@ Movie::~Movie()
 
 pvdata_t * Movie::getImageBuffer()
 {
-   return imageData;
+//   return imageData;
+   return data;
 }
 
 LayerLoc Movie::getImageLoc()
 {
-   return imageLoc;
+//   return imageLoc;
+   return loc;
 }
 
 /**
@@ -83,8 +100,21 @@ bool Movie::updateImage(float time, float dt)
    const char * filename = getNextFileName();
    assert(filename != NULL);
 
+   // need all image bands until converted to gray scale
+   loc.nBands = imageLoc.nBands;
+
    read(filename);
-   copyReducedImagePortion();
+// copyReducedImagePortion();
+
+   // for now convert images to grayscale
+   if (loc.nBands > 1) {
+      this->toGrayScale();
+   }
+
+   // exchange border information
+   exchange();
+
+   lastUpdateTime = time;
 
    return true;
 }
