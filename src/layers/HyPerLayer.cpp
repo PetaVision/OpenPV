@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-static int    pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems);
+static int    pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems);
 static size_t pvcube_size(int numItems);
 
 #ifdef __cplusplus
@@ -82,7 +82,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    this->ioAppend = 0;
    this->numProbes = 0;
 
-   LayerLoc imageLoc = parent->getImageLoc();
+   PVLayerLoc imageLoc = parent->getImageLoc();
 
    PVParams * params = parent->parameters();
 
@@ -122,7 +122,7 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
    // TODO - is this correct, kx0 or ky0 < 0
    // TODO - does global patch need to expand to take into account border regions (probably)
 
-   LayerLoc loc = clayer->loc;
+   PVLayerLoc loc = clayer->loc;
 
    const int nxBorder = loc.nPad;
    const int nyBorder = loc.nPad;
@@ -279,7 +279,7 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
 }
 
 int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
-                             const LayerLoc * loc, bool extended, float scale)
+                             const PVLayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
@@ -311,7 +311,7 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
 }
 
 int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
-                             const LayerLoc * loc, bool extended, float scale)
+                             const PVLayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
@@ -343,7 +343,7 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
 }
 
 int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-                               const LayerLoc * loc, bool extended, float scale)
+                               const PVLayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
@@ -375,7 +375,7 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 }
 
 int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
-                               const LayerLoc * loc, bool extended, float scale)
+                               const PVLayerLoc * loc, bool extended, float scale)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
@@ -539,7 +539,7 @@ int HyPerLayer::readState(const char * name, float * time)
 
    pvdata_t * A = clayer->activity->data;
 
-   LayerLoc * loc = & clayer->loc;
+   PVLayerLoc * loc = & clayer->loc;
 
    snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
    status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
@@ -581,7 +581,7 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
 
    pvdata_t * A = clayer->activity->data;
 
-   LayerLoc * loc = & clayer->loc;
+   PVLayerLoc * loc = & clayer->loc;
 
    snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
@@ -610,7 +610,7 @@ int HyPerLayer::writeActivitySparse(float time)
 int HyPerLayer::writeActivity(const char * filename, float time)
 {
    int status = 0;
-   LayerLoc * loc = &clayer->loc;
+   PVLayerLoc * loc = &clayer->loc;
 
    const int n = loc->nx * loc->ny * loc->nBands;
    unsigned char * buf = new unsigned char[n];
@@ -1092,6 +1092,7 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
 }
 #endif
 
+#ifdef USE_OLD_PATCH_HEAD
 /**
  * Return the _global_ (non-extended) leading index in a direction of a patch in the post layer
  *   NOTE: float OK size for kxPre because only k index in a specific direction
@@ -1101,7 +1102,7 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
  * @nPatch is the size of patch in a given direction
  * @nLocal is the local size of layer in a direction
  */
-float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nPatch)
+float pvlayer_patchHead(int kxPre, float kxPost0Left, int xScale, int nPatch)
 {
    float shift = 0;
    if ((int) nPatch % 2 == 0) {
@@ -1124,6 +1125,7 @@ float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nPatch
    }
 #endif
 }
+#endif // USE_OLD_PATCH_HEAD
 
 static size_t pvcube_size(int numItems)
 {
@@ -1132,7 +1134,7 @@ static size_t pvcube_size(int numItems)
    return size + numItems*sizeof(float);
 }
 
-static int pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems)
+static int pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
 {
    cube->size = pvcube_size(numItems);
    cube->numItems = numItems;
@@ -1141,7 +1143,7 @@ static int pvcube_init(PVLayerCube * cube, LayerLoc * loc, int numItems)
    return 0;
 }
 
-PVLayerCube* pvcube_new(LayerLoc * loc, int numItems)
+PVLayerCube* pvcube_new(PVLayerLoc * loc, int numItems)
 {
    PVLayerCube* cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
    assert(cube !=NULL);
