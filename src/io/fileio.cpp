@@ -156,7 +156,7 @@ int pvp_close_file(FILE * fp, Communicator * comm)
    return status;
 }
 
-int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams)
+int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams)
 {
    int status = 0;
 
@@ -260,7 +260,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    return status;
 }
 
-int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc * loc, int filetype,
+int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
                      int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams)
 {
    int status = 0;
@@ -325,7 +325,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc
 }
 
 int read(const char * filename, Communicator * comm, double * time, pvdata_t * data,
-         const LayerLoc * loc, int datatype, bool extended, bool contiguous)
+         const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
    int nxBlocks, nyBlocks;
@@ -456,7 +456,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 }
 
 int write(const char * filename, Communicator * comm, double time, pvdata_t * data,
-          const LayerLoc * loc, int datatype, bool extended, bool contiguous)
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
    int nxBlocks, nyBlocks;
@@ -644,7 +644,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 }
 
 int readWeights(PVPatch ** patches, int numPatches, const char * filename,
-                Communicator * comm, double * time, const LayerLoc * loc, bool extended)
+                Communicator * comm, double * time, const PVLayerLoc * loc, bool extended)
 {
    int status = 0;
    int filetype, datatype;
@@ -787,7 +787,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
  *
  */
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
-                 const LayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch ** patches, int numPatches)
 {
    int status = 0;

@@ -7,7 +7,7 @@
 
 #undef DEBUG_OUTPUT
 
-static void copyToLocBuffer(int buf[], LayerLoc * loc)
+static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
 {
 	buf[0] = loc->nx;
 	buf[1] = loc->ny;
@@ -19,7 +19,7 @@ static void copyToLocBuffer(int buf[], LayerLoc * loc)
 	buf[7] = loc->nBands;
 }
 
-static void copyFromLocBuffer(int buf[], LayerLoc * loc)
+static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
 {
 	loc->nx       = buf[0];
 	loc->ny       = buf[1];
@@ -48,7 +48,7 @@ int getFileType(const char * filename)
  * @ic the inter-column communicator (in)
  * @loc location information (inout) (loc->nx and loc->ny are out)
  */
-int getImageInfo(const char * filename, PV::Communicator * comm, LayerLoc * loc)
+int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
       return getImageInfoPVP(filename, comm, loc);
@@ -56,9 +56,9 @@ int getImageInfo(const char * filename, PV::Communicator * comm, LayerLoc * loc)
    return getImageInfoGDAL(filename, comm, loc);
 }
 
-int getImageInfoPVP(const char * filename, PV::Communicator * comm, LayerLoc * loc)
+int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
-   const int locSize = sizeof(LayerLoc) / sizeof(int);
+   const int locSize = sizeof(PVLayerLoc) / sizeof(int);
    int locBuf[locSize];
    int status = 0;
 
@@ -121,9 +121,9 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, LayerLoc * l
    return status;
 }
 
-int getImageInfoGDAL(const char * filename, PV::Communicator * comm, LayerLoc * loc)
+int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
-   const int locSize = sizeof(LayerLoc) / sizeof(int);
+   const int locSize = sizeof(PVLayerLoc) / sizeof(int);
    int locBuf[locSize];
    int status = 0;
 
@@ -183,7 +183,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, LayerLoc * 
 }
 
 int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                    PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
       return gatherImageFilePVP(filename, comm, loc, buf);
@@ -192,7 +192,7 @@ int gatherImageFile(const char * filename,
 }
 
 int gatherImageFilePVP(const char * filename,
-                       PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                       PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
    const int maxBands = 3;
@@ -293,7 +293,7 @@ int gatherImageFilePVP(const char * filename,
 }
 
 int gatherImageFileGDAL(const char * filename,
-                        PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                        PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
    const int maxBands = 3;
@@ -397,7 +397,7 @@ int gatherImageFileGDAL(const char * filename,
 }
 
 int scatterImageFile(const char * filename,
-                     PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                     PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
       return scatterImageFilePVP(filename, comm, loc, buf);
@@ -406,7 +406,7 @@ int scatterImageFile(const char * filename,
 }
 
 int scatterImageFilePVP(const char * filename,
-                        PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                        PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
    const int maxBands = 3;
@@ -508,7 +508,7 @@ int scatterImageFilePVP(const char * filename,
 }
 
 int scatterImageFileGDAL(const char * filename,
-                         PV::Communicator * comm, LayerLoc * loc, unsigned char * buf)
+                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
    const int maxBands = 3;
@@ -609,7 +609,7 @@ int scatterImageFileGDAL(const char * filename,
 }
 
 int scatterImageBlocks(const char* filename,
-                       PV::Communicator * comm, LayerLoc * loc, float * buf)
+                       PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 {
    int status = 0;
 #ifdef UNIMPLEMENTED
@@ -671,7 +671,7 @@ int scatterImageBlocks(const char* filename,
  * gather relevant portions of buf on root process from all others
  *    NOTE: buf is np times larger on root process
  */
-int gather (PV::Communicator * comm, LayerLoc * loc, float * buf)
+int gather (PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 {
    return -1;
 }
@@ -680,12 +680,12 @@ int gather (PV::Communicator * comm, LayerLoc * loc, float * buf)
  * scatter relevant portions of buf from root process to all others
  *    NOTE: buf is np times larger on root process
  */
-int scatter(PV::Communicator * comm, LayerLoc * loc, float * buf)
+int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 {
    return -1;
 }
 
-int writeWithBorders(const char * filename, LayerLoc * loc, float * buf)
+int writeWithBorders(const char * filename, PVLayerLoc * loc, float * buf)
 {
    int X = loc->nx + 2 * loc->nPad;
    int Y = loc->ny + 2 * loc->nPad;

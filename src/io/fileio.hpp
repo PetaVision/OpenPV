@@ -9,7 +9,7 @@
 #define FILEIO_HPP_
 
 #include "io.h"
-#include "../include/LayerLoc.h"
+#include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
 
 namespace PV {
@@ -20,26 +20,26 @@ int pvp_close_file(FILE * fp, Communicator * comm);
 
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams);
-int pvp_write_header(FILE * fp, Communicator * comm, double time, const LayerLoc * loc,
+int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc,
                      int filetype, int datatype, int subRecordSize,
                      bool extended, bool contiguous, unsigned int numParams);
 
 int read(const char * filename, Communicator * comm, double * time, pvdata_t * data,
-         const LayerLoc * loc, int datatype, bool extended, bool contiguous);
+         const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
 int write(const char * filename, Communicator * comm, double time, pvdata_t * data,
-          const LayerLoc * loc, int datatype, bool extended, bool contiguous);
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l);
 
 int readWeights(PVPatch ** patches, int numPatches, const char * filename,
-                Communicator * comm, double * time, const LayerLoc * loc, bool extended);
+                Communicator * comm, double * time, const PVLayerLoc * loc, bool extended);
 
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
-                 const LayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch ** patches, int numPatches);
 
-int pvp_check_file_header(const LayerLoc * loc, int params[], int numParams);
+int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams);
 
 } // namespace PV
 
