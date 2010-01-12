@@ -92,7 +92,7 @@ int GLDisplay::loadTexture(int id, Image * im)
 
    if (im == NULL) return -1;
 
-   LayerLoc loc = im->getImageLoc();
+   PVLayerLoc loc = im->getImageLoc();
 
    const int n = loc.nx * loc.ny * loc.nBands;
    unsigned char * buf = new unsigned char[n];
