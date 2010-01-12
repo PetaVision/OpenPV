@@ -67,14 +67,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    const PVLayer * lPre = c->preSynapticLayer()->clayer;
 
-   const float nx = lPre->loc.nx;
-   const float ny = lPre->loc.ny;
-   const float nf = lPre->numFeatures;
+   const int nx = lPre->loc.nx;
+   const int ny = lPre->loc.ny;
+   const int nf = lPre->numFeatures;
 
    // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
-      kPre = kIndex((float) kxPre, (float) kyPre, (float) kfPre, nx, ny, nf);
+      kPre = kIndex(kxPre, kyPre, kfPre, nx, ny, nf);
       kPre = kIndexExtended(kPre, nx, ny, nf, lPre->loc.nPad);
    }
 
@@ -107,17 +107,8 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    if (outputIndices) {
       const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
-      const int xScale = lPost->xScale - lPre->xScale;
-      const int yScale = lPost->yScale - lPre->yScale;
-
-      // global non-extended post-synaptic frame but I think is
-      // local if kxPost0Left and kyPost0Left are zero.
-      //
-      float kxPost0Left = 0.0;
-      float kyPost0Left = 0.0;
-
-      float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, w->nx);
-      float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, w->ny);
+      int kxPost = zPatchHead(kxPre, w->nx, lPre->xScale, lPost->xScale);
+      int kyPost = zPatchHead(kyPre, w->ny, lPre->yScale, lPost->yScale);
 
       write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
       fflush(fp);
@@ -130,13 +121,13 @@ int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
 {
    int f, i, j;
 
-   const int nx = (int) patch->nx;
-   const int ny = (int) patch->ny;
-   const int nf = (int) patch->nf;
+   const int nx = patch->nx;
+   const int ny = patch->ny;
+   const int nf = patch->nf;
 
-   const int sx = (int) patch->sx;  assert(sx == nf);
-   const int sy = (int) patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
-   const int sf = (int) patch->sf;  assert(sf == 1);
+   const int sx = patch->sx;  assert(sx == nf);
+   const int sy = patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
+   const int sf = patch->sf;  assert(sf == 1);
 
    assert(fp != NULL);
 
@@ -169,13 +160,13 @@ int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
  * NOTE: indices are in the local space
  */
 int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
-                                         const LayerLoc * loc, int kx0, int ky0, int kf0)
+                                         const PVLayerLoc * loc, int kx0, int ky0, int kf0)
 {
    int f, i, j;
 
-   const int nx = (int) patch->nx;
-   const int ny = (int) patch->ny;
-   const int nf = (int) patch->nf;
+   const int nx = patch->nx;
+   const int ny = patch->ny;
+   const int nf = patch->nf;
 
    // these strides are from the layer, not the patch
    // NOTE: assumes nf from layer == nf from patch
