@@ -182,7 +182,7 @@ int Retina::copyFromImageBuffer()
    const int nf = clayer->numFeatures;
    pvdata_t * V = clayer->V;
 
-   LayerLoc imageLoc = img->getImageLoc();
+   PVLayerLoc imageLoc = img->getImageLoc();
 
    assert(clayer->loc.nx == imageLoc.nx && clayer->loc.ny == imageLoc.ny);
 
