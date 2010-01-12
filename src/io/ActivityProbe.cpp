@@ -12,20 +12,20 @@
 
 static FILE *
 pv_tiff_open_frame(const char * filename,
-                   const LayerLoc * loc, pvdata_t ** imageBuf, long * nextFrame);
+                   const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextFrame);
 
 static int
 pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextFrame);
 
 static int
 pv_tiff_write_frame(FILE * fp,
-                    pvdata_t * data, const LayerLoc * loc, pvdata_t * buf, long * nextFrame);
+                    pvdata_t * data, const PVLayerLoc * loc, pvdata_t * buf, long * nextFrame);
 
 
 
 namespace PV {
 
-ActivityProbe::ActivityProbe(const char * filename, HyPerCol * hc, const LayerLoc * loc, int f)
+ActivityProbe::ActivityProbe(const char * filename, HyPerCol * hc, const PVLayerLoc * loc, int f)
 {
    outfp = pv_tiff_open_frame(filename, loc, &outBuf, &outFrame);
 }
@@ -63,7 +63,7 @@ pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextLoc)
 }
 
 static FILE *
-pv_tiff_open_frame(const char * filename, const LayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc)
+pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
@@ -83,7 +83,7 @@ pv_tiff_open_frame(const char * filename, const LayerLoc * loc, pvdata_t ** imag
 }
 
 static int
-pv_tiff_write_frame(FILE * fp, pvdata_t * data, const LayerLoc * loc, pvdata_t * buf, long * nextLoc)
+pv_tiff_write_frame(FILE * fp, pvdata_t * data, const PVLayerLoc * loc, pvdata_t * buf, long * nextLoc)
 {
    int k;
 

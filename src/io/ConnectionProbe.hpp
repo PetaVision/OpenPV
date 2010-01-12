@@ -25,7 +25,7 @@ public:
    static int text_write_patch(FILE * fd, PVPatch * patch, float * data);
 
    static int write_patch_indices(FILE * fp, PVPatch * patch,
-                                  const LayerLoc * loc, int kx0, int ky0, int kf0);
+                                  const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
    void setOutputIndices(bool flag)   {outputIndices = flag;}
 

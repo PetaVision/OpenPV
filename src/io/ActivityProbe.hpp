@@ -15,7 +15,7 @@ namespace PV {
 
 class ActivityProbe: public PV::PVLayerProbe {
 public:
-   ActivityProbe(const char * filename, HyPerCol * hc, const LayerLoc * loc, int f);
+   ActivityProbe(const char * filename, HyPerCol * hc, const PVLayerLoc * loc, int f);
    virtual ~ActivityProbe();
 
    virtual int outputState(float time, PVLayer * l);
