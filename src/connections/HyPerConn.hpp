@@ -100,9 +100,9 @@ public:
 
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 
-   int gauss2DCalcWeights(PVPatch * wp, int fPre, int no, int xScale, int yScale,
-                          int numFlanks, float flankShift, float rotate,
-                          float aspect, float sigma, float r2Max, float strength);
+   int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
+                          int numFlanks, float shift, float rotate, float aspect, float sigma,
+                          float r2Max, float strength);
 
    PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
@@ -157,6 +157,7 @@ protected:
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
+   virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
@@ -165,7 +166,7 @@ protected:
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
 
-   virtual int checkPVPFileHeader(const LayerLoc * loc, int params[], int numParams);
+   virtual int checkPVPFileHeader(const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 
    virtual int deleteWeights();
