@@ -78,7 +78,7 @@ pvdata_t * Movie::getImageBuffer()
    return data;
 }
 
-LayerLoc Movie::getImageLoc()
+PVLayerLoc Movie::getImageLoc()
 {
 //   return imageLoc;
    return loc;
