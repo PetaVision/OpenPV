@@ -9,7 +9,6 @@
 #include <assert.h>
 #include "../io/io.h"
 
-
 namespace PV {
 
 KernelConn::KernelConn()
@@ -40,7 +39,8 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize(name, hc, pre, post, channel, filename);
 }
 
-int KernelConn::initialize_base(){
+int KernelConn::initialize_base()
+{
    kernelPatches = NULL;
    return HyPerConn::initialize_base();
 }
@@ -60,8 +60,21 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
    for (int k = 0; k < nPatches; k++) {
       patches[k] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
+   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nxPre = pre->clayer->loc.nx;
+   int nyPre = pre->clayer->loc.ny;
+   int nfPre = pre->clayer->numFeatures;
    for (int k = 0; k < nPatches; k++) {
-      patches[k]->data = kernel_patches[k % numKernelPatches]->data;
+      int kxPre = kxPos( k, nxPre, nyPre, nfPre);
+      int kyPre = kyPos( k, nxPre, nyPre, nfPre);
+      int kfPre = featureIndex( k, nxPre, nyPre, nfPre);
+      kxPre = kxPre % xScaleFac;
+      kyPre = kyPre % yScaleFac;
+      int kprime = kIndex( kxPre,  kyPre,  kfPre,  nxPre,  nyPre,  nfPre);
+      patches[k]->data = kernel_patches[kprime]->data;
    }
    return kernel_patches;
 }
@@ -75,6 +88,7 @@ PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPat
    assert(numAxonalArborLists == 1);
 
    // TODO IMPORTANT ################# free memory in patches as well
+   // GTK: call delete weights?
    if (patches != NULL) {
       free(patches);
    }
@@ -108,9 +122,20 @@ PVPatch ** KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
    return wPatches[arbor];
 }
 
+PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
+      const char * filename)
+{
+   HyPerConn::readWeights(patches, numPatches, filename);
+   return HyPerConn::normalizeWeights(patches, numPatches);
+}
+
 int KernelConn::numDataPatches(int arbor)
 {
-   int numKernelPatches = (int) this->nfp;
+   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int numKernelPatches = ((int) this->nfp) * xScaleFac * yScaleFac;
    return numKernelPatches;
 }
 
@@ -121,26 +146,6 @@ int KernelConn::writeWeights(float time, bool last)
    const int numPatches = numDataPatches(arbor);
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
 
-#ifdef GARS_ORIGINAL_CODE
-   int status = 0;
-   char name[PV_PATH_MAX];
-
-   if (last) {
-      snprintf(name, PV_PATH_MAX-1, "w%d_last", getConnectionId());
-   }
-   else {
-      snprintf(name, PV_PATH_MAX-1, "w%d", getConnectionId());
-   }
-
-   const int arbor = 0;
-   const int append = 0;
-   int numPatches = numDataPatches(arbor);
-   status = pv_write_patches(name, append, (int) nxp, (int) nyp, (int) nfp,
-                             minWeight(), maxWeight(), numPatches, kernelPatches);
-   assert(status == 0);
-
-   return status;
-#endif
 }
 
 } // namespace PV
