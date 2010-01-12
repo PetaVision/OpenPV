@@ -81,7 +81,7 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
  * data lives in an extended frame of size
  * (nx+2*nPad)*(ny+2*nPad)*nBands
  */
-int Image::initialize_data(const LayerLoc * loc)
+int Image::initialize_data(const PVLayerLoc * loc)
 {
    // allocate storage for actual image
    //
@@ -103,7 +103,7 @@ pvdata_t * Image::getImageBuffer()
    return data;
 }
 
-LayerLoc Image::getImageLoc()
+PVLayerLoc Image::getImageLoc()
 {
    return loc;
 }
@@ -272,7 +272,7 @@ int Image::toGrayScale()
    return 0;
 }
 
-int Image::convertToGrayScale(LayerLoc * loc, unsigned char * buf)
+int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
 {
    const int nx = loc->nx;
    const int ny = loc->ny;

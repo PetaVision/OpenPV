@@ -23,7 +23,7 @@ public:
    virtual ~Image();
 
    virtual int initialize_base(const char * name, HyPerCol * hc);
-   virtual int initialize_data(const LayerLoc * loc);
+   virtual int initialize_data(const PVLayerLoc * loc);
 
    virtual bool updateImage(float time, float dt);
    virtual int clearImage();
@@ -31,7 +31,7 @@ public:
    float lastUpdate()  { return lastUpdateTime; }
 
    virtual pvdata_t * getImageBuffer();
-   virtual LayerLoc   getImageLoc();
+   virtual PVLayerLoc   getImageLoc();
 
    int read(const char * filename);
    int write(const char * filename);
@@ -39,7 +39,7 @@ public:
    int exchange();
 
    int toGrayScale();
-   static int convertToGrayScale(LayerLoc * loc, unsigned char * buf);
+   static int convertToGrayScale(PVLayerLoc * loc, unsigned char * buf);
 
    int  convolve(int width);
    void setTau(int t)                { tau = t; }
@@ -54,10 +54,10 @@ protected:
    Communicator * comm;           // the communicator object for reading/writing files
    MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
-   LayerLoc loc;          // size/location of layer
+   PVLayerLoc loc;          // size/location of layer
    pvdata_t * data;       // buffer containing reduced image
 
-   LayerLoc   imageLoc;   // size/location of actual image
+   PVLayerLoc   imageLoc;   // size/location of actual image
    pvdata_t * imageData;  // buffer containing image
 
    float lastPhase;
