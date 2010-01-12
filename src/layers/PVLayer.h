@@ -9,7 +9,7 @@
 #define HYPERLAYER_H_
 
 #include "../include/pv_common.h"
-#include "elementals.h"
+#include "../utils/conversions.h"
 
 typedef enum {
    TypeGeneric,
@@ -40,7 +40,7 @@ typedef struct PVLayer_ {
    // TODO - deprecate?
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
 
-   LayerLoc loc;
+   PVLayerLoc loc;
    int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
    float dx, dy;           // distance between neurons in the layer
    float xOrigin, yOrigin; // origin of the layer (depends on iCol)
@@ -86,23 +86,22 @@ int pvlayer_copyUpdate(PVLayer * l);
 
 // static, hopefully fast, routines:
 
-static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float * kf)
-{
-   *x = xPos(k, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
-   *y = yPos(k, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
-   *kf = featureIndex(k, l->loc.nx, l->loc.ny, l->numFeatures);
-
-   return 0;
-}
+//static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float * kf)
+//{
+//   *x = xPos(k, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
+//   *y = yPos(k, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
+//   *kf = featureIndex(k, l->loc.nx, l->loc.ny, l->numFeatures);
+//
+//   return 0;
+//}
 
 float pvlayer_getWeight(float x0, float x, float r, float sigma);
-float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nxPatch);
 
 int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * params);
 int pvlayer_getParams(PVLayer * l, int * numParams, float ** params);
 int pvlayer_setFuncs (PVLayer * l, void * updateFunc, void * initFunc);
 
-PVLayerCube * pvcube_new(LayerLoc * loc, int numItems);
+PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
 int           pvcube_delete(PVLayerCube * cube);
 int           pvcube_setAddr(PVLayerCube * cube);
 
