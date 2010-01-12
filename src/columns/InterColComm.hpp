@@ -29,7 +29,7 @@ class Publisher {
 public:
    // deprecated constructor that separates borders from the layer data structure
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
-   Publisher(int pubId, Communicator * comm, int numItems, LayerLoc loc, int numLevels);
+   Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels);
    virtual ~Publisher();
 
    int publish(HyPerLayer * pub,

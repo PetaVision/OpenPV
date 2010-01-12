@@ -99,7 +99,7 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
    }
 }
 
-Publisher::Publisher(int pubId, Communicator * comm, int numItems, LayerLoc loc, int numLevels)
+Publisher::Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels)
 {
    size_t dataSize  = numItems * sizeof(float);
 

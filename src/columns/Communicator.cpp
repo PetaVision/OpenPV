@@ -410,7 +410,7 @@ int Communicator::neighborIndex(int commId, int index)
  * Returns the recv data offset for the given neighbor
  *  - recv into borders
  */
-size_t Communicator::recvOffset(int n, const LayerLoc * loc)
+size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
@@ -448,7 +448,7 @@ size_t Communicator::recvOffset(int n, const LayerLoc * loc)
  * Returns the send data offset for the given neighbor
  *  - send from interior
  */
-size_t Communicator::sendOffset(int n, const LayerLoc * loc)
+size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
@@ -486,7 +486,7 @@ size_t Communicator::sendOffset(int n, const LayerLoc * loc)
  * Create a set of data types for inter-neighbor communication
  *   - caller must delete the data-type array
  */
-MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
+MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 {
 #ifdef PV_USE_MPI
    int count, blocklength, stride;
@@ -562,7 +562,7 @@ MPI_Datatype * Communicator::newDatatypes(const LayerLoc * loc)
  */
 int Communicator::exchange(pvdata_t * data,
                            const MPI_Datatype neighborDatatypes [],
-                           const LayerLoc * loc)
+                           const PVLayerLoc * loc)
 {
 #ifdef PV_USE_MPI
 

@@ -59,7 +59,7 @@ public:
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return time;}
 
-   LayerLoc getImageLoc()                 {return imageLoc;}
+   PVLayerLoc getImageLoc()                 {return imageLoc;}
    float  width()                         {return imageLoc.nx;}
    float  height()                        {return imageLoc.ny;}
 
@@ -99,7 +99,7 @@ private:
 
    char * name;
    char * image_file;
-   LayerLoc imageLoc;
+   PVLayerLoc imageLoc;
 
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};

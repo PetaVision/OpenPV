@@ -34,10 +34,10 @@ namespace PV {
 class Communicator {
 public:
 
-   static size_t recvOffset(int n, const LayerLoc * loc);
-   static size_t sendOffset(int n, const LayerLoc * loc);
+   static size_t recvOffset(int n, const PVLayerLoc * loc);
+   static size_t sendOffset(int n, const PVLayerLoc * loc);
 
-   static MPI_Datatype * newDatatypes(const LayerLoc * loc);
+   static MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
 
    Communicator(int * argc, char *** argv);
    virtual ~Communicator();
@@ -63,7 +63,7 @@ public:
 
    int exchange(pvdata_t * data,
                 const MPI_Datatype neighborDatatypes [],
-                const LayerLoc * loc);
+                const PVLayerLoc * loc);
 
 protected:
 
