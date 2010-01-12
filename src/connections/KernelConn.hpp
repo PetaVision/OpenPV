@@ -14,10 +14,9 @@ namespace PV {
 
 class KernelConn: public HyPerConn {
 
-private:
-   KernelConn();
-
 public:
+
+   KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               int channel, const char * filename);
@@ -36,6 +35,8 @@ protected:
          int nyPatch, int nfPatch);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
+   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
+                                     const char * filename);
    virtual int writeWeights(float time, bool last=false);
 
 };
