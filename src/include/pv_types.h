@@ -8,7 +8,7 @@
 #ifndef PV_TYPES_H_
 #define PV_TYPES_H_
 
-#include "LayerLoc.h"
+#include "PVLayerLoc.h"
 #include <stdlib.h>   /* for size_t */
 
 #define PV_ON  1
@@ -53,7 +53,7 @@ typedef struct PVLayerCube_ {
    int        numItems;  // number of items in data buffer
    pvdata_t * data;      // pointer to data (may follow header)
    int        padding[NUM_PADDING];   // header size should be n*128 bits
-   LayerLoc loc;       // location of cube in global layer
+   PVLayerLoc loc;       // location of cube in global layer
 } PVLayerCube;
 
 typedef struct PVAxonalArbor_ {
