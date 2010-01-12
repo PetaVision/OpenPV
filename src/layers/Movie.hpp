@@ -18,7 +18,7 @@ public:
    virtual ~Movie();
 
    virtual pvdata_t * getImageBuffer();
-   virtual PVLayerLoc   getImageLoc();
+   virtual PVLayerLoc getImageLoc();
 
    bool updateImage(float time, float dt);
 

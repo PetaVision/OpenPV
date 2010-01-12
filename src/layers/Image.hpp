@@ -54,10 +54,10 @@ protected:
    Communicator * comm;           // the communicator object for reading/writing files
    MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
-   PVLayerLoc loc;          // size/location of layer
+   PVLayerLoc loc;        // size/location of layer
    pvdata_t * data;       // buffer containing reduced image
 
-   PVLayerLoc   imageLoc;   // size/location of actual image
+   PVLayerLoc imageLoc; // size/location of actual image
    pvdata_t * imageData;  // buffer containing image
 
    float lastPhase;

@@ -1090,9 +1090,7 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
       }
    }
 }
-#endif
 
-#ifdef USE_OLD_PATCH_HEAD
 /**
  * Return the _global_ (non-extended) leading index in a direction of a patch in the post layer
  *   NOTE: float OK size for kxPre because only k index in a specific direction
@@ -1125,7 +1123,8 @@ float pvlayer_patchHead(int kxPre, float kxPost0Left, int xScale, int nPatch)
    }
 #endif
 }
-#endif // USE_OLD_PATCH_HEAD
+#endif // REMOVE
+
 
 static size_t pvcube_size(int numItems)
 {

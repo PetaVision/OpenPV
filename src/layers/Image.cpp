@@ -113,7 +113,7 @@ PVLayerLoc Image::getImageLoc()
 //   return data;
 //}
 
-//LayerLoc Image::getDataLoc()
+//PVLayerLoc Image::getDataLoc()
 //{
 //   return loc;
 //}
