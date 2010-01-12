@@ -26,6 +26,12 @@ extern "C"
 
    int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
 
+   int posPatchHead(const int kPre, const int xScaleLog2Pre,
+         const int yScaleLog2Pre, const PVLayerLoc locPre, float * xPreGlobal,
+         float * yPreGlobal, const int xScaleLog2Post, const int yScaleLog2Post,
+         const PVLayerLoc locPost, const PVPatch * wp, float * xPatchHeadGlobal,
+         float * yPatchHeadGlobal);
+
 /*
  * The following functions are simple, static inline functions.  They have been given the
  * compiler directive elemental (with same semantics as in Fortran).  The elemental functions are
@@ -37,8 +43,6 @@ extern "C"
  *   scaleLog2 - absolute scale of a layer relative to retina
  *
  */
-
-#ifndef FEATURES_LAST
 
  //! RETURNS FEATURE INDEX FROM LINEAR INDEX
 /**
@@ -250,6 +254,9 @@ static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Po
    return (int) (kzPre * a) + (int) (0.5f * a);
 }
 
+#define DEPRECATED_FEATURES
+#ifdef DEPRECATED_FEATURES
+// deprecated
 /**
  * Assuming kPre connects to the nearest kPost, return the distance between these two positions
  *    (xPost - xPre) or (yPost - yPre) in units of post-synaptic dx (or dy).
@@ -274,8 +281,7 @@ static inline float deltaPosLayers(int kPre, int scale)
    }
    return 0.0;
 }
-
-#endif // ifndef FEATURES_LAST
+#endif /* DEPRECATED_FEATURES */
 
 //! RETURNS LINEAR INDEX IN THE EXTENDED SPACE FROM INDICES IN RESTRICTED SPACE
 /*!
@@ -309,7 +315,7 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
  * @nf
  */
 // TODO - put back in nx,ny,... so that it will vectorize with vector of kl's
-static inline int globalIndexFromLocal(int kl, LayerLoc loc, int nf)
+static inline int globalIndexFromLocal(int kl, PVLayerLoc loc, int nf)
 {
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, nf);
