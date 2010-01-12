@@ -9,6 +9,7 @@
 #include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
 #include "../io/fileio.hpp"
+#include "../utils/conversions.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,10 +58,11 @@ HyPerConn::~HyPerConn()
    for (int l = 0; l < numAxonalArborLists; l++) {
       // following frees all data patches for border region l because all
       // patches are allocated together, so freeing freeing first one will do
-      free(this->axonalArbor(0,l)->data);
+      free(this->axonalArbor(0, l)->data);
       free(this->axonalArborList[l]);
    }
 }
+
 //!
 /*!
  *
@@ -105,6 +107,7 @@ int HyPerConn::initialize_base()
 
    return 0;
 }
+
 //!
 /*!
  * REMARKS:
@@ -255,18 +258,17 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       return initializeRandomWeights(patches, numPatches, randomSeed);
    }
    else {
-      initializeGaussianWeights(patches, numPatches);
+      initializeDefaultWeights(patches, numPatches);
       return normalizeWeights(patches, numPatches);
    }
 }
 
-int HyPerConn::checkPVPFileHeader(const LayerLoc * loc, int params[], int numParams)
+int HyPerConn::checkPVPFileHeader(const PVLayerLoc * loc, int params[], int numParams)
 {
    // use default header checker
    //
    return pvp_check_file_header(loc, params, numParams);
 }
-
 
 int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 {
@@ -314,6 +316,11 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    return patches;
 }
 
+PVPatch ** HyPerConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
+{
+   return initializeGaussianWeights(patches, numPatches);
+}
+
 PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
@@ -341,10 +348,8 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    shift     = params->value(name, "flankShift", shift);
    rotate    = params->value(name, "rotate", rotate);
 
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
    for (int k = 0; k < numPatches; k++) {
-      gauss2DCalcWeights(patches[k], k, noPost, xScale, yScale, numFlanks, shift, rotate,
+      gauss2DCalcWeights(patches[k], k, noPost, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength);
    }
 
@@ -381,7 +386,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
    const float minVal = minWeight();
    const float maxVal = maxWeight();
 
-   const LayerLoc * loc = &pre->clayer->loc;
+   const PVLayerLoc * loc = &pre->clayer->loc;
 
    if (patches == NULL) return 0;
 
@@ -440,14 +445,14 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    }
 
    fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
-   fprintf(fd, "   (nxp,nyp,nfp)   = (%d,%d,%d)\n", (int)nxp, (int)nyp, (int)nfp);
+   fprintf(fd, "   (nxp,nyp,nfp)   = (%d,%d,%d)\n", nxp, nyp, nfp);
    fprintf(fd, "   pre  (nx,ny,nf) = (%d,%d,%d)\n",
-           (int)pre->clayer->loc.nx, (int)pre->clayer->loc.ny, (int)pre->clayer->numFeatures);
+           pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures);
    fprintf(fd, "   post (nx,ny,nf) = (%d,%d,%d)\n",
-           (int)post->clayer->loc.nx, (int)post->clayer->loc.ny, (int)post->clayer->numFeatures);
+           post->clayer->loc.nx, post->clayer->loc.ny, post->clayer->numFeatures);
    fprintf(fd, "\n");
    if (stdpFlag) {
-      pv_text_write_patch(fd, pIncr[k]);  // write the Ps variable
+      pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
    }
    int arbor = 0;
    pv_text_write_patch(fd, wPatches[arbor][k]);
@@ -536,21 +541,18 @@ int HyPerConn::updateState(float time, float dt)
 {
    if (stdpFlag) {
       const float fac = ampLTD;
-      const float decay = expf(-dt/tauLTD);
+      const float decay = expf(-dt / tauLTD);
 
       //
       // both pDecr and activity are extended regions (plus margins)
       // to make processing them together simpler
 
       float * a = post->clayer->activity->data;
-      float * m = pDecr->data;            // decrement (minus) variable
+      float * m = pDecr->data; // decrement (minus) variable
       int nk = pDecr->numItems;
 
       for (int k = 0; k < nk; k++) {
          m[k] = decay * m[k] - fac * a[k];
-//         if (a[k] > 0) {
-//            fprintf(stderr, "k=%d, m=%f addr(m)=%p\n", k, m[k], &m[k]);
-//         }
       }
    }
 
@@ -563,9 +565,9 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
    assert(remoteNeighbor == 0);
 
    const float dt = parent->getDeltaTime();
-   const float decayLTP = expf(-dt/tauLTP);
+   const float decayLTP = expf(-dt / tauLTP);
 
-   const int postStrideY = post->clayer->loc.nx + 2*post->clayer->loc.nPad;
+   const int postStrideY = post->clayer->loc.nx + 2 * post->clayer->loc.nPad;
 
    // assume pDecr has been updated already, and weights have been used, so
    // 1. update Psij (pIncr) for each synapse
@@ -580,7 +582,7 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
    assert(numExtended == numWeightPatches(axonId));
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
-      PVAxonalArbor * arbor  = axonalArbor(kPre, axonId);
+      PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
 
       const float preActivity = preActivityCube->data[kPre];
 
@@ -593,16 +595,16 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
       float * M = &pDecr->data[postOffset];  // STDP decrement variable
       float * P =  pIncr->data;              // STDP increment variable
 
-      int nk  = (int) pIncr->nf * (int) pIncr->nx; // one line in x at a time
-      int ny  = (int) pIncr->ny;
-      int sy  = (int) pIncr->sy;
+      int nk = pIncr->nf * (int) pIncr->nx; // one line in x at a time
+      int ny = pIncr->ny;
+      int sy = pIncr->sy;
 
       // TODO - unroll
 
       // update Psij (pIncr variable)
       // we are processing patches, one line in y at a time
       for (int y = 0; y < ny; y++) {
-         pvpatch_update_plasticity_incr(nk, P + y*sy, preActivity, decayLTP, ampLTP);
+         pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
       }
 
       // update weights
@@ -742,46 +744,42 @@ int HyPerConn::deleteWeights()
  */
 int HyPerConn::createAxonalArbors()
 {
-   // TODO - these needs to be an input parameter obtained from the connection
-   const float kxPost0Left = 0.0f;
-   const float kyPost0Left = 0.0f;
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = pre->clayer;
 
-   const float prePad  = pre->clayer->loc.nPad;
-   const float postPad = post->clayer->loc.nPad;
+   const int prePad  = lPre->loc.nPad;
+   const int postPad = lPost->loc.nPad;
 
-   const float nxPre  = pre->clayer->loc.nx;
-   const float nyPre  = pre->clayer->loc.ny;
-   const float kx0Pre = pre->clayer->loc.kx0;
-   const float ky0Pre = pre->clayer->loc.ky0;
-   const float nfPre  = pre->clayer->numFeatures;
+   const int nxPre  = lPre->loc.nx;
+   const int nyPre  = lPre->loc.ny;
+   const int kx0Pre = lPre->loc.kx0;
+   const int ky0Pre = lPre->loc.ky0;
+   const int nfPre  = lPre->numFeatures;
 
-   const float nxexPre = nxPre + 2.0f*prePad;
-   const float nyexPre = nyPre + 2.0f*prePad;
+   const int nxexPre = nxPre + 2.0f * prePad;
+   const int nyexPre = nyPre + 2.0f * prePad;
 
-   const float nxPost  = post->clayer->loc.nx;
-   const float nyPost  = post->clayer->loc.ny;
-   const float kx0Post = post->clayer->loc.kx0;
-   const float ky0Post = post->clayer->loc.ky0;
-   const float nfPost  = post->clayer->numFeatures;
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int kx0Post = lPost->loc.kx0;
+   const int ky0Post = lPost->loc.ky0;
+   const int nfPost  = lPost->numFeatures;
 
-   const float nxexPost = nxPost + 2.0f*postPad;
-   const float nyexPost = nyPost + 2.0f*postPad;
-
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const int nxexPost = nxPost + 2.0f * postPad;
+   const int nyexPost = nyPost + 2.0f * postPad;
 
    const int numAxons = numAxonalArborLists;
 
-//
-// these strides are for post-synaptic phi variable, a non-extended layer variable
+   //
+   // these strides are for post-synaptic phi variable, a non-extended layer variable
 #ifndef FEATURES_LAST
-   const float psf = 1;
-   const float psx = nfp;
-   const float psy = psx * nxPost; // (nxPost + 2.0f*postPad); // TODO- check me///////////
+   const int psf = 1;
+   const int psx = nfp;
+   const int psy = psx * nxPost; // (nxPost + 2.0f*postPad); // TODO- check me///////////
 #else
-   const float psx = 1;
-   const float psy = nxPost; // + 2.0f*postPad;
-   const float psf = psy * nyPost; // (nyPost + 2.0f*postPad);
+   const int psx = 1;
+   const int psy = nxPost; // + 2.0f*postPad;
+   const int psf = psy * nyPost; // (nyPost + 2.0f*postPad);
 #endif
 
    //
@@ -804,20 +802,20 @@ int HyPerConn::createAxonalArbors()
          // kex is in extended frame, this makes transformations more difficult
 
          // local indices in extended frame
-         float kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
-         float kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
+         int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
+         int kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
 
          // convert to global non-extended frame
          kxPre += kx0Pre - prePad;
          kyPre += ky0Pre - prePad;
 
          // global non-extended post-synaptic frame
-         float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
-         float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
+         int kxPost = zPatchHead(kxPre, nxp, lPre->xScale, lPost->xScale);
+         int kyPost = zPatchHead(kyPre, nyp, lPre->yScale, lPost->yScale);
 
          // TODO - can get nf from weight patch but what about kf0?
          // weight patch is actually a pencil and so kfPost is always 0?
-         float kfPost = 0.0f;
+         int kfPost = 0.0f;
 
          // convert to local non-extended post-synaptic frame
          kxPost = kxPost - kx0Post;
@@ -826,8 +824,8 @@ int HyPerConn::createAxonalArbors()
          // adjust location so patch is in bounds
          float dx = 0;
          float dy = 0;
-         float nxPatch = nxp;
-         float nyPatch = nyp;
+         int nxPatch = nxp;
+         int nyPatch = nyp;
 
          if (kxPost < 0.0) {
             nxPatch -= -kxPost;
@@ -868,14 +866,14 @@ int HyPerConn::createAxonalArbors()
          // local non-extended index but shifted to be in bounds
          int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
          assert(kl >= 0);
-         assert(kl < post->clayer->numNeurons);
+         assert(kl < lPost->numNeurons);
 
          arbor->data = &dataPatches[kex];
          arbor->weights = this->getWeights(kex, n);
          arbor->plasticIncr = this->getPlasticityIncrement(kex, n);
 
          // initialize the receiving (of spiking data) phi variable
-         pvdata_t * phi = post->clayer->phi[channel] + kl;
+         pvdata_t * phi = lPost->phi[channel] + kl;
          pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
 
          //
@@ -886,13 +884,13 @@ int HyPerConn::createAxonalArbors()
 
          kl = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
          assert(kl >= 0);
-         assert(kl < post->clayer->numExtended);
+         assert(kl < lPost->numExtended);
 
          arbor->offset = kl;
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
 
-         pvpatch_adjust(arbor->weights, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+         pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
          if (stdpFlag) {
             arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
                              (size_t)dy * (size_t)arbor->weights->sy;
@@ -910,31 +908,27 @@ int HyPerConn::createAxonalArbors()
 // done in createAxonalArbors
 int HyPerConn::adjustAxonalArborWeights()
 {
-   // TODO - these needs to be an input parameter obtained from the connection
-   const float kxPost0Left = 0.0f;
-   const float kyPost0Left = 0.0f;
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
 
-   const float nxBorderPre  = pre->clayer->loc.nPad;
-   const float nyBorderPre  = pre->clayer->loc.nPad;
+   const int nxBorderPre = lPre->loc.nPad;
+   const int nyBorderPre = lPre->loc.nPad;
 
    // use the extended reference frame (with margins) for pre-synaptic layer
 
-   const float nxPre  = pre->clayer->loc.nx + 2.0f * nxBorderPre;
-   const float nyPre  = pre->clayer->loc.ny + 2.0f * nyBorderPre;
-   const float kx0Pre = pre->clayer->loc.kx0 - nxBorderPre;
-   const float ky0Pre = pre->clayer->loc.ky0 - nyBorderPre;
-   const float nfPre  = pre->clayer->numFeatures;
+   const int nxPre  = lPre->loc.nx + 2.0f * nxBorderPre;
+   const int nyPre  = lPre->loc.ny + 2.0f * nyBorderPre;
+   const int kx0Pre = lPre->loc.kx0 - nxBorderPre;
+   const int ky0Pre = lPre->loc.ky0 - nyBorderPre;
+   const int nfPre  = lPre->numFeatures;
 
    // use the non-extended reference frame for post-synaptic layer
    // because phi data structure is not extended
 
-   const float nxPost  = post->clayer->loc.nx;
-   const float nyPost  = post->clayer->loc.ny;
-   const float kx0Post = post->clayer->loc.kx0;
-   const float ky0Post = post->clayer->loc.ky0;
-
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int kx0Post = lPost->loc.kx0;
+   const int ky0Post = lPost->loc.ky0;
 
    const int numNeighbors = numAxonalArborLists;
 
@@ -946,12 +940,12 @@ int HyPerConn::adjustAxonalArborWeights()
          int kPre = kIndexFromNeighbor(k, n);
 
          // global indices
-         float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
-         float kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
+         int kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
+         int kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
 
          // global indices
-         float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
-         float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
+         int kxPost = zPatchHead(kxPre, nxp, lPre->xScale, lPost->xScale);
+         int kyPost = zPatchHead(kyPre, nyp, lPre->yScale, lPost->yScale);
 
          // convert to local frame
          kxPost = kxPost - kx0Post;
@@ -960,8 +954,8 @@ int HyPerConn::adjustAxonalArborWeights()
          // adjust location so patch is in bounds
          float dx = 0;
          float dy = 0;
-         float nxPatch = nxp;
-         float nyPatch = nyp;
+         int nxPatch = nxp;
+         int nyPatch = nyp;
 
          if (kxPost < 0.0) {
             nxPatch -= -kxPost;
@@ -999,7 +993,7 @@ int HyPerConn::adjustAxonalArborWeights()
             nyPatch = 0.0;
          }
 
-         pvpatch_adjust(arbor->weights, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+         pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
          if (stdpFlag) {
             arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
                              (size_t)dy * (size_t)arbor->weights->sy;
@@ -1017,45 +1011,45 @@ int HyPerConn::adjustAxonalArborWeights()
 int HyPerConn::createAxonalArbors(int numArbors)
 {
    // TODO - these needs to be an input parameter obtained from the connection
-   const float kxPost0Left = 0.0f;
-   const float kyPost0Left = 0.0f;
+   const int kxPost0Left = 0.0f;
+   const int kyPost0Left = 0.0f;
 
-   const float nxPre  = pre->clayer->loc.nx;
-   const float nyPre  = pre->clayer->loc.ny;
-   const float kx0Pre = pre->clayer->loc.kx0;
-   const float ky0Pre = pre->clayer->loc.ky0;
-   const float nfPre  = pre->clayer->numFeatures;
+   const int nxPre = lPre->loc.nx;
+   const int nyPre = lPre->loc.ny;
+   const int kx0Pre = lPre->loc.kx0;
+   const int ky0Pre = lPre->loc.ky0;
+   const int nfPre = lPre->numFeatures;
 
-   const float nxPost  = post->clayer->loc.nx;
-   const float nyPost  = post->clayer->loc.ny;
-   const float kx0Post = post->clayer->loc.kx0;
-   const float ky0Post = post->clayer->loc.ky0;
-   const float nfPost  = post->clayer->numFeatures;
+   const int nxPost = lPost->loc.nx;
+   const int nyPost = lPost->loc.ny;
+   const int kx0Post = lPost->loc.kx0;
+   const int ky0Post = lPost->loc.ky0;
+   const int nfPost = lPost->numFeatures;
 
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const int xScale = lPost->xScale - lPre->xScale;
+   const int yScale = lPost->yScale - lPre->yScale;
 
-   const float numBorder = post->clayer->numBorder;
+   const int numBorder = lPost->numBorder;
    assert(numBorder = 0);
 
 #ifndef FEATURES_LAST
-   const float psf = 1;
-   const float psx = nfp;
-   const float psy = psx * (nxPost + 2.0f*numBorder);
+   const int psf = 1;
+   const int psx = nfp;
+   const int psy = psx * (nxPost + 2.0f*numBorder);
 #else
-   const float psx = 1;
-   const float psy = nxPost + 2.0f*numBorder;
-   const float psf = psy * (nyPost + 2.0f*numBorder);
+   const int psx = 1;
+   const int psy = nxPost + 2.0f*numBorder;
+   const int psf = psy * (nyPost + 2.0f*numBorder);
 #endif
 
-   int nNeurons = pre->clayer->numNeurons;
+   int nNeurons = lPre->numNeurons;
    int nTotalTasks = nNeurons * numArbors;
 
-   PVAxonalArborList ** allBPtrs   = (PVAxonalArborList**) malloc(nNeurons*sizeof(PVAxonalArborList*));
-   PVAxonalArborList  * allBundles = (PVAxonalArborList *) malloc(nNeurons*sizeof(PVAxonalArborList));
+   PVAxonalArborList ** allBPtrs = (PVAxonalArborList**) malloc(nNeurons*sizeof(PVAxonalArborList*));
+   PVAxonalArborList * allBundles = (PVAxonalArborList *) malloc(nNeurons*sizeof(PVAxonalArborList));
    PVAxonalArbor** allTPtrs = (PVAxonalArbor**) malloc(nTotalTasks*sizeof(PVAxonalArbor*));
-   PVAxonalArbor * allTasks = (PVAxonalArbor*)  malloc(nTotalTasks*sizeof(PVAxonalArbor));
-   PVPatch       * allData  = (PVPatch*)        malloc(nTotalTasks*sizeof(PVPatch));
+   PVAxonalArbor * allTasks = (PVAxonalArbor*) malloc(nTotalTasks*sizeof(PVAxonalArbor));
+   PVPatch * allData = (PVPatch*) malloc(nTotalTasks*sizeof(PVPatch));
 
    assert(allBPtrs != NULL);
    assert(allBundles != NULL);
@@ -1084,15 +1078,15 @@ int HyPerConn::createAxonalArbors(int numArbors)
          task->weights = this->getWeights(kPre, i);
 
          // global indices
-         float kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
-         float kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
+         int kxPre = kx0Pre + kxPos(kPre, nxPre, nyPre, nfPre);
+         int kyPre = ky0Pre + kyPos(kPre, nxPre, nyPre, nfPre);
 
          // global indices
-         float kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
-         float kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
+         int kxPost = pvlayer_patchHead(kxPre, kxPost0Left, xScale, nxp);
+         int kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
 
          // TODO - can get nf from weight patch but what about kf0?
-         float kfPost = 0.0f;
+         int kfPost = 0.0f;
 
          // convert to local in extended frame
          kxPost = kxPost - (kx0Post - numBorder);
@@ -1101,7 +1095,7 @@ int HyPerConn::createAxonalArbors(int numArbors)
          // phi is in extended frame
          int kl = kIndex(kxPost, kyPost, kfPost, nxPost+2.0f*numBorder, nyPost+2.0f*numBorder, nfPost);
          // TODO get the correct phi index
-         pvdata_t * phi = post->clayer->phi[channel] + kl;
+         pvdata_t * phi = lPost->phi[channel] + kl;
 
          offset = (i + kPre*numArbors) * sizeof(PVPatch);
          task->data = (PVPatch*) ((char*) allData + offset);
@@ -1150,8 +1144,11 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    }
    wPostTime = time;
 
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   const int xScale = lPost->xScale - lPre->xScale;
+   const int yScale = lPost->yScale - lPre->yScale;
    const float powXScale = powf(2.0, (float) xScale);
    const float powYScale = powf(2.0, (float) yScale);
 
@@ -1159,24 +1156,24 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    assert(xScale < 0);
    assert(yScale < 0);
 
-   const int prePad = pre->clayer->loc.nPad;
+   const int prePad = lPre->loc.nPad;
 
    // pre-synaptic weights are in extended layer reference frame
-   const int nxPre  = (int) pre->clayer->loc.nx + 2 * prePad;
-   const int nyPre  = (int) pre->clayer->loc.ny + 2 * prePad;
-   const int nfPre  = pre->clayer->numFeatures;
+   const int nxPre = lPre->loc.nx + 2 * prePad;
+   const int nyPre = lPre->loc.ny + 2 * prePad;
+   const int nfPre = lPre->numFeatures;
 
-   const int nxPost  = (int) post->clayer->loc.nx;
-   const int nyPost  = (int) post->clayer->loc.ny;
-   const int nfPost  = post->clayer->numFeatures;
-   const int numPost = post->clayer->numNeurons;
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int nfPost  = lPost->numFeatures;
+   const int numPost = lPost->numNeurons;
 
-   const int nxPrePatch = (int) nxp;
-   const int nyPrePatch = (int) nyp;
+   const int nxPrePatch = nxp;
+   const int nyPrePatch = nyp;
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = pre->clayer->numFeatures;
+   const int nfPostPatch = lPre->numFeatures;
 
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
@@ -1193,18 +1190,18 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       int kfPost = (int) featureIndex(kPost, nxPost, nyPost, nfPost);
 
       // TODO - does patchHead work in general for post to pre mapping and -scale?
-      int kxPreHead = (int) pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
-      int kyPreHead = (int) pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
+      int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
+      int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
 
       // convert kxPreHead and kyPreHead to extended indices
       kxPreHead += prePad;
       kyPreHead += prePad;
 
       // TODO - FIXME for powXScale > 1
-      int ax = 1.0f/powXScale;
-      int ay = 1.0f/powYScale;
-      int xShift = ax - (kxPost + (int)(0.5f * ax)) % ax;
-      int yShift = ay - (kyPost + (int)(0.5f * ay)) % ay;
+      int ax = 1.0f / powXScale;
+      int ay = 1.0f / powYScale;
+      int xShift = ax - (kxPost + (int) (0.5f * ax)) % ax;
+      int yShift = ay - (kyPost + (int) (0.5f * ay)) % ay;
 
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
@@ -1217,15 +1214,15 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
          int kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
 
          // Marian, Shreyas, David changed conditions to fix boundary problems
-         if (kxPre<0 || kyPre < 0 || kxPre >= nxPre|| kyPre >= nyPre) {
+         if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
             assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
             wPostPatches[kPost]->data[kp] = 0.0;
          }
          else {
             int arbor = 0;
             PVPatch * p = wPatches[arbor][kPre];
-            int nxp = (kxPre < nxPrePatch/2) ? p->nx : nxPrePatch;
-            int nyp = (kyPre < nyPrePatch/2) ? p->ny : nyPrePatch;
+            int nxp = (kxPre < nxPrePatch / 2) ? p->nx : nxPrePatch;
+            int nyp = (kyPre < nyPrePatch / 2) ? p->ny : nyPrePatch;
             int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
             int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
             kxPrePatch = nxp - ax * kxPostPatch - xShift;
@@ -1239,10 +1236,14 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
-void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
+void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre,
+      int * kyPre)
 {
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   const int xScale = lPost->xScale - lPre->xScale;
+   const int yScale = lPost->yScale - lPre->yScale;
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
@@ -1251,8 +1252,8 @@ void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * k
 
    // TODO - does patchHead work in general for post to pre mapping and -scale?
    //      - it seems to work
-   int kxPreHead = (int) pvlayer_patchHead((float) kxPost, 0.0, -xScale, (float) nxPostPatch);
-   int kyPreHead = (int) pvlayer_patchHead((float) kyPost, 0.0, -yScale, (float) nyPostPatch);
+   int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
+   int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
 
    *kxPre = kxPreHead;
    *kyPre = kyPreHead;
@@ -1263,24 +1264,27 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    int status = 0;
    char path[PV_PATH_MAX];
 
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
    const float minVal = minWeight();
    const float maxVal = maxWeight();
 
-   const int numPostPatches = post->clayer->numNeurons;
+   const int numPostPatches = lPost->numNeurons;
 
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->yScale - pre->clayer->yScale;
+   const int xScale = lPost->xScale - lPre->xScale;
+   const int yScale = lPost->yScale - lPre->yScale;
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
    const int nxPostPatch = nxp * powXScale;
    const int nyPostPatch = nyp * powYScale;
-   const int nfPostPatch = pre->clayer->numFeatures;
+   const int nfPostPatch = lPre->numFeatures;
 
    const char * last_str = (last) ? "_last" : "";
    snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", OUTPUT_PATH, getConnectionId(), last_str);
 
-   const LayerLoc * loc  = &post->clayer->loc;
+   const PVLayerLoc * loc  = &post->clayer->loc;
    Communicator   * comm = parent->icCommunicator();
 
    bool append = (last) ? false : ioAppend;
@@ -1318,75 +1322,151 @@ int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
 /**
  * calculate gaussian weights to segment lines
  */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, int yScale,
+int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
                                   int numFlanks, float shift, float rotate,
                                   float aspect, float sigma, float r2Max, float strength)
 {
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   // TODO - is this correct
+   int noPost = no;
+
+#undef OLD_GAUSS2DCALCWEIGHTS
+#ifndef OLD_GAUSS2DCALCWEIGHTS  // use new method
    pvdata_t * w = wp->data;
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
-
-   if (nx * ny * nf == 0) {
-      return 0;  // reduced patch size is zero
+   const int nxPatch = wp->nx;
+   const int nyPatch = wp->ny;
+   const int nfPatch = wp->nf;
+   if (nxPatch * nyPatch * nfPatch == 0) {
+      return 0; // reduced patch size is zero
    }
 
-   const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  // no assert here because patch may be shrunken
-   const int sf = (int) wp->sf;  assert(sf == 1);
+   float xPreGlobal = 0.0;
+   float yPreGlobal = 0.0;
+   float xPatchHeadGlobal = 0.0;
+   float yPatchHeadGlobal = 0.0;
+   posPatchHead(kPre, lPre->xScale,
+         lPre->yScale, lPre->loc, &xPreGlobal,
+         &yPreGlobal, lPost->xScale, lPost->yScale,
+         lPost->loc, wp, &xPatchHeadGlobal,
+         &yPatchHeadGlobal);
 
-   //   const float dx = powf(2, xScale);
-   //   const float dy = powf(2, yScale);
+   // ready to compute weights
+   const int sx = wp->sx;
+   assert(sx == nfPatch);
+   const int sy = wp->sy; // no assert here because patch may be shrunken
+   const int sf = wp->sf;
+   assert(sf == 1);
+
+   // sigma is in units of pre-synaptic layer
+   const float dxPost = powf(2, lPost->xScale);
+   const float dyPost = powf(2, lPost->yScale);
+
+   const float dth = PI / nfPatch;
+   const float th0 = rotate * dth / 2.0;
+
+   // loop over all post-synaptic cells in patch
+   for (int fPost = 0; fPost < nfPatch; fPost++) {
+      int oPost = fPost % noPost;
+      float thPost = th0 + oPost * dth;
+      for (int jPost = 0; jPost < nyPatch; jPost++) {
+         float yDelta = (yPatchHeadGlobal - jPost * dyPost) - yPreGlobal;
+         for (int iPost = 0; iPost < nxPatch; iPost++) {
+            float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
+
+            // rotate the reference frame by th
+            float xp = +xDelta * cos(thPost) + yDelta * sin(thPost);
+            float yp = -xDelta * sin(thPost) + yDelta * cos(thPost);
+
+            // include shift to flanks
+            float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
+            w[iPost * sx + jPost * sy + fPost * sf] = 0;
+            if (d2 <= r2Max) {
+               w[iPost * sx + jPost * sy + fPost * sf]
+                     += expf(-d2 / (2.0 * sigma * sigma));
+            }
+            if (numFlanks > 1) {
+               // shift in opposite direction
+               d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
+               if (d2 <= r2Max) {
+                  w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0 * sigma
+                        * sigma));
+               }
+            }
+         }
+      }
+   }
+
+   return 0;
+
+#else  // use old method
+   pvdata_t * w = wp->data;
+
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   const int nxPatch = wp->nx;
+   const int nyPatch = wp->ny;
+   const int nfPatch = wp->nf;
+
+   if (nxPatch * nyPatch * nfPatch == 0) {
+      return 0; // reduced patch size is zero
+   }
+
+   const int sx = wp->sx; assert(sx == nfPatch);
+   const int sy = wp->sy; // no assert here because patch may be shrunken
+   const int sf = wp->sf; assert(sf == 1);
 
    // TODO - make sure this is correct
    // sigma is in units of pre-synaptic layer
-   const float dx = 1.0;
-   const float dy = 1.0;
+   const float dxPost = powf(2, lPost->xScale);
+   const float dyPost = powf(2, lPost->yScale);
 
-   const float nxPre = pre->clayer->loc.nx;
-   const float nyPre = pre->clayer->loc.ny;
-   const float nfPre = pre->clayer->numFeatures;
+   const int nxPre = lPre->loc.nx;
+   const int nyPre = lPre->loc.ny;
+   const int nfPre = lPre->numFeatures;
 
    const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
    const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
 
    // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
-   float xPre = -1.0 * deltaPosLayers(kxPre, xScale) * dx;
-   float yPre = -1.0 * deltaPosLayers(kyPre, yScale) * dy;
+   float xPre = -1.0 * deltaPosLayers(kxPre, lPre->xScale) * dxPost;
+   float yPre = -1.0 * deltaPosLayers(kyPre, lPre->yScale) * dyPost;
 
    // closest post-synaptic neuron may not be at the center of the patch (0,0)
    // so must shift pre-synaptic location
-   if (xPre < 0.0) xPre += 0.5 * dx;
-   if (xPre > 0.0) xPre -= 0.5 * dx;
-   if (yPre < 0.0) yPre += 0.5 * dy;
-   if (yPre > 0.0) yPre -= 0.5 * dy;
+   if (xPre < 0.0) xPre += 0.5 * dxPost;
+   if (xPre> 0.0) xPre -= 0.5 * dxPost;
+   if (yPre < 0.0) yPre += 0.5 * dyPost;
+   if (yPre> 0.0) yPre -= 0.5 * dyPost;
 
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
    // and shift so pre-synaptic cell is at 0
-   const float x0 = -(nx/2.0 - 0.5) * dx - xPre;
-   const float y0 = +(ny/2.0 - 0.5) * dy - yPre;
+   const float xDelta0 = -(nxPatch/2.0 - 0.5) * dxPost - xPre;
+   const float yDelta0 = +(nyPatch/2.0 - 0.5) * dyPost - yPre;
 
-   const float dth = PI/nf;
+   const float dth = PI/nfPatch;
    const float th0 = rotate*dth/2.0;
 
    // loop over all post-synaptic cells in patch
-   for (int f = 0; f < nf; f++) {
-      int o = f % no;
-      float th = th0 + o * dth;
-      for (int j = 0; j < ny; j++) {
-         float y = y0 - j * dy;
-         for (int i = 0; i < nx; i++) {
-            float x  = x0 + i*dx;
+   for (int fPost = 0; fPost < nfPatch; fPost++) {
+      int oPost = fPost % noPost;
+      float thPost = th0 + oPost * dth;
+      for (int jPost = 0; jPost < nyPatch; jPost++) {
+         float yDelta = yDelta0 - jPost * dyPost;
+         for (int iPost = 0; iPost < nxPatch; iPost++) {
+            float xDelta = xDelta0 + iPost*dxPost;
 
             // rotate the reference frame by th
-            float xp = + x * cos(th) + y * sin(th);
-            float yp = - x * sin(th) + y * cos(th);
+            float xp = + xDelta * cos(thPost) + yDelta * sin(thPost);
+            float yp = - xDelta * sin(thPost) + yDelta * cos(thPost);
 
             // include shift to flanks
             float d2 = xp * xp + (aspect*(yp-shift) * aspect*(yp-shift));
 
-            w[i*sx + j*sy + f*sf] = 0;
+            w[iPost*sx + jPost*sy + fPost*sf] = 0;
 
             // TODO - figure out on/off connectivity
             // don't break it for nfPre==1 going to nfPost=numOrientations
@@ -1394,13 +1474,13 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
             //if (this->channel == CHANNEL_INH && f == fPre) continue;
 
             if (d2 <= r2Max) {
-               w[i*sx + j*sy + f*sf] = expf(-d2 / (2.0*sigma*sigma));
+               w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
             }
-            if (numFlanks > 1) {
+            if (numFlanks> 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect*(yp+shift) * aspect*(yp+shift));
                if (d2 <= r2Max) {
-                  w[i*sx + j*sy + f*sf] = expf(-d2 / (2.0*sigma*sigma));
+                  w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
                }
             }
             // printf("x=%f y-%f xp=%f yp=%f d2=%f w=%f\n", x, y, xp, yp, d2, w[i*sx + j*sy + f*sf]);
@@ -1409,6 +1489,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int xScale, in
    }
 
    return 0;
+#endif
 }
 
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
@@ -1458,7 +1539,7 @@ int HyPerConn::setPatchSize(const char * filename)
    if (filename != NULL) {
       int filetype, datatype;
       double time = 0.0;
-      const LayerLoc loc = this->pre->clayer->loc;
+      const PVLayerLoc loc = this->pre->clayer->loc;
 
       int wgtParams[NUM_WGT_PARAMS];
       int numWgtParams = NUM_WGT_PARAMS;
