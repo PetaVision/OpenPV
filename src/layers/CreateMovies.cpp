@@ -11,7 +11,7 @@
 #include <math.h>
 
 #include "../columns/InterColComm.hpp"
-#include "../include/LayerLoc.h"
+#include "../include/PVLayerLoc.h"
 
 #include "CreateMovies.hpp"
 

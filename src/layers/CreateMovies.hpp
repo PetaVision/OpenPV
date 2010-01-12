@@ -10,7 +10,7 @@
 
 #include "Image.hpp"
 #include "../layers/HyPerLayer.hpp"
-#include "../layers/elementals.h"
+#include "../utils/conversions.h"
 
 typedef struct CreateMovies_Params_ {
 
