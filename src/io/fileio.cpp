@@ -159,14 +159,43 @@ int pvp_close_file(FILE * fp, Communicator * comm)
 int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams)
 {
    int status = 0;
+   int tmp_status = 0;
 
-   if (loc->nx       != params[INDEX_NX])        status = -1;
-   if (loc->ny       != params[INDEX_NY])        status = -1;
-   if (loc->nBands   != params[INDEX_NF])        status = -1;
-   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) status = -1;
-   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) status = -1;
-   if (loc->nPad     != params[INDEX_NPAD])      status = -1;
-   if (loc->nBands   != params[INDEX_NBANDS])    status = -1;
+   if (loc->nx       != params[INDEX_NX])        {status = -1; tmp_status = INDEX_NX;}
+   if (tmp_status == INDEX_NX) {
+         fprintf(stderr, "nx = %d != params[%d]==%d ", loc->nx, INDEX_NX, params[INDEX_NX]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->ny       != params[INDEX_NY])        {status = -1; tmp_status = INDEX_NY;}
+   if (tmp_status == INDEX_NY) {
+         fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->nBands   != params[INDEX_NF])        {status = -1; tmp_status = INDEX_NF;}
+   if (tmp_status == INDEX_NF) {
+         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nBands, INDEX_NF, params[INDEX_NF]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = -1; tmp_status = INDEX_NX_GLOBAL;}
+   if (tmp_status == INDEX_NX_GLOBAL) {
+         fprintf(stderr, "nxGlobal = %d != params[%d]==%d ", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = -1; tmp_status = INDEX_NY_GLOBAL;}
+   if (tmp_status == INDEX_NY_GLOBAL) {
+         fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->nPad     != params[INDEX_NPAD])      {status = -1; tmp_status = INDEX_NPAD;}
+   if (tmp_status == INDEX_NPAD) {
+         fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nPad, INDEX_NPAD, params[INDEX_NPAD]);
+      fprintf(stderr, "\n");
+   }
+   if (loc->nBands   != params[INDEX_NBANDS])    {status = -1; tmp_status = INDEX_NBANDS;}
+   if (tmp_status == INDEX_NBANDS) {
+         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nBands, INDEX_NBANDS, params[INDEX_NBANDS]);
+      fprintf(stderr, "\n");
+   }
 
    // (kx0,ky0) is for node 0 only (can be calculated otherwise)
    //
