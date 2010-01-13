@@ -1372,7 +1372,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
       int oPost = fPost % noPost;
       float thPost = th0 + oPost * dth;
       for (int jPost = 0; jPost < nyPatch; jPost++) {
-         float yDelta = (yPatchHeadGlobal - jPost * dyPost) - yPreGlobal;
+         float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
