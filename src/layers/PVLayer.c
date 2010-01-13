@@ -135,10 +135,16 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
    }
 
    l->V    = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   l->Vth  = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-
    assert(l->V   != NULL);
+   for (k = 0; k < l->numNeurons; k++){
+      l->V[k] = V_REST;
+   }
+   l->Vth  = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(l->Vth != NULL);
+   for (k = 0; k < l->numNeurons; k++){
+      l->Vth[k] = VTH_REST;
+   }
+
 
    l->G_E  = l->G[PHI_EXC];
    l->G_I  = l->G[PHI_INH];
