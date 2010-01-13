@@ -84,7 +84,7 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
    const int kPreGlobal = globalIndexFromLocal(kPre, locPre, nfPre);
    *xPreGlobal = xPosGlobal(kPreGlobal, xScaleLog2Pre, nxPreGlobal,
          nyPreGlobal, nfPre);
-   *yPreGlobal = xPosGlobal(kPreGlobal, yScaleLog2Pre, nxPreGlobal,
+   *yPreGlobal = yPosGlobal(kPreGlobal, yScaleLog2Pre, nxPreGlobal,
          nyPreGlobal, nfPre);
 
    // get global index of postsynaptic patchhead
@@ -104,7 +104,7 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
    const float nyPostGlobal = locPost.nyGlobal;
    *xPatchHeadGlobal = xPosGlobal(kPatchHeadGlobal, xScaleLog2Post,
          nxPostGlobal, nyPostGlobal, nfPost);
-   *yPatchHeadGlobal = xPosGlobal(kPatchHeadGlobal, yScaleLog2Post,
+   *yPatchHeadGlobal = yPosGlobal(kPatchHeadGlobal, yScaleLog2Post,
          nxPostGlobal, nyPostGlobal, nfPost);
 
    return 0;
