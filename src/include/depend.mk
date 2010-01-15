@@ -1,6 +1,9 @@
 $(BUILDDIR)/HyPerCol.o: $(SRCDIR)/columns/HyPerCol.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/HyPerColDelegate.o: $(SRCDIR)/columns/HyPerColDelegate.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/Communicator.o: $(SRCDIR)/columns/Communicator.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -13,7 +16,13 @@ $(BUILDDIR)/DataStore.o: $(SRCDIR)/columns/DataStore.cpp $(HEADERS)
 $(BUILDDIR)/HyPerLayer.o: $(SRCDIR)/layers/HyPerLayer.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/Gratings.o: $(SRCDIR)/layers/Gratings.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/Image.o: $(SRCDIR)/layers/Image.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/Movie.o: $(SRCDIR)/layers/Movie.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/HyPerConn.o: $(SRCDIR)/connections/HyPerConn.cpp $(HEADERS)
@@ -59,6 +68,9 @@ $(BUILDDIR)/PVParams.o: $(SRCDIR)/io/PVParams.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/ConnectionProbe.o: $(SRCDIR)/io/ConnectionProbe.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/GLDisplay.o: $(SRCDIR)/io/GLDisplay.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/PVLayerProbe.o: $(SRCDIR)/io/PVLayerProbe.cpp $(HEADERS)
