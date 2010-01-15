@@ -5,6 +5,7 @@
 HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/include/pv_common.h \
           $(SRCDIR)/columns/HyPerCol.hpp \
+          $(SRCDIR)/columns/HyPerColDelegate.hpp \
           $(SRCDIR)/connections/HyPerConn.hpp \
           $(SRCDIR)/connections/GaborConn.hpp \
           $(SRCDIR)/connections/CocircConn.hpp \
@@ -14,10 +15,13 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/connections/RuleConn.hpp \
           $(SRCDIR)/connections/PVConnection.h \
           $(SRCDIR)/layers/elementals.h \
+          $(SRCDIR)/layers/Gratings.hpp \
           $(SRCDIR)/layers/Image.hpp \
           $(SRCDIR)/layers/LIF2.h \
+          $(SRCDIR)/layers/Movie.hpp \
           $(SRCDIR)/layers/PVLayer.h \
           $(SRCDIR)/io/ConnectionProbe.hpp \
+          $(SRCDIR)/io/GLDisplay.hpp \
           $(SRCDIR)/io/PVLayerProbe.hpp \
           $(SRCDIR)/io/LinearActivityProbe.hpp \
           $(SRCDIR)/io/PointProbe.hpp \
@@ -29,6 +33,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/tiff.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
+          $(SRCDIR)/columns/HyPerColDelegate.cpp \
           $(SRCDIR)/columns/Communicator.cpp \
           $(SRCDIR)/columns/InterColComm.cpp \
           $(SRCDIR)/columns/DataStore.cpp \
@@ -42,11 +47,14 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
           $(SRCDIR)/layers/Example.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
+          $(SRCDIR)/layers/Gratings.cpp \
           $(SRCDIR)/layers/Image.cpp \
+          $(SRCDIR)/layers/Movie.cpp \
           $(SRCDIR)/layers/Retina.cpp \
           $(SRCDIR)/layers/LGN.cpp \
           $(SRCDIR)/layers/V1.cpp \
           $(SRCDIR)/io/ConnectionProbe.cpp \
+          $(SRCDIR)/io/GLDisplay.cpp \
           $(SRCDIR)/io/PVLayerProbe.cpp \
           $(SRCDIR)/io/LinearActivityProbe.cpp \
           $(SRCDIR)/io/PointProbe.cpp \
@@ -58,11 +66,14 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
 CPPOBJS = $(BUILDDIR)/HyPerCol.o \
+          $(BUILDDIR)/HyPerColDelegate.o \
           $(BUILDDIR)/Communicator.o \
           $(BUILDDIR)/InterColComm.o \
           $(BUILDDIR)/DataStore.o \
           $(BUILDDIR)/HyPerLayer.o \
+          $(BUILDDIR)/Gratings.o \
           $(BUILDDIR)/Image.o \
+          $(BUILDDIR)/Movie.o \
           $(BUILDDIR)/HyPerConn.o \
           $(BUILDDIR)/GaborConn.o \
           $(BUILDDIR)/CocircConn.o \
@@ -76,6 +87,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/LGN.o \
           $(BUILDDIR)/V1.o \
           $(BUILDDIR)/ConnectionProbe.o \
+          $(BUILDDIR)/GLDisplay.o \
           $(BUILDDIR)/PVLayerProbe.o \
           $(BUILDDIR)/LinearActivityProbe.o \
           $(BUILDDIR)/PointProbe.o \
