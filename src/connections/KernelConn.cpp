@@ -54,27 +54,16 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
    PVPatch ** kernel_patches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
    assert(kernel_patches != NULL);
 
-   for (int k = 0; k < numKernelPatches; k++) {
-      kernel_patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+   for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
+      kernel_patches[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      assert(kernel_patches[kernelIndex] != NULL );
    }
-   for (int k = 0; k < nPatches; k++) {
-      patches[k] = pvpatch_new(nxPatch, nyPatch, nfPatch);
+   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
+      patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
-   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
-   int nxPre = pre->clayer->loc.nx;
-   int nyPre = pre->clayer->loc.ny;
-   int nfPre = pre->clayer->numFeatures;
-   for (int k = 0; k < nPatches; k++) {
-      int kxPre = kxPos( k, nxPre, nyPre, nfPre);
-      int kyPre = kyPos( k, nxPre, nyPre, nfPre);
-      int kfPre = featureIndex( k, nxPre, nyPre, nfPre);
-      kxPre = kxPre % xScaleFac;
-      kyPre = kyPre % yScaleFac;
-      int kprime = kIndex( kxPre,  kyPre,  kfPre,  nxPre,  nyPre,  nfPre);
-      patches[k]->data = kernel_patches[kprime]->data;
+   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
+      int kernelIndex = patchIndexToKernelIndex(patchIndex);
+      patches[patchIndex]->data = kernel_patches[kernelIndex]->data;
    }
    return kernel_patches;
 }
@@ -135,7 +124,7 @@ int KernelConn::numDataPatches(int arbor)
          post->clayer->xScale - pre->clayer->xScale) : 1;
    int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
          post->clayer->yScale - pre->clayer->yScale) : 1;
-   int numKernelPatches = ((int) this->nfp) * xScaleFac * yScaleFac;
+   int numKernelPatches = pre->clayer->numFeatures * xScaleFac * yScaleFac;
    return numKernelPatches;
 }
 
@@ -147,6 +136,43 @@ int KernelConn::writeWeights(float time, bool last)
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
 
 }
+
+
+int KernelConn::kernelIndexToPatchIndex(int kernelIndex){
+   int patchIndex;
+   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nfPre = pre->clayer->numFeatures;
+   int kxPre = kxPos( kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kyPre = kyPos( kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kfPre = featureIndex( kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int nxPre = pre->clayer->loc.nx;
+   int nyPre = pre->clayer->loc.ny;
+   patchIndex = kIndex( kxPre,  kyPre,  kfPre,  nxPre,  nyPre,  nfPre);
+   return patchIndex;
+}
+
+// many to one mapping from weight patches to kernels
+int KernelConn::patchIndexToKernelIndex(int patchIndex){
+   int kernelIndex;
+   int nxPre = pre->clayer->loc.nx;
+   int nyPre = pre->clayer->loc.ny;
+   int nfPre = pre->clayer->numFeatures;
+   int kxPre = kxPos( patchIndex, nxPre, nyPre, nfPre);
+   int kyPre = kyPos( patchIndex, nxPre, nyPre, nfPre);
+   int kfPre = featureIndex( patchIndex, nxPre, nyPre, nfPre);
+   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   kxPre = kxPre % xScaleFac;
+   kyPre = kyPre % yScaleFac;
+   kernelIndex = kIndex( kxPre,  kyPre,  kfPre,  xScaleFac,  yScaleFac,  nfPre);
+   return kernelIndex;
+}
+
 
 } // namespace PV
 

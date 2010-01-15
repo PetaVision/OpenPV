@@ -348,8 +348,9 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    shift     = params->value(name, "flankShift", shift);
    rotate    = params->value(name, "rotate", rotate);
 
-   for (int k = 0; k < numPatches; k++) {
-      gauss2DCalcWeights(patches[k], k, noPost, numFlanks, shift, rotate,
+   for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
+      int patchIndex = kernelIndexToPatchIndex(kernelIndex);
+      gauss2DCalcWeights(patches[kernelIndex], patchIndex, noPost, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength);
    }
 
@@ -445,10 +446,14 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    }
 
    fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
-   fprintf(fd, "   (nxp,nyp,nfp)   = (%d,%d,%d)\n", nxp, nyp, nfp);
-   fprintf(fd, "   pre  (nx,ny,nf) = (%d,%d,%d)\n",
+   fprintf(fd, "   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
+           kxPos(k,pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures),
+           kyPos(k,pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures),
+           featureIndex(k,pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures) );
+   fprintf(fd, "   (nxp,nyp,nfp)   = (%i,%i,%i)\n", (int) nxp, (int) nyp, (int) nfp);
+   fprintf(fd, "   pre  (nx,ny,nf) = (%i,%i,%i)\n",
            pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures);
-   fprintf(fd, "   post (nx,ny,nf) = (%d,%d,%d)\n",
+   fprintf(fd, "   post (nx,ny,nf) = (%i,%i,%i)\n",
            post->clayer->loc.nx, post->clayer->loc.ny, post->clayer->numFeatures);
    fprintf(fd, "\n");
    if (stdpFlag) {
@@ -1503,23 +1508,21 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
       const int nx = (int) wp->nx;
       const int ny = (int) wp->ny;
       const int nf = (int) wp->nf;
-      for (int f = 0; f < nf; f++) {
-         float sum = 0;
-         float sum2 = 0;
-         for (int i = 0; i < nx * ny; i++) {
-            sum += w[f + i * nf];
-            sum2 += w[f + i * nf] * w[f + i * nf];
-         }
-         if (sum == 0.0 && sum2 > 0.0) {
-            float factor = strength / sqrt(sum2);
-            for (int i = 0; i < nx * ny; i++)
-               w[f + i * nf] *= factor;
-         }
-         else {
-            float factor = strength / sum;
-            for (int i = 0; i < nx * ny; i++)
-               w[f + i * nf] *= factor;
-         }
+      float sum = 0;
+      float sum2 = 0;
+      for (int i = 0; i < nx * ny * nf; i++) {
+         sum += w[i];
+         sum2 += w[i] * w[i];
+      }
+      if (sum == 0.0 && sum2 > 0.0) {
+         float factor = strength / sqrt(sum2);
+         for (int i = 0; i < nx * ny * nf; i++)
+            w[i] *= factor;
+      }
+      else if (abs(sum) > 0) {
+         float factor = strength / sum;
+         for (int i = 0; i < nx * ny * nf; i++)
+            w[i] *= factor;
       }
    }
    return patches;
@@ -1577,5 +1580,17 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches)
 
    return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 }
+
+
+int HyPerConn::kernelIndexToPatchIndex(int kernelIndex){
+   return kernelIndex;
+}
+
+// many to one mapping from weight patches to kernels
+int HyPerConn::patchIndexToKernelIndex(int patchIndex){
+   return patchIndex;
+}
+
+
 
 } // namespace PV

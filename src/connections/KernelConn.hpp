@@ -23,7 +23,12 @@ public:
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               int channel);
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+
    virtual int numDataPatches(int arbor);
+
+   virtual int kernelIndexToPatchIndex(int kernelIndex);
+
+   virtual int patchIndexToKernelIndex(int patchIndex);
 
 protected:
    PVPatch ** kernelPatches;   // list of weight patches

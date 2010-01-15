@@ -106,6 +106,10 @@ public:
 
    PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
+   virtual int kernelIndexToPatchIndex(int kernelIndex);
+
+   virtual int patchIndexToKernelIndex(int patchIndex);
+
 protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
