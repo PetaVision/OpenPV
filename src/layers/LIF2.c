@@ -45,10 +45,10 @@ static inline int update_f(PVLayer * l, int start)
 
    assert(start == 0);
 
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
-   const float marginWidth = l->loc.nPad;
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nf = l->numFeatures;
+   const int marginWidth = l->loc.nPad;
 
    int numActive = 0;
    for (k = start; k < (l->numNeurons + start); k++) {
@@ -294,10 +294,10 @@ int LIF2_init(PVLayer * l)
    int k, m, kex;
    LIF2_params * params = (LIF2_params *) l->params;
 
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
-   const float marginWidth = l->loc.nPad;
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nf = l->numFeatures;
+   const int marginWidth = l->loc.nPad;
 
    for (k = 0; k < l->numNeurons; k++) {
       for (m = 0; m < l->numPhis; m++) {
