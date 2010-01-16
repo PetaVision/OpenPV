@@ -600,9 +600,9 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
       float * M = &pDecr->data[postOffset];  // STDP decrement variable
       float * P =  pIncr->data;              // STDP increment variable
 
-      int nk = pIncr->nf * (int) pIncr->nx; // one line in x at a time
-      int ny = pIncr->ny;
-      int sy = pIncr->sy;
+      int nk  = pIncr->nf * pIncr->nx; // one line in x at a time
+      int ny  = pIncr->ny;
+      int sy  = pIncr->sy;
 
       // TODO - unroll
 
@@ -775,8 +775,8 @@ int HyPerConn::createAxonalArbors()
 
    const int numAxons = numAxonalArborLists;
 
-   //
    // these strides are for post-synaptic phi variable, a non-extended layer variable
+   //
 #ifndef FEATURES_LAST
    const int psf = 1;
    const int psx = nfp;
@@ -787,9 +787,8 @@ int HyPerConn::createAxonalArbors()
    const int psf = psy * nyPost; // (nyPost + 2.0f*postPad);
 #endif
 
-   //
    // activity and STDP M variable are extended into margins
-
+   //
    for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
       axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
@@ -820,7 +819,7 @@ int HyPerConn::createAxonalArbors()
 
          // TODO - can get nf from weight patch but what about kf0?
          // weight patch is actually a pencil and so kfPost is always 0?
-         int kfPost = 0.0f;
+         int kfPost = 0;
 
          // convert to local non-extended post-synaptic frame
          kxPost = kxPost - kx0Post;
@@ -1091,7 +1090,7 @@ int HyPerConn::createAxonalArbors(int numArbors)
          int kyPost = pvlayer_patchHead(kyPre, kyPost0Left, yScale, nyp);
 
          // TODO - can get nf from weight patch but what about kf0?
-         int kfPost = 0.0f;
+         int kfPost = 0;
 
          // convert to local in extended frame
          kxPost = kxPost - (kx0Post - numBorder);
@@ -1241,8 +1240,7 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
-void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre,
-      int * kyPre)
+void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
 {
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
@@ -1443,9 +1441,9 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    // closest post-synaptic neuron may not be at the center of the patch (0,0)
    // so must shift pre-synaptic location
    if (xPre < 0.0) xPre += 0.5 * dxPost;
-   if (xPre> 0.0) xPre -= 0.5 * dxPost;
+   if (xPre > 0.0) xPre -= 0.5 * dxPost;
    if (yPre < 0.0) yPre += 0.5 * dyPost;
-   if (yPre> 0.0) yPre -= 0.5 * dyPost;
+   if (yPre > 0.0) yPre -= 0.5 * dyPost;
 
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
    // and shift so pre-synaptic cell is at 0
@@ -1481,7 +1479,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
             if (d2 <= r2Max) {
                w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
             }
-            if (numFlanks> 1) {
+            if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect*(yp+shift) * aspect*(yp+shift));
                if (d2 <= r2Max) {
@@ -1581,7 +1579,6 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches)
    return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 }
 
-
 int HyPerConn::kernelIndexToPatchIndex(int kernelIndex){
    return kernelIndex;
 }
@@ -1590,7 +1587,5 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex){
 int HyPerConn::patchIndexToKernelIndex(int patchIndex){
    return patchIndex;
 }
-
-
 
 } // namespace PV
