@@ -126,10 +126,10 @@ int V1::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   const float nx = clayer->loc.nx;
-   const float ny = clayer->loc.ny;
-   const float nf = clayer->numFeatures;
-   const float marginWidth = clayer->loc.nPad;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
+   const int marginWidth = clayer->loc.nPad;
 
    pvdata_t * V = clayer->V;
    pvdata_t * phiExc   = clayer->phi[PHI_EXC];
