@@ -27,7 +27,7 @@
 #define pvdata_t float
 
 /* The common type for integer sizes (e.g. nxp patch size) */
-#define pvdim_t float
+#define pvdim_t int
 
 enum ChannelType {
   CHANNEL_EXC  = 0,
@@ -37,8 +37,8 @@ enum ChannelType {
 
 typedef struct PVPatch_ {
    pvdata_t * __attribute__ ((aligned)) data;
-   float nx, ny, nf;    // number of items in x,y,features
-   float sx, sy, sf;    // stride in x,y,features
+   int nx, ny, nf;    // number of items in x,y,features
+   int sx, sy, sf;    // stride in x,y,features
 #ifndef PV_ARCH_64
    float padding;       // structure size should be 8*4 bytes
 #endif
@@ -74,7 +74,7 @@ typedef struct PVAxonalArborList_ {
 
 static inline
 void pvpatch_init(PVPatch * p, int nx, int ny, int nf,
-                  float sx, float sy, float sf, pvdata_t * data)
+                  int sx, int sy, int sf, pvdata_t * data)
 {
    p->nx = nx;
    p->ny = ny;
@@ -90,7 +90,7 @@ void pvpatch_adjust(PVPatch * p, int nxNew, int nyNew, int dx, int dy)
 {
    p->nx = nxNew;
    p->ny = nyNew;
-   p->data += dx * (int)p->sx + dy * (int)p->sy;
+   p->data += dx * p->sx + dy * p->sy;
 }
 
 #endif /* PV_TYPES_H_ */
