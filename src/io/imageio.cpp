@@ -2,8 +2,14 @@
 #include "io.h"
 
 #include <assert.h>
-#include <gdal_priv.h>
-#include <ogr_spatialref.h>
+#include <string.h>
+
+#ifdef PV_USE_GDAL
+#  include <gdal_priv.h>
+#  include <ogr_spatialref.h>
+#else
+#  define GDAL_CONFIG_ERR_STR "PetaVision must be compiled with GDAL to use this file type\n"
+#endif // PV_USE_GDAL
 
 #undef DEBUG_OUTPUT
 
@@ -123,9 +129,11 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
 
 int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
+   int status = 0;
+
+#ifdef PV_USE_GDAL
    const int locSize = sizeof(PVLayerLoc) / sizeof(int);
    int locBuf[locSize];
-   int status = 0;
 
    // LayerLoc should contain 8 ints
    assert(locSize == 8);
@@ -178,6 +186,10 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    // fix up layer indices
    loc->kx0 = loc->nx * icCol;
    loc->ky0 = loc->ny * icRow;
+#else
+   fprintf(stderr, GDAL_CONFIG_ERR_STR);
+   exit(1);
+#endif // PV_USE_GDAL
 
    return status;
 }
@@ -296,6 +308,8 @@ int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
+
+#ifdef PV_USE_GDAL
    const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
@@ -392,6 +406,10 @@ int gatherImageFileGDAL(const char * filename,
 #endif // PV_USE_MPI
       GDALClose(dataset);
    }
+#else
+   fprintf(stderr, GDAL_CONFIG_ERR_STR);
+   exit(1);
+#endif // PV_USE_GDAL
 
    return status;
 }
@@ -511,6 +529,8 @@ int scatterImageFileGDAL(const char * filename,
                          PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
+
+#ifdef PV_USE_GDAL
    const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
@@ -524,7 +544,7 @@ int scatterImageFileGDAL(const char * filename,
    const int numBands = loc->nBands;
    assert(numBands <= maxBands);
 
-   const int nxny     = nx * ny;
+   const int nxny = nx * ny;
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -604,6 +624,10 @@ int scatterImageFileGDAL(const char * filename,
       }
       GDALClose(dataset);
    }
+#else
+   fprintf(stderr, GDAL_CONFIG_ERR_STR);
+   exit(1);
+#endif // PV_USE_GDAL
 
    return status;
 }
@@ -685,6 +709,7 @@ int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
    return -1;
 }
 
+#ifdef PV_USE_GDAL
 int writeWithBorders(const char * filename, PVLayerLoc * loc, float * buf)
 {
    int X = loc->nx + 2 * loc->nPad;
@@ -703,4 +728,7 @@ int writeWithBorders(const char * filename, PVLayerLoc * loc, float * buf)
 
    return 0;
 }
+#endif // PV_USE_GDAL
+
+
 
