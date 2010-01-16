@@ -172,7 +172,7 @@ int HyPerLayer::initBorder(PVLayerCube * border, int borderId)
       fprintf(stderr, "ERROR:HyPerLayer:initBorder: bad border index %d\n", borderId);
    }
 
-   pvcube_init(border, &loc, (int) loc.nx * (int) loc.ny * clayer->numFeatures);
+   pvcube_init(border, &loc, loc.nx * loc.ny * clayer->numFeatures);
 
    return 0;
 }
@@ -215,8 +215,8 @@ int HyPerLayer::initFinish()
 int HyPerLayer::numberOfNeurons(int borderId)
 {
    int numNeurons;
-   const int nx = (int) clayer->loc.nx;
-   const int ny = (int) clayer->loc.ny;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
    const int nxBorder = clayer->loc.nPad;
    const int nyBorder = clayer->loc.nPad;
@@ -429,10 +429,10 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       // WARNING - assumes weight and phi patches from task same size
       //         - assumes patch stride sf is 1
 
-      int nk  = (int) phi->nf * (int) phi->nx;
-      int ny  = (int) phi->ny;
-      int sy  = (int) phi->sy;        // stride in layer
-      int syw = (int) weights->sy;    // stride in patch
+      int nk  = phi->nf * phi->nx;
+      int ny  = phi->ny;
+      int sy  = phi->sy;        // stride in layer
+      int syw = weights->sy;    // stride in patch
 
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
@@ -480,12 +480,12 @@ int HyPerLayer::outputState(float time, bool last)
    char path[PV_PATH_MAX];
    int status = 0;
 
-   const int nx = (int) clayer->loc.nx;
-   const int ny = (int) clayer->loc.ny;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
-   const int nxex = (int) clayer->loc.nx + 2*clayer->loc.nPad;
-   const int nyex = (int) clayer->loc.ny + 2*clayer->loc.nPad;
+   const int nxex = clayer->loc.nx + 2*clayer->loc.nPad;
+   const int nyex = clayer->loc.ny + 2*clayer->loc.nPad;
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, clayer);
@@ -698,11 +698,11 @@ static int copyBottomCorner(pvdata_t * dest, pvdata_t * src, int nf, int ny, int
 
 int HyPerLayer::copyToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src-> data;
@@ -718,8 +718,8 @@ int HyPerLayer::copyToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 
 int HyPerLayer::copyToNorth(PVLayerCube * dest, PVLayerCube * src)
 {
-   int ny = (int) dest->loc.ny;
-   int sy = clayer->numFeatures * (int) dest->loc.nx;
+   int ny = dest->loc.ny;
+   int sy = clayer->numFeatures * dest->loc.nx;
 
    pvdata_t * src0 = src-> data;
    pvdata_t * dst0 = dest->data + (ny-1)*sy;
@@ -734,14 +734,14 @@ int HyPerLayer::copyToNorth(PVLayerCube * dest, PVLayerCube * src)
 
 int HyPerLayer::copyToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
-   pvdata_t * src0 = src ->data + ((int) src->loc.nx - 1)*nf;
+   pvdata_t * src0 = src ->data + (src->loc.nx - 1)*nf;
    pvdata_t * dst0 = dest->data + (ny-1)*syDst;
 
    for (int i = 0; i < nx; i++) {
@@ -754,11 +754,11 @@ int HyPerLayer::copyToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
    pvdata_t * src0 = src ->data;
@@ -774,14 +774,14 @@ int HyPerLayer::copyToWest(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
-   pvdata_t * src0 = src ->data + ((int) src->loc.nx - 1)*nf;
+   pvdata_t * src0 = src ->data + (src->loc.nx - 1)*nf;
    pvdata_t * dst0 = dest->data;
 
    for (int i = 0; i < nx; i++) {
@@ -794,14 +794,14 @@ int HyPerLayer::copyToEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToSouthWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
-   pvdata_t * src0 = src-> data + ((int) src->loc.ny - 1)*sySrc;
+   pvdata_t * src0 = src-> data + (src->loc.ny - 1)*sySrc;
    pvdata_t * dst0 = dest->data + (nx - 1)*nf;
 
    for (int i = 0; i < nx; i++) {
@@ -814,10 +814,10 @@ int HyPerLayer::copyToSouthWest(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToSouth(PVLayerCube* dest, PVLayerCube* src)
 {
-   int ny = (int) dest->loc.ny;
-   int sy = clayer->numFeatures * (int) dest->loc.nx;
+   int ny = dest->loc.ny;
+   int sy = clayer->numFeatures * dest->loc.nx;
 
-   pvdata_t * src0 = src ->data + ((int) src->loc.ny - 1)*sy;
+   pvdata_t * src0 = src ->data + (src->loc.ny - 1)*sy;
    pvdata_t * dst0 = dest->data;
 
    for (int j = 0; j < ny; j++) {
@@ -830,15 +830,15 @@ int HyPerLayer::copyToSouth(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
    int nf = clayer->numFeatures;
 
-   int sySrc = nf * (int) src->loc.nx;
+   int sySrc = nf * src->loc.nx;
    int syDst = nf * nx;
 
-   pvdata_t * src0 = src-> data + ((int) src->loc.nx - 1)*nf
-                                + ((int) src->loc.ny - 1)*sySrc;
+   pvdata_t * src0 = src-> data + (src->loc.nx - 1)*nf
+                                + (src->loc.ny - 1)*sySrc;
    pvdata_t * dst0 = dest->data;
 
    for (int i = 0; i < nx; i++) {
@@ -992,11 +992,11 @@ int HyPerLayer::copyToSouth(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::copyToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = (int) dest->loc.nx;
-   int ny = (int) dest->loc.ny;
-   int x  = (int) src->loc.nx - nx;
-   int y  = (int) src->loc.ny - ny;
-   int off = x + y * (int) src->loc.nx;
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
+   int x  = src->loc.nx - nx;
+   int y  = src->loc.ny - ny;
+   int off = x + y * src->loc.nx;
 
    for (int f = 0; f < clayer->numFeatures; f++) {
       int dOff = f * nx * ny;
@@ -1015,9 +1015,9 @@ extern "C" {
 
 PVPatch * pvpatch_new(int nx, int ny, int nf)
 {
-   float sf = 1;
-   float sx = nf;
-   float sy = sx * nx;
+   int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
 
    PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
    assert(p != NULL);
@@ -1037,9 +1037,9 @@ int pvpatch_delete(PVPatch* p)
 
 PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
 {
-   float sf = 1;
-   float sx = nf;
-   float sy = sx * nx;
+   int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
 
    size_t dataSize = nx * ny * nf * sizeof(float);
    PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
@@ -1063,11 +1063,11 @@ int pvpatch_inplace_delete(PVPatch* p)
 static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
 {
    float x, y, f;
-   const float nx = phi->nx;
-   const float ny = phi->ny;
-   const float nf = phi->nf;
-   const float sy = phi->sy;
-   const float sf = phi->sf;
+   const int nx = phi->nx;
+   const int ny = phi->ny;
+   const int nf = phi->nf;
+   const int sy = phi->sy;
+   const int sf = phi->sf;
 
    // assume unit stride for w (densely packed)
    pvdata_t * w = weight->data;
@@ -1093,8 +1093,7 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
 
 /**
  * Return the _global_ (non-extended) leading index in a direction of a patch in the post layer
- *   NOTE: float OK size for kxPre because only k index in a specific direction
- * @kPre is the _global_ pre-synaptic index in a direction
+  * @kPre is the _global_ pre-synaptic index in a direction
  * @k0Post is the index offset in the post layer
  * @scale is the difference in size scale (2^scale) between post and pre layers
  * @nPatch is the size of patch in a given direction
@@ -1103,17 +1102,17 @@ static void pvpatch_accumulate_old(PVPatch * phi, float a, PVPatch * weight)
 float pvlayer_patchHead(int kxPre, float kxPost0Left, int xScale, int nPatch)
 {
    float shift = 0;
-   if ((int) nPatch % 2 == 0) {
+   if (nPatch % 2 == 0) {
       // if even, can't shift evenly (at least for scale < 0)
       // the later choice alternates direction so not always to left
-      shift = (xScale < 0) ? 0 : (int) kxPre % 2;
+      shift = (xScale < 0) ? 0 : kxPre % 2;
    }
    shift -= (int) (0.5 * nPatch);
-   return kxPost0Left + shift + nearby_neighbor((int) kxPre, xScale);
+   return kxPost0Left + shift + nearby_neighbor(kxPre, xScale);
 
 #ifdef SHIFTED_CENTERS
    // this works better? for nPatch even, not so well for odd
-   if (xScale == 0 && ((int)nPatch % 2) == 1) {
+   if (xScale == 0 && (nPatch % 2) == 1) {
       return kxPost0Left + kxPre + 0.5*(1 - nPatch);
    }
    else {
