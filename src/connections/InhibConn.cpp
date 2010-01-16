@@ -54,13 +54,13 @@ int InhibConn::inhibWeights(PVPatch * wp, int featureIndex, float strength)
 {
    pvdata_t * w = wp->data;
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
 
-   const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  assert(sy == nf*nx);
-   const int sf = (int) wp->sf;  assert(sf == 1);
+   const int sx = wp->sx;  assert(sx == nf);
+   const int sy = wp->sy;  assert(sy == nf*nx);
+   const int sf = wp->sf;  assert(sf == 1);
 
    // pre-synaptic neuron is at the center of the patch (0,0)
    // (x0,y0) is at upper left corner of patch (i=0,j=0)
