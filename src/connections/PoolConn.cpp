@@ -48,14 +48,14 @@ int PoolConn::poolWeights(PVPatch * wp, int fPre, int xScale, int yScale, float 
 {
    pvdata_t * w = wp->data;
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
 
    // strides
-   const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  assert(sy == nf*nx);
-   const int sf = (int) wp->sf;  assert(sf == 1);
+   const int sx = wp->sx;  assert(sx == nf);
+   const int sy = wp->sy;  assert(sy == nf*nx);
+   const int sf = wp->sf;  assert(sf == 1);
 
    assert(fPre >= 0 && fPre <= 15);
    assert(nx == 1);
