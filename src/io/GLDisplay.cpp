@@ -10,10 +10,12 @@
 #include "../layers/HyPerLayer.hpp"
 
 #include <assert.h>
-#include <GLUT/glut.h>
 
-//#include "../layers/HyPerLayer.hpp"
-//#include "io.h"
+#ifdef PV_USE_OPENGL
+#  include <GLUT/glut.h>
+#else
+#  include "../include/gl_stubs.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -175,21 +177,21 @@ void GLDisplay::drawDisplay()
 static
 void gl_draw_texture(int id)
 {
-   glEnable (GL_TEXTURE_2D); /* enable texture mapping */
-   glBindTexture (GL_TEXTURE_2D, id); /* bind to our texture */
+   glEnable(GL_TEXTURE_2D); /* enable texture mapping */
+   glBindTexture(GL_TEXTURE_2D, id); /* bind to our texture */
 
-   glBegin (GL_QUADS);
-   glTexCoord2f (0.0f,0.0f); /* lower left corner of image */
-   glVertex3f (-10.0f, -10.0f, 0.0f);
-   glTexCoord2f (1.0f, 0.0f); /* lower right corner of image */
-   glVertex3f (10.0f, -10.0f, 0.0f);
-   glTexCoord2f (1.0f, 1.0f); /* upper right corner of image */
-   glVertex3f (10.0f, 10.0f, 0.0f);
-   glTexCoord2f (0.0f, 1.0f); /* upper left corner of image */
-   glVertex3f (-10.0f, 10.0f, 0.0f);
-   glEnd ();
+   glBegin(GL_QUADS);
+   glTexCoord2f(0.0f,0.0f); /* lower left corner of image */
+   glVertex3f(-10.0f, -10.0f, 0.0f);
+   glTexCoord2f(1.0f, 0.0f); /* lower right corner of image */
+   glVertex3f(10.0f, -10.0f, 0.0f);
+   glTexCoord2f(1.0f, 1.0f); /* upper right corner of image */
+   glVertex3f(10.0f, 10.0f, 0.0f);
+   glTexCoord2f(0.0f, 1.0f); /* upper left corner of image */
+   glVertex3f(-10.0f, 10.0f, 0.0f);
+   glEnd();
 
-   glDisable (GL_TEXTURE_2D); /* disable texture mapping */
+   glDisable(GL_TEXTURE_2D); /* disable texture mapping */
 }
 
 void glut_keyboard(unsigned char key, int x, int y)
