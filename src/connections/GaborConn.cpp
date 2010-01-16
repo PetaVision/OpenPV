@@ -65,13 +65,13 @@ int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
 
    const float phi = 0.0;  // phase
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
 
-   const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  assert(sy == nf*nx);
-   const int sf = (int) wp->sf;  assert(sf == 1);
+   const int sx = wp->sx;  assert(sx == nf);
+   const int sy = wp->sy;  assert(sy == nf*nx);
+   const int sf = wp->sf;  assert(sf == 1);
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
