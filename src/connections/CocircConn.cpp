@@ -66,7 +66,7 @@ int CocircConn::initializeWeights(const char * filename)
       if (dim[1] != (size_t) nxp) err = -1;
       if (dim[2] != (size_t) nyp) err = -1;
       if ((int) count != numAxonalArborLists) err = -1;
-      if (size  != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
+      if ( size != sizeof(PVPatch) + nxp*nyp*nfp*sizeof(float) ) err = -1;
 
       if (err) {
          fprintf(stderr, "FileConn:: ERROR: difference in dim, size or count of patches\n");
@@ -114,24 +114,24 @@ int CocircConn::cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
    const float sigma_kurve  = params->value(name, "sigma_kurve");
 
    float rotate = 1;  // rotate/offset so orientations aren't aligned with axis
-   if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
+   rotate = params->value(name, "rotate", rotate);
    float deltaThetaMax = PI/2.0;
-   if (params->present(name, "deltaThetaMax")) deltaThetaMax = params->value(name, "deltaThetaMax");
+   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
    float cocirc_self = pre != post;
-   if (params->present(name, "cocirc_self")) cocirc_self = params->value(name, "cocirc_self");
+   cocirc_self = params->value(name, "cocirc_self", deltaThetaMax);
 
    const float sigma2        = 2 * sigma * sigma;
    const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
    const float sigma_kurve2  = 2 * sigma_kurve  * sigma_kurve;
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
 
    // strides
-   const int sx = (int) wp->sx;  assert(sx == nf);
-   const int sy = (int) wp->sy;  assert(sy == nf*nx);
-   const int sf = (int) wp->sf;  assert(sf == 1);
+   const int sx = wp->sx;  assert(sx == nf);
+   const int sy = wp->sy;  assert(sy == nf*nx);
+   const int sf = wp->sf;  assert(sf == 1);
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
