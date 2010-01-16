@@ -8,25 +8,27 @@
 #ifndef COCIRCCONN_HPP_
 #define COCIRCCONN_HPP_
 
-#include "HyPerConn.hpp"
+#include "KernelConn.hpp"
 
 namespace PV {
 
-class CocircConn: public PV::HyPerConn {
-public:
-   CocircConn(const char * name,
-              HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
-
-   PVPatch * weights(int k)
-   {
-      int arbor = 0;
-      return wPatches[arbor][k];
-   }
-
+class CocircConn: public KernelConn {
 private:
-   virtual int initializeWeights(const char * filename);
-   int cocircWeights(PVPatch * wp, int fPre, int xScale, int yScale,
-                     float sigma, float r2Max, float strength);
+
+public:
+
+   CocircConn();
+   CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+         int channel, const char * filename);
+   CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+         int channel);
+   CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+   virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
+   PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
+   int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
+         float sigma_cocirc, float sigma_kurve, float deltaThetaMax, float cocirc_self,
+         float dKv, int numFlanks, float shift, float aspect, float rotate, float sigma,
+         float r2Max, float strength);
 
 };
 
