@@ -84,9 +84,8 @@ int pvlayer_finalize(PVLayer * l);
 
 int pvlayer_copyUpdate(PVLayer * l);
 
-// static, hopefully fast, routines:
 #ifdef DEPRECATED
-static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, float * kf)
+static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, int * kf)
 {
    *x = xPos(k, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
    *y = yPos(k, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
