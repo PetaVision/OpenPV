@@ -32,6 +32,8 @@ protected:
 
    PVLayerCube * avgActivity;
    HyPerConn   * delegate;
+
+   float maxRate;  // maximum expected firing rate of pre-synaptic layer
 };
 
 } // namespace PV
