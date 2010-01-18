@@ -750,7 +750,7 @@ int HyPerConn::deleteWeights()
 int HyPerConn::createAxonalArbors()
 {
    const PVLayer * lPre  = pre->clayer;
-   const PVLayer * lPost = pre->clayer;
+   const PVLayer * lPost = post->clayer;
 
    const int prePad  = lPre->loc.nPad;
    const int postPad = lPost->loc.nPad;
@@ -1018,17 +1018,17 @@ int HyPerConn::createAxonalArbors(int numArbors)
    const int kxPost0Left = 0.0f;
    const int kyPost0Left = 0.0f;
 
-   const int nxPre = lPre->loc.nx;
-   const int nyPre = lPre->loc.ny;
+   const int nxPre  = lPre->loc.nx;
+   const int nyPre  = lPre->loc.ny;
    const int kx0Pre = lPre->loc.kx0;
    const int ky0Pre = lPre->loc.ky0;
-   const int nfPre = lPre->numFeatures;
+   const int nfPre  = lPre->numFeatures;
 
-   const int nxPost = lPost->loc.nx;
-   const int nyPost = lPost->loc.ny;
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
    const int kx0Post = lPost->loc.kx0;
    const int ky0Post = lPost->loc.ky0;
-   const int nfPost = lPost->numFeatures;
+   const int nfPost  = lPost->numFeatures;
 
    const int xScale = lPost->xScale - lPre->xScale;
    const int yScale = lPost->yScale - lPre->yScale;
