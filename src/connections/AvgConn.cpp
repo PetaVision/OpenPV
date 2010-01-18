@@ -36,6 +36,10 @@ int AvgConn::initialize()
 
    pvcube_setAddr(avgActivity);
 
+   PVParams * params = parent->parameters();
+   maxRate = params->value(name, "maxRate", 400);
+   maxRate *= parent->getDeltaTime() / 1000;
+
    return 0;
 }
 
@@ -71,6 +75,8 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
    const int numLevels = store->numberOfLevels();
    const int lastLevel = store->lastLevelIndex();
 
+   const float maxCount = maxRate * numLevels;
+
    pvdata_t * activity = pre->clayer->activity->data;
    pvdata_t * avg  = avgActivity->data;
    pvdata_t * last = (pvdata_t*) store->buffer(LOCAL, lastLevel);
@@ -79,7 +85,7 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
    for (int k = 0; k < numActive; k++) {
       pvdata_t oldVal = last[k];
       pvdata_t newVal = activity[k];
-      avg[k] += (newVal - oldVal) / numLevels;
+      avg[k] += (newVal - oldVal) / maxCount;
       if (max < avg[k]) max = avg[k];
    }
 
