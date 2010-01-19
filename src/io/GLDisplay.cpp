@@ -69,12 +69,22 @@ GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, float msecs)
 
    image = NULL;
 
+   layerTexId = -1;
+
    glut_init(argc, argv, glwWidth, glwHeight);
 }
 
 GLDisplay::~GLDisplay()
 {
 }
+
+int GLDisplay::addLayer(HyPerLayer * l)
+{
+   layer = l;
+   l->insertProbe(this);
+   return 0;
+}
+
 
 void GLDisplay::setImage(Image * image)
 {
@@ -88,24 +98,22 @@ void GLDisplay::run(float time, float stopTime)
    glutMainLoop(); // we never return...
 }
 
-int GLDisplay::loadTexture(int id, Image * im)
+int GLDisplay::loadTexture(int id, LayerDataInterface * l)
 {
    int status = 0;
 
-   if (im == NULL) return -1;
+   if (l == NULL) return -1;
 
-   PVLayerLoc loc = im->getImageLoc();
+   const PVLayerLoc * loc = l->getLayerLoc();
 
-   const int n = loc.nx * loc.ny * loc.nBands;
+   const int n = loc->nx * loc->ny * loc->nBands;
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
-   status = im->copyToInteriorBuffer(buf);
+   status = l->copyToInteriorBuffer(buf);
 
-//   float * data = im->getImageBuffer();
-
-   const int width  = loc.nx;
-   const int height = loc.ny;
+   const int width  = loc->nx;
+   const int height = loc->ny;
 
    glBindTexture(GL_TEXTURE_2D, id);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -117,6 +125,8 @@ int GLDisplay::loadTexture(int id, Image * im)
 
    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
                 width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
+
+   delete buf;
 
    return 0;
 }
@@ -131,11 +141,6 @@ void GLDisplay::drawDisplay()
       parent->exitRunLoop(exitOnFinish);
    }
 
-//   if (glFirst) {
-//      glFirst = false;
-//      loadTexture(texId, image);
-//      lastUpdateTime = time;
-//   }
    if (lastUpdateTime < image->lastUpdate()) {
       loadTexture(texId, image);
       lastUpdateTime = time;
@@ -156,12 +161,15 @@ void GLDisplay::drawDisplay()
 
    // this transformation for lower left-hand corner
    glScalef(0.75, 0.75, 1);
-   glTranslatef(10, 10, -20);
+   glTranslatef(13, 13, -20);
 
    // this frame takes up entire display
    //glTranslatef(0, 0, -11);
 
    gl_draw_texture(texId);
+
+   glTranslatef(-25, 0, 0);
+   gl_draw_texture(texId+1);
 
    glutSwapBuffers();
 
@@ -170,6 +178,26 @@ void GLDisplay::drawDisplay()
    if (g_msecs == 0.0f) {
       glutPostRedisplay();
    }
+}
+
+// implement LayerProbe interface
+//
+int GLDisplay::outputState(float time, HyPerLayer * l)
+{
+   layerTexId = 14;
+
+   const PVLayerLoc * loc = l->getLayerLoc();
+
+   int size = (loc->nx + 2*loc->nPad) * (loc->ny + 2*loc->nPad);
+
+//   pvdata_t * data = l->clayer->activity->data;
+//   for (int i=0; i<size; i++) {
+//      data[i] = 128;
+//   }
+
+   loadTexture(layerTexId, l);
+
+   return 0;
 }
 
 } // namespace PV
