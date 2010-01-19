@@ -1,12 +1,12 @@
 /*
- * HyPerLayer.h
+ * PVLayer.h
  *
  *  Created on: Jul 29, 2008
  *
  */
 
-#ifndef HYPERLAYER_H_
-#define HYPERLAYER_H_
+#ifndef PVLAYER_H_
+#define PVLAYER_H_
 
 #include "../include/pv_common.h"
 #include "../utils/conversions.h"
@@ -125,4 +125,4 @@ int pvlayer_outputState(PVLayer * l); // default implementation: stats and activ
 }
 #endif
 
-#endif /* HYPERLAYER_H_ */
+#endif /* PVLAYER_H_ */
