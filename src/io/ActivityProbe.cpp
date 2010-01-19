@@ -37,13 +37,13 @@ ActivityProbe::~ActivityProbe()
    }
 }
 
-int ActivityProbe::outputState(float time, PVLayer * l)
+int ActivityProbe::outputState(float time, HyPerLayer * l)
 {
    int status = 0;
 
    if (outfp != NULL) {
-      pvdata_t * data = l->activity->data;
-      status = pv_tiff_write_frame(outfp, data, &l->loc, outBuf, &outFrame);
+      pvdata_t * data = l->clayer->activity->data;
+      status = pv_tiff_write_frame(outfp, data, &l->clayer->loc, outBuf, &outFrame);
    }
 
    return 0;
