@@ -6,6 +6,7 @@
  */
 
 #include "StatsProbe.hpp"
+#include "../layers/HyPerLayer.hpp"
 #include <float.h>      // FLT_MAX/MIN
 #include <string.h>
 
@@ -17,7 +18,7 @@ namespace PV {
  * @msg
  */
 StatsProbe::StatsProbe(const char * filename, PVBufType type, const char * msg)
-   : PVLayerProbe(filename)
+   : LayerProbe(filename)
 {
    this->msg = strdup(msg);
    this->type = type;
@@ -28,7 +29,7 @@ StatsProbe::StatsProbe(const char * filename, PVBufType type, const char * msg)
  * @msg
  */
 StatsProbe::StatsProbe(PVBufType type, const char * msg)
-   : PVLayerProbe()
+   : LayerProbe()
 {
    this->msg = strdup(msg);
    this->type = type;
@@ -43,21 +44,23 @@ StatsProbe::~StatsProbe()
  * @time
  * @l
  */
-int StatsProbe::outputState(float time, PVLayer * l)
+int StatsProbe::outputState(float time, HyPerLayer * l)
 {
    int nk;
    pvdata_t * buf;
    float fMin = FLT_MAX, fMax = FLT_MIN;
    double sum = 0.0;
 
+   const PVLayer * clayer = l->clayer;
+
    switch (type) {
    case BufV:
-      nk  = l->numNeurons;
-      buf = l->V;
+      nk  = clayer->numNeurons;
+      buf = clayer->V;
       break;
    case BufActivity:
-      nk  = l->numExtended;
-      buf = l->activity->data;
+      nk  = clayer->numExtended;
+      buf = clayer->activity->data;
       break;
    default:
       return 1;

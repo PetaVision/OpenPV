@@ -8,17 +8,17 @@
 #ifndef STATSPROBE_HPP_
 #define STATSPROBE_HPP_
 
-#include "PVLayerProbe.hpp"
+#include "LayerProbe.hpp"
 
 namespace PV {
 
-class StatsProbe: public PV::PVLayerProbe {
+class StatsProbe: public PV::LayerProbe {
 public:
    StatsProbe(const char * filename, PVBufType type, const char * msg);
    StatsProbe(PVBufType type, const char * msg);
    virtual ~StatsProbe();
 
-   virtual int outputState(float time, PVLayer * l);
+   virtual int outputState(float time, HyPerLayer * l);
 
 protected:
    PV::PVBufType type;
