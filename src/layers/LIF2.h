@@ -8,6 +8,8 @@
 #ifndef LIF2_H_
 #define LIF2_H_
 
+#include "PVLayer.h"
+
 typedef struct LIF2_params_ {
    float Vrest;
    float Vexc;
