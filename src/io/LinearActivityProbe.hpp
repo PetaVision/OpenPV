@@ -8,7 +8,7 @@
 #ifndef LINEARACTIVITYPROBE_HPP_
 #define LINEARACTIVITYPROBE_HPP_
 
-#include "PVLayerProbe.hpp"
+#include "LayerProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 
 namespace PV {
@@ -18,12 +18,12 @@ typedef enum {
    DimY
 } PVDimType;
 
-class LinearActivityProbe: public PV::PVLayerProbe {
+class LinearActivityProbe: public PV::LayerProbe {
 public:
    LinearActivityProbe(HyPerCol * hc, PVDimType dim, int linePos, int f);
    LinearActivityProbe(const char * filename, HyPerCol * hc, PVDimType dim, int linePos, int f);
 
-   virtual int outputState(float time, PVLayer * l);
+   virtual int outputState(float time, HyPerLayer * l);
 
 protected:
    HyPerCol * parent;
