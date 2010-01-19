@@ -112,7 +112,7 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
 
    status = l->copyToInteriorBuffer(buf);
 
-   const int width  = loc->nx;
+   const int width  = loc->nx * loc->nBands;  // increase width to overlay features
    const int height = loc->ny;
 
    glBindTexture(GL_TEXTURE_2D, id);
