@@ -37,14 +37,17 @@ int main(int argc, char* argv[])
 
    // create a runtime data display
    //
-   GLDisplay * display = new GLDisplay(&argc, argv, hc, 10);
+   GLDisplay * display = new GLDisplay(&argc, argv, hc, 5);
    display->setImage(image);
 
    // create the layers
    //
    HyPerLayer * retina = new Retina("Retina", hc, image);
    //HyPerLayer * l1 = new V1("L1", hc);
-   //HyPerLayer * av_retina = new V1("RetinaAvg", hc);
+   HyPerLayer * av_retina = new V1("RetinaAvg", hc);
+
+//   display->addLayer(retina);
+   display->addLayer(av_retina);
 
 #ifdef INHIB
    HyPerLayer * l1Inh = new V1("L1Inh", hc);
@@ -53,7 +56,7 @@ int main(int argc, char* argv[])
    // create the connections
    //
    //HyPerConn * r_l1   = new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
-   //HyPerConn * r_av   = new AvgConn("Retina to Average", hc, retina, av_retina, CHANNEL_EXC, NULL);
+   HyPerConn * r_av   = new AvgConn("Retina to Average", hc, retina, av_retina, CHANNEL_EXC, NULL);
 #ifdef INHIB
    HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
    HyPerConn * inh_l1 = new HyPerConn("L1Inh to L1", hc, l1Inh, l1, CHANNEL_INH);
@@ -61,6 +64,9 @@ int main(int argc, char* argv[])
 
    // add probes
    //
+
+   LayerProbe * statsAvg = new StatsProbe(BufActivity, "Avg:");
+   av_retina->insertProbe(statsAvg);
 
 //   PVLayerProbe * statsR     = new StatsProbe(BufActivity, "R    :");
 //   PVLayerProbe * statsL1    = new StatsProbe(BufActivity, "L1   :");
