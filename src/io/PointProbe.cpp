@@ -6,6 +6,7 @@
  */
 
 #include "PointProbe.hpp"
+#include "../layers/HyPerLayer.hpp"
 #include <string.h>
 
 namespace PV {
@@ -18,7 +19,7 @@ namespace PV {
  * @msg
  */
 PointProbe::PointProbe(const char * filename, int xLoc, int yLoc, int fLoc, const char * msg)
-   : PVLayerProbe(filename)
+   : LayerProbe(filename)
 {
    this->xLoc = xLoc;
    this->yLoc = yLoc;
@@ -33,7 +34,7 @@ PointProbe::PointProbe(const char * filename, int xLoc, int yLoc, int fLoc, cons
  * @msg
  */
 PointProbe::PointProbe(int xLoc, int yLoc, int fLoc, const char * msg)
-   : PVLayerProbe()
+   : LayerProbe()
 {
    this->xLoc = xLoc;
    this->yLoc = yLoc;
@@ -50,21 +51,23 @@ PointProbe::~PointProbe()
  * @time
  * @l
  */
-int PointProbe::outputState(float time, PVLayer * l)
+int PointProbe::outputState(float time, HyPerLayer * l)
 {
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
+   const PVLayer * clayer = l->clayer;
+
+   const float nx = clayer->loc.nx;
+   const float ny = clayer->loc.ny;
+   const float nf = clayer->numFeatures;
 
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, l->loc.nPad);
+   const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nPad);
 
    fprintf(fp, "%s t=%6.1f", msg, time);
-   fprintf(fp, " G_E=%6.3f", l->G_E[k]);
-   fprintf(fp, " G_I=%6.3f", l->G_I[k]);
-   fprintf(fp, " V=%6.3f",   l->V[k]);
-   fprintf(fp, " Vth=%6.3f", l->Vth[k]);
-   fprintf(fp, " a=%3.1f\n", l->activity->data[kex]);
+   fprintf(fp, " G_E=%6.3f", clayer->G_E[k]);
+   fprintf(fp, " G_I=%6.3f", clayer->G_I[k]);
+   fprintf(fp, " V=%6.3f",   clayer->V[k]);
+   fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
+   fprintf(fp, " a=%3.1f\n", clayer->activity->data[kex]);
 
    fflush(fp);
 
