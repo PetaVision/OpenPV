@@ -9,11 +9,12 @@
 #define HYPERLAYER_HPP_
 
 #include "../layers/PVLayer.h"
+#include "../layers/LayerDataInterface.hpp"
 #include "../layers/LIF2.h"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
-#include "../io/PVLayerProbe.hpp"
+#include "../io/LayerProbe.hpp"
 #include "../include/pv_types.h"
 
 namespace PV {
@@ -21,7 +22,7 @@ namespace PV {
 // HyPerLayer uses C code from PVLayer.{h,c}, and LIF2.{h,c}
 typedef LIF2_params HyPerLayerParams;
 
-class HyPerLayer {
+class HyPerLayer : public LayerDataInterface {
 
    friend class HyPerCol;
 
@@ -75,7 +76,7 @@ public:
    virtual int writeActivitySparse(float time);
    virtual int readState(const char * name, float * time);
 
-   virtual int insertProbe(PVLayerProbe * probe);
+   virtual int insertProbe(LayerProbe * probe);
 
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
@@ -103,13 +104,20 @@ public:
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
 
+   // implementation of LayerDataInterface interface
+   //
+   const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
+   const pvdata_t * getLayerData()   { return clayer->activity->data; }
+   bool isExtended()                 { return true; }
+   virtual int copyToInteriorBuffer(unsigned char * buf);
+
 protected:
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
 
    char * name;  // well known name of layer
 
    int numProbes;
-   PVLayerProbe ** probes;
+   LayerProbe ** probes;
 
    int ioAppend;                // controls opening of binary files
    float writeTime;             // time of next output
