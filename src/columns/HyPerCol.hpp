@@ -8,7 +8,7 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#include "HyPerColDelegate.hpp"
+#include "HyPerColRunDelegate.hpp"
 #include "../layers/PVLayer.h"
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"
@@ -77,7 +77,7 @@ public:
    int commColumn(int colId);
    int commRow(int colId);
 
-   void setDelegate(HyPerColDelegate * delegate)  {runDelegate = delegate;}
+   void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
 private:
    int numSteps;
@@ -104,7 +104,7 @@ private:
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
 
-   HyPerColDelegate * runDelegate; // runs time loop
+   HyPerColRunDelegate * runDelegate; // runs time loop
 
 }; // class HyPerCol
 
