@@ -14,14 +14,14 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-   marginWidth = 2;
+   marginWidth = 0;
    burstFreq = 12;
 };
 
 HyPerLayer "Retina" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 2;
+   marginWidth = 0;
 
    beginStim = 0;
    endStim   = 900000;
@@ -31,15 +31,17 @@ HyPerLayer "Retina" = {
 
    spikingFlag = 1;        // spike as poisson
 
-   noiseOnFreq  = 500;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 50;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 400;//500;//100;     // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 0;//50;//50;     // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "RetinaAvg" = {
    nxScale = 1;
    nyScale = 1;
    
-   marginWidth = 2;
+   spikingFlag = 0;  // just copy average activity
+   
+   marginWidth = 0;
    
    noiseAmpE = 1.0;
    noiseAmpI = 0.2;
@@ -112,6 +114,7 @@ HyPerConn "Retina to Average" = {
    nyp = 1;
    
    strength = 1;
+   maxRate = 200;  // maximum expected firing rate of pre-synaptic layer
 };
 
 HyPerConn "L1 to L1Inh" = {
