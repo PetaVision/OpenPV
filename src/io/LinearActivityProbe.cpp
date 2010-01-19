@@ -16,7 +16,7 @@ namespace PV {
  * @f
  */
 LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int linePos, int f)
-   : PVLayerProbe()
+   : LayerProbe()
 {
    this->parent = hc;
    this->dim = dim;
@@ -32,7 +32,7 @@ LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int lineP
  * @f
  */
 LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, PVDimType dim, int linePos, int f)
-    : PVLayerProbe(filename)
+    : LayerProbe(filename)
 {
    this->parent = hc;
    this->dim = dim;
@@ -44,18 +44,20 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
  * @time
  * @l
  */
-int LinearActivityProbe::outputState(float time, PVLayer * l)
+int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 {
    int width, sLine, k, kex;
    float * line;
 
-   float * activity = l->activity->data;
+   const PVLayer * clayer = l->clayer;
 
-   const int nx = l->loc.nx;
-   const int ny = l->loc.ny;
-   const int nf = l->numFeatures;
+   float * activity = clayer->activity->data;
 
-   const int marginWidth = l->loc.nPad;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
+
+   const int marginWidth = clayer->loc.nPad;
 
    float dt = parent->getDeltaTime();
 
@@ -64,12 +66,12 @@ int LinearActivityProbe::outputState(float time, PVLayer * l)
 
    if (dim == DimX) {
       width = nx + 2*marginWidth;
-      line = l->activity->data + (linePos+marginWidth) * width * nf;
+      line = clayer->activity->data + (linePos+marginWidth) * width * nf;
       sLine = nf;
    }
    else {
       width = ny + 2*marginWidth;
-      line = l->activity->data + (linePos+marginWidth)*nf;
+      line = clayer->activity->data + (linePos+marginWidth)*nf;
       sLine = nf * (nx + 2*marginWidth);
 
    }
