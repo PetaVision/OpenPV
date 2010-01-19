@@ -8,17 +8,17 @@
 #ifndef ACTIVITYPROBE_HPP_
 #define ACTIVITYPROBE_HPP_
 
-#include "PVLayerProbe.hpp"
+#include "LayerProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 
 namespace PV {
 
-class ActivityProbe: public PV::PVLayerProbe {
+class ActivityProbe: public PV::LayerProbe {
 public:
    ActivityProbe(const char * filename, HyPerCol * hc, const PVLayerLoc * loc, int f);
    virtual ~ActivityProbe();
 
-   virtual int outputState(float time, PVLayer * l);
+   virtual int outputState(float time, HyPerLayer * l);
 
 private:
    HyPerCol * parent;
