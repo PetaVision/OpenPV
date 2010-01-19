@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class Gratings : public Image  {
+class Gratings : public Image {
 public:
    Gratings(const char * name, HyPerCol * hc);
    virtual ~Gratings();

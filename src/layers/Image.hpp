@@ -9,11 +9,12 @@
 #define IMAGE_HPP_
 
 #include "Image.hpp"
+#include "LayerDataInterface.hpp"
 #include "../columns/HyPerCol.hpp"
 
 namespace PV {
 
-class Image {
+class Image : public LayerDataInterface {
 
 protected:
    Image(const char * name, HyPerCol * hc);
@@ -25,13 +26,19 @@ public:
    virtual int initialize_base(const char * name, HyPerCol * hc);
    virtual int initialize_data(const PVLayerLoc * loc);
 
+   // implementation of LayerDataInterface interface
+   //
+   const PVLayerLoc * getLayerLoc()  { return &loc; }
+   const pvdata_t * getLayerData()   { return getImageBuffer(); }
+   bool isExtended()                 { return true; }
+
    virtual bool updateImage(float time, float dt);
-   virtual int clearImage();
+   virtual int  clearImage();
 
    float lastUpdate()  { return lastUpdateTime; }
 
    virtual pvdata_t * getImageBuffer();
-   virtual PVLayerLoc   getImageLoc();
+   virtual PVLayerLoc getImageLoc();
 
    int read(const char * filename);
    int write(const char * filename);
