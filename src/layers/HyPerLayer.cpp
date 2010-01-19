@@ -278,6 +278,11 @@ int HyPerLayer::copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * 
    return -1;
 }
 
+int HyPerLayer::copyToInteriorBuffer(unsigned char * buf)
+{
+   return HyPerLayer::copyToBuffer(buf, getLayerData(), getLayerLoc(), isExtended(), 255.0);
+}
+
 int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
                              const PVLayerLoc * loc, bool extended, float scale)
 {
@@ -458,10 +463,10 @@ int HyPerLayer::publish(InterColComm* comm, float time)
    return 0;
 }
 
-int HyPerLayer::insertProbe(PVLayerProbe * p)
+int HyPerLayer::insertProbe(LayerProbe * p)
 {
-   PVLayerProbe ** tmp;
-   tmp = (PVLayerProbe **) malloc((numProbes + 1) * sizeof(PVLayerProbe *));
+   LayerProbe ** tmp;
+   tmp = (LayerProbe **) malloc((numProbes + 1) * sizeof(LayerProbe *));
    assert(tmp != NULL);
 
    for (int i = 0; i < numProbes; i++) {
@@ -477,18 +482,18 @@ int HyPerLayer::insertProbe(PVLayerProbe * p)
 
 int HyPerLayer::outputState(float time, bool last)
 {
-   char path[PV_PATH_MAX];
+//   char path[PV_PATH_MAX];
    int status = 0;
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
+//   const int nx = clayer->loc.nx;
+//   const int ny = clayer->loc.ny;
+//   const int nf = clayer->numFeatures;
 
-   const int nxex = clayer->loc.nx + 2*clayer->loc.nPad;
-   const int nyex = clayer->loc.ny + 2*clayer->loc.nPad;
+//   const int nxex = clayer->loc.nx + 2*clayer->loc.nPad;
+//   const int nyex = clayer->loc.ny + 2*clayer->loc.nPad;
 
    for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputState(time, clayer);
+      probes[i]->outputState(time, this);
    }
 
    // always write activity in sparse format
