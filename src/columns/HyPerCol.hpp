@@ -59,9 +59,9 @@ public:
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return time;}
 
-   PVLayerLoc getImageLoc()                 {return imageLoc;}
-   float  width()                         {return imageLoc.nx;}
-   float  height()                        {return imageLoc.ny;}
+   PVLayerLoc getImageLoc()               {return imageLoc;}
+   int width()                            {return imageLoc.nx;}
+   int height()                           {return imageLoc.ny;}
 
    const char * inputFile()               {return image_file;}
 
@@ -113,6 +113,6 @@ private:
 extern "C" {
 void *run1connection(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
 void *update1layer(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
-};
+}
 
 #endif /* HYPERCOL_HPP_ */
