@@ -49,7 +49,7 @@ public:
    static int convertToGrayScale(PVLayerLoc * loc, unsigned char * buf);
 
    int  convolve(int width);
-   void setTau(int t)                { tau = t; }
+   void setTau(float t)                { tau = t; }
 
    int copyFromInteriorBuffer(const unsigned char * buf);
    int copyToInteriorBuffer(unsigned char * buf);
