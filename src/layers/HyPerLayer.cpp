@@ -59,12 +59,12 @@ HyPerLayer::~HyPerLayer()
 
 int HyPerLayer::initialize(PVLayerType type)
 {
-   float time = 0.0;
+   float time = 0.0f;
 
    clayer->layerType = type;
    parent->addLayer(this);
 
-   if (parent->parameters()->value(name, "restart", 0) != 0) {
+   if (parent->parameters()->value(name, "restart", 0.0f) != 0.0f) {
       readState(name, &time);
    }
    writeTime = parent->simulationTime();
@@ -102,8 +102,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
       ny = (int) nearbyintf( nyScale * imageLoc.ny );
    }
 
-   float xScalef = log2f(parent->width() / nx);
-   float yScalef = log2f(parent->height() / ny);
+   float xScalef = log2f((float) parent->width()  / nx);
+   float yScalef = log2f((float) parent->height() / ny);
 
    int xScale = (int) nearbyintf(xScalef);
    int yScale = (int) nearbyintf(yScalef);
@@ -534,10 +534,10 @@ int HyPerLayer::readState(const char * name, float * time)
    Communicator * comm = parent->icCommunicator();
 
    const char * last = "_last";
-   const char * name_str = (name_str != NULL  ) ?  name   : "";
+   const char * name_str = (name != NULL) ? name : "";
 
-   pvdata_t * G_E  = clayer->G_E;
-   pvdata_t * G_I  = clayer->G_I;
+   pvdata_t * G_E = clayer->G_E;
+   pvdata_t * G_I = clayer->G_I;
 
    pvdata_t * V   = clayer->V;
    pvdata_t * Vth = clayer->Vth;
@@ -576,7 +576,7 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
    Communicator * comm = parent->icCommunicator();
 
    const char * last_str = (last) ? "_last" : "";
-   const char * name_str = (name_str != NULL  ) ?  name   : "";
+   const char * name_str = (name != NULL) ? name : "";
 
    pvdata_t * G_E  = clayer->G_E;
    pvdata_t * G_I  = clayer->G_I;
@@ -604,7 +604,7 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
    snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, A, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   return 0;
+   return status;
 }
 
 int HyPerLayer::writeActivitySparse(float time)
