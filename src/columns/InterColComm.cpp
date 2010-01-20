@@ -156,8 +156,8 @@ int Publisher::publish(HyPerLayer* pub,
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
-      pvdata_t * recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
-      pvdata_t * sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+      recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
+      sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
 #ifdef DEBUG_OUTPUT
       size_t recvOff = Communicator::recvOffset(n, &cube->loc);
       size_t sendOff = Communicator::recvOffset(n, &cube->loc);
