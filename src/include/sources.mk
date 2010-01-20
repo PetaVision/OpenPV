@@ -5,11 +5,10 @@
 HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/include/pv_common.h \
           $(SRCDIR)/columns/HyPerCol.hpp \
-          $(SRCDIR)/columns/HyPerColDelegate.hpp \
+          $(SRCDIR)/columns/HyPerColRunDelegate.hpp \
           $(SRCDIR)/connections/HyPerConn.hpp \
           $(SRCDIR)/connections/GaborConn.hpp \
           $(SRCDIR)/connections/CocircConn.hpp \
-          $(SRCDIR)/connections/LongRangeConn.hpp \
           $(SRCDIR)/connections/PoolConn.hpp \
           $(SRCDIR)/connections/RandomConn.hpp \
           $(SRCDIR)/connections/RuleConn.hpp \
@@ -22,7 +21,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/layers/PVLayer.h \
           $(SRCDIR)/io/ConnectionProbe.hpp \
           $(SRCDIR)/io/GLDisplay.hpp \
-          $(SRCDIR)/io/PVLayerProbe.hpp \
+          $(SRCDIR)/io/LayerProbe.hpp \
           $(SRCDIR)/io/LinearActivityProbe.hpp \
           $(SRCDIR)/io/PointProbe.hpp \
           $(SRCDIR)/io/PostConnProbe.hpp \
@@ -33,7 +32,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/tiff.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
-          $(SRCDIR)/columns/HyPerColDelegate.cpp \
+          $(SRCDIR)/columns/HyPerColRunDelegate.cpp \
           $(SRCDIR)/columns/Communicator.cpp \
           $(SRCDIR)/columns/InterColComm.cpp \
           $(SRCDIR)/columns/DataStore.cpp \
@@ -41,7 +40,6 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/GaborConn.cpp \
           $(SRCDIR)/connections/CocircConn.cpp \
           $(SRCDIR)/connections/InhibConn.cpp \
-          $(SRCDIR)/connections/LongRangeConn.cpp \
           $(SRCDIR)/connections/PoolConn.cpp \
           $(SRCDIR)/connections/RandomConn.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
@@ -55,7 +53,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/layers/V1.cpp \
           $(SRCDIR)/io/ConnectionProbe.cpp \
           $(SRCDIR)/io/GLDisplay.cpp \
-          $(SRCDIR)/io/PVLayerProbe.cpp \
+          $(SRCDIR)/io/LayerProbe.cpp \
           $(SRCDIR)/io/LinearActivityProbe.cpp \
           $(SRCDIR)/io/PointProbe.cpp \
           $(SRCDIR)/io/PostConnProbe.cpp \
@@ -66,7 +64,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
 CPPOBJS = $(BUILDDIR)/HyPerCol.o \
-          $(BUILDDIR)/HyPerColDelegate.o \
+          $(BUILDDIR)/HyPerColRunDelegate.o \
           $(BUILDDIR)/Communicator.o \
           $(BUILDDIR)/InterColComm.o \
           $(BUILDDIR)/DataStore.o \
@@ -78,7 +76,6 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/GaborConn.o \
           $(BUILDDIR)/CocircConn.o \
           $(BUILDDIR)/InhibConn.o \
-          $(BUILDDIR)/LongRangeConn.o \
           $(BUILDDIR)/PoolConn.o \
           $(BUILDDIR)/RandomConn.o \
           $(BUILDDIR)/RuleConn.o \
@@ -88,7 +85,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/V1.o \
           $(BUILDDIR)/ConnectionProbe.o \
           $(BUILDDIR)/GLDisplay.o \
-          $(BUILDDIR)/PVLayerProbe.o \
+          $(BUILDDIR)/LayerProbe.o \
           $(BUILDDIR)/LinearActivityProbe.o \
           $(BUILDDIR)/PointProbe.o \
           $(BUILDDIR)/PostConnProbe.o \
