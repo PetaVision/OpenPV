@@ -99,7 +99,7 @@ int RandomConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int seed)
 
    // loop over all post-synaptic cells in patch
    for (int k = 0; k < nk; k++) {
-      w[k] = wMin + p * rand();
+      w[k] = (float) (wMin + p * rand());
    }
 
    return 0;
@@ -114,7 +114,7 @@ int RandomConn::initializeGaussianWeights(int seed)
       wGaussMean = params->value(name, "wGaussMean");
    }
    else {
-      wGaussMean = (wMin + wMax) / 2.0;
+      wGaussMean = (wMin + wMax) / 2.0f;
    }
 
    if (params->present(name, "wGaussStdev")){
@@ -222,12 +222,12 @@ float RandomConn::randgauss(float mean, float stdev)
    else
    {
      do {
-         urandx1 = 2.0 * ranf() - 1.0;
-         urandx2 = 2.0 * ranf() - 1.0;
+         urandx1 = 2.0f * ranf() - 1.0f;
+         urandx2 = 2.0f * ranf() - 1.0f;
          w = urandx1 * urandx1 + urandx2 * urandx2;
-      } while (w >= 1.0);
+      } while (w >= 1.0f);
 
-      w = sqrt((-2.0 * log(w)) / w);
+      w = sqrtf((-2.0f * log(w)) / w);
       y1 = urandx1 * w;
       y2 = urandx2 * w;
       use_last = 1;
@@ -253,12 +253,12 @@ float RandomConn::randgaussMA(float mean, float stdev, long *idum)
    if (iset == 0)                   /* use value from previous call */
    {
       do {
-         v1 = 2.0 * ran1(idum) - 1.0;
-         v2 = 2.0 * ran1(idum) - 1.0;
+         v1 = 2.0f * ran1(idum) - 1.0f;
+         v2 = 2.0f * ran1(idum) - 1.0f;
          rsq = v1 * v1 + v2 * v2;
-      } while (rsq >= 1.0 || rsq == 0.0);
+      } while (rsq >= 1.0f || rsq == 0.0f);
 
-      fac = sqrt((-2.0 * log(rsq)) / rsq);
+      fac = sqrt((-2.0f * log(rsq)) / rsq);
       gset = mean + v1 * fac * stdev;
       iset = 1;
       return mean + v2 * fac * stdev;
@@ -272,13 +272,13 @@ float RandomConn::randgaussMA(float mean, float stdev, long *idum)
 
 #define IA 16807
 #define IM 2147483647
-#define AM (1.0/IM)
+#define AM (1.0f/IM)
 #define IQ 127773
 #define IR 2836
 #define NTAB 32
 #define NDIV (1+(IM-1)/NTAB)
 #define EPS 1.2e-7
-#define RNMX (1.0-EPS)
+#define RNMX (1.0f-EPS)
 
 float RandomConn::ran1(long *idum)
 {
