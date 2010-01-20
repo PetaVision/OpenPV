@@ -6,7 +6,7 @@
  */
 
 #include "Image.hpp"
-#include "../io/imageio.hpp";
+#include "../io/imageio.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -215,8 +215,6 @@ int Image::copyToInteriorBuffer(unsigned char * buf)
 
 int Image::copyFromInteriorBuffer(const unsigned char * buf)
 {
-   float * a = data;
-
    const int nx = loc.nx;
    const int ny = loc.ny;
 
@@ -261,7 +259,7 @@ int Image::toGrayScale()
 //            val += d;
          }
          // store the converted image in the first color band
-         data[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
+         data[i*sx + j*sy + 0*sb] = sqrtf(val/numBands);
 //         data[i*sx + j*sy + 0*sb] = val/numBands;
       }
    }
@@ -293,7 +291,7 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
             val += d*d;
          }
          // store the converted image in the first color band
-         buf[i*sx + j*sy + 0*sb] = sqrt(val/numBands);
+         buf[i*sx + j*sy + 0*sb] = sqrtf(val/numBands);
       }
    }
 
@@ -349,7 +347,7 @@ int Image::convolve(int width)
          max = (av > max) ? av : max;
 //         sq  = sqrt( sq/(nPad*nPad) - av*av ) + tau;
 //         buf[i*sx + j*sy] = data[i*sx + j*sy] + mid - av;
-         buf[iex*sx + jex*sy] = .95*255 * (data[iex*sx + jex*sy] - .95*av) / sq;
+         buf[iex*sx + jex*sy] = .95f * 255.0f * (data[iex*sx + jex*sy] - .95f * av) / sq;
       }
    }
 
