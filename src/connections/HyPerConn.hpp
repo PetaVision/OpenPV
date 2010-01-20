@@ -124,7 +124,7 @@ protected:
    int connId;               // connection id
 
    char * name;
-   float nxp, nyp, nfp;      // size of weight dimensions
+   int nxp, nyp, nfp;      // size of weight dimensions
 
    int numParams;
    PVConnParams * params;
