@@ -1,7 +1,7 @@
 $(BUILDDIR)/HyPerCol.o: $(SRCDIR)/columns/HyPerCol.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
-$(BUILDDIR)/HyPerColDelegate.o: $(SRCDIR)/columns/HyPerColDelegate.cpp $(HEADERS)
+$(BUILDDIR)/HyPerColRunDelegate.o: $(SRCDIR)/columns/HyPerColRunDelegate.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/Communicator.o: $(SRCDIR)/columns/Communicator.cpp $(HEADERS)
@@ -37,9 +37,6 @@ $(BUILDDIR)/CocircConn.o: $(SRCDIR)/connections/CocircConn.cpp $(HEADERS)
 $(BUILDDIR)/InhibConn.o: $(SRCDIR)/connections/InhibConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
-$(BUILDDIR)/LongRangeConn.o: $(SRCDIR)/connections/LongRangeConn.cpp $(HEADERS)
-	$(CPP) -c $(CPPFLAGS) -o $@ $<
-
 $(BUILDDIR)/PoolConn.o: $(SRCDIR)/connections/PoolConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -73,7 +70,7 @@ $(BUILDDIR)/ConnectionProbe.o: $(SRCDIR)/io/ConnectionProbe.cpp $(HEADERS)
 $(BUILDDIR)/GLDisplay.o: $(SRCDIR)/io/GLDisplay.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
-$(BUILDDIR)/PVLayerProbe.o: $(SRCDIR)/io/PVLayerProbe.cpp $(HEADERS)
+$(BUILDDIR)/LayerProbe.o: $(SRCDIR)/io/LayerProbe.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/LinearActivityProbe.o: $(SRCDIR)/io/LinearActivityProbe.cpp $(HEADERS)
