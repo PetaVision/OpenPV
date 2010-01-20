@@ -228,7 +228,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //override dWMax if user provides it
    dWMax = filep->value(name, "dWMax", dWMax);
 
-   stdpFlag = (bool) filep->value(name, "stdpFlag", stdpFlag);
+   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
 
    return 0;
 }
@@ -251,8 +251,8 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       }
    }
 
-   float randomFlag = inputParams->value(getName(), "randomFlag", 0.0f);
-   float randomSeed = inputParams->value(getName(), "randomSeed", 0.0f);
+   int randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
+   int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
 
    if (randomFlag != 0 || randomSeed != 0) {
       return initializeRandomWeights(patches, numPatches, randomSeed);
@@ -280,19 +280,19 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 
    if (nxp != nxpFile) {
       fprintf(stderr,
-              "ignoring nxp = %f in HyPerCol %s, using nxp = %i in binary file %s\n",
+              "ignoring nxp = %i in HyPerCol %s, using nxp = %i in binary file %s\n",
               nxp, name, nxpFile, filename);
       nxp = nxpFile;
    }
    if (nyp != nypFile) {
       fprintf(stderr,
-              "ignoring nyp = %f in HyPerCol %s, using nyp = %i in binary file %s\n",
+              "ignoring nyp = %i in HyPerCol %s, using nyp = %i in binary file %s\n",
               nyp, name, nypFile, filename);
       nyp = nypFile;
    }
    if (nfp != nfpFile) {
       fprintf(stderr,
-              "ignoring nfp = %f in HyPerCol %s, using nfp = %i in binary file %s\n",
+              "ignoring nfp = %i in HyPerCol %s, using nfp = %i in binary file %s\n",
               nfp, name, nfpFile, filename);
       nfp = nfpFile;
    }
@@ -826,45 +826,45 @@ int HyPerConn::createAxonalArbors()
          kyPost = kyPost - ky0Post;
 
          // adjust location so patch is in bounds
-         float dx = 0;
-         float dy = 0;
+         int dx = 0;
+         int dy = 0;
          int nxPatch = nxp;
          int nyPatch = nyp;
 
-         if (kxPost < 0.0) {
+         if (kxPost < 0) {
             nxPatch -= -kxPost;
-            kxPost = 0.0;
-            if (nxPatch < 0.0) nxPatch = 0.0;
+            kxPost = 0;
+            if (nxPatch < 0) nxPatch = 0;
             dx = nxp - nxPatch;
          }
          else if (kxPost + nxp > nxPost) {
             nxPatch -= kxPost + nxp - nxPost;
-            if (nxPatch <= 0.0) {
-               nxPatch = 0.0;
-               kxPost  = nxPost - 1.0;
+            if (nxPatch <= 0) {
+               nxPatch = 0;
+               kxPost  = nxPost - 1;
             }
          }
 
-         if (kyPost < 0.0) {
+         if (kyPost < 0) {
             nyPatch -= -kyPost;
-            kyPost = 0.0;
-            if (nyPatch < 0.0) nyPatch = 0.0;
+            kyPost = 0;
+            if (nyPatch < 0) nyPatch = 0;
             dy = nyp - nyPatch;
          }
          else if (kyPost + nyp > nyPost) {
             nyPatch -= kyPost + nyp - nyPost;
-            if (nyPatch <= 0.0) {
-               nyPatch = 0.0;
-               kyPost  = nyPost - 1.0;
+            if (nyPatch <= 0) {
+               nyPatch = 0;
+               kyPost  = nyPost - 1;
             }
          }
 
          // if out of bounds in x (y), also out in y (x)
-         if (nxPatch == 0.0 || nyPatch == 0.0) {
-            dx = 0.0;
-            dy = 0.0;
-            nxPatch = 0.0;
-            nyPatch = 0.0;
+         if (nxPatch == 0 || nyPatch == 0) {
+            dx = 0;
+            dy = 0;
+            nxPatch = 0;
+            nyPatch = 0;
          }
 
          // local non-extended index but shifted to be in bounds
@@ -898,7 +898,7 @@ int HyPerConn::createAxonalArbors()
          if (stdpFlag) {
             arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
                              (size_t)dy * (size_t)arbor->weights->sy;
-            pvpatch_adjust(arbor->plasticIncr, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+            pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
 
       } // loop over arbors (pre-synaptic neurons)
@@ -956,52 +956,52 @@ int HyPerConn::adjustAxonalArborWeights()
          kyPost = kyPost - ky0Post;
 
          // adjust location so patch is in bounds
-         float dx = 0;
-         float dy = 0;
+         int dx = 0;
+         int dy = 0;
          int nxPatch = nxp;
          int nyPatch = nyp;
 
-         if (kxPost < 0.0) {
+         if (kxPost < 0) {
             nxPatch -= -kxPost;
-            kxPost = 0.0;
-            if (nxPatch < 0.0) nxPatch = 0.0;
+            kxPost = 0;
+            if (nxPatch < 0) nxPatch = 0;
             dx = nxp - nxPatch;
          }
          else if (kxPost + nxp > nxPost) {
             nxPatch -= kxPost + nxp - nxPost;
-            if (nxPatch < 0.0) {
-               nxPatch = 0.0;
-               kxPost  = nxPost - 1.0;
+            if (nxPatch < 0) {
+               nxPatch = 0;
+               kxPost  = nxPost - 1;
             }
          }
 
-         if (kyPost < 0.0) {
+         if (kyPost < 0) {
             nyPatch -= -kyPost;
-            kyPost = 0.0;
-            if (nyPatch < 0.0) nyPatch = 0.0;
+            kyPost = 0;
+            if (nyPatch < 0) nyPatch = 0;
             dy = nyp - nyPatch;
          }
          else if (kyPost + nyp > nyPost) {
             nyPatch -= kyPost + nyp - nyPost;
-            if (nyPatch < 0.0) {
-               nyPatch = 0.0;
-               kyPost  = nyPost - 1.0;
+            if (nyPatch < 0) {
+               nyPatch = 0;
+               kyPost  = nyPost - 1;
             }
          }
 
          // if out of bounds in x (y), also out in y (x)
-         if (nxPatch == 0.0 || nyPatch == 0.0) {
-            dx = 0.0;
-            dy = 0.0;
-            nxPatch = 0.0;
-            nyPatch = 0.0;
+         if (nxPatch == 0 || nyPatch == 0) {
+            dx = 0;
+            dy = 0;
+            nxPatch = 0;
+            nyPatch = 0;
          }
 
          pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
          if (stdpFlag) {
             arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
                              (size_t)dy * (size_t)arbor->weights->sy;
-            pvpatch_adjust(arbor->plasticIncr, (int)nxPatch, (int)nyPatch, (int)dx, (int)dy);
+            pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
       }
    }
@@ -1364,11 +1364,11 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    assert(sf == 1);
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, lPost->xScale);
-   const float dyPost = powf(2, lPost->yScale);
+   const float dxPost = powf(2, (float) lPost->xScale);
+   const float dyPost = powf(2, (float) lPost->yScale);
 
-   const float dth = PI / nfPatch;
-   const float th0 = rotate * dth / 2.0;
+   const float dth = (float) PI / nfPatch;
+   const float th0 = rotate * dth / 2.0f;
 
    // loop over all post-synaptic cells in patch
    for (int fPost = 0; fPost < nfPatch; fPost++) {
@@ -1380,21 +1380,21 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
             float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
             // rotate the reference frame by th
-            float xp = +xDelta * cos(thPost) + yDelta * sin(thPost);
-            float yp = -xDelta * sin(thPost) + yDelta * cos(thPost);
+            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
+            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             w[iPost * sx + jPost * sy + fPost * sf] = 0;
             if (d2 <= r2Max) {
                w[iPost * sx + jPost * sy + fPost * sf]
-                     += expf(-d2 / (2.0 * sigma * sigma));
+                     += expf(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if (d2 <= r2Max) {
-                  w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0 * sigma
+                  w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0f * sigma
                         * sigma));
                }
             }
@@ -1513,7 +1513,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
          sum2 += w[i] * w[i];
       }
       if (sum == 0.0 && sum2 > 0.0) {
-         float factor = strength / sqrt(sum2);
+         float factor = strength / sqrtf(sum2);
          for (int i = 0; i < nx * ny * nf; i++)
             w[i] *= factor;
       }
