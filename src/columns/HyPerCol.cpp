@@ -321,4 +321,4 @@ int HyPerCol::writeState()
    return 0;
 }
 
-}; // PV namespace
+} // PV namespace
