@@ -20,7 +20,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
    sprintf(commName, "[%2d]: ", icRank);
 
-   r = sqrt(worldSize);
+   r = sqrtf(worldSize);
    numRows = (int) r;
    numCols = (int) worldSize / numRows;
 
