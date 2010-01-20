@@ -51,7 +51,7 @@ bool Gratings::updateImage(float time, float dt)
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
          float x = (float) ix;
-         data[ix*sx + iy*sy] = sin(kx * x + phi);
+         data[ix*sx + iy*sy] = sinf(kx * x + phi);
       }
    }
 
