@@ -61,6 +61,7 @@ static inline int featureIndex(int k, int nx, int ny, int nf)
 {
    return k % nf;
 }
+
 //! RETURNS X INDEX FROM LINEAR INDEX
 /*!
  * Return the position kx for the given k index
@@ -70,15 +71,14 @@ static inline int featureIndex(int k, int nx, int ny, int nf)
  * @nf the number of neurons in the feature direction
  * REMARKS:
  *   - since k = ky * (nf*nx) + kx * nf + kf, we easily see first that
- *    a = floor(k/nf) = ky*nx + kx, and then that
+ *    a = k/nf = ky*nx + kx, and then that
  *    kx = mod(a,nx), i.e. kx is the reminder of the division of a by nx,
  *    since kx <= nx-1.
- *
  *    .
  */
 static inline int kxPos(int k, int nx, int ny, int nf)
 {
-   return floorf( fmodf( floorf((float) k / nf), nx ) );
+   return (k/nf) % nx;
 }
 
 //! RETURNS Y INDEX FROM LINEAR INDEX
@@ -97,7 +97,7 @@ static inline int kxPos(int k, int nx, int ny, int nf)
 //#pragma FTT elemental, vectorize
 static inline int kyPos(int k, int nx, int ny, int nf)
 {
-   return floorf( (k / (nx*nf)) );
+   return k / (nx*nf);
 }
 
 /**
@@ -129,7 +129,7 @@ static inline float deltaY(int yScaleLog2)
  */
 static inline float xOriginGlobal(int xScaleLog2)
 {
-   return 0.5 * deltaX(xScaleLog2);
+   return 0.5f * deltaX(xScaleLog2);
 }
 
 /**
@@ -139,7 +139,7 @@ static inline float xOriginGlobal(int xScaleLog2)
  */
 static inline float yOriginGlobal(int yScaleLog2)
 {
-   return 0.5 * deltaY(yScaleLog2);
+   return 0.5f * deltaY(yScaleLog2);
 }
 
 /**
@@ -154,8 +154,11 @@ static inline float yOriginGlobal(int yScaleLog2)
 static inline float xPosGlobal(int kGlobal, int xScaleLog2,
                                int nxGlobal, int nyGlobal, int nf)
 {
-   int kxGlobal = kxPos(kGlobal, nxGlobal, nyGlobal, nf);
-   return xOriginGlobal(xScaleLog2) + deltaX(xScaleLog2) * kxGlobal;
+   // breaking out variables removes warning from Intel compiler
+   const int kxGlobal = kxPos(kGlobal, nxGlobal, nyGlobal, nf);
+   const float x0 = xOriginGlobal(xScaleLog2);
+   const float dx = deltaX(xScaleLog2);
+   return (x0 + dx * kxGlobal);
 }
 
 /**
@@ -170,8 +173,10 @@ static inline float xPosGlobal(int kGlobal, int xScaleLog2,
 static inline float yPosGlobal(int kGlobal, int yScaleLog2,
                                int nxGlobal, int nyGlobal, int nf)
 {
-   int kyGlobal = kyPos(kGlobal, nxGlobal, nyGlobal, nf);
-   return yOriginGlobal(yScaleLog2) + deltaY(yScaleLog2) * kyGlobal;
+   const int kyGlobal = kyPos(kGlobal, nxGlobal, nyGlobal, nf);
+   const float y0 = yOriginGlobal(yScaleLog2);
+   const float dy = deltaY(yScaleLog2);
+   return (y0 + dy * kyGlobal);
 }
 
 //! RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
@@ -249,8 +254,8 @@ static inline int strideF(int nx, int ny, int nf)
  */
 static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post)
 {
-   float relScale = zScaleLog2Pre - zScaleLog2Post;
-   float a = powf(2.0, relScale);
+   int relScale = zScaleLog2Pre - zScaleLog2Post;
+   float a = powf(2.0f, (float) relScale);
    return (int) (kzPre * a) + (int) (0.5f * a);
 }
 
@@ -267,19 +272,18 @@ static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Po
 static inline float deltaPosLayers(int kPre, int scale)
 {
    if (scale == 0) {
-      return 0.0;
+      return 0.0f;
    }
    else if (scale < 0) {
       // post-synaptic layer has smaller size scale
       int s = (int) powf(2.0, (float) -scale);
-      return 0.5 * (1.0 - s);
+      return 0.5f * (float) (1 - s);
    }
    else {
       // post-synaptic layer has larger size scale
       int s = (int) powf(2.0, (float) scale);
-      return 0.5 * (1.0 - (1.0 + 2.0 * (kPre%s)) / s);
+      return 0.5f * (1.0f - (1.0f + 2.0f * (kPre%s)) / s);
    }
-   return 0.0;
 }
 #endif /* DEPRECATED_FEATURES */
 
@@ -342,7 +346,7 @@ static inline float sign(float x)
 static inline float deltaWithPBC(float x1, float x2, float max)
 {
     float dx = x2 - x1;
-    float abs_dx = fabs(dx);
+    float abs_dx = fabsf(dx);
 
     // Apply periodic boundary conditions
     dx = abs_dx > max ? sign(dx) * (abs_dx - 2.0f*max) : dx;
@@ -382,7 +386,7 @@ static inline int globalIndex(int kf, float x, float y, float x0, float y0,
 static inline float gaussianWeight(float x0, float x, float sigma, float max)
 {
    float dx = deltaWithPBC(x0, x, max);
-   return expf(-0.5 * dx * dx / (sigma * sigma));
+   return expf(-0.5f * dx * dx / (sigma * sigma));
 }
 
 #ifdef __cplusplus
