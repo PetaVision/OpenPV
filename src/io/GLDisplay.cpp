@@ -43,6 +43,9 @@ PV::GLDisplay * glProbe = NULL;
 
 float g_msecs = 0.0;  /* timer interval */
 
+int g_xshift = -25;
+int g_yshift = -25;
+
 int glwWidth  = 512;   /* window width */
 int glwHeight = 512;   /* window height */
 
@@ -53,42 +56,70 @@ namespace PV {
 /**
  * This class runs an OpenGL probe.  It MUST be a singleton (only one instance).
  */
-GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, float msecs)
+GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, int numRows, int numCols)
 {
    this->parent = hc;
    hc->setDelegate(this);
+
+   this->numRows = numRows;
+   this->numCols = numCols;
+   this->numDisplays = 0;
 
    // start with time before start for initial display refresh
    lastUpdateTime = hc->simulationTime() - hc->getDeltaTime();
 
    glProbe = this;
-   g_msecs = msecs;    // glut timer delay
+   g_msecs = 0.0f;    // glut timer delay
 
    time     = 0.0;
    stopTime = 0.0;
 
    image = NULL;
 
-   layerTexId = -1;
+   const int maxDisplays = numRows * numCols;
+
+   displays = (LayerDataInterface **) calloc(maxDisplays, sizeof(LayerDataInterface *));
+   textureIds = (int *) calloc(maxDisplays, sizeof(int));
 
    glut_init(argc, argv, glwWidth, glwHeight);
 }
 
 GLDisplay::~GLDisplay()
 {
+   free(displays);
+   free(textureIds);
+}
+
+int GLDisplay::addDisplay(LayerDataInterface * l)
+{
+   numDisplays += 1;
+   assert(numDisplays < numRows * numCols);
+
+   displays[numDisplays-1] = l;
+   textureIds[numDisplays-1] = this->getTextureId(l);
+
+   return 0;
 }
 
 int GLDisplay::addLayer(HyPerLayer * l)
 {
-   layer = l;
-   l->insertProbe(this);
-   return 0;
+   int status = addDisplay(l);
+   if (status == 0) {
+      status = l->insertProbe(this);
+   }
+
+   return status;
 }
 
-
-void GLDisplay::setImage(Image * image)
+int GLDisplay::setImage(Image * image)
 {
    this->image = image;
+   return addDisplay(image);
+}
+
+void GLDisplay::setDelay(float msecs)
+{
+   g_msecs = msecs;    // glut timer delay
 }
 
 void GLDisplay::run(float time, float stopTime)
@@ -131,18 +162,17 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
    return 0;
 }
 
-void GLDisplay::drawDisplay()
+void GLDisplay::drawDisplays()
 {
    const bool exitOnFinish = true;
-   const int texId = 13;
 
    time = parent->advanceTime(time);
    if (time >= stopTime) {
       parent->exitRunLoop(exitOnFinish);
    }
 
-   if (lastUpdateTime < image->lastUpdate()) {
-      loadTexture(texId, image);
+   if (image != NULL && lastUpdateTime < image->lastUpdate()) {
+      loadTexture(getTextureId(image), image);
       lastUpdateTime = time;
    }
 
@@ -166,10 +196,12 @@ void GLDisplay::drawDisplay()
    // this frame takes up entire display
    //glTranslatef(0, 0, -11);
 
-   gl_draw_texture(texId);
-
-   glTranslatef(-25, 0, 0);
-   gl_draw_texture(texId+1);
+   for (int i = 0; i < numDisplays; i++) {
+      int dx = xTranslate(i);
+      int dy = yTranslate(i);
+      glTranslatef(dx, dy, 0);
+      gl_draw_texture(textureIds[i]);
+   }
 
    glutSwapBuffers();
 
@@ -184,20 +216,36 @@ void GLDisplay::drawDisplay()
 //
 int GLDisplay::outputState(float time, HyPerLayer * l)
 {
-   layerTexId = 14;
+   return loadTexture(getTextureId(l), l);
+}
 
-   const PVLayerLoc * loc = l->getLayerLoc();
+int GLDisplay::getTextureId(LayerDataInterface * l)
+{
+   for (int i = 0; i < this->numDisplays; i++) {
+      if (l == this->displays[i]) {
+         // not sure what texture ids are valid
+         return (10 + i);
+      }
+   }
 
-   int size = (loc->nx + 2*loc->nPad) * (loc->ny + 2*loc->nPad);
-
-//   pvdata_t * data = l->clayer->activity->data;
-//   for (int i=0; i<size; i++) {
-//      data[i] = 128;
-//   }
-
-   loadTexture(layerTexId, l);
+   fprintf(stderr, "GLDisplay::getTextureId: couldn't find layer %p\n", l);
+   exit(1);
 
    return 0;
+}
+
+int GLDisplay::xTranslate(int index)
+{
+   if (index == 0)            return 0;
+   else if (index % numCols)  return g_xshift;
+   else                       return -1 * (numCols - 1) * g_xshift;
+}
+
+int GLDisplay::yTranslate(int index)
+{
+   if (index == 0)            return 0;
+   else if (index % numCols)  return 0;
+   else                       return g_yshift;
 }
 
 } // namespace PV
@@ -237,12 +285,12 @@ void glut_keyboard(unsigned char key, int x, int y)
 
 void glut_display(void)
 {
-   glProbe->drawDisplay();
+   glProbe->drawDisplays();
 }
 
 void glut_timer_func(int value)
 {
-   glProbe->drawDisplay();
+   glProbe->drawDisplays();
    glutTimerFunc(g_msecs, glut_timer_func, value);
 }
 
