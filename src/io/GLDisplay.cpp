@@ -25,7 +25,7 @@ extern "C" {
 //
 void glut_resize(int wWidth, int wHeight);
 void glut_display(void);
-void glut_timer_func(void);
+void glut_timer_func(int);
 static int glut_init(int * argc, char * argv[], int wWidth, int wHeight);
 static void gl_init();
 static void gl_draw_texture(int id);
@@ -120,6 +120,9 @@ int GLDisplay::setImage(Image * image)
 void GLDisplay::setDelay(float msecs)
 {
    g_msecs = msecs;    // glut timer delay
+   if (g_msecs > 0.0f) {
+      glutTimerFunc(g_msecs, glut_timer_func, 3);
+   }
 }
 
 void GLDisplay::run(float time, float stopTime)
