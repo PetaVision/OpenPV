@@ -24,6 +24,10 @@ public:
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
    virtual int write(const char * filename);
 
+   inline  float getTimeWindow() {return timeWindow;};
+   inline  int   getNumLevels() {return numLevels;};
+   inline  int   getLastLevel() {return lastLevel;};
+
 protected:
 
    int initialize();
@@ -32,6 +36,11 @@ protected:
 
    PVLayerCube * avgActivity;
    HyPerConn   * delegate;
+
+   float      timeWindow;
+   int        numLevels;
+   int        lastLevel;
+
 
    float maxRate;  // maximum expected firing rate of pre-synaptic layer
 };
