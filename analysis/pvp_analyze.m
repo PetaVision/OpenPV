@@ -55,7 +55,7 @@ read_spikes = 1:num_layers;  % list of spiking layers whose spike train are to b
 plot_vmem = 1;
 plot_weights_field = 1;
 min_plot_steps = 20;  % time-dependent quantities only plotted if tot_steps exceeds this threshold
-plot_reconstruct = 0;
+plot_reconstruct = 1;
 
 spike_array = cell(num_layers,1);
 ave_rate = zeros(num_layers,1);
@@ -208,18 +208,21 @@ if plot_membrane_potential
     vmem_file_list = {'VmemAmoeba1.txt', 'VmemAmoeba2.txt', 'VmemClutter1.txt', 'VmemClutter2.txt'};
     vmem_layers = [2,2,2,2];
 
-    num_vmem_files = length(vmem_files);
+    num_vmem_files = length(vmem_file_list);
     for i_vmem = 1 : num_vmem_files
         vmem_layer = vmem_layers(i_vmem);
-        [vmem_array, vmem_row, vmem_col, vmem_feature, vmem_name] = ptprobe_readV(vmem_file_list{i_vmem});
+        [vmem_time, vmem_G_E, vmem_G_I, vmem_V, vmem_Vth, vmem_a, vmem_index, vmem_row, vmem_col, vmem_feature, vmem_name] = ...
+            ptprobe_readV(vmem_file_list{i_vmem});
         if pvp_order
             vmem_index = ( vmem_row * num_cols(vmem_layer) + vmem_col ) * num_features(vmem_layers) + vmem_feature;
         end
         plot_title = [ 'Vmem data for neuron ', vmem_name, ' in layer ', int2str(vmem_layer) ];
-        [AX,H1,H2] = plotyy( vmem_array(:,2), vmem_array(:, 5:6), vmem_array(:,2), vmem_array(:, 3:4) );
+        fh = figure('Name', plot_title);
+        [AX,H1,H2] = plotyy( vmem_time, [vmem_V, vmem_Vth], vmem_time, [vmem_G_E, vmem_G_I] );
         hold on;
 
         % append spikes if available
+        %{
         if ~isempty(spike_array{layer})
             [spike_steps, spike_id, spike_val] = ...
                 find(spike_array(:,vmem_index));
@@ -230,6 +233,7 @@ if plot_membrane_potential
             display( [ 'vmem_rate for neuron ', vmem_name, ' in layer ', int2str(vmem_layer), ': ', ...
                 num2str( rate_array{vmem_layer}(vmem_index) ) ] );
         end
+        %}
     end % i_vmem_file
 end %plot_membrane_potential
 
