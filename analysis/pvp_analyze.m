@@ -3,312 +3,240 @@ close all
 clear all
 
 % Make the following global parameters available to all functions for convenience.
-global N NX NY % for the current layer
-global NF  % for the current layer
-global n_time_steps begin_step end_step time_steps
-global stim_begin_step stim_end_step stim_steps 
+global N_image NROWS_image NCOLS_image
+global N NROWS NCOLS % for the current layer
+global NFEATURES  % for the current layer
+global NO NK dK % for the current layer
+global n_time_steps begin_step end_step time_steps tot_steps
+global stim_begin_step stim_end_step stim_steps
 global bin_size dt
-global begin_time stim_begin_time stim_end_time 
-global num_targets 
-global rate_array 
-global target_ndx 
+global begin_time end_time stim_begin_time stim_end_time
+global num_targets
+global rate_array
 global output_path input_path
 
 
 input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
 output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
 
-num_layers = 3;
+num_layers = 2;
+pvp_order = 1;
 
-dt = 1.0;
+% begin step, end_step and stim_begin_step may be adusted by
+% pvp_readSparseSpikes
 begin_time = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
-stim_begin_time = 100.0;  % times (msec) before this can be used to calculate background
+end_time = inf;
+stim_begin_time = 100.0;  % times (msec) before this and after begin_time can be used to calculate background
 stim_end_time = 900.0;
-stim_time = stim_end_time - stim_begin_time + dt;
 bin_size = 10.0;  % (msec) used for all rate calculations
 
-% initialize to size of retina (if known), these should be overwritten by each layer
-NX=128;
-NY=128;
-NF = 12;
+stim_begin_bin = fix( ( stim_begin_step - begin_step + 1 ) / bin_size );
+stim_end_bin = fix( ( stim_end_step - begin_step + 1 ) / bin_size );
+stim_bins = stim_begin_bin : stim_end_bin;
+num_stim_bins = length(stim_bins);
+
+
+% initialize to size of image (if known), these should be overwritten by each layer
+NROWS_image=128;
+NCOLS_image=128;
+NROWS = NROWS_image;
+NCOLS = NCOLS_image;
+NFEATURES = 12;
+
+NO = NFEATURES; % number of orientations
+NK = 1; % number of curvatures
+dK = 0; % spacing between curvatures (1/radius)
 
 my_gray = [.666 .666 .666];
+num_targets = 1;
 
+read_spikes = 1:num_layers;  % list of spiking layers whose spike train are to be analyzed
+
+plot_vmem = 1;
+plot_weights_field = 1;
+min_plot_steps = 20;  % time-dependent quantities only plotted if tot_steps exceeds this threshold
+plot_reconstruct = 0;
+
+spike_array = cell(num_layers,1);
+ave_rate = zeros(num_layers,1);
+
+%% read input image
+bmp_path = [input_path 'hard4.bmp'];
+[target, clutter] = pvp_parseBMP( bmp_path, 1 );
+disp('parse BMP -> done');
+
+% images may be annotated to indicate target and clutter pixels
+ave_target = cell(num_layers,num_targets);
+ave_clutter = cell(num_layers,1);
+ave_bkgrnd = cell(num_layers,1);
+psth_target = cell(num_layers,num_targets);
+psth_clutter = cell(num_layers,1);
+psth_bkgrnd = cell(num_layers,1);
 target_ndx = cell(num_layers, num_targets);
 clutter_ndx = cell(num_layers, num_targets);
 bkgrnd_ndx = cell(num_layers, num_targets);
-
-read_spikes = 1:num_layers;  % list of spiking layers
-
-plot_raster = 1; % flag for making raster plots grouped by target_index, clutter or background
-plot_spike_activity = 1;
-plot_weights_rate_evolution = 0;
-plot_membrane_potential = 1;
-plot_weights_field = 1;
-plot_weights_histogram = 0;
-plot_patch = 0;
-comp_PCA = 0;
-    
-spike_array = cell(num_layers,1);
-ave_rate = zeros(layer,1);
+num_target_neurons = zeros(num_targets, 1);
+num_rows = ones(num_layers,1);
+num_cols = ones(num_layers,1);
+num_features = ones(num_layers,1);
 
 
-bmp_path = [input_path 'hard4.bmp'];
-[targ, clutter] = pvp_parseBMP( bmp_path );
-disp('parse BMP -> done');
 
-
-for layer = 1:num_layers; 
+%% Analyze spiking activity layer by layer
+for layer = read_spikes;
     disp(['analyzing layer: ', num2str(layer)]);
 
     % Read spike events
-    if read_spikes(layer)
-        disp('reading spikes');
-        [spike_array{layer}, ave_rate(layer)] = pvp_readSparseSpikes(layer);       
-        disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
+    disp('reading spikes');
+    [spike_array{layer}, ave_rate(layer)] = pvp_readSparseSpikes(layer, pvp_order);
+    disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate(layer))]);
 
-        tot_steps = size( spike_array{layer}, 1 );
-        num_bins = fix( tot_steps / bin_size );
-        excess_steps = tot_steps - num_bins * bin_size;
-        stim_bin_length = fix( ( stim_end - stim_begin + 1 ) / bin_size );
-        stim_bin_begin = fix( ( stim_begin - begin_step + 1 ) / bin_size );
-        stim_bin_end = fix( ( stim_end - begin_step + 1 ) / bin_size );
-        stim_bins = stim_bin_begin : stim_bin_end;     
+    num_bins = fix( tot_steps / bin_size );
+    excess_steps = tot_steps - num_bins * bin_size;
+    num_rows(layer) = NROWS;
+    num_cols(layer) = NCOLS;
+    num_features(layer) = NFEATURES;
+
+    % parse object segmentation info input image
+    use_max = 1;
+    bkgrnd_ndx{layer} = find(ones(N,1));
+    clutter_ndx{layer} = ...
+        pvp_image2layer( spike_array{layer}, clutter, stim_steps, use_max, pvp_order);
+    num_clutter_neurons = length( clutter_ndx{layer} );
+    ave_clutter{layer} = ...
+        full( 1000*sum(spike_array{layer}(:,clutter_ndx{layer}),2) / ...
+        ( num_clutter_neurons + ( num_clutter_neurons==0 ) ) );
+    bkgrnd_ndx{layer}(clutter_ndx{layer}) = 0;
+    for i_target = 1:num_targets
+        target_ndx{layer, i_target} = ...
+            pvp_image2layer( spike_array{layer}, target{i_target}, stim_steps, use_max, pvp_order);
+        num_target_neurons(num_targets) = length( target_ndx{layer, i_target} );
+        ave_target{layer,i_target} = ...
+            full( 1000*sum(spike_array{layer}(:,target_ndx{layer, i_target}),2) / ...
+            ( num_target_neurons + ( num_target_neurons==0 ) ) );
+        bkgrnd_ndx{layer}(target_ndx{layer, i_target}) = 0;
     end
-    
-    
-    if simple_movie
-        disp('simple movie')
-        for t=1:n_time_steps
-            fprintf('%d\n',t);
-            A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
-            imagesc(A')
-            pause(0.1)
-        end
-        disp('pause')
-        pause
+    bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
+    num_bkgrnd_neurons = N - sum(num_target_neurons) - num_clutter_neurons;
+    ave_bkgrnd{layer} = ...
+        full( 1000*sum(spike_array{layer}(:,bkgrnd_ndx{layer}),2) / ( num_bkgrnd_neurons + (num_bkgrnd_neurons == 0) ) );
+
+    disp(['ave_target(',num2str(layer),') = ', num2str( mean( ave_target{layer,i_target}(:) ) ), 'Hz']);
+    disp(['ave_clutter(',num2str(layer),') = ', num2str( mean( ave_clutter{layer,1}(:) ) ), 'Hz']);
+    disp(['ave_bkgrnd(',num2str(layer),') = ', num2str( mean( ave_bkgrnd{layer,1}(:) ) ), 'Hz']);
+
+    plot_rates = tot_steps > min_plot_steps;
+    if ( plot_rates == 1 )
+        plot_title = ['PSTH for layer = ',int2str(layer)];
+        figure('Name',plot_title);
+        for i_target = 1 : num_targets
+            psth_target{layer,i_target} = ...
+                mean( reshape( ave_target{layer,i_target}(1:bin_size*num_bins), ...
+                bin_size, num_bins  ), 1);
+            lh = plot((1:num_bins)*bin_size, psth_target{layer,i_target}, '-r');
+            set(lh, 'LineWidth', 2);
+            hold on
+        end % i_target
+        psth_clutter{layer,1} = ...
+            mean( reshape( ave_clutter{layer,1}(1:bin_size*num_bins), ...
+            bin_size, num_bins  ), 1);
+        lh = plot((1:num_bins)*bin_size, psth_clutter{layer,1}, '-b');
+        set(lh, 'LineWidth', 2);
+        psth_bkgrnd{layer,1} = ...
+            mean( reshape( ave_bkgrnd{layer,1}(1:bin_size*num_bins), ...
+            bin_size, num_bins  ), 1);
+        lh = plot((1:num_bins)*bin_size, psth_bkgrnd{layer,1}, '-k');
+        set(lh, 'LineWidth', 2);
+        set(lh, 'Color', my_gray);
     end
-    
-    
-    
-    %parse the object identification files
-    % pv_objects
-    if parse_tiff
-        % TODO: support for multiple objects--multiple calls to parseTiff?
-        target_ndx{layer} = targ;
-        bkgrnd_ndx{layer} = find(ones(N,1));
-        bkgrnd_ndx{layer}(target_ndx{layer}) = 0;
-        bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
-    end
-    
-    
+
+
     % raster plot
-    
+    plot_raster = tot_steps > min_plot_steps;
     if plot_raster
-        disp('plot_raster')
-        N = NX*xScale * NY *yScale;
         if ~isempty(spike_array{layer})
             plot_title = ['Raster for layer = ',int2str(layer)];
             figure('Name',plot_title);
-            axis([0 tot_steps 0 N]);
+            % subplot(2,3,2);
+            if isOctave
+                axis([0 tot_steps 0 N], 'ticx');
+            else
+                axis([0 tot_steps 0 N]);
+            end
             hold on
-            box on
-            
+            if ~isOctave
+                box on
+            end
             [spike_time, spike_id] = find((spike_array{layer}));
-            lh = plot(spike_time, spike_id, '.g');
-            %set(lh,'Color',my_gray);    
+            lh = plot(spike_time, spike_id, '.k');
+            set(lh,'Color',my_gray);
+
+            for i_target=1:num_targets
+                [spike_time, spike_id] = ...
+                    find((spike_array{layer}(:,target_ndx{layer, i_target})));
+                plot(spike_time, target_ndx{layer, i_target}(spike_id), '.r');
+            end
+
+            [spike_time, spike_id] = find((spike_array{layer}(:,clutter_ndx{layer})));
+            plot(spike_time, clutter_ndx{layer}(spike_id), '.b');
 
         end
-        pause
-    end
-    
-    
-     
-    if plot_spike_activity 
-        disp('compute rate array and spike activity array')
-        rate_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),1) );
-        % this is a 1xN array where N=NX*NY
-        disp('plot_rate_reconstruction')
-        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
-            ['Rate reconstruction for layer  ', int2str(layer)]);
-        pause
-
-        spikes_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),2) );
-        % this is Tx1 array
-        plot_title = ['Spiking activity for layer  ',int2str(layer)];
-        figure('Name',plot_title);
-        plot(spikes_array{layer},'ob')
-        xlabel=('t');
-        ylabel=('num spikes');
-        pause
-        
-        % redo this computation
-        tot_steps = size( spike_array{layer}, 1 );
-        num_bins = fix( tot_steps / bin_size );
-        plot_title = ['Moving window rate average for layer  ',int2str(layer)];
-        figure('Name',plot_title);
-        bin_size = 100;
-        tot_steps = size( spike_array{layer}, 1 );
-        num_bins = fix( tot_steps / bin_size );
-        moving_rate_array{layer} = ...
-            mean(reshape(spikes_array{layer}, bin_size, num_bins), 1);
-        % reshape returns a bin_size x num_bins array: it oputs the first 
-        % bin_size values in column 1, the next bin_size values in column 2, 
-        % and so on, while mean applied to this matrix returns a
-        % 1 x num_bins array
-        plot(moving_rate_array{layer},'or')
-        pause
-        
-        % plot spikes for selected indices
-        % stdp_plotSpikes(spike_array{layer},[]);
-        
-    end
-    
-    
-    if plot_weights_rate_evolution
-        disp('plot weights rate evolution');
-        % this is a cell aray: for each neuron it returns a temporal
-        % array for the sum of its synaptic weights, i.e. sumW{n} is 
-        % a T x 1 array where T is the number of weights snapshots
-        [sumW, T] = stdp_compAverageWeightsEvol(w_file);
-        % pass T-1
-        [W,R] = stdp_analyzeWeightsRate(sumW, T-1, spike_array{layer});
-        
-        
-        
     end
 
-    
-    % plot maximum stimulated membrane potential
-    
-    %read membrane potentials
-    if plot_membrane_potential
-        disp('plot_membrane_potential')
-        vmem_array = stdp_readV(v_file, target_ndx{layer});
-        num_max = 7;
+
+    if tot_steps > min(stim_steps)
+        rate_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),1) );
+    end
+
+    % plot reconstructed image
+    plot_rate_reconstruction = plot_reconstruct && tot_steps > min_plot_steps;
+    if plot_rate_reconstruction
+        pvp_reconstruct(rate_array{layer}, ['Rate reconstruction for layer = ', int2str(layer)]);
+    end
+
+end % layer
+
+
+
+
+%%read membrane potentials from point probes
+plot_membrane_potential = 1;
+if plot_membrane_potential
+    disp('plot_membrane_potential')
+
+    % TODO: the following info should be read from a pv ouptut file
+    vmem_file_list = {'VmemAmoeba1.txt', 'VmemAmoeba2.txt', 'VmemClutter1.txt', 'VmemClutter2.txt'};
+    vmem_layers = [2,2,2,2];
+
+    num_vmem_files = length(vmem_files);
+    for i_vmem = 1 : num_vmem_files
+        vmem_layer = vmem_layers(i_vmem);
+        [vmem_array, vmem_row, vmem_col, vmem_feature, vmem_name] = ptprobe_readV(vmem_file_list{i_vmem});
+        if pvp_order
+            vmem_index = ( vmem_row * num_cols(vmem_layer) + vmem_col ) * num_features(vmem_layers) + vmem_feature;
+        end
+        plot_title = [ 'Vmem data for neuron ', vmem_name, ' in layer ', int2str(vmem_layer) ];
+        [AX,H1,H2] = plotyy( vmem_array(:,2), vmem_array(:, 5:6), vmem_array(:,2), vmem_array(:, 3:4) );
+        hold on;
+
+        % append spikes if available
         if ~isempty(spike_array{layer})
-            plot_title = ['Membrane potential for layer = ',int2str(layer)];
-            figure('Name',plot_title);
-            color_order = get(gca,'ColorOrder');
-            if ~isempty(spike_array{layer})
-                % extract the mean rate of target neurons
-                rate_array2 = rate_array{layer}( target_ndx{layer} );
-                % sort in decreasing rate order
-                [sorted_rate, sorted_ndx] = sort(rate_array2, 2, 'descend');
-                spike_array2 = spike_array{layer}( :, target_ndx{layer} );
-                vmem_rate = zeros(num_max,1);
-                for i_max = 1:num_max
-                    vmem_color = color_order(i_max,:);
-                    lh = plot(vmem_array(:,sorted_ndx(i_max)), '-k');
-                    set(lh, 'Color', vmem_color);
-                    set(lh, 'LineWidth', 2.0);
-                    hold on;
-                    [spike_times, spike_id, spike_vals] = ...
-                        find(spike_array2(:,sorted_ndx(i_max)));
-                    vmem_rate(i_max) = length(spike_times);
-                    lh = line( [max(1,spike_times-1), max(1,spike_times-1)]', ...
-                        [vmem_array(max(1,spike_times-1), sorted_ndx(i_max)), 0.5*spike_vals]' );
-                    set(lh, 'Color', vmem_color);
-                    set(lh, 'LineWidth', 2.0);
-                    display( [ 'rank:', num2str(i_max), ' vmem_rate(', num2str(layer), ') = ', ...
-                        num2str( 1000*vmem_rate(i_max) / tot_steps ) ] );
-                end
-            end
+            [spike_steps, spike_id, spike_val] = ...
+                find(spike_array(:,vmem_index));
+            lh = line( dt*[max(1,spike_steps-1), max(1,spike_steps-1)]', ...
+                [vmem_array(spike_steps, 5), 0.5*spike_vals]' );
+            set(lh, 'Color', vmem_color);
+            set(lh, 'LineWidth', 2.0);
+            display( [ 'vmem_rate for neuron ', vmem_name, ' in layer ', int2str(vmem_layer), ': ', ...
+                num2str( rate_array{vmem_layer}(vmem_index) ) ] );
         end
-        clear col_ndx row_ndx Vmem_ndx vmem_array spike_array2
-        pause
-    end %plot_membrane_potential
+    end % i_vmem_file
+end %plot_membrane_potential
 
-    % Analyze the weights field and its distribution
-    % Analyze the weights evoltion
-    % NOTE: The number of weights distribution recorded is
-    % (n_time_steps/write_step) 
-    if plot_weights_field == 1
-        disp('plot weights field')
-        if isempty(Xtarg) 
-            disp('No target image: random retina noise only');
-        end
-        stdp_plotWeightsField(w_file,xScale,yScale,Xtarg,Ytarg);
-        
-        % this is 
-        %pv_reconstruct( vmem_array(:), ['Weights for layer = ', int2str(layer)] );
-        %clear Vmem_ndx vmem_array weight3D
-        %pause
-    end
-    
-    if plot_weights_histogram == 1
-        disp('plot weights histogram')
-        TSTEP = 1;
-        W = stdp_plotWeightsHistogramOnly(w_file,xScale,yScale,TSTEP);% W is t
-        %pause
-    end
-    
-    
-    if plot_patch % define the symbols using xtarg and ytarg so that
-                  % it adapts to what a patch sees!!!
-        patch_indexes = [];
-        NXP=3;
-        NYP=3;
-        a = (NXP-1)/2;
-        b = (NYP-1)/2;
-             
-        d='y';
-        while d == 'y'
-        %for p=1:length(Xtarg)
-            I = input('input I index: ');
-            J = input('input J index: ');
-            %I=Xtarg(p);
-            %J=Ytarg(p);
-            fprintf('patch evolution for I= %d J= %d \n',I,J);
-            linear_patch_index = [];
-            k=0; % linear patch index 
-            for j=1:NYP
-                Jpatch = J-b + (j-1); % global XY image index
-                %fprintf('\t');
-                for i=1:NXP
-                    k=k+1;
-                    Ipatch = I-a + (i-1); % global XY image index
-                    linear_patch_index(k) = (Ipatch-1)*NY + Jpatch;
-                                      % global linear index
-                    %fprintf('%d ',   linear_patch_index(k));
-                    %fprintf('(%d %d) ',Jpatch,Ipatch)
-                end
-                %fprintf('\n');
-            end
-            plot_symbol = ismember(linear_patch_index, targ)
-            %pause
-            sym={'o-g','o-r'};
-            plot_title = ['Weights evolution for neuron (' num2str(I) ',' num2str(J) ')'];
-            PATCH = stdp_plotPatch(w_file, I,J, plot_title );
-            figure('Name', plot_title);
-            for k=1:9,
-                %plot(PATCH(:,k),sym{k}),hold on,
-                plot(PATCH(:,k),sym{plot_symbol(k)+1}),hold on,
-            end
-            AVERAGE_PATCH = reshape(mean(PATCH,1),[NXP NYP]);
-            figure('Name', ['Average weights for neuron (' num2str(I) ',' num2str(J) ')']);
-            imagesc(AVERAGE_PATCH', 'CDataMapping','direct');
-            % NOTE: It seems that I need to transpose PATCH_RATE
-            colorbar
-        
-            d = input('more patches? (y/n): ','s');
-            if isempty(d)
-                d='y';
-            end
-            
-        end
-    end
-    
-    if comp_PCA == 1
-        disp('compute PCA of the  weight fields: ')
-        
-        stdp_compPCA(w_last,xScale,yScale);
-        
-    end
-    
-end % loop over all layers
 
-plot_rates = tot_steps > 9 ;
+
+%% plot psth's of all layers together
+plot_rates = tot_steps > min_plot_steps ;
 if plot_rates
     plot_title = ['PSTH target pixels'];
     figure('Name',plot_title);
@@ -328,10 +256,10 @@ if plot_rates
         ]);
 end
 
-%%
+%% plot spike movie
 plot_movie = 0; %tot_steps > 9;
 if plot_movie
-    for layer = [1 3 5 6]
+    for layer = read_spikes
         spike_movie = pv_reconstruct_movie( spike_array, layer);
         movie2avi(spike_movie,['layer',num2str(layer),'.avi'], ...
             'compression', 'None');
@@ -353,14 +281,14 @@ end % plot_movie
 
 
 
-%%
+%% xcorr and eigen vectors
 
-plot_xcorr = 0 && tot_steps > 9;
+plot_xcorr = 0 && tot_steps > min_plot_steps;
 if plot_xcorr
     xcorr_eigenvector = cell( num_layers, 2);
     for layer = 1:num_layers
         pv_globals(layer);
-%         pack;
+        %         pack;
 
         % autocorrelation of psth
         plot_title = ['Auto Correlations for layer = ',int2str(layer)];
@@ -398,7 +326,7 @@ if plot_xcorr
         lh_target2clutter = plot((-maxlag:maxlag), target2clutter_xcorr, '-g');
         set(lh_target2clutter, 'LineWidth', 2);
         axis tight
-        
+
         %plot power spectrum
         plot_title = ['Power for layer = ',int2str(layer)];
         figure('Name',plot_title);
@@ -441,9 +369,9 @@ if plot_xcorr
             disp( ['num_rate_mask(', num2str(layer), ') = ', num2str(num_rate_mask), ' > ', ...
                 num2str( mean_rate + num_rate_sig * std_rate ) ] );
         end
-%         if num_rate_mask < 64
-%             break;
-%         end
+        %         if num_rate_mask < 64
+        %             break;
+        %         end
         spike_full = full( spike_array{layer}(:, rate_mask) );
         freq_vals = 1000*(0:tot_steps-1)/tot_steps;
         min_ndx = find(freq_vals >= 40, 1,'first');
@@ -507,9 +435,9 @@ if plot_xcorr
                     disp( ['num_power_mask(', num2str(layer), ') = ', num2str(num_power_mask), ' > ', ...
                         num2str( mean_power + num_power_sig * std_power ) ] );
                 end
-%                 if num_power_mask < 64
-%                     break;
-%                 end
+                %                 if num_power_mask < 64
+                %                     break;
+                %                 end
             else
                 power_mask = sort( [target_ndx{layer, 1}, clutter_ndx{layer,1}] );
                 num_power_mask = numel(power_mask);
@@ -520,7 +448,7 @@ if plot_xcorr
             freq_vals = 1000*(0:2*maxlag)/(2*maxlag + 1);
             min_ndx = find(freq_vals >= 20, 1,'first');
             max_ndx = max(find(freq_vals <= 60, 1,'last'), min_ndx);
-            sparse_corr = ....
+            sparse_corr = ...
                 pv_xcorr( spike_array{layer}(stim_steps, power_mask), ...
                 spike_array{layer}(stim_steps, power_mask), ...
                 maxlag, min_ndx,  max_ndx);
