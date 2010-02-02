@@ -40,7 +40,8 @@ extern "C"
  *
  * Notation:
  *
- *   scaleLog2 - absolute scale of a layer relative to retina
+ *   scaleLog2 - absolute distance scale (between neurons) of a layer relative to retina
+ *     - e.g. if xScaleLog2 == 1 then dx == 2, if xScaleLog2 == -1 then dx == 1/2
  *
  */
 
@@ -244,12 +245,17 @@ static inline int strideF(int nx, int ny, int nf)
 }
 
 /**
- * Returns the k direction index of the nearest neighbor in post-synaptic layer
+ * Returns the k direction index of the nearest neighbor in the post-synaptic layer
  *
  * @kzPre the presynaptic index (can be either local or global)
  * @zScaleLog2Pre the log2 scale factor for the presynaptic layer
  * @zScaleLog2Post the log2 scale factor for the postsynaptic layer
  *    - e.g. if zScaleLog2 == 1 then dz == 2, if zScaleLog2 == -1 then dz == 1/2
+ *
+ *  If the density of the post-synaptic layer increases, the nearby neighbor is
+ *  ambiguous and the neuron to the right is chosen.  If the density of the
+ *  post-synaptic layer decreases, there is no ambiguity and the nearby
+ *  neighbor is just (a * kzPre) where 0 < a < 1.
  *
  */
 static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post)
