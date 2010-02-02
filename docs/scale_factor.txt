@@ -1,0 +1,12 @@
+This file contains a description of the usage of the scale factor
+between layers.
+
+The scale factor is a measure of the difference in distance scales between
+layers.  The distance scale, dx, is the distance between neurons in
+retinatopic units so dx in the retina is 1.
+
+In the PV code, the scale factor is usually stored as log base 2 of the
+relative scale factor.  Thus if xScaleLog2 == 1 for a layer, then dx == 2
+(the linear density of neurons is 1/2 that of the retina).  Likewise if
+xScaleLog2 == -1, then dx == 1/2 (the linear density of the neurons is 2 times
+that of the retina).
