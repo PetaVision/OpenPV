@@ -92,8 +92,9 @@ GLDisplay::~GLDisplay()
 
 int GLDisplay::addDisplay(LayerDataInterface * l)
 {
-   numDisplays += 1;
    assert(numDisplays < numRows * numCols);
+
+   numDisplays += 1;
 
    displays[numDisplays-1] = l;
    textureIds[numDisplays-1] = this->getTextureId(l);
@@ -146,7 +147,29 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
 
    status = l->copyToInteriorBuffer(buf);
 
-   const int width  = loc->nx * loc->nBands;  // increase width to overlay features
+   // GTK: chaged so that features sum at each pixel
+   const int npixel = loc->nx * loc->ny;
+   unsigned char * bufpixel = new unsigned char[npixel];
+   for (int kpixel = 0; kpixel < npixel; kpixel++){
+      bufpixel[kpixel] = 0;
+   }
+   int kbuf = 0;
+   int kpixel = 0;
+   for (int ky = 0; ky < loc->ny; ky++) {
+      for (int kx = 0; kx < loc->nx; kx++) {
+         kpixel = ky * loc->nx + kx;
+         for (int kf = 0; kf < loc->nBands; kf++) {
+            kbuf = (kpixel) * loc->nBands + kf;
+            bufpixel[kpixel] += buf[kbuf];
+         }
+      }
+   }
+   for (int kpixel = 0; kpixel < npixel; kpixel++){
+      bufpixel[kpixel] /= loc->nBands;
+   }
+
+//   const int width  = loc->nx * loc->nBands;  // increase width to overlay features
+   const int width  = loc->nx;  // increase width to overlay features
    const int height = loc->ny;
 
    glBindTexture(GL_TEXTURE_2D, id);
@@ -161,6 +184,7 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
                 width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
 
    delete buf;
+   delete bufpixel;
 
    return 0;
 }
