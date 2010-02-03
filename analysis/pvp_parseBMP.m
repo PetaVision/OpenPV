@@ -29,7 +29,7 @@ target = cell(num_targets,1);
 if num_colors == 3
    clutter = find( ( pixels(:,:,3) > 0 ) .* ( pixels(:,:,1) == 0 ) );
    for i_target = 1:num_targets
-       target{i_target} = find( ( pixels(:,:,1) > 0 ) & ( floor( pixels(:,:,3) * num_targets / 255 ) == ( i_target - 1 ) ) );
+       target{i_target} = find( ( pixels(:,:,1) > 0 ) & ( pixels(:,:,3) == 0 ) & ( floor( pixels(:,:,3) * num_targets / 255 ) == ( i_target - 1 ) ) );
    end
 else
     clutter = [];

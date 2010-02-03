@@ -2,6 +2,20 @@
 close all
 clear all
 
+% set paths, may not be applicable to all octave installations
+local_pwd = pwd;
+user_index1 = findstr(local_pwd, 'Users')'
+if ~isempty(user_index1)
+  user_name = local_pwd(user_index1+6:length(local_pwd));
+  user_index2 = findstr(user_name, '/')+user_index1+6;
+  if isempty(user_index2)
+    user_index2 = length(local_pwd);
+  end
+  user_name = local_pwd(user_index1:user_index2);
+  matlab_dir = [local_pwd(1:user_index1-1), user_name, '/', 'Matlab'];
+  addpath(matlab_dir);
+end
+	
 % Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
 global N NROWS NCOLS % for the current layer
@@ -19,7 +33,7 @@ global output_path input_path
 input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
 output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
 
-num_layers = 2;
+num_layers = 3;
 pvp_order = 1;
 
 % begin step, end_step and stim_begin_step may be adusted by
@@ -75,7 +89,9 @@ psth_bkgrnd = cell(num_layers,1);
 target_ndx = cell(num_layers, num_targets);
 clutter_ndx = cell(num_layers, num_targets);
 bkgrnd_ndx = cell(num_layers, num_targets);
-num_target_neurons = zeros(num_targets, 1);
+num_target_neurons = zeros(num_layers, num_targets);
+num_clutter_neurons = zeros(num_layers, 1);
+num_background_neurons = zeros(num_layers, 1);
 num_rows = ones(num_layers,1);
 num_cols = ones(num_layers,1);
 num_features = ones(num_layers,1);
@@ -102,24 +118,25 @@ for layer = read_spikes;
     bkgrnd_ndx{layer} = find(ones(N,1));
     clutter_ndx{layer} = ...
         pvp_image2layer( spike_array{layer}, clutter, stim_steps, use_max, pvp_order);
-    num_clutter_neurons = length( clutter_ndx{layer} );
+    num_clutter_neurons(layer) = length( clutter_ndx{layer} );
     ave_clutter{layer} = ...
         full( 1000*sum(spike_array{layer}(:,clutter_ndx{layer}),2) / ...
-        ( num_clutter_neurons + ( num_clutter_neurons==0 ) ) );
+        ( num_clutter_neurons(layer) + ( num_clutter_neurons(layer)==0 ) ) );
     bkgrnd_ndx{layer}(clutter_ndx{layer}) = 0;
     for i_target = 1:num_targets
         target_ndx{layer, i_target} = ...
             pvp_image2layer( spike_array{layer}, target{i_target}, stim_steps, use_max, pvp_order);
-        num_target_neurons(num_targets) = length( target_ndx{layer, i_target} );
+        num_target_neurons(layer, i_target) = length( target_ndx{layer, i_target} );
         ave_target{layer,i_target} = ...
             full( 1000*sum(spike_array{layer}(:,target_ndx{layer, i_target}),2) / ...
-            ( num_target_neurons + ( num_target_neurons==0 ) ) );
+            ( num_target_neurons(layer, i_target) + ( num_target_neurons(layer, i_target)==0 ) ) );
         bkgrnd_ndx{layer}(target_ndx{layer, i_target}) = 0;
     end
     bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
-    num_bkgrnd_neurons = N - sum(num_target_neurons) - num_clutter_neurons;
+    num_bkgrnd_neurons(layer) = N - sum(num_target_neurons(layer,:)) - num_clutter_neurons(layer);
     ave_bkgrnd{layer} = ...
-        full( 1000*sum(spike_array{layer}(:,bkgrnd_ndx{layer}),2) / ( num_bkgrnd_neurons + (num_bkgrnd_neurons == 0) ) );
+        full( 1000*sum(spike_array{layer}(:,bkgrnd_ndx{layer}),2) / ...
+           ( num_bkgrnd_neurons(layer) + (num_bkgrnd_neurons(layer) == 0) ) );
 
     disp(['ave_target(',num2str(layer),') = ', num2str( mean( ave_target{layer,i_target}(:) ) ), 'Hz']);
     disp(['ave_clutter(',num2str(layer),') = ', num2str( mean( ave_clutter{layer,1}(:) ) ), 'Hz']);
@@ -218,7 +235,7 @@ if plot_membrane_potential
         end
         plot_title = [ 'Vmem data for neuron ', vmem_name, ' in layer ', int2str(vmem_layer) ];
         fh = figure('Name', plot_title);
-        [AX,H1,H2] = plotyy( vmem_time, [vmem_V, vmem_Vth], vmem_time, [vmem_G_E, vmem_G_I] );
+        [AX,H1,H2] = plotyy( vmem_time, [vmem_V, vmem_Vth, vmem_a], vmem_time, [vmem_G_E, vmem_G_I] );
         hold on;
 
         % append spikes if available

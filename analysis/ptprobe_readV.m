@@ -36,6 +36,10 @@ for i_step = 1:n_time_steps
     vmem_a(i_step) = fscanf(fid, ' a=%f\n', 1);
 end
 fclose(fid);
+
+max_V = max(vmem_V);
+min_V = min(vmem_V);
+vmem_a = max_V * ( vmem_a > 0 ) + min_V * ( vmem_a == 0 );
    
 
 vmem_row_loc = findstr( vmem_name, '(' ) + 1;
