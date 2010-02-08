@@ -1,693 +1,277 @@
-#include "../src/layers/PVLayer.h"
+#include "../src/utils/conversions.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-float pvlayer_patchHead(float kxPre, float kxPost0Left, int xScale, float nxPatch);
+/*
+ * The preferred patch size is even for a != 1 and odd for a == 1
+ */
+
+int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
+{
+   int shift;
+
+   float a = powf(2.0f, (float) (zScaleLog2Pre - zScaleLog2Post));
+
+   if ((int) a == 1) {
+      shift = - (int) (0.5f * (float) nzPatch);
+      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   }
+
+   shift = 1 - (int) (0.5f * (float) nzPatch);
+
+   if (nzPatch % 2 == 0 && a < 1) {
+      // density increases in post-synaptic layer
+
+      // extra shift subtracted if kzPre is in right half of the
+      // set of presynaptic indices that are between postsynaptic
+      //
+
+      int kpos = (kzPre < 0) ? -(1+kzPre) : kzPre;
+      int l = (int) (2*a*kpos) % 2;
+      shift -= (kzPre < 0) ? l == 1 : l == 0;
+   }
+
+   int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   return shift + neighbor;
+}
 
 /*
- * Only tests even X even patches (odd numbers may not be valid for the algorithm)
- * Not true anymore, odd patches work better (at least for scale >= 0)
+ * 
+ * 
  */
 
 int main(int argc, char* argv[])
 {
-   int kh, scale;
-   float kpre, k0l, nPatch;
+   float a;
+   int scaleLog2Pre, scaleLog2Post, ans;
+   int kpre, kh, kBack, nPatch, test;
 
-   // common usage tests for nPatch odd, scale >=0 (feed-forward)
+   // keep pre-synaptic scale fixed
+   //
 
-   scale = 0;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   scaleLog2Pre = 0;
+
+   // common usage tests, nPatch odd, relative scale==0
+   //
+
+   scaleLog2Post = 0;
+
+   nPatch = 1;
+   test = 1;
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
+      if (kh != kpre-nPatch/2  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
    }
 
-   scale = 0;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 1;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   nPatch = 7;
+   test = 2;
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
+      if (kh != kpre-nPatch/2  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
    }
 
-   scale = 0;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   nPatch = 27;
+   test = 3;
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
+      if (kh != kpre-nPatch/2  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
    }
 
-   scale = 0;
-   nPatch = 3;
-   k0l = 1;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   // common usage tests, nPatch even, relative scale==1 (less dense)
+   //
 
-   scale = 1;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 0.5;
+   scaleLog2Post = 1;
 
-   scale = 1;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 1;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 4;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 3;
-   k0l = -5;
-   kpre = 7;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -3) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 1;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 3;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 3;
-   k0l = 0;
-   kpre = 4;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // common usage tests for scale <= 0 feedback
-
-   scale = 0;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -3) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 0;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 1;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 0;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 0;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 3;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 1) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = -1;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = -1;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 1;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = -1;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 2;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = -1;
-   nPatch = 6;
-   k0l = 0;
-   kpre = 3;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 4) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 0;
-   nPatch = 4;
-   k0l = 0;
-   kpre = 7;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 6) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = -1;
-   nPatch = 8;
-   k0l = -1;
-   kpre = 6;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 8) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 8;
-   k0l = -1;
-   kpre = 5;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -2) {  // was -1
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 8;
-   k0l = -1;
-   kpre = 6;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != -2) {  // was -1
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 4;
-   k0l = -1;
-   kpre = 5;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 1;
-   nPatch = 4;
-   k0l = -1;
-   kpre = 6;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 0) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   printf("Finshed with known results\n");
-
-   scale = 2;
    nPatch = 2;
-   k0l = -1;
-   kpre = 10;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 4;
+   ans = -5;   // head starts at -5, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += (kpre + 9) % 2;
    }
 
-   scale = 2;
-   nPatch = 2;
-   k0l = -1;
-   kpre = 11;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 0.5;
+   scaleLog2Post = 1;
 
-   scale = 2;
-   nPatch = 2;
-   k0l = -1;
-   kpre = 12;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   scale = 2;
-   nPatch = 2;
-   k0l = -1;
-   kpre = 13;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != 2) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // scale = 0, layers have equal number of neurons
-   scale = 0;
-
-   // one direction of 2x2 patch
-   nPatch = 2;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 2;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 4x4 patch
-   nPatch = 4;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 3;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = -2;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 8x8 patch
    nPatch = 8;
-
-   k0l = 4;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 5;
+   ans = -5 - 3;   // head starts at -8, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += (kpre + 9) % 2;
    }
 
-   k0l = -3;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != (kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   // common usage tests, nPatch even, relative scale==2 (less dense)
+   //
 
-   k0l = 0;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != (kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 0.25;
+   scaleLog2Post = 2;
 
-   // scale = -1, post layer has 2 times the number of neurons of the pre layer
-   scale = -1;
-
-   // one direction of 4x4 patch (minimum #)
-   nPatch = 4;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 1;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-1)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 8x8 patch
-   nPatch = 8;
-
-   k0l = 1;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 0;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = -5;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 7;
-   kpre = 3.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(2*kpre+k0l-3)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // scale = 1, post layer has 1/2 the number of neurons of the pre layer
-   scale = 1;
-
-   // one direction of 2x2 patch
    nPatch = 2;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != (int)k0l) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 6;
+   ans = -3;   // head starts at -3, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch/a + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += ((kpre + 9) % 4) == 2;
    }
 
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre+1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 0.25;
+   scaleLog2Post = 2;
 
-   k0l = 1;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre+1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 4x4 patch
-   nPatch = 4;
-
-   k0l = 1;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 0;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = -5;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 7;
-   kpre = 3.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-1)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 8x8 patch
    nPatch = 8;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-5)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 7;
+   ans = -3 - 3;   // head starts at -6, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += ((kpre + 9) % 4) == 2;
    }
 
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-5)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   // common usage tests, nPatch even, relative scale==-1 (more dense)
+   //
 
-   k0l = 70;
-   kpre = 3.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-5)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 2;
+   scaleLog2Post = -1;
 
-   k0l = -20;
-   kpre = 5000;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-5)/2)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // scale = 2, post layer has 1/4 the number of neurons of the pre layer
-   scale = 2;
-
-   // one direction of 2x2 patch
    nPatch = 2;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre+2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 7;
+   ans = -18;   // head starts at -18, increases by 2
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 2;
    }
 
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre+2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 2;
+   scaleLog2Post = -1;
 
-   k0l = 1;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre+2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 4x4 patch
    nPatch = 4;
-
-   k0l = 1;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 8;
+   ans = -18 - 1;   // head starts at -19, increases by 2
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 2;
    }
 
-   k0l = 0;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
+   a = 2;
+   scaleLog2Post = -1;
 
-   k0l = -5;
-   kpre = 2.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   k0l = 7;
-   kpre = 3.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-2)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
-   }
-
-   // one direction of 8x8 patch
    nPatch = 8;
-
-   k0l = 0;
-   kpre = 0.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-10)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   test = 9;
+   ans = -18 - 3;   // head starts at -21, increases by 2
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 2;
    }
 
-   k0l = -1;
-   kpre = 1.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-10)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   // common usage tests, nPatch even, relative scale==-2 (more dense)
+   //
+
+   a = 4;
+   scaleLog2Post = -2;
+
+   nPatch = 2;
+   test = 10;
+   ans = -35;   // head starts at -35, increases by 4
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 4;
    }
 
-   k0l = 70;
-   kpre = 3.0;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-10)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   nPatch = 4;
+   test = 10;
+   ans = -35 - 1;   // head starts at -36, increases by 4
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 4;
    }
 
-   k0l = -20;
-   kpre = 5000;
-   kh = pvlayer_patchHead(kpre, k0l, scale, nPatch);
-   if (kh != floor(k0l+(kpre-10)/4)) {
-      printf("FAILED:TEST_PATCH_HEAD: kh = %d\n", kh);
-      exit(1);
+   nPatch = 8;
+   test = 10;
+   ans = -35 - 3;   // head starts at -38, increases by 4
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += 4;
    }
 
    return 0;
