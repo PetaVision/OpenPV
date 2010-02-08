@@ -253,16 +253,21 @@ static inline int strideF(int nx, int ny, int nf)
  *    - e.g. if zScaleLog2 == 1 then dz == 2, if zScaleLog2 == -1 then dz == 1/2
  *
  *  If the density of the post-synaptic layer increases, the nearby neighbor is
- *  ambiguous and the neuron to the right is chosen.  If the density of the
- *  post-synaptic layer decreases, there is no ambiguity and the nearby
- *  neighbor is just (a * kzPre) where 0 < a < 1.
+ *  ambiguous and the neuron to the left is chosen.  If the density of the
+ *  post-synaptic layer decreases, there is no ambiguity.
  *
  */
 static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post)
 {
-   int relScale = zScaleLog2Pre - zScaleLog2Post;
-   float a = powf(2.0f, (float) relScale);
-   return (int) (kzPre * a) + (int) (0.5f * a);
+   float a = powf(2.0f, (float) (zScaleLog2Pre - zScaleLog2Post));
+   int ia = (int) a;
+
+   int k0 = (ia < 2) ? 0 : ia/2 - 1;
+
+   // negative kzPre is different if density of post-synaptic layer decreases
+   int k  = (a < 1.0f && kzPre < 0) ? kzPre - (int) (1.0f/a) + 1 : kzPre;
+
+   return k0 + (int) (a * k);
 }
 
 #define DEPRECATED_FEATURES
@@ -295,12 +300,12 @@ static inline float deltaPosLayers(int kPre, int scale)
 
 //! RETURNS LINEAR INDEX IN THE EXTENDED SPACE FROM INDICES IN RESTRICTED SPACE
 /*!
- * @k
- * @nx
- * @ny
- * @nf
- * @nb
- * k is the index in the restricted space
+ * @k the k index in restricted space
+ * @nx the size in x of restricted space
+ * @ny the size in y of restricted space
+ * @nf the size in f of restricted space
+ * @nb the width of the margin
+ *
  * REMARKS:
  *   - the linear indexing of neurons is done by varying first along these directions:
  *   feature direction, X direction, Y direction.
@@ -308,7 +313,6 @@ static inline float deltaPosLayers(int kPre, int scale)
  *     k = (ky-1)*(nf*nx)+(kx-1)*nf+kf
  *   - kx is the X direction index in extended space
  *   - ky is the Y direction index in extended space
- *   - kx is the X direction index in extended space
  *   .
  */
 static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)

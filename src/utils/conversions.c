@@ -16,15 +16,31 @@
  */
 int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
 {
-   int shift = 0;
+   int shift;
 
-   if (nzPatch % 2 == 0 && (zScaleLog2Post < zScaleLog2Pre)) {
-      // if even, can't shift evenly (at least for scale < 0)
-      // the later choice alternates direction so not always to left
-      shift = kzPre % 2;
+   float a = powf(2.0f, (float) (zScaleLog2Pre - zScaleLog2Post));
+
+   if ((int) a == 1) {
+      shift = - (int) (0.5f * (float) nzPatch);
+      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
    }
-   shift -= (int) (0.5 * (float) nzPatch);
-   return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+
+   shift = 1 - (int) (0.5f * (float) nzPatch);
+
+   if (nzPatch % 2 == 0 && a < 1) {
+      // density increases in post-synaptic layer
+
+      // extra shift subtracted if kzPre is in right half of the
+      // set of presynaptic indices that are between postsynaptic
+      //
+
+      int kpos = (kzPre < 0) ? -(1+kzPre) : kzPre;
+      int l = (int) (2*a*kpos) % 2;
+      shift -= (kzPre < 0) ? l == 1 : l == 0;
+   }
+
+   int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   return shift + neighbor;
 }
 
 /**
