@@ -14,5 +14,5 @@ Buffers in extended (restricted + borders) space:
    activity - activity buffer live in extended space because a layers receptive
               field extends beyond it borders
               
-   - some STDP parameters are extended
+   - STDP M variable is extended
 
