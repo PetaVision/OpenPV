@@ -46,18 +46,19 @@ int main(int argc, char * argv[])
    if (status) return status;
 
    postWeights = c2->convertPreSynapticWeights(0.0f);
+   status = check_weights(c2, postWeights);
+   if (status) return status;
 
+#ifdef DEBUG_PRING
    ConnectionProbe * cp = new ConnectionProbe(-1, -2, 0);
    c2->insertProbe(cp);
 
-   PostConnProbe * pcp = new PostConnProbe(125);
+   PostConnProbe * pcp = new PostConnProbe(0);
    pcp->setOutputIndices(true);
    c2->insertProbe(pcp);
 
    c2->outputState(0);
-
-   status = check_weights(c2, postWeights);
-   if (status) return status;
+#endif
 
    return status;
 }
@@ -120,9 +121,12 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights)
       for (int f = 0; f < nfp; f++) {
          for (int j = 0; j < nyp; j++) {
             for (int i = 0; i < nxp; i++) {
+               short * ws;
                int kPre = kPreHead + i*sx + j*sy + f*sf;
 
-               if (kPre != (int) w[kp++]) {
+               ws = (short *) &w[kp++];
+
+               if (kPre != (int) ws[0] || kPost != (int) ws[1]) {
                   status = -1;
                   fprintf(stderr, "ERROR: check_weights: kPost==%d kPre==%d kp==%d != w==%d\n",
                           kPost, kPre, kp, (int) w[kp-1]);
@@ -145,29 +149,29 @@ static int set_weights_to_source_index(HyPerConn * c)
 
    assert(sizeof(short) == 2);
 
-   const PVLayer * lPre  = c->preSynapticLayer()->clayer;
    const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
-   const int nxPre = c->preSynapticLayer()->clayer->loc.nx;
-   const int nyPre = c->preSynapticLayer()->clayer->loc.ny;
-   const int nfPre = c->preSynapticLayer()->clayer->loc.nBands;
-
-   const int nPadPre = c->preSynapticLayer()->clayer->loc.nPad;
-
-   const int nxPost = c->postSynapticLayer()->clayer->loc.nx;
-   const int nyPost = c->postSynapticLayer()->clayer->loc.ny;
-   const int nfPost = c->postSynapticLayer()->clayer->loc.nBands;
+   const int nxPost = lPost->loc.nx;
+   const int nyPost = lPost->loc.ny;
+   const int nfPost = lPost->loc.nBands;
 
    int numPatches = c->numWeightPatches(arbor);
 
    // assume (or at least use) only one arbor (set of weight patches)
    // k index is in extended space
    for (int kPre = 0; kPre < numPatches; kPre++) {
+      int kxPostHead, kyPostHead, kfPostHead;
+      int nxp, nyp;
+      int dx, dy;
       PVPatch * p = c->getWeights(kPre, arbor);
 
-      const int nxp = p->nx;
-      const int nyp = p->ny;
+      c->postSynapticPatchHead(kPre, &kxPostHead, &kyPostHead, &kfPostHead, &dx, &dy, &nxp, &nyp);
+
       const int nfp = p->nf;
+
+      assert(nxp == p->nx);
+      assert(nyp == p->ny);
+      assert(nfp == lPost->numFeatures);
 
       const int sxp = p->sx;
       const int syp = p->sy;
@@ -175,23 +179,18 @@ static int set_weights_to_source_index(HyPerConn * c)
 
       pvdata_t * w = p->data;
 
-      int kxPre = kxPos(kPre, nxPre+2*nPadPre, nyPre+2*nPadPre, nfPre);
-      int kyPre = kxPos(kPre, nxPre+2*nPadPre, nyPre+2*nPadPre, nfPre);
-
-      int kxPatchHead = zPatchHead(kxPre-nPadPre, nxp, lPre->xScale, lPost->xScale);
-      int kyPatchHead = zPatchHead(kyPre-nPadPre, nyp, lPre->xScale, lPost->xScale);
-
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
             for (int f = 0; f < nfp; f++) {
-               int kxPost = kxPatchHead + x;
-               int kyPost = kyPatchHead + y;
-               int kPost = kIndex(kxPost, kyPost, f, nxPost, nyPost, nfPost);
+               int kxPost = kxPostHead + x;
+               int kyPost = kyPostHead + y;
+               int kfPost = kfPostHead + f;
+               int kPost = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
 
                wPacked[0] = kPre;
                wPacked[1] = kPost;
-               //w[x*sxp + y*syp + f*sfp] = * ((float *) wPacked);
-               w[x*sxp + y*syp + f*sfp] = kPre;
+               w[x*sxp + y*syp + f*sfp] = * ((float *) wPacked);
+               //w[x*sxp + y*syp + f*sfp] = kPre;
             }
          }
       }
