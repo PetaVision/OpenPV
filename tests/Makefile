@@ -18,11 +18,12 @@ LIBS = $(LIBPV) -L$(GDALDIR)/lib -lgdal
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
-        test_datatypes test_layer_direct
+        test_datatypes test_post_weights
 
 MPI_TESTS = test_read_header test_image_io test_weights_io
 
-DEPRECATED_TESTS = test_decode_msg 
+DEPRECATED_TESTS = test_decode_msg \
+                   test_layer_direct     # fixme
 
 .SUFFIXES: .cpp .c .o
 
@@ -75,6 +76,9 @@ test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(PVLIB)
 
 test_pos: $(BUILDDIR)/test_pos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
+
+test_post_weights: $(BUILDDIR)/test_post_weights.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
 
 test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
@@ -132,8 +136,8 @@ runtests: make-in-subdirs $(TESTS)
 	@test_kxpos
 	@echo "Running test_kypos ..."
 	@test_kypos
-	@echo "Running test_pos ..."
-	@test_pos
+#	@echo "Running test_pos ..."
+#	@test_pos
 	@echo "Running test_delta_pos ..."
 	@test_delta_pos
 	@echo "Running test_extend_border ..."
