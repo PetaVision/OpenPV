@@ -96,7 +96,10 @@ public:
 
    PVPatch ** convertPreSynapticWeights(float time);
 
-   void preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre);
+   int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre);
+   int postSynapticPatchHead(int kPre,
+                             int * kxPostOut, int * kyPostOut, int * kfPostOut,
+                             int * dxOut, int * dyOut, int * nxpOut, int * nypOut);
 
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 

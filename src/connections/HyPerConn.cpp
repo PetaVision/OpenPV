@@ -761,8 +761,8 @@ int HyPerConn::createAxonalArbors()
    const int ky0Pre = lPre->loc.ky0;
    const int nfPre  = lPre->numFeatures;
 
-   const int nxexPre = nxPre + 2.0f * prePad;
-   const int nyexPre = nyPre + 2.0f * prePad;
+   const int nxexPre = nxPre + 2 * prePad;
+   const int nyexPre = nyPre + 2 * prePad;
 
    const int nxPost  = lPost->loc.nx;
    const int nyPost  = lPost->loc.ny;
@@ -770,8 +770,8 @@ int HyPerConn::createAxonalArbors()
    const int ky0Post = lPost->loc.ky0;
    const int nfPost  = lPost->numFeatures;
 
-   const int nxexPost = nxPost + 2.0f * postPad;
-   const int nyexPost = nyPost + 2.0f * postPad;
+   const int nxexPost = nxPost + 2 * postPad;
+   const int nyexPost = nyPost + 2 * postPad;
 
    const int numAxons = numAxonalArborLists;
 
@@ -780,11 +780,11 @@ int HyPerConn::createAxonalArbors()
 #ifndef FEATURES_LAST
    const int psf = 1;
    const int psx = nfp;
-   const int psy = psx * nxPost; // (nxPost + 2.0f*postPad); // TODO- check me///////////
+   const int psy = psx * nxPost; // (nxPost + 2*postPad); // TODO- check me///////////
 #else
    const int psx = 1;
-   const int psy = nxPost; // + 2.0f*postPad;
-   const int psf = psy * nyPost; // (nyPost + 2.0f*postPad);
+   const int psy = nxPost; // + 2*postPad;
+   const int psf = psy * nyPost; // (nyPost + 2*postPad);
 #endif
 
    // activity and STDP M variable are extended into margins
@@ -908,7 +908,7 @@ int HyPerConn::createAxonalArbors()
 }
 
 //////////////
-// This code should no longer be needed as the shrinking of weight patches is no
+// This code should no longer be needed as the shrinking of weight patches is now
 // done in createAxonalArbors
 int HyPerConn::adjustAxonalArborWeights()
 {
@@ -1153,12 +1153,12 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 
    const int xScale = lPost->xScale - lPre->xScale;
    const int yScale = lPost->yScale - lPre->yScale;
-   const float powXScale = powf(2.0, (float) xScale);
-   const float powYScale = powf(2.0, (float) yScale);
+   const float powXScale = powf(2.0f, (float) xScale);
+   const float powYScale = powf(2.0f, (float) yScale);
 
    // TODO - fix this
-   assert(xScale < 0);
-   assert(yScale < 0);
+   assert(xScale <= 0);
+   assert(yScale <= 0);
 
    const int prePad = lPre->loc.nPad;
 
@@ -1186,14 +1186,13 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       wPostPatches = createWeights(NULL, numPost, nxPostPatch, nyPostPatch, nfPostPatch);
    }
 
-   // loop through post-synaptic neurons
+   // loop through post-synaptic neurons (non-extended indices)
 
    for (int kPost = 0; kPost < numPost; kPost++) {
-      int kxPost = (int) kxPos(kPost, nxPost, nyPost, nfPost);
-      int kyPost = (int) kyPos(kPost, nxPost, nyPost, nfPost);
-      int kfPost = (int) featureIndex(kPost, nxPost, nyPost, nfPost);
+      int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
+      int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+      int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
 
-      // TODO - does patchHead work in general for post to pre mapping and -scale?
       int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
       int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
 
@@ -1204,8 +1203,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       // TODO - FIXME for powXScale > 1
       int ax = 1.0f / powXScale;
       int ay = 1.0f / powYScale;
-      int xShift = ax - (kxPost + (int) (0.5f * ax)) % ax;
-      int yShift = ay - (kyPost + (int) (0.5f * ay)) % ay;
+      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
+      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
       for (int kp = 0; kp < numPostPatch; kp++) {
          int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
@@ -1225,14 +1224,38 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
          else {
             int arbor = 0;
             PVPatch * p = wPatches[arbor][kPre];
-            int nxp = (kxPre < nxPrePatch / 2) ? p->nx : nxPrePatch;
-            int nyp = (kyPre < nyPrePatch / 2) ? p->ny : nyPrePatch;
-            int kxPrePatch = nxp - (1 + kxPostPatch / powXScale);
-            int kyPrePatch = nyp - (1 + kyPostPatch / powYScale);
-            kxPrePatch = nxp - ax * kxPostPatch - xShift;
-            kyPrePatch = nyp - ay * kyPostPatch - yShift;
-            int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
-            wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
+
+            // NEW
+            // The patch from the pre-synaptic layer could be smaller at borders.
+            // At top and left borders, calculate the offset back to the original
+            // data pointer for the patch.  This make indexing uniform.
+            //            
+            int dx = (kxPre < nxPre / 2) ? nxPrePatch - p->nx : 0;
+            int dy = (kyPre < nyPre / 2) ? nyPrePatch - p->ny : 0;
+            int prePatchOffset = - p->sx * dx - p->sy * dy;
+
+            // NEW
+            // Indexing scheme is shifted at right and bottom borders
+            // to account for reduced size of patches at these borders.
+            //
+            //int xShift = (kxPre < nxPre / 2 || p->nx == nxPrePatch) ? 0 : 1;
+            //int yShift = (kyPre < nyPre / 2 || p->ny == nyPrePatch) ? 0 : 1;
+
+            // what is this for
+            //int nxp = (kxPre < nxPrePatch / 2) ? p->nx : nxPrePatch;
+            //int nyp = (kyPre < nyPrePatch / 2) ? p->ny : nyPrePatch;
+
+            // NEW
+            // (I think prePatchOffset takes care of this)?
+            //nxp = nxPrePatch;
+            //nyp = nyPrePatch;
+
+            int kxPrePatch = (nxPrePatch - 1) - ax * kxPostPatch - xShift;
+            int kyPrePatch = (nyPrePatch - 1) - ay * kyPostPatch - yShift;
+            // NEW
+            //int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
+            int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, nxPrePatch, nyPrePatch, p->nf);
+            wPostPatches[kPost]->data[kp] = p->data[kPrePatch + prePatchOffset];
          }
       }
    }
@@ -1240,8 +1263,10 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
-void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
+int HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
 {
+   int status = 0;
+
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
@@ -1253,13 +1278,130 @@ void HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * k
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
 
-   // TODO - does patchHead work in general for post to pre mapping and -scale?
-   //      - it seems to work
    int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
    int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
 
    *kxPre = kxPreHead;
    *kyPre = kyPreHead;
+
+   return status;
+}
+
+/**
+ * Returns the head (kxPost, kyPost) of the patch head.
+ * @kPre the pre-synaptic k index (extended units)
+ * @kxPost address of the kx index in post layer (non-extended units)
+ * @kyPost address of the ky index in post layer (non-extended units)
+ * @kfPost address of the kf index in post layer (non-extended units)
+ *
+ * NOTE: kxPost and kyPost are always within the post-synaptic
+ * non-extended layer because the patch size is reduced at borders
+ */
+int HyPerConn::postSynapticPatchHead(int kPreEx,
+                                     int * kxPostOut, int * kyPostOut, int * kfPostOut,
+                                     int * dxOut, int * dyOut, int * nxpOut, int * nypOut)
+{
+   int status = 0;
+
+   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   const int prePad  = lPre->loc.nPad;
+
+   const int nxPre  = lPre->loc.nx;
+   const int nyPre  = lPre->loc.ny;
+   const int kx0Pre = lPre->loc.kx0;
+   const int ky0Pre = lPre->loc.ky0;
+   const int nfPre  = lPre->numFeatures;
+
+   const int nxexPre = nxPre + 2 * prePad;
+   const int nyexPre = nyPre + 2 * prePad;
+
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int kx0Post = lPost->loc.kx0;
+   const int ky0Post = lPost->loc.ky0;
+
+   // kPreEx is in extended frame, this makes transformations more difficult
+   //
+
+   // local indices in extended frame
+   //
+   int kxPre = kxPos(kPreEx, nxexPre, nyexPre, nfPre);
+   int kyPre = kyPos(kPreEx, nxexPre, nyexPre, nfPre);
+
+   // convert to global non-extended frame
+   //
+   kxPre += kx0Pre - prePad;
+   kyPre += ky0Pre - prePad;
+
+   // global non-extended post-synaptic frame
+   //
+   int kxPost = zPatchHead(kxPre, nxp, lPre->xScale, lPost->xScale);
+   int kyPost = zPatchHead(kyPre, nyp, lPre->yScale, lPost->yScale);
+
+   // TODO - can get nf from weight patch but what about kf0?
+   // weight patch is actually a pencil and so kfPost is always 0?
+   int kfPost = 0;
+
+   // convert to local non-extended post-synaptic frame
+   kxPost = kxPost - kx0Post;
+   kyPost = kyPost - ky0Post;
+
+   // adjust location so patch is in bounds
+   int dx = 0;
+   int dy = 0;
+   int nxPatch = nxp;
+   int nyPatch = nyp;
+
+   if (kxPost < 0) {
+      nxPatch -= -kxPost;
+      kxPost = 0;
+      if (nxPatch < 0) nxPatch = 0;
+      dx = nxp - nxPatch;
+   }
+   else if (kxPost + nxp > nxPost) {
+      nxPatch -= kxPost + nxp - nxPost;
+      if (nxPatch <= 0) {
+         nxPatch = 0;
+         kxPost  = nxPost - 1;
+      }
+   }
+
+   if (kyPost < 0) {
+      nyPatch -= -kyPost;
+      kyPost = 0;
+      if (nyPatch < 0) nyPatch = 0;
+      dy = nyp - nyPatch;
+   }
+   else if (kyPost + nyp > nyPost) {
+      nyPatch -= kyPost + nyp - nyPost;
+      if (nyPatch <= 0) {
+         nyPatch = 0;
+         kyPost  = nyPost - 1;
+      }
+   }
+
+   // if out of bounds in x (y), also out in y (x)
+   //
+   if (nxPatch == 0 || nyPatch == 0) {
+      dx = 0;
+      dy = 0;
+      nxPatch = 0;
+      nyPatch = 0;
+      fprintf(stderr, "HyPerConn::postSynapticPatchHead: WARNING patch size is zero\n");
+   }
+
+   *kxPostOut = kxPost;
+   *kyPostOut = kyPost;
+   *kfPostOut = kfPost;
+
+   *dxOut = dx;
+   *dyOut = dy;
+   *nxpOut = nxPatch;
+   *nypOut = nyPatch;
+
+   return status;
 }
 
 int HyPerConn::writePostSynapticWeights(float time, bool last)
@@ -1367,7 +1509,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const float dxPost = powf(2, (float) lPost->xScale);
    const float dyPost = powf(2, (float) lPost->yScale);
 
-   const float dth = (float) PI / nfPatch;
+   const float dth = PI / (float) nfPatch;
    const float th0 = rotate * dth / 2.0f;
 
    // loop over all post-synaptic cells in patch
@@ -1564,6 +1706,10 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch
 {
    for (int k = 0; k < nPatches; k++) {
       patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      // TEMPORARY ONLY, PLEASE DELETE
+      for (int kp = 0; kp < nxPatch*nyPatch*nfPatch; kp++) {
+         patches[k]->data[kp] = -33;
+      }
    }
    return patches;
 }
