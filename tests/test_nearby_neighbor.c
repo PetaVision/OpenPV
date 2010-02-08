@@ -14,78 +14,152 @@
  * that of the retina).
  *
  *  If the density of the post-synaptic layer increases, the nearby neighbor is
- *  ambiguous and the neuron to the right is chosen.  If the density of the
- *  post-synaptic layer decreases, there is no ambiguity and the nearby
- *  neighbor is just (a * kzPre) where 0 < a < 1.
+ *  ambiguous and the neuron to the left is chosen.  If the density of the
+ *  post-synaptic layer decreases, there is no ambiguity.
  *
  */
 
 int main(int argc, char* argv[])
 {
-   int kPre, kPost;
-   int min = -100000;   
-   int max =  100000;   
+   int kPre, kPost, kBack, a, ans, test;
+
+   // must start at a negative odd number
+   //
+   int min = -100000;
+   int max =  100000;
+
+   // a < 0 tests assum start is some factor of 8 (minus 1)
+   min = -1 - 8*10000;
+   max =      8*10000;
 
    int scaleLog2Pre  = 0;
    int scaleLog2Post = 0;
 
    // post-synaptic layer has same size
    //
+
+   a = 1;
+   scaleLog2Post = 0;
+   ans = a*min + 0;
+   test = 1;
    for (kPre = min; kPre < max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, kPre, ans);
       if (kPost != kPre) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d\n",
-                scaleLog2Pre, scaleLog2Post, kPre, kPost);
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
       }
+      ans += 1;
    }
 
    // post-synaptic layer density decreases by 2 (dx increases by 2)
    //
    scaleLog2Post = 1;
-   for (kPre = min; kPre < max; kPre++) {
+   ans = (min - 1)/2;
+   test = 2;
+   for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      if (kPost != kPre/2) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d\n",
-                scaleLog2Pre, scaleLog2Post, kPre, kPost);
+      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      if (kPost != ans) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
       }
+      if ( (kPre - min + 1) % 2 == 1) ans += 1;
    }
 
    // post-synaptic layer density decreases by 4 (dx increases by 4)
    //
    scaleLog2Post = 2;
-   for (kPre = min; kPre < max; kPre++) {
+   ans = (min - 3)/4;
+   test = 3;
+   for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      if (kPost != kPre/4) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d\n",
-                scaleLog2Pre, scaleLog2Post, kPre, kPost);
+      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      if (kPost != ans) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
       }
+      if ( (kPre - min + 1) % 4 == 1) ans += 1;
+   }
+
+   // post-synaptic layer density decreases by 8 (dx increases by 8)
+   //
+   scaleLog2Post = 3;
+   ans = (min - 7)/8;
+   test = 4;
+   for (kPre = min; kPre <= max; kPre++) {
+      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      if (kPost != ans) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
+         exit(1);
+      }
+      if ( (kPre - min + 1) % 8 == 1) ans += 1;
    }
 
    // post-synaptic layer density increases by 2 (dx decreases by 2)
    //
+   a = 2;
    scaleLog2Post = -1;
-   for (kPre = min; kPre < max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      if (kPost != (2*kPre+1)) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d\n",
-                scaleLog2Pre, scaleLog2Post, kPre, kPost);
+   ans = a*min + 0;
+   test = 5;
+   for (kPre = min; kPre <= max; kPre++) {
+      kPost = nearby_neighbor(kPre,  scaleLog2Pre,  scaleLog2Post);
+      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      if (kPost != ans && kBack != kPre) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
          exit(1);
       }
+      ans += a;
    }
 
    // post-synaptic layer density increases by 4 (dx decreases by 4)
    //
+   a = 4;
    scaleLog2Post = -2;
+   ans = a*min + 1;
+   test = 6;
    for (kPre = min; kPre < max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      if (kPost != (4*kPre+2)) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d\n",
-                scaleLog2Pre, scaleLog2Post, kPre, kPost);
+      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      if (kPost != ans && kBack != kPre) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
          exit(1);
       }
+      ans += a;
+   }
+
+   // post-synaptic layer density increases by 8 (dx decreases by 8)
+   //
+   a = 8;
+   scaleLog2Post = -3;
+   ans = a*min + 3;
+   test = 7;
+   for (kPre = min; kPre < max; kPre++) {
+      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      if (kPost != ans && kBack != kPre) {
+         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+                "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+                test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
+         exit(1);
+      }
+      ans += a;
    }
 
    return 0;
