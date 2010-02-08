@@ -12,28 +12,28 @@ HyPerLayer "Test Retina" = {
    nx = 64;
    ny = 64;
    nf = 1;
-   nBorder = 4;
+   marginWidth = 4;
 };
 
 HyPerLayer "Test Example" = {
    nx = 64;
    ny = 64;
    nf = 1;
-   nBorder = 4;
+   marginWidth = 4;
 };
 
 HyPerLayer "Test Layer" = {
    nx = 64;
    ny = 64;
    nf = 1;
-   nBorder = 4;
+   marginWidth = 4;
 };
 
 HyPerLayer "Test Borders" = {
    nx = 64;
    ny = 64;
    nf = 1;
-   nBorder = 4;
+   marginWidth = 4;
 };
 
 HyPerConn "Test Connection" = {
@@ -45,4 +45,36 @@ HyPerConn "Test Connection" = {
    sigma = 2;
    aspect = 4;
    gaussWeightScale = 1.0;
+};
+
+//
+// This section for test_post_weights
+//
+
+HyPerLayer "test_post_weights L1" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 1;
+};
+
+HyPerLayer "test_post_weights L2" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2;  // works for scale of 2 and npatch of 8
+};
+
+HyPerLayer "test_post_weights L3" = {
+   nxScale = 2;
+   nyScale = 2;
+   marginWidth = 0;
+};
+
+HyPerConn "test_post_weights L1 to L1" = {
+   nxp = 3;
+   nyp = 3;
+};
+
+HyPerConn "test_post_weights L2 to L3" = {
+   nxp = 8;
+   nyp = 8;
 };
