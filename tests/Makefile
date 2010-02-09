@@ -133,29 +133,29 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_kg ..."
-	@test_kg
+	@./test_kg
 	@echo "Running test_kxpos ..."
-	@test_kxpos
+	@./test_kxpos
 	@echo "Running test_kypos ..."
-	@test_kypos
+	@./test_kypos
 	@echo "Running test_nearby_neighbor ..."
-	@test_nearby_neighbor
+	@./test_nearby_neighbor
 	@echo "Running test_patch_head ..."
-	@test_patch_head
+	@./test_patch_head
 	@echo "Running test_post_weights ..."
-	@test_post_weights -p input/params.test
+	@./test_post_weights -p input/params.test
 #	@echo "Running test_pos ..."
 #	@test_pos
 	@echo "Running test_delta_pos ..."
-	@test_delta_pos
+	@./test_delta_pos
 	@echo "Running test_extend_border ..."
-	@test_extend_border
+	@./test_extend_border
 	@echo "Running test_patch_head ..."
-	@test_patch_head
+	@./test_patch_head
 	@echo "Running test_delta ..."
-	@test_delta
+	@./test_delta
 	@echo "Running test_sign ..."
-	@test_sign
+	@./test_sign
 #	@echo "Running test_borders ..."
 #	@test_borders -i 1 -p $(INPARAMS)
 #	@echo "Running test_layer_direct with 1 node ..."
