@@ -21,13 +21,12 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal);
 void usage()
 {
    printf("\nUsage:\n");
-   printf(" -n <number of timesteps>\n");
-   printf(" -i <input filename>\n");
    printf(" -p <parameters filename>\n");
-   printf(" -t <number of threads for shared memory parallelism>\n");
-   printf("\nA good test is:\n");
-   printf(" ./Debug/pv -n 100 -p input/params.pv -i input/horizontal-lines.tif\n");
-   printf("\nThen check results in Octave/MATLAB using analysis/pv_analyze.m\n\n");
+   printf(" [-n <number of timesteps>]\n");
+   printf(" [-i <input filename>]\n");
+//   printf("\nA good test is:\n");
+//   printf(" ./Debug/pv -n 100 -p input/params.pv -i input/horizontal-lines.tif\n");
+//   printf("\nThen check results in Octave/MATLAB using analysis/pv_analyze.m\n\n");
 }
 
 /**
@@ -41,10 +40,12 @@ void usage()
 int parse_options(int argc, char * argv[], char ** input_file,
                   char ** param_file, int * n_time_steps, int * threads)
 {
-   if (argc < 3) {
+   if (argc < 2) {
       usage();
       return -1;
    }
+
+   *n_time_steps = 1;
 
    pv_getopt_int(argc, argv, "-n", n_time_steps);
    pv_getopt_int(argc, argv, "-t", threads);
