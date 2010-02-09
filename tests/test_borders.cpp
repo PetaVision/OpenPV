@@ -16,7 +16,7 @@ static int check_north_south(PVLayerCube* c, int nf, float start[]);
 int main(int argc, char * argv[])
 {
    float start[8];
-   LayerLoc sLoc, bLoc;
+   PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
