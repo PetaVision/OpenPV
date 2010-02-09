@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
     params.endStim = 0.0;
     params.filename = filename;
 
+#ifdef FIXME
+
     PV::HyPerCol* hc = new PV::HyPerCol("column", argc, argv);
 
     if (hc->columnId() == 0) {
@@ -82,6 +84,9 @@ int main(int argc, char* argv[])
     free(outBuf);
 
     delete hc;
+
+#endif
+    err = 1;
 
     return err;
 }
