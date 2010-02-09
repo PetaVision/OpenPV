@@ -9,12 +9,12 @@
 
 #include "../src/columns/Communicator.hpp"
 
-static int check_borders(pvdata_t * buf, PV::Communicator * comm, LayerLoc loc);
+static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc);
 
 int main(int argc, char * argv[])
 {
    int err = 0;
-   LayerLoc loc;
+   PVLayerLoc loc;
 
    PV::Communicator * comm = new PV::Communicator(&argc, &argv);
 
@@ -85,7 +85,7 @@ int main(int argc, char * argv[])
    return 0;
 }
 
-static int check_borders(pvdata_t * image, PV::Communicator * comm, LayerLoc loc)
+static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc loc)
 {
    int err = 0;
 
