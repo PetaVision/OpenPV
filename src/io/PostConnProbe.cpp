@@ -51,7 +51,7 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
    int kxPre, kyPre;
-   PVPatch * w;
+   PVPatch  * w;
    PVPatch ** wPost = c->convertPreSynapticWeights(time);
 
    const PVLayer * l = c->postSynapticLayer()->clayer;
@@ -62,7 +62,12 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    // calc kPost if needed
    if (kPost < 0) {
-      kPost = kIndex((float) kxPost, (float) kyPost, (float) kfPost, nx, ny, nf);
+      kPost = kIndex(kxPost, kyPost, kfPost, nx, ny, nf);
+   }
+   else {
+      kxPost = kxPos(kPost, nx, ny, nf);
+      kyPost = kyPos(kPost, nx, ny, nf);
+      kfPost = featureIndex(kPost, nx, ny, nf);
    }
 
    c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
