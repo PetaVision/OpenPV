@@ -9,6 +9,10 @@ int main(int argc, char* argv[])
    float x, y;
    int k, kg, kf;
 
+   /*
+    * k, nx, ny are in global coordinate system
+    */
+
    int nf = 3;
    float nx = 64;
    float ny = 128;
@@ -21,9 +25,12 @@ int main(int argc, char* argv[])
    int inx = (int) nx;
    int iny = (int) ny;
 
+   int xScaleLog2 = 1;
+   int yScaleLog2 = 2;
+
    for (k = 0; k < inx*iny*nf; k++) {
-      x  = xPos(k, x0, dx, nx, ny, nf);
-      y  = yPos(k, y0, dy, nx, ny, nf);
+      x  = xPosGlobal(k, xScaleLog2, nx, ny, nf);
+      y  = yPosGlobal(k, yScaleLog2, nx, ny, nf);
       kf = featureIndex(k, nx, ny, nf);
 
       kg = globalIndex(kf, x, y, x0, y0, dx, dy, nx, ny, nf);
@@ -38,8 +45,8 @@ int main(int argc, char* argv[])
     * calculation of index should be stable to small errors in position
     */
    for (k = 0; k < inx*iny*nf; k++) {
-      x  = xPos(k, x0, dx, nx, ny, nf);
-      y  = yPos(k, y0, dy, nx, ny, nf);
+      x  = xPosGlobal(k, xScaleLog2, nx, ny, nf);
+      y  = yPosGlobal(k, yScaleLog2, nx, ny, nf);
       kf = featureIndex(k, nx, ny, nf);
 
       x += POS_ERROR;
