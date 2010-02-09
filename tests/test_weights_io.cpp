@@ -21,9 +21,9 @@
 
 using namespace PV;
 
-PVPatch ** init_weight_patches(Communicator * comm, const LayerLoc * loc, int nf,
+PVPatch ** init_weight_patches(Communicator * comm, const PVLayerLoc * loc, int nf,
                                int nxp, int nyp, int nfp, bool zero_flag);
-int test_output(Communicator * comm, const LayerLoc * loc, int nf,
+int test_output(Communicator * comm, const PVLayerLoc * loc, int nf,
                 PVPatch ** inPatches, PVPatch ** outPatches);
 
 const char filename[] = "output/test_weights_io.pvp";
@@ -31,7 +31,7 @@ const char filename[] = "output/test_weights_io.pvp";
 int main(int argc, char* argv[])
 {
    int status = 0;
-   LayerLoc loc;
+   PVLayerLoc loc;
    PVPatch ** inPatches, ** outPatches;
 
    double time = 0.0;
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
    return status;
 }
 
-int test_output(Communicator * comm, const LayerLoc * loc, int nf,
+int test_output(Communicator * comm, const PVLayerLoc * loc, int nf,
                 PVPatch ** inPatches, PVPatch ** outPatches)
 {
    int status = 0;
@@ -146,7 +146,7 @@ int test_output(Communicator * comm, const LayerLoc * loc, int nf,
 /**
  * Initialize weights with global k+kp indices (mod 256)
  */
-PVPatch ** init_weight_patches(Communicator * comm, const LayerLoc * loc, int nf,
+PVPatch ** init_weight_patches(Communicator * comm, const PVLayerLoc * loc, int nf,
                                int nxp, int nyp, int nfp, bool zero_flag)
 {
    PVPatch ** patches = NULL;
