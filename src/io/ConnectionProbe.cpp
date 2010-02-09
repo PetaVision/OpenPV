@@ -60,6 +60,10 @@ ConnectionProbe::~ConnectionProbe()
    }
 }
 
+/**
+ * kPre lives in the extended space
+ *
+ */
 int ConnectionProbe::outputState(float time, HyPerConn * c)
 {
    float * M = NULL;
