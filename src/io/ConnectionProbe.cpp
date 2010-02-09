@@ -2,7 +2,7 @@
  * ConnectionProbe.cpp
  *
  *  Created on: Apr 25, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "ConnectionProbe.hpp"
