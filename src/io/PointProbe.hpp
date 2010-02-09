@@ -20,11 +20,15 @@ public:
 
    virtual int outputState(float time, HyPerLayer * l);
 
+   void setSparseOutput(bool flag) {sparseOutput = flag;}
+
 protected:
    int xLoc;
    int yLoc;
    int fLoc;
    char * msg;
+
+   bool sparseOutput;
 };
 
 }
