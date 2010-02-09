@@ -19,8 +19,8 @@
 
 using namespace PV;
 
-int init_test_buf(Communicator * comm, const LayerLoc * loc, unsigned char * buf);
-int test_output(Communicator * comm, const LayerLoc * loc,
+int init_test_buf(Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
+int test_output(Communicator * comm, const PVLayerLoc * loc,
                 unsigned char * inBuf, unsigned char * outBuf);
 
 const char file_pvp[] = "output/test_image_io.pvp";
@@ -29,7 +29,7 @@ const char file_tif[] = "output/test_image_io.tif";
 int main(int argc, char* argv[])
 {
    int status = 0;
-   LayerLoc loc;
+   PVLayerLoc loc;
 
    unsigned char * inBuf, * outBuf;
 
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
    return status;
 }
 
-int test_output(Communicator * comm, const LayerLoc * loc,
+int test_output(Communicator * comm, const PVLayerLoc * loc,
                 unsigned char * inBuf, unsigned char * outBuf)
 {
    int status = 0;
@@ -132,7 +132,7 @@ int test_output(Communicator * comm, const LayerLoc * loc,
 /**
  * Initialize buffer with global k indices (mod 256)
  */
-int init_test_buf(Communicator * comm, const LayerLoc * loc, unsigned char * buf)
+int init_test_buf(Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
 
