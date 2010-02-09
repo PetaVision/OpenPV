@@ -1,4 +1,4 @@
-#include "../src/layers/elementals.h"
+#include "../src/utils/conversions.h"
 #include "../src/layers/PVLayer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
    int kg, kl, kb;
 
-   LayerLoc loc;
+   PVLayerLoc loc;
 
    float nf = 3;
 
