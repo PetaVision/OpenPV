@@ -1425,22 +1425,42 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 
 /**
  * calculate random weights for a patch given a range between wMin and wMax
+ * NOTES:
+ *    - the pointer w already points to the patch head in the data structure
+ *    - it only sets the weights to "real" neurons, not to neurons in the boundary
+ *    layer. For example, if x are boundary neurons and o are real neurons,
+ *    x x x x
+ *    x o o o
+ *    x o o o
+ *    x o o o
+ *
+ *    for a 4x4 connection it sets the weights to the o neurons only.
+ *    .
  */
 int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
 {
    pvdata_t * w = wp->data;
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
-   const int nf = (int) wp->nf;
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
    const int nk = nx * ny * nf;
+
+   const int sxp = wp->sx;
+   const int syp = wp->sy;
+   const int sfp = wp->sf;
 
    double p = (wMax - wMin) / RAND_MAX;
 
    // loop over all post-synaptic cells in patch
-   for (int k = 0; k < nk; k++) {
-      w[k] = wMin + p * rand();
-   }
+   for (int y = 0; y < nyp; y++) {
+       for (int x = 0; x < nxp; x++) {
+          for (int f = 0; f < nfp; f++) {
+             w[x*sxp + y*syp + f*sfp] = wMin + p * rand();
+          }
+       }
+    }
+
 
    return 0;
 }
