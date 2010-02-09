@@ -1,11 +1,11 @@
-#include "../src/layers/elementals.h"
+#include "../src/utils/conversions.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char* argv[])
 {
-   LayerLoc loc;
+   PVLayerLoc loc;
    int kl, kg;
    int kx, ky, kf, kxg, kyg, kfg;
 #ifdef FEATURES_LAST
