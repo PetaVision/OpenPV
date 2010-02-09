@@ -18,6 +18,8 @@
 #include "../src/io/ConnectionProbe.hpp"
 #include "../src/io/PostConnProbe.hpp"
 
+#include <assert.h>
+
 using namespace PV;
 
 static int set_weights_to_source_index(HyPerConn * c);
