@@ -1225,7 +1225,6 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             int arbor = 0;
             PVPatch * p = wPatches[arbor][kPre];
 
-            // NEW
             // The patch from the pre-synaptic layer could be smaller at borders.
             // At top and left borders, calculate the offset back to the original
             // data pointer for the patch.  This make indexing uniform.
@@ -1234,26 +1233,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             int dy = (kyPre < nyPre / 2) ? nyPrePatch - p->ny : 0;
             int prePatchOffset = - p->sx * dx - p->sy * dy;
 
-            // NEW
-            // Indexing scheme is shifted at right and bottom borders
-            // to account for reduced size of patches at these borders.
-            //
-            //int xShift = (kxPre < nxPre / 2 || p->nx == nxPrePatch) ? 0 : 1;
-            //int yShift = (kyPre < nyPre / 2 || p->ny == nyPrePatch) ? 0 : 1;
-
-            // what is this for
-            //int nxp = (kxPre < nxPrePatch / 2) ? p->nx : nxPrePatch;
-            //int nyp = (kyPre < nyPrePatch / 2) ? p->ny : nyPrePatch;
-
-            // NEW
-            // (I think prePatchOffset takes care of this)?
-            //nxp = nxPrePatch;
-            //nyp = nyPrePatch;
-
             int kxPrePatch = (nxPrePatch - 1) - ax * kxPostPatch - xShift;
             int kyPrePatch = (nyPrePatch - 1) - ay * kyPostPatch - yShift;
-            // NEW
-            //int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, p->nx, p->ny, p->nf);
             int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, nxPrePatch, nyPrePatch, p->nf);
             wPostPatches[kPost]->data[kp] = p->data[kPrePatch + prePatchOffset];
          }
@@ -1706,10 +1687,6 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch
 {
    for (int k = 0; k < nPatches; k++) {
       patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      // TEMPORARY ONLY, PLEASE DELETE
-      for (int kp = 0; kp < nxPatch*nyPatch*nfPatch; kp++) {
-         patches[k]->data[kp] = -33;
-      }
    }
    return patches;
 }
