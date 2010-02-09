@@ -80,7 +80,8 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    fflush(fp);
 
    if (outputIndices) {
-      write_patch_indices(fp, w, &l->loc, kxPre, kyPre, 0);
+      const PVLayer * lPre = c->preSynapticLayer()->clayer;
+      write_patch_indices(fp, w, &lPre->loc, kxPre, kyPre, 0);
       fflush(fp);
    }
 
