@@ -47,6 +47,8 @@ $(BUILDDIR)/%.o: %.c
 
 all: make-in-subdirs $(TESTS) $(MPI_TESTS)
 
+check: runtests
+
 test_read_header: $(BUILDDIR)/test_read_header.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
@@ -136,6 +138,12 @@ runtests: make-in-subdirs $(TESTS)
 	@test_kxpos
 	@echo "Running test_kypos ..."
 	@test_kypos
+	@echo "Running test_nearby_neighbor ..."
+	@test_nearby_neighbor
+	@echo "Running test_patch_head ..."
+	@test_patch_head
+	@echo "Running test_post_weights ..."
+	@test_post_weights -p input/params.test
 #	@echo "Running test_pos ..."
 #	@test_pos
 	@echo "Running test_delta_pos ..."
@@ -148,12 +156,10 @@ runtests: make-in-subdirs $(TESTS)
 	@test_delta
 	@echo "Running test_sign ..."
 	@test_sign
-	@echo "Running test_decode_msg ..."
-	@test_decode_msg
-	@echo "Running test_borders ..."
-	@test_borders -i 1 -p $(INPARAMS)
-	@echo "Running test_layer_direct with 1 node ..."
-	@test_layer_direct -i 1 -p $(INPARAMS)
+#	@echo "Running test_borders ..."
+#	@test_borders -i 1 -p $(INPARAMS)
+#	@echo "Running test_layer_direct with 1 node ..."
+#	@test_layer_direct -i 1 -p $(INPARAMS)
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
