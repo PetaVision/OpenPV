@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
    //
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
-   LayerLoc loc = hc->getImageLoc();
+   PVLayerLoc loc = hc->getImageLoc();
 
    Communicator * comm = hc->icCommunicator();
    const int nxProcs = comm->numCommColumns();
