@@ -17,7 +17,7 @@
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "../include/mpi_stubs.h"
+#  include "../src/include/mpi_stubs.h"
 #endif
 
 // function declarations that are not public in fileio.hpp
