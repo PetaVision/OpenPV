@@ -13,7 +13,6 @@ namespace PV {
 
 KernelConn::KernelConn()
 {
-   printf("KernelConn::KernelConn: running default constructor\n");
    initialize_base();
 }
 
