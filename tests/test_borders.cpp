@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
    start[0] = 27; start[1] = 19; start[2] = 11; start[3] = 3;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxB;
-   l->copyToNorthWest(bCube, sCube);
+   l->mirrorToNorthWest(bCube, sCube);
    check_corner(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -57,7 +57,7 @@ int main(int argc, char * argv[])
    start[0] = 31; start[1] = 23; start[2] = 15; start[3] = 7;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxB;
-   l->copyToNorthEast(bCube, sCube);
+   l->mirrorToNorthEast(bCube, sCube);
    check_corner(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -66,7 +66,7 @@ int main(int argc, char * argv[])
    start[0] = 59; start[1] = 51; start[2] = 43; start[3] = 35;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxB;
-   l->copyToSouthWest(bCube, sCube);
+   l->mirrorToSouthWest(bCube, sCube);
    check_corner(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
    start[0] = 63; start[1] = 55; start[2] = 47; start[3] = 39;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxB;
-   l->copyToSouthEast(bCube, sCube);
+   l->mirrorToSouthEast(bCube, sCube);
    check_corner(bCube, nf, start);
 
    pvcube_delete(bCube);
@@ -91,7 +91,7 @@ int main(int argc, char * argv[])
    start[4] = 35; start[5] = 43; start[6] = 51; start[7] = 59;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxS;
-   l->copyToWest(bCube, sCube);
+   l->mirrorToWest(bCube, sCube);
    check_corner(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
    start[4] = 39; start[5] = 47; start[6] = 55; start[7] = 63;
 #endif
    bCube->loc.nx = nxB; bCube->loc.ny = nxS;
-   l->copyToEast(bCube, sCube);
+   l->mirrorToEast(bCube, sCube);
    check_corner(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -111,7 +111,7 @@ int main(int argc, char * argv[])
    start[0] = 24; start[1] = 16; start[2] = 8; start[3] = 0;
 #endif
    bCube->loc.nx = nxS; bCube->loc.ny = nxB;
-   l->copyToNorth(bCube, sCube);
+   l->mirrorToNorth(bCube, sCube);
    check_north_south(bCube, nf, start);
 
 #ifndef FEATURES_LAST
@@ -120,7 +120,7 @@ int main(int argc, char * argv[])
    start[0] = 56; start[1] = 48; start[2] = 40; start[3] = 32;
 #endif
    bCube->loc.nx = nxS; bCube->loc.ny = nxB;
-   l->copyToSouth(bCube, sCube);
+   l->mirrorToSouth(bCube, sCube);
    check_north_south(bCube, nf, start);
 
 #ifdef DEBUG_PRINT
