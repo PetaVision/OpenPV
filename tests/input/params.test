@@ -30,9 +30,9 @@ HyPerLayer "Test Layer" = {
 };
 
 HyPerLayer "Test Borders" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
+   nx = 8;
+   ny = 8;
+   nf = 2;
    marginWidth = 4;
 };
 
