@@ -61,6 +61,8 @@ GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, int numRows, int 
    this->parent = hc;
    hc->setDelegate(this);
 
+   rank = hc->icCommunicator()->commRank();
+
    this->numRows = numRows;
    this->numCols = numCols;
    this->numDisplays = 0;
@@ -81,13 +83,18 @@ GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, int numRows, int 
    displays = (LayerDataInterface **) calloc(maxDisplays, sizeof(LayerDataInterface *));
    textureIds = (int *) calloc(maxDisplays, sizeof(int));
 
-   glut_init(argc, argv, glwWidth, glwHeight);
+   assert(displays != NULL);
+   assert(textureIds != NULL);
+
+   if (rank == 0) {
+      glut_init(argc, argv, glwWidth, glwHeight);
+   }
 }
 
 GLDisplay::~GLDisplay()
 {
-   free(displays);
-   free(textureIds);
+   if (displays   != NULL) free(displays);
+   if (textureIds != NULL) free(textureIds);
 }
 
 int GLDisplay::addDisplay(LayerDataInterface * l)
@@ -121,32 +128,87 @@ int GLDisplay::setImage(Image * image)
 void GLDisplay::setDelay(float msecs)
 {
    g_msecs = msecs;    // glut timer delay
-   if (g_msecs > 0.0f) {
+   if (rank == 0  &&  g_msecs > 0.0f) {
       glutTimerFunc(g_msecs, glut_timer_func, 3);
    }
+}
+
+bool GLDisplay::haveFinished()
+{
+   if (time >= stopTime) {
+      const bool exitOnFinish = true;
+      parent->exitRunLoop(exitOnFinish);
+      return true;
+   }
+   return false;
+}
+
+void GLDisplay::advanceTime(void)
+{
+   static int holdon = 1;
+
+   printf("[%2d]: GLDisplay::willAdvanceTime time==%f image=%p\n", parent->columnId(), time, image);
+   fflush(stdout);
+
+   // this is a collective, everyone should rendezvous here
+   //
+   MPI_Barrier(parent->icCommunicator()->communicator());
+
+   printf("[%2d]: GLDisplay::after barrier time==%f image=%p\n", parent->columnId(), time, image);
+   fflush(stdout);
+
+   // check if image has changed
+   //
+   if (image != NULL && lastUpdateTime < image->lastUpdate()  && holdon) {
+      holdon = 1;
+      fprintf(stderr, "[%2d]: GLDisplay::advanceTime loading image\n", parent->columnId());
+      loadTexture(getTextureId(image), image);
+      lastUpdateTime = time;
+   }
+
+   time = parent->advanceTime(time);
+
+   printf("[%2d]: GLDisplay::didAdvanceTime time==%f image=%p\n", parent->columnId(), time, image);
+   fflush(stdout);
 }
 
 void GLDisplay::run(float time, float stopTime)
 {
    this->time = time;
    this->stopTime = stopTime;
-   glutMainLoop(); // we never return...
+
+   if (rank == 0) {
+      glutMainLoop(); // we never return...
+   }
+   else {
+      while (! haveFinished()) {
+         advanceTime();
+      }
+   }
 }
 
 int GLDisplay::loadTexture(int id, LayerDataInterface * l)
 {
    int status = 0;
+   unsigned char * buf = NULL;
 
    if (l == NULL) return -1;
 
    const PVLayerLoc * loc = l->getLayerLoc();
 
-   const int n = loc->nx * loc->ny * loc->nBands;
-   unsigned char * buf = new unsigned char[n];
-   assert(buf != NULL);
+   const int width  = loc->nxGlobal * loc->nBands;  // increase width to overlay features
+   const int height = loc->nyGlobal;
 
-   status = l->copyToInteriorBuffer(buf);
+   if (rank == 0) {
+      const int n = loc->nxGlobal * loc->nyGlobal * loc->nBands;
+      buf = new unsigned char[n];
+      assert(buf != NULL);
+   }
 
+   // all ranks must call this collective
+   //
+   status = l->gatherToInteriorBuffer(buf);
+   
    // GTK: chaged so that features sum at each pixel
    const int npixel = loc->nx * loc->ny;
    unsigned char * bufpixel = new unsigned char[npixel];
@@ -168,40 +230,34 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
       bufpixel[kpixel] /= loc->nBands;
    }
 
-//   const int width  = loc->nx * loc->nBands;  // increase width to overlay features
-   const int width  = loc->nx;  // increase width to overlay features
+   const int width  = loc->nx;
    const int height = loc->ny;
 
-   glBindTexture(GL_TEXTURE_2D, id);
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+   if (rank == 0) {
+      glBindTexture(GL_TEXTURE_2D, id);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+                   width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
 
-   delete buf;
-   delete bufpixel;
+      delete buf;
+   }
 
    return 0;
 }
 
 void GLDisplay::drawDisplays()
 {
-   const bool exitOnFinish = true;
+   // advance one timestep in PetaVision
+   //
+   advanceTime();
 
-   time = parent->advanceTime(time);
-   if (time >= stopTime) {
-      parent->exitRunLoop(exitOnFinish);
-   }
-
-   if (image != NULL && lastUpdateTime < image->lastUpdate()) {
-      loadTexture(getTextureId(image), image);
-      lastUpdateTime = time;
-   }
+   if (haveFinished()) return;
 
    if (!glwHeight) {
       return;
