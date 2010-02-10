@@ -189,6 +189,43 @@ int Image::exchange()
    return comm->exchange(data, mpi_datatypes, &loc);
 }
 
+int Image::gatherToInteriorBuffer(unsigned char * buf)
+{
+   assert(loc.nBands == 1);
+
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
+   const int nxBorder = loc.nPad;
+   const int nyBorder = loc.nPad;
+
+   const int sy = nx + 2*nxBorder;
+   const int sb = sy * (ny + 2*nyBorder);
+
+   // only interior portion of local data needed
+   //
+   unsigned char * srcBuf = (unsigned char *) malloc(nx * ny * sizeof(unsigned char));
+   assert(srcBuf != NULL);
+
+   int ii = 0;
+   for (int b = 0; b < loc.nBands; b++) {
+      for (int j = 0; j < ny; j++) {
+         int jex = j + nyBorder;
+         for (int i = 0; i < nx; i++) {
+            int iex = i + nxBorder;
+            srcBuf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+         }
+      }
+   }
+
+   gather(comm, &loc, buf, srcBuf);
+   fprintf(stderr, "[%2d]: Image::gather: finished\n", comm->commRank());
+
+   free(srcBuf);
+
+   return 0;
+}
+
 int Image::copyToInteriorBuffer(unsigned char * buf)
 {
    const int nx = loc.nx;
