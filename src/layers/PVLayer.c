@@ -17,6 +17,10 @@
 extern "C" {
 #endif
 
+///////////////////////////////////////////////////////
+// pvlayer C interface implementation
+//
+
 PVLayer * pvlayer_new(int xScale, int yScale,
                       int nx, int ny, int numFeatures, int nBorder)
 {
@@ -265,6 +269,55 @@ int pvlayer_copyUpdate(PVLayer* l) {
    return 0;
 }
 
+///////////////////////////////////////////////////////
+// pvpatch interface implementation
+//
+
+PVPatch * pvpatch_new(int nx, int ny, int nf)
+{
+   int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
+
+   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
+   assert(p != NULL);
+
+   pvdata_t * data = NULL;
+
+   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+
+   return p;
+}
+
+int pvpatch_delete(PVPatch* p)
+{
+   free(p);
+   return 0;
+}
+
+PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
+{
+   int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
+
+   size_t dataSize = nx * ny * nf * sizeof(float);
+   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
+   assert(p != NULL);
+
+   pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+
+   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+
+   return p;
+}
+
+int pvpatch_inplace_delete(PVPatch* p)
+{
+   free(p);
+   return 0;
+}
+
 int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
                                    float aPre, float decay, float ltpAmp)
 {
@@ -319,6 +372,46 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
    return err;
 }
 #endif
+
+///////////////////////////////////////////////////////
+// pvcube interface implementation
+//
+
+PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
+{
+   cube->size = pvcube_size(numItems);
+   cube->numItems = numItems;
+   cube->loc = *loc;
+   pvcube_setAddr(cube);
+   return cube;
+}
+
+PVLayerCube* pvcube_new(PVLayerLoc * loc, int numItems)
+{
+   PVLayerCube* cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
+   assert(cube !=NULL);
+   pvcube_init(cube, loc, numItems);
+   return cube;
+}
+
+size_t pvcube_size(int numItems)
+{
+   size_t size = LAYER_CUBE_HEADER_SIZE;
+   assert(size == EXPECTED_CUBE_HEADER_SIZE); // depends on PV_ARCH_64 setting
+   return size + numItems*sizeof(float);
+}
+
+int pvcube_delete(PVLayerCube * cube)
+{
+   free(cube);
+   return 0;
+}
+
+int pvcube_setAddr(PVLayerCube * cube)
+{
+   cube->data = (pvdata_t *) ((char*) cube + LAYER_CUBE_HEADER_SIZE);
+   return 0;
+}
 
 #ifdef __cplusplus
 }
