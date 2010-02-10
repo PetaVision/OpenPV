@@ -19,6 +19,8 @@ typedef fileread_params params_t;
 
 #define FILEREAD_SENTINEL -0xDC
 
+#ifdef DEPRECATED
+
 int fileread_init(PVLayer* l)
 {
    int n, err = 0;
@@ -138,3 +140,5 @@ void fileread_update(PVLayer *l)
    if (l->yOrigin == 0) timeStep++;
 
 }
+
+#endif
