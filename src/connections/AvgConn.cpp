@@ -65,6 +65,13 @@ PVPatch ** AvgConn::initializeWeights(PVPatch ** patches,
    return NULL;
 }
 
+/**
+ * - PVLayerCube * cube has activity from pre-synaptic layer. This routine is delivering
+ * the normalized average activity to the post-synaptic layer.
+ * - numLevels is the length of the time window over which the average activity
+ * of each neuron in the pre-synaptic layer is computed.
+ * - numLevels is now set to be equal to MAX_F_DELAY in /src/include/pv_common.h
+ */
 int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
 {
    // update average values
@@ -85,7 +92,7 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
    for (int k = 0; k < numActive; k++) {
       pvdata_t oldVal = last[k];
       pvdata_t newVal = activity[k];
-      avg[k] += (newVal - oldVal) / maxCount;
+      avg[k] += newVal/maxCount - oldVal;
       if (max < avg[k]) max = avg[k];
    }
 
@@ -157,5 +164,49 @@ int AvgConn::write(const char * filename)
 {
    return 0;
 }
+
+int AvgConn::write_patch_activity(FILE * fp, PVPatch * patch,
+                                         const PVLayerLoc * loc, int kx0, int ky0, int kf0)
+{
+   int f, i, j;
+
+   pvdata_t * avg  = avgActivity->data;
+
+   const int nx = patch->nx;
+   const int ny = patch->ny;
+   const int nf = patch->nf;
+
+   // these strides are from the layer, not the patch
+   // NOTE: assumes nf from layer == nf from patch
+   //
+   const int sx = nf;
+   const int sy = loc->nx * nf;
+
+   assert(fp != NULL);
+
+   const int k0 = kIndex(kx0, ky0, kf0, loc->nx, loc->ny, nf);
+
+   fprintf(fp, "  ");
+
+   // loop over patch indices (writing out layer indices and activity)
+   //
+   for (f = 0; f < nf; f++) {
+      for (j = 0; j < ny; j++) {
+         for (i = 0; i < nx; i++) {
+            int kf = f;
+            int kx = kx0 + i;
+            int ky = ky0 + j;
+            int k  = k0 + kf + i*sx + j*sy;
+            fprintf(fp, "(%4d, (%4d,%4d,%4d) %f) ", k, kx, ky, kf, avg[k]);
+         }
+         fprintf(fp, "\n  ");
+      }
+      fprintf(fp, "\n");
+   }
+
+   return 0;
+}
+
+
 
 } // namespace PV
