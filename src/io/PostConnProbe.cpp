@@ -47,6 +47,9 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
 /**
  * @time
  * @c
+ * NOTES:
+ *    - kPost , kxPost, kyPost are indices in the restricted post-synaptic layer.
+ *
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
