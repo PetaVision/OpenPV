@@ -681,20 +681,20 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 {
    int nx = clayer->loc.nx;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
    pvdata_t * src0 = src-> data + npad * sy + npad * nf;
    pvdata_t * dst0 = dest->data + (npad-1) * sy + (npad-1) * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 - jy*sy;
-      pvdata_t * from = src0 + jy*sy;
-      for (int ix = 0; ix < npad; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 - ky*sy;
+      pvdata_t * from = src0 + ky*sy;
+      for (int kx = 0; kx < npad; kx++) {
          to -= nf;
          from += nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[-kf] = from[kf];
+            to[kf] = from[kf];
          }
       }
    }
@@ -705,16 +705,16 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
 {
    int nx = clayer->loc.nx;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
    pvdata_t * src0 = src-> data + npad * sy + npad * nf;
    pvdata_t * dst0 = dest->data + (npad-1) * sy + npad * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 - jy*sy;
-      pvdata_t * from = src0 + jy*sy;
-      for (int ix = 0; ix < clayer->loc.nx; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 - ky*sy;
+      pvdata_t * from = src0 + ky*sy;
+      for (int kx = 0; kx < nx; kx++) {
          to += nf;
          from += nf;
          for (int kf = 0; kf < nf; nf++) {
@@ -729,20 +729,20 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
-   pvdata_t * src0 = src-> data + npad * sy + ( nx - npad ) * nf;
-   pvdata_t * dst0 = dest->data + (npad-1) * sy + ( nx - npad + 1 )  * nf;
+   pvdata_t * src0 = src-> data + npad * sy + (nx + npad - 1) * nf;
+   pvdata_t * dst0 = dest->data + (npad-1) * sy + (nx + npad)  * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 - jy*sy;
-      pvdata_t * from = src0 + jy*sy;
-      for (int ix = 0; ix < npad; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 - ky*sy;
+      pvdata_t * from = src0 + ky*sy;
+      for (int kx = 0; kx < npad; kx++) {
          to += nf;
          from -= nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[kf] = from[-kf];
+            to[kf] = from[kf];
          }
       }
    }
@@ -753,20 +753,20 @@ int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
    pvdata_t * src0 = src-> data + npad * sy + npad * nf;
    pvdata_t * dst0 = dest->data + npad * sy + (npad-1) * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 + jy*sy;
-      pvdata_t * from = src0 + jy*sy;
-      for (int ix = 0; ix < clayer->loc.nx; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 + ky*sy;
+      pvdata_t * from = src0 + ky*sy;
+      for (int kx = 0; kx < nx; kx++) {
          to -= nf;
          from += nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[-kf] = from[kf];
+            to[kf] = from[kf];
          }
       }
    }
@@ -777,20 +777,20 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
-   pvdata_t * src0 = src-> data + npad * sy + (nx - npad) * nf;
-   pvdata_t * dst0 = dest->data + npad * sy + (nx - npad + 1) * nf;
+   pvdata_t * src0 = src-> data + npad * sy + (nx + npad - 1) * nf;
+   pvdata_t * dst0 = dest->data + npad * sy + (nx + npad) * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 + jy*sy;
-      pvdata_t * from = src0 + jy*sy;
-      for (int ix = 0; ix < clayer->loc.nx; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 + ky*sy;
+      pvdata_t * from = src0 + ky*sy;
+      for (int kx = 0; kx < nx; kx++) {
          to += nf;
          from -= nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[kf] = from[-kf];
+            to[kf] = from[kf];
          }
       }
    }
@@ -802,20 +802,20 @@ int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
-   pvdata_t * src0 = src-> data + (ny - npad) * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (ny - npad + 1) * sy + ( npad - 1 )  * nf;
+   pvdata_t * src0 = src-> data + (ny + npad - 1) * sy + npad * nf;
+   pvdata_t * dst0 = dest->data + (ny + npad) * sy + (npad - 1) * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 + jy*sy;
-      pvdata_t * from = src0 - jy*sy;
-      for (int ix = 0; ix < npad; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 + ky*sy;
+      pvdata_t * from = src0 - ky*sy;
+      for (int kx = 0; kx < npad; kx++) {
          to -= nf;
          from += nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[-kf] = from[kf];
+            to[kf] = from[kf];
          }
       }
    }
@@ -827,16 +827,16 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
-   pvdata_t * src0 = src-> data + (ny - npad) * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (ny - npad + 1) * sy + npad * nf;
+   pvdata_t * src0 = src-> data + (ny + npad -1) * sy + npad * nf;
+   pvdata_t * dst0 = dest->data + (ny + npad) * sy + npad * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 + jy*sy;
-      pvdata_t * from = src0 - jy*sy;
-      for (int ix = 0; ix < clayer->loc.nx; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 + ky*sy;
+      pvdata_t * from = src0 - ky*sy;
+      for (int kx = 0; kx < nx; kx++) {
          to += nf;
          from += nf;
          for (int kf = 0; kf < nf; nf++) {
@@ -852,20 +852,20 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
    int nf = clayer->numFeatures;
-   int sy = nf * nx;
    int npad = dest->loc.nPad;
+   int sy = nf * ( nx + 2*npad );
 
-   pvdata_t * src0 = src-> data + (ny - npad) * sy + (nx - npad) * nf;
-   pvdata_t * dst0 = dest->data + (ny - npad + 1) * sy + (nx - npad + 1)  * nf;
+   pvdata_t * src0 = src-> data + (ny + npad - 1) * sy + (nx + npad - 1) * nf;
+   pvdata_t * dst0 = dest->data + (ny + npad) * sy + (nx + npad)  * nf;
 
-   for (int jy = 0; jy < npad; jy++) {
-      pvdata_t * to   = dst0 + jy*sy;
-      pvdata_t * from = src0 - jy*sy;
-      for (int ix = 0; ix < npad; ix++) {
+   for (int ky = 0; ky < npad; ky++) {
+      pvdata_t * to   = dst0 + ky*sy;
+      pvdata_t * from = src0 - ky*sy;
+      for (int kx = 0; kx < npad; kx++) {
          to += nf;
          from -= nf;
          for (int kf = 0; kf < nf; nf++) {
-            to[kf] = from[-kf];
+            to[kf] = from[kf];
          }
       }
    }
