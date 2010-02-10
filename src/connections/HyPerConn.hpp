@@ -103,6 +103,8 @@ public:
 
    int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
 
+   int smartWeights(PVPatch * wp, int k);
+
    int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
@@ -164,6 +166,7 @@ protected:
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
+   PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
@@ -179,6 +182,9 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors();
+   virtual int adjustAxonalArborWeights();
+
+   int kIndexFromNeighbor(int k, int neighbor);
 
    // static member functions
 
