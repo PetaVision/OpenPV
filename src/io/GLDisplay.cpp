@@ -147,29 +147,15 @@ void GLDisplay::advanceTime(void)
 {
    static int holdon = 1;
 
-   printf("[%2d]: GLDisplay::willAdvanceTime time==%f image=%p\n", parent->columnId(), time, image);
-   fflush(stdout);
-
-   // this is a collective, everyone should rendezvous here
-   //
-   MPI_Barrier(parent->icCommunicator()->communicator());
-
-   printf("[%2d]: GLDisplay::after barrier time==%f image=%p\n", parent->columnId(), time, image);
-   fflush(stdout);
-
    // check if image has changed
    //
    if (image != NULL && lastUpdateTime < image->lastUpdate()  && holdon) {
       holdon = 1;
-      fprintf(stderr, "[%2d]: GLDisplay::advanceTime loading image\n", parent->columnId());
       loadTexture(getTextureId(image), image);
       lastUpdateTime = time;
    }
 
    time = parent->advanceTime(time);
-
-   printf("[%2d]: GLDisplay::didAdvanceTime time==%f image=%p\n", parent->columnId(), time, image);
-   fflush(stdout);
 }
 
 void GLDisplay::run(float time, float stopTime)
