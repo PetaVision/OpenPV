@@ -691,11 +691,11 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < npad; kx++) {
-         to -= nf;
-         from += nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to -= nf;
+         from += nf;
       }
    }
    return 0;
@@ -715,11 +715,11 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
-         to += nf;
-         from += nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to += nf;
+         from += nf;
       }
    }
    return 0;
@@ -741,9 +741,11 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
       for (int kx = 0; kx < npad; kx++) {
          to += nf;
          from -= nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to += nf;
+         from -= nf;
       }
    }
    return 0;
@@ -763,11 +765,11 @@ int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
-         to -= nf;
-         from += nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to -= nf;
+         from += nf;
       }
    }
    return 0;
@@ -787,11 +789,11 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
-         to += nf;
-         from -= nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to += nf;
+         from -= nf;
       }
    }
    return 0;
@@ -812,11 +814,11 @@ int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < npad; kx++) {
-         to -= nf;
-         from += nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to -= nf;
+         from += nf;
       }
    }
    return 0;
@@ -837,11 +839,11 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nx; kx++) {
-         to += nf;
-         from += nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to += nf;
+         from += nf;
       }
    }
    return 0;
@@ -862,11 +864,11 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < npad; kx++) {
-         to += nf;
-         from -= nf;
-         for (int kf = 0; kf < nf; nf++) {
+         for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
+         to += nf;
+         from -= nf;
       }
    }
    return 0;
