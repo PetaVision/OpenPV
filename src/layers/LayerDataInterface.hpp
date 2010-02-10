@@ -9,6 +9,7 @@
 #define LAYERDATAINTERFACE_HPP_
 
 #include "PVLayer.h"
+#include "../io/LayerProbe.hpp"
 
 namespace PV {
 
@@ -23,8 +24,8 @@ public:
 
    virtual const PVLayerLoc * getLayerLoc() = 0;
    virtual const pvdata_t * getLayerData() = 0;
-   virtual bool isExtended() = 0;
-   virtual int copyToInteriorBuffer(unsigned char * buf) = 0;
+   virtual bool  isExtended() = 0;
+   virtual int   gatherToInteriorBuffer(unsigned char * buf) = 0;
 };
 
 } // namespace PV
