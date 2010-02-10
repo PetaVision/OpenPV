@@ -1225,7 +1225,6 @@ int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
    const int nx = wp->nx;
    const int ny = wp->ny;
    const int nf = wp->nf;
-   const int nk = nx * ny * nf;
 
    const int sxp = wp->sx;
    const int syp = wp->sy;
