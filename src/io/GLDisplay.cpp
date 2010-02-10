@@ -196,7 +196,7 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
 
    const PVLayerLoc * loc = l->getLayerLoc();
 
-   const int width  = loc->nxGlobal * loc->nBands;  // increase width to overlay features
+   const int width  = loc->nxGlobal;
    const int height = loc->nyGlobal;
 
    if (rank == 0) {
@@ -209,17 +209,17 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
    //
    status = l->gatherToInteriorBuffer(buf);
    
-   // GTK: chaged so that features sum at each pixel
-   const int npixel = loc->nx * loc->ny;
+   // GTK: changed so that features sum at each pixel
+   const int npixel = width * height;
    unsigned char * bufpixel = new unsigned char[npixel];
    for (int kpixel = 0; kpixel < npixel; kpixel++){
       bufpixel[kpixel] = 0;
    }
    int kbuf = 0;
    int kpixel = 0;
-   for (int ky = 0; ky < loc->ny; ky++) {
-      for (int kx = 0; kx < loc->nx; kx++) {
-         kpixel = ky * loc->nx + kx;
+   for (int ky = 0; ky < loc->nyGlobal; ky++) {
+      for (int kx = 0; kx < loc->nxGlobal; kx++) {
+         kpixel = ky * loc->nxGlobal + kx;
          for (int kf = 0; kf < loc->nBands; kf++) {
             kbuf = (kpixel) * loc->nBands + kf;
             bufpixel[kpixel] += buf[kbuf];
@@ -229,9 +229,6 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
    for (int kpixel = 0; kpixel < npixel; kpixel++){
       bufpixel[kpixel] /= loc->nBands;
    }
-
-   const int width  = loc->nx;
-   const int height = loc->ny;
 
    if (rank == 0) {
       glBindTexture(GL_TEXTURE_2D, id);
