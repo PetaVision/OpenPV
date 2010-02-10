@@ -78,6 +78,9 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    }
 
    runDelegate = NULL;
+
+   mirrorBCflag = MIRROR_BC_FLAG;
+   if (params->present(name, "mirrorBCflag")) mirrorBCflag = (bool) params->value(name, "mirrorBCflag");
 }
 
 HyPerCol::~HyPerCol()
