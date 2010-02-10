@@ -79,6 +79,8 @@ public:
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
+   bool getMirrorBCflag()                 {return mirrorBCflag;}
+
 private:
    int numSteps;
    int maxLayers;
@@ -105,6 +107,7 @@ private:
    InterColComm * icComm; // manages communication between HyPerColumns};
 
    HyPerColRunDelegate * runDelegate; // runs time loop
+   bool mirrorBCflag;
 
 }; // class HyPerCol
 
