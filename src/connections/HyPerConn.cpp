@@ -1010,6 +1010,16 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    return wPostPatches;
 }
 
+/**
+ * Returns the head (kxPre, kyPre) of a pre-synaptic patch given post-synaptic layer indices.
+ * @kxPost the post-synaptic kx index (non-extended units)
+ * @kyPost the post-synaptic ky index (non-extended units)
+ * @kfPost the post-synaptic kf index
+ * @kxPre address of the kx index in the pre-synaptic layer (non-extended units) on output
+ * @kyPre address of the ky index in the pre-synaptic layer (non-extended units) on output
+ *
+ * NOTE: kxPre and kyPre may be in the border region
+ */
 int HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre)
 {
    int status = 0;
@@ -1035,13 +1045,18 @@ int HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kx
 }
 
 /**
- * Returns the head (kxPost, kyPost) of the patch head.
- * @kPre the pre-synaptic k index (extended units)
- * @kxPost address of the kx index in post layer (non-extended units)
- * @kyPost address of the ky index in post layer (non-extended units)
- * @kfPost address of the kf index in post layer (non-extended units)
+ * Returns the head (kxPostOut, kyPostOut) of the post-synaptic patch plus other
+ * patch information.
+ * @kPreEx the pre-synaptic k index (extended units)
+ * @kxPostOut address of the kx index in post layer (non-extended units) on output
+ * @kyPostOut address of the ky index in post layer (non-extended units) on output
+ * @kfPostOut address of the kf index in post layer (non-extended units) on output
+ * @dxOut address of the change in x dimension size of patch (to fit border) on output
+ * @dyOut address of the change in y dimension size of patch (to fit border) on output
+ * @nxpOut address of x dimension patch size (includes border reduction) on output
+ * @nypOut address of y dimension patch size (includes border reduction) on output
  *
- * NOTE: kxPost and kyPost are always within the post-synaptic
+ * NOTE: kxPostOut and kyPostOut are always within the post-synaptic
  * non-extended layer because the patch size is reduced at borders
  */
 int HyPerConn::postSynapticPatchHead(int kPreEx,
