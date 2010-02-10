@@ -28,6 +28,9 @@ public:
    inline  int   getNumLevels() {return numLevels;};
    inline  int   getLastLevel() {return lastLevel;};
 
+   int write_patch_activity(FILE * fp, PVPatch * patch,
+                           const PVLayerLoc * loc, int kx0, int ky0, int kf0);
+
 protected:
 
    int initialize();
@@ -43,6 +46,7 @@ protected:
 
 
    float maxRate;  // maximum expected firing rate of pre-synaptic layer
+
 };
 
 } // namespace PV
