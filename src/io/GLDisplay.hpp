@@ -22,19 +22,22 @@ public:
    int addDisplay(LayerDataInterface * d);
    int addLayer(HyPerLayer * l);
    int setImage(Image * image);
+   void setDelay(float msecs);
 
    void run(float time, float stopTime);
 
    void drawDisplays();
-   int  loadTexture(int id, LayerDataInterface * image);
 
    // implement LayerProbe interface
    //
    int outputState(float time, HyPerLayer * l);
 
-   void setDelay(float msecs);
-
 private:
+
+   void advanceTime(void);
+   bool haveFinished(void);
+
+   int  loadTexture(int id, LayerDataInterface * image);
 
    int xTranslate(int index);
    int yTranslate(int index);
@@ -43,6 +46,8 @@ private:
    HyPerCol * parent;
    Image    * image;
    LayerDataInterface ** displays;
+
+   int rank;         // only rank 0 process makes OpenGL calls
 
    int numRows;      // number of display rows
    int numCols;      // number of display columns
