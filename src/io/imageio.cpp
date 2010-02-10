@@ -115,7 +115,9 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
 
 #ifdef PV_USE_MPI
    // broadcast location information
-   MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
+   // TODO - IMPORTANT - WHICH OF THESE IS CORRECT
+   //MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
+   MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
 #endif
 
    copyFromLocBuffer(locBuf, loc);
@@ -282,10 +284,8 @@ int gatherImageFilePVP(const char * filename,
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: gather: receiving from %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), src, nx, ny, numTotal,
-                    numTotal*comm->commSize());
+            fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d ny==%d numItems==%d\n",
+                    comm->commRank(), src, nx, ny, numItems);
 #endif
             MPI_Recv(tmp, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
@@ -449,8 +449,8 @@ int scatterImageFilePVP(const char * filename,
       MPI_Recv(buf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, numTotal);
+      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d numItems==%d\n",
+              comm->commRank(), nx, ny, numItems);
 #endif
 #endif // PV_USE_MPI
    }
@@ -692,10 +692,108 @@ int scatterImageBlocks(const char* filename,
 }
 
 /**
+ * gather relevant portions of srcBuf on root process from all others
+ *    NOTE: dstBuf is np times larger than srcBuf on root process,
+ *          dstBuf may be NULL if not root process
+ */
+int gather(PV::Communicator * comm, PVLayerLoc * loc,
+           unsigned char * dstBuf, unsigned char * srcBuf)
+{
+   // TODO - fix this to work for features
+   assert(loc->nBands == 1);
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nxny = nx*ny;
+
+   const int sx  = 1;
+   const int sy  = nx;
+   const int sxg = 1;
+   const int syg = nx * nxProcs;
+
+   const int icRank = comm->commRank();
+
+   if (icRank == 0) {
+      // copy local portion on root process
+      //
+      for (int ky = 0; ky < ny; ky++) {
+         for (int kx = 0; kx < nx; kx++) {
+            int kxg = kx;
+            int kyg = ky;
+            dstBuf[kxg*sxg + kyg*syg] = srcBuf[kx*sx + ky*sy];
+         }
+      }
+   }
+
+#ifdef PV_USE_MPI
+   const int tag = 44;
+   const MPI_Comm mpi_comm = comm->communicator();
+
+   if (icRank > 0) {
+      const int dest = 0;
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: gather: sending to %d nx==%d ny==%d\n",
+              comm->commRank(), dest, nx, ny);
+#endif
+      // everyone sends to root process
+      //
+      MPI_Send(srcBuf, nxny, MPI_BYTE, dest, tag, mpi_comm);
+   }
+   else if (nxProcs * nyProcs > 1) {
+      int src = -1;
+      unsigned char * tmp = (unsigned char *) malloc(nxny * sizeof(unsigned char));
+      assert(tmp != NULL);
+
+      for (int py = 0; py < nyProcs; py++) {
+         for (int px = 0; px < nxProcs; px++) {
+            if (++src == 0) continue;
+            int kxg0 = nx * px;
+            int kyg0 = ny * py;
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d"
+                    " ny==%d kxg0==%d kyg0==%d size==%d\n",
+                    comm->commRank(), src, nx, ny, kxg0, kyg0, nxny);
+#endif
+            MPI_Recv(tmp, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+
+            // copy tmp buffer from remote src into proper location in global dst
+            //
+            for (int ky = 0; ky < ny; ky++) {
+               for (int kx = 0; kx < nx; kx++) {
+                  int kxg = kxg0 + kx;
+                  int kyg = kyg0 + ky;
+                  dstBuf[kxg*sxg + kyg*syg] = srcBuf[kx*sx + ky*sy];
+               }
+            }
+         }
+      }
+      free(tmp);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: gather: finished\n", comm->commRank());
+#endif
+   }
+#endif // PV_USE_MPI
+
+   return 0;
+}
+
+/**
+ * scatter relevant portions of buf from root process to all others
+ *    NOTE: buf is np times larger on root process
+ */
+int scatter(PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+{
+   return -1;
+}
+
+/**
  * gather relevant portions of buf on root process from all others
  *    NOTE: buf is np times larger on root process
  */
-int gather (PV::Communicator * comm, PVLayerLoc * loc, float * buf)
+int gather(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 {
    return -1;
 }
