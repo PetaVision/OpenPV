@@ -53,6 +53,7 @@ public:
 
    int copyFromInteriorBuffer(const unsigned char * buf);
    int copyToInteriorBuffer(unsigned char * buf);
+   int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:
 
@@ -64,7 +65,7 @@ protected:
    PVLayerLoc loc;        // size/location of layer
    pvdata_t * data;       // buffer containing reduced image
 
-   PVLayerLoc imageLoc; // size/location of actual image
+   PVLayerLoc imageLoc;   // size/location of actual image
    pvdata_t * imageData;  // buffer containing image
 
    float lastPhase;
