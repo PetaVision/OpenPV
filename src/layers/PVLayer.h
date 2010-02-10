@@ -10,6 +10,7 @@
 
 #include "../include/pv_common.h"
 #include "../utils/conversions.h"
+#include "../include/pv_types.h"
 
 typedef enum {
    TypeGeneric,
@@ -102,7 +103,9 @@ int pvlayer_getParams(PVLayer * l, int * numParams, float ** params);
 int pvlayer_setFuncs (PVLayer * l, void * updateFunc, void * initFunc);
 
 PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
+PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems);
 int           pvcube_delete(PVLayerCube * cube);
+size_t        pvcube_size(int numItems);
 int           pvcube_setAddr(PVLayerCube * cube);
 
 PVPatch * pvpatch_new(int nx, int ny, int nf);
