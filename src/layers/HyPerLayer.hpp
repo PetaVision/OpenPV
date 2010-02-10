@@ -58,10 +58,11 @@ public:
    virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
 
    int initialize(PVLayerType type);
-   int initBorder(PVLayerCube * border, int borderId);
    int initFinish();
-
-   int copyToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
+   
+   PVLayerCube * initBorder(PVLayerCube * border, int borderId);
+   
+   int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
@@ -81,14 +82,14 @@ public:
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
 
-   virtual int copyToNorthWest(PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToNorth    (PVLayerCube * dest, PVLayerCube* src);
-   virtual int copyToNorthEast(PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToWest     (PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToEast     (PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToSouthWest(PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToSouth    (PVLayerCube * dest, PVLayerCube * src);
-   virtual int copyToSouthEast(PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToNorth    (PVLayerCube * dest, PVLayerCube* src);
+   virtual int mirrorToNorthEast(PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToWest     (PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToEast     (PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToSouthWest(PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToSouth    (PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToSouthEast(PVLayerCube * dest, PVLayerCube * src);
 
    // Public access functions:
 
@@ -103,14 +104,17 @@ public:
 
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
+   
+   bool useMirrorBCs();
 
    // implementation of LayerDataInterface interface
    //
    const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
    const pvdata_t * getLayerData()   { return clayer->activity->data; }
    bool isExtended()                 { return true; }
-   virtual int copyToInteriorBuffer(unsigned char * buf);
-
+   
+   virtual int gatherToInteriorBuffer(unsigned char * buf);
+   
 protected:
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
 
