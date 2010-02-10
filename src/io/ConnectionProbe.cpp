@@ -161,7 +161,10 @@ int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
  * @ky0 the ky index location of the head of the patch projection
  * @kf0 the kf index location of the head of the patch (should be 0)
  *
- * NOTE: indices are in the local space
+ * NOTES:
+ *    - indices are in the local, restricted space.
+ *    - kx0, ky0, are pre patch heads.
+ *
  */
 int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
                                          const PVLayerLoc * loc, int kx0, int ky0, int kf0)
