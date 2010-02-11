@@ -160,11 +160,11 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_sign ..."
 	@./test_sign
 	@echo "Running test_mirror_BCs ..."
-	@./test_mirror_BCs -i 1 -p $(INPARAMS)
+	@./test_mirror_BCs -p $(INPARAMS)
 #	@echo "Running test_borders ..."
-#	@test_borders -i 1 -p $(INPARAMS)
+#	@test_borders -p $(INPARAMS)
 #	@echo "Running test_layer_direct with 1 node ..."
-#	@test_layer_direct -i 1 -p $(INPARAMS)
+#	@test_layer_direct -p $(INPARAMS)
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
