@@ -18,7 +18,8 @@ LIBS = $(LIBPV) -L$(GDALDIR)/lib -lgdal
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
-        test_datatypes test_post_weights test_mirror_BCs
+        test_datatypes test_post_weights test_mirror_BCs \
+        test_border_activity
 
 MPI_TESTS = test_read_header test_image_io test_weights_io
 
@@ -91,6 +92,9 @@ test_extend_border: $(BUILDDIR)/test_extend_border.o $(PVLIB)
 test_borders: $(BUILDDIR)/test_borders.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
+test_border_activity: $(BUILDDIR)/test_border_activity.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
 test_mirror_BCs: $(BUILDDIR)/test_mirror_BCs.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
@@ -161,6 +165,8 @@ runtests: make-in-subdirs $(TESTS)
 	@./test_sign
 	@echo "Running test_mirror_BCs ..."
 	@./test_mirror_BCs -p $(INPARAMS)
+	@echo "Running test_border_activity ..."
+	@./test_border_activity -p $(INPARAMS)
 #	@echo "Running test_borders ..."
 #	@test_borders -p $(INPARAMS)
 #	@echo "Running test_layer_direct with 1 node ..."
