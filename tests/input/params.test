@@ -89,8 +89,8 @@ HyPerConn "test_post_weights L2 to L3" = {
 //
 
 HyPerCol "test_mirror_BCs column" = {
-   nx = 64;
-   ny = 64;
+   nx = 8;
+   ny = 8;
 };
 
 HyPerLayer "test_mirror_BCs layer" = {
