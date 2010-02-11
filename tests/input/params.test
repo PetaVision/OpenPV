@@ -48,8 +48,13 @@ HyPerConn "Test Connection" = {
 };
 
 //
-// This section for test_post_weights
+// This section defines parameters for test_post_weights
 //
+
+HyPerCol "test_post_weights column" = {
+   nx = 64;
+   ny = 64;
+};
 
 HyPerLayer "test_post_weights L1" = {
    nxScale = 1;
@@ -77,4 +82,20 @@ HyPerConn "test_post_weights L1 to L1" = {
 HyPerConn "test_post_weights L2 to L3" = {
    nxp = 8;
    nyp = 8;
+};
+
+//
+// This section defines parameters for test_mirror_BCs
+//
+
+HyPerCol "test_mirror_BCs column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_mirror_BCs layer" = {
+   nx = 8;
+   ny = 8;
+   nf = 2;
+   marginWidth = 4;
 };
