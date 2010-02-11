@@ -288,17 +288,17 @@ int Retina::updateState(float time, float dt)
       }
    }
    else {
+      // retina is non spiking, pass scaled image through to activity
+      //
       for (int k = 0; k < clayer->numNeurons; k++) {
          int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-         float probStim = params->poissonEdgeProb * V[k];
-         float probBase = params->poissonBlankProb;
-         float prevTime = prevActivity[kex];
-         spike(time, dt, prevTime, probBase, probStim, &probSpike);
-         activity[kex] = probSpike;
-         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
-         if (activity[kex] > 0.0) {
-            clayer->activeIndices[numActive++] = k;
-         }      }
+         // scale output according to poissonEdgeProb, this could
+         // perhaps be renamed when non spiking
+         float maxRetinalActivity = params->poissonEdgeProb;
+         activity[kex] = maxRetinalActivity * V[k];
+         prevActivity[kex] = activity[kex];
+         clayer->activeIndices[numActive++] = k;
+      }
    }
    clayer->numActive = numActive;
 
