@@ -182,9 +182,6 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors();
-   virtual int adjustAxonalArborWeights();
-
-   int kIndexFromNeighbor(int k, int neighbor);
 
    // static member functions
 
