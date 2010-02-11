@@ -49,7 +49,9 @@ int main(int argc, char * argv[])
             int kex = ky * syex + kx * nf + kf;
             int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
             sCube->data[kex] = k;
+#ifdef DEBUG_PRINT
             printf("sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
+#endif
         }
       }
    }
@@ -59,6 +61,7 @@ int main(int argc, char * argv[])
       l->mirrorInteriorToBorder(borderId, sCube, bCube);
    }
 
+#ifdef DEBUG_PRINT
    // write out extended cube values
    int nx = 2*nB + nS;
    int ny = nx;
@@ -72,26 +75,158 @@ int main(int argc, char * argv[])
       }
       printf("\n");
    }
+#endif
 
    // check values at mirror indices
    // uses a completely different algorithm than mirrorInteriorToBorder
+
    // northwest
    for (int ky = kFirst; ky < kFirst+nB; ky++) {
-      int kymirror = nB - (ky - nB) - 1;
+      int kymirror = kFirst - 1 - (ky - kFirst);
       for (int kx = kFirst; kx < kFirst+nB; kx++) {
-         int kxmirror = nB - (kx - nB) - 1;
+         int kxmirror = kFirst - 1 - (kx - kFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
             int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               printf("ERROR:northwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
                exit(1);
             }
          }
       }
    }
+
+   // north
+   for (int ky = kFirst; ky < kFirst+nB; ky++) {
+      int kymirror = kFirst - 1 - (ky - kFirst);
+      for (int kx = kFirst; kx < kLast; kx++) {
+         int kxmirror = kx;
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:north mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+   // northeast
+   for (int ky = kFirst; ky < kFirst+nB; ky++) {
+      int kymirror = kFirst - 1 - (ky - kFirst);
+      for (int kx = kLast - nB; kx < kLast; kx++) {
+         int kxmirror = kLast - 1 + (kLast - kx);
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:northeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+   // west
+   for (int ky = kFirst; ky < kLast; ky++) {
+      int kymirror = ky;
+      for (int kx = kFirst; kx < kFirst + nB; kx++) {
+         int kxmirror = kFirst - 1 - (kx - kFirst);
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:west mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+
+   // east
+   for (int ky = kFirst; ky < kLast; ky++) {
+      int kymirror = ky;
+      for (int kx = kLast - nB; kx < kLast; kx++) {
+         int kxmirror = kLast - 1 + (kLast - kx);
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:east mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+   // southwest
+   for (int ky = kLast - nB; ky < kLast; ky++) {
+      int kymirror = kLast - 1 + (kLast - ky);
+      for (int kx = kFirst; kx < kFirst+nB; kx++) {
+         int kxmirror = kFirst - 1 - (kx - kFirst);
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:southwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+   // south
+   for (int ky = kLast - nB; ky < kLast; ky++) {
+      int kymirror = kLast - 1 + (kLast - ky);
+      for (int kx = kFirst; kx < kLast; kx++) {
+         int kxmirror = kx;
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:south mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+
+   // southeast
+   for (int ky = kLast - nB; ky < kLast; ky++) {
+      int kymirror = kLast - 1 + (kLast - ky);
+      for (int kx = kLast - nB; kx < kLast; kx++) {
+         int kxmirror = kLast - 1 + (kLast - kx);
+         for (int kf = 0; kf < nf; kf++) {
+            int kex = ky * syex + kx * nf + kf;
+            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int kmirror = kymirror * syex + kxmirror * nf + kf;
+            int mirrorVal = bCube->data[kmirror];
+            if ( mirrorVal != k) {
+               printf("ERROR:southeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
+               exit(1);
+            }
+         }
+      }
+   }
+
+
 
    pvcube_delete(sCube);
    sCube = bCube = NULL;
