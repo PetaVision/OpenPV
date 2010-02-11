@@ -46,7 +46,7 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
  */
 int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 {
-   int width, sLine, k, kex;
+   int width, sLine;
    float * line;
 
    const PVLayer * clayer = l->clayer;
@@ -66,12 +66,12 @@ int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 
    if (dim == DimX) {
       width = nx + 2*marginWidth;
-      line = clayer->activity->data + (linePos+marginWidth) * width * nf;
+      line = activity + (linePos+marginWidth) * width * nf;
       sLine = nf;
    }
    else {
       width = ny + 2*marginWidth;
-      line = clayer->activity->data + (linePos+marginWidth)*nf;
+      line = activity + (linePos+marginWidth)*nf;
       sLine = nf * (nx + 2*marginWidth);
 
    }
