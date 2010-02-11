@@ -99,3 +99,35 @@ HyPerLayer "test_mirror_BCs layer" = {
    nf = 2;
    marginWidth = 4;
 };
+
+//
+// This section defines parameters for test_border_activity
+//
+
+HyPerLayer "test_border_activity image" = {
+   nxScale = 1;
+   nyScale = 1;
+};
+
+HyPerLayer "test_border_activity retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 3;
+   spikingFlag = 0;
+   poissonEdgeProb = 1;
+};
+
+HyPerLayer "test_border_activity layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   spikingFlag = 0;
+};
+
+HyPerLayer "test_border_activity connection" = {
+   nxp = 7;
+   nyp = 7;
+   randomFlag = 1; // use random weights to initialize
+   wMinInit = 1;   /  all weight to constant (1)
+   wMaxInit = 1;
+};
