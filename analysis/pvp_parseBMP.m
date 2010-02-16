@@ -1,4 +1,4 @@
-function [ target, clutter ] = pvp_parseBMP( filename, plot_input_image )
+function [ target, clutter, fh ] = pvp_parseBMP( filename, plot_input_image )
 % Return a list of the pixels corresponding to target and clutter in a color-coded BMP file
 % of a gray-scale image.
 % black (0,0,0) is background
@@ -38,6 +38,6 @@ end
 
 
 if plot_input_image
-    figure('Name', 'input image');
+    fh = figure('Name', 'input image');
     imagesc(pixels);
 end

@@ -1,5 +1,7 @@
 function [pvp_header, pvp_index] = pvp_readHeader(filename)
 
+global NUM_BIN_PARAMS 
+
 pvp_index = struct;
 pvp_index.HEADER_SIZE  = 0+1;
 pvp_index.NUM_PARAMS   = 1+1;
@@ -26,8 +28,7 @@ if fid == -1
     pvp_header = [];
     return;
 end
-NUM_BIN_PARAMS = 18;
-pvp_header = fread(fid, NUM_BIN_PARAMS, 'int32');
+pvp_header = fread(fid, NUM_BIN_PARAMS-2, 'int32');
 pvp_time = fread(fid, 1, 'double');
 fclose(fid);
 pvp_header(pvp_index.TIME) = pvp_time;
