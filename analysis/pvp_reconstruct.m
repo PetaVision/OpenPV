@@ -19,10 +19,9 @@ if ~any(recon_array(:) ~= 0.0) % any(A) tests whether any of the elements
 end
 if ~exist('fh','var')          % tests if 'fh' is a variable in the workspace
                                % returns 0 if 'fh' does not exists
-    fh = figure('Name',plot_title);
-else
-    set(fh, 'Name', plot_title);
+    fh = figure;
 end
+set(fh, 'Name', plot_title);
 ave_recon = mean(recon_array(recon_array ~= 0.0));
 if ave_recon < 0
     recon_array = -recon_array;
@@ -41,7 +40,7 @@ end
 if min_recon_val == max_recon
     min_recon_val = 0;
 end
-edge_len = sqrt(2)/2.5;
+edge_len = 2.5;
 if (NO==1)
     edge_len = 1/sqrt(2)/2;
 end

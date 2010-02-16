@@ -40,7 +40,7 @@ num_image_index = length(image_index);
 irow_layer = ceil( irow_image * NROWS / NROWS_image ); 
 jcol_layer = ceil( jcol_image * NCOLS / NCOLS_image ); 
 
-% if row_scale, col_scale > 1, find all cells patch around each image cell
+% if row_scale, col_scale > 1, find all cells in patch around each image cell
 [ col_mesh , row_mesh ] = meshgrid( 0 : col_scale-1, 0 : row_scale-1 );
 row_mesh = row_mesh(:)';
 col_mesh = col_mesh(:)';
