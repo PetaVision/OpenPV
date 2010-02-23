@@ -273,7 +273,13 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
+   // make sure activity in border is zero
+   //
    int numActive = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
+
    if (params->spikingFlag == 1) {
       for (int k = 0; k < clayer->numNeurons; k++) {
          int kex = kIndexExtended(k, nx, ny, nf, marginWidth);

@@ -50,7 +50,13 @@ static inline int update_f(PVLayer * l, int start)
    const int nf = l->numFeatures;
    const int marginWidth = l->loc.nPad;
 
+   // make sure activity in border is zero
+   //
    int numActive = 0;
+   for (k = 0; k < l->numExtended; k++) {
+      activity[k] = 0.0;
+   }
+
    for (k = start; k < (l->numNeurons + start); k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       int active = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
