@@ -34,16 +34,25 @@ int Example::updateState(float time, float dt)
    // and activity buffer (nonspiking)
 
    pvdata_t * phi = clayer->phi[CHANNEL_EXC];
+   pvdata_t * activity = clayer->activity->data;
 
    const float nx = clayer->loc.nx;
    const float ny = clayer->loc.ny;
    const float nf = clayer->numFeatures;
    const float marginWidth = clayer->loc.nPad;
 
+   // make sure activity in border is zero
+   //
+   // TODO - set numActive and active list?
+   int numActive = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
+
    for (int k = 0; k < clayer->numNeurons; k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       clayer->V[k] = phi[k];
-      clayer->activity->data[kex] = phi[k];
+      activity[kex] = phi[k];
       phi[k] = 0.0;     // reset accumulation buffer
    }
 

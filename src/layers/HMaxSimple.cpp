@@ -34,6 +34,15 @@ int HMaxSimple::updateState(float time, float dt)
    // and activity buffer (nonspiking)
 
    pvdata_t * phi = clayer->phi[0];
+   pvdata_t * activity = clayer->activity->data;
+
+   // make sure activity in border is zero
+   //
+   // TODO - set numActive and active list?
+   int numActive = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
@@ -43,7 +52,7 @@ int HMaxSimple::updateState(float time, float dt)
       int kPhi = k;
 #endif
       clayer->V[k] = phi[kPhi];
-      clayer->activity->data[k] = phi[kPhi];
+      activity[k] = phi[kPhi];
       phi[kPhi] = 0.0;     // reset accumulation buffer
    }
 

@@ -38,6 +38,15 @@ int LGN::updateState(float time, float dt)
 
    pvdata_t * PhiExc = clayer->phi[CHANNEL_EXC];
    pvdata_t * PhiInh = clayer->phi[CHANNEL_INH];
+   pvdata_t * activity = clayer->activity->data;
+
+   // make sure activity in border is zero
+   //
+   // TODO - set numActive and active list?
+   int numActive = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
 #ifdef EXTEND_BORDER_INDEX
@@ -47,12 +56,12 @@ int LGN::updateState(float time, float dt)
       int kPhi = k;
 #endif
       clayer->V[k] = PhiExc[kPhi];
-      clayer->activity->data[k] = PhiExc[kPhi] - PhiInh[kPhi];
+      activity[k] = PhiExc[kPhi] - PhiInh[kPhi];
       //if (k > 64*2*32 && k < 2*64*32+128) {
       //   printf("PhiExc[%d]=%f, PhiInh[%d]=%f\n", k, PhiExc[kPhi], kPhi, PhiInh[kPhi]);
       //}
-      if (clayer->activity->data[k] < 0.0) {
-         clayer->activity->data[k] = 0.0;
+      if (activity[k] < 0.0) {
+         activity[k] = 0.0;
       }
       PhiExc[kPhi] = 0.0;     // reset accumulation buffers
       PhiInh[kPhi] = 0.0;
