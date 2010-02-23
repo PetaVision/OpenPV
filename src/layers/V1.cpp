@@ -136,6 +136,12 @@ int V1::updateState(float time, float dt)
    pvdata_t * phiInh   = clayer->phi[PHI_INH];
    pvdata_t * activity = clayer->activity->data;
 
+   // make sure activity in border is zero
+   //
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
+
    for (int k = 0; k < clayer->numNeurons; k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       V[k] = phiExc[k] - phiInh[k];
