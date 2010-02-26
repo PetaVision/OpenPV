@@ -5,13 +5,14 @@
  */
 
 #undef DEBUG_PRINT
+#define DEBUG_PRINT
 
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/layers/Example.hpp"
 #include "../src/io/io.h"
 
 
-const int numFeatures = 2;
+//const int numFeatures = 1;
 
 int main(int argc, char * argv[])
 {
@@ -22,11 +23,13 @@ int main(int argc, char * argv[])
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;
-   int nf  = numFeatures;
-   int nB = 4;
-   int nS = 8;
+   int nf  = l->clayer->loc.nBands;
+   int nB = l->clayer->loc.nPad; //4;
+   int nS = l->clayer->loc.nx; // 8;
    int syex = ( nS + 2*nB ) * nf;
    int sy = nS * nf;
+   int nx = 2*nB + nS;
+   int ny = nx;
 
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
@@ -56,6 +59,20 @@ int main(int argc, char * argv[])
       }
    }
 
+#ifdef DEBUG_PRINT
+   // write out extended cube values
+   for (int kf = 0; kf < nf; kf++) {
+      for (int ky = 0; ky < ny; ky++) {
+         for (int kx = 0; kx < nx; kx++) {
+            int kex = ky * syex + kx * nf + kf;
+            printf("%5i ", (int) sCube->data[kex]);
+         }
+         printf("\n");
+      }
+      printf("\n");
+   }
+#endif
+
    // this is the function we're testing...
    for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
       l->mirrorInteriorToBorder(borderId, sCube, bCube);
@@ -63,8 +80,6 @@ int main(int argc, char * argv[])
 
 #ifdef DEBUG_PRINT
    // write out extended cube values
-   int nx = 2*nB + nS;
-   int ny = nx;
    for (int kf = 0; kf < nf; kf++) {
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
