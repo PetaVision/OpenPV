@@ -5,7 +5,6 @@
  */
 
 #undef DEBUG_PRINT
-#define DEBUG_PRINT
 
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/layers/Example.hpp"
