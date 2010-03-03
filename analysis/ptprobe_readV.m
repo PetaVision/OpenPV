@@ -2,10 +2,9 @@ function [vmem_time, vmem_G_E, vmem_G_I, vmem_V, vmem_Vth, vmem_a, vmem_index, v
     ptprobe_readV(filename)
 
 global output_path 
-global N NROWS NCOLS % for the current layer
+global NCOLS % for the current layer
 global NFEATURES  % for the current layer
-global NO NK dK % for the current layer
-global n_time_steps begin_step end_step time_steps
+global n_time_steps
 
 filename = [output_path, filename];
 if ~exist(filename,'file')

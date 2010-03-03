@@ -4,10 +4,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
   global NO NK % for the current layer
-  global n_time_steps begin_step end_step time_steps tot_steps
-  global stim_begin_step stim_end_step stim_steps 
-  global bin_size dt
-  global begin_time end_time stim_begin_time stim_end_time 
+
 
   global NUM_BIN_PARAMS 
   global NUM_WGT_PARAMS
@@ -55,6 +52,11 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   weight_min = pvp_header(pvp_index.WGT_MIN);
   weight_max = pvp_header(pvp_index.WGT_MAX);
   num_patches = pvp_header(pvp_index.WGT_NUMPATCHES);
+
+  if ( weight_max < -1 ) && ( weight_min == 0 )
+    weight_max = - 1 / weight_max;
+  endif
+
   
   NCOLS = pvp_header(pvp_index.WGT_NXP);
   NROWS = pvp_header(pvp_index.WGT_NYP);
@@ -75,14 +77,15 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
     Return;
   end
 
-  nxp = zeros(num_patches,1);
-  nyp = zeros(num_patches,1);
+  nxp = repmat(NXP, num_patches,1);
+  nyp = repmat(NYP, num_patches,1);
   weights = cell(num_patches,1);
   for i_patch = 1 : num_patches
     nxp(i_patch) = fread(fid, 1, 'uint16');
     nyp(i_patch) = fread(fid, 1, 'uint16');
     weights_tmp = fread(fid, nxp(i_patch) * nyp(i_patch) * NFP, 'uint8');
-    weights{i_patch} = weight_min + weights_tmp * ( weight_max - weight_min );
+    weights{i_patch} = weight_min + weights_tmp * ( weight_max - ...
+						   weight_min ) / 255;
   end
   fclose(fid);
 

@@ -39,7 +39,6 @@ NUM_WGT_PARAMS = 6;
 input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
 output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
 
-num_layers = 3;
 pvp_order = 1;
 
 				% begin step, end_step and stim_begin_step may be adusted by
@@ -71,7 +70,8 @@ my_gray = [.666 .666 .666];
 num_targets = 1;
 fig_list = [];
 
-read_spikes = 1:num_layers;  % list of spiking layers whose spike train are to be analyzed
+read_spikes = 1:0;  % list of spiking layers whose spike train are to be analyzed
+num_layers = length(read_spikes);
 
 plot_vmem = 1;
 plot_weights_field = 1;
@@ -269,10 +269,11 @@ end % layer
 
 
 %% plot connections
+global N_CONNECTIONS
+global NXP NYP NFP
+N_CONNECTIONS = 2;
 plot_weights = 1;
-if plot_weights
-  global N_CONNECTIONS
-  global NXP NYP NFP
+if ( plot_weights == 1 )
   weights = cell(N_CONNECTIONS, 1);
   pvp_header = cell(N_CONNECTIONS, 1);
   nxp = cell(N_CONNECTIONS, 1);
@@ -288,7 +289,8 @@ if plot_weights
       NCOLS = nxp{i_conn}(i_patch);
       NROWS = nyp{i_conn}(i_patch);
       N = NROWS * NCOLS * NFEATURES;
-      pvp_reconstruct(weights{i_conn}{i_patch}, ["Weight reconstruction for connection = ", int2str(i_conn)]);
+      pvp_reconstruct(weights{i_conn}{i_patch}, ['Weight reconstruction: connection = ', ...
+						 int2str(i_conn)]);
     end % i_patch
   end % i_conn
 end % plot_weights
@@ -297,28 +299,32 @@ end % plot_weights
 %%read membrane potentials from point probes
 plot_membrane_potential = 1;
 if plot_membrane_potential
-    disp('plot_membrane_potential')
-
-    % TODO: the following info should be read from a pv ouptut file
-    vmem_file_list = {'VmemAmoeba1.txt', 'VmemAmoeba2.txt', 'VmemClutter1.txt', 'VmemClutter2.txt'};
-    vmem_layers = [2,2,2,2];
-
-    num_vmem_files = length(vmem_file_list);
-    for i_vmem = 1 : num_vmem_files
-        vmem_layer = vmem_layers(i_vmem);
-        [vmem_time, vmem_G_E, vmem_G_I, vmem_V, vmem_Vth, vmem_a, vmem_index, vmem_row, vmem_col, vmem_feature, vmem_name] = ...
-            ptprobe_readV(vmem_file_list{i_vmem});
-        if pvp_order
-            vmem_index = ( vmem_row * num_cols(vmem_layer) + vmem_col ) * num_features(vmem_layers) + vmem_feature;
-        end
-        plot_title = [ 'Vmem data for neuron ', vmem_name, ' in layer ', int2str(vmem_layer) ];
-        fh = figure('Name', plot_title);
-        [AX,H1,H2] = plotyy( vmem_time, [vmem_V, vmem_Vth, vmem_a], vmem_time, [vmem_G_E, vmem_G_I] );
-        hold on;
-    end % i_vmem_file
-end %plot_membrane_potential
-
-
+  disp('plot_membrane_potential')
+  
+				% TODO: the following info should be read from a pv ouptut file
+  vmem_file_list = {'VmemAmoeba1.txt', 'VmemAmoeba2.txt', 'VmemClutter1.txt', 'VmemClutter2.txt'};
+  vmem_layers = [2,2,2,2];
+  num_vmem_files = length(vmem_file_list);
+  for i_vmem = 1 : num_vmem_files
+    vmem_layer = vmem_layers(i_vmem);
+    if ( ~ismember( vmem_layer, read_spikes ) )
+      continue; % NROWS = 1, NFEATURES = 1;
+    endif
+    NROWS = num_rows(vmem_layer);
+    NFEATURES = num_features(vmem_layer);
+    [vmem_time, vmem_G_E, vmem_G_I, vmem_V, vmem_Vth, vmem_a, vmem_index, vmem_row, vmem_col, vmem_feature, vmem_name] = ...
+        ptprobe_readV(vmem_file_list{i_vmem});
+    if pvp_order
+      vmem_index = ( vmem_row * num_cols(vmem_layer) + vmem_col ) * num_features(vmem_layers) + vmem_feature;
+    endif 
+    plot_title = [ 'Vmem data: neuron = ', vmem_name, ' in layer = ', int2str(vmem_layer) ];
+    fh = figure('Name', plot_title);
+    [AX,H1,H2] = plotyy( vmem_time, [vmem_V, vmem_Vth, vmem_a], vmem_time, [vmem_G_E, vmem_G_I] );
+    hold on;
+  endif % i_vmem_file
+endfor %plot_membrane_potential
+  
+  
 
 %% plot psth's of all layers together
 plot_rates = tot_steps > min_plot_steps ;
@@ -336,7 +342,7 @@ if plot_rates
     legend_str = ...
 	{'Retina  '; ...
 	 'V1      '; ...
-	 'V1 Inh  '];
+	 'V1 Inh  '};
     if uimatlab
       leg_h = legend(lh(1:num_layers), legend_str);
     elseif uioctave
