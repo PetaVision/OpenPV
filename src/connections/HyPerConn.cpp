@@ -1019,7 +1019,7 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
             // The patch from the pre-synaptic layer could be smaller at borders.
             // At top and left borders, calculate the offset back to the original
             // data pointer for the patch.  This make indexing uniform.
-            //            
+            //
             int dx = (kxPre < nxPre / 2) ? nxPrePatch - p->nx : 0;
             int dy = (kyPre < nyPre / 2) ? nyPrePatch - p->ny : 0;
             int prePatchOffset = - p->sx * dx - p->sy * dy;
@@ -1471,6 +1471,8 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
    PVParams * params = parent->parameters();
    float strength = params->value(name, "strength", 1.0);
 
+   this->wMax = 1.0;
+   float maxVal = 0;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
       pvdata_t * w = wp->data;
@@ -1493,7 +1495,11 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
          for (int i = 0; i < nx * ny * nf; i++)
             w[i] *= factor;
       }
+      for (int i = 0; i < nx * ny * nf; i++) {
+         maxVal = ( w[i] > maxVal ) ? w[i] : maxVal;
+      }
    }
+   this->wMax = maxVal * (1.1);
    return patches;
 }
 
