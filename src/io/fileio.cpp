@@ -893,7 +893,8 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       params[INDEX_WGT_NYP] = nyp;
       params[INDEX_WGT_NFP] = nfp;
       params[INDEX_WGT_MIN] = (int) minVal;
-      params[INDEX_WGT_MAX] = (int) maxVal;
+      params[INDEX_WGT_MAX] =
+         (int) ( ( (int) minVal == 0 ) && ( maxVal > 0 ) && ( maxVal < 1 ) ) ? ( -1 / maxVal ) : maxVal;
       params[INDEX_WGT_NUMPATCHES] = numPatches;
 
       numParams = NUM_WGT_EXTRA_PARAMS;
