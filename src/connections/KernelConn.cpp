@@ -106,7 +106,8 @@ PVPatch ** KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
    int arbor = 0;
-   HyPerConn::initializeWeights(kernelPatches, numDataPatches(arbor), filename);
+   int numKernelPatches = numDataPatches(arbor);
+   HyPerConn::initializeWeights(kernelPatches, numKernelPatches, filename);
    return wPatches[arbor];
 }
 
