@@ -2,8 +2,8 @@ function [vmem_time, vmem_G_E, vmem_G_I, vmem_V, vmem_Vth, vmem_a, vmem_index, v
     ptprobe_readV(filename)
 
 global output_path 
-global NCOLS % for the current layer
-global NFEATURES  % for the current layer
+%global NCOLS % for the current layer
+%global NFEATURES  % for the current layer
 global n_time_steps
 
 filename = [output_path, filename];
@@ -52,7 +52,9 @@ vmem_feature_str = vmem_name(vmem_feature_loc:vmem_feature_loc2);
 vmem_row = str2double( vmem_row_str );
 vmem_col = str2double( vmem_col_str );
 vmem_feature = str2double( vmem_feature_str );
-vmem_index = ( ( vmem_row - 1 ) * NCOLS + ( vmem_col - 1 ) ) * NFEATURES;
+vmem_index = 0;			    
+				%vmem_index = ( ( vmem_row ) * NCOLS + ( vmem_col ) ) * NFEATURES + vmem_feature;
+			    
 
 
 
