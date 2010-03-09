@@ -3,7 +3,7 @@ function [pvp_header, pvp_index] = pvp_readWeightHeader(filename)
 global NUM_BIN_PARAMS 
 global NUM_WGT_PARAMS
 
-[pvp_header, pvp_index] = pvp_readHeader(filename)
+[pvp_header, pvp_index] = pvp_readHeader(filename);
 
 if isempty(pvp_header)
   return

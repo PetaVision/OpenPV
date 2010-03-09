@@ -39,5 +39,5 @@ end
 
 if plot_input_image
     fh = figure('Name', 'input image');
-    imagesc(pixels);
+    imagesc(flipdim(pixels, 1));
 end

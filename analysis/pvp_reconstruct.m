@@ -32,7 +32,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh )
 
 				% if activity is sparse, plot all pixels, else only plot pixels > mean
   nz_recon = length(find(recon_array ~= 0.0));
-  if nz_recon < length(recon_array) % / 2
+  if nz_recon < length(recon_array) / (NO*NK)
     min_recon_val = min_recon;
   else
     min_recon_val = ave_recon;
@@ -55,7 +55,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh )
   colormap('gray');
 				% cmap = colormap;
   hold on;
-  if NO > 1 &&  max_recon > 0
+  if NO > 1 
     [recon_array, recon_ndx] = sort(recon_array(:));
     first_recon_ndx = find(recon_array > min_recon_val, 1, 'first');
     for recon_index = first_recon_ndx : length(recon_ndx)
@@ -80,9 +80,8 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh )
       line_color = 1 - recon_val;
       set( lh, 'Color', line_color*[1 1 1]);
     endfor
-  elseif NO == 0
+  elseif NO == 1
     recon2D = reshape( recon_array, [NCOLS, NROWS] )';
-    recon2D = recon2D';
     imagesc( recon2D );  % plots recod2D as an image
   endif
   hold off;
