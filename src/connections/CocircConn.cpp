@@ -173,7 +173,7 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
       float xDelta = 0.0;
       float yDelta = 0.0;
-     for (int jPost = 0; jPost < nyPatch; jPost++) {
+      for (int jPost = 0; jPost < nyPatch; jPost++) {
         yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;

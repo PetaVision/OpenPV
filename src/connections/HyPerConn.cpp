@@ -1303,8 +1303,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
-   // TODO - is this correct
-   int noPost = no;
 
 #undef OLD_GAUSS2DCALCWEIGHTS
 #ifndef OLD_GAUSS2DCALCWEIGHTS  // use new method
@@ -1341,10 +1339,22 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const float dth = PI / (float) nfPatch;
    const float th0 = rotate * dth / 2.0f;
 
+   // TODO - the following assumes that if aspect > 1, # orientations = # features
+   //   int noPost = no;
+   // number of orientations only used if aspect != 1
+   const int noPost = post->clayer->numFeatures;
+   const int noPre = pre->clayer->numFeatures;
+   const int iThPre = kPre % noPre;
+   const float dthPre = PI / (float) noPre;
+   const float thPre = th0 + iThPre * dthPre;
+
    // loop over all post-synaptic cells in patch
    for (int fPost = 0; fPost < nfPatch; fPost++) {
       int oPost = fPost % noPost;
       float thPost = th0 + oPost * dth;
+      if (noPost == 1 && noPre > 1) {
+         thPost = thPre;
+      }
       for (int jPost = 0; jPost < nyPatch; jPost++) {
          float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          for (int iPost = 0; iPost < nxPatch; iPost++) {
