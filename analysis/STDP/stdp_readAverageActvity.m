@@ -1,4 +1,4 @@
-function [spikes, ave_rate] = stdp_readSparseSpikes(fname)
+function [average_array, ave_rate] = stdp_readAverageActivity(fname)
 
 global input_dir n_time_steps begin_step 
 
@@ -24,6 +24,7 @@ if exist(filename,'file')
     minInd = N+1;
     maxInd = -1;
    
+    average_array = zeros(1,N);
     
     for i_step = 1 : n_time_steps
         
@@ -43,7 +44,8 @@ if exist(filename,'file')
         end
         
         S =fread(fid, num_spikes, 'int'); % S is a column vector
-        
+        size(S)
+        pause
         if debug 
             fprintf('%d: %f number of spikes = %d: ', ...
                 i_step, time, num_spikes);

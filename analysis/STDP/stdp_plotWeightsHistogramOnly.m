@@ -217,13 +217,6 @@ if ~feof(fid)
         %pause
     else
         disp('eof found: return');
-        time = -1;
-        varargout{1} = numPatches;
-        varargout{2} = 0;
-        varargout{3} = 0;
-        varargout{4} = 0;
-        varargout{5} = 0;
-        varargout{6} = 0;
     end
 else
    disp('eof found: return'); 

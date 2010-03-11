@@ -11,16 +11,16 @@ global patch_size write_step
 %input_dir = '/Users/manghel/Documents/workspace/marian/output/';
 input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
 
-num_layers = 2;
+num_layers = 3;
 n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
-write_step = 1000; % set in params.stdp
+write_step = 10000; % set in params.stdp
 
 
-begin_step = 90000;  % where we start the analysis
+begin_step = 90000;  % where we start the analysis (used by readSparseSpikes)
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
-stim_end = 100000;
+stim_end = 1000000;
 stim_length = stim_end - stim_begin + 1;
 stim_begin = stim_begin - begin_step + 1;
 stim_end = stim_end - begin_step + 1;
@@ -36,14 +36,17 @@ target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
 parse_tiff = 0;
-read_spikes = 0;
+read_spikes = 0;    % read spikes if you want plot_raster!
+                    % reading is slow for long runs
 simple_movie = 0;
 plot_raster = 0;
-plot_spike_activity = 0;
+plot_spike_activity = 0; 
+plot_average_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
 plot_weights_field = 1;
 plot_weights_histogram = 0;
+plot_weights_corr = 0; % read spikes first
 plot_patch = 0;
 comp_PCA = 0;
     
@@ -52,8 +55,7 @@ if read_spikes
     spike_array_bkgrnd = spike_array;
 end
 
-if parse_tiff
-    
+if parse_tiff    
    tiff_path = [input_dir 'images/img2D_0.00.tif'];
    %imshow(tiff_path);
    [targ, Xtarg, Ytarg] = stdp_parseTiff( tiff_path );
@@ -65,7 +67,7 @@ else
 end
 
 
-for layer = 1:num_layers; % skip retina, otherwise start from 0
+for layer = 2:num_layers; % layer 1 here is layer 0 in PV
 
     % Read parameters from file which pv created: LAYER
     [f_file, v_file, w_file, w_last, xScale, yScale] = stdp_globals( layer );
@@ -78,6 +80,9 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
         [spike_array{layer}, ave_rate] = stdp_readSparseSpikes(f_file);
         disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
         tot_steps = size( spike_array{layer}, 1 );
+        tot_neurons = size( spike_array{layer}, 2);
+        fprintf('tot_steps = %d tot_neurons = %d\n',...
+            tot_steps,tot_neurons);
         num_bins = fix( tot_steps / bin_size );
         excess_steps = tot_steps - num_bins * bin_size;
         stim_bin_length = fix( ( stim_end - stim_begin + 1 ) / bin_size );
@@ -136,14 +141,14 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
      
     if plot_spike_activity 
         disp('compute rate array and spike activity array')
-        rate_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),1) );
+        rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
         % this is a 1xN array where N=NX*NY
         disp('plot_rate_reconstruction')
         stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
             ['Rate reconstruction for layer  ', int2str(layer)]);
         pause
 
-        spikes_array{layer} = 1000 * full( mean(spike_array{layer}(tot_steps,:),2) );
+        spikes_array{layer} = 1000 * full( mean(spike_array{layer},2) );
         % this is Tx1 array
         plot_title = ['Spiking activity for layer  ',int2str(layer)];
         figure('Name',plot_title);
@@ -172,8 +177,55 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
         % plot spikes for selected indices
         % stdp_plotSpikes(spike_array{layer},[]);
         
+        
     end
     
+    
+    if plot_average_activity
+        disp('read and plot average activity')
+        [average_array{layer}, ave_rate] = stdp_readAverageActivity(f_file);
+        disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
+        tot_steps = size( spike_array{layer}, 1 );
+        tot_neurons = size( spike_array{layer}, 2);
+        fprintf('tot_steps = %d tot_neurons = %d\n',...
+            tot_steps,tot_neurons);
+        num_bins = fix( tot_steps / bin_size );
+        excess_steps = tot_steps - num_bins * bin_size;
+        stim_bin_length = fix( ( stim_end - stim_begin + 1 ) / bin_size );
+        stim_bin_begin = fix( ( stim_begin - begin_step + 1 ) / bin_size );
+        stim_bin_end = fix( ( stim_end - begin_step + 1 ) / bin_size );
+        stim_bins = stim_bin_begin : stim_bin_end;     
+    end
+    
+    if plot_weights_corr
+        
+        disp('compute rate array and spike activity array')
+        rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
+        % this is a 1xN array where N=NX*NY
+        disp('plot_rate_reconstruction')
+        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
+            ['Rate reconstruction for layer  ', int2str(layer)]);
+        pause
+        
+        % NOTE: Read spikes first!
+        % Plot a histogram of rate activity
+        %ind = find(A > 0.0);
+        nbins = 200;
+        [n,xout] = hist(rate_array{layer},nbins);
+        plot_title = ['Rate Histogram for layer ', int2str(layer)];
+        figure('Name',plot_title);
+        %plot(xout,n,'-g','LineWidth',3);
+        bar(xout,n,'g');
+        pause
+        
+        T = input('print rate threshold ');
+        ind = find(rate_array{layer} > T)
+        stdp_plotWeightsCorr(w_file, ind, NX*xScale, NY*yScale,...
+            20, ['Weights correlations for layer  ', int2str(layer)]);
+        pause
+        
+        
+    end
     
     if plot_weights_rate_evolution
         disp('plot weights rate evolution');
@@ -289,7 +341,7 @@ for layer = 1:num_layers; % skip retina, otherwise start from 0
             %pause
             sym={'o-g','o-r'};
             plot_title = ['Weights evolution for neuron (' num2str(I) ',' num2str(J) ')'];
-            PATCH = stdp_plotPatch(w_file, I,J, plot_title );
+            PATCH = stdp_plotPatch(w_file, I,J, NX, NY, plot_title );
             figure('Name', plot_title);
             for k=1:9,
                 %plot(PATCH(:,k),sym{k}),hold on,

@@ -21,8 +21,9 @@ plotTarget = 0;
 
 %figure('Name','Weights Fields');
 
-debug = 1;
+debug = 0;
 weightsChange = 0;
+scaleWeights = 0;
 numRecords = 0;  % number of weights records (configurations)
 
 if exist(filename,'file')
@@ -108,7 +109,9 @@ if exist(filename,'file')
                     
                     w = fread(fid, nItems, 'uchar'); % unsigned char
                     % scale weights: they are quantized before written
-                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                    if scaleWeights
+                       w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                    end
                     if debug 
                         for r=1:patch_size
                             fprintf('%d ',w(r));
@@ -194,7 +197,7 @@ if exist(filename,'file')
                 avWeights = avWeights + A;
             end
         end   
-        pause % after reading one set of weights
+        %pause % after reading one set of weights
     end % reading from weights file
     
     fclose(fid);
