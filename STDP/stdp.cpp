@@ -1,4 +1,3 @@
-<<<<<<< .mine
 /*
  * stdp.cpp
  *
@@ -8,16 +7,19 @@
 
 #include <stdlib.h>
 
-#include "Gratings.hpp"
+#include "RandomImage.hpp"
 
 #include <src/columns/HyPerCol.hpp>
 #include <src/connections/RandomConn.hpp>
+#include <src/connections/AvgConn.hpp>
+#include <src/layers/Gratings.hpp>
 #include <src/layers/Image.hpp>
 #include <src/layers/ImageCreator.hpp>
 #include <src/layers/Movie.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
 #include <src/io/ConnectionProbe.hpp>
+#include <src/io/GLDisplay.hpp>
 #include <src/io/PostConnProbe.hpp>
 #include <src/io/LinearActivityProbe.hpp>
 #include <src/io/PointProbe.hpp>
@@ -28,35 +30,76 @@
 using namespace PV;
 
 int main(int argc, char* argv[]) {
+
+    int gratings_image = 1;
+    int random_image = 0;
+	int movie_frames = 0;
+	int point_probesI = 0;
+	int point_probesII = 0;
+	int conn_probes = 0;
+	int linact_probesX = 0; // activity along row
+	int linact_probesY = 0; // activity along column
+	int stat_probes = 0;
+	int data_display = 0;
+
 	// create the managing hypercolumn
 	//
 	HyPerCol * hc = new HyPerCol("column", argc, argv);
 
 	// create the image
-	//
-	Image * image = new Gratings("Image", hc);
 
-	// or create movie frames with the Movie class
-	//
-	if (0) {
+    Image * image;
+	if (gratings_image) {
+		// Gratings Image
+		Gratings * gratings = new Gratings("Image", hc);
+		//image = new Gratings("Image", hc);
+		gratings->setRandomPhase(false); // for sinusoidally modulated images
+		gratings->setRandomPosition(true);
+		gratings->setProbSwitch(0.0);
+		gratings->setProbMove(0.1);
+		image = gratings;
+	} else if (random_image) {
+		// Random Image
+		image = new RandomImage("Image", hc);
+	} else if (movie_frames) {
+		// or create movie frames with the Movie class
 		float displayPeriod = 20; // ms
 		const char * files = "input/movies/movies.files";
-		Movie * image = new Movie("Image", hc, files, displayPeriod);
-
-		//
+		image = new Movie("Image", hc, files, displayPeriod);
 		// output first image frame
 		image->write("frame0.tif");
+	} else {
+		printf("choose an image type: abort\n");
+		exit(-1);
 	}
+
 	// create the layers
 	//
 	HyPerLayer * retina = new Retina("Retina", hc, image);
+	//HyPerLayer * av_retina = new V1("RetinaAvg", hc);
 	HyPerLayer * l1 = new V1("L1", hc);
 	//HyPerLayer * l1Inh = new V1("L1Inh", hc);
+
+	if (data_display) {
+		// create a run time data display
+		int numRows = 2;
+		int numCols = 2;
+		GLDisplay * display = new GLDisplay(&argc, argv, hc, numRows, numCols);
+		display->setDelay(50); // set wait delay of 50 ms each time step
+		display->setImage(image);
+		//display->addLayer(av_retina);
+		display->addLayer(retina);
+		display->addLayer(l1);
+		//display->addLayer(l1Inh);
+	}
 
 	// create the connections
 	//
 	HyPerConn * r_l1 = new HyPerConn("Retina to L1", hc, retina, l1,
 			CHANNEL_EXC);
+
+	//HyPerConn * r_av = new AvgConn("Retina to RetinaAvg", hc, retina,
+	//		av_retina, CHANNEL_EXC, NULL);
 
 	//HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh,
 	//		CHANNEL_EXC);
@@ -65,92 +108,129 @@ int main(int argc, char* argv[]) {
 
 	// add probes
 
-	//HyPerLayer * displayLayer = retina;
-	HyPerLayer * displayLayer = l1;
+	if (stat_probes) {
+		LayerProbe * statsR = new StatsProbe(BufActivity, "R    :");
+		LayerProbe * statsL1 = new StatsProbe(BufActivity, "L1   :");
+		LayerProbe * statsL1Inh = new StatsProbe(BufActivity, "L1Inh:");
 
-	const int ny = displayLayer->clayer->loc.ny;
-	PVLayerProbe * laProbes[ny]; // array of ny pointers to LinearActivityProbe
-
-	for (int iy = 2; iy < ny - 2; iy++) {
-		//      laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
-		//      displayLayer->insertProbe(laProbes[iy]);
+		retina->insertProbe(statsR);
+		l1->insertProbe(statsL1);
+		//l1Inh->insertProbe(statsL1Inh);
 	}
-    //
-	PVLayerProbe * statsR = new StatsProbe(BufActivity, "R    :");
-	PVLayerProbe * statsL1 = new StatsProbe(BufActivity, "L1   :");
-	PVLayerProbe * statsL1Inh = new StatsProbe(BufActivity, "L1Inh:");
 
-	//retina->insertProbe(statsR);
-	//l1->insertProbe(statsL1);
-	//l1Inh->insertProbe(statsL1Inh);
+	if (point_probesI) {
+		LayerProbe * ptprobe0 = new PointProbe(16, 16, 0, "L1:(16,16)");
+		LayerProbe * ptprobe1 = new PointProbe(17, 16, 0, "L1:(17,16)");
+		LayerProbe * ptprobe2 = new PointProbe(18, 16, 0, "L1:(18,16)");
+		LayerProbe * ptprobe3 = new PointProbe(19, 16, 0, "L1:(19,16)");
+		LayerProbe * ptprobe4 = new PointProbe(20, 16, 0, "L1:(20,16)");
+		l1->insertProbe(ptprobe0);
+		l1->insertProbe(ptprobe1);
+		l1->insertProbe(ptprobe2);
+		l1->insertProbe(ptprobe3);
+		l1->insertProbe(ptprobe4);
+	}
 
-	PVLayerProbe * ptprobe0 = new PointProbe(16, 16, 0, "L1:(16,16)");
-	PVLayerProbe * ptprobe1 = new PointProbe(17, 16, 0, "L1:(17,16)");
-	PVLayerProbe * ptprobe2 = new PointProbe(18, 16, 0, "L1:(18,16)");
-	PVLayerProbe * ptprobe3 = new PointProbe(19, 16, 0, "L1:(19,16)");
-	PVLayerProbe * ptprobe4 = new PointProbe(20, 16, 0, "L1:(20,16)");
-	//l1->insertProbe(ptprobe0);
-	//l1->insertProbe(ptprobe1);
-	//l1->insertProbe(ptprobe2);
-	//l1->insertProbe(ptprobe3);
-	//l1->insertProbe(ptprobe4);
+	// insert point probes along a line
+	if (point_probesII) {
 
-	if (0){
-	// insert pre connection probes
-	ConnectionProbe * cProbe1 = new ConnectionProbe(6, 6, 0);
-	ConnectionProbe * cProbe2 = new ConnectionProbe(7, 6, 0);
-	ConnectionProbe * cProbe3 = new ConnectionProbe(8, 6, 0);
-	ConnectionProbe * cProbe4 = new ConnectionProbe(9, 6, 0);
+		int locY = 4;
+		int nx = l1->clayer->loc.nx;
+		int ny = l1->clayer->loc.ny;
+		PointProbe * ptProbes[nx]; // array of nx pointers to PointProbe
 
-	 //r_l1->insertProbe(cProbe1);
-	 //r_l1->insertProbe(cProbe2);
-	 //r_l1->insertProbe(cProbe3);
-	 //r_l1->insertProbe(cProbe4);
-
-
-	cProbe1->setOutputIndices(true);
-	cProbe1->outputState(0.0, r_l1);
-	cProbe1->setOutputIndices(false);
-
-	cProbe2->setOutputIndices(true);
-	cProbe2->outputState(0.0, r_l1);
-	cProbe2->setOutputIndices(false);
-
-	cProbe3->setOutputIndices(true);
-	cProbe3->outputState(0.0, r_l1);
-	cProbe3->setOutputIndices(false);
-
-	cProbe4->setOutputIndices(true);
-	cProbe4->outputState(0.0, r_l1);
-	cProbe4->setOutputIndices(false);
-
-
-	// insert post connection probes
-	// the arguments are post indices (normal space)
-	PostConnProbe * pcProbe0 = new PostConnProbe(16, 16, 0);
-	//r_l1->insertProbe(pcProbe0);
-	pcProbe0->setOutputIndices(true);
-	pcProbe0->outputState(0.0, r_l1);
-	pcProbe0->setOutputIndices(false);
-	} // end if(0)
-
-	// BE CAREFUL: change displayLayer above too!!!!
-	// so that you extract the proper ny value for the layer
-	// you want to display its activity
-	if (1) { // ma
-		LinearActivityProbe * laProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
-
-		for (unsigned int i = 0; i < ny; i++) {
-			//laProbes[i] = new PV::LinearActivityProbe(hc, PV::DimX, i, 0);
-			//retina->insertProbe(laProbes[i]);
-			//l1->insertProbe(laProbes[i]);
-			//l1Inh->insertProbe(laProbes[i]);
-			//l3->insertProbe(laProbes[i]);
-			//l4->insertProbe(laProbes[i]);
-			//l5->insertProbe(laProbes[i]);
-
+		for (unsigned int i = 0; i < nx; i++) {
+			char str[10];
+			if (i < 10)
+				sprintf(str, " %d: ", i);
+			else
+				sprintf(str, "%d: ", i);
+			ptProbes[i] = new PointProbe(i, locY, 0, str);
+			//retina->insertProbe(rProbes[i]);
+			l1->insertProbe(ptProbes[i]);
 		}
 	}
+
+	if (conn_probes) {
+		int n;
+		int numCProbes = 16;
+
+		ConnectionProbe * cProbe[numCProbes]; // array of pointers to ConnectionProbes
+		n = 0;
+		for (unsigned int ix = 0; ix < numCProbes / 2; ix++) {
+			cProbe[n] = new ConnectionProbe(ix, 0, 0);
+			//r_l1->insertProbe(cProbe1);
+			cProbe[n]->setOutputIndices(true);
+			cProbe[n]->outputState(0.0, r_l1);
+			cProbe[n]->setOutputIndices(false);
+			n++;
+		}
+
+		for (unsigned int ix = 0; ix < numCProbes / 2; ix++) {
+			cProbe[n] = new ConnectionProbe(ix, 7, 0);
+			//r_l1->insertProbe(cProbe[n]);
+			cProbe[n]->setOutputIndices(true);
+			cProbe[n]->outputState(0.0, r_l1);
+			cProbe[n]->setOutputIndices(false);
+			n++;
+		}
+
+		int numPCProbes = 16;
+		PostConnProbe * pcProbe[numPCProbes];
+		n = 0;
+		for (unsigned int ix = 0; ix < numPCProbes; ix++) {
+			pcProbe[n] = new PostConnProbe(ix, 2, 0);
+			//r_l1->insertProbe(pcProbe[n]);
+			pcProbe[n]->setOutputIndices(true);
+			pcProbe[n]->outputState(0.0, r_l1);
+			pcProbe[n]->setOutputIndices(false);
+			n++;
+		}
+
+	} // end if(conn_probes)
+
+	if (linact_probesX) { // ma
+
+		HyPerLayer * displayLayer = retina;
+		//HyPerLayer * displayLayer = l1;
+
+		//const int marginWidth = displayLayer->clayer->loc.nPad;
+		//const int ny = displayLayer->clayer->loc.ny + 2 * marginWidth;
+		const int ny = displayLayer->clayer->loc.ny;
+		//LinearActivityProbe * laProbes[2*marginWidth]; // array of ny pointers to LinearActivityProbe
+		LinearActivityProbe * laProbes[ny];
+
+		for (unsigned int iy = 0; iy < ny ; iy++) {
+			laProbes[iy] = new PV::LinearActivityProbe(hc, PV::DimX, iy, 0);
+			displayLayer->insertProbe(laProbes[iy]);
+		}
+
+		//for (unsigned int iy = 0; iy < marginWidth ; iy++) {
+		//			laProbes[iy] = new PV::LinearActivityProbe(hc, PV::DimX, iy, 0);
+		//			displayLayer->insertProbe(laProbes[iy]);
+		//		}
+
+		//for (unsigned int iy = 0; iy < marginWidth ; iy++) {
+		//			laProbes[marginWidth+iy] = new PV::LinearActivityProbe(hc, PV::DimX,
+		//					marginWidth + ny +iy, 0);
+		//			displayLayer->insertProbe(laProbes[marginWidth+iy]);
+		//		}
+	}
+
+	if (linact_probesY) { // ma
+
+		HyPerLayer * displayLayer = retina;
+		//HyPerLayer * displayLayer = l1;
+
+		const int nx = displayLayer->clayer->loc.nx;
+		LinearActivityProbe * laProbes[nx]; // array of nx pointers to LinearActivityProbe
+
+		for (unsigned int ix = 0; ix < nx ; ix++) {
+			laProbes[ix] = new PV::LinearActivityProbe(hc, PV::DimY, ix, 0);
+			displayLayer->insertProbe(laProbes[ix]);
+		}
+	}
+
 	// run the simulation
 	hc->initFinish();
 	hc->run();
@@ -160,133 +240,4 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-=======
-/*
- * stdp.cpp
- *
- *  Created on: Apr 2, 2009
- *      Author: rasmussn
- */
 
-#include <stdlib.h>
-
-#include "Gratings.hpp"
-
-#include <src/columns/HyPerCol.hpp>
-#include <src/connections/RandomConn.hpp>
-#include <src/layers/Image.hpp>
-#include <src/layers/ImageCreator.hpp>
-#include <src/layers/Movie.hpp>
-#include <src/layers/Retina.hpp>
-#include <src/layers/V1.hpp>
-#include <src/io/ConnectionProbe.hpp>
-#include <src/io/PostConnProbe.hpp>
-#include <src/io/LinearActivityProbe.hpp>
-#include <src/io/PointProbe.hpp>
-#include <src/io/StatsProbe.hpp>
-
-#include <src/io/imageio.hpp>
-
-using namespace PV;
-
-int main(int argc, char* argv[]) {
-	// create the managing hypercolumn
-	//
-	HyPerCol * hc = new HyPerCol("column", argc, argv);
-
-	// create the image
-	//
-	Image * image = new Gratings("Image", hc);
-
-	// or create movie frames with the Movie class
-	//
-	if (0) {
-		float displayPeriod = 20; // ms
-		const char * files = "input/movies/movies.files";
-		Movie * image = new Movie("Image", hc, files, displayPeriod);
-
-		//
-		// output first image frame
-		image->write("frame0.tif");
-	}
-	// create the layers
-	//
-	HyPerLayer * retina = new Retina("Retina", hc, image);
-	HyPerLayer * l1 = new V1("L1", hc);
-	//HyPerLayer * l1Inh = new V1("L1Inh", hc);
-
-	// create the connections
-	//
-	HyPerConn * r_l1 = new HyPerConn("Retina to L1", hc, retina, l1,
-			CHANNEL_EXC);
-	//HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh,
-	//		CHANNEL_EXC);
-	//HyPerConn * inh_l1 = new HyPerConn("L1Inh to L1", hc, l1Inh, l1,
-	//		CHANNEL_INH);
-
-	// add probes
-
-	HyPerLayer * displayLayer = retina;
-
-	const int ny = displayLayer->clayer->loc.ny;
-	PVLayerProbe * laProbes[ny]; // array of ny pointers to LinearActivityProbe
-
-	for (int iy = 2; iy < ny - 2; iy++) {
-		//      laProbes[iy] = new LinearActivityProbe(hc, DimX, iy, 0);
-		//      displayLayer->insertProbe(laProbes[iy]);
-	}
-
-	PVLayerProbe * statsR = new StatsProbe(BufActivity, "R    :");
-	PVLayerProbe * statsL1 = new StatsProbe(BufActivity, "L1   :");
-	PVLayerProbe * statsL1Inh = new StatsProbe(BufActivity, "L1Inh:");
-
-	//retina->insertProbe(statsR);
-	//l1->insertProbe(statsL1);
-	//l1Inh->insertProbe(statsL1Inh);
-
-	PVLayerProbe * ptprobe0 = new PointProbe(16, 16, 0, "L1:(16,16)");
-	PVLayerProbe * ptprobe1 = new PointProbe(17, 16, 0, "L1:(17,16)");
-	PVLayerProbe * ptprobe2 = new PointProbe(18, 16, 0, "L1:(18,16)");
-	PVLayerProbe * ptprobe3 = new PointProbe(19, 16, 0, "L1:(19,16)");
-	PVLayerProbe * ptprobe4 = new PointProbe(20, 16, 0, "L1:(20,16)");
-	//l1->insertProbe(ptprobe0);
-	//   l1->insertProbe(ptprobe1);
-	//   l1->insertProbe(ptprobe2);
-	//   l1->insertProbe(ptprobe3);
-	//   l1->insertProbe(ptprobe4);
-
-	ConnectionProbe * cProbe0 = new PostConnProbe(16, 16, 0);
-	ConnectionProbe * cProbe1 = new PostConnProbe(17, 16, 0);
-	ConnectionProbe * cProbe2 = new PostConnProbe(18, 16, 0);
-	ConnectionProbe * cProbe3 = new PostConnProbe(19, 16, 0);
-	ConnectionProbe * cProbe4 = new PostConnProbe(20, 16, 0);
-	//r_l1->insertProbe(cProbe0);
-	//   r_l1->insertProbe(cProbe1);
-	//   r_l1->insertProbe(cProbe2);
-	//   r_l1->insertProbe(cProbe3);
-	//   r_l1->insertProbe(cProbe4);
-
-	if (1) { // ma
-		LinearActivityProbe * laProbes[ny]; // array of ny pointers to PV::LinearActivityProbe
-
-		for (unsigned int i = 0; i < ny; i++) {
-			laProbes[i] = new PV::LinearActivityProbe(hc, PV::DimX, i, 0);
-			retina->insertProbe(laProbes[i]);
-			//l1->insertProbe(laProbes[i]);
-			//l2->insertProbe(laProbes[i]);
-			//l3->insertProbe(laProbes[i]);
-			//l4->insertProbe(laProbes[i]);
-			//l5->insertProbe(laProbes[i]);
-
-		}
-	}
-	// run the simulation
-	hc->initFinish();
-	hc->run();
-
-	/* clean up (HyPerCol owns layers and connections, don't delete them) */
-	delete hc;
-
-	return 0;
-}
->>>>>>> .r2012
