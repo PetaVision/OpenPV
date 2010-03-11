@@ -7,7 +7,7 @@ HyPerCol "column" = {
    nx = 128;   // until we get going with images
    ny = 128;
    dt = 1.0;
-   mirrorBCflag = 1;
+   mirrorBCflag = 1;  
 };
 
 //
@@ -33,8 +33,8 @@ HyPerLayer "Retina" = {
 
    spikingFlag = 1;        // spike as poisson
 
-   noiseOnFreq  = 200;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 10;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 200;    // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 10;    // (Hz) when this is defined poissonEdge overridden
 };
 
 HyPerLayer "LGN" = {
@@ -43,9 +43,10 @@ HyPerLayer "LGN" = {
    nf = 1;
    
    marginWidth = 8;
+   restart = 1;
    
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 2.0;  
 };
 
 HyPerLayer "LGNInh" = {
@@ -54,8 +55,9 @@ HyPerLayer "LGNInh" = {
    nf = 1;
    
    marginWidth = 8;
+   restart = 1;
    
-   VthRest = -45.0;
+   VthRest = -55.0;
 
    noiseAmpE = 1.0;
    noiseAmpI = 2.0;
@@ -67,6 +69,7 @@ HyPerLayer "L1" = {
    nf = 12;
    
    marginWidth = 8;
+   restart = 1;
    
    noiseAmpE = 1.0;
    noiseAmpI = 2.0;
@@ -79,8 +82,9 @@ HyPerLayer "L1Inh" = {
    nf = 12;
    
    marginWidth = 8;
+   restart = 1;
    
-   VthRest = -45.0;
+   VthRest = -55.0;
    
    noiseAmpE = 1.0;
    noiseAmpI = 2.0;
@@ -108,14 +112,29 @@ HyPerConn "Retina to LGN" = {
    nyp = 3; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;  
    initFromLastFlag = 0;  
 
    aspect = 1;
    sigma = 0.5;
    rMax  = 3;
-   strength = 8.0;  
+   strength = 4.0;  
+};
+
+
+HyPerConn "LGN to LGNInh" = {
+   nxp = 3; 
+   nyp = 3; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1.5;
+   rMax  = 3;
+   strength = 4.0;  
+   
 };
 
 
@@ -124,14 +143,13 @@ HyPerConn "LGNInh to LGN" = {
    nyp = 3; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
-   strength = 64.0;  
+   strength = 8.0;  
    
 };
 
@@ -141,14 +159,13 @@ HyPerConn "LGNInh to LGNInh Exc" = {
    nyp = 7; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  
    
    aspect = 1;
    sigma = 3.5;
    rMax  = 7;
-   strength = 8.0;  
+   strength = 1.0;  
    
 };
 
@@ -157,14 +174,13 @@ HyPerConn "LGNInh to LGNInh Inh" = {
    nyp = 7; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;   
    initFromLastFlag = 0; // 1;   
 
    aspect = 1;
    sigma = 3.5;
    rMax  = 7;
-   strength = 16.0;  
+   strength = 1.0;  
    
    delay = 2.0;
    
@@ -176,8 +192,7 @@ HyPerConn "LGN to L1" = {
    nyp = 7; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 7;
@@ -193,14 +208,13 @@ HyPerConn "L1 to LGN" = {
    nyp = 7; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 16.0;  
+   strength = 4.0;  
    
    delay = 1.0;
 };
@@ -211,14 +225,13 @@ HyPerConn "L1 to LGNInh" = {
    nyp = 7; 
    
    stdpFlag   = 0;
-   randomFlag = 0;
-   
+   randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 32.0;  
+   strength = 8.0;  
    
    delay = 1.0;
 };
@@ -227,7 +240,12 @@ HyPerConn "L1 to LGNInh" = {
 HyPerConn "L1 to L1" = {
    nxp = 15; // 87;
    nyp = 15; // 87;
-   strength = 32;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 16.0;
    
    delay = 1.0;
    
@@ -236,7 +254,12 @@ HyPerConn "L1 to L1" = {
 HyPerConn "L1 to L1Inh" = {
    nxp = 15; 
    nyp = 15; 
-   strength = 128;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 32.0;
       
    delay = 1.0;
 };
@@ -244,7 +267,12 @@ HyPerConn "L1 to L1Inh" = {
 HyPerConn "L1Inh to L1" = {
    nxp = 7;
    nyp = 7;
-   strength = 256;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 32.0;
 
    aspect = 3.5;
    sigma = 7;
@@ -257,7 +285,12 @@ HyPerConn "L1Inh to L1" = {
 HyPerConn "L1Inh to L1Inh Exc" = {
    nxp = 7;
    nyp = 7;
-   strength = 16;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 1.0;
 
    aspect = 3.5;
    sigma = 7;
@@ -269,7 +302,12 @@ HyPerConn "L1Inh to L1Inh Exc" = {
 HyPerConn "L1Inh to L1Inh Inh" = {
    nxp = 7;
    nyp = 7;
-   strength = 32;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 1.0;
 
    aspect = 3.5;
    sigma = 7;
