@@ -4,6 +4,7 @@
  */
 
 #include <stdlib.h>
+#include <time.h>
 
 #include <src/columns/HyPerCol.hpp>
 #include <src/connections/HyPerConn.hpp>
@@ -25,6 +26,10 @@
 using namespace PV;
 
 int main(int argc, char* argv[]) {
+
+	int iseed = time(NULL);
+	srand ( iseed );
+
 	// create the managing hypercolumn
 	//
 	HyPerCol * hc = new HyPerCol("column", argc, argv);
@@ -60,8 +65,8 @@ int main(int argc, char* argv[]) {
 	HyPerConn * r_lgn =
 		new KernelConn("Retina to LGN", hc, retina, lgn,
 			CHANNEL_EXC);
-	HyPerConn * lgn_l1 =
-		new KernelConn("LGN to L1",     hc, lgn,    l1,
+	HyPerConn * lgn_lgninh =
+		new KernelConn("LGN to LGNInh", hc, lgn, lgninh,
 			CHANNEL_EXC);
 	HyPerConn * lgninh_lgn =
 		new KernelConn("LGNInh to LGN", hc, lgninh, lgn,
@@ -72,6 +77,9 @@ int main(int argc, char* argv[]) {
 	HyPerConn * lgninh_lgninh =
 		new KernelConn("LGNInh to LGNInh Inh", hc, lgninh, lgninh,
 			CHANNEL_INH);
+	HyPerConn * lgn_l1 =
+		new KernelConn("LGN to L1",     hc, lgn,    l1,
+			CHANNEL_EXC);
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -132,31 +140,10 @@ int main(int argc, char* argv[]) {
 		new PointProbe(Vmem_filename_LGNa1, 54, 119, 0, "LGNA1:(78,102,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
-	const char * Vmem_filename_LGNa2 = "Vmem_LGNa2.txt";
-	LayerProbe * Vmem_probe_LGNa2 =
-		new PointProbe(Vmem_filename_LGNa2, 78, 108, 0, "LGNA2:(78,102,0)");
-	lgn->insertProbe(Vmem_probe_LGNa2);
-
-	const char * Vmem_filename_LGNa3 = "Vmem_LGNa3.txt";
-	LayerProbe * Vmem_probe_LGNa3 =
-		new PointProbe(Vmem_filename_LGNa3, 73, 94, 0, "LGNA3:(78,102,0)");
-	lgn->insertProbe(Vmem_probe_LGNa3);
-
 	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
 	LayerProbe * Vmem_probe_LGNc1 =
 		new PointProbe(Vmem_filename_LGNc1, 100, 52, 0, "LGNC1:(78,102,0)");
 	lgn->insertProbe(Vmem_probe_LGNc1);
-
-	const char * Vmem_filename_LGNc2 = "Vmem_LGNc2.txt";
-	LayerProbe * Vmem_probe_LGNc2 =
-		new PointProbe(Vmem_filename_LGNc2, 111, 89, 0, "LGNC2:(78,102,0)");
-	lgn->insertProbe(Vmem_probe_LGNc2);
-
-	const char * Vmem_filename_LGNc3 = "Vmem_LGNc3.txt";
-	LayerProbe * Vmem_probe_LGNc3 =
-		new PointProbe(Vmem_filename_LGNc3, 106, 113, 0, "LGNC3:(78,102,0)");
-	lgn->insertProbe(Vmem_probe_LGNc3);
-
 
 	npad = lgninh->clayer->loc.nPad;
 	nx = lgninh->clayer->loc.nx;
@@ -168,30 +155,10 @@ int main(int argc, char* argv[]) {
 		new PointProbe(Vmem_filename_LGNInha1, 71, 119, 0, "LGNInhA1:(78,102,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
-	const char * Vmem_filename_LGNInha2 = "Vmem_LGNInha2.txt";
-	LayerProbe * Vmem_probe_LGNInha2 =
-		new PointProbe(Vmem_filename_LGNInha2, 58, 91, 0, "LGNInhA2:(78,102,0)");
-	lgninh->insertProbe(Vmem_probe_LGNInha2);
-
-	const char * Vmem_filename_LGNInha3 = "Vmem_LGNInha3.txt";
-	LayerProbe * Vmem_probe_LGNInha3 =
-		new PointProbe(Vmem_filename_LGNInha3, 78, 110, 0, "LGNInhA3:(78,102,0)");
-	lgninh->insertProbe(Vmem_probe_LGNInha3);
-
 	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
 	LayerProbe * Vmem_probe_LGNInhc1 =
 		new PointProbe(Vmem_filename_LGNInhc1, 88, 73, 0, "LGNInhC1:(78,102,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
-
-	const char * Vmem_filename_LGNInhc2 = "Vmem_LGNInhc2.txt";
-	LayerProbe * Vmem_probe_LGNInhc2 =
-		new PointProbe(Vmem_filename_LGNInhc2, 83, 105, 0, "LGNInhC2:(78,102,0)");
-	lgninh->insertProbe(Vmem_probe_LGNInhc2);
-
-	const char * Vmem_filename_LGNInhc3 = "Vmem_LGNInhc3.txt";
-	LayerProbe * Vmem_probe_LGNInhc3 =
-		new PointProbe(Vmem_filename_LGNInhc3, 75, 86, 0, "LGNInhC3:(78,102,0)");
-	lgninh->insertProbe(Vmem_probe_LGNInhc3);
 
 	npad = l1->clayer->loc.nPad;
 	nx = l1->clayer->loc.nx;
@@ -200,33 +167,13 @@ int main(int argc, char* argv[]) {
 
 	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
 	LayerProbe * Vmem_probe_V1a1 =
-		new PointProbe(Vmem_filename_V1a1, 78, 102, 4, "V1A1:(78,102,0)");
+		new PointProbe(Vmem_filename_V1a1, 76, 99, 0, "V1A1:(76,99,0)");
 	l1->insertProbe(Vmem_probe_V1a1);
-
-	const char * Vmem_filename_V1a2 = "Vmem_V1a2.txt";
-	LayerProbe * Vmem_probe_V1a2 =
-		new PointProbe(Vmem_filename_V1a2, 71, 119, 10, "V1A2:(78,102,0)");
-	l1->insertProbe(Vmem_probe_V1a2);
-
-	const char * Vmem_filename_V1a3 = "Vmem_V1a3.txt";
-	LayerProbe * Vmem_probe_V1a3 =
-		new PointProbe(Vmem_filename_V1a3, 72, 93, 7, "V1A3:(78,102,0)");
-	l1->insertProbe(Vmem_probe_V1a3);
 
 	const char * Vmem_filename_V1c1 = "Vmem_V1c1.txt";
 	LayerProbe * Vmem_probe_V1c1 =
-		new PointProbe(Vmem_filename_V1c1, 96, 46, 6, "V1C1:(78,102,0)");
+		new PointProbe(Vmem_filename_V1c1, 100, 79, 2, "V1C1:(100,79,2)");
 	l1->insertProbe(Vmem_probe_V1c1);
-
-	const char * Vmem_filename_V1c2 = "Vmem_V1c2.txt";
-	LayerProbe * Vmem_probe_V1c2 =
-		new PointProbe(Vmem_filename_V1c2, 88, 38, 3, "V1C2:(78,102,0)");
-	l1->insertProbe(Vmem_probe_V1c2);
-
-	const char * Vmem_filename_V1c3 = "Vmem_V1c3.txt";
-	LayerProbe * Vmem_probe_V1c3 =
-		new PointProbe(Vmem_filename_V1c3, 110, 99, 1, "V1C3:(78,102,0)");
-	l1->insertProbe(Vmem_probe_V1c3);
 
 	npad = l1inh->clayer->loc.nPad;
 	nx = l1inh->clayer->loc.nx;
@@ -238,30 +185,10 @@ int main(int argc, char* argv[]) {
 		new PointProbe(Vmem_filename_V1Inha1, 78, 108, 8, "V1InhA1:(78,102,0)");
 	l1inh->insertProbe(Vmem_probe_V1Inha1);
 
-	const char * Vmem_filename_V1Inha2 = "Vmem_V1Inha2.txt";
-	LayerProbe * Vmem_probe_V1Inha2 =
-		new PointProbe(Vmem_filename_V1Inha2, 53, 94, 4, "V1InhA2:(78,102,0)");
-	l1inh->insertProbe(Vmem_probe_V1Inha2);
-
-	const char * Vmem_filename_V1Inha3 = "Vmem_V1Inha3.txt";
-	LayerProbe * Vmem_probe_V1Inha3 =
-		new PointProbe(Vmem_filename_V1Inha3, 49, 106, 0, "V1InhA3:(78,102,0)");
-	l1inh->insertProbe(Vmem_probe_V1Inha3);
-
 	const char * Vmem_filename_V1Inhc1 = "Vmem_V1Inhc1.txt";
 	LayerProbe * Vmem_probe_V1Inhc1 =
 		new PointProbe(Vmem_filename_V1Inhc1, 105, 57, 1, "V1InhC1:(78,102,0)");
 	l1inh->insertProbe(Vmem_probe_V1Inhc1);
-
-	const char * Vmem_filename_V1Inhc2 = "Vmem_V1Inhc2.txt";
-	LayerProbe * Vmem_probe_V1Inhc2 =
-		new PointProbe(Vmem_filename_V1Inhc2, 69, 51, 9, "V1InhC2:(78,102,0)");
-	l1inh->insertProbe(Vmem_probe_V1Inhc2);
-
-	const char * Vmem_filename_V1Inhc3 = "Vmem_V1Inhc3.txt";
-	LayerProbe * Vmem_probe_V1Inhc3 =
-		new PointProbe(Vmem_filename_V1Inhc3, 102, 70, 1, "V1InhC3:(78,102,0)");
-	l1inh->insertProbe(Vmem_probe_V1Inhc3);
 
 
 	if (0) { // ma
