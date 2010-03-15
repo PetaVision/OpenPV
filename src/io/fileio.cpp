@@ -587,6 +587,7 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
+   unsigned int * numActive = NULL;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -605,11 +606,14 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       MPI_Send(&localActive, 1, MPI_INT, dest, tag, mpi_comm);
       MPI_Send(indices, localActive, MPI_INT, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeActivitySparse: sent to 0, localActive==%d\n",
-              comm->commRank(), localActive);
+      fprintf(stderr, "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
+              comm->commRank(), dest, localActive);
+      fflush(stderr);
 #endif
 #endif // PV_USE_MPI
 
+      // leaving not root-process section
+      //
    }
    else {
       // we are io root process
@@ -621,14 +625,16 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       // TODO - use collective?
       //
       const int icSize = comm->commSize();
-      unsigned int * numActive = (unsigned int *) malloc(icSize*sizeof(int));
+      if (icSize > 1) {
+         // otherwise numActive is not used
+         numActive = (unsigned int *) malloc(icSize*sizeof(int));
+         assert(numActive != NULL);
+      }
+
       for (int p = 1; p < icSize; p++) {
          MPI_Recv(&numActive[p], 1, MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
          totalActive += numActive[p];
       }
-#else
-      unsigned int numActive[1];
-      numActive[0] = totalActive;
 #endif // PV_USE_MPI
 
       bool extended   = false;
@@ -650,23 +656,29 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       //
       if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
       if ( fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 ) return -1;
-      if (totalActive > 0) {
-         if ( fwrite(indices, sizeof(unsigned int), numActive[0], fp) != numActive[0] ) {
+      if (localActive > 0) {
+         if ( fwrite(indices, sizeof(unsigned int), localActive, fp) != localActive ) {
             return -1;
          }
       }
 
+      // recv and write non-local activity
+      //
 #ifdef PV_USE_MPI
       for (int p = 1; p < icSize; p++) {
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d numActive==%d\n",
                     comm->commRank(), p, numActive[p]);
+            fflush(stderr);
 #endif
             MPI_Recv(indices, numActive[p], MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
             if ( fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] ) return -1;
       }
-      free(numActive);
+      if (numActive != NULL) free(numActive);
 #endif // PV_USE_MPI
+
+      // leaving root-process section
+      //
    }
 
    return status;
