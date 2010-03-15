@@ -1,0 +1,15 @@
+This file contains a description of the input parameters used by
+PetaVision objects.
+
+
+HyPerCol parameters:
+
+
+HyPerLayer parameters:
+
+  - spikingFlag (default 1)
+    - layer update is non spiking if 0
+    - layer update is spiking if 1
+
+HyPerConn parameters:
+
