@@ -1303,9 +1303,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
-
-#undef OLD_GAUSS2DCALCWEIGHTS
-#ifndef OLD_GAUSS2DCALCWEIGHTS  // use new method
    pvdata_t * w = wp->data;
 
    const int nxPatch = wp->nx;
@@ -1344,6 +1341,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    // number of orientations only used if aspect != 1
    const int noPost = post->clayer->numFeatures;
    const int noPre = pre->clayer->numFeatures;
+   const int fPre = kPre % pre->clayer->numFeatures;
    const int iThPre = kPre % noPre;
    const float dthPre = PI / (float) noPre;
    const float thPre = th0 + iThPre * dthPre;
@@ -1360,6 +1358,22 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
+            // no self-interactions
+            bool selfFlag = 0;
+            if ((int) pre == (int) post) {
+               if (fPre == fPost) {
+                  if (fabs(xDelta) < 1.0e-5) {
+                     if (fabs(yDelta) < 1.0e-5) {
+                        selfFlag = 1;
+                        continue;
+                     }
+                  }
+               }
+            }
+            if (selfFlag){
+               continue;
+            }
+
             // rotate the reference frame by th
             float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
             float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
@@ -1368,8 +1382,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             w[iPost * sx + jPost * sy + fPost * sf] = 0;
             if (d2 <= r2Max) {
-               w[iPost * sx + jPost * sy + fPost * sf]
-                     += expf(-d2 / (2.0f * sigma * sigma));
+               w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0f * sigma
+                     * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
@@ -1385,95 +1399,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 
    return 0;
 
-#else  // use old method
-   pvdata_t * w = wp->data;
-
-   const PVLayer * lPre  = pre->clayer;
-   const PVLayer * lPost = post->clayer;
-
-   const int nxPatch = wp->nx;
-   const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
-
-   if (nxPatch * nyPatch * nfPatch == 0) {
-      return 0; // reduced patch size is zero
-   }
-
-   const int sx = wp->sx; assert(sx == nfPatch);
-   const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sf = wp->sf; assert(sf == 1);
-
-   // TODO - make sure this is correct
-   // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, lPost->xScale);
-   const float dyPost = powf(2, lPost->yScale);
-
-   const int nxPre = lPre->loc.nx;
-   const int nyPre = lPre->loc.ny;
-   const int nfPre = lPre->numFeatures;
-
-   const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
-   const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
-
-   // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
-   float xPre = -1.0 * deltaPosLayers(kxPre, lPre->xScale) * dxPost;
-   float yPre = -1.0 * deltaPosLayers(kyPre, lPre->yScale) * dyPost;
-
-   // closest post-synaptic neuron may not be at the center of the patch (0,0)
-   // so must shift pre-synaptic location
-   if (xPre < 0.0) xPre += 0.5 * dxPost;
-   if (xPre > 0.0) xPre -= 0.5 * dxPost;
-   if (yPre < 0.0) yPre += 0.5 * dyPost;
-   if (yPre > 0.0) yPre -= 0.5 * dyPost;
-
-   // (x0,y0) is at upper left corner of patch (i=0,j=0)
-   // and shift so pre-synaptic cell is at 0
-   const float xDelta0 = -(nxPatch/2.0 - 0.5) * dxPost - xPre;
-   const float yDelta0 = +(nyPatch/2.0 - 0.5) * dyPost - yPre;
-
-   const float dth = PI/nfPatch;
-   const float th0 = rotate*dth/2.0;
-
-   // loop over all post-synaptic cells in patch
-   for (int fPost = 0; fPost < nfPatch; fPost++) {
-      int oPost = fPost % noPost;
-      float thPost = th0 + oPost * dth;
-      for (int jPost = 0; jPost < nyPatch; jPost++) {
-         float yDelta = yDelta0 - jPost * dyPost;
-         for (int iPost = 0; iPost < nxPatch; iPost++) {
-            float xDelta = xDelta0 + iPost*dxPost;
-
-            // rotate the reference frame by th
-            float xp = + xDelta * cos(thPost) + yDelta * sin(thPost);
-            float yp = - xDelta * sin(thPost) + yDelta * cos(thPost);
-
-            // include shift to flanks
-            float d2 = xp * xp + (aspect*(yp-shift) * aspect*(yp-shift));
-
-            w[iPost*sx + jPost*sy + fPost*sf] = 0;
-
-            // TODO - figure out on/off connectivity
-            // don't break it for nfPre==1 going to nfPost=numOrientations
-            //if (this->channel == CHANNEL_EXC && f != fPre) continue;
-            //if (this->channel == CHANNEL_INH && f == fPre) continue;
-
-            if (d2 <= r2Max) {
-               w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
-            }
-            if (numFlanks > 1) {
-               // shift in opposite direction
-               d2 = xp * xp + (aspect*(yp+shift) * aspect*(yp+shift));
-               if (d2 <= r2Max) {
-                  w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
-               }
-            }
-            // printf("x=%f y-%f xp=%f yp=%f d2=%f w=%f\n", x, y, xp, yp, d2, w[i*sx + j*sy + f*sf]);
-         }
-      }
-   }
-
-   return 0;
-#endif
 }
 
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)

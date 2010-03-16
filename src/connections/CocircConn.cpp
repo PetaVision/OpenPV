@@ -80,13 +80,13 @@ PVPatch ** CocircConn::initializeCocircWeights(PVPatch ** patches, int numPatche
    float sigma_cocirc = PI / 2.0;
    sigma_cocirc = params->value(name, "sigma_cocirc", sigma_cocirc);
 
-   float sigma_kurve = 1.0 / sqrt( this->nxp * this->nxp + this->nyp * this->nyp );
+   float sigma_kurve = 1.0 / sqrt(this->nxp * this->nxp + this->nyp * this->nyp);
    sigma_kurve = params->value(name, "sigma_kurve", sigma_kurve);
 
    float deltaThetaMax = PI / 2.0;
    deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
 
-   float cocirc_self = pre != post;
+   float cocirc_self = (pre != post);
    cocirc_self = params->value(name, "cocirc_self", cocirc_self);
 
    // from pv_common.h
@@ -96,9 +96,9 @@ PVPatch ** CocircConn::initializeCocircWeights(PVPatch ** patches, int numPatche
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       int patchIndex = kernelIndexToPatchIndex(kernelIndex);
-      cocircCalcWeights(patches[kernelIndex], patchIndex, noPre, noPost, sigma_cocirc, sigma_kurve,
-            deltaThetaMax, cocirc_self, dKv, numFlanks, shift, aspect, rotate, sigma,
-            r2Max, strength);
+      cocircCalcWeights(patches[kernelIndex], patchIndex, noPre, noPost, sigma_cocirc,
+            sigma_kurve, deltaThetaMax, cocirc_self, dKv, numFlanks, shift, aspect,
+            rotate, sigma, r2Max, strength);
    }
 
    return patches;
@@ -109,11 +109,9 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
       float dKv, int numFlanks, float shift, float aspect, float rotate, float sigma,
       float r2Max, float strength)
 {
-#define OLD_COCIRCCALCWEIGHTS 0
-#if OLD_COCIRCCALCWEIGHTS == 0  // use new method
    pvdata_t * w = wp->data;
 
-   const float min_weight = 0.001;  // read in as param
+   const float min_weight = 0.001; // read in as param
    const float sigma2 = 2 * sigma * sigma;
    const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
    const float sigma_kurve2 = 2 * sigma_kurve * sigma_kurve;
@@ -154,19 +152,20 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
    const int iKvPre = kPre % nKurvePre;
    const int iThPre = kPre / nKurvePre;
 
+   const int kfPre = kPre % pre->clayer->numFeatures;
    const float kurvePre = 0.0 + iKvPre * dKv;
    const float thetaPre = th0 + iThPre * dTh;
 
    // loop over all post synaptic neurons in patch
-   for (int f = 0; f < nfPatch; f++) {
-      int iKvPost = f % nKurvePost;
-      int iThPost = f / nKurvePost;
+   for (int kfPost = 0; kfPost < nfPatch; kfPost++) {
+      int iKvPost = kfPost % nKurvePost;
+      int iThPost = kfPost / nKurvePost;
 
       float kurvePost = 0.0 + iKvPost * dKv;
       float thetaPost = th0 + iThPost * dTh;
 
       float deltaTheta = fabs(thetaPre - thetaPost);
-      deltaTheta = deltaTheta <= PI/2.0 ? deltaTheta : PI - deltaTheta;
+      deltaTheta = deltaTheta <= PI / 2.0 ? deltaTheta : PI - deltaTheta;
       if (deltaTheta > deltaThetaMax) {
          continue;
       }
@@ -174,7 +173,7 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
       float xDelta = 0.0;
       float yDelta = 0.0;
       for (int jPost = 0; jPost < nyPatch; jPost++) {
-        yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
+         yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
@@ -183,57 +182,90 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
             float gKurvePre = 1.0;
             float gKurvePost = 1.0;
 
-                   // rotate the reference frame by th
+            // rotate the reference frame by th
             float dxP = +xDelta * cos(thetaPre) + yDelta * sin(thetaPre);
             float dyP = -xDelta * sin(thetaPre) + yDelta * cos(thetaPre);
 
             // include shift to flanks
-            float d2 = dxP * dxP + (aspect * (dyP - shift) * aspect * (dyP - shift));
-            float d2_2 = (numFlanks > 1) ? dxP * dxP + (aspect * (dyP + shift) * aspect * (dyP + shift)) : 2*r2Max;
-            if (d2 <= r2Max) {
-               gDist += expf(-d2 / sigma2);
+            float dyP_shift = dyP - shift;
+            float dyP_shift2 = dyP + shift;
+            float d2 = dxP * dxP + aspect * dyP * aspect * dyP;
+            float d2_shift = dxP * dxP + (aspect * (dyP_shift) * aspect * (dyP_shift));
+            float d2_shift2 = dxP * dxP + (aspect * (dyP_shift2) * aspect * (dyP_shift2));
+            if (d2_shift <= r2Max) {
+               gDist += expf(-d2_shift / sigma2);
             }
             if (numFlanks > 1) {
-               // shift in opposite direction
-               if (d2_2 <= r2Max) {
-                  gDist += expf(-d2_2 / sigma2);
+               // include shift in opposite direction
+               if (d2_shift2 <= r2Max) {
+                  gDist += expf(-d2_shift2 / sigma2);
                }
             }
             if (gDist == 0.0) continue;
-            if (((d2 == 0) || (d2_2 == 0)) && (cocirc_self)) {
-               gCocirc
-                     = sigma_cocirc > 0 ? expf(-deltaTheta * deltaTheta / sigma_cocirc2)
-                           : expf(-deltaTheta * deltaTheta / sigma_cocirc2) - 1.0;
-               if ((nKurvePre > 1) && (nKurvePost > 1)) {
-                  gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
-                        / sigma_kurve2);
+            if (d2 == 0) {
+               bool sameLoc = (kfPre == kfPost);
+               if ((!sameLoc) || (cocirc_self)) {
+                  gCocirc = sigma_cocirc > 0 ? expf(-deltaTheta * deltaTheta
+                        / sigma_cocirc2) : expf(-deltaTheta * deltaTheta / sigma_cocirc2)
+                        - 1.0;
+                  if ((nKurvePre > 1) && (nKurvePost > 1)) {
+                     gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
+                           / sigma_kurve2);
+                  }
+               }
+               else { // sameLoc && !cocircSelf
+                  gCocirc = 0.0;
+                  continue;
                }
             }
             else { // d2 > 0
 
-               float atanx2 = thetaPre + 2. * atan2f(dyP, dxP); // preferred angle (rad)
-               atanx2 += 2. * PI;
-               atanx2 = fmod(atanx2, PI );
-               float chi = fabs(atanx2 - thetaPost); // degrees
-               if (chi >= PI/2.0) {
-                  chi = PI - chi;
+               float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
+               atanx2_shift += 2. * PI;
+               atanx2_shift = fmod(atanx2_shift, PI);
+               float chi_shift = fabs(atanx2_shift - thetaPost); // degrees
+               if (chi_shift >= PI / 2.0) {
+                  chi_shift = PI - chi_shift;
                }
                if (noPre > 1 && noPost > 1) {
-                  gCocirc = sigma_cocirc2 > 0 ? expf(-chi * chi / sigma_cocirc2) : expf(
-                        -chi * chi / sigma_cocirc2) - 1.0;
+                  gCocirc = sigma_cocirc2 > 0 ? expf(-chi_shift * chi_shift
+                        / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
+                        - 1.0;
                }
 
-               float cocircKurve = fabs(2 * dyP) / d2;
-               gKurvePre = (nKurvePre > 1) ? exp(-pow((cocircKurve - fabs(kurvePre)), 2)
-                     / sigma_kurve2) : 1.0;
-               gKurvePost
-                     = ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? exp(
-                           -pow((cocircKurve - fabs(kurvePost)), 2) / sigma_kurve2)
+               float cocircKurve_shift = fabs(2 * dyP_shift) / d2;
+               gKurvePre = (nKurvePre > 1) ? exp(-pow(
+                     (cocircKurve_shift - fabs(kurvePre)), 2) / sigma_kurve2) : 1.0;
+               gKurvePost =
+                     ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? exp(
+                           -pow((cocircKurve_shift - fabs(kurvePost)), 2) / sigma_kurve2)
                            : 1.0;
+
+               if (numFlanks > 1) {
+                  float atanx2_shift2 = thetaPre + 2. * atan2f(dyP_shift2, dxP); // preferred angle (rad)
+                  atanx2_shift2 += 2. * PI;
+                  atanx2_shift2 = fmod(atanx2_shift2, PI);
+                  float chi_shift2 = fabs(atanx2_shift2 - thetaPost); // degrees
+                  if (chi_shift2 >= PI / 2.0) {
+                     chi_shift2 = PI - chi_shift2;
+                  }
+                  if (noPre > 1 && noPost > 1) {
+                     gCocirc += sigma_cocirc2 > 0 ? expf(-chi_shift2 * chi_shift2
+                           / sigma_cocirc2) : expf(-chi_shift2 * chi_shift2
+                           / sigma_cocirc2) - 1.0;
+                  }
+
+                  float cocircKurve_shift2 = fabs(2 * dyP_shift2) / d2;
+                  gKurvePre += (nKurvePre > 1) ? exp(-pow((cocircKurve_shift2 - fabs(
+                        kurvePre)), 2) / sigma_kurve2) : 1.0;
+                  gKurvePost += ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2
+                        > 0)) ? exp(-pow((cocircKurve_shift2 - fabs(kurvePost)), 2)
+                        / sigma_kurve2) : 1.0;
+               }
             }
             float weight_tmp = gDist * gKurvePre * gKurvePost * gCocirc;
             if (weight_tmp < min_weight) continue;
-            w[iPost * sx + jPost * sy + f * sf] = weight_tmp;
+            w[iPost * sx + jPost * sy + kfPost * sf] = weight_tmp;
 
          }
       }
@@ -241,155 +273,6 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
    return 0;
 
-#else  // use old method
-   float gDist = 0.0;
-
-   pvdata_t * w = wp->data;
-
-   // get parameters
-
-   // PVParams * params = parent->parameters();
-
-   const int nfPre = pre->clayer->numFeatures;
-   const int nfPost = post->clayer->numFeatures;
-
-   const float sigma2 = 2 * sigma * sigma;
-   const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
-   const float sigma_kurve2 = 2 * sigma_kurve * sigma_kurve;
-
-   const int nxPatch = (int) wp->nx;
-   const int nyPatch = (int) wp->ny;
-   const int nfPatch = (int) wp->nf;
-
-   // strides
-   const int sx = (int) wp->sx;
-   assert(sx == nfPatch);
-   const int sy = (int) wp->sy;
-   assert(sy == nfPatch*nxPatch);
-   const int sf = (int) wp->sf;
-   assert(sf == 1);
-
-   const float dxPost = powf(2, xScale);
-   const float dyPost = powf(2, yScale);
-
-   // get 3D index of pre cell
-   const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
-   const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
-   const int kfPre = (int) featureIndex(kPre, nxPre, nyPre, nfPre);
-
-   // pre x,y location
-   //
-   const int xPreScaleFac = pow(2, pre->clayer->xScale);
-   const int yPreScaleFac = pow(2, pre->clayer->yScale);
-   const float xPrePos = ( xPreScaleFac / 2.0 ) + kxPre * xPreScaleFac;
-   const float yPrePos = ( yPreScaleFac / 2.0 ) + kyPre * yPreScaleFac;
-
-   // pre-synaptic neuron is at the center of the patch (0,0)
-   // (x0,y0) is at upper left corner of patch (i=0,j=0)
-   const float x0 = -(nxPatch / 2.0 - 0.5) * dxPost;
-   const float y0 = +(nyPatch / 2.0 - 0.5) * dyPost;
-
-   const int nKurvePre = nfPre / noPre;
-   const int nKurvePost = nfPost / noPost;
-
-   const float dTh = PI / noPost;
-   const float th0 = rotate * dTh / 2.0;
-
-   const int iKvPre = kPre % nKurvePre;
-   const int iThPre = kPre / nKurvePre;
-
-   const float kurvePre = 0.0 + iKvPre * dKv;
-   const float thetaPre = th0 + iThPre * dTh;
-
-   // loop over all post synaptic neurons in patch
-   for (int f = 0; f < nfPatch; f++) {
-      int iKvPost = f % nKurvePost;
-      int iThPost = f / nKurvePost;
-
-      float kurvePost = 0.0 + iKvPost * dKv;
-      float thetaPost = th0 + iThPost * dTh;
-
-      float deltaTheta = RAD_TO_DEG * fabs(thetaPre - thetaPost);
-      deltaTheta = deltaTheta <= 90. ? deltaTheta : 180. - deltaTheta;
-      if (deltaTheta> deltaThetaMax) {
-         continue;
-      }
-
-      float gCocirc = 1.0;
-      float gKurvePre = 1.0;
-      float gKurvePost = 1.0;
-
-      for (int j = 0; j < nyPatch; j++) {
-         float y = y0 - j * dyPost;
-         for (int i = 0; i < nxPatch; i++) {
-            float x = x0 + i * dxPost;
-            float d2 = x * x + y * y;
-            if (d2> r2Max) continue; // || (d2 < r2Min)
-
-            gDist = expf(-d2 / sigma2);
-
-            if (d2 == 0 && (cocirc_self == 0)) {
-               // TODO - why calculate anything else
-               gDist = 0.0;
-               gCocirc
-               = sigma_cocirc> 0 ? expf(-deltaTheta * deltaTheta / sigma_cocirc2)
-               : expf(-deltaTheta * deltaTheta / sigma_cocirc2) - 1.0;
-               if ((nKurvePre> 1) && (nKurvePost> 1)) {
-                  gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
-                        / sigma_kurve2);
-               }
-            }
-            else {
-               float dxP = +x * cos(thetaPre) + y * sin(thetaPre);
-               float dyP = -x * sin(thetaPre) + y * cos(thetaPre);
-
-               // The first version implements traditional association field
-               // of Field, Li, Zucker, etc. It looks like a bowtie for most
-               // orientations, although orthogonal angles are supported at
-               // 45 degrees in all four quadrants.
-
-               float atanx2 = thetaPre + 2. * atan2f(dyP, dxP); // preferred angle (rad)
-               atanx2 += 2. * PI;
-               atanx2 = fmod(atanx2, PI );
-               float chi = RAD_TO_DEG * fabs(atanx2 - thetaPost); // degrees
-               if (chi >= 90.) {
-                  chi = 180. - chi;
-               }
-               if (noPre> 1 && noPost> 1) {
-                  gCocirc = sigma_cocirc2> 0 ? expf(-chi * chi / sigma_cocirc2) : expf(
-                        -chi * chi / sigma_cocirc2) - 1.0;
-               }
-
-               float cocircKurve = fabs(2 * dyP) / d2;
-               gKurvePre = (nKurvePre> 1) ? exp(-pow((cocircKurve - fabs(kurvePre)), 2)
-                     / sigma_kurve2) : 1.0;
-               gKurvePost
-               = ((nKurvePre> 1) && (nKurvePost> 1) && (sigma_cocirc2> 0)) ? exp(
-                     -pow((cocircKurve - fabs(kurvePost)), 2) / sigma_kurve2)
-               : 1.0;
-            }
-
-            w[i * sx + j * sy + f * sf] = gDist * gKurvePre * gKurvePost * gCocirc;
-
-         }
-      }
-   }
-
-   // normalize
-   for (int f = 0; f < nfPatch; f++) {
-      float sum = 0;
-      for (int i = 0; i < nxPatch * nyPatch; i++)
-      sum += w[f + i * nfPatch];
-
-      if (sum == 0.0) continue; // all weights == zero is ok
-
-      float factor = strength / sum;
-      for (int i = 0; i < nxPatch * nyPatch; i++)
-      w[f + i * nfPatch] *= factor;
-   }
-
-   return 0;
-#endif
 }
 
 } // namespace PV
