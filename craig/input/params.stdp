@@ -1,143 +1,123 @@
 //
-// params.pv
-//  - input parameters for pv_ca.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+// params.stdp
+//  - input parameters for stdp.cpp, a study of STDP with noise and bars, rectangles
+// and letters.
 //
 
 HyPerCol "column" = {
-   nx = 18;
-   ny = 1;
+   nx = 32;   // until we get going with images
+   ny = 32;
    dt = .5;
 };
 
 //
-// Three layers, "Retina", "L1", "L2"
+// Three layers, "Retina"+"Image", "L1", "L1Inh"
 //
 
+HyPerLayer "Image" = {
+   marginWidth = 2;
+   burstFreq = 12;
+};
+
 HyPerLayer "Retina" = {
-   nx = 18;
-   ny = 1;
-   nf = 2;   // features = (OFF,ON}
-   
-   nBorder = 0;
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2;
 
-   beginStim = .0;
-   endStim   = .3;
+   beginStim = 0;
+   endStim   = 900000;
 
-   fireOffPixels = 1;          // if true, black (0) pixels fire as off
-   invert  = 0.0;
-   uncolor = 1.0;              // if true, pixels>0 become 1.0
+   burstFreq = 12;      // Hz
+   burstDuration = 10;  // ms
 
-   spikingFlag = 0;           // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = .01;//.20;  //.125;      // if so, on probability
-   poissonBlankProb = .01;//.075; //.0125;     //       off probability
+   spikingFlag = 1;     // spike as poisson
 
-   marginWidth = 0.0;           // set input to 0 within margin
+   noiseOnFreq  = 0; //500;//100;   // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 50;               // (Hz) when this is defined poissonBlank overridden
 };
 
 HyPerLayer "L1" = {
-   nx = 18;
-   ny = 1;
-   nf = 8;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
+   nxScale = 2; // 8;
+   nyScale = 2; // 8;
    
-   tau    = 100; // 2;    // 100;
-   tauE   = 1;   // .25;  // 1;
-   tauVth = 10;  // .25;   // 10;
+   //restart = 1;
+
+   marginWidth = 3;
    
-   VthRest = -55; // -60; // -55;
-   
-   noiseAmpE = 0.0; //64.0;
-   noiseAmpI = 0.0; //4.0;
+   noiseAmpE = 1.0;
+   noiseAmpI = 0.2;
 };
 
 HyPerLayer "L1Inh" = {
-   nx = 18;
-   ny = 1;
-   nf = 1;    // features=(OFF,ON} times 8 combinations
-   no = 1;
-   nBorder = 0;
+   nxScale = 1; // 8;
+   nyScale = 1; // 8;
+
+   marginWidth = 2; // 4;
    
-   tau    = 100; // 2;    // 100;
-   tauE   = 1;   // .25;  // 1;
-   tauVth = 10;  // .25;   // 10;
-   
-   VthRest = -55; // -60; // -55;
-   
-   noiseAmpE = 0;
-   noiseAmpI = 0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;
 };
 
-HyPerLayer "L2" = {
-   nx = 8;
-   ny = 1;
-   nf = 2;    // features=(OFF,ON}
-   no = 1;
-   nBorder = 0;
-   
-   tau    = 2;    // 100;
-   tauE   = .25;   // 1;
-   tauVth = .25;   // 10;
-   
-   VthRest = -60; // -55;
-   
-   noiseAmpE = 0;
-   noiseAmpI = 0;
-};
-
-//
-// 2 connections, 
+///////
+// 3 connections: 
 //    "Retina to L1"
-//    "L1 to L2"
-//    "L2 to L1"
-//
+//    "L1 to L1Inh"
+//    "L1Inh to L1"
 
 HyPerConn "Retina to L1" = {
-   nxp = 3;
-   nyp = 1;
-   strength = 1.0;
+   nxp = 8; // 64;
+   nyp = 8; // 64;
    
-   stdpFlag = 1;
+   stdpFlag   = 1;
+   randomFlag = 1;
    
-   wMin = 0.0;
-   wMax = 10.0;
+   initFromLastFlag = 0;  // restart
 
-   rotate = 1.0;
-   invert = 0.0;
+   //
+   // strength used if randomFlag==0
+
+   strength = 5;//180;//25.0;  // max strength should be ~3*nxp*nyp
+
+   //
+   // these weights used if randomFlag==1
+
+   wMin = 0.0;     
+   wMax = 3.0;
+   dWMax = 0.01;
+   
+   //wMinInit = 4.0;  // default values if Gaussian is not defined
+   //wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   
+   //wGaussMean = 5.0;//5.00;
+   //wGaussStdev = 0.0;//1.00;
+   
+   idum = 3940284; // random number generator seed
+   
+   sigma = 100;
+   rMax  = 100;
+   
+   writeStep = 1000; // writes to output file every writeStep
 };
 
 HyPerConn "L1 to L1Inh" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 30.0;
+   nxp = 4;
+   nyp = 4;
+   strength = 16;
    
-   aspect = 1;
-   sigma  = 100;
-   rMax   = 100;
+   delay = 0;
    
-   rotate = 1.0;
-   invert = 0.0;
+   sigma = 100;
+   rMax  = 100;
+
+   writeStep = 1000; // writes to output file every writeStep
 };
 
-HyPerConn "L1 to L2" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 1.5;
-   delay = 30;
+HyPerConn "L1Inh to L1" = {
+   nxp = 8;
+   nyp = 8;
+   strength = 16;
+   delay = 0;
 
-   rotate = 1.0;
-   invert = 0.0;
-};
-
-HyPerConn "L2 to L1" = {
-   nxp = 3;
-   nyp = 1;
-   strength = .5;
-   delay = 30;
-
-   rotate = 1.0;
-   invert = 0.0;
+   sigma = 100;
+   rMax  = 100;
 };
