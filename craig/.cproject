@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?>
 
 <cproject>
@@ -15,19 +15,22 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="hierarchy" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+<configuration artifactName="stdp" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
 <folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.1964924629." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.837659883" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
 <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO" id="cdt.managedbuild.target.gnu.platform.macosx.base.1519645740" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
 <builder buildPath="${workspace_loc:/craig/Debug}" id="cdt.managedbuild.target.gnu.builder.macosx.base.875251360" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
 <tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.1207731911" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
-<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.1107590255" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
+<tool command="mpic++" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.1107590255" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
 <option id="macosx.cpp.link.option.libs.921735630" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="pv"/>
+<listOptionValue builtIn="false" value="gdal"/>
 </option>
 <option id="macosx.cpp.link.option.paths.437422125" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/lib}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
+<option id="macosx.cpp.link.option.flags.949249157" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework OpenGL -framework GLUT" valueType="string"/>
 <inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.590638505" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -37,26 +40,27 @@
 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.27458821" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.archiver.macosx.base.79996416" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.macosx.base"/>
-<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.1379288983" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base">
+<tool command="mpic++" id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.1379288983" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base">
 <option id="gnu.cpp.compiler.option.optimization.level.1690409880" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.456659055" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1397537086" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src/arch/mpi}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1483076771" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
-<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.base.966103740" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.base">
+<tool command="mpicc" id="cdt.managedbuild.tool.gnu.c.compiler.macosx.base.966103740" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.base">
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1273714284" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.504536194" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.include.paths.1857666302" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src/arch/mpi}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.767903650" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 </toolChain>
 </folderInfo>
+<sourceEntries>
+<entry excluding="heirarchy.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
@@ -490,7 +494,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="luis" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.242873088" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
+<configuration artifactName="luis" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.macosx.exe.release.242873088" name="Release" parent="cdt.managedbuild.config.macosx.exe.release">
 <folderInfo id="cdt.managedbuild.config.macosx.exe.release.242873088." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.release.889697569" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.release">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.release.415762130" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.release"/>
@@ -518,6 +522,9 @@
 </tool>
 </toolChain>
 </folderInfo>
+<sourceEntries>
+<entry excluding="heirarchy.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
