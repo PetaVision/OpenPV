@@ -21,7 +21,7 @@ BiConn::BiConn(const char * name,
    this->parent = hc;
    this->type = type;
 
-   this->numBundles = 1;
+   this->numAxonalArborLists = 1;
 
    initialize(NULL, pre, post, channel);
 
@@ -71,11 +71,12 @@ int BiConn::initializeWeights(const char * filename)
       const int xScale = pre->clayer->xScale;
       const int yScale = pre->clayer->yScale;
 
-      const int numPatches = numberOfWeightPatches();
+      const int arbor = 0;
+      const int numPatches = numberOfWeightPatches(arbor);
       assert(numPatches == pre->clayer->numNeurons);
       for (int i = 0; i < numPatches; i++) {
          int kPre = i;
-         ruleWeights(wPatches[i], kPre, strength);
+         ruleWeights(wPatches[arbor][i], kPre, strength);
       }
    }
    else {
