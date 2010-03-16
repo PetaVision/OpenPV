@@ -19,7 +19,8 @@ public:
 
    PVPatch* weights(int k)
    {
-      return wPatches[k];
+      int arbor = 0;
+      return wPatches[arbor][k];
    }
 
 private:
