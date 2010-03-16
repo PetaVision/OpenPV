@@ -104,7 +104,7 @@ HyPerConn "L1 to L1Inh" = {
    nyp = 4;
    strength = 16;
    
-   delay = 0;
+   delay = 5;
    
    sigma = 100;
    rMax  = 100;
@@ -116,7 +116,7 @@ HyPerConn "L1Inh to L1" = {
    nxp = 8;
    nyp = 8;
    strength = 16;
-   delay = 0;
+   delay = 5;
 
    sigma = 100;
    rMax  = 100;
