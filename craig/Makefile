@@ -2,21 +2,18 @@
 PVDIR = ../PetaVision
 SRCDIR = $(PVDIR)/src
 LIBDIR = $(PVDIR)/lib
-MPIDIR = /usr/local/openmpi/bin
+MPIDIR =
 BUILDDIR = Debug
 
 TARGET = stdp
 
 #CPP = g++
 #CC  = gcc
-CPP = $(MPIDIR)/mpic++
-CC  = $(MPIDIR)/mpicc
+CPP = $(MPIDIR)mpic++
+CC  = $(MPIDIR)mpicc
 
-MPI_DIR = $(SRCDIR)/arch/mpi
-MPI_INC = -I$(MPI_DIR)
-
-CFLAGS = -g -Wall -std=c99 -Wall -I$(PVDIR) -I$(MPI_DIR)
-CPPFLAGS = -g -Wall -I$(PVDIR) -I$(MPI_DIR)
+CFLAGS = -g -Wall -std=c99 -Wall -I$(PVDIR)
+CPPFLAGS = -g -Wall -I$(PVDIR)
 
 LIBS = -lpv -lpthread -framework OpenGL -framework GLUT
 
