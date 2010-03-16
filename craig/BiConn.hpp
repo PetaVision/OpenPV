@@ -24,7 +24,8 @@ public:
    }
 
 private:
-   virtual int initializeWeights(const char * filename);
+   PVPatch ** initializeWeights(PVPatch ** patches,
+                                int numPatches, const char * filename);
    int ruleWeights(PVPatch * wp, int kPre, float strength);
 
    int type;

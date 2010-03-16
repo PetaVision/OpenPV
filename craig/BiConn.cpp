@@ -2,7 +2,7 @@
  * RuleConn.cpp
  *
  *  Created on: Apr 5, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "BiConn.hpp"
@@ -16,16 +16,8 @@ BiConn::BiConn(const char * name,
                HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel,
                int type)
 {
-   this->connId = hc->numberOfConnections();
-   this->name   = strdup(name);
-   this->parent = hc;
    this->type = type;
-
-   this->numAxonalArborLists = 1;
-
-   initialize(NULL, pre, post, channel);
-
-   hc->addConnection(this);
+   HyPerConn::initialize(name, hc, pre, post, channel);
 }
 
 int BiConn::outputState(FILE * fp, int kPre)
@@ -53,38 +45,27 @@ int BiConn::outputState(FILE * fp, int kPre)
    return 0;
 }
 
-int BiConn::initializeWeights(const char * filename)
+PVPatch ** BiConn::initializeWeights(PVPatch ** patches,
+                                      int numPatches, const char * filename)
 {
-   if (filename == NULL) {
-      PVParams * params = parent->parameters();
+   PVParams * params = parent->parameters();
+   int randomFlag = (int) params->value(getName(), "randomFlag", 0);
 
-      float randomFlag = 0;
-      if (params->present(getName(), "randomFlag")) {
-         randomFlag = params->value(getName(), "randomFlag");
-      }
-      if (randomFlag > 0) {
-         return initializeRandomWeights(0);
-      }
-
+   if (filename == NULL && randomFlag == 0) {
       const float strength = params->value(name, "strength");
 
-      const int xScale = pre->clayer->xScale;
-      const int yScale = pre->clayer->yScale;
-
       const int arbor = 0;
-      const int numPatches = numberOfWeightPatches(arbor);
+      const int numPatches = numWeightPatches(arbor);
       assert(numPatches == pre->clayer->numNeurons);
       for (int i = 0; i < numPatches; i++) {
          int kPre = i;
          ruleWeights(wPatches[arbor][i], kPre, strength);
       }
+      return wPatches[arbor];
    }
-   else {
-      fprintf(stderr, "Initializing weights from a file not implemented for RuleConn\n");
-      exit(1);
-   } // end if for filename
 
-   return 0;
+   fprintf(stderr, "Initializing weights not using rules RuleConn\n");
+   return HyPerConn::initializeWeights(patches, numPatches, filename);
 }
 
 int BiConn::ruleWeights(PVPatch * wp, int kPre, float strength)
