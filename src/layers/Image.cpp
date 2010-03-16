@@ -219,7 +219,6 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
    }
 
    gather(comm, &loc, buf, srcBuf);
-   fprintf(stderr, "[%2d]: Image::gather: finished\n", comm->commRank());
 
    free(srcBuf);
 
