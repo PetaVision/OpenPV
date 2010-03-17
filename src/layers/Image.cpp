@@ -327,7 +327,7 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
             val += d*d;
          }
          // store the converted image in the first color band
-         buf[i*sx + j*sy + 0*sb] = sqrtf(val/numBands);
+         buf[i*sx + j*sy + 0*sb] = (unsigned char) sqrtf(val/numBands);
       }
    }
 
