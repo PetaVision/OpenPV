@@ -48,31 +48,13 @@ int RandomConn::initializeRandomWeights(int seed)
 
 int RandomConn::initializeUniformWeights(int seed)
 {
-   float wMinInit, wMaxInit;
-
    PVParams * params = parent->parameters();
 
-   wMin = 0.0;
-   if (params->present(name, "wMin")) {
-      wMin = params->value(name, "wMin");
-   }
+   wMin = (long) params->value(name, "wMin", 0.0f);
+   idum = params->value(name, "idum", -1.0f);
 
-   wMinInit = wMin;
-   if (params->present(name, "wMinInit")) {
-      wMinInit = params->value(name, "wMinInit");
-   }
-
-   wMaxInit = wMax;
-   if (params->present(name, "wMaxInit")) {
-      wMaxInit = params->value(name, "wMaxInit");
-   }
-
-   if (params->present(name, "idum")){
-          idum = params->value(name, "idum");
-   }
-   else {
-          idum = -1;
-   }
+   float wMinInit = params->value(name, "wMinInit", wMin);
+   float wMaxInit = params->value(name, "wMaxInit", wMax);
 
    const int arbor = 0;
    const int numPatches = numWeightPatches(arbor);
@@ -124,12 +106,7 @@ int RandomConn::initializeGaussianWeights(int seed)
       wGaussStdev = 1.0;
    }
 
-   if (params->present(name, "idum")){
-       idum = params->value(name, "idum");
-   }
-   else {
-       idum = -1;
-   }
+   idum = (long) params->value(name, "idum", -1.0f);
 
    const int arbor = 0;
    const int numPatches = numWeightPatches(0);
