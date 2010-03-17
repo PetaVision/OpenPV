@@ -13,6 +13,7 @@
 #include <src/connections/RandomConn.hpp>
 #include <src/connections/AvgConn.hpp>
 #include <src/layers/Gratings.hpp>
+#include <src/layers/Bars.hpp>
 #include <src/layers/Image.hpp>
 #include <src/layers/ImageCreator.hpp>
 #include <src/layers/Movie.hpp>
@@ -31,12 +32,14 @@ using namespace PV;
 
 int main(int argc, char* argv[]) {
 
-    int gratings_image = 1;
-    int random_image = 0;
+	int gratings_image = 0;
+	int bars_image = 1;
+	int random_image = 0;
 	int movie_frames = 0;
 	int point_probesI = 0;
 	int point_probesII = 0;
 	int conn_probes = 0;
+	int postconn_probes = 0;
 	int linact_probesX = 0; // activity along row
 	int linact_probesY = 0; // activity along column
 	int stat_probes = 0;
@@ -48,15 +51,14 @@ int main(int argc, char* argv[]) {
 
 	// create the image
 
-    Image * image;
-	if (gratings_image) {
+	Image * image;
+	if (bars_image) {
+		// bars Image
+		Bars * bars = new Bars("Image", hc);
+		image = bars;
+	} else if (gratings_image) {
 		// Gratings Image
 		Gratings * gratings = new Gratings("Image", hc);
-		//image = new Gratings("Image", hc);
-		gratings->setRandomPhase(false); // for sinusoidally modulated images
-		gratings->setRandomPosition(true);
-		gratings->setProbSwitch(0.0);
-		gratings->setProbMove(0.1);
 		image = gratings;
 	} else if (random_image) {
 		// Random Image
@@ -153,41 +155,55 @@ int main(int argc, char* argv[]) {
 
 	if (conn_probes) {
 		int n;
-		int numCProbes = 16;
+		int nx = retina->clayer->loc.nx;
+		int ny = retina->clayer->loc.ny;
+		//int nf = retina->clayer->loc.nBands;
+		char filename[128] = { 0 };
+
+		int numCProbes = nx * ny;
 
 		ConnectionProbe * cProbe[numCProbes]; // array of pointers to ConnectionProbes
 		n = 0;
-		for (unsigned int ix = 0; ix < numCProbes / 2; ix++) {
-			cProbe[n] = new ConnectionProbe(ix, 0, 0);
-			//r_l1->insertProbe(cProbe1);
-			cProbe[n]->setOutputIndices(true);
-			cProbe[n]->outputState(0.0, r_l1);
-			cProbe[n]->setOutputIndices(false);
-			n++;
+		for (unsigned int iy = 0; iy < ny; iy++) {
+			for (unsigned int ix = 0; ix < nx; ix++) {
+				snprintf(filename, 127, "CP_%2d_%2d_%2d.dat", ix, iy, 0);
+				cProbe[n] = new ConnectionProbe(filename,ix, iy, 0);
+				//r_l1->insertProbe(cProbe1);
+				cProbe[n]->setOutputIndices(true);
+				cProbe[n]->setStdpVars(false);
+				cProbe[n]->outputState(0.0, r_l1);
+				cProbe[n]->setOutputIndices(false);
+				//cProbe[n]->setStdpVars(true);
+				n++;
+			}
 		}
 
-		for (unsigned int ix = 0; ix < numCProbes / 2; ix++) {
-			cProbe[n] = new ConnectionProbe(ix, 7, 0);
-			//r_l1->insertProbe(cProbe[n]);
-			cProbe[n]->setOutputIndices(true);
-			cProbe[n]->outputState(0.0, r_l1);
-			cProbe[n]->setOutputIndices(false);
-			n++;
-		}
+	} // if(conn_probes)
 
-		int numPCProbes = 16;
+	if (postconn_probes) {
+		int n;
+		int nx = l1->clayer->loc.nx;
+		int ny = l1->clayer->loc.ny;
+		int nf = l1->clayer->numFeatures;
+		char filename[128] = { 0 };
+		int numPCProbes = nx * ny * nf;
+
 		PostConnProbe * pcProbe[numPCProbes];
 		n = 0;
-		for (unsigned int ix = 0; ix < numPCProbes; ix++) {
-			pcProbe[n] = new PostConnProbe(ix, 2, 0);
-			//r_l1->insertProbe(pcProbe[n]);
-			pcProbe[n]->setOutputIndices(true);
-			pcProbe[n]->outputState(0.0, r_l1);
-			pcProbe[n]->setOutputIndices(false);
-			n++;
+		for (unsigned int ik = 0; ik < nf; ik++) {
+			for (unsigned int iy = 0; iy < ny; iy++) {
+				for (unsigned int ix = 0; ix < nx; ix++) {
+					snprintf(filename, 127, "PCP_%2d_%2d_%2d.dat", ix, iy, ik);
+					pcProbe[n] = new PostConnProbe(filename,ix, iy, ik);
+					//r_l1->insertProbe(pcProbe[n]);
+					pcProbe[n]->setOutputIndices(true);
+					pcProbe[n]->outputState(0.0, r_l1);
+					pcProbe[n]->setOutputIndices(false);
+					n++;
+				}
+			}
 		}
-
-	} // end if(conn_probes)
+	} // end if(postconn_probes)
 
 	if (linact_probesX) { // ma
 
@@ -200,7 +216,7 @@ int main(int argc, char* argv[]) {
 		//LinearActivityProbe * laProbes[2*marginWidth]; // array of ny pointers to LinearActivityProbe
 		LinearActivityProbe * laProbes[ny];
 
-		for (unsigned int iy = 0; iy < ny ; iy++) {
+		for (unsigned int iy = 0; iy < ny; iy++) {
 			laProbes[iy] = new PV::LinearActivityProbe(hc, PV::DimX, iy, 0);
 			displayLayer->insertProbe(laProbes[iy]);
 		}
@@ -225,7 +241,7 @@ int main(int argc, char* argv[]) {
 		const int nx = displayLayer->clayer->loc.nx;
 		LinearActivityProbe * laProbes[nx]; // array of nx pointers to LinearActivityProbe
 
-		for (unsigned int ix = 0; ix < nx ; ix++) {
+		for (unsigned int ix = 0; ix < nx; ix++) {
 			laProbes[ix] = new PV::LinearActivityProbe(hc, PV::DimY, ix, 0);
 			displayLayer->insertProbe(laProbes[ix]);
 		}
