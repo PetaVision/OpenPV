@@ -7,6 +7,7 @@ HyPerCol "column" = {
    nx = 32;   // until we get going with images
    ny = 32;
    dt = .5;
+   mirrorBCflag = 0; // default is true; you can turn off here
 };
 
 //
@@ -15,7 +16,9 @@ HyPerCol "column" = {
 
 HyPerLayer "Image" = {
    marginWidth = 2;
-   burstFreq = 12;
+   burstFreq = 12; // defines period for gratings
+   pMove = 0.1;
+   pSwitch = 0.1;
 };
 
 HyPerLayer "Retina" = {
@@ -26,34 +29,34 @@ HyPerLayer "Retina" = {
    beginStim = 0;
    endStim   = 10000000;
 
-   burstFreq = 12;      // Hz
-   burstDuration = 10;  // ms
-
+   burstFreq = 5;//200; //12;      // Hz
+   burstDuration = 0;//40;//10; //10;  // ms
 
    spikingFlag = 1;        // spike as poisson
 
-   noiseOnFreq  = 5000;//100;     // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 0;//50;     // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 200;//200;//100; // (Hz) when this is defined poissonEdge overwritten
+                                   // when 2000 this makes poissonEdgeProb = 1
+   noiseOffFreq = 50;//10;//50;    // (Hz) when this is defined poissonEdge overwritten
 };
+
+HyPerLayer "RetinaAvg" = {
+   nxScale = 1; 
+   nyScale = 1; 
+
+   marginWidth = 0;
+};
+
 
 HyPerLayer "L1" = {
    nxScale = 2; // 8;
    nyScale = 2; // 8;
    
-   //tau    = 10; // 2;    // 100;
-   //tauE   = 1;   // .25;  // 1;
-   //tauVth = 10;  // .25;  // 10;
-
    //restart = 1;
 
    marginWidth = 4;
-
    
-   //VthRest = -55; // -60; // -55;
-   
-   noiseAmpE = 1.0; //64.0;
-   noiseAmpI = 0.2; //4.0;
-
+   noiseAmpE = 1.0;//1.0;
+   noiseAmpI = 0.2;//0.2;
 };
 
 HyPerLayer "L1Inh" = {
@@ -67,8 +70,9 @@ HyPerLayer "L1Inh" = {
 };
 
 ///////
-// 3 connections: 
+// 4 connections: 
 //    "Retina to L1"
+//    "Retina to RetinaAvg"  
 //    "L1 to L1Inh"
 //    "L1Inh to L1"
 
@@ -77,40 +81,48 @@ HyPerConn "Retina to L1" = {
    nyp = 8; // 64;
    
    stdpFlag   = 1;
-   randomFlag = 1;  // to generate random weights
+   randomFlag = 1;         // to generate random weights
    
-   initFromLastFlag = 0;  // restart
-
-   //
-   // strength used if randomFlag==0
-
+   //smartWeights = 1;  // to generate "smart" weights
+   
+   initFromLastFlag = 1;
    strength = 5;//180;//25.0;  // max strength should be ~3*nxp*nyp
-
-
-   //rotate = 1.0;
-   //invert = 0.0;
 
    //
    // these weights used if randomFlag==1
+   // STDP weights wary in range [wMin,wMax]
 
    wMin = 0.0;     
    wMax = 1.0;
    dWMax = 0.01;
    
-   wMinInit = 4.0;  // default values if Gaussian is not defined
-   wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
+   //
+   // these values are used to initialize uniform weights in
+   // range [wMinInit,wMaxInit]
    
-   //wGaussMean = 5.0;//5.00;
-   //wGaussStdev = 0.0;//1.00;
+   uniformWeights = 0; // set to generate uniform weights in the range
+                        // defined below
+   wMinInit = 0.2;  
+   wMaxInit = 0.8;  // if not defined uses wMin and wMax.
    
-   idum = 3940284; // random number generator seed
+   gaussianWeights = 1; // set to generate Gaussian weights with
+                        // parameters defined below
+   randomSeed = 12345678;                     
+   wGaussMean = 0.5;//5.00;
+   wGaussStdev = 0.1;//0.05;//1.00;
    
    sigma = 100;
    rMax  = 100;
    
-   writeStep = 10000;
-   ioAppend = 1;
+   writeStep = 10000;        // this is time interval not simulation steps
+};
 
+HyPerConn "Retina to RetinaAvg" = {
+   nxp = 1;
+   nyp = 1;
+   strength = 1;
+   
+   maxRate = 1;
 };
 
 HyPerConn "L1 to L1Inh" = {
@@ -121,16 +133,16 @@ HyPerConn "L1 to L1Inh" = {
    sigma = 100;
    rMax  = 100;
 
-writeStep = 10000;
+   writeStep = 10;
 };
 
 HyPerConn "L1Inh to L1" = {
    nxp = 8;
    nyp = 8;
-   strength = 32;//16;
+   strength = 16;//32; //16;
 
    sigma = 100;
    rMax  = 100;
    
-writeStep = 10000;
+  writeStep = 10;
 };
