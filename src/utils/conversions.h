@@ -109,7 +109,7 @@ static inline int kyPos(int k, int nx, int ny, int nf)
  */
 static inline float deltaX(int xScaleLog2)
 {
-   return powf(2.0, (float) xScaleLog2);
+   return powf(2.0f, (float) xScaleLog2);
 }
 
 /**
@@ -120,7 +120,7 @@ static inline float deltaX(int xScaleLog2)
  */
 static inline float deltaY(int yScaleLog2)
 {
-   return powf(2.0, (float) yScaleLog2);
+   return powf(2.0f, (float) yScaleLog2);
 }
 
 /**
@@ -287,12 +287,12 @@ static inline float deltaPosLayers(int kPre, int scale)
    }
    else if (scale < 0) {
       // post-synaptic layer has smaller size scale
-      int s = (int) powf(2.0, (float) -scale);
+      int s = (int) powf(2.0f, (float) -scale);
       return 0.5f * (float) (1 - s);
    }
    else {
       // post-synaptic layer has larger size scale
-      int s = (int) powf(2.0, (float) scale);
+      int s = (int) powf(2.0f, (float) scale);
       return 0.5f * (1.0f - (1.0f + 2.0f * (kPre%s)) / s);
    }
 }
@@ -320,7 +320,7 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
    int kx = nb + kxPos(k, nx, ny, nf);
    int ky = nb + kyPos(k, nx, ny, nf);
    int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx, ky, kf, nx + 2.0f*nb, ny + 2.0f*nb, nf);
+   return kIndex(kx, ky, kf, nx + 2*nb, ny + 2*nb, nf);
 }
 
 /**
@@ -381,8 +381,8 @@ static inline float deltaWithPBC(float x1, float x2, float max)
 static inline int globalIndex(int kf, float x, float y, float x0, float y0,
                               float dx, float dy, int nx, int ny, int nf)
 {
-   int kx = nearbyintf((x - x0)/dx - 0.5f);
-   int ky = nearbyintf((y - y0)/dy - 0.5f);
+   int kx = (int) nearbyintf((x - x0)/dx - 0.5f);
+   int ky = (int) nearbyintf((y - y0)/dy - 0.5f);
    return kIndex(kx, ky, kf, nx, ny, nf);
 }
 
