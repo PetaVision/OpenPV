@@ -64,9 +64,9 @@ int PointProbe::outputState(float time, HyPerLayer * l)
 {
    const PVLayer * clayer = l->clayer;
 
-   const float nx = clayer->loc.nx;
-   const float ny = clayer->loc.ny;
-   const float nf = clayer->numFeatures;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
 
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
    const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nPad);
