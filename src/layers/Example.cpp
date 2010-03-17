@@ -36,15 +36,14 @@ int Example::updateState(float time, float dt)
    pvdata_t * phi = clayer->phi[CHANNEL_EXC];
    pvdata_t * activity = clayer->activity->data;
 
-   const float nx = clayer->loc.nx;
-   const float ny = clayer->loc.ny;
-   const float nf = clayer->numFeatures;
-   const float marginWidth = clayer->loc.nPad;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
+   const int marginWidth = clayer->loc.nPad;
 
    // make sure activity in border is zero
    //
    // TODO - set numActive and active list?
-   int numActive = 0;
    for (int k = 0; k < clayer->numExtended; k++) {
       activity[k] = 0.0;
    }
@@ -66,7 +65,7 @@ int Example::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int Example::setParams(int numParams, float* params)
+int Example::setParams(int numParams, float * params)
 {
    pv_debug_info("[%d]: Example::setParams: numParams=%d", clayer->columnId, numParams);
    return 0;
