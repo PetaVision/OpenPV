@@ -10,6 +10,7 @@
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
+#include "../utils/rng.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -258,7 +259,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    if (randomFlag != 0 || randomSeed != 0) {
       return initializeRandomWeights(patches, numPatches, randomSeed);
    }
-   else if (smartWeights != 0){
+   else if (smartWeights != 0) {
       return initializeSmartWeights(patches, numPatches);
    }
    else {
@@ -311,16 +312,40 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
       int seed)
 {
-   PVParams * params = parent->parameters();
+   PVParams * inputParams = parent->parameters();
 
-   float wMin = params->value(name, "wMin", 0.0f);
-   float wMax = params->value(name, "wMax", 10.0f);
+   float uniform_weights = inputParams->value(getName(), "uniformWeights", 0.0f);
+   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f);
 
-   float wMinInit = params->value(name,"wMinInit",wMin);
-   float wMaxInit = params->value(name,"wMaxInit",wMax);
+   if(uniform_weights && gaussian_weights){
+      fprintf(stderr,"multiple random weights distributions defined: exit\n");
+      exit(-1);
+   }
 
-   for (int k = 0; k < numPatches; k++) {
-      randomWeights(patches[k], wMinInit, wMaxInit, seed); // MA
+   if (uniform_weights) {
+      float wMin = inputParams->value(getName(), "wMin", 0.0f);
+      float wMax = inputParams->value(getName(), "wMax", 10.0f);
+
+      float wMinInit = inputParams->value(getName(), "wMinInit", wMin);
+      float wMaxInit = inputParams->value(getName(), "wMaxInit", wMax);
+
+      int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+
+      for (int k = 0; k < numPatches; k++) {
+         uniformWeights(patches[k], wMinInit, wMaxInit, &seed); // MA
+      }
+   }
+   else if (gaussian_weights) {
+         float wGaussMean = inputParams->value(getName(), "wGaussMean", 0.5f);
+         float wGaussStdev = inputParams->value(getName(), "wGaussStdev", 0.1f);
+         int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+         for (int k = 0; k < numPatches; k++) {
+            gaussianWeights(patches[k], wGaussMean, wGaussStdev, &seed); // MA
+         }
+      }
+   else{
+      fprintf(stderr,"no random weights distribution was defined: exit\n");
+      exit(-1);
    }
    return patches;
 }
@@ -369,9 +394,9 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    float shift   = 0.0f;
    float rotate  = 0.0f; // rotate so that axis isn't aligned
 
-   numFlanks = (int) params->value(name, "numFlanks", numFlanks);
-   shift     = params->value(name, "flankShift", shift);
-   rotate    = params->value(name, "rotate", rotate);
+   numFlanks = params->value(name, "numFlanks", numFlanks);
+   shift = params->value(name, "flankShift", shift);
+   rotate = params->value(name, "rotate", rotate);
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       int patchIndex = kernelIndexToPatchIndex(kernelIndex);
@@ -421,7 +446,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
          snprintf(path, PV_PATH_MAX-1, "%sw%d_last.pvp", OUTPUT_PATH, getConnectionId());
       }
       else {
-         snprintf(path, PV_PATH_MAX-1, "%sw%d.pvp", OUTPUT_PATH, getConnectionId());
+         snprintf(path, PV_PATH_MAX - 1, "%sw%d.pvp", OUTPUT_PATH, getConnectionId());
       }
    }
    else {
@@ -1243,7 +1268,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
+int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
 {
    pvdata_t * w = wp->data;
 
@@ -1259,12 +1284,51 @@ int HyPerConn::randomWeights(PVPatch * wp, float wMin, float wMax, int seed)
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
-       for (int x = 0; x < nxp; x++) {
-          for (int f = 0; f < nfp; f++) {
-             w[x*sxp + y*syp + f*sfp] = wMin + p * rand();
-          }
-       }
-    }
+      for (int x = 0; x < nxp; x++) {
+         for (int f = 0; f < nfp; f++) {
+            w[x * sxp + y * syp + f * sfp] = wMin + p * rand();
+         }
+      }
+   }
+
+   return 0;
+}
+
+
+/**
+ * calculate random weights for a patch given a range between wMin and wMax
+ * NOTES:
+ *    - the pointer w already points to the patch head in the data structure
+ *    - it only sets the weights to "real" neurons, not to neurons in the boundary
+ *    layer. For example, if x are boundary neurons and o are real neurons,
+ *    x x x x
+ *    x o o o
+ *    x o o o
+ *    x o o o
+ *
+ *    for a 4x4 connection it sets the weights to the o neurons only.
+ *    .
+ */
+int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
+{
+   pvdata_t * w = wp->data;
+
+   const int nxp = wp->nx;
+   const int nyp = wp->ny;
+   const int nfp = wp->nf;
+
+   const int sxp = wp->sx;
+   const int syp = wp->sy;
+   const int sfp = wp->sf;
+
+   // loop over all post-synaptic cells in patch
+   for (int y = 0; y < nyp; y++) {
+      for (int x = 0; x < nxp; x++) {
+         for (int f = 0; f < nfp; f++) {
+            w[x * sxp + y * syp + f * sfp] = box_muller(mean,stdev);
+         }
+      }
+   }
 
    return 0;
 }
@@ -1283,12 +1347,12 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
-       for (int x = 0; x < nxp; x++) {
-          for (int f = 0; f < nfp; f++) {
-             w[x*sxp + y*syp + f*sfp] = k;
-          }
-       }
-    }
+      for (int x = 0; x < nxp; x++) {
+         for (int f = 0; f < nfp; f++) {
+            w[x * sxp + y * syp + f * sfp] = k;
+         }
+      }
+   }
 
    return 0;
 }
@@ -1399,6 +1463,95 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 
    return 0;
 
+#else  // use old method
+   pvdata_t * w = wp->data;
+
+   const PVLayer * lPre = pre->clayer;
+   const PVLayer * lPost = post->clayer;
+
+   const int nxPatch = wp->nx;
+   const int nyPatch = wp->ny;
+   const int nfPatch = wp->nf;
+
+   if (nxPatch * nyPatch * nfPatch == 0) {
+      return 0; // reduced patch size is zero
+   }
+
+   const int sx = wp->sx; assert(sx == nfPatch);
+   const int sy = wp->sy; // no assert here because patch may be shrunken
+   const int sf = wp->sf; assert(sf == 1);
+
+   // TODO - make sure this is correct
+   // sigma is in units of pre-synaptic layer
+   const float dxPost = powf(2, lPost->xScale);
+   const float dyPost = powf(2, lPost->yScale);
+
+   const int nxPre = lPre->loc.nx;
+   const int nyPre = lPre->loc.ny;
+   const int nfPre = lPre->numFeatures;
+
+   const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
+   const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
+
+   // location of pre-synaptic neuron (relative to closest post-synaptic neuron)
+   float xPre = -1.0 * deltaPosLayers(kxPre, lPre->xScale) * dxPost;
+   float yPre = -1.0 * deltaPosLayers(kyPre, lPre->yScale) * dyPost;
+
+   // closest post-synaptic neuron may not be at the center of the patch (0,0)
+   // so must shift pre-synaptic location
+   if (xPre < 0.0) xPre += 0.5 * dxPost;
+   if (xPre > 0.0) xPre -= 0.5 * dxPost;
+   if (yPre < 0.0) yPre += 0.5 * dyPost;
+   if (yPre > 0.0) yPre -= 0.5 * dyPost;
+
+   // (x0,y0) is at upper left corner of patch (i=0,j=0)
+   // and shift so pre-synaptic cell is at 0
+   const float xDelta0 = -(nxPatch/2.0 - 0.5) * dxPost - xPre;
+   const float yDelta0 = +(nyPatch/2.0 - 0.5) * dyPost - yPre;
+
+   const float dth = PI/nfPatch;
+   const float th0 = rotate*dth/2.0;
+
+   // loop over all post-synaptic cells in patch
+   for (int fPost = 0; fPost < nfPatch; fPost++) {
+      int oPost = fPost % noPost;
+      float thPost = th0 + oPost * dth;
+      for (int jPost = 0; jPost < nyPatch; jPost++) {
+         float yDelta = yDelta0 - jPost * dyPost;
+         for (int iPost = 0; iPost < nxPatch; iPost++) {
+            float xDelta = xDelta0 + iPost*dxPost;
+
+            // rotate the reference frame by th
+            float xp = + xDelta * cos(thPost) + yDelta * sin(thPost);
+            float yp = - xDelta * sin(thPost) + yDelta * cos(thPost);
+
+            // include shift to flanks
+            float d2 = xp * xp + (aspect*(yp-shift) * aspect*(yp-shift));
+
+            w[iPost*sx + jPost*sy + fPost*sf] = 0;
+
+            // TODO - figure out on/off connectivity
+            // don't break it for nfPre==1 going to nfPost=numOrientations
+            //if (this->channel == CHANNEL_EXC && f != fPre) continue;
+            //if (this->channel == CHANNEL_INH && f == fPre) continue;
+
+            if (d2 <= r2Max) {
+               w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
+            }
+            if (numFlanks > 1) {
+               // shift in opposite direction
+               d2 = xp * xp + (aspect*(yp+shift) * aspect*(yp+shift));
+               if (d2 <= r2Max) {
+                  w[iPost*sx + jPost*sy + fPost*sf] = expf(-d2 / (2.0*sigma*sigma));
+               }
+            }
+            // printf("x=%f y-%f xp=%f yp=%f d2=%f w=%f\n", x, y, xp, yp, d2, w[i*sx + j*sy + f*sf]);
+         }
+      }
+   }
+
+   return 0;
+#endif
 }
 
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
