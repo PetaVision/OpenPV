@@ -369,7 +369,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    float shift   = 0.0f;
    float rotate  = 0.0f; // rotate so that axis isn't aligned
 
-   numFlanks = params->value(name, "numFlanks", numFlanks);
+   numFlanks = (int) params->value(name, "numFlanks", numFlanks);
    shift     = params->value(name, "flankShift", shift);
    rotate    = params->value(name, "rotate", rotate);
 
@@ -992,8 +992,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       kyPreHead += prePad;
 
       // TODO - FIXME for powXScale > 1
-      int ax = 1.0f / powXScale;
-      int ay = 1.0f / powYScale;
+      int ax = (int) (1.0f / powXScale);
+      int ay = (int) (1.0f / powYScale);
       int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
       int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
@@ -1209,8 +1209,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
-   const int nxPostPatch = nxp * powXScale;
-   const int nyPostPatch = nyp * powYScale;
+   const int nxPostPatch = (int) (nxp * powXScale);
+   const int nyPostPatch = (int) (nyp * powYScale);
    const int nfPostPatch = lPre->numFeatures;
 
    const char * last_str = (last) ? "_last" : "";
@@ -1420,12 +1420,12 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
          sum += w[i];
          sum2 += w[i] * w[i];
       }
-      if (sum == 0.0 && sum2 > 0.0) {
+      if (sum == 0.0f && sum2 > 0.0f) {
          float factor = strength / sqrtf(sum2);
          for (int i = 0; i < nx * ny * nf; i++)
             w[i] *= factor;
       }
-      else if (abs(sum) > 0) {
+      else if (sum != 0.0f) {
          float factor = strength / sum;
          for (int i = 0; i < nx * ny * nf; i++)
             w[i] *= factor;
@@ -1443,9 +1443,9 @@ int HyPerConn::setPatchSize(const char * filename)
    int status = 0;
    PVParams * inputParams = parent->parameters();
 
-   nxp = inputParams->value(name, "nxp", post->clayer->loc.nx);
-   nyp = inputParams->value(name, "nyp", post->clayer->loc.ny);
-   nfp = inputParams->value(name, "nfp", post->clayer->numFeatures);
+   nxp = (int) inputParams->value(name, "nxp", post->clayer->loc.nx);
+   nyp = (int) inputParams->value(name, "nyp", post->clayer->loc.ny);
+   nfp = (int) inputParams->value(name, "nfp", post->clayer->numFeatures);
 
    // use patch dimensions from file if (filename != NULL)
    //
