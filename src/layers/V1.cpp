@@ -111,13 +111,10 @@ int V1::setParams(PVParams * params, V1Params * p)
 int V1::updateState(float time, float dt)
 {
    PVParams * params = parent->parameters();
-   int spikingFlag = 1;
 
    pv_debug_info("[%d]: V1::updateState:", clayer->columnId);
 
-   if (params->present(name, "spikingFlag")) {
-      spikingFlag = params->value(name, "spikingFlag");
-   }
+   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
 
    if (spikingFlag != 0) {
       return LIF2_update_exact_linear(clayer, dt);
