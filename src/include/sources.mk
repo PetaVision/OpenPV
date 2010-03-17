@@ -13,9 +13,9 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/connections/RandomConn.hpp \
           $(SRCDIR)/connections/RuleConn.hpp \
           $(SRCDIR)/connections/PVConnection.h \
-          $(SRCDIR)/layers/elementals.h \
           $(SRCDIR)/layers/Gratings.hpp \
           $(SRCDIR)/layers/Image.hpp \
+          $(SRCDIR)/layers/LayerDataInterface.hpp \
           $(SRCDIR)/layers/LIF2.h \
           $(SRCDIR)/layers/Movie.hpp \
           $(SRCDIR)/layers/PVLayer.h \
@@ -29,7 +29,8 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/PVParams.hpp \
           $(SRCDIR)/io/fileio.hpp \
           $(SRCDIR)/io/imageio.hpp \
-          $(SRCDIR)/io/tiff.h
+          $(SRCDIR)/io/tiff.h \
+          $(SRCDIR)/utils/conversions.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/columns/HyPerColRunDelegate.cpp \
@@ -47,6 +48,7 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
           $(SRCDIR)/layers/Gratings.cpp \
           $(SRCDIR)/layers/Image.cpp \
+          $(SRCDIR)/layers/LayerDataInterface.cpp \
           $(SRCDIR)/layers/Movie.cpp \
           $(SRCDIR)/layers/Retina.cpp \
           $(SRCDIR)/layers/LGN.cpp \
@@ -71,6 +73,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/HyPerLayer.o \
           $(BUILDDIR)/Gratings.o \
           $(BUILDDIR)/Image.o \
+          $(BUILDDIR)/LayerDataInterface.o \
           $(BUILDDIR)/Movie.o \
           $(BUILDDIR)/HyPerConn.o \
           $(BUILDDIR)/GaborConn.o \
@@ -101,7 +104,8 @@ CSRCS   = $(SRCDIR)/connections/PVConnection.c \
           $(SRCDIR)/layers/PVLayer.c \
           $(SRCDIR)/io/io.c \
           $(SRCDIR)/io/tiff.c \
-          $(SRCDIR)/io/parser/param_lexer.c
+          $(SRCDIR)/io/parser/param_lexer.c \
+          $(SRCDIR)/utils/conversions.c
 
 COBJS   = $(BUILDDIR)/PVConnection.o \
           $(BUILDDIR)/fileread.o \
@@ -109,7 +113,8 @@ COBJS   = $(BUILDDIR)/PVConnection.o \
           $(BUILDDIR)/PVLayer.o \
           $(BUILDDIR)/io.o \
           $(BUILDDIR)/tiff.o \
-          $(BUILDDIR)/param_lexer.o
+          $(BUILDDIR)/param_lexer.o \
+          $(BUILDDIR)/conversions.o
 
 SRCS = $(CPPSRCS) $(CSRCS)
 
