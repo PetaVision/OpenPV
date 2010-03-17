@@ -59,9 +59,9 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    const PVLayer * l = c->postSynapticLayer()->clayer;
 
-   const float nx = l->loc.nx;
-   const float ny = l->loc.ny;
-   const float nf = l->numFeatures;
+   const int nx = l->loc.nx;
+   const int ny = l->loc.ny;
+   const int nf = l->numFeatures;
 
    // calc kPost if needed
    if (kPost < 0) {
