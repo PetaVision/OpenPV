@@ -67,8 +67,8 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    }
 
    if (status) {
-      imageLoc.nx = params->value(name, "nx");
-      imageLoc.ny = params->value(name, "ny");
+      imageLoc.nx = (int) params->value(name, "nx");
+      imageLoc.ny = (int) params->value(name, "ny");
       imageLoc.nxGlobal = imageLoc.nx * icComm->numCommColumns();
       imageLoc.nyGlobal = imageLoc.ny * icComm->numCommRows();
       imageLoc.kx0 = imageLoc.nx * icComm->commColumn();
