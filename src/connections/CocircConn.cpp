@@ -65,17 +65,17 @@ PVPatch ** CocircConn::initializeCocircWeights(PVPatch ** patches, int numPatche
    float shift = 0.0f;
    float rotate = 0.0f; // rotate so that axis isn't aligned
 
-   numFlanks = params->value(name, "numFlanks", numFlanks);
+   numFlanks = (int) params->value(name, "numFlanks", numFlanks);
    shift = params->value(name, "flankShift", shift);
    rotate = params->value(name, "rotate", rotate);
 
    int noPre = pre->clayer->numFeatures;
-   noPre = params->value(name, "noPre", noPre);
-   assert(noPre> 0);
+   noPre = (int) params->value(name, "noPre", noPre);
+   assert(noPre > 0);
 
    int noPost = post->clayer->numFeatures;
-   noPost = params->value(name, "noPost", noPost);
-   assert(noPost> 0);
+   noPost = (int) params->value(name, "noPost", noPost);
+   assert(noPost > 0);
 
    float sigma_cocirc = PI / 2.0;
    sigma_cocirc = params->value(name, "sigma_cocirc", sigma_cocirc);
