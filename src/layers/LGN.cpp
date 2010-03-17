@@ -43,7 +43,6 @@ int LGN::updateState(float time, float dt)
    // make sure activity in border is zero
    //
    // TODO - set numActive and active list?
-   int numActive = 0;
    for (int k = 0; k < clayer->numExtended; k++) {
       activity[k] = 0.0;
    }
@@ -77,7 +76,7 @@ int LGN::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int LGN::setParams(int numParams, float* params)
+int LGN::setParams(int numParams, float * params)
 {
    pv_debug_info("[%d]: Example::setParams: numParams=%d\n", clayer->columnId, numParams);
    return 0;
