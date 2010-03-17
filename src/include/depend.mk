@@ -22,6 +22,9 @@ $(BUILDDIR)/Gratings.o: $(SRCDIR)/layers/Gratings.cpp $(HEADERS)
 $(BUILDDIR)/Image.o: $(SRCDIR)/layers/Image.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
+$(BUILDDIR)/LayerDataInterface.o: $(SRCDIR)/layers/LayerDataInterface.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/Movie.o: $(SRCDIR)/layers/Movie.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -110,4 +113,7 @@ $(BUILDDIR)/tiff.o: $(SRCDIR)/io/tiff.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/param_lexer.o: $(SRCDIR)/io/parser/param_lexer.c $(HEADERS)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/conversions.o: $(SRCDIR)/utils/conversions.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
