@@ -101,10 +101,6 @@ public:
                              int * kxPostOut, int * kyPostOut, int * kfPostOut,
                              int * dxOut, int * dyOut, int * nxpOut, int * nypOut);
 
-   int randomWeights(PVPatch * wp, float wMin, float wMax, int seed);
-
-   int smartWeights(PVPatch * wp, int k);
-
    int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
@@ -175,6 +171,12 @@ protected:
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
+
+   int uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed);
+
+   int gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed);
+
+   int smartWeights(PVPatch * wp, int k);
 
    virtual int checkPVPFileHeader(const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
