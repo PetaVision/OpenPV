@@ -59,7 +59,7 @@ int Retina::initialize(PVLayerType type)
    fileread_params * params = (fileread_params *) l->params;
 
    l->loc = img->getImageLoc();
-   l->loc.nPad   = params->marginWidth;
+   l->loc.nPad = (int) params->marginWidth;
    l->loc.nBands = 1;
 
    // the size of the Retina may have changed due size of image
@@ -77,10 +77,7 @@ int Retina::initialize(PVLayerType type)
 
    PVParams * pvParams = parent->parameters();
 
-   fireOffPixels = 0;
-   if (pvParams->present(name, "fireOffPixels")) {
-      fireOffPixels = pvParams->value(name, "fireOffPixels");
-   }
+   fireOffPixels = (int) pvParams->value(name, "fireOffPixels", 0);
 
    status = parent->addLayer(this);
 
@@ -265,11 +262,11 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
    float    * prevActivity = clayer->prevActivity;
 
-   const float nx = clayer->loc.nx;
-   const float ny = clayer->loc.ny;
-   const float nf = clayer->numFeatures;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
 
-   const float marginWidth = clayer->loc.nPad;
+   const int marginWidth = clayer->loc.nPad;
 
    updateImage(time, dt);
 
