@@ -314,7 +314,7 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 {
    PVParams * inputParams = parent->parameters();
 
-   float uniform_weights = inputParams->value(getName(), "uniformWeights", 0.0f);
+   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f);
    float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f);
 
    if(uniform_weights && gaussian_weights){
@@ -622,7 +622,10 @@ int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
    const float dt = parent->getDeltaTime();
    const float decayLTP = expf(-dt / tauLTP);
 
-   const int postStrideY = post->clayer->loc.nx + 2 * post->clayer->loc.nPad;
+   // this stride is in extended space for post-synaptic activity and
+   // STDP decrement variable
+   const int postStrideY = post->clayer->numFeatures
+                         * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
 
    // assume pDecr has been updated already, and weights have been used, so
    // 1. update Psij (pIncr) for each synapse
@@ -830,11 +833,11 @@ int HyPerConn::createAxonalArbors()
 #ifndef FEATURES_LAST
    const int psf = 1;
    const int psx = nfp;
-   const int psy = psx * nxPost; // (nxPost + 2*postPad); // TODO- check me///////////
+   const int psy = psx * nxPost;
 #else
    const int psx = 1;
-   const int psy = nxPost; // + 2*postPad;
-   const int psf = psy * nyPost; // (nyPost + 2*postPad);
+   const int psy = nxPost;
+   const int psf = psy * nyPost;
 #endif
 
    // activity and STDP M variable are extended into margins
@@ -930,9 +933,8 @@ int HyPerConn::createAxonalArbors()
          pvdata_t * phi = lPost->phi[channel] + kl;
          pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
 
-         //
          // get offset in extended frame for post-synaptic M STDP variable
-
+         //
          kxPost += postPad;
          kyPost += postPad;
 
@@ -946,8 +948,13 @@ int HyPerConn::createAxonalArbors()
 
          pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
          if (stdpFlag) {
-            arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
-                             (size_t)dy * (size_t)arbor->weights->sy;
+            //
+            // This code seems to be adding the offset twice (modulo that
+            // the weight strides are different from activity strides)
+            // and should be removed when verified
+            //
+            // arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
+            //                 (size_t)dy * (size_t)arbor->weights->sy;
             pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
 
