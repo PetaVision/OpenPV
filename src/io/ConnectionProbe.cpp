@@ -71,15 +71,15 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    const PVLayer * lPre = c->preSynapticLayer()->clayer;
 
-   const int nx = lPre->loc.nx;
-   const int ny = lPre->loc.ny;
-   const int nf = lPre->numFeatures;
+   const int nxPre = lPre->loc.nx;
+   const int nyPre = lPre->loc.ny;
+   const int nfPre = lPre->numFeatures;
 
    // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
-      kPre = kIndex(kxPre, kyPre, kfPre, nx, ny, nf);
-      kPre = kIndexExtended(kPre, nx, ny, nf, lPre->loc.nPad);
+      kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
+      kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPre->loc.nPad);
    }
 
    const int axonId = 0;
@@ -111,8 +111,19 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    if (outputIndices) {
       const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
-      int kxPost = zPatchHead(kxPre, w->nx, lPre->xScale, lPost->xScale);
-      int kyPost = zPatchHead(kyPre, w->ny, lPre->yScale, lPost->yScale);
+      const int nxPost = lPost->loc.nx;
+      const int nyPost = lPost->loc.ny;
+      const int nfPost = lPost->numFeatures;
+
+      const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
+      const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+
+      //
+      // The following is incorrect because w->nx is reduced near boundary.
+      // Remove when verified.
+      //
+      //int kxPost = zPatchHead(kxPre, w->nx, lPre->xScale, lPost->xScale);
+      //int kyPost = zPatchHead(kyPre, w->ny, lPre->yScale, lPost->yScale);
 
       write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
       fflush(fp);
