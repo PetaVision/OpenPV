@@ -60,8 +60,12 @@ public:
    float simulationTime()                 {return time;}
 
    PVLayerLoc getImageLoc()               {return imageLoc;}
-   int width()                            {return imageLoc.nx;}
-   int height()                           {return imageLoc.ny;}
+   int width()                            {return imageLoc.nxGlobal;}
+   int height()                           {return imageLoc.nyGlobal;}
+   int localWidth()                       {return imageLoc.nx;}
+   int localHeight()                      {return imageLoc.ny;}
+
+   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
 
    const char * inputFile()               {return image_file;}
 
@@ -76,6 +80,8 @@ public:
 
    int commColumn(int colId);
    int commRow(int colId);
+   int numCommColumns()                   {return icComm->numCommColumns();}
+   int numCommRows()                      {return icComm->numCommRows();}
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
@@ -89,9 +95,11 @@ private:
    int numConnections;
 
    bool warmStart;
+   bool mirrorBCflag;      // true when mirror BC are to be applied
+   bool isInitialized;     // true when all initialization has been completed
 
-   float time;                  // current time in milliseconds
-   float deltaTime;             // time step interval
+   float time;             // current time in milliseconds
+   float deltaTime;        // time step interval
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;
@@ -107,7 +115,6 @@ private:
    InterColComm * icComm; // manages communication between HyPerColumns};
 
    HyPerColRunDelegate * runDelegate; // runs time loop
-   bool mirrorBCflag;
 
 }; // class HyPerCol
 
