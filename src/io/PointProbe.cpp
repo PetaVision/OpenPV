@@ -79,6 +79,7 @@ int PointProbe::outputState(float time, HyPerLayer * l)
       fprintf(fp, "%s t=%6.1f", msg, time);
       fprintf(fp, " G_E=%6.3f", clayer->G_E[k]);
       fprintf(fp, " G_I=%6.3f", clayer->G_I[k]);
+      fprintf(fp, " G_IB=%6.3f", clayer->G_IB[k]);
       fprintf(fp, " V=%6.3f", clayer->V[k]);
       fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
       fprintf(fp, " a=%3.1f\n", clayer->activity->data[kex]);
