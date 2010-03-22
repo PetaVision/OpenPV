@@ -38,26 +38,8 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 {
    int pubId = pub->getLayerId();
 
-#ifdef EXTEND_BORDER_INDEX
    publishers[pubId] = new Publisher(pubId, this, numItems, pub->clayer->loc, numLevels);
-#else
-   publishers[pubId] = new Publisher(pubId, numNeighbors, size1, numBorders, size2, numLevels);
-   publishers[pubId]->setCommunicator(communicator());
-#endif
-
    numPublishers += 1;
-
-#ifndef EXTEND_BORDER_INDEX
-   DataStore* store = publishers[pubId]->dataStore();
-   for (int i = 0; i < numBorders; i++) {
-      for (int delay = 0; delay < numLevels; delay++) {
-         int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
-         PVLayerCube* border = (PVLayerCube*) store->buffer(borderIndex, delay);
-         pvcube_setAddr(border);
-         pub->initBorder(border, borders[i]);
-      }
-   }
-#endif
 
    return pubId;
 }
