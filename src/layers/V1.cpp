@@ -26,9 +26,9 @@ V1Params V1DefaultParams =
     V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
     TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
     VTH_REST,  TAU_VTH, DELTA_VTH,	     // tau (ms)
-    250, NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
-    250, NOISE_AMP*1.0,
-    250, NOISE_AMP*1.0                       // noise (G)
+    250, 0*NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
+    250, 0*NOISE_AMP*1.0,
+    250, 0*NOISE_AMP*1.0                       // noise (G)
 };
 
 V1::V1(const char* name, HyPerCol * hc)
