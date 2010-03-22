@@ -21,7 +21,7 @@ TESTS = test_kg test_kxpos test_kypos test_pos \
         test_datatypes test_post_weights test_mirror_BCs \
         test_border_activity
 
-MPI_TESTS = test_read_header test_image_io test_weights_io
+MPI_TESTS = test_read_header test_image_io test_weights_io test_constant_input
 
 DEPRECATED_TESTS = test_decode_msg \
                    test_layer_direct     # fixme
@@ -53,8 +53,8 @@ check: runtests
 test_read_header: $(BUILDDIR)/test_read_header.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_layer_direct: $(BUILDDIR)/test_layer_direct.o $(BUILDDIR)/TestLayer.o $(PVLIB)
-	$(CPP) -o $@ $< $(BUILDDIR)/TestLayer.o $(LIBS)
+test_constant_input: $(BUILDDIR)/test_constant_input.o $(BUILDDIR)/TestImage.o $(PVLIB)
+	$(CPP) -o $@ $< $(BUILDDIR)/TestImage.o $(LIBS)
 
 test_image_io: $(BUILDDIR)/test_image_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
@@ -136,6 +136,10 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 6 nodes ..."
 	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
+	@echo "Running test_constant_input with 2 nodes ..."
+	@mpirun -np 2 test_constant_input -p $(INPARAMS)
+	@echo "Running test_constant_input with 4 nodes ..."
+	@mpirun -np 4 test_constant_input -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
@@ -167,10 +171,10 @@ runtests: make-in-subdirs $(TESTS)
 	@./test_mirror_BCs -p $(INPARAMS)
 	@echo "Running test_border_activity ..."
 	@./test_border_activity -p $(INPARAMS)
+	@echo "Running test_constant_input with 1 node ..."
+	@test_constant_input -p $(INPARAMS)
 #	@echo "Running test_borders ..."
 #	@test_borders -p $(INPARAMS)
-#	@echo "Running test_layer_direct with 1 node ..."
-#	@test_layer_direct -p $(INPARAMS)
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
