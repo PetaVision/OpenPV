@@ -18,9 +18,6 @@
 #define LIF_STATS 1
 #define DEBUG 0
 
-// pad layer activity with border
-#define EXTEND_BORDER_INDEX
-
 // TODO: move to HyPerCol, set as runtime param, link each layer back to its HyPerCol
 // numerical integration parameters
 #define DELTA_T 1.0 //time step size (msec)
