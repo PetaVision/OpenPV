@@ -39,6 +39,8 @@ static inline int update_f(PVLayer * l, int start)
 
    float * V   = l->V;
    float * Vth = l->Vth;
+   float * G_E = l->G_E;
+   float * G_I = l->G_I;
    float * G_IB = l->G_IB;
    float * activity = l->activity->data;
 
@@ -56,12 +58,19 @@ static inline int update_f(PVLayer * l, int start)
       activity[k] = 0.0;
    }
 
+   #define GMAX  10.0
+   for (k = start; k < (l->numNeurons + start); k++) {
+      G_E[k] = ( G_E[k] < GMAX ) ? G_E[k] : GMAX;
+      G_I[k] = ( G_I[k] < GMAX ) ? G_I[k] : GMAX;
+      G_IB[k] = ( G_IB[k] < GMAX ) ? G_IB[k] : GMAX;
+   }
+
    for (k = start; k < (l->numNeurons + start); k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       int active = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
       activity[kex] = active;
       V[k]   -= active * (V[k] - Vrest);  // reset cells that fired
-      // firing doesn't affect synaptic conductances
+      // add hyperpolarizing current
       G_IB[k] += active * 1.0;
       Vth[k] += active * deltaVth; // reset cells that fired
 
