@@ -128,6 +128,45 @@ HyPerLayer "test_border_activity connection" = {
    nxp = 7;
    nyp = 7;
    randomFlag = 1; // use random weights to initialize
-   wMinInit = 1;   /  all weight to constant (1)
+   wMinInit = 1;   // all weight to constant (1)
+   wMaxInit = 1;
+};
+
+
+//
+// This section defines parameters for test_post_weights
+//
+
+HyPerCol "test_constant_input column" = {
+   nx = 128;
+   ny = 128;
+   mirrorBCflag = 1;
+};
+
+HyPerLayer "test_constant_input image" = {
+   nxScale = 1;
+   nyScale = 1;
+};
+
+HyPerLayer "test_constant_input retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 3;
+   spikingFlag = 0;
+   poissonEdgeProb = 1;
+};
+
+HyPerLayer "test_constant_input layer" = {
+   nxScale = 2;
+   nyScale = 2;
+   marginWidth = 0;
+   spikingFlag = 0;
+};
+
+HyPerLayer "test_constant_input connection" = {
+   nxp = 4;
+   nyp = 4;
+   randomFlag = 1; // use random weights to initialize
+   wMinInit = 1;   // all weight to constant (1)
    wMaxInit = 1;
 };
