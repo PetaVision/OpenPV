@@ -43,10 +43,12 @@ HyPerLayer "LGN" = {
    nf = 1;
    
    marginWidth = 8;
-   restart = 0;
+   restart = 1;
    
+   VthRest = -60.0;
+
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;  
+   noiseAmpI = 1.0;  
 };
 
 HyPerLayer "LGNInhFF" = {
@@ -60,7 +62,7 @@ HyPerLayer "LGNInhFF" = {
    VthRest = -60.0;
 
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 1.0;
 };
 
 HyPerLayer "LGNInh" = {
@@ -74,8 +76,9 @@ HyPerLayer "LGNInh" = {
    VthRest = -55.0;
 
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 1.0;
 };
+
 
 HyPerLayer "L1" = {
    nxScale = 1; 
@@ -85,8 +88,10 @@ HyPerLayer "L1" = {
    marginWidth = 8;
    restart = 1;
    
+   VthRest = -60.0;
+
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 1.0;
 };
 
 
@@ -101,7 +106,7 @@ HyPerLayer "L1InhFF" = {
    VthRest = -60.0;
    
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 1.0;
 };
 
 
@@ -116,31 +121,42 @@ HyPerLayer "L1Inh" = {
    VthRest = -55.0;
    
    noiseAmpE = 1.0;
-   noiseAmpI = 2.0;
+   noiseAmpI = 1.0;
 };
 
 
 ///////
-// 19 connections: 
+// 30 connections: 
 //    "Retina to LGN"
 //    "Retina to LGNInhFF"
+//    "LGN to LGNInh"
 //    "LGN to LGNInhFF"
 //    "LGN to L1"
 //    "LGN to L1InhFF"
 //    "LGNInhFF to LGN"
+//    "LGNInhFF to LGN InhB"
 //    "LGNInhFF to LGNInhFF Exc"
+//    "LGNInhFF to LGNInh"
+//    "LGNInhFF to LGNInh InhB"
 //    "LGNInh to LGN"
 //    "LGNInh to LGNInhFF"
 //    "L1Inh to L1Inh Exc"
 //    "L1 to LGN"
 //    "L1 to LGNInh"
 //    "L1 to L1"
+//    "L1 to L1InhFF"
 //    "L1 to L1Inh"
 //    "L1InhFF to L1"
+//    "L1InhFF to L1 InhB"
+//    "L1InhFF to L1InhFF"
+//    "L1InhFF to L1InhFF InhB"
 //    "L1InhFF to L1InfFF Exc"
+//    "L1InhFF to L1Inh"
+//    "L1InhFF to L1Inh InhB"
 //    "L1Inh to L1"
 //    "L1Inh to L1InhFF"
 //    "L1Inh to L1Inh Exc"
+//    "L1Inh to L1Inh Inh"
 
 
 // Retina connections
@@ -156,6 +172,7 @@ HyPerConn "Retina to LGN" = {
    aspect = 1;
    sigma = 0.5;
    rMax  = 3;
+   
    strength = 2.0;  
 };
 
@@ -171,11 +188,29 @@ HyPerConn "Retina to LGNInhFF" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
+   
    strength = 2.0;  
 };
 
 
+
 // LGN connections
+
+HyPerConn "LGN to LGNInhFF" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 7;
+   
+   strength = 1.0;  
+   
+};
 
 HyPerConn "LGN to LGNInh" = {
    nxp = 3; 
@@ -188,10 +223,10 @@ HyPerConn "LGN to LGNInh" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
+   
    strength = 8.0;  
    
 };
-
 
 HyPerConn "LGN to L1" = {
    nxp = 7; 
@@ -204,7 +239,8 @@ HyPerConn "LGN to L1" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 128.0;  
+   
+   strength = 256.0;  
    
    delay = 8.0;
 };
@@ -221,7 +257,8 @@ HyPerConn "LGN to L1InhFF" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 128.0;  
+   
+   strength = 256.0;  
    
    delay = 8.0;
 };
@@ -241,7 +278,26 @@ HyPerConn "LGNInhFF to LGN" = {
    aspect = 1;
    sigma = 3.5;
    rMax  = 3;
-   strength = 2; 
+   
+   strength = 1; 
+   
+   delay = 1.0;
+   
+};
+
+HyPerConn "LGNInhFF to LGN InhB" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3;
+   
+   strength = 1; 
    
    delay = 1.0;
    
@@ -258,9 +314,48 @@ HyPerConn "LGNInhFF to LGNInhFF Exc" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
+   
    strength = 1.0;  
    
 };
+
+HyPerConn "LGNInhFF to LGNInh" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3;
+   
+   strength = 1; 
+   
+   delay = 1.0;
+   
+};
+
+HyPerConn "LGNInhFF to LGNInh InhB" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3;
+   
+   strength = 1; 
+   
+   delay = 1.0;
+   
+};
+
+
 
 
 
@@ -278,7 +373,8 @@ HyPerConn "LGNInh to LGN" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
-   strength = 32.0;  
+   
+   strength = 16.0;  
    
    delay = 2.0;
    
@@ -295,6 +391,7 @@ HyPerConn "LGNInh to LGNInhFF" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
+   
    strength = 1.0;  
    
    delay = 2.0; 
@@ -311,6 +408,7 @@ HyPerConn "LGNInh to LGNInh Exc" = {
    aspect = 1;
    sigma = 1.5;
    rMax  = 3;
+   
    strength = 1.0;  
    
 };
@@ -331,7 +429,8 @@ HyPerConn "L1 to LGN" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 0.0;  
+   
+   strength = 1.0;  
    
    delay = 8.0;
 };
@@ -347,7 +446,8 @@ HyPerConn "L1 to LGNInh" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   strength = 0.0;  
+   
+   strength = 4.0;  
    
    delay = 8.0;
 };
@@ -360,9 +460,28 @@ HyPerConn "L1 to L1" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 16.0;
+   strength = 8.0;
    
    delay = 1.0;   
+};
+
+HyPerConn "L1 to L1InhFF" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 7;
+   sigma = 3.5;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax = 3.1415926535897931; //PI;
+
+   strength = 8.0;
+
+   delay = 1.0;
 };
 
 HyPerConn "L1 to L1Inh" = {
@@ -373,7 +492,7 @@ HyPerConn "L1 to L1Inh" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 32.0;
+   strength = 128.0;
       
    delay = 1.0;
 };
@@ -391,16 +510,82 @@ HyPerConn "L1InhFF to L1" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 32.0;
-
    aspect =7;
-   sigma = 3.5;
+   sigma = 7;
    rMax  = 7;
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax =  0.52360; //PI / 6;
    
    numFlanks = 2;
    flankShift = 1;
+
+   strength = 8.0;
+
+   delay = 1.0;
+};
+
+HyPerConn "L1InhFF to L1 InhB" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect =7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1;
+
+   strength = 4.0;
+
+   delay = 1.0;
+};
+
+HyPerConn "L1InhFF to L1InhFF" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect =7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1;
+
+   strength = 2.0;
+
+   delay = 1.0;
+};
+
+HyPerConn "L1InhFF to L1InhFF InhB" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect =7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1;
+
+   strength = 2.0;
 
    delay = 1.0;
 };
@@ -413,17 +598,60 @@ HyPerConn "L1InhFF to L1InhFF Exc" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 1.0;
-
    aspect = 3;
    sigma = 3;
    rMax  = 3;
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
+ 
+   strength = 1.0;
    
    delay = 1.0;
 };
 
+HyPerConn "L1InhFF to L1Inh" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect =7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1;
+
+   strength = 8.0;
+
+   delay = 1.0;
+};
+
+HyPerConn "L1InhFF to L1Inh InhB" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect =7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1;
+
+   strength = 4.0;
+
+   delay = 1.0;
+};
 
 
 
@@ -437,13 +665,13 @@ HyPerConn "L1Inh to L1" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 128.0;
-
-   aspect = 3.5;
+   aspect = 7;
    sigma = 7;
    rMax  = 7;
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
+
+   strength = 128.0;
 
    delay = 2.0;
 };
@@ -457,16 +685,15 @@ HyPerConn "L1Inh to L1InhFF" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 0.0;
-
-   aspect = 3.5;
+   aspect = 7;
    sigma = 7;
    rMax  = 7;
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
+
+   strength = 1.0;
    
    delay = 2.0;
-   
 };
 
 
@@ -478,15 +705,34 @@ HyPerConn "L1Inh to L1Inh Exc" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 1.0;
-
    aspect = 3;
    sigma = 3;
    rMax  = 3;
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
+
+   strength = 1.0;
    
    delay = 1.0;
+};
+
+HyPerConn "L1Inh to L1Inh Inh" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax = 3.1415926535897931; //PI;
+
+   strength = 16.0;
+
+   delay = 2.0;
 };
 
 
