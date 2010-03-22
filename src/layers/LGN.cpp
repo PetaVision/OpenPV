@@ -48,12 +48,8 @@ int LGN::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
                                    clayer->loc.nPad);
-#else
-      int kPhi = k;
-#endif
       clayer->V[k] = PhiExc[kPhi];
       activity[k] = PhiExc[kPhi] - PhiInh[kPhi];
       //if (k > 64*2*32 && k < 2*64*32+128) {
@@ -162,11 +158,7 @@ int PV_LGN_updateState(PVLayer * l)
 
    if (spiking) {
       for (int k = 0; k < l->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
          int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->loc.nPad);
-#else
-         int kPhi = k;
-#endif
          activity[k] = (phi[kPhi] > V_th) ? 1.0 : 0.0;
          V[k] = (phi[kPhi] > V_th) ? 0.0 : V[k];
          phi[kPhi] = V[k]; // TODO -figure out if needs to be 0.0
@@ -174,11 +166,7 @@ int PV_LGN_updateState(PVLayer * l)
    }
    else {
       for (int k = 0; k < l->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
          int kPhi = kIndexExtended(k, l->loc.nx, l->loc.ny, l->numFeatures, l->loc.nPad);
-#else
-         int kPhi = k;
-#endif
          activity[k] = phi[kPhi];
          V[k] = phi[kPhi];
          phi[kPhi] = 0.0;     // reset accumulation buffer
