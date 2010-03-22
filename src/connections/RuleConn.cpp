@@ -11,14 +11,18 @@
 
 namespace PV {
 
+RuleConn::RuleConn()
+{
+   // this allows RuleConn to be used as a base class
+}
+
 RuleConn::RuleConn(const char * name,
                    HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
 {
-   initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
+   initialize(name, hc, pre, post, channel);
 }
 
-int RuleConn::initializeWeights(const char * filename)
+PVPatch ** RuleConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
    if (filename == NULL) {
       PVParams * params = parent->parameters();
@@ -27,13 +31,8 @@ int RuleConn::initializeWeights(const char * filename)
       const int xScale = pre->clayer->xScale;
       const int yScale = pre->clayer->yScale;
 
-      int nfPre = pre->clayer->numFeatures;
-
-      const int arbor = 0;
-      const int numPatches = numWeightPatches(arbor);
-      for (int i = 0; i < numPatches; i++) {
-         int fPre = i % nfPre;
-         ruleWeights(wPatches[arbor][i], fPre, xScale, yScale, strength);
+      for (int k = 0; k < numPatches; k++) {
+         ruleWeights(patches[k], k, xScale, yScale, strength);
       }
    }
    else {
@@ -41,10 +40,10 @@ int RuleConn::initializeWeights(const char * filename)
       exit(1);
    } // end if for filename
 
-   return 0;
+   return patches;
 }
 
-int RuleConn::ruleWeights(PVPatch * wp, int fPre, int xScale, int yScale, float strength)
+int RuleConn::ruleWeights(PVPatch * wp, int kPre, int xScale, int yScale, float strength)
 {
    pvdata_t * w = wp->data;
 
@@ -56,6 +55,10 @@ int RuleConn::ruleWeights(PVPatch * wp, int fPre, int xScale, int yScale, float 
    const int sx = wp->sx;  assert(sx == nf);
    const int sy = wp->sy;  assert(sy == nf*nx);
    const int sf = wp->sf;  assert(sf == 1);
+
+   // TODO - need to calculate this since I've changed fPre parameter to kPre in interface
+   const int nfPre = pre->clayer->numFeatures;
+   const int fPre = kPre % nfPre;
 
    assert(fPre >= 0 && fPre <= 1);
    assert(ny == 1);
