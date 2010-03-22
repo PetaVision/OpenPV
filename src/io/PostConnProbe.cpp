@@ -44,6 +44,14 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->kPost = -1;
 }
 
+PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int kfPost)
+   : ConnectionProbe(filename, 0, 0, 0)
+{
+   this->kxPost = kxPost;
+   this->kyPost = kyPost;
+   this->kfPost = kfPost;
+   this->kPost = -1;
+}
 /**
  * @time
  * @c

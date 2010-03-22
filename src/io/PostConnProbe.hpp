@@ -17,6 +17,7 @@ public:
    PostConnProbe(int kPost);
    PostConnProbe(int kxPost, int kyPost, int kfPost);
    PostConnProbe(const char * filename, int kPost);
+   PostConnProbe(const char * filename, int kxPost, int kyPost, int kfPost);
 
    virtual int outputState(float time, HyPerConn * c);
 
