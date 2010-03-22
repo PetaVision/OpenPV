@@ -25,9 +25,6 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
    // get size info from image so that data buffer can be allocated
    int status = getImageInfo(filename, comm, &imageLoc);
 
-   // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(&loc);
-
    if (status) return;
 
    // need all image bands until converted to gray scale
@@ -63,25 +60,24 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
    this->comm = hc->icCommunicator();
    this->lastUpdateTime = 0.0;
 
-   mpi_datatypes = NULL;
-
    PVParams * params = hc->parameters();
 
    loc = hc->getImageLoc();
-   loc.nPad   = 0;
    loc.nBands = 1;
 
-   if (params->present(name, "marginWidth")) {
-      loc.nPad = (int) params->value(name, "marginWidth");
-   }
+   loc.nPad = (int) params->value(name, "marginWidth", 0);
+
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(&loc);
 
    return 0;
 }
+
 /**
  * data lives in an extended frame of size
  * (nx+2*nPad)*(ny+2*nPad)*nBands
  */
-int Image::initialize_data(const PVLayerLoc * loc)
+int Image::initialize_data(const PVLayerLoc * dataLoc)
 {
    // allocate storage for actual image
    //
@@ -91,7 +87,8 @@ int Image::initialize_data(const PVLayerLoc * loc)
 
    // allocate storage for layer data buffer
    //
-   int N = (loc->nx + 2*loc->nPad) * (loc->ny + 2*loc->nPad) * loc->nBands;
+   const int N = (dataLoc->nx + 2*dataLoc->nPad) * (dataLoc->ny + 2*dataLoc->nPad)
+               * dataLoc->nBands;
    data = (pvdata_t *) calloc(sizeof(pvdata_t), N);
    assert(data != NULL);
 
