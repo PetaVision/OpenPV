@@ -244,7 +244,13 @@ int Retina::updateImage(float time, float dt)
  *              .
  *      - activity[] is set to 0 or 1 depending on the return of spike()
  *      - this depends on the last time a neuron spiked as well as on V[]
- *      at the location of the neuron. This V[] is set by calling updateImage()
+ *      at the location of the neuron. This V[] is set by calling updateImage().
+ *      - V points to the same memory space as data in the Image so that when Image
+ *      is updated, V gets updated too.
+ *      .
+ * NOTES:
+ *      - poissonEdgeProb = noiseOnFreq * dT
+ *      - poissonBlankProb = noiseOffFreq * dT
  *      .
  *
  *
@@ -331,9 +337,9 @@ int Retina::writeState(const char * path, float time)
 
 //! Spiking method for Retina
 /*!
- * Returns 1 if an event should occur, 0 otherwise (let prob = 1 for nonspiking)
+ * Returns 1 if an event should occur, 0 otherwise. This is a stochastic model.
  * REMARKS:
- *      - During ABS_REFACTORY_PERIOD does not spike
+ *      - During ABS_REFACTORY_PERIOD a neuron does not spike
  *      - The neurons that correspond to stimuli (on Image pixels)
  *       spike with probability probStim.
  *      - The neurons that correspond to background image pixels
@@ -341,10 +347,10 @@ int Retina::writeState(const char * path, float time)
  *      - After ABS_REFACTORY_PERIOD the spiking probability
  *        grows exponentially to probBase and probStim respectively.
  *      - The burst of the retina is periodic with period T set by
- *        T = 1000/burstFrq in miliseconds
+ *        T = 1000/burstFreq in miliseconds
  *      - When the time t is such that mT < t < mT + burstDuration, where m is
  *      an integer, the burstStatus is set to 1.
- *      - The burstStatus is also set by the condition that
+ *      - The burstStatus is also determined by the condition that
  *      beginStim < t < endStim. These parameters are set in the input
  *      params file params.stdp
  *      - sinAmp modulates the spiking probability only when burstDuration <= 0
@@ -353,6 +359,10 @@ int Retina::writeState(const char * path, float time)
  *      - for neurons exposed to Image on pixels, probSpike increases
  *       with probStim.
  *      - When the probability is negative, the neuron does not spike.
+ *      .
+ * NOTES:
+ *      - time is measured in milliseconds.
+ *      .
  */
 int Retina::spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
 {
