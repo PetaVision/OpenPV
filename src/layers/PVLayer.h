@@ -75,26 +75,13 @@ typedef struct PVLayer_ {
 extern "C" {
 #endif
 
-PVLayer * pvlayer_new(int xScale, int yScale,
-                      int nx, int ny, int numFeatures, int nBorder);
-int pvlayer_init(PVLayer* l, int xScale, int yScale,
-                 int nx, int ny, int numFeatures, int nBorder);
+PVLayer * pvlayer_new(PVLayerLoc loc, int xScale, int yScale);
+int pvlayer_init(PVLayer* l, PVLayerLoc loc, int xScale, int yScale);
 int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
 int pvlayer_initFinish(PVLayer * l);
 int pvlayer_finalize(PVLayer * l);
 
 int pvlayer_copyUpdate(PVLayer * l);
-
-#ifdef DEPRECATED
-static inline int pvlayer_getPos(PVLayer * l, int k, float * x, float * y, int * kf)
-{
-   *x = xPos(k, l->xOrigin, l->dx, l->loc.nx, l->loc.ny, l->numFeatures);
-   *y = yPos(k, l->yOrigin, l->dy, l->loc.nx, l->loc.ny, l->numFeatures);
-   *kf = featureIndex(k, l->loc.nx, l->loc.ny, l->numFeatures);
-
-   return 0;
-}
-#endif
 
 float pvlayer_getWeight(float x0, float x, float r, float sigma);
 
