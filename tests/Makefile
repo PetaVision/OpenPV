@@ -113,7 +113,7 @@ test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_read_header with 1 node ..."
-	@test_read_header -n 1 -p $(INPARAMS)
+	@./test_read_header -n 1 -p $(INPARAMS)
 	@echo "Running test_read_header with 2 nodes ..."
 	@mpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
 	@echo "Running test_read_header with 4 nodes ..."
@@ -121,7 +121,7 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@rm -rf output/*.tif
 	@echo "Running test_image_io with 1 node ..."
-	@test_image_io -n 1 -p $(INPARAMS)
+	@./test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_image_io with 2 nodes ..."
 	@mpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_image_io with 4 nodes ..."
@@ -129,7 +129,7 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@echo "Running test_image_io with 6 nodes ..."
 	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 1 node ..."
-	@test_weights_io -n 1 -p $(INPARAMS)
+	@./test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 2 nodes ..."
 	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 4 nodes ..."
@@ -172,7 +172,7 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_border_activity ..."
 	@./test_border_activity -p $(INPARAMS)
 	@echo "Running test_constant_input with 1 node ..."
-	@test_constant_input -p $(INPARAMS)
+	@./test_constant_input -p $(INPARAMS)
 #	@echo "Running test_borders ..."
 #	@test_borders -p $(INPARAMS)
 
