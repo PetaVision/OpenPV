@@ -63,7 +63,9 @@ int HyPerLayer::initialize(PVLayerType type)
 
 int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 {
-   // name should be initialize first as other methods may use it
+   PVLayerLoc layerLoc;
+
+   // name should be initialized first as other methods may use it
    this->name = strdup(name);
    setParent(hc);
 
@@ -71,33 +73,28 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    this->ioAppend = 0;
    this->numProbes = 0;
 
-   PVLayerLoc imageLoc = parent->getImageLoc();
-
    PVParams * params = parent->parameters();
 
-   int nx = (int) params->value(name, "nx", imageLoc.nx);
-   int ny = (int) params->value(name, "ny", imageLoc.ny);
-
-   int numFeatures = (int) params->value(name, "nf", 1);
-   int nBorder     = (int) params->value(name, "marginWidth", 0);
-
-   // let nxScale, nyScale supersede nx, ny
-   if (params->present(name, "nxScale")) {
-      float nxScale = params->value(name, "nxScale");
-      nx = (int) nearbyintf( nxScale * imageLoc.nx );
-   }
-   if (params->present(name, "nyScale")) {
-      float nyScale = params->value(name, "nyScale");
-      ny = (int) nearbyintf( nyScale * imageLoc.ny );
+   if (params->present(name, "nx") || params->present(name, "ny")) {
+      fprintf(stderr, "HyPerLayer::initialize_base: ERROR, use (nxScale,nyScale) not (nx,ny)\n");
+      exit(-1);
    }
 
-   float xScalef = log2f((float) parent->width()  / nx);
-   float yScalef = log2f((float) parent->height() / ny);
+   const float nxScale = params->value(name, "nxScale", 1.0f);
+   const float nyScale = params->value(name, "nyScale", 1.0f);
+
+   const int numFeatures = (int) params->value(name, "nf", 1);
+   const int margin      = (int) params->value(name, "marginWidth", 0);
+
+   hc->setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
+
+   float xScalef = -log2f( (float) nxScale);
+   float yScalef = -log2f( (float) nyScale);
 
    int xScale = (int) nearbyintf(xScalef);
    int yScale = (int) nearbyintf(yScalef);
 
-   clayer = pvlayer_new(xScale, yScale, nx, ny, numFeatures, nBorder);
+   clayer = pvlayer_new(layerLoc, xScale, yScale);
    clayer->layerType = TypeGeneric;
 
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
