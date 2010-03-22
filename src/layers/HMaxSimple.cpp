@@ -45,12 +45,8 @@ int HMaxSimple::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-#ifdef EXTEND_BORDER_INDEX
       int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
                                    clayer->loc.nPad);
-#else
-      int kPhi = k;
-#endif
       clayer->V[k] = phi[kPhi];
       activity[k] = phi[kPhi];
       phi[kPhi] = 0.0;     // reset accumulation buffer
