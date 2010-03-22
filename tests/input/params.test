@@ -94,8 +94,8 @@ HyPerCol "test_mirror_BCs column" = {
 };
 
 HyPerLayer "test_mirror_BCs layer" = {
-   nx = 8;
-   ny = 8;
+   nxScale = 1;
+   nyScale = 1;
    nf = 2;
    marginWidth = 4;
 };
