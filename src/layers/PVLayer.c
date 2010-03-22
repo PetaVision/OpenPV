@@ -21,30 +21,24 @@ extern "C" {
 // pvlayer C interface implementation
 //
 
-PVLayer * pvlayer_new(int xScale, int yScale,
-                      int nx, int ny, int numFeatures, int nBorder)
+PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
 {
    PVLayer * l = (PVLayer *) calloc(sizeof(PVLayer), sizeof(char));
    assert(l != NULL);
-   pvlayer_init(l, xScale, yScale, nx, ny, numFeatures, nBorder);
+   pvlayer_init(l, loc, xScale, yScale);
    return l;
 }
 
-int pvlayer_init(PVLayer * l, int xScale, int yScale,
-                 int nx, int ny, int numFeatures, int nBorder)
+int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
 {
+   const int nx = loc.nx;
+   const int ny = loc.ny;
+
    l->layerId = -1; // the hypercolumn will set this
-   l->numFeatures = numFeatures;
    l->numDelayLevels = MAX_F_DELAY;
 
-   l->loc.nxGlobal = nx;
-   l->loc.nyGlobal = ny;
-
-   l->loc.nx = nx;
-   l->loc.ny = ny;
-
-   l->loc.nPad   = nBorder;
-   l->loc.nBands = numFeatures;
+   l->loc = loc;
+   l->numFeatures = loc.nBands;
 
    l->xScale = xScale;
    l->yScale = yScale;
@@ -53,14 +47,7 @@ int pvlayer_init(PVLayer * l, int xScale, int yScale,
    l->dy = powf(2.0f, (float) yScale);
 
    l->numNeurons  = nx * ny * l->numFeatures;
-#ifdef EXTEND_BORDER_INDEX
-   l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
-#else
-   l->numExtended = l->numNeurons;
-#endif // EXTEND_BORDER_INDEX
-
-   l->loc.kx0 = 0.0;
-   l->loc.ky0 = 0.0;
+   l->numExtended = (nx + 2*loc.nPad) * (ny + 2*loc.nPad) * l->numFeatures;
 
    l->xOrigin = 0.5;
    l->yOrigin = 0.5;
