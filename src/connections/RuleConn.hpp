@@ -23,9 +23,14 @@ public:
       return wPatches[arbor][k];
    }
 
+   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches, const char * filename);
+   virtual int ruleWeights(PVPatch * wp, int kPre, int xScale, int yScale, float strength);
+
+protected:
+   RuleConn();
+
 private:
-   virtual int initializeWeights(const char * filename);
-   int ruleWeights(PVPatch * wp, int fPre, int xScale, int yScale, float strength);
+
 };
 
 }
