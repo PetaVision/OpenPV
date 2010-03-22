@@ -2,7 +2,7 @@
  * test_image_io.cpp
  *
  *  Created on: jan 2, 2010
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "../src/columns/HyPerCol.hpp"
