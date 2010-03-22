@@ -39,8 +39,7 @@ static inline int update_f(PVLayer * l, int start)
 
    float * V   = l->V;
    float * Vth = l->Vth;
-   float * G_E = l->G_E;
-   float * G_I = l->G_I;
+   float * G_IB = l->G_IB;
    float * activity = l->activity->data;
 
    assert(start == 0);
@@ -61,10 +60,10 @@ static inline int update_f(PVLayer * l, int start)
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       int active = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
       activity[kex] = active;
-      V[k]   -= activity[kex] * (V[k] - Vrest);  // reset cells that fired
-      G_E[k] -= activity[kex] * G_E[k];
-      G_I[k] += activity[kex] * 1.0;      // add hyperpolarizing current
-      Vth[k] += activity[kex] * deltaVth; // reset cells that fired
+      V[k]   -= active * (V[k] - Vrest);  // reset cells that fired
+      // firing doesn't affect synaptic conductances
+      G_IB[k] += active * 1.0;
+      Vth[k] += active * deltaVth; // reset cells that fired
 
       if (active) {
          // these indices are in local frame
@@ -156,23 +155,23 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
 
    const float expExcite = exp(-dt / params->tauE );
    const float expInhib  = exp(-dt / params->tauI );
-//   const float expInhibB = exp(-dt / params->tauIB);
+   const float expInhibB = exp(-dt / params->tauIB);
 
    const float Vrest = params->Vrest;
    const float Vexc  = params->Vexc;
    const float Vinh  = params->Vinh;
-//   const float VinhB = params->VinhB;
+   const float VinhB = params->VinhB;
    const float tau   = params->tau;
 
    float * V = l->V;
 
    float * G_E  = l->G_E;
    float * G_I  = l->G_I;
-//   float * G_IB = l->G_IB;
+   float * G_IB = l->G_IB;
 
    float * phiExc  = l->phi[PHI_EXC];
    float * phiInh  = l->phi[PHI_INH];
-//   float * phiInhB = l->phi[PHI_INHB];
+   float * phiInhB = l->phi[PHI_INHB];
 
    add_noise(l, dt);
 
@@ -180,13 +179,13 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
    {
       G_E[i]  = phiExc[i]  + G_E[i]  * expExcite;
       G_I[i]  = phiInh[i]  + G_I[i]  * expInhib;
-//      G_IB[i] = phiInhB[i] + G_IB[i] * expInhibB;
-//      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i] + G_IB[i]);
-//      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh + G_IB[i] * VinhB )
-//                / (1.0 + G_E[i] + G_I[i] + G_IB[i]);
-      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i]);
-      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh )
-                / (1.0 + G_E[i] + G_I[i]);
+      G_IB[i] = phiInhB[i] + G_IB[i] * expInhibB;
+      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i] + G_IB[i]);
+      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh + G_IB[i] * VinhB )
+                / (1.0 + G_E[i] + G_I[i] + G_IB[i]);
+//      tauInf  = (dt / tau) * (1 + G_E[i] + G_I[i]);
+//      VmemInf = ( Vrest + G_E[i] * Vexc + G_I[i] * Vinh )
+//                / (1.0 + G_E[i] + G_I[i]);
       V[i] = VmemInf + (V[i] - VmemInf) * exp(-tauInf);
    }
 
