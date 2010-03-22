@@ -69,11 +69,7 @@ int Retina::initialize(PVLayerType type)
    const int nBorder = l->loc.nPad;
    l->numFeatures = l->loc.nBands;
    l->numNeurons  = nx * ny * l->numFeatures;
-#ifdef EXTEND_BORDER_INDEX
    l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
-#else
-   l->numExtended = l->numNeurons;
-#endif // EXTEND_BORDER_INDEX
 
    PVParams * pvParams = parent->parameters();
 
