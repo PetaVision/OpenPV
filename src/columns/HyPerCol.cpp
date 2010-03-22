@@ -2,7 +2,7 @@
  * HyPerCol.cpp
  *
  *  Created on: Jul 30, 2008
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #undef TIMER_ON
@@ -23,7 +23,7 @@
 namespace PV {
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
-   : warmStart(false)
+         : warmStart(false), isInitialized(false)
 {
    // TODO - fix these numbers to dynamically grow
    maxLayers = MAX_LAYERS;
@@ -67,20 +67,17 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    }
 
    if (status) {
-      imageLoc.nx = (int) params->value(name, "nx");
-      imageLoc.ny = (int) params->value(name, "ny");
-      imageLoc.nxGlobal = imageLoc.nx * icComm->numCommColumns();
-      imageLoc.nyGlobal = imageLoc.ny * icComm->numCommRows();
-      imageLoc.kx0 = imageLoc.nx * icComm->commColumn();
-      imageLoc.ky0 = imageLoc.ny * icComm->commRow();
-      imageLoc.nPad = 0;
-      imageLoc.nBands = 1;
+      imageLoc.nxGlobal = (int) params->value(name, "nx");
+      imageLoc.nyGlobal = (int) params->value(name, "ny");
+
+      // set loc based on global parameters and processor partitioning
+      //
+      setLayerLoc(&imageLoc, 1.0f, 1.0f, 0, 1);
    }
 
    runDelegate = NULL;
 
-   mirrorBCflag = MIRROR_BC_FLAG;
-   if (params->present(name, "mirrorBCflag")) mirrorBCflag = (bool) params->value(name, "mirrorBCflag");
+   mirrorBCflag = (bool) params->value(name, "mirrorBCflag", MIRROR_BC_FLAG);
 }
 
 HyPerCol::~HyPerCol()
@@ -119,13 +116,13 @@ HyPerCol::~HyPerCol()
 
 int HyPerCol::initFinish(void)
 {
-   int err = 0;
+   int status = 0;
 
    for (int i = 0; i < this->numLayers; i++) {
-      err = layers[i]->initFinish();
-      if (err != 0) {
+      status = layers[i]->initFinish();
+      if (status != 0) {
          fprintf(stderr, "[%d]: HyPerCol::initFinish: ERROR condition, exiting...\n", this->columnId());
-         exit(err);
+         exit(status);
       }
    }
 
@@ -135,7 +132,9 @@ int HyPerCol::initFinish(void)
    initializeThreads();
 #endif
 
-   return err;
+   isInitialized = true;
+
+   return status;
 }
 
 int HyPerCol::columnId()
@@ -156,6 +155,31 @@ int HyPerCol::commColumn(int colId)
 int HyPerCol::commRow(int colId)
 {
    return colId / icComm->numCommColumns();
+}
+
+int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
+                          float nxScale, float nyScale, int margin, int nf)
+{
+   layerLoc->nxGlobal = nxScale * imageLoc.nxGlobal;
+   layerLoc->nyGlobal = nyScale * imageLoc.nyGlobal;
+
+   // partition input space based on the number of processor
+   // columns and rows
+   //
+
+   layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
+   layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
+
+   assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
+   assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
+
+   layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
+   layerLoc->ky0 = layerLoc->ny * icComm->commRow();
+
+   layerLoc->nPad = margin;
+   layerLoc->nBands = nf;
+
+   return 0;
 }
 
 int HyPerCol::addLayer(HyPerLayer * l)
@@ -185,6 +209,10 @@ int HyPerCol::run(int nTimeSteps)
    int step = 0;
    float stopTime = time + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
+
+   if (!isInitialized) {
+      initFinish();
+   }
 
    numSteps = nTimeSteps;
 
