@@ -1287,7 +1287,7 @@ int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
    const int syp = wp->sy;
    const int sfp = wp->sf;
 
-   double p = (wMax - wMin) / RAND_MAX;
+   const double p = (wMax - wMin) / RAND_MAX;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
