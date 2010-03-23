@@ -2,7 +2,7 @@
  * fileio.cpp
  *
  *  Created on: Oct 21, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "fileio.hpp"
@@ -293,7 +293,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
                      int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams)
 {
    int status = 0;
-   int nxBlocks, nyBlocks;
+   int nxBlocks, nyBlocks, numItems;
    int params[NUM_BIN_PARAMS];
 
    if (comm->commRank() != 0) return status;
@@ -306,8 +306,14 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nBands;
+   const int nPad = loc->nPad;
 
-   const int numItems = nx * ny * nf;
+   if (extended) {
+      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+   }
+   else {
+      numItems = nx * ny * nf;
+   }
 
    if (contiguous) {
       nxBlocks = 1;
@@ -357,7 +363,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
-   int nxBlocks, nyBlocks;
+   int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
    assert(contiguous == false);
@@ -373,9 +379,15 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
    const int nx = loc->nx;
    const int ny = loc->ny;
+   const int nf = loc->nBands;
+   const int nPad = loc->nPad;
 
-   const int numBands = loc->nBands;
-   const int numItems = nx * ny * numBands;
+   if (extended) {
+      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+   }
+   else {
+      numItems = nx * ny * nf;
+   }
 
    const size_t localSize = numItems * pv_sizeof(datatype);
 
@@ -488,7 +500,7 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
-   int nxBlocks, nyBlocks;
+   int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
    assert(contiguous == false);
@@ -505,7 +517,14 @@ int write(const char * filename, Communicator * comm, double time, pvdata_t * da
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nBands;
-   const int numItems = nx * ny * nf;
+   const int nPad = loc->nPad;
+
+   if (extended) {
+      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+   }
+   else {
+      numItems = nx * ny * nf;
+   }
 
    const size_t localSize = numItems * pv_sizeof(datatype);
 
@@ -819,7 +838,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
 /*!
  *
- * numPatches is NX x NY x NF
+ * numPatches is NX x NY x NF in extended space
  * patchSize includes these records:
  * - nx
  * - ny
@@ -834,7 +853,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    int status = 0;
    int nxBlocks, nyBlocks;
 
-   bool extended = true;      // this shouldn't matter (TODO - get rid of it)
+   bool extended = true;
    bool contiguous = false;   // for now
 
    int datatype = PV_BYTE_TYPE;
