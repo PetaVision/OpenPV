@@ -17,7 +17,7 @@ BiConn::BiConn(const char * name,
                int type)
 {
    this->type = type;
-   HyPerConn::initialize(name, hc, pre, post, channel);
+   initialize(name, hc, pre, post, channel);
 }
 
 int BiConn::outputState(FILE * fp, int kPre)
@@ -45,29 +45,40 @@ int BiConn::outputState(FILE * fp, int kPre)
    return 0;
 }
 
-PVPatch ** BiConn::initializeWeights(PVPatch ** patches,
-                                      int numPatches, const char * filename)
+int BiConn::ruleWeights(PVPatch * wp, int kPre, int xScale, int yScale, float strength)
 {
-   PVParams * params = parent->parameters();
-   int randomFlag = (int) params->value(getName(), "randomFlag", 0);
+   pvdata_t * w = wp->data;
 
-   if (filename == NULL && randomFlag == 0) {
-      const float strength = params->value(name, "strength");
+   const int kpx = 2;
+   assert(nxp > kpx);
 
-      const int arbor = 0;
-      const int numPatches = numWeightPatches(arbor);
-      assert(numPatches == pre->clayer->numNeurons);
-      for (int i = 0; i < numPatches; i++) {
-         int kPre = i;
-         ruleWeights(wPatches[arbor][i], kPre, strength);
+   assert(nfp == 1);
+
+   const int nwxp = wp->nx;
+   const int nwyp = wp->ny;
+   const int nwfp = wp->nf;
+
+   // strides
+   const int sx = wp->sx;  assert(sx == nfp);
+   const int sy = wp->sy;  assert(sy == nfp*nxp);
+   const int sf = wp->sf;  assert(sf == 1);
+
+   for (int y = 0; y < nwyp; y++) {
+      for (int x = 0; x < nwxp; x++) {
+         for (int f = 0; f < nwfp; f++) {
+            int offset = x*sx + y*sy + f*sf;
+            w[offset] = 0;
+            if (x == kpx) {
+               w[offset] = wMax;
+            }
+         }
       }
-      return wPatches[arbor];
    }
 
-   fprintf(stderr, "Initializing weights not using rules RuleConn\n");
-   return HyPerConn::initializeWeights(patches, numPatches, filename);
+   return 0;
 }
 
+#ifdef RULE_WEIGHTS
 int BiConn::ruleWeights(PVPatch * wp, int kPre, float strength)
 {
    pvdata_t * w = wp->data;
@@ -447,5 +458,6 @@ int BiConn::ruleWeights(PVPatch * wp, int kPre, float strength)
 
    return 0;
 }
+#endif RULE_WEIGHTS
 
 } // namespace PV

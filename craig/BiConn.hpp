@@ -5,11 +5,11 @@
 #ifndef BICONN_HPP_
 #define BICONN_HPP_
 
-#include "src/connections/HyPerConn.hpp"
+#include "src/connections/RuleConn.hpp"
 
 namespace PV {
 
-class BiConn: public PV::HyPerConn {
+class BiConn: public PV::RuleConn {
 public:
    BiConn(const char * name,
           HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel,
@@ -23,10 +23,9 @@ public:
       return wPatches[arbor][k];
    }
 
+   virtual int ruleWeights(PVPatch * wp, int fPre, int xScale, int yScale, float strength);
+
 private:
-   PVPatch ** initializeWeights(PVPatch ** patches,
-                                int numPatches, const char * filename);
-   int ruleWeights(PVPatch * wp, int kPre, float strength);
 
    int type;
 };
