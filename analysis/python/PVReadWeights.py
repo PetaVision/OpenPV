@@ -57,30 +57,27 @@ class PVReadWeights(object):
 
    def read_params(self):
       """Read the file metadata parameters"""
-      #print 'read file header'
+      self.file.seek(0)
 
       head = fromfile(self.file, 'i', 3)
-      #print str(head[0]) + ' ' + str(head[1]) + ' ' + str(head[2])
       if head[2] != 3:  
          print 'Incorrect file type ' + str(head[2])
          return
 
-      # self.numWgtParams = 6
-
       self.headerSize = head[0]
       self.numParams  = head[1] - 8  # 6 + two for time (a double)
+      self.filetype   = head[2]
 
       self.file.seek(0)
       self.params = fromfile(self.file, 'i', self.numParams)
 
       self.nx,self.ny,self.nf = self.params[3:6]
-      self.nxprocs,self.nyprocs = self.params[6:8]
-      self.numRecords = self.params[8]
-      self.recSize = self.params[9]
-      self.elemSize = self.params[10]
-      self.dataType = self.params[11]
-      self.nxBlocks,self.nyBlocks = self.params[12:14]
-      self.nxGlobal,self.nyGlobal = self.params[14:16]
+      self.numRecords = self.params[6]
+      self.recSize = self.params[7]
+      self.dataSize = self.params[8]
+      self.dataType = self.params[9]
+      self.nxprocs,self.nyprocs = self.params[10:12]
+      self.nxGlobal,self.nyGlobal = self.params[12:14]
       self.kx0,self.ky0 = self.params[14:16]
       self.nPad = self.params[16]
       self.nf = self.params[17]
@@ -106,8 +103,8 @@ class PVReadWeights(object):
       print "numParams = %i" % (self.params[1]-8)  
       print "nx = %i ny = %i nf = %i" \
           % (self.params[3],self.params[4],self.params[5])
-      print "numRecords = %i" % self.params[8]
-      print "recSize = %i" %self.params[9]
+      print "numRecords = %i" % self.params[6]
+      print "recSize = %i" %self.params[7]
       print "nPad = %i" % self.params[16]
       print "nf = %i " % self.params[17]
       print "time = %f" % self.time 
@@ -136,7 +133,7 @@ class PVReadWeights(object):
    def read_header(self):
       """Read the header of each record"""
 
-      self.params = fromfile(self.file, 'i', self.numParams)
+      self.params = fromfile(self.file, 'i', self.numParams-8)
 
       self.time = fromfile(self.file, 'd', 1)
 
@@ -159,8 +156,7 @@ class PVReadWeights(object):
    # end just_rewind
 
    def histogram(self):
-      #self.rewind()
-      self.read_header()	
+      self.rewind()
       h = zeros(256, dtype=int)
       for p in range(self.numPatches):
          b = self.next_patch_bytes()
