@@ -54,14 +54,18 @@ size_t pv_sizeof_patch(int count, int datatype)
 /**
  * Copy patches into an unsigned char buffer
  */
-int pvp_copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int numPatches,
-                     int numPatchItems, float minVal, float maxVal)
+int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
+                     int nxp, int nyp, int nfp, float minVal, float maxVal)
 {
    unsigned char * cptr = buf;
 
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = patches[k];
       const pvdata_t * data = p->data;
+
+      const int sxp = p->sx;
+      const int syp = p->sy;
+      const int sfp = p->sf;
 
       unsigned short * nxny = (unsigned short *) cptr;
 
@@ -70,15 +74,18 @@ int pvp_copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, in
 
       cptr += 2 * sizeof(unsigned short);
 
-      int nItems = (int) nxny[0] * (int) nxny[1] * (int) p->nf;
-
-      for (int i = 0; i < nItems; i++) {
-         float val = 255.0 * (data[i] - minVal) / (maxVal - minVal);
-         *cptr++ = (unsigned char) val;
+      for (int y = 0; y < p->ny; y++) {
+         for (int x = 0; x < p->nx; x++) {
+            for (int f = 0; f < p->nf; f++) {
+               float val = data[x*sxp + y*syp + f*sfp];
+               val = 255.0 * (val - minVal) / (maxVal - minVal);
+               *cptr++ = (unsigned char) (val + 0.5f);
+            }
+         }
       }
 
       // write leftover null characters
-      int nExtra = numPatchItems - nItems;
+      int nExtra = nxp * nyp * nfp - p->nx * p->ny * p->nf;
 
       for (int i = 0; i < nExtra; i++) {
          *cptr++ = (unsigned char) 0;
@@ -91,10 +98,14 @@ int pvp_copy_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, in
 /**
  * Set patches given an unsigned char input buffer
  */
-int pvp_set_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int numPatches,
-                    int numPatchItems, int nfp, float minVal, float maxVal)
+int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
+                    int nxp, int nyp, int nfp, float minVal, float maxVal)
 {
    unsigned char * cptr = buf;
+
+   const int sfp = 1;
+   const int sxp = nfp;
+   const int syp = nfp * nxp;
 
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = patches[k];
@@ -102,26 +113,29 @@ int pvp_set_patches(unsigned char * buf, size_t bufSize, PVPatch ** patches, int
 
       unsigned short * nxny = (unsigned short *) cptr;
 
-      p->nx = nxny[0];
-      p->ny = nxny[1];
+      p->nx = (int) nxny[0];
+      p->ny = (int) nxny[1];
       p->nf = nfp;
 
-      p->sf = 1;
-      p->sx = p->nf;
-      p->sy = p->sx * p->nx;
+      p->sf = sfp;
+      p->sx = sxp;
+      p->sy = syp;
 
       cptr += 2 * sizeof(unsigned short);
 
-      int nItems = (int) p->nx * (int) p->ny * (int) p->nf;
-
-      for (int i = 0; i < nItems; i++) {
-         // data are packed into chars
-         float val = (float) *cptr++;
-         data[i] = minVal + (maxVal - minVal) * (val / 255.0);
+      for (int y = 0; y < p->ny; y++) {
+         for (int x = 0; x < p->nx; x++) {
+            for (int f = 0; f < p->nf; f++) {
+               // data are packed into chars
+               float val = (float) *cptr++;
+               int offset = x*sxp + y*syp + f*sfp;
+               data[offset] = minVal + (maxVal - minVal) * (val / 255.0);
+            }
+         }
       }
 
       // skip leftover null characters
-      int nExtra = numPatchItems - nItems;
+      int nExtra = nxp * nyp * nfp - p->nx * p->ny * p->nf;
       cptr += nExtra;
    }
 
@@ -676,7 +690,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
       if ( fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 ) return -1;
       if (localActive > 0) {
-         if ( fwrite(indices, sizeof(unsigned int), localActive, fp) != localActive ) {
+         if ( fwrite(indices, sizeof(unsigned int), localActive, fp) != (size_t) localActive ) {
             return -1;
          }
       }
@@ -828,8 +842,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // set the contents of the weights patches from the unsigned character buffer, cbuf
    //
-   status = pvp_set_patches(cbuf, localSize, patches,
-                            numPatches, numPatchItems, nfp, minVal, maxVal);
+   status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal);
 
    free(cbuf);
 
@@ -882,7 +895,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    assert(cbuf != NULL);
 
-   pvp_copy_patches(cbuf, localSize, patches, numPatches, numPatchItems, minVal, maxVal);
+   pvp_copy_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal);
 
 #ifdef PV_USE_MPI
    const int tag = PVP_WGT_FILE_TYPE;
