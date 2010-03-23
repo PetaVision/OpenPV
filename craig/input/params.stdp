@@ -5,8 +5,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 32;   // until we get going with images
-   ny = 32;
+   nx = 32; //128;   // until we get going with images
+   ny = 32; //128;
    dt = .5;
 };
 
@@ -17,6 +17,9 @@ HyPerCol "column" = {
 HyPerLayer "Image" = {
    marginWidth = 2;
    burstFreq = 12;
+   pMove = 0.001;    // 
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
 };
 
 HyPerLayer "Retina" = {
@@ -27,13 +30,13 @@ HyPerLayer "Retina" = {
    beginStim = 0;
    endStim   = 900000;
 
-   burstFreq = 12;      // Hz
-   burstDuration = 10;  // ms
+   burstFreq = 5;       // Hz
+   burstDuration = 40;  // ms
 
    spikingFlag = 1;     // spike as poisson
 
-   noiseOnFreq  = 0; //500;//100;   // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 50;               // (Hz) when this is defined poissonBlank overridden
+   noiseOnFreq  = 200;  // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 50;   // (Hz) when this is defined poissonBlank overridden
 };
 
 HyPerLayer "L1" = {
@@ -45,7 +48,7 @@ HyPerLayer "L1" = {
    marginWidth = 3;
    
    noiseAmpE = 1.0;
-   noiseAmpI = 0.2;
+   noiseAmpI = 1.0;
 };
 
 HyPerLayer "L1Inh" = {
@@ -82,21 +85,17 @@ HyPerConn "Retina to L1" = {
    // these weights used if randomFlag==1
 
    wMin = 0.0;     
-   wMax = 3.0;
+   wMax = 1.5;
    dWMax = 0.01;
    
+   uniformWeights = 1;
+
    //wMinInit = 4.0;  // default values if Gaussian is not defined
    //wMaxInit = 5;//6.0; // if not defined uses wMin and wMax.
-   
    //wGaussMean = 5.0;//5.00;
    //wGaussStdev = 0.0;//1.00;
    
-   idum = 3940284; // random number generator seed
-   
-   sigma = 100;
-   rMax  = 100;
-   
-   writeStep = 1000; // writes to output file every writeStep
+   writeStep = 10000; // writes to output file every writeStep
 };
 
 HyPerConn "L1 to L1Inh" = {
