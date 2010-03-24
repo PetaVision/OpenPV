@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 		new KernelConn("LGNInhFF to LGNInh", 		hc, lgninhff, lgninh,
 			CHANNEL_INH);
 	HyPerConn * lgninhff_lgninh_inhB =
-		new KernelConn("LGNInhFF to LGNInh InhB", 		hc, lgninhff, lgninh,
+		new KernelConn("LGNInhFF to LGNInh InhB", 	hc, lgninhff, lgninh,
 			CHANNEL_INHB);
 
 
@@ -117,6 +117,9 @@ int main(int argc, char* argv[]) {
 	HyPerConn * lgninh_lgninh_exc =
 		new KernelConn("LGNInh to LGNInh Exc", 	hc, lgninh, lgninh,
 			CHANNEL_EXC);
+	HyPerConn * lgninh_lgninh =
+		new KernelConn("LGNInh to LGNInh", 		hc, lgninh, lgninh,
+			CHANNEL_INH);
 
 
 	// L1 connections
@@ -214,62 +217,62 @@ int main(int argc, char* argv[]) {
 
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
-		new PointProbe(Vmem_filename_LGNa1, 78, 102, 0, "LGNA1:(78,102,0)");
+		new PointProbe(Vmem_filename_LGNa1, 51, 98, 0, "LGNA1:(51,98,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
 	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
 	LayerProbe * Vmem_probe_LGNc1 =
-		new PointProbe(Vmem_filename_LGNc1, 77, 101, 0, "LGNC1:(77,101,0)");
+		new PointProbe(Vmem_filename_LGNc1, 80, 44, 0, "LGNC1:(80,44,0)");
 	lgn->insertProbe(Vmem_probe_LGNc1);
 
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointProbe(Vmem_filename_LGNInhFFa1, 78, 102, 0, "LGNInhA1:(78,102,0)");
+		new PointProbe(Vmem_filename_LGNInhFFa1, 51, 98, 0, "LGNInhA1:(51,98,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 	const char * Vmem_filename_LGNInhFFc1 = "Vmem_LGNInhFFc1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFc1 =
-		new PointProbe(Vmem_filename_LGNInhFFc1, 77, 101, 0, "LGNInhFFC1:(77,101,0)");
+		new PointProbe(Vmem_filename_LGNInhFFc1, 80, 44, 0, "LGNInhFFC1:(80,44,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFc1);
 
 	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
 	LayerProbe * Vmem_probe_LGNInha1 =
-		new PointProbe(Vmem_filename_LGNInha1, 78, 102, 0, "LGNInhA1:(78,102,0)");
+		new PointProbe(Vmem_filename_LGNInha1, 51, 98, 0, "LGNInhA1:(51,98,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
 	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
 	LayerProbe * Vmem_probe_LGNInhc1 =
-		new PointProbe(Vmem_filename_LGNInhc1, 77, 101, 0, "LGNInhC1:(77,101,0)");
+		new PointProbe(Vmem_filename_LGNInhc1, 80, 44, 0, "LGNInhC1:(80,44,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
 
 	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
 	LayerProbe * Vmem_probe_V1a1 =
-		new PointProbe(Vmem_filename_V1a1, 78, 104, 5, "V1A1:(78,104,5)");
+		new PointProbe(Vmem_filename_V1a1, 59, 91, 10, "V1A1:(59,91,10)");
 	l1->insertProbe(Vmem_probe_V1a1);
 
 	const char * Vmem_filename_V1c1 = "Vmem_V1c1.txt";
 	LayerProbe * Vmem_probe_V1c1 =
-		new PointProbe(Vmem_filename_V1c1, 77, 101, 3, "V1C1:(77,101,3)");
+		new PointProbe(Vmem_filename_V1c1, 80, 46, 5, "V1C1:(80,46,5)");
 	l1->insertProbe(Vmem_probe_V1c1);
 
 	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
 	LayerProbe * Vmem_probe_V1InhFFa1 =
-		new PointProbe(Vmem_filename_V1InhFFa1, 76, 99, 4, "V1InhFFA1:(76,99,4)");
+		new PointProbe(Vmem_filename_V1InhFFa1, 59, 91, 10, "V1InhFFA1:(59,91,10)");
 	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
 
 	const char * Vmem_filename_V1InhFFc1 = "Vmem_V1InhFFc1.txt";
 	LayerProbe * Vmem_probe_V1InhFFc1 =
-		new PointProbe(Vmem_filename_V1InhFFc1, 76, 100, 4, "V1InhFFC1:(76,100,4)");
+		new PointProbe(Vmem_filename_V1InhFFc1, 80, 46, 5, "V1InhFFC1:(80,46,5)");
 	l1inh->insertProbe(Vmem_probe_V1InhFFc1);
 
 	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
 	LayerProbe * Vmem_probe_V1Inha1 =
-		new PointProbe(Vmem_filename_V1Inha1, 76, 99, 4, "V1InhA1:(76,99,4)");
+		new PointProbe(Vmem_filename_V1Inha1, 59, 91, 10, "V1InhA1:(59,91,10)");
 	l1inh->insertProbe(Vmem_probe_V1Inha1);
 
 	const char * Vmem_filename_V1Inhc1 = "Vmem_V1Inhc1.txt";
 	LayerProbe * Vmem_probe_V1Inhc1 =
-		new PointProbe(Vmem_filename_V1Inhc1, 76, 100, 4, "V1InhC1:(76,100,4)");
+		new PointProbe(Vmem_filename_V1Inhc1, 80, 46, 5, "V1InhC1:(80,46,5)");
 	l1inh->insertProbe(Vmem_probe_V1Inhc1);
 
 
