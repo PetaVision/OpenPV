@@ -126,7 +126,7 @@ HyPerLayer "L1Inh" = {
 
 
 ///////
-// 30 connections: 
+// 31 connections: 
 //    "Retina to LGN"
 //    "Retina to LGNInhFF"
 //    "LGN to LGNInh"
@@ -141,6 +141,7 @@ HyPerLayer "L1Inh" = {
 //    "LGNInh to LGN"
 //    "LGNInh to LGNInhFF"
 //    "L1Inh to L1Inh Exc"
+//    "L1Inh to L1Inh"
 //    "L1 to LGN"
 //    "L1 to LGNInh"
 //    "L1 to L1"
@@ -173,7 +174,7 @@ HyPerConn "Retina to LGN" = {
    sigma = 0.5;
    rMax  = 3;
    
-   strength = 2.0;  
+   strength = 4;  
 };
 
 
@@ -189,7 +190,7 @@ HyPerConn "Retina to LGNInhFF" = {
    sigma = 1.5;
    rMax  = 3;
    
-   strength = 2.0;  
+   strength = 6.0;  
 };
 
 
@@ -208,7 +209,7 @@ HyPerConn "LGN to LGNInhFF" = {
    sigma = 3.5;
    rMax  = 7;
    
-   strength = 1.0;  
+   strength = 6.0;  
    
 };
 
@@ -277,9 +278,9 @@ HyPerConn "LGNInhFF to LGN" = {
 
    aspect = 1;
    sigma = 3.5;
-   rMax  = 3;
+   rMax  = 3.5;
    
-   strength = 1; 
+   strength = 2; 
    
    delay = 1.0;
    
@@ -295,9 +296,9 @@ HyPerConn "LGNInhFF to LGN InhB" = {
 
    aspect = 1;
    sigma = 3.5;
-   rMax  = 3;
+   rMax  = 3.5;
    
-   strength = 1; 
+   strength = 2; 
    
    delay = 1.0;
    
@@ -329,7 +330,7 @@ HyPerConn "LGNInhFF to LGNInh" = {
 
    aspect = 1;
    sigma = 3.5;
-   rMax  = 3;
+   rMax  = 3.5;
    
    strength = 1; 
    
@@ -347,7 +348,7 @@ HyPerConn "LGNInhFF to LGNInh InhB" = {
 
    aspect = 1;
    sigma = 3.5;
-   rMax  = 3;
+   rMax  = 3.5;
    
    strength = 1; 
    
@@ -374,7 +375,7 @@ HyPerConn "LGNInh to LGN" = {
    sigma = 1.5;
    rMax  = 3;
    
-   strength = 16.0;  
+   strength = 32.0;  
    
    delay = 2.0;
    
@@ -413,6 +414,23 @@ HyPerConn "LGNInh to LGNInh Exc" = {
    
 };
 
+HyPerConn "LGNInh to LGNInh" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;   
+   initFromLastFlag = 0; // 1;   
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3.5;
+   
+   strength = 1.0;
+   
+   delay = 2.0; 
+};
+
 
 
 
@@ -430,7 +448,7 @@ HyPerConn "L1 to LGN" = {
    sigma = 7;
    rMax  = 7;
    
-   strength = 1.0;  
+   strength = 1.5;  
    
    delay = 8.0;
 };
@@ -447,7 +465,7 @@ HyPerConn "L1 to LGNInh" = {
    sigma = 7;
    rMax  = 7;
    
-   strength = 4.0;  
+   strength = 4.5;  
    
    delay = 8.0;
 };
@@ -479,7 +497,7 @@ HyPerConn "L1 to L1InhFF" = {
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
 
-   strength = 8.0;
+   strength = 16.0;
 
    delay = 1.0;
 };
@@ -519,7 +537,7 @@ HyPerConn "L1InhFF to L1" = {
    numFlanks = 2;
    flankShift = 1;
 
-   strength = 8.0;
+   strength = 4.0;
 
    delay = 1.0;
 };
@@ -563,7 +581,7 @@ HyPerConn "L1InhFF to L1InhFF" = {
    numFlanks = 2;
    flankShift = 1;
 
-   strength = 2.0;
+   strength = 4.0;
 
    delay = 1.0;
 };
@@ -604,7 +622,7 @@ HyPerConn "L1InhFF to L1InhFF Exc" = {
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
  
-   strength = 1.0;
+   strength = 2.0;
    
    delay = 1.0;
 };
@@ -626,7 +644,7 @@ HyPerConn "L1InhFF to L1Inh" = {
    numFlanks = 2;
    flankShift = 1;
 
-   strength = 8.0;
+   strength = 4.0;
 
    delay = 1.0;
 };
@@ -671,7 +689,7 @@ HyPerConn "L1Inh to L1" = {
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
 
-   strength = 128.0;
+   strength = 256.0;
 
    delay = 2.0;
 };
@@ -711,7 +729,7 @@ HyPerConn "L1Inh to L1Inh Exc" = {
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
 
-   strength = 1.0;
+   strength = 2.0;  // 1.0;
    
    delay = 1.0;
 };
@@ -730,7 +748,7 @@ HyPerConn "L1Inh to L1Inh Inh" = {
    sigma_cocirc = 0.26179; // PI / 12.0;
    deltaThetaMax = 3.1415926535897931; //PI;
 
-   strength = 16.0;
+   strength = 32.0;  // 16.0;
 
    delay = 2.0;
 };
