@@ -94,11 +94,17 @@ int main(int argc, char* argv[]) {
 		new KernelConn("LGNInhFF to LGN", 			hc, lgninhff, lgn,
 			CHANNEL_INH);
 	HyPerConn * lgninhff_lgn_inhB =
-		new KernelConn("LGNInhFF to LGN InhB", 			hc, lgninhff, lgn,
+		new KernelConn("LGNInhFF to LGN InhB", 		hc, lgninhff, lgn,
 			CHANNEL_INHB);
 	HyPerConn * lgninhff_lgninhff_exc =
 		new KernelConn("LGNInhFF to LGNInhFF Exc", 	hc, lgninhff, lgninhff,
 			CHANNEL_EXC);
+//	HyPerConn * lgninhff_lgninhff =
+//		new KernelConn("LGNInhFF to LGNInhFF", 		hc, lgninhff, lgninhff,
+//			CHANNEL_INH);
+//	HyPerConn * lgninhff_lgninhff_inhB =
+//		new KernelConn("LGNInhFF to LGNInhFF InhB", hc, lgninhff, lgninhff,
+//			CHANNEL_INHB);
 	HyPerConn * lgninhff_lgninh =
 		new KernelConn("LGNInhFF to LGNInh", 		hc, lgninhff, lgninh,
 			CHANNEL_INH);
@@ -110,9 +116,6 @@ int main(int argc, char* argv[]) {
 	// LGNInh connections
 	HyPerConn * lgninh_lgn =
 		new KernelConn("LGNInh to LGN", 		hc, lgninh, lgn,
-			CHANNEL_INH);
-	HyPerConn * lgninh_lgninhff =
-		new KernelConn("LGNInh to LGNInhFF", 	hc, lgninh, lgninhff,
 			CHANNEL_INH);
 	HyPerConn * lgninh_lgninh_exc =
 		new KernelConn("LGNInh to LGNInh Exc", 	hc, lgninh, lgninh,
@@ -148,15 +151,15 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1inhff_l1_inhB =
 		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
 			CHANNEL_INHB);
+	HyPerConn * l1inhff_l1inhff_exc =
+		new CocircConn("L1InhFF to L1InhFF Exc",   	hc, l1inhff,  l1inhff,
+			CHANNEL_EXC);
 	HyPerConn * l1inhff_l1inhff =
 		new CocircConn("L1InhFF to L1InhFF",   		hc, l1inhff,  l1inhff,
 			CHANNEL_INH);
 	HyPerConn * l1inhff_l1inhff_inhB =
 		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
 			CHANNEL_INHB);
-	HyPerConn * l1inhff_l1inhff_exc =
-		new CocircConn("L1InhFF to L1InhFF Exc",   	hc, l1inhff,  l1inhff,
-			CHANNEL_EXC);
 	HyPerConn * l1inhff_l1inh =
 		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
 			CHANNEL_INH);
@@ -169,9 +172,9 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1inh_l1 =
 		new CocircConn("L1Inh to L1",   		hc, l1inh,  l1,
 			CHANNEL_INH);
-	HyPerConn * l1inh_l1inhff =
-		new CocircConn("L1Inh to L1InhFF",  	hc, l1inh,  l1inhff,
-			CHANNEL_INH);
+//	HyPerConn * l1inh_l1inhff =
+//		new CocircConn("L1Inh to L1InhFF",  	hc, l1inh,  l1inhff,
+//			CHANNEL_INH);
 	HyPerConn * l1inh_l1inh_exc =
 		new CocircConn("L1Inh to L1Inh Exc",   	hc, l1inh,  l1inh,
 			CHANNEL_EXC);
