@@ -25,8 +25,8 @@ HyPerLayer "Retina" = {
    nyScale = 1;
    marginWidth = 8;
 
-   beginStim = 200;
-   endStim   = 800;
+   beginStim = 500;
+   endStim   = 1500;
 
    burstFreq = 1;      // Hz
    burstDuration = 1000;  // ms
@@ -38,17 +38,30 @@ HyPerLayer "Retina" = {
 };
 
 HyPerLayer "LGN" = {
-   nxScale = 1; // 8;
-   nyScale = 1; // 8;
+   nxScale = 1; 
+   nyScale = 1; 
    nf = 1;
    
    marginWidth = 8;
    restart = 1;
    
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
    VthRest = -60.0;
-
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
    noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 HyPerLayer "LGNInhFF" = {
@@ -58,11 +71,24 @@ HyPerLayer "LGNInhFF" = {
    
    marginWidth = 8;
    restart = 1;
-   
-   VthRest = -60.0;
 
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
+   VthRest = -60.0;
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 HyPerLayer "LGNInh" = {
@@ -73,10 +99,23 @@ HyPerLayer "LGNInh" = {
    marginWidth = 8;
    restart = 1;
    
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
    VthRest = -55.0;
-
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 
@@ -88,10 +127,23 @@ HyPerLayer "L1" = {
    marginWidth = 8;
    restart = 1;
    
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
    VthRest = -60.0;
-
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 
@@ -103,10 +155,23 @@ HyPerLayer "L1InhFF" = {
    marginWidth = 8;
    restart = 1;
    
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
    VthRest = -60.0;
-   
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 
@@ -118,10 +183,23 @@ HyPerLayer "L1Inh" = {
    marginWidth = 8;
    restart = 1;
    
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 40.0;
+   tauE = 1.0;
+   tauI = 4.0;
+   tauIB = 20.0;
    VthRest = -55.0;
-   
+   tauVth = 5.0;
+   deltaVth = 5.0;
+   noiseFreqE = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqIB = 250.0;
    noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpI = 1.0;  
+   noiseAmpIB = 0.0;  
 };
 
 
@@ -136,10 +214,11 @@ HyPerLayer "L1Inh" = {
 //    "LGNInhFF to LGN"
 //    "LGNInhFF to LGN InhB"
 //    "LGNInhFF to LGNInhFF Exc"
+//    "LGNInhFF to LGNInhFF"
+//    "LGNInhFF to LGNInhFF InhB"
 //    "LGNInhFF to LGNInh"
 //    "LGNInhFF to LGNInh InhB"
 //    "LGNInh to LGN"
-//    "LGNInh to LGNInhFF"
 //    "L1Inh to L1Inh Exc"
 //    "L1Inh to L1Inh"
 //    "L1 to LGN"
@@ -155,7 +234,6 @@ HyPerLayer "L1Inh" = {
 //    "L1InhFF to L1Inh"
 //    "L1InhFF to L1Inh InhB"
 //    "L1Inh to L1"
-//    "L1Inh to L1InhFF"
 //    "L1Inh to L1Inh Exc"
 //    "L1Inh to L1Inh Inh"
 
@@ -266,7 +344,7 @@ HyPerConn "LGN to L1InhFF" = {
 
 
 
-// LGN Inh FF connections
+// LGNInhFF connections
 
 HyPerConn "LGNInhFF to LGN" = {
    nxp = 7; 
@@ -280,7 +358,7 @@ HyPerConn "LGNInhFF to LGN" = {
    sigma = 3.5;
    rMax  = 3.5;
    
-   strength = 2; 
+   strength = 2.0;  
    
    delay = 1.0;
    
@@ -298,7 +376,7 @@ HyPerConn "LGNInhFF to LGN InhB" = {
    sigma = 3.5;
    rMax  = 3.5;
    
-   strength = 2; 
+   strength = 2.0;
    
    delay = 1.0;
    
@@ -317,6 +395,42 @@ HyPerConn "LGNInhFF to LGNInhFF Exc" = {
    rMax  = 3;
    
    strength = 1.0;  
+   
+};
+
+HyPerConn "LGNInhFF to LGNInhFF" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3.5;
+   
+   strength = 0; 
+   
+   delay = 1.0;
+   
+};
+
+HyPerConn "LGNInhFF to LGNInhFF InhB" = {
+   nxp = 7; 
+   nyp = 7; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 3.5;
+   
+   strength = 0; 
+   
+   delay = 1.0;
    
 };
 
@@ -393,7 +507,7 @@ HyPerConn "LGNInh to LGNInhFF" = {
    sigma = 1.5;
    rMax  = 3;
    
-   strength = 1.0;  
+   strength = 0.0;  // 1.0
    
    delay = 2.0; 
 };
@@ -518,7 +632,7 @@ HyPerConn "L1 to L1Inh" = {
 
 
 
-// L1 Inh FF connections
+// L1InhFF connections
 
 HyPerConn "L1InhFF to L1" = {
    nxp = 7;
@@ -564,6 +678,25 @@ HyPerConn "L1InhFF to L1 InhB" = {
    delay = 1.0;
 };
 
+HyPerConn "L1InhFF to L1InhFF Exc" = {
+   nxp = 3;
+   nyp = 3;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 3;
+   sigma = 3;
+   rMax  = 3;
+   sigma_cocirc = 0.26179; // PI / 12.0;
+   deltaThetaMax = 3.1415926535897931; //PI;
+ 
+   strength = 2.0;
+   
+   delay = 1.0;
+};
+
 HyPerConn "L1InhFF to L1InhFF" = {
    nxp = 7;
    nyp = 7;
@@ -581,7 +714,7 @@ HyPerConn "L1InhFF to L1InhFF" = {
    numFlanks = 2;
    flankShift = 1;
 
-   strength = 4.0;
+   strength = 2.0;
 
    delay = 1.0;
 };
@@ -605,25 +738,6 @@ HyPerConn "L1InhFF to L1InhFF InhB" = {
 
    strength = 2.0;
 
-   delay = 1.0;
-};
-
-HyPerConn "L1InhFF to L1InhFF Exc" = {
-   nxp = 3;
-   nyp = 3;
-
-   stdpFlag   = 0;
-   randomFlag = 0;  
-   initFromLastFlag = 0;  // 1;  // restart
-
-   aspect = 3;
-   sigma = 3;
-   rMax  = 3;
-   sigma_cocirc = 0.26179; // PI / 12.0;
-   deltaThetaMax = 3.1415926535897931; //PI;
- 
-   strength = 2.0;
-   
    delay = 1.0;
 };
 
@@ -693,27 +807,6 @@ HyPerConn "L1Inh to L1" = {
 
    delay = 2.0;
 };
-
-
-HyPerConn "L1Inh to L1InhFF" = {
-   nxp = 7;
-   nyp = 7;
-
-   stdpFlag   = 0;
-   randomFlag = 0;  
-   initFromLastFlag = 0;  // 1;  // restart
-
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   sigma_cocirc = 0.26179; // PI / 12.0;
-   deltaThetaMax = 3.1415926535897931; //PI;
-
-   strength = 1.0;
-   
-   delay = 2.0;
-};
-
 
 HyPerConn "L1Inh to L1Inh Exc" = {
    nxp = 3;
