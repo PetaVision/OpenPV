@@ -6,22 +6,16 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh )
   if ~exist('DTH', 'var') || isempty(DTH)
     DTH = 180 / NO;
   endif
-  
-				%size(recon_array)
-				%pause
-  
-				% plot reconstructed image
+
   if ~any(recon_array(:) ~= 0.0) % any(A) tests whether any of the elements
-				% along various dimensions of an array is a 
-				% nonzero number or is logical 1 (true). 
-				% any ignores entries that are NaN (Not a Number).
     return;
   endif
+
   if ~exist('fh','var')          % tests if 'fh' is a variable in the workspace
-				% returns 0 if 'fh' does not exists
     fh = figure;
   endif
   set(fh, 'Name', plot_title);
+
   ave_recon = mean(recon_array(recon_array ~= 0.0));
   if ave_recon < 0
     recon_array = -recon_array;
