@@ -747,6 +747,9 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       return status;
    }
 
+   const int nxFileBlocks = params[INDEX_NX_PROCS];
+   const int nyFileBlocks = params[INDEX_NY_PROCS];
+
    // extra weight parameters
    //
    int * wgtParams = &params[NUM_BIN_PARAMS];
@@ -757,13 +760,6 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    const float minVal = wgtParams[INDEX_WGT_MIN];
    const float maxVal = wgtParams[INDEX_WGT_MAX];
 
-   if (numPatches != wgtParams[INDEX_WGT_NUMPATCHES]) return -1;
-   if (datatype != PV_BYTE_TYPE)                      return -1;
-
-   const int numPatchItems = nxp * nyp * nfp;
-   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
-   const size_t localSize = numPatches * patchSize;
-
    if (contiguous) {
       nxBlocks = 1;
       nyBlocks = 1;
@@ -772,6 +768,18 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       nxBlocks = nxProcs;
       nyBlocks = nyProcs;
    }
+
+   // make sure file is consistent with expectations
+   //
+   if (datatype != PV_BYTE_TYPE) return -1;
+   if (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks) return -1;
+   if (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]) {
+      return -1;
+   }
+
+   const int numPatchItems = nxp * nyp * nfp;
+   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
+   const size_t localSize = numPatches * patchSize;
 
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    assert(cbuf != NULL);
@@ -937,9 +945,9 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       params[INDEX_WGT_NYP] = nyp;
       params[INDEX_WGT_NFP] = nfp;
       params[INDEX_WGT_MIN] = (int) minVal;
-      params[INDEX_WGT_MAX] =
-         (int) ( ( (int) minVal == 0 ) && ( maxVal > 0 ) && ( maxVal < 1 ) ) ? ( -1 / maxVal ) : maxVal;
-      params[INDEX_WGT_NUMPATCHES] = numPatches;
+      params[INDEX_WGT_MAX] = (int) (maxVal + 0.999f);  // round up
+//         (int) ( ( (int) minVal == 0 ) && ( maxVal > 0 ) && ( maxVal < 1 ) ) ? ( -1 / maxVal ) : maxVal;
+      params[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
 
       numParams = NUM_WGT_EXTRA_PARAMS;
       if ( fwrite(params, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
