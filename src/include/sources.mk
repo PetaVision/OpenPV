@@ -30,6 +30,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/fileio.hpp \
           $(SRCDIR)/io/imageio.hpp \
           $(SRCDIR)/io/tiff.h \
+          $(SRCDIR)/utils/rng.h \
           $(SRCDIR)/utils/conversions.h
 
 CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
@@ -105,6 +106,7 @@ CSRCS   = $(SRCDIR)/connections/PVConnection.c \
           $(SRCDIR)/io/io.c \
           $(SRCDIR)/io/tiff.c \
           $(SRCDIR)/io/parser/param_lexer.c \
+          $(SRCDIR)/utils/box_muller.c \
           $(SRCDIR)/utils/conversions.c
 
 COBJS   = $(BUILDDIR)/PVConnection.o \
@@ -114,6 +116,7 @@ COBJS   = $(BUILDDIR)/PVConnection.o \
           $(BUILDDIR)/io.o \
           $(BUILDDIR)/tiff.o \
           $(BUILDDIR)/param_lexer.o \
+          $(BUILDDIR)/box_muller.o \
           $(BUILDDIR)/conversions.o
 
 SRCS = $(CPPSRCS) $(CSRCS)
