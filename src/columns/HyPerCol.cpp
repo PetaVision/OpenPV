@@ -160,8 +160,8 @@ int HyPerCol::commRow(int colId)
 int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
                           float nxScale, float nyScale, int margin, int nf)
 {
-   layerLoc->nxGlobal = nxScale * imageLoc.nxGlobal;
-   layerLoc->nyGlobal = nyScale * imageLoc.nyGlobal;
+   layerLoc->nxGlobal = (int) (nxScale * imageLoc.nxGlobal);
+   layerLoc->nyGlobal = (int) (nyScale * imageLoc.nyGlobal);
 
    // partition input space based on the number of processor
    // columns and rows
