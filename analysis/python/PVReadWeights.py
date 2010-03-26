@@ -1,4 +1,5 @@
-from numpy import *
+import numpy as np
+import PVConversions as conv
 
 class PVReadWeights(object):
    """A class to read PetaVision binary weight files"""
@@ -14,7 +15,6 @@ class PVReadWeights(object):
       self.nf = 0
       self.numItems = 0
       self.numWgtParams = 6
-      print 'open ' + filename
       self.open(filename)
       self.read_params()
 
@@ -31,25 +31,21 @@ class PVReadWeights(object):
    
    def next_patch(self):
       """Read the next patch and return an ndarray"""
-
       bytes = self.next_patch_bytes()
-
-      w = zeros(len(bytes), dtype=float) + bytes/255.
+      w = np.zeros(len(bytes), dtype=float) + bytes/255.
       w = self.min + (self.max - self.min) * w   
-
       self.patch += 1   
-
       return w
    # end next
 
    def next_patch_bytes(self):
       """Read the next patch and return an ndarray"""
       
-      nx,ny = fromfile(self.file, int16(), 2)
+      nx,ny = np.fromfile(self.file, np.int16(), 2)
       count = nx*ny
       total = self.nxp * self.nyp * self.nfp
 
-      bytes = fromfile(self.file, uint8(), total)
+      bytes = np.fromfile(self.file, np.uint8(), total)
 
       self.patch += 1
       return bytes[0:count]
@@ -59,7 +55,7 @@ class PVReadWeights(object):
       """Read the file metadata parameters"""
       self.file.seek(0)
 
-      head = fromfile(self.file, 'i', 3)
+      head = np.fromfile(self.file, 'i', 3)
       if head[2] != 3:  
          print 'Incorrect file type ' + str(head[2])
          return
@@ -69,7 +65,7 @@ class PVReadWeights(object):
       self.filetype   = head[2]
 
       self.file.seek(0)
-      self.params = fromfile(self.file, 'i', self.numParams)
+      self.params = np.fromfile(self.file, 'i', self.numParams)
 
       self.nx,self.ny,self.nf = self.params[3:6]
       self.numRecords = self.params[6]
@@ -82,9 +78,9 @@ class PVReadWeights(object):
       self.nPad = self.params[16]
       self.nf = self.params[17]
 
-      self.time = fromfile(self.file, 'd', 1)
+      self.time = np.fromfile(self.file, 'd', 1)
 
-      self.wgtParams = fromfile(self.file, 'i', self.numWgtParams)
+      self.wgtParams = np.fromfile(self.file, 'i', self.numWgtParams)
 
       self.nxp,self.nyp,self.nfp = self.wgtParams[0:3]
       self.min,self.max = self.wgtParams[3:5]
@@ -132,32 +128,71 @@ class PVReadWeights(object):
 
    def read_header(self):
       """Read the header of each record"""
-
-      self.params = fromfile(self.file, 'i', self.numParams-8)
-
-      self.time = fromfile(self.file, 'd', 1)
-
-      self.wgtParams = fromfile(self.file, 'i', self.numWgtParams)
-
+      self.params = np.fromfile(self.file, 'i', self.numParams-8)
+      self.time = np.fromfile(self.file, 'd', 1)
+      self.wgtParams = np.fromfile(self.file, 'i', self.numWgtParams)
       self.patch = 0
-
    # end read_header
 
  
    def rewind(self):
       """Rewind the file to the start of the data (just past metadata)"""
       self.file.seek(self.headerSize)
+      self.patch = 0
    # end rewind
 
    def just_rewind(self):
       """Rewind the file to the start of the file"""
       self.file.seek(0)
-
+      self.patch = 0
    # end just_rewind
+
+   def clique_locations(self, count, wVal):
+      """Return the locations of cliques of a given size"""
+      self.rewind()
+      x = []
+      y = []
+      h = np.zeros(1 + self.patchSize, dtype=int)
+      for k in range(self.numPatches):
+         b = self.next_patch_bytes()
+         if len(b) == self.patchSize:
+            csize = self.clique_size(b, wVal)
+            if csize == count:
+               nxg = self.nxGlobal
+               nyg = self.nyGlobal
+               nxb = self.nxprocs
+               nyb = self.nyprocs
+               kx = conv.kxBlockedPos(k, nxg, nyg, self.nf, nxb, nyb)
+               ky = conv.kyBlockedPos(k, nxg, nyg, self.nf, nxb, nyb)
+               x.append(kx)
+               y.append(ky)
+      return np.array([x,y])
+   # end clique_locations
+
+   def clique_size(self, b, wVal):
+      """Return the number of weights in a patch greater than wVal"""
+      count = 0
+      for k in range(len(b)):
+         if b[k] > wVal:
+            count += 1
+      return count
+   # end clique_size
+
+   def clique_histogram(self, wVal):
+      """Return a histogram of clique size"""
+      self.rewind()
+      h = np.zeros(1 + self.patchSize, dtype=int)
+      for p in range(self.numPatches):
+         b = self.next_patch_bytes()
+         if len(b) == self.patchSize:
+            csize = self.clique_size(b, wVal)
+            h[csize] += 1
+      return h
+   # end clique_histogram
 
    def histogram(self):
       self.rewind()
-      h = zeros(256, dtype=int)
+      h = np.zeros(256, dtype=int)
       for p in range(self.numPatches):
          b = self.next_patch_bytes()
          for k in range(len(b)):
@@ -169,7 +204,7 @@ class PVReadWeights(object):
       self.read_header()
       self.print_params()
       #r = []
-      r = zeros(self.numWeights,dtype = float32) 
+      r = np.zeros(self.numWeights,dtype = float32) 
       #print r.shape
       for p in range(self.numPatches):
          #print p
@@ -201,7 +236,7 @@ class PVReadWeights(object):
       except:
          print "Finished reading, read", n, "records"
 
-      a = zeros(len(v))
+      a = np.zeros(len(v))
       for i in range(len(v)):
          a[i] = v[i]
 
