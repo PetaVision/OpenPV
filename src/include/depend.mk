@@ -115,5 +115,8 @@ $(BUILDDIR)/tiff.o: $(SRCDIR)/io/tiff.c $(HEADERS)
 $(BUILDDIR)/param_lexer.o: $(SRCDIR)/io/parser/param_lexer.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
+$(BUILDDIR)/box_muller.o: $(SRCDIR)/utils/box_muller.c $(HEADERS)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 $(BUILDDIR)/conversions.o: $(SRCDIR)/utils/conversions.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
