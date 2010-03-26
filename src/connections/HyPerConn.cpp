@@ -390,13 +390,9 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
 
    float r2Max = rMax * rMax;
 
-   int numFlanks = 1;
-   float shift   = 0.0f;
-   float rotate  = 0.0f; // rotate so that axis isn't aligned
-
-   numFlanks = params->value(name, "numFlanks", numFlanks);
-   shift = params->value(name, "flankShift", shift);
-   rotate = params->value(name, "rotate", rotate);
+   int numFlanks = (int) params->value(name, "numFlanks", 1);
+   float shift = params->value(name, "flankShift", 0.0f);
+   float rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       int patchIndex = kernelIndexToPatchIndex(kernelIndex);
@@ -1431,7 +1427,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 
             // no self-interactions
             bool selfFlag = 0;
-            if ((int) pre == (int) post) {
+            if ((size_t) pre == (size_t) post) {
                if (fPre == fPost) {
                   if (fabs(xDelta) < 1.0e-5) {
                      if (fabs(yDelta) < 1.0e-5) {
