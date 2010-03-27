@@ -49,7 +49,7 @@ Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
 
 int Retina::initialize(PVLayerType type)
 {
-   int n, status = 0;
+   int status = 0;
    PVLayer  * l   = clayer;
 
    this->clayer->layerType = type;
@@ -77,7 +77,7 @@ int Retina::initialize(PVLayerType type)
 
    status = parent->addLayer(this);
 
-   // at least for the Retina, V is extended size, so resize
+   // for the Retina, V is extended size, so resize
    if (l->numExtended != l->numNeurons) {
       free(l->V);
       l->V = (pvdata_t *) calloc(l->numExtended, sizeof(float));
@@ -92,14 +92,14 @@ int Retina::initialize(PVLayerType type)
    pvdata_t * V = l->V;
 
    if (params->invert) {
-      for (n = 0; n < l->numExtended; n++) {
-         V[n] = 1 - V[n];
+      for (int k = 0; k < l->numExtended; k++) {
+         V[k] = 1 - V[k];
       }
    }
 
    if (params->uncolor) {
-      for (n = 0; n < l->numExtended; n++) {
-         V[n] = (V[n] == 0.0) ? 0.0 : 1.0;
+      for (int k = 0; k < l->numExtended; k++) {
+         V[k] = (V[k] == 0.0) ? 0.0 : 1.0;
       }
    }
 
@@ -184,15 +184,19 @@ int Retina::copyFromImageBuffer()
    // for now
    assert(nf == 1);
 
-   HyPerLayer::copyToBuffer(V, ibuf, &imageLoc, true, 1.0f);
+   // This is incorrect because V is extended
+   // might be able to use image buffer directly
+   //
+   //HyPerLayer::copyToBuffer(V, ibuf, &imageLoc, true, 1.0f);
 
-   // normalize so that V <= 1.0
+   // normalize so that V <= 1.0 (V in Retina is extended)
    pvdata_t vmax = 0;
-   for (int k = 0; k < clayer->numNeurons; k++) {
+   for (int k = 0; k < clayer->numExtended; k++) {
+      V[k] = ibuf[k];
       vmax = V[k] > vmax ? V[k] : vmax;
    }
    if (vmax != 0){
-      for (int k = 0; k < clayer->numNeurons; k++) {
+      for (int k = 0; k < clayer->numExtended; k++) {
          V[k] = V[k] / vmax;
       }
    }
@@ -264,30 +268,27 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
    float    * prevActivity = clayer->prevActivity;
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-
-   const int marginWidth = clayer->loc.nPad;
-
    updateImage(time, dt);
 
    // make sure activity in border is zero
    //
-   int numActive = 0;
-   for (int k = 0; k < clayer->numExtended; k++) {
-      activity[k] = 0.0;
-   }
+//   for (int k = 0; k < clayer->numExtended; k++) {
+//      activity[k] = 0.0;
+//   }
 
+   // V in Retina is extended so loop over extended region.  This
+   // ensures that there is at least noise in border regions.
+   //
+   int numActive = 0;
    if (params->spikingFlag == 1) {
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      for (int k = 0; k < clayer->numExtended; k++) {
+//         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          float probStim = params->poissonEdgeProb * V[k];
          float probBase = params->poissonBlankProb;
-         float prevTime = prevActivity[kex];
-         activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
-         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
-         if (activity[kex] > 0.0) {
+         float prevTime = prevActivity[k];
+         activity[k]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
+         prevActivity[k] = (activity[k] > 0.0) ? time : prevTime;
+         if (activity[k] > 0.0) {
             clayer->activeIndices[numActive++] = k;
          }
       }
@@ -295,13 +296,13 @@ int Retina::updateState(float time, float dt)
    else {
       // retina is non spiking, pass scaled image through to activity
       //
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      for (int k = 0; k < clayer->numExtended; k++) {
+//         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          // scale output according to poissonEdgeProb, this could
          // perhaps be renamed when non spiking
          float maxRetinalActivity = params->poissonEdgeProb;
-         activity[kex] = maxRetinalActivity * V[k];
-         prevActivity[kex] = activity[kex];
+         activity[k] = maxRetinalActivity * V[k];
+         prevActivity[k] = activity[k];
          clayer->activeIndices[numActive++] = k;
       }
    }
@@ -321,8 +322,8 @@ int Retina::writeState(const char * path, float time)
    int sy = sx*clayer->loc.nx;
    pvdata_t * a = clayer->activity->data;
 
-   for (int i = 0; i < clayer->numExtended; i++) {
-      if (a[i] == 1.0) printf("a[%d] == 1\n", i);
+   for (int k = 0; k < clayer->numExtended; k++) {
+      if (a[k] == 1.0) printf("a[%d] == 1\n", k);
    }
 
   int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
