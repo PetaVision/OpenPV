@@ -72,7 +72,7 @@ HyPerConn::~HyPerConn()
  */
 int HyPerConn::initialize_base()
 {
-   this->name = "Unknown";
+   this->name = strdup("Unknown");
    this->nxp = 1;
    this->nyp = 1;
    this->nfp = 1;
@@ -181,6 +181,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->post = post;
    this->channel = channel;
 
+   free(this->name);  // name will already have been set in initialize_base()
    this->name = strdup(name);
    assert(this->name != NULL);
 
