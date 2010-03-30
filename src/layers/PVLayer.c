@@ -315,8 +315,9 @@ int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
    return 0;
 }
 
-int pvpatch_update_weights(int nk, float * RESTRICT w, float * RESTRICT m, float * RESTRICT p,
-                           float aPre, float * RESTRICT aPost, float dWMax, float wMax)
+int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
+                           const float * RESTRICT p, float aPre,
+                           const float * RESTRICT aPost, float dWMax, float wMax)
 {
    int k;
    for (k = 0; k < nk; k++) {
