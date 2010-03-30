@@ -85,8 +85,6 @@ public:
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
-   bool getMirrorBCflag()                 {return mirrorBCflag;}
-
 private:
    int numSteps;
    int maxLayers;
@@ -95,7 +93,6 @@ private:
    int numConnections;
 
    bool warmStart;
-   bool mirrorBCflag;      // true when mirror BC are to be applied
    bool isInitialized;     // true when all initialization has been completed
 
    float time;             // current time in milliseconds
