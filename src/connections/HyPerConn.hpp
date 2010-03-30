@@ -55,7 +55,7 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
-   virtual int updateWeights(PVLayerCube * preActivity, int arbor);
+   virtual int updateWeights(int axonId);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
    virtual int numWeightPatches(int arbor);
