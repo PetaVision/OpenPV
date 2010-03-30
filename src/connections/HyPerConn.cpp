@@ -530,10 +530,6 @@ int HyPerConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
    printf("[%d]: HyPerConn::delivered: \n", rank);
    fflush(stdout);
 #endif
-   if (stdpFlag) {
-      updateWeights(cube, neighbor);
-   }
-
    return 0;
 }
 
@@ -599,56 +595,54 @@ int HyPerConn::updateState(float time, float dt)
       // both pDecr and activity are extended regions (plus margins)
       // to make processing them together simpler
 
-      float * a = post->clayer->activity->data;
+      const int nk = pDecr->numItems;
+      const float * a = post->getLayerData();
       float * m = pDecr->data; // decrement (minus) variable
-      int nk = pDecr->numItems;
 
       for (int k = 0; k < nk; k++) {
          m[k] = decay * m[k] - fac * a[k];
       }
+
+      const int axonId = 0;       // assume only one for now
+      updateWeights(axonId);
    }
 
    return 0;
 }
 
-int HyPerConn::updateWeights(PVLayerCube * preActivityCube, int remoteNeighbor)
+int HyPerConn::updateWeights(int axonId)
 {
-   // TODO - should no longer have remote neighbors if extended activity works out
-   assert(remoteNeighbor == 0);
+   // Steps:
+   // 1. Update pDecr (assume already done as it should only be done once)
+   // 2. update Psij (pIncr) for each synapse
+   // 3. update wij
 
    const float dt = parent->getDeltaTime();
    const float decayLTP = expf(-dt / tauLTP);
+
+   const int numExtended = pre->clayer->numExtended;
+   assert(numExtended == numWeightPatches(axonId));
+
+   const pvdata_t * preLayerData = pre->getLayerData();
 
    // this stride is in extended space for post-synaptic activity and
    // STDP decrement variable
    const int postStrideY = post->clayer->numFeatures
                          * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
 
-   // assume pDecr has been updated already, and weights have been used, so
-   // 1. update Psij (pIncr) for each synapse
-   // 2. update wij
-
-   int axonId = 0;
-
-   // TODO - what is happening here (I think this refers to remote neighbors)
-   if (preActivityCube->numItems == 0) return 0;
-
-   const int numExtended = preActivityCube->numItems;
-   assert(numExtended == numWeightPatches(axonId));
-
    for (int kPre = 0; kPre < numExtended; kPre++) {
       PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
 
-      const float preActivity = preActivityCube->data[kPre];
+      const float preActivity = preLayerData[kPre];
 
       PVPatch * pIncr   = arbor->plasticIncr;
       PVPatch * w       = arbor->weights;
       size_t postOffset = arbor->offset;
 
-      float * postActivity = &post->clayer->activity->data[postOffset];
+      const float * postActivity = &post->getLayerData()[postOffset];
+      const float * M = &pDecr->data[postOffset];  // STDP decrement variable
+      float * P = pIncr->data;                     // STDP increment variable
       float * W = w->data;
-      float * M = &pDecr->data[postOffset];  // STDP decrement variable
-      float * P =  pIncr->data;              // STDP increment variable
 
       int nk  = pIncr->nf * pIncr->nx; // one line in x at a time
       int ny  = pIncr->ny;
