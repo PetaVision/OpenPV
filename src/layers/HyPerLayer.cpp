@@ -99,6 +99,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
+   mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
+
    return 0;
 }
 
@@ -870,9 +872,6 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    }
    return 0;
  }
-
-bool HyPerLayer::useMirrorBCs()
-{ return parent->getMirrorBCflag(); }
 
 } // end of PV namespace
 
