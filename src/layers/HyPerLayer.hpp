@@ -105,7 +105,7 @@ public:
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
    
-   bool useMirrorBCs();
+   bool useMirrorBCs()               {return this->mirrorBCflag;}
 
    // implementation of LayerDataInterface interface
    //
@@ -122,6 +122,8 @@ protected:
 
    int numProbes;
    LayerProbe ** probes;
+
+   bool mirrorBCflag;           // true when mirror BC are to be applied
 
    int ioAppend;                // controls opening of binary files
    float writeTime;             // time of next output
