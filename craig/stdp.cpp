@@ -20,9 +20,12 @@
 #include <src/layers/Gratings.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
+#include <src/connections/HyPerConn.hpp>
 #include <src/connections/RandomConn.hpp>
 
 using namespace PV;
+
+void dump_weights(PVPatch ** patches, int numPatches);
 
 int main(int argc, char* argv[])
 {
@@ -43,10 +46,13 @@ int main(int argc, char* argv[])
    // connect the layers
    //
    HyPerConn * r_l1, * l1_l1Inh, * l1Inh_l1;
-   r_l1     = new BiConn("Retina to L1", hc, retina, l1, CHANNEL_EXC, 0);
+//   r_l1     = new BiConn("Retina to L1", hc, retina, l1, CHANNEL_EXC, 0);
+   r_l1     = new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 //   r_l1     = new RandomConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 //   l1_l1Inh = new HyPerConn( "L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
 //   l1Inh_l1 = new HyPerConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
+
+//   dump_weights(r_l1->weights(0), r_l1->numWeightPatches(0));
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
@@ -70,7 +76,8 @@ int main(int argc, char* argv[])
 //   ConnectionProbe * cProbe0 = new ConnectionProbe(2*5 + 0);
 //   PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
-//   PostConnProbe * pcProbe = new PostConnProbe(37, 38, 0);
+//   PostConnProbe * pcProbe = new PostConnProbe(8575); // 127,66
+//   pcProbe->setOutputIndices(true);
 //   r_l1->insertProbe(pcProbe);
 
 //   StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
@@ -94,3 +101,23 @@ int main(int argc, char* argv[])
 
    return 0;
 }
+
+void dump_weights(PVPatch ** patches, int numPatches)
+{
+   FILE * fp = fopen("wdump.txt", "w");
+   assert(fp != NULL);
+
+   int num = 0;
+   for (int k = 0; k < numPatches; k++) {
+      PVPatch * p = patches[k];
+      float * w = p->data;
+      int nkp = p->nx * p->ny * p->nf;
+      for (int i = 0; i < nkp; i++) {
+         fprintf(fp, "%d (%d,%d)  %f\n", num, k, i, w[i]);
+         num += 1;
+      }
+   }
+   fclose(fp);
+}
+
+
