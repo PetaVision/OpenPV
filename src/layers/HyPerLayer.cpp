@@ -210,9 +210,8 @@ int HyPerLayer::initFinish()
  */
 const pvdata_t * HyPerLayer::getLayerData()
 {
-   //DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   //return (pvdata_t *) store->buffer(LOCAL);
-   return clayer->activity->data;
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return (pvdata_t *) store->buffer(LOCAL);
 }
 
 
