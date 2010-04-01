@@ -5,8 +5,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 32; //128;   // until we get going with images
-   ny = 32; //128;
+   nx = 64; //128;   // until we get going with images
+   ny = 64; //128;
    dt = .5;
 };
 
@@ -35,7 +35,7 @@ HyPerLayer "Retina" = {
 
    spikingFlag = 1;     // spike as poisson
 
-   noiseOnFreq  = 200;  // (Hz) when this is defined poissonEdge overridden
+   noiseOnFreq  = 0;//200;  // (Hz) when this is defined poissonEdge overridden
    noiseOffFreq = 50;   // (Hz) when this is defined poissonBlank overridden
 };
 
@@ -85,7 +85,7 @@ HyPerConn "Retina to L1" = {
    // these weights used if randomFlag==1
 
    wMin = 0.0;     
-   wMax = 1.5;
+   wMax = 3.0;
    dWMax = 0.01;
    
    uniformWeights = 1;
