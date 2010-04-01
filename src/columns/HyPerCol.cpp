@@ -226,6 +226,12 @@ int HyPerCol::run(int nTimeSteps)
       layers[l]->publish(icComm, time);
    }
 
+   // wait for all published data to arrive
+   //
+   for (int l = 0; l < numLayers; l++) {
+      icComm->wait(layers[l]->getLayerId());
+   }
+
    if (runDelegate) {
       // let delegate advance the time
       //
@@ -264,26 +270,23 @@ float HyPerCol::advanceTime(float simTime)
    // deliver published data for each layer
    //
    for (int l = 0; l < numLayers; l++) {
-#ifdef DEBUG_OUTPUT
-      printf("[%d]: HyPerCol::run will deliver layer %d\n", columnId(), l);
-      fflush(stdout);
-#endif
-      // this function blocks until all data for a layer has been delivered
+
+      // deliver new synaptic activity to layer
       //
       icComm->deliver(this, l);
    }
-
-#ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      printf("[0]: HyPerCol::run: data delivery finished\n");  fflush(stdout);
-   }
-#endif
 
    for (int l = 0; l < numLayers; l++) {
       layers[l]->updateState(simTime, deltaTime);
       layers[l]->outputState(simTime+deltaTime);
       icComm->increaseTimeLevel(layers[l]->getLayerId());
       layers[l]->publish(icComm, simTime);
+   }
+
+   // wait for all published data to arrive
+   //
+   for (int l = 0; l < numLayers; l++) {
+      icComm->wait(layers[l]->getLayerId());
    }
 
    // layer activity has been calculated, inform connections
