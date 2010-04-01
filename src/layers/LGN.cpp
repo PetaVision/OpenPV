@@ -142,6 +142,7 @@ static int PV_LGN_kNN(float x0, float y0, int rx, int ry, int k[])
 }
 #endif
 
+#ifdef DEPRECATED
 // TODO - move this to default PV_updateState()?
 int PV_LGN_updateState(PVLayer * l)
 {
@@ -175,6 +176,7 @@ int PV_LGN_updateState(PVLayer * l)
 
    return 0;
 }
+#endif
 
 #ifdef __cplusplus
 }
