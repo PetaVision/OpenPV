@@ -109,8 +109,8 @@ public:
 
    // implementation of LayerDataInterface interface
    //
+   const pvdata_t   * getLayerData();
    const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
-   const pvdata_t * getLayerData()   { return clayer->activity->data; }
    bool isExtended()                 { return true; }
    
    virtual int gatherToInteriorBuffer(unsigned char * buf);
