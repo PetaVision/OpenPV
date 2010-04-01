@@ -27,7 +27,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
 int read(const char * filename, Communicator * comm, double * time, pvdata_t * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
-int write(const char * filename, Communicator * comm, double time, pvdata_t * data,
+int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l);
