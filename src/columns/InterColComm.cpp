@@ -58,6 +58,15 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 }
 
 /**
+ * wait until all outstanding published messages have arrived
+ */
+int InterColComm::wait(int pubId)
+{
+   const int numRemote = numNeighbors - 1;  // numNeighbors include LOCAL
+   return publishers[pubId]->wait(numRemote);
+}
+
+/**
  * deliver all outstanding published messages
  */
 int InterColComm::deliver(HyPerCol* hc, int pubId)
@@ -183,48 +192,54 @@ int Publisher::publish(HyPerLayer* pub,
 }
 
 /**
- * deliver all outstanding published messages
+ * wait until all outstanding published messages have arrived
  */
-int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
+int Publisher::wait(int numRemote)
 {
    if (numSubscribers < 1) {
       return 0;  // no one to deliver to
    }
 
-   // deliver delayed information first
+#ifdef PV_USE_MPI
+# ifdef DEBUG_OUTPUT
+   fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote); fflush(stdout);
+# endif
+
+   MPI_Waitall(numRemote, requests, MPI_STATUSES_IGNORE);
+#endif // PV_USE_MPI
+
+   return 0;
+}
+
+/**
+ * deliver published messages
+ */
+int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
+{
+   //
+   // Waiting for data to arrive has been separated from delivery.
+   // This method now assumes that wait has already been called
+   // and that the data have all arrived from remote neighbors.
+   //
+
+   if (numSubscribers < 1) {
+      return 0;  // no one to deliver to
+   }
+
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = connection[ic];
       int delay = conn->getDelay();
       if (delay > 0) {
          cube.data = recvBuffer(LOCAL, delay);
-#ifdef DEBUG_OUTPUT
-         printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
-         fflush(stdout);
-#endif
-         conn->deliver(this, &cube, LOCAL);
       }
-   }
-
-   // deliver current (no delay) information last
-
-#ifdef PV_USE_MPI
-   int numRequests = numNeighbors-1;  // TODO - change name of numNeighbors as it includes local
-   MPI_Waitall(numRequests, requests, MPI_STATUSES_IGNORE);
-#ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRequests); fflush(stdout);
-#endif
-#endif // PV_USE_MPI
-
-   for (int ic = 0; ic < numSubscribers; ic++) {
-      HyPerConn* conn = this->connection[ic];
-      if (conn->getDelay() == 0) {
+      else {
          cube.data = recvBuffer(LOCAL);
-#ifdef DEBUG_OUTPUT
-         printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
-         fflush(stdout);
-#endif
-         conn->deliver(this, &cube, LOCAL);
       }
+#ifdef DEBUG_OUTPUT
+      printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
+      fflush(stdout);
+#endif
+      conn->deliver(this, &cube, LOCAL);
    }
 
    return 0;
