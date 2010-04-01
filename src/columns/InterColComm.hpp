@@ -37,6 +37,7 @@ public:
                int borders[], int numBorders, PVLayerCube * data);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int numNeighbors, int numBorders);
+   int wait(int numRemote);
 
    static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
@@ -76,14 +77,16 @@ public:
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int pubId);
+   int wait(int pubId);
+
    int increaseTimeLevel(int pubId)       {return publishers[pubId]->increaseTimeLevel();}
 
-   DataStore* publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
+   DataStore * publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
 
 private:
 
    int numPublishers;
-   Publisher* publishers[MAX_PUBLISHERS];
+   Publisher * publishers[MAX_PUBLISHERS];
 };
 
 } // namespace PV
