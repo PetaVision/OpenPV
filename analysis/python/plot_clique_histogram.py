@@ -12,7 +12,7 @@ if len(sys.argv) < 2:
    exit()
 
 w_split_val = 255/2.
-if len(sys.argv) == 3:
+if len(sys.argv) >= 3:
    w_split_val = float(sys.argv[2])
 
 w = rw.PVReadWeights(sys.argv[1])
