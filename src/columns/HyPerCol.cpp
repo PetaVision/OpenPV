@@ -271,14 +271,14 @@ float HyPerCol::advanceTime(float simTime)
    // been delivered to the data store.
    //
 
-   // update the connections (weights).
+   // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
       connections[c]->updateState(simTime, deltaTime);
       connections[c]->outputState(simTime);
    }
 
-   // Update the layers (activity).
+   // Update the layers (activity)
    //
    for (int l = 0; l < numLayers; l++) {
       layers[l]->outputState(simTime);
