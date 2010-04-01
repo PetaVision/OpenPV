@@ -18,7 +18,7 @@ public:
    LinearAverageProbe(const char * filename, HyPerCol * hc, PVDimType dim, int f, const char * gifFile);
    virtual ~LinearAverageProbe();
 
-   virtual int outputState(float time, PVLayer * l);
+   virtual int outputState(float time, HyPerLayer * l);
 
 protected:
    const char * gifFile;
