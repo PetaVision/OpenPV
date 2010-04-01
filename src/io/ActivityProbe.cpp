@@ -18,8 +18,8 @@ static int
 pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextFrame);
 
 static int
-pv_tiff_write_frame(FILE * fp,
-                    pvdata_t * data, const PVLayerLoc * loc, pvdata_t * buf, long * nextFrame);
+pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
+                    const PVLayerLoc * loc, pvdata_t * buf, long * nextFrame);
 
 
 
@@ -42,7 +42,7 @@ int ActivityProbe::outputState(float time, HyPerLayer * l)
    int status = 0;
 
    if (outfp != NULL) {
-      pvdata_t * data = l->clayer->activity->data;
+      const pvdata_t * data = l->getLayerData();
       status = pv_tiff_write_frame(outfp, data, &l->clayer->loc, outBuf, &outFrame);
    }
 
@@ -83,7 +83,8 @@ pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** im
 }
 
 static int
-pv_tiff_write_frame(FILE * fp, pvdata_t * data, const PVLayerLoc * loc, pvdata_t * buf, long * nextLoc)
+pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
+                    const PVLayerLoc * loc, pvdata_t * buf, long * nextLoc)
 {
    int k;
 
