@@ -62,7 +62,7 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
  */
 int InterColComm::wait(int pubId)
 {
-   const int numRemote = numNeighbors - 1;  // numNeighbors include LOCAL
+   const int numRemote = numNeighbors - 1;  // numNeighbors includes LOCAL
    return publishers[pubId]->wait(numRemote);
 }
 
