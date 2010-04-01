@@ -2,7 +2,7 @@
  * ProbeActivityLinear.cpp
  *
  *  Created on: Mar 7, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "LinearActivityProbe.hpp"
@@ -47,11 +47,11 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
 int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 {
    int width, sLine;
-   float * line;
+   const float * line;
 
    const PVLayer * clayer = l->clayer;
 
-   float * activity = clayer->activity->data;
+   const pvdata_t * activity = l->getLayerData();
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
