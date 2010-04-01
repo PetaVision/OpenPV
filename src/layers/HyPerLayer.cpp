@@ -204,6 +204,18 @@ int HyPerLayer::initFinish()
    return pvlayer_initFinish(clayer);
 }
 
+/**
+ * Returns the activity data for the layer.  This data is in the
+ * extended space (with margins).
+ */
+const pvdata_t * HyPerLayer::getLayerData()
+{
+   //DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   //return (pvdata_t *) store->buffer(LOCAL);
+   return clayer->activity->data;
+}
+
+
 // deprecated?
 /**
  * returns the number of neurons in the layer or border region
@@ -509,21 +521,6 @@ int HyPerLayer::outputState(float time, bool last)
 
    if (time >= writeTime) {
       writeTime += writeStep;
-
-      // should use a probe to get runtime information
-      //
-
-      //snprintf(path, PV_PATH_MAX-1, "%s%s_A.gif", OUTPUT_PATH, name);
-      //writeActivity(path, time);
-
-      // this output format is decrecated as it doesn't use MPI
-      //
-      //sprintf(path, "A%1.1d", clayer->layerId);
-      //pv_dump(path, ioAppend, clayer->activity->data, nxex, nyex, nf);
-      //sprintf(path, "V%1.1d", clayer->layerId);
-      //pv_dump(path, ioAppend, clayer->V, nx, ny, nf);
-      // append to dump file after original open
-      //this->ioAppend = 1;
    }
 
    return status;
@@ -550,6 +547,9 @@ int HyPerLayer::readState(const char * name, float * time)
    pvdata_t * V   = clayer->V;
    pvdata_t * Vth = clayer->Vth;
 
+   // TODO - this should be moved to getLayerData but can't yet because publish is call
+   // as the first step and publish copies clayer->activity->data into data store.  If
+   // clayer->activity is removed then we would read directly into data store.
    pvdata_t * A = clayer->activity->data;
 
    PVLayerLoc * loc = & clayer->loc;
@@ -592,7 +592,7 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
    pvdata_t * V   = clayer->V;
    pvdata_t * Vth = clayer->Vth;
 
-   pvdata_t * A = clayer->activity->data;
+   const pvdata_t * A = getLayerData();
 
    PVLayerLoc * loc = & clayer->loc;
 
@@ -630,7 +630,7 @@ int HyPerLayer::writeActivity(const char * filename, float time)
    assert(buf != NULL);
 
    const bool extended = true;
-   status = copyToBuffer(buf, clayer->activity->data, loc, extended, 255);
+   status = copyToBuffer(buf, getLayerData(), loc, extended, 255);
 
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
