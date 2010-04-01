@@ -126,17 +126,20 @@ int Publisher::publish(HyPerLayer* pub,
                        int borders[], int numBorders,
                        PVLayerCube* cube)
 {
+   //
+   // Everyone publishes border region to neighbors even if no subscribers.
+   // This means that everyone should wait as well.
+   //
+
    size_t dataSize = cube->numItems * sizeof(pvdata_t);
    assert(dataSize == store->size());
-
-   if (numSubscribers < 1) {
-      return 0;  // no one to deliver to
-   }
 
    pvdata_t * sendBuf = cube->data;
    pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
 
    // copy entire layer and let neighbors overwrite
+   // TODO - have layers use the data store directly then no need for extra copy
+   //
    memcpy(recvBuf, sendBuf, dataSize);
 
 #ifdef PV_USE_MPI
@@ -162,32 +165,6 @@ int Publisher::publish(HyPerLayer* pub,
 
 #endif // PV_USE_MPI
 
-#ifdef PV_OLD_MPI
-   // send/recv to/from neighbors
-   for (int i = 0; i < numNeighbors; i++) {
-      // Note - cube->data addr need not be correct as it will be wrong copied in from MPI
-      void * recvBuf = recvBuffer(i);
-      MPI_Irecv(recvBuf, size, MPI_CHAR, neighbors[i], pubId, comm,
-            &request[i]);
-      MPI_Send(cube, size, MPI_CHAR, neighbors[i], pubId, comm);
-#ifdef DEBUG_OUTPUT
-      printf("[%d]: Publisher::publish: neighbor=%d pubId=%d sendbuf=%p recvbuf=%p\n",
-             icRank, neighbors[i], i, cube, recvBuf);
-      fflush(stdout);
-#endif
-   }
-#endif // PV_OLD_MPI
-
-   //
-   // transform cube (and copy) for boundary conditions of neighbor slots that
-   // don't exist in processor topology (i.e., a hypercolumn at edge of image)
-   //
-//   for (int i = 0; i < numBorders; i++) {
-//      int borderIndex = Publisher::borderStoreIndex(i, numNeighbors);
-//      PVLayerCube* border = (PVLayerCube*) recvBuffer(borderIndex);
-//      pub->copyToBorder(borders[i], cube, border);
-//   }
-
    return 0;
 }
 
@@ -196,10 +173,10 @@ int Publisher::publish(HyPerLayer* pub,
  */
 int Publisher::wait(int numRemote)
 {
-   if (numSubscribers < 1) {
-      return 0;  // no one to deliver to
-   }
-
+   //
+   // Everyone publishes border region to neighbors even if no subscribers.
+   // This means that everyone should wait as well.
+   //
 #ifdef PV_USE_MPI
 # ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote); fflush(stdout);
@@ -221,10 +198,6 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    // This method now assumes that wait has already been called
    // and that the data have all arrived from remote neighbors.
    //
-
-   if (numSubscribers < 1) {
-      return 0;  // no one to deliver to
-   }
 
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = connection[ic];
