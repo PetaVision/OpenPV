@@ -267,19 +267,39 @@ int HyPerCol::run(int nTimeSteps)
 
 float HyPerCol::advanceTime(float simTime)
 {
-   // deliver published data for each layer
+   // At this point all activity from the previous time step have
+   // been delivered to the data store.
+   //
+
+   // update the connections (weights).
+   //
+   for (int c = 0; c < numConnections; c++) {
+      connections[c]->updateState(simTime, deltaTime);
+      connections[c]->outputState(simTime);
+   }
+
+   // Update the layers (activity).
    //
    for (int l = 0; l < numLayers; l++) {
+      layers[l]->outputState(simTime);
 
       // deliver new synaptic activity to layer
       //
-      icComm->deliver(this, l);
-   }
+      icComm->deliver(this, layers[l]->getLayerId());
 
-   for (int l = 0; l < numLayers; l++) {
+      // update layer and calculate new activity
+      //
       layers[l]->updateState(simTime, deltaTime);
-      layers[l]->outputState(simTime+deltaTime);
+
+      // TODO - move this to layer
+      // Advance time level so we have a new place in data store
+      // to copy the data.  This should be done immediately after before
+      // publish so there is a place to publish and deliver the data to
+      // but no one can access the data store (except to publish) until
+      // wait has been called.  This should be fixed so that publish goes
+      // to last time level and level is advanced only after wait.
       icComm->increaseTimeLevel(layers[l]->getLayerId());
+
       layers[l]->publish(icComm, simTime);
    }
 
@@ -287,12 +307,6 @@ float HyPerCol::advanceTime(float simTime)
    //
    for (int l = 0; l < numLayers; l++) {
       icComm->wait(layers[l]->getLayerId());
-   }
-
-   // layer activity has been calculated, inform connections
-   for (int c = 0; c < numConnections; c++) {
-      connections[c]->updateState(simTime, deltaTime);
-      connections[c]->outputState(simTime+deltaTime);
    }
 
    return simTime + deltaTime;
