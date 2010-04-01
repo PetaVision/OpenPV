@@ -68,11 +68,13 @@ int PointProbe::outputState(float time, HyPerLayer * l)
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
 
+   const pvdata_t * activity = l->getLayerData();
+
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
    const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nPad);
 
    if (sparseOutput) {
-      fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, clayer->activity->data[kex]);
+      fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
       // we will control the end of line character from the ConditionalProbe.
    }
    else {
@@ -82,7 +84,7 @@ int PointProbe::outputState(float time, HyPerLayer * l)
       fprintf(fp, " G_IB=%6.3f", clayer->G_IB[k]);
       fprintf(fp, " V=%6.3f", clayer->V[k]);
       fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
-      fprintf(fp, " a=%3.1f\n", clayer->activity->data[kex]);
+      fprintf(fp, " a=%3.1f\n", activity[kex]);
       fflush(fp);
    }
 
