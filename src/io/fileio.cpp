@@ -510,7 +510,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
    return status;
 }
 
-int write(const char * filename, Communicator * comm, double time, pvdata_t * data,
+int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
