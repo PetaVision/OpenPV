@@ -50,10 +50,12 @@ LinearAverageProbe::~LinearAverageProbe()
  * @time
  * @l
  */
-int LinearAverageProbe::outputState(float time, PVLayer * l)
+int LinearAverageProbe::outputState(float time, HyPerLayer * l)
 {
    int nk, sk;
-   float * line;
+   const pvdata_t * line;
+
+   const PVLayer * clayer = l->clayer;
 
    if (fpGif == NULL) {
       int numOnLines = 0;
@@ -61,9 +63,9 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
       sprintf(path, "%s%s", OUTPUT_PATH, gifFile);
 //      fpGif = fopen(path, "r");
 
-      int nx = l->loc.nxGlobal;
-      int ny = l->loc.nyGlobal;
-      int nf = l->numFeatures;
+      int nx = clayer->loc.nxGlobal;
+      int ny = clayer->loc.nyGlobal;
+      int nf = clayer->numFeatures;
 
       int sx = strideX(nx, ny, nf);
       int sy = strideY(nx, ny, nf);
@@ -73,15 +75,15 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
 
       int err = readFile(path, buf, &nx, &ny);
       if (err == 0) {
-         assert(nx <= l->loc.nxGlobal);
-         assert(ny <= l->loc.nyGlobal);
-         if (nx < l->loc.nxGlobal || ny < l->loc.nyGlobal) {
-            err = pv_center_image(buf, nx, ny, l->loc.nxGlobal, l->loc.nyGlobal);
+         assert(nx <= clayer->loc.nxGlobal);
+         assert(ny <= clayer->loc.nyGlobal);
+         if (nx < clayer->loc.nxGlobal || ny < clayer->loc.nyGlobal) {
+            err = pv_center_image(buf, nx, ny, clayer->loc.nxGlobal, clayer->loc.nyGlobal);
          }
       }
 
-      nx = l->loc.nxGlobal;
-      ny = l->loc.nyGlobal;
+      nx = clayer->loc.nxGlobal;
+      ny = clayer->loc.nyGlobal;
 
       if (dim == DimX) {
          nk = nx;
@@ -95,29 +97,29 @@ int LinearAverageProbe::outputState(float time, PVLayer * l)
             }
          }
 
-         line = l->activity->data + nf * nk * linePos;
+         line = l->getLayerData() + nf * nk * linePos;
       }
       else {
-         nk = l->activity->loc.ny;
-         sk = nf * l->activity->loc.nx;
-         line = l->activity->data + nf * linePos;
+         nk = clayer->activity->loc.ny;
+         sk = nf * clayer->activity->loc.nx;
+         line = l->getLayerData() + nf * linePos;
       }
 
       // get list of locations
    }
 
    float dt = parent->getDeltaTime();
-   int nf = l->numFeatures;
+   int nf = clayer->numFeatures;
 
    if (dim == DimX) {
-      nk = l->activity->loc.nx;
+      nk = clayer->activity->loc.nx;
       sk = nf;
-      line = l->activity->data + nf * nk * linePos;
+      line = l->getLayerData() + nf * nk * linePos;
    }
    else {
-      nk = l->activity->loc.ny;
-      sk = nf * l->activity->loc.nx;
-      line = l->activity->data + nf * linePos;
+      nk = clayer->activity->loc.ny;
+      sk = nf * clayer->activity->loc.nx;
+      line = l->getLayerData() + nf * linePos;
    }
 
    double sum = 0.0;
