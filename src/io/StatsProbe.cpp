@@ -2,7 +2,7 @@
  * StatsProbe.cpp
  *
  *  Created on: Mar 10, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "StatsProbe.hpp"
@@ -47,20 +47,18 @@ StatsProbe::~StatsProbe()
 int StatsProbe::outputState(float time, HyPerLayer * l)
 {
    int nk;
-   pvdata_t * buf;
+   const pvdata_t * buf;
    float fMin = FLT_MAX, fMax = FLT_MIN;
    double sum = 0.0;
 
-   const PVLayer * clayer = l->clayer;
-
    switch (type) {
    case BufV:
-      nk  = clayer->numNeurons;
-      buf = clayer->V;
+      nk  = l->clayer->numNeurons;
+      buf = l->clayer->V;
       break;
    case BufActivity:
-      nk  = clayer->numExtended;
-      buf = clayer->activity->data;
+      nk  = l->clayer->numExtended;
+      buf = l->getLayerData();
       break;
    default:
       return 1;
