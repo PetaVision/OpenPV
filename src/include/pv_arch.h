@@ -8,7 +8,7 @@
 #undef PV_USE_MPI
 
 /* define this if using OpenGL library for online graphics */
-#define PV_USE_OPENGL
+#undef PV_USE_OPENGL
 
 /* define this if using GDAL library to read/write images */
 #undef PV_USE_GDAL
