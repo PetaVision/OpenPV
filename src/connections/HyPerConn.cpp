@@ -10,7 +10,7 @@
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
-#include "../utils/rng.h"
+#include "../utils/pv_random.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1278,13 +1278,13 @@ int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
    const int syp = wp->sy;
    const int sfp = wp->sf;
 
-   const double p = (wMax - wMin) / RAND_MAX;
+   const double p = (wMax - wMin) / pv_random_max();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = wMin + p * rand();
+            w[x * sxp + y * syp + f * sfp] = wMin + p * pv_random();
          }
       }
    }
