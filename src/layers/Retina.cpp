@@ -9,6 +9,7 @@
 #include "Retina.hpp"
 #include "../io/io.h"
 #include "../include/default_params.h"
+#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -398,7 +399,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
    if ((int)burstStatus) {
       *probSpike += probStim * sinAmp;  // negative prob is OK
     }
-   return ( rand() < (*probSpike * RAND_MAX));
+   return ( pv_random_prob() < *probSpike );
 }
 
 } // namespace PV
