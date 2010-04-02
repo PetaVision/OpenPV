@@ -7,6 +7,7 @@
 
 #include "Bars.hpp"
 #include "../include/pv_common.h"  // for PI
+#include "../utils/pv_random.h"
 namespace PV {
 
 Bars::Bars(const char * name, HyPerCol * hc) :
@@ -71,7 +72,7 @@ bool Bars::updateImage(float time, float dt)
    int x, y;
 
    // alternate between vertical and horizontal bars
-   double p = 1.0 * rand() / RAND_MAX;
+   double p = pv_random_prob();
 
    if (orientation == vertical) { // current vertical gratings
       if (p < pSwitch) { // switch with probability pSwitch
@@ -87,7 +88,7 @@ bool Bars::updateImage(float time, float dt)
    if (orientation == vertical) { // vertical bars
 
       // moving probability
-      double p_move = 1.0 * rand() / RAND_MAX;
+      double p_move = pv_random_prob();
       if (p_move < pMove) {
          calcPosition(1.0 * nx); // or step
       }
@@ -110,7 +111,7 @@ bool Bars::updateImage(float time, float dt)
    else { // horizontal bars
 
       // moving probability
-      double p_move = 1.0 * rand() / RAND_MAX;
+      double p_move = pv_random_prob();
       if (p_move < pMove) {
          calcPosition(1.0 * ny);
       }
@@ -151,7 +152,7 @@ bool Bars::updateImage(float time, float dt)
 void Bars::calcPosition(float step)
 {
    float dp = 1.0 / step;
-   double p = ((double) rand()) / (double) RAND_MAX;
+   double p = pv_random_prob();
    int random_walk = 1;
    int move_forward = 0;
    int move_backward = 0;
