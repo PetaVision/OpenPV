@@ -10,6 +10,7 @@
 
 #include "../io/tiff.h"
 #include "../include/pv_common.h"
+#include "../utils/pv_random.h"
 
 #include "ImageCreator.hpp"
 
@@ -42,9 +43,6 @@ ImageCreator::~ImageCreator()
 int ImageCreator::initialize()
 {
    int numItems = loc.nx * loc.ny * loc.nBands;
-
-   // TODO - should this only be called once, say from the hypercolumn?
-   srand(time(NULL));
 
    drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
    assert(drawBuffer != 0);
@@ -178,7 +176,7 @@ int ImageCreator::createRandomImage()
 
    for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
-         drawBuffer[i + j * nx] = (unsigned char) (rand() % 2);
+         drawBuffer[i + j * nx] = (unsigned char) (pv_random() % 2);
       }
          //Fill in all pixels randomly
    }
@@ -200,18 +198,17 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
    const int ny = loc.ny;
 
    clearImage();
-   srand(time(NULL));
-   unsigned int posx; //rand() % nx;
-   unsigned int posy; //rand() % ny;
+   unsigned int posx; //random() % nx;
+   unsigned int posy; //random() % ny;
    unsigned int length = 4; //nx / 8;
 
    for (int image = 0; image < n_images; image++) {
       do {
-         posx = rand() % nx;
+         posx = pv_random() % nx;
       } while(posx < 0 && posx > (nx - length));
 
       do{
-         posy = rand() % ny;
+         posy = pv_random() % ny;
       } while(posy < 0 || posy > (nx - length));
 
       Point2D newpos(posx, posy);
@@ -650,7 +647,7 @@ int ImageCreator::copyImage(pvdata_t * targetbuf)
  */
 int ImageCreator::threewaytoss(double probBack, double probStay, double probForward)
 {
-   int decider = rand() % 100;
+   int decider = pv_random() % 100;
    float total_prob = decider / 100.00;
 
    if ((total_prob >= 0) && (total_prob < probStay))
