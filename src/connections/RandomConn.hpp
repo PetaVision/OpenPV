@@ -26,11 +26,11 @@ public:
    RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
               HyPerLayer * post, int channel, RandDistType distrib);
 
-   virtual int initializeRandomWeights(int seed);
-   int initializeUniformWeights(int seed);
-   int uniformWeights(PVPatch * wp, float wMin, float wMax, int seed);
-   int initializeGaussianWeights(int seed);
-   int gaussianWeights(PVPatch *wp, float mean, float stdev, int seed);
+   virtual int initializeRandomWeights(unsigned long seed);
+   int initializeUniformWeights(unsigned long seed);
+   int uniformWeights(PVPatch * wp, float wMin, float wMax, unsigned long seed);
+   int initializeGaussianWeights(unsigned long seed);
+   int gaussianWeights(PVPatch *wp, float mean, float stdev, unsigned long seed);
    int gaussianWeightsMA(PVPatch *wp, float mean, float stdev, long *);
    float randgauss(float mean, float stdev);
    float randgaussMA(float mean, float stdev, long *);
@@ -41,7 +41,6 @@ private:
    float          wGaussStdev;  // std deviation of the Gaussian distribution
    long           idum;
 
-   float ranf();
    float ran1(long *);
 };
 

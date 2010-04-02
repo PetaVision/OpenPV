@@ -6,6 +6,7 @@
  */
 
 #include "RandomConn.hpp"
+#include "../utils/pv_random.h"
 #include <assert.h>
 #include <string.h>
 #include <time.h>
@@ -30,10 +31,8 @@ RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize(name, hc, pre, post, channel);
 }
 
-int RandomConn::initializeRandomWeights(int seed)
+int RandomConn::initializeRandomWeights(unsigned long seed)
 {
-   srand(time(NULL));
-
    switch(randDistType) {
    case UNIFORM:
       return initializeUniformWeights(seed);
@@ -46,7 +45,7 @@ int RandomConn::initializeRandomWeights(int seed)
    }
 }
 
-int RandomConn::initializeUniformWeights(int seed)
+int RandomConn::initializeUniformWeights(unsigned long seed)
 {
    PVParams * params = parent->parameters();
 
@@ -68,7 +67,7 @@ int RandomConn::initializeUniformWeights(int seed)
 /**
  * calculate random weights for a patch given a range between wMin and wMax
  */
-int RandomConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int seed)
+int RandomConn::uniformWeights(PVPatch * wp, float wMin, float wMax, unsigned long seed)
 {
    pvdata_t * w = wp->data;
 
@@ -77,17 +76,17 @@ int RandomConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int seed)
    const int nf = (int) wp->nf;
    const int nk = nx * ny * nf;
 
-   double p = (wMax - wMin) / RAND_MAX;
+   double p = (wMax - wMin) / pv_random_max();
 
    // loop over all post-synaptic cells in patch
    for (int k = 0; k < nk; k++) {
-      w[k] = (float) (wMin + p * rand());
+      w[k] = (float) (wMin + p * pv_random());
    }
 
    return 0;
 }
 
-int RandomConn::initializeGaussianWeights(int seed)
+int RandomConn::initializeGaussianWeights(unsigned long seed)
 {
    PVParams * params = parent->parameters();
 
@@ -127,7 +126,7 @@ int RandomConn::initializeGaussianWeights(int seed)
  *
  * Returns 0 if successful, else non-zero.
  */
-int RandomConn::gaussianWeights(PVPatch *wp, float mean, float stdev, int seed)
+int RandomConn::gaussianWeights(PVPatch *wp, float mean, float stdev, unsigned long seed)
 {
    if ((NULL == wp) || (NULL == wp->data)) {
       fprintf(stderr, "HyPerConn: Error reading patch.\n");
@@ -199,8 +198,8 @@ float RandomConn::randgauss(float mean, float stdev)
    else
    {
      do {
-         urandx1 = 2.0f * ranf() - 1.0f;
-         urandx2 = 2.0f * ranf() - 1.0f;
+         urandx1 = 2.0f * pv_random_prob() - 1.0f;
+         urandx2 = 2.0f * pv_random_prob() - 1.0f;
          w = urandx1 * urandx1 + urandx2 * urandx2;
       } while (w >= 1.0f);
 
@@ -211,15 +210,6 @@ float RandomConn::randgauss(float mean, float stdev)
    }
    return(mean + y1 * stdev);
 }
-
-/**
- * generate random numbers with uniform distribution between 0 and 1
- */
-float RandomConn::ranf()
-{
-   return ((float) (rand() / (float) RAND_MAX));
-}
-
 
 float RandomConn::randgaussMA(float mean, float stdev, long *idum)
 {
