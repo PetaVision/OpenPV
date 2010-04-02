@@ -44,11 +44,9 @@ int LIF_update(PVLayer *l)
    float phiAve = 0.0, phiMax = FLT_MIN, phiMin = FLT_MAX;
    float VAve = 0.0, VMax = FLT_MIN, VMin = FLT_MAX;
 
-   const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
-
    for (i = 0; i < l->numNeurons; i++) {
-      if (rand() * INV_RAND_MAX < PARAMS(LIF_NOISE_FREQ)) {
-         r = PARAMS(LIF_NOISE_AMP) * 2 * (rand() * INV_RAND_MAX - 0.5);
+      if (pv_random_prob() < PARAMS(LIF_NOISE_FREQ)) {
+         r = PARAMS(LIF_NOISE_AMP) * 2 * (pv_random_prob() - 0.5);
       }
       else r = 0.0;
 
