@@ -10,6 +10,7 @@
 // ---------------------------------------------------
 
 #include "../include/pv_common.h"
+#include "../utils/pv_random.h"
 #include "PVLayer.h"
 
 #include <assert.h>
@@ -93,11 +94,10 @@ int add_noise(PVLayer * l, float dt)
 
    dt = .001 * dt;  // convert to seconds
 
-   const float INV_RAND_MAX = 1.0 / (float) RAND_MAX;
    for (i = start; i < (l->numNeurons + start); i++) {
-      if (rand() * INV_RAND_MAX < dt * params->noiseFreqE) l->phi[PHI_EXC][i]   += params->noiseAmpE * rand() * INV_RAND_MAX;
-      if (rand() * INV_RAND_MAX < dt * params->noiseFreqI) l->phi[PHI_INH][i]   += params->noiseAmpI * rand() * INV_RAND_MAX;
-      if (rand() * INV_RAND_MAX < dt * params->noiseFreqIB) l->phi[PHI_INHB][i] += params->noiseAmpIB * rand() * INV_RAND_MAX;
+      if (pv_random_prob() < dt * params->noiseFreqE)  l->phi[PHI_EXC][i]  += params->noiseAmpE  * pv_random_prob();
+      if (pv_random_prob() < dt * params->noiseFreqI)  l->phi[PHI_INH][i]  += params->noiseAmpI  * pv_random_prob();
+      if (pv_random_prob() < dt * params->noiseFreqIB) l->phi[PHI_INHB][i] += params->noiseAmpIB * pv_random_prob();
    }
    return 0;
 }
@@ -321,32 +321,32 @@ int LIF2_init(PVLayer * l)
       kex = kIndexExtended(k, nx, ny, nf, marginWidth);
 
       if (params->noiseAmpE > 0) {
-         l->Vth[k] = params->VthRest + (rand() / (float) RAND_MAX) * params->deltaVth;
-         l->V[k] = (rand() / (float) RAND_MAX) * (params->VthRest - params->Vinh) + params->Vinh;
+         l->Vth[k] = params->VthRest + pv_random_prob() * params->deltaVth;
+         l->V[k] = pv_random_prob() * (params->VthRest - params->Vinh) + params->Vinh;
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.6860;
-            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 1.0031;
-            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 5.5048;
+            l->G_E[k]  = -log( pv_random_prob() ) * 0.6860;
+            l->G_I[k]  = -log( pv_random_prob() ) * 1.0031;
+            l->G_IB[k] = -log( pv_random_prob() ) * 5.5048;
          }
          else if (l->layerType == TypeV1FlankInhib) {
-            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.4514;
-            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 3.2228;
-            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 5.8198;
+            l->G_E[k]  = -log( pv_random_prob() ) * 0.4514;
+            l->G_I[k]  = -log( pv_random_prob() ) * 3.2228;
+            l->G_IB[k] = -log( pv_random_prob() ) * 5.8198;
          }
          else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.3932;
-            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 0.7572;
-            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 1.8671;
+            l->G_E[k]  = -log( pv_random_prob() ) * 0.3932;
+            l->G_I[k]  = -log( pv_random_prob() ) * 0.7572;
+            l->G_IB[k] = -log( pv_random_prob() ) * 1.8671;
          }
          else if (l->layerType == TypeV1SurroundInhib) {
-            l->G_E[k] = -log( rand() / (float) RAND_MAX ) * 0.4159;
-            l->G_I[k] = -log( rand() / (float) RAND_MAX ) * 0.4956;
-            l->G_IB[k] = -log( rand() / (float) RAND_MAX ) * 0.9782;
+            l->G_E[k]  = -log( pv_random_prob() ) * 0.4159;
+            l->G_I[k]  = -log( pv_random_prob() ) * 0.4956;
+            l->G_IB[k] = -log( pv_random_prob() ) * 0.9782;
          }
          else {
-            l->G_E[k] = -log( rand() / (float) RAND_MAX );
-            l->G_I[k] = -log( rand() / (float) RAND_MAX );
-            l->G_IB[k] = -log( rand() / (float) RAND_MAX );
+            l->G_E[k]  = -log( pv_random_prob() );
+            l->G_I[k]  = -log( pv_random_prob() );
+            l->G_IB[k] = -log( pv_random_prob() );
          }
       }
       else
@@ -360,20 +360,16 @@ int LIF2_init(PVLayer * l)
 
       if (params->noiseAmpE > 0) {
          if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
-            < 0.001;
+            l->activity->data[kex] = (pv_random_prob() < 0.001);
          }
          else if (l->layerType == TypeV1FlankInhib) {
-            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
-            < 0.001;
+            l->activity->data[kex] = (pv_random_prob() < 0.001);
          }
          else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
-            < 0.0016;
+            l->activity->data[kex] = (pv_random_prob() < 0.0016);
          }
          else if (l->layerType == TypeV1SurroundInhib) {
-            l->activity->data[kex] = (float) (rand() / (float) RAND_MAX)
-            < 0.01;
+            l->activity->data[kex] = (pv_random_prob() < 0.01);
          }
          else {
             l->activity->data[kex] = 0.0;
