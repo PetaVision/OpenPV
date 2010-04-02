@@ -18,7 +18,6 @@
 #ifdef __cplusplus
 extern "C"
 {
-   float ranf();
    float box_muller(float,float);
 
 #ifdef __cplusplus
