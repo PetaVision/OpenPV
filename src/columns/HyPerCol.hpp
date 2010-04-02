@@ -57,7 +57,7 @@ public:
    bool  warmStartup()                    {return warmStart;}
 
    float getDeltaTime()                   {return deltaTime;}
-   float simulationTime()                 {return time;}
+   float simulationTime()                 {return simTime;}
 
    PVLayerLoc getImageLoc()               {return imageLoc;}
    int width()                            {return imageLoc.nxGlobal;}
@@ -83,6 +83,10 @@ public:
    int numCommColumns()                   {return icComm->numCommColumns();}
    int numCommRows()                      {return icComm->numCommRows();}
 
+   // a random seed based on column id
+   unsigned long getRandomSeed()
+      {return (unsigned long) time((time_t *) NULL) / (1 + columnId());}
+
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
 private:
@@ -95,7 +99,7 @@ private:
    bool warmStart;
    bool isInitialized;     // true when all initialization has been completed
 
-   float time;             // current time in milliseconds
+   float simTime;         // current time in milliseconds
    float deltaTime;        // time step interval
 
    HyPerLayer ** layers;

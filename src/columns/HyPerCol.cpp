@@ -13,6 +13,7 @@
 #include "../io/clock.h"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
+#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <math.h>
@@ -32,7 +33,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    this->name = strdup(name);
 
    char * param_file;
-   time = 0;
+   simTime = 0;
    numLayers = 0;
    numConnections = 0;
    layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
@@ -55,6 +56,10 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    params = new PVParams(param_file, maxGroups);
 
    icComm = new InterColComm(&argc, &argv);
+
+   // initialize random seed
+   //
+   pv_srandom(getRandomSeed());
 
    if (param_file != NULL) free(param_file);
 
@@ -205,7 +210,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
 int HyPerCol::run(int nTimeSteps)
 {
    int step = 0;
-   float stopTime = time + nTimeSteps * deltaTime;
+   float stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
 
    if (!isInitialized) {
@@ -223,7 +228,7 @@ int HyPerCol::run(int nTimeSteps)
    // publish initial conditions
    //
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->publish(icComm, time);
+      layers[l]->publish(icComm, simTime);
    }
 
    // wait for all published data to arrive
@@ -235,13 +240,13 @@ int HyPerCol::run(int nTimeSteps)
    if (runDelegate) {
       // let delegate advance the time
       //
-      runDelegate->run(time, stopTime);
+      runDelegate->run(simTime, stopTime);
    }
 
    // time loop
    //
-   while (time < stopTime) {
-      time = advanceTime(time);
+   while (simTime < stopTime) {
+      simTime = advanceTime(simTime);
       step += 1;
 
 #ifdef TIMER_ON
@@ -265,7 +270,7 @@ int HyPerCol::run(int nTimeSteps)
    return 0;
 }
 
-float HyPerCol::advanceTime(float simTime)
+float HyPerCol::advanceTime(float sim_time)
 {
    // At this point all activity from the previous time step have
    // been delivered to the data store.
@@ -274,14 +279,14 @@ float HyPerCol::advanceTime(float simTime)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->updateState(simTime, deltaTime);
-      connections[c]->outputState(simTime);
+      connections[c]->updateState(sim_time, deltaTime);
+      connections[c]->outputState(sim_time);
    }
 
    // Update the layers (activity)
    //
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->outputState(simTime);
+      layers[l]->outputState(sim_time);
 
       // deliver new synaptic activity to layer
       //
@@ -289,7 +294,7 @@ float HyPerCol::advanceTime(float simTime)
 
       // update layer and calculate new activity
       //
-      layers[l]->updateState(simTime, deltaTime);
+      layers[l]->updateState(sim_time, deltaTime);
 
       // TODO - move this to layer
       // Advance time level so we have a new place in data store
@@ -300,7 +305,7 @@ float HyPerCol::advanceTime(float simTime)
       // to last time level and level is advanced only after wait.
       icComm->increaseTimeLevel(layers[l]->getLayerId());
 
-      layers[l]->publish(icComm, simTime);
+      layers[l]->publish(icComm, sim_time);
    }
 
    // wait for all published data to arrive
@@ -309,7 +314,7 @@ float HyPerCol::advanceTime(float simTime)
       icComm->wait(layers[l]->getLayerId());
    }
 
-   return simTime + deltaTime;
+   return sim_time + deltaTime;
 }
 
 int HyPerCol::exitRunLoop(bool exitOnFinish)
@@ -321,11 +326,11 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    bool last = true;
 
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(layers[l]->getName(), time, last);
+      layers[l]->writeState(layers[l]->getName(), simTime, last);
    }
 
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(time, last);
+      connections[c]->outputState(simTime, last);
    }
 
    if (exitOnFinish) {
@@ -362,7 +367,7 @@ int HyPerCol::loadState()
 int HyPerCol::writeState()
 {
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(OUTPUT_PATH, time);
+      layers[l]->writeState(OUTPUT_PATH, simTime);
    }
    return 0;
 }
