@@ -2,11 +2,12 @@
  * Gratings.cpp
  *
  *  Created on: Oct 23, 2009
- *      Author: travel
+ *      Author: Craig Rasmussen
  */
 
 #include "Gratings.hpp"
 #include "../include/pv_common.h"  // for PI
+#include "../utils/pv_random.h"
 
 namespace PV {
 
@@ -69,7 +70,7 @@ float Gratings::calcPhase(float time, float dt)
 	int itime   = (int) (time/dt);
 
     if (itime%iperiod == 0) {
-    	double p = ((double) rand()) / (double) RAND_MAX;
+    	double p = pv_random_prob();
     	if (p < 0.25)       phase = 0.0 * PI;
     	else if (p < 0.50)  phase = 0.5 * PI;
     	else if (p < 0.75)  phase = 1.0 * PI;
