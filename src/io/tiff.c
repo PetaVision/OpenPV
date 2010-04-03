@@ -347,6 +347,8 @@ int tiff_image_size(FILE * fd, long * nextLoc, int * width, int * height, int co
 
    IFD ifd;
    ifd.numStripOffsets = 0;  /* MUST be initialized */
+   ifd.imageWidth = 0;
+   ifd.imageLength = 0;
 
    assert( fseek(fd, *nextLoc, SEEK_SET) == 0 );
 
