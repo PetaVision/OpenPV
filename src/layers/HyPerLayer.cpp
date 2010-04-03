@@ -222,7 +222,7 @@ const pvdata_t * HyPerLayer::getLayerData()
  **/
 int HyPerLayer::numberOfNeurons(int borderId)
 {
-   int numNeurons;
+   int numNeurons = 0;
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
