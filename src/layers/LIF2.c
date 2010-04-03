@@ -68,7 +68,7 @@ static inline int update_f(PVLayer * l, int start)
 
    for (k = start; k < (l->numNeurons + start); k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-      int active = ((V[k] - Vth[k]) > 0.0) ? 1.0 : 0.0;
+      int active = ((V[k] - Vth[k]) > 0.0) ? 1 : 0;
       activity[kex] = active;
       V[k]   -= active * (V[k] - Vrest);  // reset cells that fired
       // add hyperpolarizing current
