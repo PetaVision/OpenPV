@@ -97,10 +97,6 @@ pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
    const int nf = loc->nBands;
    const int numItems = nx*ny*nf;
 
-   const int sx = nf;
-   const int sy = nf*nx;
-   const int sf = 1;
-
    for (k = 0; k < numItems; k++) {
       float val = data[k];
       if (val < min) min = val;
