@@ -84,21 +84,24 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
 
    const float maxCount = maxRate * numLevels;
 
-   pvdata_t * activity = pre->clayer->activity->data;
+   const pvdata_t * activity = pre->getLayerData();
    pvdata_t * avg  = avgActivity->data;
    pvdata_t * last = (pvdata_t*) store->buffer(LOCAL, lastLevel);
 
-   pvdata_t max = 0;
+   pvdata_t min = +10;
+   pvdata_t max = -10;
    for (int k = 0; k < numActive; k++) {
       pvdata_t oldVal = last[k];
       pvdata_t newVal = activity[k];
       avg[k] += newVal/maxCount - oldVal;
+      if (min > avg[k]) min = avg[k];
       if (max < avg[k]) max = avg[k];
    }
 
    if (max > 1) {
       pvdata_t scale = 1.0f/max;
       printf("AvgConn::deliver: rescaling: max==%f scale==%f\n", max, scale);
+      exit(1);
       for (int k = 0; k < numActive; k++) {
          avg[k] = scale * avg[k];
       }
