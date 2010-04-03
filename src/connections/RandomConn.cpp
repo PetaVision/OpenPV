@@ -50,7 +50,7 @@ int RandomConn::initializeUniformWeights(unsigned long seed)
    PVParams * params = parent->parameters();
 
    wMin = (long) params->value(name, "wMin", 0.0f);
-   idum = params->value(name, "idum", -1.0f);
+   idum = (long) params->value(name, "idum", -1.0f);
 
    float wMinInit = params->value(name, "wMinInit", wMin);
    float wMaxInit = params->value(name, "wMaxInit", wMax);
