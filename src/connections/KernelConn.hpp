@@ -31,7 +31,7 @@ public:
    virtual int patchIndexToKernelIndex(int patchIndex);
 
 protected:
-   PVPatch ** kernelPatches;   // list of weight patches
+   PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();
    virtual int initialize_base();
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
