@@ -65,7 +65,6 @@ bool Bars::updateImage(float time, float dt)
    const int ny = loc.ny + 2 * loc.nPad;
    const int sx = 1;
    const int sy = sx * nx;
-   char basicfilename[128] = { 0 };
 
    const int width = 1;
    const int step = 6;
