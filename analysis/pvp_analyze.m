@@ -28,9 +28,11 @@ global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
 global n_time_steps begin_step end_step time_steps tot_steps
 global stim_begin_step stim_end_step stim_steps
+global stim_begin_bin stim_end_bin stim_bins
 global analysis_start_time analysis_stop_time
 global bin_size dt
-global begin_time end_time stim_begin_time stim_end_time
+global begin_time end_time
+global stim_begin_time stim_end_time
 global num_targets
 global rate_array
 global output_path input_path
@@ -48,17 +50,12 @@ pvp_order = 1;
 				% pvp_readSparseSpikes
 begin_time = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
 end_time = inf;
-stim_begin_time = 500.0;  % times (msec) before this and after begin_time can be used to calculate background
-stim_end_time = 1500.0;
-bin_size = 10.0;  % (msec) used for all rate calculations
+stim_begin_time = 513.0;  % times (msec) before this and after begin_time can be used to calculate background
+stim_end_time = 8704.0;
+bin_size = 4.0;  % (msec) used for all rate calculations
 analysis_start_time = 50.0;
-analysis_stop_time = 2000.0;
+analysis_stop_time = 9216.0;
 dt = 1.0; % msec
-
-%stim_begin_bin = fix( ( stim_begin_step - begin_step + 1 ) / bin_size );
-%stim_end_bin = fix( ( stim_end_step - begin_step + 1 ) / bin_size );
-%stim_bins = stim_begin_bin : stim_end_bin;
-%num_stim_bins = length(stim_bins);
 
 
 				% initialize to size of image (if known), these should be overwritten by each layer
@@ -76,15 +73,19 @@ my_gray = [.666 .666 .666];
 num_targets = 1;
 fig_list = [];
 
-read_spikes = 1:7;  % list of spiking layers whose spike train are to be analyzed
-num_layers = length(read_spikes);
+global N_LAYERS
+[layerID, layerIndex] = pvp_layerID();
+
+read_spikes = [5]; % 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
+num_layers = N_LAYERS;
 
 min_plot_steps = 20;  % time-dependent quantities only plotted if tot_steps exceeds this threshold
-plot_reconstruct = [ ]; %uimatlab;
-plot_raster = [2 5]; %uimatlab;
+plot_reconstruct = []; %uimatlab;
+plot_raster = []; %uimatlab;
 plot_reconstruct_target = 0;
-plot_vmem = 1;
-plot_xcorr = [];
+plot_vmem = 0;
+plot_autocorr = [5];
+plot_xcorr = [5];
 
 spike_array = cell(num_layers,1);
 ave_rate = zeros(num_layers,1);
@@ -120,8 +121,6 @@ clutter_rate_ndx = cell(num_layers, 1);
 
 
 %% Analyze spiking activity layer by layer
-global N_LAYERS
-[layerID, layerIndex] = pvp_layerID();
 for layer = read_spikes;
   disp(['analyzing layer: ', num2str(layer)]);
   
@@ -142,10 +141,24 @@ for layer = read_spikes;
   if ( analysis_stop_time > time_steps(end) * dt )
     analysis_start_time = time_steps(end) * dt;
   endif
-  analysis_stop_step = find( time_steps * dt >= analysis_stop_time, 1, 'last' );
-  analysis_start_bin = fix( analysis_start_step * dt / bin_size );
+  analysis_stop_step = find( time_steps * dt <= analysis_stop_time, 1, 'last' );
+  analysis_start_bin = ceil( analysis_start_step * dt / bin_size );
   analysis_stop_bin = fix( analysis_stop_step * dt / bin_size );
   analysis_bins = analysis_start_bin : analysis_stop_bin;
+  if ( stim_begin_time < analysis_start_time )
+    stim_begin_time = analysis_start_time;
+  endif
+  stim_begin_step = find( time_steps * dt >= stim_begin_time, 1, 'first' );
+  stim_begin_bin = ceil( ( stim_begin_step / bin_size ) );
+  if ( stim_end_time > analysis_stop_time )
+    stim_end_time = analysis_stop_time;
+  endif
+  stim_end_step = find( time_steps * dt <= stim_end_time, 1, 'last' );
+  stim_end_bin = fix( ( stim_end_step / bin_size ) );
+  stim_steps = stim_begin_step : stim_end_step;		     
+  stim_bins = stim_begin_bin : stim_end_bin;
+  num_stim_bins = length(stim_bins);
+
   num_rows(layer) = NROWS;
   num_cols(layer) = NCOLS;
   num_features(layer) = NFEATURES;
@@ -184,7 +197,8 @@ for layer = read_spikes;
   plot_rates = tot_steps > min_plot_steps;
   if ( plot_rates == 1 )
     plot_title = [layerID{layer}, ' PSTH: layer = ',int2str(layer)];
-    figure('Name',plot_title);
+    fig_tmp = figure('Name',plot_title);
+    fig_list = [fig_list; fig_tmp];
     for i_target = 1 : num_targets
       psth_target{layer,i_target} = ...
           mean( reshape( ave_target{layer,i_target}(1:bin_size*num_bins), ...
@@ -405,14 +419,15 @@ endif %plot_vmem
 
 
 %% plot psth's of all layers together
-plot_rates = tot_steps > min_plot_steps ;
+plot_rates = ( ( tot_steps > min_plot_steps ) && ( length(read_spikes) == ...
+						  N_LAYERS ) );
 if plot_rates
   plot_title = ['PSTH target pixels'];
   figure('Name',plot_title);
   hold on
   co = get(gca,'ColorOrder');
   lh = zeros(4,1);
-  for layer = 1:num_layers
+  for layer = 1:N_LAYERS
     lh(layer) = plot((analysis_bins)*bin_size, psth_target{layer,i_target}(analysis_bins), '-r');
     set(lh(layer),'Color',co(layer,:));
     set(lh(layer),'LineWidth',2);
@@ -434,8 +449,127 @@ endif
 
 
 
-%% xcorr and eigen vectors
-xcorr_eigenvector = cell( num_layers, 2);
+%% autocorr 
+%stft_array = cell( num_layers, 1);
+power_array = cell( num_layers, 2);
+for layer = 1:num_layers
+  plot_autocorr2 = ( ismember( layer, plot_autocorr ) && tot_steps > ...
+		min_plot_steps );
+  if ~plot_autocorr2
+    continue;
+  endif
+
+  NK = 1;
+  NO = num_features(layer);
+  NROWS = num_rows(layer);
+  NCOLS = num_cols(layer);
+
+				% autocorrelation of psth
+  disp( [ 'computing AutoCorr(', num2str(layer), ')'] );
+  plot_title = ['Auto Corr: layer = ',int2str(layer)];
+  figure('Name',plot_title);
+  ave_target_tmp = full(ave_target{layer,i_target}(stim_steps));
+  max_lag= min( 128/dt, fix(length(ave_target_tmp)/8) );
+  [target_xcorr, target_lag] = ...
+      xcorr( ave_target_tmp', [], max_lag, 'unbiased' );
+  target_xcorr = ( target_xcorr - mean(ave_target_tmp)^2 ) / ...
+      (mean(ave_target_tmp)+(mean(ave_target_tmp)==0))^2;
+  target_xcorr(max_lag + 1) = 0;
+  lh_target = plot((-max_lag:max_lag)*dt, target_xcorr, '-r');
+  set(lh_target, 'LineWidth', 2);
+  hold on
+  ave_clutter_tmp = full(ave_clutter{layer,1}(stim_steps));
+  [clutter_xcorr, clutter_lag] = ...
+      xcorr( ave_clutter_tmp', [], max_lag, 'unbiased' );
+  clutter_xcorr = ( clutter_xcorr - mean(ave_clutter_tmp)^2 ) / ...
+      (mean(ave_clutter_tmp)+(mean(ave_clutter_tmp)==0))^2;
+  clutter_xcorr(max_lag + 1) = 0;
+  lh_clutter = plot((-max_lag:max_lag)*dt, clutter_xcorr, '-b');
+  set(lh_clutter, 'LineWidth', 2);
+  ave_bkgrnd_tmp = full(ave_bkgrnd{layer,1}(stim_steps));
+  [bkgrnd_xcorr, bdgrnd_lag] = ...
+      xcorr( ave_bkgrnd_tmp', [], max_lag, 'unbiased' );
+  bkgrnd_xcorr = ( bkgrnd_xcorr - mean(ave_bkgrnd_tmp)^2 ) / ...
+      (mean(ave_bkgrnd_tmp)+(mean(ave_bkgrnd_tmp)==0))^2;
+  bkgrnd_xcorr(max_lag + 1) = 0;
+  lh_bkgrnd = plot((-max_lag:max_lag)*dt, bkgrnd_xcorr, '-k');
+  set(lh_bkgrnd, 'Color', my_gray);
+  set(lh_bkgrnd, 'LineWidth', 2);
+  [target2clutter_xcorr, target2clutter_lag] = ...
+      xcorr( ave_target_tmp', ave_clutter_tmp', max_lag, 'unbiased' );
+  target2clutter_xcorr = ...
+      ( target2clutter_xcorr - mean(ave_target_tmp) * mean(ave_clutter_tmp) ) / ...
+      ( (mean(ave_target_tmp)+(mean(ave_target_tmp)==0)) * ...
+       (mean(ave_clutter_tmp)+(mean(ave_clutter_tmp)==0)) );
+  lh_target2clutter = plot((-max_lag:max_lag)*dt, target2clutter_xcorr, '-g');
+  set(lh_target2clutter, 'LineWidth', 2);
+  axis tight
+
+				%plot power spectrum
+  disp( [ 'computing Power(', num2str(layer), ')'] );
+  plot_title = ['Power: layer = ',int2str(layer)];
+  figure('Name',plot_title);
+  freq = (1/dt)*1000*(0:2*max_lag)/(2*max_lag + 1);
+  min_ndx = find(freq > 128, 1,'first');
+  target_fft = fft(target_xcorr);
+  lh_target = plot(freq(2:min_ndx),...
+		   abs(target_fft(2:min_ndx)), '-r');
+  set(lh_target, 'LineWidth', 2);
+  hold on
+  clutter_fft = fft(clutter_xcorr);
+  lh_clutter = plot(freq(2:min_ndx),...
+		    abs(clutter_fft(2:min_ndx)), '-b');
+  set(lh_clutter, 'LineWidth', 2);
+  bkgrnd_fft = fft(bkgrnd_xcorr);
+  lh_bkgrnd = plot(freq(2:min_ndx),...
+		   abs(bkgrnd_fft(2:min_ndx)), '-k');
+  set(lh_bkgrnd, 'LineWidth', 2);
+  set(lh_bkgrnd, 'Color', my_gray);
+  target2clutter_fft = fft(target2clutter_xcorr);
+  lh_target2clutter = plot(freq(2:min_ndx),...
+			   abs(target2clutter_fft(2:min_ndx)), '-g');
+  set(lh_target2clutter, 'LineWidth', 2);
+  axis tight
+  clear ave_target_tmp target_xcorr
+  clear ave_clutter_tmp clutter_xcorr
+  clear ave_bkgrnd_tmp bkgrnd_xcorr
+  clear target2clutter_xcorr
+  clear target_fft clutter_fft bkgrnd_fft target2clutter_fft
+  
+				%plot power reconstruction
+  disp( [ 'computing Power Recon(', num2str(layer), ')'] );
+  stft_win_size = max_lag/dt;
+  stft_inc = ceil( stft_win_size );
+  stft_num_coef = stft_win_size;
+  stft_w_type = 3; % rectangle
+  num_trials = fix( length( stim_steps ) / stft_win_size );
+  freq_vals = 1000*(1/dt)*(0:stft_win_size-1)/stft_win_size;
+  min_ndx = find(freq_vals >= 20, 1,'first');
+  max_ndx = find(freq_vals <= 60, 1,'last');
+  stft_array = zeros( stft_win_size, N );
+  for i_trial = 1 : num_trials
+    stft_start = stim_begin_step + ( i_trial - 1 ) * stft_inc;
+    stft_stop = stft_start + stft_win_size - 1;
+    stft_array = stft_array + ...
+	fft( spike_array{layer}( stft_start : stft_stop, :) );
+  endfor
+  stft_array = stft_array / num_trials;
+  stft_array = stft_array .* conj( stft_array );
+  power_array{layer, 1} = max(stft_array(min_ndx:max_ndx,:));
+  power_array{layer, 2} = mean(stft_array(min_ndx:max_ndx,:));
+  clear stft_array
+  plot_power_reconstruction = ( ismember( layer, plot_reconstruct ) && tot_steps > ...
+			       min_plot_steps );
+  if plot_power_reconstruction
+    pvp_reconstruct(power_array{layer, 1},  [layerID{layer}, ': Peak Power: layer = ', int2str(layer)]);
+    pvp_reconstruct(power_array{layer, 2},  [layerID{layer}, ': Ave Power: layer = ', int2str(layer)]);
+  endif
+endfor % layer
+    
+%% xcorr & eigen analysis
+xcorr_eigenvector = cell( num_layers, 2, 2);
+power_mask = cell(num_layers,2);
+num_power_mask = zeros(num_layers, 2);
 for layer = 1:num_layers
   plot_xcorr2 = ( ismember( layer, plot_xcorr ) && tot_steps > ...
 		min_plot_steps );
@@ -443,194 +577,110 @@ for layer = 1:num_layers
     continue;
   endif
 
-        % autocorrelation of psth
-        plot_title = ['Auto Corr: layer = ',int2str(layer)];
-        figure('Name',plot_title);
-        ave_target_tmp = full(ave_target{layer,i_target}(stim_steps));
-        maxlag= fix(length(ave_target_tmp)/4);
-        target_xcorr = ...
-            xcorr( ave_target_tmp, maxlag, 'unbiased' );
-        target_xcorr = ( target_xcorr - mean(ave_target_tmp)^2 ) / ...
-            (mean(ave_target_tmp)+(mean(ave_target_tmp)==0))^2;
-        lh_target = plot((-maxlag:maxlag), target_xcorr, '-r');
-        set(lh_target, 'LineWidth', 2);
-        hold on
-        ave_clutter_tmp = full(ave_clutter{layer,1}(stim_steps));
-        clutter_xcorr = ...
-            xcorr( ave_clutter_tmp, maxlag, 'unbiased' );
-        clutter_xcorr = ( clutter_xcorr - mean(ave_clutter_tmp)^2 ) / ...
-            (mean(ave_clutter_tmp)+(mean(ave_clutter_tmp)==0))^2;
-        lh_clutter = plot((-maxlag:maxlag), clutter_xcorr, '-b');
-        set(lh_clutter, 'LineWidth', 2);
-        ave_bkgrnd_tmp = full(ave_bkgrnd{layer,1}(stim_steps));
-        bkgrnd_xcorr = ...
-            xcorr( ave_bkgrnd_tmp, maxlag, 'unbiased' );
-        bkgrnd_xcorr = ( bkgrnd_xcorr - mean(ave_bkgrnd_tmp)^2 ) / ...
-            (mean(ave_bkgrnd_tmp)+(mean(ave_bkgrnd_tmp)==0))^2;
-        lh_bkgrnd = plot((-maxlag:maxlag), bkgrnd_xcorr, '-k');
-        set(lh_bkgrnd, 'Color', my_gray);
-        set(lh_bkgrnd, 'LineWidth', 2);
-        target2clutter_xcorr = ...
-            xcorr( ave_target_tmp, ave_clutter_tmp, maxlag, 'unbiased' );
-        target2clutter_xcorr = ...
-            ( target2clutter_xcorr - mean(ave_target_tmp) * mean(ave_clutter_tmp) ) / ...
-            ( (mean(ave_target_tmp)+(mean(ave_target_tmp)==0)) * ...
-            (mean(ave_clutter_tmp)+(mean(ave_clutter_tmp)==0)) );
-        lh_target2clutter = plot((-maxlag:maxlag), target2clutter_xcorr, '-g');
-        set(lh_target2clutter, 'LineWidth', 2);
-        axis tight
+  NK = 1;
+  NO = num_features(layer);
+  NROWS = num_rows(layer);
+  NCOLS = num_cols(layer);
+  NFEATURES = num_features(layer);
+  N = NROWS * NCOLS * NFEATURES;
 
-        %plot power spectrum
-        plot_title = ['Power for layer = ',int2str(layer)];
-        figure('Name',plot_title);
-        freq = 1000*(0:2*maxlag)/(2*maxlag + 1);
-        min_ndx = find(freq > 400, 1,'first');
-        target_fft = fft(target_xcorr);
-        lh_target = plot(freq(2:min_ndx),...
-            abs(target_fft(2:min_ndx)), '-r');
-        set(lh_target, 'LineWidth', 2);
-        hold on
-        clutter_fft = fft(clutter_xcorr);
-        lh_clutter = plot(freq(2:min_ndx),...
-            abs(clutter_fft(2:min_ndx)), '-b');
-        set(lh_clutter, 'LineWidth', 2);
-        bkgrnd_fft = fft(bkgrnd_xcorr);
-        lh_bkgrnd = plot(freq(2:min_ndx),...
-            abs(bkgrnd_fft(2:min_ndx)), '-k');
-        set(lh_bkgrnd, 'LineWidth', 2);
-        set(lh_bkgrnd, 'Color', my_gray);
-        target2clutter_fft = fft(target2clutter_xcorr);
-        lh_target2clutter = plot(freq(2:min_ndx),...
-            abs(target2clutter_fft(2:min_ndx)), '-g');
-        set(lh_target2clutter, 'LineWidth', 2);
-        axis tight
+				%computer power mask
+  calc_power_mask = 1;
+  for i_mode = 2 : 2
+    if i_mode == 1
+      disp('calculating peak power mask...');
+    elseif i_mode == 2
+      disp('calculating ave power mask...');
+    endif
+    if calc_power_mask
+      num_power_sig = 0.0;
+      mean_power = mean( power_array{layer, i_mode} );
+      std_power = std( power_array{layer, i_mode} );
+      disp( [ 'mean_power(', num2str(layer), ') = ', ...
+             num2str(mean_power), ' +/- ', num2str(std_power) ] );
+      power_mask{layer, i_mode} = find( power_array{layer, i_mode} > ( mean_power + num_power_sig * std_power ) );
+      num_power_mask(layer, i_mode) = numel(power_mask{layer, i_mode});
+      disp( ['num_power_mask(', num2str(layer), ') = ', num2str(num_power_mask(layer,i_mode)), ' > ', ...
+             num2str( mean_power + num_power_sig * std_power ) ] );
+      while num_power_mask(layer,i_mode) > ( length(target) + length(clutter) )
+	num_power_sig = num_power_sig + 0.5;
+	power_mask{layer, i_mode} = find( power_array{layer, i_mode} > ( mean_power + num_power_sig * std_power ) );
+	num_power_mask(layer,i_mode) = numel(power_mask{layer,i_mode});
+	disp( ['num_power_mask(', num2str(layer), ') = ', num2str(num_power_mask(layer,i_mode)), ' > ', ...
+               num2str( mean_power + num_power_sig * std_power ) ] );
+      endwhile
+    else
+      power_mask{layer,i_mode} = clutter_ndx{layer,1};
+      for i_target = 1 : num_targets
+	power_mask{layer,i_mode} = [power_mask{layer,i_mode}, target_ndx{layer, i_target}];
+      endfor
+      power_mask{layer,i_mode} = sort( power_mask{layer,i_mode} );
+      num_power_mask(layer,i_mode) = numel(power_mask{layer,i_mode});
+    endif % calc_power_mask
+  endfor % i_mode
+  
+				%% compute xcorr
+  for i_mode = 2 : 2  % 2 : 2
+    
+    disp(['computing xcorr(', num2str(layer), '): i_mode = ', ...
+	  num2str(i_mode) ] );
+    size_layer = [num_rows(layer), num_cols(layer), num_features(layer)];
+    plot_interval = fix( num_power_mask(layer, i_mode)^2 / 5 );
+    [xcorr_array, xcorr_std, xcorr_dist, xcorr_mean, xcorr_lags, xcorr_figs] = ...
+	pvp_xcorr( spike_array{layer}(stim_steps, power_mask{layer, i_mode}), ...
+		  spike_array{layer}(stim_steps, power_mask{layer, i_mode}), ...
+		  max_lag, ...
+		  power_mask{layer, i_mode}, size_layer, ...
+		  power_mask{layer, i_mode}, size_layer, ...
+		  1, plot_interval );
+    fig_list = [fig_list; xcorr_figs];
+    plot_title = [layerID{layer}, ' mass xcorr: layer = ',int2str(layer)];
+    fig_tmp = figure('Name',plot_title);
+    fig_list = [fig_list; fig_tmp];
+    mass_xcorr = zeros( 2 * max_lag + 1, 1 );
+    mass_xcorr(max_lag + 1 : end) = ...
+	squeeze( sum( sum( xcorr_array, 2 ), 1 ) ) / ...
+	( num_power_mask(layer, i_mode)^2 );
+    mass_xcorr(1 : max_lag) =  ...
+	  flipdim( mass_xcorr( 2 : end ), 1 );
+    plot( (-max_lag : max_lag)*dt, mass_xcorr, '-k');
+    mass_xcorr_std = ...
+	sqrt( squeeze( sum( sum( xcorr_std.^2, 2 ), 1 ) ) ) / ...
+	( num_power_mask(layer)^2 );
+    lh = line( [-max_lag, max_lag]*dt, ...
+	      [ mass_xcorr_std mass_xcorr_std ] );
 
-        %plot power reconstruction
-        num_rate_sig = -1.0;
-        mean_rate = mean( rate_array{layer} );
-        std_rate = std( rate_array{layer} );
-        rate_mask = find( rate_array{layer} > ( mean_rate + num_rate_sig * std_rate ) );
-        num_rate_mask = numel(rate_mask);
-        disp( [ 'mean_rate(', num2str(layer), ') = ', ...
-            num2str(mean_rate), ' +/- ', num2str(std_rate) ] );
-        disp( ['num_rate_mask(', num2str(layer), ') = ', num2str(num_rate_mask), ' > ', ...
-            num2str( mean_rate + num_rate_sig * std_rate ) ] );
-        while num_rate_mask > 2^14
-            num_rate_sig = num_rate_sig + 0.5;
-            rate_mask = find( rate_array{layer} > ( mean_rate + num_rate_sig * std_rate ) );
-            num_rate_mask = numel(rate_mask);
-            disp( ['num_rate_mask(', num2str(layer), ') = ', num2str(num_rate_mask), ' > ', ...
-                num2str( mean_rate + num_rate_sig * std_rate ) ] );
-        end
-        %         if num_rate_mask < 64
-        %             break;
-        %         end
-        spike_full = full( spike_array{layer}(:, rate_mask) );
-        freq_vals = 1000*(0:tot_steps-1)/tot_steps;
-        min_ndx = find(freq_vals >= 40, 1,'first');
-        max_ndx = find(freq_vals <= 60, 1,'last');
-        power_array = fft( spike_full );
-        power_array = power_array .* conj( power_array );
-        peak_power = max(power_array(min_ndx:max_ndx,:));
-        peak_power = sparse( rate_mask, 1, peak_power, N, 1 );
-        pv_reconstruct(full(peak_power),  ['Power reconstruction for layer = ', int2str(layer)]);
-        clear ave_target_tmp target_xcorr
-        clear ave_clutter_tmp clutter_xcorr
-        clear ave_bkgrnd_tmp bkgrnd_xcorr
-        clear target2clutter_xcorr
-        clear target_fft clutter_fft
-        clear power_array spike_full bkgrnd_fft target2clutter_fft
+    % extract scalar pairwise correlations
+    
+				% find eigen vectors
+    calc_eigen = 0;
+    if calc_eigen 
+    disp(['computing eigenvectors(', num2str(layer),')']);
+    options.issym = 1;
+    num_eigen = 64;
+    [eigen_vec, eigen_value, eigen_flag] = ...
+        eigs( (1/2)*(sparse_corr{sync_true} + sparse_corr{sync_true}'), num_eigen, 'lm', options);
+    for i_vec = 1:num_eigen
+      disp(['eigenvalues(', num2str(layer), ',' ...
+			 , num2str(i_vec),') = ', num2str(eigen_value(i_vec,i_vec))]);
+    endfor
+    [max_eigen, max_eigen_ndx] = max( diag( eigen_value ) );
+    xcorr_eigenvector{layer, sync_true} = eigen_vec(:,max_eigen_ndx);
+    for i_vec = 1:num_eigen
+      plot_title = ['Eigen Reconstruction(', num2str(layer), '): sync_true = ', ...
+                    num2str(2 - sync_true), ', i_vec = ', num2str(i_vec)];
+				%                     if mean(eigen_vec(power_mask,i_vec)) < 0
+				%                         eigen_vec(power_mask,i_vec) = -eigen_vec(power_mask,i_vec);
+				%                     end
+      eigen_vec_tmp = ...
+          sparse( power_mask, 1, eigen_vec(:,i_vec), ...
+                 N, 1, num_power_mask);
+      pvp_reconstruct(eigen_vec_tmp, plot_title);
+    endfor % i_vec
 
-        %cross-correlation using spike_array
-        plot_pairwise_xcorr = 0;
-        if plot_pairwise_xcorr
-            plot_title = ['Cross Correlations for layer = ',int2str(layer)];
-            figure('Name',plot_title);
-            maxlag = fix( stim_length / 4 );
-            freq = 1000*(0:2*maxlag)/(2*maxlag + 1);
-            min_ndx = find(freq_vals >= 20, 1,'first');
-            max_ndx = find(freq_vals <= 60, 1,'last');
-            disp(['computing pv_xcorr_ave(', num2str(layer),')']);
-            xcorr_ave_target = pv_xcorr_ave( spike_array{layer}(stim_steps, target_ndx{layer, i_target}), maxlag );
-            lh_target = plot((-maxlag:maxlag), xcorr_ave_target, '-r');
-            set(lh_target, 'LineWidth', 2);
-            hold on
-            xcorr_ave_clutter = pv_xcorr_ave( spike_array{layer}(stim_steps, clutter_ndx{layer}), maxlag );
-            lh_clutter = plot((-maxlag:maxlag), xcorr_ave_clutter, '-b');
-            set(lh_clutter, 'LineWidth', 2);
-            hold on
-            xcorr_ave_target2clutter = ...
-                pv_xcorr_ave( spike_array{layer}(stim_steps, target_ndx{layer, i_target}), maxlag, ...
-                spike_array{layer}(stim_steps, clutter_ndx{layer}) );
-            lh_target2clutter = plot((-maxlag:maxlag), xcorr_ave_target2clutter, '-g');
-            set(lh_target2clutter, 'LineWidth', 2);
-            hold on
-        end
+    endif % calc_eigen
+      
+  endfor % i_mode
 
-        %make eigen amoebas
-        plot_eigen = layer == -1 || layer == -3 || layer == -5 || layer == -6;
-        if plot_eigen
-            calc_power_mask = 1;
-            if calc_power_mask
-                num_power_sig = -1.0;
-                mean_power = mean( peak_power(rate_mask) );
-                std_power = std( peak_power(rate_mask) );
-                disp( [ 'mean_power(', num2str(layer), ') = ', ...
-                    num2str(mean_power), ' +/- ', num2str(std_power) ] );
-                power_mask = find( peak_power > ( mean_power + num_power_sig * std_power ) );
-                num_power_mask = numel(power_mask);
-                disp( ['num_power_mask(', num2str(layer), ') = ', num2str(num_power_mask), ' > ', ...
-                    num2str( mean_power + num_power_sig * std_power ) ] );
-                while num_power_mask > 2^12
-                    num_power_sig = num_power_sig + 0.5;
-                    power_mask = find( peak_power > ( mean_power + num_power_sig * std_power ) );
-                    num_power_mask = numel(power_mask);
-                    disp( ['num_power_mask(', num2str(layer), ') = ', num2str(num_power_mask), ' > ', ...
-                        num2str( mean_power + num_power_sig * std_power ) ] );
-                end
-                %                 if num_power_mask < 64
-                %                     break;
-                %                 end
-            else
-                power_mask = sort( [target_ndx{layer, 1}, clutter_ndx{layer,1}] );
-                num_power_mask = numel(power_mask);
-            end % calc_power_mask
-            disp(['computing xcorr(', num2str(layer),')']);
-            %             pack;
-            maxlag = fix( stim_length / 4 );
-            freq_vals = 1000*(0:2*maxlag)/(2*maxlag + 1);
-            min_ndx = find(freq_vals >= 20, 1,'first');
-            max_ndx = max(find(freq_vals <= 60, 1,'last'), min_ndx);
-            sparse_corr = ...
-                pv_xcorr( spike_array{layer}(stim_steps, power_mask), ...
-                spike_array{layer}(stim_steps, power_mask), ...
-                maxlag, min_ndx,  max_ndx);
-            for sync_true = 1 : 1 + (maxlag > 1)
-
-                % find eigen vectors
-                disp(['computing eigenvectors(', num2str(layer),')']);
-                options.issym = 1;
-                num_eigen = 6;
-                [eigen_vec, eigen_value, eigen_flag] = ...
-                    eigs( (1/2)*(sparse_corr{sync_true} + sparse_corr{sync_true}'), num_eigen, 'lm', options);
-                for i_vec = 1:num_eigen
-                    disp(['eigenvalues(', num2str(layer), ',' ...
-                        , num2str(i_vec),') = ', num2str(eigen_value(i_vec,i_vec))]);
-                end
-                [max_eigen, max_eigen_ndx] = max( diag( eigen_value ) );
-                xcorr_eigenvector{layer, sync_true} = eigen_vec(:,max_eigen_ndx);
-                for i_vec = 1:num_eigen
-                    plot_title = ['Eigen Reconstruction(', num2str(layer), '): sync_true = ', ...
-                        num2str(2 - sync_true), ', i_vec = ', num2str(i_vec)];
-                    %                     if mean(eigen_vec(power_mask,i_vec)) < 0
-                    %                         eigen_vec(power_mask,i_vec) = -eigen_vec(power_mask,i_vec);
-                    %                     end
-                    eigen_vec_tmp = ...
-                        sparse( power_mask, 1, eigen_vec(:,i_vec), ...
-                        N, 1, num_power_mask);
-                    pv_reconstruct(eigen_vec_tmp, plot_title);
-                end % i_vec
-            end % for sync_flag = 0:1
-        end % plot_eigen
-    end % layer
+endfor % layer
 
