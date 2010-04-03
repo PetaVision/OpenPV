@@ -211,7 +211,7 @@ void print_stats(PVLayer * l)
    float GinhBAve = 0.0, GinhBMax = FLT_MIN, GinhBMin = FLT_MAX;
    float VAve = 0.0, VMax = -FLT_MAX, VMin = FLT_MAX;
    float VthAve = 0.0, VthMax = -FLT_MAX, VthMin = FLT_MAX;
-   char msg[128];
+   //char msg[128];
    int i;
    int start = 0;  // TODO - fix for threads
    //   int start = (l->yOrigin * l->loc.nx + l->xOrigin) * l->numFeatures;
@@ -251,6 +251,7 @@ void print_stats(PVLayer * l)
       if (l->Vth[i] > VthMax) VthMax = l->Vth[i];
    }
 
+#ifdef NOT_USED
    if (0) {  // TODO - fix threads
    //   if (l->yOrigin == 0) {
       sprintf(msg, "[0]: L%d: phi0: Max:   %1.4f, Avg=  %1.4f Min=  %1.4f\n", l->layerId,
@@ -278,6 +279,7 @@ void print_stats(PVLayer * l)
             VthMax, VthAve / l->numNeurons, VthMin);
       pv_log(stdout, msg);
    }
+#endif
 
 } //  layer_stats
 
