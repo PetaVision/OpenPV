@@ -155,8 +155,7 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
 
 
 		float cs = ::cos((double)Agl),  sn = ::sin((double)Agl);
-		int i,j,i1,j1,w,n,m;
-
+		int i,j,i1;
 
 
 		float a = centerx*cs + centery*sn;
