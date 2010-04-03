@@ -16,6 +16,7 @@
 */
 
 #include "pv_random.h"
+#include <math.h>
 
 float box_muller(float m, float s)      /* normal random variate generator */
 {                                       /* mean m, standard deviation s */
