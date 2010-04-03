@@ -11,6 +11,7 @@
 
 #include "LIF.h"
 #include "../include/pv_common.h"
+#include "../utils/pv_random.h"
 
 #include <stdlib.h>
 #include <math.h>
