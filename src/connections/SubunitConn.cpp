@@ -62,7 +62,7 @@ int SubunitConn::weights(PVPatch * wp)
    }
 
    for (int f = 0; f < nf; f++) {
-      int i0, j0;
+      int i0 = 0, j0 = 0;
       int kf = f / 16;
       if (kf == 0) {i0 = 0; j0 = 0;}
       if (kf == 1) {i0 = 1; j0 = 0;}
