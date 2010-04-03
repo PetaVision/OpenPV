@@ -432,7 +432,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    fprintf(f, txt);
    fclose(f);
 #else
-   printf(txt);  fflush(stdout);
+   printf("%s", txt);  fflush(stdout);
 #endif
 
    return 0;
