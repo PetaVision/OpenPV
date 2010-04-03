@@ -20,10 +20,8 @@ LGN::LGN(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
 
 int LGN::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
-   HyPerLayer* lPre = conn->preSynapticLayer();
-
    pv_debug_info("[%d]: LGN::recvSynapticInput: layer %d from %d)",
-                 clayer->columnId, lPre->clayer->layerId, clayer->layerId);
+                 clayer->columnId, conn->preSynapticLayer()->clayer->layerId, clayer->layerId);
 
    // use implementation in base class
    return HyPerLayer::recvSynapticInput(conn, activity, neighbor);
