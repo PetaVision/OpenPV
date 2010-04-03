@@ -24,11 +24,11 @@ extern "C"
 // random number generator functions
 //
 
-inline void pv_srandom(unsigned long seed) {srandom(seed);}
-inline long pv_random()                    {return random();}
-inline long pv_random_max()                {return PV_RANDOM_MAX;}
+static inline void pv_srandom(unsigned long seed) {srandom(seed);}
+static inline long pv_random()                    {return random();}
+static inline long pv_random_max()                {return PV_RANDOM_MAX;}
 
-inline double pv_random_prob()
+static inline double pv_random_prob()
 {
    return (double) pv_random() * PV_INV_RANDOM_MAX;
 }
