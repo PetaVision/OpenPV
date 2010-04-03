@@ -338,14 +338,14 @@ int Image::convolve(int width)
 {
    const int nx_ex = loc.nx + 2*loc.nPad;
    const int ny_ex = loc.ny + 2*loc.nPad;
-   const int nb = loc.nBands;
+   //const int nb = loc.nBands;
 
    const int size_ex = nx_ex * ny_ex;
 
    // an image is different from normal layers as features (bands) vary last
    const int sx = 1;
    const int sy = nx_ex;
-   const int sb = nx_ex * ny_ex;
+   //const int sb = nx_ex * ny_ex;
 
    const int npx = width;
    const int npy = width;
