@@ -13,6 +13,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
+#include <time.h>;
 
 namespace PV {
 
