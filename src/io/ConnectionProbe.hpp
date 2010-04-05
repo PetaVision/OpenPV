@@ -28,12 +28,15 @@ public:
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
    void setOutputIndices(bool flag)   {outputIndices = flag;}
+   void setStdpVars(bool flag)   {stdpVars = flag;}
 
 protected:
    FILE * fp;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
    bool   outputIndices;
+   bool   stdpVars;
+
 };
 
 } // namespace PV
