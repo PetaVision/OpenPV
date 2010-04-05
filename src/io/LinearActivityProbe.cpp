@@ -43,6 +43,11 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
 /**
  * @time
  * @l
+ * NOTES:
+ *    - layer activity lives in an extended space
+ *    - by setting dim to PV::dimX or PV::dimY we can plot activity
+ *    along the line or along the column.
+ *    .
  */
 int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 {
