@@ -309,18 +309,53 @@ static inline float deltaPosLayers(int kPre, int scale)
  * REMARKS:
  *   - the linear indexing of neurons is done by varying first along these directions:
  *   feature direction, X direction, Y direction.
- *   - for given indices kf,kx,ky, the linear index k is given by:
- *     k = (ky-1)*(nf*nx)+(kx-1)*nf+kf
- *   - kx is the X direction index in extended space
- *   - ky is the Y direction index in extended space
+ *   - for given indices kf,kx,ky, the linear index k restricted is given by:
+ *     k = ky*(nf*nx) + kx*nf + kf
+ *   - kx is the X direction index in restricted space
+ *   - ky is the Y direction index in restricted space
  *   .
  */
 static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
 {
-   int kx = nb + kxPos(k, nx, ny, nf);
-   int ky = nb + kyPos(k, nx, ny, nf);
-   int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx, ky, kf, nx + 2*nb, ny + 2*nb, nf);
+   const int kx_ex = nb + kxPos(k, nx, ny, nf);
+   const int ky_ex = nb + kyPos(k, nx, ny, nf);
+   const int kf = featureIndex(k, nx, ny, nf);
+   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
+}
+
+/*!
+ * Returns the k linear index in restricted space from the kex index
+ * in extended space or # < 0 if k_ex is in border region
+ * @k_ex the linear k index in extended space
+ * @nx the size in x of restricted space
+ * @ny the size in y of restricted space
+ * @nf the size in f of restricted space
+ * @nb the width of the margin
+ *
+ * REMARKS:
+ *   - the linear indexing of neurons is done by varying first along these directions:
+ *   feature direction, X direction, Y direction.
+ *   - for given indices kf,kx,ky, the linear index k restricted is given by:
+ *     k = ky*(nf*nx) + kx*nf + kf
+ *   - kx is the X direction index in restricted space
+ *   - ky is the Y direction index in restricted space
+ *   .
+ */
+static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
+{
+   int kx, ky, kf;
+
+   const int nx_ex = nx + 2*nb;
+   const int ny_ex = ny + 2*nb;
+
+   kx = kxPos(k_ex, nx_ex, ny_ex, nf) - nb;
+   if (kx < 0 || kx >= nx) return -1;
+
+   ky = kyPos(k_ex, nx_ex, ny_ex, nf) - nb;
+   if (ky < 0 || ky >= ny) return -1;
+
+   kf = featureIndex(k_ex, nx_ex, ny_ex, nf);
+   return kIndex(kx, ky, kf, nx, ny, nf);
 }
 
 /**
