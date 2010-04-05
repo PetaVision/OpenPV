@@ -56,7 +56,7 @@ PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int k
  * @time
  * @c
  * NOTES:
- *    - kPost , kxPost, kyPost are indices in the restricted post-synaptic layer.
+ *    - kPost, kxPost, kyPost are indices in the restricted post-synaptic layer.
  *
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
@@ -86,11 +86,15 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    w = wPost[kPost];
 
    fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
-
-   text_write_patch(fp, w, w->data);
-   fflush(fp);
+   if (stdpVars) {
+      text_write_patch(fp, w, w->data);
+      fflush(fp);
+   }
 
    if (outputIndices) {
+      if(!stdpVars){
+        fprintf(fp,"\n");
+      }
       const PVLayer * lPre = c->preSynapticLayer()->clayer;
       write_patch_indices(fp, w, &lPre->loc, kxPre, kyPre, 0);
       fflush(fp);
