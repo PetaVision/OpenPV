@@ -271,26 +271,26 @@ int Retina::updateState(float time, float dt)
 
    updateImage(time, dt);
 
-   // make sure activity in border is zero
-   //
-//   for (int k = 0; k < clayer->numExtended; k++) {
-//      activity[k] = 0.0;
-//   }
-
    // V in Retina is extended so loop over extended region.  This
    // ensures that there is at least noise in border regions.
    //
    int numActive = 0;
    if (params->spikingFlag == 1) {
-      for (int k = 0; k < clayer->numExtended; k++) {
-//         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-         float probStim = params->poissonEdgeProb * V[k];
-         float probBase = params->poissonBlankProb;
-         float prevTime = prevActivity[k];
-         activity[k]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
-         prevActivity[k] = (activity[k] > 0.0) ? time : prevTime;
-         if (activity[k] > 0.0) {
-            clayer->activeIndices[numActive++] = k;
+      for (int kex = 0; kex < clayer->numExtended; kex++) {
+         const float probStim = params->poissonEdgeProb * V[kex];
+         const float probBase = params->poissonBlankProb;
+         const float prevTime = prevActivity[kex];
+         activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
+         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
+         if (activity[kex] > 0.0) {
+            const int nx = clayer->loc.nx;
+            const int ny = clayer->loc.ny;
+            const int nf = clayer->numFeatures;
+            // kIndexRestricted returns # < 0 if kex in border region
+            const int k = kIndexRestricted(kex, nx, ny, nf, clayer->loc.nPad);
+            if (k >= 0) {
+               clayer->activeIndices[numActive++] = k;
+            }
          }
       }
    }
