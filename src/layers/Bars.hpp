@@ -25,7 +25,7 @@ public:
 protected:
 
    void calcPosition(float step);
-
+   int   writeImages;
    float position;
    float lastPosition;
    or_modes orientation;
