@@ -9,7 +9,14 @@
 #include <assert.h>
 
 namespace PV {
-
+/*
+ * NOTES:
+ *     - kxPre, kyPre, are indices in the restricted space.
+ *     - kPre is the linear index which will be computed in the
+ *     extended space, which includes margins.
+ *
+ *
+ */
 ConnectionProbe::ConnectionProbe(int kPre)
 {
    this->kxPre = 0;
@@ -18,6 +25,7 @@ ConnectionProbe::ConnectionProbe(int kPre)
    this->kPre  = kPre;
    this->fp    = stdout;
    this->outputIndices = false;
+   this->stdpVars = true;
 }
 
 ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
@@ -25,9 +33,10 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->kxPre = kxPre;
    this->kyPre = kyPre;
    this->kfPre = kfPre;
-   this->kPre  = -1;
-   this->fp    = stdout;
+   this->kPre = -1;
+   this->fp = stdout;
    this->outputIndices = false;
+   this->stdpVars = true;
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
@@ -36,8 +45,9 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
    sprintf(path, "%s%s", OUTPUT_PATH, filename);
 
    this->kPre = kPre;
-   this->fp   = fopen(path, "w");
+   this->fp = fopen(path, "w");
    this->outputIndices = false;
+   this->stdpVars = true;
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, int kfPre)
@@ -52,6 +62,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, in
    this->kPre  = -1;
 
    this->outputIndices = false;
+   this->stdpVars = true;
 }
 ConnectionProbe::~ConnectionProbe()
 {
@@ -62,6 +73,9 @@ ConnectionProbe::~ConnectionProbe()
 
 /**
  * kPre lives in the extended space
+ *
+ * NOTES:
+ *    - kPre is the linear index of the neuron in the extended space.
  *
  */
 int ConnectionProbe::outputState(float time, HyPerConn * c)
@@ -82,6 +96,8 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
       kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPre->loc.nPad);
    }
 
+   fprintf(fp, "w%d:      \n", kPre);
+
    const int axonId = 0;
    PVAxonalArbor * arbor = c->axonalArbor(kPre, axonId);
 
@@ -89,24 +105,25 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    PVPatch * w = arbor->weights;
    int kPost = arbor->offset;
 
-   if (c->getPlasticityDecrement() != NULL) {
-      M = & (c->getPlasticityDecrement()->data[kPost]);  // STDP decrement variable
-   }
+   if (stdpVars) {
 
-   fprintf(fp, "w%d:      ", kPre);
+      if (c->getPlasticityDecrement() != NULL) {
+         M = &(c->getPlasticityDecrement()->data[kPost]); // STDP decrement variable
+      }
 
-   if (P != NULL && M != NULL) {
-      fprintf(fp, "M= ");
-      text_write_patch(fp, P, M);
-   }
-   if (P != NULL) {
-      fprintf(fp, "P= ");
-      text_write_patch(fp, P, P->data);  // write the P variable
-   }
-   fprintf(fp, "w= ");
-   text_write_patch(fp, w, w->data);
-   fprintf(fp, "\n");
-   fflush(fp);
+      if (P != NULL && M != NULL) {
+         fprintf(fp, "M= ");
+         text_write_patch(fp, P, M);
+      }
+      if (P != NULL) {
+         fprintf(fp, "P= ");
+         text_write_patch(fp, P, P->data); // write the P variable
+      }
+      fprintf(fp, "w= ");
+      text_write_patch(fp, w, w->data);
+      fprintf(fp, "\n");
+      fflush(fp);
+   } // if (stdpVars)
 
    if (outputIndices) {
       const PVLayer * lPost = c->postSynapticLayer()->clayer;
@@ -115,8 +132,8 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
       const int nyPost = lPost->loc.ny;
       const int nfPost = lPost->numFeatures;
 
-      const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
-      const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+      const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
+      const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
 
       //
       // The following is incorrect because w->nx is reduced near boundary.
@@ -127,7 +144,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
       write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
       fflush(fp);
-   }
+   } // if(outputIndices)
 
    return 0;
 }
@@ -162,7 +179,7 @@ int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
 
 /**
  * Write out the layer indices of the positions in a patch.
- * The inputs to the function (patch,loc)can either be from
+ * The inputs to the function (patch,loc) can either be from
  * the point of view of the pre- or post-synaptic layer.
  *
  * @patch the patch to iterate over
@@ -178,7 +195,7 @@ int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
  *
  */
 int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
-                                         const PVLayerLoc * loc, int kx0, int ky0, int kf0)
+      const PVLayerLoc * loc, int kx0, int ky0, int kf0)
 {
    int f, i, j;
 
@@ -207,7 +224,8 @@ int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
             int kx = kx0 + i;
             int ky = ky0 + j;
             int k  = k0 + kf + i*sx + j*sy;
-            fprintf(fp, "(%4d, (%4d,%4d,%4d)) ", k, kx, ky, kf);
+            //fprintf(fp, "(%4d, (%4d,%4d,%4d)) ", k, kx, ky, kf);
+            fprintf(fp, "%4d %4d %4d %4d  ", k, kx, ky, kf);
          }
          fprintf(fp, "\n  ");
       }
