@@ -40,6 +40,9 @@ Bars::Bars(const char * name, HyPerCol * hc) :
       //printf("pSwitch = %f\n",pSwitch);
    }
 
+   // set parameters that controls writing of new images
+   writeImages = params->value(name, "writeImages",0);
+
    updateImage(0.0, 0.0);
 
 }
@@ -56,7 +59,13 @@ Bars::~Bars()
  * changed.
  *    - If true, the retina also calls copyFromImageBuffer() to copy the Image
  *    data buffer into the V buffer (it also normalizes the V buffer so that V <= 1).
- *
+ *    - data values here gets scaled  and modulate the spiking probability of
+ *    the neurons in the retina. If data has negative values, we can inadvertently
+ *    prevent retina neurons from firing. The data should only take positive values,
+ *    unless the background retina spiking probability (which gets modulated by scaled
+ *    image data is very high. But this is not right. The neurons should have a minimum
+ *    spiking rate - which is given by the background rate - and shouldn't have smaller
+ *    rate only larger.
  */
 bool Bars::updateImage(float time, float dt)
 {
@@ -102,7 +111,7 @@ bool Bars::updateImage(float time, float dt)
                data[(x + m) * sx + iy * sy] = 1.0;
             }
             for (int m = 0; m < step; m++) {
-               data[(x + width + m) * sx + iy * sy] = -1.0;
+               data[(x + width + m) * sx + iy * sy] = 0.0;
             }
          }
       }
@@ -125,7 +134,7 @@ bool Bars::updateImage(float time, float dt)
                data[ix * sx + (y + m) * sy] = 1.0;
             }
             for (int m = 0; m < step; m++) {
-               data[ix * sx + (y + width + m) * sy] = -1.0;
+               data[ix * sx + (y + width + m) * sy] = 0.0;
             }
          }
       }
@@ -135,8 +144,11 @@ bool Bars::updateImage(float time, float dt)
       lastPosition = position;
       lastOrientation = orientation;
       lastUpdateTime = time;
-      //snprintf(basicfilename, 127, "Bars_%.2f", time);
-      //write(basicfilename);
+      if (writeImages) {
+         char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
+         snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", time);
+         write(basicfilename);
+      }
       return true;
    }
    else {
