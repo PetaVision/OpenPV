@@ -46,7 +46,7 @@ bool Gratings::updateImage(float time, float dt)
    const int sx = 1;
    const int sy = sx * nx;
 
-   const float kx  = 2.0*PI/4.0;   // wavenumber
+   const float kx  = 1.0*PI/4.0;   // wavenumber
    const float phi = calcPhase(time, dt);
 
    for (int iy = 0; iy < ny; iy++) {
