@@ -6,6 +6,7 @@
  */
 
 #undef TIMER_ON
+#undef TIMESTEP_OUTPUT
 
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
@@ -272,6 +273,13 @@ int HyPerCol::run(int nTimeSteps)
 
 float HyPerCol::advanceTime(float sim_time)
 {
+#ifdef TIMESTEP_OUTPUT
+   int nstep = (int) (simTime/getDeltaTime());
+   if (nstep%2000 == 0 && columnId() == 0) {
+      printf("   [%d]: time==%f\n", columnId(), simTime);
+   }
+#endif
+
    // At this point all activity from the previous time step have
    // been delivered to the data store.
    //
