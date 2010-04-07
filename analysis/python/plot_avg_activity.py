@@ -23,22 +23,25 @@ Show how to modify the coordinate formatter to report the image "z"
 value of the nearest pixel given x and y
 """
 extended = False
-begin = 0.0
-end = 500.0
+begin = 0
+end = 10000
+step = 1000
 
 if len(sys.argv) < 3:
-   print "usage: plot_avg_activity filename extended_flag [end_time]"
+   print "usage: plot_avg_activity filename [end_time step_time]"
    sys.exit()
 
 if len(sys.argv) >= 3:
-   extended = bool(sys.argv[2])
+   end = int(sys.argv[2])
 
 if len(sys.argv) >= 4:
-   end = float(sys.argv[3])
+   step = int(sys.argv[3])
+
+print "(begin, end, step) == ", begin, end, step
 
 activ = rs.PVReadSparse(sys.argv[1], extended)
 
-for end in range(5000, 5000, 5000):
+for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
 
    numrows, numcols = A.shape
@@ -51,7 +54,7 @@ for end in range(5000, 5000, 5000):
 
    ax.set_xlabel('Kx GLOBAL')
    ax.set_ylabel('Ky GLOBAL')
-   ax.set_title( 'Activity: min=%1.1f, max=%1.1f time=%f' %(min, max, activ.time) )
+   ax.set_title( 'Activity: min=%1.1f, max=%1.1f time=%d' %(min, max, activ.time) )
    ax.format_coord = format_coord
 
    ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=100.)
