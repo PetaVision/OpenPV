@@ -274,9 +274,9 @@ int HyPerCol::run(int nTimeSteps)
 float HyPerCol::advanceTime(float sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
-   int nstep = (int) (simTime/getDeltaTime());
+   int nstep = (int) (sim_time/getDeltaTime());
    if (nstep%2000 == 0 && columnId() == 0) {
-      printf("   [%d]: time==%f\n", columnId(), simTime);
+      printf("   [%d]: time==%f\n", columnId(), sim_time);
    }
 #endif
 
