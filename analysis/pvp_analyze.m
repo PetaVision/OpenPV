@@ -50,11 +50,14 @@ pvp_order = 1;
 				% pvp_readSparseSpikes
 begin_time = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
 end_time = inf;
-stim_begin_time = 513.0;  % times (msec) before this and after begin_time can be used to calculate background
-stim_end_time = 8704.0;
+stim_begin_time = 769.0;  % times (msec) before this and after begin_time can be used to calculate background
+stim_end_time = 131840.0;
+%stim_end_time = 1792.0;
+stim_exclude_time = 256.0;
 bin_size = 4.0;  % (msec) used for all rate calculations
 analysis_start_time = 50.0;
-analysis_stop_time = 9216.0;
+analysis_stop_time = 132352.0;
+%analysis_stop_time = 2304.0;
 dt = 1.0; % msec
 
 
@@ -641,12 +644,17 @@ for layer = 1:num_layers
     mass_xcorr(max_lag + 1 : end) = ...
 	squeeze( sum( sum( xcorr_array, 2 ), 1 ) ) / ...
 	( num_power_mask(layer, i_mode)^2 );
-    mass_xcorr(1 : max_lag) =  ...
-	  flipdim( mass_xcorr( 2 : end ), 1 );
+    mass_xcorr_flip = ...
+	mass_xcorr( max_lag + 2 : 2 * max_lag + 1, 1 );
+    mass_xcorr_flip = ...
+	  flipdim( mass_xcorr_flip );
+    mass_xcorr(1 : max_lag, 1) =  ...
+	mass_xcorr_flip;
+    %clear mass_xcorr_flip;
     plot( (-max_lag : max_lag)*dt, mass_xcorr, '-k');
     mass_xcorr_std = ...
-	sqrt( squeeze( sum( sum( xcorr_std.^2, 2 ), 1 ) ) ) / ...
-	( num_power_mask(layer)^2 );
+	sqrt( squeeze( sum( xcorr_std(:).^2 ) ) ) / ...
+	( num_power_mask(layer, i_mode)^2 );
     lh = line( [-max_lag, max_lag]*dt, ...
 	      [ mass_xcorr_std mass_xcorr_std ] );
 

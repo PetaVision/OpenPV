@@ -86,7 +86,7 @@ function [xcorr_array, xcorr_std, xcorr_dist, xcorr_mean, xcorr_lags, xcorr_figs
   endfor % i_post
 
 
-  for i_plot = plot_interval : num_pre * num_post
+  for i_plot = plot_interval : plot_interval : num_pre * num_post
       [i_pre, i_post] = ind2sub( [num_pre, num_post], i_plot);
       disp(['i_pre = ', num2str(i_pre), ': i_post = ', num2str(i_post)]);
       plot_title = [' xcorr: i_pre = ',int2str(i_pre), ': i_post = ', num2str(i_post)];
