@@ -6,29 +6,31 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <src/columns/HyPerCol.hpp>
-#include <src/connections/HyPerConn.hpp>
-#include <src/connections/KernelConn.hpp>
-#include <src/connections/CocircConn.hpp>
-#include <src/connections/AvgConn.hpp>
-#include <src/layers/Image.hpp>
-#include <src/layers/Retina.hpp>
-#include <src/layers/V1.hpp>
-#include <src/io/ConnectionProbe.hpp>
-#include <src/io/GLDisplay.hpp>
-#include <src/io/PostConnProbe.hpp>
-#include <src/io/LinearActivityProbe.hpp>
-#include <src/io/PointProbe.hpp>
-#include <src/io/StatsProbe.hpp>
+#include "../PetaVision/src/columns/HyPerCol.hpp"
+#include "../PetaVision/src/connections/HyPerConn.hpp"
+#include "../PetaVision/src/connections/KernelConn.hpp"
+#include "../PetaVision/src/connections/CocircConn.hpp"
+#include "GeislerConn.hpp"
+#include "../PetaVision/src/connections/AvgConn.hpp"
+#include "../PetaVision/src/layers/Movie.hpp"
+#include "../PetaVision/src/layers/Image.hpp"
+#include "../PetaVision/src/layers/Retina.hpp"
+#include "../PetaVision/src/layers/V1.hpp"
+#include "../PetaVision/src/io/ConnectionProbe.hpp"
+#include "../PetaVision/src/io/GLDisplay.hpp"
+#include "../PetaVision/src/io/PostConnProbe.hpp"
+#include "../PetaVision/src/io/LinearActivityProbe.hpp"
+#include "../PetaVision/src/io/PointProbe.hpp"
+#include "../PetaVision/src/io/StatsProbe.hpp"
 
-#include <src/io/imageio.hpp>
+//#include "../PetaVisionsrc/io/imageio.hpp"
 
 using namespace PV;
 
 int main(int argc, char* argv[]) {
 
-	int iseed = time(NULL);
-	srand ( iseed );
+	//int iseed = time(NULL);
+	//srand ( iseed );
 
 	// create the managing hypercolumn
 	//
@@ -37,6 +39,9 @@ int main(int argc, char* argv[]) {
 	// create the visualization display
 	//
 	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
+
+#undef SPIKING
+#ifdef SPIKING  // load geisler kernels from pvp file
 
 	// create the image
 	//
@@ -193,6 +198,9 @@ int main(int argc, char* argv[]) {
 
 	const int nyDisplay = displayLayer->clayer->loc.ny;
 
+#undef DISPLAY2CONSOLE
+#ifdef DISPLAY2CONSOLE
+
 	LayerProbe * statsretina = new StatsProbe(BufActivity,     "Retina :");
 	LayerProbe * statslgn = new StatsProbe(BufActivity,        "LGN :");
 	LayerProbe * statslgninhff = new StatsProbe(BufActivity,     "LGNInhFF :");
@@ -211,6 +219,8 @@ int main(int argc, char* argv[]) {
 	l1inh->insertProbe(statsl1inh);
 //	l1avg->insertProbe(statsl1avg);
 
+#endif
+
 	int npad, nx, ny, nf;
 
 	npad = lgn->clayer->loc.nPad;
@@ -218,6 +228,8 @@ int main(int argc, char* argv[]) {
 	ny = lgn->clayer->loc.ny;
 	nf = lgn->clayer->loc.nBands;
 
+#undef WRITE_VMEM
+#ifdef WRITE_VMEM
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
 		new PointProbe(Vmem_filename_LGNa1, 51, 98, 0, "LGNA1:(51,98,0)");
@@ -277,7 +289,7 @@ int main(int argc, char* argv[]) {
 	LayerProbe * Vmem_probe_V1Inhc1 =
 		new PointProbe(Vmem_filename_V1Inhc1, 80, 46, 5, "V1InhC1:(80,46,5)");
 	l1inh->insertProbe(Vmem_probe_V1Inhc1);
-
+#endif
 
 	if (0) { // ma
 		LinearActivityProbe * laProbes[nyDisplay]; // array of ny pointers to PV::LinearActivityProbe
@@ -359,9 +371,15 @@ int main(int argc, char* argv[]) {
 	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
 	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
+#else  // learn Geisler kernels
+	const char * amoeba_fileOfFileNames = "./input/amoebaImages"; // "./input/hard4.bmp";
+	float display_period = 1.0;
+	Image * movie = new Movie("Movie", HyPerCol * hc, amoeba_fileOfFileNames, display_period);
+
+
+#endif
+
 	hc->run();
-
-
 
 	/* clean up (HyPerCol owns layers and connections, don't delete them) */
 	delete hc;
