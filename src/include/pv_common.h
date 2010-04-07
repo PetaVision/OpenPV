@@ -58,7 +58,7 @@
 // Limits:
 #define MAX_NEIGHBORS    8
 #define MAX_LAYERS      10
-#define MAX_CONNECTIONS 20
+#define MAX_CONNECTIONS 100
 #define MAX_F_DELAY     21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 // estimate of maximum activity in a local layer
