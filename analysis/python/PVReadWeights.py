@@ -1,4 +1,5 @@
 import numpy as np
+import math as math
 import PVConversions as conv
 
 class PVReadWeights(object):
@@ -34,13 +35,11 @@ class PVReadWeights(object):
       bytes = self.next_patch_bytes()
       w = np.zeros(len(bytes), dtype=float) + bytes/255.
       w = self.min + (self.max - self.min) * w   
-      self.patch += 1   
       return w
    # end next
 
    def next_patch_bytes(self):
       """Read the next patch and return an ndarray"""
-      
       nx,ny = np.fromfile(self.file, np.int16(), 2)
       count = nx*ny
       total = self.nxp * self.nyp * self.nfp
@@ -50,6 +49,13 @@ class PVReadWeights(object):
       self.patch += 1
       return bytes[0:count]
    # end next
+
+   def normalize(self, w):
+      a = math.sqrt( np.sum( w*w ) )
+      if a != 0.0:
+         w = w / a
+      return w
+   # end normalize
 
    def read_params(self):
       """Read the file metadata parameters"""
@@ -124,7 +130,6 @@ class PVReadWeights(object):
       print "min = %i max = %i" % (self.min,self.max)
       print "numPatches = %i" % self.numPatches
    # end print_params
-
 
    def read_header(self):
       """Read the header of each record"""
@@ -203,11 +208,10 @@ class PVReadWeights(object):
    def next_record(self):
       self.read_header()
       self.print_params()
-      #r = []
+
       r = np.zeros(self.numWeights,dtype = float32) 
-      #print r.shape
+
       for p in range(self.numPatches):
-         #print p
          w = self.next_patch()
          for k in range(self.patchSize):
            r[p*self.patchSize + k ] = w[k]
@@ -222,8 +226,6 @@ class PVReadWeights(object):
 
    # end next_record
 
-   # NOTE: self.next_record was not defined.
-   # my definition might be different from the one Craig had in mind
    def valuesAt(self, k):
       """Return an ndarray of values at index k in each time slice (record)"""
       n = 0
