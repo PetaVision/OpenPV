@@ -322,7 +322,10 @@ float HyPerCol::advanceTime(float sim_time)
       icComm->wait(layers[l]->getLayerId());
    }
 
-   return sim_time + deltaTime;
+   // make sure simTime is updated even if HyPerCol isn't running time loop
+   simTime = sim_time + deltaTime;
+
+   return simTime;
 }
 
 int HyPerCol::exitRunLoop(bool exitOnFinish)
