@@ -30,6 +30,10 @@ public:
 
    virtual int patchIndexToKernelIndex(int patchIndex);
 
+   virtual int updateState(float time, float dt){ return 0;};
+
+   virtual int updateWeights(int axonId){ return 0;};
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();

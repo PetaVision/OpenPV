@@ -67,24 +67,21 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
    return kernel_patches;
 }
 
+/*TODO  createWeights currently breaks in this subclass if called more than once,
+ * fix interface by adding extra dataPatches argument to overloaded method
+ * so asserts are unnecessary
+ */
 PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
 {
-   // could create only a single patch with following call
-   //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
-
    assert(numAxonalArborLists == 1);
 
-   // TODO IMPORTANT ################# free memory in patches as well
-   // GTK: call delete weights?
-   if (patches != NULL) {
-      free(patches);
-   }
+   assert(patches == NULL);
 
    patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    assert(patches != NULL);
 
-   // TODO - allocate space for them all at once (inplace)
+   assert(kernelPatches == NULL);
    kernelPatches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 
    return patches;
@@ -128,13 +125,11 @@ int KernelConn::numDataPatches(int arbor)
    return numKernelPatches;
 }
 
-// k is ignored, writes all weights
 int KernelConn::writeWeights(float time, bool last)
 {
    const int arbor = 0;
    const int numPatches = numDataPatches(arbor);
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
-
 }
 
 
