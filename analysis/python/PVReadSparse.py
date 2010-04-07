@@ -103,7 +103,6 @@ class PVReadSparse(object):
    def next_activity(self):
       """Return activity matrix for next time step"""
       A = np.zeros((self.nyg_ex, self.nxg_ex), int)
-      print self.nxg_ex, self.nyg_ex
       rec = self.next_record()
       for k in range(len(rec)):
          kx = conv.kxPos(rec[k], self.nxg_ex, self.nyg_ex, self.nf)
@@ -115,12 +114,11 @@ class PVReadSparse(object):
    def avg_activity(self, begin, end):
       """Return total activity matrix for a given time period"""
       while self.time + self.dt < begin:
-         #print "skipping time=", self.time
+         print "skipping time=", self.time
          rec = self.next_record()
       t0 = self.time
 
       A = np.zeros((self.nyg_ex, self.nxg_ex))
-      print "reading until=", end
       try:
          while self.time < end:
             A += self.next_activity()
