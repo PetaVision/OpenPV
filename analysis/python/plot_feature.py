@@ -36,7 +36,6 @@ w = rw.PVReadWeights(sys.argv[1])
 f = np.zeros(w.patchSize)
 f[ range(phase, w.patchSize, w.nxp) ] = 1.0
 f = w.normalize(f)
-print f
 
 numrows = w.nyGlobal
 numcols = w.nxGlobal
@@ -49,13 +48,28 @@ for i in range(len(M)):
 
 M = M.reshape( (numrows,numcols) )
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
+# print averaged projection over column
+#
+s = np.zeros(numcols)
+maxs = 0.0
+maxcol = 0
+for col in range(numcols):
+   s[col] = np.sum(M[:,col])
+   if s[col] > maxs: maxs = s[col]; maxcol = col
+print "(maxcol, maxsum) = (", maxcol, ",", maxs/numrows, ")"
 
+fig = plt.figure()
+
+ax = fig.add_subplot(2,1,1)
 ax.set_xlabel('Kx GLOBAL')
 ax.set_ylabel('Ky GLOBAL')
-ax.set_title( 'Feature map: phase=%d' %(phase) )
+ax.set_title( 'Feature Projection: phase=%d' %(phase) )
 ax.format_coord = format_coord
-
 ax.imshow(M, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=1.)
+
+
+ax = fig.add_subplot(2,1,2)
+ax.set_ylabel('Ky Avg Projection')
+ax.plot(s, 'o')
+
 plt.show()
