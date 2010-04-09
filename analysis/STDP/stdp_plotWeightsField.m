@@ -4,17 +4,17 @@ function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
 % xScale and yScale are scale factors for this layer
 % We should pass NX and NY as argumrnts
 
-global input_dir % NX NY 
+global input_dir  NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
 %colormap(jet);
     
-NX = 32;        % retina size
-NY = 32;
 
 NX = NX * xScale; % L1 size
 NY = NY * yScale;
+
+fprintf('scalex NX = %d scaled NY = %d\n',NX,NY);
 
 PLOT_STEP = 1;
 plotTarget = 0;
@@ -298,12 +298,24 @@ if ~feof(fid)
         %varargout{6} = maxVal;
         %pause
     else
-       disp('eof found: return'); 
-       time = -1;
+        disp('eof found: return');
+        time = -1;
+        NXP = 0;
+        NYP = 0;
+        NFP = 0;
+        minVal      = 0;
+        maxVal      = 0;
+        numPatches  = 0;
     end
 else
-   disp('eof found: return'); 
-   time = -1;
+    disp('eof found: return');
+    time = -1;
+    NXP = 0;
+    NYP = 0;
+    NFP = 0;
+    minVal      = 0;
+    maxVal      = 0;
+    numPatches  = 0;
 end
 % End subfunction 
 %
