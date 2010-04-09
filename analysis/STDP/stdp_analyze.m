@@ -1,23 +1,25 @@
 %%
 close all
-clear all
+%clear all
 
 % Make the global parameters available at the command-line for convenience.
 global N  NX NY n_time_steps begin_step tot_steps
 global spike_array num_target rate_array target_ndx vmem_array
-global input_dir output_path input_path
+global input_dir output_dir output_path input_path
 global patch_size write_step
 
-%input_dir = '/Users/manghel/Documents/workspace/marian/output/';
-input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
+%input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
+input_dir = '/Users/manghel/Documents/STDP-sim/';
+output_dir = '/Users/manghel/Documents/STDP-sim/conn_test/';
 
-num_layers = 3;
+num_layers = 2;
 n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
 write_step = 10000; % set in params.stdp
 
 
-begin_step = 90000;  % where we start the analysis (used by readSparseSpikes)
+begin_step = 50000;  % where we start the analysis (used by readSparseSpikes)
+end_step   = 10000;
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
 stim_end = 1000000;
@@ -27,8 +29,8 @@ stim_end = stim_end - begin_step + 1;
 stim_steps = stim_begin : stim_end;
 bin_size = 10;
 
-NX=32;
-NY=32;
+NX=32;  % defined by column 
+NY=32;  % use xScale and yScale to get layer values
 
 my_gray = [.666 .666 .666];
 
@@ -45,10 +47,12 @@ plot_average_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
 plot_weights_field = 1;
+plot_weights_projections = 0;
 plot_weights_histogram = 0;
 plot_weights_corr = 0; % read spikes first
 plot_patch = 0;
 comp_PCA = 0;
+comp_STDP = 0;
     
 if read_spikes
     spike_array = cell(num_layers,1);
@@ -67,7 +71,7 @@ else
 end
 
 
-for layer = 2:num_layers; % layer 1 here is layer 0 in PV
+for layer = 1:num_layers; % layer 1 here is layer 0 in PV
 
     % Read parameters from file which pv created: LAYER
     [f_file, v_file, w_file, w_last, xScale, yScale] = stdp_globals( layer );
@@ -77,7 +81,8 @@ for layer = 2:num_layers; % layer 1 here is layer 0 in PV
     
     if read_spikes
         disp('read spikes')
-        [spike_array{layer}, ave_rate] = stdp_readSparseSpikes(f_file);
+        [spike_array{layer}, ave_rate] = ...
+            stdp_readSparseSpikes(f_file, begin_step, end_step);
         disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
         tot_steps = size( spike_array{layer}, 1 );
         tot_neurons = size( spike_array{layer}, 2);
@@ -166,7 +171,8 @@ for layer = 2:num_layers; % layer 1 here is layer 0 in PV
         tot_steps = size( spike_array{layer}, 1 );
         num_bins = fix( tot_steps / bin_size );
         moving_rate_array{layer} = ...
-            mean(reshape(spikes_array{layer}, bin_size, num_bins), 1);
+            mean(reshape(spikes_array{layer}(1:bin_size*num_bins),...
+            bin_size, num_bins), 1);
         % reshape returns a bin_size x num_bins array: it oputs the first 
         % bin_size values in column 1, the next bin_size values in column 2, 
         % and so on, while mean applied to this matrix returns a
@@ -197,7 +203,7 @@ for layer = 2:num_layers; % layer 1 here is layer 0 in PV
         stim_bins = stim_bin_begin : stim_bin_end;     
     end
     
-    if plot_weights_corr
+    if plot_weights_corr & layer > 1
         
         disp('compute rate array and spike activity array')
         rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
@@ -285,20 +291,30 @@ for layer = 2:num_layers; % layer 1 here is layer 0 in PV
     % Analyze the weights evoltion
     % NOTE: The number of weights distribution recorded is
     % (n_time_steps/write_step) 
-    if plot_weights_field == 1
+    if plot_weights_field == 1 & layer > 1
         disp('plot weights field')
         if isempty(Xtarg) 
-            disp('No target image: random retina noise only');
+            disp('No target image: ');
         end
         stdp_plotWeightsField(w_file,xScale,yScale,Xtarg,Ytarg);
         
-        % this is 
-        %pv_reconstruct( vmem_array(:), ['Weights for layer = ', int2str(layer)] );
-        %clear Vmem_ndx vmem_array weight3D
-        %pause
     end
     
-    if plot_weights_histogram == 1
+    % Analyze the weights field and the weight patch projections
+    % on a number of directions (features)
+    % NOTE: The number of weights distribution recorded is
+    % (n_time_steps/write_step) 
+    if plot_weights_projections == 1 & layer > 1
+        disp('plot weights projections')
+        if isempty(Xtarg) 
+            disp('No target image: ');
+        end
+        stdp_plotWeightsProjections(w_file,xScale,yScale,Xtarg,Ytarg);
+        
+    end
+    
+    
+    if plot_weights_histogram == 1 & layer > 1
         disp('plot weights histogram')
         TSTEP = 1;
         W = stdp_plotWeightsHistogramOnly(w_file,xScale,yScale,TSTEP);% W is t
@@ -368,10 +384,32 @@ for layer = 2:num_layers; % layer 1 here is layer 0 in PV
         
     end
     
+    
+    if comp_STDP & layer > 1
+
+        disp('compute STDP statistics')
+        
+        % Read parameters from previous layer
+    [f_file_pre, v_file_pre, w_file_pre, w_last_pre, xScale_pre, yScale_pre] = ...
+        stdp_globals( layer -1 );
+    
+        %[prePatchAverage, nPostSpikes, nPreSpikes] = stdp_compStatistics(f_file, f_file_pre);
+
+        
+        filename = [output_dir,'STDP_75.dat'];
+        fid=fopen(filename,'r');
+        data = fscanf(fid,'%f',[17 inf]);
+        data=data';
+        size(data)
+        data(1:10,1);
+        
+        
+    end
+    
 end % loop over all layers
 
 plot_rates = tot_steps > 9 ;
-if plot_rates
+if plot_rates  
     plot_title = ['PSTH target pixels'];
     figure('Name',plot_title);
     hold on
