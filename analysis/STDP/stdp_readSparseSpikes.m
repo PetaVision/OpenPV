@@ -1,6 +1,6 @@
-function [spikes, ave_rate] = stdp_readSparseSpikes(fname)
+function [spikes, ave_rate] = stdp_readSparseSpikes(fname, begin_step, end_step)
 
-global input_dir n_time_steps begin_step 
+global input_dir n_time_steps 
 
 filename = fname;
 filename = [input_dir, filename];
@@ -24,9 +24,10 @@ if exist(filename,'file')
     minInd = N+1;
     maxInd = -1;
    
-    
+    R = [];
+    T = [];
+    t = 0;
     for i_step = 1 : n_time_steps
-        
         
         if (feof(fid))
             n_time_steps = i_step - 1;
@@ -62,10 +63,22 @@ if exist(filename,'file')
         
         if i_step < begin_step
             continue
+        elseif i_step > end_step
+             break
+        else
+            t=t+1;
+            T(t) = time;
+            R(t) = (num_spikes*1.0)/N;
         end
+        
         total_spikes = total_spikes + num_spikes;
     end
     fclose(fid);
+    figure('Name', 'Average Activity vs Time '); 
+    plot(T,R,'or');
+    xlabel('time');
+    ylabel('average activity');
+    
     ave_rate = 1000 * total_spikes / ( N * ( n_time_steps - begin_step + 1 ) );
     fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
         i_step,minInd,maxInd,ave_rate);
@@ -99,6 +112,9 @@ if exist(filename,'file')
         if i_step < begin_step
             continue
         end
+        if i_step > end_step
+            break
+        end
         spike_id = [spike_id; S+1];
         spike_step = [spike_step; repmat(i_step - begin_step + 1, num_spikes, 1)];
         %pause
@@ -107,8 +123,8 @@ if exist(filename,'file')
          end
     end
     fclose(fid);
-    spikes = sparse(spike_step, spike_id, 1, n_time_steps - begin_step + 1, N, total_spikes);
-    ave_rate = 1000 * sum(spikes(:)) / ( N * ( n_time_steps - begin_step + 1 ) );
+    spikes = sparse(spike_step, spike_id, 1, end_step - begin_step + 1, N, total_spikes);
+    ave_rate = 1000 * sum(spikes(:)) / ( N * ( end_step - begin_step + 1 ) );
     disp(['ave_rate = ', num2str(ave_rate)]);
     size(spikes)
 else
