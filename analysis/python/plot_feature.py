@@ -42,9 +42,27 @@ numcols = w.nxGlobal
 
 M = np.zeros(w.numPatches)
 
-for i in range(len(M)):
+for k in range(len(M)):
    p = w.normalize( w.next_patch() )
-   M[i] = np.sum(p * f)
+   M[k] = np.sum(p * f)
+
+print "time =", w.time
+
+# calculate distributions
+#
+numbins = 101
+dist = np.zeros(numbins)
+bins = np.zeros(numbins)
+count = numrows * numcols
+for k in range(numbins): bins[k] = k * 1.0/(numbins-1)
+for k in range(len(M)):
+    for b in range(numbins):
+       if (M[k] > bins[b]): dist[b] += 1
+dist = dist/count
+
+# print maximum projection
+#
+print "maximum projected value = ", np.max(M)
 
 M = M.reshape( (numrows,numcols) )
 
@@ -56,6 +74,7 @@ maxcol = 0
 for col in range(numcols):
    s[col] = np.sum(M[:,col])
    if s[col] > maxs: maxs = s[col]; maxcol = col
+s = s/numrows
 print "(maxcol, maxsum) = (", maxcol, ",", maxs/numrows, ")"
 
 fig = plt.figure()
@@ -67,9 +86,10 @@ ax.set_title( 'Feature Projection: phase=%d' %(phase) )
 ax.format_coord = format_coord
 ax.imshow(M, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=1.)
 
-
 ax = fig.add_subplot(2,1,2)
-ax.set_ylabel('Ky Avg Projection')
-ax.plot(s, 'o')
+ax.set_xlabel('Feature Strength')
+ax.set_ylabel('Percentage')
+ax.plot(bins, dist, 'o', color='blue')
+#ax.set_ylim(0.0, 0.5)
 
 plt.show()
