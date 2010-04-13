@@ -48,7 +48,7 @@ int getFileType(const char * filename)
 
 /**
  * Calculates location information given processor distribution and the
- * size of the image.  
+ * size of the image.
  *
  * @filename the name of the image file (in)
  * @ic the inter-column communicator (in)
@@ -163,7 +163,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
       loc->nBands = dataset->GetRasterCount();
 
       // calculate local layer size
-   
+
       int nx = xImageSize / nxProcs;
       int ny = yImageSize / nyProcs;
 
@@ -193,6 +193,31 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    exit(1);
 #endif // PV_USE_GDAL
 
+   return status;
+}
+
+
+int gatherImageFile(const char * filename,
+                    PV::Communicator * comm, PVLayerLoc * loc, pvdata_t * pvdata_buf){
+   unsigned char * char_buf;
+   const int numItems = loc->nx * loc->ny * loc->nBands;
+   char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
+   assert( char_buf != NULL );
+   pvdata_t max_buf = -1.0e20;
+   pvdata_t min_buf = 1.0e20;
+   for (int i = 0; i < numItems; i++) {
+      max_buf = pvdata_buf[i] > max_buf ? pvdata_buf[i] : max_buf;
+      min_buf = pvdata_buf[i] < min_buf ? pvdata_buf[i] : min_buf;
+   }
+   pvdata_t range_buf = max_buf - min_buf;  // all char_buf == 0
+   if (range_buf == 0) {
+      range_buf = 1.0;
+   }
+   for (int i = 0; i < numItems; i++) {
+      char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / (max_buf - min_buf);
+   }
+   int status = gatherImageFile(filename, comm, loc, char_buf);
+   free(char_buf);
    return status;
 }
 
@@ -254,7 +279,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
       params[INDEX_NX]          = loc->nx;
       params[INDEX_NY]          = loc->ny;
-      params[INDEX_NF]          = 1;
+      params[INDEX_NF]          = loc->nBands;
       params[INDEX_NUM_RECORDS] = nxProcs * nyProcs;
       params[INDEX_RECORD_SIZE] = recordSize;
       params[INDEX_DATA_SIZE]   = sizeof(unsigned char);

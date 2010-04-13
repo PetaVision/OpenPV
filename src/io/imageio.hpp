@@ -17,6 +17,8 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
 int gatherImageFile(    const char * filename,
                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
+int gatherImageFile(    const char * filename,
+                        PV::Communicator * comm, PVLayerLoc * loc, pvdata_t * buf);
 int gatherImageFilePVP( const char * filename,
                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
 int gatherImageFileGDAL(const char * filename,
