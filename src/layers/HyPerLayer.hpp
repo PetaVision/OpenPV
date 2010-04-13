@@ -59,9 +59,9 @@ public:
 
    int initialize(PVLayerType type);
    int initFinish();
-   
+
    PVLayerCube * initBorder(PVLayerCube * border, int borderId);
-   
+
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
@@ -74,6 +74,7 @@ public:
    virtual int outputState(float time, bool last=false);
    virtual int writeState(const char * name, float time, bool last=false);
    virtual int writeActivity(const char * filename, float time);
+   virtual int writeActivity(float time);
    virtual int writeActivitySparse(float time);
    virtual int readState(const char * name, float * time);
 
@@ -104,7 +105,7 @@ public:
 
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
-   
+
    bool useMirrorBCs()               {return this->mirrorBCflag;}
 
    // implementation of LayerDataInterface interface
@@ -112,9 +113,9 @@ public:
    const pvdata_t   * getLayerData();
    const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
    bool isExtended()                 { return true; }
-   
+
    virtual int gatherToInteriorBuffer(unsigned char * buf);
-   
+
 protected:
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
 

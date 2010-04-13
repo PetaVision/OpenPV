@@ -515,8 +515,15 @@ int HyPerLayer::outputState(float time, bool last)
       probes[i]->outputState(time, this);
    }
 
-   // always write activity in sparse format
-   status = writeActivitySparse(time);
+   PVParams * params = parent->parameters();
+   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
+
+   if (spikingFlag != 0) {
+      status = writeActivitySparse(time);
+   }
+   else {
+      status = writeActivity(time);
+   }
 
    if (time >= writeTime) {
       writeTime += writeStep;
@@ -619,17 +626,25 @@ int HyPerLayer::writeActivitySparse(float time)
    return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
 
+// write non-spiking activity
+int HyPerLayer::writeActivity(float time)
+{
+   return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
+}
+
+// modified to enable writing of non-spiking activity as well
+// use writeActivitySparse for efficient disk storage of sparse spiking activity
 int HyPerLayer::writeActivity(const char * filename, float time)
 {
    int status = 0;
    PVLayerLoc * loc = &clayer->loc;
 
-   const int n = loc->nx * loc->ny * loc->nBands;
-   unsigned char * buf = new unsigned char[n];
+   const int n = loc->nx * loc->ny * clayer->numFeatures;
+   pvdata_t * buf = new pvdata_t[n];
    assert(buf != NULL);
 
    const bool extended = true;
-   status = copyToBuffer(buf, getLayerData(), loc, extended, 255);
+   status = copyToBuffer(buf, getLayerData(), loc, extended, 1.0);
 
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
