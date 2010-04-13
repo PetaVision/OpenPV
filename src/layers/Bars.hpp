@@ -32,6 +32,10 @@ protected:
    or_modes lastOrientation;
    float pSwitch;
    float pMove;
+   int random_walk;
+   int move_forward;
+   int move_backward;
+   int random_jump;
 };
 
 }
