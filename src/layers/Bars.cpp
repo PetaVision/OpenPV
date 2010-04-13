@@ -40,6 +40,35 @@ Bars::Bars(const char * name, HyPerCol * hc) :
       //printf("pSwitch = %f\n",pSwitch);
    }
 
+   // set parameters that controls position change
+   // default values
+
+   random_walk = 1;
+   move_forward = 0;
+   move_backward = 0;
+   random_jump = 0;
+
+   if (params->present(name, "randomWalk")) {
+      int random_walk = params->value(name, "randomWalk");
+      //printf("randomWalk = %d\n", random_walk);
+   }
+
+   if (params->present(name, "moveForward")) {
+      int move_forward = params->value(name, "moveForward");
+      //printf("moveForward = %d\n", move_forward);
+   }
+
+   if (params->present(name, "moveBackward")) {
+      int move_backward = params->value(name, "moveBackward");
+      //printf("moveBackward = %d\n", move_backward);
+   }
+
+   if (params->present(name, "randomJump")) {
+      int random_jump = params->value(name, "randomJump");
+      //printf("randomJump = %d\n", random_jump);
+   }
+
+
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages",0);
 
@@ -164,10 +193,6 @@ void Bars::calcPosition(float step)
 {
    float dp = 1.0 / step;
    double p = pv_random_prob();
-   int random_walk = 1;
-   int move_forward = 0;
-   int move_backward = 0;
-   int random_jump = 0;
 
    if (random_walk) {
       if(p < 0.5){
