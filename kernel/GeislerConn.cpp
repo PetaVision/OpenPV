@@ -55,7 +55,17 @@ int GeislerConn::initialize_base()
 PVPatch ** GeislerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
 {
-	geislerPatches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
+	const int arbor = 0;
+	int numGeislerPatches = numDataPatches(arbor);
+
+	geislerPatches = (PVPatch**) calloc(sizeof(PVPatch*), numGeislerPatches);
+	assert(geislerPatches != NULL);
+
+	for (int geislerIndex = 0; geislerIndex < numGeislerPatches; geislerIndex++) {
+		geislerPatches[geislerIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+		assert(geislerPatches[geislerIndex] != NULL );
+	}
+
 	return KernelConn::createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 }
 
@@ -141,20 +151,21 @@ int GeislerConn::updateWeights(int axonID)
 {
 	// this stride is in extended space for post-synaptic activity and
 	// STDP decrement variable
-	const int postStrideY = post->clayer->numFeatures
+	int postStrideY = post->clayer->numFeatures
                          * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
 
-	const int numExtended = pre->clayer->numExtended;
+	int numExtended = pre->clayer->numExtended;
 	assert(numExtended == numWeightPatches(axonID));
 
 	const pvdata_t * preLayerData = pre->getLayerData();
 
-	int numKernelPatches = numDataPatches(axonID);
+	int nKernels = numDataPatches(axonID);
 
 	for (int kPre = 0; kPre < numExtended; kPre++) {
       PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
 
-      const float aPre = preLayerData[kPre];
+      float aPre = preLayerData[kPre];
+      if (aPre == 0.0) continue;
 
       PVPatch * wPatch = arbor->weights;
       size_t postOffset = arbor->offset;
@@ -164,12 +175,13 @@ int GeislerConn::updateWeights(int axonID)
       int ny  = wPatch->ny;
       int sy  = wPatch->sy;
 
-      const int nKernels = this->numDataPatches(axonID);
       int kfPre = kPre % nKernels;
       PVPatch * gPatch = geislerPatches[kfPre];
+      PVPatch * kPatch = kernelPatches[kfPre];
 
-      pvdata_t * data_head = (pvdata_t *) ((char*) wPatch + sizeof(PVPatch));
-      size_t data_offset = wPatch->data - data_head;
+      pvdata_t * data_head = (pvdata_t *) ((char*) kPatch + sizeof(PVPatch));
+      pvdata_t * data_begin = kPatch->data;
+      size_t data_offset = data_begin - data_head;
       pvdata_t * gWeights = &gPatch->data[data_offset];
 
       for (int y = 0; y < ny; y++) {
