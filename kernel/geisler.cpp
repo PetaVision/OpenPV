@@ -372,10 +372,21 @@ int main(int argc, char* argv[]) {
 	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #else  // learn Geisler kernels
-	const char * amoeba_fileOfFileNames = "./input/amoebaImages"; // "./input/hard4.bmp";
-	float display_period = 1.0;
-	Image * movie = new Movie("Movie", HyPerCol * hc, amoeba_fileOfFileNames, display_period);
 
+	const char * amoeba_fileOfFileNames = "./input/amoebaImageFiles.txt"; // "./input/hard4.bmp";
+	float display_period = 1.0;
+	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
+	HyPerLayer * retina = new Retina("Retina", hc, movie);
+	HyPerLayer * l1 = new V1("L1", hc);
+	HyPerConn * retina_l1 =
+		new KernelConn("Retina to L1",   hc, retina,  l1,
+			CHANNEL_EXC);
+	HyPerConn * retina_l1_inh =
+		new KernelConn("Retina to L1 Inh",   hc, retina,  l1,
+			CHANNEL_INH);
+	HyPerConn * l1_l1 =
+		new GeislerConn("L1 to L1",      hc, l1,     l1,
+			CHANNEL_EXC);
 
 #endif
 
