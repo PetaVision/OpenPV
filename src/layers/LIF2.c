@@ -322,34 +322,12 @@ int LIF2_init(PVLayer * l)
 
       kex = kIndexExtended(k, nx, ny, nf, marginWidth);
 
-      if (params->noiseAmpE > 0) {
+      if ((params->noiseAmpE > 0) || (params->noiseAmpE > 0)) {
          l->Vth[k] = params->VthRest + pv_random_prob() * params->deltaVth;
-         l->V[k] = pv_random_prob() * (params->VthRest - params->Vinh) + params->Vinh;
-         if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->G_E[k]  = -log( pv_random_prob() ) * 0.6860;
-            l->G_I[k]  = -log( pv_random_prob() ) * 1.0031;
-            l->G_IB[k] = -log( pv_random_prob() ) * 5.5048;
-         }
-         else if (l->layerType == TypeV1FlankInhib) {
-            l->G_E[k]  = -log( pv_random_prob() ) * 0.4514;
-            l->G_I[k]  = -log( pv_random_prob() ) * 3.2228;
-            l->G_IB[k] = -log( pv_random_prob() ) * 5.8198;
-         }
-         else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->G_E[k]  = -log( pv_random_prob() ) * 0.3932;
-            l->G_I[k]  = -log( pv_random_prob() ) * 0.7572;
-            l->G_IB[k] = -log( pv_random_prob() ) * 1.8671;
-         }
-         else if (l->layerType == TypeV1SurroundInhib) {
-            l->G_E[k]  = -log( pv_random_prob() ) * 0.4159;
-            l->G_I[k]  = -log( pv_random_prob() ) * 0.4956;
-            l->G_IB[k] = -log( pv_random_prob() ) * 0.9782;
-         }
-         else {
-            l->G_E[k]  = -log( pv_random_prob() );
-            l->G_I[k]  = -log( pv_random_prob() );
-            l->G_IB[k] = -log( pv_random_prob() );
-         }
+         l->V[k] = pv_random_prob() * (params->VthRest - params->Vrest) + params->Vrest;
+         l->G_E[k]  = params->noiseAmpE * pv_random_prob();
+         l->G_I[k]  = params->noiseAmpI * pv_random_prob();
+         l->G_IB[k] = params->noiseAmpIB * pv_random_prob();
       }
       else
       {
@@ -360,58 +338,10 @@ int LIF2_init(PVLayer * l)
       // TODO - Initialize activity buffers with random noise
       // TODO - use a parameter for RAND threshold
 
-      if (params->noiseAmpE > 0) {
-         if ( (l->layerType == TypeV1Simple) || (l->layerType == TypeV1Simple2) ) {
-            l->activity->data[kex] = (pv_random_prob() < 0.001);
-         }
-         else if (l->layerType == TypeV1FlankInhib) {
-            l->activity->data[kex] = (pv_random_prob() < 0.001);
-         }
-         else if ( (l->layerType == TypeV1FeedbackInhib) || (l->layerType == TypeV1Feedback2Inhib) ) {
-            l->activity->data[kex] = (pv_random_prob() < 0.0016);
-         }
-         else if (l->layerType == TypeV1SurroundInhib) {
-            l->activity->data[kex] = (pv_random_prob() < 0.01);
-         }
-         else {
-            l->activity->data[kex] = 0.0;
-         }
-      }
-      else
-         l->activity->data[kex] = 0.0;
+      l->activity->data[kex] = 0.0;
 
    }
 
-   if ( (params->noiseAmpE == 0.0) && (l->layerType == -TypeV1Simple) ) {
-      int i_theta = 0;
-      /* 		int i_kurve = 0; */
-      /* 		int k = (int) ((l->ny / 2.0) * l->loc.nx * NO * NK + (l->loc.nx / 2.0) * NO */
-      /* 				* NK + i_theta * NK + i_kurve); */
-      int k = (int) ((l->loc.ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO
-            + i_theta);
-      kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-      l->activity->data[kex] = 1.0;
-   }
-   else if ( (params->noiseAmpE == 0.0) && (l->layerType == TypeV1FlankInhib) ) {
-      int i_theta = 0;
-      int k = (int) ((l->loc.ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO
-            + i_theta);
-      kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-      l->activity->data[kex] = 1.0;
-   }
-   else if (l->layerType == -TypeV1SurroundInhib)
-   {
-      assert(0 == 1);  // TODO - fix this code (never used?)
-      /* int i_theta = 5; */
-      /* int k = (int) ((l->ny / 2.0) * l->loc.nx * NO + (l->loc.nx / 2.0) * NO */
-      /* 	+ i_theta); */
-      /* l->activity->data[MAX_F_DELAY - 1][k] = 1.0; */
-      l->activity->data[((NY / 2) - 2) * NX + ( (NX / 2) - 2) ] = 1.0;
-      l->activity->data[((NY / 2) - 1) * NX + ( (NX / 2) - 1) ] = 1.0;
-      l->activity->data[((NY / 2) - 0) * NX + ( (NX / 2) - 0) ] = 1.0;
-      l->activity->data[((NY / 2) + 1) * NX + ( (NX / 2) + 1) ] = 1.0;
-      l->activity->data[((NY / 2) + 2) * NX + ( (NX / 2) + 2) ] = 1.0;
-   }
 
    return 0;
 }
