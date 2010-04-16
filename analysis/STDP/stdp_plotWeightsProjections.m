@@ -101,23 +101,14 @@ if exist(filename,'file')
                     k=k+1;
                     nx = fread(fid, 1, 'uint16'); % unsigned short
                     ny = fread(fid, 1, 'uint16'); % unsigned short
-                    nItems = nx*ny*NFP;
-                    if debug 
-                        fprintf('k = %d nx = %d ny = %d nItems = %d: ',...
-                            k,nx,ny,nItems);
-                    end
+                    nItems = nx*ny*NFP;                     
+                    w = fread(fid, nItems, 'uchar'); % unsigned char 
+                    % scale weights
+                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
                     
-                    w = fread(fid, nItems, 'uchar'); % unsigned char
-          
-                    if debug 
-                        for r=1:patch_size
-                            fprintf('%d ',w(r));
-                        end
-                        fprintf('\n');
-                        pause
-                    end
                     if(~isempty(w) & nItems ~= 0)
-                        W_array(k,:) = w(1:patch_size)./norm(w(1:patch_size));
+                        W_array(k,:) = w(1:patch_size);
+                               %./norm(w(1:patch_size));
                         %pause
                     end
                 end % if ~ feof 
@@ -165,7 +156,7 @@ if exist(filename,'file')
                 for p=1:4
                     subplot(2,2,p)
                     plot(1:NX,sum(reshape(P{p},[NX NY])')/NY,'ob');
-                    axis([1 64 0 1]);
+                    axis([1 64 0 Inf]);
                 end
             end
 
@@ -340,7 +331,7 @@ for p=1:4
     %figure(p)
     %imagesc(patch,'CDataMapping','direct');
     Proj(:,p) = V'; % when V gets reshaped and transposed
-                 % we get the right feature
+                    % we get the right feature
     %pause
 end
 

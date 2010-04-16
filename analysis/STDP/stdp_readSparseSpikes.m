@@ -28,19 +28,20 @@ if exist(filename,'file')
     T = [];
     t = 0;
     for i_step = 1 : n_time_steps
-        
-        if (feof(fid))
+        eofstat = feof(fid);
+        if (eofstat)
             n_time_steps = i_step - 1;
-            eofstat = feof(fid);
             fprintf('feof reached: n_time_steps = %d eof = %d\n',...
                 n_time_steps,eofstat);
             break;
         else
+            eofstat = feof(fid);
             time = fread(fid,1,'float64');
             %fprintf('time = %f\n',time);
             num_spikes = fread(fid, 1, 'int');
-            eofstat = feof(fid);
-            %fprintf('eofstat = %d\n', eofstat);
+            fprintf('time = %f num_spikes = %d ',time, num_spikes);
+            fprintf('eofstat = %d\n', eofstat);
+            %pause
         end
         
         S =fread(fid, num_spikes, 'int'); % S is a column vector

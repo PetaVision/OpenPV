@@ -5,12 +5,13 @@ close all
 % Make the global parameters available at the command-line for convenience.
 global N  NX NY n_time_steps begin_step tot_steps
 global spike_array num_target rate_array target_ndx vmem_array
-global input_dir output_dir output_path input_path
+global input_dir output_dir conn_dir output_path input_path
 global patch_size write_step
 
-%input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
-input_dir = '/Users/manghel/Documents/STDP-sim/';
-output_dir = '/Users/manghel/Documents/STDP-sim/conn_test/';
+input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/output-final_w3_bf40_bd10_dw04_bars/';
+output_dir = '/Users/manghel/Documents/STDP-sim/conn_test_32_32/';
+conn_dir = '/Users/manghel/Documents/STDP-sim/conn_test_32_32/';
 
 num_layers = 2;
 n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
@@ -18,7 +19,7 @@ patch_size = 16;  % nxp * nyp
 write_step = 10000; % set in params.stdp
 
 
-begin_step = 50000;  % where we start the analysis (used by readSparseSpikes)
+begin_step = 5000;  % where we start the analysis (used by readSparseSpikes)
 end_step   = 10000;
 stim_begin = 1;  % generally not true, but I read spikes
                       % starting from begin_step
@@ -46,13 +47,13 @@ plot_spike_activity = 0;
 plot_average_activity = 0;
 plot_weights_rate_evolution = 0;
 plot_membrane_potential = 0;
-plot_weights_field = 1;
+plot_weights_field = 0;
 plot_weights_projections = 0;
 plot_weights_histogram = 0;
 plot_weights_corr = 0; % read spikes first
 plot_patch = 0;
 comp_PCA = 0;
-comp_STDP = 0;
+comp_STDP = 1;
     
 if read_spikes
     spike_array = cell(num_layers,1);
@@ -393,16 +394,52 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     [f_file_pre, v_file_pre, w_file_pre, w_last_pre, xScale_pre, yScale_pre] = ...
         stdp_globals( layer -1 );
     
-        %[prePatchAverage, nPostSpikes, nPreSpikes] = stdp_compStatistics(f_file, f_file_pre);
+        %[prePatchAverage, nPostSpikes, kPostIndices] = stdp_compStatistics(f_file, f_file_pre);
 
+        %% read pre-synaptic indices for post-synaptic neurons
+        filename = [output_dir,'PCP_Indexes.dat'];
+        fid = fopen(filename, 'r');
+        C = textscan(fid,'%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d');
+        kPostIndices=C{1}; % Nx1 array of kPost indices
+    
+        %% open STDP files
+        for nPost = 1:numel(kPostIndices)
+            kPost = kPostIndices(nPost);
+            filename = [output_dir,'STDP_' num2str(kPost) '.dat'];
+            fid = fopen(filename, 'r');
         
-        filename = [output_dir,'STDP_75.dat'];
-        fid=fopen(filename,'r');
-        data = fscanf(fid,'%f',[17 inf]);
-        data=data';
-        size(data)
-        data(1:10,1);
+            data = fscanf(fid,'%f',[17 inf]);
+            data=data'; % T x patchsize matrix where T is the number of 
+                        % post-synaptic spikes 
+            
+            imagesc(data(:,2:17))
+            pause
+            
+            if 0
+                recField = sum(data(:,2:17)) ./ size(data,1);
+                patch = reshape(recField,[4 4]);
+                imagesc(patch,'CDataMapping','direct');
+                title(['kPost ' num2str(kPost)]);
+                colorbar
+                axis square
+                axis off
+                pause
+            end
+            if 0
+                x=0:1:20;
+                hist(data(:,1),x)
+                title(['kPost ' num2str(kPost)]);
+                pause
+            end
+            
+            % average clique size
+            avClique(nPost) = mean(data(:,1));
+            
+        end % loop over post-synaptic neurons
         
+        x=0:0.1:20;
+        hist(avClique,x)
+        title('Average Clique Size');
         
     end
     

@@ -3,13 +3,12 @@ function A = stdp_plotWeightsHistogramOnly(fname, xScale,yScale, TSTEP)
 % Returns the last weights distribution.
 % NOTE: The weights are quantized in the range [0,255].
 
-global input_dir  % NX NY 
+global input_dir  NX NY 
+
+scaleWeights = 1;
 
 filename = fname;
 filename = [input_dir, filename];
-
-NX = 32;        % retina size
-NY = 32;
 
 NX = NX * xScale; % L1 size
 NY = NY * yScale;
@@ -17,7 +16,12 @@ NY = NY * yScale;
 N=NX*NY;
 
 debug = 0;
-edges = 0:255;      % bin locations
+
+if scaleWeights
+    edges = 0:0.01:3; % scaled weights
+else
+    edges = 0:255;      % bin locations
+end
 
 if exist(filename,'file')
     
@@ -47,9 +51,15 @@ if exist(filename,'file')
         if recordID
             [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
                 readHeader(fid,numParams,numWgtParams);
-            fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
-                time,numPatches,NXP,NYP,NFP);
-            %pause
+           
+            if time > 0
+                
+                fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+                    time,numPatches,NXP,NYP,NFP);
+                %pause
+            else
+                break; % EOF found
+            end
         end
         
         % read time
@@ -70,6 +80,10 @@ if exist(filename,'file')
                     end
 
                     w = fread(fid, nItems, 'uchar'); % unsigned char
+                    % scale weights
+                    if scaleWeights
+                        w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                    end
                     if debug
                         for r=1:patch_size
                             fprintf('%d ',w(r));
@@ -182,7 +196,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 %
     
     
-function [time,varargout] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     
@@ -207,20 +221,26 @@ if ~feof(fid)
         fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
-
-        varargout{1} = numPatches;
-        varargout{2} = NXP;
-        varargout{3} = NYP;
-        varargout{4} = NFP;
-        varargout{5} = minVal;
-        varargout{6} = maxVal;
-        %pause
+        
     else
-        disp('eof found: return');
+        disp('empty params -> eof found: return');
+        time = -1;
+        NXP = 0;
+        NYP = 0;
+        NFP = 0;
+        minVal      = 0;
+        maxVal      = 0;
+        numPatches  = 0;
     end
 else
-   disp('eof found: return'); 
-   time = -1;
+    disp('eof found: return');
+    time = -1;
+    NXP = 0;
+    NYP = 0;
+    NFP = 0;
+    minVal      = 0;
+    maxVal      = 0;
+    numPatches  = 0;
 end
 % End subfunction 
 %

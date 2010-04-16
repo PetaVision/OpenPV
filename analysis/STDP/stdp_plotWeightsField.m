@@ -23,7 +23,7 @@ plotTarget = 0;
 
 debug = 0;
 weightsChange = 0;
-scaleWeights = 0;
+scaleWeights = 1;
 numRecords = 0;  % number of weights records (configurations)
 
 if exist(filename,'file')
@@ -58,8 +58,11 @@ if exist(filename,'file')
        PATCH = zeros(NXPbor,NYPbor);
                       % PATCH contains borders
     else
-        %PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
-        PATCH = ones(NXPbor,NYPbor) * 122;
+        if scaleWeights
+            PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
+        else
+            PATCH = ones(NXPbor,NYPbor) * 122;
+        end
     end
                       
     avWeights = [];  % time averaged weights array
