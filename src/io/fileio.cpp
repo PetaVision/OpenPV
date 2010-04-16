@@ -679,7 +679,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       // write time, total active count, and local activity
       //
       if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
-      if ( fwrite(VmemVals, sizeof(float), numNeurons, fp) != (size_t) numNeurons ) {
+      if ( fwrite(VmemVals, sizeof(pvdata_t), numNeurons, fp) != (size_t) numNeurons ) {
          return -1;
       }
 
