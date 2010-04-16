@@ -80,8 +80,13 @@ int Retina::initialize(PVLayerType type)
 
    // for the Retina, V is extended size, so resize
    if (l->numExtended != l->numNeurons) {
+      l->numNeurons = l->numExtended;
       free(l->V);
       l->V = (pvdata_t *) calloc(l->numExtended, sizeof(float));
+      assert(l->V != NULL);
+      free(l->activeIndices);
+      l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
+      assert(l->activeIndices != NULL);
    }
 
    // TODO - could free other layer parameters as they are not used
@@ -194,13 +199,25 @@ int Retina::copyFromImageBuffer()
    pvdata_t vmax = 0;
    for (int k = 0; k < clayer->numExtended; k++) {
       V[k] = ibuf[k];
-      vmax = V[k] > vmax ? V[k] : vmax;
+      vmax = ( V[k] > vmax ) ? V[k] : vmax;
    }
    if (vmax != 0){
       for (int k = 0; k < clayer->numExtended; k++) {
          V[k] = V[k] / vmax;
       }
    }
+/*
+   pvdata_t vmin = 0;
+   for (int k = 0; k < clayer->numExtended; k++) {
+      V[k] = ibuf[k];
+      vmin = V[k] < vmin ? V[k] : vmin;
+   }
+   if (vmin < -1){
+      for (int k = 0; k < clayer->numExtended; k++) {
+         V[k] = V[k] / fabs(vmin);
+      }
+   }
+*/
 
    //
    // otherwise handle OFF/ON cells
