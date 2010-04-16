@@ -14,6 +14,8 @@ function [spike_array, ave_rate] = pvp_readSparseSpikes(layer, pvp_order)
     pvp_order = 1;
   endif
 
+  pvp_fileTypes;
+
 				% PetaVision always names spike files aN.pvp, where
 				% N == layer index (starting at 0)
   filename = ['a', num2str(layer-1),'.pvp'];
@@ -34,6 +36,11 @@ function [spike_array, ave_rate] = pvp_readSparseSpikes(layer, pvp_order)
   if isempty(pvp_header)
     disp(['isempty(pvp_header) in pvp file: ', filename]);
     return;
+  endif
+
+  file_type = pvp_header(pvp_index.FILE_TYPE);
+  if ( file_type ~= PVP_ACT_FILE_TYPE )
+    disp(['file_type ~= PVP_ACT_FILE_TYPE in pvp file: ', filename]);
   endif
 
   pvp_begin_time = pvp_header(pvp_index.TIME);

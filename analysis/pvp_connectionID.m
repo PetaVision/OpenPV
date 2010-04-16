@@ -1,12 +1,14 @@
 function [connID, connIndex] = pvp_connectionID()
 
   connIndex = struct;
-  
-  global N_CONNECTIONS
-  N_CONNECTIONS = 24;
-  
   ij_conn = 0;
-  connID = cell(1,19);
+  global N_CONNECTIONS
+  global SPIKING_FLAG
+
+  if ( SPIKING_FLAG == 1 )
+    
+  N_CONNECTIONS = 24;
+  connID = cell(1,N_CONNECTIONS);
 
 
 				% retinal connections
@@ -143,3 +145,25 @@ function [connID, connIndex] = pvp_connectionID()
   connIndex.l1inh_l1inh_exc = ij_conn;
   connID{ 1, ij_conn } =  'L1Inh to L1Inh Exc';
 
+else
+
+
+  N_CONNECTIONS = 3;
+  connID = cell(1,N_CONNECTIONS);
+
+
+				% retinal connections
+  ij_conn = ij_conn + 1;
+  connIndex.r_l1 = ij_conn;
+  connID{ 1, ij_conn } =  'Retina to L1';
+
+  ij_conn = ij_conn + 1;
+  connIndex.r_l1inh = ij_conn;
+  connID{ 1, ij_conn } =  'Retina to L1Inh';
+
+  ij_conn = ij_conn + 1;
+  connIndex.l1_l1 = ij_conn;
+  connID{ 1, ij_conn } =  'L1 to L1';
+
+
+endif % spiking_flag
