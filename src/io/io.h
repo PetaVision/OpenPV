@@ -35,7 +35,7 @@
 #define PVP_FILE_TYPE      1
 #define PVP_ACT_FILE_TYPE  2
 #define PVP_WGT_FILE_TYPE  3
-#define PVP_NONSPIKING_ACT_FILE_TYPE  2
+#define PVP_NONSPIKING_ACT_FILE_TYPE  4
 // deprecated
 #define PV_WEIGHTS_FILE_TYPE 3
 #define KERNEL_FILE_TYPE     6996
