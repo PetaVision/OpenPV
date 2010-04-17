@@ -56,13 +56,16 @@ class PVReadSparse(object):
 
       #
       # figure out dt
+      rec = self.next_record()
       t0 = self.time
       rec = self.next_record()
-      self.rewind()
+      t1 = self.time
 
-      self.dt = self.time - t0
+      self.dt = t1 - t0
       self.time = t0
       self.timestep = 0
+
+      self.rewind()
 
       #print 'nx = %d ny = %d nf = %d' % (self.nx,self.ny,self.nf)
    # end read_params
@@ -124,9 +127,9 @@ class PVReadSparse(object):
             A += self.next_activity()
       except MemoryError:
          dt = self.time - t0
-         print "ts==%f te==%f dt==%f" %(t0,self.time,dt)
 
       dt = self.time - t0
+      print "ts==%f te==%f dt==%f" %(t0,self.time,dt)
  
       if dt > 0: return A/(.001*dt)
       else: return A
