@@ -20,6 +20,7 @@ PostConnProbe::PostConnProbe(int kPost)
    this->kyPost = 0;
    this->kfPost = 0;
    this->kPost = kPost;
+   this->image = NULL;
 }
 
 /**
@@ -33,6 +34,7 @@ PostConnProbe::PostConnProbe(const char * filename, int kPost)
    this->kyPost = 0;
    this->kfPost = 0;
    this->kPost = kPost;
+   this->image = NULL;
 }
 
 PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
@@ -42,6 +44,7 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->kyPost = kyPost;
    this->kfPost = kfPost;
    this->kPost = -1;
+   this->image = NULL;
 }
 
 PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int kfPost)
@@ -86,6 +89,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    w = wPost[kPost];
 
    fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
+   if (image) fprintf(fp, "tag==%d ", image->tag());
    if (stdpVars) {
       text_write_patch(fp, w, w->data);
       fflush(fp);

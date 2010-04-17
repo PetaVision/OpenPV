@@ -9,6 +9,7 @@
 #define POSTCONNPROBE_HPP_
 
 #include "ConnectionProbe.hpp"
+#include "../layers/Image.hpp"
 
 namespace PV {
 
@@ -20,10 +21,12 @@ public:
    PostConnProbe(const char * filename, int kxPost, int kyPost, int kfPost);
 
    virtual int outputState(float time, HyPerConn * c);
+   void setImage(Image * image)   {this->image = image;}
 
 protected:
    int kPost;   // index of post-synaptic neuron
    int kxPost, kyPost, kfPost;
+   Image * image;
 };
 
 }
