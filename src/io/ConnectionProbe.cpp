@@ -9,6 +9,7 @@
 #include <assert.h>
 
 namespace PV {
+
 /*
  * NOTES:
  *     - kxPre, kyPre, are indices in the restricted space.
@@ -33,8 +34,8 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->kxPre = kxPre;
    this->kyPre = kyPre;
    this->kfPre = kfPre;
-   this->kPre = -1;
-   this->fp = stdout;
+   this->kPre  = -1;
+   this->fp    = stdout;
    this->outputIndices = false;
    this->stdpVars = true;
 }
@@ -45,7 +46,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
    sprintf(path, "%s%s", OUTPUT_PATH, filename);
 
    this->kPre = kPre;
-   this->fp = fopen(path, "w");
+   this->fp   = fopen(path, "w");
    this->outputIndices = false;
    this->stdpVars = true;
 }
