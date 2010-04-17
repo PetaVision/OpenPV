@@ -105,6 +105,14 @@ PVLayerLoc Image::getImageLoc()
    return loc;
 }
 
+/**
+ * return some useful information about the image
+ */
+int Image::tag()
+{
+   return 0;
+}
+
 //pvdata_t * Image::getDataBuffer()
 //{
 //   return data;

@@ -40,6 +40,8 @@ public:
    virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
+   virtual int tag();
+
    int read(const char * filename);
    int write(const char * filename);
 
