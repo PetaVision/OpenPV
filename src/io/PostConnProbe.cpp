@@ -21,6 +21,7 @@ PostConnProbe::PostConnProbe(int kPost)
    this->kfPost = 0;
    this->kPost = kPost;
    this->image = NULL;
+   this->wPrev = NULL;
 }
 
 /**
@@ -35,6 +36,8 @@ PostConnProbe::PostConnProbe(const char * filename, int kPost)
    this->kfPost = 0;
    this->kPost = kPost;
    this->image = NULL;
+   this->wPrev = NULL;
+   this->wActiv = NULL;
 }
 
 PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
@@ -45,6 +48,8 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->kfPost = kfPost;
    this->kPost = -1;
    this->image = NULL;
+   this->wPrev = NULL;
+   this->wActiv = NULL;
 }
 
 PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int kfPost)
@@ -54,7 +59,17 @@ PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int k
    this->kyPost = kyPost;
    this->kfPost = kfPost;
    this->kPost = -1;
+   this->image = NULL;
+   this->wPrev = NULL;
+   this->wActiv = NULL;
 }
+
+PostConnProbe::~PostConnProbe()
+{
+   if (wPrev  != NULL) free(wPrev);
+   if (wActiv != NULL) free(wActiv);
+}
+
 /**
  * @time
  * @c
@@ -64,35 +79,88 @@ PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int k
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
-   int kxPre, kyPre;
+   bool changed;
+   int k, kxPre, kyPre;
    PVPatch  * w;
    PVPatch ** wPost = c->convertPreSynapticWeights(time);
 
-   const PVLayer * l = c->postSynapticLayer()->clayer;
+   // TODO - WARNING: currently only works if nfPre==0
 
-   const int nx = l->loc.nx;
-   const int ny = l->loc.ny;
-   const int nf = l->numFeatures;
+   const PVLayer * lPre = c->preSynapticLayer()->clayer;
+   const PVLayer * lPost = c->postSynapticLayer()->clayer;
+
+   const int nxPre = lPre->loc.nx;
+   const int nyPre = lPre->loc.ny;
+   const int nfPre = lPre->numFeatures;
+   const int nPadPre = lPre->loc.nPad;
+
+   const int nxPost = lPost->loc.nx;
+   const int nyPost = lPost->loc.ny;
+   const int nfPost = lPost->numFeatures;
+   const int nPadPost = lPost->loc.nPad;
 
    // calc kPost if needed
    if (kPost < 0) {
-      kPost = kIndex(kxPost, kyPost, kfPost, nx, ny, nf);
+      kPost = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
    }
    else {
-      kxPost = kxPos(kPost, nx, ny, nf);
-      kyPost = kyPos(kPost, nx, ny, nf);
-      kfPost = featureIndex(kPost, nx, ny, nf);
+      kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
+      kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+      kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
    }
 
    c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
+   const int kxPreEx = kxPre + nPadPre;
+   const int kyPreEx = kyPre + nPadPre;
+
+   const int kxPostEx = kxPost + nPadPost;
+   const int kyPostEx = kyPost + nPadPost;
+   const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+2*nPadPost, nyPost+2*nPadPost, nfPost);
+
    w = wPost[kPost];
 
-   fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
+   const int nw = w->nx * w->ny * w->nf;
+
+   if (wPrev == NULL) {
+      wPrev = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
+      for (k = 0; k < nw; k++) {
+         wPrev[k] = w->data[k];
+      }
+   }
+   if (wActiv == NULL) {
+      wActiv = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
+   }
+
+   k = 0;
+   for (int ky = 0; ky < w->ny; ky++) {
+      for (int kx = 0; kx < w->nx; kx++) {
+         int kPre = kIndex(kx+kxPreEx, ky+kyPreEx, 0, nxPre+2*nPadPre, nyPre+2*nPadPre, nfPre);
+         wActiv[k++] = lPre->activity->data[kPre];
+      }
+   }
+
+   changed = false;
+   for (k = 0; k < nw; k++) {
+      if (wPrev[k] != w->data[k] || wActiv[k] != 0.0) {
+         changed = true;
+         break;
+      }
+   }
+
+   if (lPost->activity->data[kPostEx] > 0.0) fprintf(fp, "*"); else fprintf(fp, " ");
+   fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", time, kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
    if (image) fprintf(fp, "tag==%d ", image->tag());
-   if (stdpVars) {
-      text_write_patch(fp, w, w->data);
+   if (stdpVars && changed) {
+      text_write_patch_extra(fp, w, w->data, wPrev, wActiv);
       fflush(fp);
+   }
+   else {
+      fprintf(fp, "\n");
+   }
+
+   for (k = 0; k < nw; k++) {
+      wPrev[k] = w->data[k];
    }
 
    if (outputIndices) {
@@ -106,5 +174,46 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    return 0;
 }
+
+int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
+                                          pvdata_t * data, pvdata_t * prev, pvdata_t * activ)
+{
+   int f, i, j;
+
+   const int nx = patch->nx;
+   const int ny = patch->ny;
+   const int nf = patch->nf;
+
+   const int sx = patch->sx;  assert(sx == nf);
+   const int sy = patch->sy;  assert(sy == nf*nx); // stride could be weird at border
+   const int sf = patch->sf;  assert(sf == 1);
+
+   assert(fp != NULL);
+
+   for (f = 0; f < nf; f++) {
+      fprintf(fp, "f = %i\n  ", f);
+      for (j = 0; j < ny; j++) {
+         for (i = 0; i < nx; i++) {
+            int offset = i*sx + j*sy + f*sf;
+            float diff = data[offset] - prev[offset];
+            float a = activ[offset];
+
+            const char * c = (a > 0.0) ? "*" : " ";
+
+            if (diff == 0) {
+               fprintf(fp, "%s%5.3f (     ) ", c, data[offset]);
+            }
+            else {
+               fprintf(fp, "%s%5.3f (%+4.2f) ", c, data[offset], diff);
+            }
+         }
+         fprintf(fp, "\n  ");
+      }
+      fprintf(fp, "\n");
+   }
+
+   return 0;
+}
+
 
 } // namespace PV
