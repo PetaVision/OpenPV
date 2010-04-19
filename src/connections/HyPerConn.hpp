@@ -139,6 +139,7 @@ protected:
    float tauLTD;
    float dWMax;
    float wMax;
+   float wMin;
 
    int numProbes;
    ConnectionProbe ** probes; // probes used to output data
