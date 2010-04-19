@@ -5,8 +5,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 64; //128;   // until we get going with images
-   ny = 64; //128;
+   nx = 32; //128;   // until we get going with images
+   ny = 32; //128;
    dt = .5;
 };
 
@@ -17,7 +17,15 @@ HyPerCol "column" = {
 HyPerLayer "Image" = {
    marginWidth = 2;
    burstFreq = 12;
-   pMove = 0.001;    // 
+   pMove = 0.01;     // 
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+};
+
+HyPerLayer "Bars" = {
+   marginWidth = 2;
+   burstFreq = 12;
+   pMove = 0.01;     // probability of moving (tau ~= 1/pMove = 50 ms)
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 1;  // write out image file when changes   
 };
@@ -28,15 +36,15 @@ HyPerLayer "Retina" = {
    marginWidth = 2;
 
    beginStim = 0;
-   endStim   = 900000;
+   endStim   = 90000000;
 
-   burstFreq = 5;       // Hz
-   burstDuration = 40;  // ms
+   burstFreq = 10;      // Hz
+   burstDuration = 10;  // ms
 
    spikingFlag = 1;     // spike as poisson
 
-   noiseOnFreq  = 0;//200;  // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 50;   // (Hz) when this is defined poissonBlank overridden
+   noiseOnFreq  = 400; //200;  // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 40;   // (Hz) when this is defined poissonBlank overridden
 };
 
 HyPerLayer "L1" = {
@@ -47,8 +55,8 @@ HyPerLayer "L1" = {
 
    marginWidth = 3;
    
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpE = 0.5;//1.0;
+   noiseAmpI = 0.5;//1.0;
 };
 
 HyPerLayer "L1Inh" = {
@@ -74,7 +82,7 @@ HyPerConn "Retina to L1" = {
    stdpFlag   = 1;
    randomFlag = 1;
    
-   initFromLastFlag = 0;  // restart
+   initFromLastFlag = 1;  // restart
 
    //
    // strength used if randomFlag==0
@@ -86,7 +94,7 @@ HyPerConn "Retina to L1" = {
 
    wMin = 0.0;     
    wMax = 3.0;
-   dWMax = 0.01;
+   dWMax = 0.04;  // .01;
    
    uniformWeights = 1;
 
@@ -95,7 +103,7 @@ HyPerConn "Retina to L1" = {
    //wGaussMean = 5.0;//5.00;
    //wGaussStdev = 0.0;//1.00;
    
-   writeStep = 10000; // writes to output file every writeStep
+   writeStep = 50000; // writes to output file every writeStep
 };
 
 HyPerConn "L1 to L1Inh" = {
