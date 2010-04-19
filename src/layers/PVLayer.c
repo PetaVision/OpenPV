@@ -317,12 +317,12 @@ int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
 
 int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
                            const float * RESTRICT p, float aPre,
-                           const float * RESTRICT aPost, float dWMax, float wMax)
+                           const float * RESTRICT aPost, float dWMax, float wMin, float wMax)
 {
    int k;
    for (k = 0; k < nk; k++) {
        w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
-       w[k] = w[k] < 0    ? 0    : w[k];
+       w[k] = w[k] < wMin ? wMin : w[k];
        w[k] = w[k] > wMax ? wMax : w[k];
    }
    return 0;
