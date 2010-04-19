@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import matplotlib.cm as cm
 import PVReadWeights as rw
+import PVConversions as conv
 
 def format_coord(x, y):
     col = int(x+0.5)
@@ -62,7 +63,14 @@ dist = dist/count
 
 # print maximum projection
 #
-print "maximum projected value = ", np.max(M)
+maxp = 0
+maxk = 0
+for k in range(len(M)):
+   if M[k] > maxp: maxp = M[k]; maxk = k
+
+kx = conv.kxPos(k, numcols, numrows, w.nf)
+ky = conv.kyPos(k, numcols, numrows, w.nf)
+print "maximum projected value = ", maxp, maxk, kx, ky
 
 M = M.reshape( (numrows,numcols) )
 
