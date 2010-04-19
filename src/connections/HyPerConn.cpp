@@ -96,6 +96,7 @@ int HyPerConn::initialize_base()
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax = 0.1;
+   this->wMin = 0.0;
    this->wMax = 1.0;
 
    this->wPostTime = -1.0;
@@ -226,8 +227,8 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    wMax = filep->value(name, "strength", wMax);
    // let wMax override strength if user provides it
    wMax = filep->value(name, "wMax", wMax);
+   wMin = filep->value(name, "wMin", wMin);
 
-   //override dWMax if user provides it
    dWMax = filep->value(name, "dWMax", dWMax);
 
    stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
@@ -658,7 +659,7 @@ int HyPerConn::updateWeights(int axonId)
 
       // update weights
       for (int y = 0; y < ny; y++) {
-         pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMax);
+         pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
          //
          // advance pointers in y
          W += sy;
