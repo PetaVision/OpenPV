@@ -322,7 +322,7 @@ int LIF2_init(PVLayer * l)
 
       kex = kIndexExtended(k, nx, ny, nf, marginWidth);
 
-      if ((params->noiseAmpE > 0) || (params->noiseAmpE > 0)) {
+      if ((params->noiseAmpE > 0) || (params->noiseAmpI > 0)) {
          l->Vth[k] = params->VthRest + pv_random_prob() * params->deltaVth;
          l->V[k] = pv_random_prob() * (params->VthRest - params->Vrest) + params->Vrest;
          l->G_E[k]  = params->noiseAmpE * pv_random_prob();
