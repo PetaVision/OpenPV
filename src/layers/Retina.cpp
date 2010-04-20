@@ -21,10 +21,10 @@ namespace PV {
 // default values
 fileread_params RetinaParams =
 {
-   0.0, 0.0, 1.0, 1.0*(NOISE_AMP==0.0)+0.5*(NOISE_AMP>0.0),
-   0.0*(NOISE_AMP==0.0)+0.01*(NOISE_AMP>0.0),
+   0.0, 0.0, 0.0, 0.0,
+   0.0,
    0.0, 0.0,         /* burstFreg, burstDuration */
-   0.0, 0.0, 1000.0  /* marginWidth, beginStim, endStim */
+   0.0, 0.0, 0.0  /* marginWidth, beginStim, endStim */
 };
 
 Retina::Retina(const char * name, HyPerCol * hc)
@@ -253,7 +253,25 @@ int Retina::updateImage(float time, float dt)
    bool changed = img->updateImage(time, dt);
    if (not changed) return 0;
 
-   return copyFromImageBuffer();
+   int status = copyFromImageBuffer();
+
+   PVLayer  * l   = clayer;
+   fileread_params * params = (fileread_params *) l->params;
+   pvdata_t * V = clayer->V;
+
+   if (params->invert) {
+      for (int k = 0; k < l->numExtended; k++) {
+         V[k] = 1 - V[k];
+      }
+   }
+
+   if (params->uncolor) {
+      for (int k = 0; k < l->numExtended; k++) {
+         V[k] = (V[k] == 0.0) ? 0.0 : 1.0;
+      }
+   }
+
+   return status;
 }
 
 //! Updates the state of the Retina
