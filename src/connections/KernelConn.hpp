@@ -34,6 +34,9 @@ public:
 
    virtual int updateWeights(int axonId){ return 0;};
 
+   virtual float minWeight();
+   virtual float maxWeight();
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();

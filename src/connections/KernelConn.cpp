@@ -7,6 +7,7 @@
 
 #include "KernelConn.hpp"
 #include <assert.h>
+#include <float.h>
 #include "../io/io.h"
 
 namespace PV {
@@ -50,21 +51,22 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
    const int arbor = 0;
    int numKernelPatches = numDataPatches(arbor);
 
-   PVPatch ** kernel_patches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   assert(kernel_patches != NULL);
+   assert(kernelPatches == NULL);
+   kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   assert(kernelPatches != NULL);
 
    for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
-      kernel_patches[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      assert(kernel_patches[kernelIndex] != NULL );
+      kernelPatches[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      assert(kernelPatches[kernelIndex] != NULL );
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       int kernelIndex = patchIndexToKernelIndex(patchIndex);
-      patches[patchIndex]->data = kernel_patches[kernelIndex]->data;
+      patches[patchIndex]->data = kernelPatches[kernelIndex]->data;
    }
-   return kernel_patches;
+   return patches;
 }
 
 /*TODO  createWeights currently breaks in this subclass if called more than once,
@@ -82,7 +84,7 @@ PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPat
    assert(patches != NULL);
 
    assert(kernelPatches == NULL);
-   kernelPatches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
+   allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 
    return patches;
 }
@@ -124,6 +126,34 @@ int KernelConn::numDataPatches(int arbor)
    int numKernelPatches = pre->clayer->numFeatures * xScaleFac * yScaleFac;
    return numKernelPatches;
 }
+
+float KernelConn::minWeight(){
+   const int axonID = 0;
+   const int numKernels = numDataPatches(axonID);
+   const int numWeights = nxp * nyp * nfp;
+   float min_weight = FLT_MAX;
+   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+      pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
+      for (int iWeight = 0; iWeight < numWeights; iWeight++){
+         min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight : kernelWeights[iWeight];
+      }
+   }
+   return min_weight;
+ }
+
+float KernelConn::maxWeight(){
+   const int axonID = 0;
+   const int numKernels = numDataPatches(axonID);
+   const int numWeights = nxp * nyp * nfp;
+   float max_weight = -FLT_MAX;
+   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+      pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
+      for (int iWeight = 0; iWeight < numWeights; iWeight++){
+         max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight : kernelWeights[iWeight];
+      }
+   }
+   return max_weight;
+ }
 
 int KernelConn::writeWeights(float time, bool last)
 {
