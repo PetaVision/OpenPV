@@ -1,4 +1,4 @@
-function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivity_tmp(layer, i_trial, pvp_order)
+function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivity(layer, i_trial, pvp_order)
 
   global output_path 
   global N NROWS NCOLS % for the current layer
@@ -73,12 +73,16 @@ function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivi
   endif
   disp(['max activity = ', num2str(max(activity_tmp(:)))]);
   disp(['min activity = ', num2str(min(activity_tmp(:)))]);
-  hist(activity_tmp(:));
-       
+  debug_readActivity = 0;
+  if debug_readActivity
+    fh_hist = figure;
+    set(fh_hist, 'Name', ['hist(', num2str(layer), ',', num2str(i_trial), ')']);
+    hist(activity_tmp(:));
+  endif
   
   fclose(fid);
   
-  ave_activity_tmp = mean( activity_tmp(activity_tmp>0) );
+  ave_activity_tmp = mean( activity_tmp(activity_tmp ~= 0) );
   activity_tmp = reshape( activity_tmp, [NFEATURES, NCOLS, NROWS] );
   if ~pvp_order
     activity_tmp = shiftdim( activity_tmp, [3, 2, 1] );

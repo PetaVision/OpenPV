@@ -53,9 +53,9 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   weight_max = pvp_header(pvp_index.WGT_MAX);
   num_patches = pvp_header(pvp_index.WGT_NUMPATCHES);
 
-  if ( weight_max < -1 ) && ( weight_min == 0 )
-    weight_max = - 1 / weight_max;
-  endif
+%  if ( weight_max < -1 ) && ( weight_min == 0 )
+%    weight_max = - 1 / weight_max;
+%  endif
 
   
   NCOLS = pvp_header(pvp_index.WGT_NXP);
@@ -84,8 +84,9 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
     nxp(i_patch) = fread(fid, 1, 'uint16');
     nyp(i_patch) = fread(fid, 1, 'uint16');
     weights_tmp = fread(fid, nxp(i_patch) * nyp(i_patch) * NFP, 'uint8');
-    weights{i_patch} = weight_min + weights_tmp * ( weight_max - ...
-						   weight_min ) / 255;
+    weights{i_patch} = ...
+	weight_min + weights_tmp * ...
+	( weight_max -  weight_min ) / 255;
   end
   fclose(fid);
 

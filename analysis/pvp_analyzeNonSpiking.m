@@ -14,7 +14,7 @@ global N_image NROWS_image NCOLS_image
 global N NROWS NCOLS % for the current layer
 global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
-global num_trials first_trial last_trial
+global num_trials first_trial last_trial skip_trial
 global first_training_trial last_training_trial training_trials
 global first_testing_trial last_testing_trial testing_trials
 global output_path input_path
@@ -34,9 +34,10 @@ NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
-num_trials = 3;
-first_trial = 3;
+num_trials = 5;
+first_trial = 2;
 last_trial = num_trials;
+skip_trial = 1;
 
 my_gray = [.666 .666 .666];
 num_targets = 1;
@@ -65,10 +66,15 @@ num_cols = ones(num_layers, num_trials);
 num_features = ones(num_layers, num_trials);
 pvp_layer_header = cell(N_LAYERS, num_trials);
 
-for i_trial = first_trial : last_trial
+for i_trial = first_trial : skip_trial : last_trial
 
 %% Analyze activity layer by layer
   for layer = read_activity;
+
+    % account for delays between layers
+    if layer > i_trial 
+      continue; 
+    endif
       
 				% Read spike events
     [act_time(layer, i_trial), activity, ave_activity(layer, i_trial), pvp_layer_header{layer, i_trial}] = ...
@@ -124,9 +130,12 @@ for i_conn = plot_weights
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
     N = NROWS * NCOLS * NFEATURES;
-    pvp_reconstruct(weights{i_conn}{i_patch}, [connID{i_conn}, ' Weight recon: i_conn = ', ...
-					       int2str(i_conn), ': i_patch = ', ...
-					       int2str(i_patch) ]);
+    patch_size = [1 NFEATURES NCOLS NROWS];
+    pvp_reconstruct(weights{i_conn}{i_patch}, ...
+		    [connID{i_conn}, ' Weight recon: i_conn = ', ...
+		     int2str(i_conn), ': i_patch = ', ...
+		     int2str(i_patch) ], ...
+		    [], patch_size);
   endfor % i_patch
 endfor % i_conn
 
