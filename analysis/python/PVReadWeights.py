@@ -86,11 +86,9 @@ class PVReadWeights(object):
 
       self.time = np.fromfile(self.file, 'd', 1)
 
-      self.wgtParams = np.fromfile(self.file, 'i', self.numWgtParams)
-
-      self.nxp,self.nyp,self.nfp = self.wgtParams[0:3]
-      self.min,self.max = self.wgtParams[3:5]
-      self.numPatches = self.wgtParams[5]
+      self.nxp,self.nyp,self.nfp = np.fromfile(self.file, 'i', 3)[0:3]
+      self.min,self.max = np.fromfile(self.file, 'f', 2)[0:2]
+      self.numPatches = np.fromfile(self.file, 'i', 1)[0]
 
       # define the numWeights
       self.patchSize = self.nxp * self.nyp * self.nfp
@@ -110,10 +108,9 @@ class PVReadWeights(object):
       print "nPad = %i" % self.params[16]
       print "nf = %i " % self.params[17]
       print "time = %f" % self.time 
-      print "nxp = %i nyp = %i nfp= %i" \
-         % (self.wgtParams[0],self.wgtParams[1],self.wgtParams[2])
-      print "min = %i max = %i" % (self.wgtParams[3],self.wgtParams[4])
-      print "numPatches = %i" % self.wgtParams[5]
+      print "nxp = %i nyp = %i nfp= %i" % (self.nxp,self.nyp,self.nfp)
+      print "min = %i max = %i" % (self.min,self.max)
+      print "numPatches = %i" % self.numPatches
    # end print_params
 
    def print_self_params(self):
@@ -131,15 +128,6 @@ class PVReadWeights(object):
       print "numPatches = %i" % self.numPatches
    # end print_params
 
-   def read_header(self):
-      """Read the header of each record"""
-      self.params = np.fromfile(self.file, 'i', self.numParams-8)
-      self.time = np.fromfile(self.file, 'd', 1)
-      self.wgtParams = np.fromfile(self.file, 'i', self.numWgtParams)
-      self.patch = 0
-   # end read_header
-
- 
    def rewind(self):
       """Rewind the file to the start of the data (just past metadata)"""
       self.file.seek(self.headerSize)
@@ -206,7 +194,7 @@ class PVReadWeights(object):
    # end histogram
 
    def next_record(self):
-      self.read_header()
+      self.read_params()
       self.print_params()
 
       r = np.zeros(self.numWeights,dtype = float32) 
@@ -223,7 +211,6 @@ class PVReadWeights(object):
          self.patch += 1
 
       return r
-
    # end next_record
 
    def valuesAt(self, k):
