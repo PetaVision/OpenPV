@@ -846,8 +846,8 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    const int nxp = wgtParams[INDEX_WGT_NXP];
    const int nyp = wgtParams[INDEX_WGT_NYP];
    const int nfp = wgtParams[INDEX_WGT_NFP];
-   const float minVal = wgtParams[INDEX_WGT_MIN];
-   const float maxVal = wgtParams[INDEX_WGT_MAX];
+   const float minVal = * ((float*) &wgtParams[INDEX_WGT_MIN]);
+   const float maxVal = * ((float*) &wgtParams[INDEX_WGT_MAX]);
 
    if (contiguous) {
       nxBlocks = 1;
@@ -1012,6 +1012,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
    }
    else {
+      float * fptr;
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
@@ -1033,9 +1034,12 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       params[INDEX_WGT_NXP] = nxp;
       params[INDEX_WGT_NYP] = nyp;
       params[INDEX_WGT_NFP] = nfp;
-      params[INDEX_WGT_MIN] = (int) minVal;
-      params[INDEX_WGT_MAX] = (int) (maxVal + 0.999f);  // round up
-//         (int) ( ( (int) minVal == 0 ) && ( maxVal > 0 ) && ( maxVal < 1 ) ) ? ( -1 / maxVal ) : maxVal;
+
+      fptr  = (float *) &params[INDEX_WGT_MIN];
+      *fptr = minVal;
+      fptr  = (float *) &params[INDEX_WGT_MAX];
+      *fptr = maxVal;
+
       params[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
 
       numParams = NUM_WGT_EXTRA_PARAMS;
