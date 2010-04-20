@@ -80,8 +80,8 @@ public:
    inline const char * getName()                     {return name;}
    inline int          getDelay()                    {return params->delay;}
 
-   inline float minWeight()                          {return 0.0;}
-   inline float maxWeight()                          {return wMax;}
+   virtual float minWeight()                          {return 0.0;}
+   virtual float maxWeight()                          {return wMax;}
 
    inline PVAxonalArbor * axonalArbor(int kPre, int neighbor)
       {return &axonalArborList[neighbor][kPre];}
