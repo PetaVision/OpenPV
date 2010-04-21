@@ -5,10 +5,13 @@
  *      Author: Craig Rasmussen
  */
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "LinearPostConnProbe.hpp"
 #include "BiConn.hpp"
+
+#include "Patterns.hpp"
 
 #include <src/columns/HyPerCol.hpp>
 #include <src/io/ConnectionProbe.hpp>
@@ -25,6 +28,8 @@
 
 using namespace PV;
 
+#undef DISPLAY
+
 void dump_weights(PVPatch ** patches, int numPatches);
 
 int main(int argc, char* argv[])
@@ -35,7 +40,8 @@ int main(int argc, char* argv[])
 
    // create the image
    //
-   Image * image = new Gratings("Image", hc);
+   //Image * image = new Gratings("Image", hc);
+   Image * image = new Patterns("Bars", hc);
 
    // create the layers
    //
@@ -56,29 +62,57 @@ int main(int argc, char* argv[])
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-   display->setDelay(0);
+   display->setDelay(100);
    display->setImage(image);
    display->addLayer(retina);
    display->addLayer(l1);
-   display->addLayer(l1Inh);
 #endif
-
-   int nfPost = 8;
-   int locX = 5;
-   int locY = 0;
-   int locF = 0;   // 0 OFF, 1 ON cell, ...
 
    // add probes
    //
 
-//   PVLayerProbe * rProbe0  = new LinearActivityProbe(hc, PV::DimX, locY, 0);
-//   PVLayerProbe * ptprobe1 = new PointProbe(61, locY, 1, "L1:x=61 f=1");
 //   ConnectionProbe * cProbe0 = new ConnectionProbe(2*5 + 0);
 //   PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
-//   PostConnProbe * pcProbe = new PostConnProbe(8575); // 127,66
-//   pcProbe->setOutputIndices(true);
-//   r_l1->insertProbe(pcProbe);
+#undef LINEAR_PROBES
+#ifdef LINEAR_PROBES
+   LayerProbe * rProbe0  = new LinearActivityProbe(hc, PV::DimX, 0, 0);
+   LayerProbe * rProbe1  = new LinearActivityProbe(hc, PV::DimX, 1, 0);
+   LayerProbe * rProbe2  = new LinearActivityProbe(hc, PV::DimX, 2, 0);
+   LayerProbe * rProbe3  = new LinearActivityProbe(hc, PV::DimX, 3, 0);
+   LayerProbe * rProbe4  = new LinearActivityProbe(hc, PV::DimX, 4, 0);
+   LayerProbe * rProbe5  = new LinearActivityProbe(hc, PV::DimX, 5, 0);
+   LayerProbe * rProbe6  = new LinearActivityProbe(hc, PV::DimX, 6, 0);
+   LayerProbe * rProbe7  = new LinearActivityProbe(hc, PV::DimX, 7, 0);
+   LayerProbe * rProbe8  = new LinearActivityProbe(hc, PV::DimX, 8, 0);
+   LayerProbe * rProbe9  = new LinearActivityProbe(hc, PV::DimX, 9, 0);
+   LayerProbe * rProbe10 = new LinearActivityProbe(hc, PV::DimX, 10, 0);
+   LayerProbe * rProbe11 = new LinearActivityProbe(hc, PV::DimX, 11, 0);
+
+   retina->insertProbe(rProbe0);
+   retina->insertProbe(rProbe1);
+   retina->insertProbe(rProbe2);
+   retina->insertProbe(rProbe3);
+   retina->insertProbe(rProbe4);
+   retina->insertProbe(rProbe5);
+   retina->insertProbe(rProbe6);
+   retina->insertProbe(rProbe7);
+   retina->insertProbe(rProbe8);
+   retina->insertProbe(rProbe9);
+   retina->insertProbe(rProbe10);
+   retina->insertProbe(rProbe11);
+#endif
+
+//   LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
+//   retina->insertProbe(rptprobe);
+
+//   LayerProbe * ptprobe1 = new PointProbe(53, 3, 0, "L1:");
+//   l1->insertProbe(ptprobe1);
+
+   PostConnProbe * pcProbe = new PostConnProbe(778); //(245); // 8575=>127,66
+   pcProbe->setImage(image);
+   //pcProbe->setOutputIndices(true);
+   r_l1->insertProbe(pcProbe);
 
 //   StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
 //   l1->insertProbe(sProbe);
@@ -87,13 +121,13 @@ int main(int argc, char* argv[])
    //
 
    if (hc->columnId() == 0) {
-      printf("[0]: Running simulation ...");  fflush(stdout);
+      printf("[0]: Running simulation ...\n");  fflush(stdout);
    }
 
    hc->run();
 
    if (hc->columnId() == 0) {
-      printf("\n[0]: Finished\n");
+      printf("[0]: Finished\n");
    }
 
    /* clean up (HyPerCol owns layers and connections, don't delete them) */
