@@ -34,8 +34,8 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->kxPre = kxPre;
    this->kyPre = kyPre;
    this->kfPre = kfPre;
-   this->kPre  = -1;
-   this->fp    = stdout;
+   this->kPre = -1;
+   this->fp = stdout;
    this->outputIndices = false;
    this->stdpVars = true;
 }
@@ -46,8 +46,9 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
    sprintf(path, "%s%s", OUTPUT_PATH, filename);
 
    this->kPre = kPre;
-   this->fp   = fopen(path, "w");
+   this->fp = fopen(path, "w");
    this->outputIndices = false;
+
    this->stdpVars = true;
 }
 
@@ -129,12 +130,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    if (outputIndices) {
       const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
-      const int nxPost = lPost->loc.nx;
-      const int nyPost = lPost->loc.ny;
+      const int nxPostExt = lPost->loc.nx + 2*lPost->loc.nPad;
+      const int nyPostExt = lPost->loc.ny + 2*lPost->loc.nPad;
       const int nfPost = lPost->numFeatures;
 
-      const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
-      const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
+      //const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
+      //const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
+      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nPad;;
+      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nPad;;
 
       //
       // The following is incorrect because w->nx is reduced near boundary.
@@ -142,6 +145,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
       //
       //int kxPost = zPatchHead(kxPre, w->nx, lPre->xScale, lPost->xScale);
       //int kyPost = zPatchHead(kyPre, w->ny, lPre->yScale, lPost->yScale);
+
 
       write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
       fflush(fp);
