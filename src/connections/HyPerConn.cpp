@@ -224,6 +224,11 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //
    // now set params that are not in the params struct (instance variables)
 
+   ampLTP = filep->value(name, "ampLTP", ampLTP);
+   ampLTD = filep->value(name, "ampLTD", ampLTD);
+   tauLTP = filep->value(name, "tauLTP", tauLTP);
+   tauLTD = filep->value(name, "tauLTD", tauLTD);
+
    wMax = filep->value(name, "strength", wMax);
    // let wMax override strength if user provides it
    wMax = filep->value(name, "wMax", wMax);
