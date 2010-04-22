@@ -83,6 +83,9 @@ public:
    virtual float minWeight()                          {return 0.0;}
    virtual float maxWeight()                          {return wMax;}
 
+   inline int xPatchSize()                           {return nxp;}
+   inline int yPatchSize()                           {return nyp;}
+
    inline PVAxonalArbor * axonalArbor(int kPre, int neighbor)
       {return &axonalArborList[neighbor][kPre];}
 
