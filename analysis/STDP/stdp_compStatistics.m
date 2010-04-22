@@ -1,4 +1,4 @@
-function [prePatchAverage, nPostSpikes, kPostIndices] = stdp_compStatistics(f_file, f_file_pre)
+function [prePatchAverage, nPostSpikes, kPostIndices, timeWeightsSum] = stdp_compStatistics(f_file, f_file_pre, W)
 % Computes the statistics of STDP dynamics.
 % We record the pre-synaptic activity in the receptive field of a post 
 % synaptic neuron in a sliding window of size W (in msec).
@@ -25,8 +25,8 @@ debug2 = 0;
 debug3 = 0;  % in reading post-synaptic indexes for pre-synaptic neurons
 
 
-write_PCP_indexes = 1;
-write_CP_indexes = 1;
+write_PCP_indexes = 0;
+write_CP_indexes = 0;
 
 
 nxpPost = 4; % post-synaptic neuron patch size (receptive field)
@@ -38,7 +38,7 @@ nypPre = 8;
 
 patch_size = nxpPost*nypPost;
 dT = 0.5;       % miliseconds (simulation time step)
-W = 30 / dT;    % size of time window for pre-synaptic spikes
+%W = 30 / dT;    % size of time window for pre-synaptic spikes
                 % NOTE: time step is 0.5
              
              
@@ -48,15 +48,18 @@ STDP_TIME = 20; % miliseconds
 timeWeights = zeros(1,W);
 c = exp(-dT/STDP_TIME);
 timeWeights(1) = 1.0;
+timeWeightsSum = timeWeights(1);
 
 for i = 2:W
     timeWeights(i) = c * timeWeights(i-1);
+    timeWeightsSum = timeWeightsSum + timeWeights(i);
 end
 fprintf('the vector of weights for time averaging of block activity:\n');
 for i=1:W
     fprintf('%f\n',timeWeights(i));
+    fprintf('\ntimeWeightsSum = %f\n',timeWeightsSum);
 end
-pause
+%pause
 
 
 %% open pre-synaptic layer spiking file
@@ -98,27 +101,27 @@ end
 % NOTE: choose only post-synaptic neurons not affected by 
 % margins (boundaries in pre-synaptic layer)
 
-kPostIndices = []; % store linear indices (restricted space!)
+kPostIndices = []; % stores linear indices (restricted space!)
                    % of kPost neurons not affected by margins 
-nPostIndices = 0;  % count number of kPost neurons
+nPostIndices = 0;  % counts number of kPost neurons
                    % not affected by margins
                    
+nPostSpikes  = zeros(1,NXpost*NYpost*NFpost);
                    % counts the number of spikes for each 
                    % post-synaptic neuron;
                    % cumulative vector; gets appended
-nPostSpikes  = zeros(1,NXpost*NYpost*NFpost);  
                    
+nPreSpikes =  zeros(1,NXpost*NYpost*NFpost);  
                    % counts the number of spikes in the receptive field
                    % of each post-synaptic neuron: weighted sum
                    % snap-shot vector; gets updated every time step
-nPreSpikes =  zeros(1,NXpost*NYpost*NFpost);  
                    
 prePatchAverage = {}; % this is a cell of arrays; 
-                    % each array is patch size; is cumulative
+                    % each array is patch size, is cumulative
                     % and stores the sum of time averaged pre-synaptic
                     % neurons activity for each nonmargin post-synaptic
                     % neuron; Needs nPost Spikes to extract the 
-                    % time average of average patch activity
+                    % time average of the conditioned average patch activity
                    
 % xyPost and kxPost are from 0 to NXpost-1, and NYpost -1
 % respectively
@@ -224,7 +227,7 @@ fprintf('there are %d non-margin neurons\n',nPostIndices);
 %% open STDP files 
 for nPost = 1:numel(kPostIndices)
    kPost = kPostIndices(nPost);
-   filename = [output_dir,'STDP_' num2str(kPost) '.dat'];
+   filename = [output_dir,'STDP_' num2str(W) '_' num2str(kPost) '.dat'];
    fid_stat{nPost} = fopen(filename, 'w');
 end
 
@@ -325,7 +328,8 @@ for i_step = 1 : W
          fprintf('timePost = %f timePre = %f\n',timePost,timePre);
          num_spikes = fread(fid_pre, 1, 'int');
          eofstat = feof(fid_pre);
-         fprintf('Spre:\n');
+         %fprintf('Spre:\n');
+         % read pre-synaptic indices: ADJUST BY 1
          Spre =fread(fid_pre, num_spikes, 'int')+1; % S is a column vector
          
          % update only if there is pre-synaptic activity
@@ -333,86 +337,51 @@ for i_step = 1 : W
              %fprintf('pre activity:\n');
              preActivity(Spre) = 1;
              %pause
-             % update only for pre patch activity for the post-synaptic neurons 
-             % connected to each pre-synaptic firing neuron
-             for i=1:numel(Spre)
-                 kPre=Spre(i);
-                 % find post neurons indices for kPre
-                 kxPre=rem(kPre-1,NXpre);
-                 kyPre=(kPre-1-kxPre)/NXpre;
-                 fprintf('post-patch indexes for kPre = %d ',kPre);
-                 fprintf('(kxPre = %d, kyPre = %d):\n',kxPre,kyPre);
-                 kPostInd = postIndexes{kPre};
-                 %pause
-                 for k = 1:numel(kPostInd)
-                     kPost = kPostInd(k);
-                     % update pre patch activity only for post synaptic 
-                     % non-margin neurons (not afected by boundaries)
-                     % only if the neuron is in the kPostIndices array!!
-                     ind = find(kPostIndices == kPost); 
-                     if numel(ind)
-                         if debug
-                             fprintf('kPost = %d: non-margin post neuron\n',kPost);
-                             kxPost=rem(kPost-1,NXpost);
-                             kyPost=(kPost-1-kxPost)/NXpost;
-                             fprintf('patch indexes for kPost = %d ',kPost);
-                             fprintf('(kxPost = %d, kyPost = %d):\n',kxPost,kyPost);
-                             preIndexes{kPost}
-                             fprintf('patch activity for kPost = %d:\n',kPost)
-                             preActivity(preIndexes{kPost})
-                             fprintf('pre patch activity before assignment:\n')
-                             prePatch{kPost}(i_step,:)
-                         end
-                         prePatch{kPost}(i_step,:) = preActivity(preIndexes{kPost});
-                         if debug
-                             fprintf('pre patch activity after assignment:\n')
-                             prePatch{kPost}(i_step,:)
-                         end
-                     else
-                         fprintf('kPost %d: margin post neuron!\n',kPost);
-                     end
-                     if debug
-                         pause
-                     end
-                 end % loop over post synaptic neurons
-                 if debug
-                    pause
-                 end
-             end % for loop over Spre
-         end % if Spre
-         %pause
-     end
+         end
+     
+         % update pre patch activity only for post synaptic
+         % non-margin neurons (not afected by boundaries)
+         % only if the neuron is in the kPostIndices array!!
+         for nPost = 1:numel(kPostIndices)
+             kPost = kPostIndices(nPost);
+
+             if debug
+                 fprintf('kPost = %d: non-margin post neuron\n',kPost);
+                 kxPost=rem(kPost-1,NXpost);
+                 kyPost=(kPost-1-kxPost)/NXpost;
+                 fprintf('patch indexes for kPost = %d ',kPost);
+                 fprintf('(kxPost = %d, kyPost = %d):\n',kxPost,kyPost);
+                 preIndexes{kPost}
+                 fprintf('patch activity for kPost = %d:\n',kPost)
+                 preActivity(preIndexes{kPost})
+                 fprintf('pre patch activity before assignment:\n')
+                 prePatch{kPost}(i_step,:)
+             end
+             
+             prePatch{kPost}(i_step,:) = preActivity(preIndexes{kPost});
+             
+             if debug
+                 fprintf('pre patch activity after assignment:\n')
+                 prePatch{kPost}(i_step,:)
+                 pause
+             end
+         end % loop over post synaptic neurons
+         
+     end % if i_step <= W
+
      
 end % i_step loop from 1 to W
 fprintf('finish advancing W steps in pre layer and (W+1) steps in post layer\n');
 %pause
 
-% intialize prePatch activity
-% WE DO NOT NEED TO; IT IS WRONG TO DO IT!
-if 0
-    for k = 1:nPostIndices % loop over nonmargin neurons
-        kPost = kPostIndices(k);
-        avgActivity = sum(prePatch{kPost});
-        prePatchAverage{kPost} = avgActivity;
-        fprintf('kPost = %d: prePatchAverage: ',kPost);
-        for i=1:patch_size
-            fprintf('%d ',prePatchAverage{kPost}(i));
-        end
-        fprintf('\n');
-    end
-    fprintf('finish initializing pre-patch average activity\n');
-    %pause
-end
 
 %% advance both layers: gather STDP statistics 
 % conditioned on post-synaptic
 % spiking activity
 
 
-% write statistics for selected neurons
+%% advance sparse activity buffers and write statistics for selected neurons
 
-%filename = [output_dir,'STDP_75.dat'];
-%fid_stat = fopen(filename, 'w');
 
 for i_step = 1 : (n_time_steps-W-1)
 
@@ -428,7 +397,7 @@ for i_step = 1 : (n_time_steps-W-1)
     %fprintf('timePost = %f\n',timePost);
     num_spikes = fread(fid_post, 1, 'int');
     
-          
+      %ADJUST INDICES BY 1     
      Spost =fread(fid_post, num_spikes, 'int') + 1; % S is a column vector
           
      % advance pre-synaptic activity
@@ -443,17 +412,24 @@ for i_step = 1 : (n_time_steps-W-1)
      num_spikes = fread(fid_pre, 1, 'int');
      
      %fprintf('Spre:\n');
+     % ADJUST INDICES BY 1
      Spre =fread(fid_pre, num_spikes, 'int')+1; % S is a column vector
 
      % update preActivity vector
-     %fprintf('pre activity:\n');
-     preActivity(Spre) = 1;
-     %pause
+     if numel(Spre)
+         %fprintf('pre activity:\n');
+         preActivity(Spre) = 1;
+         %pause
+     end
      %update pre patch activity for all non-margin post-synaptic neurons
   
      for k = 1:nPostIndices % loop over nonmargin neurons
          kPost = kPostIndices(k);
-         ind = find(Spost == kPost); 
+         
+         ind = find(Spost == kPost); % check if this neurons fires
+         % We can also check if this neuron DOES NOT FIRE
+         % and compute pre-synaptic activity for this case!!
+         
          if numel(ind)
              debug2=0;
          else
