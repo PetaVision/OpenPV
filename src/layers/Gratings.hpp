@@ -12,19 +12,21 @@
 
 namespace PV {
 
-class Gratings : public Image {
+class Gratings : public PV::Image {
 public:
    Gratings(const char * name, HyPerCol * hc);
    virtual ~Gratings();
-
+   void setProbMove(float p) {pMove = p;}
    virtual bool updateImage(float time, float dt);
 
 protected:
 
    float calcPhase(float time, float dt);
 
-   float phase;
+   float phase; // lastPhase inherited from Image
    float period;
+   float pMove;
+
 };
 
 }
