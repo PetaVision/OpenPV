@@ -22,7 +22,7 @@ public:
 protected:
 
    float calcPhase(float time, float dt);
-
+   int   writeImages;
    float phase; // lastPhase inherited from Image
    float period;
    float pMove;
