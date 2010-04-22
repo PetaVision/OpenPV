@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 		int ny = l1->clayer->loc.ny;
 		PointProbe * ptProbes[nx]; // array of nx pointers to PointProbe
 
-		for (unsigned int i = 0; i < nx; i++) {
+		for (int i = 0; i < nx; i++) {
 			char str[10];
 			if (i < 10)
 				sprintf(str, " %d: ", i);
@@ -164,9 +164,9 @@ int main(int argc, char* argv[]) {
 
 		ConnectionProbe * cProbe[numCProbes]; // array of pointers to ConnectionProbes
 		n = 0;
-		for (unsigned int iy = 0; iy < ny; iy++) {
-			for (unsigned int ix = 0; ix < nx; ix++) {
-				snprintf(filename, 127, "CP_%2d_%2d_%2d.dat", ix, iy, 0);
+		for ( int iy = 0; iy < ny; iy++) {
+			for ( int ix = 0; ix < nx; ix++) {
+				snprintf(filename, 127, "CP_%d_%d_%d.dat", ix, iy, 0);
 				cProbe[n] = new ConnectionProbe(filename,ix, iy, 0);
 				//r_l1->insertProbe(cProbe1);
 				cProbe[n]->setOutputIndices(true);
@@ -190,13 +190,14 @@ int main(int argc, char* argv[]) {
 
 		PostConnProbe * pcProbe[numPCProbes];
 		n = 0;
-		for (unsigned int ik = 0; ik < nf; ik++) {
-			for (unsigned int iy = 0; iy < ny; iy++) {
-				for (unsigned int ix = 0; ix < nx; ix++) {
-					snprintf(filename, 127, "PCP_%2d_%2d_%2d.dat", ix, iy, ik);
+		for (int ik = 0; ik < nf; ik++) {
+			for (int iy = 0; iy < ny; iy++) {
+				for (int ix = 0; ix < nx; ix++) {
+					snprintf(filename, 127, "PCP_%d_%d_%d.dat", ix, iy, ik);
 					pcProbe[n] = new PostConnProbe(filename,ix, iy, ik);
 					//r_l1->insertProbe(pcProbe[n]);
 					pcProbe[n]->setOutputIndices(true);
+					pcProbe[n]->setStdpVars(false);
 					pcProbe[n]->outputState(0.0, r_l1);
 					pcProbe[n]->setOutputIndices(false);
 					n++;
@@ -216,7 +217,7 @@ int main(int argc, char* argv[]) {
 		//LinearActivityProbe * laProbes[2*marginWidth]; // array of ny pointers to LinearActivityProbe
 		LinearActivityProbe * laProbes[ny];
 
-		for (unsigned int iy = 0; iy < ny; iy++) {
+		for (int iy = 0; iy < ny; iy++) {
 			laProbes[iy] = new PV::LinearActivityProbe(hc, PV::DimX, iy, 0);
 			displayLayer->insertProbe(laProbes[iy]);
 		}
@@ -241,7 +242,7 @@ int main(int argc, char* argv[]) {
 		const int nx = displayLayer->clayer->loc.nx;
 		LinearActivityProbe * laProbes[nx]; // array of nx pointers to LinearActivityProbe
 
-		for (unsigned int ix = 0; ix < nx; ix++) {
+		for ( int ix = 0; ix < nx; ix++) {
 			laProbes[ix] = new PV::LinearActivityProbe(hc, PV::DimY, ix, 0);
 			displayLayer->insertProbe(laProbes[ix]);
 		}
