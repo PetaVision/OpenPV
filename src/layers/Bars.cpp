@@ -49,22 +49,22 @@ Bars::Bars(const char * name, HyPerCol * hc) :
    random_jump = 0;
 
    if (params->present(name, "randomWalk")) {
-      int random_walk = params->value(name, "randomWalk");
+      random_walk = params->value(name, "randomWalk");
       //printf("randomWalk = %d\n", random_walk);
    }
 
    if (params->present(name, "moveForward")) {
-      int move_forward = params->value(name, "moveForward");
+      move_forward = params->value(name, "moveForward");
       //printf("moveForward = %d\n", move_forward);
    }
 
    if (params->present(name, "moveBackward")) {
-      int move_backward = params->value(name, "moveBackward");
+      move_backward = params->value(name, "moveBackward");
       //printf("moveBackward = %d\n", move_backward);
    }
 
    if (params->present(name, "randomJump")) {
-      int random_jump = params->value(name, "randomJump");
+      random_jump = params->value(name, "randomJump");
       //printf("randomJump = %d\n", random_jump);
    }
 
@@ -79,6 +79,32 @@ Bars::Bars(const char * name, HyPerCol * hc) :
 Bars::~Bars()
 {
 }
+
+
+/**
+ * Description: Clears the image buffer.
+ *
+ * Arguments: None
+ *
+ * Return value: 0 if successful, else non-zero.
+ */
+int Bars::clearImage()
+{
+   const int nx = loc.nx + 2 * loc.nPad;;
+   const int ny = loc.ny + 2 * loc.nPad;;
+   const int sx = 1;
+   const int sy = sx * nx;
+
+
+   for (int iy = 0; iy < ny; iy++) {
+      for (int ix = 0; ix < nx; ix++) {
+         data[ix * sx + iy * sy] = 0.0;
+      }
+   }
+
+   return 0;
+}
+
 
 /**
  * NOTES:
@@ -108,6 +134,10 @@ bool Bars::updateImage(float time, float dt)
    const int step = 6;
    int x, y;
 
+   // clear image
+   clearImage();
+
+
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
 
@@ -134,10 +164,10 @@ bool Bars::updateImage(float time, float dt)
       }
 
       for (int iy = 0; iy < ny; iy++) {
-         for (int ix = position; ix < nx + position; ix += width + step) {
+         for (int ix = position; ix < nx + position - width - step; ix += width + step) {
             x = (int) fmod(ix, nx);
             for (int m = 0; m < width; m++) {
-               data[(x + m) * sx + iy * sy] = 1.0;
+               data[(x + m) * sx + iy * sy] = 255.0;
             }
             for (int m = 0; m < step; m++) {
                data[(x + width + m) * sx + iy * sy] = 0.0;
@@ -157,10 +187,10 @@ bool Bars::updateImage(float time, float dt)
       }
 
       for (int ix = 0; ix < nx; ix++) {
-         for (int iy = position; iy < ny + position; iy += width + step) {
+         for (int iy = position; iy < ny + position - width - step; iy += width + step) {
             y = (int) fmod(iy, ny);
             for (int m = 0; m < width; m++) {
-               data[ix * sx + (y + m) * sy] = 1.0;
+               data[ix * sx + (y + m) * sy] = 255.0;
             }
             for (int m = 0; m < step; m++) {
                data[ix * sx + (y + width + m) * sy] = 0.0;
@@ -173,6 +203,10 @@ bool Bars::updateImage(float time, float dt)
       lastPosition = position;
       lastOrientation = orientation;
       lastUpdateTime = time;
+
+      //burstStatus = fmodf(time, 1000. / params->burstFreq);
+      //burstStatus = burstStatus <= params->burstDuration;
+
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
          snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", time);
