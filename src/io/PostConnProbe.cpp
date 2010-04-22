@@ -147,10 +147,13 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
          break;
       }
    }
-
-   if (lPost->activity->data[kPostEx] > 0.0) fprintf(fp, "*"); else fprintf(fp, " ");
-   fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", time, kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
-   if (image) fprintf(fp, "tag==%d ", image->tag());
+   if (stdpVars) {
+      if (lPost->activity->data[kPostEx] > 0.0) fprintf(fp, "*");
+      else fprintf(fp, " ");
+      fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", time, kPost, kxPost,
+            kyPost, kfPost, kxPre, kyPre);
+      if (image) fprintf(fp, "tag==%d ", image->tag());
+   }
    if (stdpVars && changed) {
       text_write_patch_extra(fp, w, w->data, wPrev, wActiv);
       fflush(fp);
@@ -164,6 +167,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    }
 
    if (outputIndices) {
+      fprintf(fp, "w%d(%d,%d,%d) prePatchHead(%d,%d): ", kPost, kxPost, kyPost, kfPost, kxPre, kyPre);
       if(!stdpVars){
         fprintf(fp,"\n");
       }
