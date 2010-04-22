@@ -21,6 +21,7 @@ public:
    void setProbSwitch(float p) {pSwitch = p;}
    void setProbMove(float p) {pMove = p;}
    virtual bool updateImage(float time, float dt);
+   virtual int  clearImage();
 
 protected:
 
