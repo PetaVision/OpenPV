@@ -11,6 +11,7 @@
 #include "../include/pv_types.h"
 #include <assert.h>
 #include <string.h>
+#include <float.h>
 
 namespace PV {
 
@@ -45,8 +46,8 @@ GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 int GeislerConn::initialize_base()
 {
    numUpdates = 0;
-   avePreActivity = 0.0;
-   avePostActivity = 0.0;
+   avePreActivity = NULL;
+   avePostActivity = NULL;
    geislerPatches = NULL;
    return KernelConn::initialize_base();
 }
@@ -60,6 +61,9 @@ PVPatch ** GeislerConn::createWeights(PVPatch ** patches, int nPatches, int nxPa
 
    const int arbor = 0;
    int num_geisler_patches = numDataPatches(arbor);
+
+   avePreActivity = (pvdata_t *) calloc(sizeof(pvdata_t), num_geisler_patches);
+   avePostActivity = (pvdata_t *) calloc(sizeof(pvdata_t), num_geisler_patches);
 
    assert(geislerPatches == NULL);
    geislerPatches = (PVPatch**) calloc(sizeof(PVPatch*), num_geisler_patches);
@@ -81,6 +85,8 @@ int GeislerConn::deleteWeights()
       pvpatch_inplace_delete(geislerPatches[k]);
    }
    free(geislerPatches);
+   free(avePreActivity);
+   free(avePostActivity);
 
    return KernelConn::deleteWeights();
 }
@@ -96,29 +102,36 @@ int GeislerConn::updateState(float time, float dt)
 {
    PVPatch ** kernel_patches = this->kernelPatches;
    int axonID = 0;
+   int num_kernels = this->numDataPatches(axonID);
    numUpdates++;
+
    int nPreEx = pre->clayer->numExtended;
    const pvdata_t * aPre = pre->getLayerData();
-   pvdata_t avePre = 0.0;
-   for (int kPre = 0; kPre < nPreEx; kPre++){
-      avePre += aPre[kPre];
+   for (int kfPre = 0; kfPre < num_kernels; kfPre++){
+      pvdata_t avePre = 0.0;
+      for (int kPre = 0; kPre < nPreEx; kPre+=num_kernels){
+         avePre += aPre[kPre] > 0 ? aPre[kPre] : 0;
+      }
+      avePre *= num_kernels / (float) nPreEx ;
+      avePreActivity[kfPre] += avePre;
    }
-   avePre /= nPreEx;
-   avePreActivity += avePre;
+
    int nPost = post->clayer->numNeurons;
    const pvdata_t * aPost = post->getLayerData();
-
-   pvdata_t avePost = 0.0;
-   for (int kPost = 0; kPost < nPost; kPost++){
-      avePost += aPost[kPost];
+   for (int kfPost = 0; kfPost < num_kernels; kfPost++){
+      pvdata_t avePost = 0.0;
+      for (int kPost = 0; kPost < nPost; kPost+=num_kernels) {
+         PVLayerLoc loc = post->clayer->loc;
+         int kPostEx = kIndexExtended(kPost, loc.nx, loc.ny, num_kernels, loc.nPad);
+            avePost += aPost[kPostEx];
+      }
+      avePost *= num_kernels / (float) nPost ;
+      avePostActivity[kfPost] += avePost;
    }
-   avePost /= nPost;
-   avePostActivity += avePost;
 
    // initialize geislerPatches
-   int numKernels = this->numDataPatches(axonID);
    int numWeights = nxp * nyp * nfp;
-   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+   for (int iKernel = 0; iKernel < num_kernels; iKernel++){
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
       pvdata_t * geislerWeights = geislerPatches[iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++){
@@ -130,15 +143,17 @@ int GeislerConn::updateState(float time, float dt)
    int status = updateWeights(axonID);
 
    // normalize geislerPatches
-   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+   for (int iKernel = 0; iKernel < num_kernels; iKernel++){
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
       pvdata_t * geislerWeights = geislerPatches[iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++){
          geislerWeights[iWeight] /= nPost;
          geislerWeights[iWeight] += kernelWeights[iWeight];
 #ifdef APPLY_GEISLER_WEIGHTS
+         int kfPost = iWeight % num_kernels;
          kernelWeights[iWeight] /= numUpdates;
-         pvdata_t kernelNorm = (avePreActivity / numUpdates ) * (avePostActivity / numUpdates );
+         pvdata_t kernelNorm =
+            (avePreActivity[iKernel] / numUpdates ) * (avePostActivity[kfPost] / numUpdates );
          kernelWeights[iWeight] -= kernelNorm;
 #else
          kernelWeights[iWeight] = 0.0;
@@ -159,14 +174,14 @@ int GeislerConn::updateWeights(int axonID)
    int postStrideY = post->clayer->numFeatures
    * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
 
-   int numExtended = pre->clayer->numExtended;
-   assert(numExtended == numWeightPatches(axonID));
+   int num_extended = pre->clayer->numExtended;
+   assert(num_extended == numWeightPatches(axonID));
 
    const pvdata_t * preLayerData = pre->getLayerData();
 
    int nKernels = numDataPatches(axonID);
 
-   for (int kPre = 0; kPre < numExtended; kPre++) {
+   for (int kPre = 0; kPre < num_extended; kPre++) {
       PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
 
       float aPre = preLayerData[kPre];
@@ -212,22 +227,59 @@ int GeislerConn::writeWeights(float time, bool last)
 #else
 	// copy geislerPatches to kernelPatches
    const int axonID = 0;
-   const int numKernels = numDataPatches(axonID);
-   const int numWeights = nxp * nyp * nfp;
-   pvdata_t kernelNorm = (avePreActivity / numUpdates ) * (avePostActivity / numUpdates );
-   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+   const int num_kernels = numDataPatches(axonID);
+   const int num_weights = nxp * nyp * nfp;
+   for (int iKernel = 0; iKernel < num_kernels; iKernel++){
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
       pvdata_t * geislerWeights = geislerPatches[iKernel]->data;
-      for (int iWeight = 0; iWeight < numWeights; iWeight++){
+      for (int iWeight = 0; iWeight < num_weights; iWeight++){
+         int kfPost = iWeight % num_kernels;
+         pvdata_t kernelNorm =
+            (avePreActivity[iKernel] / numUpdates ) * (avePostActivity[kfPost] / numUpdates );
          kernelWeights[iWeight] = geislerWeights[iWeight];
          kernelWeights[iWeight] /= numUpdates;
          kernelWeights[iWeight] -= kernelNorm;
-         kernelWeights[iWeight] /= (kernelNorm + (kernelNorm!=0));
+         kernelWeights[iWeight] /= fabs(kernelNorm + (kernelNorm==0));
       }
    }
-//	this->normalizeWeights(this->kernelPatches, this->numDataPatches(axonID));
+   this->normalizeWeights(this->kernelPatches, this->numDataPatches(axonID));
 #endif
    return KernelConn::writeWeights(time, last);
+}
+
+
+PVPatch ** GeislerConn::normalizeWeights(PVPatch ** patches, int numPatches)
+{
+   int axonID = 0;
+   PVParams * params = parent->parameters();
+   float strength = params->value(name, "strength", 0.0);
+
+   int num_kernels = this->numDataPatches(axonID);
+   int num_weights = nxp * nyp * nfp;
+
+   this->wMax = 1.0;
+   this->wMin = 0.0;
+   for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
+      PVPatch * wp = kernelPatches[kPatch];
+      pvdata_t * w = wp->data;
+      float sum = 0;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         sum += w[iWeight];
+      }
+      float zero_offset = sum / num_weights;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         w[iWeight] -= zero_offset;
+      }
+      float maxVal = -FLT_MAX/2;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         maxVal = ( w[iWeight] > maxVal ) ? w[iWeight] : maxVal;
+      }
+      float scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         w[iWeight] *= scale_factor;
+      }
+   }
+   return patches;
 }
 
 
