@@ -21,7 +21,8 @@ typedef enum {
    TypeV1FlankInhib,
    TypeV1FeedbackInhib,
    TypeV1Feedback2Inhib,
-   TypeV1SurroundInhib
+   TypeV1SurroundInhib,
+   TypeV1Geisler
 } PVLayerType;
 
 /**
