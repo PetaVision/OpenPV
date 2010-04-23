@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>;
 
 namespace PV {
 
@@ -145,8 +146,7 @@ int HyPerConn::initialize(const char * filename)
    // initializeWeights() must be aware that patches may not be uniform
    createAxonalArbors();
 
-   wPatches[arbor]
-         = initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
+   initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
    assert(wPatches[arbor] != NULL);
 
    writeTime = parent->simulationTime();
@@ -245,7 +245,8 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
    if (filename != NULL) {
-      return readWeights(patches, numPatches, filename);
+       readWeights(patches, numPatches, filename);
+       return patches;
       //return normalizeWeights(patches, numPatches);
    }
 
@@ -254,7 +255,8 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
          char name[PV_PATH_MAX];
          snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", OUTPUT_PATH, getConnectionId());
-         return readWeights(patches, numPatches, name);
+          readWeights(patches, numPatches, name);
+          return patches;
          //return normalizeWeights(patches, numPatches);
       }
    }
@@ -264,14 +266,17 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
 
    if (randomFlag != 0 || randomSeed != 0) {
-      return initializeRandomWeights(patches, numPatches, randomSeed);
-   }
+       initializeRandomWeights(patches, numPatches, randomSeed);
+       return patches;
+  }
    else if (smartWeights != 0) {
-      return initializeSmartWeights(patches, numPatches);
+       initializeSmartWeights(patches, numPatches);
+       return patches;
    }
    else {
       initializeDefaultWeights(patches, numPatches);
-      return normalizeWeights(patches, numPatches);
+       normalizeWeights(patches, numPatches);
+       return patches;
    }
 }
 
@@ -1474,34 +1479,40 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
    float strength = params->value(name, "strength", 1.0);
 
    this->wMax = 1.0;
-   float maxVal = 0;
+   float maxVal = -FLT_MAX;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
       pvdata_t * w = wp->data;
-      const int nx = (int) wp->nx;
-      const int ny = (int) wp->ny;
-      const int nf = (int) wp->nf;
+      const int nx = wp->nx;
+      const int ny = wp->ny;
+      const int nf = wp->nf;
+      const int sy = wp->sy;
       float sum = 0;
       float sum2 = 0;
-      for (int i = 0; i < nx * ny * nf; i++) {
-         sum += w[i];
-         sum2 += w[i] * w[i];
+      for (int ky = 0; ky < ny; ky++) {
+         for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
+            sum += w[iWeight];
+            sum2 += w[iWeight] * w[iWeight];
+         }
+         w += sy;
       }
+      w = wp->data;
+      float factor = 1.0f;
       if (sum == 0.0f && sum2 > 0.0f) {
-         float factor = strength / sqrtf(sum2);
-         for (int i = 0; i < nx * ny * nf; i++)
-            w[i] *= factor;
+         factor = strength / sqrtf(sum2);
       }
       else if (sum != 0.0f) {
-         float factor = strength / sum;
-         for (int i = 0; i < nx * ny * nf; i++)
-            w[i] *= factor;
+         factor = strength / sum;
       }
-      for (int i = 0; i < nx * ny * nf; i++) {
-         maxVal = ( w[i] > maxVal ) ? w[i] : maxVal;
+      for (int ky = 0; ky < ny; ky++) {
+         for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
+            w[iWeight] *= factor;
+            maxVal = ( w[iWeight] > maxVal ) ? w[iWeight] : maxVal;
+         }
+         w += sy;
       }
    }
-   this->wMax = maxVal * (1.1);
+   this->wMax = maxVal;
    return patches;
 }
 

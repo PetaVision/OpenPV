@@ -108,7 +108,7 @@ public:
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
 
-   PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
+   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex);
 
