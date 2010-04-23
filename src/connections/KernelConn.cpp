@@ -107,7 +107,7 @@ PVPatch ** KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
    int arbor = 0;
    int numKernelPatches = numDataPatches(arbor);
    HyPerConn::initializeWeights(kernelPatches, numKernelPatches, filename);
-   return wPatches[arbor];
+   return patches;
 }
 
 PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
@@ -154,6 +154,13 @@ float KernelConn::maxWeight(){
    }
    return max_weight;
  }
+
+PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
+{
+   const int arbor = 0;
+   const int num_kernels = numDataPatches(arbor);
+   return HyPerConn::normalizeWeights(kernelPatches, num_kernels);
+}
 
 int KernelConn::writeWeights(float time, bool last)
 {

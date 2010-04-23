@@ -37,6 +37,8 @@ public:
    virtual float minWeight();
    virtual float maxWeight();
 
+   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();
