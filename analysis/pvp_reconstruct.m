@@ -1,7 +1,9 @@
 
-function [fh] = pvp_reconstruct( recon_array, plot_title, fh, size_recon)
+function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
+				size_recon)
   
   global NK NO NROWS NCOLS
+  global ROTATE_FLAG
   
   if ~exist('DTH', 'var') || isempty(DTH)
     DTH = 180 / NO;
@@ -59,7 +61,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, size_recon)
     edge_len = (log2_size - 5) * edge_len;
   endif
     
-  theta_offset = 0;
+  theta_offset = 0.5 * ROTATE_FLAG;
   max_line_width = 2.5;
   axis([0 NCOLS+1 0 NROWS+1]);
   axis square;

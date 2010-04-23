@@ -14,15 +14,19 @@ global N_image NROWS_image NCOLS_image
 global N NROWS NCOLS % for the current layer
 global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
+global ROTATE_FLAG % orientation axis rotated by DTH / 2
+
 global num_trials first_trial last_trial skip_trial
 global first_training_trial last_training_trial training_trials
 global first_testing_trial last_testing_trial testing_trials
 global output_path input_path
 
-input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
-output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
+% input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
+% input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/target_4fc/';
+ output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
 
 pvp_order = 1;
+ROTATE_FLAG = 1;
 				% initialize to size of image (if known), these should be overwritten by each layer
 NROWS_image=256;
 NCOLS_image=256;
@@ -35,7 +39,7 @@ NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
 num_trials = 5;
-first_trial = 2;
+first_trial = 5;
 last_trial = num_trials;
 skip_trial = 1;
 
@@ -66,20 +70,21 @@ num_cols = ones(num_layers, num_trials);
 num_features = ones(num_layers, num_trials);
 pvp_layer_header = cell(N_LAYERS, num_trials);
 
-for i_trial = first_trial : skip_trial : last_trial
+for j_trial = first_trial : skip_trial : last_trial
 
 %% Analyze activity layer by layer
   for layer = read_activity;
 
     % account for delays between layers
-    if layer > i_trial 
-      continue; 
+    if layer > j_trial 
+      continue;
     endif
-      
+    i_trial = j_trial + (layer - 1);
+    
 				% Read spike events
     [act_time(layer, i_trial), activity, ave_activity(layer, i_trial), pvp_layer_header{layer, i_trial}] = ...
 	pvp_readActivity(layer, i_trial, pvp_order);
-    disp([ layerID{layer},
+    disp([ layerID{layer}, ...
 	  ': ave_activity(', num2str(layer), ',', num2str(i_trial), ') = ', ...
 	  num2str(ave_activity(layer, i_trial))]);
     if isempty(activity)
