@@ -126,16 +126,16 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@mpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_image_io with 4 nodes ..."
 	@mpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
-	@echo "Running test_image_io with 6 nodes ..."
-	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_image_io with 6 nodes ..."
+#	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 1 node ..."
 	@./test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 2 nodes ..."
 	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_weights_io with 4 nodes ..."
 	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
-	@echo "Running test_weights_io with 6 nodes ..."
-	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_weights_io with 6 nodes ..."
+#	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
 	@echo "Running test_constant_input with 2 nodes ..."
 	@mpirun -np 2 test_constant_input -p $(INPARAMS)
 	@echo "Running test_constant_input with 4 nodes ..."
