@@ -46,7 +46,7 @@ for k in range(len(M)):
    p = w.normalize( w.next_patch() )
    for f in range(numFeatures):
        projection = np.sum(p * features[f])
-       if projection > .6: M[k] = 1 + f
+       if projection > .8: M[k] = 2 + f
 
 print "time =", w.time
 
