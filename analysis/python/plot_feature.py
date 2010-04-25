@@ -23,11 +23,16 @@ Show how to modify the coordinate formatter to report the image "z"
 value of the nearest pixel given x and y
 """
 
-if len(sys.argv) < 3:
-   print "usage: plot_feature filename phase"
+if len(sys.argv) < 4:
+   print "usage: plot_feature filename orientation ('vertical' or 'horizontal') phase"
    sys.exit()
 
-phase = int(sys.argv[2])
+vertical = sys.argv[2]
+phase = int(sys.argv[3])
+if vertical=='horizontal':
+   vertical = False
+else:
+   vertical = True
 
 w = rw.PVReadWeights(sys.argv[1])
 
@@ -35,7 +40,11 @@ w = rw.PVReadWeights(sys.argv[1])
 # feature for given phase
 #
 f = np.zeros(w.patchSize)
-f[ range(phase, w.patchSize, w.nxp) ] = 1.0
+if vertical:
+   f[ range(phase, w.patchSize, w.nxp) ] = 1.0
+else:
+   f[ range(phase*w.nxp, w.nxp+phase*w.nxp) ] = 1.0
+print f
 f = w.normalize(f)
 
 numrows = w.nyGlobal
