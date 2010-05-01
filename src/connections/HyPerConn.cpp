@@ -244,10 +244,15 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 // returns handle to initialized weight patches
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
+   PVParams * params = parent->parameters();
+   bool normalize_flag = (bool) params->value(name, "normalize", 0.0f);
+
    if (filename != NULL) {
        readWeights(patches, numPatches, filename);
+       if (normalize_flag) {
+          normalizeWeights(patches, numPatches);
+       }
        return patches;
-      //return normalizeWeights(patches, numPatches);
    }
 
    PVParams * inputParams = parent->parameters();
@@ -256,8 +261,10 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
          char name[PV_PATH_MAX];
          snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", OUTPUT_PATH, getConnectionId());
           readWeights(patches, numPatches, name);
+          if (normalize_flag) {
+             normalizeWeights(patches, numPatches);
+          }
           return patches;
-         //return normalizeWeights(patches, numPatches);
       }
    }
 
@@ -267,10 +274,16 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
 
    if (randomFlag != 0 || randomSeed != 0) {
        initializeRandomWeights(patches, numPatches, randomSeed);
+       if (normalize_flag) {
+          normalizeWeights(patches, numPatches);
+       }
        return patches;
   }
    else if (smartWeights != 0) {
        initializeSmartWeights(patches, numPatches);
+       if (normalize_flag) {
+          normalizeWeights(patches, numPatches);
+       }
        return patches;
    }
    else {
@@ -402,7 +415,7 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
 
    float r2Max = rMax * rMax;
 
-   int numFlanks = (int) params->value(name, "numFlanks", 1);
+   int numFlanks = (int) params->value(name, "numFlanks", 1.0f);
    float shift = params->value(name, "flankShift", 0.0f);
    float rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
 
@@ -1376,6 +1389,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
+   bool self = (pre != post);
+
    pvdata_t * w = wp->data;
 
    const int nxPatch = wp->nx;
@@ -1384,6 +1399,9 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
    }
+
+   float deltaThetaMax = 2.0 * PI;
+//   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
 
    float xPreGlobal = 0.0;
    float yPreGlobal = 0.0;
@@ -1426,24 +1444,16 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
       if (noPost == 1 && noPre > 1) {
          thPost = thPre;
       }
+      if ( fabs(thPre - thPost) > deltaThetaMax){
+         continue;
+      }
       for (int jPost = 0; jPost < nyPatch; jPost++) {
          float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
-            // no self-interactions
-            bool selfFlag = 0;
-            if ((size_t) pre == (size_t) post) {
-               if (fPre == fPost) {
-                  if (fabs(xDelta) < 1.0e-5) {
-                     if (fabs(yDelta) < 1.0e-5) {
-                        selfFlag = 1;
-                        continue;
-                     }
-                  }
-               }
-            }
-            if (selfFlag){
+            bool sameLoc = ( (fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f) );
+            if ((sameLoc) && (!self)) {
                continue;
             }
 
@@ -1476,7 +1486,9 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
-   float strength = params->value(name, "strength", 1.0);
+   float strength = params->value(name, "strength", 1.0f);
+   float normalize_max = params->value(name, "normalize_max", 0.0f);
+   float normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
 
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
@@ -1487,32 +1499,43 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
       const int ny = wp->ny;
       const int nf = wp->nf;
       const int sy = wp->sy;
+      const int num_weights = nx * ny * nf;
       float sum = 0;
       float sum2 = 0;
+      maxVal = -FLT_MAX;
       for (int ky = 0; ky < ny; ky++) {
          for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
             sum += w[iWeight];
             sum2 += w[iWeight] * w[iWeight];
+            maxVal = ( maxVal > w[iWeight] ) ? maxVal : w[iWeight];
          }
          w += sy;
       }
+      float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
+      float zero_offset = 0.0f;
+      if (normalize_zero_offset == 1.0f){
+         zero_offset = sum / num_weights;
+         sum = 0.0f;
+         maxVal -= zero_offset;
+      }
+      float scale_factor = 1.0f;
+      if (normalize_max == 1.0f) {
+         scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
+      }
+       else if (sum != 0.0f) {
+         scale_factor = strength / sum;
+      }
+       else if (sum == 0.0f && sigma2 > 0.0f) {
+         scale_factor = strength / sqrtf(sigma2);
+      }
       w = wp->data;
-      float factor = 1.0f;
-      if (sum == 0.0f && sum2 > 0.0f) {
-         factor = strength / sqrtf(sum2);
-      }
-      else if (sum != 0.0f) {
-         factor = strength / sum;
-      }
       for (int ky = 0; ky < ny; ky++) {
          for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
-            w[iWeight] *= factor;
-            maxVal = ( w[iWeight] > maxVal ) ? w[iWeight] : maxVal;
+            w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
          }
          w += sy;
       }
    }
-   this->wMax = maxVal;
    return patches;
 }
 

@@ -154,7 +154,7 @@ int GeislerConn::updateState(float time, float dt)
          kernelWeights[iWeight] /= numUpdates;
          pvdata_t kernelNorm =
             (avePreActivity[iKernel] / numUpdates ) * (avePostActivity[kfPost] / numUpdates );
-         kernelWeights[iWeight] -= kernelNorm;
+//         kernelWeights[iWeight] -= kernelNorm;
 #else
          kernelWeights[iWeight] = 0.0;
 #endif
@@ -169,23 +169,46 @@ int GeislerConn::updateState(float time, float dt)
 
 int GeislerConn::updateWeights(int axonID)
 {
+   pvdata_t aPreThresh = 0.0f;
+   pvdata_t aPostThresh = 0.0f;
+
    // this stride is in extended space for post-synaptic activity and
    // STDP decrement variable
    int postStrideY = post->clayer->numFeatures
    * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
 
-   int num_extended = pre->clayer->numExtended;
-   assert(num_extended == numWeightPatches(axonID));
+   int num_pre_extended = pre->clayer->numExtended;
+   assert(num_pre_extended == numWeightPatches(axonID));
 
    const pvdata_t * preLayerData = pre->getLayerData();
 
+   pvdata_t aPreMax = -FLT_MAX;
+   for (int kPre = 0; kPre < num_pre_extended; kPre++) {
+      aPreMax = (aPreMax > preLayerData[kPre]) ? aPreMax : preLayerData[kPre];
+   }
+   aPreThresh = aPreMax / 2.0f;
+
+   const pvdata_t * postLayerData = post->getLayerData();
+
+   pvdata_t aPostMax = -FLT_MAX;
+   int num_post = post->clayer->numNeurons;
+   for (int kPost = 0; kPost < num_post; kPost++) {
+      int kPostEx = kIndexExtended(kPost,
+                               post->clayer->loc.nx,
+                               post->clayer->loc.ny,
+                               post->clayer->loc.nBands,
+                               post->clayer->loc.nPad);
+      aPostMax = (aPostMax > postLayerData[kPostEx]) ? aPostMax : postLayerData[kPostEx];
+   }
+   aPostThresh = aPostMax / 2.0f;
+
    int nKernels = numDataPatches(axonID);
 
-   for (int kPre = 0; kPre < num_extended; kPre++) {
+   for (int kPre = 0; kPre < num_pre_extended; kPre++) {
       PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
 
       float aPre = preLayerData[kPre];
-      if (aPre <= 0.0) continue;
+      if (aPre <= aPreThresh) continue;
 
       PVPatch * wPatch = arbor->weights;
       size_t postOffset = arbor->offset;
@@ -207,7 +230,7 @@ int GeislerConn::updateWeights(int axonID)
 
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-             gWeights[k] += aPre  * aPost[k];
+             gWeights[k] += aPre  * ( aPost[k] > aPostThresh ) ? aPost[k] : 0.0;
          }
           // advance pointers in y
          gWeights += sy;
@@ -238,7 +261,7 @@ int GeislerConn::writeWeights(float time, bool last)
             (avePreActivity[iKernel] / numUpdates ) * (avePostActivity[kfPost] / numUpdates );
          kernelWeights[iWeight] = geislerWeights[iWeight];
          kernelWeights[iWeight] /= numUpdates;
-         kernelWeights[iWeight] -= kernelNorm;
+//         kernelWeights[iWeight] -= kernelNorm;
          kernelWeights[iWeight] /= fabs(kernelNorm + (kernelNorm==0));
       }
    }
@@ -248,39 +271,24 @@ int GeislerConn::writeWeights(float time, bool last)
 }
 
 
+
 PVPatch ** GeislerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    int axonID = 0;
-   PVParams * params = parent->parameters();
-   float strength = params->value(name, "strength", 0.0);
-
    int num_kernels = this->numDataPatches(axonID);
-   int num_weights = nxp * nyp * nfp;
 
-   this->wMax = 1.0;
-   this->wMin = 0.0;
-   for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
+  for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
       PVPatch * wp = kernelPatches[kPatch];
       pvdata_t * w = wp->data;
-      float sum = 0;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         sum += w[iWeight];
-      }
-      float zero_offset = sum / num_weights;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         w[iWeight] -= zero_offset;
-      }
-      float maxVal = -FLT_MAX/2;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         maxVal = ( w[iWeight] > maxVal ) ? w[iWeight] : maxVal;
-      }
-      float scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         w[iWeight] *= scale_factor;
-      }
+      int kfSelf = kPatch;
+      int kxSelf = (nxp / 2);
+      int kySelf = (nyp / 2);
+      int kSelf = kIndex(kxSelf, kySelf, kfSelf, nxp, nyp, nfp);
+      w[kSelf] = 0.0f;
    }
-   return patches;
+   return KernelConn::normalizeWeights(patches, numPatches);
 }
+
 
 
 
