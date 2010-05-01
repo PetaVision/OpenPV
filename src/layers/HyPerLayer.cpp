@@ -427,7 +427,7 @@ int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
-   assert(neighbor == 0);
+   assert(neighbor >= 0);
    const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
@@ -439,7 +439,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre];
-      if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
+      if (a <= 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
       PVAxonalArbor * arbor = conn->axonalArbor(kPre, neighbor);
       PVPatch * phi = arbor->data;

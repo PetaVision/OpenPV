@@ -48,43 +48,28 @@ int GeislerLayer::updateState(float time, float dt)
       activity[k] = 0.0;
    }
 
+   pvdata_t max_direct = -FLT_MAX;
+   pvdata_t max_V = -FLT_MAX;
+
    // assume direct input to phiExc, lateral input to phiInh
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       pvdata_t direct_input = phiExc[k];
       pvdata_t lateral_input = phiInh[k];
-      V[k] = direct_input * lateral_input;
- //     activity[kex] = V[k];
-
+      V[k] = (direct_input > 0.0f) ? direct_input * lateral_input : direct_input;
+      max_direct = ( max_direct > direct_input ) ? max_direct : direct_input;
+      max_V = ( max_V > V[k] ) ? max_V : V[k];
       // reset accumulation buffers
       phiExc[k] = 0.0;
       phiInh[k] = 0.0;
       phiInhB[k] = 0.0;
    }
 
-   pvdata_t ave_V = 0.0f;
-   pvdata_t ave_direct = 0.0f;
-   pvdata_t ave_lateral = 0.0f;
+   pvdata_t scale_factor = fabs( max_direct ) / fabs( max_V + (max_V == 0.0f) );
    for (int k = 0; k < clayer->numNeurons; k++) {
-      ave_V += V[k];
-      ave_direct += phiExc[k] - phiInh[k];
-      ave_lateral += phiInhB[k];
+      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      V[k] *= scale_factor;
+      activity[kex] = ( V[k] > 0.0f ) ? V[k] : 0.0f;
    }
-   ave_V /= clayer->numNeurons;
-   ave_direct /= clayer->numNeurons;
-   ave_lateral /= clayer->numNeurons;
-
-   pvdata_t max_V = -FLT_MAX;
-   pvdata_t max_direct = -FLT_MAX;
-   pvdata_t max_lateral = -FLT_MAX;
-   for (int k = 0; k < clayer->numNeurons; k++) {
-      max_V = ( max_V > V[k] ) ? max_V : V[k];
-      max_direct = ( max_direct > (phiExc[k] - phiInh[k]) ) ? max_direct : (phiExc[k] - phiInh[k]);
-      max_lateral = ( max_lateral > phiInhB[k] ) ? max_lateral : phiInhB[k];
-   }
-   ave_V /= clayer->numNeurons;
-   ave_direct /= clayer->numNeurons;
-   ave_lateral /= clayer->numNeurons;
 
    return 0;
 }
