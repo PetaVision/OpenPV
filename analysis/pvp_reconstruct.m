@@ -46,7 +46,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     min_recon_val = min( (max_recon - ave_recon) / 2, 0 );
   endif
   if min_recon_val == max_recon
-    max_recon_val = min_recon_val + 1;
+    min_recon_val = 0;
   endif
   max_recon_val = max_recon;
 				%min_recon_val = max( 0, ave_recon );

@@ -1,5 +1,8 @@
 function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivity(layer, i_trial, pvp_order)
 
+  global NUM_BIN_PARAMS 
+  global NUM_WGT_PARAMS
+
   global output_path 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer

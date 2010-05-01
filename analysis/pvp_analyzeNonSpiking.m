@@ -1,5 +1,5 @@
 %%
-close all
+%close all
 clear all
 
 				% set paths, may not be applicable to all octave installations
@@ -16,6 +16,9 @@ global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
 global ROTATE_FLAG % orientation axis rotated by DTH / 2
 
+global TRAINING_FLAG
+TRAINING_FLAG = 0;
+
 global num_trials first_trial last_trial skip_trial
 global first_training_trial last_training_trial training_trials
 global first_testing_trial last_testing_trial testing_trials
@@ -23,7 +26,8 @@ global output_path input_path
 
 % input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
 % input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/target_4fc/';
- output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
+				% output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
+ output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_target_2fc/';
 
 pvp_order = 1;
 ROTATE_FLAG = 1;
@@ -38,14 +42,20 @@ NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
-num_trials = 5;
-first_trial = 5;
+num_trials = 111;
+first_trial = 11;
 last_trial = num_trials;
-skip_trial = 1;
+skip_trial = 100;
 
 my_gray = [.666 .666 .666];
 num_targets = 1;
 fig_list = [];
+
+global NUM_BIN_PARAMS
+NUM_BIN_PARAMS = 20;
+
+global NUM_WGT_PARAMS
+NUM_WGT_PARAMS = 5;
 
 global N_LAYERS
 global SPIKING_FLAG
@@ -53,10 +63,10 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID();
 
-read_activity = [1 2]; % 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
+read_activity = 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
 num_layers = N_LAYERS;
 
-plot_reconstruct = [1 2]; %uimatlab;
+plot_reconstruct = 1:N_LAYERS; %[1 2 3]; %uimatlab;
 
 %acivity_array = cell(num_layers, num_trials);
 ave_activity = zeros(num_layers, num_trials);
@@ -102,7 +112,7 @@ for j_trial = first_trial : skip_trial : last_trial
 	  [ 1 , num_features(layer, i_trial), ...
 	   num_cols(layer, i_trial), num_rows(layer, i_trial) ];
       fig_tmp = pvp_reconstruct(activity, ...
-				[layerID{layer}, ' reconstruct: layer = ', ...
+				[layerID{layer}, ' layer = ', ...
 				 int2str(layer), ', trial = ', ...
 				 num2str(i_trial)], [], ...
 				size_activity);
@@ -118,26 +128,69 @@ endfor % i_trial
 global N_CONNECTIONS
 global NXP NYP NFP
 [connID, connIndex] = pvp_connectionID();
-plot_weights = 1:3;%N_CONNECTIONS;
-weights = cell(N_CONNECTIONS, 1);
-pvp_conn_header = cell(N_CONNECTIONS, 1);
-nxp = cell(N_CONNECTIONS, 1);
-nyp = cell(N_CONNECTIONS, 1);
+if TRAINING_FLAG
+  plot_weights = 1 : N_CONNECTIONS;
+else
+  plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+~TRAINING_FLAG );
+endif
+weights = cell(N_CONNECTIONS+1, 1);
+weight_invert = ones(N_CONNECTIONS+~TRAINING_FLAG, 1);
+weight_invert(5) = -1;
+pvp_conn_header = cell(N_CONNECTIONS+~TRAINING_FLAG, 1);
+nxp = cell(N_CONNECTIONS+~TRAINING_FLAG, 1);
+nyp = cell(N_CONNECTIONS+~TRAINING_FLAG, 1);
 for i_conn = plot_weights
-  [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_conn_header{i_conn}, pvp_index ] ...
-      = pvp_readWeights(i_conn);
+    weight_min = 10000000.;
+    weight_max = -10000000.;
+    weight_ave = 0;
+  if i_conn < N_CONNECTIONS+1
+    [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_conn_header{i_conn}, pvp_index ] ...
+	= pvp_readWeights(i_conn);
+    pvp_conn_header_tmp = pvp_conn_header{i_conn};
+    num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+    for i_patch = 1:num_patches
+      weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
+      weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
+      weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
+    endfor
+    weight_ave = weight_ave / num_patches;
+    disp( ['weight_min = ', num2str(weight_min)] );
+    disp( ['weight_max = ', num2str(weight_max)] );
+    disp( ['weight_ave = ', num2str(weight_ave)] );
+    if ~TRAINING_FLAG
+      continue;
+    endif
+  elseif i_conn == N_CONNECTIONS + 1
+    connID{i_conn} = [connID{i_conn-2}, ' - ', connID{i_conn-1}];
+    pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
+    pvp_conn_header_tmp = pvp_conn_header{i_conn};
+    num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+    nxp{i_conn} = nxp{i_conn-2};
+    nyp{i_conn} = nyp{i_conn-2};
+    for i_patch = 1:num_patches
+      weights{i_conn}{i_patch} = ...
+	  weights{i_conn-2}{i_patch} + weights{i_conn-1}{i_patch};
+      weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
+      weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
+      weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
+    endfor
+    weight_ave = weight_ave / num_patches;
+    disp( ['weight_min = ', num2str(weight_min)] );
+    disp( ['weight_max = ', num2str(weight_max)] );
+    disp( ['weight_ave = ', num2str(weight_ave)] );
+  else
+    continue;
+  endif
   NK = 1;
   NO = floor( NFEATURES / NK );
-  pvp_conn_header_tmp = pvp_conn_header{i_conn};
-  num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
   skip_patches = 1; %num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
     N = NROWS * NCOLS * NFEATURES;
     patch_size = [1 NFEATURES NCOLS NROWS];
-    pvp_reconstruct(weights{i_conn}{i_patch}, ...
-		    [connID{i_conn}, ' Weight recon: i_conn = ', ...
+    pvp_reconstruct(weights{i_conn}{i_patch}*weight_invert(i_conn), ...
+		    [connID{i_conn}, ' i_conn = ', ...
 		     int2str(i_conn), ': i_patch = ', ...
 		     int2str(i_patch) ], ...
 		    [], patch_size);
