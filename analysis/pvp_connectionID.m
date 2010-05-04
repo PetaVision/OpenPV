@@ -154,15 +154,15 @@ elseif TRAINING_FLAG
 
   ij_conn = ij_conn + 1;
   connIndex.r_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to L1';
+  connID{ 1, ij_conn } =  'R2L1';
 
   ij_conn = ij_conn + 1;
   connIndex.r_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to L1Inh';
+  connID{ 1, ij_conn } =  'R2L1Inh';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1';
+  connID{ 1, ij_conn } =  'L12L1';
 
 else
   
@@ -173,23 +173,26 @@ else
 
   ij_conn = ij_conn + 1;
   connIndex.r_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to L1';
+  connID{ 1, ij_conn } =  'R2L1';
 
   ij_conn = ij_conn + 1;
   connIndex.r_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to L1Inh';
+  connID{ 1, ij_conn } =  'R2L1Inh';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1_geisler = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1 Geisler';
+  connID{ 1, ij_conn } =  'L12L1G';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1_geisler_target = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1 Geisler Target';
+  connID{ 1, ij_conn } =  'L12L1GT';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1_geisler_distractor = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1 Geisler Distractor';
+  connID{ 1, ij_conn } =  'L12L1GD';
 
+  ij_conn = ij_conn + 1;
+  connIndex.l1_l1_geisler_distractor = ij_conn;
+  connID{ 1, ij_conn } =  'L12L1GDIFF';
 
 endif % spiking_flag

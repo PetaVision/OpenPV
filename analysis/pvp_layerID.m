@@ -54,12 +54,12 @@ elseif TRAINING_FLAG
 
 else
 
-  N_LAYERS = 4;
+  N_LAYERS = 5;
   layerID = cell(1, N_LAYERS);
 
   i_layer = i_layer + 1;
   layerIndex.retina = i_layer;
-  layerID{ 1, i_layer } =  'retina';
+  layerID{ 1, i_layer } =  'R';
 
   i_layer = i_layer + 1;
   layerIndex.l1 = i_layer;
@@ -67,10 +67,14 @@ else
 
   i_layer = i_layer + 1;
   layerIndex.l1_geisler = i_layer;
-  layerID{ 1, i_layer } =  'L1 Geisler';  
+  layerID{ 1, i_layer } =  'L1G';  
 
   i_layer = i_layer + 1;
   layerIndex.l1_geisler2 = i_layer;
-  layerID{ 1, i_layer } =  'L1 Geisler2';  
+  layerID{ 1, i_layer } =  'L1G2';  
+
+  i_layer = i_layer + 1;
+  layerIndex.l1_geisler2 = i_layer;
+  layerID{ 1, i_layer } =  'L1G3';  
 
 endif % SPIKING_FLAG
