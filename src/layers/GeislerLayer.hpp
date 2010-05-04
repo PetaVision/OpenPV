@@ -16,7 +16,7 @@ class GeislerLayer: public PV::V1 {
 public:
    GeislerLayer(const char* name, HyPerCol * hc);
    GeislerLayer(const char* name, HyPerCol * hc, PVLayerType type);
-   int GeislerLayer::updateState(float time, float dt);
+   virtual int updateState(float time, float dt);
 
 private:
 };
