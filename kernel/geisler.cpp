@@ -10,12 +10,13 @@
 #include "../PetaVision/src/connections/HyPerConn.hpp"
 #include "../PetaVision/src/connections/KernelConn.hpp"
 #include "../PetaVision/src/connections/CocircConn.hpp"
-#include "GeislerConn.hpp"
+#include "../PetaVision/src/connections/GeislerConn.hpp"
 #include "../PetaVision/src/connections/AvgConn.hpp"
 #include "../PetaVision/src/layers/Movie.hpp"
 #include "../PetaVision/src/layers/Image.hpp"
 #include "../PetaVision/src/layers/Retina.hpp"
 #include "../PetaVision/src/layers/V1.hpp"
+#include "../PetaVision/src/layers/GeislerLayer.hpp"
 #include "../PetaVision/src/io/ConnectionProbe.hpp"
 #include "../PetaVision/src/io/GLDisplay.hpp"
 #include "../PetaVision/src/io/PostConnProbe.hpp"
@@ -149,7 +150,7 @@ int main(int argc, char* argv[]) {
 			CHANNEL_EXC, kernel_filename_exc);
 
 
-	// V1 Inh FF connections
+	// L1 Inh FF connections
 	HyPerConn * l1inhff_l1 =
 		new CocircConn("L1InhFF to L1",   			hc, l1inhff,  l1,
 			CHANNEL_INH);
@@ -373,9 +374,13 @@ int main(int argc, char* argv[]) {
 
 #else  // learn Geisler kernels
 
-	const char * amoeba_fileOfFileNames = "./input/amoebaImageFiles.txt"; // "./input/hard4.bmp";
+	const char * amoeba_fileOfFileNames = "./input/test_target_distractor_2fc/fileNames.txt"; //
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
+//	const char * amoeba_filename = "./input/test_amoebas/test0000.bmp"; // "./input/hard4.bmp"; //
+//	Image * image = new Image("Image", hc, amoeba_filename);
+	const char * image_file =  "./output/amoebaImage.tiff";
+	movie->write(image_file);
 	HyPerLayer * retina = new Retina("Retina", hc, movie);
 	HyPerLayer * l1 = new V1("L1", hc);
 	HyPerConn * retina_l1 =
@@ -384,9 +389,56 @@ int main(int argc, char* argv[]) {
 	HyPerConn * retina_l1_inh =
 		new KernelConn("Retina to L1 Inh",   hc, retina,  l1,
 			CHANNEL_INH);
+	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
+	l1->insertProbe(statsl1);
+#undef TRAINING_TRIALS
+#ifdef TRAINING_TRIALS
 	HyPerConn * l1_l1 =
 		new GeislerConn("L1 to L1",      hc, l1,     l1,
 			CHANNEL_EXC);
+#else
+	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
+	HyPerConn * l1_l1_geisler =
+		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
+			CHANNEL_EXC);
+	const char * geisler_filename_target = "./input/target_2fc/w2_last.pvp";
+	HyPerConn * l1_l1_geisler_target =
+		new KernelConn("L1 to L1 Geisler Target",   	hc, l1,    	l1_geisler,
+			CHANNEL_INH, geisler_filename_target);
+	const char * geisler_filename_distractor = "./input/distractor_2fc/w2_last.pvp";
+	HyPerConn * l1_l1_geisler_distractor =
+		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,     l1_geisler,
+			CHANNEL_INH, geisler_filename_distractor);
+	LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,         "L1 Geisler :");
+	l1_geisler->insertProbe(statsl1_geisler);
+
+	HyPerLayer * l1_geisler2 = new GeislerLayer("L1 Geisler2", hc);
+	HyPerConn * l1_geisler_l1_geisler2 =
+		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
+			CHANNEL_EXC);
+	HyPerConn * l1_geisler_l1_geisler2_target =
+		new KernelConn("L1 Geisler to L1 Geisler2 Target",   	hc, l1_geisler,    	l1_geisler2,
+			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l1_geisler_l1_geisler2_distractor =
+		new KernelConn("L1 Geisler to L1 Geisler2 Distractor", 	hc, l1_geisler,     l1_geisler2,
+			CHANNEL_INH, geisler_filename_distractor);
+	LayerProbe * statsl1_geisler2 = new StatsProbe(BufActivity,         "L1 Geisler2 :");
+	l1_geisler2->insertProbe(statsl1_geisler2);
+
+	HyPerLayer * l1_geisler3 = new GeislerLayer("L1 Geisler3", hc);
+	HyPerConn * l1_geisler2_l1_geisler3 =
+		new CocircConn("L1 Geisler2 to L1 Geisler3",   			hc, l1_geisler2,  	l1_geisler3,
+			CHANNEL_EXC);
+	HyPerConn * l1_geisler2_l1_geisler3_target =
+		new KernelConn("L1 Geisler2 to L1 Geisler3 Target",   	hc, l1_geisler2,    	l1_geisler3,
+			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l1_geisler2_l1_geisler3_distractor =
+		new KernelConn("L1 Geisler2 to L1 Geisler3 Distractor", 	hc, l1_geisler2,     l1_geisler3,
+			CHANNEL_INH, geisler_filename_distractor);
+	LayerProbe * statsl1_geisler3 = new StatsProbe(BufActivity,         "L1 Geisler3 :");
+	l1_geisler3->insertProbe(statsl1_geisler3);
+
+#endif
 
 #endif
 
