@@ -4,6 +4,18 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   
   global NK NO NROWS NCOLS
   global ROTATE_FLAG
+  global MIN_INTENSITY
+  global FLAT_ARCH_FLAG
+  global NUM2STR_FORMAT
+  global output_path
+
+  if ~exist('NUM2STR_FORMAT') || isempty(NUM2STR_FORMAT)
+    NUM2STR_FORMAT = "%03.3i";
+  endif
+  
+  if ~exist('MIN_INTENSITY') || isempty(MIN_INTENSITY)
+    MIN_INTENSITY = 0;
+  endif
   
   if ~exist('DTH', 'var') || isempty(DTH)
     DTH = 180 / NO;
@@ -14,10 +26,6 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   endif
 
 				% tests if 'fh' is a variable in the workspace
-  if ~exist('fh','var') || isempty(fh) || nargin < 3
-    fh = figure;
-  endif
-  set(fh, 'Name', plot_title);
 
   if ~exist('size_recon', 'var') || isempty(size_recon) || nargin < 4
     size_recon = [NK NO NCOLS NROWS];
@@ -72,7 +80,13 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   colormap('gray');
 				% cmap = colormap;
   hold on;
-  if NO > 1 
+  if ~FLAT_ARCH_FLAG && NO > 1
+    
+    if ~exist('fh','var') || isempty(fh) || nargin < 3
+      fh = figure;
+    endif
+    set(fh, 'Name', plot_title);
+
     [recon_array, recon_ndx] = sort(recon_array(:));
     last_recon_ndx = find(recon_array < 0, 1, 'last');
     first_recon_ndx = find(recon_array > 0, 1, 'first');
@@ -98,14 +112,29 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
       delta_row = edge_len * ( sin(i_theta * DTH * pi / 180 ) );
       lh = line( [j_col - delta_col, j_col + delta_col], ...
 		[(i_row - delta_row), (i_row + delta_row)] );
-      line_width = 0.005 + max_line_width * recon_val;
+      line_width = MIN_INTENSITY + (1-MIN_INTENSITY) * max_line_width * recon_val;
       set( lh, 'LineWidth', line_width );
       line_color = 1 - recon_val;
-      set( lh, 'Color', line_color*[1 1 1]);
+      set( lh, 'Color', line_color*(1-MIN_INTENSITY)*[1 1 1]);
     endfor
-  elseif NO == 1
-    recon2D = reshape( recon_array(:), [NCOLS, NROWS] )';
+  elseif ~FLAT_ARCH_FLAG && NO == 1
+    fh = zeros(1,NFEATURES);
+    fh = figure;
+    recon2D = reshape( recon_array(:), [NCOLS, NROWS]' );
+    set(fh, 'Name', plot_title);
     imagesc( recon2D );  % plots recod2D as an image
+    colormap('gray');
+   elseif FLAT_ARCH_FLAG
+    NFEATURES = size_recon(1) * size_recon(2);
+    fh = [];
+    recon3D = reshape( recon_array(:), [NFEATURES, NCOLS, NROWS] );
+    recon3D = ( recon3D - min_recon_val ) ./ ( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
+    recon3D = uint8(255*recon3D);
+    for i_feature = 1 : NFEATURES
+      plot_title_tmp = ...
+	  [output_path, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
+      imwrite( squeeze( recon3D(i_feature,:,:) )', ...
+	      plot_title_tmp, 'tiff');
+    endfor
   endif
   hold off;
-				%pause	

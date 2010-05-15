@@ -1,4 +1,5 @@
-function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivity(layer, i_trial, pvp_order)
+function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
+	  pvp_header] = pvp_readActivity(layer, i_trial, pvp_order)
 
   global NUM_BIN_PARAMS 
   global NUM_WGT_PARAMS
@@ -9,6 +10,7 @@ function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivi
   global NO NK % for the current layer
   global first_i_trial last_i_trial num_i_trials
   global pvp_index
+  global num_hist_activity_bins hist_activity_bins
 
   if nargin < 2
     pvp_order = 1;
@@ -21,7 +23,7 @@ function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivi
   filename = ['a', num2str(layer-1),'.pvp'];
   filename = [output_path, filename];
 
-  disp([ 'reading activity_tmp from ', filename ]);
+  disp([ 'reading activity from ', filename ]);
   
 				%default return arguments
   activtiy = [];
@@ -59,7 +61,7 @@ function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivi
   pvp_header = fread(fid, NUM_BIN_PARAMS-2, 'int32');
   pvp_time = fread(fid, 1, 'double');
 
-  i_trial_offset = i_trial * ( N + 2 ) * 4;  % N activity_tmp vals + double time
+  i_trial_offset = i_trial * ( N + 2 ) * 4;  % N activity vals + double time
   pvp_status = fseek(fid, 4*(NUM_BIN_PARAMS-2), 'bof');  % read integer header
   pvp_status = fseek(fid, 8, 'cof'); % read time (double)
   pvp_status = fseek(fid, i_trial_offset, 'cof');
@@ -70,25 +72,42 @@ function [act_time, activity_tmp, ave_activity_tmp, pvp_header] = pvp_readActivi
 
   act_time = fread(fid,1,'float64');
   disp(['act_time = ', num2str(act_time)]);
-  [activity_tmp, countF] = fread(fid, N, 'float32');
+  [activity, countF] = fread(fid, N, 'float32');
   if countF ~= N
     disp(['countF ~= N:', 'countF = ', num2str(countF), '; N = ', num2str(N)]);
   endif
-  disp(['max activity = ', num2str(max(activity_tmp(:)))]);
-  disp(['min activity = ', num2str(min(activity_tmp(:)))]);
+  min_activity = min(activity(:));
+  max_activity = max(activity(:));
+  disp(['min activity = ', num2str(min_activity)]);
+  disp(['max activity = ', num2str(max_activity)]);
+  nz_activity = sum(activity ~= 0);
+  disp(['nz_activity = ', num2str(nz_activity)]);
+
+  normalized_activity = ...
+      ( activity( activity ~= 0 ) ) / ...
+      ( max_activity + ( max_activity == 0 ) );
+  if ~isempty(hist_activity_bins)
+    hist_activity = ...
+	hist( normalized_activity, hist_activity_bins);
+  else
+    [hist_activity, hist_activity_bins] = ...
+	hist( normalized_activity, num_hist_activity_bins);
+  endif    
+
   debug_readActivity = 0;
   if debug_readActivity
     fh_hist = figure;
     set(fh_hist, 'Name', ['hist(', num2str(layer), ',', num2str(i_trial), ')']);
-    hist(activity_tmp(:));
+    hist(activity(:));
   endif
   
   fclose(fid);
   
-  ave_activity_tmp = mean( activity_tmp(activity_tmp ~= 0) );
-  activity_tmp = reshape( activity_tmp, [NFEATURES, NCOLS, NROWS] );
+  ave_activity = mean( activity );
+  sum_activity = sum( normalized_activity( normalized_activity > 0 ) );
+  activity = reshape( activity, [NFEATURES, NCOLS, NROWS] );
   if ~pvp_order
-    activity_tmp = shiftdim( activity_tmp, [3, 2, 1] );
+    activity = shiftdim( activity, [3, 2, 1] );
   endif
 
  
