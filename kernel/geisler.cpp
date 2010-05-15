@@ -41,12 +41,12 @@ int main(int argc, char* argv[]) {
 	//
 	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
 
-#undef SPIKING
+#define SPIKING
 #ifdef SPIKING  // load geisler kernels from pvp file
 
 	// create the image
 	//
-	const char * amoeba_filename = "./input/hard4.bmp";
+	const char * amoeba_filename = "../PetaVision/mlab/amoebaGen/128_png/4/t/tar_0000_a.png";
 	Image * image = new Image("Image", hc, amoeba_filename);
 	//display->setDelay(0);
 	//display->setImage(image);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
 
 	// L1 connections
-	const char * kernel_filename_exc = "./input/hard4_smallkernel_exc.pvp";
+	const char * geisler_filename = "./input/test_amoeba_target_4fc/geisler_clean.pvp";
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -141,13 +141,13 @@ int main(int argc, char* argv[]) {
 			CHANNEL_EXC);
 	HyPerConn * l1_l1 =
 		new KernelConn("L1 to L1",      hc, l1,     l1,
-			CHANNEL_EXC, kernel_filename_exc);
+			CHANNEL_EXC, geisler_filename);
 	HyPerConn * l1_l1inhff =
 		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
 			CHANNEL_EXC);
 	HyPerConn * l1_l1inh =
 		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
-			CHANNEL_EXC, kernel_filename_exc);
+			CHANNEL_EXC, geisler_filename);
 
 
 	// L1 Inh FF connections
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
 
 #else  // learn Geisler kernels
 
-	const char * amoeba_fileOfFileNames = "./input/test_target_distractor_2fc/fileNames.txt"; //
+	const char * amoeba_fileOfFileNames = "./input/amoeba_4fc/fileNames.txt"; //
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
 //	const char * amoeba_filename = "./input/test_amoebas/test0000.bmp"; // "./input/hard4.bmp"; //
@@ -391,7 +391,7 @@ int main(int argc, char* argv[]) {
 			CHANNEL_INH);
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
 	l1->insertProbe(statsl1);
-#undef TRAINING_TRIALS
+#define TRAINING_TRIALS
 #ifdef TRAINING_TRIALS
 	HyPerConn * l1_l1 =
 		new GeislerConn("L1 to L1",      hc, l1,     l1,
@@ -401,11 +401,11 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
 			CHANNEL_EXC);
-	const char * geisler_filename_target = "./input/target_2fc/w2_last.pvp";
+	const char * geisler_filename_target = "./input/amoeba_4fc/w2_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",   	hc, l1,    	l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
-	const char * geisler_filename_distractor = "./input/distractor_2fc/w2_last.pvp";
+	const char * geisler_filename_distractor = "./input/distractor_4fc/w2_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,     l1_geisler,
 			CHANNEL_INH, geisler_filename_distractor);
