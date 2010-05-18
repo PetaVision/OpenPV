@@ -9,9 +9,12 @@ global input_dir output_dir conn_dir output_path input_path
 global patch_size write_step
 
 input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/output13/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-phases/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-vhbars/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-final_w3_bf40_bd10_dw04_bars/';
-output_dir = '/Users/manghel/Documents/STDP-sim/conn_test_32_32/';
-conn_dir = '/Users/manghel/Documents/STDP-sim/conn_test_32_32/';
+output_dir = '/Users/manghel/Documents/STDP-sim/stdp_stat_14/';
+conn_dir = '/Users/manghel/Documents/STDP-sim/conn_probes_8_8/';
 
 num_layers = 2;
 n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
@@ -30,34 +33,58 @@ stim_end = stim_end - begin_step + 1;
 stim_steps = stim_begin : stim_end;
 bin_size = 10;
 
-NX=32;  % defined by column 
-NY=32;  % use xScale and yScale to get layer values
-
+NX=8;% 8;  % defined by column 
+NY=8;% 8;  % use xScale and yScale to get layer values
+dT = 0.5;  % miliseconds
+burstFreq = 50; % Hz  (50=20ms)
+burstDuration = 7.5; 
+   
+   
 my_gray = [.666 .666 .666];
 
 target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
 parse_tiff = 0;
-read_spikes = 0;    % read spikes if you want plot_raster!
+read_spikes = 1;    % read spikes if you want plot_raster!
                     % reading is slow for long runs
-simple_movie = 0;
-plot_raster = 0;
-plot_spike_activity = 0; 
-plot_average_activity = 0;
+spike_movie            = 1;
+plot_raster             = 0;
+plot_spike_activity     = 0; 
+plot_rate_array         = 0;
 plot_weights_rate_evolution = 0;
-plot_membrane_potential = 0;
-plot_weights_field = 0;
+plot_membrane_potential  = 0;
+plot_weights_field       = 0;
 plot_weights_projections = 0;
-plot_weights_histogram = 0;
-plot_weights_corr = 0; % read spikes first
-plot_patch = 0;
-comp_PCA = 0;
-comp_STDP = 0;
-analyze_STDP = 1;
+plot_weights_histogram  = 0;
+plot_weights_corr       = 0; % read spikes first
+plot_patch              = 0;
+comp_weights_PCA        = 0;
+comp_weights_Kmeans     = 0; % add Documents/MATLAB/Kmeans to path
+numCenters              = 16; % param for comp_weights_Kmeans 
 
-if read_spikes
+% compute STDP statistics
+comp_preSTDP            = 0;
+comp_postSTDP           = 0;
+firing_flag             = 0; % flag for comp_preSTDP
+
+% STDP analysis
+analyze_STDP_clique     = 0; % to compute the clique size distribution
+                             % call analyze_STDP
+analyze_STDP            = 0;
+comp_STDP_Kmeans        = 0; 
+preSTDP_anal            = 0; % flag for analyze_STDP & comp_STDP_Kmeans
+postSTDP_anal           = 0; % flag for analyze_STDP & comp_STDP_Kmeans
+ 
+if preSTDP_anal & postSTDP_anal
+    disp('wrong arguments');
+    return
+end
+
+
+if read_spikes | plot_rate_array
     spike_array = cell(num_layers,1);
+    rate_array = cell(num_layers,1);
     spike_array_bkgrnd = spike_array;
 end
 
@@ -78,116 +105,10 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     % Read relevant file names and scale parameters
     [f_file, v_file, w_file, w_last, xScale, yScale] = stdp_globals( layer );
 
-        
-    
-      if comp_STDP & layer > 1
-
-          disp('compute STDP statistics')
-
-          % Read parameters from previous layer
-          [f_file_pre, v_file_pre, w_file_pre, w_last_pre, ...
-              xScale_pre, yScale_pre] = stdp_globals( layer -1 );
-    
-          dT = 0.5;
-          
-          for W=16:4:40
-              
-              fprintf('compute STDP statistics for window size W = %d\n',W);
-              
-              [prePatchAverage, nPostSpikes, kPostIndices, timeWeightsSum] = ...
-                  stdp_compStatistics(f_file, f_file_pre, W);
-
-              %% read pre-synaptic indices for post-synaptic neurons
-                  filename = [output_dir,'PCP_Indexes.dat'];
-                  fid = fopen(filename, 'r');
-                  C = textscan(fid,'%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d');
-                  kPostIndices=C{1}; % Nx1 array of kPost indices
-
-                  %% open STDP files
-                  for nPost = 1:numel(kPostIndices)
-                      kPost = kPostIndices(nPost);
-                      filename = [output_dir,'STDP_' num2str(W) '_' num2str(kPost) '.dat'];
-                      fid = fopen(filename, 'r');
-
-                      data = fscanf(fid,'%f',[17 inf]);
-                      data=data'; % T x (1 + patchsize) matrix where T is the number
-                      % of post-synaptic spikes; the first record is the
-                      % total average number of pre spikes, the next
-                      % patchsize
-                      % values are the average number of pre spikes for
-                      % each pre-synaptic neuron
-
-                      %imagesc(data(:,2:17)) % time sequence of average patch activity
-                      % conditioned on firing post-synaptic neurons
-                      %pause
-
-                      if 0
-                          recField = sum(data(:,2:17)) ./ size(data,1);
-                          patch = reshape(recField,[4 4]);
-                          imagesc(patch,'CDataMapping','direct');
-                          title(['kPost ' num2str(kPost)]);
-                          colorbar
-                          axis square
-                          axis off
-                          pause
-                      end
-                      if 0
-                          x=0:1:20; % bin centers!!
-                          hist(data(:,1),x)
-                          title(['kPost ' num2str(kPost)]);
-                          pause
-                      end
-
-                      % average clique size
-                      avClique(nPost) = mean(data(:,1));
-
-                  end % loop over post-synaptic neurons
-
-                  x=0.05:0.1:20; % bin centers!!
-                  n = hist(avClique,x);
-                  title('Average Clique Size');
-
-                  filename = [output_dir,'avCliqueHist_' num2str(W*dT) '.dat'];
-                  fid=fopen(filename,'w');
-                  for i=1:length(n)
-                      fprintf(fid,'%f %f\n',x(i),n(i)/timeWeightsSum);
-                  end
-                  fclose(fid);
-
-          end % loop over W (pre-synaptic activity time window length)
-
-    end % comp_STDP
-    
-    
-    if analyze_STDP & layer > 1
-        figure('Name','Clique Size Histograms');
-        sym={'-r','-b','-g','-k'};
-        dT=0.5;
-        n=0;
-        for W=4:4:24
-            n=n+1;
-            filename = [output_dir,'avCliqueHist_' num2str(W*dT) '.dat'];
-            h= load(filename); % N x 2 array
-            [M,I]=max(h(:,2));
-            hMax(n)=M;
-            xMax(n)=h(I,1);
-            %subplot(1,2,1);
-            plot(h(:,1),h(:,2),sym{mod(n,4)+1});
-            hold on
-            %pause
-        end
-        
-        figure('Name','Max Clique vs Window Size');
-        %subplot(1,2,2)
-        plot(xMax,log10(hMax),'ob');
-        
-        pause
-    end
-    
     % Read spike events
     
     
-    if read_spikes
+    if read_spikes & layer >= 2
         disp('read spikes')
         [spike_array{layer}, ave_rate] = ...
             stdp_readSparseSpikes(f_file, begin_step, end_step);
@@ -205,54 +126,106 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     end
     
     
-    if simple_movie
+    if plot_rate_array
+        disp('read spikes and plot average activity (rate aray)')
+        [rate_array{layer}, ave_rate] = stdp_readAverageActivity(f_file, begin_step, end_step);
+        disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
+        disp('plot_rate_reconstruction')
+        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
+            ['Rate reconstruction for layer  ', int2str(layer)]);
+    end
+    
+    if spike_movie & layer >= 2
         disp('simple movie')
+        retinaPeriod = 1000./burstFreq;
+        if gcf ~= 1
+            figure(gcf+1);
+        else
+            figure(gcf);
+        end
+        
+        colormap gray 
+        numRows = burstDuration / dT + 2;
+        sumA = zeros(NX*xScale,NY*yScale);
+        sumB = zeros(NX*xScale,NY*yScale);
+        
         for t=1:n_time_steps
-            fprintf('%d\n',t);
-            A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
-            imagesc(A')
-            pause(0.1)
+                         
+            burstStatusA = mod(t*dT, retinaPeriod);% from 0 to burstDuration
+                                                 % in steps of dT
+            burstStatusB = mod(t*dT + 0.5*retinaPeriod, retinaPeriod);% from 0 to burstDuration
+                                                 % in steps of dT                                     
+            % plot only when Retina fires
+            if burstStatusA <= burstDuration
+                if ~burstStatusA 
+                    sumA(:) = 0;
+                end
+                
+                fprintf('%f*\n',t*dT);
+                A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
+                sumA = sumA+A';
+                figA = 2*burstStatusA/dT + 1;
+                %fprintf('figA = %d\n',figA);
+                subplot(numRows,2,figA)
+                imagesc(A',[0 1])
+                axis equal
+                set(gca,'xtick',[],'ytick',[])
+                axis tight
+                %title([' t= ', num2str(t*dT)]);
+                
+                if burstStatusA == burstDuration % plot integrated signal
+                    figA = 2*burstStatusA/dT + 3;
+                    %fprintf('figAA = %d\n',figA);
+                    subplot(numRows,2, figA)
+                    imagesc(sumA / burstDuration,[0 1])
+                    axis equal
+                    set(gca,'xtick',[],'ytick',[])
+                    axis tight
+                    %pause
+                end
+                
+                pause(0.1)
+                
+            elseif burstStatusB <= burstDuration
+                if ~burstStatusB
+                    sumB(:) = 0;
+                end
+                fprintf('%f#\n',t*dT);
+                B = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
+                sumB=sumB+B';
+                figB = 2*(burstStatusB/dT + 1);
+                %fprintf('figB = %d\n',figB);
+                subplot(numRows,2,figB)
+                imagesc(B',[0 1])
+                axis equal
+                set(gca,'xtick',[],'ytick',[])
+                axis tight
+                %title([' t= ', num2str(t*dT)]);
+                
+                if burstStatusB == burstDuration % plot integrated signal
+                    figB = 2*(burstStatusB/dT + 1) + 2;
+                    %fprintf('figBB = %d\n',figB);
+                    subplot(numRows,2, figB)
+                    imagesc(sumB/ burstDuration,[0 1])
+                    axis equal
+                    set(gca,'xtick',[],'ytick',[])
+                    axis tight
+                    %pause
+                end
+                
+                pause(0.1)
+                
+            else
+                fprintf('%f\n',t*dT);
+            end
+            
         end
         disp('pause')
         pause
     end
     
-    
-    
-    %parse the object identification files
-    % pv_objects
-    if parse_tiff
-        % TODO: support for multiple objects--multiple calls to parseTiff?
-        target_ndx{layer} = targ;
-        bkgrnd_ndx{layer} = find(ones(N,1));
-        bkgrnd_ndx{layer}(target_ndx{layer}) = 0;
-        bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
-    end
-    
-    
-    % raster plot
-    
-    if plot_raster
-        disp('plot_raster')
-        N = NX*xScale * NY *yScale;
-        if ~isempty(spike_array{layer})
-            plot_title = ['Raster for layer = ',int2str(layer)];
-            figure('Name',plot_title);
-            axis([0 tot_steps 0 N]);
-            hold on
-            box on
-            
-            [spike_time, spike_id] = find((spike_array{layer}));
-            lh = plot(spike_time, spike_id, '.g');
-            %set(lh,'Color',my_gray);    
-
-        end
-        pause
-    end
-    
-    
-     
-    if plot_spike_activity 
+     if plot_spike_activity & layer > 1
+         
         disp('compute rate array and spike activity array')
         rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
         % this is a 1xN array where N=NX*NY
@@ -293,24 +266,421 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         % stdp_plotSpikes(spike_array{layer},[]);
         
         
+     end
+    
+     
+     
+      if (comp_preSTDP | comp_postSTDP) & layer > 1
+
+          disp('compute STDP statistics')
+
+          % Read parameters from previous layer
+          [f_file_pre, v_file_pre, w_file_pre, w_last_pre, ...
+              xScale_pre, yScale_pre] = stdp_globals( layer -1 );
+    
+          
+          for W=4:4:60
+              
+              fprintf('compute STDP statistics for window size W = %d\n',W);
+              if comp_preSTDP      
+                  [prePatchAverage, nPostSpikes, kPostIndices, timeWeightsSum] = ...
+                      stdp_compPreStatistics(f_file, f_file_pre, W, firing_flag);
+              else
+                  [prePatchAverage, nPostSpikes, kPostIndices, timeWeightsSum] = ...
+                      stdp_compPostStatistics(f_file, f_file_pre, W, firing_flag);
+              end
+
+            
+          end % loop over W (pre-synaptic activity time window length)
+
+    end % comp_STDP
+    
+    
+    if analyze_STDP & layer > 1
+        
+        
+        %% read pre-synaptic indices for post-synaptic neurons
+        filename = [conn_dir,'PCP_Indexes.dat'];
+        fid = fopen(filename, 'r');
+        C = textscan(fid,'%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d');
+        kPostIndices=C{1}; % Nx1 array of kPost indices
+        NXpost = NX*xScale;
+        NYpost = NY+yScale;
+        
+        
+        dT = 0.5;
+
+        patch_fig =0;
+        hist_fig = 0;
+        time_fig = 0;
+        corr_fig = 0;
+        bin_centers = 0;
+        bin_edges =1;
+        
+        for W=4:4:60
+            
+        for nPost = 1:numel(kPostIndices)
+            kPost = kPostIndices(nPost);
+            kxPost=rem(kPost-1,NXpost) + 1;
+            kyPost=(kPost-1-kxPost)/NXpost + 1;
+            %% open STDP files
+            if comp_preSTDP
+                if firing_flag
+                    filename = [output_dir,'STDP_pre_' ...
+                        num2str(W) '_' num2str(kPost) '.dat'];
+                else
+                    filename = [output_dir,'STDP_pre_notfire_' ...
+                        num2str(W) '_' num2str(kPost) '.dat'];
+                end
+            else
+                filename = [output_dir,'STDP_post_' num2str(W) '_' num2str(kPost) '.dat'];
+            end
+            fid = fopen(filename, 'r');
+
+            data = fscanf(fid,'%f',[18 inf]);
+            data=data'; % T x (2 + patchsize) matrix where T is the number
+            % of post-synaptic spikes; the first record is the
+            % timePost and the second is the total average number of pre
+            % spikes, the next patchsize values are the average number of pre spikes for
+            % each pre-synaptic neuron
+            if numel(data)
+                
+                %% plots a space time history of pre-synaptic activity
+                % and computes the correlation matrix for pre-synaptic activity
+                % in the receptive field
+                %
+                if 1
+                    if ~time_fig
+                        time_fig = gcf;
+                    end
+                    figure(time_fig);
+                    colormap autumn
+                    imagesc(data(:,3:18)) % time sequence of average patch activity
+                    %axis equal           % conditioned on firing post-synaptic neurons
+                    title('Average pre-synaptic activity')
+                    axis off
+
+                    R = corrcoef(data(:,3:18));
+                    if ~corr_fig
+                        corr_fig = gcf + 1;
+                    end
+                    for i=1:size(R,1),R(i,i) = 0.0,end
+                    figure(corr_fig);
+                    imagesc(R','CDataMapping','direct');
+                    title('Correlation Matrix');
+                    %pause
+                end
+
+                %% computes average firing rate of pre-synaptic neurons
+                % in the receptive field
+                if 0
+                    recField = sum(data(:,3:18)) ./ size(data,1);
+                    patch = reshape(recField,[4 4])';
+                    if ~patch_fig
+                        patch_fig = gcf + 1;
+                    end
+                    figure(patch_fig);
+                    imagesc(patch,'CDataMapping','direct');
+                    title(['kPost ' num2str(kPost) ' (' num2str(kxPost) ' , ' num2str(kyPost) ' )'] );
+                    colorbar
+                    axis square
+                    axis off
+                    %pause
+                end
+                  
+                %% makes a histogram plot of total pre-synaptic activity
+                if 0
+                    if ~hist_fig
+                        hist_fig = gcf + 1;
+                    end
+                    figure(hist_fig);
+                    % using bin centers
+                    if bin_centers
+                        x=0.5:1:20.5; % bin centers!!
+                        hist(data(:,2),x)
+                        title(['kPost ' num2str(kPost)]);
+                    end
+                    %using bin edges
+                    if bin_edges
+                        x=0:1:20; % bin edges!!
+                        n=histc(data(:,2),x)
+                        bar(x+0.5,n);
+                        title(['kPost ' num2str(kPost)]);
+                    end
+                    pause
+                end
+
+                %% computes average clique size - the mean of the hist
+                % distribution above
+                avClique(nPost) = mean(data(:,2))/(W*dT);
+                fprintf('kPost = %d avClique = %f \n',kPost,avClique(nPost));
+                  end % numel
+                  
+              end % loop over post-synaptic neurons
+              
+              nbins = 20;
+              minX = min(avClique);
+              maxX = max(avClique);
+              fprintf('\n\n minClique = %f maxClique = %f \n\n',minX,maxX);
+              x=minX:(maxX-minX)/nbins:maxX; % bin centers!!
+              n = hist(avClique,x);
+              bar(x,n,'b');
+              title(['Window ' num2str(W) ' Average Clique Size']);
+              if comp_preSTDP
+                filename = [output_dir,'avCliqueHist_pre_' num2str(W) '.dat'];
+              else
+                 filename = [output_dir,'avCliqueHist_post_' num2str(W) '.dat'];
+              end
+              fid=fopen(filename,'w');
+              for i=1:length(n)
+                  %fprintf(fid,'%f %f\n',x(i),n(i)/timeWeightsSum);
+                  fprintf(fid,'%f %f\n',x(i),n(i));
+              end
+              fclose(fid);
+              %pause
+        
+        end % loop over W (window time length)
+        
+    end % analyze_STDP
+    
+    
+    
+    if analyze_STDP_clique & layer > 1
+        figure('Name','Clique Size Histograms');
+        sym={'-r','-b','-g','-k'};
+        dT=0.5;
+        if 0
+            n=1;
+            W = 2;
+            if preSTDP_anal
+                filename = [output_dir,'avCliqueHist_pre_' num2str(W*dT) '.dat'];
+            else
+                filename = [output_dir,'avCliqueHist_post_' num2str(W*dT) '.dat'];
+            end
+            h= load(filename); % N x 2 array
+            [M,I]=max(h(:,2));
+            hMax(n)=M;
+            xMax(n)=h(I,1);
+            wMax(n) = W*dT;
+            %subplot(1,2,1);
+            plot(h(:,1),h(:,2),sym{4});
+            hold on
+        else
+            n=0;
+        end
+        
+        for W=4:4:60
+            n=n+1;
+            if preSTDP_anal
+                filename = [output_dir,'avCliqueHist_pre_' num2str(W*dT) '.dat'];
+            else
+                filename = [output_dir,'avCliqueHist_post_' num2str(W*dT) '.dat'];
+            end
+            h= load(filename); % N x 2 array
+            fprintf('W= %d Spikes=%d \n',W, sum(h(:,2)) );
+            [M,I]=max(h(:,2));
+            hMax(n)=M;
+            xMax(n)=h(I,1);
+            wMax(n) = W*dT;
+            %subplot(1,2,1);
+            plot(h(:,1),h(:,2),sym{mod(n,4)+1});
+            hold on
+            pause
+        end
+        
+        figure('Name','Max Clique vs Window Size');
+        %subplot(1,2,2)
+        plot(wMax,xMax,'ob');
+        
+        pause
+    end % analyze_STDP_clique
+    
+    
+    
+     if comp_STDP_Kmeans & layer > 1
+
+          disp('compute STDP K-means: ')
+          time_fig = 0;
+          cluster_fig = 0;
+
+
+          % Read parameters from previous layer
+          [f_file_pre, v_file_pre, w_file_pre, w_last_pre, ...
+              xScale_pre, yScale_pre] = stdp_globals( layer -1 );
+    
+          dT = 0.5;
+          
+
+          for W=60:4:60
+              
+              fprintf('compute STDP K-means for W = %d\n',W);
+
+              %% read pre-synaptic indices for post-synaptic neurons
+              filename = [conn_dir,'PCP_Indexes.dat'];
+              fid = fopen(filename, 'r');
+              C = textscan(fid,'%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d');
+              kPostIndices=C{1}; % Nx1 array of kPost indices
+              NXpost = NX*xScale;
+              NYpost = NY+yScale;
+              for nPost = 1:numel(kPostIndices)
+                  
+                  kPost = kPostIndices(nPost);
+                  kxPost=rem(kPost-1,NXpost) + 1;
+                  kyPost=(kPost-1-kxPost)/NXpost + 1;     
+                  fprintf('kPost = %d kxPost = %d kyPost = %d\n',...
+                      kPost,kxPost, kyPost);
+                  
+                  weightsPatch = stdp_getPatchWeights(w_last, xScale, yScale,kxPost, kyPost);
+                  
+                  %% open STDP files
+                  if preSTDP_anal
+                      filename = [output_dir,'STDP_pre_' num2str(W) '_' num2str(kPost) '.dat'];
+                  else
+                      filename = [output_dir,'STDP_post_' num2str(W) '_' num2str(kPost) '.dat'];
+                  end
+                  fid = fopen(filename, 'r');
+
+                  data = fscanf(fid,'%f',[18 inf]);
+                  data=data'; % T x (2 + patchsize) matrix where T is the number
+                  % of post-synaptic spikes; the first record is the
+                  % timePost and the second is the total average number of pre
+                  % spikes, the next patchsize values are the average number of pre spikes for
+                  % each pre-synaptic neuron
+                  if numel(data)
+                      
+                      
+                      if 1
+                          if ~time_fig
+                              time_fig = gcf;
+                          end
+                          figure(time_fig);
+                          colormap gray
+                          imagesc(1-data(:,3:18)) % time sequence of average patch activity
+                                                % conditioned on firing
+                                                % post-synaptic neurons
+                          title([num2str(kPost) ' (' num2str(kxPost) ' , ' num2str(kyPost) ' )'] );
+                          axis off
+                          %pause
+                      end
+                      
+                      
+                      % plot receptive field synaptic weights
+                      figure(gcf+1);
+                      colormap gray
+                      imagesc(weightsPatch);
+                      colorbar
+                      title([num2str(kPost) ' (' num2str(kxPost) ' , ' num2str(kyPost) ') Syn Weights'] );
+                      axis square
+                      axis off
+                      
+                      
+                      %% find K-means clusters
+                      numK = 4;   % number of clusters
+                      % data is n x dim matrix where dim = patch_size
+                      [centers,mincenter,mindist,q2,quality] = kmeans(data(:,3:18),numK);
+                      %size(centers) % numK x patch_size
+                      %size(mincenter)% n x 1
+                      %q2
+                      %quality
+                      
+                      %% compute weights
+                      figure(gcf+1);
+                      plot(mincenter,'ob');
+                      title('Min Centers');
+                      for k=1:numK
+                          clustW(k) = sum(find(mincenter == k));
+                      end
+                      clustW = clustW ./sum(clustW);
+                                                    
+                      %% computes average firing rate of pre-synaptic neurons
+                      % in the receptive field
+                      figure(gcf+1);
+                      for k=1:numK
+                          fprintf('cluster %d w = %f\n',k,clustW(k));
+                          %patch = clustW(k) * reshape(centers(k,:),[4 4])'; 
+                          patch = reshape(centers(k,:),[4 4])';
+                          subplot(2,2,k);
+                          colormap gray
+                          imagesc(patch,'CDataMapping','direct');
+                          title([num2str(kPost) ' (' num2str(kxPost) ' , ' ...
+                              num2str(kyPost) ' ) ' num2str(k) ' w = ' num2str(clustW(k),2) ] );
+                          %xlabel(['w = ' num2str(clustW(k))] );
+                          colorbar
+                          axis square
+                          axis off
+                          
+                      end
+
+                          % write cluter centers
+                      if 0
+                          if preSTDP_anal
+                              filename = [output_dir,'Clusters_pre_kPost_' num2str(kPost) '_' num2str(W) '.dat'];
+                          else
+                              filename = [output_dir,'Clusters_post _kPost_' num2str(kPost) '_' num2str(W) '.dat'];
+                          end
+                          fid=fopen(filename,'w');
+                          for k=1:numK
+                              for i=1:numel(centers(k,:))
+                                  fprintf(fid,'%f ',centers(k,i));
+                              end
+                              fprintf(fid,'\n');
+                          end
+                          fclose(fid);
+
+                          %pause
+                      end
+
+
+                  end % numel
+                  
+                  pause
+                  
+              end % loop over post-synaptic neurons
+              
+
+ 
+              %pause
+              
+          end % loop over W (pre-synaptic activity time window length)
+
+    end % comp_STDP_Kmeans
+    
+    
+  
+    
+    
+    
+    %parse the object identification files
+    % pv_objects
+    if parse_tiff
+        % TODO: support for multiple objects--multiple calls to parseTiff?
+        target_ndx{layer} = targ;
+        bkgrnd_ndx{layer} = find(ones(N,1));
+        bkgrnd_ndx{layer}(target_ndx{layer}) = 0;
+        bkgrnd_ndx{layer} = find(bkgrnd_ndx{layer});
     end
     
     
-    if plot_average_activity
-        disp('read and plot average activity')
-        [average_array{layer}, ave_rate] = stdp_readAverageActivity(f_file);
-        disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
-        tot_steps = size( spike_array{layer}, 1 );
-        tot_neurons = size( spike_array{layer}, 2);
-        fprintf('tot_steps = %d tot_neurons = %d\n',...
-            tot_steps,tot_neurons);
-        num_bins = fix( tot_steps / bin_size );
-        excess_steps = tot_steps - num_bins * bin_size;
-        stim_bin_length = fix( ( stim_end - stim_begin + 1 ) / bin_size );
-        stim_bin_begin = fix( ( stim_begin - begin_step + 1 ) / bin_size );
-        stim_bin_end = fix( ( stim_end - begin_step + 1 ) / bin_size );
-        stim_bins = stim_bin_begin : stim_bin_end;     
+    % raster plot
+    
+    if plot_raster
+        disp('plot_raster')
+        N = NX*xScale * NY *yScale;
+        if ~isempty(spike_array{layer})
+            plot_title = ['Raster for layer = ',int2str(layer)];
+            figure('Name',plot_title);
+            axis([0 tot_steps 0 N]);
+            hold on
+            box on
+            
+            [spike_time, spike_id] = find((spike_array{layer}));
+            lh = plot(spike_time, spike_id, '.g');
+            %set(lh,'Color',my_gray);    
+
+        end
+        pause
     end
+    
     
     if plot_weights_corr & layer > 1
         
@@ -486,14 +856,15 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         end
     end
     
-    if comp_PCA == 1
-        disp('compute PCA of the  weight fields: ')
-        
-        stdp_compPCA(w_last,xScale,yScale);
-        
+    if comp_weights_PCA == 1 & layer > 1
+        disp('compute PCA of the  weight fields: ')       
+        stdp_compPCA(w_last,xScale,yScale);       
     end
     
-    
+    if comp_weights_Kmeans == 1 & layer > 1
+        disp('compute K-means of the  weight fields: ')       
+        stdp_compWeightsKmeans(w_last,numCenters, xScale,yScale);       
+    end
   
     
 end % loop over all layers
