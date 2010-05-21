@@ -30,23 +30,29 @@ fileread_params RetinaParams =
 Retina::Retina(const char * name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
+#ifdef OBSOLETE
    this->img = new Image("Image", hc, hc->inputFile());
+#endif
    initialize(TypeRetina);
 }
 
+#ifdef OBSOLETE
 Retina::Retina(const char * name, HyPerCol * hc, Image * img)
   : HyPerLayer(name, hc)
 {
    this->img = img;
    initialize(TypeRetina);
 }
+#endif
 
+#ifdef OBSOLETE
 Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
   : HyPerLayer(name, hc)
 {
    this->img = new Image("Image", hc, filename);
    initialize(TypeRetina);
 }
+#endif
 
 int Retina::initialize(PVLayerType type)
 {
@@ -59,7 +65,9 @@ int Retina::initialize(PVLayerType type)
 
    fileread_params * params = (fileread_params *) l->params;
 
+#ifdef OBSOLETE
    l->loc = img->getImageLoc();
+#endif
    l->loc.nPad = (int) params->marginWidth;
    l->loc.nBands = 1;
 
@@ -74,7 +82,9 @@ int Retina::initialize(PVLayerType type)
 
    PVParams * pvParams = parent->parameters();
 
+#ifdef OBSOLETE
    fireOffPixels = (int) pvParams->value(name, "fireOffPixels", 0);
+#endif
 
    status = parent->addLayer(this);
 
@@ -91,6 +101,7 @@ int Retina::initialize(PVLayerType type)
 
    // TODO - could free other layer parameters as they are not used
 
+#ifdef OBSOLETE
    // use image's data buffer
    updateImage(parent->simulationTime(), parent->getDeltaTime());
    copyFromImageBuffer();
@@ -108,6 +119,7 @@ int Retina::initialize(PVLayerType type)
          V[k] = (V[k] == 0.0) ? 0.0 : 1.0;
       }
    }
+#endif
 
    return status;
 }
@@ -160,11 +172,7 @@ int Retina::setParams(PVParams * params, fileread_params * p)
    return 0;
 }
 
-int Retina::recvSynapticInput(HyPerLayer* lSource, PVLayerCube* cube)
-{
-   return 0; //PV_Retina_recv_synaptic_input();
-}
-
+#ifdef OBSOLETE
 //! Sets the V data buffer
 /*!
  *
@@ -273,6 +281,7 @@ int Retina::updateImage(float time, float dt)
 
    return status;
 }
+#endif
 
 //! Updates the state of the Retina
 /*!
@@ -304,10 +313,16 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
    float    * prevActivity = clayer->prevActivity;
 
-   updateImage(time, dt);
+#ifdef OBSOLETE
+// should no longer need this as retina gets input from connection
+//   updateImage(time, dt);
+#endif OBSOLETE
 
    // V in Retina is extended so loop over extended region.  This
-   // ensures that there is at least noise in border regions.
+   // ensures that there is at least background in border region.
+   //
+   // No longer true
+   // How do we get background activity into border?
    //
    int numActive = 0;
    if (params->spikingFlag == 1) {
