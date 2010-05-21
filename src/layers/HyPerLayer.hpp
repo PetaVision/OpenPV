@@ -24,17 +24,21 @@ typedef LIF2_params HyPerLayerParams;
 
 class HyPerLayer : public LayerDataInterface {
 
+#ifdef OBSOLETE
    friend class HyPerCol;
+#endif
 
 protected:
 
+   // only subclasses can be constructed directly
    HyPerLayer(const char * name, HyPerCol * hc);
-   virtual ~HyPerLayer() = 0;
 
 private:
    int initialize_base(const char * name, HyPerCol * hc);
 
 public:
+
+   virtual ~HyPerLayer() = 0;
 
    static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);
@@ -70,7 +74,7 @@ public:
    virtual int getParams(int * numParams, float ** params);
    virtual int setFuncs(void * initFunc, void * updateFunc);
 
-   virtual int publish(InterColComm* comm, float time);
+   virtual int publish(InterColComm * comm, float time);
    virtual int outputState(float time, bool last=false);
    virtual int writeState(const char * name, float time, bool last=false);
    virtual int writeActivity(const char * filename, float time);
