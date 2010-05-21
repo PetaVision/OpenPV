@@ -17,21 +17,23 @@ namespace PV {
 Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
      : Image(name, hc)
 {
+   PVLayerLoc * loc = &clayer->loc;
+
    this->displayPeriod = displayPeriod;
    this->nextDisplayTime = hc->simulationTime() + displayPeriod;
 
    fp = fopen(fileOfFileNames, "r");
    assert(fp != NULL);
 
-   const char * filename = getNextFileName();
-   assert(filename != NULL);
+   const char * nextFile = getNextFileName();
+   assert(nextFile != NULL);
 
    // get size info from image so that data buffer can be allocated
-   int status = getImageInfo(filename, comm, &imageLoc);
+   int status = getImageInfo(nextFile, parent->icCommunicator(), &imageLoc);
    assert(status == 0);
 
    // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(&loc);
+   mpi_datatypes = Communicator::newDatatypes(loc);
 
 //   int N = imageLoc.nx * imageLoc.ny * imageLoc.nBands;
 //   imageData = new float [N];
@@ -41,9 +43,10 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
    imageData = NULL;
 
    // need all image bands until converted to gray scale
-   loc.nBands = imageLoc.nBands;
+   loc->nBands = imageLoc.nBands;
 
-   initialize_data(&loc);
+#ifdef OBSOLETE
+   initialize_data(loc);
 
 //   N = loc.nx * loc.ny * loc.nBands;
 //   imageData = new float [N];
@@ -51,13 +54,14 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 //      imageData[i] = 0;
 //   }
 //
+#endif
 
    read(filename);
 // copyReducedImagePortion();
 
    // for now convert images to grayscale
-   if (loc.nBands > 1) {
-      this->toGrayScale();
+   if (loc->nBands > 1) {
+      toGrayScale();
    }
 
    // exchange border information
@@ -81,7 +85,7 @@ pvdata_t * Movie::getImageBuffer()
 PVLayerLoc Movie::getImageLoc()
 {
 //   return imageLoc;
-   return loc;
+   return clayer->loc;
 }
 
 /**
@@ -91,6 +95,8 @@ PVLayerLoc Movie::getImageLoc()
  */
 bool Movie::updateImage(float time, float dt)
 {
+   PVLayerLoc * loc = &clayer->loc;
+
    if (time < nextDisplayTime) {
       return false;
    }
@@ -101,14 +107,14 @@ bool Movie::updateImage(float time, float dt)
    assert(filename != NULL);
 
    // need all image bands until converted to gray scale
-   loc.nBands = imageLoc.nBands;
+   loc->nBands = imageLoc.nBands;
 
    read(filename);
 // copyReducedImagePortion();
 
    // for now convert images to grayscale
-   if (loc.nBands > 1) {
-      this->toGrayScale();
+   if (loc->nBands > 1) {
+      toGrayScale();
    }
 
    // exchange border information
@@ -121,10 +127,10 @@ bool Movie::updateImage(float time, float dt)
 
 int Movie::copyReducedImagePortion()
 {
-   int i0, j0, i, j, ii;
+   const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    const int nx0 = imageLoc.nx;
    const int ny0 = imageLoc.ny;
@@ -132,12 +138,12 @@ int Movie::copyReducedImagePortion()
    assert(nx0 <= nx);
    assert(ny0 <= ny);
 
-   i0 = nx/2 - nx0/2;
-   j0 = ny/2 - ny0/2;
+   const int i0 = nx/2 - nx0/2;
+   const int j0 = ny/2 - ny0/2;
 
-   ii = 0;
-   for (j = j0; j < j0+ny0; j++) {
-      for (i = i0; i < i0+nx0; i++) {
+   int ii = 0;
+   for (int j = j0; j < j0+ny0; j++) {
+      for (int i = i0; i < i0+nx0; i++) {
          imageData[ii++] = data[i+nx*j];
       }
    }
