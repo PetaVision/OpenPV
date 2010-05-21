@@ -25,9 +25,10 @@ namespace PV {
  */
 ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
 {
-   initialize_data(&loc);
    initialize();
+#ifdef OBSOLETE
    updateImage(0.0, 0.0);
+#endif
 }
 
 ImageCreator::~ImageCreator()
@@ -42,7 +43,8 @@ ImageCreator::~ImageCreator()
  */
 int ImageCreator::initialize()
 {
-   int numItems = loc.nx * loc.ny * loc.nBands;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int numItems = loc->nx * loc->ny * loc->nBands;
 
    drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
    assert(drawBuffer != 0);
@@ -69,6 +71,7 @@ int ImageCreator::initialize()
  */
 bool ImageCreator::updateImage(float time_step, float dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
    static int prevposx = 0, prevposy = 0;
 
    static int posx = 5;
@@ -82,16 +85,16 @@ bool ImageCreator::updateImage(float time_step, float dt)
       posx += threewaytoss(0.0, 1.0, 0.0); // go back, stay, go ahead
       if (posx < 0) {
          posx = 0;
-      } else if ((posx + lengtha) >= loc.nx) {
-         posx = (loc.nx - lengtha);
+      } else if ((posx + lengtha) >= loc->nx) {
+         posx = (loc->nx - lengtha);
       }
 
       posy += threewaytoss(0.0, 1.0, 0.0);
       if (posy < 0) {
          posy = 0;
       }
-      else if ((posy + lengthb) >= loc.ny) {
-         posy = (loc.ny - lengthb);//loc.ny-length?
+      else if ((posy + lengthb) >= loc->ny) {
+         posy = (loc->ny - lengthb);//loc->ny-length?
       }
    }
 
@@ -130,8 +133,9 @@ bool ImageCreator::updateImage(float time_step, float dt)
  */
 int ImageCreator::clearImage()
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    for (int i = 0; i < (nx * ny); i++) {
       mark(i, 0);
@@ -149,8 +153,9 @@ int ImageCreator::clearImage()
  */
 int ImageCreator::fillImage(pvdata_t val)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    for (int i = 0; i < (nx * ny); i++) {
       mark(i, val);
@@ -168,8 +173,9 @@ int ImageCreator::fillImage(pvdata_t val)
  */
 int ImageCreator::createRandomImage()
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    assert(drawBuffer != NULL); //ToDo: Validation inadequate.
                         //      Check for buf size > (nx * ny)
@@ -194,8 +200,9 @@ int ImageCreator::createRandomImage()
  */
 int ImageCreator::drawMultipleRandomShapes(int n_images)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    clearImage();
    unsigned int posx; //random() % nx;
@@ -228,7 +235,9 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
  *
  * Return value: 0 if successful, non-zero otherwise.
  */
-int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta) {
+int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta)
+{
+   const PVLayerLoc * loc = getLayerLoc();
 
    int x1 = origin.getX();
    int y1 = origin.getY();
@@ -238,7 +247,7 @@ int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta) {
     *  included in the line.
     */
 
-   if ((x1 < 0) || (y1 < 0) || (x2 >= loc.nx) || (y2 >= loc.ny)) {
+   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nx) || (y2 >= loc->ny)) {
       std::cerr << "Error: Cannot draw line from (%d, %d) of length at an angle .\n";
       return 1;
    }
@@ -252,14 +261,16 @@ int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta) {
  *
  * Return value: None.
  */
-int ImageCreator::drawLine(Point2D pt1, Point2D pt2) {
+int ImageCreator::drawLine(Point2D pt1, Point2D pt2)
+{
+   const PVLayerLoc * loc = getLayerLoc();
 
    int x1 = pt1.getX();
    int y1 = pt1.getY();
    int x2 = pt2.getX();
    int y2 = pt2.getY();
 
-   if ((x1 < 0) || (y1 < 0) || (x2 >= loc.nx) || (y2 >= loc.ny)) {
+   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nx) || (y2 >= loc->ny)) {
       std::cerr << "Error: Cannot draw line between"; // << pt1 << " and "<< pt2 << ".\n";
       return 1;
    }
@@ -302,8 +313,10 @@ int ImageCreator::drawSquare(Point2D pt1, Point2D pt2, Point2D pt3, Point2D pt4)
 int ImageCreator::drawRectangle(Point2D origin, unsigned int lengtha,
                              unsigned int lengthb, unsigned int theta)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    int err = 0;
    int x1 = origin.getX();
@@ -365,8 +378,10 @@ int ImageCreator::drawRectangle(Point2D pt1, Point2D pt2,
 int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
                            Point2D pt3, Point2D pt4)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    int err = 0;
    int x1 = pt1.getX();
@@ -464,7 +479,7 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
  */
 inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
 {
-   drawBuffer[i + j * loc.nx] = value;
+   drawBuffer[i + j * getLayerLoc()->nx] = value;
 }
 
 /*
@@ -495,7 +510,7 @@ inline void ImageCreator::mark(unsigned int i, int value)
  */
 inline unsigned char ImageCreator::getmark(unsigned int i, unsigned int j)
 {
-   return drawBuffer[i + j * loc.nx];
+   return drawBuffer[i + j * getLayerLoc()->nx];
 }
 
 
@@ -518,7 +533,8 @@ inline unsigned char ImageCreator::getmark(unsigned int i, unsigned int j)
  */
 int ImageCreator::writeImageToFile(const float time, const unsigned char options)
 {
-   int err  = 0;
+   int status = 0;
+   const PVLayerLoc * loc = getLayerLoc();
    unsigned int istxton = 0, istifon = 0, isbinon = 0;
 
    char basicfilename[128] = { 0 };
@@ -531,18 +547,19 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
 
    if (istifon) {
       snprintf(tiffilename, 255, "%simages/%s.tif", OUTPUT_PATH, basicfilename);
-      //err |= tiff_write_file(tiffilename, data, loc.nx, loc.ny);
-      err |= tiff_write_file_drawBuffer(tiffilename, drawBuffer, loc.nx, loc.ny);
+      //status |= tiff_write_file(tiffilename, data, loc->nx, loc->ny);
+      status |= tiff_write_file_drawBuffer(tiffilename, drawBuffer, loc->nx, loc->ny);
    }
    if (istxton) {
       snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
-      err |= writeImageToTxt(txtfilename);
+      status |= writeImageToTxt(txtfilename);
    }
    if (isbinon) {
       snprintf(binfilename, 255, "%simages/%s.bin", OUTPUT_PATH, basicfilename);
-      err |= writeImageToBin(binfilename);
+      status |= writeImageToBin(binfilename);
    }
-   return err;
+
+   return status;
 }
 
 /**
@@ -557,15 +574,14 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
  */
 int ImageCreator::writeImageToTxt(const char *filename)
 {
-   FILE *txtfile = NULL;
-   int i, j;
-
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   FILE * txtfile = NULL;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    if ((txtfile = fopen(filename, "w"))) {
-      for (i = 0; i < nx; i++) {
-         for (j = 0; j < ny; j++) {
+      for (int i = 0; i < nx; i++) {
+         for (int j = 0; j < ny; j++) {
             fprintf(txtfile, "%d ", (int) getmark(i, j));
          }
          fprintf(txtfile, "\n");
@@ -591,15 +607,15 @@ int ImageCreator::writeImageToTxt(const char *filename)
  */
 int ImageCreator::writeImageToBin(const char *filename)
 {
-   FILE *binfile = NULL;
-   int i, j;
+   FILE * binfile = NULL;
+   const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    if ((binfile = fopen(filename, "wb"))) {
-      for (i = 0; i < nx; i++) {
-         for (j = 0; j < ny; j++) {
+      for (int i = 0; i < nx; i++) {
+         for (int j = 0; j < ny; j++) {
             fprintf(binfile, "%d ", (int) getmark(i, j));
          }
          fprintf(binfile, "\n");
@@ -624,8 +640,9 @@ int ImageCreator::writeImageToBin(const char *filename)
  */
 int ImageCreator::copyImage(pvdata_t * targetbuf)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    for (int i = 0; i < (nx * ny); i++) {
       targetbuf[i] = (pvdata_t) drawBuffer[i];
@@ -710,8 +727,9 @@ inline int ImageCreator::approx(double temp)
  */
 void ImageCreator::testImage()
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
    std::cout << "\n\n";
    for (int i = 0; i < nx; i++) {
