@@ -435,7 +435,7 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
                                 &time, &pre->clayer->loc, true);
 
    if (status != 0) {
-      fprintf(stderr, "SHUTTING DOWN");
+      fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file, SHUTTING DOWN\n");
       exit(1);
    }
 
