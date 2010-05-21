@@ -13,7 +13,9 @@ namespace PV {
 Bars::Bars(const char * name, HyPerCol * hc) :
    Image(name, hc)
 {
+#ifdef OBSOLETE
    initialize_data(&loc);
+#endif
 
    // set default params
    // set reference position of bars
@@ -73,7 +75,6 @@ Bars::Bars(const char * name, HyPerCol * hc) :
    writeImages = params->value(name, "writeImages",0);
 
    updateImage(0.0, 0.0);
-
 }
 
 Bars::~Bars()
@@ -90,11 +91,12 @@ Bars::~Bars()
  */
 int Bars::clearImage()
 {
-   const int nx = loc.nx + 2 * loc.nPad;;
-   const int ny = loc.ny + 2 * loc.nPad;;
+   const PVLayerLoc * loc = getLayerLoc();
+
+   const int nx = loc->nx + 2 * loc->nPad;;
+   const int ny = loc->ny + 2 * loc->nPad;;
    const int sx = 1;
    const int sy = sx * nx;
-
 
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
@@ -124,9 +126,11 @@ int Bars::clearImage()
  */
 bool Bars::updateImage(float time, float dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+
    // extended frame
-   const int nx = loc.nx + 2 * loc.nPad;
-   const int ny = loc.ny + 2 * loc.nPad;
+   const int nx = loc->nx + 2 * loc->nPad;
+   const int ny = loc->ny + 2 * loc->nPad;
    const int sx = 1;
    const int sy = sx * nx;
 
