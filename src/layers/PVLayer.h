@@ -14,6 +14,7 @@
 
 typedef enum {
    TypeGeneric,
+   TypeImage,
    TypeRetina,
    TypeSimple,
    TypeV1Simple,
