@@ -13,8 +13,6 @@ namespace PV {
 
 Gratings::Gratings(const char * name, HyPerCol * hc) : Image(name, hc)
 {
-   initialize_data(&loc);
-
    // initialize to unused phase to trigger update
    //
    this->phase = 0.5 * PI;
@@ -45,13 +43,16 @@ Gratings::Gratings(const char * name, HyPerCol * hc) : Image(name, hc)
    calcPhase(0.0, dt);  // time==0.0 initializes random phase, don't delete
    calcPhase(hc->simulationTime(), dt);
 
+#ifdef OBSOLETE
    updateImage(0.0, 0.0);
+#endif
 }
 
 Gratings::~Gratings()
 {
 }
 
+#ifdef OBSOLETE
 /**
  * NOTES:
  *    - Retina calls updateImage(float time, float dt) and expects a bool variable
@@ -64,9 +65,11 @@ Gratings::~Gratings()
  */
 bool Gratings::updateImage(float time, float dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+
    // extended frame
-   const int nx = loc.nx + 2 * loc.nPad;
-   const int ny = loc.ny + 2 * loc.nPad;
+   const int nx = loc->nx + 2 * loc->nPad;
+   const int ny = loc->ny + 2 * loc->nPad;
    const int sx = 1;
    const int sy = sx * nx;
    float phi;
@@ -105,6 +108,7 @@ bool Gratings::updateImage(float time, float dt)
 
    return true;
 }
+#endif
 
 float Gratings::calcPhase(float time, float dt)
 {
