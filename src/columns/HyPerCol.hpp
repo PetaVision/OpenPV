@@ -122,9 +122,11 @@ private:
 
 } // namespace PV
 
+#ifdef OBSOLETE
 extern "C" {
 void *run1connection(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
 void *update1layer(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
 }
+#endif
 
 #endif /* HYPERCOL_HPP_ */
