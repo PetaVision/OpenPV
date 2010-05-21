@@ -22,10 +22,9 @@ int main(int argc, char* argv[])
 {
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
-   Image * image = new Image("Image", hc, hc->inputFile());
-
    // construct layers
-   HyPerLayer * retina  = new Retina("Retina", hc, image);
+   Image * image = new Image("Image", hc, hc->inputFile());
+   HyPerLayer * retina  = new Retina("Retina", hc);
    HyPerLayer * l1      = new V1("L1", hc);
 
    // connect the layers
