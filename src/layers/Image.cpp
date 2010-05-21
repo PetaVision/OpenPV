@@ -14,71 +14,94 @@
 namespace PV {
 
 Image::Image(const char * name, HyPerCol * hc)
+     : HyPerLayer(name, hc)
 {
-   initialize_base(name, hc);
+   initialize(TypeImage);
+   initializeImage(NULL);
 }
 
 Image::Image(const char * name, HyPerCol * hc, const char * filename)
+     : HyPerLayer(name, hc)
 {
-   initialize_base(name, hc);
+   initialize(TypeImage);
+   initializeImage(filename);
+}
 
-   // get size info from image so that data buffer can be allocated
-   int status = getImageInfo(filename, comm, &imageLoc);
+Image::~Image()
+{
+   if (filename != NULL) free(filename);
+#ifdef OBSOLETE
+   if (data != NULL) {
+      free(data);
+      data = NULL;
+   }
+#endif
+}
 
-   if (status) return;
+#ifdef OBSOLETE
+int Image::initialize_base(const char * name, HyPerCol * hc)
+{
+   this->comm = hc->icCommunicator();
+
+   PVParams * params = hc->parameters();
+
+   PVLayerLoc * loc = & clayer->loc;
+   loc->nBands = 1;
+   loc->nPad = (int) params->value(name, "marginWidth", 0);
+
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
+
+   return 0;
+}
+#endif
+
+#ifdef OBSOLETE
+int Image::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
+{
+   int status = HyPerLayer::initGlobal(colId, colRow, colCol, nRows, nCols);
 
    // need all image bands until converted to gray scale
-   loc.nBands = imageLoc.nBands;
+   PVLayerLoc * loc = & clayer->loc;
+   clayer->loc.nBands = getImageLoc().nBands;
 
-   initialize_data(&loc);
+   initialize_data(loc);
 
    read(filename);
 
    // for now convert images to grayscale
-   if (loc.nBands > 1) {
+   if (loc->nBands > 1) {
       this->toGrayScale();
    }
 
    // exchange border information
    exchange();
-}
-
-Image::~Image()
-{
-   free(name);
-
-   if (data != NULL) {
-      free(data);
-      data = NULL;
-   }
-}
-
-int Image::initialize_base(const char * name, HyPerCol * hc)
-{
-   this->name = strdup(name);
-   this->data = NULL;
-   this->comm = hc->icCommunicator();
-   this->lastUpdateTime = 0.0;
-
-   PVParams * params = hc->parameters();
-
-   loc = hc->getImageLoc();
-   loc.nBands = 1;
-
-   loc.nPad = (int) params->value(name, "marginWidth", 0);
-
-   // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(&loc);
-
    return 0;
 }
+#endif
 
 /**
  * data lives in an extended frame of size
  * (nx+2*nPad)*(ny+2*nPad)*nBands
  */
-int Image::initialize_data(const PVLayerLoc * dataLoc)
+int Image::initializeImage(const char * filename)
 {
+   int status = 0;
+
+   if (filename != NULL) {
+      this->filename = strdup(filename);
+      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
+   }
+   else {
+      this->filename = NULL;
+      this->imageLoc = * getLayerLoc();
+   }
+   this->lastUpdateTime = 0.0;
+
+   // get size info from image so that data buffer can be allocated
+// TODO - must make image conform to layer size
+
+#ifdef OBSOLETE
    // allocate storage for actual image
    //
 //   int N = imageLoc.nx * imageLoc.ny * imageLoc.nBands;
@@ -91,8 +114,25 @@ int Image::initialize_data(const PVLayerLoc * dataLoc)
                * dataLoc->nBands;
    data = (pvdata_t *) calloc(sizeof(pvdata_t), N);
    assert(data != NULL);
+#endif
+   data = clayer->activity->data;
 
-   return 0;
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
+
+   if (filename != NULL) {
+      read(filename);
+   }
+
+   // for now convert images to grayscale
+   if (getLayerLoc()->nBands > 1) {
+      this->toGrayScale();
+   }
+
+   // exchange border information
+   exchange();
+
+   return status;
 }
 
 pvdata_t * Image::getImageBuffer()
@@ -102,7 +142,7 @@ pvdata_t * Image::getImageBuffer()
 
 PVLayerLoc Image::getImageLoc()
 {
-   return loc;
+   return imageLoc;
 }
 
 /**
@@ -123,6 +163,32 @@ int Image::tag()
 //   return loc;
 //}
 
+int Image::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
+{
+   // this should never be called as an image shouldn't have an incoming connection
+   return 0;
+}
+
+/**
+ * update the image buffers
+ */
+int Image::updateState(float time, float dt)
+{
+   // this should replace updateImage
+   // make sure image is copied to activity buffer
+   //
+   return 0;
+}
+
+int Image::outputState(float time, bool last)
+{
+   // this could probably use Marion's update time interval
+   // for some classes
+   //
+   return 0;
+}
+
+#ifdef OBSOLETE
 /**
  * update the image buffers
  *
@@ -134,6 +200,7 @@ bool Image::updateImage(float time, float dt)
    // eventually could go through a list of images
    return false;
 }
+#endif
 
 //! CLEAR IMAGE
 /*!
@@ -155,13 +222,14 @@ int Image::clearImage()
 int Image::read(const char * filename)
 {
    int status = 0;
+   PVLayerLoc * loc = & clayer->loc;
 
-   const int n = loc.nx * loc.ny * loc.nBands;
+   const int n = loc->nx * loc->ny * loc->nBands;
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
    // read the image and scatter the local portions
-   status = scatterImageFile(filename, comm, &loc, buf);
+   status = scatterImageFile(filename, parent->icCommunicator(), loc, buf);
 
    if (status == 0) {
       status = copyFromInteriorBuffer(buf);
@@ -174,15 +242,16 @@ int Image::read(const char * filename)
 int Image::write(const char * filename)
 {
    int status = 0;
+   const PVLayerLoc * loc = getLayerLoc();
 
-   const int n = loc.nx * loc.ny * loc.nBands;
+   const int n = loc->nx * loc->ny * loc->nBands;
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
    status = copyToInteriorBuffer(buf);
 
    // gather the local portions and write the image
-   status = gatherImageFile(filename, comm, &loc, buf);
+   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
 
    delete buf;
 
@@ -191,18 +260,20 @@ int Image::write(const char * filename)
 
 int Image::exchange()
 {
-   return comm->exchange(data, mpi_datatypes, &loc);
+   return parent->icCommunicator()->exchange(data, mpi_datatypes, getLayerLoc());
 }
 
 int Image::gatherToInteriorBuffer(unsigned char * buf)
 {
-   assert(loc.nBands == 1);
+   const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   assert(loc->nBands == 1);
 
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
 
    const int sy = nx + 2*nxBorder;
    const int sb = sy * (ny + 2*nyBorder);
@@ -213,7 +284,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
    assert(srcBuf != NULL);
 
    int ii = 0;
-   for (int b = 0; b < loc.nBands; b++) {
+   for (int b = 0; b < loc->nBands; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -223,7 +294,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
       }
    }
 
-   gather(comm, &loc, buf, srcBuf);
+   gather(parent->icCommunicator(), loc, buf, srcBuf);
 
    free(srcBuf);
 
@@ -232,17 +303,18 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
 
 int Image::copyToInteriorBuffer(unsigned char * buf)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
 
    const int sy = nx + 2*nxBorder;
    const int sb = sy * (ny + 2*nyBorder);
 
    int ii = 0;
-   for (int b = 0; b < loc.nBands; b++) {
+   for (int b = 0; b < loc->nBands; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -256,17 +328,18 @@ int Image::copyToInteriorBuffer(unsigned char * buf)
 
 int Image::copyFromInteriorBuffer(const unsigned char * buf)
 {
-   const int nx = loc.nx;
-   const int ny = loc.ny;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
 
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
+   const int nxBorder = loc->nPad;
+   const int nyBorder = loc->nPad;
 
    const int sy = nx + 2*nxBorder;
    const int sb = sy * (ny + 2*nyBorder);
 
    int ii = 0;
-   for (int b = 0; b < loc.nBands; b++) {
+   for (int b = 0; b < loc->nBands; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -280,10 +353,11 @@ int Image::copyFromInteriorBuffer(const unsigned char * buf)
 
 int Image::toGrayScale()
 {
-   const int nx_ex = loc.nx + 2*loc.nPad;
-   const int ny_ex = loc.ny + 2*loc.nPad;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx_ex = loc->nx + 2*loc->nPad;
+   const int ny_ex = loc->ny + 2*loc->nPad;
 
-   const int numBands = loc.nBands;
+   const int numBands = loc->nBands;
 
    const int sx = 1;
    const int sy = nx_ex;
@@ -306,7 +380,7 @@ int Image::toGrayScale()
    }
 
    // turn off the color
-   loc.nBands = 1;
+   clayer->loc.nBands = 1;
 
    return 0;
 }
@@ -344,9 +418,10 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
 
 int Image::convolve(int width)
 {
-   const int nx_ex = loc.nx + 2*loc.nPad;
-   const int ny_ex = loc.ny + 2*loc.nPad;
-   //const int nb = loc.nBands;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx_ex = loc->nx + 2*loc->nPad;
+   const int ny_ex = loc->ny + 2*loc->nPad;
+   //const int nb = loc->nBands;
 
    const int size_ex = nx_ex * ny_ex;
 
@@ -360,8 +435,8 @@ int Image::convolve(int width)
    const int npx_2 = width/2;
    const int npy_2 = width/2;
 
-   assert(npx <= loc.nPad);
-   assert(npy <= loc.nPad);
+   assert(npx <= loc->nPad);
+   assert(npy <= loc->nPad);
 
    float * buf = new float[size_ex];
    //for (int i = 0; i < size_ex; i++) buf[i] = 0;
