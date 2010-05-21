@@ -2,7 +2,7 @@
  * HyPerConnection.hpp
  *
  *  Created on: Oct 21, 2008
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #ifndef HYPERCONN_HPP_
