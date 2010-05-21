@@ -4,12 +4,18 @@ PetaVision objects.
 
 HyPerCol parameters:
 
+   nx - number of neurons in the x direction
+   ny - number of neurons in the y direction
+   dt - time step: units of microseconds
 
 HyPerLayer parameters:
 
-  - spikingFlag (default 1)
-    - layer update is non spiking if 0
-    - layer update is spiking if 1
+   spikingFlag (default 1)
+     - layer update is non spiking if 0
+     - layer update is spiking if 1
 
 HyPerConn parameters:
 
+   initFromLastFlag
+      - initializes internally if 0
+      - initializes from last saved file if 1
