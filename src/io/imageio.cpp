@@ -198,7 +198,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
 
 int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, PVLayerLoc * loc, pvdata_t * pvdata_buf){
+                    PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf){
    unsigned char * char_buf;
    const int numItems = loc->nx * loc->ny * loc->nBands;
    char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
@@ -222,7 +222,7 @@ int gatherImageFile(const char * filename,
 }
 
 int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+                    PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
       return gatherImageFilePVP(filename, comm, loc, buf);
@@ -231,7 +231,7 @@ int gatherImageFile(const char * filename,
 }
 
 int gatherImageFilePVP(const char * filename,
-                       PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+                       PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
    const int maxBands = 3;
@@ -330,7 +330,7 @@ int gatherImageFilePVP(const char * filename,
 }
 
 int gatherImageFileGDAL(const char * filename,
-                        PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
 
@@ -721,18 +721,16 @@ int scatterImageBlocks(const char* filename,
  *    NOTE: dstBuf is np times larger than srcBuf on root process,
  *          dstBuf may be NULL if not root process
  */
-int gather(PV::Communicator * comm, PVLayerLoc * loc,
+int gather(PV::Communicator * comm, const PVLayerLoc * loc,
            unsigned char * dstBuf, unsigned char * srcBuf)
 {
    // TODO - fix this to work for features
    assert(loc->nBands == 1);
 
    const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nxny = nx*ny;
 
    const int sx  = 1;
    const int sy  = nx;
@@ -818,7 +816,7 @@ int scatter(PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
  * gather relevant portions of buf on root process from all others
  *    NOTE: buf is np times larger on root process
  */
-int gather(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
+int gather(PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
 {
    return -1;
 }
@@ -833,7 +831,7 @@ int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 }
 
 #ifdef PV_USE_GDAL
-int writeWithBorders(const char * filename, PVLayerLoc * loc, float * buf)
+int writeWithBorders(const char * filename, const PVLayerLoc * loc, float * buf)
 {
    int X = loc->nx + 2 * loc->nPad;
    int Y = loc->ny + 2 * loc->nPad;
