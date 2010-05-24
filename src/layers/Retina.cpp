@@ -88,6 +88,7 @@ int Retina::initialize(PVLayerType type)
 
    status = parent->addLayer(this);
 
+#ifdef OBSOLETE
    // for the Retina, V is extended size, so resize
    if (l->numExtended != l->numNeurons) {
       l->numNeurons = l->numExtended;
@@ -98,6 +99,7 @@ int Retina::initialize(PVLayerType type)
       l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
       assert(l->activeIndices != NULL);
    }
+#endif
 
    // TODO - could free other layer parameters as they are not used
 
@@ -313,7 +315,12 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
    float    * prevActivity = clayer->prevActivity;
 
-#ifdef OBSOLETE
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
+   const int marginWidth = clayer->loc.nPad;
+
+   #ifdef OBSOLETE
 // should no longer need this as retina gets input from connection
 //   updateImage(time, dt);
 #endif OBSOLETE
@@ -333,9 +340,6 @@ int Retina::updateState(float time, float dt)
          activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
          prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
          if (activity[kex] > 0.0) {
-            const int nx = clayer->loc.nx;
-            const int ny = clayer->loc.ny;
-            const int nf = clayer->numFeatures;
             // kIndexRestricted returns # < 0 if kex in border region
             const int k = kIndexRestricted(kex, nx, ny, nf, clayer->loc.nPad);
             if (k >= 0) {
@@ -347,13 +351,13 @@ int Retina::updateState(float time, float dt)
    else {
       // retina is non spiking, pass scaled image through to activity
       //
-      for (int k = 0; k < clayer->numExtended; k++) {
-//         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
          // scale output according to poissonEdgeProb, this could
          // perhaps be renamed when non spiking
          float maxRetinalActivity = params->poissonEdgeProb;
-         activity[k] = maxRetinalActivity * V[k];
-         prevActivity[k] = activity[k];
+         activity[kex] = maxRetinalActivity * V[k];
+         prevActivity[kex] = activity[kex];
          clayer->activeIndices[numActive++] = k;
       }
    }
