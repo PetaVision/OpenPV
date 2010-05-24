@@ -8,17 +8,22 @@
 #include "Patterns.hpp"
 #include <src/include/pv_common.h>  // for PI
 #include <src/utils/pv_random.h>
+
+#define MAXVAL  1.0f
+
 namespace PV {
 
 // CER-new
 FILE * fp;
 int start = 0;
 
-Patterns::Patterns(const char * name, HyPerCol * hc) :
+Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    Image(name, hc)
 {
    // CER-new
    fp = fopen("bar-pos.txt", "w");
+
+   this->type = type;
 
    // set default params
    // set reference position of bars
@@ -49,9 +54,9 @@ Patterns::Patterns(const char * name, HyPerCol * hc) :
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages",0);
 
-   initPattern(255.0f);
+   initPattern(MAXVAL);
 
-   // make sure initialization if finished
+   // make sure initialization is finished
    updateState(0.0, 0.0);
 }
 
@@ -120,14 +125,14 @@ int Patterns::updateState(float time, float dt)
 
    if (orientation == vertical) { // current vertical gratings
       if (p < pSwitch) { // switch with probability pSwitch
-    	  orientation = horizontal;
-    	  initPattern(255.0f);
+         orientation = horizontal;
+         initPattern(MAXVAL);
       }
    }
    else {
       if (p < pSwitch) { // current horizontal gratings
          orientation = vertical;
-         initPattern(255.0f);
+         initPattern(MAXVAL);
       }
    }
 
@@ -138,7 +143,7 @@ int Patterns::updateState(float time, float dt)
       //position = (start++) % 4;
       position = (int) (4.0*pv_random_prob());
       //position = prefPosition;
-      initPattern(255.0f);
+      initPattern(MAXVAL);
       //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
    }
    else {
