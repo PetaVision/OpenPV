@@ -288,8 +288,8 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
    else {
       initializeDefaultWeights(patches, numPatches);
-       normalizeWeights(patches, numPatches);
-       return patches;
+      normalizeWeights(patches, numPatches);
+      return patches;
    }
 }
 
