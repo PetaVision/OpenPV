@@ -34,11 +34,12 @@ public:
 //   virtual int publish(InterColComm * comm, float time);
    virtual int outputState(float time, bool last=false);
 
-#ifdef OBSOLETE
-   // implementation of LayerDataInterface interface
+   // partially override implementation of LayerDataInterface interface
    //
-   const PVLayerLoc * getLayerLoc()  { return clayer->loc; /*return &loc;*/ }
-   const pvdata_t * getLayerData()   { return getImageBuffer(); }
+   const pvdata_t * getLayerData()   { return data; }
+
+#ifdef OBSOLETE
+   const PVLayerLoc * getLayerLoc()  { return & clayer->loc; /*return &loc;*/ }
    bool isExtended()                 { return true; }
 
    virtual bool updateImage(float time, float dt);
