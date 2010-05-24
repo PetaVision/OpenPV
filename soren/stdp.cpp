@@ -28,11 +28,10 @@
 
 using namespace PV;
 
-#undef DISPLAY
+#define DISPLAY
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
-#undef LGN
 #undef INHIB
 
 int main(int argc, char* argv[])
@@ -44,13 +43,9 @@ int main(int argc, char* argv[])
    // create the layers
    //
 
-   Image * image = new Patterns("Bars", hc);
+   Image * image         = new Patterns("Bars", hc, RECTANGLES);
    HyPerLayer * retinaOn = new Retina("RetinaOn", hc);
-   HyPerLayer * l1     = new V1("L1", hc);
-
-#ifdef LGN
-   HyPerLayer * lgn    = new V1("LGN", hc);
-#endif
+   //HyPerLayer * l1       = new V1("L1", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
@@ -59,14 +54,9 @@ int main(int argc, char* argv[])
    // connect the layers
    //
 
-   HyPerConn * i_r1_c = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
-   HyPerConn * i_r1_s = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
-
-#ifdef LGN
-   HyPerConn * r_lgn_c = new HyPerConn("Retina to LGN Center", hc, retina, lgn, CHANNEL_EXC);
-#else
-   HyPerConn * r_l1    = new HyPerConn("Retina to L1", hc, retinaOn, l1, CHANNEL_EXC);
-#endif
+   HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
+   //HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
+   //HyPerConn * r_l1    = new HyPerConn("Retina to L1", hc, retinaOn, l1, CHANNEL_EXC);
 
 #ifdef INHIB
    HyPerConn * l1_l1Inh = new HyPerConn( "L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
@@ -75,13 +65,11 @@ int main(int argc, char* argv[])
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-   display->setDelay(100);
+   display->setDelay(800);
    display->setImage(image);
-   display->addLayer(retina);
-   display->addLayer(l1);
+   display->addLayer(retinaOn);
+   //display->addLayer(l1);
 #endif
-
-   //dump_weights(r_l1->weights(0), r_l1->numWeightPatches(0));
 
    // add probes
    //
@@ -103,8 +91,8 @@ int main(int argc, char* argv[])
    retina->insertProbe(rProbe5);
 #endif
 
-//   ConnectionProbe * cProbe = new ConnectionProbe(277);
-//   r_lgn_c->insertProbe(cProbe);
+   //ConnectionProbe * cProbe = new ConnectionProbe(277);
+   //i_r1_s->insertProbe(cProbe);
 
 //   PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
