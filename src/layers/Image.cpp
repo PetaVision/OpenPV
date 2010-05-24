@@ -265,6 +265,8 @@ int Image::exchange()
 
 int Image::gatherToInteriorBuffer(unsigned char * buf)
 {
+   return HyPerLayer::gatherToInteriorBuffer(buf);
+#ifdef OBSOLETE
    const PVLayerLoc * loc = getLayerLoc();
 
    assert(loc->nBands == 1);
@@ -289,7 +291,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
             int iex = i + nxBorder;
-            srcBuf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+            srcBuf[ii++] = (unsigned char) (255.0f * data[iex + jex*sy + b*sb]);
          }
       }
    }
@@ -299,6 +301,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
    free(srcBuf);
 
    return 0;
+#endif
 }
 
 int Image::copyToInteriorBuffer(unsigned char * buf)
