@@ -42,7 +42,7 @@ HyPerLayer "RetinaOn" = {
    endStim   = 90000000;
 
    burstFreq = 25; // 0.001; //20;   // Hz
-   burstDuration = 7.5; // 1000000;  // ms
+   burstDuration = 100; //CER 7.5; // 1000000;  // ms
 
    spikingFlag = 0; //CER 1;     // spike as poisson
 
