@@ -43,9 +43,10 @@ int main(int argc, char* argv[])
    // create the layers
    //
 
-   Image * image         = new Patterns("Bars", hc, RECTANGLES);
-   HyPerLayer * retinaOn = new Retina("RetinaOn", hc);
-   //HyPerLayer * l1       = new V1("L1", hc);
+   Image * image          = new Patterns("Bars", hc, RECTANGLES);
+   HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
+   //HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
+   //HyPerLayer * l1        = new V1("L1", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
@@ -55,17 +56,18 @@ int main(int argc, char* argv[])
    //
 
    HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
-   //HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
+   HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
+   //HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_EXC);
    //HyPerConn * r_l1    = new HyPerConn("Retina to L1", hc, retinaOn, l1, CHANNEL_EXC);
 
 #ifdef INHIB
-   HyPerConn * l1_l1Inh = new HyPerConn( "L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
+   HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
    HyPerConn * l1Inh_l1 = new HyPerConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
 #endif
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-   display->setDelay(800);
+   display->setDelay(400);
    display->setImage(image);
    display->addLayer(retinaOn);
    //display->addLayer(l1);
