@@ -63,8 +63,8 @@ HyPerLayer "RetinaOff" = {
    
    spikingFlag = 1;
    
-   noiseOnFreq = 0;
-   noiseOffFreq = 2000;
+   noiseOnFreq = 2000;
+   noiseOffFreq = 0;
 };
 
 HyPerLayer "L1" = {
