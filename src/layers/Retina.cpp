@@ -80,9 +80,8 @@ int Retina::initialize(PVLayerType type)
    l->numNeurons  = nx * ny * l->numFeatures;
    l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
 
-   PVParams * pvParams = parent->parameters();
-
 #ifdef OBSOLETE
+   PVParams * pvParams = parent->parameters();
    fireOffPixels = (int) pvParams->value(name, "fireOffPixels", 0);
 #endif
 
@@ -312,6 +311,8 @@ int Retina::updateState(float time, float dt)
    fileread_params * params = (fileread_params *) clayer->params;
 
    pvdata_t * V = clayer->V;
+   pvdata_t * phiExc   = clayer->phi[PHI_EXC];
+   pvdata_t * phiInh   = clayer->phi[PHI_INH];
    pvdata_t * activity = clayer->activity->data;
    float    * prevActivity = clayer->prevActivity;
 
@@ -325,6 +326,13 @@ int Retina::updateState(float time, float dt)
 //   updateImage(time, dt);
 #endif OBSOLETE
 
+   // make sure activity in border is zero
+   //
+   // TODO - is this still necessary and why
+   for (int k = 0; k < clayer->numExtended; k++) {
+      activity[k] = 0.0;
+   }
+
    // V in Retina is extended so loop over extended region.  This
    // ensures that there is at least background in border region.
    //
@@ -333,18 +341,19 @@ int Retina::updateState(float time, float dt)
    //
    int numActive = 0;
    if (params->spikingFlag == 1) {
-      for (int kex = 0; kex < clayer->numExtended; kex++) {
-         const float probStim = params->poissonEdgeProb * V[kex];
+      for (int k = 0; k < clayer->numNeurons; k++) {
+         const int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+
+         V[k] = phiExc[k] - phiInh[k];
+
+         const float probStim = params->poissonEdgeProb * V[k];
          const float probBase = params->poissonBlankProb;
          const float prevTime = prevActivity[kex];
-         activity[kex]  = spike(time, dt, prevTime, probBase, probStim, &probSpike);
+
+         activity[kex] = spike(time, dt, prevTime, probBase, probStim, &probSpike);
          prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
          if (activity[kex] > 0.0) {
-            // kIndexRestricted returns # < 0 if kex in border region
-            const int k = kIndexRestricted(kex, nx, ny, nf, clayer->loc.nPad);
-            if (k >= 0) {
-               clayer->activeIndices[numActive++] = k;
-            }
+            clayer->activeIndices[numActive++] = k;
          }
       }
    }
@@ -352,13 +361,18 @@ int Retina::updateState(float time, float dt)
       // retina is non spiking, pass scaled image through to activity
       //
       for (int k = 0; k < clayer->numNeurons; k++) {
-         int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+         const int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+         V[k] = phiExc[k] - phiInh[k];
          // scale output according to poissonEdgeProb, this could
          // perhaps be renamed when non spiking
          float maxRetinalActivity = params->poissonEdgeProb;
          activity[kex] = maxRetinalActivity * V[k];
          prevActivity[kex] = activity[kex];
          clayer->activeIndices[numActive++] = k;
+
+         // reset accumulation buffers
+         phiExc[k] = 0.0;
+         phiInh[k] = 0.0;
       }
    }
    clayer->numActive = numActive;
