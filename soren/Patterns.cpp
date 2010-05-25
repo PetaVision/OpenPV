@@ -82,7 +82,8 @@ int Patterns::initPattern(float val)
    const int sx = 1;
    const int sy = sx * nx;
 
-   const int width = 1;
+   const int width = 16;
+   const int height = 16;
    const int interval = 4;
    int x, y;
 
@@ -90,6 +91,17 @@ int Patterns::initPattern(float val)
    const int nk = nx * ny;
    for (int k = 0; k < nk; k++) {
       data[k] = 0.0;
+   }
+
+   if (type == RECTANGLES) {
+      const int y0 = (ny - height) / 2;
+      const int x0 = (nx - width)  / 2;
+      for (int iy = y0; iy < y0 + height; iy++) {
+         for (int ix = x0; ix < x0 + width; ix++) {
+            data[ix * sx + iy * sy] = val;
+         }
+      }
+      return 0;
    }
 
    if (orientation == vertical) { // vertical bars
