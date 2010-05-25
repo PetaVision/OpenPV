@@ -50,6 +50,23 @@ HyPerLayer "RetinaOn" = {
    noiseOffFreq = 0; //CER 50;   // (Hz) when this is defined poissonBlank overridden
 };
 
+HyPerLayer "RetinaOff" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   
+   beginStim = 0;
+   endStim = 9000000;
+   
+   burstFreq = 25;
+   burstDuration = 7.5;
+   
+   spikingFlag = 1;
+   
+   noiseOnFreq = 0;
+   noiseOffFreq = 2000;
+};
+
 HyPerLayer "L1" = {
    nxScale = 2; // 8;
    nyScale = 2; // 8;
@@ -99,6 +116,25 @@ HyPerConn "Image to RetinaOn Surround" = {
    strength = 1;
    gaussianWeights = 1;
    rMax  = 1.5;
+   sigma = 1.5;
+};
+
+
+HyPerConn "Image to RetinaOff Center" = {
+   nxp = 1;
+   nyp = 1;
+   
+   strength = -1;
+   uniformWeights = 1;
+};
+
+HyPerConn "Image to RetinaOff Surround" = {
+   nxp = 3;
+   nyp = 3;
+   
+   strength = -1;
+   gaussianWeights = 1;
+   rMax = 1.5;
    sigma = 1.5;
 };
 
