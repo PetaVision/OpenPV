@@ -28,7 +28,7 @@
 
 using namespace PV;
 
-#define DISPLAY
+#undef DISPLAY
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
    // create the layers
    //
 
-   Image * image          = new Patterns("Bars", hc, RECTANGLES);
+   Image * image          = new Patterns("Image", hc, RECTANGLES);
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
    HyPerLayer * l1        = new V1("L1", hc);
