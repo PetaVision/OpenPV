@@ -377,6 +377,12 @@ int Retina::updateState(float time, float dt)
    }
    clayer->numActive = numActive;
 
+#ifdef DEBUG_PRINT
+   char filename[132];
+   sprintf(filename, "r_%d.tiff", (int)(2*time));
+   this->writeActivity(filename, time);
+#endif
+
    return 0;
 }
 
