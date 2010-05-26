@@ -20,14 +20,14 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-   marginWidth = 2;
+   marginWidth = 0; // CER 2;
    pMove = 0.03125;  // every 16 ms
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
 };
 
 HyPerLayer "Bars" = {
-   marginWidth = 2;
+   marginWidth = 0; // CER 2;
    pMove = 0.02; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
@@ -61,7 +61,7 @@ HyPerLayer "RetinaOff" = {
    burstFreq = 25;
    burstDuration = 7.5;
    
-   spikingFlag = 1;
+   spikingFlag = 0;
    
    noiseOnFreq = 2000;
    noiseOffFreq = 0;
