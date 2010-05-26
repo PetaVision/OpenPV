@@ -20,14 +20,14 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-   marginWidth = 0; // CER 2;
-   pMove = 0.03125;  // every 16 ms
+   marginWidth = 0; //CER 2;
+   pMove = 0.0; // CER 0.03125;  // every 16 ms
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
 };
 
 HyPerLayer "Bars" = {
-   marginWidth = 0; // CER 2;
+   marginWidth = 0; //CER 2;
    pMove = 0.02; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
@@ -42,18 +42,18 @@ HyPerLayer "RetinaOn" = {
    endStim   = 90000000;
 
    burstFreq = 25; // 0.001; //20;   // Hz
-   burstDuration = 100; //CER 7.5; // 1000000;  // ms
+   burstDuration = 7.5; // 1000000;  // ms
 
-   spikingFlag = 0; //CER 1;     // spike as poisson
+   spikingFlag = 1;     // spike as poisson
 
-   noiseOnFreq  = 2000; //CER 200;  // (Hz) when this is defined poissonEdge overridden
-   noiseOffFreq = 0; //CER 50;   // (Hz) when this is defined poissonBlank overridden
+   noiseOnFreq  = 200;  // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 50;   // (Hz) when this is defined poissonBlank overridden
 };
 
 HyPerLayer "RetinaOff" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0;
+   marginWidth = 0; //CER 2;
    
    beginStim = 0;
    endStim = 9000000;
@@ -61,10 +61,10 @@ HyPerLayer "RetinaOff" = {
    burstFreq = 25;
    burstDuration = 7.5;
    
-   spikingFlag = 0;
+   spikingFlag = 1;
    
-   noiseOnFreq = 2000;
-   noiseOffFreq = 0;
+   noiseOnFreq = 200;
+   noiseOffFreq = 50;
 };
 
 HyPerLayer "L1" = {
@@ -73,7 +73,7 @@ HyPerLayer "L1" = {
    
    //restart = 1;
 
-   marginWidth = 3;
+   marginWidth = 0; //CER 3;
    
    noiseAmpE = 1.0;
    noiseAmpI = 1.0;
@@ -145,7 +145,7 @@ HyPerConn "RetinaOn to L1" = {
    stdpFlag   = 1;
    randomFlag = 1;
    
-   initFromLastFlag = 0;  // CER // restart
+   initFromLastFlag = 0;  //CER // restart
    
    //
    // strength used if randomFlag==0
@@ -155,8 +155,8 @@ HyPerConn "RetinaOn to L1" = {
    //
    // these weights used if randomFlag==1
 
-   wMin = 0.0; //0.0;     
-   wMax = 1.5; //3.0;
+   wMin = 0.0;     
+   wMax = 3.0;
    dWMax = 0.04;  // .01;
    
    uniformWeights = 1;
@@ -188,7 +188,7 @@ HyPerConn "RetinaOff to L1" = {
    strength = 1.5;
    
    wMin = 0.0;
-   wMax = 1.5;
+   wMax = 3.0;
    dWMax = 0.04;
    
    uniformWeights = 1;
