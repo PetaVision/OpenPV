@@ -138,7 +138,7 @@ HyPerConn "Image to RetinaOff Surround" = {
    sigma = 1.5;
 };
 
-HyPerConn "Retina to L1" = {
+HyPerConn "RetinaOn to L1" = {
    nxp = 8; // 64;
    nyp = 8; // 64;
    
@@ -172,6 +172,31 @@ HyPerConn "Retina to L1" = {
 
    ampLTP = 1.0;
    ampLTD = 1.2; //1.1;
+   tauLTP = 20;
+   tauLTD = 20;
+};
+
+HyPerConn "RetinaOff to L1" = {
+   nxp = 8;
+   nyp = 8;
+   
+   stdpFlag   = 1;
+   randomFlag = 1;
+
+   initFromLastFlag = 0;
+   
+   strength = -1.5;
+   
+   wMin = 0.0;
+   wMax = 1.5;
+   dWMax = 0.04;
+   
+   uniformWeights = 1;
+   
+   writeStep = 50000;
+
+   ampLTP = 1.0;
+   ampLTD = 1.2;
    tauLTP = 20;
    tauLTD = 20;
 };
