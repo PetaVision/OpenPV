@@ -185,7 +185,7 @@ HyPerConn "RetinaOff to L1" = {
 
    initFromLastFlag = 0;
    
-   strength = -1.5;
+   strength = 1.5;
    
    wMin = 0.0;
    wMax = 1.5;
