@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
    Image * image          = new Patterns("Bars", hc, RECTANGLES);
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
-   //HyPerLayer * l1        = new V1("L1", hc);
+   HyPerLayer * l1        = new V1("L1", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
@@ -59,7 +59,8 @@ int main(int argc, char* argv[])
    HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
    HyPerConn * i_rO_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_EXC);
    HyPerConn * i_rO_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_INH);
-   //HyPerConn * r_l1    = new HyPerConn("Retina to L1", hc, retinaOn, l1, CHANNEL_EXC);
+   HyPerConn * r1_l1    = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
+   HyPerConn * rO_l1    = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
 
 #ifdef INHIB
    HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
    display->setImage(image);
    display->addLayer(retinaOn);
    display->addLayer(retinaOff);
-   //display->addLayer(l1);
+   display->addLayer(l1);
 #endif
 
    // add probes
