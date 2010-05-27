@@ -146,30 +146,10 @@ function [connID, connIndex] = pvp_connectionID()
   connIndex.l1inh_l1inh_exc = ij_conn;
   connID{ 1, ij_conn } =  'L1Inh to L1Inh Exc';
 
-elseif TRAINING_FLAG
-
-  N_CONNECTIONS = 3;
-  connID = cell(1,N_CONNECTIONS);
-
-
-  ij_conn = ij_conn + 1;
-  connIndex.r_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'R2L1';
-
-  ij_conn = ij_conn + 1;
-  connIndex.r_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'R2L1Inh';
-
-  ij_conn = ij_conn + 1;
-  connIndex.l1_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'L12L1';
-
 else
-  
 
-  N_CONNECTIONS = 5;
+  N_CONNECTIONS = 2;
   connID = cell(1,N_CONNECTIONS);
-
 
   ij_conn = ij_conn + 1;
   connIndex.r_l1 = ij_conn;
@@ -179,20 +159,67 @@ else
   connIndex.r_l1inh = ij_conn;
   connID{ 1, ij_conn } =  'R2L1Inh';
 
-  ij_conn = ij_conn + 1;
-  connIndex.l1_l1_geisler = ij_conn;
-  connID{ 1, ij_conn } =  'L12L1G';
+  if TRAINING_FLAG == 1
 
-  ij_conn = ij_conn + 1;
-  connIndex.l1_l1_geisler_target = ij_conn;
-  connID{ 1, ij_conn } =  'L12L1GT';
+    N_CONNECTIONS = N_CONNECTIONS + 1;
+    connID = [connID; cell(1,1)];
 
-  ij_conn = ij_conn + 1;
-  connIndex.l1_l1_geisler_distractor = ij_conn;
-  connID{ 1, ij_conn } =  'L12L1GD';
+    ij_conn = ij_conn + 1;
+    connIndex.l1_l1 = ij_conn;
+    connID{ 1, ij_conn } =  'L1ToL1';
 
-  ij_conn = ij_conn + 1;
-  connIndex.l1_l1_geisler_distractor = ij_conn;
-  connID{ 1, ij_conn } =  'L12L1GDIFF';
+  else  % TRAINING_FLAG ~= 1;
+
+    N_CONNECTIONS = N_CONNECTIONS + 4;
+    connID = [connID, cell(1,4)];
+
+    ij_conn = ij_conn + 1;
+    connIndex.l1_l1_geisler = ij_conn;
+    connID{ 1, ij_conn } =  'L1ToL1G';
+
+    ij_conn = ij_conn + 1;
+    connIndex.l1_l1_geisler_target = ij_conn;
+    connID{ 1, ij_conn } =  'L1ToL1GT';
+
+    ij_conn = ij_conn + 1;
+    connIndex.l1_l1_geisler_distractor = ij_conn;
+    connID{ 1, ij_conn } =  'L1ToL1GD';
+
+    ij_conn = ij_conn + 1;
+    connIndex.l1_geisler_l1_geisler2 = ij_conn;
+    connID{ 1, ij_conn } =  'L1GToL1G2';
+
+    if TRAINING_FLAG == 2
+
+      N_CONNECTIONS = N_CONNECTIONS + 1;
+      connID = [connID, cell(1,1)];
+
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler = ij_conn;
+      connID{ 1, ij_conn } =  'L1G2ToL1G2';
+
+
+    elseif TRAINING_FLAG <= 0 
+
+      N_CONNECTIONS = N_CONNECTIONS + 2;
+				% last connection is computed
+				% from previous 2
+      connID = [connID, cell(1,1)];
+
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler_target = ij_conn;
+      connID{ 1, ij_conn } =  'L1GToL1G2T';
+
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler_distractor = ij_conn;
+      connID{ 1, ij_conn } =  'L1GToL1G2D';
+
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler_distractor = ij_conn;
+      connID{ 1, ij_conn } =  'L1G2ToL1G2';
+
+    endif % TRAINING_FLAG == 0
+
+  endif % TRAINING_FLAG
 
 endif % spiking_flag

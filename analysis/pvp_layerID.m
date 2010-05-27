@@ -39,7 +39,7 @@ function [layerID, layerIndex] = pvp_layerID()
   layerIndex.l1inh = i_layer;
   layerID{ 1, i_layer } =  'L1Inh';
 
-elseif TRAINING_FLAG
+else  % NON_SPIKING
 
   N_LAYERS = 2;
   layerID = cell(1, N_LAYERS);
@@ -52,29 +52,33 @@ elseif TRAINING_FLAG
   layerIndex.l1 = i_layer;
   layerID{ 1, i_layer } =  'L1';
 
-else
 
-  N_LAYERS = 5;
-  layerID = cell(1, N_LAYERS);
+  if TRAINING_FLAG <= 0 || TRAINING_FLAG > 1
+    
+    N_LAYERS = N_LAYERS + 2;
+    layerID = [layerID, cell(1, 2)];
+    
+    i_layer = i_layer + 1;
+    layerIndex.l1_geisler = i_layer;
+    layerID{ 1, i_layer } =  'L1G';  
+    
+    i_layer = i_layer + 1;
+    layerIndex.l1_geisler2 = i_layer;
+    layerID{ 1, i_layer } =  'L1G2';  
+    
+    
+    if TRAINING_FLAG <= 0 || TRAINING_FLAG > 2
 
-  i_layer = i_layer + 1;
-  layerIndex.retina = i_layer;
-  layerID{ 1, i_layer } =  'R';
+      N_LAYERS = N_LAYERS + 1;
+      layerID = [layerID, cell(1, 1)];
+    
+      i_layer = i_layer + 1;
+      layerIndex.l1_geisler2 = i_layer;
+      layerID{ 1, i_layer } =  'L1G3';
 
-  i_layer = i_layer + 1;
-  layerIndex.l1 = i_layer;
-  layerID{ 1, i_layer } =  'L1';
+    endif % TRAINING_FLAG
 
-  i_layer = i_layer + 1;
-  layerIndex.l1_geisler = i_layer;
-  layerID{ 1, i_layer } =  'L1G';  
-
-  i_layer = i_layer + 1;
-  layerIndex.l1_geisler2 = i_layer;
-  layerID{ 1, i_layer } =  'L1G2';  
-
-  i_layer = i_layer + 1;
-  layerIndex.l1_geisler2 = i_layer;
-  layerID{ 1, i_layer } =  'L1G3';  
+  endif  % TRAINING_FLAG
+  
 
 endif % SPIKING_FLAG

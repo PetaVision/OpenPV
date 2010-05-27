@@ -23,14 +23,19 @@ global begin_time end_time
 global stim_begin_time stim_end_time
 global num_targets
 global rate_array
-global output_path input_path
+global output_path spike_path
 global NUM_BIN_PARAMS 
 global NUM_WGT_PARAMS
 NUM_BIN_PARAMS = 20;
 NUM_WGT_PARAMS = 6;
 
-input_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
-output_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/output/';
+global FLAT_ARCH_FLAG
+FLAT_ARCH_FLAG = 1;
+
+spike_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_target_4fc/';
+output_path = spike_path;
+
+input_path = '/Users/gkenyon/Documents/eclipse-workspace/PetaVision/mlab/amoebaGen/128_png/4/';
 
 pvp_order = 1;
 
@@ -38,18 +43,15 @@ pvp_order = 1;
 				% pvp_readSparseSpikes
 begin_time = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
 end_time = inf;
-stim_begin_time = 769.0;  % times (msec) before this and after begin_time can be used to calculate background
-stim_end_time = 131840.0;
-%stim_end_time = 1792.0;
-stim_exclude_time = 256.0;
+stim_begin_time = 1.0;  % times (msec) before this and after begin_time can be used to calculate background
+stim_end_time = 1000.0;
+stim_exclude_time = 50.0;
 bin_size = 4.0;  % (msec) used for all rate calculations
-analysis_start_time = 50.0;
-analysis_stop_time = 132352.0;
-%analysis_stop_time = 2304.0;
+analysis_start_time = 1.0;
+analysis_stop_time = 1000.0;
 dt = 1.0; % msec
 
-
-				% initialize to size of image (if known), these should be overwritten by each layer
+1				% initialize to size of image (if known), these should be overwritten by each layer
 NROWS_image=128;
 NCOLS_image=128;
 NROWS = NROWS_image;
@@ -66,16 +68,15 @@ fig_list = [];
 
 global N_LAYERS
 global SPIKING_FLAG
-SPIKING_FLAG = 1
-;
+SPIKING_FLAG = 1;
 [layerID, layerIndex] = pvp_layerID();
 
-read_spikes = [5]; % 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
+read_spikes = 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
 num_layers = N_LAYERS;
 
 min_plot_steps = 20;  % time-dependent quantities only plotted if tot_steps exceeds this threshold
-plot_reconstruct = []; %uimatlab;
-plot_raster = []; %uimatlab;
+plot_reconstruct = read_spikes; %uimatlab;
+plot_raster = read_spikes; %uimatlab;
 plot_reconstruct_target = 0;
 plot_vmem = 0;
 plot_autocorr = [5];
@@ -85,8 +86,13 @@ spike_array = cell(num_layers,1);
 ave_rate = zeros(num_layers,1);
 
 %% read input image
-bmp_path = [input_path 'hard4.bmp'];
-[target, clutter, fig_tmp] = pvp_parseBMP( bmp_path, 1 );
+global image_path target_path
+image_filename = [input_path 't/tar_0000_a.png'];
+target_filename{1} = [input_path 'a/tar_0000_a.png'];
+
+invert_image_flag = 0;
+[target, clutter, image, fig_tmp] = ...
+    pvp_parseTarget( image_filename, target_filename, invert_image_flag, 1);
 fig_list = [fig_list; fig_tmp];
 disp('parse BMP -> done');
 
@@ -108,6 +114,7 @@ num_bkgrnd_neurons = zeros(num_layers, 1);
 num_rows = ones(num_layers,1);
 num_cols = ones(num_layers,1);
 num_features = ones(num_layers,1);
+num_neurons = ones(num_layers,1);
 target_rate = cell(num_layers, num_targets);
 target_rate_ndx = cell(num_layers, num_targets);
 clutter_rate = cell(num_layers, 1);
@@ -156,6 +163,7 @@ for layer = read_spikes;
   num_rows(layer) = NROWS;
   num_cols(layer) = NCOLS;
   num_features(layer) = NFEATURES;
+  num_neurons(layer) = NFEATURES * NCOLS * NROWS;
   
 				% parse object segmentation info input image
   use_max = 1;
@@ -190,7 +198,7 @@ for layer = read_spikes;
   
   plot_rates = tot_steps > min_plot_steps;
   if ( plot_rates == 1 )
-    plot_title = [layerID{layer}, ' PSTH: layer = ',int2str(layer)];
+    plot_title = [layerID{layer}, ' PSTH(', int2str(layer), ')'];
     fig_tmp = figure('Name',plot_title);
     fig_list = [fig_list; fig_tmp];
     for i_target = 1 : num_targets
@@ -218,21 +226,14 @@ for layer = read_spikes;
 				% raster plot
   plot_raster2 = ismember( layer, plot_raster ) && tot_steps > min_plot_steps && ~isempty(spike_array{layer});
   if plot_raster2
-    plot_title = [layerID{layer}, ' Raster: layer = ',int2str(layer)'];
+    plot_title = [layerID{layer}, ' Raster(',int2str(layer)', ')'];
     fig_tmp = figure('Name',plot_title);
     fig_list = [fig_list; fig_tmp];
-    if uioctave
-      axis([analysis_start_time analysis_stop_time 0 N], 'ticx');
-    else
-      axis([analysis_start_time analysis_stop_time 0 N]);
-    endif % uioctave
-    hold on
-    if ~uioctave
-      box on
-    endif % uioctave
+    %axis([analysis_start_step analysis_stop_step 0 num_neurons(layer)]);
     [spike_time, spike_id] = find((spike_array{layer}));
     lh = plot(spike_time, spike_id, '.k');
     set(lh,'Color',my_gray);
+    hold on
     
     for i_target=1:num_targets
       [spike_time, spike_id] = ...
@@ -250,15 +251,23 @@ for layer = read_spikes;
   
 
   rate_array{layer} = 1000 * full( mean(spike_array{layer}(stim_steps,:),1) );
+  size_recon = [1 num_features(layer), num_cols(layer), num_rows(layer)];
   for i_target = 1:num_targets
     target_rate{layer, i_target} = rate_array{layer}(1,target_ndx{layer, i_target});
     target_rate_array_tmp = ...
         sparse(1, target_ndx{layer, i_target}, target_rate{layer, i_target}, 1 , N, num_target_neurons(layer, i_target) );
     if (plot_reconstruct_target && tot_steps > min_plot_steps)
-      fig_tmp = pvp_reconstruct(full(target_rate_array_tmp), ...
-				[layerID{layer}, ' Target rate reconstruction; layer = ', ...
-				 int2str(layer), ', target index = ', ...
-				 int2str(i_target)]);     
+      plot_title = ...
+	  [layerID{layer}, ...
+	   ' Target(', ...
+		     int2str(layer), ...
+		     ',', ...
+		     int2str(i_target), ')'];
+      fig_tmp = ...
+	  pvp_reconstruct(full(target_rate_array_tmp), ...
+			  plot_title, ...
+			  [], ...
+			  size_recon );     
       fig_list = [fig_list; fig_tmp];
     endif %  reconstruc target/clutter
     [target_rate{layer, i_target}, target_rate_ndx{layer, i_target}] = ...
@@ -273,16 +282,23 @@ for layer = read_spikes;
 	    num2str(tmp_rate),', [k, kcol, krow, kf] = ', ...
 	    num2str([k-1, kcol-1, krow-1, kf-1]) ]);
     endfor % i_rank
-  endfor % i_targetr
+  endfor % i_target
   clutter_rate{layer, 1} = rate_array{layer}(1,clutter_ndx{layer, 1});
   [clutter_rate{layer, 1}, clutter_rate_ndx{layer, 1}] = ...
       sort( clutter_rate{layer, 1}, 2, 'descend');
   clutter_rate_array_tmp = ...
       sparse(1, clutter_ndx{layer, 1}, clutter_rate{layer, 1}, 1 , N, num_clutter_neurons(layer, 1) );
   if (plot_reconstruct_target && tot_steps > min_plot_steps)
-    fig_tmp = pvp_reconstruct(full(clutter_rate_array_tmp), ...
-			      [layerID{layer}, ' Clutter rate reconstruction: layer = ', ...
-			       int2str(layer)]);
+    plot_title = ...
+	[layerID{layer}, ...
+	 ' Clutter(', ...
+		     int2str(layer), ...
+		     ')'];
+    fig_tmp = ...
+	pvp_reconstruct(full(clutter_rate_array_tmp), ...
+			plot_title, ...
+			[],
+			size_recon);
     fig_list = [fig_list; fig_tmp];
   endif
   for i_rank = [ 1:3 ] % , ceil(num_clutter_neurons(layer, 1)/2), num_clutter_neurons(layer, 1) ]
@@ -300,8 +316,16 @@ for layer = read_spikes;
   plot_rate_reconstruction = ( ismember( layer, plot_reconstruct ) && tot_steps > ...
 			      min_plot_steps );
   if plot_rate_reconstruction
-    pvp_reconstruct(rate_array{layer}, ...
-		    [layerID{layer}, ' Rate reconstruction: layer = ', int2str(layer)]);
+    plot_title = ...
+	[layerID{layer}, ...
+	 'Image(', ...
+		 int2str(layer), ...
+		 ')'];
+    fig_tmp = ...
+	pvp_reconstruct(rate_array{layer}, ...
+			plot_title, ...
+			[], ...
+			size_recon);
     fig_list = [fig_list; fig_tmp];
   endif
 
@@ -327,6 +351,7 @@ weights = cell(N_CONNECTIONS, 1);
 pvp_header = cell(N_CONNECTIONS, 1);
 nxp = cell(N_CONNECTIONS, 1);
 nyp = cell(N_CONNECTIONS, 1);
+nfp = cell(N_CONNECTIONS, 1);
 for i_conn = plot_weights
   [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_header{i_conn}, pvp_index ] ...
       = pvp_readWeights(i_conn);
@@ -334,14 +359,27 @@ for i_conn = plot_weights
   NO = floor( NFEATURES / NK );
   pvp_header_tmp = pvp_header{i_conn};
   num_patches = pvp_header_tmp(pvp_index.WGT_NUMPATCHES);
-  skip_patches = num_patches;
+  NFP = pvp_header_tmp(pvp_index.WGT_NFP);
+  skip_patches = 1; %num_patches;
   for i_patch = 1 : skip_patches : num_patches
-    NCOLS = nxp{i_conn}(i_patch);
-    NROWS = nyp{i_conn}(i_patch);
-    N = NROWS * NCOLS * NFEATURES;
-    pvp_reconstruct(weights{i_conn}{i_patch}, [connID{i_conn}, ' Weight recon: i_conn = ', ...
-					       int2str(i_conn), ': i_patch = ', ...
-					       int2str(i_patch) ]);
+    NXP = nxp{i_conn}(i_patch);
+    NYP = nyp{i_conn}(i_patch);
+    N = NFP * NXP * NYP;
+    plot_title = ...
+	[connID{i_conn}, ...
+	 '(', ...
+	   int2str(i_conn), ...
+	   ',', ...
+	   int2str(i_patch), ...
+	   ')'];
+    size_recon = ...
+	[1, NFP, NXP, NYP];
+    fig_tmp = ...
+	pvp_reconstruct(weights{i_conn}{i_patch}, ...
+			plot_title, ...
+			[], ...
+			size_recon);
+    fig_list = [fig_list; fig_tmp];
   endfor % i_patch
 endfor % i_conn
 
@@ -417,7 +455,8 @@ plot_rates = ( ( tot_steps > min_plot_steps ) && ( length(read_spikes) == ...
 						  N_LAYERS ) );
 if plot_rates
   plot_title = ['PSTH target pixels'];
-  figure('Name',plot_title);
+  fig_tmp = ...
+	figure('Name',plot_title);
   hold on
   co = get(gca,'ColorOrder');
   lh = zeros(4,1);
@@ -439,6 +478,7 @@ if plot_rates
   elseif uioctave
     legend(legend_str);
   endif
+  fig_list = [fig_list; fig_tmp];
 endif
 
 
@@ -460,8 +500,9 @@ for layer = 1:num_layers
 
 				% autocorrelation of psth
   disp( [ 'computing AutoCorr(', num2str(layer), ')'] );
-  plot_title = ['Auto Corr: layer = ',int2str(layer)];
-  figure('Name',plot_title);
+  plot_title = [layerID{layer}, 'Auto Corr(',int2str(layer), ')'];
+  fig_tmp = figure('Name',plot_title);
+  fig_list = [fig_list; fig_tmp];
   ave_target_tmp = full(ave_target{layer,i_target}(stim_steps));
   max_lag= min( 128/dt, fix(length(ave_target_tmp)/8) );
   [target_xcorr, target_lag] = ...
@@ -619,7 +660,7 @@ for layer = 1:num_layers
     disp(['computing xcorr(', num2str(layer), '): i_mode = ', ...
 	  num2str(i_mode) ] );
     size_layer = [num_rows(layer), num_cols(layer), num_features(layer)];
-    plot_interval = fix( num_power_mask(layer, i_mode)^2 / 5 );
+    plot_interval = fix( num_power_mask(layer, i_mode)^2 / 1 );
     [xcorr_array, xcorr_std, xcorr_dist, xcorr_mean, xcorr_lags, xcorr_figs] = ...
 	pvp_xcorr( spike_array{layer}(stim_steps, power_mask{layer, i_mode}), ...
 		  spike_array{layer}(stim_steps, power_mask{layer, i_mode}), ...
@@ -628,7 +669,7 @@ for layer = 1:num_layers
 		  power_mask{layer, i_mode}, size_layer, ...
 		  1, plot_interval );
     fig_list = [fig_list; xcorr_figs];
-    plot_title = [layerID{layer}, ' mass xcorr: layer = ',int2str(layer)];
+    plot_title = [layerID{layer}, ' mass xcorr(',int2str(layer), ')'];
     fig_tmp = figure('Name',plot_title);
     fig_list = [fig_list; fig_tmp];
     mass_xcorr = zeros( 2 * max_lag + 1, 1 );

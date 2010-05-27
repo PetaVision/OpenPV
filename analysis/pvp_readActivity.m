@@ -1,5 +1,6 @@
 function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
-	  pvp_header] = pvp_readActivity(layer, i_trial, pvp_order)
+	  hist_activity_bins, pvp_header] = ...
+      pvp_readActivity(layer, i_trial, hist_activity_bins, pvp_order)
 
   global NUM_BIN_PARAMS 
   global NUM_WGT_PARAMS
@@ -10,7 +11,7 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   global NO NK % for the current layer
   global first_i_trial last_i_trial num_i_trials
   global pvp_index
-  global num_hist_activity_bins hist_activity_bins
+  global num_hist_activity_bins 
 
   if nargin < 2
     pvp_order = 1;
@@ -84,15 +85,21 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   disp(['nz_activity = ', num2str(nz_activity)]);
 
   normalized_activity = ...
-      ( activity( activity ~= 0 ) ) / ...
-      ( max_activity + ( max_activity == 0 ) );
-  if ~isempty(hist_activity_bins)
-    hist_activity = ...
-	hist( normalized_activity, hist_activity_bins);
-  else
+      ( activity( activity ~= 0 ) ) / 1; %...
+  %    ( max_activity + ( max_activity == 0 ) );
+  if isempty(hist_activity_bins)
     [hist_activity, hist_activity_bins] = ...
 	hist( normalized_activity, num_hist_activity_bins);
-  endif    
+    hist_activity_bins
+%    min_bin = min(hist_activity_bins);
+%    max_bin = max(hist_activity_bins);
+%    new_min_bin = min_bin - abs( min_bin / 2 );
+%    new_max_bin = max_bin + abs( max_bin / 2 );
+%    hist_activity_bins = ...
+%	new_min_bin : num_hist_activity_bins : new_max_bin;
+  endif
+  hist_activity = ...
+      hist( normalized_activity, hist_activity_bins);
 
   debug_readActivity = 0;
   if debug_readActivity
@@ -103,8 +110,9 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   
   fclose(fid);
   
-  ave_activity = mean( activity );
+  ave_activity = mean( activity(activity>0.0) );
   sum_activity = sum( normalized_activity( normalized_activity > 0 ) );
+  
   activity = reshape( activity, [NFEATURES, NCOLS, NROWS] );
   if ~pvp_order
     activity = shiftdim( activity, [3, 2, 1] );
