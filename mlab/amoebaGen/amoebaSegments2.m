@@ -70,7 +70,8 @@ if distractor_flag == 1
         end
         ave_x = ave_x / poisson_num;
         ave_y = ave_y / poisson_num;
-        rand_theta = (1+rand(1)) *  pi/2; %minimum angle needed?
+        %rand_theta = (1+rand(1)) *  pi/2; % Vadas/Shawn version
+        rand_theta = ( pi / 8 ) + rand(1) * ( 7* pi / 4 );  % Gar/Ben version
         for i_seg = tot_segs - poisson_num + 1 : tot_segs
             x_old = amoeba_image_x{i_seg};
             y_old = amoeba_image_y{i_seg};
