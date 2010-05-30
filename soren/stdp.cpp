@@ -57,8 +57,8 @@ int main(int argc, char* argv[])
 
    HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
    HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
-   HyPerConn * i_rO_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_EXC);
-   HyPerConn * i_rO_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_INH);
+   HyPerConn * i_rO_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
+   HyPerConn * i_rO_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
    HyPerConn * r1_l1    = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
    HyPerConn * rO_l1    = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
 
