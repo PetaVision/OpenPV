@@ -355,6 +355,9 @@ int Retina::updateState(float time, float dt)
          if (activity[kex] > 0.0) {
             clayer->activeIndices[numActive++] = k;
          }
+         // reset accumulation buffers
+         phiExc[k] = 0.0;
+         phiInh[k] = 0.0;
       }
    }
    else {
