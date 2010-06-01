@@ -1,6 +1,6 @@
 function pvp_writeKernel(weights, weights_size, filename, resize_weights)
 
-  global output_path
+  global spiking_path
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
 

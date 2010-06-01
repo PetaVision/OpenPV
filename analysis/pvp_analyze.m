@@ -51,7 +51,7 @@ analysis_start_time = 1.0;
 analysis_stop_time = 1000.0;
 dt = 1.0; % msec
 
-1				% initialize to size of image (if known), these should be overwritten by each layer
+				% initialize to size of image (if known), these should be overwritten by each layer
 NROWS_image=128;
 NCOLS_image=128;
 NROWS = NROWS_image;
