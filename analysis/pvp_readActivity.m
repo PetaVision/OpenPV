@@ -110,7 +110,8 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   
   fclose(fid);
   
-  ave_activity = mean( activity(activity>0.0) );
+  %% ave_activity = mean( activity(activity>0.0) );
+  ave_activity = mean( activity(:) );
   sum_activity = sum( normalized_activity( normalized_activity > 0 ) );
   
   activity = reshape( activity, [NFEATURES, NCOLS, NROWS] );

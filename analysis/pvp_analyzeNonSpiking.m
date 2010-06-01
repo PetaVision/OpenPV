@@ -26,15 +26,31 @@ global FLAT_ARCH_FLAG
 FLAT_ARCH_FLAG = 1;
 
 global TRAINING_FLAG
-TRAINING_FLAG = -2;
+TRAINING_FLAG = -1;
 
 global num_trials first_trial last_trial skip_trial
 global output_path
 
 target_path = [];
+target_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_target_2fc/';
+if ~isempty(target_path)
+  if abs(TRAINING_FLAG) == 2
+    target_path = [target_path, '_G2'];
+  elseif abs(TRAINING_FLAG) == 3
+    target_path = [target_path, '_G3'];
+  endif
+endif % ~isempty(target_path)
+
+distractor_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_distractor_2fc/';
+if ~isempty(distractor_path)
+  if abs(TRAINING_FLAG) == 2
+    distractor_path = [distractor_path, '_G2'];
+  elseif abs(TRAINING_FLAG) == 3
+    distractor_path = [distractor_path, '_G3'];
+  endif
+endif % ~isempty(distractor_path)
 distractor_path = [];
-target_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_target_4fc_G2/';
-distractor_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_distractor_4fc_G2/';
+
 if ~isempty(target_path)
   output_path = target_path;
 elseif ~isempty(distractor_path)
@@ -42,7 +58,8 @@ elseif ~isempty(distractor_path)
 else
   output_path = [];
 endif
-twoAFC_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/amoeba_4fc_G2/';
+twoAFC_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/amoeba_2fc/';
+spiking_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/spiking_2fc/';
 
 min_target_flag = 2 - ~isempty(target_path);
 max_target_flag = 1 + ~isempty(distractor_path);
@@ -60,7 +77,7 @@ NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
-num_trials = ( TRAINING_FLAG <= 0 ) * 999;
+num_trials = 0; % 9; % ( TRAINING_FLAG <= 0 ) * 999; %
 first_trial =1;
 last_trial = num_trials;
 skip_trial = 1;
@@ -190,7 +207,7 @@ fig_list = [];
       activity_filename = ...
 	  ['V1_G', num2str(layer-1), '_', ...
 	   num2str(j_trial, NUM2STR_FORMAT)];
-      plot_recon_flag = 0;
+      plot_recon_flag = 1;
       fig_tmp = pvp_reconstruct(activity, ...
 				activity_filename, [], ...
 				size_activity, ...
@@ -221,6 +238,7 @@ weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert(5) = -1;
 weight_invert(8) = -1;
+weight_invert(11) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -310,7 +328,7 @@ fig_list = [];
 %% 2AFC analysis
 
 plot_hist_activity_flag = 0;
-plot_2AFC_flag = 1;
+plot_2AFC_flag = 0;
 if max_target_flag > min_target_flag
   tot_trials = length( first_trial : skip_trial : num_trials );
 
@@ -348,7 +366,7 @@ if max_target_flag > min_target_flag
   
   if plot_2AFC_flag
 
-    pvp_calc2AFC();
+    %% pvp_calc2AFC();
     
     twoAFC_hist = cell(2, num_layers);
     twoAFC_bins = cell(num_layers, 1);
@@ -388,7 +406,7 @@ if max_target_flag > min_target_flag
     endfor  % layer
     
     twoAFC_cumsum = cell(2, num_layers);
-    twoAFC_ideal = cell(num_layers,1)
+    twoAFC_ideal = cell(num_layers,1);
     subplot_index = 0;
     num_subplots = length(read_activity);
     twoAFC_ideal_name = '2AFC ideal observer';
@@ -439,7 +457,7 @@ if max_target_flag > min_target_flag
 	['twoAFC', num2str(expNum), '.mat.z']
     twoAFC_filename = [twoAFC_path, twoAFC_filename]
     save("-z", "-mat", twoAFC_filename, "twoAFC", "twoAFC_hist", ...
-	 "twoAFC_cumsum", "twoAFC_ideal", "twoAFCsum", "tot_trials", ...
+	 "twoAFC_cumsum", "twoAFC_ideal", "tot_trials", ...
 	 "ave_activity", "sum_activity");
     
   endif

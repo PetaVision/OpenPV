@@ -53,7 +53,7 @@ else  % NON_SPIKING
   layerID{ 1, i_layer } =  'L1';
 
 
-  if TRAINING_FLAG <= 0 || TRAINING_FLAG > 1
+  if abs(TRAINING_FLAG) > 1
     
     N_LAYERS = N_LAYERS + 2;
     layerID = [layerID, cell(1, 2)];
@@ -67,7 +67,7 @@ else  % NON_SPIKING
     layerID{ 1, i_layer } =  'L1G2';  
     
     
-    if TRAINING_FLAG <= 0 || TRAINING_FLAG > 2
+    if abs(TRAINING_FLAG) > 2
 
       N_LAYERS = N_LAYERS + 1;
       layerID = [layerID, cell(1, 1)];
@@ -79,6 +79,5 @@ else  % NON_SPIKING
     endif % TRAINING_FLAG
 
   endif  % TRAINING_FLAG
-  
 
 endif % SPIKING_FLAG
