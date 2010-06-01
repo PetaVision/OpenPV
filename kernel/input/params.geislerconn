@@ -25,15 +25,15 @@ HyPerLayer "Retina" = {
    mirrorBCflag = 0;  
 
    beginStim = 1;
-   endStim   = 2000;
+   endStim   = 1004;
 
    burstFreq = 1;      // Hz
-   burstDuration = 1000;  // ms
+   burstDuration = 1004;  // ms
    
    poissonEdgeProb = 1.0;
    poissonBlankProb = 0.0;
    
-   invert = 1;
+   invert = 0;
 
    spikingFlag = 0;        
 
@@ -191,6 +191,56 @@ HyPerConn "L1 to L1" = {
 };
 
 
+HyPerConn "L1 to L1" = {
+   nxp = 65; // 87;
+   nyp = 65; // 87;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 100.0;
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0.0;   
+};
+
+
+HyPerConn "L1 Geisler2 to L1 Geisler2" = {
+   nxp = 65; // 87;
+   nyp = 65; // 87;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 100.0;
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0.0;   
+};
+
+
+HyPerConn "L1 Geisler3 to L1 Geisler3" = {
+   nxp = 65; // 87;
+   nyp = 65; // 87;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 100.0;
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0.0;   
+};
+
 // Testing connections
 
 
@@ -221,7 +271,7 @@ HyPerConn "L1 to L1 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -237,7 +287,7 @@ HyPerConn "L1 to L1 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -100.0;
+   strength = -10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -274,7 +324,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -290,7 +340,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -100.0;
+   strength = -10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -329,7 +379,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -345,7 +395,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -100.0;
+   strength = -10.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
