@@ -53,7 +53,7 @@ for k in range(weights.numPatches):
    x = space + (space + nxp) * (k % nx)
    y = space + (space + nyp) * (k / nx)
 
-   im[x:x+nxp, y:y+nyp] = P
+   im[y:y+nyp, x:x+nxp] = P
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
