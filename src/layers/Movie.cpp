@@ -25,11 +25,11 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
    fp = fopen(fileOfFileNames, "r");
    assert(fp != NULL);
 
-   const char * nextFile = getNextFileName();
-   assert(nextFile != NULL);
+   filename = strdup(getNextFileName());
+   assert(filename != NULL);
 
    // get size info from image so that data buffer can be allocated
-   int status = getImageInfo(nextFile, parent->icCommunicator(), &imageLoc);
+   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    assert(status == 0);
 
    // create mpi_datatypes for border transfer
@@ -88,6 +88,14 @@ PVLayerLoc Movie::getImageLoc()
    return clayer->loc;
 }
 
+int Movie::updateState(float time, float dt)
+{
+  updateImage(time, dt);
+  return 0;
+}
+
+
+
 /**
  * update the image buffers
  *
@@ -103,7 +111,10 @@ bool Movie::updateImage(float time, float dt)
 
    nextDisplayTime += displayPeriod;
 
-   const char * filename = getNextFileName();
+   if (filename != NULL) {
+      free(filename);
+   }
+   filename = strdup(getNextFileName());
    assert(filename != NULL);
 
    // need all image bands until converted to gray scale
