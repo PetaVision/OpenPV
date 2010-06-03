@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
 
 #else  // learn Geisler kernels
 
-	const char * amoeba_fileOfFileNames = "./input/test_amoeba_distractor_8fc/fileNames.txt"; //
+	const char * amoeba_fileOfFileNames = "./input/amoeba_8fc/fileNames.txt"; //
 //	const char * amoeba_fileOfFileNames = "./input/distractor_4fc/fileNames.txt";
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
@@ -406,14 +406,21 @@ int main(int argc, char* argv[]) {
 			CHANNEL_INH);
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
 	l1->insertProbe(statsl1);
-#undef TRAINING_TRIALS
+
+#define TRAINING_TRIALS
 #ifdef TRAINING_TRIALS
+
 #define TRAINING_G2_TRIALS
 #ifdef TRAINING_G2_TRIALS
+
 	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
+	LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,         "L1 Geisler :");
+	l1_geisler->insertProbe(statsl1_geisler);
+
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
 			CHANNEL_EXC);
+
 	const char * geisler_filename_target = "./input/amoeba_8fc/w2_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",   	hc, l1,    	l1_geisler,
@@ -422,24 +429,75 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,     l1_geisler,
 			CHANNEL_INH, geisler_filename_distractor);
-	LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,         "L1 Geisler :");
-	l1_geisler->insertProbe(statsl1_geisler);
+
+#define TRAINING_G3_TRIALS
+#ifdef TRAINING_G3_TRIALS
+
+	HyPerLayer * l1_geisler2 = new GeislerLayer("L1 Geisler2", hc);
+	LayerProbe * statsl1_geisler2 = new StatsProbe(BufActivity,         "L1 Geisler2 :");
+	l1_geisler2->insertProbe(statsl1_geisler2);
+
+	HyPerConn * l1_geisler_l1_geisler2 =
+		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
+			CHANNEL_EXC);
+
+	//const char * geisler2_filename_target = "./input/amoeba_4fc_G2/w6_last.pvp";
+	const char * geisler2_filename_target = "./input/amoeba_8fc_G2/w7_last.pvp";
+	HyPerConn * l1_geisler_l1_geisler2_target =
+		new KernelConn("L1 Geisler to L1 Geisler2 Target",   	hc, l1_geisler,    	l1_geisler2,
+			CHANNEL_INH, geisler2_filename_target);
+	//const char * geisler2_filename_distractor = "./input/distractor_4fc_G2/w6_last.pvp";
+	const char * geisler2_filename_distractor = "./input/distractor_8fc_G2/w7_last.pvp";
+	HyPerConn * l1_geisler_l1_geisler2_distractor =
+		new KernelConn("L1 Geisler to L1 Geisler2 Distractor", 	hc, l1_geisler,     l1_geisler2,
+			CHANNEL_INH, geisler2_filename_distractor);
+
+	HyPerLayer * l1_geisler3 = new V1("L1 Geisler3", hc);
+	LayerProbe * statsl1_geisler3 = new StatsProbe(BufActivity,         "L1 Geisler3 :");
+	l1_geisler3->insertProbe(statsl1_geisler3);
+
+	HyPerConn * l1_geisler2_l1_geisler3 =
+		new CocircConn("L1 Geisler2 to L1 Geisler3",   			hc, l1_geisler2,  	l1_geisler3,
+			CHANNEL_EXC);
+
+	HyPerConn * l1_geisler3_l1_geisler3 =
+		new GeislerConn("L1 Geisler3 to L1 Geisler3",      hc, l1_geisler3,     l1_geisler3,
+			CHANNEL_EXC);
+
+#else  // ~TRAINING_G3_TRIALS
 
 	HyPerLayer * l1_geisler2 = new V1("L1 Geisler2", hc);
 	LayerProbe * statsl1_geisler2 = new StatsProbe(BufActivity,         "L1 Geisler2 :");
 	l1_geisler2->insertProbe(statsl1_geisler2);
+
 	HyPerConn * l1_geisler_l1_geisler2 =
 		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
 			CHANNEL_EXC);
+
 	HyPerConn * l1_geisler2_l1_geisler2 =
 		new GeislerConn("L1 Geisler2 to L1 Geisler2",      hc, l1_geisler2,     l1_geisler2,
 			CHANNEL_EXC);
-#else
+
+#endif  // ~TRAINING_G3_TRIALS
+
+#else  // ~TRAINING_G2_TRIALS
+
+	HyPerLayer * l1_geisler = new V1("L1 Geisler", hc);
+	LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,         "L1 Geisler :");
+	l1_geisler->insertProbe(statsl1_geisler);
+
+	HyPerConn * l1_l1_geisler =
+		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
+			CHANNEL_EXC);
+
 	HyPerConn * l1_l1 =
 		new GeislerConn("L1 to L1",      hc, l1,     l1,
 			CHANNEL_EXC);
-#endif
-#else
+
+#endif   // ~TRAINING_G2_TRIALS
+
+#else  // ~TRAINING_TRIALS
+
 	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
@@ -456,6 +514,9 @@ int main(int argc, char* argv[]) {
 	l1_geisler->insertProbe(statsl1_geisler);
 
 	HyPerLayer * l1_geisler2 = new GeislerLayer("L1 Geisler2", hc);
+	LayerProbe * statsl1_geisler2 = new StatsProbe(BufActivity,         "L1 Geisler2 :");
+	l1_geisler2->insertProbe(statsl1_geisler2);
+
 	HyPerConn * l1_geisler_l1_geisler2 =
 		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
 			CHANNEL_EXC);
@@ -469,23 +530,23 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_geisler_l1_geisler2_distractor =
 		new KernelConn("L1 Geisler to L1 Geisler2 Distractor", 	hc, l1_geisler,     l1_geisler2,
 			CHANNEL_INH, geisler2_filename_distractor);
-	LayerProbe * statsl1_geisler2 = new StatsProbe(BufActivity,         "L1 Geisler2 :");
-	l1_geisler2->insertProbe(statsl1_geisler2);
 
 	HyPerLayer * l1_geisler3 = new GeislerLayer("L1 Geisler3", hc);
+	LayerProbe * statsl1_geisler3 = new StatsProbe(BufActivity,         "L1 Geisler3 :");
+	l1_geisler3->insertProbe(statsl1_geisler3);
+
 	HyPerConn * l1_geisler2_l1_geisler3 =
 		new CocircConn("L1 Geisler2 to L1 Geisler3",   			hc, l1_geisler2,  	l1_geisler3,
 			CHANNEL_EXC);
+
 	const char * geisler3_filename_target = "./input/amoeba_8fc_G3/w10_last.pvp";
 	HyPerConn * l1_geisler2_l1_geisler3_target =
 		new KernelConn("L1 Geisler2 to L1 Geisler3 Target",   	hc, l1_geisler2,    	l1_geisler3,
-			CHANNEL_INH, geisler2_filename_target);
+			CHANNEL_INH, geisler3_filename_target);
 	const char * geisler3_filename_distractor = "./input/distractor_8fc_G3/w10_last.pvp";
 	HyPerConn * l1_geisler2_l1_geisler3_distractor =
 		new KernelConn("L1 Geisler2 to L1 Geisler3 Distractor", 	hc, l1_geisler2,     l1_geisler3,
-			CHANNEL_INH, geisler2_filename_distractor);
-	LayerProbe * statsl1_geisler3 = new StatsProbe(BufActivity,         "L1 Geisler3 :");
-	l1_geisler3->insertProbe(statsl1_geisler3);
+			CHANNEL_INH, geisler3_filename_distractor);
 
 #endif
 
