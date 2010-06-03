@@ -182,14 +182,21 @@ int GeislerConn::updateWeights(int axonID)
 
    const pvdata_t * preLayerData = pre->getLayerData();
 
-   pvdata_t aPreMax = -FLT_MAX;
+#define TRAINING_G1_TRIALS
+#ifdef TRAINING_G1_TRIALS
+
+  pvdata_t aPreMax = -FLT_MAX;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
       aPreMax = (aPreMax > preLayerData[kPre]) ? aPreMax : preLayerData[kPre];
    }
    aPreThresh = aPreMax / 2.0f;
+#else
+   aPreThresh = 0.0f;
+#endif
 
    const pvdata_t * postLayerData = post->getLayerData();
 
+#ifdef TRAINING_G1_TRIALS
    pvdata_t aPostMax = -FLT_MAX;
    int num_post = post->clayer->numNeurons;
    for (int kPost = 0; kPost < num_post; kPost++) {
@@ -201,6 +208,9 @@ int GeislerConn::updateWeights(int axonID)
       aPostMax = (aPostMax > postLayerData[kPostEx]) ? aPostMax : postLayerData[kPostEx];
    }
    aPostThresh = aPostMax / 2.0f;
+#else
+   aPostThresh = 0.0;
+#endif
 
    int nKernels = numDataPatches(axonID);
 
@@ -222,7 +232,6 @@ int GeislerConn::updateWeights(int axonID)
       PVPatch * gPatch = geislerPatches[kfPre];
       PVPatch * kPatch = kernelPatches[kfPre];
 
- //     pvdata_t * data_head = (pvdata_t *) ((char*) kPatch + sizeof(PVPatch));
       pvdata_t * data_head = kPatch->data;
       pvdata_t * data_begin = wPatch->data;
       size_t data_offset = data_begin - data_head;
