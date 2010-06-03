@@ -144,7 +144,7 @@ HyPerConn "Movie to Retina" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   strength = 1.0;  
+   strength = 0.0039216;   // 1.0/255
    
    delay = 0.0;
 };
