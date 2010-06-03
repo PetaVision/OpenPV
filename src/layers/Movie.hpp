@@ -21,6 +21,7 @@ public:
    virtual PVLayerLoc getImageLoc();
 
    bool updateImage(float time, float dt);
+   virtual int updateState(float time, float dt);
 
    int copyReducedImagePortion();
    const char * getNextFileName();
