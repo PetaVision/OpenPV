@@ -148,9 +148,13 @@ function [connID, connIndex] = pvp_connectionID()
 
 else % NON_SPIKING
   
-  N_CONNECTIONS = 5;
+  N_CONNECTIONS = 6;
   connID = cell(1,N_CONNECTIONS);
 
+  ij_conn = ij_conn + 1;
+  connIndex.r_l1 = ij_conn;
+  connID{ 1, ij_conn } =  'Image2R';
+  
   ij_conn = ij_conn + 1;
   connIndex.r_l1 = ij_conn;
   connID{ 1, ij_conn } =  'R2L1';
@@ -231,10 +235,10 @@ else % NON_SPIKING
 	connIndex.l1_geisler3_l1_geisler3 = ij_conn;
 	connID{ 1, ij_conn } =  'L1G3ToL1G3';
 	
-      endif % TRAINING_FLAG == -3
+      end%%if % TRAINING_FLAG == -3
       
-    endif % TRAINING_FLAG == -2
+    end%%if % TRAINING_FLAG == -2
     
-  endif % TRAINING_FLAG == -1
+  end%%if % TRAINING_FLAG == -1
   
-endif % spiking_flag
+end%%if % spiking_flag

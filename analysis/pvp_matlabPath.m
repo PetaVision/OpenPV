@@ -6,9 +6,9 @@ if ~isempty(user_index1)
   user_index2 = findstr(user_name, '/');
   if isempty(user_index2)
     user_index2 = length(user_name);
-  endif
+  end%%if
   user_name = user_name(1:user_index2-1);
   matlab_dir = ['/Users/', user_name, '/Documents/MATLAB'];
   addpath(matlab_dir);
-endif
+end%%if
 

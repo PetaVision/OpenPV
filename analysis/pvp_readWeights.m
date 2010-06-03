@@ -22,7 +22,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   filename = ['w', num2str(i_conn-1),'_last.pvp'];
   filename = [output_path, filename];
   
-  fprintf(["read connection weights from %s\n"],filename);
+  fprintf(['read connection weights from %s\n'],filename);
   
 				%default return arguments
   pvp_kernel = [];
@@ -55,7 +55,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
 
 %  if ( weight_max < -1 ) && ( weight_min == 0 )
 %    weight_max = - 1 / weight_max;
-%  endif
+%  end%%if
 
   
   NCOLS = pvp_header(pvp_index.WGT_NXP);

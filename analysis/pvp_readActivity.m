@@ -15,7 +15,7 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
 
   if nargin < 2
     pvp_order = 1;
-  endif
+  end%%if
 
   pvp_fileTypes;
 
@@ -33,23 +33,23 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   if ~exist(filename,'file')
     disp(['~exist(filename,''file'') in pvp file: ', filename]);
     return;
-  endif
+  end%%if
 
   [pvp_header, pvp_index] = pvp_readHeader(filename);
   if isempty(pvp_header)
     disp(['isempty(pvp_header) in pvp file: ', filename]);
     return;
-  endif
+  end%%if
 
   file_type = pvp_header(pvp_index.FILE_TYPE);
   if ( file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE )
     disp(['file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE in pvp file: ', filename]);
-  endif
+  end%%if
 
   num_pvp_params = pvp_header(pvp_index.NUM_PARAMS);
   if ( num_pvp_params ~= 20 )
     disp(['num_pvp_params ~= 20 in pvp file: ', filename]);
-  endif
+  end%%if
 
   NCOLS = pvp_header(pvp_index.NX);
   NROWS = pvp_header(pvp_index.NY);
@@ -69,14 +69,14 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   if ( pvp_status == -1 )
     disp(['fseek(fid, i_trial_offset, ''cof'') == -1 in pvp file: ', filename]);
     return;
-  endif
+  end%%if
 
   act_time = fread(fid,1,'float64');
   disp(['act_time = ', num2str(act_time)]);
   [activity, countF] = fread(fid, N, 'float32');
   if countF ~= N
     disp(['countF ~= N:', 'countF = ', num2str(countF), '; N = ', num2str(N)]);
-  endif
+  end%%if
   min_activity = min(activity(:));
   max_activity = max(activity(:));
   disp(['min activity = ', num2str(min_activity)]);
@@ -90,14 +90,14 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   if isempty(hist_activity_bins)
     [hist_activity, hist_activity_bins] = ...
 	hist( normalized_activity, num_hist_activity_bins);
-    hist_activity_bins
+    %%hist_activity_bins
 %    min_bin = min(hist_activity_bins);
 %    max_bin = max(hist_activity_bins);
 %    new_min_bin = min_bin - abs( min_bin / 2 );
 %    new_max_bin = max_bin + abs( max_bin / 2 );
 %    hist_activity_bins = ...
 %	new_min_bin : num_hist_activity_bins : new_max_bin;
-  endif
+  end%%if
   hist_activity = ...
       hist( normalized_activity, hist_activity_bins);
 
@@ -106,7 +106,7 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
     fh_hist = figure;
     set(fh_hist, 'Name', ['hist(', num2str(layer), ',', num2str(i_trial), ')']);
     hist(activity(:));
-  endif
+  end%%if
   
   fclose(fid);
   
@@ -117,7 +117,7 @@ function [act_time, activity, ave_activity, sum_activity, hist_activity, ...
   activity = reshape( activity, [NFEATURES, NCOLS, NROWS] );
   if ~pvp_order
     activity = shiftdim( activity, [3, 2, 1] );
-  endif
+  end%%if
 
  
 

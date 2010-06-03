@@ -3,11 +3,11 @@
 clear all
 expNum = 1;
 				% set paths, may not be applicable to all octave installations
-pvp_matlabPath;
+%%pvp_matlabPath;
 
-if ( uioctave )
-  setenv("GNUTERM", "x11");
-endif
+%%if ( uioctave )
+  setenv('GNUTERM', 'x11');
+%%end%%if
 
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
@@ -20,35 +20,38 @@ global MIN_INTENSITY
 MIN_INTENSITY = 0;
 
 global NUM2STR_FORMAT
-NUM2STR_FORMAT = "%03.3i";
+NUM2STR_FORMAT = '%03.3i';
 
 global FLAT_ARCH_FLAG
 FLAT_ARCH_FLAG = 1;
 
 global TRAINING_FLAG
-TRAINING_FLAG = -1;
+TRAINING_FLAG = 1;
 
 global num_trials first_trial last_trial skip_trial
 global output_path
 
+%%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+machine_path = '/nh/home/gkenyon/workspace/';
+
 target_path = [];
-target_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_target_2fc/';
+target_path = [machine_path 'kernel/input/amoeba_8fc/'];
 if ~isempty(target_path)
   if abs(TRAINING_FLAG) == 2
     target_path = [target_path, '_G2'];
   elseif abs(TRAINING_FLAG) == 3
     target_path = [target_path, '_G3'];
-  endif
-endif % ~isempty(target_path)
+  end%%if
+end%%if % ~isempty(target_path)
 
-distractor_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/test_amoeba_distractor_2fc/';
+distractor_path = [machine_path, 'kernel/input/test_amoeba_distractor_2fc/'];
 if ~isempty(distractor_path)
-  if abs(TRAINING_FLAG) == 2
-    distractor_path = [distractor_path, '_G2'];
-  elseif abs(TRAINING_FLAG) == 3
-    distractor_path = [distractor_path, '_G3'];
-  endif
-endif % ~isempty(distractor_path)
+    if abs(TRAINING_FLAG) == 2
+        distractor_path = [distractor_path, '_G2'];
+    elseif abs(TRAINING_FLAG) == 3
+        distractor_path = [distractor_path, '_G3'];
+    end%%if
+end%%if % ~isempty(distractor_path)
 distractor_path = [];
 
 if ~isempty(target_path)
@@ -57,9 +60,9 @@ elseif ~isempty(distractor_path)
   output_path = distractor_path;
 else
   output_path = [];
-endif
-twoAFC_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/amoeba_2fc/';
-spiking_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/spiking_2fc/';
+end%%if
+twoAFC_path = [machine_path, 'kernel/input/amoeba_8fc/'];
+spiking_path = [machine_path, 'kernel/input/spiking_8fc/'];
 
 min_target_flag = 2 - ~isempty(target_path);
 max_target_flag = 1 + ~isempty(distractor_path);
@@ -77,7 +80,7 @@ NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
-num_trials = 0; % 9; % ( TRAINING_FLAG <= 0 ) * 999; %
+num_trials = 9; % ( TRAINING_FLAG <= 0 ) * 999; %
 first_trial =1;
 last_trial = num_trials;
 skip_trial = 1;
@@ -98,14 +101,14 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = 1:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
+read_activity = 2:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
 num_layers = N_LAYERS;
 
-if num_trials - first_trial + 1 > 10 || TRAINING_FLAG > 0
+if num_trials - first_trial + 1 > 10 %%|| TRAINING_FLAG > 0
   reconstruct_activity = [];
 else
   reconstruct_activity = 1:N_LAYERS;
-endif
+end%%if
 
 %acivity_array = cell(num_layers, num_trials);
 ave_activity = zeros(2, num_layers, num_trials);
@@ -115,7 +118,7 @@ num_hist_activity_bins = 20;
 hist_activity_bins = cell(num_layers, 1);
 for layer = 1 : num_layers
   hist_activity_bins{layer} = [];
-endfor
+end%%for
 hist_activity = zeros(2, num_hist_activity_bins, num_layers);
 act_time = zeros(num_layers, num_trials);
 twoAFC = zeros(2, num_layers, num_trials);
@@ -142,7 +145,7 @@ fig_list = [];
 	output_path = target_path;
       elseif target_flag == 2
 	output_path = distractor_path;
-      endif
+      end%%if
       
       %% Read spike events
       hist_bins_tmp = ...
@@ -160,15 +163,15 @@ fig_list = [];
 	    num2str(ave_activity(target_flag, layer, j_trial))]);
       if isempty(activity)
 	continue;
-      endif
+      end%%if
       if layer == 1
 	max_activity = max(activity(:));
 	min_activity = min(activity(:));
 	if any( ( activity(:) > min_activity ) && ...
 	       ( activity(:) < max_activity ) )
 	  disp( 'activity between min and max' );
-	endif
-      endif
+	end%%if
+      end%%if
       hist_activity(target_flag, :, layer) = ...
 	  hist_activity(target_flag, :, layer) + ...
 	  hist_activity_tmp;
@@ -179,19 +182,20 @@ fig_list = [];
     write_activity_flag = 0;
     zip_activity_flag = 1;
     if write_activity_flag == 1
-      if (zip_activity_flag == 1)
-	activity_filename = ['V1_G', num2str(layer-1),'_', ...
-			     num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
-	activity_filename = [output_path, activity_filename]
-	save("-z", "-mat", activity_filename, "activity" );
-      else
-	activity_filename = ['V1_G', num2str(layer-1), '_', ...
-			     num2str(j_trial, NUM2STR_FORMAT), '.mat']
-	activity_filename = [output_path, activity_filename]
-	save("-mat", activity_filename, "activity" );
-      endif
-    
-    endif
+        if (zip_activity_flag == 1)
+            activity_filename = ['V1_G', num2str(layer-1),'_', ...
+                num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
+            activity_filename = [output_path, activity_filename]
+            %%save("-z", "-mat", activity_filename, "activity" );
+            save('-mat', activity_filename, 'activity' );
+        else
+            activity_filename = ['V1_G', num2str(layer-1), '_', ...
+                num2str(j_trial, NUM2STR_FORMAT), '.mat']
+            activity_filename = [output_path, activity_filename]
+            save('-mat', activity_filename, 'activity' );
+        end%%if
+        
+    end%%if
      
   
     num_rows(layer, j_trial) = NROWS;
@@ -213,16 +217,16 @@ fig_list = [];
 				size_activity, ...
 				plot_recon_flag);
       fig_list = [fig_list; fig_tmp];
-    endif
+    end%%if
 
-  endfor % target_flag
+  end%%for % target_flag
 
-endfor % layer
+end%%for % layer
 
 pvp_saveFigList( fig_list, output_path, 'png');
 fig_list = [];
 
-endfor % j_trial
+end%%for % j_trial
 
 
 %% plot connections
@@ -233,7 +237,7 @@ if TRAINING_FLAG > 0
   plot_weights = N_CONNECTIONS;
 else
   plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
-endif
+end%%if
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert(5) = -1;
@@ -255,20 +259,20 @@ for i_conn = plot_weights
     NFP = pvp_conn_header_tmp(pvp_index.WGT_NFP);
     if NXP <= 1 || NYP <= 1
       continue;
-    endif
+    end%%if
     num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
     for i_patch = 1:num_patches
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    endfor
+    end%%for
     weight_ave = weight_ave / num_patches;
     disp( ['weight_min = ', num2str(weight_min)] );
     disp( ['weight_max = ', num2str(weight_max)] );
     disp( ['weight_ave = ', num2str(weight_ave)] );
     if ~TRAINING_FLAG
       continue;
-    endif
+    end%%if
   elseif i_conn == N_CONNECTIONS + 1
     disp('calculating geisler kernels');
     pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
@@ -282,7 +286,7 @@ for i_conn = plot_weights
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    endfor
+    end%%for
     weight_ave = weight_ave / num_patches;
     disp( ['weight_min = ', num2str(weight_min)] );
     disp( ['weight_max = ', num2str(weight_max)] );
@@ -299,11 +303,12 @@ for i_conn = plot_weights
       geisler_weights_filename = ...
 	  ['geisler_clean', num2str(expNum), '.mat.z']
       geisler_weights_filename = [twoAFC_path, geisler_weights_filename]
-      save("-z", "-mat", geisler_weights_filename, "geisler_weights");
-    endif
+      %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
+      save('-mat', geisler_weights_filename, 'geisler_weights');
+    end%%if
   else
     continue;
-  endif
+  end%%if
   NK = 1;
   NO = floor( NFEATURES / NK );
   skip_patches = 1; %num_patches;
@@ -318,8 +323,8 @@ for i_conn = plot_weights
 		     int2str(i_patch), ')' ], ...
 		    [], patch_size);
     fig_list = [fig_list; fig_tmp];
-  endfor % i_patch
-endfor % i_conn
+  end%%for % i_patch
+end%%for % i_conn
 
 pvp_saveFigList( fig_list, output_path, 'png');
 fig_list = [];
@@ -355,13 +360,14 @@ if max_target_flag > min_target_flag
       twoAFC_correct = 0.5 + 0.5 * ...
 	  ( cum_activity_target - cum_activity_distractor );
       bar( hist_activity_bins{layer}, twoAFC_correct );  
-    endfor
+    end%%for
     hist_filename = ...
 	['hist_activity', '.mat.z']
     hist_filename = [output_path, hist_filename]
-    save("-z", "-mat", hist_filename, "hist_activity" );
-    
-  endif
+    %%save("-z", "-mat", hist_filename, "hist_activity" );
+            save('-mat', hist_filename, 'hist_activity');
+
+  end%%if
 
   
   if plot_2AFC_flag
@@ -395,15 +401,15 @@ if max_target_flag > min_target_flag
 	  red_hist = 0;
 	  blue_hist = 1;
 	  bar_width = 0.6;
-	endif
+	end%%if
 	bh = bar( twoAFC_bins{layer}, ...
 		 twoAFC_hist{target_flag, layer}, ...
 		 bar_width);
 	set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
 	set( bh, 'FaceColor', [red_hist 0 blue_hist] );
 	hold on
-      endfor  % target_flag
-    endfor  % layer
+      end%%for  % target_flag
+    end%%for  % layer
     
     twoAFC_cumsum = cell(2, num_layers);
     twoAFC_ideal = cell(num_layers,1);
@@ -416,7 +422,7 @@ if max_target_flag > min_target_flag
       for target_flag = 1 : 2;
 	twoAFC_cumsum{target_flag, layer} = ...
 	    1 - cumsum( twoAFC_hist{target_flag, layer} );
-      endfor
+      end%%for
       subplot_index = subplot_index + 1;
       subplot(num_subplots, 1, subplot_index);
       twoAFC_ideal{layer} = ...
@@ -427,7 +433,7 @@ if max_target_flag > min_target_flag
       set( bh, 'FaceColor', [0 1 0] );
       set(gca, 'YLim', [0 1]);
       hold on;
-    endfor
+    end%%for
     
     subplot_index = 0;
     num_subplots = length(read_activity);
@@ -443,7 +449,7 @@ if max_target_flag > min_target_flag
 		 [0, fliplr( twoAFC_cumsum{1, layer} ), 1 ], ...
 		'-k');  
       set( lh, 'LineWidth', 2 );
-    endfor
+    end%%for
     
     for layer = read_activity
       twoAFC_correct(layer) = ...
@@ -451,21 +457,21 @@ if max_target_flag > min_target_flag
 	  ( tot_trials + (tot_trials == 0) );
       disp( ['twoAVC_correct(', num2str(layer), ') = ', ...
 	     num2str(twoAFC_correct(layer)) ] );
-    endfor
+    end%%for
     
     twoAFC_filename = ...
 	['twoAFC', num2str(expNum), '.mat.z']
     twoAFC_filename = [twoAFC_path, twoAFC_filename]
-    save("-z", "-mat", twoAFC_filename, "twoAFC", "twoAFC_hist", ...
-	 "twoAFC_cumsum", "twoAFC_ideal", "tot_trials", ...
-	 "ave_activity", "sum_activity");
+    save('-mat', twoAFC_filename, 'twoAFC', 'twoAFC_hist', ...
+	 'twoAFC_cumsum', 'twoAFC_ideal', 'tot_trials', ...
+	 'ave_activity', 'sum_activity');
     
-  endif
+  end%%if
 
   pvp_saveFigList( fig_list, twoAFC_path, 'png');
   fig_list = [];
   
-endif
+end%%if
 
 
 

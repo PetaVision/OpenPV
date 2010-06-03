@@ -10,31 +10,31 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   global output_path
 
   if ~exist('NUM2STR_FORMAT') || isempty(NUM2STR_FORMAT)
-    NUM2STR_FORMAT = "%03.3i";
-  endif
+    NUM2STR_FORMAT = '%03.3i';
+  end%%if
   
   if ~exist('MIN_INTENSITY') || isempty(MIN_INTENSITY)
     MIN_INTENSITY = 0;
-  endif
+  end%%if
   
   if ~exist('DTH', 'var') || isempty(DTH)
     DTH = 180 / NO;
-  endif
+  end%%if
 
   if ~any(recon_array(:) ~= 0.0) % any(A) tests whether any of the elements
     return;
-  endif
+  end%%if
 
   if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
     plot_recon_flag = 1;
-  endif
+  end%%if
 
 
 				% tests if 'fh' is a variable in the workspace
 
   if ~exist('size_recon', 'var') || isempty(size_recon) || nargin < 4
     size_recon = [NK NO NCOLS NROWS];
-  endif
+  end%%if
   NK = size_recon(1);
   NO  = size_recon(2);
   NCOLS  = size_recon(3);
@@ -46,7 +46,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
 				%  if ave_recon < 0
 				%    recon_array = -recon_array;
 				%    ave_recon = -ave_recon;
-				%  endif
+				%  end%%if
   max_recon = max(recon_array(:));
   min_recon = min(recon_array(:));
 
@@ -57,10 +57,10 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     min_recon_val = min_recon;
   else
     min_recon_val = min( (max_recon - ave_recon) / 2, 0 );
-  endif
+  end%%if
   if min_recon_val == max_recon
     min_recon_val = 0;
-  endif
+  end%%if
   max_recon_val = max_recon;
 				%min_recon_val = max( 0, ave_recon );
   disp(['min_recon_val = ', num2str(min_recon_val)]);
@@ -69,10 +69,10 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   edge_len = sqrt(2)/2;
   if (NO==1)
     edge_len = sqrt(2)/2;
-  endif
+  end%%if
   if log2_size > 5
     edge_len = (log2_size - 5) * edge_len;
-  endif
+  end%%if
   
   theta_offset = 0.5 * ROTATE_FLAG;
   max_line_width = 2.5;
@@ -89,7 +89,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     
     if ~exist('fh','var') || isempty(fh) || nargin < 3
       fh = figure;
-    endif
+    end%%if
     set(fh, 'Name', plot_title);
 
     [recon_array, recon_ndx] = sort(recon_array(:));
@@ -99,7 +99,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
       first_recon_ndx = 1;
     else
       last_recon_ndx = length(recon_array);
-    endif
+    end%%if
     for recon_index = first_recon_ndx : last_recon_ndx
       i_recon = recon_ndx(recon_index);
       recon_val = recon_array(recon_index);
@@ -107,7 +107,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
 	continue;
       else
 	recon_val = ( recon_val - min_recon_val ) / ( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
-      endif
+      end%%if
       [i_k, i_theta, j_col, i_row] = ind2sub( size_recon, i_recon );
       clear i_k
       i_theta = i_theta - 1 + theta_offset;
@@ -121,7 +121,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
       set( lh, 'LineWidth', line_width );
       line_color = 1 - recon_val;
       set( lh, 'Color', line_color*(1-MIN_INTENSITY)*[1 1 1]);
-    endfor
+    end%%for
   elseif ~FLAT_ARCH_FLAG && NO == 1 && plot_recon_flag
     fh = zeros(1,NFEATURES);
     fh = figure;
@@ -136,13 +136,13 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     if plot_recon_flag
       if ( ~exist('fh','var') || isempty(fh) || nargin < 3 )
 	fh = figure;
-      endif
+      end%%if
       figure(fh);
       set(fh, 'Name', plot_title);
       tmp = squeeze( max(recon3D,[],1) );
       imagesc( tmp' );  % plots recod2D as an image
       colormap('gray');
-    endif
+    end%%if
     plot_title_tmp = ...
 	[output_path, plot_title, '.tiff'];
     recon3D = uint8(255*recon3D);
@@ -153,6 +153,6 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
 	  [output_path, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
       imwrite( squeeze( recon3D(i_feature,:,:) )', ...
 	      plot_title_tmp, 'tiff');
-    endfor
-  endif
+    end%%for
+  end%%if
   hold off;
