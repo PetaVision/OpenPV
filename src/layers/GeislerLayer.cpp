@@ -67,7 +67,7 @@ int GeislerLayer::updateState(float time, float dt)
    pvdata_t scale_factor = fabs( max_direct ) / fabs( max_V + (max_V == 0.0f) );
    for (int k = 0; k < clayer->numNeurons; k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-      V[k] *= scale_factor;
+      //V[k] *= scale_factor;
       activity[kex] = ( V[k] > 0.0f ) ? V[k] : 0.0f;
    }
 
