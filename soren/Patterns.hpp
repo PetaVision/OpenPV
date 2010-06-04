@@ -25,8 +25,13 @@ public:
    virtual ~Patterns();
    virtual int updateState(float time, float dt);
 
-   void setProbMove(float p) {pMove = p;}
-   void setProbSwitch(float p) {pSwitch = p;}
+   void setProbMove(float p)     {pMove = p;}
+   void setProbSwitch(float p)   {pSwitch = p;}
+
+   void setMinWidth(int w)  {minWidth  = w;}
+   void setMaxWidth(int w)  {maxWidth  = w;}
+   void setMinHeight(int h) {minHeight = h;}
+   void setMaxHeight(int h) {maxHeight = h;}
 
    virtual int tag();
 
@@ -45,6 +50,9 @@ protected:
    int prefPosition;
    float pSwitch;
    float pMove;
+
+   int minWidth, maxWidth;
+   int minHeight, maxHeight;
 };
 
 }
