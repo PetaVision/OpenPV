@@ -65,7 +65,7 @@ public:
    void setTau(float t)                { tau = t; }
 
    int copyFromInteriorBuffer(const unsigned char * buf);
-   int copyToInteriorBuffer(unsigned char * buf);
+   int copyToInteriorBuffer(unsigned char * buf, float fac);
    int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:

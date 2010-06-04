@@ -248,7 +248,7 @@ int Image::write(const char * filename)
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
-   status = copyToInteriorBuffer(buf);
+   status = copyToInteriorBuffer(buf, 255.0);
 
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
@@ -304,7 +304,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
 #endif
 }
 
-int Image::copyToInteriorBuffer(unsigned char * buf)
+int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
 {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
@@ -322,7 +322,7 @@ int Image::copyToInteriorBuffer(unsigned char * buf)
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
             int iex = i + nxBorder;
-            buf[ii++] = (unsigned char) data[iex + jex*sy + b*sb];
+            buf[ii++] = (unsigned char) (fac * data[iex + jex*sy + b*sb]);
          }
       }
    }
