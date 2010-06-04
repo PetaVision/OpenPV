@@ -35,24 +35,22 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    this->orientation = vertical;
    this->lastOrientation = orientation;
 
-   // set switching and moving probabilities
-   pSwitch = 0.0;
-   pMove = 0.0;
+   const PVLayerLoc * loc = getLayerLoc();
 
    // check for explicit parameters in params.stdp
+   //
    PVParams * params = hc->parameters();
-   if (params->present(name, "pMove")) {
-      pMove = params->value(name, "pMove");
-      //printf("pMove = %f\n", pMove);
-   }
 
-   if (params->present(name, "pSwitch")) {
-      pSwitch = params->value(name, "pSwitch");
-      //printf("pSwitch = %f\n",pSwitch);
-   }
+   minWidth  = params->value(name, "minWidth", 4.0);
+   maxWidth  = params->value(name, "maxWidth", loc->nx);
+   minHeight = params->value(name, "minHeight", 4.0);
+   maxHeight = params->value(name, "maxHeight", loc->ny);
+
+   pMove   = params->value(name, "pMove", 0.0);
+   pSwitch = params->value(name, "pSwitch", 0.0);
 
    // set parameters that controls writing of new images
-   writeImages = params->value(name, "writeImages",0);
+   writeImages = params->value(name, "writeImages", 0.0);
 
    initPattern(MAXVAL);
 
@@ -74,6 +72,8 @@ int Patterns::tag()
 
 int Patterns::initPattern(float val)
 {
+   const int interval = 4;
+
    // extended frame
    const PVLayerLoc * loc = getLayerLoc();
 
@@ -82,10 +82,8 @@ int Patterns::initPattern(float val)
    const int sx = 1;
    const int sy = sx * nx;
 
-   const int width = 16;
-   const int height = 16;
-   const int interval = 4;
-   int x, y;
+   int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
+   int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
 
    // reset data buffer
    const int nk = nx * ny;
@@ -94,13 +92,18 @@ int Patterns::initPattern(float val)
    }
 
    if (type == RECTANGLES) {
-      const int y0 = (ny - height) / 2;
-      const int x0 = (nx - width)  / 2;
-      for (int iy = y0; iy < y0 + height; iy++) {
-         for (int ix = x0; ix < x0 + width; ix++) {
+      const int x0 = (nx-1) * pv_random_prob();
+      const int y0 = (ny-1) * pv_random_prob();
+
+      const int x1 = (x0 + width  > nx) ? nx : x0 + width;
+      const int y1 = (y0 + height > ny) ? ny : y0 + height;
+
+      for (int iy = y0; iy < y1; iy++) {
+         for (int ix = x0; ix < y1; ix++) {
             data[ix * sx + iy * sy] = val;
          }
       }
+      position = x0 + y0*nx;
       return 0;
    }
 
@@ -108,7 +111,7 @@ int Patterns::initPattern(float val)
       for (int iy = 0; iy < ny; iy++) {
          for (int ix = position; ix < nx + position; ix += interval) {
             for (int m = 0; m < width; m++) {
-               x = (ix + m) % nx;
+               int x = (ix + m) % nx;
                data[x * sx + iy * sy] = val;
             }
          }
@@ -118,7 +121,7 @@ int Patterns::initPattern(float val)
       for (int ix = 0; ix < nx; ix++) {
          for (int iy = position; iy < ny + position; iy += interval) {
             for (int m = 0; m < width; m++) {
-               y = (iy + m) % ny;
+               int y = (iy + m) % ny;
                data[ix * sx + y * sy] = val;
             }
          }
@@ -153,7 +156,6 @@ int Patterns::updateState(float time, float dt)
    if (p_move < pMove) {
       //position = calcPosition(position, nx);
       //position = (start++) % 4;
-      position = (int) (4.0*pv_random_prob());
       //position = prefPosition;
       initPattern(MAXVAL);
       //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
