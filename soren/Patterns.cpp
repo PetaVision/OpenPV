@@ -82,8 +82,8 @@ int Patterns::initPattern(float val)
    const int sx = 1;
    const int sy = sx * nx;
 
-   int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
-   int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
+   const int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
+   const int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
 
    // reset data buffer
    const int nk = nx * ny;
@@ -92,14 +92,21 @@ int Patterns::initPattern(float val)
    }
 
    if (type == RECTANGLES) {
-      const int x0 = (nx-1) * pv_random_prob();
-      const int y0 = (ny-1) * pv_random_prob();
+      const int half_w = width/2;
+      const int half_h = height/2;
 
-      const int x1 = (x0 + width  > nx) ? nx : x0 + width;
-      const int y1 = (y0 + height > ny) ? ny : y0 + height;
+      // random center location
+      const int xc = (nx-1) * pv_random_prob();
+      const int yc = (ny-1) * pv_random_prob();
+
+      const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
+      const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
+
+      const int x1 = (xc + half_w > nx) ? nx : xc + half_w;
+      const int y1 = (yc + half_h > ny) ? ny : yc + half_h;
 
       for (int iy = y0; iy < y1; iy++) {
-         for (int ix = x0; ix < y1; ix++) {
+         for (int ix = x0; ix < x1; ix++) {
             data[ix * sx + iy * sy] = val;
          }
       }
