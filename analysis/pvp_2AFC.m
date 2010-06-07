@@ -2,17 +2,17 @@ clear all
 setenv("GNUTERM", "x11");
 pvp_matlabPath;
 twoAFC_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/';
-FC_list = [6]; %%[2 4 6 8];
+FC_list = [4]; % [2 4 6 8];
 len_FC = length(FC_list);
 max_expNum = 10;  % maximum number of independent experiments to be combined
 twoAFC_array = cell(len_FC, max_expNum);
 expNum_list = [1];  % list for combining results from several experiments
 len_expNum = length(expNum_list);
 local_path = pwd;
-TRAINING_FLAG = 1
+TRAINING_FLAG = -3
 for i_fc = 1 : len_FC
   num_FC = FC_list(i_fc);
-  twoAFC_dir = [twoAFC_path, 'amoeba_', num2str(num_FC), 'fc'];
+  twoAFC_dir = [twoAFC_path, 'amoeba10K_', num2str(num_FC), 'fc'];
   if abs(TRAINING_FLAG) == 2
     twoAFC_dir = [twoAFC_dir, '_G2'];
   elseif abs(TRAINING_FLAG) == 3

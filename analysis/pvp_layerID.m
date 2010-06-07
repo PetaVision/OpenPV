@@ -57,7 +57,7 @@ else  % NON_SPIKING
     layerID{ 1, i_layer } =  'L1';
     
     
-    if abs(TRAINING_FLAG) > 1
+%%    if abs(TRAINING_FLAG) > 1
         
         N_LAYERS = N_LAYERS + 2;
         layerID = [layerID, cell(1, 2)];
@@ -71,7 +71,7 @@ else  % NON_SPIKING
         layerID{ 1, i_layer } =  'L1G2';
         
         
-        if abs(TRAINING_FLAG) > 2
+%%        if abs(TRAINING_FLAG) > 2
             
             N_LAYERS = N_LAYERS + 1;
             layerID = [layerID, cell(1, 1)];
@@ -80,8 +80,8 @@ else  % NON_SPIKING
             layerIndex.l1_geisler2 = i_layer;
             layerID{ 1, i_layer } =  'L1G3';
             
-        end%%if % TRAINING_FLAG
+%%        end%%if % TRAINING_FLAG
         
-    end%%if  % TRAINING_FLAG
+%%    end%%if  % TRAINING_FLAG
     
 end%%if % SPIKING_FLAG

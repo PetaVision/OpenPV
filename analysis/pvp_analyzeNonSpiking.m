@@ -1,5 +1,5 @@
 %%
-%close all
+close all
 clear all
 expNum = 1;
 				% set paths, may not be applicable to all octave installations
@@ -26,43 +26,54 @@ global FLAT_ARCH_FLAG
 FLAT_ARCH_FLAG = 1;
 
 global TRAINING_FLAG
-TRAINING_FLAG = 1;
+TRAINING_FLAG = -2;
+
+global FC_STR
+FC_STR = ['_', num2str(4), 'fc'];
+
+global G_STR
+if abs(TRAINING_FLAG) == 1
+  G_STR = '_G1';
+elseif abs(TRAINING_FLAG) == 2
+  G_STR = '_G2';
+elseif abs(TRAINING_FLAG) == 3
+  G_STR = '_G3';
+end%%if
 
 global num_trials first_trial last_trial skip_trial
-global output_path
+global output_path spiking_path
 
-%%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
-machine_path = '/nh/home/gkenyon/workspace/';
+machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+%%machine_path = '/nh/home/gkenyon/workspace/';
 
 target_path = [];
-target_path = [machine_path 'kernel/input/amoeba_8fc/'];
+target_path = [machine_path 'kernel/input/test_amoeba10K_target', FC_STR];
 if ~isempty(target_path)
-  if abs(TRAINING_FLAG) == 2
-    target_path = [target_path, '_G2'];
-  elseif abs(TRAINING_FLAG) == 3
-    target_path = [target_path, '_G3'];
-  end%%if
+  target_path = [target_path, G_STR, '/'];
 end%%if % ~isempty(target_path)
 
-distractor_path = [machine_path, 'kernel/input/test_amoeba_distractor_2fc/'];
+if TRAINING_FLAG < 0
+  distractor_path = [machine_path, 'kernel/input/test_amoeba10K_distractor', FC_STR];
+else
+  distractor_path = [];
+end%%if
 if ~isempty(distractor_path)
-    if abs(TRAINING_FLAG) == 2
-        distractor_path = [distractor_path, '_G2'];
-    elseif abs(TRAINING_FLAG) == 3
-        distractor_path = [distractor_path, '_G3'];
-    end%%if
+if ~isempty(distractor_path)
+  distractor_path = [distractor_path, G_STR, '/'];
 end%%if % ~isempty(distractor_path)
-distractor_path = [];
 
-if ~isempty(target_path)
+elseif ~isempty(target_path) 
   output_path = target_path;
-elseif ~isempty(distractor_path)
+elseif ~isempty(distractor_path) && isempty(target_path)
   output_path = distractor_path;
 else
   output_path = [];
 end%%if
-twoAFC_path = [machine_path, 'kernel/input/amoeba_8fc/'];
-spiking_path = [machine_path, 'kernel/input/spiking_8fc/'];
+  
+twoAFC_path = [machine_path, 'kernel/input/amoeba10K', FC_STR];
+spiking_path = [machine_path, 'kernel/input/spiking10K', FC_STR];
+twoAFC_path = [twoAFC_path, G_STR, '/'];
+spiking_path = [spiking_path, G_STR, '/'];
 
 min_target_flag = 2 - ~isempty(target_path);
 max_target_flag = 1 + ~isempty(distractor_path);
@@ -80,7 +91,7 @@ NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
 
-num_trials = 9; % ( TRAINING_FLAG <= 0 ) * 999; %
+num_trials = ( TRAINING_FLAG <= 0 ) * 999; %9; % 
 first_trial =1;
 last_trial = num_trials;
 skip_trial = 1;
@@ -240,9 +251,9 @@ else
 end%%if
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-weight_invert(5) = -1;
-weight_invert(8) = -1;
-weight_invert(11) = -1;
+weight_invert(6) = -1;
+weight_invert(9) = -1;
+weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -299,9 +310,9 @@ for i_conn = plot_weights
       N = NROWS * NCOLS * NFEATURES;
       weights_size = [ NFP, NXP, NYP];
       pvp_writeKernel( weights{i_conn}, weights_size, 'geisler_clean' );
-      geisler_weights = weights{6};
+      geisler_weights = weights{N_CONNECTIONS+(TRAINING_FLAG<=0)};
       geisler_weights_filename = ...
-	  ['geisler_clean', num2str(expNum), '.mat.z']
+	  ['geisler_clean', num2str(expNum), '.mat']
       geisler_weights_filename = [twoAFC_path, geisler_weights_filename]
       %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
       save('-mat', geisler_weights_filename, 'geisler_weights');
@@ -333,7 +344,7 @@ fig_list = [];
 %% 2AFC analysis
 
 plot_hist_activity_flag = 0;
-plot_2AFC_flag = 0;
+plot_2AFC_flag = 1;
 if max_target_flag > min_target_flag
   tot_trials = length( first_trial : skip_trial : num_trials );
 
