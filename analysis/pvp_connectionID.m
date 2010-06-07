@@ -175,17 +175,17 @@ else % NON_SPIKING
   connIndex.l1_l1_geisler_distractor = ij_conn;
   connID{ 1, ij_conn } =  'L1ToL1GD';
   
-  if TRAINING_FLAG == -1
+ %% if TRAINING_FLAG == -1
     
-    connID = [connID, cell(1,1)];  % don't increment N_CONNECTIONS
+ %%   connID = [connID, cell(1,1)];  % don't increment N_CONNECTIONS
 				% since last connections is computed
 				% from previous 2
     
-    ij_conn = ij_conn + 1;
-    connIndex.l1_geisler_l1_geisler = ij_conn;
-    connID{ 1, ij_conn } =  'L1GToL1G';
+ %%   ij_conn = ij_conn + 1;
+ %%   connIndex.l1_geisler_l1_geisler = ij_conn;
+ %%   connID{ 1, ij_conn } =  'L1GToL1G';
     
-  elseif TRAINING_FLAG < -1
+ %%% elseif TRAINING_FLAG < -1
     
     N_CONNECTIONS = N_CONNECTIONS + 3;
     connID = [connID, cell(1,3)];
@@ -202,15 +202,15 @@ else % NON_SPIKING
     connIndex.l1_l1_geisler_distractor = ij_conn;
     connID{ 1, ij_conn } =  'L1GToL1G2D';
     
-    if TRAINING_FLAG == -2
+   %% if TRAINING_FLAG == -2
       
-      connID = [connID, cell(1,1)];  
+   %%   connID = [connID, cell(1,1)];  
       
-      ij_conn = ij_conn + 1;
-      connIndex.l1_geisler2_l1_geisler2 = ij_conn;
-      connID{ 1, ij_conn } =  'L1G2ToL1G2';
+   %%   ij_conn = ij_conn + 1;
+   %%   connIndex.l1_geisler2_l1_geisler2 = ij_conn;
+   %%   connID{ 1, ij_conn } =  'L1G2ToL1G2';
       
-    elseif TRAINING_FLAG < -2
+   %% elseif TRAINING_FLAG < -2
       
       N_CONNECTIONS = N_CONNECTIONS + 3;
       connID = [connID, cell(1,3)];
@@ -227,7 +227,7 @@ else % NON_SPIKING
       connIndex.l1_l1_geisler_distractor = ij_conn;
       connID{ 1, ij_conn } =  'L1G2ToL1G3D';
       
-      if TRAINING_FLAG == -3
+ %%     if TRAINING_FLAG == -3
 	
 	connID = [connID, cell(1,1)];
 	
@@ -235,10 +235,10 @@ else % NON_SPIKING
 	connIndex.l1_geisler3_l1_geisler3 = ij_conn;
 	connID{ 1, ij_conn } =  'L1G3ToL1G3';
 	
-      end%%if % TRAINING_FLAG == -3
+ %%     end%%if % TRAINING_FLAG == -3
       
-    end%%if % TRAINING_FLAG == -2
+ %%   end%%if % TRAINING_FLAG == -2
     
-  end%%if % TRAINING_FLAG == -1
+ %% end%%if % TRAINING_FLAG == -1
   
 end%%if % spiking_flag
