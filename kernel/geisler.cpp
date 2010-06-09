@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
 
 #else  // learn Geisler kernels
 
-	const char * amoeba_fileOfFileNames = "./input/target10K_4fc_G1/fileNames.txt"; //
+	const char * amoeba_fileOfFileNames = "./input/distractor10K_4fc_G1/fileNames.txt"; //
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
 //	const char * amoeba_filename = "./input/test_amoebas/test0000.bmp"; // "./input/hard4.bmp"; //
@@ -407,10 +407,10 @@ int main(int argc, char* argv[]) {
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
 	l1->insertProbe(statsl1);
 
-#define TRAINING_TRIALS
+#undef TRAINING_TRIALS
 #ifdef TRAINING_TRIALS
 
-#undef TRAINING_G2_TRIALS
+#define TRAINING_G2_TRIALS
 #ifdef TRAINING_G2_TRIALS
 
 	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
@@ -421,16 +421,16 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
 			CHANNEL_EXC);
 
-	const char * geisler_filename_target = "./input/amoeba10K_4fc_G1/w3_last.pvp";
+	const char * geisler_filename_target = "./input/target10K_4fc_G1/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",   	hc, l1,    	l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
-	const char * geisler_filename_distractor = "./input/distractor10K_4fc_G1/w3_last.pvp";
+	const char * geisler_filename_distractor = "./input/distractor10K_4fc_G1/w3b_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,     l1_geisler,
 			CHANNEL_INH, geisler_filename_distractor);
 
-#define TRAINING_G3_TRIALS
+#undef TRAINING_G3_TRIALS
 #ifdef TRAINING_G3_TRIALS
 
 	HyPerLayer * l1_geisler2 = new GeislerLayer("L1 Geisler2", hc);
@@ -441,7 +441,7 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
 			CHANNEL_EXC);
 
-	const char * geisler2_filename_target = "./input/amoeba10K_4fc_G2/w7_last.pvp";
+	const char * geisler2_filename_target = "./input/target10K_4fc_G2/w7_last.pvp";
 	HyPerConn * l1_geisler_l1_geisler2_target =
 		new KernelConn("L1 Geisler to L1 Geisler2 Target",   	hc, l1_geisler,    	l1_geisler2,
 			CHANNEL_INH, geisler2_filename_target);
@@ -488,17 +488,15 @@ int main(int argc, char* argv[]) {
 
 #else  // ~TRAINING_TRIALS
 
-#define	WRITE_NONSPIKING_ACTIVITY = 1
-
 	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",   			hc, l1,  	l1_geisler,
 			CHANNEL_EXC);
-	const char * geisler_filename_target = "./input/amoeba10K_4fc_G1/w3_last.pvp";
+	const char * geisler_filename_target = "./input/target10K_4fc_G1/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",   	hc, l1,    	l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
-	const char * geisler_filename_distractor = "./input/distractor10K_4fc_G1/w3_last.pvp";
+	const char * geisler_filename_distractor = "./input/distractor10K_4fc_G1/w3b_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,     l1_geisler,
 			CHANNEL_INH, geisler_filename_distractor);
@@ -512,7 +510,7 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_geisler_l1_geisler2 =
 		new CocircConn("L1 Geisler to L1 Geisler2",   			hc, l1_geisler,  	l1_geisler2,
 			CHANNEL_EXC);
-	const char * geisler2_filename_target = "./input/amoeba10K_4fc_G2/w7_last.pvp";
+	const char * geisler2_filename_target = "./input/target10K_4fc_G2/w7_last.pvp";
 	HyPerConn * l1_geisler_l1_geisler2_target =
 		new KernelConn("L1 Geisler to L1 Geisler2 Target",   	hc, l1_geisler,    	l1_geisler2,
 			CHANNEL_INH, geisler2_filename_target);
@@ -529,7 +527,7 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L1 Geisler2 to L1 Geisler3",   			hc, l1_geisler2,  	l1_geisler3,
 			CHANNEL_EXC);
 
-	const char * geisler3_filename_target = "./input/amoeba10K_4fc_G3/w10_last.pvp";
+	const char * geisler3_filename_target = "./input/target10K_4fc_G3/w10_last.pvp";
 	HyPerConn * l1_geisler2_l1_geisler3_target =
 		new KernelConn("L1 Geisler2 to L1 Geisler3 Target",   	hc, l1_geisler2,    	l1_geisler3,
 			CHANNEL_INH, geisler2_filename_target);
