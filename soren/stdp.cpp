@@ -96,6 +96,18 @@ int main(int argc, char* argv[])
    retina->insertProbe(rProbe5);
 #endif
 
+   // This probe outputs activity, ..., at a point
+   //
+   //LayerProbe * ptprobe1 = new PointProbe(16, 32, 0, "L1:");
+   //l1->insertProbe(ptprobe1);
+
+   // This probe outputs connection information at a  point
+   //
+   //PostConnProbe * pcProbe = new PostConnProbe(2064); //(245); // 8575=>127,66
+   //pcProbe->setOutputIndices(false);
+   //r1_l1->insertProbe(pcProbe);
+   //pcProbe->setImage(image);
+
    //ConnectionProbe * cProbe = new ConnectionProbe(277);
    //i_r1_s->insertProbe(cProbe);
 
@@ -103,14 +115,6 @@ int main(int argc, char* argv[])
 
 //   LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
 //   retina->insertProbe(rptprobe);
-
-//   LayerProbe * ptprobe1 = new PointProbe(53, 3, 0, "L1:");
-//   l1->insertProbe(ptprobe1);
-
-//   PostConnProbe * pcProbe = new PostConnProbe(778); //(245); // 8575=>127,66
-//   pcProbe->setImage(image);
-   //pcProbe->setOutputIndices(true);
-   //r_l1->insertProbe(pcProbe);
 
 //   StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
 //   l1->insertProbe(sProbe);
