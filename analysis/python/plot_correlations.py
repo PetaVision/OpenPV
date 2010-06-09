@@ -23,8 +23,8 @@ Show how to modify the coordinate formatter to report the image "z"
 value of the nearest pixel given x and y
 """
 
-if len(sys.argv) < 4:
-   print "usage: plot_correlations filename orientation ('vertical' or 'horizontal')"
+if len(sys.argv) < 3:
+   print "usage: plot_correlations filename On, Off"
    print len(sys.argv)
    sys.exit()
 
@@ -184,7 +184,7 @@ for i in range(w.numPatches):
    p = p.reshape(4,4)
    pOff = wOff.next_patch()
    res = np.sum(p * f)
-   if res > 0.5 * lstmax:
+   if res > 0.85 * lstmax:
       count += 1
       pOff = pOff.reshape(4,4)
       corrMatrixOn = corrMatrixOn + p
