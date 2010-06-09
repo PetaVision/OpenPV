@@ -42,19 +42,19 @@ int main(int argc, char* argv[]) {
 	//
 	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
 
-#undef SPIKING
+#define SPIKING
 #ifdef SPIKING  // load geisler kernels from pvp file
 
 	// create the image
 	//
-	const char * amoeba_filename = "../PetaVision/mlab/amoebaGen/128_png/4/t/tar_0000_a.png";
-	Image * image = new Image("Image", hc, amoeba_filename);
+	const char * amoeba_filename = "../PetaVision/mlab/amoebaGen/128_png/2/t/tar_0001_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
 	// create the layers
 	//
-	HyPerLayer * retina = new Retina("Retina", hc, image);
+	HyPerLayer * image = new Image("Image", hc, amoeba_filename);
+	HyPerLayer * retina = new Retina("Retina", hc);
 	HyPerLayer * lgn = new V1("LGN", hc);
 	HyPerLayer * lgninhff = new V1("LGNInhFF", hc);
 	HyPerLayer * lgninh = new V1("LGNInh", hc);
@@ -72,6 +72,10 @@ int main(int argc, char* argv[]) {
 
 	// create the connections
 	//
+
+	HyPerConn * image_retina  =
+		new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
+
 	// retinal connections
 	HyPerConn * r_lgn =
 		new KernelConn("Retina to LGN", hc, retina, lgn,
@@ -82,9 +86,9 @@ int main(int argc, char* argv[]) {
 
 
 	// LGN connections
-	HyPerConn * lgn_lgninhff =
-		new KernelConn("LGN to LGNInhFF", 	hc, lgn, lgninhff,
-			CHANNEL_EXC);
+//	HyPerConn * lgn_lgninhff =
+//		new KernelConn("LGN to LGNInhFF", 	hc, lgn, lgninhff,
+//			CHANNEL_EXC);
 	HyPerConn * lgn_lgninh =
 		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
 			CHANNEL_EXC);
@@ -100,24 +104,24 @@ int main(int argc, char* argv[]) {
 	HyPerConn * lgninhff_lgn =
 		new KernelConn("LGNInhFF to LGN", 			hc, lgninhff, lgn,
 			CHANNEL_INH);
-	HyPerConn * lgninhff_lgn_inhB =
-		new KernelConn("LGNInhFF to LGN InhB", 		hc, lgninhff, lgn,
-			CHANNEL_INHB);
-	HyPerConn * lgninhff_lgninhff_exc =
-		new KernelConn("LGNInhFF to LGNInhFF Exc", 	hc, lgninhff, lgninhff,
-			CHANNEL_EXC);
+//	HyPerConn * lgninhff_lgn_inhB =
+//		new KernelConn("LGNInhFF to LGN InhB", 		hc, lgninhff, lgn,
+//			CHANNEL_INHB);
+//	HyPerConn * lgninhff_lgninhff_exc =
+//		new KernelConn("LGNInhFF to LGNInhFF Exc", 	hc, lgninhff, lgninhff,
+//			CHANNEL_EXC);
 //	HyPerConn * lgninhff_lgninhff =
 //		new KernelConn("LGNInhFF to LGNInhFF", 		hc, lgninhff, lgninhff,
 //			CHANNEL_INH);
 //	HyPerConn * lgninhff_lgninhff_inhB =
 //		new KernelConn("LGNInhFF to LGNInhFF InhB", hc, lgninhff, lgninhff,
 //			CHANNEL_INHB);
-	HyPerConn * lgninhff_lgninh =
-		new KernelConn("LGNInhFF to LGNInh", 		hc, lgninhff, lgninh,
-			CHANNEL_INH);
-	HyPerConn * lgninhff_lgninh_inhB =
-		new KernelConn("LGNInhFF to LGNInh InhB", 	hc, lgninhff, lgninh,
-			CHANNEL_INHB);
+//	HyPerConn * lgninhff_lgninh =
+//		new KernelConn("LGNInhFF to LGNInh", 		hc, lgninhff, lgninh,
+//			CHANNEL_INH);
+//	HyPerConn * lgninhff_lgninh_inhB =
+//		new KernelConn("LGNInhFF to LGNInh InhB", 	hc, lgninhff, lgninh,
+//			CHANNEL_INHB);
 
 
 	// LGNInh connections
@@ -143,9 +147,9 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1 =
 		new KernelConn("L1 to L1",      hc, l1,     l1,
 			CHANNEL_EXC, geisler_filename);
-	HyPerConn * l1_l1inhff =
-		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
-			CHANNEL_EXC);
+//	HyPerConn * l1_l1inhff =
+//		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
+//			CHANNEL_EXC);
 	HyPerConn * l1_l1inh =
 		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
 			CHANNEL_EXC, geisler_filename);
@@ -155,24 +159,24 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1inhff_l1 =
 		new CocircConn("L1InhFF to L1",   			hc, l1inhff,  l1,
 			CHANNEL_INH);
-	HyPerConn * l1inhff_l1_inhB =
-		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
-			CHANNEL_INHB);
-	HyPerConn * l1inhff_l1inhff_exc =
-		new CocircConn("L1InhFF to L1InhFF Exc",   	hc, l1inhff,  l1inhff,
-			CHANNEL_EXC);
-	HyPerConn * l1inhff_l1inhff =
-		new CocircConn("L1InhFF to L1InhFF",   		hc, l1inhff,  l1inhff,
-			CHANNEL_INH);
-	HyPerConn * l1inhff_l1inhff_inhB =
-		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
-			CHANNEL_INHB);
-	HyPerConn * l1inhff_l1inh =
-		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
-			CHANNEL_INH);
-	HyPerConn * l1inhff_l1inh_inhB =
-		new CocircConn("L1InhFF to L1Inh InhB",   	hc, l1inhff,  l1inh,
-			CHANNEL_INHB);
+//	HyPerConn * l1inhff_l1_inhB =
+//		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
+//			CHANNEL_INHB);
+//	HyPerConn * l1inhff_l1inhff_exc =
+//		new CocircConn("L1InhFF to L1InhFF Exc",   	hc, l1inhff,  l1inhff,
+//			CHANNEL_EXC);
+//	HyPerConn * l1inhff_l1inhff =
+//		new CocircConn("L1InhFF to L1InhFF",   		hc, l1inhff,  l1inhff,
+//			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1inhff_inhB =
+//		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
+//			CHANNEL_INHB);
+//	HyPerConn * l1inhff_l1inh =
+//		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
+//			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1inh_inhB =
+//		new CocircConn("L1InhFF to L1Inh InhB",   	hc, l1inhff,  l1inh,
+//			CHANNEL_INHB);
 
 
 	// L1 Inh connections
