@@ -114,7 +114,7 @@ HyPerLayer "LGNInh" = {
    tauE = 1.0;
    tauI = 4.0;
    tauIB = 20.0;
-   VthRest = -55.0;
+   VthRest = -50.0;
    tauVth = 5.0;
    deltaVth = 5.0;
    noiseFreqE = 250.0;
@@ -142,7 +142,7 @@ HyPerLayer "L1" = {
    VinhB = -90.0;
    tau = 40.0;
    tauE = 1.0;
-   tauI = 4.0;
+   tauI = 5.0;
    tauIB = 20.0;
    VthRest = -60.0;
    tauVth = 5.0;
@@ -204,7 +204,7 @@ HyPerLayer "L1Inh" = {
    tauE = 1.0;
    tauI = 4.0;
    tauIB = 20.0;
-   VthRest = -55.0;
+   VthRest = -50.0;
    tauVth = 5.0;
    deltaVth = 5.0;
    noiseFreqE = 250.0;
@@ -253,35 +253,51 @@ HyPerLayer "L1Inh" = {
 
 // Retina connections
 
-HyPerConn "Retina to LGN" = {
-   nxp = 3; 
-   nyp = 3; 
+HyPerConn "Image to Retina" = {
+   nxp = 1; 
+   nyp = 1; 
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  
 
    aspect = 1;
-   sigma = 0.5;
-   rMax  = 3;
+   sigma = 1;
+   rMax  = 1;
    
-   strength = 4;  
+   strength =  0.0039216; //1/255;  
+};
+
+
+HyPerConn "Retina to LGN" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   
+   strength = 3;  
 };
 
 
 HyPerConn "Retina to LGNInhFF" = {
-   nxp = 3; 
-   nyp = 3; 
+   nxp = 7; 
+   nyp = 7; 
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  
 
    aspect = 1;
-   sigma = 1.5;
-   rMax  = 3;
+   sigma = 7;
+   rMax  = 7;
    
-   strength = 6.0;  
+   strength = 20.0;  
 };
 
 
@@ -305,18 +321,18 @@ HyPerConn "LGN to LGNInhFF" = {
 };
 
 HyPerConn "LGN to LGNInh" = {
-   nxp = 3; 
-   nyp = 3; 
+   nxp = 1; 
+   nyp = 1; 
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 1;
-   sigma = 1.5;
-   rMax  = 3;
+   sigma = 1;
+   rMax  = 1;
    
-   strength = 5.0;  
+   strength = 8.0;  
    
 };
 
@@ -333,9 +349,9 @@ HyPerConn "LGN to L1" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 128.0;  
+   strength = 256.0;  
    
-   delay = 8.0;
+   delay = 1.0;
 };
 
 
@@ -353,9 +369,9 @@ HyPerConn "LGN to L1InhFF" = {
    rotate = 1;
    
    
-   strength = 128.0;  
+   strength = 256.0;  
    
-   delay = 8.0;
+   delay = 1.0;
 };
 
 
@@ -371,10 +387,10 @@ HyPerConn "LGNInhFF to LGN" = {
    initFromLastFlag = 0;  // 1;  // restart
 
    aspect = 1;
-   sigma = 3.5;
-   rMax  = 3.5;
+   sigma = 7;
+   rMax  = 7;
    
-   strength = 5.0;  
+   strength = 10.0;  
    
    delay = 1.0;
    
@@ -507,7 +523,7 @@ HyPerConn "LGNInh to LGN" = {
    
    strength = 32.0;  
    
-   delay = 2.0;
+   delay = 1.0;
    
 };
 
@@ -525,7 +541,7 @@ HyPerConn "LGNInh to LGNInhFF" = {
    
    strength = 0.0;  // 1.0
    
-   delay = 2.0; 
+   delay = 1.0; 
 };
 
 HyPerConn "LGNInh to LGNInh Exc" = {
@@ -558,7 +574,7 @@ HyPerConn "LGNInh to LGNInh" = {
    
    strength = 0.0; //1.0;
    
-   delay = 2.0; 
+   delay = 1.0; 
 };
 
 
@@ -579,9 +595,9 @@ HyPerConn "L1 to LGN" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 0.0;  
+   strength = 0.5;  
    
-   delay = 8.0;
+   delay = 1.0;
 };
 
 HyPerConn "L1 to LGNInh" = {
@@ -597,9 +613,9 @@ HyPerConn "L1 to LGNInh" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 10.0;  
+   strength = 2.0;  
    
-   delay = 8.0;
+   delay = 1.0;
 };
 
 HyPerConn "L1 to L1" = {
@@ -613,7 +629,7 @@ HyPerConn "L1 to L1" = {
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 0.0;
+   strength = 20.0;
    
    delay = 1.0;   
 };
@@ -651,7 +667,7 @@ HyPerConn "L1 to L1Inh" = {
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 20.0;
+   strength = 200.0;
       
    delay = 1.0;
 };
@@ -680,7 +696,7 @@ HyPerConn "L1InhFF to L1" = {
    numFlanks = 2;
    flankShift = 1;
 
-   strength = 50.0;
+   strength = 20.0;
 
    delay = 1.0;
 };
@@ -831,8 +847,8 @@ HyPerConn "L1InhFF to L1Inh InhB" = {
 // L1 Inh connections
 
 HyPerConn "L1Inh to L1" = {
-   nxp = 7;
-   nyp = 7;
+   nxp = 3;
+   nyp = 3;
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -844,11 +860,11 @@ HyPerConn "L1Inh to L1" = {
    rotate = 1;
    
    sigma_cocirc = 0.3926875; // PI / 8;
-   deltaThetaMax = 3.1415926535897931; //PI;
+   deltaThetaMax = 0.3926875; // PI / 8; // 3.1415926535897931; //PI;
 
-   strength = 256.0;
+   strength = 50.0;
 
-   delay = 2.0;
+   delay = 1.0;
 };
 
 HyPerConn "L1Inh to L1Inh Exc" = {
