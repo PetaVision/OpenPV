@@ -2,7 +2,7 @@
  * Patterns.cpp
  *
  *  Created on: April 21, 2010
- *      Author: Craig Rasmussen
+ *      Author: Marian Anghel and Craig Rasmussen
  */
 
 #include "Patterns.hpp"
@@ -41,10 +41,11 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    //
    PVParams * params = hc->parameters();
 
-   minWidth  = params->value(name, "minWidth", 4.0);
-   maxWidth  = params->value(name, "maxWidth", loc->nx);
-   minHeight = params->value(name, "minHeight", 4.0);
-   maxHeight = params->value(name, "maxHeight", loc->ny);
+   minWidth  = 4.0;
+   minHeight = 4.0;
+
+   maxWidth  = params->value(name, "width", loc->nx);
+   maxHeight = params->value(name, "height", loc->ny);
 
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
@@ -72,6 +73,7 @@ int Patterns::tag()
 
 int Patterns::initPattern(float val)
 {
+   int width, height;
    const int interval = 4;
 
    // extended frame
@@ -82,9 +84,6 @@ int Patterns::initPattern(float val)
    const int sx = 1;
    const int sy = sx * nx;
 
-   const int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
-   const int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
-
    // reset data buffer
    const int nk = nx * ny;
    for (int k = 0; k < nk; k++) {
@@ -92,6 +91,9 @@ int Patterns::initPattern(float val)
    }
 
    if (type == RECTANGLES) {
+      width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
+      height = minHeight + (maxHeight - minHeight) * pv_random_prob();
+
       const int half_w = width/2;
       const int half_h = height/2;
 
@@ -114,26 +116,27 @@ int Patterns::initPattern(float val)
       return 0;
    }
 
+   // type is bars
+
    if (orientation == vertical) { // vertical bars
+      width = maxWidth;
       for (int iy = 0; iy < ny; iy++) {
-         for (int ix = position; ix < nx + position; ix += interval) {
-            for (int m = 0; m < width; m++) {
-               int x = (ix + m) % nx;
-               data[x * sx + iy * sy] = val;
-            }
+         for (int ix = 0; ix < nx; ix++) {
+            int m = (ix + position) % (2*width);
+            data[ix * sx + iy * sy] = (m < width) ? val : 0;
          }
       }
    }
    else { // horizontal bars
-      for (int ix = 0; ix < nx; ix++) {
-         for (int iy = position; iy < ny + position; iy += interval) {
-            for (int m = 0; m < width; m++) {
-               int y = (iy + m) % ny;
-               data[ix * sx + y * sy] = val;
-            }
+      height = maxHeight;
+      for (int iy = 0; iy < ny; iy++) {
+         int m = (iy + position) % (2*height);
+         for (int ix = 0; ix < nx; ix++) {
+            data[ix * sx + iy * sy] = (m < height) ? val : 0;
          }
       }
    }
+
    return 0;
 }
 
@@ -142,16 +145,20 @@ int Patterns::initPattern(float val)
  */
 int Patterns::updateState(float time, float dt)
 {
+   int size = 0;
+
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
 
    if (orientation == vertical) { // current vertical gratings
+      size = maxWidth;
       if (p < pSwitch) { // switch with probability pSwitch
          orientation = horizontal;
          initPattern(MAXVAL);
       }
    }
    else {
+      size = maxHeight;
       if (p < pSwitch) { // current horizontal gratings
          orientation = vertical;
          initPattern(MAXVAL);
@@ -161,7 +168,7 @@ int Patterns::updateState(float time, float dt)
    // moving probability
    double p_move = pv_random_prob();
    if (p_move < pMove) {
-      //position = calcPosition(position, nx);
+      position = calcPosition(position, 2*size);
       //position = (start++) % 4;
       //position = prefPosition;
       initPattern(MAXVAL);
@@ -195,10 +202,10 @@ int Patterns::calcPosition(int pos, int step)
 {
    float dp = 1.0 / step;
    double p = pv_random_prob();
-   int random_walk = 1;
+   int random_walk = 0;
    int move_forward = 0;
    int move_backward = 0;
-   int random_jump = 0;
+   int random_jump = 1;
 
    if (random_walk) {
       if (p < 0.5){
@@ -212,7 +219,7 @@ int Patterns::calcPosition(int pos, int step)
    } else if (move_backward){
       pos = (pos-1+step) % step;
    }
-   else if (random_jump){
+   else if (random_jump) {
       for (int i = 0; i < step; i++) {
          if ((i * dp < p) && (p < (i + 1) * dp)) {
             return i;

@@ -44,7 +44,7 @@ protected:
    PatternMode orientation;
    PatternMode lastOrientation;
 
-   int   writeImages;
+   int writeImages;
    int position;
    int lastPosition;
    int prefPosition;
