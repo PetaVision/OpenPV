@@ -117,7 +117,7 @@ class PVReadSparse(object):
    def avg_activity(self, begin, end):
       """Return total activity matrix for a given time period"""
       while self.time + self.dt < begin:
-         print "skipping time=", self.time
+         #print "skipping time=", self.time
          rec = self.next_record()
       t0 = self.time
 
