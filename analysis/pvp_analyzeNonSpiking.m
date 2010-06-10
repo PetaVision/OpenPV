@@ -48,11 +48,11 @@ elseif abs(TRAINING_FLAG) == 3
   G_STR = '_G3';
 end%%if
 
-machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
-%%machine_path = '/nh/home/gkenyon/workspace/';
+%%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+machine_path = '/nh/home/gkenyon/workspace/';
 
 target_path = [];
-target_path = [machine_path 'kernel/input/test_target10K_target', FC_STR];
+target_path = [machine_path 'kernel/input/test_amoeba_target', FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
 end%%if % ~isempty(target_path)
@@ -132,6 +132,98 @@ num_features = ones(num_layers, num_trials);
 pvp_layer_header = cell(N_LAYERS, num_trials);
 
 for j_trial = first_trial : skip_trial : last_trial
+    
+    close all;
+    fig_list = [];
+    
+    %% Analyze activity layer by layer
+    for layer = read_activity;
+        
+        %% account for delays between layers
+        i_trial = j_trial + (layer - 1);
+        
+        for target_flag = min_target_flag : max_target_flag
+            
+%%      if target_flag == 1
+%%	output_path = target_path;
+%%      elseif target_flag == 2
+%%	output_path = distractor_path;
+%%      end%%if
+      output_path = activity_path{target_flag};
+      
+      %% Read spike events
+           hist_bins_tmp = ...
+                hist_activity_bins{layer};
+            [act_time(layer, j_trial),...
+                activity, ...
+                ave_activity(target_flag, layer, j_trial), ...
+                sum_activity(target_flag, layer, j_trial), ...
+                hist_activity_tmp, ...
+                hist_activity_bins{layer}, ...
+                pvp_layer_header{layer, j_trial}] = ...
+                pvp_readActivity(layer, i_trial, hist_bins_tmp, pvp_order);
+            disp([ layerID{layer}, ...
+                ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
+                num2str(ave_activity(target_flag, layer, j_trial))]);
+            if isempty(activity)
+                continue;
+            end%%if
+            if layer == 1
+                max_activity = max(activity(:));
+                min_activity = min(activity(:));
+                if any( ( activity(:) > min_activity ) && ...
+                        ( activity(:) < max_activity ) )
+                    disp( 'activity between min and max' );
+                end%%if
+            end%%if
+            hist_activity(target_flag, :, layer) = ...
+                hist_activity(target_flag, :, layer) + ...
+                hist_activity_tmp;
+            
+            twoAFC(target_flag, layer, j_trial) = ...
+                ave_activity(target_flag, layer, j_trial);
+            
+            write_activity_flag = 0;
+            zip_activity_flag = 1;
+            if write_activity_flag == 1
+                if (zip_activity_flag == 1)
+                    activity_filename = ['V1_G', num2str(layer-1),'_', ...
+                        num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
+                    activity_filename = [output_path, activity_filename]
+                    %%save("-z", "-mat", activity_filename, "activity" );
+                    save('-mat', activity_filename, 'activity' );
+                else
+                    activity_filename = ['V1_G', num2str(layer-1), '_', ...
+                        num2str(j_trial, NUM2STR_FORMAT), '.mat']
+                    activity_filename = [output_path, activity_filename]
+                    save('-mat', activity_filename, 'activity' );
+                end%%if
+                
+            end%%if
+            
+            
+            num_rows(layer, j_trial) = NROWS;
+            num_cols(layer, j_trial) = NCOLS;
+            num_features(layer, j_trial) = NFEATURES;
+            
+            % plot reconstructed image
+            reconstruct_activity2 = ismember( layer, reconstruct_activity );
+            if reconstruct_activity2
+                size_activity = ...
+                    [ 1 , num_features(layer, j_trial), ...
+                    num_cols(layer, j_trial), num_rows(layer, j_trial) ];
+                activity_filename = ...
+                    ['V1_G', num2str(layer-1), '_', ...
+                    num2str(j_trial, NUM2STR_FORMAT)];
+                plot_recon_flag = 1;
+                fig_tmp = pvp_reconstruct(activity, ...
+                    activity_filename, [], ...
+                    size_activity, ...
+                    plot_recon_flag);
+                fig_list = [fig_list; fig_tmp];
+            end%%if
+            
+        end%%for % target_flag
 
 close all;
 fig_list = [];
