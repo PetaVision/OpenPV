@@ -22,10 +22,10 @@ function [ layer_index, layer_index_max ] = pvp_image2layer( spikes, ...
 
   if nargin < 4
     use_max = 0;
-  endif
+  end%%if
   if nargin < 3
     timesteps = time_steps;
-  endif
+  end%%if
 
   if ~isempty(spikes(timesteps,:))
     rate_array = full(sum(spikes(timesteps,:), 1)); % total spikes over all timesteps
@@ -36,7 +36,7 @@ function [ layer_index, layer_index_max ] = pvp_image2layer( spikes, ...
 				% end
   else
     rate_array = zeros(1, N);
-  endif
+  end%%if
 
   row_scale = ceil( NROWS / NROWS_image );
   col_scale = ceil( NCOLS / NCOLS_image );
@@ -71,7 +71,7 @@ function [ layer_index, layer_index_max ] = pvp_image2layer( spikes, ...
     layer_index = sub2ind( [ NFEATURES, NCOLS, NROWS ], f_layer(:), jcol_layer(:), irow_layer(:) );
   else
     layer_index = sub2ind( [ NROWS, NCOLS, NFEATURES ], irow_layer(:), jcol_layer(:), f_layer(:) );
-  endif
+  end%%if
   if use_max && row_scale * col_scale * NFEATURES > 1
     rate_array = squeeze( rate_array( layer_index ) );
     rate_array = reshape( rate_array, [ num_image_index, row_scale * col_scale * NFEATURES ] );
@@ -88,10 +88,10 @@ function [ layer_index, layer_index_max ] = pvp_image2layer( spikes, ...
       layer_index_max = sub2ind( [ NFEATURES, NCOLS, NROWS ], f_layer_max(:), jcol_layer_max(:), irow_layer_max(:) ); 
     else
       layer_index_max = sub2ind( [ NROWS, NCOLS, NFEATURES ], irow_layer_max(:), jcol_layer_max(:), f_layer_max(:) ); 
-    endif
+    end%%if
   else
     layer_index_max = layer_index;
-  endif
+  end%%if
 
 
 				% find index of maximum activity associated with each image pixel when row_scale, col_scale > 1
