@@ -16,6 +16,9 @@ global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
 global ROTATE_FLAG % orientation axis rotated by DTH / 2
 
+global num_trials first_trial last_trial skip_trial
+global output_path spiking_path twoAFC_path spiking_path activity_path
+
 global MIN_INTENSITY
 MIN_INTENSITY = 0;
 
@@ -31,6 +34,11 @@ TRAINING_FLAG = -2;
 global FC_STR
 FC_STR = ['_', num2str(4), 'fc'];
 
+num_trials =  9; %( TRAINING_FLAG <= 0 ) * 999; %
+first_trial =1;
+last_trial = num_trials;
+skip_trial = 1;
+
 global G_STR
 if abs(TRAINING_FLAG) == 1
   G_STR = '_G1';
@@ -40,40 +48,29 @@ elseif abs(TRAINING_FLAG) == 3
   G_STR = '_G3';
 end%%if
 
-global num_trials first_trial last_trial skip_trial
-global output_path spiking_path
-
 machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
 %%machine_path = '/nh/home/gkenyon/workspace/';
 
 target_path = [];
-target_path = [machine_path 'kernel/input/test_amoeba10K_target', FC_STR];
+target_path = [machine_path 'kernel/input/test_target10K_target', FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
 end%%if % ~isempty(target_path)
 
-if TRAINING_FLAG < 0
-  distractor_path = [machine_path, 'kernel/input/test_amoeba10K_distractor', FC_STR];
+if num_trials > 10
+  distractor_path = [machine_path, 'kernel/input/test_target10K_distractor', FC_STR];
 else
   distractor_path = [];
 end%%if
 if ~isempty(distractor_path)
-if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR, '/'];
 end%%if % ~isempty(distractor_path)
 
-elseif ~isempty(target_path) 
-  output_path = target_path;
-elseif ~isempty(distractor_path) && isempty(target_path)
-  output_path = distractor_path;
-else
-  output_path = [];
-end%%if
-  
-twoAFC_path = [machine_path, 'kernel/input/amoeba10K', FC_STR];
-spiking_path = [machine_path, 'kernel/input/spiking10K', FC_STR];
+twoAFC_path = [machine_path, 'kernel/input/target10K', FC_STR];
+spiking_path = [machine_path, 'kernel/input/spiking_target10K', FC_STR];
 twoAFC_path = [twoAFC_path, G_STR, '/'];
 spiking_path = [spiking_path, G_STR, '/'];
+activity_path = {target_path; distractor_path};
 
 min_target_flag = 2 - ~isempty(target_path);
 max_target_flag = 1 + ~isempty(distractor_path);
@@ -90,11 +87,6 @@ NFEATURES = 8;
 NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
-
-num_trials = ( TRAINING_FLAG <= 0 ) * 999; %9; % 
-first_trial =1;
-last_trial = num_trials;
-skip_trial = 1;
 
 my_gray = [.666 .666 .666];
 num_targets = 1;
@@ -152,11 +144,12 @@ fig_list = [];
 
     for target_flag = min_target_flag : max_target_flag
 
-      if target_flag == 1
-	output_path = target_path;
-      elseif target_flag == 2
-	output_path = distractor_path;
-      end%%if
+%%      if target_flag == 1
+%%	output_path = target_path;
+%%      elseif target_flag == 2
+%%	output_path = distractor_path;
+%%      end%%if
+      output_path = activity_path{target_flag};
       
       %% Read spike events
       hist_bins_tmp = ...
@@ -196,13 +189,13 @@ fig_list = [];
         if (zip_activity_flag == 1)
             activity_filename = ['V1_G', num2str(layer-1),'_', ...
                 num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
-            activity_filename = [output_path, activity_filename]
+            activity_filename = [activity_path{target_flag}, activity_filename]
             %%save("-z", "-mat", activity_filename, "activity" );
             save('-mat', activity_filename, 'activity' );
         else
             activity_filename = ['V1_G', num2str(layer-1), '_', ...
                 num2str(j_trial, NUM2STR_FORMAT), '.mat']
-            activity_filename = [output_path, activity_filename]
+            activity_filename = [activity_path{target_flag}, activity_filename]
             save('-mat', activity_filename, 'activity' );
         end%%if
         
@@ -247,7 +240,7 @@ global NXP NYP NFP
 if TRAINING_FLAG > 0
   plot_weights = N_CONNECTIONS;
 else
-  plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+  plot_weights = [];%( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
 end%%if
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -344,7 +337,7 @@ fig_list = [];
 %% 2AFC analysis
 
 plot_hist_activity_flag = 0;
-plot_2AFC_flag = 1;
+plot_2AFC_flag = num_trials > 10;
 if max_target_flag > min_target_flag
   tot_trials = length( first_trial : skip_trial : num_trials );
 

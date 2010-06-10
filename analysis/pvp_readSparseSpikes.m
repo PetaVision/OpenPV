@@ -92,7 +92,7 @@ function [spike_array, ave_rate] = pvp_readSparseSpikes(layer, pvp_order)
   while ~feof(fid)
     n_time_steps = n_time_steps + 1;
     num_spikes = fread(fid, 1, 'int32');
-    pvp_offset = num_spikes * sizeof2(int32(0));
+    pvp_offset = num_spikes * 4;
     pvp_status = fseek(fid, pvp_offset, 'cof');
     if pvp_status == -1
       disp(['pvp_status = fseek(fid, pvp_offset, ''cof'') == -1 in pvp file: ', filename]);

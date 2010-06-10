@@ -8,8 +8,12 @@ i_layer = 0;
 
 if ( SPIKING_FLAG == 1 )
     
-    N_LAYERS = 7;
+    N_LAYERS = 8;
     layerID = cell(1, N_LAYERS);
+    
+    i_layer = i_layer + 1;
+    layerIndex.retina = i_layer;
+    layerID{ 1, i_layer } =  'image';
     
     i_layer = i_layer + 1;
     layerIndex.retina = i_layer;
