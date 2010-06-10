@@ -29,7 +29,7 @@ step = 1000
 vmax = 100.0 # Hz
 
 if len(sys.argv) < 3:
-   print "usage: plot_avg_activity filename [end_time step_time]"
+   print "usage: plot_avg_activity filename [end_time step_time begin_time]"
    sys.exit()
 
 if len(sys.argv) >= 3:
@@ -39,7 +39,10 @@ if len(sys.argv) >= 4:
    step = int(sys.argv[3])
 
 if len(sys.argv) >= 5:
-   vmax = float(sys.argv[4])
+   begin = float(sys.argv[4])
+
+if len(sys.argv) >= 6:
+   vmax = float(sys.argv[5])
 
 print "(begin, end, step, max) == ", begin, end, step, vmax
 
