@@ -21,7 +21,7 @@ class PVReadBin(object):
    
    def next_record(self):
       """Read the next record and return an ndarray"""
-      a = fromfile(self.file, 'f', self.numItems)
+      a = np.fromfile(self.file, 'f', self.numItems)
       self.timestep += 1
       return a
    # end next
@@ -57,6 +57,8 @@ class PVReadBin(object):
       if self.extended:
          self.nxg_ex += 2*self.nPad
          self.nyg_ex += 2*self.nPad
+
+      self.numItems = self.nxg_ex * self.nyg_ex
 
       self.timestep = 0
       self.time = np.fromfile(self.file, 'd', 1)
