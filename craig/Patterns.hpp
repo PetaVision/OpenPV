@@ -12,29 +12,47 @@
 
 namespace PV {
 
-enum or_modes {vertical, horizontal};
+enum PatternType {
+  BARS  = 0,
+  RECTANGLES  = 1,
+};
+
+enum PatternMode {vertical, horizontal};
 
 class Patterns : public PV::Image {
 public:
-   Patterns(const char * name, HyPerCol * hc);
+   Patterns(const char * name, HyPerCol * hc, PatternType type);
    virtual ~Patterns();
-   void setProbSwitch(float p) {pSwitch = p;}
-   void setProbMove(float p) {pMove = p;}
-   virtual bool updateImage(float time, float dt);
+   virtual int updateState(float time, float dt);
+
+   void setProbMove(float p)     {pMove = p;}
+   void setProbSwitch(float p)   {pSwitch = p;}
+
+   void setMinWidth(int w)  {minWidth  = w;}
+   void setMaxWidth(int w)  {maxWidth  = w;}
+   void setMinHeight(int h) {minHeight = h;}
+   void setMaxHeight(int h) {maxHeight = h;}
+
    virtual int tag();
 
 protected:
 
    int initPattern(float val);
    int calcPosition(int pos, int step);
-   int   writeImages;
+
+   PatternType type;
+   PatternMode orientation;
+   PatternMode lastOrientation;
+
+   int writeImages;
    int position;
    int lastPosition;
    int prefPosition;
-   or_modes orientation;
-   or_modes lastOrientation;
    float pSwitch;
    float pMove;
+
+   int minWidth, maxWidth;
+   int minHeight, maxHeight;
 };
 
 }
