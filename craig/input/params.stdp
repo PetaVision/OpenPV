@@ -22,7 +22,7 @@ HyPerLayer "Image" = {
    height = 5;
    prefPosition = 7;
    marginWidth = 0; //CER 2;
-   pMove = 0.0; //0.067; // CER 0.03125;  // every 16 ms
+   pMove = 0.025; // CER 0.03125;  // every 16 ms
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
 };
@@ -52,7 +52,7 @@ HyPerLayer "RetinaOff" = {
    beginStim = 0;
    endStim = 9000000;
    
-   burstFreq = 25;
+   burstFreq = 40; //25;
    burstDuration = 7.5;
    
    spikingFlag = 1;
