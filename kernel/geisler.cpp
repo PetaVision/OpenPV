@@ -42,12 +42,12 @@ int main(int argc, char* argv[]) {
 	//
 	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
 
-#define SPIKING
+#undef SPIKING
 #ifdef SPIKING  // load geisler kernels from pvp file
 
 	// create the image
 	//
-	const char * amoeba_filename = "../PetaVision/mlab/amoebaGen/128_png/2/t/tar_0001_a.png";
+	const char * amoeba_filename = "../PetaVision/mlab/amoebaGen/128_png/2/t/tar_0003_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
 
 	// L1 connections
-	const char * geisler_filename = "./input/test_amoeba_target_4fc/geisler_clean.pvp";
+	const char * geisler_filename = "./input/spiking_2fc/geisler_clean.pvp";
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -341,21 +341,21 @@ int main(int argc, char* argv[]) {
 	nf = pre->clayer->loc.nBands;
 	lgninh_lgninh_exc->writeTextWeights(lgninh_lgninh_exc_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
-	pre = l1_lgn->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
+//	pre = l1_lgn->preSynapticLayer();
+//	npad = pre->clayer->loc.nPad;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nBands;
+//	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
-	pre = l1_lgninh->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
+//	pre = l1_lgninh->preSynapticLayer();
+//	npad = pre->clayer->loc.nPad;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nBands;
+//	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * l1inhff_l1_filename = "l1inhff_l1_cocirc.txt";
 	pre = l1inhff_l1->preSynapticLayer();
@@ -365,31 +365,32 @@ int main(int argc, char* argv[]) {
 	nf = pre->clayer->loc.nBands;
 	l1inhff_l1->writeTextWeights(l1inhff_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-	const char * l1_l1_filename = "l1_l1_geisler_exc.txt";
-	pre = l1_l1->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
-	const char * l1_l1inh_filename = "l1_l1inh_geisler_exc.txt";
-	pre = l1_l1inh->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
-	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
-	pre = l1inh_l1->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * l1_l1_filename = "l1_l1_geisler_exc.txt";
+//	pre = l1_l1->preSynapticLayer();
+//	npad = pre->clayer->loc.nPad;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nBands;
+//	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * l1_l1inh_filename = "l1_l1inh_geisler_exc.txt";
+//	pre = l1_l1inh->preSynapticLayer();
+
+//	npad = pre->clayer->loc.nPad;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nBands;
+//	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
+//	pre = l1inh_l1->preSynapticLayer();
+//	npad = pre->clayer->loc.nPad;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nBands;
+//	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #else  // learn Geisler kernels
 
-	const char * amoeba_fileOfFileNames = "./input/distractor10K_4fc_G1/fileNames.txt"; //
+	const char * amoeba_fileOfFileNames = "./input/amoeba10K_G1/fileNames.txt"; //
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, amoeba_fileOfFileNames, display_period);
 //	const char * amoeba_filename = "./input/test_amoebas/test0000.bmp"; // "./input/hard4.bmp"; //
@@ -411,10 +412,10 @@ int main(int argc, char* argv[]) {
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
 	l1->insertProbe(statsl1);
 
-#undef TRAINING_TRIALS
+#define TRAINING_TRIALS
 #ifdef TRAINING_TRIALS
 
-#define TRAINING_G2_TRIALS
+#undef TRAINING_G2_TRIALS
 #ifdef TRAINING_G2_TRIALS
 
 	HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
