@@ -25,11 +25,11 @@ HyPerLayer "Retina" = {
    marginWidth = 0;
    mirrorBCflag = 0;  
 
-   beginStim = 200;
-   endStim   = 800;
+   beginStim = 1000;
+   endStim   = 21000;
 
    burstFreq = 1;      // Hz
-   burstDuration = 800;  // ms
+   burstDuration = 20000;  // ms
 
    spikingFlag = 1;        // spike as poisson
    invert = 0;
@@ -332,7 +332,7 @@ HyPerConn "LGN to LGNInh" = {
    sigma = 1;
    rMax  = 1;
    
-   strength = 8.0;  
+   strength = 0.0; //8.0;  
    
 };
 
