@@ -1,8 +1,8 @@
-function A = stdp_compScoreEvolution(fname, numCenters, xScale, yScale)
+function A = stdp_compScoreEvolution(fname, fname_last, numCenters, xScale, yScale)
 % cluster the "weight" fields as a function of time
 % and scores the learning of a set of pre-defined features
 % xScale and yScale are scale factors for this layer
-% We should pass NX and NY as argumrnts
+% We should pass NX and NY as arguments
 % NOTE: Needs to be implemented using ~/Documents/MATLAB/Kmeans
 
 
@@ -15,12 +15,17 @@ NYscaled = NY * yScale;
 
 print_features = 0;
 scaleWeights = 1;
-write_centers = 1;
+write_centers =0;
 write_scores = 1;
-plot_centers = 1;
-
-
+plot_centers = 0;
+comp_kmeans = 1;
+startTime = 0;
 debug = 0;
+
+if numel(fname) ~= numel(fname_last)
+   disp('mismatch between weights files and last weights files: return');        
+end
+
 
 %% open file pointers & figure handles
 for f=1:numel(fname)
@@ -38,6 +43,12 @@ for f=1:numel(fname)
 
 end
 
+
+%% define flags
+first_record = ones(1,numel(fname));
+last_record = zeros(1,numel(fname_last));
+
+
 %% figure handle to score evolution plot
 
 h_score = figure('Name','Learning Score Evolution');
@@ -45,15 +56,41 @@ h_score = figure('Name','Learning Score Evolution');
 %% open output file pointers
 
 if(write_centers)
-    centers_file = [output_dir,'WeightsKmeansCenters.dat'];
-    fid_centers = fopen(centers_file,'w');
+    centers_file = [output_dir,'WeightsKmeansCenters',num2str(numCenters),'.dat'];
+    if exist(centers_file,'file')
+        fid_centers = fopen(centers_file,'a');
+        % read data, plot, and set startTime        
+        startTime = 0;
+    else
+        fid_centers = fopen(centers_file,'w');
+        startTime = 0;
+    end
 end
 
 if(write_scores)
-    scores_file = [output_dir,'WeightsLearningScores.dat'];
-    fid_scores = fopen(scores_file,'w');
+    scores_file = [output_dir,'WeightsLearningScores',num2str(numCenters),'.dat'];
+    if exist(scores_file,'file')
+        fid_scores = fopen(scores_file,'r');
+        % read scores, plot, and set startTime
+        data = fscanf(fid_scores, '%g %g %g', [3 inf])   % It has two rows now.
+        data = data';
+        fclose(fid_scores);
+        figure(h_score)
+        plot(data(:,1),data(:,2),sym{1});hold on
+        plot(data(:,1),data(:,3),sym{2});hold on
+        
+        fid_scores = fopen(scores_file,'a');
+        startTime = data(end,1) * 1000;
+    else
+        fid_scores = fopen(scores_file,'w');
+        startTime = 0;
+    end
 end
 
+fprintf('startTime = %d \n',startTime);
+pause
+ 
+ 
 %% read first headers
 
 for f=1:numel(fname)
@@ -65,7 +102,7 @@ for f=1:numel(fname)
     
         
     if numPatches ~= NXscaled*NYscaled
-        disp('mismatch between numPatches and NX*NY');
+        disp('mismatch between numPatches and NX*NY: return');
         return
     end
     patch_size = NXP*NYP;
@@ -74,19 +111,19 @@ end
     
 %% compute features matrix
 Features = compFeatures(NXP, NYP);
-% Proj is a patch_size x numFeatures matrix
+% Features is a patch_size x numFeatures matrix
 if print_features
     for f=1:size(Features,2)
         fprintf('feature %d: ',f);
         for i=1:patch_size
-            fprintf('%.2f ',Proj(i,f) );
+            fprintf('%.2f ',Features(i,f) );
         end
         fprintf('\n');
     end
     pause
 end
         
-first_record = ones(1,numel(fname));
+
 %% read the weights field (configuration)
 W_array = []; % N x patch_size array where N = NX * NY
 
@@ -104,7 +141,28 @@ while (~eofFlag)
                 readHeader(fid{f},numParams);
             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
                 time,numPatches,NXP,NYP,NFP);
-            %pause
+
+            % detect last record and read from last configuration file
+            if time == -1 & ~last_record(f)
+                fclose(fid{f});
+                last_record(f) = 1;
+
+                filename = fname_last{f};
+                filename = [input_dir, filename];
+
+                if exist(filename,'file')
+                    fid{f} = fopen(filename, 'r', 'native');
+                else
+                    disp(['Skipping, could not open ', filename]);
+                    return
+                end
+
+                [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
+                    readHeader(fid{f},numParams);
+                fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+                    time,numPatches,NXP,NYP,NFP);
+            end
+                %pause
         else
             first_record(f) = 0;
         end
@@ -142,8 +200,9 @@ while (~eofFlag)
             end % if ~ feof
         end
     end % loop over post-synaptic neurons
-   
     
+   
+    if comp_kmeans 
 
     %% compute K-means
     
@@ -196,11 +255,13 @@ while (~eofFlag)
     %% write centers
 
     if(write_centers)
-        if f==1,fprintf(fid_centers,'%d ',time/1000),end
-        for k=1:numCenters
-            fprintf(fid_centers,'%f ', sortW(k));
-            for j=1:numel(centers(sortI(k),:))
-                fprintf(fid_centers,'%f ',centers(sortI(k),j));
+        if time >= 0
+            if f==1,fprintf(fid_centers,'%d ',(startTime + time)/1000),end
+            for k=1:numCenters
+                fprintf(fid_centers,'%f ', sortW(k));
+                for j=1:numel(centers(sortI(k),:))
+                    fprintf(fid_centers,'%f ',centers(sortI(k),j));
+                end
             end
         end
     end
@@ -216,7 +277,10 @@ while (~eofFlag)
     end
     fprintf('learning score = %f\n',learning_score);
     figure(h_score);
-    plot([time],[learning_score],sym{f});hold on
+    if time >= 0
+       plot([(startTime + time)/1000],[learning_score],sym{f});hold on
+       fprintf('time = %d\n',(startTime + time)/1000 );
+    end
     if time == 0 & f == 1
         xlabel('time');
         ylabel('learning score');
@@ -224,13 +288,14 @@ while (~eofFlag)
     end
 
     
-    if(write_scores)
-        if f==1,fprintf(fid_scores,'%d ',time/1000),end
+    if(write_scores & time >= 0)
+        if f==1,fprintf(fid_scores,'%d ',(startTime+time)/1000),end
         fprintf(fid_scores,'%f ',learning_score);        
     end
     
+    end % comp_kmeans
     
-  eofFlag = eofFlag | feof(fid{f});
+    eofFlag = eofFlag | feof(fid{f});
   
 end % loop over files
 
