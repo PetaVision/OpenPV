@@ -25,13 +25,6 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     return;
   end%%if
 
-  if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
-    plot_recon_flag = 1;
-  end%%if
-
-
-				% tests if 'fh' is a variable in the workspace
-
   if ~exist('size_recon', 'var') || isempty(size_recon) || nargin < 4
     size_recon = [NK NO NCOLS NROWS];
   end%%if
@@ -39,6 +32,10 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   NO  = size_recon(2);
   NCOLS  = size_recon(3);
   NROWS = size_recon(4);
+
+  if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
+    plot_recon_flag = 1;
+  end%%if
 
 				% disp(['size_recon = ', num2str(size_recon)]);
 
@@ -76,13 +73,6 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   
   theta_offset = 0.5 * ROTATE_FLAG;
   max_line_width = 2.5;
-  axis([0 NCOLS+1 0 NROWS+1]);
-  axis square;
-  axis tight
-  box on
-  axis on
-				%colorbar('East');
-  colormap('gray');
 				% cmap = colormap;
   hold on;
   if ~FLAT_ARCH_FLAG && NO > 1  && plot_recon_flag
@@ -91,6 +81,13 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
       fh = figure;
     end%%if
     set(fh, 'Name', plot_title);
+  axis([0 NCOLS+1 0 NROWS+1]);
+  axis square;
+  axis tight
+  box on
+  axis on
+				%colorbar('East');
+  colormap('gray');
 
     [recon_array, recon_ndx] = sort(recon_array(:));
     last_recon_ndx = find(recon_array < 0, 1, 'last');
