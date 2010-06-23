@@ -24,8 +24,8 @@ if plot_amoeba2D
     fh_amoeba2D = figure;
 end
 
-%fourC = [2 4 6 8];
-fourC = [4];
+fourC = [2 4 6 8];
+%fourC = [4];
 global nz_image
 nz_image = zeros(3, numT);
 nz_image_cell = cell(length(fourC), 1);
