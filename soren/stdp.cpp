@@ -21,6 +21,7 @@
 #include <src/io/PointProbe.hpp>
 #include <src/io/StatsProbe.hpp>
 #include <src/layers/Gratings.hpp>
+#include <src/layers/Movie.hpp>
 #include <src/layers/Retina.hpp>
 #include <src/layers/V1.hpp>
 #include <src/connections/HyPerConn.hpp>
@@ -32,7 +33,9 @@ using namespace PV;
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
-#undef INHIB
+#define INHIB
+
+#define L2
 
 int main(int argc, char* argv[])
 {
@@ -43,13 +46,21 @@ int main(int argc, char* argv[])
    // create the layers
    //
 
-   Image * image          = new Patterns("Image", hc, RECTANGLES);
+   //Image * image = new Movie("Image", hc, "input/earth-files.txt", 1.0);
+   //Image * image = new Patterns("Image", hc, RECTANGLES);
+   Image * image = new Patterns("Image", hc, BARS);
+
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
    HyPerLayer * l1        = new V1("L1", hc);
+   HyPerLayer * l2        = new V1("L2", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
+#endif
+
+#ifdef L2
+   HyPerLayer * l2Inh  = new V1("L2Inh", hc);
 #endif
 
    // connect the layers
@@ -57,15 +68,25 @@ int main(int argc, char* argv[])
 
    HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
    HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
-   HyPerConn * i_rO_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
-   HyPerConn * i_rO_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
-   HyPerConn * r1_l1    = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
-   HyPerConn * rO_l1    = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
+   HyPerConn * i_r0_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
+   HyPerConn * i_r0_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
+   HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
+   HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
+#ifdef L2
+   HyPerConn * l1_l2   = new HyPerConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
+#endif
+
+#ifdef L2
+   HyPerConn * l2_l2Inh = new HyPerConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
+   HyPerConn * l2Inh_l2 = new HyPerConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
+#endif
 
 #ifdef INHIB
    HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
    HyPerConn * l1Inh_l1 = new HyPerConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
 #endif
+
+
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
@@ -96,28 +117,26 @@ int main(int argc, char* argv[])
    retina->insertProbe(rProbe5);
 #endif
 
-   // This probe outputs activity, ..., at a point
-   //
-   //LayerProbe * ptprobe1 = new PointProbe(16, 32, 0, "L1:");
-   //l1->insertProbe(ptprobe1);
-
-   // This probe outputs connection information at a  point
-   //
-   //PostConnProbe * pcProbe = new PostConnProbe(2064); //(245); // 8575=>127,66
-   //pcProbe->setOutputIndices(false);
-   //r1_l1->insertProbe(pcProbe);
-   //pcProbe->setImage(image);
-
    //ConnectionProbe * cProbe = new ConnectionProbe(277);
    //i_r1_s->insertProbe(cProbe);
 
-//   PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
+   //PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
-//   LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
-//   retina->insertProbe(rptprobe);
+   //LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
+   //retina->insertProbe(rptprobe);
 
-//   StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
-//   l1->insertProbe(sProbe);
+   //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 98, 42, 0, "L1:");
+   //l1->insertProbe(ptprobe1);
+
+   //PostConnProbe * pcOnProbe  = new PostConnProbe(5474); //(245); // 8575=>127,66
+   //PostConnProbe * pcOffProbe = new PostConnProbe(5474); //(245); // 8575=>127,66
+   //pcProbe->setImage(image);
+   //pcOnProbe->setOutputIndices(true);
+   //r0_l1->insertProbe(pcOffProbe);
+   //r1_l1->insertProbe(pcOnProbe);
+
+   //StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
+   //l1->insertProbe(sProbe);
 
    // run the simulation
    //
