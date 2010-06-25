@@ -31,13 +31,15 @@ if len(sys.argv) < 3:
 w = rw.PVReadWeights(sys.argv[1])
 wOff = rw.PVReadWeights(sys.argv[2])
 
+nxp = w.nxp
+
 # create feature list for comparing weights from on and off cells
-#
 f = np.zeros(w.patchSize)
+f2 = np.zeros(w.patchSize)
 fOn = []
 fOff = []
-
 f = w.normalize(f)
+f2 = w.normalize(f2)
 
 # vertical lines from right side
 #f = np.zeros([w.nxp, w.nyp]) # first line
@@ -48,19 +50,19 @@ f = w.normalize(f)
 #fOff.append(f)
 
 #this was in use
-f = np.zeros([w.nxp, w.nyp]) # second line
-f[:,1] = 1
-fOn.append(f)
-f = np.zeros([w.nxp, w.nyp])
-f[:,2] = 1
-fOff.append(f)
-
-#f = np.zeros([w.nxp, w.nyp]) # third line
-#f[:,2] = 1
+#f = np.zeros([w.nxp, w.nyp]) # second line
+#f[:,1] = 1
 #fOn.append(f)
 #f = np.zeros([w.nxp, w.nyp])
-#f[:,3] = 1
+#f[:,2] = 1
 #fOff.append(f)
+
+#f2 = np.zeros([w.nxp, w.nyp]) # third line
+#f2[:,2] = 1
+#fOn.append(f2)
+#f2 = np.zeros([w.nxp, w.nyp])
+#f2[:,3] = 1
+#fOff.append(f2)
 
 #vertical lines from left side
 #f = np.zeros([w.nxp, w.nyp])
@@ -92,12 +94,12 @@ fOff.append(f)
 
 
 #THIS WAS USED
-#f = np.zeros([w.nxp, w.nyp])
-#f[1,:] = 1
-#fOn.append(f)
-#f = np.zeros([w.nxp, w.nyp])
-#f[2,:] = 1
-#fOff.append(f)
+f = np.zeros([w.nxp, w.nyp])
+f[1,:] = 1
+fOn.append(f)
+f = np.zeros([w.nxp, w.nyp])
+f[2,:] = 1
+fOff.append(f)
 
 
 
@@ -164,126 +166,84 @@ fOff.append(f)
 
 lst = []
 clst = []
-f = fOn[0]
+fOn = fOn[0]
+fOff = fOff[0]
 corrMatrixOn = np.zeros([4,4])
 corrMatrixOff = np.zeros([4,4])
-for i in range(w.numPatches):
-   p = w.next_patch()
-   p = p.reshape(4,4)
-   res = np.sum(p * f)
-   if res > 0:
-      lst.append(res)
+corrMatrixOffaOn = np.zeros([4,4])
+countOn = 0
+countOff = 0
+countOffaOn = 0
+dWMax = 0.5
+realmax = nxp * dWMax
 
-lstmax = max(lst)
 
-w.rewind()
+x = w.numPatches
+nx = w.nx
+ny = w.ny
+nf = w.nf
+nxp = w.nxp
+nyp = w.nyp
+margin = 10
+marginstart = margin
+marginend = nx - margin
+n = w.numPatches - (4 * (margin * (nx - margin)))
+po = 0.75 #Percent of realmax
 
-count = 0
-for i in range(w.numPatches):
-   p = w.next_patch()
-   p = p.reshape(4,4)
+for k in np.arange(x):
+   pOn = w.next_patch()
    pOff = wOff.next_patch()
-   res = np.sum(p * f)
-   if res > 0.85 * lstmax:
-      count += 1
-      pOff = pOff.reshape(4,4)
-      corrMatrixOn = corrMatrixOn + p
-      corrMatrixOff = corrMatrixOff + pOff
+   kx = conv.kxPos(k, nx, ny, nf)
+   ky = conv.kyPos(k, nx, ny, nf)
+   if marginstart < kx < marginend:
+      if marginstart < ky < marginend:
+         pOn = pOn.reshape(nxp,nyp)
+         pOff = pOff.reshape(nxp,nyp)
+         resOn = np.sum(pOn * fOn)
+         resOff = np.sum(pOff * fOff)
+         if resOff >= po * realmax:
+            corrMatrixOff = corrMatrixOff + pOff
+            countOff += 1
+         if resOn >= po * realmax:
+            corrMatrixOn = corrMatrixOn + pOn
+            countOn += 1
+            if resOff >= po * realmax:
+               countOffaOn += 1
+               corrMatrixOffaOn = corrMatrixOffaOn + pOff              
 
-corrMatrixOn = corrMatrixOn / count
-corrMatrixOff = corrMatrixOff / count
-print "count = ", count
-print f
+#         j = 1290 +(g + 1) + (h * 128)
+
+corrMatrixOn = corrMatrixOn / countOn
+corrMatrixOff = corrMatrixOff / countOff
+corrMatrixOffaOn = corrMatrixOffaOn / countOffaOn
+print "fOn                   fOff"
+print fOn[0],"   ", fOff[0] 
+print fOn[1],"   ", fOff[1] 
+print fOn[2],"   ", fOff[2]
+print fOn[3],"   ", fOff[3]
+print
 print "On"
 print corrMatrixOn
 print "Off"
 print corrMatrixOff
+print
+print "Off next to On"
+print corrMatrixOffaOn
+print
+print "number of cells = ", n
+print
+print "count of on cells  = ", countOn
+print "count of off cells = ", countOff
+print "count of off cells next to on = ", countOffaOn
+print 
+countOn = float(countOn)
+print "Percent of on cells = ", (countOn / n) * 100
+countOff = float(countOff)
+print "Percent of off cells = ", (countOff / n) * 100
+countOffaOn = float(countOffaOn)
+print "Percent of off cells next to on = ", (countOffaOn / n) * 100
+print
+#print "list max = ",lstmax
+#print "realmax = ", realmax
+
 sys.exit()
-
-for i in range(wOff.numPatches):
-   p = wOff.next_patch()
-   p = p.reshape(4,4)
-   res = np.sum(p*f)
-
-
-
-
-print
-print
-print fOn
-print
-print
-print fOff
-print
-print
-
-sys.exit()
-
-
-# write loop to normalize all features in the on and off lists
-
-
-numrows = w.nyGlobal
-numcols = w.nxGlobal
-
-M = np.zeros(w.numPatches)
-
-for k in range(len(M)):
-   p = w.normalize( w.next_patch() )
-   M[k] = np.sum(p * f)
-
-print "time =", w.time
-
-
-# calculate distributions
-#
-numbins = 101
-dist = np.zeros(numbins)
-bins = np.zeros(numbins)
-count = numrows * numcols
-for k in range(numbins): bins[k] = k * 1.0/(numbins-1)
-for k in range(len(M)):
-    for b in range(numbins):
-       if (M[k] > bins[b]): dist[b] += 1
-dist = dist/count
-
-# print maximum projection
-#
-maxp = 0
-maxk = 0
-for k in range(len(M)):
-   if M[k] > maxp: maxp = M[k]; maxk = k
-
-kx = conv.kxPos(k, numcols, numrows, w.nf)
-ky = conv.kyPos(k, numcols, numrows, w.nf)
-print "maximum projected value = ", maxp, maxk, kx, ky
-
-M = M.reshape( (numrows,numcols) )
-
-# print averaged projection over column
-#
-s = np.zeros(numcols)
-maxs = 0.0
-maxcol = 0
-for col in range(numcols):
-   s[col] = np.sum(M[:,col])
-   if s[col] > maxs: maxs = s[col]; maxcol = col
-s = s/numrows
-print "(maxcol, maxsum) = (", maxcol, ",", maxs/numrows, ")"
-
-fig = plt.figure()
-
-ax = fig.add_subplot(2,1,1)
-ax.set_xlabel('Kx GLOBAL')
-ax.set_ylabel('Ky GLOBAL')
-ax.set_title( 'Feature Projection: phase=%d' %(phase) )
-ax.format_coord = format_coord
-ax.imshow(M, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=1.)
-
-ax = fig.add_subplot(2,1,2)
-ax.set_xlabel('Feature Strength')
-ax.set_ylabel('Percentage')
-ax.plot(bins, dist, 'o', color='blue')
-#ax.set_ylim(0.0, 0.5)
-
-plt.show()
