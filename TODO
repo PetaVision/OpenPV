@@ -16,14 +16,9 @@ Assigned to:
 Assigned date:
 Finished date:
 
-Task: Modify neighbor list (in columns folder) for more efficient communication patterns.
-Assigned to: Pallab Datta
-Assigned date: 6/26/08
-Finished date:
-
-Task: Modify architecture for multiple layers within a HyperColumn.  The C structures should
-  reflect the HyperColumn class design.
+Task: Modify architecture for multiple layers within a HyperColumn.  The C structures
+should reflect the HyperColumn class design.
 Assigned to: Craig Rasmussen
 Assigned date: 6/23/08
-Finished date: partially finished
+Finished date: Done (sometime in 2009 with C++ classes)
 
