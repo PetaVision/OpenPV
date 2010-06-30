@@ -17,7 +17,7 @@ print_features = 0;
 scaleWeights = 1;
 write_centers =0;
 write_scores = 1;
-plot_centers = 0;
+plot_centers = 1;
 comp_kmeans = 1;
 startTime = 0;
 debug = 0;
@@ -72,12 +72,16 @@ if(write_scores)
     if exist(scores_file,'file')
         fid_scores = fopen(scores_file,'r');
         % read scores, plot, and set startTime
-        data = fscanf(fid_scores, '%g %g %g', [3 inf])   % It has two rows now.
+        data = fscanf(fid_scores, '%g %g %g', [3 inf]);   % It has two rows now.
         data = data';
         fclose(fid_scores);
         figure(h_score)
         plot(data(:,1),data(:,2),sym{1});hold on
         plot(data(:,1),data(:,3),sym{2});hold on
+        
+        %figure('Name','Score Correlation');
+        %plot(data(:,2),data(:,3),'ob');
+        %pause
         
         fid_scores = fopen(scores_file,'a');
         startTime = data(end,1) * 1000;
@@ -86,7 +90,7 @@ if(write_scores)
         startTime = 0;
     end
 end
-
+%startTime = 3000000;
 fprintf('startTime = %d \n',startTime);
 pause
  
