@@ -17,10 +17,10 @@ filename = [input_dir, filename];
 %pause
 
     
-NX = NX * xScale; % L1 size
-NY = NY * yScale;
+NXscaled = NX * xScale; % L1 size
+NYscaled = NY * yScale;
 
-fprintf('scalex NX = %d scaled NY = %d\n',NX,NY);
+fprintf('scaled NX = %d scaled NY = %d\n',NXscaled,NYscaled);
 
 PLOT_STEP = 1;
 
@@ -37,12 +37,12 @@ if exist(filename,'file')
     
     fid = fopen(filename, 'r', 'native');
 
-    [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+    [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid);
     fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
         time,numPatches,NXP,NYP,NFP);
     
-    if numPatches ~= NX*NY
+    if numPatches ~= NXscaled*NYscaled
         disp('mismatch between numPatches and NX*NY')
         return
     end
@@ -81,22 +81,19 @@ if exist(filename,'file')
         
         if ~first_record
             [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
-                readHeader(fid,numParams,numWgtParams);
+                readHeader(fid,numParams);
             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
                 time,numPatches,NXP,NYP,NFP);
-            %pause
+            pause
         else
             first_record = 0;
         end
-    
-        % read time
-        %time = fread(fid,1,'float64');
-        %fprintf('time = %f\n',time); 
+
         
         k=0;
         
-        for j=1:NY
-            for i=1:NX
+        for j=1:NYscaled
+            for i=1:NXscaled
                 if ~feof(fid)
                     k=k+1;
                     nx = fread(fid, 1, 'uint16'); % unsigned short
@@ -146,7 +143,7 @@ if exist(filename,'file')
                 figure('Name',['2D Projections ' num2str(time)]);
                 for p=1:4
                     subplot(2,2,p)
-                    imagesc(reshape(P{p},[NX NY])','CDataMapping','direct');
+                    imagesc(reshape(P{p},[NXscaled NYscaled])','CDataMapping','direct');
                     colorbar
                     axis square
                     axis off
@@ -155,8 +152,8 @@ if exist(filename,'file')
                 figure('Name',['1D Projections ' num2str(time)]);
                 for p=1:4
                     subplot(2,2,p)
-                    plot(1:NX,sum(reshape(P{p},[NX NY])')/NY,'ob');
-                    axis([1 64 0 Inf]);
+                    plot(1:NXscaled,sum(reshape(P{p},[NXscaled NYscaled])')/NYscaled,'ob');
+                    axis([1 NXscaled 0 Inf]);
                 end
             end
 
@@ -178,7 +175,7 @@ end
 %
 
 
-function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+function [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid)
 
 
@@ -189,7 +186,6 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
        disp('incorrect file type')
        return
     end
-    numWgtParams = 6;
     numParams = head(2)-8;
     fseek(fid,0,'bof'); % rewind file
     
@@ -204,13 +200,17 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
     
-    wgtParams = fread(fid,numWgtParams,'int');
+    wgtParams = fread(fid,3,'int');
     NXP = wgtParams(1);
     NYP = wgtParams(2);
     NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
+    
+    rangeParams = fread(fid,2,'float');
+    minVal      = rangeParams(1);
+    maxVal      = rangeParams(2);
+    
+    numPatches  = fread(fid,1,'int');
+    
     fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
@@ -221,7 +221,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     
     
 %function [time,varargout] = readHeader(fid,numParams,numWgtParams)
-function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams)
 
 
 
@@ -238,13 +238,18 @@ if ~feof(fid)
         time = fread(fid,1,'float64');
         fprintf('time = %f\n',time);
 
-        wgtParams = fread(fid,numWgtParams,'int');
+        wgtParams = fread(fid,3,'int');
         NXP = wgtParams(1);
         NYP = wgtParams(2);
         NFP = wgtParams(3);
-        minVal      = wgtParams(4);
-        maxVal      = wgtParams(5);
-        numPatches  = wgtParams(6);
+
+        rangeParams = fread(fid,2,'float');
+        minVal      = rangeParams(1);
+        maxVal      = rangeParams(2);
+
+        numPatches  = fread(fid,1,'int');
+
+
         fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
