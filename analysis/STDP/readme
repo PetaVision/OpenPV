@@ -1,25 +1,185 @@
-x = normrnd(10,2,20,1);
-[f,xf] = ecdf(x);
+Comments on various functions and on running the codes to perform
+specific analysis. All codes include  various debuging options
+and commented out blocks that represent coding alternatives or loose ends. 
+It might be dificult to navigate the codes as they are now.
 
-stairs(xf,f)
-hold on
-xx=linspace(5,15,100);
-yy = normcdf(xx,10,2);
-plot(xx,yy,'r:')
-hold off
-legend('Empirical cdf','Normal cdf',2)
 
-???Undefined function or method 'ecdf' for input arguments of type 'double'.
-newW=cast(W,'single');
+The main routine is stdp_analyze.m. Here, we select the parameters for various
+functions and select what specific analysis you want to make.
+
+Some global global parameters are set in stdp_analyze.m:
+
+- num_layers defines the numbers of layers in the PV model (retina is
+  included but the image is not)
+
+- NX and NY are the dimensions of hyper-columns. Each layer has a size
+which relates via scale factors xScale and yScale to NX and NY
+respectively. For each layer, these factors are set in
+stdp_globals.m. If you change the parameters of the simulations, make
+sure you modify this file and set these parameters correctly here. 
+
+- dT is the inteval in miliseconds betwen two simulation steps. This
+  is why in many codes the time is scaled by this parameter.
+
+- burstFreq and burstDuration are Retina params from params.stdp
+In Retina::spike() the burst period is equal to 1000. / params->burstFreq.
+At the begining of each period, for a time less than params->burstDuration 
+the retine neuron can spike. The spiking probability is probBase + probStim, 
+which are input parameters to  Retina::spike()
+ 
+
+
+~~~~~~~~~~~~~~~~~~~~~
+
+Spike analysis
+
+~~~~~~~~~~~~~~~~~~~~~
+
+
+> Set read_spikes = 1 and choose begin_step and end_step in
+stdp_analyze.m. This will call stdp_readSparseSpikes.m which reads the spikes 
+located in time betwen begin_step and end_step.
+
+ Note: Reading spikes from a long simulation is a very slow
+process. It is better to set begin_step and end_step to read only
+spikes from a short time window. 
+
+> After spikes were read into the cell array spike_array{} you can
+run: 
+
+     - spike_movie: it chooses two different time windows of size
+     burstDuration at different phases during each spike period - see
+     above. For each time window it plots an image of each spiking
+     neuron for each time step during an interval of duration
+     burstDuration (the figure window has two columns of
+     (burstDuration/dT + 2) plots each. The first (burstDuration/dT +
+     1) plots are the layer spiking activity at each time step. The
+     extra window is the average spike activity per unit time for each
+     cell - see below). The times when the spikes are plotted is
+     marked with * for the first time window and with # for the second
+     one.
+
+     For each cell, it also integrates the spikes during this
+     burstDuration window. Then, it plots images of the the average
+     spike activity per unit time for each cell in the layer. This is plot
+     (burstDuration/dT + 2) in each column.
+
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+Weights analysis
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+> stdp_plotWeightsFieldOld.m is an old version which uses the old format
+for the binary weights file.
+
+
+> Files modified to read the weights using the latest binary format.
+  - stdp_plotWeightsField.m
+  - stdp_plotPatch.m
+
+
+
+> Weights Correlations
+
+Set plot_weights_corr = 1. It first computes the spiking rate which means that
+we need to read_spikes first in the spike_array
+
+> Weights decay
+
+Set plot_weights_decay = 1. It asks for the coordinates of a neuron
+and then it loads the evolution of its synaptic weights by calling
+stdp_plotPatch().  It measures the overlap between the synaptic
+weights at time t and the synaptic weights at time t = 0. 
+
+   Notes: We should do this for all neurons and come up with a global
+   measure for the weight decay function. Shall we loop over post
+   synaptic neurons (excluding the ones affected by margins) and
+   compute an average weight decay? Shall we cluster all weight decay curves?
+
+> Weights projections
+
+Set plot_weights_projections = 1. It loops over all pre-synaptic
+layers connected to the present layer, and it calls
+stdp_plotWeightsProjections() for each weight patch pre-synaptic file.
+
+    - it computes projections: these are weight patch configurations
+    that we want to learn. I should rename them as Features. NOTE: The code
+    needs updating to include both vertical and horozontal features (bars).
+  
+    - It reads the weights from file. 
+    - for each weight patch it computes the overlap between the patch and each 
+    projection (feature) in the set of Projections.
+
+    - for each projection (feature) it makes a 2D plot of the spatial
+      distributions of overlaps.
+
+    - it also sums these projections vertically to make 1D plots for the 
+    variations of the vertical sum with horixontal location within the layer.
+
+NOTE: The 1D plot was supposed to enhance the signal to noise ration
+when we were looking to learning vertical bars. All neurons along the
+same vertical line were seeing the same image patch.
+
+
+> Weights stability
+
+
+
+> Weights Clustering
+
+Set comp_weights_kmeans = 1. 
+
+   - It reads the weights from the last configuration file.
+
+   - It then calls the K-means algorithm and it passes the number of
+clusters as an argument.
+
+   - It computes the weight of each cluster (the percentage of weight
+patches that belong to each cluster center) and it orders the cluster
+centers in the order of their weights.
+
+   - it plots the cluster centers in a patch format (NXP x NYP array)
+
+   - it computes a "learning" score that estimates how well the weight
+patches allign to the expected feature vectors.
+
+   - for each cluster it also plots the spatial distribution of the
+     weigh patches that belong to that cluster. It also gives you an
+     idea about the variation in the weigh patches that belong to this
+     cluster from the cluster center.
+
+   - it also has an option to define margins and to remove from
+     analysis the margin neurons.
+
+> Learning score evolution
+
+Set comp_score_evolution = 1.
+
+   - it uses the K-means clustering code to compute a learning score
+   as the weigh patches evolve. It computes a separate learning curve
+   for each input pre-synaptic layer connected to a post-synaptic
+   layer.
+
+~~~~~~~~~~~~~~~~~~~~~
+
+
+
+~~~~~~~~~~~~~~~~~~~~~
 
 
 >  stdp_compAverageWeightsEvol.m for each neuron computes the sum of 
-its synapse weights as a fucntion of time.
+its synapse weights as a function of time.
 
 > stdp_analyzeWeightsRate.m it looks at the average rate versus
 average weights. For each neuron, we first compute the sum of its
-synaptic weights as a fucntion of time. Then, we average this sum in a
-time window and we plot the average rate fro all neurons that have the
+synaptic weights as a function of time. Then, we average this sum in a
+time window and we plot the average rate for all neurons that have the
 average sum of weights in a given bin.
 
 
@@ -27,3 +187,14 @@ average sum of weights in a given bin.
 rate.py code. This code runs PV for a sequence of retina background
 firing rates. For each rate it computes the average firing rate in L1
 and it computes the histogram of synaptic weights.
+
+> stdp_compPreStatistics.m computes the statistics of spiking
+pre-synaptic neurons conditioned on the spiking of the post-synaptic
+neuron. Here, we gather the pre-synaptic neurons spiking BEFORE the
+post-synaptic neuron spikes.
+
+> stdp_compPostStatistics.m computes the statistics of spiking
+pre-synaptic neurons conditioned on the spiking of the post-synaptic
+neuron. Here, we gather the pre-synaptic neurons spiking AFTER the
+post-synaptic neuron spikes.
+
