@@ -4,8 +4,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;   // until we get going with images
-   ny = 256;
+   nx = 128; // 256;   // until we get going with images
+   ny = 128; // 256;
    dt = 1.0;
 };
 
@@ -25,7 +25,7 @@ HyPerLayer "Retina" = {
    mirrorBCflag = 0;  
 
    beginStim = 1;
-   endStim   = 10004;
+   endStim   = 10006;
 
    burstFreq = 1;      // Hz
    burstDuration = 10004;  // ms
@@ -213,8 +213,8 @@ HyPerConn "Retina to L1 Inh" = {
 // Training connections 
 
 HyPerConn "L1 to L1" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65;
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -230,8 +230,8 @@ HyPerConn "L1 to L1" = {
 
 
 HyPerConn "L1 Geisler2 to L1 Geisler2" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -247,8 +247,8 @@ HyPerConn "L1 Geisler2 to L1 Geisler2" = {
 
 
 HyPerConn "L1 Geisler3 to L1 Geisler3" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -264,8 +264,8 @@ HyPerConn "L1 Geisler3 to L1 Geisler3" = {
 
 
 HyPerConn "L1 Geisler4 to L1 Geisler4" = {
-   nxp = 129; // 87;
-   nyp = 129; // 87;
+   nxp = 65; //129; 
+   nyp = 65; //129; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -305,8 +305,8 @@ HyPerConn "L1 to L1 Geisler" = {
 };
 
 HyPerConn "L1 to L1 Geisler Target" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -321,8 +321,8 @@ HyPerConn "L1 to L1 Geisler Target" = {
 };
 
 HyPerConn "L1 to L1 Geisler Distractor" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -358,8 +358,8 @@ HyPerConn "L1 Geisler to L1 Geisler2" = {
 };
 
 HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -374,8 +374,8 @@ HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
 };
 
 HyPerConn "L1 Geisler to L1 Geisler2 Distractor" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -413,8 +413,8 @@ HyPerConn "L1 Geisler2 to L1 Geisler3" = {
 };
 
 HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -429,8 +429,8 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
 };
 
 HyPerConn "L1 Geisler2 to L1 Geisler3 Distractor" = {
-   nxp = 65; // 87;
-   nyp = 65; // 87;
+   nxp = 65; 
+   nyp = 65; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -471,8 +471,8 @@ HyPerConn "L1 Geisler3 to L1 Geisler4" = {
 };
 
 HyPerConn "L1 Geisler3 to L1 Geisler4 Target" = {
-   nxp = 129; // 87;
-   nyp = 129; // 87;
+   nxp = 65; //129; 
+   nyp = 65; //129; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -487,8 +487,8 @@ HyPerConn "L1 Geisler3 to L1 Geisler4 Target" = {
 };
 
 HyPerConn "L1 Geisler3 to L1 Geisler4 Distractor" = {
-   nxp = 129; // 87;
-   nyp = 129; // 87;
+   nxp = 65; //129; 
+   nyp = 65; //129; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
