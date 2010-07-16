@@ -66,6 +66,19 @@ run:
 
 
 
+    - stdp_reconstruct.m uses the spike array to compute the average firing rate
+    and makes 2D plots of the firing rate.
+
+> Compute the average firing rate without first reading and storing
+  the complete sparse spike information - spiking times are neglected;
+  we only compute the total number of spikes for each neuron.
+
+  - set plot_rate_array =1. This calls stdp_readAverageActivity()
+  which returns the average firing rate array for the layer and the
+  estimated layer averaged firing rate. 
+
+   - The firing rate array is then recats into a 2D array and color plotted.
+
 
 
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -83,7 +96,11 @@ for the binary weights file.
   - stdp_plotWeightsField.m
   - stdp_plotPatch.m
 
+>  NOTE: I'm including now squares around the neurons that look at the same 
+receptive field. The routines modified to do this are:
 
+   - stdp_plotWeightsField.m
+   - stdp_compWeightsKmeans.m
 
 > Weights Correlations
 
@@ -133,7 +150,7 @@ same vertical line were seeing the same image patch.
 
 > Weights Clustering
 
-Set comp_weights_kmeans = 1. 
+     Set comp_weights_Kmeans = 1. 
 
    - It reads the weights from the last configuration file.
 
@@ -156,6 +173,24 @@ patches allign to the expected feature vectors.
 
    - it also has an option to define margins and to remove from
      analysis the margin neurons.
+
+> Concurent Weights Clustering
+
+   Set comp_conv_weights_Kmeans = 1.
+
+   - It performs a clustering analysis - as the one described above -
+   to the weights obtained by concatenating together all the pre-synaptic
+    weight patches belonging to the same post-synaptic neuron.
+
+   - the cluster centers are then split into separate pre-synaptic
+    patches, from retinaOn and retinaOff layers for example, which
+    then get plotted together, side by side.
+
+   - I should also plot the spatial distribution of the weigh patches
+     that belong to the concatenated clusters. 
+
+
+
 
 > Learning score evolution
 
