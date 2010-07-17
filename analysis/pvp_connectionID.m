@@ -214,11 +214,27 @@ else % NON_SPIKING
       connID{ 1, ij_conn } =  'L1G2ToL1G3D';
       
 	
+      N_CONNECTIONS = N_CONNECTIONS + 3;
+      connID = [connID, cell(1,3)];
+      
+      ij_conn = ij_conn + 1;
+      connIndex.l1_geisler3_l1_geisler4 = ij_conn;
+      connID{ 1, ij_conn } =  'L1G3ToL1G4';
+      
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler_target = ij_conn;
+      connID{ 1, ij_conn } =  'L1G3ToL1G4T';
+      
+      ij_conn = ij_conn + 1;
+      connIndex.l1_l1_geisler_distractor = ij_conn;
+      connID{ 1, ij_conn } =  'L1G3ToL1G4D';
+      
+	
 	connID = [connID, cell(1,1)];
 	
 	ij_conn = ij_conn + 1;
-	connIndex.l1_geisler3_l1_geisler3 = ij_conn;
-	connID{ 1, ij_conn } =  'L1G3ToL1G3';
+	connIndex.l1_geisler4_l1_geisler4 = ij_conn;
+	connID{ 1, ij_conn } =  'L1G4ToL1G4';
 	
   
  if TRAINING_FLAG == -1
@@ -232,6 +248,13 @@ else % NON_SPIKING
     N_CONNECTIONS = 9;
   connIndex.l1_geisler2_l1_geisler2 = 10;
   connID{ 1, 10 } =  'L1G2ToL1G2';
+   
+
+ elseif TRAINING_FLAG == -3
+
+    N_CONNECTIONS = 12;
+  connIndex.l1_geisler3_l1_geisler3 = 13;
+  connID{ 1, 10 } =  'L1G3ToL1G3';
    
 
  end%%if

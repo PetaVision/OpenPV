@@ -137,7 +137,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
       figure(fh);
       set(fh, 'Name', plot_title);
       tmp = squeeze( max(recon3D,[],1) );
-      imagesc( tmp' );  % plots recod2D as an image
+      imagesc( gca, tmp' );  % plots recod2D as an image
       colormap('gray');
     end%%if
     plot_title_tmp = ...

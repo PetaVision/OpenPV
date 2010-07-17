@@ -6,8 +6,8 @@ expNum = 1;
 %%pvp_matlabPath;
 
 %%if ( uioctave )
-  setenv('GNUTERM', 'x11');
-%%end%%if
+setenv('GNUTERM', 'x11');
+%%endif
 
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
@@ -29,12 +29,13 @@ global FLAT_ARCH_FLAG
 FLAT_ARCH_FLAG = 1;
 
 global TRAINING_FLAG
-TRAINING_FLAG = -2;
+TRAINING_FLAG = -3;
 
 global FC_STR
-FC_STR = ['_', num2str(4), 'fc'];
+				%FC_STR = ['_', num2str(4), 'fc'];
+FC_STR = [num2str(4), 'fc'];
 
-num_trials =  9; %( TRAINING_FLAG <= 0 ) * 999; %
+num_trials =    ( TRAINING_FLAG <= 0 ) * 999; % 9; %0;
 first_trial =1;
 last_trial = num_trials;
 skip_trial = 1;
@@ -46,30 +47,35 @@ elseif abs(TRAINING_FLAG) == 2
   G_STR = '_G2';
 elseif abs(TRAINING_FLAG) == 3
   G_STR = '_G3';
-end%%if
+elseif abs(TRAINING_FLAG) == 4
+  G_STR = '_G4';
+endif
 
-%%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
-machine_path = '/nh/home/gkenyon/workspace/';
+machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+				%machine_path = '/nh/home/gkenyon/workspace/';
 
 target_path = [];
-target_path = [machine_path 'kernel/input/test_amoeba_target', FC_STR];
+target_path = [machine_path 'kernel/input/128/test_amoeba40K_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
-end%%if % ~isempty(target_path)
+  target_path = [target_path, FC_STR, '/'];
+endif % ~isempty(target_path)
 
 if num_trials > 10
-  distractor_path = [machine_path, 'kernel/input/test_target10K_distractor', FC_STR];
+  distractor_path = [machine_path, ...
+		     'kernel/input/128/test_amoeba40K_distractor']; %, FC_STR];
 else
   distractor_path = [];
-end%%if
+endif
 if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR, '/'];
-end%%if % ~isempty(distractor_path)
+  distractor_path = [distractor_path, FC_STR, '/'];
+endif % ~isempty(distractor_path)
 
-twoAFC_path = [machine_path, 'kernel/input/target10K', FC_STR];
-spiking_path = [machine_path, 'kernel/input/spiking_target10K', FC_STR];
-twoAFC_path = [twoAFC_path, G_STR, '/'];
-spiking_path = [spiking_path, G_STR, '/'];
+twoAFC_path = target_path;
+spiking_path = target_path; %[machine_path, 'kernel/input/spiking_target10K', FC_STR];
+				%twoAFC_path = [twoAFC_path, G_STR, '/'];
+				%spiking_path = [spiking_path, G_STR, '/'];
 activity_path = {target_path; distractor_path};
 
 min_target_flag = 2 - ~isempty(target_path);
@@ -78,8 +84,8 @@ max_target_flag = 1 + ~isempty(distractor_path);
 pvp_order = 1;
 ROTATE_FLAG = 1;
 				% initialize to size of image (if known), these should be overwritten by each layer
-NROWS_image=256;
-NCOLS_image=256;
+NROWS_image=128; %256;
+NCOLS_image=128; %256;
 NROWS = NROWS_image;
 NCOLS = NCOLS_image;
 NFEATURES = 8;
@@ -104,24 +110,24 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = 2:N_LAYERS;  % list of spiking layers whose spike train are to be analyzed
+read_activity = 2:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
 num_layers = N_LAYERS;
 
 if num_trials - first_trial + 1 > 10 %%|| TRAINING_FLAG > 0
   reconstruct_activity = [];
 else
-  reconstruct_activity = 1:N_LAYERS;
-end%%if
+  reconstruct_activity = read_activity;
+endif
 
-%acivity_array = cell(num_layers, num_trials);
+				%acivity_array = cell(num_layers, num_trials);
 ave_activity = zeros(2, num_layers, num_trials);
 sum_activity = zeros(2, num_layers, num_trials);
 global num_hist_activity_bins
-num_hist_activity_bins = 20;
+num_hist_activity_bins = 100;
 hist_activity_bins = cell(num_layers, 1);
 for layer = 1 : num_layers
   hist_activity_bins{layer} = [];
-end%%for
+endfor
 hist_activity = zeros(2, num_hist_activity_bins, num_layers);
 act_time = zeros(num_layers, num_trials);
 twoAFC = zeros(2, num_layers, num_trials);
@@ -133,119 +139,22 @@ pvp_layer_header = cell(N_LAYERS, num_trials);
 
 for j_trial = first_trial : skip_trial : last_trial
     
-    close all;
-    fig_list = [];
-    
-    %% Analyze activity layer by layer
-    for layer = read_activity;
-        
-        %% account for delays between layers
-        i_trial = j_trial + (layer - 1);
-        
-        for target_flag = min_target_flag : max_target_flag
-            
-%%      if target_flag == 1
-%%	output_path = target_path;
-%%      elseif target_flag == 2
-%%	output_path = distractor_path;
-%%      end%%if
-      output_path = activity_path{target_flag};
-      
-      %% Read spike events
-           hist_bins_tmp = ...
-                hist_activity_bins{layer};
-            [act_time(layer, j_trial),...
-                activity, ...
-                ave_activity(target_flag, layer, j_trial), ...
-                sum_activity(target_flag, layer, j_trial), ...
-                hist_activity_tmp, ...
-                hist_activity_bins{layer}, ...
-                pvp_layer_header{layer, j_trial}] = ...
-                pvp_readActivity(layer, i_trial, hist_bins_tmp, pvp_order);
-            disp([ layerID{layer}, ...
-                ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
-                num2str(ave_activity(target_flag, layer, j_trial))]);
-            if isempty(activity)
-                continue;
-            end%%if
-            if layer == 1
-                max_activity = max(activity(:));
-                min_activity = min(activity(:));
-                if any( ( activity(:) > min_activity ) && ...
-                        ( activity(:) < max_activity ) )
-                    disp( 'activity between min and max' );
-                end%%if
-            end%%if
-            hist_activity(target_flag, :, layer) = ...
-                hist_activity(target_flag, :, layer) + ...
-                hist_activity_tmp;
-            
-            twoAFC(target_flag, layer, j_trial) = ...
-                ave_activity(target_flag, layer, j_trial);
-            
-            write_activity_flag = 0;
-            zip_activity_flag = 1;
-            if write_activity_flag == 1
-                if (zip_activity_flag == 1)
-                    activity_filename = ['V1_G', num2str(layer-1),'_', ...
-                        num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
-                    activity_filename = [output_path, activity_filename]
-                    %%save("-z", "-mat", activity_filename, "activity" );
-                    save('-mat', activity_filename, 'activity' );
-                else
-                    activity_filename = ['V1_G', num2str(layer-1), '_', ...
-                        num2str(j_trial, NUM2STR_FORMAT), '.mat']
-                    activity_filename = [output_path, activity_filename]
-                    save('-mat', activity_filename, 'activity' );
-                end%%if
-                
-            end%%if
-            
-            
-            num_rows(layer, j_trial) = NROWS;
-            num_cols(layer, j_trial) = NCOLS;
-            num_features(layer, j_trial) = NFEATURES;
-            
-            % plot reconstructed image
-            reconstruct_activity2 = ismember( layer, reconstruct_activity );
-            if reconstruct_activity2
-                size_activity = ...
-                    [ 1 , num_features(layer, j_trial), ...
-                    num_cols(layer, j_trial), num_rows(layer, j_trial) ];
-                activity_filename = ...
-                    ['V1_G', num2str(layer-1), '_', ...
-                    num2str(j_trial, NUM2STR_FORMAT)];
-                plot_recon_flag = 1;
-                fig_tmp = pvp_reconstruct(activity, ...
-                    activity_filename, [], ...
-                    size_activity, ...
-                    plot_recon_flag);
-                fig_list = [fig_list; fig_tmp];
-            end%%if
-            
-        end%%for % target_flag
-
-close all;
-fig_list = [];
-
-%% Analyze activity layer by layer
+  close all;
+  fig_list = [];
+  
+  %% Analyze activity layer by layer
   for layer = read_activity;
-
+        
     %% account for delays between layers
     i_trial = j_trial + (layer - 1);
-
+        
     for target_flag = min_target_flag : max_target_flag
-
-%%      if target_flag == 1
-%%	output_path = target_path;
-%%      elseif target_flag == 2
-%%	output_path = distractor_path;
-%%      end%%if
+      
       output_path = activity_path{target_flag};
       
       %% Read spike events
       hist_bins_tmp = ...
-	  hist_activity_bins{layer};
+          hist_activity_bins{layer};
       [act_time(layer, j_trial),...
        activity, ...
        ave_activity(target_flag, layer, j_trial), ...
@@ -253,77 +162,80 @@ fig_list = [];
        hist_activity_tmp, ...
        hist_activity_bins{layer}, ...
        pvp_layer_header{layer, j_trial}] = ...
-	pvp_readActivity(layer, i_trial, hist_bins_tmp, pvp_order);
+          pvp_readActivity(layer, i_trial, hist_bins_tmp, pvp_order);
       disp([ layerID{layer}, ...
-	    ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
-	    num2str(ave_activity(target_flag, layer, j_trial))]);
+            ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
+            num2str(ave_activity(target_flag, layer, j_trial))]);
       if isempty(activity)
-	continue;
-      end%%if
+        continue;
+      endif
       if layer == 1
-	max_activity = max(activity(:));
-	min_activity = min(activity(:));
-	if any( ( activity(:) > min_activity ) && ...
-	       ( activity(:) < max_activity ) )
-	  disp( 'activity between min and max' );
-	end%%if
-      end%%if
+        max_activity = max(activity(:));
+        min_activity = min(activity(:));
+        if any( ( activity(:) > min_activity ) && ...
+               ( activity(:) < max_activity ) )
+          disp( 'activity between min and max' );
+        endif
+      endif
       hist_activity(target_flag, :, layer) = ...
-	  hist_activity(target_flag, :, layer) + ...
-	  hist_activity_tmp;
-
+          hist_activity(target_flag, :, layer) + ...
+          hist_activity_tmp;
+      
       twoAFC(target_flag, layer, j_trial) = ...
-	  ave_activity(target_flag, layer, j_trial);      
-
-    write_activity_flag = 0;
-    zip_activity_flag = 1;
-    if write_activity_flag == 1
+          ave_activity(target_flag, layer, j_trial);
+      
+      write_activity_flag = 0;
+      zip_activity_flag = 1;
+      if write_activity_flag == 1
         if (zip_activity_flag == 1)
-            activity_filename = ['V1_G', num2str(layer-1),'_', ...
-                num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
-            activity_filename = [activity_path{target_flag}, activity_filename]
-            %%save("-z", "-mat", activity_filename, "activity" );
-            save('-mat', activity_filename, 'activity' );
+          activity_filename = ['V1_G', num2str(layer-1),'_', ...
+			       num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
+          activity_filename = [output_path, activity_filename]
+          %%save("-z", "-mat", activity_filename, "activity" );
+          save('-mat', activity_filename, 'activity' );
         else
-            activity_filename = ['V1_G', num2str(layer-1), '_', ...
-                num2str(j_trial, NUM2STR_FORMAT), '.mat']
-            activity_filename = [activity_path{target_flag}, activity_filename]
-            save('-mat', activity_filename, 'activity' );
-        end%%if
+          activity_filename = ['V1_G', num2str(layer-1), '_', ...
+			       num2str(j_trial, NUM2STR_FORMAT), '.mat']
+          activity_filename = [output_path, activity_filename]
+          save('-mat', activity_filename, 'activity' );
+        endif
         
-    end%%if
-     
-  
-    num_rows(layer, j_trial) = NROWS;
-    num_cols(layer, j_trial) = NCOLS;
-    num_features(layer, j_trial) = NFEATURES;
-  
+      endif
+      
+      
+      num_rows(layer, j_trial) = NROWS;
+      num_cols(layer, j_trial) = NCOLS;
+      num_features(layer, j_trial) = NFEATURES;
+      
 				% plot reconstructed image
-    reconstruct_activity2 = ismember( layer, reconstruct_activity );
-    if reconstruct_activity2
-      size_activity = ...
-	  [ 1 , num_features(layer, j_trial), ...
-	   num_cols(layer, j_trial), num_rows(layer, j_trial) ];
-      activity_filename = ...
-	  ['V1_G', num2str(layer-1), '_', ...
-	   num2str(j_trial, NUM2STR_FORMAT)];
-      plot_recon_flag = 1;
-      fig_tmp = pvp_reconstruct(activity, ...
-				activity_filename, [], ...
-				size_activity, ...
-				plot_recon_flag);
-      fig_list = [fig_list; fig_tmp];
-    end%%if
-
-  end%%for % target_flag
-
-end%%for % layer
-
-pvp_saveFigList( fig_list, output_path, 'png');
-fig_list = [];
-
-end%%for % j_trial
-
+      reconstruct_activity2 = ismember( layer, reconstruct_activity );
+      if reconstruct_activity2
+        size_activity = ...
+            [ 1 , num_features(layer, j_trial), ...
+                   num_cols(layer, j_trial), num_rows(layer, j_trial) ];
+        activity_filename = ...
+            ['V1_G', num2str(layer-1), '_', ...
+             num2str(j_trial, NUM2STR_FORMAT)];
+        plot_recon_flag = 1;
+        fig_tmp = pvp_reconstruct(activity, ...
+				  activity_filename, [], ...
+				  size_activity, ...
+				  plot_recon_flag);
+        fig_list = [fig_list; fig_tmp];
+      endif
+            
+    endfor % target_flag
+    
+    close all;
+    fig_list = [];
+	  
+  endfor % layer
+  
+  pvp_saveFigList( fig_list, output_path, 'png');
+  fig_list = [];
+  
+endfor % j_trial
+	
 
 %% plot connections
 global N_CONNECTIONS
@@ -332,8 +244,8 @@ global NXP NYP NFP
 if TRAINING_FLAG > 0
   plot_weights = N_CONNECTIONS;
 else
-  plot_weights = [];%( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
-end%%if
+  plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+endif
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert(6) = -1;
@@ -355,20 +267,20 @@ for i_conn = plot_weights
     NFP = pvp_conn_header_tmp(pvp_index.WGT_NFP);
     if NXP <= 1 || NYP <= 1
       continue;
-    end%%if
+    endif
     num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
     for i_patch = 1:num_patches
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    end%%for
+    endfor
     weight_ave = weight_ave / num_patches;
     disp( ['weight_min = ', num2str(weight_min)] );
     disp( ['weight_max = ', num2str(weight_max)] );
     disp( ['weight_ave = ', num2str(weight_ave)] );
     if ~TRAINING_FLAG
       continue;
-    end%%if
+    endif
   elseif i_conn == N_CONNECTIONS + 1
     disp('calculating geisler kernels');
     pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
@@ -382,7 +294,7 @@ for i_conn = plot_weights
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    end%%for
+    endfor
     weight_ave = weight_ave / num_patches;
     disp( ['weight_min = ', num2str(weight_min)] );
     disp( ['weight_max = ', num2str(weight_max)] );
@@ -401,10 +313,10 @@ for i_conn = plot_weights
       geisler_weights_filename = [twoAFC_path, geisler_weights_filename]
       %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
       save('-mat', geisler_weights_filename, 'geisler_weights');
-    end%%if
+    endif
   else
     continue;
-  end%%if
+  endif
   NK = 1;
   NO = floor( NFEATURES / NK );
   skip_patches = 1; %num_patches;
@@ -419,8 +331,8 @@ for i_conn = plot_weights
 		     int2str(i_patch), ')' ], ...
 		    [], patch_size);
     fig_list = [fig_list; fig_tmp];
-  end%%for % i_patch
-end%%for % i_conn
+  endfor % i_patch
+endfor % i_conn
 
 pvp_saveFigList( fig_list, output_path, 'png');
 fig_list = [];
@@ -456,14 +368,14 @@ if max_target_flag > min_target_flag
       twoAFC_correct = 0.5 + 0.5 * ...
 	  ( cum_activity_target - cum_activity_distractor );
       bar( hist_activity_bins{layer}, twoAFC_correct );  
-    end%%for
+    endfor
     hist_filename = ...
 	['hist_activity', '.mat.z']
     hist_filename = [output_path, hist_filename]
     %%save("-z", "-mat", hist_filename, "hist_activity" );
             save('-mat', hist_filename, 'hist_activity');
 
-  end%%if
+  endif
 
   
   if plot_2AFC_flag
@@ -497,15 +409,15 @@ if max_target_flag > min_target_flag
 	  red_hist = 0;
 	  blue_hist = 1;
 	  bar_width = 0.6;
-	end%%if
+	endif
 	bh = bar( twoAFC_bins{layer}, ...
 		 twoAFC_hist{target_flag, layer}, ...
 		 bar_width);
 	set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
 	set( bh, 'FaceColor', [red_hist 0 blue_hist] );
 	hold on
-      end%%for  % target_flag
-    end%%for  % layer
+      endfor  % target_flag
+    endfor  % layer
     
     twoAFC_cumsum = cell(2, num_layers);
     twoAFC_ideal = cell(num_layers,1);
@@ -518,7 +430,7 @@ if max_target_flag > min_target_flag
       for target_flag = 1 : 2;
 	twoAFC_cumsum{target_flag, layer} = ...
 	    1 - cumsum( twoAFC_hist{target_flag, layer} );
-      end%%for
+      endfor
       subplot_index = subplot_index + 1;
       subplot(num_subplots, 1, subplot_index);
       twoAFC_ideal{layer} = ...
@@ -529,7 +441,7 @@ if max_target_flag > min_target_flag
       set( bh, 'FaceColor', [0 1 0] );
       set(gca, 'YLim', [0 1]);
       hold on;
-    end%%for
+    endfor
     
     subplot_index = 0;
     num_subplots = length(read_activity);
@@ -545,7 +457,7 @@ if max_target_flag > min_target_flag
 		 [0, fliplr( twoAFC_cumsum{1, layer} ), 1 ], ...
 		'-k');  
       set( lh, 'LineWidth', 2 );
-    end%%for
+    endfor
     
     for layer = read_activity
       twoAFC_correct(layer) = ...
@@ -553,7 +465,7 @@ if max_target_flag > min_target_flag
 	  ( tot_trials + (tot_trials == 0) );
       disp( ['twoAVC_correct(', num2str(layer), ') = ', ...
 	     num2str(twoAFC_correct(layer)) ] );
-    end%%for
+    endfor
     
     twoAFC_filename = ...
 	['twoAFC', num2str(expNum), '.mat.z']
@@ -562,12 +474,12 @@ if max_target_flag > min_target_flag
 	 'twoAFC_cumsum', 'twoAFC_ideal', 'tot_trials', ...
 	 'ave_activity', 'sum_activity');
     
-  end%%if
+  endif
 
   pvp_saveFigList( fig_list, twoAFC_path, 'png');
   fig_list = [];
   
-end%%if
+endif
 
 
 
