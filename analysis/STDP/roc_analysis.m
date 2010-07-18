@@ -18,10 +18,7 @@ conn_dir = '/Users/manghel/Documents/STDP-sim/conn_probes_8_8/';
 
 num_layers = 5;
 n_time_steps = 40000; % the argument of -n; even when dt = 0.5 
-patch_size = 16;  % nxp * nyp
-write_step = 50000; % set in params.stdp
-
-
+plot_rate = 0;
 
 NX=16;  % column size
 NY=16;% 8;  % use xScale and yScale to get layer values
@@ -52,23 +49,70 @@ while end_step < n_time_steps
         NXscaled = NX * xScale;
         NYscaled = NY * yScale;
 
-        figure('Name',['Average Rate for ',l_name, ' testTime']);
-        recon2D = reshape( test_array{layer}, [NXscaled, NYscaled] );
-        %     recon2D = rot90(recon2D);
-        %     recon2D = 1 - recon2D;
-        %figure('Name','Rate Array ');
-        imagesc( recon2D' );  % plots recon2D as an image
-        colorbar
-        axis square
-        axis off
-        %pause
-        
+        if plot_rate
+            figure('Name',['Average Rate for ',l_name, ' testTime']);
+            recon2D = reshape( test_array{layer}, [NXscaled, NYscaled] );
+            %     recon2D = rot90(recon2D);
+            %     recon2D = 1 - recon2D;
+            %figure('Name','Rate Array ');
+            imagesc( recon2D' );  % plots recon2D as an image
+            colorbar
+            axis square
+            axis off
+            %pause
+        end
 
     end
     
     if begin_step == 0
-        [maxRate,maxI] = max(test_array{4});
+        
+        % load pre-synaptic weight patches and plot them  
+        [f_file, v_file, w_file, w_last, l_name, xScale, yScale] = ...
+            stdp_globals( 4 );
+        NXscaled = NX * xScale;
+        NYscaled = NY * yScale;
+        
+        nxMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
+           %  (retina to L1)
+        nyMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
+           %  (retina to L1)
+           
+        % find neuron with largest firing rate
+        % that is not a boundary neuron
+        [sortR, sortI] = sort(test_array{4},'descend');
+        
+        
+        for i=1:length(sortI)
+            k = sortI(i);  % linear index
+            I = mod(k-1,NXscaled);
+            J = (k-1-I) / NXscaled;
+            % check if not boundary neuron
+                if J >= nyMar && J <= (NYscaled-nyMar-1) ...
+                        && I >= nxMar && I <= (NXscaled-nxMar-1)
+                    maxRate = test_array{4}(sortI(i));
+                    maxI = sortI(i);
+                    fprintf('max rate (I= %d, J = %d)\n',I,J);
+                    break
+                end
+        end
+        
+        %[maxRate,maxI] = max(test_array{4});
         fprintf('%d test = %f ', maxI, maxRate);
+               
+        
+        
+        for i=1:length(w_last)
+            [PATCH, patch_size, NXP, NYP] = ...
+                roc_readPatch(w_last{i}, I, J, NXscaled, NYscaled);
+            figure('Name',[l_name,' patch ',num2str(i)]);
+            PATCH = reshape(PATCH,[NXP,NYP]);
+            imagesc(PATCH,'CDataMapping','direct');
+            colorbar
+            axis square
+            axis off
+        end
+        pause
+        
     else
         fprintf('%d test = %f ', maxI, test_array{4}(maxI));
     end
@@ -87,17 +131,19 @@ while end_step < n_time_steps
         NXscaled = NX * xScale;
         NYscaled = NY * yScale;
 
-        figure('Name',['Average Rate for ',l_name,' restTime']);
-        recon2D = reshape( rest_array{layer}, [NXscaled, NYscaled] );
-        %     recon2D = rot90(recon2D);
-        %     recon2D = 1 - recon2D;
-        %figure('Name','Rate Array ');
-        imagesc( recon2D' );  % plots recon2D as an image
-        colorbar
-        axis square
-        axis off
-        %pause
-
+        if plot_rate
+            figure('Name',['Average Rate for ',l_name,' restTime']);
+            recon2D = reshape( rest_array{layer}, [NXscaled, NYscaled] );
+            %     recon2D = rot90(recon2D);
+            %     recon2D = 1 - recon2D;
+            %figure('Name','Rate Array ');
+            imagesc( recon2D' );  % plots recon2D as an image
+            colorbar
+            axis square
+            axis off
+            %pause
+        end
+        
     end
 
     fprintf(' rest = %f\n', rest_array{4}(maxI));
@@ -105,7 +151,7 @@ while end_step < n_time_steps
     begin_step = begin_step + 2*restTime;
     end_step = end_step + testTime + restTime;
     
-    pause
+    %pause
     close all
 
 end % while loop over end_step
