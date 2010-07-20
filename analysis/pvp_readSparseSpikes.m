@@ -12,7 +12,7 @@ function [spike_array, ave_rate] = pvp_readSparseSpikes(layer, pvp_order)
 
   if nargin < 2
     pvp_order = 1;
-  endif
+  end%%if
 
   pvp_fileTypes;
 
