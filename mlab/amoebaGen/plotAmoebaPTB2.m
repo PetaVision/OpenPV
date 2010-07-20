@@ -16,17 +16,20 @@ numA = length(A{1,1});
 if flag && ~aflag
     start = 1;
     fin = s(1)-3;
-    fname = 't/tar_';
+    dname = 't/';
+    fname = 'tar_';
     fflag = 'a';
 elseif ~flag
     start = s(1)-2;
     fin = s(1);
-    fname = 'd/tar_';
+    dname = 'd/';
+    fname = 'tar_';
     fflag = 'n';
 elseif flag && aflag
     start = 1;
     fin = 1;
-    fname = 'a/tar_';
+    dname = 'a/';
+    fname = 'tar_';
     fflag = 'a';
 end
 
@@ -78,8 +81,16 @@ end
 
 
 %savefile(['256_png/',num2str(nfour),'/',fname,suffix_zeros, num2str(t), '_', fflag], 128, 128);
+image_file_dir = ...
+    [image_file_path, dname];
+if ~exist(image_file_dir, 'dir')
+    [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', image_file_dir );
+    if SUCCESS ~= 1
+        error(MESSAGEID, MESSAGE);
+    end%%if
+end%%if
 image_file_name = ...
-    [image_file_path, fname, suffix_zeros, num2str(t), '_', fflag];
+    [image_file_dir, fname, suffix_zeros, num2str(t), '_', fflag];
 savefile2(image_file_name, image);
 
 global plot_amoeba2D fh_amoeba2D
