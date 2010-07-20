@@ -81,7 +81,7 @@ HyPerLayer "L1 Geisler" = {
 };
 
 
-HyPerLayer "L1 Geisler2" = {
+HyPerLayer "L2 Geisler" = {
    nxScale = 1; 
    nyScale = 1; 
    nf = 8;
@@ -102,7 +102,7 @@ HyPerLayer "L1 Geisler2" = {
 };
 
 
-HyPerLayer "L1 Geisler3" = {
+HyPerLayer "L3 Geisler" = {
    nxScale = 1; 
    nyScale = 1; 
    nf = 8;
@@ -123,7 +123,7 @@ HyPerLayer "L1 Geisler3" = {
 };
 
 
-HyPerLayer "L1 Geisler4" = {
+HyPerLayer "L4 Geisler" = {
    nxScale = 1; 
    nyScale = 1; 
    nf = 8;
@@ -143,6 +143,89 @@ HyPerLayer "L1 Geisler4" = {
    spikingFlag = 0;        
 };
 
+
+HyPerLayer "L1 TopDown" = {
+   nxScale = 1; 
+   nyScale = 1; 
+   nf = 8;
+   
+   marginWidth = 32;
+   mirrorBCflag = 1;  
+   restart = 0;
+   
+   Vrest = 0.0;
+   noiseFreqE = 0.0;
+   noiseFreqI = 0.0;
+   noiseFreqIB = 0.0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;  
+   noiseAmpIB = 0.0; 
+    
+   spikingFlag = 0;        
+};
+
+
+HyPerLayer "L2 TopDown" = {
+   nxScale = 1; 
+   nyScale = 1; 
+   nf = 8;
+   
+   marginWidth = 32;
+   mirrorBCflag = 1;  
+   restart = 0;
+   
+   Vrest = 0.0;
+   noiseFreqE = 0.0;
+   noiseFreqI = 0.0;
+   noiseFreqIB = 0.0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;  
+   noiseAmpIB = 0.0; 
+    
+   spikingFlag = 0;        
+};
+
+
+HyPerLayer "L3 TopDown" = {
+   nxScale = 1; 
+   nyScale = 1; 
+   nf = 8;
+   
+   marginWidth = 32;
+   mirrorBCflag = 1;  
+   restart = 0;
+   
+   Vrest = 0.0;
+   noiseFreqE = 0.0;
+   noiseFreqI = 0.0;
+   noiseFreqIB = 0.0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;  
+   noiseAmpIB = 0.0; 
+    
+   spikingFlag = 0;        
+};
+
+
+HyPerLayer "L4 TopDown" = {
+   nxScale = 1; 
+   nyScale = 1; 
+   nf = 8;
+   
+   marginWidth = 32;
+   mirrorBCflag = 1;  
+   restart = 0;
+   
+   Vrest = 0.0;
+   noiseFreqE = 0.0;
+   noiseFreqI = 0.0;
+   noiseFreqIB = 0.0;
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;  
+   noiseAmpIB = 0.0; 
+    
+   spikingFlag = 0;        
+};
 
 
 ///////
@@ -220,7 +303,7 @@ HyPerConn "L1 to L1" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 200.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -229,7 +312,7 @@ HyPerConn "L1 to L1" = {
 };
 
 
-HyPerConn "L1 Geisler2 to L1 Geisler2" = {
+HyPerConn "L2 Geisler to L2 Geisler" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -237,7 +320,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler2" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 200.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -246,7 +329,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler2" = {
 };
 
 
-HyPerConn "L1 Geisler3 to L1 Geisler3" = {
+HyPerConn "L3 Geisler to L3 Geisler" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -254,7 +337,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler3" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 200.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -263,7 +346,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler3" = {
 };
 
 
-HyPerConn "L1 Geisler4 to L1 Geisler4" = {
+HyPerConn "L4 Geisler to L4 Geisler" = {
    nxp = 65; //129; 
    nyp = 65; //129; 
 
@@ -271,7 +354,7 @@ HyPerConn "L1 Geisler4 to L1 Geisler4" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 100.0;
+   strength = 200.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -312,7 +395,7 @@ HyPerConn "L1 to L1 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 10.0; //1000.0; // 
+   strength = 20.0; //1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -328,7 +411,7 @@ HyPerConn "L1 to L1 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -10.0;  //-1000.0; // 
+   strength = -20.0;  //-1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -338,7 +421,7 @@ HyPerConn "L1 to L1 Geisler Distractor" = {
 
 
 
-HyPerConn "L1 Geisler to L1 Geisler2" = {
+HyPerConn "L1 Geisler to L2 Geisler" = {
    nxp = 1; 
    nyp = 1; 
    
@@ -357,7 +440,7 @@ HyPerConn "L1 Geisler to L1 Geisler2" = {
    delay = 0.0;
 };
 
-HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
+HyPerConn "L1 Geisler to L2 Geisler Target" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -365,7 +448,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 10.0;  //1000.0; // 
+   strength = 20.0;  //1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -373,7 +456,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Target" = {
    delay = 0.0;   
 };
 
-HyPerConn "L1 Geisler to L1 Geisler2 Distractor" = {
+HyPerConn "L1 Geisler to L2 Geisler Distractor" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -381,7 +464,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength =  -10.0; //-1000.0; //
+   strength =  -20.0; //-1000.0; //
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -393,7 +476,7 @@ HyPerConn "L1 Geisler to L1 Geisler2 Distractor" = {
 
 
 
-HyPerConn "L1 Geisler2 to L1 Geisler3" = {
+HyPerConn "L2 Geisler to L3 Geisler" = {
    nxp = 1; 
    nyp = 1; 
    
@@ -412,7 +495,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3" = {
    delay = 0.0;
 };
 
-HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
+HyPerConn "L2 Geisler to L3 Geisler Target" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -420,7 +503,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 10.0;  //1000.0; // 
+   strength = 20.0;  //1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -428,7 +511,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Target" = {
    delay = 0.0;   
 };
 
-HyPerConn "L1 Geisler2 to L1 Geisler3 Distractor" = {
+HyPerConn "L2 Geisler to L3 Geisler Distractor" = {
    nxp = 65; 
    nyp = 65; 
 
@@ -436,7 +519,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -10.0; //-1000.0; // 
+   strength = -20.0; //-1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -448,10 +531,7 @@ HyPerConn "L1 Geisler2 to L1 Geisler3 Distractor" = {
 
 
 
-
-
-
-HyPerConn "L1 Geisler3 to L1 Geisler4" = {
+HyPerConn "L3 Geisler to L4 Geisler" = {
    nxp = 1; 
    nyp = 1; 
    
@@ -470,7 +550,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler4" = {
    delay = 0.0;
 };
 
-HyPerConn "L1 Geisler3 to L1 Geisler4 Target" = {
+HyPerConn "L3 Geisler to L4 Geisler Target" = {
    nxp = 65; //129; 
    nyp = 65; //129; 
 
@@ -478,7 +558,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler4 Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 10.0;  //1000.0; // 
+   strength = 20.0;  //1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -486,7 +566,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler4 Target" = {
    delay = 0.0;   
 };
 
-HyPerConn "L1 Geisler3 to L1 Geisler4 Distractor" = {
+HyPerConn "L3 Geisler to L4 Geisler Distractor" = {
    nxp = 65; //129; 
    nyp = 65; //129; 
 
@@ -494,7 +574,7 @@ HyPerConn "L1 Geisler3 to L1 Geisler4 Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -10.0; //-1000.0; // 
+   strength = -20.0; //-1000.0; // 
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -502,4 +582,594 @@ HyPerConn "L1 Geisler3 to L1 Geisler4 Distractor" = {
    delay = 0.0;   
 };
 
+
+
+// top down layer connections
+
+// L1 TopDown: bottom up 
+HyPerConn "L1 to L1 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 2.0;
+};
+
+HyPerConn "L1 to L1 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 2.0;   
+};
+
+HyPerConn "L1 to L1 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 2.0;   
+};
+
+
+// L1 TopDown: lateral 
+HyPerConn "L1 Geisler to L1 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 1.0;
+};
+
+HyPerConn "L1 Geisler to L1 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1.0;   
+};
+
+HyPerConn "L1 Geisler to L1 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1.0;   
+};
+
+
+// L1 TopDown: top down 
+HyPerConn "L2 Geisler to L1 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L2 Geisler to L1 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L2 Geisler to L1 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+
+// L2 TopDown: bottom up 
+HyPerConn "L1 TopDown to L2 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L1 TopDown to L2 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L1 TopDown to L2 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+// L2 TopDown: lateral 
+HyPerConn "L2 Geisler to L2 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 1;
+};
+
+HyPerConn "L2 Geisler to L2 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
+
+HyPerConn "L2 Geisler to L2 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
+
+
+// L2 TopDown: top down 
+HyPerConn "L3 Geisler to L2 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L3 Geisler to L2 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L3 Geisler to L2 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+
+
+// L3 TopDown: bottom up 
+HyPerConn "L2 TopDown to L3 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L2 TopDown to L3 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L2 TopDown to L3 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+// L3TopDown: lateral 
+HyPerConn "L3 Geisler to L3 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 1;
+};
+
+HyPerConn "L3 Geisler to L3 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
+
+HyPerConn "L3 Geisler to L3 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
+
+
+// L3 TopDown: top down 
+HyPerConn "L4 Geisler to L3 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L4 Geisler to L3 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L4 Geisler to L3 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+
+
+// L4 TopDown: bottom up 
+HyPerConn "L3 TopDown to L4 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 0;
+};
+
+HyPerConn "L3 TopDown to L4 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+HyPerConn "L3 TopDown to L4 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 0;   
+};
+
+
+// L3TopDown: lateral 
+HyPerConn "L4 Geisler to L4 TopDown" = {
+   nxp = 1; 
+   nyp = 1; 
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   sigma_cocirc = 1000000.0; // PI / 12.0;
+   deltaThetaMax = 0.0625; //PI/48;
+   
+   strength = 1.0;  
+   
+   delay = 1;
+};
+
+HyPerConn "L4 Geisler to L4 TopDown Target" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = 20.0; //1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
+
+HyPerConn "L4 Geisler to L4 TopDown Distractor" = {
+   nxp = 65; 
+   nyp = 65; 
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   strength = -20.0;  //-1000.0; // 
+   normalize_flag = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   
+   delay = 1;   
+};
 
