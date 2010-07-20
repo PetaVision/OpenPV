@@ -326,38 +326,31 @@ int Retina::updateState(float time, float dt)
 //   updateImage(time, dt);
 #endif OBSOLETE
 
-   // make sure activity in border is zero
-   //
-   // TODO - is this still necessary and why
-   for (int k = 0; k < clayer->numExtended; k++) {
-      activity[k] = 0.0;
-   }
-
-   // V in Retina is extended so loop over extended region.  This
-   // ensures that there is at least background in border region.
-   //
-   // No longer true
-   // How do we get background activity into border?
-   //
    int numActive = 0;
    if (params->spikingFlag == 1) {
+      const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
+      const float probBase = params->poissonBlankProb;
+
       for (int k = 0; k < clayer->numNeurons; k++) {
-         const int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-
          V[k] = phiExc[k] - phiInh[k];
-
-         const float probStim = params->poissonEdgeProb * V[k];
-         const float probBase = params->poissonBlankProb;
-         const float prevTime = prevActivity[kex];
-
-         activity[kex] = spike(time, dt, prevTime, probBase, probStim, &probSpike);
-         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
-         if (activity[kex] > 0.0) {
-            clayer->activeIndices[numActive++] = k;
-         }
-         // reset accumulation buffers
          phiExc[k] = 0.0;
          phiInh[k] = 0.0;
+      }
+
+      for (int kex = 0; kex < clayer->numExtended; kex++) {
+         float stimFactor = 0.0f;
+         const float prevTime = prevActivity[kex];
+         const int k = kIndexRestricted(kex, nx, ny, nf, marginWidth);
+
+         if (k > 0) {
+            stimFactor = V[k];
+         }
+
+         activity[kex] = spike(time, dt, prevTime, probBase, probStim*stimFactor, &probSpike);
+         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
+         if (k > 0 && activity[kex] > 0.0) {
+            clayer->activeIndices[numActive++] = k;
+         }
       }
    }
    else {
