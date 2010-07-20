@@ -80,6 +80,57 @@ run:
    - The firing rate array is then recats into a 2D array and color plotted.
 
 
+~~~~~~~~~~~~~~~~~~~~~~
+
+ROC analysis
+
+~~~~~~~~~~~~~~~~~~~~~
+
+ We set dwMax = 0 in params.stdp to prevent the 
+weights from evolving - we freeze the weights.
+
+We modify the Patterns.cpp class in order to test neurons as feature
+detectors: 
+
+   - we set pMove = 0 unless time = moveTime. When this happens then
+move forward the bars. 
+
+   - we set pSwitch = 0 unless time = switchTime (> moveTime). When
+this happens then we switch between vertical and horizontal bars.
+
+   - within moveTime we have to turn the image on for a testTime duration
+and keep it off for restTime duration. Due  to inhibition the neurons
+will first fire at a higher rate and then settle into a stationary response
+during the testTime period.
+
+
+The main driving routine is roc_analysis.m NOT stdp_analyze.m
+
+> it calls roc_layerAnalysis(L) to perform an analysis of feature
+  detectors in layer L.
+
+  - it reads nd estimates the firing rates of neurons in layer L
+during the test and rest time intervals. The test interval is the time
+interval during which an image is presented to the system and the rest
+interval is the time interval when only background noise is presented.
+
+- it finds out the non-margin neuron in L with the largest firing rate
+in the first test inteval and plots the weight patches for the
+neuron. It also selects this neuron for recording the firing rates
+during rest and test intervals
+
+   - for this neuron it gathers the statistics of firing rates during
+      rest and test time intervals, makes histogram plots - the number
+      of times it fired 0, 1, 2, etc times during test/rest time
+      intervals.
+
+
+  - at the end of a moveTime interval it plots these statistics and it
+    computes the ROC curve for the selected neuron
+
+> roc_globalAnalysis reads and plots the firing rates of all neurons in all
+the layers of the vsual system during test and rest time intervals.
+
 
 ~~~~~~~~~~~~~~~~~~~~~~
 
