@@ -54,9 +54,20 @@ end
 %savefile(['256_png/',num2str(nfour),'/m/m_',suffix_zeros, num2str(t)], 128, 128);
 % savefile(['128_png/',num2str(nfour),'/m/m_',suffix_zeros, num2str(t)], 64, 64);
 
-fname = '/m/m_';
-image_filename = ...
-    [image_file_path, fname, suffix_zeros, num2str(t)];
+dname = 'm/';
+fname = 'm_';
+image_file_dir = ...
+    [image_file_path, dname];
+if ~exist(image_file_dir, 'dir')
+    [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', image_file_dir );
+    if SUCCESS ~= 1
+        error(MESSAGEID, MESSAGE);
+    end%%if
+end%%if
+image_file_name = ...
+    [image_file_dir, fname, suffix_zeros, num2str(t)];
+% image_filename = ...
+%     [image_file_path, fname, suffix_zeros, num2str(t)];
 savefile2(image_filename, image);
 
 global plot_amoeba2D fh_amoeba2D
