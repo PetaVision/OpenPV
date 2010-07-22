@@ -26,6 +26,7 @@
 #include <src/layers/V1.hpp>
 #include <src/connections/HyPerConn.hpp>
 #include <src/connections/RandomConn.hpp>
+#include <src/connections/KernelConn.hpp>
 
 using namespace PV;
 
@@ -33,9 +34,11 @@ using namespace PV;
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
-#define INHIB
+#undef INHIB
 
-#define L2
+#undef L2
+
+#undef L2INHIB
 
 int main(int argc, char* argv[])
 {
@@ -53,37 +56,40 @@ int main(int argc, char* argv[])
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
    HyPerLayer * l1        = new V1("L1", hc);
-   HyPerLayer * l2        = new V1("L2", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
 #endif
 
 #ifdef L2
+   HyPerLayer * l2     = new V1("L2", hc);
+#endif
+
+#ifdef L2INHIB
    HyPerLayer * l2Inh  = new V1("L2Inh", hc);
 #endif
 
    // connect the layers
    //
 
-   HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
-   HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
-   HyPerConn * i_r0_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
-   HyPerConn * i_r0_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
+   HyPerConn * i_r1_c  = new KernelConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
+   HyPerConn * i_r1_s  = new KernelConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
+   HyPerConn * i_r0_c  = new KernelConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
+   HyPerConn * i_r0_s  = new KernelConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
    HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
    HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
 #ifdef L2
    HyPerConn * l1_l2   = new HyPerConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
 #endif
 
-#ifdef L2
-   HyPerConn * l2_l2Inh = new HyPerConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
-   HyPerConn * l2Inh_l2 = new HyPerConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
+#ifdef L2INHIB
+   HyPerConn * l2_l2Inh = new KernelConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
+   HyPerConn * l2Inh_l2 = new KernelConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
 #endif
 
 #ifdef INHIB
-   HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
-   HyPerConn * l1Inh_l1 = new HyPerConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
+   HyPerConn * l1_l1Inh = new KernelConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
+   HyPerConn * l1Inh_l1 = new KernelConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
 #endif
 
 
@@ -108,14 +114,60 @@ int main(int argc, char* argv[])
    LayerProbe * rProbe3  = new LinearActivityProbe(hc, PV::DimX, 3, 0);
    LayerProbe * rProbe4  = new LinearActivityProbe(hc, PV::DimX, 4, 0);
    LayerProbe * rProbe5  = new LinearActivityProbe(hc, PV::DimX, 5, 0);
+   LayerProbe * rProbe6  = new LinearActivityProbe(hc, PV::DimX, 6, 0);
+   LayerProbe * rProbe7  = new LinearActivityProbe(hc, PV::DimX, 7, 0);
+   LayerProbe * rProbe8  = new LinearActivityProbe(hc, PV::DimX, 8, 0);
+   LayerProbe * rProbe9  = new LinearActivityProbe(hc, PV::DimX, 9, 0);
+   LayerProbe * rProbe10  = new LinearActivityProbe(hc, PV::DimX, 10, 0);
+   LayerProbe * rProbe11  = new LinearActivityProbe(hc, PV::DimX, 11, 0);
+   LayerProbe * rProbe12  = new LinearActivityProbe(hc, PV::DimX, 12, 0);
+   LayerProbe * rProbe13  = new LinearActivityProbe(hc, PV::DimX, 13, 0);
+   LayerProbe * rProbe14  = new LinearActivityProbe(hc, PV::DimX, 14, 0);
 
-   retina->insertProbe(rProbe0);
-   retina->insertProbe(rProbe1);
-   retina->insertProbe(rProbe2);
-   retina->insertProbe(rProbe3);
-   retina->insertProbe(rProbe4);
-   retina->insertProbe(rProbe5);
+   l2->insertProbe(rProbe0);
+   l2->insertProbe(rProbe1);
+   l2->insertProbe(rProbe2);
+   l2->insertProbe(rProbe3);
+   l2->insertProbe(rProbe4);
+   l2->insertProbe(rProbe5);
+   l2->insertProbe(rProbe6);
+   l2->insertProbe(rProbe7);
+   l2->insertProbe(rProbe8);
+   l2->insertProbe(rProbe9);
+   l2->insertProbe(rProbe10);
+   l2->insertProbe(rProbe11);
+   l2->insertProbe(rProbe12);
+   l2->insertProbe(rProbe13);
+   l2->insertProbe(rProbe14);
+
 #endif
+
+#define WRITE_KERNELS
+#ifdef WRITE_KERNELS
+
+	const char * i_r1_s_filename = "i_r1_s_gauss.txt";
+	HyPerLayer * pre = i_r1_s->preSynapticLayer();
+	int npad = pre->clayer->loc.nPad;
+	int nx = pre->clayer->loc.nx;
+	int ny = pre->clayer->loc.ny;
+	int nf = pre->clayer->loc.nBands;
+	i_r1_s->writeTextWeights(i_r1_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * i_r0_s_filename = "i_r0_s_gauss.txt";
+	pre = i_r0_s->preSynapticLayer();
+	npad = pre->clayer->loc.nPad;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nBands;
+	i_r0_s->writeTextWeights(i_r0_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+#endif
+   //40
+   //LayerProbe * ptprobe1 = new PointProbe("l2_activity.txt", 9, 7, 0, "L2:");
+   //l2->insertProbe(ptprobe1);
+
+   //ConnectionProbe * cProbe = new ConnectionProbe(114);
+   //l1_l2->insertProbe(cProbe);
 
    //ConnectionProbe * cProbe = new ConnectionProbe(277);
    //i_r1_s->insertProbe(cProbe);
@@ -128,12 +180,34 @@ int main(int argc, char* argv[])
    //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 98, 42, 0, "L1:");
    //l1->insertProbe(ptprobe1);
 
+   //LayerProbe * ptprobe2 = new PointProbe("l1Inh_activity.txt", 24, 10, 0, "L1Inh:");
+   //l1Inh->insertProbe(ptprobe2);
+
+   //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 17, 11, 0, "Image:");
+   //image->insertProbe(ptprobe3);
+
+   //int retinaplacement = 9;
+
+   //LayerProbe * ptprobe4 = new PointProbe("retinaOn_activity.txt", retinaplacement, 11, 0, "RetinaOn:");
+   //retinaOn->insertProbe(ptprobe4);
+
+   //LayerProbe * ptprobe5 = new PointProbe("retinaOff_activity.txt", retinaplacement, 11, 0, "RetinaOff:");
+   //retinaOff->insertProbe(ptprobe5);
+
+   //LayerProbe * ptprobe6 = new PointProbe("l1_activity.txt", 52, 40, 0, "L1:");
+   //l1->insertProbe(ptprobe6);
+
+   //LayerProbe * ptprobe7 = new PointProbe("l1Inh_activity.txt", 13, 10, 0, "L1Inh:");
+   //l1Inh->insertProbe(ptprobe7);
+
    //PostConnProbe * pcOnProbe  = new PostConnProbe(5474); //(245); // 8575=>127,66
    //PostConnProbe * pcOffProbe = new PostConnProbe(5474); //(245); // 8575=>127,66
+   //PostConnProbe * pcInhProbe = new PostConnProbe(403);
    //pcProbe->setImage(image);
    //pcOnProbe->setOutputIndices(true);
    //r0_l1->insertProbe(pcOffProbe);
    //r1_l1->insertProbe(pcOnProbe);
+   //l1_l1Inh->insertProbe(pcInhProbe);
 
    //StatsProbe * sProbe = new StatsProbe(PV::BufActivity, "l1");
    //l1->insertProbe(sProbe);
