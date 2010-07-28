@@ -18,7 +18,16 @@
 //
 #define MAX_DEVICES (2)
 
-#define CL_GET_DEVICE_ID_FAILURE    1
+// guess at maximum work item dimensions
+//
+#define MAX_WORK_ITEM_DIMENSIONS (3)
+
+#define PVCL_GET_DEVICE_ID_FAILURE    1
+#define PVCL_CREATE_CONTEXT_FAILURE   2
+#define PVCL_CREATE_CMD_QUEUE_FAILURE 3
+#define PVCL_CREATE_PROGRAM_FAILURE   4
+#define PVCL_BUILD_PROGRAM_FAILURE    5
+#define PVCL_CREATE_KERNEL_FAILURE    6
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,12 +37,28 @@ namespace PV {
 
 class CLDevice {
 public:
-   CLDevice();
+   CLDevice(int device);
    virtual ~CLDevice();
 
-   int initialize();
+   int initialize(int device);
+
+   int createKernel(const char * filename, const char * name);
+
+   cl_mem addConstantBuffer (int argid, float * data, size_t count);
+   cl_mem addReadBuffer (int argid, void * data, size_t size);
+   cl_mem addWriteBuffer(int argid, size_t size);
+   int    addKernelArg(int argid, int arg);
+   int    addLocalArg (int argid, size_t size);
+   
+   int run(size_t global_work_size);
+   int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY);
+	
+   int copyResultsBuffer(cl_mem output, void * results, size_t size);
 
    int query_device_info();
+	
+   // execution time in microseconds
+   int get_execution_time()  { return elapsed; }
 
 protected:
 
@@ -46,10 +71,18 @@ protected:
    cl_command_queue commands;            // compute command queue
    cl_program program;                   // compute program
    cl_kernel kernel;                     // compute kernel
+   cl_event event;                       // event identifying the kernel execution instance
 
+   size_t global;                        // global domain size for our calculation
+   size_t local;                         // local domain size for our calculation
+
+   int device;                           // device index
+   
+   bool profiling;                       // flag to enable profiling
+   unsigned int elapsed;                 // elapsed time in microseconds
 };
 
 } // namespace PV
 
-#endif // PV_USE_OPENCL
+#endif /* PV_USE_OPENCL */
 #endif /* CLDEVICE_HPP_ */
