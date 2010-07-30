@@ -2,13 +2,17 @@
  * CLDevice.hpp
  *
  *  Created on: Oct 24, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #ifndef CLDEVICE_HPP_
 #define CLDEVICE_HPP_
 
+#include "../../include/pv_arch.h"
+
 #ifdef PV_USE_OPENCL
+
+#include "CLBuffer.hpp"
 
 #include <OpenCL/opencl.h>
 
@@ -33,7 +37,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PV {
-
+   
+void print_error_code(int code);
 
 class CLDevice {
 public:
@@ -44,16 +49,21 @@ public:
 
    int createKernel(const char * filename, const char * name);
 
-   cl_mem addConstantBuffer (int argid, float * data, size_t count);
-   cl_mem addReadBuffer (int argid, void * data, size_t size);
-   cl_mem addWriteBuffer(int argid, size_t size);
-   int    addKernelArg(int argid, int arg);
-   int    addLocalArg (int argid, size_t size);
+   CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
+   
+   CLBuffer * createReadBuffer(size_t size)   { return createBuffer(CL_MEM_READ_ONLY, size, NULL); }
+   CLBuffer * createWriteBuffer(size_t size)  { return createBuffer(CL_MEM_WRITE_ONLY, size, NULL); }
+   CLBuffer * createBuffer(size_t size, void * host_ptr)
+                                              { return createBuffer(CL_MEM_USE_HOST_PTR, size, host_ptr); }
+   
+   int addKernelArg(int argid, int arg);
+   int addKernelArg(int argid, CLBuffer * buf);
+   int addLocalArg(int argid, size_t size);
    
    int run(size_t global_work_size);
    int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY);
 	
-   int copyResultsBuffer(cl_mem output, void * results, size_t size);
+//   int copyResultsBuffer(cl_mem output, void * results, size_t size);
 
    int query_device_info();
 	
