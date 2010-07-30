@@ -7,16 +7,15 @@
 
 #include "CLDevice.hpp"
 
-#ifdef PV_USE_OPENCL
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#ifdef PV_USE_OPENCL
+
 namespace PV {
 
-void print_error_code(int code);
 static char * load_program_source(const char *filename);
 	
 CLDevice::CLDevice(int device)
@@ -130,7 +129,7 @@ int CLDevice::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       exit(status);
    } else {
       printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
-			 local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
+             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
    if (device == 1) {
@@ -143,7 +142,7 @@ int CLDevice::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    // using the maximum number of work group items for this device
    //
    status = clEnqueueNDRangeKernel(commands, kernel, 2, NULL,
-				   global_work_size, local_work_size, 0, NULL, &event);
+                                   global_work_size, local_work_size, 0, NULL, &event);
    if (status) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
       fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
@@ -215,91 +214,9 @@ int CLDevice::createKernel(const char * filename, const char * name)
    return status;
 }
 
-cl_mem CLDevice::addConstantBuffer(int argid, float * data, size_t count)
+CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_ptr)
 {
-   int status = 0;
-   size_t size = count * sizeof(float);
-      
-   cl_mem input = clCreateBuffer(context, CL_MEM_READ_ONLY, size, NULL, NULL);
-   if (!input) {
-      fprintf(stderr, "CLDevice::addConstantBuffer: Failed to allocate device memory!\n");
-      exit(1);
-   }
-      
-   // write data set into the input array in device memory
-   //
-   status = clEnqueueWriteBuffer(commands, input, CL_TRUE, 0, size, data, 0, NULL, NULL);
-   if (status != CL_SUCCESS)
-   {
-      fprintf(stderr, "CLDevice::addConstantBuffer: Failed to write to source array!\n");
-       print_error_code(status);
-       exit(status);
-   }
-      
-   // set the arguments to our compute kernel
-   //
-   status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &input);
-   if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addConstantBuffer: Failed to set kernel argument! %d\n", status);
-       print_error_code(status);
-       exit(status);
-   }
-      
-   return input;
-}
-   
-cl_mem CLDevice::addReadBuffer(int argid, void * data, size_t size)
-{
-   int status = 0;
-
-   cl_mem input = clCreateBuffer(context, CL_MEM_READ_ONLY, size, NULL, NULL);
-   if (!input) {
-      fprintf(stderr, "CLDevice::addReadBuffer: Failed to allocate device memory!\n");
-      exit(1);
-   }
-
-   // write data set into the input array in device memory
-   //
-   status = clEnqueueWriteBuffer(commands, input, CL_TRUE, 0, size, data, 0, NULL, NULL);
-   if (status != CL_SUCCESS)
-   {
-      fprintf(stderr, "CLDevice::addReadBuffer: Failed to write to source array!\n");
-      print_error_code(status);
-      exit(status);
-   }
-
-   // set the arguments to our compute kernel
-   //
-   status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &input);
-   if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addReadBuffer: Failed to set kernel argument! %d\n", status);
-      print_error_code(status);
-      exit(status);
-   }
-
-   return input;
-}
-
-cl_mem CLDevice::addWriteBuffer(int argid, size_t size)
-{
-   int status = 0;
-
-   cl_mem output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, size, NULL, NULL);
-   if (!output) {
-      fprintf(stderr, "CLDevice::addReadBuffer: Failed to allocate device memory!\n");
-      exit(1);
-   }
-
-   // set the arguments to our compute kernel
-   //
-   status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &output);
-   if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addWriteBuffer: Failed to set kernel argument! %d\n", status);
-      print_error_code(status);
-      exit(1);
-   }
-
-   return output;
+   return new CLBuffer(context, commands, flags, size, host_ptr);
 }
 
 int CLDevice::addKernelArg(int argid, int arg)
@@ -316,13 +233,15 @@ int CLDevice::addKernelArg(int argid, int arg)
    return status;
 }
    
-int CLDevice::addLocalArg(int argid, size_t size)
+int CLDevice::addKernelArg(int argid, CLBuffer * buf)
 {
    int status = 0;
+
+   cl_mem mobj = buf->clMemObject();
       
-   status = clSetKernelArg(kernel, argid, size, 0);
+   status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &mobj);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addLocalArg: Failed to set kernel argument! %d\n", status);
+      fprintf(stderr, "CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
       print_error_code(status);
       exit(status);
    }
@@ -330,15 +249,13 @@ int CLDevice::addLocalArg(int argid, size_t size)
    return status;
 }
    
-   int CLDevice::copyResultsBuffer(cl_mem output, void * results, size_t size)
+int CLDevice::addLocalArg(int argid, size_t size)
 {
    int status = 0;
 
-   // read back the results from the device to verify the output
-   //
-   status = clEnqueueReadBuffer(commands, output, CL_TRUE, 0, size, results, 0, NULL, NULL);
+   status = clSetKernelArg(kernel, argid, size, 0);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::copyResultsBuffer: Failed to read output array! %d\n", status);
+      fprintf(stderr, "CLDevice::addLocalArg: Failed to set kernel argument! %d\n", status);
       print_error_code(status);
       exit(status);
    }
@@ -474,7 +391,6 @@ print_error_code(int code)
    }
    printf("ERROR_CODE==%s\n", msg);
 }
-	
 
 static char *
 load_program_source(const char *filename)
@@ -498,5 +414,5 @@ load_program_source(const char *filename)
 } // namespace PV
 
 #else
-void noop() { ; }
+void cldevice_noop() { ; }
 #endif // PV_USE_OPENCL
