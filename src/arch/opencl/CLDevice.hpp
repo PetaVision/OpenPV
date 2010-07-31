@@ -8,31 +8,10 @@
 #ifndef CLDEVICE_HPP_
 #define CLDEVICE_HPP_
 
-#include "../../include/pv_arch.h"
-
-#ifdef PV_USE_OPENCL
-
+#include "pv_opencl.h"
 #include "CLBuffer.hpp"
 
-#include <OpenCL/opencl.h>
-
-////////////////////////////////////////////////////////////////////////////////
-
-// guess at maxinum number of devices (CPU + GPU)
-//
-#define MAX_DEVICES (2)
-
-// guess at maximum work item dimensions
-//
-#define MAX_WORK_ITEM_DIMENSIONS (3)
-
-#define PVCL_GET_DEVICE_ID_FAILURE    1
-#define PVCL_CREATE_CONTEXT_FAILURE   2
-#define PVCL_CREATE_CMD_QUEUE_FAILURE 3
-#define PVCL_CREATE_PROGRAM_FAILURE   4
-#define PVCL_BUILD_PROGRAM_FAILURE    5
-#define PVCL_CREATE_KERNEL_FAILURE    6
-
+#include <stdlib.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -41,21 +20,26 @@ namespace PV {
 void print_error_code(int code);
 
 class CLDevice {
+
+protected:
+   int device;                           // device id (normally 0 for GPU, 1 for CPU)
+
 public:
    CLDevice(int device);
-   virtual ~CLDevice();
 
    int initialize(int device);
 
-   int createKernel(const char * filename, const char * name);
-
    CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
-   
+
    CLBuffer * createReadBuffer(size_t size)   { return createBuffer(CL_MEM_READ_ONLY, size, NULL); }
    CLBuffer * createWriteBuffer(size_t size)  { return createBuffer(CL_MEM_WRITE_ONLY, size, NULL); }
    CLBuffer * createBuffer(size_t size, void * host_ptr)
                                               { return createBuffer(CL_MEM_USE_HOST_PTR, size, host_ptr); }
    
+#ifdef PV_USE_OPENCL
+
+   int createKernel(const char * filename, const char * name);
+
    int addKernelArg(int argid, int arg);
    int addKernelArg(int argid, CLBuffer * buf);
    int addLocalArg(int argid, size_t size);
@@ -86,13 +70,12 @@ protected:
    size_t global;                        // global domain size for our calculation
    size_t local;                         // local domain size for our calculation
 
-   int device;                           // device index
-   
    bool profiling;                       // flag to enable profiling
    unsigned int elapsed;                 // elapsed time in microseconds
+
+#endif /* PV_USE_OPENCL */
 };
 
 } // namespace PV
 
-#endif /* PV_USE_OPENCL */
 #endif /* CLDEVICE_HPP_ */
