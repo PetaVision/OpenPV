@@ -117,7 +117,11 @@ int V1::updateState(float time, float dt)
    int spikingFlag = (int) params->value(name, "spikingFlag", 1);
 
    if (spikingFlag != 0) {
+#ifndef PV_USE_OPENCL
       return LIF2_update_exact_linear(clayer, dt);
+#else
+      return updateStateOpenCL();
+#endif
    }
 
    // just copy accumulation buffer to membrane potential
