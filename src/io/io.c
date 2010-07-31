@@ -35,10 +35,10 @@ void usage()
  * @input_file
  * @param_file
  * @n_time_steps
- * @threads
+ * @device
  */
 int parse_options(int argc, char * argv[], char ** input_file,
-                  char ** param_file, int * n_time_steps, int * threads)
+                  char ** param_file, int * n_time_steps, int * opencl_device)
 {
    if (argc < 2) {
       usage();
@@ -48,7 +48,7 @@ int parse_options(int argc, char * argv[], char ** input_file,
    *n_time_steps = 1;
 
    pv_getopt_int(argc, argv, "-n", n_time_steps);
-   pv_getopt_int(argc, argv, "-t", threads);
+   pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-i", input_file);
    pv_getopt_str(argc, argv, "-p", param_file);
 
