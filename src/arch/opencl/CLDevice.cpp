@@ -12,26 +12,19 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#ifdef PV_USE_OPENCL
-
 namespace PV {
 
-static char * load_program_source(const char *filename);
-	
 CLDevice::CLDevice(int device)
 {
    this->device = device;
    initialize(device);
 }
 
-CLDevice::~CLDevice()
-{
-}
-
 int CLDevice::initialize(int device)
 {
    int status = 0;
 
+#ifdef PV_USE_OPENCL
    // get number of devices available
    //
    status = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, MAX_DEVICES, device_ids, &num_devices);
@@ -68,9 +61,14 @@ int CLDevice::initialize(int device)
       print_error_code(status);
       exit(status);
    }
+#endif PV_USE_OPENCL
 
    return status;
 }
+
+#ifdef PV_USE_OPENCL
+
+static char * load_program_source(const char *filename);
 
 int CLDevice::run(size_t global_work_size)
 {
@@ -213,11 +211,18 @@ int CLDevice::createKernel(const char * filename, const char * name)
 
    return status;
 }
+#endif // PV_USE_OPENCL
 
 CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_ptr)
 {
+#ifdef PV_USE_OPENCL
    return new CLBuffer(context, commands, flags, size, host_ptr);
+#else
+   return new CLBuffer();
+#endif
 }
+
+#ifdef PV_USE_OPENCL
 
 int CLDevice::addKernelArg(int argid, int arg)
 {
@@ -411,8 +416,7 @@ load_program_source(const char *filename)
     return source;
 }
 
+#endif // PV_USE_OPENCL
+
 } // namespace PV
 
-#else
-void cldevice_noop() { ; }
-#endif // PV_USE_OPENCL
