@@ -7,11 +7,14 @@
 /* define this if using a vendor supplied MPI library */
 #undef PV_USE_MPI
 
+/* define this if using OpenCL for threads on CPU or GPU */
+#undef PV_USE_OPENCL
+
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL
 
 /* define this if using GDAL library to read/write images */
-#undef PV_USE_GDAL
+#define PV_USE_GDAL
 
 /* maximum length of a path */
 #define PV_PATH_MAX 127
