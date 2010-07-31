@@ -17,16 +17,27 @@
 #include "../io/LayerProbe.hpp"
 #include "../include/pv_types.h"
 
+#include "../arch/opencl/CLBuffer.hpp"
+
 namespace PV {
 
 // HyPerLayer uses C code from PVLayer.{h,c}, and LIF2.{h,c}
 typedef LIF2_params HyPerLayerParams;
 
-class HyPerLayer : public LayerDataInterface {
+/**
+ * OpenCLLayer collects memory objects for sharing data with OpenCL devices
+ */
+typedef struct {
+   CLBuffer * V;
+   CLBuffer * G_E;
+   CLBuffer * G_I;
+   CLBuffer * G_IB;
+   CLBuffer * phi;   // collects all three phi buffers and hopefully will go away
+   CLBuffer * activity;
+} OpenCLLayer;
 
-#ifdef OBSOLETE
-   friend class HyPerCol;
-#endif
+
+class HyPerLayer : public LayerDataInterface {
 
 protected:
 
@@ -35,6 +46,7 @@ protected:
 
 private:
    int initialize_base(const char * name, HyPerCol * hc);
+   int initializeThreads();
 
 public:
 
@@ -133,6 +145,8 @@ protected:
    int ioAppend;                // controls opening of binary files
    float writeTime;             // time of next output
    float writeStep;             // output time interval
+
+   OpenCLLayer clBuffers;       // data shared with OpenCL devices
 };
 
 } // namespace PV
