@@ -104,6 +104,30 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    return 0;
 }
 
+int HyPerLayer::initializeThreads()
+{
+   int status = 0;
+
+   const size_t size    = clayer->numNeurons  * sizeof(pvdata_t);
+   const size_t size_ex = clayer->numExtended * sizeof(pvdata_t);
+
+   CLDevice * device = parent->getCLDevice();
+
+   // these buffers are shared between host and device
+   //
+   clBuffers.V    = device->createBuffer(size, clayer->V);
+   clBuffers.G_E  = device->createBuffer(size, clayer->G_E);
+   clBuffers.G_I  = device->createBuffer(size, clayer->G_I);
+   clBuffers.G_IB = device->createBuffer(size, clayer->G_IB);
+
+   // collects all three phi buffers; hopefully will go away
+   clBuffers.phi  = device->createBuffer(3*size, clayer->V);
+
+   clBuffers.activity = device->createBuffer(size_ex, clayer->activity->data);
+
+   return status;
+}
+
 #ifdef DEPRECATED
 // deprecated:: border cubes no longer used
 PVLayerCube * HyPerLayer::initBorder(PVLayerCube * borderCube, int borderId)
