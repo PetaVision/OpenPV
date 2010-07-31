@@ -27,6 +27,8 @@ namespace PV {
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
          : warmStart(false), isInitialized(false)
 {
+   int opencl_device = 1;  // default to CPU for now
+
    // TODO - fix these numbers to dynamically grow
    maxLayers = MAX_LAYERS;
    maxConnections = MAX_CONNECTIONS;
@@ -40,16 +42,13 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(maxConnections * sizeof(HyPerConn *));
 
-#ifdef MULTITHREADED
-   numThreads = 1;
-#else
-   numThreads = 0;
-#endif
-
    numSteps = 2;
    image_file = NULL;
    param_file = NULL;
-   parse_options(argc, argv, &image_file, &param_file, &numSteps, &numThreads);
+   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device);
+
+   // run only on CPU for now
+   initializeThreads(opencl_device);
 
    // estimate for now
    // TODO -get rid of maxGroups
@@ -88,17 +87,13 @@ HyPerCol::~HyPerCol()
 {
    int n;
 
-#ifdef MULTITHREADED
    finalizeThreads();
-#endif
 
    if (image_file != NULL) free(image_file);
 
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
    }
-
-   free(threadCLayers);
 
    for (n = 0; n < numLayers; n++) {
       // TODO: check to see if finalize called
@@ -131,10 +126,6 @@ int HyPerCol::initFinish(void)
    }
 
    log_parameters(numSteps, image_file);
-
-#ifdef MULTITHREADED
-   initializeThreads();
-#endif
 
    isInitialized = true;
 
@@ -352,22 +343,16 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    return status;
 }
 
-int HyPerCol::initializeThreads()
+int HyPerCol::initializeThreads(int device)
 {
-   int err = 0;
-#ifdef IBM_CELL_BE
-   err = pv_cell_thread_init(columnId(), numThreads);
-#endif
-   return err;
+   clDevice = new CLDevice(device);
+   return 0;
 }
 
 int HyPerCol::finalizeThreads()
 {
-   int err = 0;
-#ifdef IBM_CELL_BE
-   err = pv_cell_thread_finalize(columnId(), numThreads);
-#endif
-   return err;
+   delete clDevice;
+   return 0;
 }
 
 int HyPerCol::loadState()
