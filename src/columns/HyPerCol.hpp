@@ -15,6 +15,8 @@
 #include "../include/pv_types.h"
 #include <time.h>
 
+#include "../arch/opencl/CLDevice.hpp"
+
 namespace PV {
 
 class HyPerLayer;
@@ -29,7 +31,7 @@ public:
    virtual ~HyPerCol();
 
    int initFinish(void); // call after all layers/connections have been added
-   int initializeThreads();
+   int initializeThreads(int device);
    int finalizeThreads();
 
    int run()  {return run(numSteps);}
@@ -50,6 +52,8 @@ public:
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
+
+   CLDevice   * getCLDevice()             {return clDevice;}
 
    InterColComm * icCommunicator()        {return icComm;}
 
@@ -100,14 +104,13 @@ private:
    bool warmStart;
    bool isInitialized;     // true when all initialization has been completed
 
-   float simTime;         // current time in milliseconds
+   float simTime;          // current time in milliseconds
    float deltaTime;        // time step interval
+
+   CLDevice * clDevice;    // object for running kernels on OpenCL device
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;
-
-   int numThreads;
-   PVLayer* threadCLayers;
 
    char * name;
    char * image_file;
@@ -121,12 +124,5 @@ private:
 }; // class HyPerCol
 
 } // namespace PV
-
-#ifdef OBSOLETE
-extern "C" {
-void *run1connection(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
-void *update1layer(void * arg); // generic prototype suitable for fork() : actually takes a run_struct
-}
-#endif
 
 #endif /* HYPERCOL_HPP_ */
