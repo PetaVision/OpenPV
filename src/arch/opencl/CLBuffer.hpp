@@ -8,17 +8,16 @@
 #ifndef CLBUFFER_HPP_
 #define CLBUFFER_HPP_
 
-#include "../../include/pv_arch.h"
-
-#ifdef PV_USE_OPENCL
-
-#include <OpenCL/opencl.h>
+#include "pv_opencl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PV {
 
 class CLBuffer {
+
+#ifdef PV_USE_OPENCL
+
 public:
 
    CLBuffer(cl_context context, cl_command_queue commands,
@@ -39,9 +38,14 @@ protected:
 
    size_t size;                        // size of buffer object
    cl_mem d_buf;                       // handle to buffer on the device
+
+private: CLBuffer()    { ; }
+#else
+public:  CLBuffer()    { ; }
+#endif /* PV_USE_OPENCL */
+
 };
 
 } // namespace PV
 
-#endif /* PV_USE_OPENCL */
 #endif /* CLBUFFER_HPP_ */
