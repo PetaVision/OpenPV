@@ -105,7 +105,7 @@ int    pv_close_binary(FILE * fp);
 size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
 
 int parse_options(int argc, char * argv[], char ** input_file,
-                  char ** param_file, int * n_time_steps, int *shmem_threads);
+                  char ** param_file, int * n_time_steps, int * opencl_device);
 
 #ifdef __cplusplus
 }
