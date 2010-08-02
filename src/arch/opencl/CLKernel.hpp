@@ -9,6 +9,7 @@
 #define CLKERNEL_HPP_
 
 #include "CLBuffer.hpp"
+#include <stdlib.h>
 
 namespace PV {
 
@@ -16,7 +17,6 @@ class CLKernel {
 public:
    CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
             const char * filename, const char * name);
-   virtual ~CLKernel();
 
    int addKernelArg(int argid, int arg);
    int addKernelArg(int argid, CLBuffer * buf);

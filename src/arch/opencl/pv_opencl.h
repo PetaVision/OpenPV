@@ -14,8 +14,17 @@
 #  include <OpenCL/opencl.h>
 #else
 
-#  define cl_mem_flags int
+#  define cl_uint           unsigned int
 
+#  define cl_mem_flags      int
+#  define cl_device_id      int
+#  define cl_context        int
+#  define cl_command_queue  int
+#  define cl_kernel         int
+#  define cl_program        int
+#  define cl_event          int
+
+#  define CL_SUCCESS           0
 #  define CL_MEM_READ_ONLY     0
 #  define CL_MEM_WRITE_ONLY    0
 #  define CL_MEM_USE_HOST_PTR  0

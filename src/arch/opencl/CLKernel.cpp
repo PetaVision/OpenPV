@@ -24,6 +24,8 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    this->profiling = true;
    this->elapsed = 0;
 
+#ifdef PV_USE_OPENCL
+
    // Create the compute program from the source buffer
    //
    char * source = load_program_source(filename);
@@ -60,17 +62,17 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
        exit(status);
    }
 
-}
+#endif // PV_USE_OPENCL
 
-CLKernel::~CLKernel()
-{
-   // TODO Auto-generated destructor stub
 }
 
 int CLKernel::run(size_t global_work_size)
 {
-   size_t local_work_size;
    int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+
+   size_t local_work_size;
 
    // get the maximum work group size for executing the kernel on the device
    //
@@ -98,15 +100,20 @@ int CLKernel::run(size_t global_work_size)
    //
    clFinish(commands);
 
+#endif // PV_USE_OPENCL
+
    return status;
 }
 
 int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY)
 {
+   int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+
    size_t local_work_size[2];
    size_t global_work_size[2];
    size_t max_local_size;
-   int status = 0;
 
    global_work_size[0] = gWorkSizeX;
    global_work_size[1] = gWorkSizeY;
@@ -157,12 +164,16 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       }
    }
 
+#endif // PV_USE_OPENCL
+
    return status;
 }
 
 int CLKernel::addKernelArg(int argid, int arg)
 {
    int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
 
    status = clSetKernelArg(kernel, argid, sizeof(int), &arg);
    if (status != CL_SUCCESS) {
@@ -171,6 +182,8 @@ int CLKernel::addKernelArg(int argid, int arg)
       exit(status);
    }
 
+#endif // PV_USE_OPENCL
+
    return status;
 }
 
@@ -178,6 +191,7 @@ int CLKernel::addKernelArg(int argid, CLBuffer * buf)
 {
    int status = CL_SUCCESS;
 
+#ifdef PV_USE_OPENCL
    cl_mem mobj = buf->clMemObject();
 
    status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &mobj);
@@ -186,6 +200,7 @@ int CLKernel::addKernelArg(int argid, CLBuffer * buf)
       CLDevice::print_error_code(status);
       exit(status);
    }
+#endif // PV_USE_OPENCL
 
    return status;
 }
@@ -194,12 +209,16 @@ int CLKernel::addLocalArg(int argid, size_t size)
 {
    int status = CL_SUCCESS;
 
+#ifdef PV_USE_OPENCL
+
    status = clSetKernelArg(kernel, argid, size, 0);
    if (status != CL_SUCCESS) {
       fprintf(stderr, "CLDevice::addLocalArg: Failed to set kernel argument! %d\n", status);
       CLDevice::print_error_code(status);
       exit(status);
    }
+
+#endif // PV_USE_OPENCL
 
    return status;
 }
