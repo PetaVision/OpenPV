@@ -108,6 +108,20 @@ int V1::setParams(PVParams * params, V1Params * p)
    return 0;
 }
 
+int V1::updateStateOpenCL(float time, float dt)
+{
+   int status = 0;
+
+   // setup and run kernel
+   // a. unmap the state variables so device can read and write
+   // b. pass state variables to kernel
+   // c. run kernel
+   // e. map the state variable for processing on CPU
+
+   return status;
+}
+
+
 int V1::updateState(float time, float dt)
 {
    PVParams * params = parent->parameters();
@@ -120,7 +134,7 @@ int V1::updateState(float time, float dt)
 #ifndef PV_USE_OPENCL
       return LIF2_update_exact_linear(clayer, dt);
 #else
-      return updateStateOpenCL();
+      return updateStateOpenCL(time, dt);
 #endif
    }
 
