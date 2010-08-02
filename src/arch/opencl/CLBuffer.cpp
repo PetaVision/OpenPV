@@ -20,7 +20,7 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::CLBuffer: Failed to create buffer!\n");
-      print_error_code(status);
+      CLDevice::print_error_code(status);
       exit(1);
    }
 }
@@ -40,7 +40,7 @@ int CLBuffer::copyToDevice(void * host_ptr)
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::copyToDevice: Failed to enqueue write buffer!\n");
-      print_error_code(status);
+      CLDevice::print_error_code(status);
       exit(status);
    }
       
@@ -57,7 +57,7 @@ int CLBuffer::copyFromDevice(void * host_ptr)
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::copyFromDevice: Failed to enqueue read buffer!\n");
-      print_error_code(status);
+      CLDevice::print_error_code(status);
       exit(status);
    }
       
@@ -73,7 +73,7 @@ void * CLBuffer::map(cl_map_flags flags)
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::map: Failed to enqueue map buffer!\n");
-      print_error_code(status);
+      CLDevice::print_error_code(status);
       exit(1);
    }
 
@@ -88,7 +88,7 @@ int CLBuffer::unmap(void * mapped_ptr)
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::unmap: Failed to enqueue unmap memory object!\n");
-      print_error_code(status);
+      CLDevice::print_error_code(status);
       exit(1);
    }
 
