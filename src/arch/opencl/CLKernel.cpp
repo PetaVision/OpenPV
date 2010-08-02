@@ -17,14 +17,14 @@ static char * load_program_source(const char *filename);
 CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
                    const char * filename, const char * name)
 {
-   int status = CL_SUCCESS;
-
    this->device = device;
    this->commands = commands;
    this->profiling = true;
    this->elapsed = 0;
 
 #ifdef PV_USE_OPENCL
+
+   int status = CL_SUCCESS;
 
    // Create the compute program from the source buffer
    //
