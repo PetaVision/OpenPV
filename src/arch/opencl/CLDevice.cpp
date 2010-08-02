@@ -165,7 +165,7 @@ int CLDevice::query_device_info(int id, cl_device_id device)
    
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES, vals_len*sizeof(size_t), vals, &param_value_size);
    printf("\tMaximum work item sizes == (");
-   for (int i = 0; i < max_dims; i++) printf(" %ld", vals[i]);
+   for (unsigned int i = 0; i < max_dims; i++) printf(" %ld", vals[i]);
    printf(" )\n");
    
    status = clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(val), &val, &param_value_size);
