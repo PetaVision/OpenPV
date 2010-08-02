@@ -57,7 +57,6 @@ PVPatch ** GeislerConn::createWeights(PVPatch ** patches, int nPatches, int nxPa
       int nyPatch, int nfPatch)
 {
    patches = KernelConn::createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
-   PVPatch ** kernel_patches = this->kernelPatches;
 
    const int arbor = 0;
    int num_geisler_patches = numDataPatches(arbor);
@@ -100,7 +99,6 @@ PVPatch ** GeislerConn::initializeDefaultWeights(PVPatch ** patches, int numPatc
 
 int GeislerConn::updateState(float time, float dt)
 {
-   PVPatch ** kernel_patches = this->kernelPatches;
    int axonID = 0;
    int num_kernels = this->numDataPatches(axonID);
    numUpdates++;
@@ -254,7 +252,6 @@ int GeislerConn::updateWeights(int axonID)
 
 int GeislerConn::writeWeights(float time, bool last)
 {
-   PVPatch ** kernel_patches = this->kernelPatches;
 #ifdef APPLY_GEISLER_WEIGHTS
 	// do nothing, kernels are already up to date
 #else
