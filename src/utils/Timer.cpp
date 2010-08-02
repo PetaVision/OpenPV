@@ -27,12 +27,12 @@ Timer::~Timer()
 
 double Timer::start()
 {
-   mach_start = mach_absolute_time();
+   return (mach_start = mach_absolute_time());
 }
 
 double Timer::stop()
 {
-   mach_end = mach_absolute_time(); 
+   return (mach_end = mach_absolute_time());
 }
 
 double Timer::elapsed_time()
@@ -42,6 +42,7 @@ double Timer::elapsed_time()
       fprintf(stdout, "Mach processor cycle time == %f\n", (float) mach_elapsed);
       fflush(stdout);
    }
+   return mach_elapsed;
 }
    
 }  // namespace PV
