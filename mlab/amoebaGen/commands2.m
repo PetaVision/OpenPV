@@ -1,7 +1,7 @@
 function [nz_image_cell] = commands2(image_size)
 
 if nargin < 1
-    image_size = [256 256];
+    image_size = [128 128];
 end
 
 global image_dim
@@ -10,7 +10,7 @@ image_dim = image_size;
 %  addpath('/Applications/Psychtoolbox/');
 
 % number of targets/fourier component
-numT = 1000;
+numT = 10000;
 %  screen_color = [];
 %screen_rect = [0 0 256 256];
 %  screen_rect = [0 0 128 128];
