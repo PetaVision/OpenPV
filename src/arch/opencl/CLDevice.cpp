@@ -17,8 +17,8 @@ namespace PV {
 
 CLDevice::CLDevice(int device)
 {
-   this->device = device;
-   initialize(device);
+   this->device_id = device;
+   initialize(device_id);
 }
 
 int CLDevice::initialize(int device)
@@ -37,7 +37,7 @@ int CLDevice::initialize(int device)
 
    // create a compute context
    //
-   context = clCreateContext(0, 1, &device_ids[device], NULL, NULL, &status);
+   context = clCreateContext(0, 1, &device_ids[device_id], NULL, NULL, &status);
    if (!context)
    {
        printf("Error: Failed to create a compute context for device %d!\n", device);
@@ -46,7 +46,7 @@ int CLDevice::initialize(int device)
 
    // create a command queue
    //
-   commands = clCreateCommandQueue(context, device_ids[device], 0, &status);
+   commands = clCreateCommandQueue(context, device_ids[device_id], 0, &status);
    if (!commands)
    {
        printf("Error: Failed to create a command commands!\n");
@@ -67,7 +67,7 @@ int CLDevice::initialize(int device)
 
 CLKernel * CLDevice::createKernel(const char * filename, const char * name)
 {
-   return new CLKernel(context, commands, device_ids[device], filename, name);
+   return new CLKernel(context, commands, device_ids[device_id], filename, name);
 }
 
 CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_ptr)

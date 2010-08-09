@@ -23,7 +23,7 @@ class CLKernel;
 class CLDevice {
 
 protected:
-   int device;                           // device id (normally 0 for GPU, 1 for CPU)
+   int device_id;                         // device id (normally 0 for GPU, 1 for CPU)
 
 public:
    CLDevice(int device);
@@ -31,6 +31,8 @@ public:
    int initialize(int device);
 
    static void print_error_code(int code);
+
+   int id()  { return device_id; }
 
    CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
 
