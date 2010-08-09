@@ -2,7 +2,7 @@
 #define PV_ARCH_H
 
 /* define this for 64 bit architectures */
-#undef PV_ARCH_64
+#define PV_ARCH_64
 
 /* define this if using a vendor supplied MPI library */
 #undef PV_USE_MPI
