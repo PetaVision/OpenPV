@@ -9,6 +9,7 @@
 #define V1_HPP_
 
 #include "HyPerLayer.hpp"
+#include "../arch/opencl/CLKernel.hpp"
 #include "LIF2.h"
 
 namespace PV
@@ -28,6 +29,14 @@ public:
    virtual int writeState(const char * path, float time);
 
    int setParams(PVParams * params, V1Params * p);
+
+protected:
+   // OpenCL variables
+   //
+   CLKernel * updatestate_kernel;  // CL kernel for update state call
+
+   int nxl;  // local grid size in x
+   int nyl;  // local grid size in y
 
 private:
    virtual int initialize(PVLayerType type);

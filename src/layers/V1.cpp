@@ -58,6 +58,34 @@ int V1::initialize(PVLayerType type)
       readState(name, &time);
    }
 
+   // initialize OpenCL parameters
+   //
+   CLDevice * device = parent->getCLDevice();
+   updatestate_kernel = device->createKernel("LIF_updatestate.cl", "LIF_updatestate.cl");
+
+   // TODO - fix to use device and layer parameters
+   if (device->id() == 1) {
+      nxl = 1;
+      nyl = 1;
+   }
+   else {
+      nxl = 16;
+      nyl = 16;
+   }
+
+   size_t lsize    = clayer->numNeurons*sizeof(pvdata_t);
+   size_t lsize_ex = clayer->numExtended*sizeof(pvdata_t);
+
+   clBuffers.V    = device->createBuffer(lsize, clayer->V);
+   clBuffers.G_E  = device->createBuffer(lsize, clayer->G_E);
+   clBuffers.G_I  = device->createBuffer(lsize, clayer->G_I);
+   clBuffers.G_IB = device->createBuffer(lsize, clayer->G_IB);
+   clBuffers.phi  = device->createBuffer(lsize, clayer->phi);
+   clBuffers.activity = device->createBuffer(lsize_ex, clayer->activity);
+
+   int argid = 0;
+   updatestate_kernel->addKernelArg(argid++, clBuffers.V);
+
    return 0;
 }
 
@@ -110,13 +138,18 @@ int V1::setParams(PVParams * params, V1Params * p)
 
 int V1::updateStateOpenCL(float time, float dt)
 {
-   int status = 0;
+   int status = CL_SUCCESS;
 
    // setup and run kernel
    // a. unmap the state variables so device can read and write
    // b. pass state variables to kernel
    // c. run kernel
    // e. map the state variable for processing on CPU
+
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+
+   updatestate_kernel->run(nx, ny, nxl, nyl);
 
    return status;
 }
