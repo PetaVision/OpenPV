@@ -2,19 +2,24 @@ function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
 % plot "weights" (typically after turning on just one neuron)
 % Xtarg and Ytarg contain the X and Y coordinates of the target
 % xScale and yScale are scale factors for this layer
-% We should pass NX and NY as argumrnts
+% We should pass NX and NY as arguments
+
+% We plot a square around the neurons that have the same receptive
+% field. xShare and yShare define the size of the layer patch that
+% contains neurons that have the same receptive.
 
 global input_dir  NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
-%colormap(jet);
     
+xShare = 4; % define the size of the layer patch that 
+yShare = 4; % contains neurons that have the same receptive field.
 
-NX = NX * xScale; % L1 size
-NY = NY * yScale;
+NXlayer = NX * xScale; % L1 size
+NYlayer = NY * yScale;
 
-fprintf('scalex NX = %d scaled NY = %d\n',NX,NY);
+fprintf('scaled NX = %d scaled NY = %d\n',NXlayer,NYlayer);
 
 PLOT_STEP = 1;
 plotTarget = 0;
@@ -34,12 +39,12 @@ if exist(filename,'file')
     
     fid = fopen(filename, 'r', 'native');
 
-    [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+    [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid);
     fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
         time,numPatches,NXP,NYP,NFP);
     
-    if numPatches ~= NX*NY
+    if numPatches ~= NXlayer*NYlayer
         disp('mismatch between numPatches and NX*NY')
         return
     end
@@ -78,13 +83,13 @@ if exist(filename,'file')
         
         % read the weights for this time step 
         W_array = []; % reset every time step: this is N x patch_size array
-                      % where N =NX * NY
+                      % where N = NXlayer * NYlayer
                       
         % read header if not first record (for which header is already read)
         
         if ~first_record
             [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
-                readHeader(fid,numParams,numWgtParams);
+                readHeader(fid,numParams);
             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
                 time,numPatches,NXP,NYP,NFP);
             %pause
@@ -98,8 +103,8 @@ if exist(filename,'file')
         
         k=0;
         
-        for j=1:NY
-            for i=1:NX
+        for j=1:NYlayer
+            for i=1:NXlayer
                 if ~feof(fid)
                     k=k+1;
                     nx = fread(fid, 1, 'uint16'); % unsigned short
@@ -143,8 +148,8 @@ if exist(filename,'file')
             
             
             k=0;
-            for j=(NYPbor/2):NYPbor:(NY*NYPbor)
-                for i=(NXPbor/2):NXPbor:(NX*NXPbor)
+            for j=(NYPbor/2):NYPbor:(NYlayer*NYPbor)
+                for i=(NXPbor/2):NXPbor:(NXlayer*NXPbor)
                     k=k+1;
                     %W_array(k,:)
                     patch = reshape(W_array(k,:),[NXP NYP]);
@@ -164,12 +169,22 @@ if exist(filename,'file')
                 avWeights = A;
                 %fprintf('time = %f\n',time);
                 if ~weightsChange
-                    figure('Name',['Weights Field ' num2str(time)]);
+                    figure('Name',['Weights Field ' num2str(time)]);                    
                     imagesc(A,'CDataMapping','direct');
-                    colorbar
+                    %colorbar
                     axis square
                     axis off
                     hold on
+                    % plot squares around the neurons that share the same
+                    % receptive field
+                    for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
+                        plot([i, i],[0,NYlayer*NYPbor],'-r');
+                        
+                    end
+                    for j=(0.5+2*NYPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
+                        plot([0,NXlayer*NXPbor],[j,j],'-r');
+                    end
+                    pause
                 end
             else            % other records (not first)
                 if (mod(numRecords,PLOT_STEP) == 0)
@@ -181,10 +196,22 @@ if exist(filename,'file')
                        figure('Name',['Weights Field ' num2str(time)]);
                        imagesc(A,'CDataMapping','direct');
                     end
-                    colorbar
+                    %colorbar
                     axis square
                     axis off
                     hold on
+                    
+                    % plot squares around the neurons that share the same
+                    % receptive field
+                    for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
+                        plot([i, i],[0,NYlayer*NYPbor],'-r');
+                        
+                    end
+                    for j=(0.5+2*NXPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
+                        plot([0,NXlayer*NXPbor],[j,j],'-r');
+                    end
+                    %pause
+                    
                     % plot target pixels
                     if plotTarget
                         for t=1:length(Xtarg)
@@ -208,7 +235,7 @@ if exist(filename,'file')
     avWeights = avWeights / numRecords;
     figure('Name','Time Averaged Weights');
     imagesc(avWeights,'CDataMapping','direct');
-    colorbar
+    %colorbar
     axis square
     axis off
     
@@ -222,7 +249,7 @@ end
 %
 
 
-function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+function [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid)
 
 
@@ -233,7 +260,6 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
        disp('incorrect file type')
        return
     end
-    numWgtParams = 6;
     numParams = head(2)-8;
     fseek(fid,0,'bof'); % rewind file
     
@@ -248,24 +274,28 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
     
-    wgtParams = fread(fid,numWgtParams,'int');
+    wgtParams = fread(fid,3,'int');
     NXP = wgtParams(1);
     NYP = wgtParams(2);
     NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
+    
+    rangeParams = fread(fid,2,'float');
+    minVal      = rangeParams(1);
+    maxVal      = rangeParams(2);
+    
+    numPatches  = fread(fid,1,'int');
+    
     fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
-    fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
+    fprintf('minVal = %f maxVal = %f numPatches = %d\n',...
         minVal,maxVal,numPatches);
-    pause
+    %pause
     
 % End subfunction 
 %
     
     
 %function [time,varargout] = readHeader(fid,numParams,numWgtParams)
-function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams)
 
 
 
@@ -282,13 +312,17 @@ if ~feof(fid)
         time = fread(fid,1,'float64');
         fprintf('time = %f\n',time);
 
-        wgtParams = fread(fid,numWgtParams,'int');
+        wgtParams = fread(fid,3,'int');
         NXP = wgtParams(1);
         NYP = wgtParams(2);
         NFP = wgtParams(3);
-        minVal      = wgtParams(4);
-        maxVal      = wgtParams(5);
-        numPatches  = wgtParams(6);
+        
+        rangeParams = fread(fid,2,'float');
+        minVal      = rangeParams(1);
+        maxVal      = rangeParams(2);
+    
+        numPatches  = fread(fid,1,'int');
+        
         fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
