@@ -181,7 +181,7 @@ int GeislerConn::updateWeights(int axonID)
    const pvdata_t * preLayerData = pre->getLayerData();
 
    //TODO! following method is not MPI compatible (gives different answers depending on partition)
-#define TRAINING_G1_TRIALS
+#undef TRAINING_G1_TRIALS
 #ifdef TRAINING_G1_TRIALS
 
   pvdata_t aPreMax = -FLT_MAX;
@@ -295,8 +295,6 @@ PVPatch ** GeislerConn::normalizeWeights(PVPatch ** patches, int numPatches)
    }
    return KernelConn::normalizeWeights(patches, numPatches);
 }
-
-
 
 
 } // namespace PV

@@ -127,39 +127,120 @@ int KernelConn::numDataPatches(int arbor)
    return numKernelPatches;
 }
 
-float KernelConn::minWeight(){
+float KernelConn::minWeight()
+{
    const int axonID = 0;
    const int numKernels = numDataPatches(axonID);
    const int numWeights = nxp * nyp * nfp;
    float min_weight = FLT_MAX;
-   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+   for (int iKernel = 0; iKernel < numKernels; iKernel++) {
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
-      for (int iWeight = 0; iWeight < numWeights; iWeight++){
-         min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight : kernelWeights[iWeight];
+      for (int iWeight = 0; iWeight < numWeights; iWeight++) {
+         min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
+               : kernelWeights[iWeight];
       }
    }
    return min_weight;
- }
+}
 
-float KernelConn::maxWeight(){
+float KernelConn::maxWeight()
+{
    const int axonID = 0;
    const int numKernels = numDataPatches(axonID);
    const int numWeights = nxp * nyp * nfp;
    float max_weight = -FLT_MAX;
-   for (int iKernel = 0; iKernel < numKernels; iKernel++){
+   for (int iKernel = 0; iKernel < numKernels; iKernel++) {
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
-      for (int iWeight = 0; iWeight < numWeights; iWeight++){
-         max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight : kernelWeights[iWeight];
+      for (int iWeight = 0; iWeight < numWeights; iWeight++) {
+         max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
+               : kernelWeights[iWeight];
       }
    }
    return max_weight;
- }
+}
 
 PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);
-   return HyPerConn::normalizeWeights(kernelPatches, num_kernels);
+   HyPerConn::normalizeWeights(kernelPatches, num_kernels);
+   if (num_kernels > 1) {
+      symmetrizeWeights(kernelPatches, num_kernels);
+   }
+   return patches;
+}
+
+PVPatch ** KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches)
+{
+   PVPatch ** symPatches;
+   symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);
+   assert(symPatches != NULL);
+   for (int iKernel = 0; iKernel < numPatches; iKernel++) {
+      symPatches[iKernel] = pvpatch_inplace_new(nxp, nyp, nfp);
+      assert(symPatches[iKernel] != NULL );
+   }
+   const int sy = nxp * nfp;
+   const float deltaTheta = PI / nfp;
+   const float offsetTheta = 0.5f * deltaTheta;
+   const int kyMid = nyp / 2;
+   const int kxMid = nxp / 2;
+   for (int iSymKernel = 0; iSymKernel < numPatches; iSymKernel++) {
+      PVPatch * symWp = symPatches[iSymKernel];
+      pvdata_t * symW = symWp->data;
+      float symTheta = offsetTheta + iSymKernel * deltaTheta;
+      for (int kySym = 0; kySym < nyp; kySym++) {
+         float dySym = kySym - kyMid;
+         for (int kxSym = 0; kxSym < nxp; kxSym++) {
+            float dxSym = kxSym - kxMid;
+            float distSym = sqrt(dxSym * dxSym + dySym * dySym);
+            if (distSym > abs(kxMid > kyMid ? kxMid : kyMid)) {
+               continue;
+            }
+            float dyPrime = dySym * cos(symTheta) - dxSym * sin(symTheta);
+            float dxPrime = dxSym * cos(symTheta) + dySym * sin(symTheta);
+            for (int kfSym = 0; kfSym < nfp; kfSym++) {
+               int kDf = kfSym - iSymKernel;
+               int iSymW = kfSym + nfp * kxSym + sy * kySym;
+               for (int iKernel = 0; iKernel < nfp; iKernel++) {
+                  PVPatch * kerWp = kernelPatches[iKernel];
+                  pvdata_t * kerW = kerWp->data;
+                  int kfRot = iKernel + kDf;
+                  if (kfRot < 0) {
+                     kfRot = nfp + kfRot;
+                  }
+                  else {
+                     kfRot = kfRot % nfp;
+                  }
+                  float rotTheta = offsetTheta + iKernel * deltaTheta;
+                  float yRot = dyPrime * cos(rotTheta) + dxPrime * sin(rotTheta);
+                  float xRot = dxPrime * cos(rotTheta) - dyPrime * sin(rotTheta);
+                  yRot += kyMid;
+                  xRot += kxMid;
+                  // should find nearest neighbors and do weighted average
+                  int kyRot = yRot + 0.5f;
+                  int kxRot = xRot + 0.5f;
+                  int iRotW = kfRot + nfp * kxRot + sy * kyRot;
+                  symW[iSymW] += kerW[iRotW] / nfp;
+               } // kfRot
+            } // kfSymm
+         } // kxSym
+      } // kySym
+   } // iKernel
+   const int num_weights = nfp * nxp * nyp;
+   for (int iKernel = 0; iKernel < numPatches; iKernel++) {
+      PVPatch * kerWp = kernelPatches[iKernel];
+      pvdata_t * kerW = kerWp->data;
+      PVPatch * symWp = symPatches[iKernel];
+      pvdata_t * symW = symWp->data;
+      for (int iW = 0; iW < num_weights; iW++) {
+         kerW[iW] = symW[iW];
+      }
+   } // iKernel
+   for (int iKernel = 0; iKernel < numPatches; iKernel++) {
+      pvpatch_inplace_delete(symPatches[iKernel]);
+   } // iKernel
+   free(symPatches);
+   return patches;
 }
 
 int KernelConn::writeWeights(float time, bool last)
@@ -169,42 +250,42 @@ int KernelConn::writeWeights(float time, bool last)
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
 }
 
-
-int KernelConn::kernelIndexToPatchIndex(int kernelIndex){
+int KernelConn::kernelIndexToPatchIndex(int kernelIndex)
+{
    int patchIndex;
    int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
          post->clayer->xScale - pre->clayer->xScale) : 1;
    int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
          post->clayer->yScale - pre->clayer->yScale) : 1;
    int nfPre = pre->clayer->numFeatures;
-   int kxPre = kxPos( kernelIndex, xScaleFac, yScaleFac, nfPre);
-   int kyPre = kyPos( kernelIndex, xScaleFac, yScaleFac, nfPre);
-   int kfPre = featureIndex( kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kxPre = kxPos(kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kyPre = kyPos(kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kfPre = featureIndex(kernelIndex, xScaleFac, yScaleFac, nfPre);
    int nxPre = pre->clayer->loc.nx;
    int nyPre = pre->clayer->loc.ny;
-   patchIndex = kIndex( kxPre,  kyPre,  kfPre,  nxPre,  nyPre,  nfPre);
+   patchIndex = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
    return patchIndex;
 }
 
 // many to one mapping from weight patches to kernels
-int KernelConn::patchIndexToKernelIndex(int patchIndex){
+int KernelConn::patchIndexToKernelIndex(int patchIndex)
+{
    int kernelIndex;
    int nxPre = pre->clayer->loc.nx;
    int nyPre = pre->clayer->loc.ny;
    int nfPre = pre->clayer->numFeatures;
-   int kxPre = kxPos( patchIndex, nxPre, nyPre, nfPre);
-   int kyPre = kyPos( patchIndex, nxPre, nyPre, nfPre);
-   int kfPre = featureIndex( patchIndex, nxPre, nyPre, nfPre);
+   int kxPre = kxPos(patchIndex, nxPre, nyPre, nfPre);
+   int kyPre = kyPos(patchIndex, nxPre, nyPre, nfPre);
+   int kfPre = featureIndex(patchIndex, nxPre, nyPre, nfPre);
    int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
          post->clayer->xScale - pre->clayer->xScale) : 1;
    int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
          post->clayer->yScale - pre->clayer->yScale) : 1;
    kxPre = kxPre % xScaleFac;
    kyPre = kyPre % yScaleFac;
-   kernelIndex = kIndex( kxPre,  kyPre,  kfPre,  xScaleFac,  yScaleFac,  nfPre);
+   kernelIndex = kIndex(kxPre, kyPre, kfPre, xScaleFac, yScaleFac, nfPre);
    return kernelIndex;
 }
-
 
 } // namespace PV
 
