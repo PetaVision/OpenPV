@@ -193,11 +193,11 @@ int V1::updateState(float time, float dt)
    for (int k = 0; k < clayer->numNeurons; k++) {
       int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
       V[k] = phiExc[k] - phiInh[k];
-#define SET_MAX
+#undef SET_MAX
 #ifdef SET_MAX
       V[k] = V[k] > 1.0f ? 1.0f : V[k];
 #endif
-#define SET_THRESH
+#undef SET_THRESH
 #ifdef SET_THRESH
       V[k] = V[k] < 0.5f ? 0.0f : V[k];
 #endif
