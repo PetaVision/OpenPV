@@ -254,7 +254,7 @@ else % NON_SPIKING
 
     N_CONNECTIONS = 12;
   connIndex.l1_geisler3_l1_geisler3 = 13;
-  connID{ 1, 10 } =  'L1G3ToL1G3';
+  connID{ 1, 13 } =  'L1G3ToL1G3';
    
 
  end%%if

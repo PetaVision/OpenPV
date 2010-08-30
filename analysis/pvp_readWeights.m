@@ -1,6 +1,6 @@
 function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
 
-  global output_path 
+  global target_path 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
   global NO NK % for the current layer
@@ -20,7 +20,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
 				% PetaVision always names spike files aN.pvp, where
 				% N == layer index (starting at 0)
   filename = ['w', num2str(i_conn-1),'_last.pvp'];
-  filename = [output_path, filename];
+  filename = [target_path, filename];
   
   fprintf(['read connection weights from %s\n'],filename);
   
@@ -29,8 +29,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   ave_weight = 0;
 	 
   if ~exist(filename,'file')
-    disp(['~exist(filename,''file'') in pvp file: ', filename]);
-    return;
+    error(['~exist(filename,''file'') in pvp file: ', filename]);
   end
   
   [pvp_header, pvp_index] = pvp_readWeightHeader(filename);
