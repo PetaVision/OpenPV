@@ -14,7 +14,7 @@ function filenames_cell = pvp_fileNames(N_ofeach, FC_list)
   end%%if
   num_FCs = length(FC_list);
   if nargin < 1 || isempty(N_ofeach)
-    N_ofeach = 10000; %2500;
+    N_ofeach = 5000; %2500;
   end%%if
   N = num_FCs * N_ofeach;
   image_id = [];

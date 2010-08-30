@@ -32,7 +32,8 @@ nz_image = zeros(3, numT);
 nz_image_cell = cell(length(fourC), 1);
 
 global machine_path
-machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/';
+%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/';
+machine_path = '/Users/gkenyon/Documents/MATLAB/amoeba/';
 if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
@@ -69,13 +70,13 @@ for i = 1:length(fourC)
     nz_image_cell{i} = nz_image;
     figure
     [nz_image_hist, nz_image_bins] = ...
-        hist( nz_image_cell{1}(1,:) );
+        hist( nz_image_cell{i}(1,:) );
     bh = bar( nz_image_bins, nz_image_hist, 0.8);
     set(bh, 'EdgeColor', [1 0 0]);
     set(bh, 'FaceColor', [1 0 0]);
     hold on;
     nz_image_hist = ...
-        hist( nz_image_cell{1}(2,:), nz_image_bins );
+        hist( nz_image_cell{i}(2,:), nz_image_bins );
     bh = bar( nz_image_bins, nz_image_hist, 0.6);
     set(bh, 'EdgeColor', [0 0 1]);
     set(bh, 'FaceColor', [0 0 1]);
@@ -85,6 +86,17 @@ for i = 1:length(fourC)
     save('-mat', amoeba_hist_filename, 'nz_image');
 end
 
+
+for i = 1:size(nz_image_cell,1)
+    mean_nz_tmp = mean(nz_image_cell{i}(1,:));
+    std_nz_tmp = std(nz_image_cell{i}(1,:));
+    mean_nz_tmp2 = mean(nz_image_cell{i}(2,:));
+    std_nz_tmp2 = std(nz_image_cell{i}(2,:));
+    disp( ['mean_nz(', num2str(i), ',:) =', num2str(mean_nz_tmp), ...
+	  ' +/- ', num2str(std_nz_tmp), ', ', num2str(mean_nz_tmp2), ...
+	  ' +/- ', num2str(std_nz_tmp2)] );
+end
+    
 %Screen('CloseAll');
 
 %if ( uioctave )
