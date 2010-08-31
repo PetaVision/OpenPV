@@ -99,4 +99,6 @@ if plot_input_image
     fh = figure('Name', 'input image');
     imagesc(image_pixels);
     colormap('gray');
+else
+  fh = 0;
 end
