@@ -1,14 +1,18 @@
 
-function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
-				size_recon, plot_recon_flag)
+function [fh] = ...
+      pvp_reconstruct( recon_array, ...
+		      plot_title, ...
+		      fh, ...
+		      size_recon, ...
+		      plot_recon_flag)
   
   global NK NO NROWS NCOLS
   global ROTATE_FLAG
   global MIN_INTENSITY
   global FLAT_ARCH_FLAG
   global NUM2STR_FORMAT
-  global output_path
-
+  global OUTPUT_PATH
+  
   if ~exist('NUM2STR_FORMAT') || isempty(NUM2STR_FORMAT)
     NUM2STR_FORMAT = '%03.3i';
   end%%if
@@ -32,7 +36,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
   NO  = size_recon(2);
   NCOLS  = size_recon(3);
   NROWS = size_recon(4);
-
+  
   if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
     plot_recon_flag = 1;
   end%%if
@@ -46,7 +50,7 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
 				%  end%%if
   max_recon = max(recon_array(:));
   min_recon = min(recon_array(:));
-
+  
 				% if activity is sparse, plot all pixels, else only plot pixels > mean
   log2_size = max( log2(NROWS), log2(NCOLS) );
   nz_recon = length(find(recon_array ~= 0.0));
@@ -76,18 +80,17 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
 				% cmap = colormap;
   hold on;
   if ~FLAT_ARCH_FLAG && NO > 1  && plot_recon_flag
-    
     if ~exist('fh','var') || isempty(fh) || nargin < 3
       fh = figure;
     end%%if
     set(fh, 'Name', plot_title);
-  axis([0 NCOLS+1 0 NROWS+1]);
-  axis square;
-  axis tight
-  box on
-  axis on
+    axis([0 NCOLS+1 0 NROWS+1]);
+    axis square;
+    axis tight
+    box on
+    axis on
 				%colorbar('East');
-  colormap('gray');
+    colormap('gray');
 
     [recon_array, recon_ndx] = sort(recon_array(:));
     last_recon_ndx = find(recon_array < 0, 1, 'last');
@@ -133,23 +136,25 @@ function [fh] = pvp_reconstruct( recon_array, plot_title, fh, ...
     if plot_recon_flag
       if ( ~exist('fh','var') || isempty(fh) || nargin < 3 )
 	fh = figure;
+      else
+	figure(fh);
       end%%if
-      figure(fh);
       set(fh, 'Name', plot_title);
       tmp = squeeze( max(recon3D,[],1) );
-      imagesc( gca, tmp' );  % plots recod2D as an image
+				%imagesc( gca, tmp' );  % plots recod2D as an image
+      imagesc( tmp' );  % plots recod2D as an image
       colormap('gray');
     end%%if
     plot_title_tmp = ...
-	[output_path, plot_title, '.tiff'];
+	[OUTPUT_PATH, plot_title, '.tiff'];
     recon3D = uint8(255*recon3D);
     imwrite( squeeze( max(recon3D,[],1) )', ...
 	    plot_title_tmp, 'tiff');
     for i_feature = 1 : 0 % NFEATURES
       plot_title_tmp = ...
-	  [output_path, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
+	  [OUTPUT_PATH, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
       imwrite( squeeze( recon3D(i_feature,:,:) )', ...
 	      plot_title_tmp, 'tiff');
     end%%for
   end%%if
-  hold off;
+ 
