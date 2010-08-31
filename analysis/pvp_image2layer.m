@@ -1,5 +1,5 @@
 function [ layer_index, layer_index_max ] = ...
-      pvp_image2layer( spikes, ...
+      pvp_image2layer( layer, ...
 		      image_index, ...
 		      timesteps, ...
 		      use_max, ...
@@ -18,18 +18,17 @@ function [ layer_index, layer_index_max ] = ...
   global N_image NROWS_image NCOLS_image 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
-
-  global time_steps
-
+  global SPIKE_ARRAY
+  global LAYER
   if nargin < 4
     use_max = 0;
   end%%if
-  if nargin < 3
-    timesteps = time_steps;
+  if nargin < 3 || isempty(timesteps)
+    timesteps = size(SPIKE_ARRAY{LAYER}, 1);
   end%%if
 
-  if ~isempty(spikes(timesteps,:))
-    rate_array = full(sum(spikes(timesteps,:), 1)); % total spikes over all timesteps
+  if ~isempty(SPIKE_ARRAY{LAYER})
+    rate_array = full(sum(SPIKE_ARRAY{LAYER}(timesteps,:), 1)); % total spikes over all timesteps
 				% if pvp_order
 				%     rate_array = reshape(rate_array', [NFEATURES, NCOLS, NROWS]);
 				% else 
