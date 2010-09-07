@@ -39,7 +39,7 @@ G4_FLAG = 1;
 
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
-FC_STR = [num2str(4), 'fc'];
+FC_STR = [num2str(2), 'fc'];
 
 num_single_trials = 5;
 num_trials =  ( TRAINING_FLAG <= 0 ) * 999; % %
@@ -70,7 +70,7 @@ machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/256/test_target20K_W400_target']; %, FC_STR];
+target_path = [machine_path 'kernel/input/256/test_target40K_W325_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   target_path = [target_path, FC_STR, '/'];
@@ -78,7 +78,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel/input/256/test_target20K_W400_distractor']; %, FC_STR];
+		     'kernel/input/256/test_target40K_W325_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -217,7 +217,7 @@ for j_trial = first_trial : skip_trial : last_trial
       disp([ layerID{layer}, ...
             ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
             num2str(ave_activity(target_flag, layer, j_trial) ) ]);
-      if isempty(activity{target_flag})
+      if isempty(activity{target_flag}) || ~any(activity{target_flag})
         continue;
       endif
 
@@ -257,7 +257,7 @@ for j_trial = first_trial : skip_trial : last_trial
 	      subindex_str, ...
 	      num2str(snz_activity(target_flag, layer, j_trial))]);
       endif
-      
+
       hist_activity(target_flag, :, layer) = ...
           hist_activity(target_flag, :, layer) + ...
           hist_activity_tmp;
@@ -347,13 +347,14 @@ for j_trial = first_trial : skip_trial : last_trial
 	  blue_hist = 1;
 	  bar_width = 0.6;
         endif
-	bh = bar( hist_activity_bins{layer, 1}, ...
-		 log( squeeze( hist_activity_cell{target_flag,
-						  layer} ) + 1), ...
-		 bar_width);
-	hold on
-	set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
-	set( bh, 'FaceColor', [red_hist 0 blue_hist] );
+	if any(hist_activity_cell{target_flag,layer}(:))
+	  bh = bar( hist_activity_bins{layer, 1}, ...
+		   log( squeeze( hist_activity_cell{target_flag,layer}(:) ) + 1), ...
+		   bar_width);
+	  hold on
+	  set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
+	  set( bh, 'FaceColor', [red_hist 0 blue_hist] );
+	end%%if
 	
       endfor  % target_flag
     endfor  % layer
