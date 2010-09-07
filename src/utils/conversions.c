@@ -10,8 +10,8 @@
 /**
  * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer
  * @kzPre is the pre-synaptic index in z direction (can be either local or global)
- * @zScaleLog2Pre is log2 zScale of presynaptic layer
- * @zScaleLog2Post is log2 zScale of postsynaptic layer
+ * @zScaleLog2Pre is log2 zScale (distance not number) of presynaptic layer
+ * @zScaleLog2Post is log2 zScale (distance not number) of postsynaptic layer
  * @nzPatch is the size of patch in z direction
  */
 int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
@@ -36,10 +36,28 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
 
       int kpos = (kzPre < 0) ? -(1+kzPre) : kzPre;
       int l = (int) (2*a*kpos) % 2;
+      // The following statement performs this:
+      // if (kzPre < 0) {
+      //    if (l == 1) {
+      //       shift -= 1
+      //    }
+      // }
+      // else {
+      //    if (l == 0) {
+      //       shift -= 1
+      //    }
+      // }
+
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
 
    int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+
+   //added if nzPatch == 1
+   if (nzPatch == 1) {
+      return neighbor;
+   }
+
    return shift + neighbor;
 }
 
