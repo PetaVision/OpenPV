@@ -37,17 +37,28 @@ TRAINING_FLAG = -1;
 global G4_FLAG
 G4_FLAG = 1;
 
+global DIRTY_FLAG
+DIRTY_FLAG = 1;
+
+if DIRTY_FLAG == 1
+  kernel_str = 'dirty';
+else
+  kernel_str = 'clean';
+endif
+
+NFC = 4;
+
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
-FC_STR = [num2str(2), 'fc'];
+FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 5;
-num_trials =  ( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials =  0; %( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
   first_trial = 2; 
-end%%if %TOPDOWN_FLAG
+endif %TOPDOWN_FLAG
 last_trial = num_trials;
 skip_trial = 1;
 
@@ -301,9 +312,10 @@ for j_trial = first_trial : skip_trial : last_trial
             ['recon ', layer_label, num2str(layer_level), '_', ...
              num2str(j_trial, NUM2STR_FORMAT), '_', ...
              num2str(target_flag)];
-	
+	fig_tmp = figure;
+	set(fig_tmp, 'Name', recon_filename);
         fig_tmp = pvp_reconstruct(activity{target_flag}, ...
-				  recon_filename, [], ...
+				  recon_filename, fig_tmp, ...
 				  size_activity, ...
 				  1);
         fig_list = [fig_list; fig_tmp];
@@ -390,11 +402,15 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 1;
+FLAT_ARCH_FLAG = 0;
+write_pvp_kernel_flag = 1;
+write_mat_kernel_flag = 1;
+weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 for i_conn = plot_weights
-    weight_min = 10000000.;
-    weight_max = -10000000.;
-    weight_ave = 0;
+  weight_type{i_conn} = kernel_str;
+  weight_min = 10000000.;
+  weight_max = -10000000.;
+  weight_ave = 0;
   if i_conn < N_CONNECTIONS+1
     [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_conn_header{i_conn}, pvp_index ] ...
 	= pvp_readWeights(i_conn);
@@ -436,27 +452,28 @@ for i_conn = plot_weights
     disp( ['weight_min = ', num2str(weight_min)] );
     disp( ['weight_max = ', num2str(weight_max)] );
     disp( ['weight_ave = ', num2str(weight_ave)] );
-    write_kernel_flag = 1;
-    if write_kernel_flag
+    if write_pvp_kernel_flag
       NCOLS = pvp_conn_header_tmp(pvp_index.NX);
       NROWS = pvp_conn_header_tmp(pvp_index.NY);
       NFEATURES = pvp_conn_header_tmp(pvp_index.NF);
       N = NROWS * NCOLS * NFEATURES;
       weights_size = [ NFP, NXP, NYP];
-      pvp_writeKernel( weights{i_conn}, weights_size, 'geisler_clean' );
-      geisler_weights = weights{N_CONNECTIONS+(TRAINING_FLAG<=0)};
-      geisler_weights_filename = ...
-	  ['geisler_clean', num2str(expNum), '.mat']
-      geisler_weights_filename = [twoAFC_path, geisler_weights_filename]
-      %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
-      save('-mat', geisler_weights_filename, 'geisler_weights');
-    endif
+      pvp_writeKernel( weights{i_conn}, weights_size, kernel_str );
+    endif % write_pvp_kernel_flag
   else
     continue;
-  endif
+  endif  % i_conn < N_CONNECTIONS + 1
+  if write_mat_kernel_flag
+    mat_weights = weights{i_conn};
+    mat_weights_filename = ...
+	[kernel_str, num2str(expNum), '_', num2str(i_conn), '.mat']
+    mat_weights_filename = [twoAFC_path, mat_weights_filename]
+    %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
+    save('-mat', mat_weights_filename, 'mat_weights');
+  endif % write_mat_kernel_flag
   NK = 1;
   NO = floor( NFEATURES / NK );
-  skip_patches = 1; %num_patches;
+  skip_patches = num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);

@@ -9,12 +9,12 @@ twoAFC_array = cell(len_FC, max_expNum);
 expNum_list = [1];  % list for combining results from several experiments
 len_expNum = length(expNum_list);
 local_path = pwd;
-TRAINING_FLAG = -2
+TRAINING_FLAG = -1
 for i_fc = 1 : len_FC
   num_FC = FC_list(i_fc);
   disp(['num_FC = ', num2str(num_FC)]);
 				%twoAFC_dir = [twoAFC_path, 'amoeba10K_', num2str(num_FC), 'fc'];
-  twoAFC_dir = [twoAFC_path, 'test_amoeba20K_G75_target']; %, num2str(num_FC)];
+  twoAFC_dir = [twoAFC_path, 'test_target40K_W287_target']; %, num2str(num_FC)];
   if abs(TRAINING_FLAG) == 1
     twoAFC_dir = [twoAFC_dir, '_G1'];
   elseif abs(TRAINING_FLAG) == 2

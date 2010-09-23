@@ -6,6 +6,9 @@ for i_fig = 2 : num_figs
   axis normal
   fig_filename = get(fig_hndl, 'Name');
   fig_filename = [fig_path, fig_filename, '.', fig_suffix];
+  if exist(fig_filename, 'file')
+    delete(fig_filename);
+  end%%if
   fig_option = ['-d', fig_suffix];
   print(fig_hndl, fig_filename, fig_option);
 end%%for
