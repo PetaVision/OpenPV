@@ -65,7 +65,7 @@ HyPerLayer "L1 Geisler" = {
    nyScale = 1; 
    nf = 8;
    
-   marginWidth = 32;
+   marginWidth = 32;//48;//
    mirrorBCflag = 1;  
    restart = 0;
    
@@ -86,7 +86,7 @@ HyPerLayer "L2 Geisler" = {
    nyScale = 1; 
    nf = 8;
    
-   marginWidth = 32;//48;
+   marginWidth = 32;//48;//
    mirrorBCflag = 1;  
    restart = 0;
    
@@ -107,7 +107,7 @@ HyPerLayer "L3 Geisler" = {
    nyScale = 1; 
    nf = 8;
    
-   marginWidth = 32;//48;
+   marginWidth = 32;//48;//
    mirrorBCflag = 1;  
    restart = 0;
    
@@ -128,7 +128,7 @@ HyPerLayer "L4 Geisler" = {
    nyScale = 1; 
    nf = 8;
    
-   marginWidth = 32;//48;
+   marginWidth = 32;//48;//
    mirrorBCflag = 1;  
    restart = 0;
    
@@ -315,8 +315,8 @@ HyPerConn "L1 to L1" = {
 
 
 HyPerConn "L2 Geisler to L2 Geisler" = {
-   nxp = 65; 
-   nyp = 65; 
+   nxp = 65;//97;// 
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -332,8 +332,8 @@ HyPerConn "L2 Geisler to L2 Geisler" = {
 
 
 HyPerConn "L3 Geisler to L3 Geisler" = {
-   nxp = 97; 
-   nyp = 97; 
+   nxp = 65;//97;// 
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -349,8 +349,8 @@ HyPerConn "L3 Geisler to L3 Geisler" = {
 
 
 HyPerConn "L4 Geisler to L4 Geisler" = {
-   nxp = 65; //129; 
-   nyp = 65; //129; 
+   nxp = 65;//129; 
+   nyp = 65;//129; 
 
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -381,7 +381,7 @@ HyPerConn "L1 to L1 Geisler" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -397,7 +397,7 @@ HyPerConn "L1 to L1 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength =  400.0; 
+   strength =  287.5; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -413,7 +413,7 @@ HyPerConn "L1 to L1 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -400.0;  
+   strength = -287.5;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -434,7 +434,7 @@ HyPerConn "L1 Geisler to L2 Geisler" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -443,14 +443,14 @@ HyPerConn "L1 Geisler to L2 Geisler" = {
 };
 
 HyPerConn "L1 Geisler to L2 Geisler Target" = {
-   nxp = 65; 
-   nyp = 65; 
+   nxp = 65;//97;//
+   nyp = 65;//97;//
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 400.0;   
+   strength = 287.5;   
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -459,14 +459,14 @@ HyPerConn "L1 Geisler to L2 Geisler Target" = {
 };
 
 HyPerConn "L1 Geisler to L2 Geisler Distractor" = {
-   nxp = 65; 
-   nyp = 65; 
+   nxp = 65;//97;// 
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -400.0; 
+   strength = -287.5; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -489,7 +489,7 @@ HyPerConn "L2 Geisler to L3 Geisler" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -498,14 +498,14 @@ HyPerConn "L2 Geisler to L3 Geisler" = {
 };
 
 HyPerConn "L2 Geisler to L3 Geisler Target" = {
-   nxp = 65;//97; 
-   nyp = 65;//97; 
+   nxp = 65;//97;//
+   nyp = 65;//97;//
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 400.0;  
+   strength = 287.5;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -514,14 +514,14 @@ HyPerConn "L2 Geisler to L3 Geisler Target" = {
 };
 
 HyPerConn "L2 Geisler to L3 Geisler Distractor" = {
-   nxp = 65;//97; 
-   nyp = 65;//97; 
+   nxp = 65;//97;//
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -400.0; 
+   strength = -287.5; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -544,7 +544,7 @@ HyPerConn "L3 Geisler to L4 Geisler" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -553,14 +553,14 @@ HyPerConn "L3 Geisler to L4 Geisler" = {
 };
 
 HyPerConn "L3 Geisler to L4 Geisler Target" = {
-   nxp = 65;//97; 
-   nyp = 65;//97; 
+   nxp = 65;//97;// 
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 400.0;  
+   strength = 287.5;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -569,14 +569,14 @@ HyPerConn "L3 Geisler to L4 Geisler Target" = {
 };
 
 HyPerConn "L3 Geisler to L4 Geisler Distractor" = {
-   nxp = 65;//97; 
-   nyp = 65;//97; 
+   nxp = 65;//97;//
+   nyp = 65;//97;// 
 
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -400.0; 
+   strength = -287.5; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -600,7 +600,7 @@ HyPerConn "L1 to L1 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -653,7 +653,7 @@ HyPerConn "L1 Geisler to L1 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -706,7 +706,7 @@ HyPerConn "L2 Geisler to L1 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -759,7 +759,7 @@ HyPerConn "L3 Geisler to L1 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -813,7 +813,7 @@ HyPerConn "L1 TopDown to L2 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -866,7 +866,7 @@ HyPerConn "L2 Geisler to L2 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -919,7 +919,7 @@ HyPerConn "L3 Geisler to L2 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -971,7 +971,7 @@ HyPerConn "L4 Geisler to L2 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -1026,7 +1026,7 @@ HyPerConn "L2 TopDown to L3 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -1079,7 +1079,7 @@ HyPerConn "L3 Geisler to L3 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -1132,7 +1132,7 @@ HyPerConn "L4 Geisler to L3 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
@@ -1187,7 +1187,7 @@ HyPerConn "L3 TopDown to L4 TopDown" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   sigma_cocirc = 1000000.0; // PI / 12.0;
+   sigma_cocirc = 1000001.0; // PI / 12.0;
    deltaThetaMax = 0.0625; //PI/48;
    
    strength = 1.0;  
