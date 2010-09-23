@@ -546,7 +546,7 @@ int HyPerLayer::outputState(float time, bool last)
       status = writeActivitySparse(time);
    }
    else {
-#define WRITE_NONSPIKING_ACTIVITY
+#undef WRITE_NONSPIKING_ACTIVITY
 #ifdef WRITE_NONSPIKING_ACTIVITY
       status = writeActivity(time);
 #endif
