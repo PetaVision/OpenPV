@@ -30,16 +30,16 @@ global SPIKING_FLAG
 SPIKING_FLAG = 1;
 
 global OUTPUT_PATH SPIKE_PATH
-				%SPIKE_PATH = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/spiking_2fc/';
-SPIKE_PATH = '/nh/home/gkenyon/workspace/kernel/input/spiking_2fc_G1/';
+				%SPIKE_PATH = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/128/spiking_2fc/';
+SPIKE_PATH = '/nh/home/gkenyon/workspace/kernel/input/128/spiking_4fc_G1/';
 OUTPUT_PATH = SPIKE_PATH; %'/nh/home/gkenyon/workspace/kernel/output/';
 
 				%input_path = '/Users/gkenyon/Documents/eclipse-workspace/PetaVision/mlab/amoebaGen/128_png/2/';
-input_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/128_png/2/';
+input_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/128_png/4/';
 
 				%global image_path target_path
-image_filename = [input_path 't/tar_0029_a.png'];
-target_filename{1} = [input_path 'a/tar_0029_a.png'];
+image_filename = [input_path 't/tar_0041_a.png'];
+target_filename{1} = [input_path 'a/tar_0041_a.png'];
 
 pvp_order = 1;
 
@@ -64,7 +64,7 @@ endif %%
 global N_LAYERS
 [layerID, layerIndex] = pvp_layerID();
 num_layers = N_LAYERS;
-read_spikes = [layerIndex.l1];%2:N_LAYERS;  % layerIndex.l1; %list of spiking layers whose spike train are to be analyzed
+read_spikes =  2:N_LAYERS;  %[layerIndex.l1];%list of spiking layers whose spike train are to be analyzed
 
 %% plot flags
 plot_reconstruct = read_spikes; %uimatlab;
@@ -75,7 +75,7 @@ plot_autocorr = [layerIndex.l1];
 plot_xcorr = [layerIndex.l1];
 
 global num_epochs
-num_epochs = 4;
+num_epochs = 8;
 
 				% initialize to size of image (if known), these should be overwritten by each layer
 NROWS_image=128;
@@ -246,7 +246,7 @@ for LAYER = read_spikes;
   psth_bkgrnd{LAYER,1} = zeros( epoch_bins, 1 );
   
   %% init raster   
-  plot_raster2 = ismember( LAYER, plot_raster ) && ~isempty(SPIKE_ARRAY{LAYER});
+  plot_raster2 = ismember( LAYER, plot_raster );
 
   %% init rate array
   rate_array{LAYER} = zeros(1, N);
@@ -256,12 +256,12 @@ for LAYER = read_spikes;
   power_array{LAYER,2} = zeros(1, N);
 
   %% segment targets/clutter for each layer
-  use_max = 1;
+  use_max = 0;  % rate not available unless read in all epochs first
   bkgrnd_ndx_all{LAYER} = find(ones(N,1));
   bkgrnd_ndx_max{LAYER} = find(ones(N,1));
   for i_target = 1:num_targets
     [target_ndx_all{LAYER, i_target}, target_ndx_max{LAYER, i_target}] = ...
-        pvp_image2layer( SPIKE_ARRAY{LAYER}, target{i_target}, ...
+        pvp_image2layer( LAYER, target{i_target}, ...
 			stim_steps, use_max, pvp_order);
     num_target_neurons_max(LAYER, i_target) = ...
 	length( target_ndx_max{LAYER, i_target} );
@@ -272,7 +272,7 @@ for LAYER = read_spikes;
   endfor %% % i_target
 
   [clutter_ndx_all{LAYER}, clutter_ndx_max{LAYER}] = ...
-      pvp_image2layer( SPIKE_ARRAY{LAYER}, clutter, stim_steps, ...
+      pvp_image2layer( LAYER, clutter, stim_steps, ...
 		      use_max, pvp_order);
   num_clutter_neurons_max(LAYER) = length( clutter_ndx_max{LAYER} );
   num_clutter_neurons_all(LAYER) = length( clutter_ndx_all{LAYER} );
@@ -352,13 +352,16 @@ for LAYER = read_spikes;
      exclude_offset ] = ...      
 	pvp_openSparseSpikes(LAYER);
 
-    epoch_struct.begin_time(i_epoch,LAYER) = BEGIN_TIME;
-    epoch_struct.end_time(i_epoch,LAYER) = END_TIME;
+%    epoch_struct.begin_time(i_epoch,LAYER) = BEGIN_TIME;
+%    epoch_struct.end_time(i_epoch,LAYER) = END_TIME;
     epoch_struct.exclude_offset(i_epoch,LAYER) = exclude_offset;
     epoch_struct.total_spikes(i_epoch,LAYER) = total_spikes;
     epoch_struct.total_steps(i_epoch,LAYER) = total_steps;
 
     %% read spike train for this epoch
+    clear -SPIKE_ARRAY
+    SPIKE_ARRAY = cell(num_layers,1);
+    clear *_tmp
     [spike_count, ...
      step_count] = ...
 	pvp_readSparseSpikes(fid, ...
@@ -405,7 +408,8 @@ for LAYER = read_spikes;
 		      BIN_STEP_SIZE, epoch_bins  ), 1)';
     
     %% raster plot
-    if plot_raster2
+    raster_epoch = [1, num_epochs];
+    if ismember( LAYER, plot_raster ) && ismember( i_epoch, raster_epoch )
       plot_title = ...
 	  [layerID{LAYER}, ...
 	   ' Raster',...
@@ -441,6 +445,7 @@ for LAYER = read_spikes;
       spike_time = spike_time*DELTA_T + BEGIN_TIME;
       plot(spike_time*DELTA_T, clutter_ndx_all{LAYER}(spike_id), '.b');
       axis normal
+      clear spike_id spike_time
     endif %%  % plot_raster
     
     %% accumulate rate info 
@@ -466,7 +471,9 @@ for LAYER = read_spikes;
        mass_xcorr_std, ...
        mass_xcorr_lags, ...
        xcorr_tmp, ...
-       xcorr_dist] = ...
+       xcorr_dist, ...
+       min_freq_ndx, ...
+       max_freq_ndx] = ...
           pvp_xcorr2( SPIKE_ARRAY{LAYER}(stim_steps, target_ndx_max{LAYER, i_target}), ... 
 		     [], ...
 		     max_lag, ...
@@ -497,7 +504,9 @@ for LAYER = read_spikes;
      mass_xcorr_std, ...
      mass_xcorr_lags, ...
      xcorr_tmp, ...
-     xcorr_dist] = ...
+     xcorr_dist, ...
+     min_freq_ndx, ...
+     max_freq_ndx] = ...
         pvp_xcorr2(  SPIKE_ARRAY{LAYER}(stim_steps, clutter_ndx_max{LAYER, 1}), ...
 		   [], ...
 		   max_lag, ...
@@ -538,7 +547,9 @@ for LAYER = read_spikes;
        mass_xcorr_std, ...
        mass_xcorr_lags, ...
        xcorr_tmp, ...
-       xcorr_dist] = ...
+       xcorr_dist, ...
+       min_freq_ndx, ...
+       max_freq_ndx] = ...
           pvp_xcorr2( SPIKE_ARRAY{LAYER}(stim_steps, target_ndx_max{LAYER, i_target}), ...
 		     SPIKE_ARRAY{LAYER}(stim_steps, clutter_ndx_max{LAYER, 1}), ...
 		     max_lag, ...
@@ -591,6 +602,10 @@ for LAYER = read_spikes;
     if plot_movie
       spike_movie = pvp_movie( SPIKE_ARRAY, LAYER);
     endif %% % plot_movie
+
+    clear SPIKE_ARRAY
+    SPIKE_ARRAY = cell(num_layers,1);
+    clear *_tmp
 
   endfor %% % i_epoch
 
@@ -900,11 +915,15 @@ for LAYER = read_spikes;
         intersect(power_mask{LAYER,i_mode}, border_mask{LAYER} );
     num_power_mask(LAYER,i_mode) = numel(power_mask{LAYER,i_mode});
   endfor %% % i_mode
-  
+
+  pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+  fig_list = [];
+  close all;
+
 endfor %% % LAYER
 
 
-  %% Eigen analysis
+%% Eigen analysis
 if calc_eigen
   disp('beginning eigen analysis...');
 else
@@ -912,6 +931,10 @@ else
   error('abort eigen analysis');
 endif
 for LAYER = read_spikes;
+  plot_xcorr2 = ismember( LAYER, plot_xcorr );
+  if ~plot_xcorr2
+    continue;
+  endif %%
   disp(['layer( ', num2str(LAYER), ')']);
 
   stim_end_step = epoch_struct.epoch_steps(LAYER) - floor( stim_end_time / DELTA_T );
@@ -937,6 +960,9 @@ for LAYER = read_spikes;
     END_TIME = BEGIN_TIME;  % read 1 line
     
     %% re-read spike trains in epoch sized chunks
+    clear SPIKE_ARRAY
+    SPIKE_ARRAY = cell(num_layers,1);
+  
     [fid, ...
      spike_count, ...
      step_count,...
@@ -985,13 +1011,16 @@ for LAYER = read_spikes;
       size_layer = [num_features(LAYER), num_cols(LAYER), num_rows(LAYER) ];
 				%plot_interval = fix( num_power_mask(LAYER, i_mode)^2 / 1 );
       xcorr_flag = 1;
+      is_auto = 1;
       [mass_xcorr_tmp, ...
        mass_autocorr_tmp, ...
        mass_xcorr_mean, ...
        mass_xcorr_std, ...
        mass_xcorr_lags, ...
        xcorr_array_tmp, ...
-       xcorr_dist] = ...
+       xcorr_dist, ...
+       min_freq_ndx, ...
+       max_freq_ndx] = ...
 	  pvp_xcorr2(SPIKE_ARRAY{LAYER}(stim_steps, power_mask{LAYER, i_mode}), ...
 		     SPIKE_ARRAY{LAYER}(stim_steps, power_mask{LAYER, i_mode}), ...
 		     max_lag, ...
@@ -1004,14 +1033,18 @@ for LAYER = read_spikes;
 		     max_freq, ...
 		     xcorr_flag);
       mass_xcorr{i_mode, 1} =  mass_xcorr{i_mode, 1} + ...
-	  mass_xcorr_tmp;
+	  ( mass_xcorr_tmp - mass_xcorr_mean );
       mass_autocorr{i_mode, 1} =  mass_autocorr{i_mode, 1} + ...
-	  mass_autocorr_tmp;
+	  ( mass_autocorr_tmp - mass_xcorr_mean );
       xcorr_array{i_mode, 1} = xcorr_array{i_mode, 1} + ...
 	  xcorr_array_tmp(:, :, i_mode);
       
     endfor %% % i_mode 
     
+    clear -g SPIKE_ARRAY
+    SPIKE_ARRAY = cell(num_layers,1);
+    clear *_tmp
+
   endfor %% % i_epoch
 
 
@@ -1028,7 +1061,24 @@ for LAYER = read_spikes;
 	   ')'];
     fig_tmp = figure('Name',plot_title);
     fig_list = [fig_list; fig_tmp];
-    plot( (-max_lag : max_lag)*DELTA_T, mass_xcorr{i_mode, 1} / num_epochs, '-k');
+    plot( (-max_lag : max_lag)*DELTA_T, mass_xcorr{i_mode, 1} * ( 1000 / DELTA_T )^2 / num_epochs, '-k');
+
+    plot_title = ...
+	[layerID{LAYER}, ...
+	 ' fft mass xcorr', ...
+	 '(', ...
+	   num2str(LAYER), ',',  ...
+	   num2str(i_mode), ...
+	   ')'];
+    fig_tmp = figure('Name',plot_title);
+    fig_list = [fig_list; fig_tmp];
+    fft_xcorr_tmp = real( fft( squeeze( mass_xcorr{i_mode, 1} * ( ( 1000 / DELTA_T )^2 / num_epochs ) ) ) );
+    fft_xcorr_tmp = fft_xcorr_tmp / ( fft_xcorr_tmp(1) + fft_xcorr_tmp(1) > 0 );
+    lh_fft_xcorr = plot(xcorr_freqs(2:min_ndx),...
+			abs( fft_xcorr_tmp(2:min_ndx) ), '-b');
+    set(lh_clutter, 'LineWidth', 2);
+    lh = line( [xcorr_freqs(min_freq_ndx) xcorr_freqs(min_freq_ndx)], [0 1] );
+    lh = line( [xcorr_freqs(max_freq_ndx) xcorr_freqs(max_freq_ndx)], [0 1] );
 
     plot_title = ...
 	[layerID{LAYER}, ...
@@ -1039,7 +1089,7 @@ for LAYER = read_spikes;
 	   ')'];
     fig_tmp = figure('Name',plot_title);
     fig_list = [fig_list; fig_tmp];
-    plot( (-max_lag : max_lag)*DELTA_T, mass_autocorr{i_mode, 1} / num_epochs, '-k');
+    plot( (-max_lag : max_lag)*DELTA_T, mass_autocorr{i_mode, 1} * ( 1000 / DELTA_T )^2 / num_epochs, '-k');
 
   endfor %% % i_mode
 
@@ -1051,9 +1101,12 @@ for LAYER = read_spikes;
         [1, num_features(LAYER), num_cols(LAYER), num_rows(LAYER) ];
     disp(['computing eigenvectors(', num2str(LAYER),')']);
     options.issym = 1;
+    mean_xcorr_array = mean( xcorr_array{i_mode}(:) );
     [eigen_vec, eigen_value, eigen_flag] = ...
-        eigs( (1/2)*(xcorr_array{i_mode} + ...
-		     xcorr_array{i_mode}') / num_epochs, num_eigen, 'lm', options);
+        eigs( ( (1/2)*(xcorr_array{i_mode} + ...
+		       xcorr_array{i_mode}') - ...
+	       mean_xcorr_array ) / ...
+	     num_epochs, num_eigen, 'lm', options);
     [sort_eigen, sort_eigen_ndx] = sort( diag( eigen_value ), 'descend' );
     for i_vec = 1:num_eigen
       plot_title = ...
@@ -1085,6 +1138,14 @@ for LAYER = read_spikes;
     endfor %% % i_vec
     
   endfor %% % i_mode
+
+  pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+  close all;
+  fig_list = [];
+
+  clear -g SPIKE_ARRAY
+  SPIKE_ARRAY = cell(num_layers,1);
+  clear *_tmp
 
 endfor %% % LAYER
 
@@ -1161,8 +1222,8 @@ if plot_vmem
   H1_vmem = cell(num_vmem_files, 1);
   H2_vmem = cell(num_vmem_files, 1);
   vmem_skip = 2;
-  vmem_start_time = analysis_start_time;
-  vmem_stop_time = analysis_stop_time;
+  vmem_start_time = BEGIN_TIME;
+  vmem_stop_time = END_TIME;
   for i_vmem = 1 : vmem_skip : num_vmem_files
 				%    vmem_layer = vmem_layers(i_vmem);
 				%   if ( ~ismember( vmem_layer, read_spikes ) )
@@ -1178,7 +1239,7 @@ if plot_vmem
     vmem_start = find(vmem_time{i_vmem} == vmem_start_time);
     vmem_stop = find(vmem_time{i_vmem} == vmem_stop_time);
     if isempty(vmem_stop)
-      vmem_stop = analysis_stop_time;
+      vmem_stop = END_TIME;
     endif
     plot_title = [ 'Vmem data: ', vmem_file_list{i_vmem} ];
     fh = figure('Name', plot_title);
@@ -1201,7 +1262,7 @@ endif %% %plot_vmem
 
 
 
-  %% plot psth's of all layers together
+%% plot psth's of all layers together
 plot_rates = length(read_spikes) > 1;
 if plot_rates
   plot_title = ['PSTH target pixels'];

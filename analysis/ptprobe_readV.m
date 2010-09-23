@@ -1,13 +1,13 @@
 function [vmem_time, vmem_G_E, vmem_G_I, vmem_G_IB, vmem_V, vmem_Vth, vmem_a] = ...
     ptprobe_readV(filename)
 
-global output_path 
+global OUTPUT_PATH 
 %global NCOLS % for the current layer
 %global NFEATURES  % for the current layer
 global n_time_steps
 n2_time_steps = 1 * n_time_steps;
 
-filename = [output_path, filename];
+filename = [OUTPUT_PATH, filename];
 if ~exist(filename,'file')
     disp(['~exist(filename,''file'') in ptprobe file: ', filename]);
     return;
