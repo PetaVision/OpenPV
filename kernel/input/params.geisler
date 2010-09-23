@@ -29,7 +29,7 @@ HyPerLayer "Retina" = {
    endStim   = 101000;
 
    burstFreq = 1;      // Hz
-   burstDuration = 100000;  // ms
+   burstDuration = 101000;  // ms
 
    spikingFlag = 1;        // spike as poisson
    invert = 0;
