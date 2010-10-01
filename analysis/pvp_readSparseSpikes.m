@@ -1,7 +1,6 @@
 function [spike_count, ...
 	  step_count] = ...
       pvp_readSparseSpikes(fid, ...
-			   layer, ...
 			   exclude_offset, ...
 			   total_spikes, ...
 			   total_steps, ...
@@ -16,7 +15,6 @@ function [spike_count, ...
   global NUM_TRIALS i_trial
 
   global SPIKE_ARRAY
-  global LAYER
 
   if nargin < 2|| exclude_offset <= 0 || isempty(exclude_offset)
     exclude_offset = ...
@@ -38,7 +36,7 @@ if ( pvp_status == -1 )
   return;
 end%%if
 
-%SPIKE_ARRAY{layer} = ...
+%SPIKE_ARRAY = ...
 %    sparse([], [], [], num_sparse_steps, N, total_spikes);
 spike_id = zeros(total_spikes,1);
 spike_step = zeros(total_spikes,1);
@@ -57,7 +55,7 @@ while ~feof(fid)
     spike_id_tmp = sub2ind( [NROWS, NCOLS, NFEATURES], f_spike_id, col_spike_id, row_spike_id );
   end%%if
   step_count = step_count + 1;
-%    SPIKE_ARRAY{layer}(sparse_step, spike_id_tmp+1) = 1; %int8(1);
+%    SPIKE_ARRAY(sparse_step, spike_id_tmp+1) = 1; %int8(1);
   spike_id(spike_count+1:spike_count+num_spikes) = ...
       spike_id_tmp+1;
   spike_step(spike_count+1:spike_count+num_spikes) = ...
@@ -77,9 +75,9 @@ if ~pvp_order
     [ f_spike_id, col_spike_id, row_spike_id ] = ind2sub( [NFEATURES, NCOLS, NROWS], spike_id );
     spike_id = sub2ind( [NROWS, NCOLS, NFEATURES], f_spike_id, col_spike_id, row_spike_id );
 end%%if
-SPIKE_ARRAY{layer} = sparse(spike_step, spike_id, 1, total_steps, N, total_spikes);
+SPIKE_ARRAY = sparse(spike_step, spike_id, 1, total_steps, N, total_spikes);
 clear spike_step spike_id
-SPIKE_ARRAY{layer} = spones(SPIKE_ARRAY{layer});
+SPIKE_ARRAY = spones(SPIKE_ARRAY);
 
 
 

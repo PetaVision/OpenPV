@@ -11,7 +11,7 @@ function [power_array, ...
   global DELTA_T
   global SPIKE_ARRAY
   global LAYER
-  [num_steps, num_neurons] = size(SPIKE_ARRAY{lAYER});
+  [num_steps, num_neurons] = size(SPIKE_ARRAY);
   if nargin < 1 || isempty(power_win_size)
     power_win_size = num_steps;
   end%%if
@@ -41,7 +41,7 @@ function [power_array, ...
     power_start = ( i_trial - 1 ) * power_inc;
     power_stop = power_start + power_win_size - 1;
     mass_power = mass_power + ...
-        fft( ( SPIKE_ARRAY{LAYER}( power_start : power_stop, layer_ndx ) ), [], 1 );
+        fft( ( SPIKE_ARRAY( power_start : power_stop, layer_ndx ) ), [], 1 );
   end%%for
   mass_power = mass_power / num_windows;
   mass_power = mass_power .* conj( mass_power );

@@ -80,6 +80,10 @@ function [mass_xcorr, ...
 %  xcorr_figs = [];
 %% for each i_post, compute xcorr for all i_pre in parallel
 for i_post = 1 : num_post
+    disp_interval = fix(num_post / 10);
+    if mod(i_post, disp_interval) == 1
+        disp(['pvp_xcorr2: i_post = ', num2str(i_post)]);
+    end
     post_row_tmp = repmat( post_row_index(i_post), [num_pre, 1] );
     post_col_tmp = repmat( post_col_index(i_post), [num_pre, 1] );
     xcorr_dist( :, i_post ) = ...

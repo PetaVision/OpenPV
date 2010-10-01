@@ -4,8 +4,10 @@ function [vmem_time, vmem_G_E, vmem_G_I, vmem_G_IB, vmem_V, vmem_Vth, vmem_a] = 
 global OUTPUT_PATH 
 %global NCOLS % for the current layer
 %global NFEATURES  % for the current layer
-global n_time_steps
-n2_time_steps = 1 * n_time_steps;
+global BEGIN_TIME END_TIME
+global DELTA_T
+begin_step = floor(BEGIN_TIME / DELTA_T) + 1;
+vmem_steps = ceil( ( END_TIME - BEGIN_TIME ) / DELTA_T );
 
 filename = [OUTPUT_PATH, filename];
 if ~exist(filename,'file')
@@ -19,15 +21,25 @@ if fid == -1
     return;
 end
 
-vmem_time = zeros(n2_time_steps, 1);
-vmem_G_E = zeros(n2_time_steps, 1);
-vmem_G_I = zeros(n2_time_steps, 1);
-vmem_G_IB = zeros(n2_time_steps, 1);
-vmem_V = zeros(n2_time_steps, 1);
-vmem_Vth = zeros(n2_time_steps, 1);
-vmem_a = zeros(n2_time_steps, 1);
+vmem_time = zeros(vmem_steps, 1);
+vmem_G_E = zeros(vmem_steps, 1);
+vmem_G_I = zeros(vmem_steps, 1);
+vmem_G_IB = zeros(vmem_steps, 1);
+vmem_V = zeros(vmem_steps, 1);
+vmem_Vth = zeros(vmem_steps, 1);
+vmem_a = zeros(vmem_steps, 1);
 
-for i_step = 1:n2_time_steps 
+for i_step = 1:begin_step-1
+    vmem_name = fscanf(fid, '%s', 1);
+    vmem_time_tmp = fscanf(fid, ' t=%f', 1);
+    vmem_G_E_tmp = fscanf(fid, ' G_E=%f', 1);
+    vmem_G_I_tmp = fscanf(fid, ' G_I=%f', 1);
+    vmem_G_IB_tmp = fscanf(fid, ' G_IB=%f', 1);
+    vmem_V_tmp = fscanf(fid, ' V=%f', 1);
+    vmem_Vth_tmp = fscanf(fid, ' Vth=%f', 1);
+    vmem_a_tmp = fscanf(fid, ' a=%f\n', 1);
+end
+for i_step = 1:vmem_steps 
     vmem_name = fscanf(fid, '%s', 1);
     vmem_time(i_step) = fscanf(fid, ' t=%f', 1);
     vmem_G_E(i_step) = fscanf(fid, ' G_E=%f', 1);
@@ -39,9 +51,9 @@ for i_step = 1:n2_time_steps
 end
 fclose(fid);
 
-max_V = max(vmem_V);
-min_V = min(vmem_V);
-vmem_a = max_V * ( vmem_a > 0 ) + min_V * ( vmem_a == 0 );
+max_V = max(vmem_V(:));
+min_V = min(vmem_V(:));
+vmem_a = max_V .* ( vmem_a > 0 ) + min_V .* ( vmem_a == 0 );
    
 
 % vmem_row_loc = findstr( vmem_name, '(' ) + 1;

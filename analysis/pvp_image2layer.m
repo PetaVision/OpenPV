@@ -3,8 +3,9 @@ function [ layer_index, layer_index_max ] = ...
 		      image_index, ...
 		      timesteps, ...
 		      use_max, ...
+		      rate_array, ...
 		      pvp_order )
-
+  
 				% Given row,col position in the image, return a list of the corresponding
 				% rows, cols and feature indices in a subsequent layer 
 				% use_max specifies only the indices of the cells with maximum firing rate over timesteps is returned, 
@@ -18,25 +19,31 @@ function [ layer_index, layer_index_max ] = ...
   global N_image NROWS_image NCOLS_image 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
-%  global SPIKE_ARRAY
+  global SPIKE_ARRAY
   global LAYER
-  if nargin < 4
-    use_max = 0;
+  if nargin < 1 || isempty(layer)
+    layer = LAYER;
+  end%if
+  if nargin < 2 || isempty(image_index)
+    if ~isempty(rate_array)
+      image_index = find(rate_array);
+    else
+      image_index = [];
+    end%%if
   end%%if
   if nargin < 3 || isempty(timesteps)
-    timesteps = size(SPIKE_ARRAY{LAYER}, 1);
+    timesteps = size(SPIKE_ARRAY, 1);
   end%%if
-
-%  if ~isempty(SPIKE_ARRAY{LAYER})
-%    rate_array = full(sum(SPIKE_ARRAY{LAYER}(timesteps,:), 1)); % total spikes over all timesteps
-				% if pvp_order
-				%     rate_array = reshape(rate_array', [NFEATURES, NCOLS, NROWS]);
-				% else 
-				%     rate_array = reshape(rate_array', [NROWS, NCOLS, NFEATURES]);
-				% end
-%  else
-    rate_array = ones(1, N);
-%  end%%if
+  if nargin < 4
+    if ~isempty(rate_array)
+      use_max = 1;
+    else
+      use_max = 0;
+    end%%if
+  end%%if
+  if nargin < 5 || isempty(rate_array)
+    rate_array = zeros(1,N);
+  end%%if
 
   row_scale = ceil( NROWS / NROWS_image );
   col_scale = ceil( NCOLS / NCOLS_image );
@@ -73,7 +80,7 @@ function [ layer_index, layer_index_max ] = ...
     layer_index = sub2ind( [ NROWS, NCOLS, NFEATURES ], irow_layer(:), jcol_layer(:), f_layer(:) );
   end%%if
 % rate info not available except for present epoch
-  if use_max && ~use_max && row_scale * col_scale * NFEATURES > 1
+  if use_max && row_scale * col_scale * NFEATURES > 1
     rate_array = squeeze( rate_array( layer_index ) );
     rate_array = reshape( rate_array, [ num_image_index, row_scale * col_scale * NFEATURES ] );
     [ max_rate, max_index ] = max( rate_array, [], 2 );
