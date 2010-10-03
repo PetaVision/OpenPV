@@ -27,6 +27,7 @@ protected:
 
 public:
    CLDevice(int device);
+   virtual ~CLDevice();
 
    int initialize(int device);
 
