@@ -23,6 +23,12 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
       CLDevice::print_error_code(status);
       exit(1);
    }
+
+   this->profiling = false;
+#ifdef PV_USE_TAU
+   this->profiling = true;
+#endif
+
 }
 
 CLBuffer::~CLBuffer()
@@ -33,10 +39,20 @@ CLBuffer::~CLBuffer()
 int CLBuffer::copyToDevice(void * host_ptr)
 {
    int status = 0;
+
+#ifdef PV_USE_TAU
+   int tau_id = 0;
+   Tau_opencl_enter_memcpy_event(tau_id, MemcpyHtoD);
+#endif
       
    // write data from host_ptr into the buffer in device memory
    //
    status = clEnqueueWriteBuffer(commands, d_buf, CL_TRUE, 0, size, host_ptr, 0, NULL, NULL);
+
+#ifdef PV_USE_TAU
+   Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
+#endif
+
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::copyToDevice: Failed to enqueue write buffer!\n");
@@ -51,9 +67,19 @@ int CLBuffer::copyFromDevice(void * host_ptr)
 {
    int status = 0;
       
+#ifdef PV_USE_TAU
+   int tau_id = 1;
+   Tau_opencl_enter_memcpy_event(tau_id, MemcpyDtoH);
+#endif
+
    // write data from host_ptr into the buffer in device memory
    //
    status = clEnqueueReadBuffer(commands, d_buf, CL_TRUE, 0, size, host_ptr, 0, NULL, NULL);
+
+#ifdef PV_USE_TAU
+   Tau_opencl_exit_memcpy_event(tau_id, MemcpyDtoH);
+#endif
+
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::copyFromDevice: Failed to enqueue read buffer!\n");
@@ -69,12 +95,44 @@ void * CLBuffer::map(cl_map_flags flags)
    void * h_ptr;
    int status = 0;
 
-   h_ptr = clEnqueueMapBuffer(commands, d_buf, CL_TRUE, flags, 0, size, 0, NULL, NULL, &status);
+#ifdef PV_USE_TAU
+   int tau_id = 2;
+   Tau_opencl_enter_memcpy_event(tau_id, MemcpyDtoH);
+#endif
+
+   h_ptr = clEnqueueMapBuffer(commands, d_buf, CL_FALSE, flags, 0, size, 0, NULL, &event, &status);
+
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::map: Failed to enqueue map buffer!\n");
       CLDevice::print_error_code(status);
       exit(1);
+   }
+
+   status = clEnqueueWaitForEvents (commands, 1, &event);
+#ifdef PV_USE_TAU
+   Tau_opencl_exit_memcpy_event(tau_id, MemcpyDtoH);
+#endif
+   if (status != CL_SUCCESS)
+   {
+      fprintf(stderr, "CLBuffer::map: Failed in wait for event!\n");
+      CLDevice::print_error_code(status);
+      exit(1);
+   }
+
+   // get profiling information
+   //
+   if (profiling) {
+      size_t param_size;
+      cl_ulong start, end;
+      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START,
+                                       sizeof(start), &start, &param_size);
+      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,
+                                       sizeof(end), &end, &param_size);
+#ifdef PV_USE_TAU
+      tau_id += 1000;
+      Tau_opencl_register_memcpy_event(tau_id, start, end, size, MemcpyDtoH);
+#endif
    }
 
    return h_ptr;
@@ -84,12 +142,44 @@ int CLBuffer::unmap(void * mapped_ptr)
 {
    int status = 0;
 
-   status = clEnqueueUnmapMemObject(commands, d_buf, mapped_ptr, 0, NULL, NULL);
+#ifdef PV_USE_TAU
+   int tau_id = 3;
+   Tau_opencl_enter_memcpy_event(tau_id, MemcpyHtoD);
+#endif
+
+   status = clEnqueueUnmapMemObject(commands, d_buf, mapped_ptr, 0, NULL, &event);
+
    if (status != CL_SUCCESS)
    {
       fprintf(stderr, "CLBuffer::unmap: Failed to enqueue unmap memory object!\n");
       CLDevice::print_error_code(status);
       exit(1);
+   }
+
+   status = clEnqueueWaitForEvents (commands, 1, &event);
+#ifdef PV_USE_TAU
+   Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
+#endif
+   if (status != CL_SUCCESS)
+   {
+      fprintf(stderr, "CLBuffer::unmap: Failed in wait for event!\n");
+      CLDevice::print_error_code(status);
+      exit(1);
+   }
+
+   // get profiling information
+   //
+   if (profiling) {
+      size_t param_size;
+      cl_ulong start, end;
+      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START,
+                                       sizeof(start), &start, &param_size);
+      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,
+                                       sizeof(end), &end, &param_size);
+#ifdef PV_USE_TAU
+      tau_id += 1000;
+      Tau_opencl_register_memcpy_event(tau_id, start, end, size, MemcpyHtoD);
+#endif
    }
 
    return status;
