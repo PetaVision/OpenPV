@@ -12,6 +12,12 @@
 
 #ifdef PV_USE_OPENCL
 #  include <OpenCL/opencl.h>
+
+#ifdef PV_USE_TAU
+#  include <TAU.h>
+#  include <Profile/TauGpuAdapterOpenCLExp.h>
+#endif
+
 #else
 
 #  define cl_uint           unsigned int
