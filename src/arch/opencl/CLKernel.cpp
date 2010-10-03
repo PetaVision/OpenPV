@@ -89,7 +89,7 @@ int CLKernel::run(size_t global_work_size)
    // using the maximum number of work group items for this device
    //
    status = clEnqueueNDRangeKernel(commands, kernel, 1, NULL,
-                                   &global_work_size, &local_work_size, 0, NULL, NULL);
+                                   &global_work_size, &local_work_size, 0, NULL, &event);
    if (status != CL_SUCCESS) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel!\n");
       CLDevice::print_error_code(status);
@@ -120,6 +120,11 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
 
    local_work_size[0] = lWorkSizeX;
    local_work_size[1] = lWorkSizeY;
+
+#ifdef PV_USE_TAU
+   int tau_id = 10;
+   TAU_START("CLKernel::run::CPU");
+#endif
 
    // get the maximum work group size for executing the kernel on the device
    //
@@ -155,6 +160,10 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    if (profiling) {
       size_t param_size;
       cl_ulong start, end;
+#ifdef PV_USE_TAU
+      tau_id += 1000;
+      TAU_STOP("CLKernel::run::CPU");
+#endif
       status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START,
                                        sizeof(start), &start, &param_size);
       status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,
@@ -162,6 +171,9 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       if (status == 0) {
          elapsed = (end - start) / 1000;  // microseconds
       }
+#ifdef PV_USE_TAU
+      Tau_opencl_register_gpu_event("CLKernel::run::GPU", tau_id, start, end);
+#endif
    }
 
 #endif // PV_USE_OPENCL
