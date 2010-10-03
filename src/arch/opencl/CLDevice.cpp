@@ -19,6 +19,21 @@ CLDevice::CLDevice(int device)
 {
    this->device_id = device;
    initialize(device_id);
+
+   // initialize TAU profiling
+   //
+#ifdef PV_USE_TAU
+   Tau_opencl_init();
+#endif
+}
+
+CLDevice::~CLDevice()
+{
+   // finalize TAU profiling
+   //
+#ifdef PV_USE_TAU
+   Tau_opencl_exit();
+#endif
 }
 
 int CLDevice::initialize(int device)
@@ -201,6 +216,9 @@ CLDevice::print_error_code(int code)
          break;
       case CL_BUILD_PROGRAM_FAILURE:
          sprintf(msg, "%s (%d)", "CL_BUILD_PROGRAM_FAILURE", code);
+         break;
+      case CL_INVALID_HOST_PTR:
+         sprintf(msg, "%s (%d)", "CL_INVALID_HOST_PTR", code);
          break;
       case CL_INVALID_KERNEL_ARGS:
          sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_ARGS", code);
