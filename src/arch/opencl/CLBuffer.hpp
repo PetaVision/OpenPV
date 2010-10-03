@@ -35,6 +35,9 @@ public:
 protected:
 
    cl_command_queue commands;          // compute command queue
+   cl_event event;                     // event identifying the kernel execution instance
+
+   bool profiling;                     // flag to enable profiling
 
    size_t size;                        // size of buffer object
    cl_mem d_buf;                       // handle to buffer on the device
