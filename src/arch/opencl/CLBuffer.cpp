@@ -16,6 +16,7 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
    this->commands = commands;
    this->size = size;
 
+   this->h_ptr = NULL;
    this->d_buf = clCreateBuffer(context, flags, size, host_ptr, &status);
    if (status != CL_SUCCESS)
    {
@@ -92,7 +93,6 @@ int CLBuffer::copyFromDevice(void * host_ptr)
    
 void * CLBuffer::map(cl_map_flags flags)
 {
-   void * h_ptr;
    int status = 0;
 
 #ifdef PV_USE_TAU
@@ -104,6 +104,7 @@ void * CLBuffer::map(cl_map_flags flags)
 
    if (status != CL_SUCCESS)
    {
+      h_ptr = NULL;
       fprintf(stderr, "CLBuffer::map: Failed to enqueue map buffer!\n");
       CLDevice::print_error_code(status);
       exit(1);
@@ -115,6 +116,7 @@ void * CLBuffer::map(cl_map_flags flags)
 #endif
    if (status != CL_SUCCESS)
    {
+      h_ptr = NULL;
       fprintf(stderr, "CLBuffer::map: Failed in wait for event!\n");
       CLDevice::print_error_code(status);
       exit(1);
@@ -138,9 +140,16 @@ void * CLBuffer::map(cl_map_flags flags)
    return h_ptr;
 }
 
+int CLBuffer::unmap(void)
+{
+   return unmap(h_ptr);
+}
+
 int CLBuffer::unmap(void * mapped_ptr)
 {
-   int status = 0;
+   int status = CL_SUCCESS;
+
+   h_ptr = NULL;  // buffer no longer mapped for host usage
 
 #ifdef PV_USE_TAU
    int tau_id = 3;
