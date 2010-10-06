@@ -3,7 +3,7 @@ function getAmoebaStats3(t, nfour)
   global image_dim
 
 amoeba_struct = struct;
-%rand('twister', sum(100*clock));
+%rand('twister', sum(100*clock));  % rand automatically initialize "randomly"
 %amoeba_struct.rand_state = {rand('twister')};
 amoeba_struct.rand_state = {rand('state')};
 amoeba_struct.num_segments = 2^4; % 2^3; % 
