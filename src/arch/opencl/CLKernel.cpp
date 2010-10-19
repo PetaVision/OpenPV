@@ -181,7 +181,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    return status;
 }
 
-int CLKernel::addKernelArg(int argid, int arg)
+int CLKernel::setKernelArg(int argid, int arg)
 {
    int status = CL_SUCCESS;
 
@@ -199,7 +199,25 @@ int CLKernel::addKernelArg(int argid, int arg)
    return status;
 }
 
-int CLKernel::addKernelArg(int argid, CLBuffer * buf)
+int CLKernel::setKernelArg(int argid, float arg)
+{
+   int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+
+   status = clSetKernelArg(kernel, argid, sizeof(float), &arg);
+   if (status != CL_SUCCESS) {
+      fprintf(stderr, "CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
+      CLDevice::print_error_code(status);
+      exit(status);
+   }
+
+#endif // PV_USE_OPENCL
+
+   return status;
+}
+
+int CLKernel::setKernelArg(int argid, CLBuffer * buf)
 {
    int status = CL_SUCCESS;
 
@@ -217,7 +235,7 @@ int CLKernel::addKernelArg(int argid, CLBuffer * buf)
    return status;
 }
 
-int CLKernel::addLocalArg(int argid, size_t size)
+int CLKernel::setLocalArg(int argid, size_t size)
 {
    int status = CL_SUCCESS;
 
