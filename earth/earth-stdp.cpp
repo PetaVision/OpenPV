@@ -9,6 +9,7 @@
 
 #include <src/columns/HyPerCol.hpp>
 #include <src/connections/AvgConn.hpp>
+#include <src/connections/KernelConn.hpp>
 #include <src/connections/RandomConn.hpp>
 #include <src/layers/Gratings.hpp>
 #include <src/layers/Movie.hpp>
@@ -32,22 +33,26 @@ int main(int argc, char* argv[])
 
    // create the image
    //
-   Image * image = new Gratings("Image", hc);
-   //Image * image = new Movie("Image", hc, "input/earth-files.txt", 4);
+   Image * image = new Movie("Image", hc, "input/grey-earth-files.txt", 10);
 
    // create a runtime data display
    //
-   GLDisplay * display = new GLDisplay(&argc, argv, hc, 5);
+#ifdef GL_DISPLAY
+   GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
    display->setImage(image);
+#endif
 
    // create the layers
    //
-   HyPerLayer * retina = new Retina("Retina", hc, image);
-   //HyPerLayer * l1 = new V1("L1", hc);
-   HyPerLayer * av_retina = new V1("RetinaAvg", hc);
+   HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
+   HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
+   //HyPerLayer * l1        = new V1("L1", hc);
 
-//   display->addLayer(retina);
+#ifdef AVG_LAYER
+   HyPerLayer * av_retina = new V1("RetinaAvg", hc);
+   display->addLayer(retina);
    display->addLayer(av_retina);
+#endif
 
 #ifdef INHIB
    HyPerLayer * l1Inh = new V1("L1Inh", hc);
@@ -55,8 +60,13 @@ int main(int argc, char* argv[])
 
    // create the connections
    //
-   //HyPerConn * r_l1   = new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
-   HyPerConn * r_av   = new AvgConn("Retina to Average", hc, retina, av_retina, CHANNEL_EXC, NULL);
+   HyPerConn * i_r1_c  = new KernelConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
+   HyPerConn * i_r1_s  = new KernelConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
+   HyPerConn * i_r0_c  = new KernelConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
+   HyPerConn * i_r0_s  = new KernelConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
+   //HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
+   //HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
+
 #ifdef INHIB
    HyPerConn * l1_inh = new HyPerConn("L1 to L1Inh", hc, l1, l1Inh, CHANNEL_EXC);
    HyPerConn * inh_l1 = new HyPerConn("L1Inh to L1", hc, l1Inh, l1, CHANNEL_INH);
@@ -64,24 +74,6 @@ int main(int argc, char* argv[])
 
    // add probes
    //
-
-   LayerProbe * statsAvg = new StatsProbe(BufActivity, "Avg:");
-   av_retina->insertProbe(statsAvg);
-
-//   PVLayerProbe * statsR     = new StatsProbe(BufActivity, "R    :");
-//   PVLayerProbe * statsL1    = new StatsProbe(BufActivity, "L1   :");
-#ifdef INHIB
-   PVLayerProbe * statsL1Inh = new StatsProbe(BufActivity, "L1Inh:");
-#endif
-
-//   retina->insertProbe(statsR);
-//   l1->insertProbe(statsL1);
-#ifdef INHIB
-   l1Inh->insertProbe(statsL1Inh);
-#endif
-
-//   ConnectionProbe * cProbe = new ConnectionProbe(6, 6, 0);
-//   r_av->insertProbe(cProbe);
 
    // run the simulation
    hc->initFinish();
