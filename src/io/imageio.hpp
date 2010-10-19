@@ -24,11 +24,11 @@ int gatherImageFilePVP( const char * filename,
 int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
 
-int scatterImageFile(    const char * filename,
+int scatterImageFile(    const char * filename, int offsetX, int offsetY,
                          PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
 int scatterImageFilePVP( const char * filename,
                          PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
-int scatterImageFileGDAL(const char * filename,
+int scatterImageFileGDAL(const char * filename, int offsetX, int offsetY,
                          PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
 
 int scatter(PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
