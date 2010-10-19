@@ -88,6 +88,8 @@ int Image::initializeImage(const char * filename)
 {
    int status = 0;
 
+   this->writeImages = (int) parent->parameters()->value(name, "writeImages", 0);
+
    if (filename != NULL) {
       this->filename = strdup(filename);
       status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
