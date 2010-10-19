@@ -28,8 +28,8 @@ public:
    int copyFromDevice(void * host_ptr);
 
    void * map(cl_map_flags flags);
-   int    unmap(void * mapped_ptr);
-   int    unmap(void);
+   int  unmap(void * mapped_ptr);
+   int  unmap(void);
    
    cl_mem clMemObject(void)   {return d_buf;}
 
