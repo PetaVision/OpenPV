@@ -439,14 +439,14 @@ int gatherImageFileGDAL(const char * filename,
    return status;
 }
 
-int scatterImageFile(const char * filename, int offsetX, int offsetY,
+int scatterImageFile(const char * filename, int xOffset, int yOffset,
                      PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
-      // TODO - add offsetX and offsetY parameters
+      // TODO - add xOffset and yOffset parameters
       return scatterImageFilePVP(filename, comm, loc, buf);
    }
-   return scatterImageFileGDAL(filename, offsetX, offsetY, comm, loc, buf);
+   return scatterImageFileGDAL(filename, xOffset, yOffset, comm, loc, buf);
 }
 
 int scatterImageFilePVP(const char * filename,
@@ -551,7 +551,7 @@ int scatterImageFilePVP(const char * filename,
    return status;
 }
 
-int scatterImageFileGDAL(const char * filename, int offsetX, int offsetY,
+int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
@@ -600,10 +600,10 @@ int scatterImageFileGDAL(const char * filename, int offsetX, int offsetY,
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;
 
-      if (xTotalSize > xImageSize || yTotalSize > yImageSize) {
+      if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize) {
          fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
-                 "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d\n",
-                 xTotalSize, xImageSize, yTotalSize, yImageSize);
+                 "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
+                 xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
          fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
                  nx, ny, nxProcs, nyProcs);
          GDALClose(dataset);
@@ -645,7 +645,7 @@ int scatterImageFileGDAL(const char * filename, int offsetX, int offsetY,
 
       // get local image portion
       for (int b = 0; b < numBands; b++) {
-         band[b]->RasterIO(GF_Read, offsetX, offsetY, nx, ny,
+         band[b]->RasterIO(GF_Read, xOffset, yOffset, nx, ny,
                            &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
       }
       GDALClose(dataset);
