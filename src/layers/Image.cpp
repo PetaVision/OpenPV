@@ -221,6 +221,11 @@ int Image::clearImage()
 
 int Image::read(const char * filename)
 {
+   return read(filename, 0, 0);
+}
+
+int Image::read(const char * filename, int offsetX, int offsetY)
+{
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
 
@@ -229,7 +234,7 @@ int Image::read(const char * filename)
    assert(buf != NULL);
 
    // read the image and scatter the local portions
-   status = scatterImageFile(filename, parent->icCommunicator(), loc, buf);
+   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
 
    if (status == 0) {
       status = copyFromInteriorBuffer(buf);
