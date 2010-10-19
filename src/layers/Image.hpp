@@ -82,10 +82,12 @@ protected:
    PVLayerLoc loc;        // size/location of layer
 #endif
    pvdata_t * data;       // buffer containing reduced image
-   char * filename; // path to file if a file exists
+   char * filename;       // path to file if a file exists
 
    PVLayerLoc imageLoc;   // size/location of actual image
    pvdata_t * imageData;  // buffer containing image
+
+   int writeImages;      // controls writing of image file during outputState
 
    float lastPhase;
    float lastUpdateTime; // time of last image update
