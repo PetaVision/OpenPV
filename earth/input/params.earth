@@ -1,5 +1,5 @@
 //
-// params.stdp
+// params.earth
 //  - input parameters for earth movie using earth-stdp.cpp, a study of STDP with natural images
 //
 
@@ -87,10 +87,14 @@ HyPerLayer "L1Inh" = {
 };
 
 ///////
-// 3 connections: 
-//    "Retina to L1"
-//    "L1 to L1Inh"
-//    "L1Inh to L1"
+// connections: 
+//    "Image to RetinaOn  Center"
+//    "Image to RetinaOn  Surround"
+//    "Image to RetinaOff Center"
+//    "Image to RetinaOff Surround"
+//    "RetinaOn  to L1"
+//    "RetinaOff to L1"
+//
 
 HyPerConn "Image to RetinaOn Center" = {
    nxp = 1;
