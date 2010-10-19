@@ -7,6 +7,7 @@
 
 #include "Movie.hpp"
 #include "../io/imageio.hpp"
+#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -56,8 +57,10 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 //
 #endif
 
-   read(filename);
-// copyReducedImagePortion();
+   this->offsetX = imageLoc.nx / 2;
+   this->offsetY = imageLoc.ny / 2;
+
+   read(filename, offsetX, offsetY);
 
    // for now convert images to grayscale
    if (loc->nBands > 1) {
@@ -94,8 +97,6 @@ int Movie::updateState(float time, float dt)
   return 0;
 }
 
-
-
 /**
  * update the image buffers
  *
@@ -105,23 +106,21 @@ bool Movie::updateImage(float time, float dt)
 {
    PVLayerLoc * loc = &clayer->loc;
 
-   if (time < nextDisplayTime) {
-      return false;
+   if (time >= nextDisplayTime) {
+      if (filename != NULL) free(filename);
+      filename = strdup(getNextFileName());
+      assert(filename != NULL);
+      nextDisplayTime += displayPeriod;
    }
-
-   nextDisplayTime += displayPeriod;
-
-   if (filename != NULL) {
-      free(filename);
-   }
-   filename = strdup(getNextFileName());
-   assert(filename != NULL);
 
    // need all image bands until converted to gray scale
    loc->nBands = imageLoc.nBands;
 
-   read(filename);
-// copyReducedImagePortion();
+   int step = 2;
+   offsetX = calcPosition(offsetX, step, imageLoc.nx - loc->nx);
+   offsetY = calcPosition(offsetY, step, imageLoc.ny - loc->nx);
+
+   read(filename, offsetX, offsetY);
 
    // for now convert images to grayscale
    if (loc->nBands > 1) {
@@ -134,6 +133,16 @@ bool Movie::updateImage(float time, float dt)
    lastUpdateTime = time;
 
    return true;
+}
+
+int Movie::outputState(float time, bool last)
+{
+   if (writeImages) {
+      char basicFilename[PV_PATH_MAX + 1];
+      snprintf(basicFilename, PV_PATH_MAX, "./output/Movie_%f.tif", time);
+      write(basicFilename);
+   }
+   return 0;
 }
 
 int Movie::copyReducedImagePortion()
@@ -190,6 +199,42 @@ const char * Movie::getNextFileName()
    }
 
    return path;
+}
+
+/**
+ * Return an integer between 0 and (step-1)
+ */
+int Movie::calcPosition(int pos, int step, int sizeLength)
+{
+   const float dp = 1.0 / step;
+   const double p = pv_random_prob();
+   const int random_walk = 0;
+   const int move_forward = 0;
+   const int move_backward = 0;
+   const int random_jump = 1;
+
+   if (random_walk) {
+      if (p < 0.5) {
+         pos += step;
+      } else {
+         pos -= step;
+      }
+   } else if (move_forward) {
+      pos += step;
+   } else if (move_backward) {
+      pos -= step;
+   } else if (random_jump) {
+      for (int i = 0; i < step; i++) {
+         if ((i * dp < p) && (p < (i + 1) * dp)) {
+            pos = (pv_random_prob() < 0.5) ? pos - i : pos + i;
+         }
+      }
+   }
+
+   pos = (pos < 0) ? -pos : pos;
+   pos = (pos > sizeLength) ? sizeLength - (pos-sizeLength) : pos;
+
+   return pos;
 }
 
 }
