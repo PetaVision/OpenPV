@@ -195,7 +195,7 @@ static inline float yPosGlobal(int kGlobal, int yScaleLog2,
  */
 static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
 {
-   return (int)kf + ((int)kx + (int)ky * (int)nx) * (int)nf;
+   return kf + (kx + ky * nx) * nf;
 }
 
 //! RETURNS STRIDE IN X DIRECTION FOR LINEAR INDEXING
