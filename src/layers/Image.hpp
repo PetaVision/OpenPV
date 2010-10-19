@@ -54,6 +54,7 @@ public:
    virtual int tag();
 
    int read(const char * filename);
+   int read(const char * filename, int offsetX, int offsetY);
    int write(const char * filename);
 
    int exchange();
