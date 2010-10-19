@@ -84,7 +84,7 @@ int V1::initialize(PVLayerType type)
    clBuffers.activity = device->createBuffer(lsize_ex, clayer->activity);
 
    int argid = 0;
-   updatestate_kernel->addKernelArg(argid++, clBuffers.V);
+   updatestate_kernel->setKernelArg(argid++, clBuffers.V);
 
    return 0;
 }
