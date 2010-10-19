@@ -18,9 +18,10 @@ public:
    CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
             const char * filename, const char * name);
 
-   int addKernelArg(int argid, int arg);
-   int addKernelArg(int argid, CLBuffer * buf);
-   int addLocalArg(int argid, size_t size);
+   int setKernelArg(int argid, int arg);
+   int setKernelArg(int argid, float arg);
+   int setKernelArg(int argid, CLBuffer * buf);
+   int setLocalArg(int argid, size_t size);
 
    int run(size_t global_work_size);
    int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY);
