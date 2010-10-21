@@ -49,17 +49,20 @@ int main(int argc, char* argv[])
    Image * image = new Patterns("Image", hc, BARS);
 
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
+#ifdef NOTEST_OPENCL
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
    HyPerLayer * l1        = new V1("L1", hc);
 
 #ifdef INHIB
    HyPerLayer * l1Inh  = new V1("L1Inh", hc);
 #endif
+#endif //NOTEST_OPENCL
 
    // connect the layers
    //
 
    HyPerConn * i_r1_c  = new HyPerConn("Image to RetinaOn Center",   hc, image, retinaOn, CHANNEL_EXC);
+#ifdef NOTEST_OPENCL
    HyPerConn * i_r1_s  = new HyPerConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
    HyPerConn * i_r0_c  = new HyPerConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
    HyPerConn * i_r0_s  = new HyPerConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
@@ -70,6 +73,7 @@ int main(int argc, char* argv[])
    HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
    HyPerConn * l1Inh_l1 = new HyPerConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
 #endif
+#endif //NOTEST_OPENCL
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
@@ -109,7 +113,7 @@ int main(int argc, char* argv[])
 //   retina->insertProbe(rptprobe);
 
    LayerProbe * ptprobe1 = new PointProbe(12, 15, 0, "L1:");
-   l1->insertProbe(ptprobe1);
+//   l1->insertProbe(ptprobe1);
 
    PostConnProbe * pcOnProbe  = new PostConnProbe(492); //(245); // 8575=>127,66
    PostConnProbe * pcOffProbe = new PostConnProbe(492); //(245); // 8575=>127,66
