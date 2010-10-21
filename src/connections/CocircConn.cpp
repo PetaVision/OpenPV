@@ -164,7 +164,7 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
       float kurvePost = 0.0 + iKvPost * dKv;
       float thetaPost = th0 + iThPost * dTh;
 
-      float deltaTheta = fabs(thetaPre - thetaPost);
+      float deltaTheta = fabsf(thetaPre - thetaPost);
       deltaTheta = deltaTheta <= PI / 2.0 ? deltaTheta : PI - deltaTheta;
       if (deltaTheta > deltaThetaMax) {
          continue;
@@ -183,8 +183,8 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
             float gKurvePost = 1.0;
 
             // rotate the reference frame by th
-            float dxP = +xDelta * cos(thetaPre) + yDelta * sin(thetaPre);
-            float dyP = -xDelta * sin(thetaPre) + yDelta * cos(thetaPre);
+            float dxP = +xDelta * cosf(thetaPre) + yDelta * sinf(thetaPre);
+            float dyP = -xDelta * sinf(thetaPre) + yDelta * cosf(thetaPre);
 
             // include shift to flanks
             float dyP_shift = dyP - shift;
@@ -222,8 +222,8 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
                float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
                atanx2_shift += 2. * PI;
-               atanx2_shift = fmod(atanx2_shift, PI);
-               float chi_shift = fabs(atanx2_shift - thetaPost); // degrees
+               atanx2_shift = fmodf(atanx2_shift, PI);
+               float chi_shift = fabsf(atanx2_shift - thetaPost); // degrees
                if (chi_shift >= PI / 2.0) {
                   chi_shift = PI - chi_shift;
                }
@@ -233,19 +233,19 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
                         - 1.0;
                }
 
-               float cocircKurve_shift = fabs(2 * dyP_shift) / d2;
-               gKurvePre = (nKurvePre > 1) ? exp(-pow(
-                     (cocircKurve_shift - fabs(kurvePre)), 2) / sigma_kurve2) : 1.0;
+               float cocircKurve_shift = fabsf(2 * dyP_shift) / d2;
+               gKurvePre = (nKurvePre > 1) ? expf(-powf(
+                     (cocircKurve_shift - fabsf(kurvePre)), 2) / sigma_kurve2) : 1.0;
                gKurvePost =
-                     ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? exp(
-                           -pow((cocircKurve_shift - fabs(kurvePost)), 2) / sigma_kurve2)
+                     ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? expf(
+                           -powf((cocircKurve_shift - fabsf(kurvePost)), 2) / sigma_kurve2)
                            : 1.0;
 
                if (numFlanks > 1) {
                   float atanx2_shift2 = thetaPre + 2. * atan2f(dyP_shift2, dxP); // preferred angle (rad)
                   atanx2_shift2 += 2. * PI;
-                  atanx2_shift2 = fmod(atanx2_shift2, PI);
-                  float chi_shift2 = fabs(atanx2_shift2 - thetaPost); // degrees
+                  atanx2_shift2 = fmodf(atanx2_shift2, PI);
+                  float chi_shift2 = fabsf(atanx2_shift2 - thetaPost); // degrees
                   if (chi_shift2 >= PI / 2.0) {
                      chi_shift2 = PI - chi_shift2;
                   }
@@ -255,11 +255,11 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
                            / sigma_cocirc2) - 1.0;
                   }
 
-                  float cocircKurve_shift2 = fabs(2 * dyP_shift2) / d2;
-                  gKurvePre += (nKurvePre > 1) ? exp(-pow((cocircKurve_shift2 - fabs(
+                  float cocircKurve_shift2 = fabsf(2 * dyP_shift2) / d2;
+                  gKurvePre += (nKurvePre > 1) ? expf(-powf((cocircKurve_shift2 - fabsf(
                         kurvePre)), 2) / sigma_kurve2) : 1.0;
                   gKurvePost += ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2
-                        > 0)) ? exp(-pow((cocircKurve_shift2 - fabs(kurvePost)), 2)
+                        > 0)) ? expf(-powf((cocircKurve_shift2 - fabsf(kurvePost)), 2)
                         / sigma_kurve2) : 1.0;
                }
             }
