@@ -3,22 +3,22 @@
 #include <stdio.h>
 
 //
-// simple compute kernel
+// update the state of an LIF layer
 //
 
 //
 //// 4. change if () guard so that it uses kx and ky
 
-__kernel void bandwidth (
+__kernel void update_state (
     __global float * V,
     __global float * G_E,
-    __global float * phiExc,
     __global float * G_I,
-    __global float * phiInh,
     __global float * G_IB,
-    __global float * phiInhB,
+    __global float * phi,
+    __global float * activity,
     const uint nx,
     const uint ny,
+    const uint nf,
     const uint nPad)
 {
    float tauInf, VmemInf;
@@ -32,7 +32,6 @@ __kernel void bandwidth (
    const uint ky = get_global_id(1);
    const uint k  = kx + nx*ky;
    
-
    float one = 1.1f;
 
    VmemInf = 20.0f;   
@@ -44,10 +43,6 @@ __kernel void bandwidth (
    Vexc = 0.0;
    Vinh = -75.0;
    VinhB = -90.0;
-   
-
-
-
 
    dt = 1.0f;
    tau = 1.0f;
@@ -60,7 +55,7 @@ __kernel void bandwidth (
    expInhib = 2.0f;
    expInhibB = 2.0f;
 
-   if (kx < 4096 && ky < 4096) {         //(k < nx*ny) {
+   if (kx < nx && ky < ny) {
       //printf ("%f %f %f\n", kx, ky, k);
       G_E[k]  = 1 + G_E[k] ;phiExc[k] + G_E[k]  * expExcite;
       G_I[k]  = phiInh[k]; //phiInh[k] + G_I[k]  * expInhib;
@@ -70,12 +65,10 @@ __kernel void bandwidth (
                 / (1.0 + G_E[k] + G_I[k] + G_IB[k]);
       V[k] = VmemInf + (V[k] - VmemInf) * exp(-tauInf);
 
-
       //printf("G_I[%d]=%f\n", k, G_I[k]);
       //printf("kx=%f\n", kx);
       //printf("nx=%f\n", nx);
 
-      
 //      V[k] = 8.0f;
    }
 }
