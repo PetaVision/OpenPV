@@ -83,7 +83,7 @@ int Patterns::initPattern(float val)
    const int sx = 1;
    const int sy = sx * nx;
 
-   // reset data buffer
+   // reset data buffer (extended region)
    const int nk = nx * ny;
    for (int k = 0; k < nk; k++) {
       data[k] = 0.0;
@@ -126,7 +126,7 @@ int Patterns::initPattern(float val)
          }
       }
 
-      printf("position==%d data[492(3,3)]==%f\n", position, data[3*sx + 3*sy]);
+      //printf("position==%d data[492(3,3)]==%f\n", position, data[3*sx + 3*sy]);
 
    }
    else { // horizontal bars
