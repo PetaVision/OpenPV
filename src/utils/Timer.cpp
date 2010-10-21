@@ -32,14 +32,15 @@ double Timer::start()
 
 double Timer::stop()
 {
-   return (mach_end = mach_absolute_time());
+   mach_end = mach_absolute_time();
+   mach_elapsed += mach_end - mach_start;
+   return mach_end;
 }
 
 double Timer::elapsed_time()
 {
    if (rank == 0) {
-      mach_elapsed = mach_time_to_sec(mach_end - mach_start);
-      fprintf(stdout, "Mach processor cycle time == %f\n", (float) mach_elapsed);
+      fprintf(stdout, "Mach processor cycle time == %f\n", (float) mach_time_to_sec(mach_elapsed));
       fflush(stdout);
    }
    return mach_elapsed;
