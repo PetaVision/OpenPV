@@ -21,7 +21,7 @@ HyPerLayer "Image" = {
    width = 5;
    height = 5;
    prefPosition = 7;
-   marginWidth = 0; //CER 2;
+   marginWidth = 1; //CER 2;
    pMove = 0.025; // CER 0.03125;  // every 16 ms
    pSwitch = 0.0;    // switch between horizontal and vertical
    writeImages = 0;  // write out image file when changes   
@@ -30,7 +30,7 @@ HyPerLayer "Image" = {
 HyPerLayer "RetinaOn" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0; //CER 2;
+   marginWidth = 2;
    
    beginStim = 0;
    endStim   = 9000000;
@@ -47,7 +47,7 @@ HyPerLayer "RetinaOn" = {
 HyPerLayer "RetinaOff" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0; //CER 2;
+   marginWidth = 2;
    
    beginStim = 0;
    endStim = 9000000;
@@ -135,7 +135,7 @@ HyPerConn "RetinaOn to L1" = {
    stdpFlag   = 1;
    randomFlag = 1;
    
-   initFromLastFlag = 1;  //CER // restart
+   initFromLastFlag = 0;  //CER // restart
    
    //uniformWeights = 1;
    //strength = 1.5;
@@ -169,7 +169,7 @@ HyPerConn "RetinaOff to L1" = {
    stdpFlag   = 1;
    randomFlag = 1;
 
-   initFromLastFlag = 1;
+   initFromLastFlag = 0;
    
    //uniformWeights = 1;
    //strength = 1.5;
