@@ -139,6 +139,11 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       //       local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
+   if (lWorkSizeX * lWorkSizeY > max_local_size) {
+      local_work_size[0] = 1;
+      local_work_size[1] = 1;
+   }
+
    // execute the kernel over the entire range of our 1d input data set
    // using the maximum number of work group items for this device
    //
