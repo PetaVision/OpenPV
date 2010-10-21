@@ -13,6 +13,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
+#include "../utils/Timer.hpp"
 #include <time.h>
 
 #include "../arch/opencl/CLDevice.hpp"
@@ -120,6 +121,8 @@ private:
    InterColComm * icComm; // manages communication between HyPerColumns};
 
    HyPerColRunDelegate * runDelegate; // runs time loop
+
+   Timer * runTimer;
 
 }; // class HyPerCol
 

@@ -34,6 +34,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    maxConnections = MAX_CONNECTIONS;
 
    this->name = strdup(name);
+   this->runTimer = new Timer();
 
    char * param_file;
    simTime = 0;
@@ -107,6 +108,10 @@ HyPerCol::~HyPerCol()
    }
 
    delete icComm;
+
+   printf("%16s: total time in %6s %10s: ", name, "column", "run");
+   runTimer->elapsed_time();
+   delete runTimer;
 
    free(connections);
    free(layers);
@@ -271,6 +276,8 @@ float HyPerCol::advanceTime(float sim_time)
    }
 #endif
 
+   runTimer->start();
+
    // At this point all activity from the previous time step have
    // been delivered to the data store.
    //
@@ -315,6 +322,8 @@ float HyPerCol::advanceTime(float sim_time)
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
    simTime = sim_time + deltaTime;
+
+   runTimer->stop();
 
    return simTime;
 }
