@@ -1,5 +1,5 @@
 function [ layer_index, layer_index_max ] = ...
-      pvp_image2layer( layer, ...
+      pvp_image2layer(layer, ...
 		      image_index, ...
 		      timesteps, ...
 		      use_max, ...
@@ -19,31 +19,32 @@ function [ layer_index, layer_index_max ] = ...
   global N_image NROWS_image NCOLS_image 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
-  global SPIKE_ARRAY
-  global LAYER
-  if nargin < 1 || isempty(layer)
-    layer = LAYER;
-  end%if
-  if nargin < 2 || isempty(image_index)
-    if ~isempty(rate_array)
-      image_index = find(rate_array);
-    else
-      image_index = [];
-    end%%if
-  end%%if
-  if nargin < 3 || isempty(timesteps)
-    timesteps = size(SPIKE_ARRAY, 1);
-  end%%if
-  if nargin < 4
-    if ~isempty(rate_array)
-      use_max = 1;
-    else
-      use_max = 0;
-    end%%if
-  end%%if
-  if nargin < 5 || isempty(rate_array)
-    rate_array = zeros(1,N);
-  end%%if
+
+				%  global spike_array
+				%  global LAYER
+				# if nargin < 1 || isempty(layer)
+				#   layer = LAYER;
+				# end%if
+				# if nargin < 2 || isempty(image_index)
+				#   if ~isempty(rate_array)
+				#     image_index = find(rate_array);
+				#   else
+				#     image_index = [];
+				#   endif
+				# endif
+				# if nargin < 3 || isempty(timesteps)
+				#   timesteps = size(spike_array, 1);
+				# endif
+				# if nargin < 4
+				#   if ~isempty(rate_array)
+				#     use_max = 1;
+				#   else
+				#     use_max = 0;
+				#   endif
+				# endif
+				# if nargin < 5 || isempty(rate_array)
+				#   rate_array = zeros(1,N);
+				# endif
 
   row_scale = ceil( NROWS / NROWS_image );
   col_scale = ceil( NCOLS / NCOLS_image );
@@ -78,8 +79,8 @@ function [ layer_index, layer_index_max ] = ...
     layer_index = sub2ind( [ NFEATURES, NCOLS, NROWS ], f_layer(:), jcol_layer(:), irow_layer(:) );
   else
     layer_index = sub2ind( [ NROWS, NCOLS, NFEATURES ], irow_layer(:), jcol_layer(:), f_layer(:) );
-  end%%if
-% rate info not available except for present epoch
+  endif
+				% rate info not available except for present epoch
   if use_max && row_scale * col_scale * NFEATURES > 1
     rate_array = squeeze( rate_array( layer_index ) );
     rate_array = reshape( rate_array, [ num_image_index, row_scale * col_scale * NFEATURES ] );
@@ -96,10 +97,10 @@ function [ layer_index, layer_index_max ] = ...
       layer_index_max = sub2ind( [ NFEATURES, NCOLS, NROWS ], f_layer_max(:), jcol_layer_max(:), irow_layer_max(:) ); 
     else
       layer_index_max = sub2ind( [ NROWS, NCOLS, NFEATURES ], irow_layer_max(:), jcol_layer_max(:), f_layer_max(:) ); 
-    end%%if
+    endif
   else
     layer_index_max = layer_index;
-  end%%if
+  endif
 
 
 				% find index of maximum activity associated with each image pixel when row_scale, col_scale > 1
