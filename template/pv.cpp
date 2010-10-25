@@ -15,26 +15,28 @@
 #include <src/connections/HyPerConn.hpp>
 #include <src/connections/CocircConn.hpp>
 
+using namespace PV;
+
 int main(int argc, char* argv[])
 {
    // create the managing hypercolumn
-   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
+   HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    // create the layers
-   PV::HyPerLayer * retina = new PV::Retina("Retina", hc);
-   PV::HyPerLayer * l1     = new PV::V1("L1", hc);
+   HyPerLayer * retina = new Retina("Retina", hc);
+   HyPerLayer * l1     = new V1("L1", hc);
 
    // connect the layers
-   new PV::HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
-   new PV::CocircConn("L1 to L1",    hc, l1,     l1, CHANNEL_EXC);
+   new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
+   new CocircConn("L1 to L1",    hc, l1,     l1, CHANNEL_EXC);
 
    int locX = 39;
    int locY = 31; // 53;
    int locF = 0;
 
    // add probes
-   PV::PVLayerProbe * probe   = new PV::LinearActivityProbe(hc, PV::DimX, locY, locF);
-   PV::PVLayerProbe * ptprobe = new PV::PointProbe(locX, locY, locF, "L1:");
+   LayerProbe * probe   = new LinearActivityProbe(hc, DimX, locY, locF);
+   LayerProbe * ptprobe = new PointProbe(locX, locY, locF, "L1:");
 
    l1->insertProbe(probe);
 
