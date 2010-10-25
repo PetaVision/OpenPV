@@ -1,0 +1,15 @@
+Here are the commands to execute.  Similar commands could be
+run for the 0002, 0003, etc. directories, but the input .pv
+files would need to be changed as well as the commands.
+Ideally, the output directory defined in the .pv file would
+be used, but that would require changing the PetaVision/src
+code in a lot of places. 
+
+Debug/pv -n 484 -p input/params-target-train.pv
+mv output/*.* output/target/0001/train/
+Debug/pv -n 484 -p input/params-distractor-train.pv
+mv output/*.* output/distractor/0001/train/
+Debug/pv -n 124 -p input/params-target-test.pv
+mv output/*.* output/target/0001/test/
+Debug/pv -n 124 -p input/params-distractor-test.pv
+mv output/*.* output/target/0001/test/
