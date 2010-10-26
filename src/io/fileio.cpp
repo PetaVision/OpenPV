@@ -338,7 +338,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
       nyBlocks = nyProcs;
    }
 
-   const int localSize = numItems * subRecordSize;
+   const size_t localSize = (size_t) numItems * (size_t) subRecordSize;
    const size_t globalSize = localSize * nxBlocks * nyBlocks;
 
    // make sure we don't blow out size of int for record size
