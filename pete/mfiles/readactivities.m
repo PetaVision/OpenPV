@@ -32,7 +32,7 @@ if numberofframes ~= round(numberofframes)
           ['File %s does not have the right file length for ' ...
            'an integral number of time steps'],...
           activityfile);
-end
+end%if numberofframes
 
 A = zeros(nx,ny,nf,numberofframes,'single');
 T = zeros(numberofframes,1);
@@ -44,7 +44,7 @@ for t=1:numberofframes
     R = fread(fid,nx*ny*nf,'float32');
     A(:,:,:,t) = permute(reshape(R,[nf,nx,ny]), [2 3 1]);
     disp(sprintf('%d of %d',t,numberofframes));
-end
+end%for t
 
 fclose(fid);
 

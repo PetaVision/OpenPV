@@ -9,6 +9,7 @@ function h = showoneweight(W)
 % m is the number of features and n is the number
 % of kernel patches.
 
+setenv('GNUTERM','x11);
 nfeatures = size(W,3);
 npatches = size(W,4);
 for p = 1:npatches
@@ -20,7 +21,7 @@ for p = 1:npatches
         axis(a);
         colormap(gray);
         title(sprintf('feature %d, patch %d',f,p));
-    end
-end
+    end%for f
+end%for p
 
 h = get(h,'Parent');

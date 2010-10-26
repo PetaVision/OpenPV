@@ -18,7 +18,7 @@ fclose(fid);
 if numel(A)<104
     error('readweights:filetooshort',...
           'File %s is too short to contain a valid header',weightfile);
-end
+end%if numel
 
 nxp = [1 2^8 2^16 2^24]*A(81:84);
 nyp = [1 2^8 2^16 2^24]*A(85:88);
@@ -29,7 +29,7 @@ numpatches = [1 2^8 2^16 2^24]*A(69:72);
 if numpatches*(nxp*nyp*nfp+4)+104 ~= numel(A);
     error('readweights:badlength',...
           'The length of %s is inconsistent with its header',weightfile);
-end
+end%if numpatches
 
 W = zeros(nxp, nyp, nfp, numpatches);
 
@@ -38,5 +38,5 @@ for p=1:numpatches
     R = reshape(A(baseindex+1:baseindex+nxp*nyp*nfp),[nfp,nxp,nyp]);
     for f=1:nfp
         W(:,:,f,p) = squeeze(R(f,:,:));
-    end
-end
+    end%for f
+end%for p

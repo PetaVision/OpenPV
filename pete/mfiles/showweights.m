@@ -1,6 +1,7 @@
 % A script m-file to display the weights in w0_last.pvp through
 % w14_last.pvp, each in a separate figure.
 
+setenv('GNUTERM','x11);
 weightfiledirectory='../output';
 W = cell(15,1);
 for conn = 0:14
@@ -9,4 +10,4 @@ for conn = 0:14
     figure(k);
     set(k,'position',[1+32*conn,35,1024,1024]);
     showoneweight(W{k});
-end
+end%for conn
