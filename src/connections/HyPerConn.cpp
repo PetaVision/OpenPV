@@ -435,7 +435,7 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
                                 &time, &pre->clayer->loc, true);
 
    if (status != 0) {
-      fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file, SHUTTING DOWN\n");
+      fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
       exit(1);
    }
 
@@ -1523,7 +1523,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
          scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
       }
        else if (sum != 0.0f) {
-         scale_factor = strength / sum;
+         scale_factor = strength / fabsf(sum);
       }
        else if (sum == 0.0f && sigma2 > 0.0f) {
          scale_factor = strength / sqrtf(sigma2);
