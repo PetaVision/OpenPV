@@ -60,6 +60,36 @@ private:
    ParameterStack * stack;
 };
 
+class FilenameDef {
+public:
+   FilenameDef(char * newKey, char * newValue);
+   virtual ~FilenameDef();
+
+   const char * getKey() { return key; };
+   const char * getValue() { return value; };
+
+private:
+   char * key;
+   char * value;
+};
+
+class FilenameStack {
+public:
+   FilenameStack(unsigned int maxCount);
+   virtual ~FilenameStack();
+
+   unsigned int getMaxCount() { return maxCount; };
+   unsigned int getCount() { return count; };
+   FilenameDef * getFilenameDef(unsigned int index);
+   FilenameDef * getFilenameDefByKey(const char * searchKey);
+   int push(FilenameDef * newfilenamedef);
+   FilenameDef * pop();
+private:
+   unsigned int maxCount;
+   unsigned int count;
+   FilenameDef ** filenamedefs;
+};
+
 class PVParams {
 public:
    PVParams(int maxGroups);
@@ -70,15 +100,23 @@ public:
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue);
    ParameterGroup * group(const char * groupName);
+   const char * getFilename(const char * id);
 
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
+   void action_filename_def(char * id, char * path);
 
 private:
    int numGroups;
    int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
+   char * imagefilelist;    // name of the file containing the list of filenames
+   char * outputdir;        // name of the output directory.  It must already exist.
+   char * targetwgts;       // name of the file containing the kernel weights from the targets
+   char * distractorwgts;   // name of the file containing the kernel weights from the distractors
+   // I really should create another stack so that the name and number of the files aren't hard-coded
+   FilenameStack * fnstack;
 
    void addGroup(char * keyword, char * name);
 };

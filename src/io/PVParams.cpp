@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define FILENAMESTACKMAXCOUNT 10
+
 // define for debug output
 #undef DEBUG_PARSING
 
@@ -136,6 +138,70 @@ float ParameterGroup::value(const char * name)
    exit(1);
 }
 
+FilenameDef::FilenameDef(char * newKey, char * newValue) {
+   size_t keylen, valuelen;
+
+   keylen = strlen(newKey);
+   key = (char *) malloc(sizeof(char)*(keylen+1));
+   if( !key ) return;
+   strcpy(key, newKey);
+   valuelen = strlen(newValue);
+   value = (char *) malloc(sizeof(char)*(valuelen+1));
+   if( !value )
+   {
+      free(key);
+      return;
+   }
+   strcpy(value, newValue);
+}
+
+FilenameDef::~FilenameDef() {
+   free(key);
+   free(value);
+}
+
+FilenameStack::FilenameStack(unsigned int maxCount) {
+   this->maxCount = maxCount;
+   this->count = 0;
+   this->filenamedefs = (FilenameDef **) calloc(maxCount, sizeof(FilenameDef *) );
+   if( !(this->filenamedefs) ) this->maxCount = 0;
+}
+
+FilenameStack::~FilenameStack() {
+   for( unsigned int n = 0; n < maxCount; n++) {
+      if( filenamedefs[n] ) delete filenamedefs[n];
+   }
+   if( this->filenamedefs ) free( this->filenamedefs );
+}
+
+FilenameDef * FilenameStack::getFilenameDef(unsigned int index) {
+   if( index >= count) return NULL;
+   return filenamedefs[index];
+}
+
+FilenameDef * FilenameStack::getFilenameDefByKey(const char * searchKey) {
+   for( unsigned int n = 0; n < maxCount; n++) {
+      if( !strcmp( searchKey, filenamedefs[n]->getKey() ) ) return filenamedefs[n];
+   }
+   return NULL;
+}
+
+int FilenameStack::push(FilenameDef * newfilenamedef) {
+   if( count >= maxCount ) return EXIT_FAILURE;
+   else {
+      filenamedefs[count] = newfilenamedef;
+      count++;
+      return EXIT_SUCCESS;
+   }
+}
+
+FilenameDef * FilenameStack::pop() {
+   if( count == 0) return NULL;
+   count--;
+   return filenamedefs[count];
+}
+
+
 /**
  * @filename
  * @maxGroups
@@ -149,6 +215,11 @@ PVParams::PVParams(const char * filename, int maxGroups)
 
    groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
+   imagefilelist = NULL;
+   outputdir = NULL;
+   targetwgts = NULL;
+   distractorwgts = NULL;
+   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 
    if (filename == NULL) {
       printf("PVParams::PVParams: trying to open alternate input file %s\n", altfile);
@@ -175,12 +246,22 @@ PVParams::PVParams(int maxGroups)
 
    groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
+   imagefilelist = NULL;
+   outputdir = NULL;
+   targetwgts = NULL;
+   distractorwgts = NULL;
+   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 }
 
 PVParams::~PVParams()
 {
    free(groups);
    delete stack;
+   if( imagefilelist ) free(imagefilelist);
+   if( outputdir ) free(outputdir);
+   if( targetwgts ) free(targetwgts);
+   if( distractorwgts ) free(distractorwgts);
+   delete fnstack;
 }
 
 /**
@@ -243,6 +324,14 @@ ParameterGroup * PVParams::group(const char * groupName)
    return NULL;
 }
 
+const char * PVParams::getFilename(const char * id)
+{
+   FilenameDef * fd = fnstack->getFilenameDefByKey(id);
+   const char * fn = (fd != NULL) ? fd->getValue() : NULL;
+
+   return fn;
+}
+
 /**
  * @keyword
  * @name
@@ -293,4 +382,30 @@ void PVParams::action_parameter_def(char * id, double val)
    stack->push(p);
 }
 
-}
+void PVParams::action_filename_def(char * id, char * path)
+{
+#ifdef DEBUG_PARSING
+   fflush(stdout);
+   printf("action_filename_decl: %s = %s\n", id, path);
+   fflush(stdout);
+#endif
+   size_t pathlength = strlen( path );
+   assert( pathlength >= 2 ); // path still includes the delimiting quotation marks
+   char * filenameptr = (char *) malloc( sizeof(char)*( pathlength - 1) );
+   assert( filenameptr != NULL );
+   strncpy( filenameptr, &(path[1]), pathlength - 2);
+   filenameptr[pathlength-2] = 0;
+
+   size_t labellength = strlen( id );
+   assert( labellength >= 2 );
+   char * label = (char *) malloc( sizeof(char)*( pathlength - 1) );
+   assert( label != NULL );
+   strncpy( label, &(id[1]), labellength - 2);
+   label[labellength-2] = 0;
+
+   FilenameDef * fndef = new FilenameDef(label, filenameptr);
+   int status = fnstack->push(fndef);
+   if( status != EXIT_SUCCESS) fprintf(stderr, "No room for %s:%s\n", label, path);
+}  // close PVParams::action_filename_def block
+
+}  // close namespace PV block

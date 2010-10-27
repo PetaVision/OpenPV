@@ -4,6 +4,7 @@
 %}
 
 %%
+"FileDefinition" { yylval.sval = strdup(yytext); return T_FILE_KEYWORD; }
 
 "HyPerCol"     { yylval.sval = strdup(yytext); return T_KEYWORD; }
 "HyPerConn"    { yylval.sval = strdup(yytext); return T_KEYWORD; }
@@ -23,6 +24,7 @@
 }
 
 [\"][a-zA-Z0-9_ ]*[\"] { yylval.sval = strdup(yytext); return T_STRING; }
+[\"][a-zA-Z0-9_~+/.-]+[\"] { yylval.sval = strdup(yytext); return T_FILENAME; }
 
 "{"        { return *yytext; }
 "}"        { return *yytext; }

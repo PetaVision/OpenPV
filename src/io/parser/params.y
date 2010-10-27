@@ -39,13 +39,17 @@ int pv_parseParameters(PV::PVParams* action_handler)
 %token <sval> T_KEYWORD
 %token <sval> T_ID
 %token <dval> T_NUMBER
+%token <sval> T_FILE_KEYWORD
+%token <sval> T_FILENAME
 %type  <sval> name
+%type  <sval> filename
 
 %%
 
-parameter_groups : /* empty */
-                 | parameter_groups parameter_group
-                 ;
+declarations : /* empty */
+             | declarations parameter_group
+             | declarations filename_def
+             ;
 
 parameter_group : T_KEYWORD name '='
                    '{'
@@ -65,3 +69,13 @@ parameter_defs : /* empty */
 parameter_def : T_ID '=' T_NUMBER ';'
                  { handler->action_parameter_def($1, $3); }
               ;
+
+filename_def : T_FILE_KEYWORD name '=' filename ';'
+                { handler->action_filename_def($2, $4); }
+             | T_KEYWORD name '=' name ';'
+                { handler->action_filename_def($2, $4); }
+             ;
+
+filename : T_FILENAME
+           { $$ = $1; }
+         ;
