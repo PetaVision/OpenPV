@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <string>
+#include <iostream>
 
 #include "../PetaVision/src/columns/HyPerCol.hpp"
 #include "../PetaVision/src/connections/HyPerConn.hpp"
@@ -47,23 +49,36 @@ int main(int argc, char* argv[]) {
         // Is this run being used to train?
         float training_flag = params->value("column","training_flag");
         const char * fileOfFileNames = params->getFilename("ImageFileList");
-        // const char * outputDir = params->getFilename("OutputDir");
+        if( !fileOfFileNames ) {
+        	fprintf(stderr, "No ImageFileList was defined in parameters file\n");
+        	delete hc;
+        	return EXIT_FAILURE;
+        }
+        const char * outputDir = params->getFilename("OutputDir");
+        if( !outputDir ) {
+        	outputDir = OUTPUT_PATH;
+        	fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
+        }
 
         float display_period = 1.0;
         Image * movie = new Movie("Movie", hc, fileOfFileNames, display_period);
-        const char * image_file =  "./output/outImage.tiff";
-        movie->write(image_file);
-        HyPerLayer * retina = new Retina("Retina", hc);
+        std::string * outFilename = new std::string(outputDir);
+        if ( outFilename->substr(outFilename->size()-1, 1).compare("/") ) {
+        	outFilename->append("/");
+        }
+        outFilename->append("outImage.tiff");
+        movie->write( outFilename->c_str() );
+        HyPerLayer * retina = new Retina("Retina", (HyPerCol *) hc);
         LayerProbe * stats_retina = new StatsProbe(BufActivity,   "Retina :");
         retina->insertProbe(stats_retina);
         HyPerConn * image_retina  =
-                new KernelConn("Movie to Retina",   hc, movie, retina, CHANNEL_EXC);
-        HyPerLayer * l1 = new V1("L1", hc);
+                new KernelConn("Movie to Retina", hc, movie, retina, CHANNEL_EXC);
+        HyPerLayer * l1 = new V1("L1", (HyPerCol *) hc);
         HyPerConn * retina_l1 =
-                new KernelConn("Retina to L1",   hc, retina,  l1,
+                new KernelConn("Retina to L1", hc, retina,  l1,
                         CHANNEL_EXC);
         HyPerConn * retina_l1_inh =
-                new KernelConn("Retina to L1 Inh",   hc, retina,  l1,
+                new KernelConn("Retina to L1 Inh", hc, retina,  l1,
                         CHANNEL_INH);
         LayerProbe * statsl1 = new StatsProbe(BufActivity,  "L1     :");
         l1->insertProbe(statsl1);
@@ -73,7 +88,7 @@ int main(int argc, char* argv[]) {
                     new GeislerConn("L1 to L1", hc, l1, l1, CHANNEL_EXC);
         }
         else {
-			HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", hc);
+			HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", (HyPerCol *) hc);
 			HyPerConn * l1_l1_geisler =
 				new CocircConn("L1 to L1 Geisler", hc, l1, l1_geisler,
 					CHANNEL_EXC);
@@ -83,12 +98,12 @@ int main(int argc, char* argv[]) {
 					CHANNEL_INH, geisler_filename_target);
 			const char * geisler_filename_distractor = params->getFilename("DistractorWgts");
 			HyPerConn * l1_l1_geisler_distractor =
-				new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1, l1_geisler,
+				new KernelConn("L1 to L1 Geisler Distractor", hc, l1, l1_geisler,
 					CHANNEL_INH, geisler_filename_distractor);
 			LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,  "L1 Geisler :");
 			l1_geisler->insertProbe(statsl1_geisler);
 
-			HyPerLayer * l2_geisler = new GeislerLayer("L2 Geisler", hc);
+			HyPerLayer * l2_geisler = new GeislerLayer("L2 Geisler", (HyPerCol *) hc);
 			LayerProbe * statsl2_geisler = new StatsProbe(BufActivity,  "L2 Geisler :");
 			l2_geisler->insertProbe(statsl2_geisler);
 
@@ -104,7 +119,7 @@ int main(int argc, char* argv[]) {
 				new KernelConn("L1 Geisler to L2 Geisler Distractor", hc, l1_geisler, l2_geisler,
 					CHANNEL_INH, geisler_filename_distractor);
 
-			HyPerLayer * l3_geisler = new GeislerLayer("L3 Geisler", hc);
+			HyPerLayer * l3_geisler = new GeislerLayer("L3 Geisler", (HyPerCol *) hc);
 			LayerProbe * statsl3_geisler = new StatsProbe(BufActivity, "L3 Geisler :");
 			l3_geisler->insertProbe(statsl3_geisler);
 
@@ -118,17 +133,17 @@ int main(int argc, char* argv[]) {
 					CHANNEL_INH, geisler_filename_target);
 			//const char * geisler3_filename_distractor = "./input/256/distractor20K_97x97_G3/w10_last.pvp";
 			HyPerConn * l2_geisler_l3_geisler_distractor =
-				new KernelConn("L2 Geisler to L3 Geisler Distractor", 	hc, l2_geisler,   l3_geisler,
+				new KernelConn("L2 Geisler to L3 Geisler Distractor", hc, l2_geisler,   l3_geisler,
 					CHANNEL_INH, geisler_filename_distractor);
 
 		    #define G4_LAYER
 		    #ifdef G4_LAYER
-			HyPerLayer * l4_geisler = new GeislerLayer("L4 Geisler", hc);
+			HyPerLayer * l4_geisler = new GeislerLayer("L4 Geisler", (HyPerCol *) hc);
 			LayerProbe * statsl4_geisler = new StatsProbe(BufActivity, "L4 Geisler :");
 			l4_geisler->insertProbe(statsl4_geisler);
 
 			HyPerConn * l3_geisler_l4_geisler =
-				new CocircConn("L3 Geisler to L4 Geisler",  hc, l3_geisler, 	l4_geisler,
+				new CocircConn("L3 Geisler to L4 Geisler", hc, l3_geisler, 	l4_geisler,
 					CHANNEL_EXC);
 
 			// const char * geisler4_filename_target = "./input/256/amoeba40K_G4/w13_last.pvp";

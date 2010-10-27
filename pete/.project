@@ -3,6 +3,7 @@
 	<name>GenerativeLateral</name>
 	<comment></comment>
 	<projects>
+		<project>PetaVision</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

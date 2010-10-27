@@ -3,10 +3,10 @@
 //  - input parameters for geisler.cpp for learning geisler kernels
 //
 
-ImageFileList =  "./input/target/0001/train/train_filenames.txt";
-OutputDir =      "./output/target/0001/train/"; // Doesn't work (yet)
-// TargetWgts =     "./output/target/0001/train/w3_last.pvp";
-// DistractorWgts = "./output/distractor/0001/train/w3_last.pvp";
+FileDefinition "ImageFileList" =  "./input/target/0001/train/train_filenames.txt";
+FileDefinition "OutputDir" =      "./output/target/0001/train/";
+// FileDefinition "TargetWgts" =     "./output/target/0001/train/w3_last.pvp";
+// FileDefinition "DistractorWgts" = "./output/distractor/0001/train/w3_last.pvp";
 
 HyPerCol "column" = {
    nx = 256;   // 128; // 
