@@ -542,14 +542,21 @@ int HyPerLayer::outputState(float time, bool last)
    PVParams * params = parent->parameters();
    int spikingFlag = (int) params->value(name, "spikingFlag", 1);
 
+#undef WRITE_NONSPIKING_ACTIVITY
+#ifdef WRITE_NONSPIKING_ACTIVITY
+   float defaultWriteNonspikingActivity = 1.0;
+#else
+   float defaultWriteNonspikingActivity = 0.0;
+#endif
+
+   int writeNonspikingActivity =
+         (int) params->value(name, "writeNonspikingActivity", defaultWriteNonspikingActivity);
+
    if (spikingFlag != 0) {
       status = writeActivitySparse(time);
    }
-   else {
-#undef WRITE_NONSPIKING_ACTIVITY
-#ifdef WRITE_NONSPIKING_ACTIVITY
+   else if (writeNonspikingActivity) {
       status = writeActivity(time);
-#endif
    }
 
    if (time >= writeTime) {

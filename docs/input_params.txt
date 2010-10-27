@@ -13,6 +13,9 @@ HyPerLayer parameters:
    spikingFlag (default 1)
      - layer update is non spiking if 0
      - layer update is spiking if 1
+   writeNonspikingActivity (default set by WRITE_NONSPIKING_ACTIVITY HyPerLayer.cpp)
+     - Only final activity is written to disk if 0
+     - Activity is written to disk at each timestep if 1
 
 HyPerConn parameters:
 
