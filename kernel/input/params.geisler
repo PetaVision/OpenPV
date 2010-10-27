@@ -701,6 +701,30 @@ HyPerConn "L1InhFF to L1" = {
    delay = 1.0;
 };
 
+HyPerConn "L1InhFF to L1 NonOriented" = {
+   nxp = 7;
+   nyp = 7;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+
+   aspect = 1;
+   sigma = 7;
+   rMax  = 7;
+   rotate = 1;
+   
+   sigma_cocirc = 10000.0; //0.3926875; // PI / 8;
+   deltaThetaMax = 10000.0; //0.52360; //PI / 6;
+   
+   numFlanks = 1;
+   flankShift = 0;
+
+   strength = 6.0;
+
+   delay = 1.0;
+};
+
 HyPerConn "L1InhFF to L1 InhB" = {
    nxp = 7;
    nyp = 7;
