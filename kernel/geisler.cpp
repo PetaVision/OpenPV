@@ -42,12 +42,13 @@ int main(int argc, char* argv[]) {
 	//
 	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
 
-#undef SPIKING
+#define SPIKING
 #ifdef SPIKING  // load geisler kernels from pvp file
 
 	// create the image
 	//
-	const char * amoeba_filename = "../../MATLAB/amoeba/128_png/2/t/tar_0003_a.png";
+	//const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/2/t/tar_0041_a.png";
+	const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/4/t/tar_0041_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]) {
 
 
 	// L1 connections
-	const char * geisler_filename = "./input/test_amoeba10K_target_G1/4fc/geisler_clean.pvp";
+	const char * geisler_filename = "./input/128/test_target40K_target_G1/4fc/geisler_clean.pvp";
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -158,6 +159,9 @@ int main(int argc, char* argv[]) {
 	// L1 Inh FF connections
 	HyPerConn * l1inhff_l1 =
 		new CocircConn("L1InhFF to L1",   			hc, l1inhff,  l1,
+			CHANNEL_INH);
+	HyPerConn * l1inhff_l1_nonoriented =
+		new CocircConn("L1InhFF to L1 NonOriented", hc, l1inhff,  l1,
 			CHANNEL_INH);
 //	HyPerConn * l1inhff_l1_inhB =
 //		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
@@ -234,66 +238,66 @@ int main(int argc, char* argv[]) {
 	ny = lgn->clayer->loc.ny;
 	nf = lgn->clayer->loc.nBands;
 
-#undef WRITE_VMEM
+#define WRITE_VMEM
 #ifdef WRITE_VMEM
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
-		new PointProbe(Vmem_filename_LGNa1, 51, 98, 0, "LGNA1:(51,98,0)");
+		new PointProbe(Vmem_filename_LGNa1, 51,98,0, "LGNA1:(67,89,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
 	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
 	LayerProbe * Vmem_probe_LGNc1 =
-		new PointProbe(Vmem_filename_LGNc1, 80, 44, 0, "LGNC1:(80,44,0)");
+		new PointProbe(Vmem_filename_LGNc1, 80,44,0, "LGNC1:(61,58,0)");
 	lgn->insertProbe(Vmem_probe_LGNc1);
 
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointProbe(Vmem_filename_LGNInhFFa1, 51, 98, 0, "LGNInhA1:(51,98,0)");
+		new PointProbe(Vmem_filename_LGNInhFFa1, 51,98,0, "LGNInhA1:(67,89,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 	const char * Vmem_filename_LGNInhFFc1 = "Vmem_LGNInhFFc1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFc1 =
-		new PointProbe(Vmem_filename_LGNInhFFc1, 80, 44, 0, "LGNInhFFC1:(80,44,0)");
+		new PointProbe(Vmem_filename_LGNInhFFc1, 80,44,0, "LGNInhFFC1:(61,58,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFc1);
 
 	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
 	LayerProbe * Vmem_probe_LGNInha1 =
-		new PointProbe(Vmem_filename_LGNInha1, 51, 98, 0, "LGNInhA1:(51,98,0)");
+		new PointProbe(Vmem_filename_LGNInha1, 51,98,0, "LGNInhA1:(67,89,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
 	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
 	LayerProbe * Vmem_probe_LGNInhc1 =
-		new PointProbe(Vmem_filename_LGNInhc1, 80, 44, 0, "LGNInhC1:(80,44,0)");
+		new PointProbe(Vmem_filename_LGNInhc1, 80,44,0, "LGNInhC1:(61,58,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
 
 	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
 	LayerProbe * Vmem_probe_V1a1 =
-		new PointProbe(Vmem_filename_V1a1, 59, 91, 10, "V1A1:(59,91,10)");
+		new PointProbe(Vmem_filename_V1a1, 59,91,10, "V1A1:(67,89,1)");
 	l1->insertProbe(Vmem_probe_V1a1);
 
 	const char * Vmem_filename_V1c1 = "Vmem_V1c1.txt";
 	LayerProbe * Vmem_probe_V1c1 =
-		new PointProbe(Vmem_filename_V1c1, 80, 46, 5, "V1C1:(80,46,5)");
+		new PointProbe(Vmem_filename_V1c1, 80,46,5, "V1C1:(61,58,5)");
 	l1->insertProbe(Vmem_probe_V1c1);
 
 	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
 	LayerProbe * Vmem_probe_V1InhFFa1 =
-		new PointProbe(Vmem_filename_V1InhFFa1, 59, 91, 10, "V1InhFFA1:(59,91,10)");
+		new PointProbe(Vmem_filename_V1InhFFa1, 59,91,10, "V1InhFFA1:(67,89,1)");
 	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
 
 	const char * Vmem_filename_V1InhFFc1 = "Vmem_V1InhFFc1.txt";
 	LayerProbe * Vmem_probe_V1InhFFc1 =
-		new PointProbe(Vmem_filename_V1InhFFc1, 80, 46, 5, "V1InhFFC1:(80,46,5)");
+		new PointProbe(Vmem_filename_V1InhFFc1, 80,46,5, "V1InhFFC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_V1InhFFc1);
 
 	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
 	LayerProbe * Vmem_probe_V1Inha1 =
-		new PointProbe(Vmem_filename_V1Inha1, 59, 91, 10, "V1InhA1:(59,91,10)");
+		new PointProbe(Vmem_filename_V1Inha1, 59, 91, 10, "V1InhA1:(67,89,1)");
 	l1inh->insertProbe(Vmem_probe_V1Inha1);
 
 	const char * Vmem_filename_V1Inhc1 = "Vmem_V1Inhc1.txt";
 	LayerProbe * Vmem_probe_V1Inhc1 =
-		new PointProbe(Vmem_filename_V1Inhc1, 80, 46, 5, "V1InhC1:(80,46,5)");
+		new PointProbe(Vmem_filename_V1Inhc1, 80,46,5, "V1InhC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_V1Inhc1);
 #endif
 
@@ -428,10 +432,12 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L1 to L1 Geisler",   hc, l1,  l1_geisler,
 			CHANNEL_EXC);
 
+//	const char * geisler_filename_target = "./input/128/amoeba10K_G1/w3_last.pvp";
 	const char * geisler_filename_target = "./input/256/target40K_G1/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",   hc, l1,  l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
+//	const char * geisler_filename_distractor = "./input/128/distractor10K_G1/w3_last.pvp";
 	const char * geisler_filename_distractor = "./input/256/distractor40K_G1/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,  l1_geisler,
@@ -535,11 +541,13 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",  hc, l1,  l1_geisler,
 			CHANNEL_EXC);
+//	const char * geisler_filename_target = "./input/128/target40K_G1/w3_last.pvp";
 //	const char * geisler_filename_target = "./input/256/target10K_G1/w3_last.pvp";
 	const char * geisler_filename_target = "./input/256/animal/0001/train/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",  hc, l1,   l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
+//	const char * geisler_filename_distractor = "./input/128/distractor40K_G1/w3_last.pvp";
 //	const char * geisler_filename_distractor = "./input/256/distractor10K_G1/w3_last.pvp";
 	const char * geisler_filename_distractor = "./input/256/noanimal/0001/train/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
@@ -555,10 +563,12 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_geisler_l2_geisler =
 		new CocircConn("L1 Geisler to L2 Geisler",  hc, l1_geisler, l2_geisler,
 			CHANNEL_EXC);
+//	const char * geisler2_filename_target = "./input/128/amoeba10K_G2/w7_last.pvp";
 	const char * geisler2_filename_target = "./input/256/target40K_G2/w7_last.pvp";
 	HyPerConn * l1_geisler_l2_geisler_target =
 		new KernelConn("L1 Geisler to L2 Geisler Target",  hc, l1_geisler,  l2_geisler,
 			CHANNEL_INH, geisler_filename_target);
+//	const char * geisler2_filename_distractor = "./input/128/distractor10K_G2/w7_last.pvp";
 	const char * geisler2_filename_distractor = "./input/256/distractor40K_G2/w7_last.pvp";
 	HyPerConn * l1_geisler_l2_geisler_distractor =
 		new KernelConn("L1 Geisler to L2 Geisler Distractor", hc, l1_geisler,  l2_geisler,
