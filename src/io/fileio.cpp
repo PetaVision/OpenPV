@@ -304,7 +304,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 }
 
 int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
-                     int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams)
+                     int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
 {
    int status = 0;
    int nxBlocks, nyBlocks, numItems;
@@ -338,11 +338,10 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
       nyBlocks = nyProcs;
    }
 
-   const size_t localSize = (size_t) numItems * (size_t) subRecordSize;
-   const size_t globalSize = localSize * nxBlocks * nyBlocks;
+   // const size_t globalSize = (size_t) localSize * nxBlocks * nyBlocks;
 
    // make sure we don't blow out size of int for record size
-   assert(globalSize < 0xffffffff);
+   // assert(globalSize < 0xffffffff); // should have checked this before calling pvp_write_header().
 
    params[INDEX_HEADER_SIZE] = headerSize;
    params[INDEX_NUM_PARAMS]  = numParams;
@@ -447,7 +446,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       assert(status == numParams);
 
       const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-      const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
+      // const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
 
       const int numRecords = params[INDEX_NUM_RECORDS];
       const int dataSize = params[INDEX_DATA_SIZE];
@@ -579,12 +578,12 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
    else {
       const bool append = false;
       const int numParams = NUM_PAR_BYTE_PARAMS;
-      const int headerSize = numParams * sizeof(int);
+      // const int headerSize = numParams * sizeof(int);
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 
       status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE,
-                                datatype, pv_sizeof(datatype), extended, contiguous, numParams);
+                                datatype, pv_sizeof(datatype), extended, contiguous, numParams, localSize);
       if (status != 0) return status;
 
       // write local image portion
@@ -620,7 +619,7 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
-   unsigned int * numActive = NULL;
+   // unsigned int * numActive = NULL;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -650,7 +649,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
    else {
       // we are io root process
       //
-      unsigned int totalActive = numNeurons;
+      // unsigned int totalActive = numNeurons;
 
 #ifdef PV_USE_MPI
       // get the number active from each process
@@ -672,7 +671,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                   datatype, sizeof(int), extended, contiguous, numParams);
+                                   datatype, sizeof(int), extended, contiguous, numParams, (size_t) numNeurons);
          if (status != 0) return status;
       }
 
@@ -709,7 +708,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
-   unsigned int * numActive = NULL;
+   // unsigned int * numActive = NULL;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -770,7 +769,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_ACT_FILE_TYPE,
-                                   datatype, sizeof(int), extended, contiguous, numParams);
+                                   datatype, sizeof(int), extended, contiguous, numParams, (size_t) localActive);
          if (status != 0) return status;
       }
 
@@ -1016,7 +1015,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
-      const int headerSize = numParams * sizeof(int);
+      // const int headerSize = numParams * sizeof(int);
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 
@@ -1026,7 +1025,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       }
 
       status = pvp_write_header(fp, comm, time, loc, PVP_WGT_FILE_TYPE,
-                                datatype, patchSize, extended, contiguous, numParams);
+                                datatype, patchSize, extended, contiguous, numParams, localSize);
       if (status != 0) return status;
 
       // write extra weight parameters
@@ -1048,7 +1047,8 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       // write local portion
       // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
       //
-      if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
+      size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
+      if ( numfwritten != 1 ) return -1;
 
 #ifdef PV_USE_MPI
       int src = -1;
