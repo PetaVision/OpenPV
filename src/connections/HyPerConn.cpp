@@ -278,7 +278,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
           normalizeWeights(patches, numPatches);
        }
        return patches;
-  }
+   }
    else if (smartWeights != 0) {
        initializeSmartWeights(patches, numPatches);
        if (normalize_flag) {
