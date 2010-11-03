@@ -25,6 +25,7 @@ public:
    bool        updateImage(float time, float dt);
 
    int calcPosition(int pos, int step, int sizeLength);
+   int resetPositionInBounds();
 
 private:
 
