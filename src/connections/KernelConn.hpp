@@ -40,6 +40,8 @@ public:
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches);
 
+   PVPatch * getKernelPatch(int kernelIndex)   {return kernelPatches[kernelIndex];}
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();
