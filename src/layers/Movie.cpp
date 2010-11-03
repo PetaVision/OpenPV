@@ -18,6 +18,8 @@ namespace PV {
 Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
      : Image(name, hc)
 {
+   PVParams * params = parent->parameters();
+
    PVLayerLoc * loc = &clayer->loc;
 
    this->displayPeriod = displayPeriod;
@@ -57,8 +59,12 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 //
 #endif
 
-   this->offsetX = imageLoc.nx / 2;
-   this->offsetY = imageLoc.ny / 2;
+   offsetX = imageLoc.nx / 2;
+   offsetY = imageLoc.ny / 2;
+
+   offsetX = params->value(name, "offsetX", offsetX);
+   offsetY = params->value(name, "offsetY", offsetY);
+   resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 
    read(filename, offsetX, offsetY);
 
@@ -118,7 +124,10 @@ bool Movie::updateImage(float time, float dt)
 
    int step = 2;
    offsetX = calcPosition(offsetX, step, imageLoc.nx - loc->nx);
-   offsetY = calcPosition(offsetY, step, imageLoc.ny - loc->nx);
+   offsetY = calcPosition(offsetY, step, imageLoc.ny - loc->ny);
+
+   // ensure that offsets keep loc within image bounds
+   resetPositionInBounds();
 
    read(filename, offsetX, offsetY);
 
@@ -235,6 +244,25 @@ int Movie::calcPosition(int pos, int step, int sizeLength)
    pos = (pos > sizeLength) ? sizeLength - (pos-sizeLength) : pos;
 
    return pos;
+}
+
+int Movie::resetPositionInBounds()
+{
+   PVLayerLoc * loc = &clayer->loc;
+
+   // apply circular boundary conditions
+   //
+   if (offsetX < 0) offsetX += imageLoc.nx;
+   if (offsetY < 0) offsetY += imageLoc.ny;
+   offsetX = (imageLoc.nx < offsetX + loc->nx) ? imageLoc.nx - offsetX : offsetX;
+   offsetY = (imageLoc.ny < offsetY + loc->ny) ? imageLoc.ny - offsetY : offsetY;
+
+   // could still be out of bounds
+   //
+   offsetX = (offsetX < 0 || imageLoc.nx < offsetX + loc->nx) ? offsetX = 0 : offsetX;
+   offsetY = (offsetY < 0 || imageLoc.ny < offsetY + loc->ny) ? offsetY = 0 : offsetY;
+
+   return 0;
 }
 
 }
