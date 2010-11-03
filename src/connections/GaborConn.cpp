@@ -19,36 +19,54 @@ GaborConn::GaborConn(const char * name,
    initialize(name, hc, pre, post, channel, NULL);
 }
 
-int GaborConn::initializeWeights(const char * filename)
+PVPatch ** GaborConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
 {
+   return initializeGaborWeights(patches, numPatches);
+}
+
+PVPatch ** GaborConn::initializeGaborWeights(PVPatch ** patches, int numPatches)
+{
+#ifdef TESTING
+	   PVPatch * wp = kernelPatches[0];
+	   pvdata_t * w = wp->data;
+
+	   const int nxp = wp->nx;
+	   const int nyp = wp->ny;
+	   const int nfp = wp->nf;
+	   if (nxp * nyp * nfp == 0) {
+	      return 0; // reduced patch size is zero
+	   }
+
+	   for (int k = 0; k < nxp*nyp*nfp; k++) {
+		   w[k] = 1.0f;
+	   }
+#else
+
+   const int xScale = post->clayer->xScale - pre->clayer->xScale;
+   const int yScale = post->clayer->xScale - pre->clayer->yScale;
+
+   PVParams * params = parent->parameters();
+
    float aspect = 4.0;
    float sigma  = 2.0;
    float rMax   = 8.0;
    float lambda = sigma/0.8;    // gabor wavelength
    float strength = 1.0;
 
-   PVParams * params = parent->parameters();
-
-   aspect = params->value(name, "aspect");
-   sigma  = params->value(name, "sigma");
-   rMax   = params->value(name, "rMax");
-   lambda = params->value(name, "lambda");
-
-   if (params->present(name, "strength")) {
-      strength = params->value(name, "strength");
-   }
+   aspect   = params->value(name, "aspect", aspect);
+   sigma    = params->value(name, "sigma", sigma);
+   rMax     = params->value(name, "rMax", rMax);
+   lambda   = params->value(name, "lambda", lambda);
+   strength = params->value(name, "strength", strength);
 
    float r2Max = rMax * rMax;
 
-   const int arbor = 0;
-   const int numPatches = numWeightPatches(arbor);
-   for (int i = 0; i < numPatches; i++) {
-      int xScale = post->clayer->xScale - pre->clayer->xScale;
-      int yScale = post->clayer->xScale - pre->clayer->yScale;
-      gaborWeights(wPatches[arbor][i], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
+   for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
+      // TODO - change parameters based on kernelIndex (i.e., change orientation)
+      gaborWeights(patches[kernelIndex], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
    }
-
-   return 0;
+#endif
+   return patches;
 }
 
 int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
