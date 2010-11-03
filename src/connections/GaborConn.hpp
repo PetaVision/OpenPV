@@ -8,11 +8,11 @@
 #ifndef GABORCONN_H_
 #define GABORCONN_H_
 
-#include "HyPerConn.hpp"
+#include "KernelConn.hpp"
 
 namespace PV {
 
-class GaborConn: public PV::HyPerConn {
+class GaborConn: public PV::KernelConn {
 public:
    GaborConn(const char * name,
              HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
@@ -21,8 +21,8 @@ public:
                     float aspect, float sigma, float r2Max, float lambda, float strength);
 
 protected:
-   virtual int initializeWeights(const char * filename);
-
+   PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
+   PVPatch ** initializeGaborWeights(PVPatch ** patches, int numPatches);
 };
 
 }
