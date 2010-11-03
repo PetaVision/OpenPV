@@ -118,7 +118,7 @@ bool ImageCreator::updateImage(float time_step, float dt)
    prevposx = posx;
    prevposy = posy;
 
-   this->copyFromInteriorBuffer(drawBuffer);
+   this->copyFromInteriorBuffer(drawBuffer, 1.0f);
 
    return true;
 }
