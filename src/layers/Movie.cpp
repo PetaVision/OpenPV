@@ -83,6 +83,9 @@ Movie::~Movie()
       delete imageData;
       imageData = NULL;
    }
+   if (fp != NULL && fp != stdout) {
+      fclose(fp);
+   }
 }
 
 pvdata_t * Movie::getImageBuffer()
