@@ -215,10 +215,6 @@ PVParams::PVParams(const char * filename, int maxGroups)
 
    groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
-   imagefilelist = NULL;
-   outputdir = NULL;
-   targetwgts = NULL;
-   distractorwgts = NULL;
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 
    if (filename == NULL) {
@@ -246,10 +242,6 @@ PVParams::PVParams(int maxGroups)
 
    groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
-   imagefilelist = NULL;
-   outputdir = NULL;
-   targetwgts = NULL;
-   distractorwgts = NULL;
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 }
 
@@ -257,10 +249,6 @@ PVParams::~PVParams()
 {
    free(groups);
    delete stack;
-   if( imagefilelist ) free(imagefilelist);
-   if( outputdir ) free(outputdir);
-   if( targetwgts ) free(targetwgts);
-   if( distractorwgts ) free(distractorwgts);
    delete fnstack;
 }
 

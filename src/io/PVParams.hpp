@@ -111,11 +111,6 @@ private:
    int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
-   char * imagefilelist;    // name of the file containing the list of filenames
-   char * outputdir;        // name of the output directory.  It must already exist.
-   char * targetwgts;       // name of the file containing the kernel weights from the targets
-   char * distractorwgts;   // name of the file containing the kernel weights from the distractors
-   // I really should create another stack so that the name and number of the files aren't hard-coded
    FilenameStack * fnstack;
 
    void addGroup(char * keyword, char * name);
