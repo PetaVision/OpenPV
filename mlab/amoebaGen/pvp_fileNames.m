@@ -3,18 +3,19 @@ function filenames_cell = pvp_fileNames(N_ofeach, FC_list)
   global NUM2STR_FORMAT
   NUM2STR_FORMAT = '%04.4i';
   file_path = ...
-      '../../MATLAB/amoeba/256_png/';
+      '/nh/home/gkenyon/Documents/MATLAB/amoeba/128_png/'
+%      '../../../../Documents/MATLAB/amoeba/128_png/';
 %      '../PetaVision/mlab/amoebaGen/256/';
-  file_root = 'tar_'; % 8969_a.png
+  file_root = 'tar_'; % 
   target_flag = '_a'; % '_n'; %
-  file_dir = 'a'; % 't'; %'d'; % 
+  file_dir = 't'; %'a'; % 'd'; % 
   file_type = '.png';
   if nargin < 2 || isempty(FC_list)
     FC_list = [ 2 4 6 8 ];
   end%%if
   num_FCs = length(FC_list);
   if nargin < 1 || isempty(N_ofeach)
-    N_ofeach = 5000; %2500;
+    N_ofeach = 10000; %2500;
   end%%if
   N = num_FCs * N_ofeach;
   image_id = [];
