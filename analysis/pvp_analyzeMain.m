@@ -49,7 +49,7 @@ pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
 BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = inf;
+END_TIME = 101000.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -129,7 +129,7 @@ xcorr_struct.xcorr_flag = 0;
 num_eigen = 3;
 xcorr_struct.num_eigen = num_eigen;
 xcorr_struct.calc_power_mask = 1;
-xcorr_struct.num_sig = 1;
+xcorr_struct.num_sig = 2;  %% 2.5 throws memory allocation error
 calc_eigen = 1;
 xcorr_struct.calc_eigen = calc_eigen;
 
@@ -139,7 +139,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 8;
+num_epochs = 16;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
@@ -487,8 +487,7 @@ for layer = read_spikes;
     rate_array_tmp = ...
         sparse(1, ...
 	       target_struct.target_ndx_all{layer, i_target}, ...
-	       target_rate{layer, i_target} / ...
-	       num_epochs, ...
+	       target_rate{layer, i_target} / num_epochs, ...
 	       1 , ...
 	       layer_struct.num_neurons(layer), ...
 	       target_struct.num_target_neurons_all(layer, i_target) );
@@ -521,9 +520,8 @@ for layer = read_spikes;
     endfor %% % i_rank
   endfor %% % i_target
   clutter_rate{layer, 1} = ...
-      rate_array{layer}(1,target_struct.clutter_ndx_all{layer, 1});
-  [clutter_rate{layer, 1}, clutter_rate_ndx{layer, 1}] = ...
-      sort( clutter_rate{layer, 1}, 2, 'descend');
+      rate_array{layer}(1,target_struct.clutter_ndx_all{layer, 1}) / ...
+	num_epochs;
   rate_array_tmp = ...
       sparse(1, ...
 	     target_struct.clutter_ndx_all{layer, 1}, ...
@@ -544,6 +542,8 @@ for layer = read_spikes;
 			size_recon);
     fig_list = [fig_list; fig_tmp];
   endif %%
+  [clutter_rate{layer, 1}, clutter_rate_ndx{layer, 1}] = ...
+      sort( clutter_rate{layer, 1}, 2, 'descend');
   for i_rank = [ 1:3 ] % , ceil(num_clutter_neurons(layer, 1)/2), num_clutter_neurons(layer, 1) ]
     tmp_rate = clutter_rate{layer, 1}(i_rank);
     tmp_ndx = clutter_rate_ndx{layer, 1}(i_rank);
@@ -557,6 +557,9 @@ for layer = read_spikes;
   endfor %% % i_rank
   
 endfor %% layer
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
 
 
 %% calc target and clutter xcorr
@@ -618,7 +621,7 @@ for layer = read_spikes;
     continue;
   endif %% 
 
-  plot_title = [layer_struct.layerID{layer}, ' MassXCorr(', int2str(layer), ')'];
+  plot_title = [layer_struct.layerID{layer}, ' TargetXCorr(', int2str(layer), ')'];
   fig_tmp = figure('Name',plot_title);
   fig_list = [fig_list; fig_tmp];
   for i_target = 1 : num_targets
@@ -655,7 +658,7 @@ for layer = read_spikes;
     continue;
   endif %% 
 
-  plot_title = [layer_struct.layerID{layer}, ' MassAutoCorr(', int2str(layer), ')'];
+  plot_title = [layer_struct.layerID{layer}, ' TargetAutoCorr(', int2str(layer), ')'];
   fig_tmp = figure('Name',plot_title);
   fig_list = [fig_list; fig_tmp];
   for i_target = 1 : num_targets
@@ -686,7 +689,7 @@ for layer = read_spikes;
 
   %%disp( [ 'computing XPower(', num2str(layer), ')'] );
   plot_title = ...
-      [layer_struct.layerID{layer}, ' XPower(', int2str(layer), ')'];
+      [layer_struct.layerID{layer}, ' TargetXPower(', int2str(layer), ')'];
   fig_tmp = figure('Name',plot_title);
   fig_list = [fig_list; fig_tmp];
   for i_target = 1 : num_targets
@@ -724,7 +727,7 @@ for layer = read_spikes;
     continue;
   endif %% 
   plot_title = ...
-      [layer_struct.layerID{layer}, ' AutoPower(', int2str(layer), ')'];
+      [layer_struct.layerID{layer}, ' TargetAutoPower(', int2str(layer), ')'];
   fig_tmp = figure('Name',plot_title);
   fig_list = [fig_list; fig_tmp];
   for i_target = 1 : num_targets
@@ -745,6 +748,10 @@ for layer = read_spikes;
   axis tight
   figure(fig_tmp);
 endfor %% % layer
+
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
 
 
 %% Eigen analysis
@@ -866,6 +873,9 @@ for layer = read_spikes;
     
   endfor %% % i_mode
 endfor %% % layer
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
   
   
   %%find eigen vectors
@@ -966,7 +976,8 @@ for i_conn = plot_weights
         pvp_reconstruct(weights{i_conn}{i_patch}, ...
 			plot_title, ...
 			[], ...
-			size_recon);
+			size_recon, ...
+			1);
     fig_list = [fig_list; fig_tmp];
   endfor %% % i_patch
 endfor %% % i_conn
@@ -1003,15 +1014,9 @@ if plot_vmem
   H2_vmem = cell(num_vmem_files, 1);
   vmem_skip = 2;
   layer = read_spikes( find(read_spikes, 1) );
-  BEGIN_TIME = epoch_struct.begin_time(1,layer);
-  END_TIME = epoch_struct.end_time(2,layer);
+  BEGIN_TIME = epoch_struct.begin_time(num_epochs-1,layer);
+  END_TIME = BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
   for i_vmem = 1 : vmem_skip : num_vmem_files
-				%    vmem_layer = vmem_layers(i_vmem);
-				%   if ( ~ismember( vmem_layer, read_spikes ) )
-				%     continue; % NROWS = 1, NFEATURES = 1;
-				%   endif %%
-				%    NROWS = num_rows(vmem_layer);
-				%    NFEATURES = num_features(vmem_layer);
     [vmem_time{i_vmem}, ...
      vmem_G_E{i_vmem}, ...
      vmem_G_I{i_vmem}, ...
@@ -1020,9 +1025,6 @@ if plot_vmem
      vmem_Vth{i_vmem}, ...
      vmem_a{i_vmem} ] = ...
         ptprobe_readV(vmem_file_list{i_vmem});
-				% if pvp_order
-				%   vmem_index = ( vmem_row * num_cols(vmem_layer) + vmem_col ) * num_features(vmem_layers) + vmem_feature;
-				% endif %%
     vmem_start = 1;
     vmem_stop = length(vmem_time{i_vmem});
     if isempty(vmem_stop)
@@ -1062,7 +1064,8 @@ if plot_rates
   for layer = read_spikes
     time_bins = 1: epoch_struct.epoch_bins(layer);
     lh(layer) = plot((time_bins)*BIN_STEP_SIZE, ...
-		     psth_target{layer,i_target}(time_bins), '-r');
+		     psth_target{layer,i_target}(time_bins) / ...
+		     num_epochs, '-r');
     set(lh(layer),'Color',co(1+mod(layer,size(co,1)),:));
     set(lh(layer),'LineWidth',2);
   endfor %%

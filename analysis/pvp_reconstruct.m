@@ -36,6 +36,7 @@ function [fh] = ...
   NO  = size_recon(2);
   NCOLS  = size_recon(3);
   NROWS = size_recon(4);
+  NFEATURES = NK * NO;
   
   if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
     plot_recon_flag = 1;
@@ -132,9 +133,11 @@ function [fh] = ...
   elseif FLAT_ARCH_FLAG
     NFEATURES = size_recon(1) * size_recon(2);
     recon3D = reshape( recon_array(:), [NFEATURES, NCOLS, NROWS] );
-    recon3D = ( recon3D - min_recon_val ) ./ ( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
+    recon3D = ...
+	( recon3D - min_recon_val ) ./ ...
+	( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
     if plot_recon_flag
-      if ( ~exist('fh','var') || isempty(fh) || nargin < 3 )
+      if ( ~exist('fh','var') || isempty(fh) || nargin < 5 )
 	fh = figure;
       else
 	figure(fh);

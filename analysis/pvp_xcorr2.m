@@ -75,7 +75,9 @@ function [mass_xcorr, ...
       ind2sub( size_post, post_ndx );
 				%  i_plot = 0;
 				%  xcorr_figs = [];
-  %% for each i_post, compute xcorr for all i_pre in parallel
+  %% for each i_post, compute xcorr for all i_pre 
+  num_pre_steps = size( pre_spike_train, 1 );
+  num_post_steps = size( post_spike_train, 1 );
   for i_post = 1 : num_post
     disp_interval = 1; %fix(num_post / 10);
     if mod(i_post, disp_interval) == 1
@@ -90,8 +92,6 @@ function [mass_xcorr, ...
     endif
     sum_pre = sum( pre_spike_train, 1 );
     sum_post = sum( post_spike_train(:,i_post), 1 );
-    num_pre_steps = size( pre_spike_train, 1 );
-    num_post_steps = size( post_spike_train, 1 );
     xcorr_mean_tmp = sum_pre * sum_post / (num_pre_steps * num_post_steps);
     xcorr_std_tmp = ...
         sqrt( xcorr_mean_tmp ) .* ...
