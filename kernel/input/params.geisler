@@ -390,7 +390,7 @@ HyPerConn "LGNInhFF to LGN" = {
    sigma = 5;
    rMax  = 7;
    
-   strength = 6.0;  
+   strength = 12.0;  
    
    //delay = 1.0;
    
@@ -521,7 +521,7 @@ HyPerConn "LGNInh to LGN" = {
    sigma = 5;
    rMax  = 7;
    
-   strength = 6.0;  
+   strength = 12.0;  
    
    //delay = 1.0;
    
@@ -595,7 +595,7 @@ HyPerConn "L1 to LGN" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 0.5;  
+   strength = 1.0;//0.5;  
    
    delay = 10; //7.0;
 };
@@ -613,7 +613,7 @@ HyPerConn "L1 to LGNInh" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 1.0;  
+   strength = 10.0;  
    
    delay = 10; //7.0;
 };
@@ -667,7 +667,7 @@ HyPerConn "L1 to L1Inh" = {
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 12.0;
+   strength = 50;//24.0;
       
    delay = 20; //14.0;
 };
