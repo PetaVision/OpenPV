@@ -65,11 +65,16 @@ public:
    int  convolve(int width);
    void setTau(float t)                { tau = t; }
 
-   int copyFromInteriorBuffer(const unsigned char * buf);
+   int copyFromInteriorBuffer(const unsigned char * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
    int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:
+
+#ifdef OPENCL_THREADS
+   int virtual initializeThreadData();
+   int         initializeThreadKernels();
+#endif
 
    //int initializeImage(const char * filename);
 
