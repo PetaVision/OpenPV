@@ -137,6 +137,22 @@ int Image::initializeImage(const char * filename)
    return status;
 }
 
+#ifdef OPENCL_THREADS
+// no need for threads for now for image
+//
+int Image::initializeThreadData()
+{
+   return CL_SUCCESS;
+}
+
+// no need for threads for now for image
+//
+int Image::initializeThreadKernels()
+{
+   return CL_SUCCESS;
+}
+#endif
+
 pvdata_t * Image::getImageBuffer()
 {
    return data;
@@ -239,7 +255,8 @@ int Image::read(const char * filename, int offsetX, int offsetY)
    status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
 
    if (status == 0) {
-      status = copyFromInteriorBuffer(buf);
+      float fac = 1.0f / 255.0f;  // normalize to 1.0
+      status = copyFromInteriorBuffer(buf, fac);
    }
    delete buf;
 
@@ -336,7 +353,7 @@ int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
    return 0;
 }
 
-int Image::copyFromInteriorBuffer(const unsigned char * buf)
+int Image::copyFromInteriorBuffer(const unsigned char * buf, float fac)
 {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
@@ -354,7 +371,7 @@ int Image::copyFromInteriorBuffer(const unsigned char * buf)
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
             int iex = i + nxBorder;
-            data[iex + jex*sy + b*sb] = (pvdata_t) buf[ii++];
+            data[iex + jex*sy + b*sb] = fac * (pvdata_t) buf[ii++];
          }
       }
    }
