@@ -71,7 +71,7 @@ public:
 
 protected:
 
-#ifdef OPENCL_THREADS
+#ifdef PV_USE_OPENCL
    int virtual initializeThreadData();
    int         initializeThreadKernels();
 #endif

@@ -137,7 +137,7 @@ int Image::initializeImage(const char * filename)
    return status;
 }
 
-#ifdef OPENCL_THREADS
+#ifdef PV_USE_OPENCL
 // no need for threads for now for image
 //
 int Image::initializeThreadData()
