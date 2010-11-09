@@ -9,14 +9,7 @@
 #ifndef TIMER_HPP_
 #define TIMER_HPP_
 
-#define MACH_TIMER
-
-#ifdef MACH_TIMER
-#include <CoreServices/CoreServices.h>
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-#endif // MACH_TIMER
-
+#include <stdint.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +18,6 @@ namespace PV {
    class Timer {
    public:
       Timer();
-      virtual ~Timer();
       
       virtual double start();
       virtual double stop();
@@ -35,8 +27,8 @@ namespace PV {
       
       int rank;
       
-      uint64_t     mach_start, mach_end;
-      double       mach_elapsed;
+      uint64_t time_start, time_end;
+      uint64_t time_elapsed;
 
    };
    
