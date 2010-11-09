@@ -85,6 +85,7 @@ public:
 
    inline int xPatchSize()                           {return nxp;}
    inline int yPatchSize()                           {return nyp;}
+   inline int fPatchSize()                           {return nfp;}
 
    inline PVAxonalArbor * axonalArbor(int kPre, int neighbor)
       {return &axonalArborList[neighbor][kPre];}
