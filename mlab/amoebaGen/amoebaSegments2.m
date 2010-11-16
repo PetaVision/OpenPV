@@ -13,6 +13,7 @@ list_segments(:,1) = list_segments(:,1) + delta_gap;
 list_segments = min( list_segments, amoeba_struct.num_phi );
 list_segments = max( list_segments, 1 );
 fourier_coef = amoeba_struct.fourier_ratio .* randn(amoeba_struct.num_fourier, 1);
+fourier_coef = fourier_coef .* 2.^(amoeba_struct.fourier_amp);
 fourier_coef2 = repmat( amoeba_struct.fourier_ratio .* fourier_coef, [1, amoeba_struct.num_phi]);
 fourier_phase = (pi/2) * rand(amoeba_struct.num_fourier, 1);
 fourier_phase2 = repmat(fourier_phase, [1, amoeba_struct.num_phi]);

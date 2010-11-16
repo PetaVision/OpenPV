@@ -1,7 +1,7 @@
 function [nz_image_cell] = commands2(image_size)
 
 if nargin < 1
-    image_size = [256 256];
+    image_size = [128 128]; [256 256];
 end
 
 global image_dim
@@ -10,7 +10,7 @@ image_dim = image_size;
 %  addpath('/Applications/Psychtoolbox/');
 
 % number of targets/fourier component
-numT = 1000;
+numT = 10000;
 %  screen_color = [];
 %screen_rect = [0 0 256 256];
 %  screen_rect = [0 0 128 128];
@@ -25,15 +25,15 @@ if plot_amoeba2D
 end
 
 %% sets number of fourier components
-fourC = [2 4 6 8];
-%fourC = [4];
+%fourC = [2 4 6 8];
+fourC = [4];
 global nz_image
 nz_image = zeros(3, numT);
 nz_image_cell = cell(length(fourC), 1);
 
 global machine_path
-%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/';
-machine_path = '/Users/gkenyon/Documents/MATLAB/amoeba/';
+machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
+%machine_path = '/Users/gkenyon/Documents/MATLAB/amoeba_ltd/';
 if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
