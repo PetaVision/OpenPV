@@ -47,15 +47,19 @@ function [pvp_header, pvp_index] = pvp_readHeader(filename)
   pvp_header(pvp_index.TIME) = pvp_time;
 
   file_type = pvp_header(pvp_index.FILE_TYPE);
-  if ( file_type ~= PVP_ACT_FILE_TYPE )
-    error(['file_type ~= PVP_ACT_FILE_TYPE in pvp file: ', filename]);
+  %disp(['file_type = ', num2str(file_type)]);
+  %disp(['PVP_WGT_FILE_TYPE = ', num2str(PVP_WGT_FILE_TYPE)]);
+  if ( ( file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE ) && ...
+  	 ( file_type ~= PVP_ACT_FILE_TYPE ) && ...
+  	 ( file_type ~= PVP_WGT_FILE_TYPE ) )
+    error(['file_type = ', num2str(file_type), ' ~= PVP_NONSPIKING_ACT_FILE_TYPE in pvp file: ', filename]);
     return;
   endif
 
 
   num_pvp_params = pvp_header(pvp_index.NUM_PARAMS);
-  if ( num_pvp_params ~= 20 )
-    error(['num_pvp_params ~= 20 in pvp file: ', filename]);
+  if ( ( num_pvp_params ~= 20 ) &&  ( num_pvp_params ~= 26 ) )
+    error(['num_pvp_params = ', num2str(num_pvp_params), ' ~= 20 in pvp file: ', filename]);
     return;
   endif
 
