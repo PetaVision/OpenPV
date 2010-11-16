@@ -17,7 +17,7 @@ global NO NK dK % for the current layer
 global ROTATE_FLAG % orientation axis rotated by DTH / 2
 
 global num_trials first_trial last_trial skip_trial
-global output_path spiking_path twoAFC_path spiking_path activity_path
+global OUTPUT_PATH spiking_path twoAFC_path spiking_path activity_path
 
 global MIN_INTENSITY
 MIN_INTENSITY = 0;
@@ -49,11 +49,11 @@ endif
 NFC = 4;
 
 global FC_STR
-				%FC_STR = ['_', num2str(4), 'fc'];
+%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 5;
-num_trials =  0; %( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials =  ( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -77,11 +77,13 @@ elseif abs(TRAINING_FLAG) == 4
   G_STR = '_G4';
 endif
 
-machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+
+machine_path = '/home/garkenyon/workspace/';
+%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/256/test_target40K_W325_target']; %, FC_STR];
+target_path = [machine_path 'kernel/input/amoeba_256/test_W300_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   target_path = [target_path, FC_STR, '/'];
@@ -89,7 +91,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel/input/256/test_target40K_W325_distractor']; %, FC_STR];
+		     'kernel/input/amoeba_256/test_W300_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -103,7 +105,7 @@ spiking_path = target_path; %[machine_path, 'kernel/input/spiking_target10K', FC
 				%twoAFC_path = [twoAFC_path, G_STR, '/'];
 				%spiking_path = [spiking_path, G_STR, '/'];
 activity_path = {target_path; distractor_path};
-output_path = twoAFC_path;
+OUTPUT_PATH = twoAFC_path;
 
 min_target_flag = 2 - ~isempty(target_path);
 max_target_flag = 1 + ~isempty(distractor_path);
@@ -111,8 +113,8 @@ max_target_flag = 1 + ~isempty(distractor_path);
 pvp_order = 1;
 ROTATE_FLAG = 1;
 				% initialize to size of image (if known), these should be overwritten by each layer
-NROWS_image=128; %256;
-NCOLS_image=128; %256;
+NROWS_image=256;
+NCOLS_image=256;
 NROWS = NROWS_image;
 NCOLS = NCOLS_image;
 NFEATURES = 8;
@@ -212,7 +214,7 @@ for j_trial = first_trial : skip_trial : last_trial
         
     for target_flag = min_target_flag : max_target_flag
       
-      output_path = activity_path{target_flag};
+      OUTPUT_PATH = activity_path{target_flag};
       activity{target_flag} = [];
       
       %% Read spike events
@@ -281,13 +283,13 @@ for j_trial = first_trial : skip_trial : last_trial
         if (zip_activity_flag == 1)
           activity_filename = ['V1_G', num2str(layer-1),'_', ...
 			       num2str(j_trial, NUM2STR_FORMAT), '.mat.z']
-          activity_filename = [output_path, activity_filename]
+          activity_filename = [OUTPUT_PATH, activity_filename]
           %%save("-z", "-mat", activity_filename, "activity" );
           save('-mat', activity_filename, 'activity{target_flag}' );
         else
           activity_filename = ['V1_G', num2str(layer-1), '_', ...
 			       num2str(j_trial, NUM2STR_FORMAT), '.mat']
-          activity_filename = [output_path, activity_filename]
+          activity_filename = [OUTPUT_PATH, activity_filename]
           save('-mat', activity_filename, 'activity{target_flag}' );
         endif
         
@@ -314,10 +316,11 @@ for j_trial = first_trial : skip_trial : last_trial
              num2str(target_flag)];
 	fig_tmp = figure;
 	set(fig_tmp, 'Name', recon_filename);
-        fig_tmp = pvp_reconstruct(activity{target_flag}, ...
-				  recon_filename, fig_tmp, ...
-				  size_activity, ...
-				  1);
+        fig_tmp = ...
+	    pvp_reconstruct(activity{target_flag}, ...
+			    recon_filename, fig_tmp, ...
+			    size_activity, ...
+			    1);
         fig_list = [fig_list; fig_tmp];
 	
       endif
@@ -375,7 +378,7 @@ for j_trial = first_trial : skip_trial : last_trial
   reconstruct_count = reconstruct_count + 1;
   raw_hist_count = raw_hist_count + 1;
   
-  pvp_saveFigList( fig_list, output_path, 'png');
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
   close all;
   fig_list = [];
 
@@ -492,7 +495,7 @@ for i_conn = plot_weights
 endfor % i_conn
 FLAT_ARCHITECTURE = 0;
 
-pvp_saveFigList( fig_list, output_path, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -530,7 +533,7 @@ if max_target_flag > min_target_flag
     endfor
     hist_filename = ...
 	['hist_activity', '.mat']
-    hist_filename = [output_path, hist_filename]
+    hist_filename = [OUTPUT_PATH, hist_filename]
     %%save("-z", "-mat", hist_filename, "hist_activity" );
             save('-mat', hist_filename, 'hist_activity');
 
