@@ -59,12 +59,12 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 //
 #endif
 
-   offsetX = imageLoc.nx / 2;
-   offsetY = imageLoc.ny / 2;
-
-   offsetX = params->value(name, "offsetX", offsetX);
-   offsetY = params->value(name, "offsetY", offsetY);
+   offsetX = (int) params->value(name, "offsetX", 0.0f);
+   offsetY = (int) params->value(name, "offsetY", 0.0f);
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
+
+   persistenceProb = params->value(name, "persistenceProb", 1.0f);
+   stepSize = (int) params->value(name, "stepSize", 2);
 
    read(filename, offsetX, offsetY);
 
@@ -125,9 +125,11 @@ bool Movie::updateImage(float time, float dt)
    // need all image bands until converted to gray scale
    loc->nBands = imageLoc.nBands;
 
-   int step = 2;
-   offsetX = calcPosition(offsetX, step, imageLoc.nx - loc->nx);
-   offsetY = calcPosition(offsetY, step, imageLoc.ny - loc->ny);
+   double p = pv_random_prob();
+   if(p > persistenceProb){
+      offsetX = calcPosition(offsetX, stepSize, imageLoc.nx - loc->nx - stepSize);
+      offsetY = calcPosition(offsetY, stepSize, imageLoc.ny - loc->ny - stepSize);
+   }
 
    // ensure that offsets keep loc within image bounds
    resetPositionInBounds();

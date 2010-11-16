@@ -38,6 +38,10 @@ private:
    int offsetX;             // offset of layer section within full movie frame
    int offsetY;
 
+   int stepSize;
+
+   float persistenceProb;
+
    char inputfile[PV_PATH_MAX];  // current input file name
 
    FILE * fp;
