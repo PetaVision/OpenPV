@@ -129,7 +129,7 @@ xcorr_struct.xcorr_flag = 0;
 num_eigen = 3;
 xcorr_struct.num_eigen = num_eigen;
 xcorr_struct.calc_power_mask = 1;
-xcorr_struct.num_sig = 2;  %% 2.5 throws memory allocation error
+xcorr_struct.num_sig = 4;  %% ? throws memory allocation error
 calc_eigen = 1;
 xcorr_struct.calc_eigen = calc_eigen;
 
@@ -369,6 +369,9 @@ for layer = read_spikes;
       pvp_powerMask(layer, xcorr_struct, target_struct, power_array);
 
 endfor %% % layer
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
 
 
 
@@ -398,6 +401,9 @@ for layer = read_spikes;
 			      fig_list);
   endif %% plot_raster
 endfor %%layer
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
     
 
 %% calc target and clutter PSTH
@@ -469,6 +475,9 @@ for layer = read_spikes;
   set(lh, 'Color', my_gray);
   
 endfor % layer
+pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+close all;
+fig_list = [];
 
 
   %% reconstruct image segments from layer activity
