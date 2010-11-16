@@ -8,7 +8,7 @@ function [act_time, ...
   global NUM_BIN_PARAMS 
   global NUM_WGT_PARAMS
 
-  global output_path 
+  global OUTPUT_PATH 
   global N NROWS NCOLS % for the current layer
   global NFEATURES  % for the current layer
   global NO NK % for the current layer
@@ -25,7 +25,7 @@ function [act_time, ...
 				% PetaVision always names spike files aN.pvp, where
 				% N == layer index (starting at 0)
   filename = ['a', num2str(layer-1),'.pvp'];
-  filename = [output_path, filename];
+  filename = [OUTPUT_PATH, filename];
 
   disp([ 'reading activity from ', filename ]);
   
