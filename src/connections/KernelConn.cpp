@@ -250,6 +250,9 @@ int KernelConn::writeWeights(float time, bool last)
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
 }
 
+// one to many mapping, chose first patch index in restricted space
+// kernelIndex for unit cell
+// patchIndex in extended space
 int KernelConn::kernelIndexToPatchIndex(int kernelIndex)
 {
    int patchIndex;
@@ -258,21 +261,23 @@ int KernelConn::kernelIndexToPatchIndex(int kernelIndex)
    int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
          post->clayer->yScale - pre->clayer->yScale) : 1;
    int nfPre = pre->clayer->numFeatures;
-   int kxPre = kxPos(kernelIndex, xScaleFac, yScaleFac, nfPre);
-   int kyPre = kyPos(kernelIndex, xScaleFac, yScaleFac, nfPre);
+   int kxPre = kxPos(kernelIndex, xScaleFac, yScaleFac, nfPre) + pre->clayer->loc.nPad;
+   int kyPre = kyPos(kernelIndex, xScaleFac, yScaleFac, nfPre) + pre->clayer->loc.nPad;
    int kfPre = featureIndex(kernelIndex, xScaleFac, yScaleFac, nfPre);
-   int nxPre = pre->clayer->loc.nx;
-   int nyPre = pre->clayer->loc.ny;
+   int nxPre = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
+   int nyPre = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
    patchIndex = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
    return patchIndex;
 }
 
 // many to one mapping from weight patches to kernels
+// patchIndex always in extended space
+// referenced to unit cell
 int KernelConn::patchIndexToKernelIndex(int patchIndex)
 {
    int kernelIndex;
-   int nxPre = pre->clayer->loc.nx;
-   int nyPre = pre->clayer->loc.ny;
+   int nxPre = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
+   int nyPre = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
    int nfPre = pre->clayer->numFeatures;
    int kxPre = kxPos(patchIndex, nxPre, nyPre, nfPre);
    int kyPre = kyPos(patchIndex, nxPre, nyPre, nfPre);

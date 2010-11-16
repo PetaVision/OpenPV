@@ -1393,9 +1393,11 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 
    pvdata_t * w = wp->data;
 
-   const int nxPatch = wp->nx;
-   const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
+   // kludge: we fill in all nxp*nyp*nfp weights even if patch is shrunken
+   // TODO: write weights into temporary full sized patch and then copy to shrunken patch
+   const int nxPatch = nxp; //wp->nx;
+   const int nyPatch = nyp; //wp->ny;
+   const int nfPatch = nfp; //wp->nf;
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
    }
@@ -1407,6 +1409,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    float yPreGlobal = 0.0;
    float xPatchHeadGlobal = 0.0;
    float yPatchHeadGlobal = 0.0;
+   // zPatchHead doesn't know about shrunken patches so use head of non-shrunken patch
    posPatchHead(kPre, lPre->xScale,
          lPre->yScale, lPre->loc, &xPreGlobal,
          &yPreGlobal, lPost->xScale, lPost->yScale,
@@ -1416,7 +1419,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    // ready to compute weights
    const int sx = wp->sx;
    assert(sx == nfPatch);
-   const int sy = wp->sy; // no assert here because patch may be shrunken
+   // const int sy = wp->sy; // no assert here because patch may be shrunken
+   const int sy = nfPatch * nxPatch; //kludge
    const int sf = wp->sf;
    assert(sf == 1);
 
@@ -1523,7 +1527,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
          scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
       }
        else if (sum != 0.0f) {
-         scale_factor = strength / fabsf(sum);
+         scale_factor = strength / sum;
       }
        else if (sum == 0.0f && sigma2 > 0.0f) {
          scale_factor = strength / sqrtf(sigma2);
