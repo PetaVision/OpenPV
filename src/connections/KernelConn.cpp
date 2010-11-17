@@ -165,6 +165,7 @@ PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
    const int num_kernels = numDataPatches(arbor);
    HyPerConn::normalizeWeights(kernelPatches, num_kernels);
    if (num_kernels > 1) {
+      assert(nfp <= num_kernels);
       symmetrizeWeights(kernelPatches, num_kernels);
    }
    return patches;
