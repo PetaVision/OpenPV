@@ -127,7 +127,7 @@ int HyPerConn::initialize(const char * filename)
    const int arbor = 0;
    numAxonalArborLists = 1;
 
-   assert(this->channel <= post->clayer->numPhis);
+   assert(this->channel < post->clayer->numPhis);
 
    this->connId = parent->numberOfConnections();
 
@@ -1551,6 +1551,11 @@ int HyPerConn::setPatchSize(const char * filename)
    nxp = (int) inputParams->value(name, "nxp", post->clayer->loc.nx);
    nyp = (int) inputParams->value(name, "nyp", post->clayer->loc.ny);
    nfp = (int) inputParams->value(name, "nfp", post->clayer->numFeatures);
+   if( nfp > post->getCLayer()->numFeatures ){ /* should the condition be == or <= ? */
+      fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
+      fprintf( stderr, "but only %d features for post-synaptic layer %s\n", post->getCLayer()->numFeatures, post->getName() );
+      exit(1);
+   }
 
    // use patch dimensions from file if (filename != NULL)
    //
