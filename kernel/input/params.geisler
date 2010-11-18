@@ -15,7 +15,10 @@ HyPerCol "column" = {
 
 HyPerLayer "Image" = {
    // unnecessary ?
-  marginWidth = 0; 
+   stepSize = 2;
+   persistenceProb = 1;
+   writeNonspikingActivity = 1;
+   marginWidth = 0; 
     // burstFreq = 12;
 };
 
@@ -265,7 +268,7 @@ HyPerConn "Image to Retina" = {
    sigma = 1;
    rMax  = 1;
    
-   strength =  0.0039216; //1/255;  
+   strength =  1.0; //0.0039216; //1/255;  
 };
 
 
@@ -316,6 +319,7 @@ HyPerConn "LGN to LGNInhFF" = {
    sigma = 5;
    rMax  = 7;
    
+   delay = 1;
    strength = 0.0; //6.0;  
    
 };
@@ -332,6 +336,7 @@ HyPerConn "LGN to LGNInh" = {
    sigma = 5;
    rMax  = 7;
    
+   delay = 1;
    strength = 3.0;  
    
 };
@@ -351,7 +356,7 @@ HyPerConn "LGN to L1" = {
       
    strength = 48.0;  
    
-   delay = 10; //7.0;
+   delay = 8; //7.0;
 };
 
 
@@ -371,7 +376,7 @@ HyPerConn "LGN to L1InhFF" = {
    
    strength = 48.0;  
    
-   delay = 10; //7.0;
+   delay = 8; //7.0;
 };
 
 
@@ -392,7 +397,7 @@ HyPerConn "LGNInhFF to LGN" = {
    
    strength = 12.0;  
    
-   //delay = 1.0;
+   delay = 1.0;
    
 };
 
@@ -595,9 +600,9 @@ HyPerConn "L1 to LGN" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 1.0;//0.5;  
+   strength = 0.5;//0.5;  
    
-   delay = 10; //7.0;
+   delay = 8; //7.0;
 };
 
 HyPerConn "L1 to LGNInh" = {
@@ -613,9 +618,9 @@ HyPerConn "L1 to LGNInh" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 10.0;  
+   strength = 5.0;  
    
-   delay = 10; //7.0;
+   delay = 8; //7.0;
 };
 
 HyPerConn "L1 to L1" = {
@@ -631,7 +636,7 @@ HyPerConn "L1 to L1" = {
    normalize_max = 0.0;
    strength = 6.0;
    
-   delay = 20; //14.0;   
+   delay = 18; //14.0;   
 };
 
 HyPerConn "L1 to L1InhFF" = {
@@ -667,9 +672,9 @@ HyPerConn "L1 to L1Inh" = {
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 50;//24.0;
+   strength = 25;//24.0;
       
-   delay = 20; //14.0;
+   delay = 18; //14.0;
 };
 
 
