@@ -8,7 +8,7 @@ function [fid, ...
 	  exclude_offset ] = ...
       pvp_openSparseSpikes(layer)
 
-  global OUTPUT_PATH 
+  global SPIKE_PATH 
 				%  global N NROWS NCOLS % for the current layer
 				%  global NFEATURES  % for the current layer
 				%  global NO NK % for the current layer
@@ -20,7 +20,7 @@ function [fid, ...
 				% PetaVision always names spike files aN.pvp, where
 				% N == layer index (starting at 0)
   filename = ['a', num2str(layer-1),'.pvp'];
-  filename = [OUTPUT_PATH, filename];
+  filename = [SPIKE_PATH, filename];
 
   disp([ 'read tot spikes from ',filename ]);
   
