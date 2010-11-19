@@ -32,17 +32,25 @@ FLAT_ARCH_FLAG = 1;
 global SPIKING_FLAG
 SPIKING_FLAG = 1;
 
+%machine_path = '/nh/home/gkenyon/';
+machine_path = '/home/garkenyon/';
+matlab_path = [machine_path, 'MATLAB/'];
+workspace_path = [machine_path, 'workspace/'];
+project_path = [workspace_path, 'kernel/'];
+
 global OUTPUT_PATH SPIKE_PATH
-				%SPIKE_PATH = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/128/spiking_2fc/';
-SPIKE_PATH = '/nh/home/gkenyon/workspace/kernel/input/128/spiking_4fc_G1/';
-OUTPUT_PATH = SPIKE_PATH; %'/nh/home/gkenyon/workspace/kernel/output/';
+SPIKE_PATH = [project_path, 'output/'];
+OUTPUT_PATH = [project_path, 'input/amoebaLTD_256/test_W2000_target_G1/4fc/'];
 
-				%input_path = '/Users/gkenyon/Documents/eclipse-workspace/PetaVision/mlab/amoebaGen/128_png/2/';
-input_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba/128_png/4/';
+image_path = [matlab_path, 'amoebaLTD/256_png/4/'];
+image_filename = [image_path 't/tar_0014_a.png'];
+target_filename{1} = [image_path 'a/tar_0014_a.png'];
 
-				%global image_path target_path
-image_filename = [input_path 't/tar_0041_a.png'];
-target_filename{1} = [input_path 'a/tar_0041_a.png'];
+main_file = [project_path, 'geisler.cpp'];
+copyfile(main_file, OUTPUT_PATH);
+
+params_file = [project_path, 'input/params.geisler'];
+copyfile(params_file, OUTPUT_PATH);
 
 global pvp_order
 pvp_order = 1;
