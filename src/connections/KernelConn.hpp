@@ -41,6 +41,7 @@ public:
    virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches);
 
    PVPatch * getKernelPatch(int kernelIndex)   {return kernelPatches[kernelIndex];}
+   virtual int writeWeights(float time, bool last=false);
 
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
@@ -54,7 +55,6 @@ protected:
          const char * filename);
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename);
-   virtual int writeWeights(float time, bool last=false);
 
 };
 

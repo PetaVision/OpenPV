@@ -1382,47 +1382,66 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
 /**
  * calculate gaussian weights to segment lines
  */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
-                                  int numFlanks, float shift, float rotate,
-                                  float aspect, float sigma, float r2Max, float strength)
+int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
+      float shift, float rotate, float aspect, float sigma, float r2Max, float strength)
 {
-   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPre = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
+   float deltaThetaMax = 2.0 * PI;
+   //   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
 
-   pvdata_t * w = wp->data;
-
-   // kludge: we fill in all nxp*nyp*nfp weights even if patch is shrunken
-   // TODO: write weights into temporary full sized patch and then copy to shrunken patch
-   const int nxPatch = nxp; //wp->nx;
-   const int nyPatch = nyp; //wp->ny;
-   const int nfPatch = nfp; //wp->nf;
+   // get dimensions of (potentially shruken patch)
+   const int nxPatch = wp->nx;
+   const int nyPatch = wp->ny;
+   const int nfPatch = wp->nf;
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
    }
 
-   float deltaThetaMax = 2.0 * PI;
-//   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
+   pvdata_t * w = wp->data;
 
+   // get strides of (potentially shrunken) patch
+   const int sx = wp->sx;
+   assert(sx == nfPatch);
+   const int sy = wp->sy; // no assert here because patch may be shrunken
+   const int sf = wp->sf;
+   assert(sf == 1);
+
+   // make full sized temporary patch
+   PVPatch * wp_tmp;
+   wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
+   pvdata_t * w_tmp = wp_tmp->data;
+
+   const int nxPatch_tmp = wp_tmp->nx;
+   const int nyPatch_tmp = wp_tmp->ny;
+   const int nfPatch_tmp = wp_tmp->nf;
+   const int kxPre_tmp = (int) ( pre->clayer->loc.nx / 2 );
+   assert(kxPre_tmp >= nxPatch_tmp / 2);
+   const int kyPre_tmp = (int) ( pre->clayer->loc.ny / 2 );
+   assert(kyPre_tmp >= nyPatch_tmp / 2);
+   const int kfPre_tmp = kPre % pre->clayer->numFeatures;
+   int kPre_tmp = kIndex(kxPre_tmp, kyPre_tmp, kfPre_tmp, pre->clayer->loc.nx,
+         pre->clayer->loc.ny, pre->clayer->numFeatures);
+
+   // get strides of full sized temporary patch
+   const int sx_tmp = wp_tmp->sx;
+   assert(sx_tmp == wp_tmp->nf);
+   const int sy_tmp = wp_tmp->sy;
+   assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
+   const int sf_tmp = wp_tmp->sf;
+   assert(sf_tmp == 1);
+
+   // get location of temporary patch head
+   // presynaptic cell is not in the center if patch is shrunken, so make full sized wp_tmp
    float xPreGlobal = 0.0;
    float yPreGlobal = 0.0;
    float xPatchHeadGlobal = 0.0;
    float yPatchHeadGlobal = 0.0;
-   // zPatchHead doesn't know about shrunken patches so use head of non-shrunken patch
-   posPatchHead(kPre, lPre->xScale,
-         lPre->yScale, lPre->loc, &xPreGlobal,
-         &yPreGlobal, lPost->xScale, lPost->yScale,
-         lPost->loc, wp, &xPatchHeadGlobal,
+   posPatchHead(kPre_tmp, lPre->xScale, lPre->yScale, lPre->loc, &xPreGlobal, &yPreGlobal,
+         lPost->xScale, lPost->yScale, lPost->loc, wp_tmp, &xPatchHeadGlobal,
          &yPatchHeadGlobal);
-
-   // ready to compute weights
-   const int sx = wp->sx;
-   assert(sx == nfPatch);
-   // const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sy = nfPatch * nxPatch; //kludge
-   const int sf = wp->sf;
-   assert(sf == 1);
 
    // sigma is in units of pre-synaptic layer
    const float dxPost = powf(2, (float) lPost->xScale);
@@ -1441,22 +1460,22 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const float dthPre = PI / (float) noPre;
    const float thPre = th0 + iThPre * dthPre;
 
-   // loop over all post-synaptic cells in patch
-   for (int fPost = 0; fPost < nfPatch; fPost++) {
+   // loop over all post-synaptic cells in temporary patch
+   for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       int oPost = fPost % noPost;
       float thPost = th0 + oPost * dth;
       if (noPost == 1 && noPre > 1) {
          thPost = thPre;
       }
-      if ( fabs(thPre - thPost) > deltaThetaMax){
+      if (fabs(thPre - thPost) > deltaThetaMax) {
          continue;
       }
-      for (int jPost = 0; jPost < nyPatch; jPost++) {
+      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
          float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
-         for (int iPost = 0; iPost < nxPatch; iPost++) {
+         for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
             float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
 
-            bool sameLoc = ( (fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f) );
+            bool sameLoc = ((fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
             if ((sameLoc) && (!self)) {
                continue;
             }
@@ -1467,23 +1486,38 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
-            w[iPost * sx + jPost * sy + fPost * sf] = 0;
+            w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] = 0;
             if (d2 <= r2Max) {
-               w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0f * sigma
-                     * sigma));
+               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+                     / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if (d2 <= r2Max) {
-                  w[iPost * sx + jPost * sy + fPost * sf] += expf(-d2 / (2.0f * sigma
-                        * sigma));
+                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+                        / (2.0f * sigma * sigma));
                }
             }
          }
       }
    }
 
+   // copy weights from full sized temporary patch to (possibly shrunken) patch
+   w = wp->data;
+   pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   size_t data_offset = w - data_head;
+   w_tmp = &wp_tmp->data[data_offset];
+   int nk = nxPatch * nfPatch;
+   for (int ky = 0; ky < nyPatch; ky++) {
+      for (int iWeight = 0; iWeight < nk; iWeight++) {
+         w[iWeight] = w_tmp[iWeight];
+      }
+      w += sy;
+      w_tmp += sy;
+   }
+
+   free(wp_tmp);
    return 0;
 }
 
