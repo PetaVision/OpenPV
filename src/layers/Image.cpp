@@ -263,6 +263,13 @@ int Image::read(const char * filename, int offsetX, int offsetY)
    return status;
 }
 
+/**
+ *
+ * The data buffer lives in the extended space. Here, we only copy the restricted space
+ * to the buffer buf. The size of this buffer is the size of the image patch - borders
+ * are not included.
+ *
+ */
 int Image::write(const char * filename)
 {
    int status = 0;
