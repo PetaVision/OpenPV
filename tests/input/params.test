@@ -85,6 +85,38 @@ HyPerConn "test_post_weights L2 to L3" = {
 };
 
 //
+// This section defines parameters for test_gauss2D
+//
+
+HyPerCol "test_gauss2d column" = {
+   nx = 8;
+   ny = 8;
+};
+
+HyPerLayer "test_gauss2d pre" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+};
+
+HyPerLayer "test_gauss2d post" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;  
+};
+
+HyPerConn "test_gauss2d hyperconn" = {
+   nxp = 3;
+   nyp = 3;
+};
+
+HyPerConn "test_gauss2d kernelconn" = {
+   nxp = 3;
+   nyp = 3;
+};
+
+
+//
 // This section defines parameters for test_mirror_BCs
 //
 
@@ -115,6 +147,7 @@ HyPerLayer "test_border_activity retina" = {
    marginWidth = 3;
    spikingFlag = 0;
    poissonEdgeProb = 1;
+   mirrorBCflag = 1;  
 };
 
 HyPerLayer "test_border_activity layer" = {
@@ -124,10 +157,20 @@ HyPerLayer "test_border_activity layer" = {
    spikingFlag = 0;
 };
 
-HyPerLayer "test_border_activity connection" = {
+HyPerConn "test_border_activity connection 1" = {
+   nxp = 1;
+   nyp = 1;
+   randomFlag = 1;
+   uniformWeights = 1; // use uniform weights to initialize
+   wMinInit = 1;   // all weight to constant (1)
+   wMaxInit = 1;
+};
+
+HyPerConn "test_border_activity connection 2" = {
    nxp = 7;
    nyp = 7;
-   randomFlag = 1; // use random weights to initialize
+   randomFlag = 1;
+   uniformWeights = 1; // use uniform weights to initialize
    wMinInit = 1;   // all weight to constant (1)
    wMaxInit = 1;
 };
