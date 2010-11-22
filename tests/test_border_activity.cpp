@@ -38,10 +38,12 @@ int main(int argc, char * argv[])
    HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    Image * image   = new Image("test_border_activity image", hc, image_file);
-   Retina * retina = new Retina("test_border_activity retina", hc, image);
+//   Retina * retina = new Retina("test_border_activity retina", hc, image);
+   Retina * retina = new Retina("test_border_activity retina", hc);
    V1     * l1     = new V1("test_border_activity layer", hc);
 
-   new HyPerConn("test_border_activity connection", hc, retina, l1, CHANNEL_EXC);
+   new HyPerConn("test_border_activity connection 1", hc, image, retina, CHANNEL_EXC);
+   new HyPerConn("test_border_activity connection 2", hc, retina, l1, CHANNEL_EXC);
 
 #ifdef DEBUG_OUTPUT
    PointProbe * p1 = new PointProbe( 0,  0,  0, "L1 (0,0,0):");
@@ -52,7 +54,7 @@ int main(int argc, char * argv[])
 
    // run the simulation
    hc->initFinish();
-   hc->run(2);
+   hc->run(3);
 
    status = check_activity(l1);
 
