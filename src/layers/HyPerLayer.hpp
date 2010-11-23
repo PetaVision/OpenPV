@@ -112,12 +112,18 @@ public:
 
    const char * getName()            {return name;}
 
-   int numActivity()                 {return clayer->numExtended;}
+   int getNumNeurons()               {return clayer->numNeurons;}
+   int getNumExtended()              {return clayer->numExtended;}
 
    int  getLayerId()                 {return clayer->layerId;}
+   PVLayerType getLayerType()        {return clayer->layerType;}
    void setLayerId(int id)           {clayer->layerId = id;}
 
    PVLayer*  getCLayer()             {return clayer;}
+   pvdata_t * getV()                 {return clayer->V;}           // name query
+   pvdata_t * getChannel(ChannelType ch) {                         // name query
+      return ch < clayer->numPhis ? clayer->phi[ch] : NULL;
+   }
 
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
