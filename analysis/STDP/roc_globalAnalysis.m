@@ -6,8 +6,8 @@ global NX NY n_time_steps
 global input_dir output_dir conn_dir output_path input_path
 
 
-input_dir = '/Users/manghel/Documents/workspace/soren/output/';
-%input_dir = '/Users/manghel/Documents/STDP-sim/soren15/';
+%input_dir = '/Users/manghel/Documents/workspace/soren/output/';
+input_dir = '/Users/manghel/Documents/STDP-sim/soren16-roc/';
 output_dir = '/Users/manghel/Documents/workspace/soren/output/';
 conn_dir = '/Users/manghel/Documents/STDP-sim/conn_probes_8_8/';
 
@@ -16,7 +16,7 @@ image_dir = '/Users/manghel/Documents/workspace/soren/';
 num_layers = 5;
 n_time_steps = 40000; % the argument of -n; even when dt = 0.5 
 
-plot_rate = 0;
+plot_rate = 1;
 parse_tif = 1;
 print_unique_rates = 0;
 
