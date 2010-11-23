@@ -31,7 +31,7 @@ which are input parameters to  Retina::spike()
 
 ~~~~~~~~~~~~~~~~~~~~~
 
-Spike analysis
+SPIKE ANALYSIS
 
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -77,16 +77,70 @@ run:
   which returns the average firing rate array for the layer and the
   estimated layer averaged firing rate. 
 
-   - The firing rate array is then recats into a 2D array and color plotted.
+   - The firing rate array is then recasts into a 2D array and color plotted.
+
+   - I shoulr remove the boundary neurons for both retinaOn - they fire at very high rate -
+and retinaOff - they do not fire at all.
+
+> Spike time analysis performs an analysis on inter spike time
+intervals. Set spike_time_analysis =1. 
+
+ - Makes histogram plots of the spike time intervals. 
+
+ - Make "phase space" plots of spike time interval n versus spike time
+interval (n-1) as well as spike time interval n vs spike time interval
+(n-1) and spike time interval (n-2).
 
 
-~~~~~~~~~~~~~~~~~~~~~~
 
-ROC analysis
 
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
- We set dwMax = 0 in params.stdp to prevent the 
+ANALYSIS OF NEURON DYNAMICS
+ - membrane potential, conductances, etc.
+
+~~~~~~~~~~~~~~~~~~~~~~~
+
+> the main driving routine is dyn_analyze.m
+
+> read spikes first by setting read_spikes = 1.
+
+> read the average firing rate by setting plot_rate_array = 1.
+
+> set plot_membrane potential = 1. It calls stdp_readV(vfile, ...)
+  which reads from the vfiles "V0.pvp", etc. It reads the membrane potential
+for all neurons.
+
+> set plot_neuron_state = 1. This calls  ptprobe_readV(filename). It reads the data 
+extracted by a point probe!! This data contains conductances and the membrane potential
+of the probed neuron.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+WMAX ANALYSIS - for adaptive, neuron dependent wMax models
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+> the main driving routine is wmax_analyze.m
+
+> set plot_wMax = 1 and it reads wMax and rate (R) configurations
+  saved at the end of a simulation by calling wmax_readFile(). We make
+  2D plots for wMax and rate. It also makes a plot of (averageR - R) vs wMax.
+
+> set comp_scores = 1 which calls wmax_compScores(). This plots the
+  score for each neuron vs its wMax value.
+
+> set plot_rate = 1. We read the evoltuion of the layer R variable. We compare
+the evolution of individual neurons with their spiking time series.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ROC ANALYSIS
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NOTE:  We set dwMax = 0 in params.stdp to prevent the 
 weights from evolving - we freeze the weights.
 
 We modify the Patterns.cpp class in order to test neurons as feature
@@ -104,12 +158,12 @@ will first fire at a higher rate and then settle into a stationary response
 during the testTime period.
 
 
-The main driving routine is roc_analysis.m NOT stdp_analyze.m
+THE MAIN DRIVING ROUTINE IS roc_analysis.m NOT stdp_analyze.m
 
 > it calls roc_layerAnalysis(L) to perform an analysis of feature
   detectors in layer L.
 
-  - it reads nd estimates the firing rates of neurons in layer L
+  - It reads and estimates the firing rates of neurons in layer L
 during the test and rest time intervals. The test interval is the time
 interval during which an image is presented to the system and the rest
 interval is the time interval when only background noise is presented.
@@ -135,12 +189,24 @@ the layers of the vsual system during test and rest time intervals.
 ~~~~~~~~~~~~~~~~~~~~~~
 
 
-Weights analysis
+WEIGHTS ANALYSIS
 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-> stdp_plotWeightsFieldOld.m is an old version which uses the old format
-for the binary weights file.
+> stdp_plotWeightsHistogramOnly.m makes a histogram plot of the
+  weights distribution as it evolves in time. 
+
+  - You can choose the edges
+  for the histogram bins depending on the choice of scaling or not
+  scaling the weights. 
+
+  - When weights are scaled, we should use the range
+  of the weights to define these edges. CHECK THE RANGE DEFINITION FOR
+  A NEW SIMULATION. 
+
+  - We also have the option to monitor the change in
+  the binned histogram with respect to the first histpgram (at time
+  0).
 
 
 > Files modified to read the weights using the latest binary format.
@@ -252,12 +318,6 @@ Set comp_score_evolution = 1.
    for each input pre-synaptic layer connected to a post-synaptic
    layer.
 
-~~~~~~~~~~~~~~~~~~~~~
-
-
-
-~~~~~~~~~~~~~~~~~~~~~
-
 
 >  stdp_compAverageWeightsEvol.m for each neuron computes the sum of 
 its synapse weights as a function of time.
@@ -274,13 +334,101 @@ rate.py code. This code runs PV for a sequence of retina background
 firing rates. For each rate it computes the average firing rate in L1
 and it computes the histogram of synaptic weights.
 
+~~~~~~~~~~~~~~~~~~~~~
+
+STDP ANALYSIS
+
+~~~~~~~~~~~~~~~~~~~~~
+
+
 > stdp_compPreStatistics.m computes the statistics of spiking
 pre-synaptic neurons conditioned on the spiking of the post-synaptic
 neuron. Here, we gather the pre-synaptic neurons spiking BEFORE the
 post-synaptic neuron spikes.
 
+    - 
+
 > stdp_compPostStatistics.m computes the statistics of spiking
 pre-synaptic neurons conditioned on the spiking of the post-synaptic
 neuron. Here, we gather the pre-synaptic neurons spiking AFTER the
 post-synaptic neuron spikes.
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+CONTINUOUS-TIME CORRELOGRAM
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+using nccc.m and ccc.m provided by Il Park and Antonio Paiva.
+
+See: "An Efficient Algorithm for Continuous-time Cross Correlogram of
+Spike Trains," Il Park, Antonio R. C. Paiva, Jose Principe, Thomas
+B. DeMarse, Journal of Neuroscience Methods, Volume 168, Issue 2, 15
+March 2008, 514-523 
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+> ccc_analyze.m 
+
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+REVERSE CORRELATION ANALYSIS
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+> revcor_analyze.m is the driving routine
+
+- if output_check = 1 we read the "spike" activity of the image and
+compare it with the saved movie frames. The movie frames are made of
+binary pixels selected independently with probability randomMovieProb
+(see params file).
+
+- if comp_preSTDP it calls stdp_revCorrelations():
+
+     - it opens the pre and post synaptic spiking files from the
+     input_dir.  Reads the header from each file.
+
+     - defines a preActivity array that will store activity in the
+       pre-synaptic layer. This is activity at each time step. It is 
+       preActivity = zeros(1,NXpre*NYpre*NFpre);
+
+     - defines a spacextime array prePatch = zeros(W,NXpre+NYpre*NFpre) 
+     that records the activity in the
+     entire pre-synaptic layer over a time window of length W.
+
+
+     - it finds the margin and non-margin post-syn neurons and writes
+     their indices to files 'PostMarginNeurons.dat' and
+     'PostNonmarginNeurons.dat'; it stores the kpost for non-margin
+     neurons in kPostIndices. 
+
+     - For post-syn non-margin neurons it defines a cell
+     array prePatchAverage{} which will store the average pre-syn
+     activity for each post-syn neuron.
+
+     - it stores nmber of spikes for pre and post syn neurons in nPostSpikes
+     and nPreSpikes.
+
+     - it opens STDP files in which the activity of each post-syn,
+     non-margin neuron is recorded.  These files reside in the output
+     directory. The files are recorded in a cell array fid_stat{} of
+     file pointers.
+
+     - advances post-synaptic activity (W+1) steps and advances
+     pre-synaptic activity W steps  and fill the cell of pre-synaptic
+     activity buffers
+
+     - advance time and: 
+       - compute time average activity over the pre-patch space-time window
+       - for each post-syn neuron that fires, update the number of spikes in 
+       nPostSpikes array and the average pre activity in prePatchAverage.
+
+
 
