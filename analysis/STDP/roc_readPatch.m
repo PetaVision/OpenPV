@@ -2,7 +2,7 @@ function [PATCH, patch_size, NXP, NYP] = roc_readPatch(fname, I, J, NXscaled, NY
 % plot patch for neuron I, J 
 global input_dir
 
-fprintf('read patch I = %d J = %d from %s\n',I,J,fname);
+%fprintf('read patch I = %d J = %d from %s\n',I,J,fname);
 
 filename = fname;
 filename = [input_dir, filename];
@@ -13,11 +13,13 @@ scaleWeights = 1;
 
 [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
     readHeader(fid);
-fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d ',...
-    time,numPatches,NXP,NYP,NFP);
-fprintf('minVal = %f maxVal = %d\n',minVal,maxVal);
+%fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d ',...
+%    time,numPatches,NXP,NYP,NFP);
+%fprintf('minVal = %f maxVal = %d\n',minVal,maxVal);
 
 if numPatches ~= NXscaled*NYscaled
+    fprintf('num_patches = %d NXscaled = %d NYscaled = %d\n',...
+        num_patches,NXscaled,NYscaled);
     disp('mismatch between numPatches and NX*NY')
     return
 end
