@@ -1,6 +1,6 @@
-function [average_array, ave_rate] = stdp_readAverageActivity(fname)
+function stdp_outputCheck(fname, begin_step, end_step)
 
-global input_dir n_time_steps begin_step 
+global input_dir n_time_steps dT
 
 filename = fname;
 filename = [input_dir, filename];
@@ -24,28 +24,35 @@ if exist(filename,'file')
     minInd = N+1;
     maxInd = -1;
    
-    average_array = zeros(1,N);
+    spike_array = zeros(N,1);
+    spike_fig = figure('Name','Spike Activity');
+    frame_fig = figure('Name','Movie Frame');
     
     for i_step = 1 : n_time_steps
         
-        
-        if (feof(fid))
+        eofstat = feof(fid);
+        if (eofstat)
             n_time_steps = i_step - 1;
-            eofstat = feof(fid);
             fprintf('feof reached: n_time_steps = %d eof = %d\n',...
                 n_time_steps,eofstat);
             break;
         else
+            eofstat = feof(fid);
             time = fread(fid,1,'float64');
+            if isempty(time)
+                break
+            else
+                %fprintf('time = %f\n',time);
+            end
             %fprintf('time = %f\n',time);
             num_spikes = fread(fid, 1, 'int');
-            eofstat = feof(fid);
+            %fprintf('time = %f num_spikes = %d ',time, num_spikes);
             %fprintf('eofstat = %d\n', eofstat);
+            %pause
         end
         
         S =fread(fid, num_spikes, 'int'); % S is a column vector
-        size(S)
-        pause
+        
         if debug 
             fprintf('%d: %f number of spikes = %d: ', ...
                 i_step, time, num_spikes);
@@ -64,58 +71,34 @@ if exist(filename,'file')
         
         if i_step < begin_step
             continue
-        end
-        total_spikes = total_spikes + num_spikes;
-    end
-    fclose(fid);
-    ave_rate = 1000 * total_spikes / ( N * ( n_time_steps - begin_step + 1 ) );
-    fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
-        i_step,minInd,maxInd,ave_rate);
-    pause
-    
-    debug = 0;
-    
-    %%  Reopen file, read header
-    fid = fopen(filename, 'r', 'native');
-    tmp = fread(fid, numParams, 'int');
-    %begin_step = 40000;
-    
-    spike_id = [];
-    spike_step = [];
-    for i_step = 1 : n_time_steps
-        
-        time = fread(fid,1,'float64');
-        num_spikes = fread(fid, 1, 'int');
-        S = fread(fid, num_spikes, 'int');
-        
-        if debug
-            fprintf('%d: %f number of spikes = %d: ', ...
-                i_step, time, num_spikes);
-            for i=1:length(S)
-                fprintf('%d ',S(i));
-            end
-            fprintf('\n');
+        elseif i_step > end_step
+             break
+        else
+            spike_array(:) = 0;
+            spike_array(S+1) = 1;
+            
+            % plot "spike" activity
+            figure(spike_fig);
+            A = reshape(spike_array, NX, NY);
+            imagesc(A')
+            
+            % load movie frame and plot it
+            T = (i_step-1)* dT;
+            moviefile = [input_dir 'Movie_' num2str(T,'%10.6f') '.tif'];
+            fprintf('%s\n', ['Movie_' num2str(T,'%10.6f') '.tif'] ); 
+            figure(frame_fig);
+            imshow(moviefile);
+            
             pause
         end
         
-        if i_step < begin_step
-            continue
-        end
-        spike_id = [spike_id; S+1];
-        spike_step = [spike_step; repmat(i_step - begin_step + 1, num_spikes, 1)];
-        %pause
-         if mod(i_step - begin_step + 1, 1000) == 0
-             disp(['i_step = ', num2str(i_step)]);
-         end
+        
     end
     fclose(fid);
-    spikes = sparse(spike_step, spike_id, 1, n_time_steps - begin_step + 1, N, total_spikes);
-    ave_rate = 1000 * sum(spikes(:)) / ( N * ( n_time_steps - begin_step + 1 ) );
-    disp(['ave_rate = ', num2str(ave_rate)]);
-    size(spikes)
+    
 else
     disp(['Skipping, could not open ', filename]);
-    spikes = sparse([], [], [], n_time_steps - begin_step + 1, N, 0);
+    spikes = sparse([], [], [], end_step - begin_step + 1, N, 0);
     ave_rate = 0; 
 end
 

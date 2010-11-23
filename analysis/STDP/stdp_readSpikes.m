@@ -1,4 +1,4 @@
-function [spike_times, ave_rate] = stdp_spikeTimeAnalysis(fname, begin_step, end_step)
+function [spike_times, ave_rate] = stdp_readSpikes(fname, k_index, begin_step, end_step)
 
 global input_dir n_time_steps 
 
@@ -9,9 +9,7 @@ fprintf('read spike times from %s\n',filename);
 debug = 0;  % if 1 prints spiking neurons
 
 ave_rate = 0;
-if begin_step > n_time_steps
-    begin_step = 1;
-end
+
 
 if exist(filename,'file')
     total_spikes = 0;
@@ -22,11 +20,11 @@ if exist(filename,'file')
     
     N = NX * NY * NF;
     
-    % intialize cell of spike time vectors
+    % intialize array of spike times
     
-    for k=1:N
-       spike_times{k} = []; 
-    end
+    
+    spike_times = []; 
+    
     
     for i_step = 1 : n_time_steps
 
@@ -41,7 +39,7 @@ if exist(filename,'file')
                 fprintf('%d ',S(i));
             end
             fprintf('\n');
-            pause
+            %pause
         end
 
         if i_step < begin_step
@@ -51,11 +49,17 @@ if exist(filename,'file')
             break
         end
         
-        for k=1:num_spikes 
-           spike_times{S(k)+1}(end+1) = time;
+        for k=1:num_spikes
+            if S(k) == k_index
+                spike_times(end+1) = time;
+                ave_rate = ave_rate + 1;
+                if debug
+                    fprintf('%d %f\n',k_index, time)
+                    pause
+                end
+            end
         end
-        
-        ave_rate = ave_rate + num_spikes;
+                
         
         %pause
         if mod(i_step - begin_step, 10000) == 0
@@ -64,11 +68,14 @@ if exist(filename,'file')
 
     end
     fclose(fid);
-    ave_rate = (ave_rate * 1000.0)/ (N*(end_step - begin_step+1));
+    ave_rate = (ave_rate * 1000.0)/(end_step - begin_step+1);
+    %fprintf('ave_rate= %f\n',ave_rate);
+    %spike_times
+    %pause
     
 else
     disp(['Skipping, could not open ', filename]);
-    spikes = sparse([], [], [], end_step - begin_step + 1, N, 0);
+    spike_times = [];
     ave_rate = 0; 
 end
 

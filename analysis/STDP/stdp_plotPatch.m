@@ -17,7 +17,7 @@ fid=fopen(filename,'r','native');
 
 scaleWeights = 0;
 
-[time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+[time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
     readFirstHeader(fid);
 fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d ',...
     time,numPatches,NXP,NYP,NFP);
@@ -35,8 +35,6 @@ patch_size = NXP*NYP;
     fprintf('a = %d b = %d a1 = %d b1 = %d NXPbor = %d NYPbor = %d\n',...
         a,b,a1,b1,NXPbor,NYPbor);
     
-%colormap('gray');
-colormap(jet);
 b_color = 1;     % use to scale weights to the full range
                  % of the color map
 a_color = (length(get(gcf,'Colormap'))-1.0)/maxVal;
@@ -52,8 +50,8 @@ while (~feof(fid))
     % read header if not first record (for which header is already read)
 
     if ~first_record
-        [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
-            readHeader(fid,numParams,numWgtParams);
+        [time,numPatches,minVal,maxVal] = ...
+            readHeader(fid,numParams);
         if time < 0
             fprintf('eof reached\n');
             break
@@ -102,7 +100,7 @@ end
 %
 
 
-function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+function [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid)
 
 
@@ -113,7 +111,6 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
        disp('incorrect file type')
        return
     end
-    numWgtParams = 6;
     numParams = head(2)-8;
     fseek(fid,0,'bof'); % rewind file
     
@@ -128,13 +125,17 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
     
-    wgtParams = fread(fid,numWgtParams,'int');
+    wgtParams = fread(fid,3,'int');
     NXP = wgtParams(1);
     NYP = wgtParams(2);
     NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
+    
+    rangeParams = fread(fid,2,'float');
+    minVal      = rangeParams(1);
+    maxVal      = rangeParams(2);
+    
+    numPatches  = fread(fid,1,'int');
+    
     fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
@@ -144,7 +145,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 %
     
 %function [time,varargout] = readHeader(fid,numParams,numWgtParams)
-function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,minVal,maxVal] = readHeader(fid,numParams)
 
 
 
@@ -161,13 +162,17 @@ if ~feof(fid)
         time = fread(fid,1,'float64');
         fprintf('time = %f\n',time);
 
-        wgtParams = fread(fid,numWgtParams,'int');
+        wgtParams = fread(fid,3,'int');
         NXP = wgtParams(1);
         NYP = wgtParams(2);
         NFP = wgtParams(3);
-        minVal      = wgtParams(4);
-        maxVal      = wgtParams(5);
-        numPatches  = wgtParams(6);
+
+        rangeParams = fread(fid,2,'float');
+        minVal      = rangeParams(1);
+        maxVal      = rangeParams(2);
+    
+        numPatches  = fread(fid,1,'int');
+        
         fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
@@ -183,9 +188,6 @@ if ~feof(fid)
         disp('eof found: return');
         time = -1;
         numPatches = 0;
-        NXP = 0;
-        NYP=0;
-        NFP=0;
         minVal=0;
         maxVal=0;
     end
@@ -193,9 +195,6 @@ else
    disp('eof found: return'); 
    time = -1;
    numPatches = 0;
-   NXP = 0;
-   NYP=0;
-   NFP=0;
    minVal=0;
    maxVal=0;
 end

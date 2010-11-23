@@ -1,8 +1,10 @@
-function A = stdp_compWeightsKmeans(fname, numCenters, xScale, yScale)
+function A = stdp_compWeightsKmeansAD(fname, xScale, yScale)
 % plot last configuration of "weight" fields. 
 % xScale and yScale are scale factors for this layer
-% We should pass NX and NY as argumrnts
-% NOTE: Needs to be implemented using ~/Documents/MATLAB/Kmeans
+% We should pass NX and NY as arguments
+% NOTES: 
+%     - select the number of centers based on Anderson-Darling test
+%     - load the path to ~/Documents/MATLAB/KmeansMA
 
 
 global input_dir  output_dir NX NY 
@@ -96,8 +98,6 @@ if exist(filename,'file')
                 % check if boundary neuron
                 if kyPost >= nyMar && kyPost <= (NYscaled-nyMar-1) ...
                         && kxPost >= nxMar && kxPost <= (NXscaled-nxMar-1)
-                %if (kyPost < nyMar || kyPost > (NYscaled-nyMar-1) ) ...
-                %    && ( kxPost < nxMar || kxPost > (NXscaled-nxMar-1))    
                     k=k+1;
                     kx(k) = i;
                     ky(k) = j;
@@ -128,7 +128,7 @@ if exist(filename,'file')
     %% compute K-means
     
     % data is n x patch_size where n = NX * NY
-    [centers,mincenter,mindist,q2,quality] = kmeans(W_array,numCenters);
+    [centers,mincenter,mindist,q2,quality] = kmeansAD(W_array);
     %size(centers)  % numCenters x patch_size
     %size(mincenter)% n x 1
     %q2
@@ -239,11 +239,11 @@ if exist(filename,'file')
             hold on
             % plot squares around the neurons that share the same
             % receptive field
-            for i=(0.5+2*NXPbor):xShare*NXPbor:(NXscaled*NXPbor+1)
+            for i=0.5:xShare*NXPbor:(NXscaled*NXPbor+1)
                 plot([i, i],[0,NYscaled*NYPbor],'-r');
 
             end
-            for j=(0.5+2*NYPbor):yShare*NYPbor:(NYscaled*NYPbor+1)
+            for j=0.5:yShare*NYPbor:(NYscaled*NYPbor+1)
                 plot([0,NXscaled*NXPbor],[j,j],'-r');
             end
             

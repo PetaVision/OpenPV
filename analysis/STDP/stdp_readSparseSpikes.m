@@ -37,10 +37,15 @@ if exist(filename,'file')
         else
             eofstat = feof(fid);
             time = fread(fid,1,'float64');
+            if isempty(time)
+                break
+            else
+                %fprintf('time = %f\n',time);
+            end
             %fprintf('time = %f\n',time);
             num_spikes = fread(fid, 1, 'int');
-            fprintf('time = %f num_spikes = %d ',time, num_spikes);
-            fprintf('eofstat = %d\n', eofstat);
+            %fprintf('time = %f num_spikes = %d ',time, num_spikes);
+            %fprintf('eofstat = %d\n', eofstat);
             %pause
         end
         
@@ -80,10 +85,10 @@ if exist(filename,'file')
     xlabel('time');
     ylabel('average activity');
     
-    ave_rate = 1000 * total_spikes / ( N * ( n_time_steps - begin_step + 1 ) );
+    ave_rate = 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) );
     fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
         i_step,minInd,maxInd,ave_rate);
-    pause
+    %pause
     
     debug = 0;
     
@@ -97,6 +102,11 @@ if exist(filename,'file')
     for i_step = 1 : n_time_steps
         
         time = fread(fid,1,'float64');
+        if isempty(time)
+            break
+        else
+            %fprintf('time = %f\n',time);
+        end
         num_spikes = fread(fid, 1, 'int');
         S = fread(fid, num_spikes, 'int');
         
@@ -119,7 +129,7 @@ if exist(filename,'file')
         spike_id = [spike_id; S+1];
         spike_step = [spike_step; repmat(i_step - begin_step + 1, num_spikes, 1)];
         %pause
-         if mod(i_step - begin_step + 1, 1000) == 0
+         if mod(i_step - begin_step, 1000) == 0
              disp(['i_step = ', num2str(i_step)]);
          end
     end
@@ -130,7 +140,7 @@ if exist(filename,'file')
     size(spikes)
 else
     disp(['Skipping, could not open ', filename]);
-    spikes = sparse([], [], [], n_time_steps - begin_step + 1, N, 0);
+    spikes = sparse([], [], [], end_step - begin_step + 1, N, 0);
     ave_rate = 0; 
 end
 

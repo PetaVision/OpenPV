@@ -4,37 +4,37 @@ function A = stdp_plotWeightsStability(fname, xScale, yScale,Xtarg, Ytarg)
 % xScale and yScale are scale factors for this layer
 % We should pass NX and NY as argumrnts
 
-global input_dir  NX NY 
+global input_dir  output_dir NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
-%colormap(jet);
-    
-%Proj = compProjections(4,4)
-%for p=1:numel(Proj)
-%    Proj{p}
-%end
-%pause
 
     
 NXscaled = NX * xScale; % L1 size
 NYscaled = NY * yScale;
 numNeurons = NXscaled * NYscaled;
 
+fprintf('weights file: %s\n',fname);
 fprintf('scaled NX = %d scaled NY = %d\n',NXscaled,NYscaled);
+
+nxMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
+           %  (retina to L1)
+nyMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
+           %  (retina to L1)
 
 PLOT_STEP = 1;
 print_features = 0;
 write_projections = 0;
-
-debug = 0;
+plot_2Dprojections = 0;
+debug = 1;
 numRecords = 0;  % number of weights records (configurations)
 
 %% figure handles to plot patch projections vs space and time
 
 h_time = figure('Name','Weights Projections vs Time');
+cmap = colormap(jet);
 
-h_space = figure('Name','Weights Projections vs Time');
+%h_space = figure('Name','Weights Projections vs Space');
 
 
 if(write_projections)
@@ -42,6 +42,7 @@ if(write_projections)
     if exist(scores_file,'file')
         fid_proj = fopen(proj_file,'r');
         % read projections, plot, and set startTime
+        % time/1000 maxI (1-Overlap) ... maxI (1-Overlap)
         data = fscanf(fid_proj, '%g %g %g', [(1+2*numNeurons) inf]);   % It has two rows now.
         data = data';
         fclose(fid_proj);
@@ -57,9 +58,9 @@ if(write_projections)
         startTime = 0;
     end
 end
-%startTime = 3000000;
+startTime = 0;
 fprintf('startTime = %d \n',startTime);
-pause
+%pause
  
 
 if exist(filename,'file')
@@ -103,9 +104,14 @@ if exist(filename,'file')
     % or only a time stamp
     
     W_array = zeros(numNeurons, patch_size);
+    maxI_array = zeros(numNeurons,1);
+    
     first_record = 1;
     
     while (~feof(fid))
+        
+        for p=1:numFeatures,P{p}=[];end
+        I = [];
         
         % read the weights for this time step 
         
@@ -119,13 +125,15 @@ if exist(filename,'file')
                 readHeader(fid,numParams);
             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
                 time,numPatches,NXP,NYP,NFP);
-            pause
-        else
-            first_record = 0;
+            %pause
         end
 
         if write_projections
-           fprintf(fid_proj,'%f ', time); 
+           fprintf(fid_proj,'%f ', time/1000); 
+        end
+        
+        if debug
+            fprintf('time = %d ',time/1000);
         end
         
         k=0;   
@@ -143,17 +151,32 @@ if exist(filename,'file')
                     w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
                     
                     if(~isempty(w) & nItems ~= 0)
-                        w = w ./norm(w);
-                        [O, I ]= max(w * Features );
+                        w = w' ./norm(w);
+                        [Overlap, maxI ]= max(w * Features );
                         if write_projections
-                            fprintf(fid_proj,'%d %f ',I, 1-O);
+                            fprintf(fid_proj,'%d %f ',maxI, 1-Overlap);
                         end
-                        plot([time],[(k-1)*numFeatures + I + (1-O)],'ob');
+                        % with overlap corrections
+                        %plot([time],[(k-1)*numFeatures + maxI + (1-Overlap)],...
+                        %    'o','MarkerFaceColor',cmap(maxI*4,:)); hold on
+                        plot([time/1000],[(k-1)*numFeatures + maxI],...
+                            'o','MarkerFaceColor',cmap(maxI*8,:)); hold on
                         W_array(k,:) = w(1:patch_size);
+                        maxI_array(k) = maxI;
+                        if debug
+                            %fprintf('%d %d %f ',k,maxI,Overlap);
+                            fprintf('%d',maxI);
+                            %pause
+                        end
                     end
                 end % if ~ feof 
             end
         end % loop over post-synaptic neurons
+        
+        if debug
+            fprintf('\n');
+            pause
+        end
         
         if write_projections
             fprintf(fid_proj,'\n');
@@ -166,46 +189,57 @@ if exist(filename,'file')
             %pause
         end
                 
-        
-        if(~isempty(W_array))
-            
-            % make the matrix of patches and plot patches for this time step
-            %[Pmax,I] = max(W_array * Features, [],2);
-            for p=1:4,P{p}=W_array * Features(:,p);end
+        if plot_2Dprojections
+            if(~isempty(W_array))
 
-            % maxA is a N x 1 array contains the max projection
-            % of each patch on the directions in Features
-            % I is a N x 1 array contains the indices
-            % of the max directions
+                % make the matrix of patches and plot patches for this time step
+                %[Pmax,I] = max(W_array * Features, [],2);
+                for p=1:numFeatures,P{p}=W_array * Features(:,p);end
 
-            %I = reshape(I,[NX NY])';
-            if (mod(numRecords,PLOT_STEP) == 0)
-                %fprintf('time = %f\n',time);
+                % maxA is a N x 1 array contains the max projection
+                % of each patch on the directions in Features
+                % I is a N x 1 array contains the indices
+                % of the max directions
 
-                %figure('Name',['max Projections ' num2str(time)]);
-                %imagesc(I*25,'CDataMapping','direct');
-                %colorbar
-                %axis square
-                %axis off
-                
-                figure('Name',['2D Projections ' num2str(time)]);
-                for p=1:4
-                    subplot(2,2,p)
-                    imagesc(reshape(P{p},[NXscaled NYscaled])','CDataMapping','direct');
-                    colorbar
-                    axis square
-                    axis off
+                %I = reshape(I,[NX NY])';
+                if (mod(numRecords,PLOT_STEP) == 0)
+                    %fprintf('time = %f\n',time);
+
+                    %figure('Name',['max Projections ' num2str(time)]);
+                    %imagesc(I*25,'CDataMapping','direct');
+                    %colorbar
+                    %axis square
+                    %axis off
+
+                    figure('Name',['2D Projections ' num2str(time)]);
+                    for p=1:numFeatures
+                        subplot(2,numFeatures/2,p)
+                        imagesc(reshape(P{p},[NXscaled NYscaled])','CDataMapping','direct');
+                        colorbar
+                        axis square
+                        axis off
+                    end
+
+                    figure('Name',['1D Projections ' num2str(time)]);
+                    for p=1:numFeatures
+                        subplot(2,numFeatures/2,p)
+                        plot(1:NXscaled,sum(reshape(P{p},[NXscaled NYscaled])')/NYscaled,'ob');
+                        axis([1 NXscaled 0 Inf]);
+                    end
                 end
-                
-                figure('Name',['1D Projections ' num2str(time)]);
-                for p=1:4
-                    subplot(2,2,p)
-                    plot(1:NXscaled,sum(reshape(P{p},[NXscaled NYscaled])')/NYscaled,'ob');
-                    axis([1 NXscaled 0 Inf]);
-                end
+
             end
-
+        end % if plot_2Dprojections
+        
+        
+        if first_record
+            maxI_array_old = maxI_array;
+           first_record = 0; 
+        else
+            % detect neurons with changing projections
+            
         end
+        
         %pause % after reading one set of weights
     end % reading from weights file
     
@@ -369,7 +403,7 @@ end
 % End subfunction
 %
 
-function Features = compFeatures(NXP, NYP)
+function F = compFeatures(NXP, NYP)
 
 % these are projections for 4x4 receptive fields
 % in the Bars images experiments; it includes both

@@ -3,17 +3,16 @@ function A = stdp_compPCA(fname, xScale, yScale)
 % xScale and yScale are scale factors for this layer
 % We should pass NX and NY as argumrnts
 
-global input_dir % NX NY 
+global input_dir  NX NY 
 
 filename = fname;
 filename = [input_dir, filename];
-colormap(jet);
-    
-NX = 32;        % retina size
-NY = 32;
+%colormap(jet);
 
 NX = NX * xScale; % L1 size
 NY = NY * yScale;
+
+scaleWeights = 1;
 
 comp_evals  = 1;
 write_spec = 1;
@@ -44,8 +43,8 @@ if exist(filename,'file')
     % receptive field that receives spikes from the retina.
     
     % read time
-    time = fread(fid,1,'float64');
-    fprintf('time = %f\n',time); 
+    %time = fread(fid,1,'float64');
+    %fprintf('time = %f\n',time); 
         
     if numPatches ~= NX*NY
         disp('mismatch between numPatches and NX*NY')
@@ -57,8 +56,13 @@ if exist(filename,'file')
     fprintf('a = %d b = %d a1 = %d b1 = %d NXPbor = %d NYPbor = %d\n',...
         a,b,a1,b1,NXPbor,NYPbor);
                       
-    PATCH = ones(NXPbor,NYPbor) * 122;
     
+    if scaleWeights
+        PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
+    else
+        PATCH = ones(NXPbor,NYPbor) * 122;
+    end
+        
     %% read the last weights field (configuration)
     W_array = []; % N x patch_size array where N =NX * NY
 
@@ -79,7 +83,9 @@ if exist(filename,'file')
 
                 w = fread(fid, nItems, 'uchar'); % unsigned char
                 % scale weights: they are quantized before written
-                %w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                if scaleWeights
+                   w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                end
                 if debug
                     for r=1:patch_size
                         fprintf('%d ',w(r));
@@ -186,15 +192,16 @@ if exist(filename,'file')
 % plot evecs
 
 if(plot_evecs)
-
   figure('Name','Evecs');
-
   for m=patch_size:-1:1
     norm(V(:,m),2);
     %V(:,m)
     patch = reshape(V(:,m),[NXP NYP]);
     evec = patch';
-    imagesc(evec)
+    imagesc(evec,'CDataMapping','direct')
+    colorbar
+    axis square
+    axis off
     fprintf('evec %d  (strike any key) \n',m);
     pause
   end
@@ -203,19 +210,15 @@ end  % end ploting evecs
 
 % write evecs
 
-if(write_evecs)
-  
-  fprintf('print evecs!\n')
-  
+if(write_evecs) 
+  fprintf('print evecs!\n')  
   fid = fopen(evecs_file,'w');
-
   for v = patch_size:-1:1
       for j=1:patch_size
           fprintf(fid,'%12.8f ',V(j,v));
       end
       fprintf(fid,'\n');
   end
-
   fclose(fid);
 end
 

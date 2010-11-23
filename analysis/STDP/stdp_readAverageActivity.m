@@ -5,26 +5,28 @@ global input_dir n_time_steps
 filename = fname;
 filename = [input_dir, filename];
 fprintf('read spikes from %s\n',filename);
+fprintf('begin_step = %d end_step = %d\n',begin_step, end_step);
+%pause
 
-debug = 0;  % if 1 prints spiking neurons
+debug = 1;  % if 1 prints spiking neurons
 
 ave_rate = 0;
-if begin_step > n_time_steps
-    begin_step = 1;
-end
 
 if exist(filename,'file')
     total_spikes = 0;
     fid = fopen(filename, 'r', 'native');
     [time,numParams,NX,NY,NF] = readHeader(fid);
-    fprintf('NX = %d NY = %d NF = %d \n',NX,NY,NF);
-    %pause
+    if debug
+        fprintf('NX = %d NY = %d NF = %d \n',NX,NY,NF);
+        pause
+    end
     
     N = NX * NY * NF;
     minInd = N+1;
     maxInd = -1;
    
     average_array = zeros(1,N);
+    
     
     for i_step = 1 : n_time_steps
         
@@ -61,7 +63,6 @@ if exist(filename,'file')
         maxInd = max([maxInd S']);
         minInd = min([minInd S']);
         
-        average_array(S+1) = average_array(S+1) + 1;
         
         if i_step < begin_step
             continue
@@ -69,18 +70,19 @@ if exist(filename,'file')
             break
         end
         
+        % we are between begin and end_step
+        % update activity!
+        %fprintf('%d %f\n',i_step, time);
+        average_array(S+1) = average_array(S+1) + 1;
         total_spikes = total_spikes + num_spikes;
         
         %pause
-        if mod(i_step - begin_step, 10000) == 0
-            disp(['i_step = ', num2str(i_step)]);
-        end
         
-    end
+    end % loop over sim steps
     fclose(fid);
-    ave_rate = 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) );
+    ave_rate = 2 * 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) );
     average_array =  average_array * ...
-        ( 1000.0 / ( end_step - begin_step + 1 ) );
+        ( 2 * 1000.0 / ( end_step - begin_step + 1 ) );
     
     fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
         i_step,minInd,maxInd,ave_rate);
@@ -112,12 +114,12 @@ function [time,numParams,NX,NY,NF] = readHeader(fid)
     NX         = params(4);
     NY         = params(5);
     NF         = params(6);
-    fprintf('numParams = %d ',numParams);
-    fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
+    %fprintf('numParams = %d ',numParams);
+    %fprintf('NX = %d NY = %d NF = %d ',NX,NY,NF);
     %pause
     % read time - last two params
     time = fread(fid,1,'float64');
-    fprintf('time = %f\n',time);
+    %fprintf('time = %f\n',time);
     %pause
     
 % End subfunction 

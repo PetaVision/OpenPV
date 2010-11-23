@@ -1,4 +1,4 @@
-function PATCH = stdp_plotPatch(fname, I, J, plot_title,fh)
+function PATCH = stdp_readPatch(fname, I, J, plot_title,fh)
 % plot patch for neuron I, J 
 global input_dir NK NO NX NY DTH 
 

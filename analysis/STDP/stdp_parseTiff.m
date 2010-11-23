@@ -1,5 +1,5 @@
 function [target, X, Y]  = stdp_parseTiff( filename )
-% Return a list of the objects in the colored TIFF file.
+% Return a list of the objects in the colored TIF file.
 % Image dimensions come from the file. The color are hard-coded
 % here, namely: black (0) is background, white (255) is foreground,
 % and anything else is a target. We could use this to

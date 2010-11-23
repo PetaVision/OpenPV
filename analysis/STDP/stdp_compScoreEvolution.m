@@ -40,7 +40,7 @@ for f=1:numel(fname)
         return
     end
     
-
+    f_cluster(f) = figure('Name',['Layer ' num2str(f) ' Weights K-means Centers']);
 end
 
 
@@ -237,8 +237,8 @@ while (~eofFlag)
     numRows = ceil(numCenters/numColumns);
     
     if(plot_centers)
-        figure('Name',['Weights K-means Centers: time ' num2str(time)]);
-        
+        %figure('Name',['Weights K-means Centers: time ' num2str(time)]);
+        figure(f_cluster(f));
         for k=1:numCenters
             fprintf('cluster %d w = %f\n',k,sortW(k));
             %patch = clustW(k) * reshape(centers(k,:),[4 4])';

@@ -8,23 +8,26 @@ global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_dir conn_dir output_path input_path
 global patch_size write_step
 
-input_dir = '/Users/manghel/Documents/workspace/STDP/output/';
-%input_dir = '/Users/manghel/Documents/STDP-sim/output13/';
+input_dir = '/Users/manghel/Documents/workspace/earth/output/';
+%input_dir = '/Users/manghel/Documents/workspace/soren/output/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/adaptiveWmax1/';
+%input_dir = '/Users/manghel/Documents/STDP-sim/soren11/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-phases/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-vhbars/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-final_w3_bf40_bd10_dw04_bars/';
-output_dir = '/Users/manghel/Documents/STDP-sim/stdp_stat_14/';
+%output_dir = '/Users/manghel/Documents/STDP-sim/soren12/';
+output_dir = '/Users/manghel/Documents/workspace/soren/output/';
 conn_dir = '/Users/manghel/Documents/STDP-sim/conn_probes_8_8/';
 
-num_layers = 2;
-n_time_steps = 100000; % the argument of -n; even when dt = 0.5 
+num_layers = 4;
+n_time_steps = 200000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
-write_step = 10000; % set in params.stdp
+write_step = 50000; % set in params.stdp
 
 
-begin_step = 5000;  % where we start the analysis (used by readSparseSpikes)
-end_step   = 10000;
-stim_begin = 1;  % generally not true, but I read spikes
+begin_step = 0;       % where we start the analysis (used by readSparseSpikes)
+end_step   = 2000;
+stim_begin = 1;       % generally not true, but I read spikes
                       % starting from begin_step
 stim_end = 1000000;
 stim_length = stim_end - stim_begin + 1;
@@ -33,11 +36,11 @@ stim_end = stim_end - begin_step + 1;
 stim_steps = stim_begin : stim_end;
 bin_size = 10;
 
-NX=8;% 8;  % defined by column 
-NY=8;% 8;  % use xScale and yScale to get layer values
-dT = 0.5;  % miliseconds
-burstFreq = 50; % Hz  (50=20ms)
-burstDuration = 7.5; 
+NX            = 32;
+NY            = 32;      % 8;  % use xScale and yScale to get layer values
+dT            = 0.5;     % miliseconds
+burstFreq     = 25; %50; % Hz  (50=20ms)
+burstDuration = 9000000; % since patterns move %7.5; 
    
    
 my_gray = [.666 .666 .666];
@@ -45,23 +48,39 @@ my_gray = [.666 .666 .666];
 target_ndx = cell(num_layers,1);
 bkgrnd_ndx = cell(num_layers,1);
 
-parse_tiff = 0;
-read_spikes = 1;    % read spikes if you want plot_raster!
-                    % reading is slow for long runs
-spike_movie            = 1;
+parse_tiff              = 0;
+read_spikes             = 0; % read spikes if you want plot_raster!
+                             % reading is slow for long runs
+spike_movie             = 0;
+spike_ROC               = 0;
 plot_raster             = 0;
 plot_spike_activity     = 0; 
-plot_rate_array         = 0;
+plot_rate_array         = 1; % computes average firing rate
+                             % you don't ned to read_spikes first
+                             % NOTE: if [begin_step, end_step] is not 
+                             % within the [0 n_time_steps] interval, this 
+                             % routine will read a
+                             % truncated sequence - only the part within
+                             % this interval, or nothing at al and retunr
+                             % an empty rate array.
 plot_weights_rate_evolution = 0;
-plot_membrane_potential  = 0;
+
+%% analyze synaptic weights
 plot_weights_field       = 0;
 plot_weights_projections = 0;
 plot_weights_histogram  = 0;
 plot_weights_corr       = 0; % read spikes first
+plot_weights_decay      = 0; % read spikes first
 plot_patch              = 0;
 comp_weights_PCA        = 0;
+%% K means analysis
 comp_weights_Kmeans     = 0; % add Documents/MATLAB/Kmeans to path
-numCenters              = 16; % param for comp_weights_Kmeans 
+comp_weights_KmeansAD   = 0; % add Documents/MATLAB/Kmeans to path
+comp_conc_weights_Kmeans= 0; % add Documents/MATLAB/Kmeans to path
+comp_score_evolution    = 0; % add Documents/MATLAB/Kmeans to path
+numCenters              = 64; % param for comp_weights_Kmeans,
+                             % comp_conc_weights_Kmeans, and
+                             % comp_score_evolution
 
 % compute STDP statistics
 comp_preSTDP            = 0;
@@ -73,10 +92,22 @@ analyze_STDP_clique     = 0; % to compute the clique size distribution
                              % call analyze_STDP
 analyze_STDP            = 0;
 comp_STDP_Kmeans        = 0; 
-preSTDP_anal            = 0; % flag for analyze_STDP & comp_STDP_Kmeans
-postSTDP_anal           = 0; % flag for analyze_STDP & comp_STDP_Kmeans
+preSTDP_analysis        = 0; % flag for analyze_STDP & comp_STDP_Kmeans
+postSTDP_analysis       = 0; % flag for analyze_STDP & comp_STDP_Kmeans
  
-if preSTDP_anal & postSTDP_anal
+
+% weights stability
+plot_weights_stability  = 0;
+
+
+% inter-spike time analysis
+spike_time_analysis = 0;
+read_spike_times = 0; % needed when spike_time_analysis = 1 if we 
+                      % want to turn on/off reading spike times
+        
+
+                      
+if preSTDP_analysis & postSTDP_analysis
     disp('wrong arguments');
     return
 end
@@ -99,16 +130,58 @@ else
     Ytarg = [];
 end
 
-
+% layer 1 is the image layer
 for layer = 1:num_layers; % layer 1 here is layer 0 in PV
 
     % Read relevant file names and scale parameters
-    [f_file, v_file, w_file, w_last, xScale, yScale] = stdp_globals( layer );
-
+    [f_file, v_file, w_file, w_last, l_name, xScale, yScale] = stdp_globals( layer );
+    
+    
+    % Spike time analysis
+    % choose layer 4 for image -> {retinaON, retinaOff} - > L1 <=> L1Inh
+    % layer2 = RetinaOn; layer3 = retinaOff, layer4 = L1, layer 5 = L1Inh
+    if spike_time_analysis & layer == 4
+        
+        disp('spike time analysis')
+        begin_step = 0;  % where we start the analysis (used by readSparseSpikes)
+        end_step   = 100000;
+        
+        if read_spike_times
+        [spike_times, ave_rate] = ...
+            stdp_spikeTimeAnalysis(f_file, begin_step, end_step);
+        fprintf('ave_rate = %f\n',ave_rate);
+        end
+        
+        % spike time analysis of individual neurons
+        histH = figure('Name','Inter-Spike Intervals Histogram');
+        map2D = figure('Name','2D ISI Map');
+        map3D = figure('Name','3D ISI Map');
+        
+        for k=1:length(spike_times)
+            spikeT = spike_times{k};        % spike times
+            spikeI = spikeT(2:end)-spikeT(1:end-1);% inter-spike intervals
+            fprintf('k= %d numSpikes = %d minSpikeInt = %f maxSpikeInt = %f\n',...
+                k,length(spikeT),min(spikeI),max(spikeI));
+            figure(histH);
+            hist(spikeI,40);
+            
+            figure(map2D);
+            plot(spikeI(1:end-1),spikeI(2:end),'.r');
+            
+            figure(map3D);
+            plot3(spikeI(1:end-2),spikeI(2:end-1),spikeI(3:end),'.r');
+            grid on
+            if k==1
+               pause
+            end
+            
+        end
+        
+    end
+    
     % Read spike events
-    
-    
-    if read_spikes & layer >= 2
+       
+    if read_spikes & layer >= 4
         disp('read spikes')
         [spike_array{layer}, ave_rate] = ...
             stdp_readSparseSpikes(f_file, begin_step, end_step);
@@ -116,26 +189,75 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         tot_steps = size( spike_array{layer}, 1 );
         tot_neurons = size( spike_array{layer}, 2);
         fprintf('tot_steps = %d tot_neurons = %d\n',...
-            tot_steps,tot_neurons);
-        num_bins = fix( tot_steps / bin_size );
-        excess_steps = tot_steps - num_bins * bin_size;
-        stim_bin_length = fix( ( stim_end - stim_begin + 1 ) / bin_size );
-        stim_bin_begin = fix( ( stim_begin - begin_step + 1 ) / bin_size );
-        stim_bin_end = fix( ( stim_end - begin_step + 1 ) / bin_size );
-        stim_bins = stim_bin_begin : stim_bin_end;     
+            tot_steps,tot_neurons);     
+        
+        if 1
+            figure('Name',['Spike Movie for layer ', l_name]);
+            for t=1:size(spike_array{layer},1)
+                A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
+                imagesc(A',[0 1])
+                axis equal
+                set(gca,'xtick',[],'ytick',[])
+                axis tight
+                %title([' t= ', num2str(t*dT)]);
+                if sum(spike_array{layer}(t,:))
+                    fprintf('%d\n',t);
+                    pause
+                else
+                    pause(0.1)
+                end
+            end
+        end
+                
     end
     
     
-    if plot_rate_array
+    if plot_rate_array & layer >=4
         disp('read spikes and plot average activity (rate aray)')
+        %begin_step = 0;  % where we start the analysis (used by readSparseSpikes)
+        %end_step   = 4500;
         [rate_array{layer}, ave_rate] = stdp_readAverageActivity(f_file, begin_step, end_step);
-        disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
-        disp('plot_rate_reconstruction')
-        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
-            ['Rate reconstruction for layer  ', int2str(layer)]);
+        %disp(['ave_rate(',num2str(layer),') = ', num2str(ave_rate)]);
+        
+        %disp('plot_rate_reconstruction')
+        %stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
+        %    ['Rate reconstruction for layer  ', int2str(layer)]);
+
+        NXscaled = NX * xScale;
+        NYscaled = NY * yScale;
+        figure('Name',['Average Rate for ',l_name]);
+        recon2D = reshape( rate_array{layer}, [NXscaled, NYscaled] );
+        %recon2D = rot90(recon2D);
+        %recon2D = 1 - recon2D;
+        %figure('Name','Rate Array ');
+        %% remove boundary layer
+        % the size of the boundary is layer dependent 
+        if layer < 4
+            rate2D = recon2D(2:end-1,2:end-1);
+        else
+            rate2D = recon2D(8:end-7,8:end-7);
+        end
+        
+        % compute rate
+        disp(['ave_rate(',num2str(layer),') = ', num2str(mean(rate2D(:)))]);
+        
+        %imagesc( recon2D');  % plots recon2D as an image
+        imagesc( rate2D');  % plots recon2D as an image
+        colorbar
+        axis square
+        axis off
+        
+        
+        % histogram plot
+        figure('Name',['Rate Histogram for ',l_name]);
+        %hist(rate_array{layer}, 40 );  
+        hist(rate2D(:), 40 );  
+        pause
     end
+   
     
     if spike_movie & layer >= 2
+        
         disp('simple movie')
         retinaPeriod = 1000./burstFreq;
         if gcf ~= 1
@@ -152,9 +274,9 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         for t=1:n_time_steps
                          
             burstStatusA = mod(t*dT, retinaPeriod);% from 0 to burstDuration
-                                                 % in steps of dT
+                                                   % in steps of dT
             burstStatusB = mod(t*dT + 0.5*retinaPeriod, retinaPeriod);% from 0 to burstDuration
-                                                 % in steps of dT                                     
+                                                   % in steps of dT                                     
             % plot only when Retina fires
             if burstStatusA <= burstDuration
                 if ~burstStatusA 
@@ -181,9 +303,9 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
                     axis equal
                     set(gca,'xtick',[],'ytick',[])
                     axis tight
-                    %pause
+                    %pause                           
                 end
-                
+                               
                 pause(0.1)
                 
             elseif burstStatusB <= burstDuration
@@ -222,7 +344,109 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         end
         disp('pause')
         pause
-    end
+    end % spike_movie
+    
+    
+    if spike_ROC & layer >= 2
+        
+        disp('spike ROC')
+        retinaPeriod = 1000./burstFreq;
+        if gcf ~= 1
+            figure(gcf+1);
+        else
+            figure(gcf);
+        end
+        
+        colormap gray 
+        
+        sumA = zeros(NX*xScale,NY*yScale);
+        sumB = zeros(NX*xScale,NY*yScale);
+        
+        for t=1:n_time_steps
+                         
+            burstStatusA = mod(t*dT, retinaPeriod);% from 0 to burstDuration
+                                                   % in steps of dT
+            burstStatusB = mod(t*dT + 0.5*retinaPeriod, retinaPeriod);% from 0 to burstDuration
+                                                   % in steps of dT                                     
+            % plot only when Retina fires
+            if burstStatusA <= burstDuration
+                if ~burstStatusA 
+                    %sumA(:) = 0;
+                end
+                
+                fprintf('%f*\n',t*dT);
+                A = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
+                sumA = sumA+A';
+
+                
+                if burstStatusA == burstDuration % plot integrated signal
+
+                    subplot(2,2, 1)
+                    imagesc(sumA / burstDuration,[0 1])
+                    colorbar
+                    axis equal
+                    set(gca,'xtick',[],'ytick',[])
+                    axis tight
+                    
+                    
+                    [n,xout] = hist(sumA(:),20);
+                    subplot(2,2,2)
+                    plot(xout,n,'or')
+                    title('Spike Rate A' )
+                                       
+                    sumA(:) = 0;
+                end
+                
+                sumA
+                
+                pause
+                
+            elseif burstStatusB <= burstDuration
+                if ~burstStatusB
+                    %sumB(:) = 0;
+                end
+                fprintf('%f#\n',t*dT);
+                B = reshape(spike_array{layer}(t,:),NX*xScale,NY*yScale);
+                sumB=sumB+B';
+                
+                
+                if burstStatusB == burstDuration % plot integrated signal
+                    
+                    subplot(2,2, 3)
+                    imagesc(sumB/ burstDuration,[0 1])
+                    colorbar
+                    axis equal
+                    set(gca,'xtick',[],'ytick',[])
+                    axis tight
+                    
+                    [n,xout] = hist(sumB(:),20);
+                    subplot(2,2,4)
+                    plot(xout,n,'or')
+                    title('Spike Rate B' )
+                    
+                    sumB(:) = 0;
+                    
+                    %pause
+                end
+                
+                sumB
+                pause
+                
+            else
+                fprintf('%f\n',t*dT);
+            end
+            
+        end
+        disp('pause')
+        pause
+    end % spike_ROC
+    
+    
+     %% we have to read the spikes first
+     % - computes the rate array
+     % - plots the spike activity for each time step
+     % - plots an averaged rate over a moving window (the bin size is set
+     % here)
     
      if plot_spike_activity & layer > 1
          
@@ -230,7 +454,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
         % this is a 1xN array where N=NX*NY
         disp('plot_rate_reconstruction')
-        stdp_reconstruct(rate_array{layer}, NX*xScale, NY * yScale, ...
+        stdp_reconstruct(rate_array{layer}, NX * xScale, NY * yScale, ...
             ['Rate reconstruction for layer  ', int2str(layer)]);
         pause
         if 0
@@ -268,7 +492,14 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         
      end
     
-     
+     %% Computes conditional statistics of pre-synaptic neurons 
+     % - we record the statistics conditioned on the post-synaptic neuron 
+     % firing. 
+     % - we record this statistics in a window of size W 
+     % - The window can be causal (before the post-synaptic neuron fires) 
+     % or acausal (after the post-synaptic neuron fires).
+     % NOTE: By passing any pair of layers we can analyze the conditional
+     % statistics betwen neurons in any 
      
       if (comp_preSTDP | comp_postSTDP) & layer > 1
 
@@ -452,7 +683,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         if 0
             n=1;
             W = 2;
-            if preSTDP_anal
+            if preSTDP_analysis
                 filename = [output_dir,'avCliqueHist_pre_' num2str(W*dT) '.dat'];
             else
                 filename = [output_dir,'avCliqueHist_post_' num2str(W*dT) '.dat'];
@@ -471,7 +702,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         
         for W=4:4:60
             n=n+1;
-            if preSTDP_anal
+            if preSTDP_analysis
                 filename = [output_dir,'avCliqueHist_pre_' num2str(W*dT) '.dat'];
             else
                 filename = [output_dir,'avCliqueHist_post_' num2str(W*dT) '.dat'];
@@ -497,7 +728,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     
     
     
-     if comp_STDP_Kmeans & layer > 1
+     if comp_STDP_Kmeans & layer >= 4
 
           disp('compute STDP K-means: ')
           time_fig = 0;
@@ -521,7 +752,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
               C = textscan(fid,'%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d');
               kPostIndices=C{1}; % Nx1 array of kPost indices
               NXpost = NX*xScale;
-              NYpost = NY+yScale;
+              NYpost = NY*yScale;
               for nPost = 1:numel(kPostIndices)
                   
                   kPost = kPostIndices(nPost);
@@ -533,7 +764,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
                   weightsPatch = stdp_getPatchWeights(w_last, xScale, yScale,kxPost, kyPost);
                   
                   %% open STDP files
-                  if preSTDP_anal
+                  if preSTDP_analysis
                       filename = [output_dir,'STDP_pre_' num2str(W) '_' num2str(kPost) '.dat'];
                   else
                       filename = [output_dir,'STDP_post_' num2str(W) '_' num2str(kPost) '.dat'];
@@ -613,7 +844,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
 
                           % write cluter centers
                       if 0
-                          if preSTDP_anal
+                          if preSTDP_analysis
                               filename = [output_dir,'Clusters_pre_kPost_' num2str(kPost) '_' num2str(W) '.dat'];
                           else
                               filename = [output_dir,'Clusters_post _kPost_' num2str(kPost) '_' num2str(W) '.dat'];
@@ -644,11 +875,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
           end % loop over W (pre-synaptic activity time window length)
 
     end % comp_STDP_Kmeans
-    
-    
-  
-    
-    
+        
     
     %parse the object identification files
     % pv_objects
@@ -682,7 +909,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     end
     
     
-    if plot_weights_corr & layer > 1
+    if (plot_weights_corr | plot_weights_decay) & layer >= 4
         
         disp('compute rate array and spike activity array')
         rate_array{layer} = 1000.0 * full(mean(spike_array{layer},1) ) ;
@@ -705,11 +932,22 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         
         T = input('print rate threshold ');
         ind = find(rate_array{layer} > T)
-        stdp_plotWeightsCorr(w_file, ind, NX*xScale, NY*yScale,...
-            20, ['Weights correlations for layer  ', int2str(layer)]);
-        pause
-        
-        
+        if plot_weights_corr
+            for i=1:numel(w_file)
+                fprintf('weights correlations for %s\n',w_file{i});
+                stdp_plotWeightsCorr(w_file{i}, ind, NX*xScale, NY*yScale,...
+                    20, ['Weights correlations for layer  ', int2str(layer)]);
+                pause
+            end
+        end
+
+        if plot_weights_decay
+            for i=2:numel(w_file)
+                fprintf('weights decay for %s\n',w_file{i});
+                stdp_plotWeightsDecay(w_file{i}, ind, NX*xScale, NY*yScale);
+                pause
+            end
+        end
     end
     
     if plot_weights_rate_evolution
@@ -719,63 +957,27 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         % a T x 1 array where T is the number of weights snapshots
         [sumW, T] = stdp_compAverageWeightsEvol(w_file);
         % pass T-1
-        [W,R] = stdp_analyzeWeightsRate(sumW, T-1, spike_array{layer});
-        
-        
+        [W,R] = stdp_analyzeWeightsRate(sumW, T-1, spike_array{layer});       
         
     end
 
-    
-    % plot maximum stimulated membrane potential
-    
-    %read membrane potentials
-    if plot_membrane_potential
-        disp('plot_membrane_potential')
-        vmem_array = stdp_readV(v_file, target_ndx{layer});
-        num_max = 7;
-        if ~isempty(spike_array{layer})
-            plot_title = ['Membrane potential for layer = ',int2str(layer)];
-            figure('Name',plot_title);
-            color_order = get(gca,'ColorOrder');
-            if ~isempty(spike_array{layer})
-                % extract the mean rate of target neurons
-                rate_array2 = rate_array{layer}( target_ndx{layer} );
-                % sort in decreasing rate order
-                [sorted_rate, sorted_ndx] = sort(rate_array2, 2, 'descend');
-                spike_array2 = spike_array{layer}( :, target_ndx{layer} );
-                vmem_rate = zeros(num_max,1);
-                for i_max = 1:num_max
-                    vmem_color = color_order(i_max,:);
-                    lh = plot(vmem_array(:,sorted_ndx(i_max)), '-k');
-                    set(lh, 'Color', vmem_color);
-                    set(lh, 'LineWidth', 2.0);
-                    hold on;
-                    [spike_times, spike_id, spike_vals] = ...
-                        find(spike_array2(:,sorted_ndx(i_max)));
-                    vmem_rate(i_max) = length(spike_times);
-                    lh = line( [max(1,spike_times-1), max(1,spike_times-1)]', ...
-                        [vmem_array(max(1,spike_times-1), sorted_ndx(i_max)), 0.5*spike_vals]' );
-                    set(lh, 'Color', vmem_color);
-                    set(lh, 'LineWidth', 2.0);
-                    display( [ 'rank:', num2str(i_max), ' vmem_rate(', num2str(layer), ') = ', ...
-                        num2str( 1000*vmem_rate(i_max) / tot_steps ) ] );
-                end
-            end
-        end
-        clear col_ndx row_ndx Vmem_ndx vmem_array spike_array2
-        pause
-    end %plot_membrane_potential
 
     % Analyze the weights field and its distribution
     % Analyze the weights evoltion
     % NOTE: The number of weights distribution recorded is
     % (n_time_steps/write_step) 
-    if plot_weights_field == 1 & layer > 1
+    if plot_weights_field == 1 & layer >= 4
         disp('plot weights field')
         if isempty(Xtarg) 
             disp('No target image: ');
         end
-        stdp_plotWeightsField(w_file,xScale,yScale,Xtarg,Ytarg);
+        % a layer may be connected to multiple pre-synaptic layers and each
+        % connection has its own weights
+        for i=1:numel(w_file)
+            fprintf('Weights Field for %s\n',w_file{i});
+           stdp_plotWeightsField(w_file{i},xScale,yScale,Xtarg,Ytarg);
+           pause
+        end
         
     end
     
@@ -783,21 +985,37 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     % on a number of directions (features)
     % NOTE: The number of weights distribution recorded is
     % (n_time_steps/write_step) 
-    if plot_weights_projections == 1 & layer > 1
+    if plot_weights_projections == 1 & layer >= 4
         disp('plot weights projections')
         if isempty(Xtarg) 
             disp('No target image: ');
         end
-        stdp_plotWeightsProjections(w_file,xScale,yScale,Xtarg,Ytarg);
+        for i=1:numel(w_file)
+            stdp_plotWeightsProjections(w_file{i},xScale,yScale,Xtarg,Ytarg);
+            pause
+        end
+    end
+
+    if plot_weights_stability == 1 & layer >= 4
+        disp('plot weights stability');
+        
+        for i=1:numel(w_file)
+            %figure('Name', ['Weights Stability for ' l_name ' layer']);
+            stdp_plotWeightsStability(w_file{i},xScale,yScale,Xtarg,Ytarg);
+            pause
+        end
         
     end
     
-    
-    if plot_weights_histogram == 1 & layer > 1
+    if plot_weights_histogram == 1 & layer >= 4
         disp('plot weights histogram')
         TSTEP = 1;
-        W = stdp_plotWeightsHistogramOnly(w_file,xScale,yScale,TSTEP);% W is t
-        %pause
+        for i=1:numel(w_file)
+            fprintf('Weights Field for %s\n',w_file{i});
+            figure('Name', ['Weights Histogram for ' l_name ' layer']);
+            W = stdp_plotWeightsHistogramOnly(w_file{i},xScale,yScale,TSTEP);% W is t
+            %pause
+        end
     end
     
     
@@ -861,11 +1079,39 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         stdp_compPCA(w_last,xScale,yScale);       
     end
     
-    if comp_weights_Kmeans == 1 & layer > 1
-        disp('compute K-means of the  weight fields: ')       
-        stdp_compWeightsKmeans(w_last,numCenters, xScale,yScale);       
+    if comp_weights_Kmeans == 1 & layer >= 4
+        disp('compute K-means of the  weight fields: ') 
+        for i=1:numel(w_last)
+           stdp_compWeightsKmeans(w_last{i},numCenters, xScale,yScale);
+           pause
+        end
+        
     end
   
+    if comp_weights_KmeansAD == 1 & layer >= 4
+        disp('compute K-means of the  weight fields: ')
+        disp('(select the number of centers based on Anderson-Darling test)')
+        for i=1:numel(w_last)
+            stdp_compWeightsKmeansAD(w_last{i},xScale,yScale);
+            pause
+        end
+
+    end
+    
+ 
+    if comp_conc_weights_Kmeans == 1 & layer >= 4        
+        disp('compute K-means for concatenated weight fields: ');
+        stdp_compConcWeightsKmeans(w_last,numCenters, xScale,yScale);
+    end
+  
+    
+    
+    if comp_score_evolution == 1 & layer >= 4
+        disp('compute the evolution of the learning score: ');
+        stdp_compScoreEvolution(w_file,w_last,numCenters, xScale,yScale);        
+    end
+    
+ 
     
 end % loop over all layers
 

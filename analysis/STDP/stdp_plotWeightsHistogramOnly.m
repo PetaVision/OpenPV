@@ -6,19 +6,22 @@ function A = stdp_plotWeightsHistogramOnly(fname, xScale,yScale, TSTEP)
 global input_dir  NX NY 
 
 scaleWeights = 1;
+hist_change = 0;
+debug = 0;
 
 filename = fname;
 filename = [input_dir, filename];
 
-NX = NX * xScale; % L1 size
-NY = NY * yScale;
+NXlayer = NX * xScale; % L1 size
+NYlayer = NY * yScale;
 
-N=NX*NY;
+N=NXlayer*NYlayer;
 
-debug = 0;
+nbins = 100;
+TSTEP = 1;  % plot every TSTEP
 
 if scaleWeights
-    edges = 0:0.01:3; % scaled weights
+    edges = 0:0.01:0.75; % scaled weights
 else
     edges = 0:255;      % bin locations
 end
@@ -27,12 +30,12 @@ if exist(filename,'file')
     
     fid=fopen(filename,'r','native');
 
-    [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+    [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid);
     fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
         time,numPatches,NXP,NYP,NFP);
     
-    if numPatches ~= NX*NY
+    if numPatches ~= NXlayer*NYlayer
         disp('mismatch between numPatches and NX*NY')
         return
     end
@@ -50,7 +53,7 @@ if exist(filename,'file')
         
         if recordID
             [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = ...
-                readHeader(fid,numParams,numWgtParams);
+                readHeader(fid,numParams);
            
             if time > 0
                 
@@ -67,8 +70,8 @@ if exist(filename,'file')
         %fprintf('time = %f\n',time);
                 
         k = 0;
-        for j=1:NY
-            for i=1:NX
+        for j=1:NYlayer
+            for i=1:NXlayer
                 if ~feof(fid)
                     k=k+1;
                     nx = fread(fid, 1, 'uint16'); % unsigned short
@@ -112,29 +115,41 @@ if exist(filename,'file')
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
-            n = histc(A,edges);
+            %n = histc(A,edges);
             %plot(xout,n,'-g','LineWidth',3);
-            figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
-            bar(edges,n);
-            %hist(A,nbins);
+            %figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
+            %bar(edges,n);
+            hist(A,nbins);
+            title(['Time ' num2str(time) ' Weights Histogram']);
             %hold on
             pause(0.1)
-            
+            % store first histogram
+            if hist_change
+                n = histc(A,edges);
+                n0 = n;
+            end
         end
         
         
         % plot the weights histogram for this time step
         
-        if ( ~mod(recordID-1,TSTEP) && ~isempty(W_array) )
+        if ( ~mod(recordID,TSTEP) && ~isempty(W_array) )
             [m,n]=size(W_array);
             fprintf('%d %d %d \n',recordID,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
             %ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
-            n = histc(A,edges);
+            %n = histc(A,edges);
             %plot(xout,n,'-r');
-            figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
-            bar(edges,n,'r');
+            %figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
+            if hist_change
+                n = histc(A,edges);
+                bar(edges,n-n0,'r');
+            else
+                %bar(edges,n,'r');
+                hist(A,nbins);
+                title(['Time ' num2str(time) ' Weights Histogram']);
+            end
             %hold on
             pause(0.1)
             
@@ -154,7 +169,7 @@ end
 % End primary function
 
 
-function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ...
+function [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
         readFirstHeader(fid)
 
 
@@ -165,7 +180,6 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
        disp('incorrect file type')
        return
     end
-    numWgtParams = 6;
     numParams = head(2)-8;
     fseek(fid,0,'bof'); % rewind file
     
@@ -180,13 +194,18 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
     time = fread(fid,1,'float64');
     fprintf('time = %f\n',time);
     
-    wgtParams = fread(fid,numWgtParams,'int');
+    wgtParams = fread(fid,3,'int');
     NXP = wgtParams(1);
     NYP = wgtParams(2);
     NFP = wgtParams(3);
-    minVal      = wgtParams(4);
-    maxVal      = wgtParams(5);
-    numPatches  = wgtParams(6);
+    
+    rangeParams = fread(fid,2,'float');
+    minVal      = rangeParams(1);
+    maxVal      = rangeParams(2);
+    
+    numPatches  = fread(fid,1,'int');
+    
+
     fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
     fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
         minVal,maxVal,numPatches);
@@ -196,7 +215,7 @@ function [time,numPatches,numParams,numWgtParams,NXP,NYP,NFP,minVal,maxVal] = ..
 %
     
     
-function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams,numWgtParams)
+function [time,numPatches,NXP,NYP,NFP,minVal,maxVal] = readHeader(fid,numParams)
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
     
@@ -211,13 +230,17 @@ if ~feof(fid)
         time = fread(fid,1,'float64');
         fprintf('time = %f\n',time);
 
-        wgtParams = fread(fid,numWgtParams,'int');
+        wgtParams = fread(fid,3,'int');
         NXP = wgtParams(1);
         NYP = wgtParams(2);
         NFP = wgtParams(3);
-        minVal      = wgtParams(4);
-        maxVal      = wgtParams(5);
-        numPatches  = wgtParams(6);
+        
+        rangeParams = fread(fid,2,'float');
+        minVal      = rangeParams(1);
+        maxVal      = rangeParams(2);
+    
+        numPatches  = fread(fid,1,'int');
+        
         fprintf('NXP = %d NYP = %d NFP = %d ',NXP,NYP,NFP);
         fprintf('minVal = %f maxVal = %d numPatches = %d\n',...
             minVal,maxVal,numPatches);
