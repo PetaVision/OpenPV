@@ -7,7 +7,7 @@
 
 #include <assert.h>
 
-#include "GenLatConn.hpp"
+#include "GenerativeConn.hpp"
 #include "GenerativeLayer.hpp"
 
 namespace PV {
