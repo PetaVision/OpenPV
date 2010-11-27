@@ -19,7 +19,7 @@ IdentConn::IdentConn(const char * name, HyPerCol *hc,
 	    HyPerLayer * pre, HyPerLayer * post, int channel) {
     initialize_base();
     initialize(name, hc, pre, post, channel);
-}  // end of IdentConn::IdentConn(const char *, HyPerCol *, int, GenLatConn *)
+}  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
 
 int IdentConn::initialize(const char * name, HyPerCol * hc,
 	    HyPerLayer * pre, HyPerLayer * post, int channel) {
@@ -78,7 +78,7 @@ int IdentConn::initialize(const char * name, HyPerCol * hc,
     // HyPerConn::initialize(filename);
 
     return EXIT_SUCCESS;
-}  // end of IdentConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int, const char * filename, GenLatConn *)
+}  // end of IdentConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *)
 
 int IdentConn::setPatchSize(const char * filename) {
 	int status = EXIT_SUCCESS;
