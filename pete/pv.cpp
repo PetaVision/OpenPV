@@ -24,146 +24,139 @@
 #include "../PetaVision/src/io/LinearActivityProbe.hpp"
 #include "../PetaVision/src/io/PointProbe.hpp"
 #include "../PetaVision/src/io/StatsProbe.hpp"
+#include "../PetaVision/src/layers/PVLayer.h"
 
-//#include "../PetaVisionsrc/io/imageio.hpp"
-
-// #include "GenLatConn.hpp"
+#include "GV1.hpp"
+#include "GenerativeLayer.hpp"
+#include "GenerativeConn.hpp"
+#include "FeedbackConn.hpp"
+#include "IdentConn.hpp"
+#include "LateralConn.hpp"
+#include "L2NormProbe.hpp"
+#include "SparsityTermProbe.hpp"
+#include "GenColProbe.hpp"
+#include "ChannelProbe.hpp"
 
 using namespace PV;
 
+int printdivider(unsigned int n);
+
 int main(int argc, char* argv[]) {
+    // create the managing hypercolumn
+    //
+    HyPerCol * hc = new HyPerCol("column", argc, argv);
+    GenColProbe * hcprobe = new GenColProbe();
+    hc->insertProbe(hcprobe);
 
-        //int iseed = time(NULL);
-        //srand ( iseed );
+    // create the visualization display
+    //
+    //GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
 
-        // create the managing hypercolumn
-        //
-        HyPerCol * hc = new HyPerCol("column", argc, argv);
+    PVParams * params = hc->parameters();
 
-        // create the visualization display
-        //
-        //GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-
-        PVParams * params = hc->parameters();
-
-        // Is this run being used to train?
-        float training_flag = params->value("column","training_flag");
-        const char * fileOfFileNames = params->getFilename("ImageFileList");
-        if( !fileOfFileNames ) {
-        	fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        	delete hc;
-        	return EXIT_FAILURE;
-        }
-        const char * outputDir = params->getFilename("OutputDir");
-        if( !outputDir ) {
-        	outputDir = OUTPUT_PATH;
-        	fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
-        }
-
-        float display_period = 1.0;
-        Image * movie = new Movie("Movie", hc, fileOfFileNames, display_period);
-        std::string * outFilename = new std::string(outputDir);
-        if ( outFilename->substr(outFilename->size()-1, 1).compare("/") ) {
-        	outFilename->append("/");
-        }
-        outFilename->append("outImage.tiff");
-        movie->write( outFilename->c_str() );
-        HyPerLayer * retina = new Retina("Retina", (HyPerCol *) hc);
-        LayerProbe * stats_retina = new StatsProbe(BufActivity,   "Retina :");
-        retina->insertProbe(stats_retina);
-        HyPerConn * image_retina  =
-                new KernelConn("Movie to Retina", hc, movie, retina, CHANNEL_EXC);
-        HyPerLayer * l1 = new V1("L1", (HyPerCol *) hc);
-        HyPerConn * retina_l1 =
-                new KernelConn("Retina to L1", hc, retina,  l1,
-                        CHANNEL_EXC);
-        HyPerConn * retina_l1_inh =
-                new KernelConn("Retina to L1 Inh", hc, retina,  l1,
-                        CHANNEL_INH);
-        LayerProbe * statsl1 = new StatsProbe(BufActivity,  "L1     :");
-        l1->insertProbe(statsl1);
-
-        if( training_flag ) {
-            HyPerConn * l1_l1 =
-                    new GeislerConn("L1 to L1", hc, l1, l1, CHANNEL_EXC);
-        }
-        else {
-			HyPerLayer * l1_geisler = new GeislerLayer("L1 Geisler", (HyPerCol *) hc);
-			HyPerConn * l1_l1_geisler =
-				new CocircConn("L1 to L1 Geisler", hc, l1, l1_geisler,
-					CHANNEL_EXC);
-			const char * geisler_filename_target = params->getFilename("TargetWgts");
-			HyPerConn * l1_l1_geisler_target =
-				new KernelConn("L1 to L1 Geisler Target", hc, l1,  l1_geisler,
-					CHANNEL_INH, geisler_filename_target);
-			const char * geisler_filename_distractor = params->getFilename("DistractorWgts");
-			HyPerConn * l1_l1_geisler_distractor =
-				new KernelConn("L1 to L1 Geisler Distractor", hc, l1, l1_geisler,
-					CHANNEL_INH, geisler_filename_distractor);
-			LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,  "L1 Geisler :");
-			l1_geisler->insertProbe(statsl1_geisler);
-
-			HyPerLayer * l2_geisler = new GeislerLayer("L2 Geisler", (HyPerCol *) hc);
-			LayerProbe * statsl2_geisler = new StatsProbe(BufActivity,  "L2 Geisler :");
-			l2_geisler->insertProbe(statsl2_geisler);
-
-			HyPerConn * l1_geisler_l2_geisler =
-				new CocircConn("L1 Geisler to L2 Geisler", hc, l1_geisler, l2_geisler,
-					CHANNEL_EXC);
-			//const char * geisler2_filename_target = "./input/256/target40K_G2/w7_last.pvp";
-			HyPerConn * l1_geisler_l2_geisler_target =
-				new KernelConn("L1 Geisler to L2 Geisler Target", hc, l1_geisler, l2_geisler,
-					CHANNEL_INH, geisler_filename_target);
-			//const char * geisler2_filename_distractor = "./input/256/distractor40K_G2/w7_last.pvp";
-			HyPerConn * l1_geisler_l2_geisler_distractor =
-				new KernelConn("L1 Geisler to L2 Geisler Distractor", hc, l1_geisler, l2_geisler,
-					CHANNEL_INH, geisler_filename_distractor);
-
-			HyPerLayer * l3_geisler = new GeislerLayer("L3 Geisler", (HyPerCol *) hc);
-			LayerProbe * statsl3_geisler = new StatsProbe(BufActivity, "L3 Geisler :");
-			l3_geisler->insertProbe(statsl3_geisler);
-
-			HyPerConn * l2_geisler_l3_geisler =
-				new CocircConn("L2 Geisler to L3 Geisler", hc, l2_geisler, l3_geisler,
-					CHANNEL_EXC);
-
-			//const char * geisler3_filename_target = "./input/256/amoeba20K_97x97_G3/w10_last.pvp";
-			HyPerConn * l2_geisler_l3_geisler_target =
-				new KernelConn("L2 Geisler to L3 Geisler Target", hc, l2_geisler, l3_geisler,
-					CHANNEL_INH, geisler_filename_target);
-			//const char * geisler3_filename_distractor = "./input/256/distractor20K_97x97_G3/w10_last.pvp";
-			HyPerConn * l2_geisler_l3_geisler_distractor =
-				new KernelConn("L2 Geisler to L3 Geisler Distractor", hc, l2_geisler,   l3_geisler,
-					CHANNEL_INH, geisler_filename_distractor);
-
-		    #define G4_LAYER
-		    #ifdef G4_LAYER
-			HyPerLayer * l4_geisler = new GeislerLayer("L4 Geisler", (HyPerCol *) hc);
-			LayerProbe * statsl4_geisler = new StatsProbe(BufActivity, "L4 Geisler :");
-			l4_geisler->insertProbe(statsl4_geisler);
-
-			HyPerConn * l3_geisler_l4_geisler =
-				new CocircConn("L3 Geisler to L4 Geisler", hc, l3_geisler, 	l4_geisler,
-					CHANNEL_EXC);
-
-			// const char * geisler4_filename_target = "./input/256/amoeba40K_G4/w13_last.pvp";
-			HyPerConn * l3_geisler_l4_geisler_target =
-				new KernelConn("L3 Geisler to L4 Geisler Target", hc, l3_geisler, l4_geisler,
-					CHANNEL_INH, geisler_filename_target);
-			// const char * geisler4_filename_distractor = "./input/256/distractor40K_G4/w13_last.pvp";
-			HyPerConn * l3_geisler_l4_geisler_distractor =
-				new KernelConn("L3 Geisler to L4 Geisler Distractor", hc, l3_geisler, l4_geisler,
-					CHANNEL_INH, geisler_filename_distractor);
-
-		    #endif G4_LAYER
-
-        } // end else clause for if( training_flag )
-
-        hc->run();
-
-        /* clean up (HyPerCol owns layers and connections, don't delete them) */
+    const char * fileOfFileNames = params->getFilename("ImageFileList");
+    if( !fileOfFileNames ) {
+        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
         delete hc;
+        return EXIT_FAILURE;
+    }
+    const char * outputDir = params->getFilename("OutputDir");
+    if( !outputDir ) {
+        outputDir = OUTPUT_PATH;
+        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
+    }
+
+    float display_period = 100.0; // Each image stays up for display_period seconds
+    // The HyPerCol parameter "dt" controls how much time elapses each time step.
+
+    // Layers
+    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames, display_period);
+
+    Retina * retina = new Retina("Retina", hc);
+    L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
+    retina->insertProbe(l2norm_retina);
+
+    GV1 * anaretina = new GV1("AnaRetina", hc);
+    L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
+    anaretina->insertProbe(l2norm_anaretina);
+    hcprobe->addTerm(l2norm_anaretina, anaretina);
+
+//    ChannelProbe * anaretina_exc = new ChannelProbe("anaretina_exc.txt", CHANNEL_EXC);
+//    anaretina->insertProbe(anaretina_exc);
+//    ChannelProbe * anaretina_inh = new ChannelProbe("anaretina_inh.txt", CHANNEL_INH);
+//    anaretina->insertProbe(anaretina_inh);
+
+    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
+    L2NormProbe * l2norm_layerA = new L2NormProbe("Layer A     :");
+    SparsityTermProbe * sparsity_layerA = new SparsityTermProbe("Layer A     :");
+    layerA->insertProbe(l2norm_layerA);
+    layerA->insertProbe(sparsity_layerA);
+    hcprobe->addTerm(sparsity_layerA, layerA);
+
+//    ChannelProbe * layerA_exc = new ChannelProbe("layerA_exc.txt", CHANNEL_EXC);
+//    layerA->insertProbe(layerA_exc);
+//    ChannelProbe * layerA_inh = new ChannelProbe("layerA_inh.txt", CHANNEL_INH);
+//    layerA->insertProbe(layerA_inh);
+
+    GV1 * paralayerA = new GV1("ParaLayer A", hc);
+    L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
+    paralayerA->insertProbe(l2norm_paralayerA);
+    hcprobe->addTerm(l2norm_paralayerA, paralayerA);
+
+//    ChannelProbe * paralayerA_exc = new ChannelProbe("paralayerA_exc.txt", CHANNEL_EXC);
+//    paralayerA->insertProbe(paralayerA_exc);
+//    ChannelProbe * paralayerA_inh = new ChannelProbe("paralayerA_inh.txt", CHANNEL_INH);
+//    paralayerA->insertProbe(paralayerA_inh);
+
+    GV1 * analayerA = new GV1("AnaLayer A", hc);
+    L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
+    analayerA->insertProbe(l2norm_analayerA);
+    hcprobe->addTerm(l2norm_analayerA, analayerA);
+
+//    ChannelProbe * analayerA_exc = new ChannelProbe("analayerA_exc.txt", CHANNEL_EXC);
+//    analayerA->insertProbe(analayerA_exc);
+//    ChannelProbe * analayerA_inh = new ChannelProbe("analayerA_inh.txt", CHANNEL_INH);
+//    analayerA->insertProbe(analayerA_inh);
+
+    GenerativeLayer * layerB = new GenerativeLayer("Layer B", hc);
+    L2NormProbe * l2norm_layerB = new L2NormProbe("Layer B     :");
+    SparsityTermProbe * sparsity_layerB = new SparsityTermProbe("Layer B     :");
+    layerB->insertProbe(l2norm_layerB);
+    layerB->insertProbe(sparsity_layerB);
+    hcprobe->addTerm(sparsity_layerB, layerB);
+
+//    ChannelProbe * layerB_exc = new ChannelProbe("layerB_exc.txt", CHANNEL_EXC);
+//    layerB->insertProbe(layerB_exc);
+//    ChannelProbe * layerB_inh = new ChannelProbe("layerB_inh.txt", CHANNEL_INH);
+//    layerB->insertProbe(layerB_inh);
 
 
-        return 0;
+    // Connections
+    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
+    assert(slideshow_retina);
+    IdentConn * retina_anaretina = new IdentConn("Retina to AnaRetina", hc, retina, anaretina, CHANNEL_EXC);
+    assert(retina_anaretina);
+    GenerativeConn * anaretina_layerA = new GenerativeConn("AnaRetina to Layer A", hc, anaretina, layerA, CHANNEL_EXC);
+    assert(anaretina_layerA); // Change the name to EvolveConn?
+    FeedbackConn * layerA_anaretinaFB = new FeedbackConn("Layer A to AnaRetina Feedback", hc, CHANNEL_INH, anaretina_layerA);
+    assert(layerA_anaretinaFB);
+    LateralConn * layerA_paralayerA = new LateralConn("Layer A to ParaLayer A", hc, layerA, paralayerA, CHANNEL_EXC);
+    assert(layerA_paralayerA); // layerA_paralayerA will be a LateralConn
+    FeedbackConn * paralayerA_layerAFB = new FeedbackConn("ParaLayer A to Layer A Feedback", hc, CHANNEL_INH, layerA_paralayerA);
+    assert(paralayerA_layerAFB);
+    IdentConn * layerA_analayerA = new IdentConn("Layer A to AnaLayer A", hc, layerA, analayerA, CHANNEL_EXC);
+    assert(layerA_analayerA);
+    IdentConn * analayerA_layerAFB = new IdentConn("AnaLayer A to Layer A Feedback", hc, analayerA, layerA, CHANNEL_INH);
+    assert(analayerA_layerAFB);
+    GenerativeConn * analayerA_layerB = new GenerativeConn("AnaLayer A to Layer B", hc, analayerA, layerB, CHANNEL_EXC);
+    assert(analayerA_layerB);
+    FeedbackConn * layerB_analayerAFB = new FeedbackConn("Layer B to AnaLayer A Feedback", hc, CHANNEL_INH, analayerA_layerB);
+    assert(layerB_analayerAFB);
+
+    hc->run();
+
+    /* clean up (HyPerCol owns layers and connections, don't delete them) */
+    delete hc;
+
+    return EXIT_SUCCESS;
 }
