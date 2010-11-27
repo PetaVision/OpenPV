@@ -14,6 +14,7 @@
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
+#include "../io/ColProbe.hpp"
 #include <time.h>
 
 #include "../arch/opencl/CLDevice.hpp"
@@ -23,6 +24,7 @@ namespace PV {
 class HyPerLayer;
 class InterColComm;
 class HyPerConn;
+class ColProbe;
 
 class HyPerCol {
 
@@ -53,6 +55,8 @@ public:
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
+
+   char * getName()                       {return name;}
 
    CLDevice   * getCLDevice()             {return clDevice;}
 
@@ -95,6 +99,9 @@ public:
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
+   int insertProbe(ColProbe * p);
+   int outputState(float time);
+
 private:
    int numSteps;
    int maxLayers;
@@ -123,6 +130,9 @@ private:
    HyPerColRunDelegate * runDelegate; // runs time loop
 
    Timer * runTimer;
+
+   int numProbes;
+   ColProbe ** probes;
 
 }; // class HyPerCol
 

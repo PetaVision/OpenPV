@@ -82,6 +82,9 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    }
 
    runDelegate = NULL;
+
+   numProbes = 0;
+   probes = NULL;
 }
 
 HyPerCol::~HyPerCol()
@@ -321,9 +324,15 @@ float HyPerCol::advanceTime(float sim_time)
    }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
+
+   float outputTime = simTime; // so that outputState is called with the correct time
+                               // but doesn't effect runTimer
+
    simTime = sim_time + deltaTime;
 
    runTimer->stop();
+
+   outputState(outputTime);
 
    return simTime;
 }
@@ -375,6 +384,31 @@ int HyPerCol::writeState()
       layers[l]->writeState(OUTPUT_PATH, simTime);
    }
    return 0;
+}
+
+int HyPerCol::insertProbe(ColProbe * p)
+{
+   ColProbe ** newprobes;
+   newprobes = (ColProbe **) malloc((numProbes + 1) * sizeof(ColProbe *));
+   assert(newprobes != NULL);
+
+   for (int i = 0; i < numProbes; i++) {
+      newprobes[i] = probes[i];
+   }
+   delete probes;
+
+   probes = newprobes;
+   probes[numProbes] = p;
+
+   return ++numProbes;
+}
+
+int HyPerCol::outputState(float time)
+{
+   for( int n = 0; n < numProbes; n++ ) {
+       probes[n]->outputState(time, this);
+   }
+   return EXIT_SUCCESS;
 }
 
 } // PV namespace
