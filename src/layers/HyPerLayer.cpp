@@ -463,7 +463,9 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre];
-      if (a <= 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
+
+      // Activity < 0 is used by generative models --pete
+      if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
       PVAxonalArbor * arbor = conn->axonalArbor(kPre, neighbor);
       PVPatch * phi = arbor->data;
