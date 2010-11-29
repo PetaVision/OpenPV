@@ -26,7 +26,6 @@
 #include "../PetaVision/src/io/StatsProbe.hpp"
 #include "../PetaVision/src/layers/PVLayer.h"
 
-#include "GV1.hpp"
 #include "GenerativeLayer.hpp"
 #include "GenerativeConn.hpp"
 #include "FeedbackConn.hpp"
@@ -76,7 +75,7 @@ int main(int argc, char* argv[]) {
     L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
     retina->insertProbe(l2norm_retina);
 
-    GV1 * anaretina = new GV1("AnaRetina", hc);
+    V1 * anaretina = new V1("AnaRetina", hc);
     L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
     anaretina->insertProbe(l2norm_anaretina);
     hcprobe->addTerm(l2norm_anaretina, anaretina);
@@ -98,7 +97,7 @@ int main(int argc, char* argv[]) {
 //    ChannelProbe * layerA_inh = new ChannelProbe("layerA_inh.txt", CHANNEL_INH);
 //    layerA->insertProbe(layerA_inh);
 
-    GV1 * paralayerA = new GV1("ParaLayer A", hc);
+    V1 * paralayerA = new V1("ParaLayer A", hc);
     L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
     paralayerA->insertProbe(l2norm_paralayerA);
     hcprobe->addTerm(l2norm_paralayerA, paralayerA);
@@ -108,7 +107,7 @@ int main(int argc, char* argv[]) {
 //    ChannelProbe * paralayerA_inh = new ChannelProbe("paralayerA_inh.txt", CHANNEL_INH);
 //    paralayerA->insertProbe(paralayerA_inh);
 
-    GV1 * analayerA = new GV1("AnaLayer A", hc);
+    V1 * analayerA = new V1("AnaLayer A", hc);
     L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
     analayerA->insertProbe(l2norm_analayerA);
     hcprobe->addTerm(l2norm_analayerA, analayerA);

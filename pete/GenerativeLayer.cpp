@@ -12,11 +12,11 @@
 
 namespace PV {
 
-GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) : GV1(name, hc) {
+GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) : V1(name, hc) {
 	initialize(TypeV1Simple);
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *)
 
-GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type) : GV1(name, hc, type){
+GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type) : V1(name, hc, type){
     initialize(type);
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *, PVLayerType *)
 
