@@ -15,9 +15,32 @@
 
 namespace PV {
 
+Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames)
+     : Image(name, hc)
+{
+    PVParams * params = parent->parameters();
+    float displayPeriod = params->value(name, "displayPeriod", 1.0);
+    initializeMovie(name, hc, fileOfFileNames, displayPeriod);
+}
+
 Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
      : Image(name, hc)
 {
+   initializeMovie(name, hc, fileOfFileNames, displayPeriod);
+}
+
+Movie::~Movie()
+{
+   if (imageData != NULL) {
+      delete imageData;
+      imageData = NULL;
+   }
+   if (fp != NULL && fp != stdout) {
+      fclose(fp);
+   }
+}
+
+int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod) {
    PVParams * params = parent->parameters();
 
    PVLayerLoc * loc = &clayer->loc;
@@ -75,17 +98,8 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 
    // exchange border information
    exchange();
-}
 
-Movie::~Movie()
-{
-   if (imageData != NULL) {
-      delete imageData;
-      imageData = NULL;
-   }
-   if (fp != NULL && fp != stdout) {
-      fclose(fp);
-   }
+   return EXIT_SUCCESS;
 }
 
 pvdata_t * Movie::getImageBuffer()
