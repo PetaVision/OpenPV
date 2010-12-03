@@ -754,7 +754,9 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
 
 #ifdef PV_USE_MPI
    const int tag = 44;
+   const int nxny = nx*ny;
    const MPI_Comm mpi_comm = comm->communicator();
+   const int nyProcs = comm->numCommRows();
 
    if (icRank > 0) {
       const int dest = 0;

@@ -170,10 +170,13 @@ int pvp_close_file(FILE * fp, Communicator * comm)
    return status;
 }
 
-int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams)
+int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
    int status = 0;
    int tmp_status = 0;
+
+   int nxProcs = comm->numCommColumns();
+   int nyProcs = comm->numCommRows();
 
    if (loc->nx       != params[INDEX_NX])        {status = -1; tmp_status = INDEX_NX;}
    if (tmp_status == INDEX_NX) {
@@ -198,6 +201,16 @@ int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams)
    if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = -1; tmp_status = INDEX_NY_GLOBAL;}
    if (tmp_status == INDEX_NY_GLOBAL) {
          fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
+      fprintf(stderr, "\n");
+   }
+   if (nxProcs != params[INDEX_NX_PROCS]) {status = -1; tmp_status = INDEX_NX_PROCS;}
+   if (tmp_status == INDEX_NX_PROCS) {
+         fprintf(stderr, "nxProcs = %d != params[%d]==%d ", nxProcs, INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
+      fprintf(stderr, "\n");
+   }
+   if (nyProcs != params[INDEX_NY_PROCS]) {status = -1; tmp_status = INDEX_NY_PROCS;}
+   if (tmp_status == INDEX_NY_PROCS) {
+         fprintf(stderr, "nyProcs = %d != params[%d]==%d ", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
       fprintf(stderr, "\n");
    }
    if (loc->nPad     != params[INDEX_NPAD])      {status = -1; tmp_status = INDEX_NPAD;}
@@ -446,7 +459,8 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       assert(status == numParams);
 
       const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-      // const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
+      const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
+      assert(recordSize == localSize);
 
       const int numRecords = params[INDEX_NUM_RECORDS];
       const int dataSize = params[INDEX_DATA_SIZE];
@@ -481,7 +495,7 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
             fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
                     comm->commRank(), dest, nx, ny, numItems);
 #endif
-            long offset = headerSize + dest * recordSize;
+            long offset = headerSize + dest * localSize;
             fseek(fp, offset, SEEK_SET);
             numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
             assert(numRead == (int) localSize);
@@ -578,7 +592,7 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
    else {
       const bool append = false;
       const int numParams = NUM_PAR_BYTE_PARAMS;
-      // const int headerSize = numParams * sizeof(int);
+      const int headerSize = numParams * sizeof(int);
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 
@@ -649,14 +663,13 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
    else {
       // we are io root process
       //
-      // unsigned int totalActive = numNeurons;
 
 #ifdef PV_USE_MPI
       // get the number active from each process
       // TODO - use collective?
       //
       const int icSize = comm->commSize();
-      totalActive = numNeurons * icSize;
+      unsigned int totalActive = numNeurons * icSize;
 
 #endif // PV_USE_MPI
 
@@ -687,13 +700,15 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 #ifdef PV_USE_MPI
       for (int p = 1; p < icSize; p++) {
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d numNeurons==%d\n",
+            fprintf(stderr, "[%2d]: writeActivity: receiving from %d numNeurons==%d\n",
                     comm->commRank(), p, numNeurons);
             fflush(stderr);
 #endif
             MPI_Recv(VmemVals, numNeurons, MPI_FLOAT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
-            long offset = p * numNeurons * sizeof(float);
-            fseek(fp, offset, SEEK_SET);
+// (CER) I think this is wrong as it doesn't have header size and if you want to read
+// more than once it is really wrong.  It shouldn't be needed because writes are ordered.
+//            long offset = p * numNeurons * sizeof(float);
+//            fseek(fp, offset, SEEK_SET);
             if ( fwrite(VmemVals, sizeof(float), numNeurons, fp) != numNeurons ) return -1;
       }
 #endif // PV_USE_MPI
@@ -745,7 +760,9 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       // get the number active from each process
       // TODO - use collective?
       //
+      unsigned int * numActive = NULL;
       const int icSize = comm->commSize();
+
       if (icSize > 1) {
          // otherwise numActive is not used
          numActive = (unsigned int *) malloc(icSize*sizeof(int));
@@ -826,10 +843,14 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    // read file header (uses MPI to broadcast the results)
    //
    status = pvp_read_header(filename, comm, time, &filetype, &datatype, params, &numParams);
-   if (status != 0) return status;
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_head, numParams==%d\n",
+              comm->commRank(), numParams);
+      return status;
+   }
 
-   status = pvp_check_file_header(loc, params, numParams);
-   if (status < 0) {
+   status = pvp_check_file_header(comm, loc, params, numParams);
+   if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
@@ -859,11 +880,27 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // make sure file is consistent with expectations
    //
-   if (datatype != PV_BYTE_TYPE) return -1;
-   if (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks) return -1;
-   if (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]) {
-      return -1;
+   status = (datatype != PV_BYTE_TYPE);
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, datatype==%d\n",
+              comm->commRank(), datatype);
+      return status;
    }
+   status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
+            "nxFileBlocks==%d, nyFileBlocks==%d\n, nxBlocks==%d, nyBlocks==%d\n",
+              comm->commRank(), nxFileBlocks, nyFileBlocks, nxBlocks, nyBlocks);
+      return status;
+   }
+   status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
+            "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
+            comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
+      return status;
+   }
+
 
    const int numPatchItems = nxp * nyp * nfp;
    const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
@@ -939,6 +976,10 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    // set the contents of the weights patches from the unsigned character buffer, cbuf
    //
    status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal);
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
+              comm->commRank(), numPatches);
+   }
 
    free(cbuf);
 
@@ -1015,7 +1056,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
-      // const int headerSize = numParams * sizeof(int);
+      const int headerSize = numParams * sizeof(int);
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 

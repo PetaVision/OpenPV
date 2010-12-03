@@ -41,7 +41,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch ** patches, int numPatches);
 
-int pvp_check_file_header(const PVLayerLoc * loc, int params[], int numParams);
+int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
 
 } // namespace PV
 
