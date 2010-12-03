@@ -2,7 +2,7 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
 
   global spiking_path
   global N NROWS NCOLS % for the current layer
-  global NFEATURES  % for the current layer
+  global NFEATURES  % for the current layer 
 
 NFEATURES = size(weights, 2);
 NFP = weights_size(1);
@@ -45,15 +45,15 @@ NUM_WGT_PARAMS = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
 num_params = NUM_WGT_PARAMS;
 int32_size = 4;  %sizeof(int)
 PVP_WGT_FILE_TYPE  = 3;
-NX = NCOLS;
-NY = NROWS;
+NX_PROCS = 1;%2;
+NY_PROCS = 1;%2;
+NX = NCOLS / NX_PROCS;
+NY = NROWS / NY_PROCS;
 NF = NFEATURES;
 NUM_RECORDS = NFEATURES;
 RECORD_SIZE = prod(weights_size);
 DATA_SIZE = 1;  % char
 DATA_TYPE = 1; % char
-NX_PROCS = 1;
-NY_PROCS = 1;
 NX_GLOBAL = NCOLS;
 NY_GLOBAL = NROWS;
 KX0 = 0;
@@ -66,8 +66,7 @@ WGT_NYP = weights_size(3);
 WGT_NFP = weights_size(1);
 WGT_MIN = min_weight;
 WGT_MAX = max_weight;
-WGT_NUMPATCHES = NFEATURES;
-
+WGT_NUMPATCHES = NX_PROCS * NY_PROCS * NFEATURES;
 row_index_first = 1;
 row_index_last = weights_size(3);
 col_index_first = 1;
@@ -121,7 +120,8 @@ fwrite(fid, WGT_NFP, 'int32'); % nfp
 fwrite(fid, min_weight, 'float32'); % minVal
 fwrite(fid, max_weight, 'float32'); % maxVal
 fwrite(fid, WGT_NUMPATCHES, 'int32'); % numPatches
-
+for kx_proc = 1 : NX_PROCS
+	for ky_proc = 1 : NY_PROCS
 for i_feature = 1 : NFEATURES
     weights_tmp = ...
         weights{i_feature} .* ...
@@ -140,5 +140,6 @@ for i_feature = 1 : NFEATURES
     fwrite(fid, uint16(WGT_NYP), 'uint16');
     fwrite(fid, uint8(weights_tmp), 'uint8');
 end%%for
+end%for
+end%for
 fclose(fid);
-
