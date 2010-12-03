@@ -19,9 +19,11 @@ namespace PV {
 
 class FeedbackConn : public GenerativeConn {
 public:
+    FeedbackConn();
     FeedbackConn(const char * name, HyPerCol *hc, int channel,
         GenerativeConn * ffconn);
 
+    int initialize_base();
     int initialize(const char * name, HyPerCol * hc, int channel,
         const char * filename, GenerativeConn * ffconn);
     inline GenerativeConn * getFeedforwardConn() {return feedforwardConn;}

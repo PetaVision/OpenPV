@@ -16,13 +16,14 @@ namespace PV {
 
 class IdentConn : public KernelConn {
 public:
+    IdentConn();
     IdentConn(const char * name, HyPerCol *hc, HyPerLayer * pre, HyPerLayer * post, int channel);
-    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
-    int updateWeights(int axonID) {return EXIT_SUCCESS;}
+    int initialize_base();
+    virtual int updateWeights(int axonID) {return EXIT_SUCCESS;}
 
 protected:
     int setPatchSize(const char * filename);
-    PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename);
 };
 

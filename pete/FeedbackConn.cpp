@@ -9,74 +9,30 @@
 
 namespace PV {
 
-PVConnParams defaultConnParamsFB =
-{
-   /*delay*/ 0, /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
-   /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
-};
+FeedbackConn::FeedbackConn() {
+    initialize_base();
+}
 
 FeedbackConn::FeedbackConn(const char * name, HyPerCol *hc, int channel, GenerativeConn * ffconn) {
     initialize_base();
     initialize(name, hc, channel, NULL, ffconn);
 }  // end of FeedbackConn::FeedbackConn(const char *, HyPerCol *, int, GenerativeConn *)
 
+int FeedbackConn::initialize_base() {
+    feedforwardConn = NULL;
+    return EXIT_SUCCESS;
+}
+
 int FeedbackConn::initialize(const char * name, HyPerCol * hc,
             int channel, const char * filename, GenerativeConn * ffconn) {
     feedforwardConn = ffconn;
+    GenerativeConn::initialize(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), channel, filename);
 
-    // lines below swiped from HyPerConn::initialize
-    this->parent = hc;
-    this->pre = ffconn->postSynapticLayer();
-    this->post = ffconn->preSynapticLayer();
-    this->channel = channel;
-
-    free(this->name);  // name will already have been set in initialize_base()
-    this->name = strdup(name);
-    assert(this->name != NULL);
-    // lines above swiped from HyPerConn::initialize
-
-    // HyPerConn::initialize(filename);
-    const int arbor = 0;
-    numAxonalArborLists = 1;
-
-    assert(this->channel < post->clayer->numPhis);
-
-    this->connId = parent->numberOfConnections();
-
-    PVParams * inputParams = parent->parameters();
-    setParams(inputParams, &defaultConnParamsFB);
-
-    setPatchSize(filename); // overridden
-
-    // wPatches[arbor] = createWeights(wPatches[arbor]);
-    wPatches[arbor] = createWeights(wPatches[arbor],
-                          numWeightPatches(arbor),nxp,nyp,nfp); // don't need to override
-
-    // initializeSTDP();
-
-    // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
-    //  weight patches may shrink
-    // readWeights() should expect shrunken patches
-    // initializeWeights() must be aware that patches may not be uniform
-    createAxonalArbors();
-
-    initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);  // need to override
-    assert(wPatches[arbor] != NULL);
-
-    writeTime = parent->simulationTime();
-    writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
-
-    parent->addConnection(this);
-    // HyPerConn::initialize(filename);
-
-    weightUpdatePeriod = ffconn->getWeightUpdatePeriod();
-    nextWeightUpdate = weightUpdatePeriod;
-    relaxation = ffconn->getRelaxation();
     return EXIT_SUCCESS;
 }  // end of FeedbackConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int, const char * filename, GenerativeConn *)
 
 int FeedbackConn::setPatchSize(const char * filename) {
-	int status = EXIT_SUCCESS;
+    int status = EXIT_SUCCESS;
     nxp = feedforwardConn->xPatchSize();
     nyp = feedforwardConn->yPatchSize();
     nfp = post->getCLayer()->numFeatures;
@@ -94,7 +50,7 @@ int FeedbackConn::setPatchSize(const char * filename) {
        status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
        if (status < 0) return status;
 
-       status = checkPVPFileHeader(&loc, wgtParams, numWgtParams);
+       status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
        if (status < 0) return status;
 
        // reconcile differences with inputParams
@@ -112,14 +68,14 @@ PVPatch ** FeedbackConn::initializeWeights(PVPatch ** patches, int numPatches,
 }  // end of FeedbackConn::initializeWeights
 
 int FeedbackConn::updateWeights(int axonID) {
-	printf("updateWeights %s\n", name);
-	transposeKernels();
+    printf("updateWeights %s\n", name);
+    transposeKernels();
     return EXIT_SUCCESS;
 }  // end of FeedbackConn::updateWeights(int);
 
 int FeedbackConn::transposeKernels() {
-	// compute the transpose of feedforwardConn->kernelPatches and
-	// store into this->kernelPatches
+    // compute the transpose of feedforwardConn->kernelPatches and
+    // store into this->kernelPatches
     // assume scale factors are 1 and that nxp, nyp are odd.
     int numFFKernelPatches = feedforwardConn->numDataPatches(0);
     int numFBKernelPatches = numDataPatches(0);

@@ -9,96 +9,48 @@
 
 namespace PV {
 
-PVConnParams defaultConnParamsIdent =
-{
-   /*delay*/ 0, /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
-   /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
-};
+IdentConn::IdentConn() {
+    initialize_base();
+}
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-	    HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, int channel) {
     initialize_base();
     initialize(name, hc, pre, post, channel);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
 
-int IdentConn::initialize(const char * name, HyPerCol * hc,
-	    HyPerLayer * pre, HyPerLayer * post, int channel) {
-
-	PVLayer * preclayer = pre->getCLayer();
-	PVLayer * postclayer = post->getCLayer();
-	if( memcmp(&preclayer->loc,&postclayer->loc,sizeof(PVLayerLoc)) ) {
-	    fprintf( stderr,
-	             "IdentConn: %s and %s do not have the same dimensions\n",
-	             pre->getName(),post->getName() );
-	    return EXIT_FAILURE;
-	}
-    // lines below swiped from HyPerConn::initialize
-    this->parent = hc;
-    this->pre = pre;
-    this->post = post;
-    this->channel = channel;
-
-    free(this->name);  // name will already have been set in initialize_base()
-    this->name = strdup(name);
-    assert(this->name != NULL);
-    // lines above swiped from HyPerConn::initialize
-
-    // HyPerConn::initialize(filename);
-    const int arbor = 0;
-    numAxonalArborLists = 1;
-
-    assert(this->channel < postclayer->numPhis);
-
-    this->connId = parent->numberOfConnections();
-
-    PVParams * inputParams = parent->parameters();
-    setParams(inputParams, &defaultConnParamsIdent);
-
-    setPatchSize(NULL); // overridden
-
-    // wPatches[arbor] = createWeights(wPatches[arbor]);
-    wPatches[arbor] = createWeights(wPatches[arbor],
-                          numWeightPatches(arbor),nxp,nyp,nfp); // don't need to override
-
-    // initializeSTDP();
-
-    // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
-    //  weight patches may shrink
-    // readWeights() should expect shrunken patches
-    // initializeWeights() must be aware that patches may not be uniform
-    createAxonalArbors();
-
-    initializeWeights(wPatches[arbor], numWeightPatches(arbor), NULL);  // need to override
-    assert(wPatches[arbor] != NULL);
-
-    writeTime = parent->simulationTime();
-    writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
-
-    parent->addConnection(this);
-    // HyPerConn::initialize(filename);
-
+int IdentConn::initialize_base() {
+    // no IdentConn-specific data members to initialize
     return EXIT_SUCCESS;
-}  // end of IdentConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *)
+}  // end of IdentConn::initialize_base()
 
 int IdentConn::setPatchSize(const char * filename) {
-	int status = EXIT_SUCCESS;
+    PVLayerLoc preLoc = pre->getCLayer()->loc;
+    PVLayerLoc postLoc = post->getCLayer()->loc;
+    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny || preLoc.nBands != postLoc.nBands ) {
+        fprintf( stderr,
+                 "IdentConn Error: %s and %s do not have the same dimensions\n",
+                 pre->getName(),post->getName() );
+        exit(1);
+    }
     nxp = 1;
     nyp = 1;
     nfp = pre->getCLayer()->numFeatures;
 
-    return status;
+    return EXIT_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
 
 PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename) {
-	int numKernels = numDataPatches(0);
+    int numKernels = numDataPatches(0);
     for( int k=0; k < numKernels; k++ ) {
         PVPatch * kp = getKernelPatch(k);
+        assert(kp->nf == numKernels);
         for( int l=0; l < kp->nf; l++ ) {
             kp->data[l] = l==k;
         }
     }
     return patches;
-}
+}  // end of IdentConn::initializeWeights(PVPatch **, int, const char *)
 
 }  // end of namespace PV block

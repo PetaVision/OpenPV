@@ -8,6 +8,7 @@
 #ifndef GENERATIVECONN_HPP_
 #define GENERATIVECONN_HPP_
 
+#include <assert.h>
 #include "../PetaVision/src/connections/KernelConn.hpp"
 #include "../PetaVision/src/columns/HyPerCol.hpp"
 
@@ -24,6 +25,7 @@ public:
         HyPerLayer * pre, HyPerLayer * post, int channel,
             const char * filename);
 
+    int initialize_base();
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, int channel,
             const char * filename);
