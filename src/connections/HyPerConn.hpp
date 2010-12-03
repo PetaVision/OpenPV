@@ -105,15 +105,17 @@ public:
                              int * kxPostOut, int * kyPostOut, int * kfPostOut,
                              int * dxOut, int * dyOut, int * nxpOut, int * nypOut);
 
-   int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
+   virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
 
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
-   virtual int kernelIndexToPatchIndex(int kernelIndex);
+   virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
+         int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
 
-   virtual int patchIndexToKernelIndex(int patchIndex);
+   virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
+         int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
 
 protected:
    HyPerLayer     * pre;
@@ -169,7 +171,7 @@ protected:
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
    PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
-   PVPatch ** initializeGaussianWeights(PVPatch ** patches, int numPatches);
+   PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** createWeights(PVPatch ** patches);
