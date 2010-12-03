@@ -1381,8 +1381,8 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
 int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength)
 {
-   const PVLayer * lPre = pre->clayer;
-   const PVLayer * lPost = post->clayer;
+//   const PVLayer * lPre = pre->clayer;
+//   const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
    float deltaThetaMax = 2.0 * PI;
@@ -1623,41 +1623,92 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 
 int HyPerConn::setPatchSize(const char * filename)
 {
-   int status = 0;
+   int status;
    PVParams * inputParams = parent->parameters();
 
-   nxp = (int) inputParams->value(name, "nxp", post->clayer->loc.nx);
-   nyp = (int) inputParams->value(name, "nyp", post->clayer->loc.ny);
-   nfp = (int) inputParams->value(name, "nfp", post->clayer->numFeatures);
+   nxp = (int) inputParams->value(name, "nxp", post->getCLayer()->loc.nx);
+   nyp = (int) inputParams->value(name, "nyp", post->getCLayer()->loc.ny);
+   nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->numFeatures);
    if( nfp > post->getCLayer()->numFeatures ){ /* should the condition be == or <= ? */
       fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
-      fprintf( stderr, "but only %d features for post-synaptic layer %s\n", post->getCLayer()->numFeatures, post->getName() );
+      fprintf( stderr, "but only %d features for post-synaptic layer %s\n",
+               post->getCLayer()->numFeatures, post->getName() );
       exit(1);
    }
+   int xScalePre = pre->getXScale();
+   int xScalePost = post->getXScale();
+   status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
+   if( status != EXIT_SUCCESS) return status;
 
-   // use patch dimensions from file if (filename != NULL)
-   //
-   if (filename != NULL) {
-      int filetype, datatype;
-      double time = 0.0;
-      const PVLayerLoc loc = this->pre->clayer->loc;
+   int yScalePre = pre->getYScale();
+   int yScalePost = post->getYScale();
+   status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
+   if( status != EXIT_SUCCESS) return status;
 
-      int wgtParams[NUM_WGT_PARAMS];
-      int numWgtParams = NUM_WGT_PARAMS;
+   status = filename ? patchSizeFromFile(filename) : EXIT_SUCCESS;
 
-      Communicator * comm = parent->icCommunicator();
-
-      status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
-      if (status < 0) return status;
-
-      status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
-      if (status < 0) return status;
-
-      // reconcile differences with inputParams
-      status = checkWeightsHeader(filename, wgtParams);
-   }
    return status;
 }
+
+int HyPerConn::patchSizeFromFile(const char * filename) {
+   // use patch dimensions from file if (filename != NULL)
+   //
+   int status;
+   int filetype, datatype;
+   double time = 0.0;
+   const PVLayerLoc loc = pre->getCLayer()->loc;
+
+   int wgtParams[NUM_WGT_PARAMS];
+   int numWgtParams = NUM_WGT_PARAMS;
+
+   Communicator * comm = parent->icCommunicator();
+
+   status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
+   if (status < 0) return status;
+
+   status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
+   if (status < 0) return status;
+
+   // reconcile differences with inputParams
+   status = checkWeightsHeader(filename, wgtParams);
+   return status;
+}
+
+int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char dim) {
+   int scaleDiff = scalePre - scalePost;
+   bool goodsize;
+
+   if( scaleDiff > 0) {
+      // complain if patchSize is not an odd number times 2^xScaleDiff
+      int scaleFactor = (int) powf(2, (float) scaleDiff);
+      int shouldbeodd = patchSize/scaleFactor;
+      goodsize = shouldbeodd > 0 && shouldbeodd % 2 == 1 && patchSize == shouldbeodd*scaleFactor;
+   }
+   else {
+      // complain if patchSize is not an odd number
+      goodsize = patchsize > 0 && patchSize % 2 == 1;
+   }
+   if( !goodsize ) {
+      fprintf(stderr, "Error:  Connection: %s\n",name);
+      fprintf(stderr, "Presynaptic layer:  %s\n", pre->getName());
+      fprintf(stderr, "Postsynaptic layer: %s\n", post->getName());
+      fprintf(stderr, "Patch size n%cp=%d is not compatible with presynaptic n%cScale %f\n",
+              dim,patchSize,dim,pow(2,-scalePre));
+      fprintf(stderr, "and postsynaptic n%cScale %f.\n",dim,pow(2,-scalePost));
+      if( scaleDiff > 0) {
+         fprintf(stderr, "When (presynaptic scale) - (postsynaptic scale) = %d (greater than zero),\n",
+                 scaleDiff);
+         fprintf(stderr, "compatible sizes are 2^%d times an odd number.\n", scaleDiff);
+      }
+      else {
+         fprintf(stderr, "When (presynaptic scale) - (postsynaptic scale)<=0, patch size must be odd\n");
+      }
+      fprintf(stderr, "Exiting.\n");
+      exit(1);
+   }
+   return EXIT_SUCCESS;
+}
+
 
 PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)

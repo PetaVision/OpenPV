@@ -157,7 +157,9 @@ protected:
    float writeStep;             // output time interval
 
 protected:
-   int setPatchSize(const char * filename);
+   virtual int setPatchSize(const char * filename);
+   int patchSizeFromFile(const char * filename);
+   virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
 
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, int channel, const char * filename);
