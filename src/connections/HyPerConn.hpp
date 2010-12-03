@@ -183,7 +183,7 @@ protected:
 
    int smartWeights(PVPatch * wp, int k);
 
-   virtual int checkPVPFileHeader(const PVLayerLoc * loc, int params[], int numParams);
+   virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 
    virtual int deleteWeights();

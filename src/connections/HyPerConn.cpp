@@ -127,7 +127,7 @@ int HyPerConn::initialize(const char * filename)
    const int arbor = 0;
    numAxonalArborLists = 1;
 
-   assert(this->channel < post->clayer->numPhis);
+   assert(this->channel <= post->clayer->numPhis);
 
    this->connId = parent->numberOfConnections();
 
@@ -293,11 +293,11 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
 }
 
-int HyPerConn::checkPVPFileHeader(const PVLayerLoc * loc, int params[], int numParams)
+int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
    // use default header checker
    //
-   return pvp_check_file_header(loc, params, numParams);
+   return pvp_check_file_header(comm, loc, params, numParams);
 }
 
 int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
@@ -1382,10 +1382,11 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
 /**
  * calculate gaussian weights to segment lines
  */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
-      float shift, float rotate, float aspect, float sigma, float r2Max, float strength)
+int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
+                                  int numFlanks, float shift, float rotate,
+                                  float aspect, float sigma, float r2Max, float strength)
 {
-   const PVLayer * lPre = pre->clayer;
+   const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
@@ -1606,7 +1607,7 @@ int HyPerConn::setPatchSize(const char * filename)
       status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
       if (status < 0) return status;
 
-      status = checkPVPFileHeader(&loc, wgtParams, numWgtParams);
+      status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
       if (status < 0) return status;
 
       // reconcile differences with inputParams
