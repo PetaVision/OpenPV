@@ -127,7 +127,7 @@ int HyPerConn::initialize(const char * filename)
    const int arbor = 0;
    numAxonalArborLists = 1;
 
-   assert(this->channel <= post->clayer->numPhis);
+   assert(this->channel < post->clayer->numPhis);
 
    this->connId = parent->numberOfConnections();
 
@@ -393,10 +393,10 @@ PVPatch ** HyPerConn::initializeSmartWeights(PVPatch ** patches, int numPatches)
 
 PVPatch ** HyPerConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
 {
-   return initializeGaussianWeights(patches, numPatches);
+   return initializeGaussian2DWeights(patches, numPatches);
 }
 
-PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatches)
+PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
 
@@ -419,9 +419,8 @@ PVPatch ** HyPerConn::initializeGaussianWeights(PVPatch ** patches, int numPatch
    float shift = params->value(name, "flankShift", 0.0f);
    float rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
 
-   for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
-      int patchIndex = kernelIndexToPatchIndex(kernelIndex);
-      gauss2DCalcWeights(patches[kernelIndex], patchIndex, noPost, numFlanks, shift, rotate,
+   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+      gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength);
    }
 
@@ -1382,18 +1381,17 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
 /**
  * calculate gaussian weights to segment lines
  */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
-                                  int numFlanks, float shift, float rotate,
-                                  float aspect, float sigma, float r2Max, float strength)
+int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
+      float shift, float rotate, float aspect, float sigma, float r2Max, float strength)
 {
-   const PVLayer * lPre  = pre->clayer;
+   const PVLayer * lPre = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
    float deltaThetaMax = 2.0 * PI;
    //   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
 
-   // get dimensions of (potentially shruken patch)
+   // get dimensions of (potentially shrunken patch)
    const int nxPatch = wp->nx;
    const int nyPatch = wp->ny;
    const int nfPatch = wp->nf;
@@ -1410,23 +1408,29 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const int sf = wp->sf;
    assert(sf == 1);
 
-   // make full sized temporary patch
+   // make full sized temporary patch, positioned around center of unit cell
    PVPatch * wp_tmp;
    wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    pvdata_t * w_tmp = wp_tmp->data;
 
+   // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = wp_tmp->nx;
    const int nyPatch_tmp = wp_tmp->ny;
    const int nfPatch_tmp = wp_tmp->nf;
-   const int kxPre_tmp = (int) ( pre->clayer->loc.nx / 2 );
-   assert(kxPre_tmp >= nxPatch_tmp / 2);
-   const int kyPre_tmp = (int) ( pre->clayer->loc.ny / 2 );
-   assert(kyPre_tmp >= nyPatch_tmp / 2);
-   const int kfPre_tmp = kPre % pre->clayer->numFeatures;
-   int kPre_tmp = kIndex(kxPre_tmp, kyPre_tmp, kfPre_tmp, pre->clayer->loc.nx,
-         pre->clayer->loc.ny, pre->clayer->numFeatures);
-
-   // get strides of full sized temporary patch
+   int kxKernelIndex;
+   int kyKerneIndex;
+   int kfKernelIndex;
+   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
+//   const int kxPre_tmp = (int) ( pre->clayer->loc.nx / 2 );
+//   assert(kxPre_tmp >= nxPatch_tmp / 2);
+//   const int kyPre_tmp = (int) ( pre->clayer->loc.ny / 2 );
+//   assert(kyPre_tmp >= nyPatch_tmp / 2);
+//   const int kfPre_tmp = kPre % pre->clayer->numFeatures;
+//   int kPre_tmp = kIndex(kxPre_tmp, kyPre_tmp, kfPre_tmp, pre->clayer->loc.nx,
+//         pre->clayer->loc.ny, pre->clayer->numFeatures);
+   const int kxPre_tmp = kxKernelIndex;
+   const int kyPre_tmp = kyKerneIndex;
+//   const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = wp_tmp->sx;
    assert(sx_tmp == wp_tmp->nf);
    const int sy_tmp = wp_tmp->sy;
@@ -1434,19 +1438,58 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
    const int sf_tmp = wp_tmp->sf;
    assert(sf_tmp == 1);
 
+   // deprecated--doesn't work for shunken patches when scalePre > scalePost
    // get location of temporary patch head
    // presynaptic cell is not in the center if patch is shrunken, so make full sized wp_tmp
-   float xPreGlobal = 0.0;
-   float yPreGlobal = 0.0;
-   float xPatchHeadGlobal = 0.0;
-   float yPatchHeadGlobal = 0.0;
-   posPatchHead(kPre_tmp, lPre->xScale, lPre->yScale, lPre->loc, &xPreGlobal, &yPreGlobal,
-         lPost->xScale, lPost->yScale, lPost->loc, wp_tmp, &xPatchHeadGlobal,
-         &yPatchHeadGlobal);
+//   float xPreGlobal = 0.0;
+//   float yPreGlobal = 0.0;
+//   float xPatchHeadGlobal = 0.0;
+//   float yPatchHeadGlobal = 0.0;
+//   posPatchHead(kPre_tmp, lPre->xScale, lPre->yScale, lPre->loc, &xPreGlobal, &yPreGlobal,
+//         lPost->xScale, lPost->yScale, lPost->loc, wp_tmp, &xPatchHeadGlobal,
+//         &yPatchHeadGlobal);
+   // end deprecated
+
+   // get distances to nearest neighbor in post synaptic layer
+   float xDistNNPreUnits;
+   float xDistNNPostUnits;
+   dist2NearestCell(kxPre_tmp, lPre->xScale, lPost->xScale,
+         &xDistNNPreUnits, &xDistNNPostUnits);
+   float yDistNNPreUnits;
+   float yDistNNPostUnits;
+   dist2NearestCell(kyPre_tmp, lPre->yScale, lPost->yScale,
+         &yDistNNPreUnits, &yDistNNPostUnits);
+
+   // get indices of nearest neighbor
+   int kxNN;
+   int kyNN;
+   kxNN = nearby_neighbor( kxPre_tmp, lPre->xScale, lPost->xScale);
+   kyNN = nearby_neighbor( kyPre_tmp, lPre->yScale, lPost->yScale);
+
+   // get indices of patch head
+   int kxHead;
+   int kyHead;
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, lPre->xScale, lPost->xScale);
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, lPre->yScale, lPost->yScale);
+
+   // get distance to patch head
+   float xDistHeadPostUnits;
+   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
+   float yDistHeadPostUnits;
+   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
+   float xRelativeScale = xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits
+         / xDistNNPostUnits;
+   float xDistHeadPreUnits;
+   xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
+   float yRelativeScale = yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits
+         / yDistNNPostUnits;
+   float yDistHeadPreUnits;
+   yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
+
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, (float) lPost->xScale);
-   const float dyPost = powf(2, (float) lPost->yScale);
+   const float dxPost = xRelativeScale; //powf(2, (float) lPost->xScale);
+   const float dyPost = yRelativeScale; //powf(2, (float) lPost->yScale);
 
    const float dth = PI / (float) nfPatch;
    const float th0 = rotate * dth / 2.0f;
@@ -1472,10 +1515,11 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
          continue;
       }
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
+//         float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
+         float yDelta = (yDistHeadPreUnits + jPost * dyPost);
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
-
+//            float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
+            float xDelta = (xDistHeadPreUnits + iPost * dxPost);
             bool sameLoc = ((fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
             if ((sameLoc) && (!self)) {
                continue;
@@ -1515,7 +1559,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no,
          w[iWeight] = w_tmp[iWeight];
       }
       w += sy;
-      w_tmp += sy;
+      w_tmp += sy_tmp;
    }
 
    free(wp_tmp);
@@ -1528,6 +1572,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
    float strength = params->value(name, "strength", 1.0f);
    float normalize_max = params->value(name, "normalize_max", 0.0f);
    float normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+   float normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
 
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
@@ -1571,6 +1616,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
       for (int ky = 0; ky < ny; ky++) {
          for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
             w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
+            w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
          }
          w += sy;
       }
@@ -1636,13 +1682,95 @@ PVPatch ** HyPerConn::allocWeights(PVPatch ** patches)
    return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 }
 
-int HyPerConn::kernelIndexToPatchIndex(int kernelIndex){
-   return kernelIndex;
+// one to many mapping, chose first patch index in restricted space
+// kernelIndex for unit cell
+// patchIndex in extended space
+int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
+      int * kyPatchIndex, int * kfPatchIndex)
+{
+   int patchIndex;
+   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nfKernel = pre->clayer->numFeatures;
+   int kxPreExtended = kxPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
+   int kyPreExtended = kyPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
+   int kfPre = featureIndex(kernelIndex, nxKernel, nyKernel, nfKernel);
+   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
+   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
+   patchIndex = kIndex(kxPreExtended, kyPreExtended, kfPre, nxPreExtended, nyPreExtended, nfKernel);
+   if (kxPatchIndex != NULL){
+      *kxPatchIndex = kxPreExtended;
+   }
+   if (kyPatchIndex != NULL){
+      *kyPatchIndex = kyPreExtended;
+   }
+   if (kfPatchIndex != NULL){
+      *kfPatchIndex = kfPre;
+   }
+   return patchIndex;
 }
 
 // many to one mapping from weight patches to kernels
-int HyPerConn::patchIndexToKernelIndex(int patchIndex){
-   return patchIndex;
+// patchIndex always in extended space
+// kernelIndex always for unit cell
+int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
+      int * kyKernelIndex, int * kfKernelIndex)
+{
+   int kernelIndex;
+   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
+   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
+   int nfPre = pre->clayer->numFeatures;
+   int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+   int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+
+   // check that patchIndex lay within margins
+   assert(kxPreExtended >= 0);
+   assert(kyPreExtended >= 0);
+   assert(kxPreExtended < nxPreExtended);
+   assert(kyPreExtended < nyPreExtended);
+
+   // convert from extended to restricted space (in local HyPerCol coordinates)
+   int kxPreRestricted;
+   kxPreRestricted = kxPreExtended - pre->clayer->loc.nPad;
+   while(kxPreRestricted < 0){
+      kxPreRestricted += pre->clayer->loc.nx;
+   }
+   while(kxPreRestricted >= pre->clayer->loc.nx){
+      kxPreRestricted -= pre->clayer->loc.nx;
+   }
+
+   int kyPreRestricted;
+   kyPreRestricted = kyPreExtended - pre->clayer->loc.nPad;
+   while(kyPreRestricted < 0){
+      kyPreRestricted += pre->clayer->loc.ny;
+   }
+   while(kyPreRestricted >= pre->clayer->loc.ny){
+      kyPreRestricted -= pre->clayer->loc.ny;
+   }
+
+   int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+
+   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
+         post->clayer->xScale - pre->clayer->xScale) : 1;
+   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
+         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int kxKernel = kxPreRestricted % nxKernel;
+   int kyKernel = kyPreRestricted % nyKernel;
+
+   kernelIndex = kIndex(kxKernel, kyKernel, kfPre, nxKernel, nyKernel, nfPre);
+   if (kxKernelIndex != NULL){
+      *kxKernelIndex = kxKernel;
+   }
+   if (kyKernelIndex != NULL){
+      *kyKernelIndex = kyKernel;
+   }
+   if (kfKernelIndex != NULL){
+      *kfKernelIndex = kfPre;
+   }
+   return kernelIndex;
 }
+
 
 } // namespace PV
