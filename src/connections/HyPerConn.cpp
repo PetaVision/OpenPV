@@ -1686,7 +1686,7 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
    }
    else {
       // complain if patchSize is not an odd number
-      goodsize = patchsize > 0 && patchSize % 2 == 1;
+      goodsize = patchSize > 0 && patchSize % 2 == 1;
    }
    if( !goodsize ) {
       fprintf(stderr, "Error:  Connection: %s\n",name);
