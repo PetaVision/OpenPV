@@ -124,6 +124,8 @@ public:
    pvdata_t * getChannel(ChannelType ch) {                         // name query
       return ch < clayer->numPhis ? clayer->phi[ch] : NULL;
    }
+   int getXScale()                   {return clayer->xScale;}
+   int getYScale()                   {return clayer->yScale;}
 
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}

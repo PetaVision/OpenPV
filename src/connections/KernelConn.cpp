@@ -119,10 +119,10 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
 
 int KernelConn::numDataPatches(int arbor)
 {
-   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
+         post->getXScale() - pre->getXScale()) : 1;
+   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
+         post->getYScale() - pre->getYScale()) : 1;
    int numKernelPatches = pre->clayer->numFeatures * nxKernel * nyKernel;
    return numKernelPatches;
 }

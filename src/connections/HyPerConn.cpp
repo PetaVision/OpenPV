@@ -881,8 +881,8 @@ int HyPerConn::createAxonalArbors()
          kyPre += ky0Pre - prePad;
 
          // global non-extended post-synaptic frame
-         int kxPost = zPatchHead(kxPre, nxp, lPre->xScale, lPost->xScale);
-         int kyPost = zPatchHead(kyPre, nyp, lPre->yScale, lPost->yScale);
+         int kxPost = zPatchHead( kxPre, nxp, pre->getXScale(), post->getXScale() );
+         int kyPost = zPatchHead( kyPre, nyp, pre->getYScale(), post->getYScale() );
 
          // TODO - can get nf from weight patch but what about kf0?
          // weight patch is actually a pencil and so kfPost is always 0?
@@ -988,8 +988,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
-   const int xScale = lPost->xScale - lPre->xScale;
-   const int yScale = lPost->yScale - lPre->yScale;
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
    const float powXScale = powf(2.0f, (float) xScale);
    const float powYScale = powf(2.0f, (float) yScale);
 
@@ -1030,8 +1030,8 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
       int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
 
-      int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
-      int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
+      int kxPreHead = zPatchHead(kxPost, nxPostPatch, post->getXScale(), pre->getXScale());
+      int kyPreHead = zPatchHead(kyPost, nyPostPatch, post->getYScale(), pre->getYScale());
 
       // convert kxPreHead and kyPreHead to extended indices
       kxPreHead += prePad;
@@ -1095,19 +1095,16 @@ int HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kx
 {
    int status = 0;
 
-   const PVLayer * lPre  = pre->clayer;
-   const PVLayer * lPost = post->clayer;
-
-   const int xScale = lPost->xScale - lPre->xScale;
-   const int yScale = lPost->yScale - lPre->yScale;
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
 
-   int kxPreHead = zPatchHead(kxPost, nxPostPatch, lPost->xScale, lPre->xScale);
-   int kyPreHead = zPatchHead(kyPost, nyPostPatch, lPost->yScale, lPre->yScale);
+   int kxPreHead = zPatchHead(kxPost, nxPostPatch, post->getXScale(), pre->getXScale());
+   int kyPreHead = zPatchHead(kyPost, nyPostPatch, post->getYScale(), pre->getYScale());
 
    *kxPre = kxPreHead;
    *kyPre = kyPreHead;
@@ -1170,8 +1167,8 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
 
    // global non-extended post-synaptic frame
    //
-   int kxPost = zPatchHead(kxPre, nxp, lPre->xScale, lPost->xScale);
-   int kyPost = zPatchHead(kyPre, nyp, lPre->yScale, lPost->yScale);
+   int kxPost = zPatchHead(kxPre, nxp, pre->getXScale(), post->getXScale());
+   int kyPost = zPatchHead(kyPre, nyp, pre->getYScale(), post->getYScale());
 
    // TODO - can get nf from weight patch but what about kf0?
    // weight patch is actually a pencil and so kfPost is always 0?
@@ -1250,8 +1247,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 
    const int numPostPatches = lPost->numNeurons;
 
-   const int xScale = lPost->xScale - lPre->xScale;
-   const int yScale = lPost->yScale - lPre->yScale;
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
    const float powXScale = powf(2, (float) xScale);
    const float powYScale = powf(2, (float) yScale);
 
@@ -1445,32 +1442,32 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 //   float yPreGlobal = 0.0;
 //   float xPatchHeadGlobal = 0.0;
 //   float yPatchHeadGlobal = 0.0;
-//   posPatchHead(kPre_tmp, lPre->xScale, lPre->yScale, lPre->loc, &xPreGlobal, &yPreGlobal,
-//         lPost->xScale, lPost->yScale, lPost->loc, wp_tmp, &xPatchHeadGlobal,
+//   posPatchHead(kPre_tmp, pre->getXScale(), pre->getYScale(), lPre->loc, &xPreGlobal, &yPreGlobal,
+//         post->getXScale(), post->getYScale(), lPost->loc, wp_tmp, &xPatchHeadGlobal,
 //         &yPatchHeadGlobal);
    // end deprecated
 
    // get distances to nearest neighbor in post synaptic layer
    float xDistNNPreUnits;
    float xDistNNPostUnits;
-   dist2NearestCell(kxPre_tmp, lPre->xScale, lPost->xScale,
+   dist2NearestCell(kxPre_tmp, pre->getXScale(), post->getXScale(),
          &xDistNNPreUnits, &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
-   dist2NearestCell(kyPre_tmp, lPre->yScale, lPost->yScale,
+   dist2NearestCell(kyPre_tmp, pre->getYScale(), post->getYScale(),
          &yDistNNPreUnits, &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor( kxPre_tmp, lPre->xScale, lPost->xScale);
-   kyNN = nearby_neighbor( kyPre_tmp, lPre->yScale, lPost->yScale);
+   kxNN = nearby_neighbor( kxPre_tmp, pre->getXScale(), post->getXScale());
+   kyNN = nearby_neighbor( kyPre_tmp, pre->getYScale(), post->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, lPre->xScale, lPost->xScale);
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, lPre->yScale, lPost->yScale);
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
 
    // get distance to patch head
    float xDistHeadPostUnits;
@@ -1488,8 +1485,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = xRelativeScale; //powf(2, (float) lPost->xScale);
-   const float dyPost = yRelativeScale; //powf(2, (float) lPost->yScale);
+   const float dxPost = xRelativeScale; //powf(2, (float) post->getXScale());
+   const float dyPost = yRelativeScale; //powf(2, (float) post->getYScale());
 
    const float dth = PI / (float) nfPatch;
    const float th0 = rotate * dth / 2.0f;
@@ -1689,10 +1686,10 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
       int * kyPatchIndex, int * kfPatchIndex)
 {
    int patchIndex;
-   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
+         post->getXScale() - pre->getXScale()) : 1;
+   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
+         post->getYScale() - pre->getYScale()) : 1;
    int nfKernel = pre->clayer->numFeatures;
    int kxPreExtended = kxPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
    int kyPreExtended = kyPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
@@ -1752,10 +1749,10 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
 
    int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
 
-   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
+   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
+         post->getXScale() - pre->getXScale()) : 1;
+   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
+         post->getYScale() - pre->getYScale()) : 1;
    int kxKernel = kxPreRestricted % nxKernel;
    int kyKernel = kyPreRestricted % nyKernel;
 
