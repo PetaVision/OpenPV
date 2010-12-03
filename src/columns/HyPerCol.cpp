@@ -5,7 +5,7 @@
  *      Author: Craig Rasmussen
  */
 
-#undef TIMER_ON
+#define TIMER_ON
 #undef TIMESTEP_OUTPUT
 
 #include "HyPerCol.hpp"
@@ -34,7 +34,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    maxConnections = MAX_CONNECTIONS;
 
    this->name = strdup(name);
-   this->runTimer = new Timer();
+//   this->runTimer = new Timer();
 
    char * param_file;
    simTime = 0;
