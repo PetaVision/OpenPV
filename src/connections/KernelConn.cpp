@@ -63,7 +63,7 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
       patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      int kernelIndex = patchIndexToKernelIndex(patchIndex);
+      int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
       patches[patchIndex]->data = kernelPatches[kernelIndex]->data;
    }
    return patches;
@@ -119,11 +119,11 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
 
 int KernelConn::numDataPatches(int arbor)
 {
-   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
+   int nxKernel = (pre->clayer->xScale < post->clayer->xScale) ? pow(2,
          post->clayer->xScale - pre->clayer->xScale) : 1;
-   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
+   int nyKernel = (pre->clayer->yScale < post->clayer->yScale) ? pow(2,
          post->clayer->yScale - pre->clayer->yScale) : 1;
-   int numKernelPatches = pre->clayer->numFeatures * xScaleFac * yScaleFac;
+   int numKernelPatches = pre->clayer->numFeatures * nxKernel * nyKernel;
    return numKernelPatches;
 }
 
@@ -159,13 +159,22 @@ float KernelConn::maxWeight()
    return max_weight;
 }
 
+int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,
+                                   float shift, float rotate, float aspect, float sigma,
+                                   float r2Max, float strength)
+{
+   int kPatch;
+   kPatch = patchIndexToKernelIndex(kKernel);
+   return HyPerConn::gauss2DCalcWeights(wp, kPatch, no, numFlanks,
+                                        shift, rotate, aspect, sigma, r2Max, strength);
+}
+
 PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);
    HyPerConn::normalizeWeights(kernelPatches, num_kernels);
-   if (num_kernels > 1) {
-      assert(nfp <= num_kernels);
+   if ((num_kernels > 1) && (nfp == num_kernels) ){
       symmetrizeWeights(kernelPatches, num_kernels);
    }
    return patches;
@@ -249,48 +258,6 @@ int KernelConn::writeWeights(float time, bool last)
    const int arbor = 0;
    const int numPatches = numDataPatches(arbor);
    return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, time, last);
-}
-
-// one to many mapping, chose first patch index in restricted space
-// kernelIndex for unit cell
-// patchIndex in extended space
-int KernelConn::kernelIndexToPatchIndex(int kernelIndex)
-{
-   int patchIndex;
-   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
-   int nfPre = pre->clayer->numFeatures;
-   int kxPre = kxPos(kernelIndex, xScaleFac, yScaleFac, nfPre) + pre->clayer->loc.nPad;
-   int kyPre = kyPos(kernelIndex, xScaleFac, yScaleFac, nfPre) + pre->clayer->loc.nPad;
-   int kfPre = featureIndex(kernelIndex, xScaleFac, yScaleFac, nfPre);
-   int nxPre = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
-   int nyPre = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
-   patchIndex = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-   return patchIndex;
-}
-
-// many to one mapping from weight patches to kernels
-// patchIndex always in extended space
-// referenced to unit cell
-int KernelConn::patchIndexToKernelIndex(int patchIndex)
-{
-   int kernelIndex;
-   int nxPre = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
-   int nyPre = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
-   int nfPre = pre->clayer->numFeatures;
-   int kxPre = kxPos(patchIndex, nxPre, nyPre, nfPre);
-   int kyPre = kyPos(patchIndex, nxPre, nyPre, nfPre);
-   int kfPre = featureIndex(patchIndex, nxPre, nyPre, nfPre);
-   int xScaleFac = (post->clayer->xScale > pre->clayer->xScale) ? pow(2,
-         post->clayer->xScale - pre->clayer->xScale) : 1;
-   int yScaleFac = (post->clayer->yScale > pre->clayer->yScale) ? pow(2,
-         post->clayer->yScale - pre->clayer->yScale) : 1;
-   kxPre = kxPre % xScaleFac;
-   kyPre = kyPre % yScaleFac;
-   kernelIndex = kIndex(kxPre, kyPre, kfPre, xScaleFac, yScaleFac, nfPre);
-   return kernelIndex;
 }
 
 } // namespace PV
