@@ -6,6 +6,7 @@
  */
 
 #include "conversions.h"
+#include "assert.h"
 
 /**
  * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer
@@ -80,18 +81,17 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
       float * distPre, float * distPost)
 {
    // scaleFac == 1
+   assert(kzPre >= 0);  // not valid in general if kzPre < 0
    int kzPost = kzPre;
    *distPost = 0.0;
    *distPre = 0.0;
    if (log2ScalePre > log2ScalePost) {
-      // post-synaptic layer has smaller size scale (is denser)
       int scaleFac = pow(2, log2ScalePre) / pow(2, log2ScalePost);
       *distPost = 0.5;
       *distPre = 0.5 / scaleFac;
-      kzPost = (int) ((kzPre + 0.5) * scaleFac); // - 1;  // 2 neighbors, subtract 1 for other
+      kzPost = (int) ((kzPre + 0.5) * scaleFac) - 1;  // left neighbor, add 1 for right neighbor
    }
    else if (log2ScalePre < log2ScalePost) {
-      // post-synaptic layer has larger size scale (is less dense), scaleFac > 1
       int scaleFac = pow(2, log2ScalePost) / pow(2, log2ScalePre);
       *distPre = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);
       *distPost = *distPre / scaleFac;
@@ -100,8 +100,12 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
    return kzPre;
 }
 
+#define DEPRECATED_FEATURES
+#ifdef DEPRECATED_FEATURES
+// deprecated
 /*
  * returns global x,y position of patchhead and of presynaptic cell
+ * requires kPre >= 0 in restricted space
  */
 int posPatchHead(const int kPre, const int xScaleLog2Pre,
       const int yScaleLog2Pre, const PVLayerLoc locPre, float * xPreGlobal,
@@ -143,3 +147,4 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
 
    return 0;
 }
+#endif /* DEPRECATED_FEATURES */
