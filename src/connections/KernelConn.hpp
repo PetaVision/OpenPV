@@ -26,16 +26,16 @@ public:
 
    virtual int numDataPatches(int arbor);
 
-   virtual int kernelIndexToPatchIndex(int kernelIndex);
-
-   virtual int patchIndexToKernelIndex(int patchIndex);
-
    virtual int updateState(float time, float dt){ return 0;};
 
    virtual int updateWeights(int axonId){ return 0;};
 
    virtual float minWeight();
    virtual float maxWeight();
+
+   virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
+                          int numFlanks, float shift, float rotate, float aspect, float sigma,
+                          float r2Max, float strength);
 
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches);
