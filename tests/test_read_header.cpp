@@ -60,8 +60,10 @@ int main(int argc, char* argv[])
    fp = pvp_open_write_file(filename, comm, false);
 
    status = pvp_write_header(fp, comm, write_time, &loc,
-                             write_filetype, write_datatype, subRecordSize,
-                             extended, contiguous, write_num_params);
+                             write_filetype,
+                             write_datatype, subRecordSize,
+                             extended, contiguous, write_num_params,
+                             (size_t) loc.nx * loc.ny * loc.nBands);
 
    PV::pvp_close_file(fp, comm);
    if (status != 0) return status;
