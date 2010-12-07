@@ -211,7 +211,7 @@ int HyPerCol::run(int nTimeSteps)
 {
    if( checkMarginWidths() != EXIT_SUCCESS )
    {
-      fprintf(stderr, "One or more marginWidth settings not large enough.\n")
+      fprintf(stderr, "One or more marginWidth settings not large enough.\n");
       // right now, checkMarginWidths calls assert, so this message never gets printed.
       exit(1);
    }
