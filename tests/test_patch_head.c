@@ -15,7 +15,7 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
 
    if ((int) a == 1) {
       shift = - (int) (0.5f * (float) nzPatch);
-      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+      return shift + kzPre; //nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
    }
 
    shift = 1 - (int) (0.5f * (float) nzPatch);
@@ -31,8 +31,19 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
       int l = (int) (2*a*kpos) % 2;
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
+   else if (nzPatch % 2 == 1 && a < 1){
+	      // density decreases in post-synaptic layer
+	      shift = - (int) (0.5f * (float) nzPatch);
+	      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   }
 
    int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+
+   //added if nzPatch == 1
+   if (nzPatch == 1) {
+      return neighbor;
+   }
+
    return shift + neighbor;
 }
 
@@ -90,7 +101,9 @@ int main(int argc, char* argv[])
       }
    }
 
-   // common usage tests, nPatch even, relative scale==1 (less dense)
+#undef OLD_TEST_PATCH_HEAD
+#ifdef OLD_TEST_PATH_HEAD
+   // common usage tests, nPatch even, relative scale<1 (post is less dense than pre)
    //
 
    a = 0.5;
@@ -165,6 +178,85 @@ int main(int argc, char* argv[])
       }
       ans += ((kpre + 9) % 4) == 2;
    }
+
+#else
+   // common usage tests, nPatch ODD, relative scale==2 (post less dense than pre, many to one)
+   //
+
+   a = 0.5;
+   scaleLog2Post = 1;
+
+   nPatch = 3;
+   test = 4;
+   ans = -5 - 1;   // head starts at -6, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += (kpre + 9) % 2;
+   }
+
+   a = 0.5;
+   scaleLog2Post = 1;
+
+   nPatch = 9;
+   test = 5;
+   ans = -5 - 4;   // head starts at -9, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += (kpre + 9) % 2;
+   }
+
+   // common usage tests, nPatch ODD, relative scale==4 (less dense)
+   //
+
+   a = 0.25;
+   scaleLog2Post = 2;
+
+   nPatch = 3;
+   test = 6;
+   ans = -3 - 1;   // head starts at -4, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch/a - 4 + (kpre%4 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += ((kpre + 9) % 4) == 2;
+   }
+
+   a = 0.25;
+   scaleLog2Post = 2;
+
+   nPatch = 9;
+   test = 7;
+   ans = -3 - 3;   // head starts at -6, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch + (kpre%2 == 0);
+      kBack = kpre;
+      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      if (kh != ans  ||  kBack != kpre) {
+         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         exit(1);
+      }
+      ans += ((kpre + 9) % 4) == 2;
+   }
+
+#endif
 
    // common usage tests, nPatch even, relative scale==-1 (more dense)
    //
