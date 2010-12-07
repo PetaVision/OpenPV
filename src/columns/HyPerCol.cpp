@@ -34,7 +34,7 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    maxConnections = MAX_CONNECTIONS;
 
    this->name = strdup(name);
-//   this->runTimer = new Timer();
+   this->runTimer = new Timer();
 
    char * param_file;
    simTime = 0;
@@ -209,6 +209,12 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
+   if( checkMarginWidths() != EXIT_SUCCESS )
+   {
+      fprintf(stderr, "One or more marginWidth settings not large enough.\n")
+      // right now, checkMarginWidths calls assert, so this message never gets printed.
+      exit(1);
+   }
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
@@ -407,6 +413,29 @@ int HyPerCol::outputState(float time)
 {
    for( int n = 0; n < numProbes; n++ ) {
        probes[n]->outputState(time, this);
+   }
+   return EXIT_SUCCESS;
+}
+
+int HyPerCol::checkMarginWidths() {
+   // For each connection, make sure that the post-synaptic margin width is
+   // large enough for the patch size.
+
+   // TODO instead of having marginWidth supplied to HyPerLayers in the
+   // params.pv file, calculate them based on the patch sizes here.
+   // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
+   // be allocated and initialized until after nPad is determined.
+   for( int c=0; c < numConnections; c++ ) {
+      HyPerConn * conn = connections[c];
+      int xScalePre = conn->pre->getXScale();
+      int xScalePost = conn->post->getXScale();
+      int xScaleDiff = xScalePost - xScalePre;
+      assert( 2 * conn->post->getLayerLoc()->nPad >= conn->xPatchSize() - ( xScaleDiff > 0 ? powf(2, xScaleDiff) : 1 ) );
+
+      int yScalePre = conn->pre->getYScale();
+      int yScalePost = conn->post->getYScale();
+      int yScaleDiff = yScalePost - yScalePre;
+      assert( 2 * conn->post->getLayerLoc()->nPad >= conn->yPatchSize() - ( yScaleDiff > 0 ? powf(2, yScaleDiff) : 1 ) );
    }
    return EXIT_SUCCESS;
 }

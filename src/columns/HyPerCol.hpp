@@ -103,6 +103,8 @@ public:
    int outputState(float time);
 
 private:
+   int checkMarginWidths();
+
    int numSteps;
    int maxLayers;
    int numLayers;
