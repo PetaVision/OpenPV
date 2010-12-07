@@ -256,6 +256,8 @@ static inline int strideF(int nx, int ny, int nf)
  *  ambiguous and the neuron to the left is chosen.  If the density of the
  *  post-synaptic layer decreases, there is no ambiguity.
  *
+ *  presynaptic index should always be in restricted space
+ *
  */
 static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post)
 {

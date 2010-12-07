@@ -14,6 +14,8 @@
  * @zScaleLog2Pre is log2 zScale (distance not number) of presynaptic layer
  * @zScaleLog2Post is log2 zScale (distance not number) of postsynaptic layer
  * @nzPatch is the size of patch in z direction
+ *
+ * kzPre is always in restricted space
  */
 int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
 {
@@ -51,6 +53,10 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
 
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
+   else if (nzPatch % 2 == 1 && a < 1) {
+      shift = - (int) (0.5f * (float) nzPatch);
+   }
+
 
    int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
 
