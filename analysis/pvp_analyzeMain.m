@@ -40,7 +40,7 @@ project_path = [workspace_path, 'kernel/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/amoebaLTD_256/test_W2000_target_G1/4fc/'];
+OUTPUT_PATH = [project_path, 'input/amoebaLTD_256/spiking_4fc/'];
 
 image_path = [matlab_path, 'amoebaLTD/256_png/4/'];
 image_filename = [image_path 't/tar_0014_a.png'];
@@ -57,7 +57,7 @@ pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
 BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 101000.0;
+END_TIME = 11000.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -91,19 +91,30 @@ plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1
 plot_xcorr = plot_autocorr;
 
 
+global my_gray
+my_gray = [.666 .666 .666];
+fig_list = [];
+
+%% read input image segmentation info
+invert_image_flag = 0;
+plot_input_image = 0;
+[target_struct.target, target_struct.clutter, image_ndx, fig_tmp] = ...
+    pvp_parseTarget( image_filename, ...
+		    target_filename, ...
+		    invert_image_flag, ...
+		    plot_input_image);
+fig_list = [fig_list; fig_tmp];
+disp('parse BMP -> done');
+
 				% initialize to size of image (if known), these should be overwritten by each layer
-NROWS_image=128;
-NCOLS_image=128;
+%NROWS_image=128;
+%NCOLS_image=128;
 NROWS = NROWS_image;
 NCOLS = NCOLS_image;
 NFEATURES = 8;
 NO = NFEATURES; % number of orientations
 NK = 1; % number of curvatures
 dK = 0; % spacing between curvatures (1/radius)
-
-global my_gray
-my_gray = [.666 .666 .666];
-fig_list = [];
 
 				% data structures for layer shape
 layer_struct = struct;
@@ -114,8 +125,6 @@ layer_struct.num_cols = ones(num_layers,1);
 layer_struct.num_features = ones(num_layers,1);
 layer_struct.num_neurons = ones(num_layers,1);
 layer_struct.size_layer = cell(num_layers,1);
-
-
 
 
 				% data structures for correlation analysis
@@ -195,17 +204,6 @@ target_rate = cell(num_layers, num_targets);
 target_rate_ndx = cell(num_layers, num_targets);
 clutter_rate = cell(num_layers, 1);
 clutter_rate_ndx = cell(num_layers, 1);
-
-%% read input image segmentation info
-invert_image_flag = 0;
-plot_input_image = 0;
-[target_struct.target, target_struct.clutter, image, fig_tmp] = ...
-    pvp_parseTarget( image_filename, ...
-		    target_filename, ...
-		    invert_image_flag, ...
-		    plot_input_image);
-fig_list = [fig_list; fig_tmp];
-disp('parse BMP -> done');
 
 %% setup epoch_struct for each layer
 for layer = read_spikes
