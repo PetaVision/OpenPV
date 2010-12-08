@@ -435,7 +435,7 @@ int HyPerCol::checkMarginWidths() {
       int xScaleFactor = xScaleDiff > 0 ? ( (int) powf(2, (float) xScaleDiff) ) : 1;
       int xPatchSize = conn->xPatchSize();
       int xNeeded = (xPatchSize - xScaleFactor)/2;
-      if ( padding >= xNeeded ) {
+      if ( padding < xNeeded ) {
          if( status == EXIT_SUCCESS ) {
             fprintf(stderr, "checkMarginWidths() failed.\n");
             status = EXIT_FAILURE;
@@ -451,14 +451,14 @@ int HyPerCol::checkMarginWidths() {
       int yScaleFactor = yScaleDiff > 0 ? ( (int) powf(2, (float) yScaleDiff) ) : 1;
       int yPatchSize = conn->yPatchSize();
       int yNeeded = (yPatchSize - yScaleFactor)/2;
-      if( padding >= yNeeded ) {
+      if( padding < yNeeded ) {
          if( status == EXIT_SUCCESS ) {
             fprintf(stderr, "checkMarginWidths() failed.\n");
             status = EXIT_FAILURE;
          }
          fprintf(stderr, "Connection \"%s\":  margin width = %d, yPatchSize = %d\n", conn->getName(), padding, yPatchSize );
          fprintf(stderr, "    Pre-synaptic yScale=%d, Post-synaptic yScale=%d\n", yScalePre, yScalePost);
-         fprintf(stderr, "    Needed margin width=%d\n", yNeeded);
+         fprintf(stderr, "    Needed margin width>=%d\n", yNeeded);
       }
    }
    return status;
