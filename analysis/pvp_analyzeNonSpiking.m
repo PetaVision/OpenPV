@@ -53,7 +53,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 5;
-num_trials =  ( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials = 0; %( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -83,7 +83,7 @@ machine_path = '/home/garkenyon/workspace/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/amoeba_256/test_W300_target']; %, FC_STR];
+target_path = [machine_path 'kernel/input/amoebaLTD_256/test_W2000_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   target_path = [target_path, FC_STR, '/'];
@@ -91,7 +91,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel/input/amoeba_256/test_W300_distractor']; %, FC_STR];
+		     'kernel/input/amoebaLTD_256/test_W2000_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -405,7 +405,7 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 0;
+FLAT_ARCH_FLAG = 1;
 write_pvp_kernel_flag = 1;
 write_mat_kernel_flag = 1;
 weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);

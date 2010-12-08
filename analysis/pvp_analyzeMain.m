@@ -95,6 +95,35 @@ global my_gray
 my_gray = [.666 .666 .666];
 fig_list = [];
 
+				% target/clutter segmentation data structures
+target_struct = struct;
+num_targets = 1;
+target_struct.num_targets = num_targets;
+rate_array =  cell(num_layers,1);
+psth_array =  cell(num_layers,1);
+ave_target = cell(num_layers,num_targets);
+ave_clutter = cell(num_layers,1);
+ave_bkgrnd = cell(num_layers,1);
+psth_target = cell(num_layers,num_targets);
+psth_clutter = cell(num_layers,1);
+psth_bkgrnd = cell(num_layers,1);
+target_struct.target_ndx_max = cell(num_layers, num_targets);
+target_struct.target_ndx_all = cell(num_layers, num_targets);
+target_struct.clutter_ndx_max = cell(num_layers, 1);
+target_struct.clutter_ndx_all = cell(num_layers, 1);
+target_struct.bkgrnd_ndx_max = cell(num_layers, 1);
+target_struct.bkgrnd_ndx_all = cell(num_layers, 1);
+target_struct.num_target_neurons_all = zeros(num_layers, num_targets);
+target_struct.num_target_neurons_max = zeros(num_layers, num_targets);
+target_struct.num_clutter_neurons_all = zeros(num_layers, 1);
+target_struct.num_clutter_neurons_max = zeros(num_layers, 1);
+target_struct.num_bkgrnd_neurons_max = zeros(num_layers, 1);
+target_struct.num_bkgrnd_neurons_all = zeros(num_layers, 1);
+target_rate = cell(num_layers, num_targets);
+target_rate_ndx = cell(num_layers, num_targets);
+clutter_rate = cell(num_layers, 1);
+clutter_rate_ndx = cell(num_layers, 1);
+
 %% read input image segmentation info
 invert_image_flag = 0;
 plot_input_image = 0;
@@ -176,35 +205,6 @@ epoch_struct.total_spikes = zeros(num_epochs, num_layers);
 epoch_struct.total_steps = zeros(num_epochs, num_layers);
 
 
-				% target/clutter segmentation data structures
-target_struct = struct;
-num_targets = 1;
-target_struct.num_targets = num_targets;
-rate_array =  cell(num_layers,1);
-psth_array =  cell(num_layers,1);
-ave_target = cell(num_layers,num_targets);
-ave_clutter = cell(num_layers,1);
-ave_bkgrnd = cell(num_layers,1);
-psth_target = cell(num_layers,num_targets);
-psth_clutter = cell(num_layers,1);
-psth_bkgrnd = cell(num_layers,1);
-target_struct.target_ndx_max = cell(num_layers, num_targets);
-target_struct.target_ndx_all = cell(num_layers, num_targets);
-target_struct.clutter_ndx_max = cell(num_layers, 1);
-target_struct.clutter_ndx_all = cell(num_layers, 1);
-target_struct.bkgrnd_ndx_max = cell(num_layers, 1);
-target_struct.bkgrnd_ndx_all = cell(num_layers, 1);
-target_struct.num_target_neurons_all = zeros(num_layers, num_targets);
-target_struct.num_target_neurons_max = zeros(num_layers, num_targets);
-target_struct.num_clutter_neurons_all = zeros(num_layers, 1);
-target_struct.num_clutter_neurons_max = zeros(num_layers, 1);
-target_struct.num_bkgrnd_neurons_max = zeros(num_layers, 1);
-target_struct.num_bkgrnd_neurons_all = zeros(num_layers, 1);
-target_rate = cell(num_layers, num_targets);
-target_rate_ndx = cell(num_layers, num_targets);
-clutter_rate = cell(num_layers, 1);
-clutter_rate_ndx = cell(num_layers, 1);
-
 %% setup epoch_struct for each layer
 for layer = read_spikes
   disp(['building epoch stuct: ', num2str(layer)]);
@@ -263,7 +263,7 @@ endfor
 %% set up xcorr_struct, compute border mask
 for layer = read_spikes
   xcorr_struct.max_lag = ...
-      min( xcorr_struct.max_lag, fix( epoch_struct.epoch_steps(layer)/8) );
+      min( xcorr_struct.max_lag, fix( epoch_struct.epoch_steps(layer))/2 );
   border_mask = ...
       ones( layer_struct.size_layer{layer} );
   border_mask(:, 1:xcorr_struct.size_border_mask, :) = 0;
@@ -286,8 +286,8 @@ xcorr_struct.min_freq_ndx = ...
     find(xcorr_struct.freq_vals >= xcorr_struct.min_freq, 1,'first');
 xcorr_struct.max_freq_ndx = ...
     find(xcorr_struct.freq_vals <= xcorr_struct.max_freq, 1,'last');
-# disp([ 'min_freq_ndx = ', num2str(xcorr_struct.min_freq_ndx) ]);
-# disp([ 'max_freq_ndx = ', num2str(xcorr_struct.max_freq_ndx) ]);
+disp([ 'min_freq_ndx = ', num2str(xcorr_struct.min_freq_ndx) ]);
+disp([ 'max_freq_ndx = ', num2str(xcorr_struct.max_freq_ndx) ]);
 
 
 %% get rate and power arrays

@@ -63,8 +63,8 @@ function [pvp_header, pvp_index] = pvp_readHeader(filename)
     return;
   endif
 
-  NCOLS = pvp_header(pvp_index.NX);
-  NROWS = pvp_header(pvp_index.NY);
+  NCOLS = pvp_header(pvp_index.NX_GLOBAL);
+  NROWS = pvp_header(pvp_index.NY_GLOBAL);
   NFEATURES = pvp_header(pvp_index.NF);
   N = NFEATURES * NCOLS * NROWS;
   NO = floor( NFEATURES / NK );
