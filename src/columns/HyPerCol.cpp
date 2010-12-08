@@ -211,8 +211,7 @@ int HyPerCol::run(int nTimeSteps)
 {
    if( checkMarginWidths() != EXIT_SUCCESS )
    {
-      fprintf(stderr, "One or more marginWidth settings not large enough.\n");
-      // right now, checkMarginWidths calls assert, so this message never gets printed.
+      fprintf(stderr, "One or more marginWidth settings not large enough.  Exiting\n");
       exit(1);
    }
    int step = 0;
@@ -425,19 +424,44 @@ int HyPerCol::checkMarginWidths() {
    // params.pv file, calculate them based on the patch sizes here.
    // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
    // be allocated and initialized until after nPad is determined.
+   int status = EXIT_SUCCESS;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
+      int padding = conn->post->getLayerLoc()->nPad;
+
       int xScalePre = conn->pre->getXScale();
       int xScalePost = conn->post->getXScale();
       int xScaleDiff = xScalePost - xScalePre;
-      assert( 2 * conn->post->getLayerLoc()->nPad >= conn->xPatchSize() - ( xScaleDiff > 0 ? powf(2, xScaleDiff) : 1 ) );
+      int xScaleFactor = xScaleDiff > 0 ? ( (int) powf(2, (float) xScaleDiff) ) : 1;
+      int xPatchSize = conn->xPatchSize();
+      int xNeeded = (xPatchSize - xScaleFactor)/2;
+      if ( padding >= xNeeded ) {
+         if( status == EXIT_SUCCESS ) {
+            fprintf(stderr, "checkMarginWidths() failed.\n");
+            status = EXIT_FAILURE;
+         }
+         fprintf(stderr, "Connection \"%s\":  margin width = %d, xPatchSize = %d\n", conn->getName(), padding, xPatchSize );
+         fprintf(stderr, "    Pre-synaptic xScale=%d, Post-synaptic xScale=%d\n", xScalePre, xScalePost);
+         fprintf(stderr, "    Needed margin width=%d\n", xNeeded);
+      }
 
       int yScalePre = conn->pre->getYScale();
       int yScalePost = conn->post->getYScale();
       int yScaleDiff = yScalePost - yScalePre;
-      assert( 2 * conn->post->getLayerLoc()->nPad >= conn->yPatchSize() - ( yScaleDiff > 0 ? powf(2, yScaleDiff) : 1 ) );
+      int yScaleFactor = yScaleDiff > 0 ? ( (int) powf(2, (float) yScaleDiff) ) : 1;
+      int yPatchSize = conn->yPatchSize();
+      int yNeeded = (yPatchSize - yScaleFactor)/2;
+      if( padding >= yNeeded ) {
+         if( status == EXIT_SUCCESS ) {
+            fprintf(stderr, "checkMarginWidths() failed.\n");
+            status = EXIT_FAILURE;
+         }
+         fprintf(stderr, "Connection \"%s\":  margin width = %d, yPatchSize = %d\n", conn->getName(), padding, yPatchSize );
+         fprintf(stderr, "    Pre-synaptic yScale=%d, Post-synaptic yScale=%d\n", yScalePre, yScalePost);
+         fprintf(stderr, "    Needed margin width=%d\n", yNeeded);
+      }
    }
-   return EXIT_SUCCESS;
+   return status;
 }
 
 } // PV namespace
