@@ -174,24 +174,19 @@ int V1::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-   const int marginWidth = clayer->loc.nPad;
+   updateV();
+   setActivity();
+   resetPhiBuffers();
 
-   pvdata_t * V = clayer->V;
-   pvdata_t * phiExc   = clayer->phi[PHI_EXC];
-   pvdata_t * phiInh   = clayer->phi[PHI_INH];
-   pvdata_t * activity = clayer->activity->data;
+   return 0;
+}
 
-   // make sure activity in border is zero
-   //
-   for (int k = 0; k < clayer->numExtended; k++) {
-      activity[k] = 0.0;
-   }
-
-   for (int k = 0; k < clayer->numNeurons; k++) {
-      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+int V1::updateV() {
+   pvdata_t * V = getV();
+   pvdata_t ** phi = getCLayer()->phi;
+   pvdata_t * phiExc = phi[PHI_EXC];
+   pvdata_t * phiInh = phi[PHI_INH];
+   for( int k=0; k<getNumNeurons(); k++ ) {
       V[k] = phiExc[k] - phiInh[k];
 #undef SET_MAX
 #ifdef SET_MAX
@@ -201,15 +196,38 @@ int V1::updateState(float time, float dt)
 #ifdef SET_THRESH
       V[k] = V[k] < 0.5f ? 0.0f : V[k];
 #endif
-      activity[kex] = V[k];
-
-
-      // reset accumulation buffers
-      phiExc[k] = 0.0;
-      phiInh[k] = 0.0;
    }
+   return EXIT_SUCCESS;
+}
 
-   return 0;
+int V1::setActivity() {
+   const int nx = getLayerLoc()->nx;
+   const int ny = getLayerLoc()->ny;
+   const int nf = getCLayer()->numFeatures;
+   const int marginWidth = getLayerLoc()->nPad;
+   pvdata_t * activity = getCLayer()->activity->data;
+   pvdata_t * V = getV();
+   for( int k=0; k<getNumExtended(); k++ ) {
+      activity[k] = 0; // Would it be faster to only do the margins?
+   }
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      int kex = kIndexExtended( k, nx, ny, nf, marginWidth );
+      activity[kex] = V[k];
+   }
+   return EXIT_SUCCESS;
+}
+
+int V1::resetPhiBuffers() {
+   pvdata_t ** phi = getCLayer()->phi;
+   int n = getNumNeurons();
+   resetBuffer( phi[PHI_EXC], n );
+   resetBuffer( phi[PHI_INH], n );
+   return EXIT_SUCCESS;
+}
+
+int V1::resetBuffer( pvdata_t * buf, int numItems ) {
+   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
+   return EXIT_SUCCESS;
 }
 
 int V1::writeState(const char * path, float time)

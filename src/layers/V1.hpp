@@ -38,6 +38,11 @@ protected:
    int nxl;  // local grid size in x
    int nyl;  // local grid size in y
 
+   virtual int updateV();
+   virtual int setActivity();
+   virtual int resetPhiBuffers();
+   int resetBuffer(pvdata_t * buf, int numItems);
+
 private:
    virtual int initialize(PVLayerType type);
 
