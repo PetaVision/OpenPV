@@ -787,16 +787,33 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_ACT_FILE_TYPE,
                                    datatype, sizeof(int), extended, contiguous, numParams, (size_t) localActive);
-         if (status != 0) return status;
+         if (status != 0) {
+            fprintf(stderr, "[%2d]: writeActivitySparse: failed in pvp_write_header, numParams==%d, localActive==%d\n",
+                    comm->commRank(), numParams, localActive);
+            return status;
+         }
       }
 
       // write time, total active count, and local activity
       //
-      if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
-      if ( fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 ) return -1;
-      if (localActive > 0) {
-         if ( fwrite(indices, sizeof(unsigned int), localActive, fp) != (size_t) localActive ) {
-            return -1;
+      status = (fwrite(&time, sizeof(double), 1, fp) != 1 );
+      if (status != 0) {
+         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&time), time==%d\n",
+                 comm->commRank(), time);
+         return status;
+      }
+      status = ( fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 );
+      if (status != 0) {
+         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
+                 comm->commRank(), totalActive);
+         return status;
+      }
+     if (localActive > 0) {
+         status = (fwrite(indices, sizeof(unsigned int), localActive, fp) != (size_t) localActive );
+         if (status != 0) {
+            fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(indices), localActive==%d\n",
+                    comm->commRank(), localActive);
+            return status;
          }
       }
 
@@ -810,7 +827,12 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
             fflush(stderr);
 #endif
             MPI_Recv(indices, numActive[p], MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
-            if ( fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] ) return -1;
+            status = (fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] );
+            if (status != 0) {
+               fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(indices), numActive[p]==%d, p=%d\n",
+                       comm->commRank(), numActive[p], p);
+               return status;
+            }
       }
       if (numActive != NULL) free(numActive);
 #endif // PV_USE_MPI
