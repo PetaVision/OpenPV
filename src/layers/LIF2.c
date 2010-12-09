@@ -31,6 +31,7 @@ int LIF2_update_finish(PVLayer * l, float dt);
 static inline int update_f(PVLayer * l, int start)
 {
    int k;
+   int k_global;
 
    LIF2_params * params = (LIF2_params *) l->params;
 
@@ -77,7 +78,12 @@ static inline int update_f(PVLayer * l, int start)
 
       if (active) {
          // these indices are in local frame
-         l->activeIndices[numActive++] = k;
+#ifdef PV_USE_MPI
+         k_global = globalIndexFromLocal(k, l->loc, nf);
+#else
+         k_global = k;
+#endif
+         l->activeIndices[numActive++] = k_global;
       }
    }
    l->numActive = numActive;
