@@ -104,6 +104,7 @@ public:
 
 private:
    int checkMarginWidths();
+   int zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus);
 
    int numSteps;
    int maxLayers;

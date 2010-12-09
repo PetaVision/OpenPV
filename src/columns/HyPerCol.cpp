@@ -427,40 +427,36 @@ int HyPerCol::checkMarginWidths() {
    int status = EXIT_SUCCESS;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
-      int padding = conn->post->getLayerLoc()->nPad;
+      int padding = conn->pre->getLayerLoc()->nPad;
 
-      int xScalePre = conn->pre->getXScale();
-      int xScalePost = conn->post->getXScale();
-      int xScaleDiff = xScalePost - xScalePre;
-      int xScaleFactor = xScaleDiff > 0 ? ( (int) powf(2, (float) xScaleDiff) ) : 1;
-      int xPatchSize = conn->xPatchSize();
-      int xNeeded = (xPatchSize - xScaleFactor)/2;
-      if ( padding < xNeeded ) {
-         if( status == EXIT_SUCCESS ) {
-            fprintf(stderr, "checkMarginWidths() failed.\n");
-            status = EXIT_FAILURE;
-         }
-         fprintf(stderr, "Connection \"%s\":  margin width = %d, xPatchSize = %d\n", conn->getName(), padding, xPatchSize );
-         fprintf(stderr, "    Pre-synaptic xScale=%d, Post-synaptic xScale=%d\n", xScalePre, xScalePost);
-         fprintf(stderr, "    Needed margin width=%d\n", xNeeded);
-      }
+      int xScalePre = conn->preSynapticLayer()->getXScale();
+      int xScalePost = conn->postSynapticLayer()->getXScale();
+      status = zCheckMarginWidth(conn, "x", padding, conn->xPatchSize(), xScalePre, xScalePost, status);
 
-      int yScalePre = conn->pre->getYScale();
-      int yScalePost = conn->post->getYScale();
-      int yScaleDiff = yScalePost - yScalePre;
-      int yScaleFactor = yScaleDiff > 0 ? ( (int) powf(2, (float) yScaleDiff) ) : 1;
-      int yPatchSize = conn->yPatchSize();
-      int yNeeded = (yPatchSize - yScaleFactor)/2;
-      if( padding < yNeeded ) {
-         if( status == EXIT_SUCCESS ) {
-            fprintf(stderr, "checkMarginWidths() failed.\n");
-            status = EXIT_FAILURE;
-         }
-         fprintf(stderr, "Connection \"%s\":  margin width = %d, yPatchSize = %d\n", conn->getName(), padding, yPatchSize );
-         fprintf(stderr, "    Pre-synaptic yScale=%d, Post-synaptic yScale=%d\n", yScalePre, yScalePost);
-         fprintf(stderr, "    Needed margin width>=%d\n", yNeeded);
-      }
+      int yScalePre = conn->preSynapticLayer()->getYScale();
+      int yScalePost = conn->postSynapticLayer()->getYScale();
+      status = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
    }
+   return status;
+}  // end HyPerCol::checkMarginWidths()
+
+int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus) {
+   int status;
+   int scaleDiff = scalePre - scalePost;
+   // if post has higher neuronal density than pre, scaleDiff < 0.
+   int needed = scaleDiff > 0 ? ( patchSize/( (int) powf(2,scaleDiff) )/2 ) :
+                                ( (patchSize/2) * ( (int) powf(2,-scaleDiff) ) );
+   if( padding < needed ) {
+      if( prevStatus == EXIT_SUCCESS ) {
+         fprintf(stderr, "Margin width error.\n");
+      }
+      fprintf(stderr, "Connection \"%s\", dimension %s:\n", conn->getName(), dim);
+      fprintf(stderr, "    Margin width %d, patch size %d, presynaptic scale %d, postsynaptic scale %d\n",
+              padding, patchSize, scalePre, scalePost);
+      fprintf(stderr, "    Needed margin width=%d\n", needed);
+      status = EXIT_FAILURE;
+   }
+   else status = EXIT_SUCCESS;
    return status;
 }
 
