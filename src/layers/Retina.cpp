@@ -341,6 +341,7 @@ int Retina::updateState(float time, float dt)
          float stimFactor = 0.0f;
          const float prevTime = prevActivity[kex];
          const int k = kIndexRestricted(kex, nx, ny, nf, marginWidth);
+         int k_global;
 
          if (k > 0) {
             stimFactor = V[k];
@@ -349,7 +350,12 @@ int Retina::updateState(float time, float dt)
          activity[kex] = spike(time, dt, prevTime, probBase, probStim*stimFactor, &probSpike);
          prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
          if (k > 0 && activity[kex] > 0.0) {
-            clayer->activeIndices[numActive++] = k;
+#ifdef PV_USE_MPI
+            k_global = globalIndexFromLocal(k, clayer->loc, nf);
+#else
+            k_global = k;
+#endif
+            clayer->activeIndices[numActive++] = k_global;
          }
       }
    }
