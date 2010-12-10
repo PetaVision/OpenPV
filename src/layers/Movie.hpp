@@ -25,7 +25,11 @@ public:
    virtual int updateState(float time, float dt);
    bool        updateImage(float time, float dt);
 
-   int calcPosition(int pos, int step, int sizeLength);
+   int  randomFrame();
+   void calcBias(int step, int sizeLength);
+   void calcBiasedOffset(int step, int sizeLength);
+   int  calcPosition(int pos, int step, int sizeLength);
+
    int resetPositionInBounds();
 
 private:
@@ -36,16 +40,27 @@ private:
    float displayPeriod;     // length of time a frame is displayed
    float nextDisplayTime;   // time of next frame
 
+   int stepSize;
+
    int offsetX;             // offset of layer section within full movie frame
    int offsetY;
 
-   int stepSize;
+   int biasX;              // offsetX/Y jitter around biasX/Y location
+   int biasY;
 
+   float recurrenceProb;
    float persistenceProb;
+
+   int writePosition;
+   int biasChangeTime;
+
+   int randomMovie;       // these are used for performing a reverse correlation analysis
+   float randomMovieProb;
 
    char inputfile[PV_PATH_MAX];  // current input file name
 
    FILE * fp;
+   FILE * fp_pos;
 };
 
 }
