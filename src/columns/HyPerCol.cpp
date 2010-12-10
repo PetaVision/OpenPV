@@ -211,8 +211,14 @@ int HyPerCol::run(int nTimeSteps)
 {
    if( checkMarginWidths() != EXIT_SUCCESS )
    {
-      fprintf(stderr, "One or more marginWidth settings not large enough.  Exiting\n");
-      exit(1);
+      fprintf(stderr, "Warning: one or more margin widths not large enough to hold patch size\n");
+      if( this->numberOfColumns() > 1) {
+         fprintf(stderr, "MPI runs require sufficient margin widths.  Exiting.\n");
+         exit(1);
+      }
+      else {
+         fprintf(stderr, "Continuing since this is a non-MPI run.\n");
+      }
    }
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
