@@ -8,6 +8,7 @@
 #include "Movie.hpp"
 #include "../io/imageio.hpp"
 #include "../utils/pv_random.h"
+#include "../include/default_params.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -19,9 +20,7 @@ namespace PV {
 Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames)
      : Image(name, hc)
 {
-    PVParams * params = parent->parameters();
-    float displayPeriod = params->value(name, "displayPeriod", 1.0);
-    initializeMovie(name, hc, fileOfFileNames, displayPeriod);
+    initializeMovie(name, hc, fileOfFileNames, DISPLAY_PERIOD);
 }
 
 Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
@@ -32,12 +31,9 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 
 
 int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod) {
-   PVParams * params = parent->parameters();
 
    PVLayerLoc * loc = &clayer->loc;
 
-   this->displayPeriod = displayPeriod;
-   this->nextDisplayTime = hc->simulationTime() + displayPeriod;
 
    fp = fopen(fileOfFileNames, "r");
    assert(fp != NULL);
@@ -76,7 +72,7 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    //
    PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
-   this->nextDisplayTime = hc->simulationTime() + displayPeriod;
+   this->nextDisplayTime = hc->simulationTime() + this->displayPeriod;
    stepSize          = (int) params->value(name, "stepSize", 0);
    recurrenceProb    = params->value(name,"recurrenceProb", 1.0);
    persistenceProb   = params->value(name,"persistenceProb", 1.0);

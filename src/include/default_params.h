@@ -39,4 +39,6 @@
 #define ABS_REFACTORY_PERIOD 3
 #define REFACTORY_PERIOD     5
 
+#define DISPLAY_PERIOD 1.0
+
 #endif /* DEFAULT_PARAMS_H_ */
