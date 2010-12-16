@@ -414,30 +414,31 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
+   const size_t nf = loc->nBands;
    const size_t nxBorder = loc->nPad;
    const size_t nyBorder = loc->nPad;
 
-   const size_t sy = nx + 2 * nxBorder;
+   const size_t sy = nf*(nx + 2 * nxBorder);
 
    switch (n) {
    case LOCAL:
-      return (nxBorder      + sy * nyBorder);
+      return (nf*nxBorder         + sy * nyBorder);
    case NORTHWEST:
-      return ((size_t) 0                   );
+      return ((size_t) 0                         );
    case NORTH:
-      return (nxBorder                     );
+      return (nf*nxBorder                        );
    case NORTHEAST:
-      return (nxBorder + nx                );
+      return (nf*nxBorder + nf*nx                );
    case WEST:
-      return (                sy * nyBorder);
+      return (                      sy * nyBorder);
    case EAST:
-      return (nxBorder + nx + sy * nyBorder);
+      return (nf*nxBorder + nf*nx + sy * nyBorder);
    case SOUTHWEST:
-      return (              + sy * (nyBorder + ny));
+      return (                    + sy * (nyBorder + ny));
    case SOUTH:
-      return (nxBorder      + sy * (nyBorder + ny));
+      return (nf*nxBorder         + sy * (nyBorder + ny));
    case SOUTHEAST:
-      return (nxBorder + nx + sy * (nyBorder + ny));
+      return (nf*nxBorder + nf*nx + sy * (nyBorder + ny));
    default:
       fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
    }
@@ -452,30 +453,31 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
+   const size_t nf = loc->nBands;
    const size_t nxBorder = loc->nPad;
    const size_t nyBorder = loc->nPad;
 
-   const size_t sy = nx + 2 * nxBorder;
+   const size_t sy = nf*(nx + 2 * nxBorder);
 
    switch (n) {
    case LOCAL:
-      return (nxBorder + sy * nyBorder);
+      return (nf*nxBorder + sy * nyBorder);
    case NORTHWEST:
-      return (nxBorder + sy * nyBorder);
+      return (nf*nxBorder + sy * nyBorder);
    case NORTH:
-      return (nxBorder + sy * nyBorder);
+      return (nf*nxBorder + sy * nyBorder);
    case NORTHEAST:
-      return (nx       + sy * nyBorder);
+      return (nf*nx       + sy * nyBorder);
    case WEST:
-      return (nxBorder + sy * nyBorder);
+      return (nf*nxBorder + sy * nyBorder);
    case EAST:
-      return (nx       + sy * nyBorder);
+      return (nf*nx       + sy * nyBorder);
    case SOUTHWEST:
-      return (nxBorder + sy * ny);
+      return (nf*nxBorder + sy * ny);
    case SOUTH:
-      return (nxBorder + sy * ny);
+      return (nf*nxBorder + sy * ny);
    case SOUTHEAST:
-      return (nx       + sy * ny);
+      return (nf*nx       + sy * ny);
    default:
       fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
    }
@@ -496,9 +498,12 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    const int nxBorder = loc->nPad;
    const int nyBorder = loc->nPad;
 
+   // TODO - is this numFeatures
+   const int nf = loc->nBands;
+
    count       = loc->ny;
-   blocklength = loc->nx;
-   stride      = 2*nxBorder + loc->nx;
+   blocklength = nf*loc->nx;
+   stride      = nf*(2*nxBorder + loc->nx);
 
    /* local interior */
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[LOCAL]);
@@ -507,22 +512,22 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    count = nyBorder;
 
    /* northwest */
-   blocklength = nxBorder;
+   blocklength = nf*nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHWEST]);
    MPI_Type_commit(&comms[NORTHWEST]);
 
    /* north */
-   blocklength = loc->nx;
+   blocklength = nf*loc->nx;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTH]);
    MPI_Type_commit(&comms[NORTH]);
 
    /* northeast */
-   blocklength = nxBorder;
+   blocklength = nf*nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHEAST]);
    MPI_Type_commit(&comms[NORTHEAST]);
 
    count       = loc->ny;
-   blocklength = nxBorder;
+   blocklength = nf*nxBorder;
 
    /* west */
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[WEST]);
@@ -535,17 +540,17 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    count = nyBorder;
 
    /* southwest */
-   blocklength = nxBorder;
+   blocklength = nf*nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHWEST]);
    MPI_Type_commit(&comms[SOUTHWEST]);
 
    /* south */
-   blocklength = loc->nx;
+   blocklength = nf*loc->nx;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTH]);
    MPI_Type_commit(&comms[SOUTH]);
 
    /* southeast */
-   blocklength = nxBorder;
+   blocklength = nf*nxBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHEAST]);
    MPI_Type_commit(&comms[SOUTHEAST]);
 
