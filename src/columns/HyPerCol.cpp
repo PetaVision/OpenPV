@@ -430,19 +430,20 @@ int HyPerCol::checkMarginWidths() {
    // params.pv file, calculate them based on the patch sizes here.
    // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
    // be allocated and initialized until after nPad is determined.
-   int status = EXIT_SUCCESS;
+   int status, status1, status2;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
       int padding = conn->pre->getLayerLoc()->nPad;
 
       int xScalePre = conn->preSynapticLayer()->getXScale();
       int xScalePost = conn->postSynapticLayer()->getXScale();
-      status = zCheckMarginWidth(conn, "x", padding, conn->xPatchSize(), xScalePre, xScalePost, status);
+      status1 = zCheckMarginWidth(conn, "x", padding, conn->xPatchSize(), xScalePre, xScalePost, status);
 
       int yScalePre = conn->preSynapticLayer()->getYScale();
       int yScalePost = conn->postSynapticLayer()->getYScale();
-      status = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
+      status2 = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
    }
+   status = (status1 == EXIT_SUCCESS && status2 == EXIT_SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
    return status;
 }  // end HyPerCol::checkMarginWidths()
 
