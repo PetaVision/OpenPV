@@ -225,7 +225,9 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
 
 int HyPerLayer::initFinish()
 {
-   return pvlayer_initFinish(clayer);
+   int status = pvlayer_initFinish(clayer);
+   assert(clayer->numFeatures == getLayerLoc()->nBands);
+   return status;
 }
 
 /**
