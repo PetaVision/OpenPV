@@ -461,7 +461,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
       probStim *= refact;
    }
 
-   if (params->burstDuration <= 0 || params->burstFreq == 0) {
+   if (params->burstDuration < 0 || params->burstFreq == 0) {
       sinAmp = cos( 2 * PI * time * params->burstFreq / 1000. );
    }
    else {
