@@ -174,7 +174,9 @@ PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);
    HyPerConn::normalizeWeights(kernelPatches, num_kernels);
-   if ((num_kernels > 1) && (nfp == num_kernels) ){
+   PVParams * inputParams = parent->parameters();
+   float symmetrizeWeightsFlag = inputParams->value(name, "symmetrizeWeights",0);
+   if ( symmetrizeWeightsFlag ){
       symmetrizeWeights(kernelPatches, num_kernels);
    }
    return patches;
@@ -182,6 +184,7 @@ PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 
 PVPatch ** KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches)
 {
+   printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    PVPatch ** symPatches;
    symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);
    assert(symPatches != NULL);
@@ -250,6 +253,7 @@ PVPatch ** KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches)
       pvpatch_inplace_delete(symPatches[iKernel]);
    } // iKernel
    free(symPatches);
+   printf("Exiting KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    return patches;
 }
 

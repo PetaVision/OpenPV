@@ -22,3 +22,10 @@ HyPerConn parameters:
    initFromLastFlag
       - initializes internally if 0
       - initializes from last saved file if 1
+
+KernelConn parameters:
+(The params.pv file still uses the HyPerConn keyword; KernelConn is not a keyword)
+
+   symmetrizeWeights
+      - symmetrizes weights during normalization if symmetrizeWeights is nonzero
+      - does not symmetrize weights if symmetrizeWeights = 0 
