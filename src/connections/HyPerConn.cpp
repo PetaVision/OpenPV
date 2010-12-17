@@ -1418,13 +1418,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    int kyKerneIndex;
    int kfKernelIndex;
    this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
-//   const int kxPre_tmp = (int) ( pre->clayer->loc.nx / 2 );
-//   assert(kxPre_tmp >= nxPatch_tmp / 2);
-//   const int kyPre_tmp = (int) ( pre->clayer->loc.ny / 2 );
-//   assert(kyPre_tmp >= nyPatch_tmp / 2);
-//   const int kfPre_tmp = kPre % pre->clayer->numFeatures;
-//   int kPre_tmp = kIndex(kxPre_tmp, kyPre_tmp, kfPre_tmp, pre->clayer->loc.nx,
-//         pre->clayer->loc.ny, pre->clayer->numFeatures);
+
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
 //   const int kfPre_tmp = kfKernelIndex;
@@ -1434,18 +1428,6 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
    const int sf_tmp = wp_tmp->sf;
    assert(sf_tmp == 1);
-
-   // deprecated--doesn't work for shunken patches when scalePre > scalePost
-   // get location of temporary patch head
-   // presynaptic cell is not in the center if patch is shrunken, so make full sized wp_tmp
-//   float xPreGlobal = 0.0;
-//   float yPreGlobal = 0.0;
-//   float xPatchHeadGlobal = 0.0;
-//   float yPatchHeadGlobal = 0.0;
-//   posPatchHead(kPre_tmp, pre->getXScale(), pre->getYScale(), lPre->loc, &xPreGlobal, &yPreGlobal,
-//         post->getXScale(), post->getYScale(), lPost->loc, wp_tmp, &xPatchHeadGlobal,
-//         &yPatchHeadGlobal);
-   // end deprecated
 
    // get distances to nearest neighbor in post synaptic layer
    float xDistNNPreUnits;
@@ -1512,10 +1494,8 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
          continue;
       }
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-//         float yDelta = (yPatchHeadGlobal + jPost * dyPost) - yPreGlobal;
          float yDelta = (yDistHeadPreUnits + jPost * dyPost);
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-//            float xDelta = (xPatchHeadGlobal + iPost * dxPost) - xPreGlobal;
             float xDelta = (xDistHeadPreUnits + iPost * dxPost);
             bool sameLoc = ((fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
             if ((sameLoc) && (!self)) {
