@@ -26,9 +26,9 @@ public:
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
    int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
-         float sigma_cocirc, float sigma_kurve, float deltaThetaMax, float cocirc_self,
-         float dKv, int numFlanks, float shift, float aspect, float rotate, float sigma,
-         float r2Max, float strength);
+         float sigma_cocirc, float sigma_kurve, float sigma_kurve, float deltaThetaMax,
+         float cocirc_self, float dKv, int numFlanks, float shift, float aspect,
+         float rotate, float sigma, float r2Max, float strength);
 
 };
 
