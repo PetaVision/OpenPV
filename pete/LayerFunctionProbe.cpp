@@ -37,7 +37,7 @@ int LayerFunctionProbe::outputState(float time, HyPerLayer * l) {
         return EXIT_SUCCESS;
     }
     else {
-    	fprintf(stderr, "LayerFunctionProbe %lu for layer %s: function has not been set\n", this, l->getName());
+    	fprintf(stderr, "LayerFunctionProbe \"%s\" for layer %s: function has not been set\n", msg, l->getName());
         return EXIT_FAILURE;
     }
 }  // end LayerFunctionProbe::outputState(float, HyPerLayer *)
