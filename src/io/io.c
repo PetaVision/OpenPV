@@ -17,6 +17,7 @@
 
 static int pv_getopt_int(int argc, char * argv[], char * opt, int *   iVal);
 static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal);
+static int pv_getopt_unsignedlong(int argc, char * argv[], char * opt, unsigned long * ulVal);
 
 void usage()
 {
@@ -38,7 +39,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], char ** input_file,
-                  char ** param_file, int * n_time_steps, int * opencl_device)
+                  char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed)
 {
    if (argc < 2) {
       usage();
@@ -51,8 +52,27 @@ int parse_options(int argc, char * argv[], char ** input_file,
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-i", input_file);
    pv_getopt_str(argc, argv, "-p", param_file);
+   pv_getopt_unsignedlong(argc, argv, "-s", random_seed);
 
    return 0;
+}
+
+/**
+ * @argc
+ * @argv
+ * @opt
+ * @ulVal
+ */
+static int pv_getopt_unsignedlong(int argc, char * argv[], char * opt, unsigned long * ulVal)
+{
+   int i;
+   for (i = 1; i < argc; i += 1) {
+      if (i+1 < argc && strcmp(argv[i], opt) == 0) {
+         *ulVal = strtoul(argv[i+1], NULL, 0);
+         return 0;
+      }
+   }
+   return -1;  // not found
 }
 
 /**
