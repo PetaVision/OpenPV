@@ -244,8 +244,8 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 // returns handle to initialized weight patches
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
-   PVParams * params = parent->parameters();
-   bool normalize_flag = (bool) params->value(name, "normalize", 0.0f);
+   PVParams * inputParams = parent->parameters();
+   bool normalize_flag = (bool) inputParams->value(name, "normalize", 0.0f);
 
    if (filename != NULL) {
        readWeights(patches, numPatches, filename);
@@ -255,7 +255,6 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
        return patches;
    }
 
-   PVParams * inputParams = parent->parameters();
    if (inputParams->present(getName(), "initFromLastFlag")) {
       if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
          char name[PV_PATH_MAX];
@@ -269,11 +268,13 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
 
    int randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
-   int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
+   // int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
+   // randomSeed now belongs to the HyPerCol
    int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
 
-   if (randomFlag != 0 || randomSeed != 0) {
-       initializeRandomWeights(patches, numPatches, randomSeed);
+   if (randomFlag != 0) { // if (randomFlag != 0 || randomSeed != 0) {
+       initializeRandomWeights(patches, numPatches);
+       // initializeRandomWeights(patches, numPatches, randomSeed);
        if (normalize_flag) {
           normalizeWeights(patches, numPatches);
        }
@@ -334,8 +335,9 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
  *    of the extended neuron space.
  *
  */
-PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
-      int seed)
+// PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
+//      int seed)
+PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * inputParams = parent->parameters();
 
@@ -354,18 +356,22 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
       float wMinInit = inputParams->value(getName(), "wMinInit", wMin);
       float wMaxInit = inputParams->value(getName(), "wMaxInit", wMax);
 
-      int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+      // int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+      // randomSeed now part of HyPerCol
 
       for (int k = 0; k < numPatches; k++) {
-         uniformWeights(patches[k], wMinInit, wMaxInit, &seed); // MA
+         uniformWeights(patches[k], wMinInit, wMaxInit);
+         // uniformWeights(patches[k], wMinInit, wMaxInit, &seed); // MA
       }
    }
    else if (gaussian_weights) {
          float wGaussMean = inputParams->value(getName(), "wGaussMean", 0.5f);
          float wGaussStdev = inputParams->value(getName(), "wGaussStdev", 0.1f);
-         int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+         // int seed = (int) inputParams->value(getName(), "randomSeed", 0);
+         // randomSeed now part of HyPerCol
          for (int k = 0; k < numPatches; k++) {
-            gaussianWeights(patches[k], wGaussMean, wGaussStdev, &seed); // MA (seed not used)
+            gaussianWeights(patches[k], wGaussMean, wGaussStdev);
+            // gaussianWeights(patches[k], wGaussMean, wGaussStdev, &seed); // MA (seed not used)
          }
       }
    else{
@@ -1286,7 +1292,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
+// int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
+int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax)
 {
    pvdata_t * w = wp->data;
 
@@ -1327,7 +1334,8 @@ int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
+// int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
+int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev)
 {
    pvdata_t * w = wp->data;
 

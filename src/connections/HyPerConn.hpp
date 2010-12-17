@@ -170,7 +170,8 @@ protected:
    int initializeSTDP();
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
-   PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
+   // PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
+   PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, int numPatches);
@@ -181,9 +182,10 @@ protected:
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
 
-   int uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed);
-
-   int gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed);
+   int uniformWeights(PVPatch * wp, float wMin, float wMax);
+   int gaussianWeights(PVPatch * wp, float mean, float stdev);
+   // int uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed);
+   // int gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed);
 
    int smartWeights(PVPatch * wp, int k);
 
