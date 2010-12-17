@@ -74,7 +74,7 @@ int GenerativeConn::updateWeights(int axonID) {
     for(int kPre=0; kPre<nPre;kPre++) {
         int nx = preSynapticLayer()->getCLayer()->loc.nx;
         int ny = preSynapticLayer()->getCLayer()->loc.ny;
-        int nf = preSynapticLayer()->getCLayer()->numFeatures;  // loc.nBands?
+        int nf = preSynapticLayer()->getCLayer()->numFeatures;
         int pad = preSynapticLayer()->getCLayer()->loc.nPad;
         int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
 
