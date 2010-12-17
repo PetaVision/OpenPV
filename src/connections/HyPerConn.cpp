@@ -1617,11 +1617,11 @@ int HyPerConn::setPatchSize(const char * filename)
    nxp = (int) inputParams->value(name, "nxp", post->getCLayer()->loc.nx);
    nyp = (int) inputParams->value(name, "nyp", post->getCLayer()->loc.ny);
    nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->numFeatures);
-   if( nfp > post->getCLayer()->numFeatures ){ /* should the condition be == or <= ? */
+   if( nfp != post->getCLayer()->numFeatures ) {
       fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
-      fprintf( stderr, "but only %d features for post-synaptic layer %s\n",
+      fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->numFeatures, post->getName() );
-      exit(1);
+      exit(EXIT_FAILURE);
    }
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
