@@ -34,35 +34,90 @@ int LateralConn::initialize(const char * name, HyPerCol * hc,
 
     PVLayerLoc preLoc = pre->getCLayer()->loc;
     PVLayerLoc postLoc = post->getCLayer()->loc;
-    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny || preLoc.nBands != postLoc.nBands ) {
+    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny ||
+            pre->getCLayer()->numFeatures != post->getCLayer()->numFeatures ) {
         fprintf( stderr,
                  "LateralConn Error: %s and %s do not have the same dimensions\n",
                  pre->getName(),post->getName() );
         exit(1);
     }
     GenerativeConn::initialize(name, hc, pre, post, channel, filename);
+	int prePad = pre->getLayerLoc()->nPad;
+	int xPatchHead = zPatchHead(0, nxp, 0, 0);
+	int yPatchHead = zPatchHead(0, nyp, 0, 0);
+	if( -xPatchHead > prePad || -yPatchHead > prePad) {
+	   int needed = (-xPatchHead > -yPatchHead ) ? -xPatchHead : -yPatchHead;
+	   fprintf(stderr, "Connection \"%s\": Layer \"%s\" has marginWidth %d; connection requires at least %d.\n",name, pre->getName(), prePad, needed);
+	   abort();
+	}
+	// If -xPatchHead > prePad || -yPatchHead > prePad evaluates to true, updateWeights will crash.
+	// This should be fixed.
 
     return EXIT_SUCCESS;
 }  // end of LateralConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
 
 int LateralConn::updateWeights(int axonID) {
+	const PVLayerLoc * preLoc = pre->getLayerLoc();
+	int nxPre = preLoc->nx;
+	int nyPre = preLoc->ny;
+	int nfPre = pre->getCLayer()->numFeatures;
+	const PVLayerLoc * postLoc = post->getLayerLoc();
+	int nxPost = postLoc->nx;
+	int nyPost = postLoc->ny;
+	int nfPost = post->getCLayer()->numFeatures;
+	assert(nxPre == nxPost && nyPre == nyPost && nfPre == nfPost);
+	int prePad = preLoc->nPad;
+	int nxExt = nxPre + 2*prePad;
+	int nyExt = nyPre + 2*prePad;
+	int xPatchHead = zPatchHead(0, nxp, 0, 0);
+	int yPatchHead = zPatchHead(0, nyp, 0, 0);
+    // Fix so that the code below won't break if the presynaptic marginWidth is insufficient.
+	// Should go through axonalArbor() to handle shrunken patches correctly.
+	// When fixed, can remove if( -xPatchHead > prePad || -yPatchHead > prePad) statement at end
+	// of initialize()
+
+	const pvdata_t * preExt = pre->getLayerData();
+    for( int kRestr = 0; kRestr < post->getNumNeurons(); kRestr++ ) {
+        if( pvdata_t apost = post->getV()[kRestr] ) {
+        	int xRestr = kxPos(kRestr, nxPost, nyPost, nfPost);
+        	int yRestr = kyPos(kRestr, nxPost, nyPost, nfPost);
+        	// int feature = featureIndex(kRestr, postnx, postny, postnf);
+            for( int v=0; v<nyp; v++ ) {
+                for( int u=0; u<nxp; u++) {
+                	if( u != v ) {
+                        for( int p=0; p<nfp; p++ ) {
+                            pvdata_t * kpdata = getKernelPatch(p)->data;
+                            int kIndex1 = kIndex(xRestr - (u + xPatchHead) + prePad, yRestr - (v + yPatchHead) + prePad, p, nxExt, nyExt, nfPre);
+                            assert(kIndex1 >= 0 && kIndex1 < pre->getNumExtended());
+                            int kIndex2 = kIndex(xRestr - (v + yPatchHead) + prePad, yRestr - (u + xPatchHead) + prePad, p, nxExt, nyExt, nfPre);
+                            assert(kIndex2 >= 0 && kIndex2 < pre->getNumExtended());
+                            int kIndexPatch = kIndex(u, v, p, nxp, nyp, nfp);
+                            kpdata[kIndexPatch] -= relaxation*apost*(preExt[kIndex1]+preExt[kIndex2]);
+                        }
+                	}
+                }
+            }
+        }
+    }
     return EXIT_SUCCESS;
 }  // end of LateralConn::updateWeights(int)
 
 PVPatch ** LateralConn::initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename) {
     // initialize to identity
-    int xc = nxp/2;
-    int yc = nyp/2;
+	if( nxp != nyp ) {
+	    fprintf(stderr, "Lateral connection \"%s\":\n", name);
+	    fprintf(stderr, "nxp must equal nyp since lateral connections are symmetric\n");
+	    exit(1);
+	}
+    int xc = - zPatchHead(0, nxp, 0, 0); // zPatchHead(0,nxp,0,0) is the index of the leftmost
+    int yc = - zPatchHead(0, nyp, 0, 0); // pixel in the patch; its negative is the index of the center
 
     int numKernels = numDataPatches(0);
     for( int k=0; k < numKernels; k++ ) {
         PVPatch * kp = getKernelPatch(k);
         int idx = kIndex(xc, yc, k, nxp, nyp, nfp);
         kp->data[idx] = 1;
-        // for( int l=0; l < kp->nf; l++ ) {
-        //     kp->data[l] = l==k;
-        // }
     }
     return patches;
 }  // end of LateralConn::initializeWeights(PVPatch **, int)
