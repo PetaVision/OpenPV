@@ -46,7 +46,8 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
    numSteps = 2;
    image_file = NULL;
    param_file = NULL;
-   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device);
+   unsigned long random_seed = 0;
+   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device, &random_seed);
 
    // run only on CPU for now
    initializeThreads(opencl_device);
@@ -60,7 +61,9 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
 
    // initialize random seed
    //
-   pv_srandom(getRandomSeed());
+   random_seed = getRandomSeed();
+   random_seed = params->value(name, "randomSeed", random_seed);
+   pv_srandom(random_seed);
 
    if (param_file != NULL) free(param_file);
 
