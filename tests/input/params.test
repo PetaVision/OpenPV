@@ -96,7 +96,7 @@ HyPerCol "test_gauss2d column" = {
 HyPerLayer "test_gauss2d pre" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0;
+   marginWidth = 1;
 };
 
 HyPerLayer "test_gauss2d post" = {
@@ -130,7 +130,7 @@ HyPerConn "test_gauss2d kernelconn" = {
 HyPerLayer "test_gauss2d pre 2" = {
    nxScale = 2;
    nyScale = 2;
-   marginWidth = 0;
+   marginWidth = 2;
 };
 
 HyPerLayer "test_gauss2d post 2" = {
@@ -140,8 +140,8 @@ HyPerLayer "test_gauss2d post 2" = {
 };
 
 HyPerConn "test_gauss2d hyperconn 1 to 2" = {
-   nxp = 4;
-   nyp = 4;
+   nxp = 6;
+   nyp = 6;
    aspect = 1;
    sigma = 8;
    rMax = 8;
@@ -151,8 +151,8 @@ HyPerConn "test_gauss2d hyperconn 1 to 2" = {
 };
 
 HyPerConn "test_gauss2d kernelconn 1 to 2" = {
-   nxp = 4;
-   nyp = 4;
+   nxp = 6;
+   nyp = 6;
    aspect = 1;
    sigma = 8;
    rMax = 8;
@@ -162,8 +162,8 @@ HyPerConn "test_gauss2d kernelconn 1 to 2" = {
 };
 
 HyPerConn "test_gauss2d hyperconn 2 to 1" = {
-   nxp = 2;
-   nyp = 2;
+   nxp = 3;
+   nyp = 3;
    aspect = 1;
    sigma = 4;
    rMax = 4;
@@ -173,8 +173,8 @@ HyPerConn "test_gauss2d hyperconn 2 to 1" = {
 };
 
 HyPerConn "test_gauss2d kernelconn 2 to 1" = {
-   nxp = 2;
-   nyp = 2;
+   nxp = 3;
+   nyp = 3;
    aspect = 1;
    sigma = 4;
    rMax = 4;
