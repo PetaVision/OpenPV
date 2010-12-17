@@ -27,7 +27,9 @@ int IdentConn::initialize_base() {
 int IdentConn::setPatchSize(const char * filename) {
     PVLayerLoc preLoc = pre->getCLayer()->loc;
     PVLayerLoc postLoc = post->getCLayer()->loc;
-    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny || preLoc.nBands != postLoc.nBands ) {
+    int nfPre = pre->getCLayer()->numFeatures;
+    int nfPost = post->getCLayer()->numFeatures;
+    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny || nfPre != nfPost ) {
         fprintf( stderr,
                  "IdentConn Error: %s and %s do not have the same dimensions\n",
                  pre->getName(),post->getName() );
@@ -35,7 +37,7 @@ int IdentConn::setPatchSize(const char * filename) {
     }
     nxp = 1;
     nyp = 1;
-    nfp = pre->getCLayer()->numFeatures;
+    nfp = nfPre;
 
     return EXIT_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
