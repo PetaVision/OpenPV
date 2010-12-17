@@ -212,17 +212,8 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
-   if( checkMarginWidths() != EXIT_SUCCESS )
-   {
-      fprintf(stderr, "Warning: one or more margin widths not large enough to hold patch size\n");
-      if( this->numberOfColumns() > 1) {
-         fprintf(stderr, "MPI runs require sufficient margin widths.  Exiting.\n");
-         exit(1);
-      }
-      else {
-         fprintf(stderr, "Continuing since this is a non-MPI run.\n");
-      }
-   }
+   checkMarginWidths();
+
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
@@ -433,7 +424,9 @@ int HyPerCol::checkMarginWidths() {
    // params.pv file, calculate them based on the patch sizes here.
    // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
    // be allocated and initialized until after nPad is determined.
-   int status, status1, status2;
+
+   int status = EXIT_SUCCESS;
+   int status1, status2;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
       int padding = conn->pre->getLayerLoc()->nPad;
@@ -445,8 +438,9 @@ int HyPerCol::checkMarginWidths() {
       int yScalePre = conn->preSynapticLayer()->getYScale();
       int yScalePost = conn->postSynapticLayer()->getYScale();
       status2 = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
+      status = (status == EXIT_SUCCESS && status1 == EXIT_SUCCESS && status2 == EXIT_SUCCESS) ?
+               EXIT_SUCCESS : EXIT_FAILURE;
    }
-   status = (status1 == EXIT_SUCCESS && status2 == EXIT_SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
    return status;
 }  // end HyPerCol::checkMarginWidths()
 
@@ -465,6 +459,13 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding,
               padding, patchSize, scalePre, scalePost);
       fprintf(stderr, "    Needed margin width=%d\n", needed);
       status = EXIT_FAILURE;
+      if( numberOfColumns() > 1 || padding > 0 ) {
+         fprintf(stderr, "Exiting.\n");
+         exit(EXIT_FAILURE);
+      }
+      else {
+         fprintf(stderr, "Continuing, but there may be undesirable edge effects.\n");
+      }
    }
    else status = EXIT_SUCCESS;
    return status;
