@@ -110,6 +110,8 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
 
    // exchange border information
    exchange();
+
+   return EXIT_SUCCESS;
 }
 
 Movie::~Movie()

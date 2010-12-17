@@ -798,7 +798,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       //
       status = (fwrite(&time, sizeof(double), 1, fp) != 1 );
       if (status != 0) {
-         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&time), time==%d\n",
+         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&time), time==%f\n",
                  comm->commRank(), time);
          return status;
       }
