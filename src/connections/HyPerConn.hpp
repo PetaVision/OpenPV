@@ -109,6 +109,11 @@ public:
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
 
+   int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
+         float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
+         float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
+         float aspect, float rotate, float sigma, float r2Max, float strength);
+
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
@@ -175,6 +180,7 @@ protected:
    PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, int numPatches);
+   PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** createWeights(PVPatch ** patches);

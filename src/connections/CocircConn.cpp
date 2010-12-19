@@ -204,8 +204,8 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
    const int kfPre = featureIndex(kPre, pre->clayer->loc.nx, pre->clayer->loc.ny,
          pre->clayer->numFeatures);
 
-#define POS_KURVE_FLAG //  handle pos and neg curvature separately
-#define SADDLE_FLAG  // handle saddle points separately
+   bool POS_KURVE_FLAG = false; //  handle pos and neg curvature separately
+   bool SADDLE_FLAG  = false; // handle saddle points separately
    const int nKurvePre = pre->clayer->numFeatures / noPre;
    const int nKurvePost = post->clayer->numFeatures / noPost;
    const float dTh = PI / nfPatch;
@@ -219,17 +219,16 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
    float radKurvPre = delta_radius_curvature + iKvPre * delta_radius_curvature;
    float kurvePre = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    int iKvPreAdj = iKvPre;
-#ifdef POS_KURVE_FLAG
-   assert(nKurvePre >= 2);
-   iPosKurvePre = iKvPre >= (int) (nKurvePre / 2);
-#ifdef SADDLE_FLAG
-   assert(nKurvePre >= 4);
-   iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
-   iKvPreAdj = ((iKvPre % (nKurvePre / 2)) / 2);
-#else // SADDLE_FLAG
-   iKvPreAdj = (iKvPre % (nKurvePre/2));
-#endif // SADDLE_FLAG
-#endif // POS_KURVE_FLAG
+   if (POS_KURVE_FLAG) {
+      assert(nKurvePre >= 2);
+      iPosKurvePre = iKvPre >= (int) (nKurvePre / 2);
+      if (SADDLE_FLAG) {
+         assert(nKurvePre >= 4);
+         iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
+         iKvPreAdj = ((iKvPre % (nKurvePre / 2)) / 2);}
+      else { // SADDLE_FLAG
+         iKvPreAdj = (iKvPre % (nKurvePre/2));}
+   } // POS_KURVE_FLAG
    radKurvPre = delta_radius_curvature + iKvPreAdj * delta_radius_curvature;
    kurvePre = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    float sigma_kurve_pre = sigma_kurve * radKurvPre;
@@ -248,17 +247,18 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
       float radKurvPost = delta_radius_curvature + iKvPost * delta_radius_curvature;
       float kurvePost = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       int iKvPostAdj = iKvPost;
-#ifdef POS_KURVE_FLAG
-      assert(nKurvePost >= 2);
-      iPosKurvePost = iKvPost >= (int) (nKurvePost / 2);
-#ifdef SADDLE_FLAG
-      assert(nKurvePost >= 4);
-      iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
-      iKvPostAdj = ((iKvPost % (nKurvePost / 2)) / 2);
-#else  // SADDLE_FLAG
-      iKvPostAdj = (iKvPost % (nKurvePost/2));
-#endif // SADDLE_FLAG
-#endif // POS_KURVE_FLAG
+      if (POS_KURVE_FLAG) {
+         assert(nKurvePost >= 2);
+         iPosKurvePost = iKvPost >= (int) (nKurvePost / 2);
+         if (SADDLE_FLAG) {
+            assert(nKurvePost >= 4);
+            iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
+            iKvPostAdj = ((iKvPost % (nKurvePost / 2)) / 2);
+         }
+         else { // SADDLE_FLAG
+            iKvPostAdj = (iKvPost % (nKurvePost / 2));
+         }
+      } // POS_KURVE_FLAG
       radKurvPost = delta_radius_curvature + iKvPostAdj * delta_radius_curvature;
       kurvePost = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       float sigma_kurve_post = sigma_kurve * radKurvPost;
@@ -337,31 +337,33 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
                // compute curvature of cocircular contour
                float cocircKurve_shift = d2_shift > 0 ? fabsf(2 * dyP_shift) / d2_shift
                      : 0.0f;
-#ifdef POS_KURVE_FLAG
-#ifdef SADDLE_FLAG
-               if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift < 0)) {
-                  continue;
-               }
-               if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift > 0)) {
-                  continue;
-               }
-               if ((iPosKurvePre) && (iSaddlePre) && (((dyP_shift > 0) && (dxP < 0))
-                     || ((dyP_shift > 0) && (dxP < 0)))) {
-                  continue;
-               }
-               if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift > 0) && (dxP > 0))
-                     || ((dyP_shift < 0) && (dxP < 0)))) {
-                  continue;
-               }
-#else  //SADDLE_FLAG
-               if ( (iPosKurvePre) && (dyP_shift < 0) ) {
-                  continue;
-               }
-               if ( !(iPosKurvePre) && (dyP_shift > 0) ) {
-                  continue;
-               }
-#endif // SADDLE_FLAG
-#endif  // POS_KURVE_FLAG
+               if (POS_KURVE_FLAG) {
+                  if (SADDLE_FLAG) {
+                     if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift < 0)) {
+                        continue;
+                     }
+                     if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift > 0)) {
+                        continue;
+                     }
+                     if ((iPosKurvePre) && (iSaddlePre)
+                           && (((dyP_shift > 0) && (dxP < 0)) || ((dyP_shift > 0) && (dxP
+                                 < 0)))) {
+                        continue;
+                     }
+                     if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift > 0)
+                           && (dxP > 0)) || ((dyP_shift < 0) && (dxP < 0)))) {
+                        continue;
+                     }
+                  }
+                  else { //SADDLE_FLAG
+                     if ((iPosKurvePre) && (dyP_shift < 0)) {
+                        continue;
+                     }
+                     if (!(iPosKurvePre) && (dyP_shift > 0)) {
+                        continue;
+                     }
+                  }
+               } // POS_KURVE_FLAG
                gKurvePre = (nKurvePre > 1) ? expf(-powf((cocircKurve_shift - fabsf(
                      kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
                gKurvePost
@@ -393,31 +395,32 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
                   float cocircKurve_shift2 = d2_shift2 > 0 ? fabsf(2 * dyP_shift2)
                         / d2_shift2 : 0.0f;
-#ifdef POS_KURVE_FLAG
-#ifdef SADDLE_FLAG
-                  if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 < 0)) {
-                     continue;
-                  }
-                  if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 > 0)) {
-                     continue;
-                  }
-                  if ((iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP < 0))
-                        || ((dyP_shift2 > 0) && (dxP < 0)))) {
-                     continue;
-                  }
-                  if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP > 0))
-                        || ((dyP_shift2 < 0) && (dxP < 0)))) {
-                     continue;
-                  }
-#else  //SADDLE_FLAG
-                  if ( (iPosKurvePre) && (dyP_shift2 < 0) ) {
-                     continue;
-                  }
-                  if ( !(iPosKurvePre) && (dyP_shift2 > 0) ) {
-                     continue;
-                  }
-#endif // SADDLE_FLAG
-#endif  // POS_KURVE_FLAG
+                  if (POS_KURVE_FLAG) {
+                     if (SADDLE_FLAG) {
+                        if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 < 0)) {
+                           continue;
+                        }
+                        if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 > 0)) {
+                           continue;
+                        }
+                        if ((iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP
+                              < 0)) || ((dyP_shift2 > 0) && (dxP < 0)))) {
+                           continue;
+                        }
+                        if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP
+                              > 0)) || ((dyP_shift2 < 0) && (dxP < 0)))) {
+                           continue;
+                        }
+                     }
+                     else { //SADDLE_FLAG
+                        if ((iPosKurvePre) && (dyP_shift2 < 0)) {
+                           continue;
+                        }
+                        if (!(iPosKurvePre) && (dyP_shift2 > 0)) {
+                           continue;
+                        }
+                     } // SADDLE_FLAG
+                  } // POS_KURVE_FLAG
                   gKurvePre += (nKurvePre > 1) ? expf(-powf((cocircKurve_shift2 - fabsf(
                         kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
                   gKurvePost += ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2
