@@ -89,98 +89,286 @@ HyPerConn "test_post_weights L2 to L3" = {
 //
 
 HyPerCol "test_gauss2d column" = {
-   nx = 8;
-   ny = 8;
+   nx = 16;
+   ny = 16;
 };
 
 HyPerLayer "test_gauss2d pre" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 1;
+   nf = 4;
+   marginWidth = 2;
 };
 
 HyPerLayer "test_gauss2d post" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0;  
+   nf = 4;
+   marginWidth = 2;  
 };
 
 HyPerConn "test_gauss2d hyperconn" = {
-   nxp = 3;
-   nyp = 3;
+   nxp = 5;
+   nyp = 5;
    aspect = 1;
    sigma = 4;
-   rMax = 3;
+   rMax = 5;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
 };
 
 HyPerConn "test_gauss2d kernelconn" = {
-   nxp = 3;
-   nyp = 3;
+   nxp = 5;
+   nyp = 5;
    aspect = 1;
    sigma = 4;
-   rMax = 3;
+   rMax = 5;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
 };
 
 HyPerLayer "test_gauss2d pre 2" = {
    nxScale = 2;
    nyScale = 2;
-   marginWidth = 2;
+   nf = 4;
+   marginWidth = 4;
 };
 
 HyPerLayer "test_gauss2d post 2" = {
    nxScale = 2;
    nyScale = 2;
-   marginWidth = 0;  
+   nf = 4;
+   marginWidth = 4;  
 };
 
 HyPerConn "test_gauss2d hyperconn 1 to 2" = {
-   nxp = 6;
-   nyp = 6;
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
    aspect = 1;
    sigma = 8;
    rMax = 8;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
 };
 
 HyPerConn "test_gauss2d kernelconn 1 to 2" = {
-   nxp = 6;
-   nyp = 6;
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
    aspect = 1;
    sigma = 8;
    rMax = 8;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
 };
 
 HyPerConn "test_gauss2d hyperconn 2 to 1" = {
-   nxp = 3;
-   nyp = 3;
+   nxp = 5; // must be odd
+   nyp = 5;
    aspect = 1;
    sigma = 4;
-   rMax = 4;
+   rMax = 5;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
 };
 
 HyPerConn "test_gauss2d kernelconn 2 to 1" = {
-   nxp = 3;
-   nyp = 3;
+   nxp = 5;
+   nyp = 5;
    aspect = 1;
    sigma = 4;
-   rMax = 4;
+   rMax = 5;
    strength = 1.0;
-   normalize = 1.0;
-   normalize_cutoff = 0.001;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+};
+
+
+
+
+//
+// This section defines parameters for test_cocirc
+//
+
+HyPerCol "test_cocirc column" = {
+   nx = 16;
+   ny = 16;
+};
+
+HyPerLayer "test_cocirc pre" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   marginWidth = 2;
+};
+
+HyPerLayer "test_cocirc post" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   marginWidth = 2;  
+};
+
+HyPerConn "test_cocirc hyperconn" = {
+   nxp = 5;
+   nyp = 5;
+   aspect = 1;
+   sigma = 4;
+   rMax = 3;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   aspect = 1;
+   sigma = 5;
+   rMax  = 5;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
+};
+
+HyPerConn "test_cocirc cocircconn" = {
+   nxp = 5;
+   nyp = 5;
+   aspect = 1;
+   sigma = 4;
+   rMax = 3;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   aspect = 1;
+   sigma = 5;
+   rMax  = 5;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
+};
+
+HyPerLayer "test_cocirc pre 2" = {
+   nxScale = 2;
+   nyScale = 2;
+   nf = 4;
+   marginWidth = 4;
+};
+
+HyPerLayer "test_cocirc post 2" = {
+   nxScale = 2;
+   nyScale = 2;
+   nf = 4;
+   marginWidth = 4;  
+};
+
+HyPerConn "test_cocirc hyperconn 1 to 2" = {
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
+   aspect = 1;
+   sigma = 5;
+   rMax = 10;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
+};
+
+HyPerConn "test_cocirc cocircconn 1 to 2" = {
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
+   aspect = 1;
+   sigma = 5;
+   rMax = 10;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
+};
+
+HyPerConn "test_cocirc hyperconn 2 to 1" = {
+   nxp = 5;  // must be odd number
+   nyp = 5;
+   aspect = 1;
+   sigma = 10;
+   rMax = 10;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
+};
+
+HyPerConn "test_cocirc cocircconn 2 to 1" = {
+   nxp = 5;  // must be odd number
+   nyp = 5;
+   aspect = 1;
+   sigma = 10;
+   rMax = 10;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   numFlanks = 1;
+   flankShift = 0.0;
+   rotate = 0;
+   noPre = 4;
+   noPost = 4;
+   sigmaCocirc = 0.03926875; // 0.3926875; // 3.1415926535897931/8.0; // PI / 8;
+   sigmaKurve = 1.0;  // units of deltaRadiusCurvature
+   sigmaChord = 1.0;  // % of PI * R, where R == radius of curvature (1/curvature)
+   cocircSelf = 0;
+   deltaThetaMax = 1.5708; // PI / 2; // 3.1415926535897931/2.0; ;
+   deltaRadiusCurvature = 16.0;  // 16 = min_radius
+   cocircWeights = 1.0;
 };
 
 
