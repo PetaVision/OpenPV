@@ -52,27 +52,9 @@ int parse_options(int argc, char * argv[], char ** input_file,
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-i", input_file);
    pv_getopt_str(argc, argv, "-p", param_file);
-   pv_getopt_unsignedlong(argc, argv, "-s", random_seed);
+   pv_getopt_unsigned_long(argc, argv, "-p", random_seed);
 
    return 0;
-}
-
-/**
- * @argc
- * @argv
- * @opt
- * @ulVal
- */
-static int pv_getopt_unsignedlong(int argc, char * argv[], char * opt, unsigned long * ulVal)
-{
-   int i;
-   for (i = 1; i < argc; i += 1) {
-      if (i+1 < argc && strcmp(argv[i], opt) == 0) {
-         *ulVal = strtoul(argv[i+1], NULL, 0);
-         return 0;
-      }
-   }
-   return -1;  // not found
 }
 
 /**
@@ -87,6 +69,24 @@ static int pv_getopt_int(int argc, char * argv[], char * opt, int * iVal)
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
          *iVal = atoi(argv[i+1]);
+         return 0;
+      }
+   }
+   return -1;  // not found
+}
+
+/**
+ * @argc
+ * @argv
+ * @opt
+ * @iVal
+ */
+static int pv_getopt_unsigned_long(int argc, char * argv[], char * opt, unsigned long * iVal)
+{
+   int i;
+   for (i = 1; i < argc; i += 1) {
+      if (i+1 < argc && strcmp(argv[i], opt) == 0) {
+         *iVal = strtoul(argv[i+1], NULL, 0);
          return 0;
       }
    }
@@ -1028,7 +1028,7 @@ int pv_text_write_patch(FILE * fd, PVPatch * patch)
    for (f = 0; f < nf; f++) {
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
-            fprintf(fd, "%5.3f ", patch->data[i*sx + j*sy + f*sf]);
+            fprintf(fd, "%7.5f ", patch->data[i*sx + j*sy + f*sf]);
          }
          fprintf(fd, "\n");
       }
