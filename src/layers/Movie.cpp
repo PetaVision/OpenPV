@@ -96,8 +96,9 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    }
 
    if(randomMovie){
-      unsigned long seed = (unsigned long) time ((time_t *) NULL);
-      pv_srandom(seed); // initialize seed
+      // random number generator already initialized by HyPerCol
+      //unsigned long seed = (unsigned long) time ((time_t *) NULL);
+      //pv_srandom(seed); // initialize seed
       randomFrame();
    }else{
       read(filename, offsetX, offsetY);
