@@ -20,7 +20,7 @@ LIBS = $(LIBPV) -L$(GDALDIR) -lgdal
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
-        test_datatypes test_post_weights test_gauss2d test_mirror_BCs \
+        test_datatypes test_post_weights test_gauss2d test_cocirc test_mirror_BCs \
         test_border_activity
 
 MPI_TESTS = #test_read_header test_image_io test_weights_io test_constant_input
@@ -86,6 +86,9 @@ test_post_weights: $(BUILDDIR)/test_post_weights.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_gauss2d: $(BUILDDIR)/test_gauss2d.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_cocirc: $(BUILDDIR)/test_cocirc.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
@@ -162,6 +165,8 @@ runtests: make-in-subdirs $(TESTS)
 	@./test_post_weights -p input/params.test
 	@echo "Running test_gauss2d ..."
 	@./test_gauss2d -p input/params.test
+	@echo "Running test_cocirc ..."
+	@./test_cocirc -p input/params.test
 #	@echo "Running test_pos ..."
 #	@test_pos
 	@echo "Running test_delta_pos ..."
