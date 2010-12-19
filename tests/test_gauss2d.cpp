@@ -70,19 +70,11 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 	assert(sy == kernelPatch->sy);
 	pvdata_t * hyperWeights = hyperPatch->data;
 	pvdata_t * kernelWeights = kernelPatch->data;
-	pvdata_t kernel_ratio = 0.0f;
-	pvdata_t hyper_ratio = 0.0f;
 	float test_cond = 0.0f;
 	for (int y = 0; y < ny; y++) {
 		for (int k = 0; k < nk; k++) {
-			kernel_ratio = kernelWeights[0] > 1.0E-10 ? kernelWeights[k]
-					/ kernelWeights[0] : 0.0;
-			hyper_ratio = hyperWeights[0] > 1.0E-10 ? hyperWeights[k]
-					/ hyperWeights[0] : 0.0;
-			test_cond = fabs(kernel_ratio + hyper_ratio) > 0 ? fabs(
-					kernel_ratio - hyper_ratio) / fabs(kernel_ratio
-					+ hyper_ratio) : 0.0f;
-			if (test_cond > 0.01f) {
+			test_cond = kernelWeights[k] - hyperWeights[k];
+			if (fabs(test_cond) > 0.001f) {
 				const char * cHyper_filename = "gauss2d_hyper.txt";
 				cHyPer->writeTextWeights(cHyper_filename, kPre);
 				const char * cKernel_filename = "gauss2d_kernel.txt";
