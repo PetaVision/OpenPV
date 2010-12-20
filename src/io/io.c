@@ -17,7 +17,7 @@
 
 static int pv_getopt_int(int argc, char * argv[], char * opt, int *   iVal);
 static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal);
-static int pv_getopt_unsignedlong(int argc, char * argv[], char * opt, unsigned long * ulVal);
+static int pv_getopt_unsigned_long(int argc, char * argv[], char * opt, unsigned long * ulVal);
 
 void usage()
 {
@@ -52,7 +52,7 @@ int parse_options(int argc, char * argv[], char ** input_file,
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-i", input_file);
    pv_getopt_str(argc, argv, "-p", param_file);
-   pv_getopt_unsigned_long(argc, argv, "-p", random_seed);
+   pv_getopt_unsigned_long(argc, argv, "-s", random_seed);
 
    return 0;
 }
