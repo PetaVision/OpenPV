@@ -271,6 +271,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    // int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
    // randomSeed now belongs to the HyPerCol
    int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
+   int cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
 
    if (randomFlag != 0) { // if (randomFlag != 0 || randomSeed != 0) {
        initializeRandomWeights(patches, numPatches);
