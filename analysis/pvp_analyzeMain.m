@@ -57,7 +57,7 @@ pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
 BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 11000.0;
+END_TIME = 101000.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -375,7 +375,7 @@ for layer = read_spikes;
       pvp_powerMask(layer, xcorr_struct, target_struct, power_array);
 
 endfor %% % layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -407,7 +407,7 @@ for layer = read_spikes;
 			      fig_list);
   endif %% plot_raster
 endfor %%layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
     
@@ -481,7 +481,7 @@ for layer = read_spikes;
   set(lh, 'Color', my_gray);
   
 endfor % layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -572,7 +572,7 @@ for layer = read_spikes;
   endfor %% % i_rank
   
 endfor %% layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -764,7 +764,7 @@ for layer = read_spikes;
   figure(fig_tmp);
 endfor %% % layer
 
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -773,7 +773,7 @@ fig_list = [];
 if calc_eigen
   disp('beginning eigen analysis...');
 else
-  pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
   error('abort eigen analysis');
 endif
 
@@ -888,7 +888,7 @@ for layer = read_spikes;
     
   endfor %% % i_mode
 endfor %% % layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
   
@@ -950,7 +950,7 @@ for layer = read_spikes;
     
   endfor %% % i_mode
 endfor %% % layer
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
@@ -1100,5 +1100,5 @@ if plot_rates
   fig_list = [fig_list; fig_tmp];
 endif %%
 
-pvp_saveFigList( fig_list, SPIKE_PATH, 'png');
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 
