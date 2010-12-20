@@ -1506,7 +1506,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
-//   const int kfPre_tmp = kfKernelIndex;
+   const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = wp_tmp->sx;
    assert(sx_tmp == wp_tmp->nf);
    const int sy_tmp = wp_tmp->sy;
@@ -1555,26 +1555,29 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    const float dxPost = xRelativeScale; //powf(2, (float) post->getXScale());
    const float dyPost = yRelativeScale; //powf(2, (float) post->getYScale());
 
-   const float dth = PI / (float) nfPatch;
-   const float th0 = rotate * dth / 2.0f;
 
    // TODO - the following assumes that if aspect > 1, # orientations = # features
    //   int noPost = no;
    // number of orientations only used if aspect != 1
    const int noPost = post->clayer->numFeatures;
+   const float dthPost = PI / (float) noPost;
+   const float th0Post = rotate * dthPost / 2.0f;
    const int noPre = pre->clayer->numFeatures;
-   const int fPre = kPre % pre->clayer->numFeatures;
-   const int iThPre = kPre % noPre;
    const float dthPre = PI / (float) noPre;
-   const float thPre = th0 + iThPre * dthPre;
+   const float th0Pre = rotate * dthPre / 2.0f;
+   const int fPre = kPre % pre->clayer->numFeatures;
+   assert(fPre == kfPre_tmp);
+   const int iThPre = kPre % noPre;
+   const float thPre = th0Pre + iThPre * dthPre;
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       int oPost = fPost % noPost;
-      float thPost = th0 + oPost * dth;
+      float thPost = th0Post + oPost * dthPost;
       if (noPost == 1 && noPre > 1) {
          thPost = thPre;
       }
+      //TODO: add additional weight factor for difference between thPre and thPost
       if (fabs(thPre - thPost) > deltaThetaMax) {
          continue;
       }
