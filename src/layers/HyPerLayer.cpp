@@ -44,21 +44,35 @@ HyPerLayer::~HyPerLayer()
       clayer = NULL;
    }
    free(name);
+
+   if (parent->columnId() == 0) {
+      printf("%16s: total time in %6s %10s: ", name, "layer", "update");
+      update_timer->elapsed_time();
+      delete update_timer;
+   }
 }
 
+/**
+ * Primary method for derived layer initialization.  This should be called
+ * after initialize_base has been called.  WARNING, very little should be
+ * done here as it should be done in derived class.
+ */
 int HyPerLayer::initialize(PVLayerType type)
 {
+   int status = 0;
    float time = 0.0f;
 
+   // IMPORTANT:
+   //   - these two statements should be done in all derived classes
+   //
    clayer->layerType = type;
    parent->addLayer(this);
 
    if (parent->parameters()->value(name, "restart", 0.0f) != 0.0f) {
       readState(name, &time);
    }
-   writeTime = parent->simulationTime();
 
-   return 0;
+   return status;
 }
 
 int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
@@ -72,6 +86,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    this->probes = NULL;
    this->ioAppend = 0;
    this->numProbes = 0;
+
+   this->update_timer = new Timer();
 
    PVParams * params = parent->parameters();
 
@@ -97,6 +113,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    clayer = pvlayer_new(layerLoc, xScale, yScale);
    clayer->layerType = TypeGeneric;
 
+   writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
@@ -105,10 +122,13 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
 }
 
 #ifdef PV_USE_OPENCL
-//TODO - replace with initializeThreadData
-int HyPerLayer::initializeThreads()
+/**
+ * Initialize OpenCL buffers.  This must be called after PVLayer data have
+ * been allocated.
+ */
+int HyPerLayer::initializeThreadBuffers()
 {
-   int status = 0;
+   int status = CL_SUCCESS;
 
    const size_t size    = clayer->numNeurons  * sizeof(pvdata_t);
    const size_t size_ex = clayer->numExtended * sizeof(pvdata_t);
@@ -118,14 +138,54 @@ int HyPerLayer::initializeThreads()
    // these buffers are shared between host and device
    //
    clBuffers.V    = device->createBuffer(size, clayer->V);
+   clBuffers.Vth  = device->createBuffer(size, clayer->Vth);
    clBuffers.G_E  = device->createBuffer(size, clayer->G_E);
    clBuffers.G_I  = device->createBuffer(size, clayer->G_I);
    clBuffers.G_IB = device->createBuffer(size, clayer->G_IB);
 
    // collects all three phi buffers; hopefully will go away
-   clBuffers.phi  = device->createBuffer(3*size, clayer->V);
+   clBuffers.phi  = device->createBuffer(clayer->numPhis*size, clayer->phi[0]);
 
    clBuffers.activity = device->createBuffer(size_ex, clayer->activity->data);
+   clBuffers.prevActivity = device->createBuffer(size_ex, clayer->prevActivity);
+
+   return status;
+}
+
+int HyPerLayer::initializeThreadData()
+{
+   int status = CL_SUCCESS;
+   const int numNeurons  = clayer->numNeurons;
+   const int numExtended = clayer->numExtended;
+
+   // map memory so host can write to it
+   //
+   pvdata_t * d_V   = (pvdata_t *) clBuffers.V  ->map(CL_MAP_WRITE);
+   pvdata_t * d_Vth = (pvdata_t *) clBuffers.Vth->map(CL_MAP_WRITE);
+   pvdata_t * d_phi = (pvdata_t *) clBuffers.phi->map(CL_MAP_WRITE);
+   pvdata_t * d_prevActivity = (pvdata_t *) clBuffers.prevActivity->map(CL_MAP_WRITE);
+
+   // initialize memory
+   //
+   for (int k = 0; k < numNeurons; k++){
+      d_V[k]   = V_REST;
+      d_Vth[k] = VTH_REST;
+   }
+
+   for (int k = 0; k < 2*numNeurons; k++){
+      d_phi[k] = 0.0f;
+   }
+
+   for (int k = 0; k < numExtended; k++) {
+      d_prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
+   }
+
+   // return memory usage to device
+   //
+   status |= clBuffers.V->unmap();
+   status |= clBuffers.Vth->unmap();
+   status != clBuffers.phi->unmap();
+   status |= clBuffers.prevActivity->unmap();
 
    return status;
 }
@@ -147,26 +207,38 @@ int HyPerLayer::initializeLayerId(int layerId)
    return 0;
 }
 
-int HyPerLayer::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
+#ifdef DEPRECATED
+int HyPerLayer::initializeGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
 {
    char filename[PV_PATH_MAX];
    bool append = false;
+   int status = 0;
 
    sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
-   return pvlayer_initGlobal(clayer, colId, colRow, colCol, nRows, nCols);
+#ifdef DEPRECATED
+   status = pvlayer_initGlobal(clayer, colId, colRow, colCol, nRows, nCols);
+#endif
+
+   initializeThreadBuffers();
+
+   return status;
 }
+#endif // DEPRECATED
 
 int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
 {
-   setLayerId(layerId);
+   clayer->columnId = parent->columnId();
+   initializeLayerId(layerId);
 
+#ifdef DEPRECATED
    // complete initialization now that we have a parent and a communicator
    // WARNING - this must be done before addPublisher is called
    int id = parent->columnId();
-   initGlobal(id, comm->commRow(), comm->commColumn(),
-                  comm->numCommRows(), comm->numCommColumns());
+   initializeGlobal(id, comm->commRow(), comm->commColumn(),
+                        comm->numCommRows(), comm->numCommColumns());
+#endif // DEPRECATED
 
    comm->addPublisher(this, clayer->activity->numItems, MAX_F_DELAY);
 
