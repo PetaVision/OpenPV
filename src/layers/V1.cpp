@@ -21,7 +21,7 @@
 namespace PV
 {
 
-V1Params V1DefaultParams =
+LIFParams LIFDefaultParams =
 {
     V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
     TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
@@ -34,7 +34,7 @@ V1Params V1DefaultParams =
 V1::V1(const char* name, HyPerCol * hc)
   : HyPerLayer(name, hc)
 {
-   initialize(TypeV1Simple);
+   initialize(TypeLIFSimple);
 }
 
 V1::V1(const char* name, HyPerCol * hc, PVLayerType type)
@@ -47,7 +47,7 @@ int V1::initialize(PVLayerType type)
 {
    float time = 0.0f;
 
-   setParams(parent->parameters(), &V1DefaultParams);
+   setParams(parent->parameters(), &LIFDefaultParams);
 
    pvlayer_setFuncs(clayer, (INIT_FN) &LIF2_init, (UPDATE_FN) &LIF2_update_exact_linear);
    this->clayer->layerType = type;
@@ -89,7 +89,7 @@ int V1::initialize(PVLayerType type)
    return 0;
 }
 
-int V1::setParams(PVParams * params, V1Params * p)
+int V1::setParams(PVParams * params, LIFParams * p)
 {
    float dt = .001 * parent->getDeltaTime();  // seconds
 
@@ -100,7 +100,7 @@ int V1::setParams(PVParams * params, V1Params * p)
    clayer->numParams = sizeof(*p) / sizeof(float);
    assert(clayer->numParams == 17);
 
-   V1Params * cp = (V1Params *) clayer->params;
+   LIFParams * cp = (LIFParams *) clayer->params;
 
    if (params->present(name, "Vrest")) cp->Vrest = params->value(name, "Vrest");
    if (params->present(name, "Vexc"))  cp->Vexc  = params->value(name, "Vexc");
