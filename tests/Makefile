@@ -162,7 +162,7 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_patch_head ..."
 	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
 	@echo "Running test_post_weights ..."
-	@if ./test_post_weights -p input/params.test; then echo "test_post_weights passed."; else echo "test_nearby_neighbor failed."; fi
+	@if ./test_post_weights -p input/params.test; then echo "test_post_weights passed."; else echo "test_post_weights failed."; fi
 	@echo "Running test_gauss2d ..."
 	@if ./test_gauss2d -p input/params.test; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
 	@echo "Running test_cocirc ..."
@@ -170,7 +170,7 @@ runtests: make-in-subdirs $(TESTS)
 #	@echo "Running test_pos ..."
 #	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos failed."; fi
 	@echo "Running test_delta_pos ..."
-	@if ./test_delta_pos; then echo "test_delta_pos passed."; else echo "test_pos failed."; fi
+	@if ./test_delta_pos; then echo "test_delta_pos passed."; else echo "test_delta_pos failed."; fi
 	@echo "Running test_extend_border ..."
 	@if ./test_extend_border; then echo "test_extend_border passed."; else echo "test_extend_border failed."; fi
 	@echo "Running test_patch_head ..."
