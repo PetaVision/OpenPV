@@ -36,24 +36,6 @@ Retina::Retina(const char * name, HyPerCol * hc)
    initialize(TypeRetina);
 }
 
-#ifdef OBSOLETE
-Retina::Retina(const char * name, HyPerCol * hc, Image * img)
-  : HyPerLayer(name, hc)
-{
-   this->img = img;
-   initialize(TypeRetina);
-}
-#endif
-
-#ifdef OBSOLETE
-Retina::Retina(const char * name, HyPerCol * hc, const char * filename)
-  : HyPerLayer(name, hc)
-{
-   this->img = new Image("Image", hc, filename);
-   initialize(TypeRetina);
-}
-#endif
-
 int Retina::initialize(PVLayerType type)
 {
    int status = 0;
@@ -122,9 +104,83 @@ int Retina::initialize(PVLayerType type)
    }
 #endif
 
+#ifdef PV_USE_OPENCL
+   initializeThreadBuffers();
+   initializeThreadData();
+   initializeThreadKernels();
+#endif
+
    return status;
 }
-//!
+
+#ifdef PV_USE_OPENCL
+int Retina::initializeThreadData()
+{
+   int status = CL_SUCCESS;
+   const int numNeurons  = clayer->numNeurons;
+   const int numExtended = clayer->numExtended;
+
+   // map memory so host can write to it
+   //
+   pvdata_t * d_phi = (pvdata_t *) clBuffers.phi->map(CL_MAP_WRITE);
+   pvdata_t * d_activity = (pvdata_t *) clBuffers.activity->map(CL_MAP_WRITE);
+   pvdata_t * d_prevActivity = (pvdata_t *) clBuffers.prevActivity->map(CL_MAP_WRITE);
+
+   // initialize memory
+   //
+   for (int k = 0; k < clayer->numPhis*numNeurons; k++) {
+      d_phi[k] = 0.0f;
+   }
+
+   for (int k = 0; k < numExtended; k++) {
+      d_activity[k] = 0.0f;
+      d_prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
+   }
+
+   // return memory usage to device
+   //
+   status != clBuffers.phi->unmap();
+   status |= clBuffers.activity->unmap();
+   status |= clBuffers.prevActivity->unmap();
+
+   return status;
+}
+
+int Retina::initializeThreadKernels()
+{
+   int status = CL_SUCCESS;
+
+   fileread_params * params = (fileread_params *) clayer->params;
+
+   const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
+   const float probBase = params->poissonBlankProb;
+
+   // create kernels
+   //
+   updatestate_kernel = parent->getCLDevice()->createKernel("retina_updatestate.cl", "update_state");
+
+   int argid = 0;
+
+   status |= updatestate_kernel->setKernelArg(argid++, 0.0f); // time (changed by updateState)
+   status |= updatestate_kernel->setKernelArg(argid++, 1.0f); // dt (changed by updateState)
+
+   status |= updatestate_kernel->setKernelArg(argid++, probStim);
+   status |= updatestate_kernel->setKernelArg(argid++, probBase);
+
+   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nx);
+   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.ny);
+   status |= updatestate_kernel->setKernelArg(argid++, clayer->numFeatures);
+   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nPad);
+
+   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.phi);
+   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.activity);
+   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.prevActivity);
+
+   return status;
+}
+#endif
+
+//! Sets the V data buffer
 /*!
  *
  * dt is in seconds here!
@@ -284,6 +340,32 @@ int Retina::updateImage(float time, float dt)
 }
 #endif
 
+#ifdef PV_USE_OPENCL
+int Retina::updateStateOpenCL(float time, float dt)
+{
+   int status = CL_SUCCESS;
+   update_timer->start();
+
+   // threads are run over extended space because activity is updated
+   //
+   const int nx_ex = clayer->loc.nx + 2*clayer->loc.nPad;
+   const int ny_ex = clayer->loc.ny + 2*clayer->loc.nPad;
+
+   // assume only time changes
+   //
+   status |= updatestate_kernel->setKernelArg(0, time);
+
+   //TODO
+   nxl = 16;
+   nyl = 16;
+
+   updatestate_kernel->run(nx_ex, ny_ex, nxl, nyl);
+
+   update_timer->stop();
+   return status;
+}
+#endif
+
 //! Updates the state of the Retina
 /*!
  * REMARKS:
@@ -307,6 +389,15 @@ int Retina::updateImage(float time, float dt)
  */
 int Retina::updateState(float time, float dt)
 {
+#define TIME_OPENCL
+
+#ifdef TIME_OPENCL
+#ifdef PV_USE_OPENCL
+   updateStateOpenCL(time, dt);
+#endif
+#else
+   update_timer->start();
+
    float probSpike = 0.0;
    fileread_params * params = (fileread_params *) clayer->params;
 
@@ -320,11 +411,6 @@ int Retina::updateState(float time, float dt)
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
    const int marginWidth = clayer->loc.nPad;
-
-   #ifdef OBSOLETE
-// should no longer need this as retina gets input from connection
-//   updateImage(time, dt);
-#endif OBSOLETE
 
    int numActive = 0;
    if (params->spikingFlag == 1) {
@@ -378,11 +464,21 @@ int Retina::updateState(float time, float dt)
       }
    }
    clayer->numActive = numActive;
+   update_timer->stop();
+
+#endif
 
 #ifdef DEBUG_PRINT
    char filename[132];
    sprintf(filename, "r_%d.tiff", (int)(2*time));
    this->writeActivity(filename, time);
+
+   printf("----------------\n");
+   for (int k = 0; k < 6; k++) {
+      printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
+   }
+   printf("----------------\n");
+
 #endif
 
    return 0;
