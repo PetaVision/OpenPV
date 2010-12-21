@@ -152,41 +152,41 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_kg ..."
-	@./test_kg
+	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg failed."; fi
 	@echo "Running test_kxpos ..."
-	@./test_kxpos
+	@if ./test_kxpos; then echo "test_kxpos passed."; else echo "test_kxpos failed."; fi
 	@echo "Running test_kypos ..."
-	@./test_kypos
+	@if ./test_kypos; then echo "test_kypos passed."; else echo "test_kypos failed."; fi
 	@echo "Running test_nearby_neighbor ..."
-	@./test_nearby_neighbor
+	@if ./test_nearby_neighbor; then echo "test_nearby_neighbor passed."; else echo "test_nearby_neighbor failed."; fi
 	@echo "Running test_patch_head ..."
-	@./test_patch_head
+	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
 	@echo "Running test_post_weights ..."
-	@./test_post_weights -p input/params.test
+	@if ./test_post_weights -p input/params.test; then echo "test_post_weights passed."; else echo "test_nearby_neighbor failed."; fi
 	@echo "Running test_gauss2d ..."
-	@./test_gauss2d -p input/params.test
+	@if ./test_gauss2d -p input/params.test; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
 	@echo "Running test_cocirc ..."
-	@./test_cocirc -p input/params.test
+	@if ./test_cocirc -p input/params.test; then echo "test_cocirc passed."; else echo "test_cocirc failed."; fi
 #	@echo "Running test_pos ..."
-#	@test_pos
+#	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos failed."; fi
 	@echo "Running test_delta_pos ..."
-	@./test_delta_pos
+	@if ./test_delta_pos; then echo "test_delta_pos passed."; else echo "test_pos failed."; fi
 	@echo "Running test_extend_border ..."
-	@./test_extend_border
+	@if ./test_extend_border; then echo "test_extend_border passed."; else echo "test_extend_border failed."; fi
 	@echo "Running test_patch_head ..."
-	@./test_patch_head
+	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
 	@echo "Running test_delta ..."
-	@./test_delta
+	@if ./test_delta; then echo "test_delta passed."; else echo "test_delta failed."; fi
 	@echo "Running test_sign ..."
-	@./test_sign
+	@if ./test_sign; then echo "test_sign passed."; else echo "test_sign failed."; fi
 	@echo "Running test_mirror_BCs ..."
-	@./test_mirror_BCs -p $(INPARAMS)
+	@if ./test_mirror_BCs -p $(INPARAMS); then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
-	@./test_border_activity -p $(INPARAMS)
-	@echo "Running test_constant_input with 1 node ..."
-	@./test_constant_input -p $(INPARAMS)
+	@if ./test_border_activity -p $(INPARAMS); then echo "test_border_activity passed."; else echo "test_border_activity failed"; fi
+#	@echo "Running test_constant_input with 1 node ..."
+#	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 #	@echo "Running test_borders ..."
-#	@test_borders -p $(INPARAMS)
+#	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
