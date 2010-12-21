@@ -26,18 +26,14 @@ public:
    LIF(const char* name, HyPerCol * hc, PVLayerType type);
 
    virtual int updateState(float time, float dt);
+#ifdef PV_USE_OPENCL
    virtual int updateStateOpenCL(float time, float dt);
+#endif
    virtual int writeState(const char * path, float time);
 
    int setParams(PVParams * params, LIFParams * p);
 
 protected:
-   // OpenCL variables
-   //
-   CLKernel * updatestate_kernel;  // CL kernel for update state call
-
-   int nxl;  // local grid size in x
-   int nyl;  // local grid size in y
 
    virtual int updateV();
    virtual int setActivity();
