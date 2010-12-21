@@ -60,6 +60,7 @@ int LIF::initialize(PVLayerType type)
 
    // initialize OpenCL parameters
    //
+#ifdef PV_USE_OPENCL
    CLDevice * device = parent->getCLDevice();
    updatestate_kernel = device->createKernel("LIF_updatestate.cl", "LIF_updatestate.cl");
 
@@ -85,6 +86,7 @@ int LIF::initialize(PVLayerType type)
 
    int argid = 0;
    updatestate_kernel->setKernelArg(argid++, clBuffers.V);
+#endif
 
    return 0;
 }
@@ -136,6 +138,7 @@ int LIF::setParams(PVParams * params,  LIFParams * p)
    return 0;
 }
 
+#ifdef PV_USE_OPENCL
 int LIF::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
@@ -153,7 +156,7 @@ int LIF::updateStateOpenCL(float time, float dt)
 
    return status;
 }
-
+#endif
 
 int LIF::updateState(float time, float dt)
 {
