@@ -16,7 +16,7 @@ namespace PV
 {
 
 // by default uses LIF2 parameters
-typedef LIF2_params V1Params;
+typedef LIF2_params LIFParams;
 
 class V1: public PV::HyPerLayer
 {
@@ -28,7 +28,7 @@ public:
    virtual int updateStateOpenCL(float time, float dt);
    virtual int writeState(const char * path, float time);
 
-   int setParams(PVParams * params, V1Params * p);
+   int setParams(PVParams * params, LIFParams * p);
 
 protected:
    // OpenCL variables
