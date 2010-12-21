@@ -58,6 +58,7 @@ int V1::initialize(PVLayerType type)
       readState(name, &time);
    }
 
+#ifdef PV_USE_OPENCL
    // initialize OpenCL parameters
    //
    CLDevice * device = parent->getCLDevice();
@@ -85,6 +86,7 @@ int V1::initialize(PVLayerType type)
 
    int argid = 0;
    updatestate_kernel->setKernelArg(argid++, clBuffers.V);
+#endif
 
    return 0;
 }
@@ -136,6 +138,7 @@ int V1::setParams(PVParams * params, LIFParams * p)
    return 0;
 }
 
+#ifdef PV_USE_OPENCL
 int V1::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
@@ -153,7 +156,7 @@ int V1::updateStateOpenCL(float time, float dt)
 
    return status;
 }
-
+#endif
 
 int V1::updateState(float time, float dt)
 {
