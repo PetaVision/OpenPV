@@ -169,7 +169,7 @@ bool Bars::updateImage(float time, float dt)
 
       for (int iy = 0; iy < ny; iy++) {
          for (int ix = position; ix < nx + position - width - step; ix += width + step) {
-            x = (int) fmod(ix, nx);
+            x = ix % nx;
             for (int m = 0; m < width; m++) {
                data[(x + m) * sx + iy * sy] = 255.0;
             }
@@ -192,7 +192,7 @@ bool Bars::updateImage(float time, float dt)
 
       for (int ix = 0; ix < nx; ix++) {
          for (int iy = position; iy < ny + position - width - step; iy += width + step) {
-            y = (int) fmod(iy, ny);
+            y = iy % ny;
             for (int m = 0; m < width; m++) {
                data[ix * sx + (y + m) * sy] = 255.0;
             }
