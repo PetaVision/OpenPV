@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 namespace PV {
 
@@ -36,7 +37,11 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
 
 
    fp = fopen(fileOfFileNames, "r");
-   assert(fp != NULL);
+   if( fp == NULL ) {
+      fprintf(stderr, "Unable to open %s\n", fileOfFileNames);
+      fprintf(stderr, "Error code %d\n", errno);
+      exit(EXIT_FAILURE);
+   }
 
    filename = strdup(getNextFileName());
    assert(filename != NULL);
