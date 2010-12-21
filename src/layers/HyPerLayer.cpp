@@ -104,6 +104,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    return 0;
 }
 
+#ifdef PV_USE_OPENCL
+//TODO - replace with initializeThreadData
 int HyPerLayer::initializeThreads()
 {
    int status = 0;
@@ -127,75 +129,23 @@ int HyPerLayer::initializeThreads()
 
    return status;
 }
-
-#ifdef DEPRECATED
-// deprecated:: border cubes no longer used
-PVLayerCube * HyPerLayer::initBorder(PVLayerCube * borderCube, int borderId)
-{
-   // TODO - this uses clayer nxGlobal and nyGlobal
-   // TODO - is this correct, kx0 or ky0 < 0
-   // TODO - does global patch need to expand to take into account border regions (probably)
-
-   PVLayerLoc loc = clayer->loc;
-
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
-
-   switch (borderId) {
-   case NORTHWEST:
-      loc.nx = nxBorder;
-      loc.ny = nyBorder;
-      loc.kx0 = clayer->loc.kx0 - nxBorder;
-      loc.ky0 = clayer->loc.ky0 - nyBorder;
-      break;
-   case NORTH:
-      loc.ny = nyBorder;
-      loc.ky0 = clayer->loc.ky0 - nyBorder;
-      break;
-   case NORTHEAST:
-      loc.nx = nxBorder;
-      loc.ny = nyBorder;
-      loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
-      loc.ky0 = clayer->loc.ky0 - nyBorder;
-      break;
-   case WEST:
-      loc.nx = nxBorder;
-      loc.kx0 = clayer->loc.kx0 - nxBorder;
-      break;
-   case EAST:
-      loc.nx = nxBorder;
-      loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
-      break;
-   case SOUTHWEST:
-      loc.nx = nxBorder;
-      loc.ny = nyBorder;
-      loc.kx0 = clayer->loc.kx0 - nxBorder;
-      loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
-      break;
-   case SOUTH:
-      loc.ny = nyBorder;
-      loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
-      break;
-   case SOUTHEAST:
-      loc.nx = nxBorder;
-      loc.ny = nyBorder;
-      loc.kx0 = clayer->loc.kx0 + clayer->loc.nx;
-      loc.ky0 = clayer->loc.ky0 + clayer->loc.ny;
-      break;
-   default:
-      fprintf(stderr, "ERROR:HyPerLayer:initBorder: bad border index %d\n", borderId);
-   }
-
-   if (borderCube == NULL)  {
-      borderCube = pvcube_new(&loc, loc.nx * loc.ny * clayer->numFeatures);
-   }
-   else {
-      borderCube = pvcube_init(borderCube, &loc, loc.nx * loc.ny * clayer->numFeatures);
-   }
-
-   return borderCube;
-}
 #endif
+
+/**
+ * Initialize a few things that require a layer id
+ */
+int HyPerLayer::initializeLayerId(int layerId)
+{
+   char filename[PV_PATH_MAX];
+   bool append = false;
+
+   setLayerId(layerId);
+
+   sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
+   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+
+   return 0;
+}
 
 int HyPerLayer::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
 {
