@@ -17,13 +17,13 @@ typedef enum {
    TypeImage,
    TypeRetina,
    TypeSimple,
-   TypeV1Simple,
-   TypeV1Simple2,
-   TypeV1FlankInhib,
-   TypeV1FeedbackInhib,
-   TypeV1Feedback2Inhib,
-   TypeV1SurroundInhib,
-   TypeV1Geisler
+   TypeLIFSimple,
+   TypeLIFSimple2,
+   TypeLIFFlankInhib,
+   TypeLIFFeedbackInhib,
+   TypeLIFFeedback2Inhib,
+   TypeLIFSurroundInhib,
+   TypeLIFGeisler
 } PVLayerType;
 
 /**
@@ -41,7 +41,7 @@ typedef struct PVLayer_ {
    FILE         * activeFP;       // file of sparse activity
 
    // TODO - deprecate?
-   PVLayerType layerType;  // the type/subtype of the layer (ie, Type_V1Simple2)
+   PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)
 
    PVLayerLoc loc;
    int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
