@@ -4,9 +4,10 @@
 #include <math.h>
 
 /*
- * The preferred patch size is even for a != 1 and odd for a == 1
+ * The preferred patch size is even for a > 1 and odd for a <= 1
  */
 
+// not used, zPatchHead called directly instead
 int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
 {
    int shift;

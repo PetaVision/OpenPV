@@ -80,7 +80,7 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 				const char * cKernel_filename = "gauss2d_kernel.txt";
 				cKernel->writeTextWeights(cKernel_filename, kPre);
 			}
-			assert(test_cond <= 0.001f);
+			assert(fabs(test_cond) <= 0.001f);
 		}
 		// advance pointers in y
 		hyperWeights += sy;

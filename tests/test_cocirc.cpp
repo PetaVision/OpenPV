@@ -81,7 +81,7 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 				const char * cKernel_filename = "cocirc_cocirc.txt";
 				cKernel->writeTextWeights(cKernel_filename, kPre);
 			}
-			assert(test_cond <= 0.001f);
+			assert(fabs(test_cond) <= 0.001f);
 		}
 		// advance pointers in y
 		hyperWeights += sy;
