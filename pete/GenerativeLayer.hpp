@@ -20,14 +20,17 @@ public:
     int initialize();
 
     pvdata_t getRelaxation() {return relaxation;}
+    pvdata_t getActivityThreshold() { return activityThreshold; }
     virtual pvdata_t sparsityterm(pvdata_t v) { return logf(1+v*v);}
     virtual pvdata_t sparsitytermderivative(pvdata_t v) { return 2.0*v/(1+v*v); }
 
 protected:
     int updateV();
+    int setActivity();
 
 private:
     pvdata_t relaxation; // V(new) = V(old) - relaxation*(gradient wrt V)
+    pvdata_t activityThreshold;
 };
 
 }  // end namespace PV block
