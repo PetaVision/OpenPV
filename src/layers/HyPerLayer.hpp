@@ -16,8 +16,11 @@
 #include "../columns/InterColComm.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../include/pv_types.h"
+#include "../utils/Timer.hpp"
 
-#include "../arch/opencl/CLBuffer.hpp"
+#ifdef PV_USE_OPENCL
+#include "../arch/opencl/CLKernel.hpp"
+#endif
 
 namespace PV {
 
@@ -27,14 +30,18 @@ typedef LIF2_params HyPerLayerParams;
 /**
  * OpenCLLayer collects memory objects for sharing data with OpenCL devices
  */
+#ifdef PV_USE_OPENCL
 typedef struct {
    CLBuffer * V;
+   CLBuffer * Vth;
    CLBuffer * G_E;
    CLBuffer * G_I;
    CLBuffer * G_IB;
    CLBuffer * phi;   // collects all three phi buffers and hopefully will go away
    CLBuffer * activity;
+   CLBuffer * prevActivity;
 } OpenCLLayer;
+#endif
 
 
 class HyPerLayer : public LayerDataInterface {
@@ -44,9 +51,16 @@ protected:
    // only subclasses can be constructed directly
    HyPerLayer(const char * name, HyPerCol * hc);
 
+   virtual int initializeLayerId(int layerId);
+
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadBuffers();
+   virtual int initializeThreadData() = 0;
+   virtual int initializeThreadKernels() = 0;
+#endif
+
 private:
    int initialize_base(const char * name, HyPerCol * hc);
-   int initializeThreads();
 
 public:
 
@@ -76,7 +90,9 @@ public:
    int initialize(PVLayerType type);
    int initFinish();
 
+#ifdef DEPRECATED
    PVLayerCube * initBorder(PVLayerCube * border, int borderId);
+#endif
 
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
@@ -141,6 +157,7 @@ public:
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:
+// TODO - make this obsolete
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
 
    char * name;  // well known name of layer
@@ -154,7 +171,17 @@ protected:
    float writeTime;             // time of next output
    float writeStep;             // output time interval
 
-   OpenCLLayer clBuffers;       // data shared with OpenCL devices
+   // OpenCL variables
+   //
+#ifdef PV_USE_OPENCL
+   OpenCLLayer clBuffers;          // data shared with OpenCL devices
+   CLKernel * updatestate_kernel;  // CL kernel for update state call
+
+   int nxl;  // local OpenCL grid size in x
+   int nyl;  // local OpenCL grid size in y
+#endif
+
+   Timer * update_timer;
 };
 
 } // namespace PV
