@@ -157,8 +157,9 @@ public:
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:
-// TODO - make this obsolete
+#ifdef OBSOLETE
    virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
+#endif
 
    char * name;  // well known name of layer
 
