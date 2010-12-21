@@ -109,7 +109,7 @@ public:
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
                           float r2Max, float strength);
 
-   int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
+   virtual int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
          float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
          float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
          float aspect, float rotate, float sigma, float r2Max, float strength);

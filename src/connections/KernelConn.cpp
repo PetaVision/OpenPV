@@ -164,12 +164,24 @@ int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFla
                                    float r2Max, float strength)
 {
    int kPatch;
-   kPatch = patchIndexToKernelIndex(kKernel);
+   kPatch = kernelIndexToPatchIndex(kKernel);
    return HyPerConn::gauss2DCalcWeights(wp, kPatch, no, numFlanks,
                                         shift, rotate, aspect, sigma, r2Max, strength);
 }
 
-PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
+int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPost,
+      float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
+      float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
+      float aspect, float rotate, float sigma, float r2Max, float strength)
+{
+   int kPatch;
+   kPatch = kernelIndexToPatchIndex(kKernel);
+   return HyPerConn::cocircCalcWeights(wp, kPatch, noPre, noPost, sigma_cocirc,
+         sigma_kurve, sigma_chord, delta_theta_max, cocirc_self, delta_radius_curvature,
+         numFlanks, shift, aspect, rotate, sigma, r2Max, strength);
+}
+
+   PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);

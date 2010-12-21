@@ -297,7 +297,9 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
    else {
       initializeDefaultWeights(patches, numPatches);
-      normalizeWeights(patches, numPatches);
+      if (normalize_flag) {
+         normalizeWeights(patches, numPatches);
+      }
       return patches;
    }
 }
@@ -1500,12 +1502,12 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    const int nyPatch_tmp = wp_tmp->ny;
    const int nfPatch_tmp = wp_tmp->nf;
    int kxKernelIndex;
-   int kyKerneIndex;
+   int kyKernelIndex;
    int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
+   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
 
    const int kxPre_tmp = kxKernelIndex;
-   const int kyPre_tmp = kyKerneIndex;
+   const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = wp_tmp->sx;
    assert(sx_tmp == wp_tmp->nf);
@@ -2158,6 +2160,7 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
       int * kyPatchIndex, int * kfPatchIndex)
 {
    int patchIndex;
+   // get size of kernel PV cube
    int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
          post->getXScale() - pre->getXScale()) : 1;
    int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
