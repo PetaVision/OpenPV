@@ -248,6 +248,9 @@ int HyPerCol::run(int nTimeSteps)
       runDelegate->run(simTime, stopTime);
    }
 
+#ifdef TIMER_ON
+      start_clock();
+#endif
    // time loop
    //
    while (simTime < stopTime) {
