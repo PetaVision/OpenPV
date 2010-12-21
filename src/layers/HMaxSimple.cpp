@@ -6,6 +6,7 @@
  */
 
 #include "HMaxSimple.hpp"
+#include "../connections/KernelConn.hpp"
 
 namespace PV {
 
