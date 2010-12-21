@@ -29,16 +29,32 @@ PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
    return l;
 }
 
+/**
+ * Initialize layer data.  This originally did not allocate layer data.  However,
+ * now the size of the layer (nx,ny) is known at initialization time so allocation
+ * has been moved here (functionality of initGlobal) and integrated with OpenCL
+ * buffers.
+ */
 int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
 {
+   int k, m;
+
    const int nx = loc.nx;
    const int ny = loc.ny;
+
+   const int numFeatures = loc.nBands;
+   const int numNeurons  = nx * ny * numFeatures;
+   const int numExtended = (nx + 2*loc.nPad) * (ny + 2*loc.nPad) * numFeatures;
+
+   l->columnId = 0;
 
    l->layerId = -1; // the hypercolumn will set this
    l->numDelayLevels = MAX_F_DELAY;
 
    l->loc = loc;
-   l->numFeatures = loc.nBands;
+   l->numFeatures = numFeatures;
+   l->numNeurons  = numNeurons;
+   l->numExtended = numExtended;
 
    l->xScale = xScale;
    l->yScale = yScale;
@@ -46,32 +62,76 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
    l->dx = powf(2.0f, (float) xScale);
    l->dy = powf(2.0f, (float) yScale);
 
-   l->numNeurons  = nx * ny * l->numFeatures;
-   l->numExtended = (nx + 2*loc.nPad) * (ny + 2*loc.nPad) * l->numFeatures;
-
-   l->xOrigin = 0.5;
-   l->yOrigin = 0.5;
-
-   l->columnId = 0;
+   l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
+   l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
 
    l->numParams = 0;
    l->params = NULL;
 
-   l->initFunc = NULL;
-   l->updateFunc = NULL;
-
-   l->activity = NULL;
+   l->numPhis = NUM_CHANNELS;
 
    l->numActive = 0;
    l->activeFP  = NULL;
+
+   l->initFunc = NULL;
+   l->updateFunc = NULL;
+
+   l->activity = pvcube_new(&l->loc, numExtended);
+   l->prevActivity = (float *) calloc(numExtended, sizeof(float));
+
+   // make a G (variable conductance) for each phi
+   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
+   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
+
+   assert(l->G   != NULL);
+   assert(l->phi != NULL);
+
+   l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
+   l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
+
+   assert(l->G[0]   != NULL);
+   assert(l->phi[0] != NULL);
+
+   for (m = 1; m < l->numPhis; m++) {
+      l->G[m]   = l->G[0]   + m * numNeurons;
+      l->phi[m] = l->phi[0] + m * numNeurons;
+   }
+
+   l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   l->Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+
+   assert(l->V != NULL);
+   assert(l->Vth != NULL);
+
+   l->G_E  = l->G[PHI_EXC];
+   l->G_I  = l->G[PHI_INH];
+   l->G_IB = l->G[PHI_INHB];
+
+   // TODO - does this need to be added to device memory?
+   //
    l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
    assert(l->activeIndices != NULL);
 
-   l->numPhis = NUM_CHANNELS;
+#ifdef DEPRECATED
+   // initialize allocated memory
+   //
+   for (k = 0; k < numExtended; k++) {
+      l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
+   }
+
+   for (k = 0; k < numNeurons; k++){
+      l->V[k] = V_REST;
+   }
+
+   for (k = 0; k < numNeurons; k++){
+      l->Vth[k] = VTH_REST;
+   }
+#endif // DEPRECATED
 
    return 0;
 }
 
+#ifdef DEPRECATED
 /**
  * Finish initialization with global parameters (multiple hypercolumns)
  */
@@ -83,19 +143,19 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
 
    l->columnId = colId;
 
-////////////////
-// Assume loc parameters are already set as HyPerCol comes up
-//
-//   l->loc.nx = l->loc.nx / nCols;
-//   l->loc.ny = l->loc.ny / nRows;
-//   l->loc.kx0 = l->loc.nx * colCol;
-//   l->loc.ky0 = l->loc.ny * colRow;
-//
-//   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
-//   if (l->numNeurons * nCols * nRows != ntotal) {
-//      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
-//             colId, (int)l->loc.nx, (int)l->loc.ny);
-//   }
+   ////////////////
+   // Assume loc parameters are already set as HyPerCol comes up
+   //
+   //   l->loc.nx = l->loc.nx / nCols;
+   //   l->loc.ny = l->loc.ny / nRows;
+   //   l->loc.kx0 = l->loc.nx * colCol;
+   //   l->loc.ky0 = l->loc.ny * colRow;
+   //
+   //   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
+   //   if (l->numNeurons * nCols * nRows != ntotal) {
+   //      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
+   //             colId, (int)l->loc.nx, (int)l->loc.ny);
+   //   }
 
    l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
    l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
@@ -125,17 +185,16 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
       l->phi[m] = l->phi[0] + m * numNeurons;
    }
 
-   l->V    = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(l->V   != NULL);
+   l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(l->V != NULL);
    for (k = 0; k < l->numNeurons; k++){
       l->V[k] = V_REST;
    }
-   l->Vth  = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   l->Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(l->Vth != NULL);
    for (k = 0; k < l->numNeurons; k++){
       l->Vth[k] = VTH_REST;
    }
-
 
    l->G_E  = l->G[PHI_EXC];
    l->G_I  = l->G[PHI_INH];
@@ -143,6 +202,7 @@ int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows
 
    return 0;
 }
+#endif // DEPRECATED
 
 int pvlayer_initFinish(PVLayer * l)
 {  int err = 0;
