@@ -37,11 +37,13 @@ int main(int argc, char * argv[])
    Example   * l3 = new Example("test_post_weights L3", hc);
    HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, CHANNEL_EXC);
    HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, CHANNEL_EXC);
+   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, CHANNEL_EXC);
 
    // set weights to be k index source in pre-synaptic layer
    //
    status = set_weights_to_source_index(c1);
    status = set_weights_to_source_index(c2);
+   status = set_weights_to_source_index(c3);
 
    postWeights = c1->convertPreSynapticWeights(0.0f);
    status = check_weights(c1, postWeights);
@@ -49,6 +51,10 @@ int main(int argc, char * argv[])
 
    postWeights = c2->convertPreSynapticWeights(0.0f);
    status = check_weights(c2, postWeights);
+   if (status) return status;
+
+   postWeights = c3->convertPreSynapticWeights(0.0f);
+   status = check_weights(c3, postWeights);
    if (status) return status;
 
 #ifdef DEBUG_PRING
