@@ -132,6 +132,9 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights)
                   status = -1;
                   fprintf(stderr, "ERROR: check_weights: kPost==%d kPre==%d kp==%d != w==%d\n",
                           kPost, kPre, kp, (int) w[kp-1]);
+                  fprintf(stderr, "    nxp==%d nyp==%d nfp==%d\n", nxp, nyp, nfp);
+                  const char * filename = "post_weights.txt";
+                  c->writeTextWeights(filename, kPre);
                   return status;
                }
             }
