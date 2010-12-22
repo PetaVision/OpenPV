@@ -47,6 +47,9 @@ HyPerConn "Test Connection" = {
    gaussWeightScale = 1.0;
 };
 
+
+
+
 //
 // This section defines parameters for test_post_weights
 //
@@ -71,7 +74,7 @@ HyPerLayer "test_post_weights L2" = {
 HyPerLayer "test_post_weights L3" = {
    nxScale = 2;
    nyScale = 2;
-   marginWidth = 0;
+   marginWidth = 4;
 };
 
 HyPerConn "test_post_weights L1 to L1" = {
@@ -79,10 +82,14 @@ HyPerConn "test_post_weights L1 to L1" = {
    nyp = 3;
 };
 
+// patch size should be odd number times scale factor
 HyPerConn "test_post_weights L2 to L3" = {
-   nxp = 8;
-   nyp = 8;
+   nxp = 10; //6; //8;
+   nyp = 10; //6; //8;
 };
+
+
+
 
 //
 // This section defines parameters for test_gauss2D
