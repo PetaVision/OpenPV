@@ -33,10 +33,11 @@ public:
    int setParams(PVParams * params, LIFParams * p);
 
 protected:
-   virtual int updateV();
-   virtual int setActivity();
-   virtual int resetPhiBuffers();
-   int resetBuffer(pvdata_t * buf, int numItems);
+
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadData();
+   virtual int initializeThreadKernels();
+#endif
 
 private:
    virtual int initialize(PVLayerType type);
