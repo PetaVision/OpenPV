@@ -38,7 +38,6 @@ PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
 int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
 {
    int k, m;
-
    const int nx = loc.nx;
    const int ny = loc.ny;
 
@@ -112,7 +111,6 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
    l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
    assert(l->activeIndices != NULL);
 
-#ifdef DEPRECATED
    // initialize allocated memory
    //
    for (k = 0; k < numExtended; k++) {
@@ -126,7 +124,6 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
    for (k = 0; k < numNeurons; k++){
       l->Vth[k] = VTH_REST;
    }
-#endif // DEPRECATED
 
    return 0;
 }
