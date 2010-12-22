@@ -88,6 +88,13 @@ HyPerConn "test_post_weights L2 to L3" = {
    nyp = 10; //6; //8;
 };
 
+// patch size should be odd number 
+HyPerConn "test_post_weights L3 to L2" = {
+   nxp = 5; // 1/2 of forward weight patch
+   nyp = 5;
+};
+
+
 
 
 
