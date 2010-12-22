@@ -80,7 +80,11 @@ public:
    PVLayer*  clayer;
    HyPerCol* parent;
 
-   virtual int updateState(float time, float dt) = 0;
+   virtual int updateState(float time, float dt);
+   virtual int updateV();
+   virtual int setActivity();
+   virtual int resetPhiBuffers();
+   int resetBuffer(pvdata_t * buf, int numItems);
 
    virtual int
        recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);

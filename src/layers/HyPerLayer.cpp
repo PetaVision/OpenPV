@@ -473,6 +473,67 @@ int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
    return 0;
 }
 
+int HyPerLayer::updateState(float time, float dt)
+{
+   // just copy accumulation buffer to membrane potential
+   // and activity buffer (nonspiking)
+
+   updateV();
+   setActivity();
+   resetPhiBuffers();
+
+   return 0;
+}
+
+int HyPerLayer::updateV() {
+   pvdata_t * V = getV();
+   pvdata_t ** phi = getCLayer()->phi;
+   pvdata_t * phiExc = phi[PHI_EXC];
+   pvdata_t * phiInh = phi[PHI_INH];
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      V[k] = phiExc[k] - phiInh[k];
+#undef SET_MAX
+#ifdef SET_MAX
+      V[k] = V[k] > 1.0f ? 1.0f : V[k];
+#endif
+#undef SET_THRESH
+#ifdef SET_THRESH
+      V[k] = V[k] < 0.5f ? 0.0f : V[k];
+#endif
+   }
+   return EXIT_SUCCESS;
+}
+
+int HyPerLayer::setActivity() {
+   const int nx = getLayerLoc()->nx;
+   const int ny = getLayerLoc()->ny;
+   const int nf = getCLayer()->numFeatures;
+   const int marginWidth = getLayerLoc()->nPad;
+   pvdata_t * activity = getCLayer()->activity->data;
+   pvdata_t * V = getV();
+   for( int k=0; k<getNumExtended(); k++ ) {
+      activity[k] = 0; // Would it be faster to only do the margins?
+   }
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      int kex = kIndexExtended( k, nx, ny, nf, marginWidth );
+      activity[kex] = V[k];
+   }
+   return EXIT_SUCCESS;
+}
+
+int HyPerLayer::resetPhiBuffers() {
+   pvdata_t ** phi = getCLayer()->phi;
+   int n = getNumNeurons();
+   resetBuffer( phi[PHI_EXC], n );
+   resetBuffer( phi[PHI_INH], n );
+   return EXIT_SUCCESS;
+}
+
+int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
+   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
+   return EXIT_SUCCESS;
+}
+
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
    assert(neighbor >= 0);
