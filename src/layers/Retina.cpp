@@ -389,12 +389,8 @@ int Retina::updateStateOpenCL(float time, float dt)
  */
 int Retina::updateState(float time, float dt)
 {
-#define TIME_OPENCL
-
-#ifdef TIME_OPENCL
 #ifdef PV_USE_OPENCL
    updateStateOpenCL(time, dt);
-#endif
 #else
    update_timer->start();
 
@@ -465,8 +461,7 @@ int Retina::updateState(float time, float dt)
    }
    clayer->numActive = numActive;
    update_timer->stop();
-
-#endif
+#endif // PV_USE_OPENCL
 
 #ifdef DEBUG_PRINT
    char filename[132];
@@ -478,7 +473,6 @@ int Retina::updateState(float time, float dt)
       printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
    }
    printf("----------------\n");
-
 #endif
 
    return 0;
