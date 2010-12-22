@@ -1078,9 +1078,10 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const float powXScale = powf(2.0f, (float) xScale);
    const float powYScale = powf(2.0f, (float) yScale);
 
+// fixed?
    // TODO - fix this
-   assert(xScale <= 0);
-   assert(yScale <= 0);
+//   assert(xScale <= 0);
+//   assert(yScale <= 0);
 
    const int prePad = lPre->loc.nPad;
 
@@ -1123,12 +1124,14 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
       kyPreHead += prePad;
 
       // TODO - FIXME for powXScale > 1
-      int ax = (int) (1.0f / powXScale);
-      int ay = (int) (1.0f / powYScale);
-      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
-      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
+//      int ax = (int) (1.0f / powXScale);
+//      int ay = (int) (1.0f / powYScale);
+//      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
+//      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
       for (int kp = 0; kp < numPostPatch; kp++) {
+
+         // calculate extended indices of presynaptic neuron {kPre, kzPre}
          int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
          int kyPostPatch = (int) kyPos(kp, nxPostPatch, nyPostPatch, nfPre);
          int kfPostPatch = (int) featureIndex(kp, nxPostPatch, nyPostPatch, nfPre);
@@ -1138,7 +1141,7 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
          int kfPre = kfPostPatch;
          int kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
 
-         // Marian, Shreyas, David changed conditions to fix boundary problems
+         // if {kPre, kzPre} out of bounds, set post weight to zero
          if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
             assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
             wPostPatches[kPost]->data[kp] = 0.0;
@@ -1146,19 +1149,52 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
          else {
             int arbor = 0;
             PVPatch * p = wPatches[arbor][kPre];
+            //PVPatch * p = c->getWeights(kPre, arbor);
 
+            const int nfp = p->nf;
+
+            // get strides for possibly shrunken patch
+            const int sxp = p->sx;
+            const int syp = p->sy;
+            const int sfp = p->sf;
+
+            // *** Old Method (fails test_post_weights) *** //
             // The patch from the pre-synaptic layer could be smaller at borders.
             // At top and left borders, calculate the offset back to the original
             // data pointer for the patch.  This make indexing uniform.
             //
-            int dx = (kxPre < nxPre / 2) ? nxPrePatch - p->nx : 0;
-            int dy = (kyPre < nyPre / 2) ? nyPrePatch - p->ny : 0;
-            int prePatchOffset = - p->sx * dx - p->sy * dy;
+//            int dx = (kxPre < nxPre / 2) ? nxPrePatch - p->nx : 0;
+//            int dy = (kyPre < nyPre / 2) ? nyPrePatch - p->ny : 0;
+//            int prePatchOffset = - p->sx * dx - p->sy * dy;
 
-            int kxPrePatch = (nxPrePatch - 1) - ax * kxPostPatch - xShift;
-            int kyPrePatch = (nyPrePatch - 1) - ay * kyPostPatch - yShift;
-            int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, nxPrePatch, nyPrePatch, p->nf);
-            wPostPatches[kPost]->data[kp] = p->data[kPrePatch + prePatchOffset];
+//            int kxPrePatch = (nxPrePatch - 1) - ax * kxPostPatch - xShift;
+//            int kyPrePatch = (nyPrePatch - 1) - ay * kyPostPatch - yShift;
+//            int kPrePatch = kIndex(kxPrePatch, kyPrePatch, kfPost, nxPrePatch, nyPrePatch, p->nf);
+//            wPostPatches[kPost]->data[kp] = p->data[kPrePatch + prePatchOffset];
+            // ** //
+
+            // *** New Method *** //
+            // {kPre, kzPre} store the extended indices of the presynaptic cell
+            // {kPost, kzPost} store the restricted indices of the postsynaptic cell
+
+            // {kzPostHead} store the restricted indices of the postsynaptic patch head
+            int kxPostHead, kyPostHead, kfPostHead;
+            int nxp_post, nyp_post;  // shrunken patch dimensions
+            int dx_nxp, dy_nyp;  // shrinkage
+
+            postSynapticPatchHead(kPre, &kxPostHead, &kyPostHead, &kfPostHead, &dx_nxp,
+                                     &dy_nyp,  &nxp_post,   &nyp_post);
+
+            assert(nxp_post == p->nx);
+            assert(nyp_post == p->ny);
+            assert(nfp == lPost->numFeatures);
+
+            int kxPrePatch, kyPrePatch; // relative index in shrunken patch
+            kxPrePatch = kxPost - kxPostHead;
+            kyPrePatch = kyPost - kyPostHead;
+            int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
+            wPostPatches[kPost]->data[kp] = p->data[kPrePatch];
+
          }
       }
    }
