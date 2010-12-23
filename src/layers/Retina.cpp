@@ -16,6 +16,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void Retina_update_state (
+    const float time,
+    const float dt,
+    const float probStim,
+    const float probBase,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+    float * phi,
+    float * activity,
+    float * prevActivity);
+#ifdef __cplusplus
+}
+#endif
+
+
 namespace PV {
 
 // default values
@@ -53,7 +73,7 @@ int Retina::initialize(PVLayerType type)
    l->loc.nPad = (int) params->marginWidth;
    l->loc.nBands = 1;
 
-   // the size of the Retina may have changed due size of image
+   // the size of the Retina may have changed due to size of image
    //
    const int nx = l->loc.nx;
    const int ny = l->loc.ny;
@@ -116,34 +136,7 @@ int Retina::initialize(PVLayerType type)
 #ifdef PV_USE_OPENCL
 int Retina::initializeThreadData()
 {
-   int status = CL_SUCCESS;
-   const int numNeurons  = clayer->numNeurons;
-   const int numExtended = clayer->numExtended;
-
-   // map memory so host can write to it
-   //
-   pvdata_t * d_phi = (pvdata_t *) clBuffers.phi->map(CL_MAP_WRITE);
-   pvdata_t * d_activity = (pvdata_t *) clBuffers.activity->map(CL_MAP_WRITE);
-   pvdata_t * d_prevActivity = (pvdata_t *) clBuffers.prevActivity->map(CL_MAP_WRITE);
-
-   // initialize memory
-   //
-   for (int k = 0; k < clayer->numPhis*numNeurons; k++) {
-      d_phi[k] = 0.0f;
-   }
-
-   for (int k = 0; k < numExtended; k++) {
-      d_activity[k] = 0.0f;
-      d_prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
-   }
-
-   // return memory usage to device
-   //
-   status != clBuffers.phi->unmap();
-   status |= clBuffers.activity->unmap();
-   status |= clBuffers.prevActivity->unmap();
-
-   return status;
+   return CL_SUCCESS;
 }
 
 int Retina::initializeThreadKernels()
@@ -157,7 +150,7 @@ int Retina::initializeThreadKernels()
 
    // create kernels
    //
-   updatestate_kernel = parent->getCLDevice()->createKernel("retina_updatestate.cl", "update_state");
+   updatestate_kernel = parent->getCLDevice()->createKernel("Retina_update_state.cl", "update_state");
 
    int argid = 0;
 
@@ -344,24 +337,20 @@ int Retina::updateImage(float time, float dt)
 int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
-   update_timer->start();
 
-   // threads are run over extended space because activity is updated
-   //
-   const int nx_ex = clayer->loc.nx + 2*clayer->loc.nPad;
-   const int ny_ex = clayer->loc.ny + 2*clayer->loc.nPad;
+   // TODO - do this asynchronously
+   status |= clBuffers.phi->copyToDevice();
+   status |= clBuffers.activity->copyToDevice();
 
    // assume only time changes
    //
    status |= updatestate_kernel->setKernelArg(0, time);
+   status |= updatestate_kernel->run(clayer->numNeurons, 64);
 
-   //TODO
-   nxl = 16;
-   nyl = 16;
+   // TODO - do this asynchronously
+   status |= clBuffers.phi->copyFromDevice();
+   status |= clBuffers.activity->copyFromDevice();
 
-   updatestate_kernel->run(nx_ex, ny_ex, nxl, nyl);
-
-   update_timer->stop();
    return status;
 }
 #endif
@@ -370,6 +359,7 @@ int Retina::updateStateOpenCL(float time, float dt)
 /*!
  * REMARKS:
  *      - prevActivity[] buffer holds the time when a neuron last spiked.
+ *      - not used if nonspiking
  *      - it sets the probStim and probBase.
  *              - probStim = poissonEdgeProb * V[k];
  *              - probBase = poissonBlankProb
@@ -389,79 +379,73 @@ int Retina::updateStateOpenCL(float time, float dt)
  */
 int Retina::updateState(float time, float dt)
 {
-#ifdef PV_USE_OPENCL
-   updateStateOpenCL(time, dt);
-#else
    update_timer->start();
 
-   float probSpike = 0.0;
+#ifndef PV_USE_OPENCL
    fileread_params * params = (fileread_params *) clayer->params;
 
-   pvdata_t * V = clayer->V;
-   pvdata_t * phiExc   = clayer->phi[PHI_EXC];
-   pvdata_t * phiInh   = clayer->phi[PHI_INH];
-   pvdata_t * activity = clayer->activity->data;
-   float    * prevActivity = clayer->prevActivity;
+   const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
+   const float probBase = params->poissonBlankProb;
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->numFeatures;
-   const int marginWidth = clayer->loc.nPad;
+   const int nb = clayer->loc.nPad;
 
-   int numActive = 0;
    if (params->spikingFlag == 1) {
-      const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
-      const float probBase = params->poissonBlankProb;
+      pvdata_t * phi = clayer->phi[0];
+      pvdata_t * activity = clayer->activity->data;
+      float    * prevActivity = clayer->prevActivity;
 
+      Retina_update_state(time, dt, probStim, probBase,
+                          nx, ny, nf, nb,
+                          phi, activity, prevActivity);
+
+      // TODO
+      // copy data from device
+      //
+
+      // TODO - move to halo exchange so don't have to wait for data
+      // calculate active indices
+      //
+
+      int numActive = 0;
       for (int k = 0; k < clayer->numNeurons; k++) {
-         V[k] = phiExc[k] - phiInh[k];
-         phiExc[k] = 0.0;
-         phiInh[k] = 0.0;
-      }
-
-      for (int kex = 0; kex < clayer->numExtended; kex++) {
-         float stimFactor = 0.0f;
-         const float prevTime = prevActivity[kex];
-         const int k = kIndexRestricted(kex, nx, ny, nf, marginWidth);
-         int k_global;
-
-         if (k > 0) {
-            stimFactor = V[k];
+         const int kex = kIndexExtended(k, nx, ny, nf, nb);
+         if (activity[kex] > 0.0) {
+            clayer->activeIndices[numActive++] = globalIndexFromLocal(k, clayer->loc, nf);
          }
-
-         activity[kex] = spike(time, dt, prevTime, probBase, probStim*stimFactor, &probSpike);
-         prevActivity[kex] = (activity[kex] > 0.0) ? time : prevTime;
-         if (k > 0 && activity[kex] > 0.0) {
-#ifdef PV_USE_MPI
-            k_global = globalIndexFromLocal(k, clayer->loc, nf);
-#else
-            k_global = k;
-#endif
-            clayer->activeIndices[numActive++] = k_global;
-         }
+         clayer->numActive = numActive;
       }
    }
    else {
+      pvdata_t * activity = clayer->activity->data;
+      pvdata_t * phiExc   = clayer->phi[PHI_EXC];
+      pvdata_t * phiInh   = clayer->phi[PHI_INH];
+
       // retina is non spiking, pass scaled image through to activity
+      // scale by poissonEdgeProb (maxRetinalActivity)
       //
       for (int k = 0; k < clayer->numNeurons; k++) {
-         const int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
-         V[k] = phiExc[k] - phiInh[k];
-         // scale output according to poissonEdgeProb, this could
-         // perhaps be renamed when non spiking
-         float maxRetinalActivity = params->poissonEdgeProb;
-         activity[kex] = maxRetinalActivity * V[k];
-         prevActivity[kex] = activity[kex];
-         clayer->activeIndices[numActive++] = k;
+         const int kex = kIndexExtended(k, nx, ny, nf, nb);
+         activity[kex] = probStim * (phiExc[k] - phiInh[k]);
+         // TODO - get rid of this for performance
+         clayer->activeIndices[k] = globalIndexFromLocal(k, clayer->loc, nf);
 
          // reset accumulation buffers
          phiExc[k] = 0.0;
          phiInh[k] = 0.0;
       }
+      clayer->numActive = clayer->numNeurons;
    }
-   clayer->numActive = numActive;
+#else
+
+   updateStateOpenCL(time, dt);
+
+#endif
+
    update_timer->stop();
-#endif // PV_USE_OPENCL
+
 
 #ifdef DEBUG_PRINT
    char filename[132];
@@ -473,6 +457,7 @@ int Retina::updateState(float time, float dt)
       printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
    }
    printf("----------------\n");
+
 #endif
 
    return 0;
@@ -569,3 +554,22 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
 }
 
 } // namespace PV
+
+///////////////////////////////////////////////////////
+//
+// implementation of Retina kernels
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "kernels/Retina_update_state.cl"
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+
