@@ -137,57 +137,22 @@ int HyPerLayer::initializeThreadBuffers()
 
    // these buffers are shared between host and device
    //
-   clBuffers.V    = device->createBuffer(size, clayer->V);
-   clBuffers.Vth  = device->createBuffer(size, clayer->Vth);
-   clBuffers.G_E  = device->createBuffer(size, clayer->G_E);
-   clBuffers.G_I  = device->createBuffer(size, clayer->G_I);
-   clBuffers.G_IB = device->createBuffer(size, clayer->G_IB);
+   clBuffers.V    = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
+   clBuffers.Vth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->Vth);
+   clBuffers.G_E  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_E);
+   clBuffers.G_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_I);
+   clBuffers.G_IB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_IB);
 
-   // collects all three phi buffers; hopefully will go away
-   clBuffers.phi  = device->createBuffer(clayer->numPhis*size, clayer->phi[0]);
-
-   clBuffers.activity = device->createBuffer(size_ex, clayer->activity->data);
-   clBuffers.prevActivity = device->createBuffer(size_ex, clayer->prevActivity);
+   clBuffers.phi = device->createBuffer(CL_MEM_COPY_HOST_PTR, clayer->numPhis*size, clayer->phi[0]);
+   clBuffers.activity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
+   clBuffers.prevActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
    return status;
 }
 
 int HyPerLayer::initializeThreadData()
 {
-   int status = CL_SUCCESS;
-   const int numNeurons  = clayer->numNeurons;
-   const int numExtended = clayer->numExtended;
-
-   // map memory so host can write to it
-   //
-   pvdata_t * d_V   = (pvdata_t *) clBuffers.V  ->map(CL_MAP_WRITE);
-   pvdata_t * d_Vth = (pvdata_t *) clBuffers.Vth->map(CL_MAP_WRITE);
-   pvdata_t * d_phi = (pvdata_t *) clBuffers.phi->map(CL_MAP_WRITE);
-   pvdata_t * d_prevActivity = (pvdata_t *) clBuffers.prevActivity->map(CL_MAP_WRITE);
-
-   // initialize memory
-   //
-   for (int k = 0; k < numNeurons; k++){
-      d_V[k]   = V_REST;
-      d_Vth[k] = VTH_REST;
-   }
-
-   for (int k = 0; k < 2*numNeurons; k++){
-      d_phi[k] = 0.0f;
-   }
-
-   for (int k = 0; k < numExtended; k++) {
-      d_prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
-   }
-
-   // return memory usage to device
-   //
-   status |= clBuffers.V->unmap();
-   status |= clBuffers.Vth->unmap();
-   status != clBuffers.phi->unmap();
-   status |= clBuffers.prevActivity->unmap();
-
-   return status;
+   return CL_SUCCESS;
 }
 #endif
 
