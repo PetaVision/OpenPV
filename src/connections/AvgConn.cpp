@@ -12,7 +12,7 @@
 namespace PV {
 
 AvgConn::AvgConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                 int channel, HyPerConn * delegate)
+                 ChannelType channel, HyPerConn * delegate)
 {
    this->delegate = (delegate == NULL) ? this : delegate;
    HyPerConn::initialize(name, hc, pre, post, channel);
@@ -122,8 +122,8 @@ int AvgConn::createAxonalArbors()
 
    // otherwise just use weights from the delegate
    //
-   pvdata_t * phi_base = post->clayer->phi[channel];
-   pvdata_t * del_phi_base = delegate->postSynapticLayer()->clayer->phi[channel];
+   pvdata_t * phi_base = post->getChannel(channel);
+   pvdata_t * del_phi_base = delegate->postSynapticLayer()->getChannel(channel);
 
    const int numAxons = numAxonalArborLists;
 

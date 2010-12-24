@@ -16,7 +16,7 @@ class AvgConn: public PV::HyPerConn {
 public:
 
    AvgConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-           int channel, HyPerConn * delegate);
+           ChannelType channel, HyPerConn * delegate);
    virtual ~AvgConn();
 
    virtual int createAxonalArbors();
