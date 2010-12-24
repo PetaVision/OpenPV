@@ -15,7 +15,7 @@ namespace PV {
 class InhibConn: public PV::HyPerConn {
 public:
    InhibConn(const char * name,
-             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 
 protected:
    virtual int initializeWeights(const char * filename);
