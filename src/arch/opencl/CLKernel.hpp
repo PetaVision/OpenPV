@@ -23,7 +23,7 @@ public:
    int setKernelArg(int argid, CLBuffer * buf);
    int setLocalArg(int argid, size_t size);
 
-   int run(size_t global_work_size);
+   int run(size_t global_work_size, size_t local_work_size);
    int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY);
 
    // execution time in microseconds

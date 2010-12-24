@@ -66,25 +66,30 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 
 }
 
-int CLKernel::run(size_t global_work_size)
+int CLKernel::run(size_t global_work_size, size_t local_work_size)
 {
    int status = CL_SUCCESS;
 
 #ifdef PV_USE_OPENCL
 
-   size_t local_work_size;
+   size_t max_local_size;
 
    // get the maximum work group size for executing the kernel on the device
    //
    status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
-                                     sizeof(size_t), &local_work_size, NULL);
+                                     sizeof(size_t), &max_local_size, NULL);
    if (status != CL_SUCCESS) {
       fprintf(stderr, "Error: Failed to retrieve kernel work group info! %d\n", status);
       CLDevice::print_error_code(status);
       exit(status);
-   } else {
-      printf("run: local_work_size==%ld global_work_size==%ld\n", local_work_size, global_work_size);
    }
+
+   if (local_work_size > max_local_size) {
+      printf("run: local_work_size==%ld global_work_size==%ld max_local_size==%ld\n", local_work_size, global_work_size, max_local_size);
+      local_work_size = max_local_size;
+   }
+
+
    // execute the kernel over the entire range of our 1d input data set
    // using the maximum number of work group items for this device
    //
