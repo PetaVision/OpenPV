@@ -27,6 +27,9 @@ public:
    int copyToDevice  (void * host_ptr);
    int copyFromDevice(void * host_ptr);
 
+   int copyToDevice()            {return copyToDevice(h_ptr);}
+   int copyFromDevice()          {return copyFromDevice(h_ptr);}
+
    void * map(cl_map_flags flags);
    int  unmap(void * mapped_ptr);
    int  unmap(void);
@@ -43,7 +46,7 @@ protected:
 
    size_t size;                        // size of buffer object
    cl_mem d_buf;                       // handle to buffer on the device
-   void * h_ptr;                       // pointer to buffer on host (only valid when mapped)
+   void * h_ptr;                       // pointer to buffer on host
 
 private: CLBuffer()    { ; }
 #else

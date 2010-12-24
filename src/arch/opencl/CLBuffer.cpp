@@ -15,8 +15,8 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
 
    this->commands = commands;
    this->size = size;
+   this->h_ptr = host_ptr;
 
-   this->h_ptr = NULL;
    this->d_buf = clCreateBuffer(context, flags, size, host_ptr, &status);
    if (status != CL_SUCCESS)
    {
