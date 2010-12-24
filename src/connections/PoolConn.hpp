@@ -15,7 +15,7 @@ namespace PV {
 class PoolConn: public PV::HyPerConn {
 public:
    PoolConn(const char * name,
-            HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+            HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 
    PVPatch * weights(int k)
    {
