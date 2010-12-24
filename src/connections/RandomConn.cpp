@@ -14,7 +14,7 @@
 namespace PV {
 
 RandomConn::RandomConn(const char * name,
-                       HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
+                       HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel)
 {
    HyPerConn::initialize_base();
 
@@ -23,7 +23,7 @@ RandomConn::RandomConn(const char * name,
 }
 
 RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-                       HyPerLayer * post, int channel, RandDistType distrib)
+                       HyPerLayer * post, ChannelType channel, RandDistType distrib)
 {
    initialize_base();
 

@@ -21,10 +21,10 @@ enum RandDistType {
 class RandomConn: public PV::HyPerConn {
 public:
    RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-              HyPerLayer * post, int channel);
+              HyPerLayer * post, ChannelType channel);
 
    RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-              HyPerLayer * post, int channel, RandDistType distrib);
+              HyPerLayer * post, ChannelType channel, RandDistType distrib);
 
    virtual int initializeRandomWeights(unsigned long seed);
    int initializeUniformWeights(unsigned long seed);
