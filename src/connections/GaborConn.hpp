@@ -15,7 +15,7 @@ namespace PV {
 class GaborConn: public PV::KernelConn {
 public:
    GaborConn(const char * name,
-             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+             HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 
    int gaborWeights(PVPatch * wp, int xScale, int yScale,
                     float aspect, float sigma, float r2Max, float lambda, float strength);

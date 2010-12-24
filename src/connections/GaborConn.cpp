@@ -13,7 +13,7 @@
 namespace PV {
 
 GaborConn::GaborConn(const char * name,
-                     HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel)
+                     HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
