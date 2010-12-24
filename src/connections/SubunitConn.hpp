@@ -15,7 +15,7 @@ namespace PV {
 class SubunitConn: public PV::HyPerConn {
 public:
    SubunitConn(const char * name,
-               HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+               HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 
    static int weights(PVPatch * wp);
 

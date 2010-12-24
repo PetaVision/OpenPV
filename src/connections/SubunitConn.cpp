@@ -18,7 +18,7 @@ namespace PV {
  * (embedded in a 3x3 pixel patch).
  */
 SubunitConn::SubunitConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                         int channel)
+                         ChannelType channel)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
