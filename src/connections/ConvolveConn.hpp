@@ -15,7 +15,7 @@ namespace PV {
 class ConvolveConn: public PV::HyPerConn {
 public:
    ConvolveConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                int channel);
+         ChannelType channel);
 
    virtual int deliver(PVLayerCube * cube, int neighbor);
    void convolve(PVLayerCube * dst, PVLayerCube * src, PVPatch * patch);
