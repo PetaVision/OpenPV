@@ -32,7 +32,7 @@ HyPerConn::HyPerConn()
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel)
+      HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel);
@@ -40,7 +40,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 // provide filename or set to NULL
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel, const char * filename)
+      HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
@@ -127,8 +127,6 @@ int HyPerConn::initialize(const char * filename)
    const int arbor = 0;
    numAxonalArborLists = 1;
 
-   assert(this->channel < post->clayer->numPhis);
-
    this->connId = parent->numberOfConnections();
 
    PVParams * inputParams = parent->parameters();
@@ -175,7 +173,7 @@ int HyPerConn::initializeSTDP()
 }
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel, const char * filename)
+      HyPerLayer * post, ChannelType channel, const char * filename)
 {
    this->parent = hc;
    this->pre = pre;
@@ -190,7 +188,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel)
+      HyPerLayer * post, ChannelType channel)
 {
    return initialize(name, hc, pre, post, channel, NULL);
 }
@@ -1029,7 +1027,7 @@ int HyPerConn::createAxonalArbors()
          arbor->plasticIncr = this->getPlasticityIncrement(kex, n);
 
          // initialize the receiving (of spiking data) phi variable
-         pvdata_t * phi = lPost->phi[channel] + kl;
+         pvdata_t * phi = post->getChannel(channel) + kl;
          pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
 
          // get offset in extended frame for post-synaptic M STDP variable
@@ -1094,9 +1092,6 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
    const int nyPost  = lPost->loc.ny;
    const int nfPost  = lPost->numFeatures;
    const int numPost = lPost->numNeurons;
-
-   const int nxPrePatch = nxp;
-   const int nyPrePatch = nyp;
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);

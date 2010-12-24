@@ -45,9 +45,9 @@ class HyPerConn {
 public:
    HyPerConn();
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel);
+             ChannelType channel);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel, const char * filename);
+             ChannelType channel, const char * filename);
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
@@ -132,7 +132,7 @@ protected:
    PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
    PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 
-   int channel;              // which channel of the post to update (e.g. inhibit)
+   ChannelType channel;              // which channel of the post to update (e.g. inhibit)
    int connId;               // connection id
 
    char * name;
@@ -167,9 +167,9 @@ protected:
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
 
    int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, int channel, const char * filename);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
    int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, int channel);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
    int initialize_base();
    int initialize(const char * filename);
    int initializeSTDP();
