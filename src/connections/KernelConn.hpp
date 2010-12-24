@@ -19,9 +19,9 @@ public:
    KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              int channel, const char * filename);
+              ChannelType channel, const char * filename);
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              int channel);
+              ChannelType channel);
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
 
    virtual int numDataPatches(int arbor);
