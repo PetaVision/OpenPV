@@ -37,10 +37,12 @@ public:
 
    CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
 
-   CLBuffer * createReadBuffer(size_t size)   { return createBuffer(CL_MEM_READ_ONLY, size, NULL); }
-   CLBuffer * createWriteBuffer(size_t size)  { return createBuffer(CL_MEM_WRITE_ONLY, size, NULL); }
+   CLBuffer * createReadBuffer(size_t size, void * host_ptr)
+         { return createBuffer(CL_MEM_READ_ONLY  | CL_MEM_COPY_HOST_PTR, size, host_ptr); }
+   CLBuffer * createWriteBuffer(size_t size, void * host_ptr)
+         { return createBuffer(CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size, host_ptr); }
    CLBuffer * createBuffer(size_t size, void * host_ptr)
-                                              { return createBuffer(CL_MEM_USE_HOST_PTR, size, host_ptr); }
+         { return createBuffer(CL_MEM_COPY_HOST_PTR, size, host_ptr); }
 
    CLKernel * createKernel(const char * filename, const char * name);
    
