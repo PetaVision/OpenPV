@@ -22,7 +22,7 @@ GeislerConn::GeislerConn()
 }
 
 GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel)
+                         HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel);
@@ -37,7 +37,7 @@ GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 // provide filename or set to NULL
 GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, int channel, const char * filename)
+      HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);

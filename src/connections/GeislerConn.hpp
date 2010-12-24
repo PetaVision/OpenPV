@@ -21,9 +21,9 @@ public:
 
    GeislerConn();
    GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel, const char * filename);
+               ChannelType channel, const char * filename);
    GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel);
+               ChannelType channel);
    GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    virtual int updateState(float time, float dt);
