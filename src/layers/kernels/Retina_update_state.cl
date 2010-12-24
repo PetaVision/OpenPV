@@ -2,7 +2,17 @@
 
 #include "../../arch/opencl/pv_opencl.h"
 
+#define EXP expf
+#define FMOD fmodf
+
 #else
+
+#define CL_KERNEL     __kernel
+#define CL_MEM_GLOBAL __global
+#define CL_MEM_LOCAL  __local
+
+#define EXP exp
+#define FMOD __fmodf
 
 // This stuff needs to be moved to (or obtained from) separate file
 // perhaps conversions.h
@@ -13,6 +23,10 @@
 #define PHI_INHB 2
 #define PI              3.1415926535897932
 
+// refactory period for neurons (retina for now)
+#define ABS_REFACTORY_PERIOD 3
+#define REFACTORY_PERIOD     5
+
 #define PV_RANDOM_MAX       0x7fffffff
 #define PV_INV_RANDOM_MAX   (1.0 / (double) PV_RANDOM_MAX)
 
@@ -20,11 +34,6 @@ static inline double pv_random_prob()
 {
 //   return (double) random() * PV_INV_RANDOM_MAX;
    return 1.0;
-}
-
-static inline int featureIndex(int k, int nx, int ny, int nf)
-{
-   return k % nf;
 }
 
 static inline int kxPos(int k, int nx, int ny, int nf)
@@ -42,12 +51,25 @@ static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
    return kf + (kx + (ky * nx)) * nf;
 }
 
+static inline int featureIndex(int k, int nx, int ny, int nf)
+{
+   return k % nf;
+}
+
+static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
+{
+   const int kx_ex = nb + kxPos(k, nx, ny, nf);
+   const int ky_ex = nb + kyPos(k, nx, ny, nf);
+   const int kf = featureIndex(k, nx, ny, nf);
+   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
+}
+
 #endif // PV_USE_OPENCL
 
 
-int spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
+static int spike(float time, float dt, float prev, float probBase, float probStim)
 {
-//   fileread_params * params = (fileread_params *) clayer->params;
+   float probSpike;
    float burstStatus = 1;
    float sinAmp = 1.0;
    
@@ -66,7 +88,7 @@ int spike(float time, float dt, float prev, float probBase, float probStim, floa
    }
    else {
       float delta = time - prev - ABS_REFACTORY_PERIOD;
-      float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
+      float refact = 1.0f - EXP(-delta/REFACTORY_PERIOD);
       refact = (refact < 0) ? 0 : refact;
       probBase *= refact;
       probStim *= refact;
@@ -76,17 +98,17 @@ int spike(float time, float dt, float prev, float probBase, float probStim, floa
       sinAmp = cos( 2 * PI * time * burstFreq / 1000. );
    }
    else {
-      burstStatus = fmodf(time, 1000. / burstFreq);
+      burstStatus = FMOD(time, 1000. / burstFreq);
       burstStatus = burstStatus <= burstDuration;
    }
 
    burstStatus *= (int) ( (time >= beginStim) && (time < endStim) );
-   *probSpike = probBase;
+   probSpike = probBase;
 
    if ((int)burstStatus) {
-      *probSpike += probStim * sinAmp;  // negative prob is OK
-    }
-   return ( pv_random_prob() < *probSpike );
+      probSpike += probStim * sinAmp;  // negative prob is OK
+   }
+   return ( pv_random_prob() < probSpike );
 }
 
 //
@@ -95,7 +117,7 @@ int spike(float time, float dt, float prev, float probBase, float probStim, floa
 //    assume called with 1D kernel
 //
 CL_KERNEL
-void Retina_update_state (
+void update_state (
     const float time,
     const float dt,
     const float probStim,
@@ -106,39 +128,42 @@ void Retina_update_state (
     const int nf,
     const int nb,
 
-    CL_MEM_GLOBAL float * phi,
+    CL_MEM_GLOBAL float * phiExc,
+    CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity,
-    CL_MEM_GLOBAL float * prevActivity)
+    CL_MEM_GLOBAL float * prevTime)
 {
 #ifndef PV_USE_OPENCL
-for (int k = 0; k < nx*ny*nf; k++) {
+for (register int k = 0; k < nx*ny*nf; k++) {
 #else   
-   int k = get_global_id(0);
+   register int k = get_global_id(0);
 #endif
 
-   int kx = kxPos(k, nx, ny, nf);
-   int ky = kyPos(k, nx, ny, nf);
+   register int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    //
-   // kernel (nonheader) begins here
+   // kernel (nonheader part) begins here
    //
 
-   float probSpike;
-   const int numNeurons = nx * ny * nf;
-   const int kex = kIndexExtended(k, nx, ny, nf, nb);
+   // load local copies
+   //
+   register float l_phiExc = phiExc[k];
+   register float l_phiInh = phiInh[k];
+   register float l_prev   = prevTime[kex];
+   register float l_activ  = activity[kex];
 
-   CL_MEM_GLOBAL pvdata_t * phiExc = & phi[PHI_EXC * numNeurons];
-   CL_MEM_GLOBAL pvdata_t * phiInh = & phi[PHI_INH * numNeurons];
+   l_activ = spike(time, dt, l_prev, probBase, (l_phiExc - l_phiInh)*probStim);
+   l_prev  = (l_activ > 0.0f) ? time : l_prev;
 
-   const float prevTime = prevActivity[kex];
-   const float l_V = phiExc[k] - phiInh[k]; 
+   l_phiExc = 0.0f;
+   l_phiInh = 0.0f;
 
-   phiExc[k] = 0.0f;
-   phiInh[k] = 0.0f;
-
-   const float l_activity = spike(time, dt, prevTime, probBase, probStim*l_V, &probSpike);
-   activity[kex] = l_activity;
-   prevActivity[kex] = (l_activity > 0.0f) ? time : prevTime;
+   // store local copies
+   //
+   phiExc[k] = l_phiExc;
+   phiInh[k] = l_phiInh;
+   prevTime[kex] = l_prev;
+   activity[kex] = l_activ;
 
 #ifndef PV_USE_OPENCL
    }
