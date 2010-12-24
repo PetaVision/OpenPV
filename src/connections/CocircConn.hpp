@@ -19,9 +19,9 @@ public:
 
    CocircConn();
    CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel, const char * filename);
+         ChannelType channel, const char * filename);
    CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         int channel);
+         ChannelType channel);
    CocircConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
