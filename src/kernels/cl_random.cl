@@ -30,10 +30,10 @@
 
 #define cl_random_state(s) (cl_taus_get(s))
 
-#ifndef PF_USE_OPENCL
+#ifndef __CL_PLATFORM_H
    typedef struct uint4_ {
       int s0, s1, s2, s3;
-   } uint4;
+   } uint4 __attribute__((aligned(16)));
 #endif
 
 static inline uint4
