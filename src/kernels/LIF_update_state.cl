@@ -1,4 +1,14 @@
-#define EXP expf
+#ifndef __CL_PLATFORM_H
+#  include <math.h>
+#  define EXP expf
+#  define CL_KERNEL
+#  define CL_MEM_GLOBAL
+#else
+#  define EXP exp
+#endif
+
+#include "cl_random.cl"
+#include "LIF_params.h"
 
 //
 // update the state of a retinal layer (spiking)
@@ -16,6 +26,7 @@ void LIF_update_state(
     const int nf,
     const int nb,
 
+    CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
     CL_MEM_GLOBAL float * G_E,
@@ -26,13 +37,14 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * phiInhB,
     CL_MEM_GLOBAL float * activity)
 {
-#ifndef PV_USE_OPENCL
-for (int k = 0; k < nx*ny*nf; k++) {
+   int k;
+#ifndef __CL_PLATFORM_H
+for (k = 0; k < nx*ny*nf; k++) {
 #else   
-   int k = get_global_id(0);
+   k = get_global_id(0);
 #endif
 
-   register int kex = kIndexExtended(k, nx, ny, nf, nb);
+   int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    //
    // kernel (nonheader part) begins here
@@ -41,10 +53,13 @@ for (int k = 0; k < nx*ny*nf; k++) {
    // local param variables
    float tau, tauE, tauI, tauIB, Vrest, VthRest, Vexc, Vinh, VinhB, tauVth, deltaVth;
 
+   float dt_sec;
    const float GMAX = 10.0;
 
    // local variables
    float l_activ;
+
+   uint4 l_rnd = rnd[k];
 
    float l_V   = V[k];
    float l_Vth = Vth[k];
@@ -80,7 +95,27 @@ for (int k = 0; k < nx*ny*nf; k++) {
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
-//   call add_noise(l, dt);
+   // add noise
+   //
+   dt_sec = .001 * dt;   // convert to seconds
+
+   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
+      l_rnd = cl_random_state(l_rnd);
+      l_phiExc = l_phiExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      l_rnd = cl_random_state(l_rnd);
+   }
+
+   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
+      l_rnd = cl_random_state(l_rnd);
+      l_phiInh = l_phiInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      l_rnd = cl_random_state(l_rnd);   
+   }
+
+   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
+      l_rnd = cl_random_state(l_rnd);
+      l_phiInhB = l_phiInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      l_rnd = cl_random_state(l_rnd);
+   }
 
    l_G_E  = l_phiExc  + l_G_E *EXP(-dt/tauE );
    l_G_I  = l_phiInh  + l_G_I *EXP(-dt/tauI );
@@ -138,7 +173,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    phiInh[k]  = l_phiInh;
    phiInhB[k] = l_phiInhB;
 
-#ifndef PV_USE_OPENCL
+#ifndef __CL_PLATFORM_H
    } // loop over k
 #endif
 
