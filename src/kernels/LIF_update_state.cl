@@ -1,14 +1,22 @@
+#include "LIF_params.h"
+#include "cl_random.cl"
+
 #ifndef __CL_PLATFORM_H
+
 #  include <math.h>
 #  define EXP expf
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
-#else
-#  define EXP exp
-#endif
+#  define CL_MEM_LOCAL
 
-#include "cl_random.cl"
-#include "LIF_params.h"
+#else  /* compiling with OpenCL */
+
+#  define EXP exp
+#  define CL_KERNEL     __kernel
+#  define CL_MEM_GLOBAL __global
+#  define CL_MEM_LOCAL  __local
+
+#endif
 
 //
 // update the state of a retinal layer (spiking)
