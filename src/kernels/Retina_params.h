@@ -6,8 +6,8 @@ typedef struct LIF_params_ {
    float probBase;
    float beginStim;
    float endStim;
-   float burstFreq;
-   float burstDuration;
+   float burstFreq;          // frequency of bursts
+   float burstDuration;      // duration of each burst, <=0 -> sinusoidal
 
    float refactory_period;
    float abs_refactory_period;
