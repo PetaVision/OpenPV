@@ -19,6 +19,7 @@ extern "C"
 #endif
 
 #include "rng.h"
+#include "../arch/opencl/pv_opencl.h"
 
 //
 // random number generator functions
@@ -32,6 +33,9 @@ static inline double pv_random_prob()
 {
    return (double) pv_random() * PV_INV_RANDOM_MAX;
 }
+
+uint4 * cl_random_init(size_t count);
+
 
 
 #ifdef __cplusplus
