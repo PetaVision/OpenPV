@@ -1,7 +1,7 @@
 #ifndef RETINA_PARAMS_H_
 #define RETINA_PARAMS_H_
 
-typedef struct LIF_params_ {
+typedef struct Retina_params_ {
    float probStim;
    float probBase;
    float beginStim;
