@@ -86,7 +86,7 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
  */
 static inline 
 int spike(float time, float dt,
-          float prev, float stimFactor, uint4 rnd_state, const Retina_params * params)
+          float prev, float stimFactor, uint4 * rnd_state, const Retina_params * params)
 {
    float probSpike;
    float burstStatus = 1;
@@ -124,7 +124,10 @@ int spike(float time, float dt,
    if ((int)burstStatus) {
       probSpike += probStim * sinAmp;  // negative prob is OK
    }
-   return ( pv_random_prob() < probSpike );
+
+   int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
+   *rnd_state = cl_random_state(*rnd_state);
+   return spike_flag;
 }
 
 //
@@ -170,7 +173,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_prev   = prevTime[kex];
    float l_activ  = activity[kex];
 
-   l_activ = spike(time, dt, l_prev, (l_phiExc - l_phiInh), l_rnd, params);
+   l_activ = (float) spike(time, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, params);
    l_prev  = (l_activ > 0.0f) ? time : l_prev;
 
    l_phiExc = 0.0f;
@@ -178,6 +181,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    // store local variables back to global memory
    //
+   rnd[k] = l_rnd;
    phiExc[k] = l_phiExc;
    phiInh[k] = l_phiInh;
    prevTime[kex] = l_prev;
