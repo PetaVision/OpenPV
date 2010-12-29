@@ -42,7 +42,7 @@ typedef struct
   }
 taus_state_t;
 
-uint4 * pv_random_init(size_t count)
+uint4 * cl_random_init(size_t count)
 {
    int i;
 
