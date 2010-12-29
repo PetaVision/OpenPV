@@ -10,6 +10,10 @@
 
 #include "../../include/pv_arch.h"
 
+typedef struct uint4_ {
+   unsigned int s0, s1, s2, s3;
+} uint4;
+
 #ifdef PV_USE_OPENCL
 #  include <OpenCL/opencl.h>
 
@@ -18,7 +22,17 @@
 #  include <Profile/TauGpuAdapterOpenCLExp.h>
 #endif
 
+// OpenCL attributes
+//
+#  define CL_KERNEL       __kernel
+#  define CL_MEM_GLOBAL   __global
+#  define CL_MEM_LOCAL    __local
+
 #else
+
+#  define CL_KERNEL
+#  define CL_MEM_GLOBAL
+#  define CL_MEM_LOCAL
 
 #  define cl_uint           unsigned int
 
@@ -30,10 +44,11 @@
 #  define cl_program        int
 #  define cl_event          int
 
-#  define CL_SUCCESS           0
-#  define CL_MEM_READ_ONLY     0
-#  define CL_MEM_WRITE_ONLY    0
-#  define CL_MEM_USE_HOST_PTR  0
+#  define CL_SUCCESS            0
+#  define CL_MEM_READ_ONLY      0
+#  define CL_MEM_WRITE_ONLY     0
+#  define CL_MEM_USE_HOST_PTR   0
+#  define CL_MEM_COPY_HOST_PTR  0
 
 #endif
 
