@@ -28,13 +28,9 @@
  *    state.s3 => state s3 value
  */
 
-#define cl_random_state(s) (cl_taus_get(s))
+#include "../arch/opencl/pv_opencl.h"
 
-#ifndef __CL_PLATFORM_H
-   typedef struct uint4_ {
-      int s0, s1, s2, s3;
-   } uint4 __attribute__((aligned(16)));
-#endif
+#define cl_random_state(s) (cl_taus_get(s))
 
 static inline uint4
 cl_taus_get(uint4 state)
