@@ -1,3 +1,15 @@
+/*
+ * CLBuffer.cpp
+ *
+ *  Created on: Aug 1, 2010
+ *      Author: Craig Rasmussen
+ */
+
+// NOTE: order must be preserved for first
+// two includes
+#include "../../include/pv_arch.h"
+#include "pv_opencl.h"
+
 #include "CLBuffer.hpp"
 #include "CLDevice.hpp"
 
