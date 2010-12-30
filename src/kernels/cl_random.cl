@@ -35,17 +35,15 @@
 static inline uint4
 cl_taus_get(uint4 state)
 {
-   uint4 result;
-
 #define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d)) ^ ((((s <<a))^s) >>b)
 
-  result.s1 = TAUSWORTHE (state.s1, 13, 19, 4294967294UL, 12);
-  result.s2 = TAUSWORTHE (state.s2,  2, 25, 4294967288UL, 4);
-  result.s3 = TAUSWORTHE (state.s3,  3, 11, 4294967280UL, 17);
+  state.s1 = TAUSWORTHE (state.s1, 13, 19, 4294967294, 12);
+  state.s2 = TAUSWORTHE (state.s2,  2, 25, 4294967288, 4);
+  state.s3 = TAUSWORTHE (state.s3,  3, 11, 4294967280, 17);
 
-  result.s0 = (state.s1 ^ state.s2 ^ state.s3);
+  state.s0 = (state.s1 ^ state.s2 ^ state.s3);
 
-  return result;
+  return state;
 }
 
 static inline float cl_random_prob(uint4 state)
