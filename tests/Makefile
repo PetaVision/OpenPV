@@ -17,11 +17,13 @@ CPPFLAGS = -g -Wall -I../src
 #LIBS = $(LIBPV) -L$(GDALDIR)/lib -lgdal
 LIBS = $(LIBPV) -L$(GDALDIR) -lgdal
 
+CL_LD_FLAGS = -framework OpenCL
+
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
         test_datatypes test_post_weights test_gauss2d test_cocirc test_mirror_BCs \
-        test_border_activity
+        test_border_activity test_cl_random
 
 MPI_TESTS = #test_read_header test_image_io test_weights_io test_constant_input
 
@@ -60,6 +62,9 @@ test_constant_input: $(BUILDDIR)/test_constant_input.o $(BUILDDIR)/TestImage.o $
 
 test_image_io: $(BUILDDIR)/test_image_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
+
+test_cl_random: $(BUILDDIR)/test_cl_random.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS) $(CL_LD_FLAGS)
 
 test_weights_io: $(BUILDDIR)/test_weights_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
