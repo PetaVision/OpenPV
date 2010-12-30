@@ -29,6 +29,8 @@ public:
    // execution time in microseconds
    int get_execution_time()  { return elapsed; }
 
+   int finish()              { return clFinish(commands); }
+
 protected:
    cl_kernel kernel;                     // compute kernel
    cl_command_queue commands;            // default command queue
