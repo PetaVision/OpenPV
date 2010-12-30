@@ -8,8 +8,6 @@
 #ifndef PV_OPENCL_H_
 #define PV_OPENCL_H_
 
-#include "../../include/pv_arch.h"
-
 typedef struct uint4_ {
    unsigned int s0, s1, s2, s3;
 } uint4;
