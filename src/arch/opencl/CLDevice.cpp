@@ -2,8 +2,13 @@
  * CLDevice.cpp
  *
  *  Created on: Oct 24, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
+
+// NOTE: order must be preserved for first
+// two includes
+#include "../../include/pv_arch.h"
+#include "pv_opencl.h"
 
 #include "CLDevice.hpp"
 #include "CLBuffer.hpp"
