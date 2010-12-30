@@ -2,11 +2,17 @@
  * CLKernel.cpp
  *
  *  Created on: Aug 1, 2010
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
+
+// NOTE: order must be preserved for first
+// two includes
+#include "../../include/pv_arch.h"
+#include "pv_opencl.h"
 
 #include "CLKernel.hpp"
 #include "CLDevice.hpp"
+
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -39,7 +45,8 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 
    // Build the program executable
    //
-   status = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+   // TODO - fix include path
+   status = clBuildProgram(program, 0, NULL, "-I ../src/kernels", NULL, NULL);
    if (status != CL_SUCCESS)
    {
        size_t len;
@@ -103,7 +110,7 @@ int CLKernel::run(size_t global_work_size, size_t local_work_size)
 
    // wait for the command commands to get serviced before reading back results
    //
-   clFinish(commands);
+   //clFinish(commands);
 
 #endif // PV_USE_OPENCL
 
