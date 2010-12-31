@@ -27,8 +27,10 @@ class HyPerConn;
 class Publisher {
 
 public:
+#ifdef OBSOLETE
    // deprecated constructor that separates borders from the layer data structure
    Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
+#endif
    Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels);
    virtual ~Publisher();
 
@@ -42,8 +44,6 @@ public:
    static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
    int increaseTimeLevel()   {return store->newLevelIndex();}
-
-//   void setCommunicator(MPI_Comm comm)  {this->comm = comm;}
 
    DataStore * dataStore()   {return store;}
 
