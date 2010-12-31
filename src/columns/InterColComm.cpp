@@ -77,6 +77,7 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
 
+#ifdef OBSOLETE
 // deprecated constructor that separates borders from the layer data structure
 Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels)
 {
@@ -89,6 +90,7 @@ Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t
       this->connection[i] = NULL;
    }
 }
+#endif
 
 Publisher::Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels)
 {
