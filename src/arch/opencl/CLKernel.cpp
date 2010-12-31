@@ -73,7 +73,8 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 
 }
 
-int CLKernel::run(size_t global_work_size, size_t local_work_size)
+int CLKernel::run(size_t global_work_size, size_t local_work_size,
+                  unsigned int nWait, cl_event * waitList, cl_event * ev)
 {
    int status = CL_SUCCESS;
 
@@ -101,23 +102,21 @@ int CLKernel::run(size_t global_work_size, size_t local_work_size)
    // using the maximum number of work group items for this device
    //
    status = clEnqueueNDRangeKernel(commands, kernel, 1, NULL,
-                                   &global_work_size, &local_work_size, 0, NULL, &event);
+                                   &global_work_size, &local_work_size, nWait, waitList, ev);
    if (status != CL_SUCCESS) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel!\n");
       CLDevice::print_error_code(status);
       exit(status);
    }
 
-   // wait for the command commands to get serviced before reading back results
-   //
-   //clFinish(commands);
-
 #endif // PV_USE_OPENCL
 
    return status;
 }
 
-int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY)
+int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY,
+                  unsigned int nWait, cl_event * waitList, cl_event * ev)
+
 {
    int status = CL_SUCCESS;
 
@@ -160,17 +159,13 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    // using the maximum number of work group items for this device
    //
    status = clEnqueueNDRangeKernel(commands, kernel, 2, NULL,
-                                   global_work_size, local_work_size, 0, NULL, &event);
+                                   global_work_size, local_work_size, nWait, waitList, ev);
    if (status) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
       fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
       CLDevice::print_error_code(status);
       exit(status);
    }
-
-   // wait for the command commands to get serviced before reading back results
-   //
-   clFinish(commands);
 
    // get profiling information
    //
