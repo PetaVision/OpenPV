@@ -49,7 +49,7 @@ CLBuffer::~CLBuffer()
    clReleaseMemObject(d_buf);
 }
    
-int CLBuffer::copyToDevice(void * host_ptr)
+int CLBuffer::copyToDevice(void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev)
 {
    int status = 0;
 
@@ -60,7 +60,8 @@ int CLBuffer::copyToDevice(void * host_ptr)
       
    // write data from host_ptr into the buffer in device memory
    //
-   status = clEnqueueWriteBuffer(commands, d_buf, CL_TRUE, 0, size, host_ptr, 0, NULL, NULL);
+   status = clEnqueueWriteBuffer(commands, d_buf, CL_TRUE, 0, size,
+                                 host_ptr, nWait, waitList, ev);
 
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
@@ -76,7 +77,7 @@ int CLBuffer::copyToDevice(void * host_ptr)
    return status;
 }
    
-int CLBuffer::copyFromDevice(void * host_ptr)
+int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev)
 {
    int status = 0;
       
@@ -87,7 +88,8 @@ int CLBuffer::copyFromDevice(void * host_ptr)
 
    // write data from host_ptr into the buffer in device memory
    //
-   status = clEnqueueReadBuffer(commands, d_buf, CL_TRUE, 0, size, host_ptr, 0, NULL, NULL);
+   status = clEnqueueReadBuffer(commands, d_buf, CL_TRUE, 0, size,
+                                host_ptr, nWait, waitList, ev);
 
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyDtoH);
