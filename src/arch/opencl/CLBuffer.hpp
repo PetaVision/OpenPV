@@ -24,19 +24,19 @@ public:
             cl_map_flags flags, size_t size, void * host_ptr);
    virtual ~CLBuffer();
    
-   int copyToDevice  (void * host_ptr, unsigned int nWait, cl_event * evList, cl_event * ev);
-   int copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * evList, cl_event * ev);
+   int copyToDevice  (void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev);
+   int copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev);
 
    int copyToDevice  (cl_event * ev)  {return copyToDevice  (h_ptr, 0, NULL, ev);}
    int copyFromDevice(cl_event * ev)  {return copyFromDevice(h_ptr, 0, NULL, ev);}
 
-   int copyToDevice(unsigned int nWait, cl_event * evList, cl_event * ev)
+   int copyToDevice(unsigned int nWait, cl_event * waitList, cl_event * ev)
       {
-         return copyToDevice(h_ptr, nWait, evList, ev);
+         return copyToDevice(h_ptr, nWait, waitList, ev);
       }
-   int copyFromDevice(unsigned int nWait, cl_event * evList, cl_event * ev)
+   int copyFromDevice(unsigned int nWait, cl_event * waitList, cl_event * ev)
       {
-         return copyFromDevice(h_ptr, nWait, evList, ev);
+         return copyFromDevice(h_ptr, nWait, waitList, ev);
       }
 
    void * map(cl_map_flags flags);
