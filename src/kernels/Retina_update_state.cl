@@ -1,6 +1,8 @@
 #include "Retina_params.h"
 #include "cl_random.cl"
 
+#include "../arch/opencl/pv_uint4.h"
+
 #ifndef PI
 #  define PI 3.1415926535897932
 #endif
