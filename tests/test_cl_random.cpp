@@ -69,16 +69,6 @@ int main(int argc, char * argv[])
    //
    PV::CLBuffer * d_rnd_state = cld->createBuffer(CL_MEM_COPY_HOST_PTR, mem_size, rnd_state);
 
-   // time running kernel locally
-   //
-
-#ifdef DO_LOCAL
-   timer.start();
-   convolve_c(data, results_l, nxGlobal, nyGlobal, nPad);
-   timer.stop();
-   printf("Executing on local:  "); timer.elapsed_time();
-#endif
-
    status |= kernel->setKernelArg(argid++, NX);
    status |= kernel->setKernelArg(argid++, NY);
    status |= kernel->setKernelArg(argid++, 1);
@@ -128,13 +118,6 @@ int main(int argc, char * argv[])
    printf("Finished...\n");
    
    return status;
-}
-
-/**
- * run the kernel on the cpu
- */
-void run_kernel_cpu()
-{
 }
 
 int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
