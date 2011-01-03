@@ -44,7 +44,9 @@ public:
    CLBuffer * createBuffer(size_t size, void * host_ptr)
          { return createBuffer(CL_MEM_COPY_HOST_PTR, size, host_ptr); }
 
-   CLKernel * createKernel(const char * filename, const char * name);
+   CLKernel * createKernel(const char * filename, const char * name, const char * options);
+   CLKernel * createKernel(const char * filename, const char * name)
+         { return createKernel(filename, name, NULL); }
    
 //   int copyResultsBuffer(cl_mem output, void * results, size_t size);
 
