@@ -43,7 +43,11 @@ public:
    // execution time in microseconds
    int get_execution_time()  { return elapsed; }
 
+#ifdef PV_USE_OPENCL
    int finish()              { return clFinish(commands); }
+#else
+   int finish()              { return CL_SUCCESS; }
+#endif
 
 protected:
    cl_kernel kernel;                     // compute kernel
