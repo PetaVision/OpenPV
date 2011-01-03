@@ -21,7 +21,7 @@ namespace PV {
 static char * load_program_source(const char *filename);
 
 CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
-                   const char * filename, const char * name)
+                   const char * filename, const char * name, const char * options)
 {
    this->device = device;
    this->commands = commands;
@@ -46,14 +46,17 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    // Build the program executable
    //
    // TODO - fix include path
-   status = clBuildProgram(program, 0, NULL, "-I ../src/kernels", NULL, NULL);
+   status = clBuildProgram(program, 0, NULL, options, NULL, NULL);
    if (status != CL_SUCCESS)
    {
        size_t len;
-       char buffer[2048];
+       char buffer[4096];
 
        printf("Error: Failed to build program executable!\n");
-       clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+       status = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+       if (status != CL_SUCCESS) {
+          printf("CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
+       }
        printf("%s\n", buffer);
        CLDevice::print_error_code(status);
        exit(status);
@@ -193,33 +196,15 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    return status;
 }
 
-int CLKernel::setKernelArg(int argid, int arg)
+int CLKernel::setKernelArg(unsigned int arg_index, size_t arg_size, const void * arg_value)
 {
    int status = CL_SUCCESS;
 
 #ifdef PV_USE_OPENCL
 
-   status = clSetKernelArg(kernel, argid, sizeof(int), &arg);
+   status = clSetKernelArg(kernel, arg_index, arg_size, arg_value);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
-   }
-
-#endif // PV_USE_OPENCL
-
-   return status;
-}
-
-int CLKernel::setKernelArg(int argid, float arg)
-{
-   int status = CL_SUCCESS;
-
-#ifdef PV_USE_OPENCL
-
-   status = clSetKernelArg(kernel, argid, sizeof(float), &arg);
-   if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
+      fprintf(stderr, "CLDevice::setKernelArg: Failed to set kernel argument! %d\n", status);
       CLDevice::print_error_code(status);
       exit(status);
    }
@@ -273,8 +258,10 @@ load_program_source(const char *filename)
     char        *source;
 
     fh = fopen(filename, "r");
-    if (fh == 0)
-        return 0;
+    if (fh == 0) {
+       fprintf(stderr, "Failed to find source for file %s\n", filename);
+       return NULL;
+    }
 
     stat(filename, &statbuf);
     source = (char *) malloc(statbuf.st_size + 1);
