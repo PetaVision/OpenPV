@@ -565,7 +565,7 @@ extern "C" {
 #endif
 
 #ifndef PV_USE_OPENCL
-#  include "kernels/Retina_update_state.cl"
+#  include "../kernels/Retina_update_state.cl"
 #endif
 
 #ifdef __cplusplus
