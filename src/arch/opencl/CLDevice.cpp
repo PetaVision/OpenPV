@@ -85,9 +85,9 @@ int CLDevice::initialize(int device)
    return status;
 }
 
-CLKernel * CLDevice::createKernel(const char * filename, const char * name)
+CLKernel * CLDevice::createKernel(const char * filename, const char * name, const char * options)
 {
-   return new CLKernel(context, commands, device_ids[device_id], filename, name);
+   return new CLKernel(context, commands, device_ids[device_id], filename, name, options);
 }
 
 CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_ptr)
