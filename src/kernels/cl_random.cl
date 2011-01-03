@@ -29,6 +29,7 @@
  */
 
 #include "../arch/opencl/pv_opencl.h"
+#include "../arch/opencl/pv_uint4.h"
 
 #define cl_random_state(s) (cl_taus_get(s))
 
