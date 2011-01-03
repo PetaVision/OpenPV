@@ -27,6 +27,9 @@ public:
    int copyToDevice  (void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev);
    int copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * waitList, cl_event * ev);
 
+   int copyToDevice  ()               {return copyToDevice  (h_ptr, 0, NULL, NULL);}
+   int copyFromDevice()               {return copyFromDevice(h_ptr, 0, NULL, NULL);}
+
    int copyToDevice  (cl_event * ev)  {return copyToDevice  (h_ptr, 0, NULL, ev);}
    int copyFromDevice(cl_event * ev)  {return copyFromDevice(h_ptr, 0, NULL, ev);}
 
