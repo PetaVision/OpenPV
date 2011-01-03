@@ -8,9 +8,7 @@
 #ifndef PV_OPENCL_H_
 #define PV_OPENCL_H_
 
-typedef struct uint4_ {
-   unsigned int s0, s1, s2, s3;
-} uint4;
+#include "../../include/pv_arch.h"
 
 #ifdef PV_USE_OPENCL
 #  include <OpenCL/opencl.h>
