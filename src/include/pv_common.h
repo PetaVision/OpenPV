@@ -43,7 +43,7 @@
 #define PI              3.1415926535897932
 
 //channels
-#define NUM_CHANNELS 3
+#define MAX_CHANNELS 3
 #define PHI0    0       // which phi buffer to use
 #define PHI1    1       // which phi buffer to use
 #define PHI_EXC 0       // which phi buffer to use
