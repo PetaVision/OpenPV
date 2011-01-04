@@ -27,11 +27,11 @@ int main(int argc, char* argv[])
    loc.nyGlobal = nyGlobal;
    loc.kx0 = kx0;
    loc.ky0 = ky0;
-   loc.nPad = nb;
-   loc.nBands = nf;
+   loc.nb  = nb;
+   loc.nf  = nf;
 
    for (kl = 0; kl < nf*nxGlobal*nyGlobal; kl++) {
-      kg = globalIndexFromLocal(kl, loc, nf);
+      kg = globalIndexFromLocal(kl, loc);
       kb = kIndexExtended(kl, nx, ny, nf, nb);
       if (kb != kg) {
 	 printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);

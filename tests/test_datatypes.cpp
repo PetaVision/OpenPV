@@ -39,10 +39,10 @@ int main(int argc, char * argv[])
    // this info not used for send/recv
    loc.kx0 = 0; loc.ky0 = 0;
 
-   loc.nPad = 16;
+   loc.nb = 16;
 
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
+   const int nxBorder = loc.nb;
+   const int nyBorder = loc.nb;
 
    int numItems = (2*nxBorder + loc.nx) * (2*nyBorder + loc.ny);
 
@@ -92,8 +92,8 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
    const int nx = (int) loc.nx;
    const int ny = (int) loc.ny;
 
-   const int nxBorder = loc.nPad;
-   const int nyBorder = loc.nPad;
+   const int nxBorder = loc.nb;
+   const int nyBorder = loc.nb;
 
    const int commRow = comm->commRow();
    const int commCol = comm->commColumn();
