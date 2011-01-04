@@ -8,7 +8,6 @@
 #ifndef CL_RANDOM_H_
 #define CL_RANDOM_H_
 
-#include "../arch/opencl/pv_opencl.h"
 #include "../arch/opencl/pv_uint4.h"
 #include <stdlib.h>
 
