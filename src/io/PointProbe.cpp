@@ -66,12 +66,12 @@ int PointProbe::outputState(float time, HyPerLayer * l)
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
+   const int nf = clayer->loc.nf;
 
    const pvdata_t * activity = l->getLayerData();
 
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nPad);
+   const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nb);
 
    if (sparseOutput) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
@@ -79,11 +79,14 @@ int PointProbe::outputState(float time, HyPerLayer * l)
    }
    else {
       fprintf(fp, "%s t=%.1f", msg, time);
+#ifdef MOVE_TO_LIF
       fprintf(fp, " G_E=%6.3f", clayer->G_E[k]);
       fprintf(fp, " G_I=%6.3f", clayer->G_I[k]);
       fprintf(fp, " G_IB=%6.3f", clayer->G_IB[k]);
+#endif
       fprintf(fp, " V=%6.3f", clayer->V[k]);
-      fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
+// TODO - get information from layer
+//      fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
       fprintf(fp, " a=%.1f\n", activity[kex]);
       fflush(fp);
    }

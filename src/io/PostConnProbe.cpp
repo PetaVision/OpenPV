@@ -91,13 +91,13 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    const int nxPre = lPre->loc.nx;
    const int nyPre = lPre->loc.ny;
-   const int nfPre = lPre->numFeatures;
-   const int nPadPre = lPre->loc.nPad;
+   const int nfPre = lPre->loc.nf;
+   const int nbPre = lPre->loc.nb;
 
    const int nxPost = lPost->loc.nx;
    const int nyPost = lPost->loc.ny;
-   const int nfPost = lPost->numFeatures;
-   const int nPadPost = lPost->loc.nPad;
+   const int nfPost = lPost->loc.nf;
+   const int nbPost = lPost->loc.nb;
 
    // calc kPost if needed
    if (kPost < 0) {
@@ -111,12 +111,12 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
-   const int kxPreEx = kxPre + nPadPre;
-   const int kyPreEx = kyPre + nPadPre;
+   const int kxPreEx = kxPre + nbPre;
+   const int kyPreEx = kyPre + nbPre;
 
-   const int kxPostEx = kxPost + nPadPost;
-   const int kyPostEx = kyPost + nPadPost;
-   const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+2*nPadPost, nyPost+2*nPadPost, nfPost);
+   const int kxPostEx = kxPost + nbPost;
+   const int kyPostEx = kyPost + nbPost;
+   const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+2*nbPost, nyPost+2*nbPost, nfPost);
 
    w = wPost[kPost];
 
@@ -135,7 +135,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    k = 0;
    for (int ky = 0; ky < w->ny; ky++) {
       for (int kx = 0; kx < w->nx; kx++) {
-         int kPre = kIndex(kx+kxPreEx, ky+kyPreEx, 0, nxPre+2*nPadPre, nyPre+2*nPadPre, nfPre);
+         int kPre = kIndex(kx+kxPreEx, ky+kyPreEx, 0, nxPre+2*nbPre, nyPre+2*nbPre, nfPre);
          wActiv[k++] = lPre->activity->data[kPre];
       }
    }
