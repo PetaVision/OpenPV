@@ -30,6 +30,7 @@ int LIF2_update_finish(PVLayer * l, float dt);
 // Default handlers for a layer of leaky integrate-and-fire neurons.
 static inline int update_f(PVLayer * l, int start)
 {
+#ifdef OBSOLETE
    int k;
    int k_global;
 
@@ -87,12 +88,14 @@ static inline int update_f(PVLayer * l, int start)
       }
    }
    l->numActive = numActive;
+#endif
 
    return 0;
 }
 
 int add_noise(PVLayer * l, float dt)
 {
+#ifdef OBSOLETE
    int i;
    int start = 0;  // TODO - fix for threads
    //   int start = (l->yOrigin * l->loc.nx + l->xOrigin) * l->numFeatures;
@@ -105,11 +108,13 @@ int add_noise(PVLayer * l, float dt)
       if (pv_random_prob() < dt * params->noiseFreqI)  l->phi[PHI_INH][i]  += params->noiseAmpI  * pv_random_prob();
       if (pv_random_prob() < dt * params->noiseFreqIB) l->phi[PHI_INHB][i] += params->noiseAmpIB * pv_random_prob();
    }
+#endif
    return 0;
 }
 
 int LIF2_update_explicit_euler(PVLayer * l, float dt)
 {
+#ifdef OBSOLETE
    int i;
    int start = 0;  // TODO - fix for threads
    //   int start = (l->yOrigin * l->loc.nx + l->xOrigin) * l->numFeatures;
@@ -128,10 +133,12 @@ int LIF2_update_explicit_euler(PVLayer * l, float dt)
             l->G_IB[i] * (l->V[i] - params->VinhB) );
    }
    return LIF2_update_finish(l, dt);
+#endif
 }
 
 int LIF2_update_implicit_euler(PVLayer * l, float dt)
 {
+#ifdef OBSOLETE
    int i;
    int start = 0;  // TODO - fix for threads
    //   int start = (l->yOrigin * l->loc.nx + l->xOrigin) * l->numFeatures;
@@ -158,10 +165,12 @@ int LIF2_update_implicit_euler(PVLayer * l, float dt)
       ( 1 + (dt / params->tau ) * ( 1 + l->G_E[i] + l->G_I[i] + l->G_IB[i] ) );
    }
    return LIF2_update_finish(l, dt);
+#endif
 }
 
 int LIF2_update_exact_linear(PVLayer * l, float dt)
 {
+#ifdef OBSOLETE
    int i;
    float tauInf, VmemInf;
    int start = 0;  // TODO - fix for threads
@@ -205,10 +214,12 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
    }
 
    return LIF2_update_finish(l, dt);
+#endif
 }
 
 void print_stats(PVLayer * l)
 {
+#ifdef OBSOLETE
    float phiAve  = 0.0, phiMax  = FLT_MIN, phiMin  = FLT_MAX;
    float phi1Ave = 0.0, phi1Max = FLT_MIN, phi1Min = FLT_MAX;
    float phi2Ave = 0.0, phi2Max = FLT_MIN, phi2Min = FLT_MAX;
@@ -257,7 +268,6 @@ void print_stats(PVLayer * l)
       if (l->Vth[i] > VthMax) VthMax = l->Vth[i];
    }
 
-#ifdef NOT_USED
    if (0) {  // TODO - fix threads
    //   if (l->yOrigin == 0) {
       sprintf(msg, "[0]: L%d: phi0: Max:   %1.4f, Avg=  %1.4f Min=  %1.4f\n", l->layerId,
@@ -291,6 +301,7 @@ void print_stats(PVLayer * l)
 
 int LIF2_update_finish(PVLayer * l, float dt)
 {
+#ifdef OBSOLETE
    int i;
    int start = 0;  // TODO - fix for threads
    //   int start = (l->yOrigin * l->loc.nx + l->xOrigin) * l->numFeatures;
@@ -309,10 +320,12 @@ int LIF2_update_finish(PVLayer * l, float dt)
    }
 
    return update_f(l, start); // resets V if f == 1
+#endif
 }
 
 int LIF2_init(PVLayer * l)
 {
+#ifdef OBSOLETE
    int k, m, kex;
    LIF2_params * params = (LIF2_params *) l->params;
 
@@ -347,7 +360,6 @@ int LIF2_init(PVLayer * l)
       l->activity->data[kex] = 0.0;
 
    }
-
-
+#endif
    return 0;
 }
