@@ -182,8 +182,13 @@ int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
    layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
    layerLoc->ky0 = layerLoc->ny * icComm->commRow();
 
-   layerLoc->nPad = margin;
-   layerLoc->nBands = nf;
+   layerLoc->nf = nf;
+   layerLoc->nb = margin;
+
+   layerLoc->halo.lt = margin;
+   layerLoc->halo.rt = margin;
+   layerLoc->halo.dn = margin;
+   layerLoc->halo.up = margin;
 
    return 0;
 }
@@ -307,17 +312,25 @@ float HyPerCol::advanceTime(float sim_time)
 
       // deliver new synaptic activity to layer
       //
-      icComm->deliver(this, layers[l]->getLayerId());
+      layers[l]->triggerReceive(icComm);
 
       // update layer and calculate new activity
       //
       layers[l]->updateState(sim_time, deltaTime);
+   }
+
+   // This loop separate from the update layer loop above
+   // to provide time for layer data to be copied from
+   // the OpenCL device.
+   //
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->updateBorder(sim_time, deltaTime);
 
       // TODO - move this to layer
       // Advance time level so we have a new place in data store
-      // to copy the data.  This should be done immediately after before
-      // publish so there is a place to publish and deliver the data to
-      // but no one can access the data store (except to publish) until
+      // to copy the data.  This should be done immediately before
+      // publish so there is a place to publish and deliver the data to.
+      // No one can access the data store (except to publish) until
       // wait has been called.  This should be fixed so that publish goes
       // to last time level and level is advanced only after wait.
       icComm->increaseTimeLevel(layers[l]->getLayerId());
@@ -328,7 +341,7 @@ float HyPerCol::advanceTime(float sim_time)
    // wait for all published data to arrive
    //
    for (int l = 0; l < numLayers; l++) {
-      icComm->wait(layers[l]->getLayerId());
+      layers[l]->waitOnPublish(icComm);
    }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
@@ -432,7 +445,7 @@ int HyPerCol::checkMarginWidths() {
    int status1, status2;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
-      int padding = conn->pre->getLayerLoc()->nPad;
+      int padding = conn->pre->getLayerLoc()->nb;
 
       int xScalePre = conn->preSynapticLayer()->getXScale();
       int xScalePost = conn->postSynapticLayer()->getXScale();
