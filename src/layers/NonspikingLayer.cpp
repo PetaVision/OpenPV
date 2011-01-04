@@ -8,7 +8,7 @@
 #include "NonspikingLayer.hpp"
 
 namespace PV {
-NonspikingLayer::NonspikingLayer(const char* name, HyPerCol * hc) : HyPerLayer(name, hc) {
+NonspikingLayer::NonspikingLayer(const char* name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
     initialize();
 }  // end NonspikingLayer::NonspikingLayer()
 
