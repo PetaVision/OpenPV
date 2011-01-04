@@ -22,8 +22,8 @@ int main(int argc, char * argv[])
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;
-   int nf  = l->clayer->loc.nBands;
-   int nB = l->clayer->loc.nPad; //4;
+   int nf = l->clayer->loc.nf;
+   int nB = l->clayer->loc.nb; //4;
    int nS = l->clayer->loc.nx; // 8;
    int syex = ( nS + 2*nB ) * nf;
    int sy = nS * nf;
@@ -33,8 +33,8 @@ int main(int argc, char * argv[])
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
    sLoc.nx = sLoc.ny = nS;
-   sLoc.nPad = nB;
-   sLoc.nBands = nf;
+   sLoc.nb = nB;
+   sLoc.nf = nf;
 
    bLoc = sLoc;
 
