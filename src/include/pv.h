@@ -15,30 +15,6 @@
 #define INPUT_PATH  "./io/input/circle1_input.bin"   /*name of the input file*/
 #define PARAMS_FILE "params.txt" // log runtime parameters
 
-/*******************************************************************/
-/*BASIC PARAMERS (SIZE OF MODEL)                                   */
-/*******************************************************************/
-
-//#define NUM_SPUS	8
-
-//#define NX    64			/* 48  */
-//#define NY    64			/* 48  */
-//#define NO     8			/* 16  */
-//#define N     (NX*NY*NO)	/* 36864 */
-//#define NSPU  (N/NUM_SPUS)	/*  */
-
-//#define CHUNK_SIZE   1024	/* 81*1024 = 82944 */
-/* in optimized version, must be divisible by NO */
-/* and nicely sized in terms of cache lines */
-//#define CHUNK_SIZE   N		/* N/NO */
-//#define MIN_DX 1.e-8
-//#define DX    1.0			/* pixel units, original 80.0/10. */
-//#define DY    1.0			/* pixel units, origianl 80.0/10. */
-//#define DTH   (180.0/NO)	/* degrees */
-
-//#define MS_PER_TIMESTEP		1.0
-/*****************************************************************************************************/
-
 /*******************************************************/
 /*  Poissonian Input                                   */
 /*******************************************************/
@@ -67,7 +43,6 @@
 #define NOISE_FREQ_INH          NOISE_FREQ                   // prob of noise input on each time step
 #define MIN_H                   -V_TH_0_INH                  //minimum inhibitory potential
 /*****************************************************************************************************/
-
 
 /****************************************************************/
 /*PHI PARAMETERS- for each connection (all follow first scheme) */
@@ -110,55 +85,5 @@
 #define INHIB_FRACTION_E2I  0.8             // fraction of onhibitory connections
 #define INHIBIT_SCALE_E2I   0*1.0	    // reduce inhibition (w < 0) by this amount
 /**********************************************************************************************************/
-
-/*****************************************************************/
-/*MISCELLANEOUS-(ImageCreator and other basic definitions)       */
-/*****************************************************************/
-
-// ImageCreator basics
-//#define I_MAX          (1.0*0.5*V_TH_0/DT_d_TAU) // maximum image intensity
-//#define CLUTTER_PROB   0.01                      // prob of clutter in image
-
-
-//Basic definitons
-
-//#define RAD_TO_DEG_x2	(2.0*180.0/PI)
-
-//#define NUM_NEIGHBORS   8	/* number of neighboring HyperColumns */
-
-//#define eventtype_t     float		/* data type for an event */
-//#define EVENT_TYPE_MPI  MPI_FLOAT	/* MUST BE SAME AS ABOVE */
-
-//#define NUM_MASK_EVENTS	N	/* number of elements in event mask */
-//#define SEED 1
-
-//#define MAX_FILENAME 128
-
-
-/**********************************************************************/
-
-/**
- * data type for event mask (floats for now, could be compressed to bits)
- */
-// TODO - number of neurons per layer will have to change, redo this
-//typedef struct eventmask_ {
-    //eventtype_t event[NUM_MASK_EVENTS];
-//} eventmask;
-/**************************************************************************/
-
-/*********/
-/* API's */
-/*********/
-//int comm_init(int* pargc, char*** pargv, int* rank, int* size);
-//int comm_finalize(void );
-
-//int recver_rank(PVState* s, int id);
-//int sender_rank(PVState* s, int id);
-
-//void pv_output(char* path, float threshold, float I[]);
-
-//void compress_float_mask(int size, float buf[], unsigned char bits[]);
-
-///void post(float threshold, float x0, float y0, float x[], float y[], float th[], float F[]);
 
 #endif /* PV_H_ */
