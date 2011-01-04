@@ -10,7 +10,6 @@
 
 #include "../layers/PVLayer.h"
 #include "../layers/LayerDataInterface.hpp"
-#include "../layers/LIF2.h"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
@@ -24,43 +23,22 @@
 
 namespace PV {
 
-// HyPerLayer uses C code from PVLayer.{h,c}, and LIF2.{h,c}
-typedef LIF2_params HyPerLayerParams;
-
-/**
- * OpenCLLayer collects memory objects for sharing data with OpenCL devices
- */
-#ifdef PV_USE_OPENCL
-typedef struct {
-   CLBuffer * V;
-   CLBuffer * Vth;
-   CLBuffer * G_E;
-   CLBuffer * G_I;
-   CLBuffer * G_IB;
-   CLBuffer * phi;   // collects all three phi buffers and hopefully will go away
-   CLBuffer * activity;
-   CLBuffer * prevActivity;
-} OpenCLLayer;
-#endif
-
-
 class HyPerLayer : public LayerDataInterface {
 
 protected:
 
    // only subclasses can be constructed directly
-   HyPerLayer(const char * name, HyPerCol * hc);
+   HyPerLayer(const char * name, HyPerCol * hc, int numChannels);
 
    virtual int initializeLayerId(int layerId);
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadData() = 0;
+   virtual int initializeThreadBuffers() = 0;
    virtual int initializeThreadKernels() = 0;
 #endif
 
 private:
-   int initialize_base(const char * name, HyPerCol * hc);
+   int initialize_base(const char * name, HyPerCol * hc, int numChannels);
 
 public:
 
@@ -77,36 +55,30 @@ public:
                              const PVLayerLoc * loc, bool extended, float scale);
 
    // TODO - make protected
-   PVLayer*  clayer;
-   HyPerCol* parent;
+   PVLayer  * clayer;
+   HyPerCol * parent;
 
-   virtual int updateState(float time, float dt);
+   virtual int triggerReceive(InterColComm * comm);
+   virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
+   virtual int updateState (float time, float dt);
+   virtual int updateBorder(float time, float dt);
+   virtual int publish(InterColComm * comm, float time);
+   virtual int waitOnPublish(InterColComm * comm);
+
    virtual int updateV();
    virtual int setActivity();
    virtual int resetPhiBuffers();
    int resetBuffer(pvdata_t * buf, int numItems);
-
-   virtual int
-       recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
 
    virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
 
    int initialize(PVLayerType type);
    int initFinish();
 
-#ifdef DEPRECATED
-   PVLayerCube * initBorder(PVLayerCube * border, int borderId);
-#endif
-
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
-   virtual int setParams(int numParams, size_t sizeParams, float * params);
-   virtual int getParams(int * numParams, float ** params);
-   virtual int setFuncs(void * initFunc, void * updateFunc);
-
-   virtual int publish(InterColComm * comm, float time);
    virtual int outputState(float time, bool last=false);
    virtual int writeState(const char * name, float time, bool last=false);
    virtual int writeActivity(const char * filename, float time);
@@ -142,7 +114,7 @@ public:
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
    pvdata_t * getChannel(ChannelType ch) {                         // name query
-      return ch < clayer->numPhis ? clayer->phi[ch] : NULL;
+      return ch < this->numChannels ? phi[ch] : NULL;
    }
    int getXScale()                   {return clayer->xScale;}
    int getYScale()                   {return clayer->yScale;}
@@ -161,11 +133,10 @@ public:
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
 protected:
-#ifdef OBSOLETE
-   virtual int initGlobal(int colId, int colRow, int colCol, int nRows, int nCols);
-#endif
+   char * name;                 // well known name of layer
 
-   char * name;  // well known name of layer
+   int numChannels;             // number of channels
+   pvdata_t * phi[MAX_CHANNELS];
 
    int numProbes;
    LayerProbe ** probes;
@@ -179,8 +150,23 @@ protected:
    // OpenCL variables
    //
 #ifdef PV_USE_OPENCL
-   OpenCLLayer clBuffers;          // data shared with OpenCL devices
-   CLKernel * updatestate_kernel;  // CL kernel for update state call
+   CLKernel * krUpdate;        // CL kernel for update state call
+
+   // OpenCL buffers
+   //
+   CLBuffer * clV;
+   CLBuffer * clVth;
+   CLBuffer * clPhiE;
+   CLBuffer * clPhiI;
+   CLBuffer * clPhiIB;
+   CLBuffer * clActivity;
+   CLBuffer * clPrevTime;
+   CLBuffer * clParams;       // for transferring params to kernel
+
+
+   int numEvents;             // number of events in event list
+   cl_event * evList;         // event list
+   cl_event   evUpdate;
 
    int nxl;  // local OpenCL grid size in x
    int nyl;  // local OpenCL grid size in y
