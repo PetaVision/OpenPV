@@ -60,7 +60,7 @@ int main(int argc, char * argv[])
       nxl = 1;  nyl = 1;
    }
 
-   kernel = cld->createKernel("kernels/LIF_update_state.cl", "LIF_update_state",
+   kernel = cld->createKernel("../src/kernels/LIF_update_state.cl", "LIF_update_state",
                 "-I /Users/rasmussn/eclipse/workspace.petavision/PetaVisionII/src/kernels/");
    
    exit(0);
