@@ -15,12 +15,13 @@
 #define PV_OFF 0
 
 // WARNING LAYER_CUBE_HEADER_SIZE should be n*128 bits
-#define NUM_PADDING 1
 #define LAYER_CUBE_HEADER_SIZE (sizeof(PVLayerCube))
 #ifdef PV_ARCH_64
-#  define EXPECTED_CUBE_HEADER_SIZE 64
+#  define NUM_PADDING 1
+#  define EXPECTED_CUBE_HEADER_SIZE 80
 #else
-#  define EXPECTED_CUBE_HEADER_SIZE 48
+#  define NUM_PADDING 1
+#  define EXPECTED_CUBE_HEADER_SIZE 64
 #endif
 
 /* The common type for data */
