@@ -14,7 +14,7 @@
 
 namespace PV {
 
-LGN::LGN(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
+LGN::LGN(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 2)
 {
 }
 
@@ -34,8 +34,8 @@ int LGN::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   pvdata_t * PhiExc = clayer->phi[CHANNEL_EXC];
-   pvdata_t * PhiInh = clayer->phi[CHANNEL_INH];
+   pvdata_t * PhiExc = getChannel(CHANNEL_EXC);
+   pvdata_t * PhiInh = getChannel(CHANNEL_INH);
    pvdata_t * activity = clayer->activity->data;
 
    // make sure activity in border is zero
@@ -46,8 +46,8 @@ int LGN::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->loc.nPad);
+      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
+                                   clayer->loc.nb);
       clayer->V[k] = PhiExc[kPhi];
       activity[k] = PhiExc[kPhi] - PhiInh[kPhi];
       //if (k > 64*2*32 && k < 2*64*32+128) {
@@ -67,12 +67,6 @@ int LGN::initFinish(int colId, int colRow, int colCol)
 {
    pv_debug_info("[%d]: Example::initFinish: colId=%d colRow=%d, colCol=%d\n", clayer->columnId,
           colId, colRow, colCol);
-   return 0;
-}
-
-int LGN::setParams(int numParams, float * params)
-{
-   pv_debug_info("[%d]: Example::setParams: numParams=%d\n", clayer->columnId, numParams);
    return 0;
 }
 
