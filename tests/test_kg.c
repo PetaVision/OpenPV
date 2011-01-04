@@ -12,19 +12,21 @@ int main(int argc, char* argv[])
    int ij;
 #endif
 
-   int nf = 3;
+   printf("size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
+   printf("size_int==%ld size_float==%ld, size_sizet==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
 
-   float nx = loc.nx = 63.0;
-   float ny = loc.ny = 127.0;
+   int nf = loc.nf = 3;
+   int nx = loc.nx = 63;
+   int ny = loc.ny = 127;
 
-   loc.kx0 = 0.0;
-   loc.ky0 = 0.0;
+   loc.kx0 = 0;
+   loc.ky0 = 0;
 
    loc.nxGlobal = nx;
    loc.nyGlobal = ny;
 
    for (kl = 0; kl < nx*ny*nf; kl++) {
-      kg = globalIndexFromLocal(kl, loc, nf);
+      kg = globalIndexFromLocal(kl, loc);
 
       if (kg != kl) {
          printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
@@ -34,12 +36,12 @@ int main(int argc, char* argv[])
 
   // divide in halve by x, take right
 
-  nf = 2;
-  nx = loc.nx = 32.0;
-  ny = loc.ny = 128.0;
+  nf = loc.nf = 2;
+  nx = loc.nx = 32;
+  ny = loc.ny = 128;
 
-  loc.kx0 = 32.0;
-  loc.ky0 = 0.0;
+  loc.kx0 = 32;
+  loc.ky0 = 0;
 
   loc.nxGlobal = 2.0*nx;
   loc.nyGlobal = ny;
@@ -51,7 +53,7 @@ int main(int argc, char* argv[])
         kx = kxPos(kl, loc.nx, loc.ny, nf);
         ky = kyPos(kl, loc.nx, loc.ny, nf);
 
-        kg  = globalIndexFromLocal(kl, loc, nf);
+        kg  = globalIndexFromLocal(kl, loc);
         kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -68,7 +70,7 @@ int main(int argc, char* argv[])
      ky = kyPos(kl, loc.nx, loc.ny, nf);
      kf = featureIndex(kl, loc.nx, loc.ny, nf);
 
-     kg = globalIndexFromLocal(kl, loc, nf);
+     kg = globalIndexFromLocal(kl, loc);
      kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -86,12 +88,12 @@ int main(int argc, char* argv[])
 
   // divide in halve by y, take bottom
 
-  nf = 5;
-  nx = loc.nx = 32.0;
-  ny = loc.ny = 128.0;
+  nf = loc.nf = 5;
+  nx = loc.nx = 32;
+  ny = loc.ny = 128;
 
-  loc.kx0 = 0.0;
-  loc.ky0 = 64.0;
+  loc.kx0 = 0;
+  loc.ky0 = 64;
 
   loc.nxGlobal = nx;
   loc.nyGlobal = 2.0*ny;
@@ -102,7 +104,7 @@ int main(int argc, char* argv[])
         int kl = ij + nx*ny*kf;
         int kx = kxPos(kl, loc.nx, loc.ny, nf);
         int ky = kyPos(kl, loc.nx, loc.ny, nf);
-        kg = globalIndexFromLocal(kl, loc, nf);
+        kg = globalIndexFromLocal(kl, loc);
         kx = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         ky = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
@@ -120,7 +122,7 @@ int main(int argc, char* argv[])
      ky = kyPos(kl, loc.nx, loc.ny, nf);
      kf = featureIndex(kl, loc.nx, loc.ny, nf);
 
-     kg = globalIndexFromLocal(kl, loc, nf);
+     kg = globalIndexFromLocal(kl, loc);
      kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -136,19 +138,19 @@ int main(int argc, char* argv[])
   }
 #endif
 
-  nf = 1;
-  nx = loc.nx = 4096.0;
-  ny = loc.ny = 4096.0+1.0;  // this should fail
-  ny = loc.ny = 4096.0;
+  nf = loc.nf = 1;
+  nx = loc.nx = 4096;
+  ny = loc.ny = 4096+1;  // this should fail (probably not now with ints)
+  ny = loc.ny = 4096;
 
-  loc.kx0 = 0.0;
-  loc.ky0 = 0.0;
+  loc.kx0 = 0;
+  loc.ky0 = 0;
 
   loc.nxGlobal = nx;
   loc.nyGlobal = ny;
 
   for (kl = 0; kl < nx*ny*nf; kl++) {
-     kg = globalIndexFromLocal(kl, loc, nf);
+     kg = globalIndexFromLocal(kl, loc);
 
      if (kg != kl) {
         printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);

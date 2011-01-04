@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
    sLoc.nxGlobal = sLoc.nyGlobal = nxS + 2*nxB;  // add borders to global
    sLoc.kx0 = sLoc.ky0 = nxB;                    // shouldn't be used
    sLoc.nx = sLoc.ny = nxS;
-   sLoc.nPad = nxB;
-   sLoc.nBands = nf;
+   sLoc.nb = nxB;
+   sLoc.nf = nf;
 
    bLoc = sLoc;
    bLoc.nx = bLoc.ny = nxB;

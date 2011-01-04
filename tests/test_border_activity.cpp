@@ -67,7 +67,7 @@ int check_activity(HyPerLayer * l)
 
    const int nx = l->clayer->loc.nx;
    const int ny = l->clayer->loc.ny;
-   const int nf = l->clayer->loc.nBands;
+   const int nf = l->clayer->loc.nf;
 
    const int nk = l->clayer->numNeurons;
    assert(nk == nx*ny*nf);
