@@ -10,7 +10,7 @@
 
 namespace PV {
 
-Example::Example(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
+Example::Example(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 1)
 {
    initialize(TypeGeneric);
 }
@@ -33,13 +33,13 @@ int Example::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   pvdata_t * phi = clayer->phi[CHANNEL_EXC];
+   pvdata_t * phi = getChannel(CHANNEL_EXC);
    pvdata_t * activity = clayer->activity->data;
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-   const int marginWidth = clayer->loc.nPad;
+   const int nf = clayer->loc.nf;
+   const int nb = clayer->loc.nb;
 
    // make sure activity in border is zero
    //
@@ -49,7 +49,7 @@ int Example::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
       clayer->V[k] = phi[k];
       activity[kex] = phi[k];
       phi[k] = 0.0;     // reset accumulation buffer
@@ -62,12 +62,6 @@ int Example::initFinish(int colId, int colRow, int colCol)
 {
    pv_debug_info("[%d]: Example::initFinish: colId=%d colRow=%d, colCol=%d",
                  clayer->columnId, colId, colRow, colCol);
-   return 0;
-}
-
-int Example::setParams(int numParams, float * params)
-{
-   pv_debug_info("[%d]: Example::setParams: numParams=%d", clayer->columnId, numParams);
    return 0;
 }
 
