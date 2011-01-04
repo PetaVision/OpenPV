@@ -136,7 +136,10 @@ int HyPerCol::initFinish(void)
       }
    }
 
+#ifdef OBSOLETE
+   // TODO - fix this to modern version?
    log_parameters(numSteps, image_file);
+#endif
 
    isInitialized = true;
 
