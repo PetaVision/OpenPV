@@ -198,50 +198,48 @@ static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
    return kf + (kx + ky * nx) * nf;
 }
 
-//! RETURNS STRIDE IN X DIRECTION FOR LINEAR INDEXING
-/*!
- * @nx
- * @ny
- * @nf
- * REMARKS:
- *      - in the linear index space feature index varies first, followed by
- *      X direction index, followed by Y direction index.
- *      - remember that:
- *      k = ky * (nf*nx) + kx * nf + kf
- */
-static inline int strideX(int nx, int ny, int nf)
-{
-   return nf;
-}
-//! RETURNS STRIDE IN Y DIRECTION FOR LINEAR INDEXING
-/*!
- * @nx
- * @ny
- * @nf
- * REMARKS:
- *      - in the linear index space feature index varies first, followed by
- *      X direction index, followed by Y direction index.
- *      - remember that:
- *      k = ky * (nf*nx) + kx * nf + kf
- */
-static inline int strideY(int nx, int ny, int nf)
-{
-   return nf * nx;
-}
-//! RETURNS STRIDE IN Y DIRECTION FOR LINEAR INDEXING
+//! Returns stride in feature dimension for linear indexing
 /**
- * @nx
- * @ny
- * @nf
- * REMARKS:
+ * @loc
+  * REMARKS:
  *      - in the linear index space feature index varies first, followed by
  *      X direction index, followed by Y direction index.
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-static inline int strideF(int nx, int ny, int nf)
+static inline size_t strideF(const PVLayerLoc * loc)
 {
    return 1;
+}
+
+//! Returns stride in x dimension for linear indexing
+/*!
+ * @loc
+ *
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
+ */
+static inline size_t strideX(const PVLayerLoc * loc)
+{
+   return loc->nf;
+}
+
+//! Returns stride in y dimension for linear indexing
+/*!
+ * @loc
+ *
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
+ */
+static inline size_t strideY(const PVLayerLoc * loc)
+{
+   return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt);
 }
 
 /**
@@ -366,13 +364,13 @@ static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
  * @nf
  */
 // TODO - put back in nx,ny,... so that it will vectorize with vector of kl's
-static inline int globalIndexFromLocal(int kl, PVLayerLoc loc, int nf)
+static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
 {
 #if PV_USE_MPI
-   int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, nf);
-   int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, nf);
-   int  kf = featureIndex(kl, loc.nx, loc.ny, nf);
-   return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, nf);
+   int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
+   int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
+   int  kf = featureIndex(kl, loc.nx, loc.ny, loc.nf);
+   return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
 #else
    return kl;
 #endif
