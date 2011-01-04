@@ -186,7 +186,7 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
    const int height = loc->nyGlobal;
 
    if (rank == 0) {
-      const int n = loc->nxGlobal * loc->nyGlobal * loc->nBands;
+      const int n = loc->nxGlobal * loc->nyGlobal * loc->nf;
       buf = new unsigned char[n];
       assert(buf != NULL);
    }
@@ -206,14 +206,14 @@ int GLDisplay::loadTexture(int id, LayerDataInterface * l)
    for (int ky = 0; ky < loc->nyGlobal; ky++) {
       for (int kx = 0; kx < loc->nxGlobal; kx++) {
          kpixel = ky * loc->nxGlobal + kx;
-         for (int kf = 0; kf < loc->nBands; kf++) {
-            kbuf = (kpixel) * loc->nBands + kf;
+         for (int kf = 0; kf < loc->nf; kf++) {
+            kbuf = (kpixel) * loc->nf + kf;
             bufpixel[kpixel] += buf[kbuf];
          }
       }
    }
    for (int kpixel = 0; kpixel < npixel; kpixel++){
-      bufpixel[kpixel] /= loc->nBands;
+      bufpixel[kpixel] /= loc->nf;
    }
 
    if (rank == 0) {

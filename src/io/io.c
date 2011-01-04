@@ -275,7 +275,7 @@ int scatterReadBuf(PVLayer* l, float* globalBuf, float* localBuf, MPI_Comm comm)
    int kl, kg, status = 0;
    int nLocal = l->loc.nx * l->loc.ny;
    for (kl = 0; kl < nLocal; kl++) {
-      kg = globalIndexFromLocal(kl, l->loc, l->numFeatures);
+      kg = globalIndexFromLocal(kl, l->loc);
       localBuf[kl] = globalBuf[kg];
    }
    return status;
@@ -387,7 +387,7 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
          for (kl = 0; kl < nLocal; kl++) {
             loc.kx0 = kbuf[2 * c];
             loc.ky0 = kbuf[2 * c + 1];
-            int kg = globalIndexFromLocal(kl, loc, l->numFeatures);
+            int kg = globalIndexFromLocal(kl, loc);
             float* loc = tbuf + c * nLocal;
             obuf[kg] = loc[kl];
          }

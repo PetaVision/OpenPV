@@ -21,8 +21,8 @@ static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
 	buf[3] = loc->nyGlobal;
 	buf[4] = loc->kx0;
 	buf[5] = loc->ky0;
-	buf[6] = loc->nPad;
-	buf[7] = loc->nBands;
+	buf[6] = loc->nb;
+	buf[7] = loc->nf;
 }
 
 static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
@@ -33,8 +33,8 @@ static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
 	loc->nyGlobal = buf[3];
 	loc->kx0      = buf[4];
 	loc->ky0      = buf[5];
-	loc->nPad     = buf[6];
-	loc->nBands   = buf[7];
+	loc->nb       = buf[6];
+	loc->nf       = buf[7];
 }
 
 int getFileType(const char * filename)
@@ -104,8 +104,8 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
       loc->nyGlobal = params[INDEX_NY_GLOBAL];
       loc->kx0      = params[INDEX_KX0];
       loc->ky0      = params[INDEX_KY0];
-      loc->nPad     = params[INDEX_NPAD];
-      loc->nBands   = params[INDEX_NBANDS];
+      loc->nb       = params[INDEX_NB];
+      loc->nf       = params[INDEX_NF];
 
       assert(dataSize == 1);
       assert(dataType == PV_BYTE_TYPE);
@@ -160,7 +160,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
 
-      loc->nBands = dataset->GetRasterCount();
+      loc->nf = dataset->GetRasterCount();
 
       // calculate local layer size
 
@@ -200,7 +200,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 int gatherImageFile(const char * filename,
                     PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf){
    unsigned char * char_buf;
-   const int numItems = loc->nx * loc->ny * loc->nBands;
+   const int numItems = loc->nx * loc->ny * loc->nf;
    char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
    assert( char_buf != NULL );
    pvdata_t max_buf = -1.0e20;
@@ -244,7 +244,7 @@ int gatherImageFilePVP(const char * filename,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
    assert(numBands <= maxBands);
 
    const int nxny     = nx * ny;
@@ -279,7 +279,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
       params[INDEX_NX]          = loc->nx;
       params[INDEX_NY]          = loc->ny;
-      params[INDEX_NF]          = loc->nBands;
+      params[INDEX_NF]          = loc->nf;
       params[INDEX_NUM_RECORDS] = nxProcs * nyProcs;
       params[INDEX_RECORD_SIZE] = recordSize;
       params[INDEX_DATA_SIZE]   = sizeof(unsigned char);
@@ -290,8 +290,8 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
       params[INDEX_KX0]         = loc->kx0;
       params[INDEX_KY0]         = loc->ky0;
-      params[INDEX_NPAD]        = loc->nPad;
-      params[INDEX_NBANDS]      = loc->nBands;
+      params[INDEX_NB]          = loc->nb;
+      params[INDEX_NBANDS]      = loc->nf;
 
       int numWrite = fwrite(params, sizeof(int), numParams, fp);
       assert(numWrite == numParams);
@@ -345,7 +345,7 @@ int gatherImageFileGDAL(const char * filename,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
    assert(numBands <= maxBands);
 
    const int nxny = nx * ny;
@@ -460,7 +460,7 @@ int scatterImageFilePVP(const char * filename,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
    assert(numBands <= maxBands);
 
    const int nxny     = nx * ny;
@@ -493,7 +493,6 @@ int scatterImageFilePVP(const char * filename,
       assert(status == numParams);
 
       const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-      const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
 
       const int numRecords = params[INDEX_NUM_RECORDS];
       const int dataSize = params[INDEX_DATA_SIZE];
@@ -507,8 +506,8 @@ int scatterImageFilePVP(const char * filename,
       loc->nyGlobal = params[INDEX_NY_GLOBAL];
       loc->kx0      = params[INDEX_KX0];
       loc->ky0      = params[INDEX_KY0];
-      loc->nPad     = params[INDEX_NPAD];
-      loc->nBands   = params[INDEX_NBANDS];
+      loc->nb       = params[INDEX_NB];
+      loc->nf       = params[INDEX_NF];
 
       assert(dataSize == 1);
       assert(dataType == PV_BYTE_TYPE);
@@ -567,7 +566,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
    assert(numBands <= maxBands);
 
    const int nxny = nx * ny;
@@ -726,7 +725,7 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
            unsigned char * dstBuf, unsigned char * srcBuf)
 {
    // TODO - fix this to work for features
-   assert(loc->nBands == 1);
+   assert(loc->nf == 1);
 
    const int nxProcs = comm->numCommColumns();
 
@@ -836,9 +835,9 @@ int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
 #ifdef PV_USE_GDAL
 int writeWithBorders(const char * filename, const PVLayerLoc * loc, float * buf)
 {
-   int X = loc->nx + 2 * loc->nPad;
-   int Y = loc->ny + 2 * loc->nPad;
-   int B = loc->nBands;
+   int X = loc->nx + 2*loc->nb;
+   int Y = loc->ny + 2*loc->nb;
+   int B = loc->nf;
 
    GDALDriver * driver = GetGDALDriverManager()->GetDriverByName("GTiff");
    GDALDataset* layer_file = driver->Create(filename, X, Y, B, GDT_Byte, NULL);
