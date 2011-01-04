@@ -12,9 +12,7 @@
 
 #include "layers/Image.hpp"
 #include "layers/Retina.hpp"
-#include "layers/V1.hpp"
-
-#include "layers/fileread.h"
+#include "layers/LIF.hpp"
 
 using namespace PV;
 
@@ -25,7 +23,7 @@ int main(int argc, char* argv[])
    // construct layers
    Image * image = new Image("Image", hc, hc->inputFile());
    HyPerLayer * retina  = new Retina("Retina", hc);
-   HyPerLayer * l1      = new V1("L1", hc);
+   HyPerLayer * l1      = new LIF("L1", hc);
 
    // connect the layers
    new PV::HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
