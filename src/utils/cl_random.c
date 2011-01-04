@@ -29,6 +29,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "../arch/opencl/pv_uint4.h"
 #include "cl_random.h"
 #include <assert.h>
 
