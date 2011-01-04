@@ -60,9 +60,8 @@ int LinearActivityProbe::outputState(float time, HyPerLayer * l)
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-
-   const int marginWidth = clayer->loc.nPad;
+   const int nf = clayer->loc.nf;
+   const int nb = clayer->loc.nb;
 
    float dt = parent->getDeltaTime();
 
@@ -70,14 +69,14 @@ int LinearActivityProbe::outputState(float time, HyPerLayer * l)
    float freq;
 
    if (dim == DimX) {
-      width = nx + 2*marginWidth;
-      line = activity + (linePos+marginWidth) * width * nf;
+      width = nx + 2*nb;
+      line = activity + (linePos + nb) * width * nf;
       sLine = nf;
    }
    else {
-      width = ny + 2*marginWidth;
-      line = activity + (linePos+marginWidth)*nf;
-      sLine = nf * (nx + 2*marginWidth);
+      width = ny + 2*nb;
+      line = activity + (linePos + nb)*nf;
+      sLine = nf * (nx + 2 * nb);
 
    }
 

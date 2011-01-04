@@ -56,7 +56,7 @@
 #define INDEX_NY_GLOBAL   13
 #define INDEX_KX0         14
 #define INDEX_KY0         15
-#define INDEX_NPAD        16
+#define INDEX_NB          16
 #define INDEX_NBANDS      17
 #define INDEX_TIME        18
 

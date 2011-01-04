@@ -65,10 +65,10 @@ int LinearAverageProbe::outputState(float time, HyPerLayer * l)
 
       int nx = clayer->loc.nxGlobal;
       int ny = clayer->loc.nyGlobal;
-      int nf = clayer->numFeatures;
+      int nf = clayer->loc.nf;
 
-      int sx = strideX(nx, ny, nf);
-      int sy = strideY(nx, ny, nf);
+      int sx = strideX(&clayer->loc);
+      int sy = strideY(&clayer->loc);
 
       float * buf = (float *) malloc(nx * ny * sizeof(float));
       assert(buf != NULL);
@@ -109,7 +109,7 @@ int LinearAverageProbe::outputState(float time, HyPerLayer * l)
    }
 
    float dt = parent->getDeltaTime();
-   int nf = clayer->numFeatures;
+   int nf = clayer->loc.nf;
 
    if (dim == DimX) {
       nk = clayer->activity->loc.nx;
