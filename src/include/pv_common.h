@@ -27,14 +27,6 @@
 #define EXACT_LINEAR 2
 #define INTEGRATION_METHOD EXACT_LINEAR
 
-// TODO: move these into the layers
-#define NX 64 // 128
-#define NY 64 // 128
-#define NO 8
-#define NK 4
-#define DTH (180.0/NO)
-#define DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-
 // Misc:
 #define eventtype_t float
 #define RAD_TO_DEG_x2   (2.0*180.0/PI)
