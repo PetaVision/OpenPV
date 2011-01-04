@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "Communicator.hpp"
+#include "../utils/conversions.h"
 
 namespace PV {
 
@@ -414,11 +415,11 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
-   const size_t nf = loc->nBands;
-   const size_t nxBorder = loc->nPad;
-   const size_t nyBorder = loc->nPad;
+   const size_t nf = loc->nf;
+   const size_t nxBorder = loc->nb;
+   const size_t nyBorder = loc->nb;
 
-   const size_t sy = nf*(nx + 2 * nxBorder);
+   const size_t sy = strideY(loc);
 
    switch (n) {
    case LOCAL:
@@ -453,11 +454,11 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
-   const size_t nf = loc->nBands;
-   const size_t nxBorder = loc->nPad;
-   const size_t nyBorder = loc->nPad;
+   const size_t nf = loc->nf;
+   const size_t nxBorder = loc->nb;
+   const size_t nyBorder = loc->nb;
 
-   const size_t sy = nf*(nx + 2 * nxBorder);
+   const size_t sy = strideY(loc);
 
    switch (n) {
    case LOCAL:
