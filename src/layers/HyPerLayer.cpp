@@ -17,6 +17,7 @@
 
 namespace PV {
 
+#ifdef OBSOLETE
 HyPerLayerParams defaultParams =
 {
     V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
@@ -26,14 +27,15 @@ HyPerLayerParams defaultParams =
     250, NOISE_AMP*1.0,
     250, NOISE_AMP*1.0                       // noise (G)
 };
+#endif
 
 ///////
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
 // derived classes.  It should NOT call any virtual methods
-HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc)
+HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc, int numChannels)
 {
-   initialize_base(name, hc);
+   initialize_base(name, hc, numChannels);
 }
 
 HyPerLayer::~HyPerLayer()
@@ -44,6 +46,11 @@ HyPerLayer::~HyPerLayer()
       clayer = NULL;
    }
    free(name);
+
+   if (numChannels > 0) {
+      // potentials allocated contiguously so this frees all
+      free(phi[0]);
+   }
 
    if (parent->columnId() == 0) {
       printf("%16s: total time in %6s %10s: ", name, "layer", "update");
@@ -75,7 +82,7 @@ int HyPerLayer::initialize(PVLayerType type)
    return status;
 }
 
-int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
+int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannels)
 {
    PVLayerLoc layerLoc;
 
@@ -86,6 +93,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    this->probes = NULL;
    this->ioAppend = 0;
    this->numProbes = 0;
+
+   this->numChannels = numChannels;
 
    this->update_timer = new Timer();
 
@@ -110,50 +119,30 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc)
    int xScale = (int) nearbyintf(xScalef);
    int yScale = (int) nearbyintf(yScalef);
 
-   clayer = pvlayer_new(layerLoc, xScale, yScale);
-   clayer->layerType = TypeGeneric;
-
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
+   clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
+   clayer->layerType = TypeGeneric;
+
+   for (int m = 1; m < MAX_CHANNELS; m++) {
+      phi[m] = NULL;
+   }
+   if (numChannels > 0) {
+      phi[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
+      assert(phi[0] != NULL);
+
+      for (int m = 1; m < numChannels; m++) {
+         phi[m] = phi[0] + m * getNumNeurons();
+      }
+   }
+
    return 0;
 }
 
 #ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int HyPerLayer::initializeThreadBuffers()
-{
-   int status = CL_SUCCESS;
-
-   const size_t size    = clayer->numNeurons  * sizeof(pvdata_t);
-   const size_t size_ex = clayer->numExtended * sizeof(pvdata_t);
-
-   CLDevice * device = parent->getCLDevice();
-
-   // these buffers are shared between host and device
-   //
-   clBuffers.V    = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
-   clBuffers.Vth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->Vth);
-   clBuffers.G_E  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_E);
-   clBuffers.G_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_I);
-   clBuffers.G_IB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->G_IB);
-
-   clBuffers.phi = device->createBuffer(CL_MEM_COPY_HOST_PTR, clayer->numPhis*size, clayer->phi[0]);
-   clBuffers.activity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
-   clBuffers.prevActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
-
-   return status;
-}
-
-int HyPerLayer::initializeThreadData()
-{
-   return CL_SUCCESS;
-}
 #endif
 
 /**
@@ -172,38 +161,10 @@ int HyPerLayer::initializeLayerId(int layerId)
    return 0;
 }
 
-#ifdef DEPRECATED
-int HyPerLayer::initializeGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
-{
-   char filename[PV_PATH_MAX];
-   bool append = false;
-   int status = 0;
-
-   sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
-   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
-
-#ifdef DEPRECATED
-   status = pvlayer_initGlobal(clayer, colId, colRow, colCol, nRows, nCols);
-#endif
-
-   initializeThreadBuffers();
-
-   return status;
-}
-#endif // DEPRECATED
-
 int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
 {
    clayer->columnId = parent->columnId();
    initializeLayerId(layerId);
-
-#ifdef DEPRECATED
-   // complete initialization now that we have a parent and a communicator
-   // WARNING - this must be done before addPublisher is called
-   int id = parent->columnId();
-   initializeGlobal(id, comm->commRow(), comm->commColumn(),
-                        comm->numCommRows(), comm->numCommColumns());
-#endif // DEPRECATED
 
    comm->addPublisher(this, clayer->activity->numItems, MAX_F_DELAY);
 
@@ -212,9 +173,7 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
 
 int HyPerLayer::initFinish()
 {
-   int status = pvlayer_initFinish(clayer);
-   assert(clayer->numFeatures == getLayerLoc()->nBands);
-   return status;
+   return 0;
 }
 
 /**
@@ -238,9 +197,9 @@ int HyPerLayer::numberOfNeurons(int borderId)
    int numNeurons = 0;
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-   const int nxBorder = clayer->loc.nPad;
-   const int nyBorder = clayer->loc.nPad;
+   const int nf = clayer->loc.nf;
+   const int nxBorder = clayer->loc.nb;
+   const int nyBorder = clayer->loc.nb;
 
    switch (borderId) {
    case 0:
@@ -279,7 +238,7 @@ int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLa
    assert( cube->numItems == border->numItems );
    assert( cube->loc.nx == border->loc.nx );
    assert( cube->loc.ny == border->loc.ny );
-   assert( cube->loc.nBands == border->loc.nBands );
+   assert( cube->loc.nf == border->loc.nf );
 
    switch (whichBorder) {
    case NORTHWEST:
@@ -315,19 +274,19 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
 
    int nxBorder = 0;
    int nyBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nPad;
-      nyBorder = loc->nPad;
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
    }
 
-   const int sf = 1;
-   const int sx = nf * sf;
-   const int sy = sx * (nx + 2*nxBorder);
+   const size_t sf = strideF(loc);
+   const size_t sx = strideX(loc);
+   const size_t sy = strideY(loc);
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -347,19 +306,19 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
 
    int nxBorder = 0;
    int nyBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nPad;
-      nyBorder = loc->nPad;
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
    }
 
-   const int sf = 1;
-   const int sx = nf * sf;
-   const int sy = sx * (nx + 2*nxBorder);
+   const size_t sf = strideF(loc);
+   const size_t sx = strideX(loc);
+   const size_t sy = strideY(loc);
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -379,19 +338,19 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
 
    int nxBorder = 0;
    int nyBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nPad;
-      nyBorder = loc->nPad;
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
    }
 
-   const int sf = 1;
-   const int sx = nf * sf;
-   const int sy = sx * (nx + 2*nxBorder);
+   const size_t sf = strideF(loc);
+   const size_t sx = strideX(loc);
+   const size_t sy = strideY(loc);
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -411,19 +370,19 @@ int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
 {
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
 
    int nxBorder = 0;
    int nyBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nPad;
-      nyBorder = loc->nPad;
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
    }
 
-   const int sf = 1;
-   const int sx = nf * sf;
-   const int sy = sx * (nx + 2*nxBorder);
+   const size_t sf = strideF(loc);
+   const size_t sx = strideX(loc);
+   const size_t sy = strideY(loc);
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -450,11 +409,15 @@ int HyPerLayer::updateState(float time, float dt)
    return 0;
 }
 
+int HyPerLayer::updateBorder(float time, float dt)
+{
+   return 0;
+}
+
 int HyPerLayer::updateV() {
    pvdata_t * V = getV();
-   pvdata_t ** phi = getCLayer()->phi;
-   pvdata_t * phiExc = phi[PHI_EXC];
-   pvdata_t * phiInh = phi[PHI_INH];
+   pvdata_t * phiExc = getChannel(CHANNEL_EXC);
+   pvdata_t * phiInh = getChannel(CHANNEL_INH);
    for( int k=0; k<getNumNeurons(); k++ ) {
       V[k] = phiExc[k] - phiInh[k];
 #undef SET_MAX
@@ -472,25 +435,24 @@ int HyPerLayer::updateV() {
 int HyPerLayer::setActivity() {
    const int nx = getLayerLoc()->nx;
    const int ny = getLayerLoc()->ny;
-   const int nf = getCLayer()->numFeatures;
-   const int marginWidth = getLayerLoc()->nPad;
+   const int nf = getLayerLoc()->nf;
+   const int nb = getLayerLoc()->nb;
    pvdata_t * activity = getCLayer()->activity->data;
    pvdata_t * V = getV();
    for( int k=0; k<getNumExtended(); k++ ) {
       activity[k] = 0; // Would it be faster to only do the margins?
    }
    for( int k=0; k<getNumNeurons(); k++ ) {
-      int kex = kIndexExtended( k, nx, ny, nf, marginWidth );
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
       activity[kex] = V[k];
    }
    return EXIT_SUCCESS;
 }
 
 int HyPerLayer::resetPhiBuffers() {
-   pvdata_t ** phi = getCLayer()->phi;
    int n = getNumNeurons();
-   resetBuffer( phi[PHI_EXC], n );
-   resetBuffer( phi[PHI_INH], n );
+   resetBuffer( getChannel(CHANNEL_EXC), n );
+   resetBuffer( getChannel(CHANNEL_INH), n );
    return EXIT_SUCCESS;
 }
 
@@ -547,6 +509,11 @@ int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
    return 0;
 }
 
+int HyPerLayer::triggerReceive(InterColComm* comm)
+{
+   comm->deliver(parent, getLayerId());
+}
+
 int HyPerLayer::publish(InterColComm* comm, float time)
 {
    if ( useMirrorBCs() ) {
@@ -556,6 +523,11 @@ int HyPerLayer::publish(InterColComm* comm, float time)
    }
    comm->publish(this, clayer->activity);
    return 0;
+}
+
+int HyPerLayer::waitOnPublish(InterColComm* comm)
+{
+   return comm->wait(getLayerId());
 }
 
 int HyPerLayer::insertProbe(LayerProbe * p)
@@ -584,8 +556,8 @@ int HyPerLayer::outputState(float time, bool last)
 //   const int ny = clayer->loc.ny;
 //   const int nf = clayer->numFeatures;
 
-//   const int nxex = clayer->loc.nx + 2*clayer->loc.nPad;
-//   const int nyex = clayer->loc.ny + 2*clayer->loc.nPad;
+//   const int nxex = clayer->loc.nx + 2*clayer->loc.nb;
+//   const int nyex = clayer->loc.ny + 2*clayer->loc.nb;
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
@@ -633,11 +605,7 @@ int HyPerLayer::readState(const char * name, float * time)
    const char * last = "_last";
    const char * name_str = (name != NULL) ? name : "";
 
-   pvdata_t * G_E = clayer->G_E;
-   pvdata_t * G_I = clayer->G_I;
-
    pvdata_t * V   = clayer->V;
-   pvdata_t * Vth = clayer->Vth;
 
    // TODO - this should be moved to getLayerData but can't yet because publish is call
    // as the first step and publish copies clayer->activity->data into data store.  If
@@ -646,17 +614,19 @@ int HyPerLayer::readState(const char * name, float * time)
 
    PVLayerLoc * loc = & clayer->loc;
 
+#ifdef OBSOLETE
    snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
    status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last);
    status = read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, V, loc, PV_FLOAT_TYPE, extended, contiguous);
-
    snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last);
    status = read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+#endif
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    extended = true;
    snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last);
@@ -678,27 +648,26 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
    const char * last_str = (last) ? "_last" : "";
    const char * name_str = (name != NULL) ? name : "";
 
-   pvdata_t * G_E  = clayer->G_E;
-   pvdata_t * G_I  = clayer->G_I;
-
    pvdata_t * V   = clayer->V;
-   pvdata_t * Vth = clayer->Vth;
 
    const pvdata_t * A = getLayerData();
 
    PVLayerLoc * loc = & clayer->loc;
 
+#ifdef OBSOLETE
    snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, V, loc, PV_FLOAT_TYPE, extended, contiguous);
-
    snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last_str);
    status = write(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+#endif
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last_str);
+   status = write(path, comm, time, V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    extended = true;
    snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last_str);
@@ -725,7 +694,7 @@ int HyPerLayer::writeActivity(const char * filename, float time)
    int status = 0;
    PVLayerLoc * loc = &clayer->loc;
 
-   const int n = loc->nx * loc->ny * clayer->numFeatures;
+   const int n = loc->nx * loc->ny * loc->nf;
    pvdata_t * buf = new pvdata_t[n];
    assert(buf != NULL);
 
@@ -738,21 +707,6 @@ int HyPerLayer::writeActivity(const char * filename, float time)
    delete buf;
 
    return status;
-}
-
-int HyPerLayer::setParams(int numParams, size_t sizeParams, float * params)
-{
-   return pvlayer_setParams(clayer, numParams, sizeParams, params);
-}
-
-int HyPerLayer::setFuncs(void * initFunc, void * updateFunc)
-{
-   return pvlayer_setFuncs(clayer, initFunc, updateFunc);
-}
-
-int HyPerLayer::getParams(int * numParams, float ** params)
-{
-   return pvlayer_getParams(clayer, numParams, params);
 }
 
 /* copy src PVLayerCube to dest PVLayerCube */
@@ -778,18 +732,17 @@ int copyDirect(pvdata_t * dest, pvdata_t * src, int nf, int nxSrc, int nySrc, in
 
 int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 {
-   int nx = clayer->loc.nx;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + npad * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (npad-1) * sy + (npad-1) * nf;
+   pvdata_t * src0 = src-> data + nb*sy + nb*nf;
+   pvdata_t * dst0 = dest->data + (nb - 1)*sy + (nb - 1)*nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
@@ -803,14 +756,14 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
 {
    int nx = clayer->loc.nx;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + npad * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (npad-1) * sy + npad * nf;
+   pvdata_t * src0 = src-> data + nb * sy + nb * nf;
+   pvdata_t * dst0 = dest->data + (nb-1) * sy + nb * nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
@@ -827,17 +780,17 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
 int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + npad * sy + (nx + npad - 1) * nf;
-   pvdata_t * dst0 = dest->data + (npad-1) * sy + (nx + npad)  * nf;
+   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*nf;
+   pvdata_t * dst0 = dest->data + (nb-1)*sy + (nx + nb)*nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
@@ -850,19 +803,18 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + npad * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + npad * sy + (npad-1) * nf;
+   pvdata_t * src0 = src-> data + nb*sy + nb*nf;
+   pvdata_t * dst0 = dest->data + nb*sy + (nb - 1)*nf;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
@@ -877,17 +829,17 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + npad * sy + (nx + npad - 1) * nf;
-   pvdata_t * dst0 = dest->data + npad * sy + (nx + npad) * nf;
+   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*nf;
+   pvdata_t * dst0 = dest->data + nb*sy + (nx + nb)*nf;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
@@ -900,19 +852,18 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + npad - 1) * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (ny + npad) * sy + (npad - 1) * nf;
+   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + nb*nf;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nb - 1)*nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
@@ -927,14 +878,14 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + npad -1) * sy + npad * nf;
-   pvdata_t * dst0 = dest->data + (ny + npad) * sy + npad * nf;
+   pvdata_t * src0 = src-> data + (ny + nb -1)*sy + nb*nf;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + nb*nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nx; kx++) {
@@ -952,17 +903,17 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 {
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
-   int nf = clayer->numFeatures;
-   int npad = dest->loc.nPad;
-   int sy = nf * ( nx + 2*npad );
+   int nf = clayer->loc.nf;
+   int nb = dest->loc.nb;
+   size_t sy = strideY(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + npad - 1) * sy + (nx + npad - 1) * nf;
-   pvdata_t * dst0 = dest->data + (ny + npad) * sy + (nx + npad)  * nf;
+   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + (nx + nb - 1)*nf;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nx + nb)*nf;
 
-   for (int ky = 0; ky < npad; ky++) {
+   for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
-      for (int kx = 0; kx < npad; kx++) {
+      for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf] = from[kf];
          }
