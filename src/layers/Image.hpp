@@ -72,8 +72,8 @@ public:
 protected:
 
 #ifdef PV_USE_OPENCL
-   int virtual initializeThreadData();
-   int         initializeThreadKernels();
+   virtual int initializeThreadBuffers();
+   virtual int initializeThreadKernels();
 #endif
 
    //int initializeImage(const char * filename);

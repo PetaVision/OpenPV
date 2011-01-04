@@ -44,7 +44,7 @@ ImageCreator::~ImageCreator()
 int ImageCreator::initialize()
 {
    const PVLayerLoc * loc = getLayerLoc();
-   const int numItems = loc->nx * loc->ny * loc->nBands;
+   const int numItems = loc->nx * loc->ny * loc->nf;
 
    drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
    assert(drawBuffer != 0);

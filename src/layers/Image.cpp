@@ -14,14 +14,14 @@
 namespace PV {
 
 Image::Image(const char * name, HyPerCol * hc)
-     : HyPerLayer(name, hc)
+     : HyPerLayer(name, hc, 0)
 {
    initialize(TypeImage);
    initializeImage(NULL);
 }
 
 Image::Image(const char * name, HyPerCol * hc, const char * filename)
-     : HyPerLayer(name, hc)
+     : HyPerLayer(name, hc, 0)
 {
    initialize(TypeImage);
    initializeImage(filename);
@@ -46,7 +46,7 @@ int Image::initialize_base(const char * name, HyPerCol * hc)
    PVParams * params = hc->parameters();
 
    PVLayerLoc * loc = & clayer->loc;
-   loc->nBands = 1;
+   loc->nf = 1;
    loc->nPad = (int) params->value(name, "marginWidth", 0);
 
    // create mpi_datatypes for border transfer
@@ -70,7 +70,7 @@ int Image::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
    read(filename);
 
    // for now convert images to grayscale
-   if (loc->nBands > 1) {
+   if (loc->nf > 1) {
       this->toGrayScale();
    }
 
@@ -113,7 +113,7 @@ int Image::initializeImage(const char * filename)
    // allocate storage for layer data buffer
    //
    const int N = (dataLoc->nx + 2*dataLoc->nPad) * (dataLoc->ny + 2*dataLoc->nPad)
-               * dataLoc->nBands;
+               * dataloc->nf;
    data = (pvdata_t *) calloc(sizeof(pvdata_t), N);
    assert(data != NULL);
 #endif
@@ -127,7 +127,7 @@ int Image::initializeImage(const char * filename)
    }
 
    // for now convert images to grayscale
-   if (getLayerLoc()->nBands > 1) {
+   if (getLayerLoc()->nf > 1) {
       this->toGrayScale();
    }
 
@@ -140,7 +140,7 @@ int Image::initializeImage(const char * filename)
 #ifdef PV_USE_OPENCL
 // no need for threads for now for image
 //
-int Image::initializeThreadData()
+int Image::initializeThreadBuffers()
 {
    return CL_SUCCESS;
 }
@@ -247,7 +247,7 @@ int Image::read(const char * filename, int offsetX, int offsetY)
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
 
-   const int n = loc->nx * loc->ny * loc->nBands;
+   const int n = loc->nx * loc->ny * loc->nf;
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
@@ -275,7 +275,7 @@ int Image::write(const char * filename)
    int status = 0;
    const PVLayerLoc * loc = getLayerLoc();
 
-   const int n = loc->nx * loc->ny * loc->nBands;
+   const int n = loc->nx * loc->ny * loc->nf;
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
@@ -300,16 +300,16 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
 #ifdef OBSOLETE
    const PVLayerLoc * loc = getLayerLoc();
 
-   assert(loc->nBands == 1);
+   assert(loc->nf == 1);
 
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   const int nxBorder = loc->nb;
+   const int nyBorder = loc->nb;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   const size_t sy = strideY(loc);
+   const int sb = sy * (ny + loc->halo.dn + loc->halo.up);
 
    // only interior portion of local data needed
    //
@@ -317,7 +317,7 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
    assert(srcBuf != NULL);
 
    int ii = 0;
-   for (int b = 0; b < loc->nBands; b++) {
+   for (int b = 0; b < loc->nf; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -341,14 +341,14 @@ int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   const int nxBorder = loc->nb;
+   const int nyBorder = loc->nb;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   const size_t sy = nx + loc->halo.lt + loc->halo.rt;
+   const size_t sb = sy * (ny + loc->halo.dn + loc->halo.up);
 
    int ii = 0;
-   for (int b = 0; b < loc->nBands; b++) {
+   for (int b = 0; b < loc->nf; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -366,14 +366,14 @@ int Image::copyFromInteriorBuffer(const unsigned char * buf, float fac)
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   const int nxBorder = loc->nb;
+   const int nyBorder = loc->nb;
 
-   const int sy = nx + 2*nxBorder;
-   const int sb = sy * (ny + 2*nyBorder);
+   const size_t sy = nx + loc->halo.lt + loc->halo.rt;
+   const size_t sb = sy * (ny + loc->halo.dn + loc->halo.up);
 
    int ii = 0;
-   for (int b = 0; b < loc->nBands; b++) {
+   for (int b = 0; b < loc->nf; b++) {
       for (int j = 0; j < ny; j++) {
          int jex = j + nyBorder;
          for (int i = 0; i < nx; i++) {
@@ -388,14 +388,14 @@ int Image::copyFromInteriorBuffer(const unsigned char * buf, float fac)
 int Image::toGrayScale()
 {
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx_ex = loc->nx + 2*loc->nPad;
-   const int ny_ex = loc->ny + 2*loc->nPad;
+   const int nx_ex = loc->nx + 2*loc->nb;
+   const int ny_ex = loc->ny + 2*loc->nb;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
 
-   const int sx = 1;
-   const int sy = nx_ex;
-   const int sb = nx_ex * ny_ex;
+   const size_t sx = 1;
+   const size_t sy = loc->nx + loc->halo.lt + loc->halo.rt;
+   const size_t sb = sy * (loc->ny + loc->halo.dn + loc->halo.up);
 
    if (numBands < 2) return 0;
 
@@ -414,7 +414,7 @@ int Image::toGrayScale()
    }
 
    // turn off the color
-   clayer->loc.nBands = 1;
+   clayer->loc.nf = 1;
 
    return 0;
 }
@@ -424,7 +424,7 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nBands;
+   const int numBands = loc->nf;
 
    const int sx = 1;
    const int sy = nx;
@@ -445,7 +445,7 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
    }
 
    // turn off the color
-   loc->nBands = 1;
+   loc->nf = 1;
 
    return 0;
 }
@@ -453,24 +453,23 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
 int Image::convolve(int width)
 {
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx_ex = loc->nx + 2*loc->nPad;
-   const int ny_ex = loc->ny + 2*loc->nPad;
-   //const int nb = loc->nBands;
+   const int nx_ex = loc->nx + 2*loc->nb;
+   const int ny_ex = loc->ny + 2*loc->nb;
+   //const int nb = loc->nf;
 
    const int size_ex = nx_ex * ny_ex;
 
    // an image is different from normal layers as features (bands) vary last
-   const int sx = 1;
-   const int sy = nx_ex;
-   //const int sb = nx_ex * ny_ex;
+   const size_t sx = 1;
+   const size_t sy = loc->nx + loc->halo.lt + loc->halo.rt;
 
    const int npx = width;
    const int npy = width;
    const int npx_2 = width/2;
    const int npy_2 = width/2;
 
-   assert(npx <= loc->nPad);
-   assert(npy <= loc->nPad);
+   assert(npx <= loc->nb);
+   assert(npy <= loc->nb);
 
    float * buf = new float[size_ex];
    //for (int i = 0; i < size_ex; i++) buf[i] = 0;
