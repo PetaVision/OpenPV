@@ -68,10 +68,10 @@ bool Gratings::updateImage(float time, float dt)
    const PVLayerLoc * loc = getLayerLoc();
 
    // extended frame
-   const int nx = loc->nx + 2 * loc->nPad;
-   const int ny = loc->ny + 2 * loc->nPad;
-   const int sx = 1;
-   const int sy = sx * nx;
+   const int nx = loc->nx + 2 * loc->nb;
+   const int ny = loc->ny + 2 * loc->nb;
+   const int sx = strideX(loc);
+   const int sy = strideY(loc);
    float phi;
    char basicfilename[128] = { 0 };
 

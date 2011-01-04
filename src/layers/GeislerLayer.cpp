@@ -33,13 +33,13 @@ int GeislerLayer::updateState(float time, float dt)
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-   const int marginWidth = clayer->loc.nPad;
+   const int nf = clayer->loc.nf;
+   const int nb = clayer->loc.nb;
 
    pvdata_t * V = clayer->V;
-   pvdata_t * phiExc   = clayer->phi[PHI_EXC];
-   pvdata_t * phiInh  = clayer->phi[PHI_INH];
-   pvdata_t * phiInhB   = clayer->phi[PHI_INHB];
+   pvdata_t * phiExc  = getChannel(CHANNEL_EXC);
+   pvdata_t * phiInh  = getChannel(CHANNEL_INH);
+   pvdata_t * phiInhB = getChannel(CHANNEL_INHB);
    pvdata_t * activity = clayer->activity->data;
 
    // make sure activity in border is zero
@@ -74,7 +74,7 @@ int GeislerLayer::updateState(float time, float dt)
    float thresh_bottomUp = 0.5f;
 #endif
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kex = kIndexExtended(k, nx, ny, nf, marginWidth);
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
 #undef RESCALE_ACTIVITY
 #ifdef RESCALE_ACTIVITY
       V[k] *= bottomUp_scale_factor;

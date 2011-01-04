@@ -10,16 +10,16 @@
 
 typedef struct fileread_params_
 {
+#ifdef OBSOLETE
     float invert;
     float uncolor;            // if true, pixels>0 become 1.0
+#endif
     float spikingFlag;        // spike as poisson?
     float poissonEdgeProb;    // if so, prob
     float poissonBlankProb;   // spike as poisson?
-    float burstFreq;          // frequency of bursts
-    float burstDuration;      // duration of each burst, <=0 -> sinusoidal
+#ifdef OBSOLETE
     float marginWidth; // width of margin around edge of figure in which only background activity allowed
-    float beginStim;
-    float endStim;
+#endif
     const char* filename;
 } fileread_params;
 
