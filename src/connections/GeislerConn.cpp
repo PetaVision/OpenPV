@@ -120,7 +120,7 @@ int GeislerConn::updateState(float time, float dt)
       pvdata_t avePost = 0.0;
       for (int kPost = 0; kPost < nPost; kPost+=num_kernels) {
          PVLayerLoc loc = post->clayer->loc;
-         int kPostEx = kIndexExtended(kPost, loc.nx, loc.ny, num_kernels, loc.nPad);
+         int kPostEx = kIndexExtended(kPost, loc.nx, loc.ny, num_kernels, loc.nb);
             avePost += aPost[kPostEx];
       }
       avePost *= num_kernels / (float) nPost ;
@@ -172,8 +172,8 @@ int GeislerConn::updateWeights(int axonID)
 
    // this stride is in extended space for post-synaptic activity and
    // STDP decrement variable
-   int postStrideY = post->clayer->numFeatures
-   * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
+   int postStrideY = post->clayer->loc.nf * (post->clayer->loc.nx
+                   + post->clayer->loc.halo.lt + post->clayer->loc.halo.rt);
 
    int num_pre_extended = pre->clayer->numExtended;
    assert(num_pre_extended == numWeightPatches(axonID));
