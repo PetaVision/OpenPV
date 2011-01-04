@@ -12,9 +12,11 @@
 int main(int argc, char * argv[])
 {
    int nx, ny, nf, nItems;
-   int sx, sy, sf;
+   size_t sx, sy, sf;
    int x, y, f;
    int err = 0;
+
+   PVLayerLoc loc;
 
    pvdata_t   value;
    pvdata_t * buf;
@@ -30,9 +32,12 @@ int main(int argc, char * argv[])
       return -1;
    }
 
-   sx = strideX(nx, ny, nf);
-   sy = strideY(nx, ny, nf);
-   sf = strideF(nx, ny, nf);
+   loc.nx = nx;  loc.ny = ny;  loc.nf = nf;  loc.nb = 1;
+   loc.halo.lt = loc.halo.rt = loc.halo.dn = loc.halo.up;
+
+   sx = strideX(&loc);
+   sy = strideY(&loc);
+   sf = strideF(&loc);
 
    printf("nx=%d, ny=%d, nf=%d\n", nx, ny, nf);
    printf("sx=%d, sy=%d, sf=%d\n", sx, sy, sf);
