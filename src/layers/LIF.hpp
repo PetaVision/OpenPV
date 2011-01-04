@@ -11,19 +11,18 @@
 
 #include "HyPerLayer.hpp"
 #include "../arch/opencl/CLKernel.hpp"
-#include "LIF2.h"
+#include "../arch/opencl/pv_uint4.h"
+#include "../kernels/LIF_params.h"
 
 namespace PV
 {
-
-// by default uses LIF2 parameters
-typedef LIF2_params LIFParams;
 
 class LIF: public PV::HyPerLayer
 {
 public:
    LIF(const char* name, HyPerCol * hc);
    LIF(const char* name, HyPerCol * hc, PVLayerType type);
+   virtual ~LIF();
 
    virtual int updateState(float time, float dt);
 #ifdef PV_USE_OPENCL
@@ -31,13 +30,30 @@ public:
 #endif
    virtual int writeState(const char * path, float time);
 
-   int setParams(PVParams * params, LIFParams * p);
+   int setParams(PVParams * p);
 
 protected:
 
+   bool spikingFlag;    // specifies that layer is spiking
+   LIF_params lParams;
+   uint4 * rand_state;  // state for random numbers
+
+   pvdata_t * Vth;      // threshhold potential
+   pvdata_t * G_E;      // excitatory conductance
+   pvdata_t * G_I;      // inhibitory conductance
+   pvdata_t * G_IB;
+
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadData();
+   virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
+
+   // OpenCL buffers
+   //
+   CLBuffer * clRand;
+   CLBuffer * clVth;
+   CLBuffer * clG_E;
+   CLBuffer * clG_I;
+   CLBuffer * clG_IB;
 #endif
 
 private:
