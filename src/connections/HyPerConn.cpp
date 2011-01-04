@@ -464,15 +464,15 @@ PVPatch ** HyPerConn::initializeCocircWeights(PVPatch ** patches, int numPatches
    shift = params->value(name, "flankShift", shift);
    rotate = params->value(name, "rotate", rotate);
 
-   int noPre = pre->clayer->numFeatures;
+   int noPre = pre->clayer->loc.nf;
    noPre = (int) params->value(name, "noPre", noPre);
    assert(noPre > 0);
-   assert(noPre <= pre->clayer->numFeatures);
+   assert(noPre <= pre->clayer->loc.nf);
 
-   int noPost = post->clayer->numFeatures;
+   int noPost = post->clayer->loc.nf;
    noPost = (int) params->value(name, "noPost", noPost);
    assert(noPost > 0);
-   assert(noPost <= post->clayer->numFeatures);
+   assert(noPost <= post->clayer->loc.nf);
 
    float sigma_cocirc = PI / 2.0;
    sigma_cocirc = params->value(name, "sigmaCocirc", sigma_cocirc);
@@ -597,17 +597,17 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
 
    fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
    fprintf(fd, "   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
-           kxPos(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nPad,
-                 pre->clayer->loc.ny + 2*pre->clayer->loc.nPad, pre->clayer->numFeatures),
-           kyPos(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nPad,
-                 pre->clayer->loc.ny + 2*pre->clayer->loc.nPad, pre->clayer->numFeatures),
-           featureIndex(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nPad,
-                 pre->clayer->loc.ny + 2*pre->clayer->loc.nPad, pre->clayer->numFeatures) );
+           kxPos(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nb,
+                 pre->clayer->loc.ny + 2*pre->clayer->loc.nb, pre->clayer->loc.nf),
+           kyPos(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nb,
+                 pre->clayer->loc.ny + 2*pre->clayer->loc.nb, pre->clayer->loc.nf),
+           featureIndex(k,pre->clayer->loc.nx + 2*pre->clayer->loc.nb,
+                 pre->clayer->loc.ny + 2*pre->clayer->loc.nb, pre->clayer->loc.nf) );
    fprintf(fd, "   (nxp,nyp,nfp)   = (%i,%i,%i)\n", (int) nxp, (int) nyp, (int) nfp);
    fprintf(fd, "   pre  (nx,ny,nf) = (%i,%i,%i)\n",
-           pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->numFeatures);
+           pre->clayer->loc.nx, pre->clayer->loc.ny, pre->clayer->loc.nf);
    fprintf(fd, "   post (nx,ny,nf) = (%i,%i,%i)\n",
-           post->clayer->loc.nx, post->clayer->loc.ny, post->clayer->numFeatures);
+           post->clayer->loc.nx, post->clayer->loc.ny, post->clayer->loc.nf);
    fprintf(fd, "\n");
    if (stdpFlag) {
       pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
@@ -733,8 +733,8 @@ int HyPerConn::updateWeights(int axonId)
 
    // this stride is in extended space for post-synaptic activity and
    // STDP decrement variable
-   const int postStrideY = post->clayer->numFeatures
-                         * (post->clayer->loc.nx + 2 * post->clayer->loc.nPad);
+   const int postStrideY = post->clayer->loc.nf
+                         * (post->clayer->loc.nx + 2 * post->clayer->loc.nb);
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
       PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
@@ -902,14 +902,14 @@ int HyPerConn::createAxonalArbors()
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
-   const int prePad  = lPre->loc.nPad;
-   const int postPad = lPost->loc.nPad;
+   const int prePad  = lPre->loc.nb;
+   const int postPad = lPost->loc.nb;
 
    const int nxPre  = lPre->loc.nx;
    const int nyPre  = lPre->loc.ny;
    const int kx0Pre = lPre->loc.kx0;
    const int ky0Pre = lPre->loc.ky0;
-   const int nfPre  = lPre->numFeatures;
+   const int nfPre  = lPre->loc.nf;
 
    const int nxexPre = nxPre + 2 * prePad;
    const int nyexPre = nyPre + 2 * prePad;
@@ -918,7 +918,7 @@ int HyPerConn::createAxonalArbors()
    const int nyPost  = lPost->loc.ny;
    const int kx0Post = lPost->loc.kx0;
    const int ky0Post = lPost->loc.ky0;
-   const int nfPost  = lPost->numFeatures;
+   const int nfPost  = lPost->loc.nf;
 
    const int nxexPost = nxPost + 2 * postPad;
    const int nyexPost = nyPost + 2 * postPad;
@@ -1081,21 +1081,21 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
-   const int prePad = lPre->loc.nPad;
+   const int prePad = lPre->loc.nb;
 
    // pre-synaptic weights are in extended layer reference frame
    const int nxPre = lPre->loc.nx + 2 * prePad;
    const int nyPre = lPre->loc.ny + 2 * prePad;
-   const int nfPre = lPre->numFeatures;
+   const int nfPre = lPre->loc.nf;
 
    const int nxPost  = lPost->loc.nx;
    const int nyPost  = lPost->loc.ny;
-   const int nfPost  = lPost->numFeatures;
+   const int nfPost  = lPost->loc.nf;
    const int numPost = lPost->numNeurons;
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = lPre->numFeatures;
+   const int nfPostPatch = lPre->loc.nf;
 
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
@@ -1182,7 +1182,7 @@ PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
 
             assert(nxp_post == p->nx);
             assert(nyp_post == p->ny);
-            assert(nfp == lPost->numFeatures);
+            assert(nfp == lPost->loc.nf);
 
             int kxPrePatch, kyPrePatch; // relative index in shrunken patch
             kxPrePatch = kxPost - kxPostHead;
@@ -1252,13 +1252,13 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
    const PVLayer * lPre  = pre->clayer;
    const PVLayer * lPost = post->clayer;
 
-   const int prePad  = lPre->loc.nPad;
+   const int prePad  = lPre->loc.nb;
 
    const int nxPre  = lPre->loc.nx;
    const int nyPre  = lPre->loc.ny;
    const int kx0Pre = lPre->loc.kx0;
    const int ky0Pre = lPre->loc.ky0;
-   const int nfPre  = lPre->numFeatures;
+   const int nfPre  = lPre->loc.nf;
 
    const int nxexPre = nxPre + 2 * prePad;
    const int nyexPre = nyPre + 2 * prePad;
@@ -1370,7 +1370,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = lPre->numFeatures;
+   const int nfPostPatch = lPre->loc.nf;
 
    const char * last_str = (last) ? "_last" : "";
    snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", OUTPUT_PATH, getConnectionId(), last_str);
@@ -1592,13 +1592,13 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    // TODO - the following assumes that if aspect > 1, # orientations = # features
    //   int noPost = no;
    // number of orientations only used if aspect != 1
-   const int noPost = post->clayer->numFeatures;
+   const int noPost = post->clayer->loc.nf;
    const float dthPost = PI / (float) noPost;
    const float th0Post = rotate * dthPost / 2.0f;
-   const int noPre = pre->clayer->numFeatures;
+   const int noPre = pre->clayer->loc.nf;
    const float dthPre = PI / (float) noPre;
    const float th0Pre = rotate * dthPre / 2.0f;
-   const int fPre = kPre % pre->clayer->numFeatures;
+   const int fPre = kPre % pre->clayer->loc.nf;
    assert(fPre == kfPre_tmp);
    const int iThPre = kPre % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
@@ -1753,14 +1753,14 @@ int HyPerConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
    const float dxPost = powf(2, post->clayer->xScale);
    const float dyPost = powf(2, post->clayer->yScale);
 
-   //const int kfPre = kPre % pre->clayer->numFeatures;
+   //const int kfPre = kPre % pre->clayer->loc.nf;
    const int kfPre = featureIndex(kPre, pre->clayer->loc.nx, pre->clayer->loc.ny,
-         pre->clayer->numFeatures);
+         pre->clayer->loc.nf);
 
    bool POS_KURVE_FLAG = false; //  handle pos and neg curvature separately
    bool SADDLE_FLAG  = false; // handle saddle points separately
-   const int nKurvePre = pre->clayer->numFeatures / noPre;
-   const int nKurvePost = post->clayer->numFeatures / noPost;
+   const int nKurvePre = pre->clayer->loc.nf / noPre;
+   const int nKurvePost = post->clayer->loc.nf / noPost;
    const float dThPre = PI / noPre;
    const float dThPost = PI / noPost;
    const float th0Pre = rotate * dThPre / 2.0;
@@ -2082,11 +2082,11 @@ int HyPerConn::setPatchSize(const char * filename)
 
    nxp = (int) inputParams->value(name, "nxp", post->getCLayer()->loc.nx);
    nyp = (int) inputParams->value(name, "nyp", post->getCLayer()->loc.ny);
-   nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->numFeatures);
-   if( nfp != post->getCLayer()->numFeatures ) {
+   nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->loc.nf);
+   if( nfp != post->getCLayer()->loc.nf ) {
       fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
       fprintf( stderr, "but %d features for post-synaptic layer %s\n",
-               post->getCLayer()->numFeatures, post->getName() );
+               post->getCLayer()->loc.nf, post->getName() );
       exit(EXIT_FAILURE);
    }
    int xScalePre = pre->getXScale();
@@ -2196,12 +2196,12 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
          post->getXScale() - pre->getXScale()) : 1;
    int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
          post->getYScale() - pre->getYScale()) : 1;
-   int nfKernel = pre->clayer->numFeatures;
-   int kxPreExtended = kxPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
-   int kyPreExtended = kyPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nPad;
+   int nfKernel = pre->clayer->loc.nf;
+   int kxPreExtended = kxPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nb;
+   int kyPreExtended = kyPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->clayer->loc.nb;
    int kfPre = featureIndex(kernelIndex, nxKernel, nyKernel, nfKernel);
-   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
-   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
+   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nb;
+   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nb;
    patchIndex = kIndex(kxPreExtended, kyPreExtended, kfPre, nxPreExtended, nyPreExtended, nfKernel);
    if (kxPatchIndex != NULL){
       *kxPatchIndex = kxPreExtended;
@@ -2222,9 +2222,9 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
       int * kyKernelIndex, int * kfKernelIndex)
 {
    int kernelIndex;
-   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nPad;
-   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nPad;
-   int nfPre = pre->clayer->numFeatures;
+   int nxPreExtended = pre->clayer->loc.nx + 2*pre->clayer->loc.nb;
+   int nyPreExtended = pre->clayer->loc.ny + 2*pre->clayer->loc.nb;
+   int nfPre = pre->clayer->loc.nf;
    int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
    int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
 
@@ -2236,7 +2236,7 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
 
    // convert from extended to restricted space (in local HyPerCol coordinates)
    int kxPreRestricted;
-   kxPreRestricted = kxPreExtended - pre->clayer->loc.nPad;
+   kxPreRestricted = kxPreExtended - pre->clayer->loc.nb;
    while(kxPreRestricted < 0){
       kxPreRestricted += pre->clayer->loc.nx;
    }
@@ -2245,7 +2245,7 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
    }
 
    int kyPreRestricted;
-   kyPreRestricted = kyPreExtended - pre->clayer->loc.nPad;
+   kyPreRestricted = kyPreExtended - pre->clayer->loc.nb;
    while(kyPreRestricted < 0){
       kyPreRestricted += pre->clayer->loc.ny;
    }
