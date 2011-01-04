@@ -35,7 +35,6 @@ typedef struct PVLayer_ {
    int columnId;   // column ID
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numExtended;// # neurons in layer including extended border regions
-   int numFeatures;// # features in this layer
 
    unsigned int   numActive;      // # neurons that fired
    unsigned int * activeIndices;  // indices of neurons that fired
@@ -56,21 +55,9 @@ typedef struct PVLayer_ {
    PVLayerCube * activity;  // activity buffer FROM this layer
    float * prevActivity;    // time of previous activity
 
-   pvdata_t * V;    // membrane potential
-   pvdata_t * Vth;
+   pvdata_t * V;            // membrane potential
 
-   pvdata_t ** G;    // master pointer to all variable conductances (one for each phi)
-   pvdata_t *  G_E;  // fast exc conductance (convenience pointer to G[PHI_EXC])
-   pvdata_t *  G_I;  // fast inh conductance (convenience pointer to G[PHI_INH])
-   pvdata_t *  G_IB; // slow inh (GABAB) conductance (    pointer to G[PHI_INHB])
-
-   int numPhis; // how many membrane updates we have
-   pvdata_t ** phi; // membrane update
-
-   int numParams;
-   float * params; // layer-specific parameters
-   int (* updateFunc)(struct PVLayer_ * l);
-   int (* initFunc)(struct PVLayer_ * l); // this is called (if it exists) just after the params are set
+   void * params; // layer-specific parameters
 
 } PVLayer;
 
@@ -78,8 +65,8 @@ typedef struct PVLayer_ {
 extern "C" {
 #endif
 
-PVLayer * pvlayer_new(PVLayerLoc loc, int xScale, int yScale);
-int pvlayer_init(PVLayer* l, PVLayerLoc loc, int xScale, int yScale);
+PVLayer * pvlayer_new(PVLayerLoc loc, int xScale, int yScale, int numChannels);
+int pvlayer_init(PVLayer* l, PVLayerLoc loc, int xScale, int yScale, int numChannels);
 int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
 int pvlayer_initFinish(PVLayer * l);
 int pvlayer_finalize(PVLayer * l);
@@ -87,10 +74,6 @@ int pvlayer_finalize(PVLayer * l);
 int pvlayer_copyUpdate(PVLayer * l);
 
 float pvlayer_getWeight(float x0, float x, float r, float sigma);
-
-int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * params);
-int pvlayer_getParams(PVLayer * l, int * numParams, float ** params);
-int pvlayer_setFuncs (PVLayer * l, void * updateFunc, void * initFunc);
 
 PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
 PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems);

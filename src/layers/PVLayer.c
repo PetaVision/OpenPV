@@ -21,11 +21,11 @@ extern "C" {
 // pvlayer C interface implementation
 //
 
-PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
+PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale, int numChannels)
 {
    PVLayer * l = (PVLayer *) calloc(sizeof(PVLayer), sizeof(char));
    assert(l != NULL);
-   pvlayer_init(l, loc, xScale, yScale);
+   pvlayer_init(l, loc, xScale, yScale, numChannels);
    return l;
 }
 
@@ -35,15 +35,15 @@ PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
  * has been moved here (functionality of initGlobal) and integrated with OpenCL
  * buffers.
  */
-int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
+int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numChannels)
 {
-   int k, m;
+   int k;
    const int nx = loc.nx;
    const int ny = loc.ny;
+   const int nf = loc.nf;
 
-   const int numFeatures = loc.nBands;
-   const int numNeurons  = nx * ny * numFeatures;
-   const int numExtended = (nx + 2*loc.nPad) * (ny + 2*loc.nPad) * numFeatures;
+   const int numNeurons  = nx * ny * nf;
+   const int numExtended = (nx + 2*loc.nb) * (ny + 2*loc.nb) * nf;
 
    l->columnId = 0;
 
@@ -51,7 +51,6 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
    l->numDelayLevels = MAX_F_DELAY;
 
    l->loc = loc;
-   l->numFeatures = numFeatures;
    l->numNeurons  = numNeurons;
    l->numExtended = numExtended;
 
@@ -64,50 +63,50 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
    l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
    l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
 
-   l->numParams = 0;
    l->params = NULL;
-
-   l->numPhis = NUM_CHANNELS;
 
    l->numActive = 0;
    l->activeFP  = NULL;
 
-   l->initFunc = NULL;
-   l->updateFunc = NULL;
-
    l->activity = pvcube_new(&l->loc, numExtended);
    l->prevActivity = (float *) calloc(numExtended, sizeof(float));
 
+#ifdef OBSOLETE
+   l->numPhis = numChannels;
+
    // make a G (variable conductance) for each phi
-   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
-   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
+   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * MAX_CHANNELS);
+   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * MAX_CHANNELS);
 
    assert(l->G   != NULL);
    assert(l->phi != NULL);
 
-   l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-   l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-
-   assert(l->G[0]   != NULL);
-   assert(l->phi[0] != NULL);
-
-   for (m = 1; m < l->numPhis; m++) {
-      l->G[m]   = l->G[0]   + m * numNeurons;
-      l->phi[m] = l->phi[0] + m * numNeurons;
+   for (m = 1; m < NUM_CHANNELS; m++) {
+      l->G[m]   = NULL;
+      l->phi[m] = NULL;
    }
 
+   if (l->numPhis > 0) {
+      l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
+      l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
+
+      assert(l->G[0]   != NULL);
+      assert(l->phi[0] != NULL);
+
+      for (m = 1; m < l->numPhis; m++) {
+         l->G[m]   = l->G[0]   + m * numNeurons;
+         l->phi[m] = l->phi[0] + m * numNeurons;
+      }
+
+      l->G_E  = l->G[PHI_EXC];
+      l->G_I  = l->G[PHI_INH];
+      l->G_IB = l->G[PHI_INHB];
+   }
+#endif
+
    l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   l->Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-
    assert(l->V != NULL);
-   assert(l->Vth != NULL);
 
-   l->G_E  = l->G[PHI_EXC];
-   l->G_I  = l->G[PHI_INH];
-   l->G_IB = l->G[PHI_INHB];
-
-   // TODO - does this need to be added to device memory?
-   //
    l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
    assert(l->activeIndices != NULL);
 
@@ -121,103 +120,11 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
       l->V[k] = V_REST;
    }
 
-   for (k = 0; k < numNeurons; k++){
-      l->Vth[k] = VTH_REST;
-   }
-
    return 0;
-}
-
-#ifdef DEPRECATED
-/**
- * Finish initialization with global parameters (multiple hypercolumns)
- */
-int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols)
-{
-   int k, m;
-   const int numNeurons  = l->numNeurons;
-   const int numExtended = l->numExtended;
-
-   l->columnId = colId;
-
-   ////////////////
-   // Assume loc parameters are already set as HyPerCol comes up
-   //
-   //   l->loc.nx = l->loc.nx / nCols;
-   //   l->loc.ny = l->loc.ny / nRows;
-   //   l->loc.kx0 = l->loc.nx * colCol;
-   //   l->loc.ky0 = l->loc.ny * colRow;
-   //
-   //   l->numNeurons = (int) l->loc.nx * (int) l->loc.ny * l->numFeatures;
-   //   if (l->numNeurons * nCols * nRows != ntotal) {
-   //      printf("[%d]: WARNING: pvlayer_initFinish: uneven layout of neurons (nx,ny) = (%d,%d)\n",
-   //             colId, (int)l->loc.nx, (int)l->loc.ny);
-   //   }
-
-   l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
-   l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
-
-   l->activity = pvcube_new(&l->loc, numExtended);
-   l->prevActivity = (float *) calloc(numExtended, sizeof(float));
-
-   for (k = 0; k < numExtended; k++) {
-      l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
-   }
-
-   // make a G (variable conductance) for each phi
-   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
-   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * l->numPhis);
-
-   assert(l->G   != NULL);
-   assert(l->phi != NULL);
-
-   l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-   l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-
-   assert(l->G[0]   != NULL);
-   assert(l->phi[0] != NULL);
-
-   for (m = 1; m < l->numPhis; m++) {
-      l->G[m]   = l->G[0]   + m * numNeurons;
-      l->phi[m] = l->phi[0] + m * numNeurons;
-   }
-
-   l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(l->V != NULL);
-   for (k = 0; k < l->numNeurons; k++){
-      l->V[k] = V_REST;
-   }
-   l->Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(l->Vth != NULL);
-   for (k = 0; k < l->numNeurons; k++){
-      l->Vth[k] = VTH_REST;
-   }
-
-   l->G_E  = l->G[PHI_EXC];
-   l->G_I  = l->G[PHI_INH];
-   l->G_IB = l->G[PHI_INHB];
-
-   return 0;
-}
-#endif // DEPRECATED
-
-int pvlayer_initFinish(PVLayer * l)
-{  int err = 0;
-
-   if (l->initFunc) {
-      err = l->initFunc(l);
-   }
-   return err;
 }
 
 int pvlayer_finalize(PVLayer * l)
 {
-   free(l->G[0]);
-   free(l->G);
-
-   free(l->phi[0]);
-   free(l->phi);
-
    pvcube_delete(l->activity);
 
    if (l->activeFP != NULL) fclose(l->activeFP);
@@ -226,7 +133,6 @@ int pvlayer_finalize(PVLayer * l)
    free(l->activeIndices);
 
    free(l->V);
-   free(l->Vth);
 
    free(l->params);
 
@@ -241,39 +147,6 @@ float pvlayer_getWeight(float x0, float x, float r, float sigma)
    return expf(0.5 * dx * dx / (sigma * sigma));
 }
 
-int pvlayer_setParams(PVLayer * l, int numParams, size_t sizeParams, void * params)
-{
-   // check for existing parameters
-   if (l->numParams != 0) {
-      assert(l->numParams == numParams);
-      // TODO - for now must assume sizeParams are the same, FIX THIS
-   }
-   else {
-      l->numParams = numParams;
-      l->params = (float *) malloc(sizeParams);
-   }
-
-   assert(l->params != NULL);
-   memcpy(l->params, params, sizeParams);
-
-   return 0;
-}
-
-int pvlayer_getParams(PVLayer * l, int * numParams, float ** params)
-{
-   // Give the caller our buffer
-   *numParams = l->numParams;
-   *params = l->params;
-   return 0;
-}
-
-int pvlayer_setFuncs(PVLayer * l, void * initFunc, void * updateFunc)
-{
-   l->initFunc = (int(*)(PVLayer *l)) (initFunc);
-   l->updateFunc = (int(*)(PVLayer *l)) (updateFunc);
-   return 0;
-}
-
 // Default implementation -- output some stats and activity files
 int pvlayer_outputState(PVLayer *l)
 {
@@ -283,7 +156,7 @@ int pvlayer_outputState(PVLayer *l)
 
    const int nx = l->loc.nx;
    const int ny = l->loc.ny;
-   const int nf = l->numFeatures;
+   const int nf = l->loc.nf;
 
    // Print avg, max/min, etc of f.
    sprintf(str, "[%d]:L%1.1d: f:", cid, l->layerId);
@@ -431,9 +304,9 @@ PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
    return cube;
 }
 
-PVLayerCube* pvcube_new(PVLayerLoc * loc, int numItems)
+PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems)
 {
-   PVLayerCube* cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
+   PVLayerCube * cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
    assert(cube !=NULL);
    pvcube_init(cube, loc, numItems);
    return cube;
