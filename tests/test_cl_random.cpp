@@ -55,7 +55,7 @@ int main(int argc, char * argv[])
       nyl = 1;
    }
 
-   kernel = cld->createKernel("test_cl_random.cl", "cl_rand");
+   kernel = cld->createKernel("kernels/test_cl_random.cl", "cl_rand");
    
    const size_t mem_size = NX*NY*sizeof(uint4);
    
