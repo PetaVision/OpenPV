@@ -14,11 +14,10 @@
 typedef struct CreateMovies_Params_ {
 
 	// base parameter for images
-	int nx;//width
-	int ny;//height
+	int nx;  //width
+	int ny;  //height
 	pvdata_t foregroundval;
-
-	pvdata_t backgroudval;
+	pvdata_t backgroundval;
 	bool isgray;
 
 	//transformation parameter

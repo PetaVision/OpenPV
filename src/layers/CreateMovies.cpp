@@ -72,14 +72,16 @@ int CreateMovies::initialize_Movies(HyPerCol * hc){
 	PVLayerLoc * loc = & clayer->loc;
 	loc->nx = cp->nx;
 	loc->ny = cp->ny;
-	loc->nBands = 1;
-	loc->nPad = pvparams->value(name, "marginWidth", 0);
+	loc->nf = 1;
+	loc->nb = pvparams->value(name, "marginWidth", 0);
+	loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
 
 	if (data != NULL) free(data);
-	size_t dn = loc->nBands * (loc->nx + 2*loc->nPad)* (loc->ny + 2*loc->nPad)* sizeof(pvdata_t);
+	size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+	                    * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
 	data = (pvdata_t *) malloc(dn);
 	assert(data != NULL);
-	memset((pvdata_t *)data, cp->backgroudval, dn);
+	memset((pvdata_t *)data, cp->backgroundval, dn);
 	Transform(0, 0, 0);
 
 #ifdef DEBUG_OUTPUTIMAGES
@@ -104,7 +106,7 @@ int CreateMovies::setParams(PVParams * params, CreateMovies_Params * p)
    if (params->present(name, "nx"))  			cp->nx  = params->value(name, "nx");
    if (params->present(name, "ny"))  			cp->ny = params->value(name, "ny");
    if (params->present(name, "foregroundval"))  cp->foregroundval = params->value(name, "foregroundval");
-   if (params->present(name, "backgroudval"))   cp->backgroudval = params->value(name, "backgroudval");
+   if (params->present(name, "backgroundval"))  cp->backgroundval = params->value(name, "backgroundval");
    if (params->present(name, "isgray"))    		cp->isgray  = params->value(name, "isgray");
    if (params->present(name, "rotateangle"))    cp->rotateangle  = params->value(name, "rotateangle");
    if (params->present(name, "centerx"))      	cp->centerx = params->value(name, "centerx");
@@ -128,8 +130,8 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
 
    CreateMovies_Params * param = (CreateMovies_Params *)CMParams;
 
-   int Nx = loc->nx + 2*loc->nPad;
-   int Ny = loc->ny + 2*loc->nPad;
+   int Nx = loc->nx + 2*loc->nb;
+   int Ny = loc->ny + 2*loc->nb;
 
    param->rotateangle+=DAngle;
    if (param->rotateangle>=180){
@@ -145,16 +147,16 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
    int period = param->period;
    int linewidth = param->linewidth;
    pvdata_t foregroundval = param->foregroundval;
-   pvdata_t backgroudval  = param->backgroudval;
+   pvdata_t backgroundval = param->backgroundval;
 
-   size_t dn=loc->nBands * Nx * Ny * sizeof(pvdata_t);
+   size_t dn=loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+                     * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
    if (data == NULL){
       data = (pvdata_t *) malloc(dn);
    }
    assert(data != NULL);
 
-   memset((pvdata_t *)data, backgroudval, dn);
-
+   memset((pvdata_t *)data, backgroundval, dn);
 
    float cs = ::cos((double)Agl),  sn = ::sin((double)Agl);
    int i,j,i1;
@@ -166,14 +168,14 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
    int cx1 = Nx-cx;
    int cy1 = Ny-cy;
    float Pd = 2*Pi/period;
-   float fb = (foregroundval-backgroudval)/2;
+   float fb = (foregroundval-backgroundval)/2;
 
    for(i=-cx; i<cx1; i++){
       for(j=-cy; j<cy1; j++){
          i1=(int)(i*cs + j*sn-a);//(int)(i*cs+0.5 + j*sn-a + 0.5);
          //j1=j*cs - i*sn-b;
          if (param->isgray){
-            data[i+cx+(j+cy)*Nx] = backgroudval + (1+::cos(Pd*i1))*fb;
+            data[i+cx+(j+cy)*Nx] = backgroundval + (1+::cos(Pd*i1))*fb;
          }
          else{
             int t=i1%period;
@@ -194,8 +196,8 @@ int CreateMovies::Transform(const float DAngle,const int Dx,const int Dy)
 
    CreateMovies_Params * param = CMParams;
 
-   int Nx = loc->nx + 2*loc->nPad;
-   int Ny = loc->ny + 2*loc->nPad;
+   int Nx = loc->nx + 2*loc->nb;
+   int Ny = loc->ny + 2*loc->nb;
 
    param->centerx +=  Dx;
    param->centerx  =  (int)param->centerx % (int)(10*Nx);
