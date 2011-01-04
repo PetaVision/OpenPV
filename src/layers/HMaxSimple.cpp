@@ -10,7 +10,7 @@
 
 namespace PV {
 
-HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) : HyPerLayer(name, hc)
+HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 1)
 {
    initialize(TypeGeneric);
 }
@@ -21,6 +21,7 @@ int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
                  clayer->columnId,
                  conn->preSynapticLayer()->clayer->layerId, clayer->layerId);
 
+#ifdef TODO_IMPLEMENT
    // use implementation in base class
    //HyPerLayer::recvSynapticInput(conn, activity, neighbor);
 
@@ -31,19 +32,18 @@ int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
 
    const int nxPost = locPost.nx;
    const int nyPost = locPost.ny;
-   const int nfPost = lPost->numFeatures;
+   const int nfPost = locPost.nf;
 
    const int nxPreEx = lPre->loc.nx;
    const int nyPreEx = lPre->loc.ny;
-   const int nfPre   = lPre->numFeatures;
-   const int nPadPre = lPre->loc.nPad;
+   const int nfPre   = lPre->loc.nf;
+   const int nbPre   = lPre->loc.nb;
 
    const int aStrideX = nfPre;
-   const int aStrideY = nfPre * (nxPreEx + 2*nPadPre);
+   const int aStrideY = nfPre * (nxPreEx + lPre->loc.halo.lt + lPre->loc.halo.rt);
 
    KernelConn * kConn = dynamic_cast<KernelConn*>(conn);
 
-#ifdef FORTRAN
    int iKernel = 0;  // TODO - fix for multiple orientations
    PVPatch * weights = kConn->getKernelPatch(iKernel);
 
@@ -54,8 +54,6 @@ int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
    const int nyp = weights->ny;
 
    call convolve(nx)
-
-
 #endif
 
    return 0;
@@ -68,7 +66,7 @@ int HMaxSimple::updateState(float time, float dt)
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   pvdata_t * phi = clayer->phi[0];
+   pvdata_t * phi = getChannel(CHANNEL_EXC);
    pvdata_t * activity = clayer->activity->data;
 
    // make sure activity in border is zero
@@ -80,8 +78,8 @@ int HMaxSimple::updateState(float time, float dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->numFeatures,
-                                   clayer->loc.nPad);
+      int kPhi = kIndexExtended(k, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
+                                   clayer->loc.nb);
       clayer->V[k] = phi[kPhi];
       activity[k] = phi[kPhi];
       phi[kPhi] = 0.0;     // reset accumulation buffer
@@ -94,12 +92,6 @@ int HMaxSimple::initFinish(int colId, int colRow, int colCol)
 {
    pv_debug_info("[%d]: HMaxSimple::initFinish: colId=%d colRow=%d, colCol=%d",
                  clayer->columnId, colId, colRow, colCol);
-   return 0;
-}
-
-int HMaxSimple::setParams(int numParams, float* params)
-{
-   pv_debug_info("[%d]: HMaxSimple::setParams: numParams=%d", clayer->columnId, numParams);
    return 0;
 }
 

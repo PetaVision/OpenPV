@@ -21,8 +21,6 @@ public:
 
    virtual int initFinish(int colId, int colRow, int colCol);
 
-   virtual int setParams(int numParams, float* params);
-
    virtual int outputState(float time);
 };
 
