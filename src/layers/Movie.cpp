@@ -61,7 +61,7 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    imageData = NULL;
 
    // need all image bands until converted to gray scale
-   loc->nBands = imageLoc.nBands;
+   loc->nf = imageLoc.nf;
 
 #ifdef OBSOLETE
    initialize_data(loc);
@@ -110,7 +110,7 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    }
 
    // for now convert images to grayscale
-   if (loc->nBands > 1) {
+   if (loc->nf > 1) {
       toGrayScale();
    }
 
@@ -182,7 +182,7 @@ bool Movie::updateImage(float time, float dt)
       }
 
       // need all image bands until converted to gray scale
-      loc->nBands = imageLoc.nBands;
+      loc->nf = imageLoc.nf;
 
       // move bias
       if( time > 0 && !(((int)time) % biasChangeTime) ){
@@ -208,7 +208,7 @@ bool Movie::updateImage(float time, float dt)
       read(filename, offsetX, offsetY);
 
       // for now convert images to grayscale
-      if (loc->nBands > 1) {
+      if (loc->nf > 1) {
          toGrayScale();
       }
    } // randomMovie
@@ -279,13 +279,13 @@ int Movie::randomFrame()
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int numBands = loc->nBands;  // same with nf
-   const int marginWidth = loc->nPad;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
 
    int numActive = 0;
    for (int kex = 0; kex < clayer->numExtended; kex++) {
-      const int k = kIndexRestricted(kex, nx, ny, numBands, marginWidth);
+      const int k = kIndexRestricted(kex, nx, ny, nf, nb);
       data[kex] = (pv_random_prob() < randomMovieProb) ? 1: 0;
       if (k > 0 && data[kex] > 0.0) {
          clayer->activeIndices[numActive++] = k;
