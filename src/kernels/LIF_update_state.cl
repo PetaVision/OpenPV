@@ -1,21 +1,14 @@
 #include "LIF_params.h"
-#include "cl_random.cl"
+#include "cl_random.hcl"
+#include "conversions.hcl"
 
-#ifndef __CL_PLATFORM_H
+#include "../arch/opencl/pv_opencl.h"
 
+#ifndef PV_USE_OPENCL
 #  include <math.h>
 #  define EXP expf
-#  define CL_KERNEL
-#  define CL_MEM_GLOBAL
-#  define CL_MEM_LOCAL
-
 #else  /* compiling with OpenCL */
-
 #  define EXP exp
-#  define CL_KERNEL     __kernel
-#  define CL_MEM_GLOBAL __global
-#  define CL_MEM_LOCAL  __local
-
 #endif
 
 //
@@ -27,13 +20,13 @@ CL_KERNEL
 void LIF_update_state(
     const float time, 
     const float dt,
-    const LIF_params * params,
 
     const int nx,
     const int ny,
     const int nf,
     const int nb,
 
+    CL_MEM_GLOBAL LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
