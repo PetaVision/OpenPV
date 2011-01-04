@@ -124,10 +124,10 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
    // get global index and location of presynaptic cell
    const int nxPre = locPre.nx;
    const int nyPre = locPre.ny;
-   const int nfPre = locPre.nBands;
+   const int nfPre = locPre.nf;
    const int nxPreGlobal = locPre.nxGlobal;
    const int nyPreGlobal = locPre.nyGlobal;
-   const int kPreGlobal = globalIndexFromLocal(kPre, locPre, nfPre);
+   const int kPreGlobal = globalIndexFromLocal(kPre, locPre);
    *xPreGlobal = xPosGlobal(kPreGlobal, xScaleLog2Pre, nxPreGlobal,
          nyPreGlobal, nfPre);
    *yPreGlobal = yPosGlobal(kPreGlobal, yScaleLog2Pre, nxPreGlobal,
@@ -140,10 +140,9 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
    const int kyPatchHead = zPatchHead(kyPre, wp->ny, yScaleLog2Pre, yScaleLog2Post);
    const int nxPost = locPost.nx;
    const int nyPost = locPost.ny;
-   const int nfPost = locPost.nBands;
+   const int nfPost = locPost.nf;
    const int kPatchHead = kIndex(kxPatchHead, kyPatchHead, 0, nxPost, nyPost, nfPost);
-   const int kPatchHeadGlobal = globalIndexFromLocal(kPatchHead, locPost,
-         nfPost);
+   const int kPatchHeadGlobal = globalIndexFromLocal(kPatchHead, locPost);
 
    // get global x,y position of patchhead
    const float nxPostGlobal = locPost.nxGlobal;
