@@ -188,9 +188,9 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
       fprintf(stderr, "\n");
    }
-   if (loc->nBands   != params[INDEX_NF])        {status = -1; tmp_status = INDEX_NF;}
+   if (loc->nf != params[INDEX_NF]) {status = -1; tmp_status = INDEX_NF;}
    if (tmp_status == INDEX_NF) {
-         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nBands, INDEX_NF, params[INDEX_NF]);
+         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
       fprintf(stderr, "\n");
    }
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = -1; tmp_status = INDEX_NX_GLOBAL;}
@@ -213,14 +213,14 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          fprintf(stderr, "nyProcs = %d != params[%d]==%d ", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
       fprintf(stderr, "\n");
    }
-   if (loc->nPad     != params[INDEX_NPAD])      {status = -1; tmp_status = INDEX_NPAD;}
-   if (tmp_status == INDEX_NPAD) {
-         fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nPad, INDEX_NPAD, params[INDEX_NPAD]);
+   if (loc->nb != params[INDEX_NB]) {status = -1; tmp_status = INDEX_NB;}
+   if (tmp_status == INDEX_NB) {
+         fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
       fprintf(stderr, "\n");
    }
-   if (loc->nBands   != params[INDEX_NBANDS])    {status = -1; tmp_status = INDEX_NBANDS;}
-   if (tmp_status == INDEX_NBANDS) {
-         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nBands, INDEX_NBANDS, params[INDEX_NBANDS]);
+   if (loc->nf != params[INDEX_NF]) {status = -1; tmp_status = INDEX_NF;}
+   if (tmp_status == INDEX_NF) {
+         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
       fprintf(stderr, "\n");
    }
 
@@ -332,11 +332,11 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
-   const int nPad = loc->nPad;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
    if (extended) {
-      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
    }
    else {
       numItems = nx * ny * nf;
@@ -361,7 +361,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    params[INDEX_FILE_TYPE]   = filetype;
    params[INDEX_NX]          = loc->nx;
    params[INDEX_NY]          = loc->ny;
-   params[INDEX_NF]          = loc->nBands;
+   params[INDEX_NF]          = loc->nf;
    params[INDEX_NUM_RECORDS] = nxBlocks * nyBlocks;  // one record could be one node or all nodes
    params[INDEX_RECORD_SIZE] = localSize;
    params[INDEX_DATA_SIZE]   = pv_sizeof(datatype);
@@ -372,8 +372,8 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
-   params[INDEX_NPAD]        = loc->nPad;
-   params[INDEX_NBANDS]      = loc->nBands;
+   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NF]          = loc->nf;
 
    timeToParams(time, &params[INDEX_TIME]);
 
@@ -405,11 +405,11 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
-   const int nPad = loc->nPad;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
    if (extended) {
-      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
    }
    else {
       numItems = nx * ny * nf;
@@ -474,8 +474,8 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 //      loc->nyGlobal = params[INDEX_NY_GLOBAL];
 //      loc->kx0      = params[INDEX_KX0];
 //      loc->ky0      = params[INDEX_KY0];
-//      loc->nPad     = params[INDEX_NPAD];
-//      loc->nBands   = params[INDEX_NBANDS];
+//      loc->nPad     = params[INDEX_NB];
+//      loc->nBands   = params[INDEX_NF];
 
       *time = timeFromParams(&params[INDEX_TIME]);
 
@@ -543,11 +543,11 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
-   const int nPad = loc->nPad;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
    if (extended) {
-      numItems = (nx + 2*nPad) * (ny + 2*nPad) * nf;
+      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
    }
    else {
       numItems = nx * ny * nf;

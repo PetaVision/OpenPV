@@ -89,13 +89,13 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    const int nxPre = lPre->loc.nx;
    const int nyPre = lPre->loc.ny;
-   const int nfPre = lPre->numFeatures;
+   const int nfPre = lPre->loc.nf;
 
    // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
       kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-      kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPre->loc.nPad);
+      kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPre->loc.nb);
    }
 
    fprintf(fp, "w%d:      \n", kPre);
@@ -130,14 +130,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    if (outputIndices) {
       const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
-      const int nxPostExt = lPost->loc.nx + 2*lPost->loc.nPad;
-      const int nyPostExt = lPost->loc.ny + 2*lPost->loc.nPad;
-      const int nfPost = lPost->numFeatures;
+      const int nxPostExt = lPost->loc.nx + 2*lPost->loc.nb;
+      const int nyPostExt = lPost->loc.ny + 2*lPost->loc.nb;
+      const int nfPost = lPost->loc.nf;
 
       //const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
       //const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
-      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nPad;;
-      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nPad;;
+      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nb;
+      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nb;
 
       //
       // The following is incorrect because w->nx is reduced near boundary.

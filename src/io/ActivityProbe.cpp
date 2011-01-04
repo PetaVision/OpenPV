@@ -94,7 +94,7 @@ pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
 
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
    const int numItems = nx*ny*nf;
 
    for (k = 0; k < numItems; k++) {
