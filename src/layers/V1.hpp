@@ -9,7 +9,6 @@
 #define V1_HPP_
 
 #include "HyPerLayer.hpp"
-#include "../arch/opencl/CLKernel.hpp"
 #include "LIF2.h"
 
 namespace PV
@@ -25,19 +24,9 @@ public:
    V1(const char* name, HyPerCol * hc, PVLayerType type);
 
    virtual int updateState(float time, float dt);
-#ifdef PV_USE_OPENCL
-   virtual int updateStateOpenCL(float time, float dt);
-#endif
    virtual int writeState(const char * path, float time);
 
    int setParams(PVParams * params, LIFParams * p);
-
-protected:
-
-#ifdef PV_USE_OPENCL
-   virtual int initializeThreadData();
-   virtual int initializeThreadKernels();
-#endif
 
 private:
    virtual int initialize(PVLayerType type);

@@ -32,13 +32,13 @@ LIFParams LIFDefaultParams =
 };
 
 V1::V1(const char* name, HyPerCol * hc)
-  : HyPerLayer(name, hc)
+  : HyPerLayer(name, hc, MAX_CHANNELS)
 {
    initialize(TypeLIFSimple);
 }
 
 V1::V1(const char* name, HyPerCol * hc, PVLayerType type)
-  : HyPerLayer(name, hc)
+  : HyPerLayer(name, hc, MAX_CHANNELS)
 {
    initialize(type);
 }
@@ -49,8 +49,9 @@ int V1::initialize(PVLayerType type)
    int status = CL_SUCCESS;
 
    setParams(parent->parameters(), &LIFDefaultParams);
-
+#ifdef OBSOLETE
    pvlayer_setFuncs(clayer, (INIT_FN) &LIF2_init, (UPDATE_FN) &LIF2_update_exact_linear);
+#endif
    this->clayer->layerType = type;
 
    parent->addLayer(this);
@@ -59,77 +60,8 @@ int V1::initialize(PVLayerType type)
       readState(name, &time);
    }
 
-   // initialize OpenCL parameters
-   //
-#ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getCLDevice();
-
-   // TODO - fix to use device and layer parameters
-   if (device->id() == 1) {
-      nxl = 1;
-      nyl = 1;
-   }
-   else {
-      nxl = 16;
-      nyl = 16;
-   }
-
-   size_t lsize    = clayer->numNeurons*sizeof(pvdata_t);
-   size_t lsize_ex = clayer->numExtended*sizeof(pvdata_t);
-#endif
-
    return status;
 }
-
-#ifdef PV_USE_OPENCL
-int V1::initializeThreadData()
-{
-   int status = CL_SUCCESS;
-
-   // map layer buffers so that layer data can be initialized
-   //
-   pvdata_t * V = (pvdata_t *)   clBuffers.V->map(CL_MAP_WRITE);
-   pvdata_t * Vth = (pvdata_t *) clBuffers.Vth->map(CL_MAP_WRITE);
-
-   // initialize layer data
-   //
-   for (int k = 0; k < clayer->numNeurons; k++){
-      V[k] = V_REST;
-   }
-
-   for (int k = 0; k < clayer->numNeurons; k++){
-      Vth[k] = VTH_REST;
-   }
-
-   clBuffers.V->unmap(V);
-   clBuffers.Vth->unmap(Vth);
-
-   return status;
-}
-
-int V1::initializeThreadKernels()
-{
-   int status = CL_SUCCESS;
-
-   // create kernels
-   //
-   updatestate_kernel = parent->getCLDevice()->createKernel("LIF_updatestate.cl", "update_state");
-
-   int argid = 0;
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.V);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.G_E);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.G_I);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.G_IB);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.phi);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.activity);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nx);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.ny);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->numFeatures);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nPad);
-
-   return status;
-}
-#endif
 
 int V1::setParams(PVParams * params, LIFParams * p)
 {
@@ -139,8 +71,10 @@ int V1::setParams(PVParams * params, LIFParams * p)
    assert(clayer->params != NULL);
    memcpy(clayer->params, p, sizeof(*p));
 
+#ifdef OBSOLETE
    clayer->numParams = sizeof(*p) / sizeof(float);
    assert(clayer->numParams == 17);
+#endif
 
    LIFParams * cp = (LIFParams *) clayer->params;
 
@@ -178,26 +112,6 @@ int V1::setParams(PVParams * params, LIFParams * p)
    return 0;
 }
 
-#ifdef PV_USE_OPENCL
-int V1::updateStateOpenCL(float time, float dt)
-{
-   int status = CL_SUCCESS;
-
-   // setup and run kernel
-   // a. unmap the state variables so device can read and write
-   // b. pass state variables to kernel
-   // c. run kernel
-   // e. map the state variable for processing on CPU
-
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-
-   updatestate_kernel->run(nx, ny, nxl, nyl);
-
-   return status;
-}
-#endif
-
 int V1::updateState(float time, float dt)
 {
    PVParams * params = parent->parameters();
@@ -207,11 +121,7 @@ int V1::updateState(float time, float dt)
    int spikingFlag = (int) params->value(name, "spikingFlag", 1);
 
    if (spikingFlag != 0) {
-#ifndef PV_USE_OPENCL
       return LIF2_update_exact_linear(clayer, dt);
-#else
-      return updateStateOpenCL(time, dt);
-#endif
    }
    else {
       return HyPerLayer::updateState(time, dt);
