@@ -48,8 +48,6 @@ HyPerConn "Test Connection" = {
 };
 
 
-
-
 //
 // This section defines parameters for test_post_weights
 //
@@ -93,9 +91,6 @@ HyPerConn "test_post_weights L3 to L2" = {
    nxp = 5; // 1/2 of forward weight patch
    nyp = 5;
 };
-
-
-
 
 
 //
@@ -200,8 +195,6 @@ HyPerConn "test_gauss2d kernelconn 2 to 1" = {
    normalize = 0.0;
    normalize_cutoff = 0.0;
 };
-
-
 
 
 //
@@ -386,7 +379,6 @@ HyPerConn "test_cocirc cocircconn 2 to 1" = {
 };
 
 
-
 //
 // This section defines parameters for test_mirror_BCs
 //
@@ -402,6 +394,7 @@ HyPerLayer "test_mirror_BCs layer" = {
    nf = 2;
    marginWidth = 4;
 };
+
 
 //
 // This section defines parameters for test_border_activity
@@ -448,7 +441,7 @@ HyPerConn "test_border_activity connection 2" = {
 
 
 //
-// This section defines parameters for test_post_weights
+// This section defines parameters for test_constant_input
 //
 
 HyPerCol "test_constant_input column" = {
@@ -483,4 +476,22 @@ HyPerLayer "test_constant_input connection" = {
    randomFlag = 1; // use random weights to initialize
    wMinInit = 1;   // all weight to constant (1)
    wMaxInit = 1;
+};
+
+
+//
+// This section defines parameters for test_cl_lif
+//
+
+HyPerCol "test_cl_lif column" = {
+   nx = 128;
+   ny = 128;
+   mirrorBCflag = 0;
+};
+
+HyPerLayer "test_cl_lif layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   spikingFlag = 1;
 };
