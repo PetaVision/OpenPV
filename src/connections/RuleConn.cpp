@@ -57,7 +57,7 @@ int RuleConn::ruleWeights(PVPatch * wp, int kPre, int xScale, int yScale, float 
    const int sf = wp->sf;  assert(sf == 1);
 
    // TODO - need to calculate this since I've changed fPre parameter to kPre in interface
-   const int nfPre = pre->clayer->numFeatures;
+   const int nfPre = pre->clayer->loc.nf;
    const int fPre = kPre % nfPre;
 
    assert(fPre >= 0 && fPre <= 1);

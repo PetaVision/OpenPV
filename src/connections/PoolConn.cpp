@@ -27,7 +27,7 @@ int PoolConn::initializeWeights(const char * filename)
       const int xScale = pre->clayer->xScale;
       const int yScale = pre->clayer->yScale;
 
-      int nfPre = pre->clayer->numFeatures;
+      int nfPre = pre->clayer->loc.nf;
 
       const int arbor = 0;
       const int numPatches = numWeightPatches(arbor);

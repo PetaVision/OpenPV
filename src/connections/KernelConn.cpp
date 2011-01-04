@@ -123,7 +123,7 @@ int KernelConn::numDataPatches(int arbor)
          post->getXScale() - pre->getXScale()) : 1;
    int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
          post->getYScale() - pre->getYScale()) : 1;
-   int numKernelPatches = pre->clayer->numFeatures * nxKernel * nyKernel;
+   int numKernelPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
    return numKernelPatches;
 }
 

@@ -29,7 +29,7 @@ SubunitConn::SubunitConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyP
  */
 int SubunitConn::initializeWeights(const char * filename)
 {
-   assert(post->clayer->numFeatures == 4*16);
+   assert(post->clayer->loc.nf == 4*16);
 
    const int arbor = 0;
    const int numPatches = numWeightPatches(arbor);
