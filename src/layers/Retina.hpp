@@ -9,8 +9,15 @@
 #define RETINA_HPP_
 
 #include "HyPerLayer.hpp"
+#include "../kernels/Retina_params.h"
+#include "../arch/opencl/pv_opencl.h"
+#include "../arch/opencl/pv_uint4.h"
 #include "Image.hpp"
-#include "fileread.h"
+
+#define NUM_RETINA_EVENTS 3
+#define EV_PHI_E    0
+#define EV_PHI_I    1
+#define EV_ACTIVITY 2
 
 namespace PV
 {
@@ -19,24 +26,34 @@ class Retina: public PV::HyPerLayer
 {
 public:
    Retina(const char * name, HyPerCol * hc);
+   virtual ~Retina();
 
    int initialize(PVLayerType type);
-   int setParams(PVParams * params, fileread_params * p);
+   int setParams(PVParams * p);
 
-   virtual int updateState(float time, float dt);
+   virtual int triggerReceive(InterColComm* comm);
+   virtual int updateState (float time, float dt);
+   virtual int updateBorder(float time, float dt);
+   virtual int waitOnPublish(InterColComm* comm);
 #ifdef PV_USE_OPENCL
    virtual int updateStateOpenCL(float time, float dt);
 #endif
 
    virtual int writeState(const char * path, float time);
+#ifdef OBSOLETE
    virtual int spike(float time, float dt, float prev, float prob, float probStim, float * probSpike);
+#endif
 
 protected:
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadData();
+   virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
 #endif
+
+   bool spikingFlag;        // specifies that layer is spiking
+   Retina_params rParams;   // used in update state
+   uint4 * rand_state;      // state for random numbers
 
 private:
 

@@ -9,7 +9,7 @@
 #include "Retina.hpp"
 #include "../io/io.h"
 #include "../include/default_params.h"
-#include "../utils/pv_random.h"
+#include "../utils/cl_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -19,18 +19,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void Retina_update_state (
     const float time,
     const float dt,
-    const float probStim,
-    const float probBase,
     const int nx,
     const int ny,
     const int nf,
     const int nb,
-    float * phi,
+    const Retina_params * params,
+    uint4 * rnd,
+    float * phiExc,
+    float * phiInh,
     float * activity,
-    float * prevActivity);
+    float * prevTime);
+
 #ifdef __cplusplus
 }
 #endif
@@ -38,17 +41,8 @@ void Retina_update_state (
 
 namespace PV {
 
-// default values
-fileread_params RetinaParams =
-{
-   0.0, 0.0, 0.0, 0.0,
-   0.0,
-   0.0, 0.0,         /* burstFreg, burstDuration */
-   0.0, 0.0, 0.0  /* marginWidth, beginStim, endStim */
-};
-
 Retina::Retina(const char * name, HyPerCol * hc)
-  : HyPerLayer(name, hc)
+  : HyPerLayer(name, hc, 2)
 {
 #ifdef OBSOLETE
    this->img = new Image("Image", hc, hc->inputFile());
@@ -56,77 +50,41 @@ Retina::Retina(const char * name, HyPerCol * hc)
    initialize(TypeRetina);
 }
 
+Retina::~Retina()
+{
+   free(evList);
+   free(rand_state);
+}
+
 int Retina::initialize(PVLayerType type)
 {
    int status = 0;
-   PVLayer  * l   = clayer;
+   PVLayer * l = clayer;
 
-   this->clayer->layerType = type;
-
-   setParams(parent->parameters(), &RetinaParams);
-
-   fileread_params * params = (fileread_params *) l->params;
-
-#ifdef OBSOLETE
-   l->loc = img->getImageLoc();
-#endif
-   l->loc.nPad = (int) params->marginWidth;
-   l->loc.nBands = 1;
+   clayer->layerType = type;
+   setParams(parent->parameters());
 
    // the size of the Retina may have changed due to size of image
    //
    const int nx = l->loc.nx;
    const int ny = l->loc.ny;
-   const int nBorder = l->loc.nPad;
-   l->numFeatures = l->loc.nBands;
-   l->numNeurons  = nx * ny * l->numFeatures;
-   l->numExtended = (nx + 2*nBorder) * (ny + 2*nBorder) * l->numFeatures;
+   const int nf = l->loc.nf;
+   const int nb = l->loc.nb;
+   l->numNeurons  = nx * ny * nf;
+   l->numExtended = (nx + 2*nb) * (ny + 2*nb) * nf;
 
-#ifdef OBSOLETE
-   PVParams * pvParams = parent->parameters();
-   fireOffPixels = (int) pvParams->value(name, "fireOffPixels", 0);
-#endif
+   // a random state variable is needed for every neuron/clthread
+   rand_state = cl_random_init(l->numNeurons);
 
    status = parent->addLayer(this);
 
-#ifdef OBSOLETE
-   // for the Retina, V is extended size, so resize
-   if (l->numExtended != l->numNeurons) {
-      l->numNeurons = l->numExtended;
-      free(l->V);
-      l->V = (pvdata_t *) calloc(l->numExtended, sizeof(float));
-      assert(l->V != NULL);
-      free(l->activeIndices);
-      l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
-      assert(l->activeIndices != NULL);
-   }
-#endif
-
    // TODO - could free other layer parameters as they are not used
 
-#ifdef OBSOLETE
-   // use image's data buffer
-   updateImage(parent->simulationTime(), parent->getDeltaTime());
-   copyFromImageBuffer();
-
-   pvdata_t * V = l->V;
-
-   if (params->invert) {
-      for (int k = 0; k < l->numExtended; k++) {
-         V[k] = 1 - V[k];
-      }
-   }
-
-   if (params->uncolor) {
-      for (int k = 0; k < l->numExtended; k++) {
-         V[k] = (V[k] == 0.0) ? 0.0 : 1.0;
-      }
-   }
-#endif
-
 #ifdef PV_USE_OPENCL
+   numEvents = NUM_RETINA_EVENTS;
+   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+
    initializeThreadBuffers();
-   initializeThreadData();
    initializeThreadKernels();
 #endif
 
@@ -134,90 +92,103 @@ int Retina::initialize(PVLayerType type)
 }
 
 #ifdef PV_USE_OPENCL
-int Retina::initializeThreadData()
+/**
+ * Initialize OpenCL buffers.  This must be called after PVLayer data have
+ * been allocated.
+ */
+int Retina::initializeThreadBuffers()
 {
-   return CL_SUCCESS;
+   int status = CL_SUCCESS;
+
+   const size_t size    = clayer->numNeurons  * sizeof(pvdata_t);
+   const size_t size_ex = clayer->numExtended * sizeof(pvdata_t);
+
+   CLDevice * device = parent->getCLDevice();
+
+   // these buffers are shared between host and device
+   //
+   clV     = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
+   clPhiE  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
+   clPhiI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
+   clPhiIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
+
+   clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
+   clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
+
+   return status;
 }
 
 int Retina::initializeThreadKernels()
 {
    int status = CL_SUCCESS;
 
-   fileread_params * params = (fileread_params *) clayer->params;
-
-   const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
-   const float probBase = params->poissonBlankProb;
-
    // create kernels
    //
-   updatestate_kernel = parent->getCLDevice()->createKernel("Retina_update_state.cl", "update_state");
+   krUpdate = parent->getCLDevice()->createKernel("Retina_update_state.cl", "update_state");
 
    int argid = 0;
 
-   status |= updatestate_kernel->setKernelArg(argid++, 0.0f); // time (changed by updateState)
-   status |= updatestate_kernel->setKernelArg(argid++, 1.0f); // dt (changed by updateState)
+   status |= krUpdate->setKernelArg(argid++, 0.0f); // time (changed by updateState)
+   status |= krUpdate->setKernelArg(argid++, 1.0f); // dt (changed by updateState)
 
-   status |= updatestate_kernel->setKernelArg(argid++, probStim);
-   status |= updatestate_kernel->setKernelArg(argid++, probBase);
+   // TODO - add Retina_params
 
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nx);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.ny);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->numFeatures);
-   status |= updatestate_kernel->setKernelArg(argid++, clayer->loc.nPad);
+   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
+   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
+   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
+   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
 
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.phi);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.activity);
-   status |= updatestate_kernel->setKernelArg(argid++, clBuffers.prevActivity);
+   // TODO - add rnd_state
+
+   status |= krUpdate->setKernelArg(argid++, clPhiE);
+   status |= krUpdate->setKernelArg(argid++, clPhiI);
+   status |= krUpdate->setKernelArg(argid++, clPhiIB);
+   status |= krUpdate->setKernelArg(argid++, clActivity);
+   status |= krUpdate->setKernelArg(argid++, clPrevTime);
 
    return status;
 }
 #endif
 
-//! Sets the V data buffer
-/*!
- *
- * dt is in seconds here!
- *
- */
-int Retina::setParams(PVParams * params, fileread_params * p)
+int Retina::setParams(PVParams * p)
 {
-   float dt = parent->getDeltaTime() * .001;  // seconds
+   float dt_sec = parent->getDeltaTime() * .001;  // seconds
 
-   clayer->params = (float *) malloc(sizeof(*p));
-   assert(clayer->params != NULL);
-   memcpy(clayer->params, p, sizeof(*p));
+   clayer->loc.nf = 1;
+   clayer->loc.nb = (int) p->value(name, "marginWidth", 0.0);
 
-   clayer->numParams = sizeof(*p) / sizeof(float);
+   clayer->params = &rParams;
 
+   spikingFlag = (int) p->value(name, "spikingFlag", 1);
+
+#ifdef OBSOLETE
    fileread_params * cp = (fileread_params *) clayer->params;
+   if (fparams->present(name, "invert"))  cp->invert  = fparams->value(name, "invert");
+   if (fparams->present(name, "uncolor")) cp->uncolor = fparams->value(name, "uncolor");
+#endif
 
-   if (params->present(name, "invert"))  cp->invert  = params->value(name, "invert");
-   if (params->present(name, "uncolor")) cp->uncolor = params->value(name, "uncolor");
+   float probStim = p->value(name, "poissonEdgeProb" , 1.0f);
+   float probBase = p->value(name, "poissonBlankProb", 0.0f);
 
-   if (params->present(name, "spikingFlag"))
-      cp->spikingFlag      = params->value(name, "spikingFlag");
-   if (params->present(name, "poissonEdgeProb"))
-      cp->poissonEdgeProb  = params->value(name, "poissonEdgeProb");
-   if (params->present(name, "poissonBlankProb"))
-      cp->poissonBlankProb = params->value(name, "poissonBlankProb");
-   if (params->present(name, "burstFreq"))
-      cp->burstFreq  = params->value(name, "burstFreq");
-   if (params->present(name, "burstDuration"))
-      cp->burstDuration  = params->value(name, "burstDuration");
-   if (params->present(name, "marginWidth"))
-      cp->marginWidth      = params->value(name, "marginWidth");
-
-   if (params->present(name, "noiseOnFreq")) {
-      cp->poissonEdgeProb  = params->value(name, "noiseOnFreq") * dt;
-      if (cp->poissonEdgeProb > 1.0) cp->poissonEdgeProb = 1.0;
+   if (p->present(name, "noiseOnFreq")) {
+      probStim = p->value(name, "noiseOnFreq") * dt_sec;
+      if (probStim > 1.0) probStim = 1.0;
    }
-   if (params->present(name, "noiseOffFreq")) {
-      cp->poissonBlankProb  = params->value(name, "noiseOffFreq") * dt;
-      if (cp->poissonBlankProb > 1.0) cp->poissonBlankProb = 1.0;
+   if (p->present(name, "noiseOffFreq")) {
+      probBase = p->value(name, "noiseOffFreq") * dt_sec;
+      if (probBase > 1.0) probBase = 1.0;
    }
 
-   if (params->present(name, "beginStim")) cp->beginStim = params->value(name, "beginStim");
-   if (params->present(name, "endStim"))   cp->endStim   = params->value(name, "endStim");
+   // default parameters
+   //
+   rParams.probStim  = probStim;
+   rParams.probBase  = probBase;
+   rParams.beginStim = p->value(name, "beginStim", 0.0f);
+   rParams.endStim   = p->value(name, "endStim"  , 99999999.9f);
+   rParams.burstFreq = p->value(name, "burstFreq", 40);         // frequency of bursts
+   rParams.burstDuration = p->value(name, "burstDuration", 20); // duration of each burst, <=0 -> sinusoidal
+   rParams.refactory_period = REFACTORY_PERIOD;
+   rParams.abs_refactory_period = REFACTORY_PERIOD;
 
    return 0;
 }
@@ -338,22 +309,82 @@ int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
-   // TODO - do this asynchronously
-   status |= clBuffers.phi->copyToDevice();
-   status |= clBuffers.activity->copyToDevice();
+   // wait for memory to be copied to device
+   status |= clWaitForEvents(numEvents, evList);
+   for (int i = 1; i < numEvents; i++) {
+      clReleaseEvent(evList[i]);
+   }
 
-   // assume only time changes
-   //
-   status |= updatestate_kernel->setKernelArg(0, time);
-   status |= updatestate_kernel->run(clayer->numNeurons, 64);
+   status |= krUpdate->setKernelArg(0, time);
+   status |= krUpdate->setKernelArg(1, dt);
+   status |= krUpdate->run(clayer->numNeurons, nxl*nyl, 0, NULL, &evUpdate);
 
-   // TODO - do this asynchronously
-   status |= clBuffers.phi->copyFromDevice();
-   status |= clBuffers.activity->copyFromDevice();
+   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_PHI_E]);
+   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_PHI_I]);
+   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_ACTIVITY]);
 
    return status;
 }
 #endif
+
+int Retina::updateBorder(float time, float dt)
+{
+   int status = CL_SUCCESS;
+#ifdef PV_USE_OPENCL
+   // wait for memory to be copied from device
+   status = clWaitForEvents(numEvents, evList);
+
+   clReleaseEvent(evUpdate);               // update event will have also finished
+   for (int i = 0; i < numEvents; i++) {
+      clReleaseEvent(evList[i]);
+   }
+#endif
+   // calculate active indices
+   //
+   int numActive = 0;
+   PVLayerLoc & loc = clayer->loc;
+   pvdata_t * activity = clayer->activity->data;
+
+   for (int k = 0; k < clayer->numNeurons; k++) {
+      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+      if (activity[kex] > 0.0) {
+         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+      }
+      clayer->numActive = numActive;
+   }
+
+   return status;
+}
+
+int Retina::triggerReceive(InterColComm* comm)
+{
+   int status = CL_SUCCESS;
+
+   // deliver calls recvSynapticInput for all presynaptic connections
+   //
+   comm->deliver(parent, getLayerId());
+
+   // copy data to device
+   //
+   status |= clPhiE->copyToDevice(&evList[EV_PHI_E]);
+   status |= clPhiI->copyToDevice(&evList[EV_PHI_I]);
+
+   return status;
+}
+
+int Retina::waitOnPublish(InterColComm* comm)
+{
+   int status = CL_SUCCESS;
+
+   // wait for MPI border transfers to complete
+   status |= comm->wait(getLayerId());
+
+   // copy activity to device
+   //
+   status |= clActivity->copyToDevice(&evList[EV_ACTIVITY]);
+
+   return status;
+}
 
 //! Updates the state of the Retina
 /*!
@@ -382,55 +413,30 @@ int Retina::updateState(float time, float dt)
    update_timer->start();
 
 #ifndef PV_USE_OPENCL
-   fileread_params * params = (fileread_params *) clayer->params;
-
-   const float probStim = params->poissonEdgeProb;   // need to multiply by V[k]
-   const float probBase = params->poissonBlankProb;
-
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-   const int nb = clayer->loc.nPad;
+   const int nf = clayer->loc.nf;
+   const int nb = clayer->loc.nb;
 
-   if (params->spikingFlag == 1) {
-      pvdata_t * phi = clayer->phi[0];
-      pvdata_t * activity = clayer->activity->data;
-      float    * prevActivity = clayer->prevActivity;
+   pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
+   pvdata_t * phiInh   = getChannel(CHANNEL_INH);
+   pvdata_t * activity = clayer->activity->data;
 
-      Retina_update_state(time, dt, probStim, probBase,
-                          nx, ny, nf, nb,
-                          phi, activity, prevActivity);
+   if (spikingFlag == 1) {
+      update_state(time, dt, nx, ny, nf, nb,
+                   &rParams, rand_state,
+                   phiExc, phiInh, activity, clayer->prevActivity);
 
-      // TODO
-      // copy data from device
-      //
-
-      // TODO - move to halo exchange so don't have to wait for data
-      // calculate active indices
-      //
-
-      int numActive = 0;
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         const int kex = kIndexExtended(k, nx, ny, nf, nb);
-         if (activity[kex] > 0.0) {
-            clayer->activeIndices[numActive++] = globalIndexFromLocal(k, clayer->loc, nf);
-         }
-         clayer->numActive = numActive;
-      }
    }
    else {
-      pvdata_t * activity = clayer->activity->data;
-      pvdata_t * phiExc   = clayer->phi[PHI_EXC];
-      pvdata_t * phiInh   = clayer->phi[PHI_INH];
-
       // retina is non spiking, pass scaled image through to activity
       // scale by poissonEdgeProb (maxRetinalActivity)
       //
       for (int k = 0; k < clayer->numNeurons; k++) {
          const int kex = kIndexExtended(k, nx, ny, nf, nb);
-         activity[kex] = probStim * (phiExc[k] - phiInh[k]);
+         activity[kex] = rParams.probStim * (phiExc[k] - phiInh[k]);
          // TODO - get rid of this for performance
-         clayer->activeIndices[k] = globalIndexFromLocal(k, clayer->loc, nf);
+         clayer->activeIndices[k] = globalIndexFromLocal(k, clayer->loc);
 
          // reset accumulation buffers
          phiExc[k] = 0.0;
@@ -445,7 +451,6 @@ int Retina::updateState(float time, float dt)
 #endif
 
    update_timer->stop();
-
 
 #ifdef DEBUG_PRINT
    char filename[132];
@@ -517,6 +522,7 @@ int Retina::writeState(const char * path, float time)
  *      - time is measured in milliseconds.
  *      .
  */
+#ifdef OBSOLETE
 int Retina::spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
 {
    fileread_params * params = (fileread_params *) clayer->params;
@@ -552,6 +558,7 @@ int Retina::spike(float time, float dt, float prev, float probBase, float probSt
     }
    return ( pv_random_prob() < *probSpike );
 }
+#endif
 
 } // namespace PV
 
@@ -571,5 +578,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-
