@@ -93,14 +93,14 @@ int Bars::clearImage()
 {
    const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc->nx + 2 * loc->nPad;;
-   const int ny = loc->ny + 2 * loc->nPad;;
-   const int sx = 1;
-   const int sy = sx * nx;
+   const int nx = loc->nx + 2*loc->nb;
+   const int ny = loc->ny + 2*loc->nb;
+   const int sx = strideX(loc);
+   const int sy = strideY(loc);
 
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
-         data[ix * sx + iy * sy] = 0.0;
+         data[ix*sx + iy*sy] = 0.0;
       }
    }
 
@@ -129,10 +129,10 @@ bool Bars::updateImage(float time, float dt)
    const PVLayerLoc * loc = getLayerLoc();
 
    // extended frame
-   const int nx = loc->nx + 2 * loc->nPad;
-   const int ny = loc->ny + 2 * loc->nPad;
-   const int sx = 1;
-   const int sy = sx * nx;
+   const int nx = loc->nx + 2*loc->nb;
+   const int ny = loc->ny + 2*loc->nb;
+   const int sx = strideX(loc);
+   const int sy = strideY(loc);
 
    const int width = 1;
    const int step = 6;
@@ -140,7 +140,6 @@ bool Bars::updateImage(float time, float dt)
 
    // clear image
    clearImage();
-
 
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
