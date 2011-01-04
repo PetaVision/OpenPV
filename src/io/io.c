@@ -124,6 +124,7 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
  * @n_time_steps
  * @input@filename
  */
+#ifdef OBSOLETE
 int log_parameters(int n_time_steps, char *input_filename)
 {
    // Write our runtime parameters to a logfile, so that
@@ -153,6 +154,7 @@ int log_parameters(int n_time_steps, char *input_filename)
 
    return 0;
 }
+#endif
 
 #define TIFF_FILE_TYPE    1
 #define BINARY_FILE_TYPE  2
