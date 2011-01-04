@@ -34,9 +34,9 @@ using namespace PV;
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
-#undef INHIB
-
 #undef L2
+
+#define INHIB
 
 #undef L2INHIB
 
@@ -78,29 +78,30 @@ int main(int argc, char* argv[])
    HyPerConn * i_r0_s  = new KernelConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
    HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
    HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
+
 #ifdef L2
    HyPerConn * l1_l2   = new HyPerConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
 #endif
 
-#ifdef L2INHIB
-   HyPerConn * l2_l2Inh = new KernelConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
-   HyPerConn * l2Inh_l2 = new KernelConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
-#endif
-
 #ifdef INHIB
-   HyPerConn * l1_l1Inh = new KernelConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
+   HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
    HyPerConn * l1Inh_l1 = new KernelConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
 #endif
 
+#ifdef L2INHIB
+   HyPerConn * l2_l2Inh = new HyPerConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
+   HyPerConn * l2Inh_l2 = new KernelConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
+#endif
 
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-   display->setDelay(800);
+   display->setDelay(200);
    display->setImage(image);
-   display->addLayer(retinaOn);
-   display->addLayer(retinaOff);
+   //display->addLayer(retinaOn);
+   //display->addLayer(retinaOff);
    display->addLayer(l1);
+   display->addLayer(l2);
 #endif
 
    // add probes
@@ -142,8 +143,10 @@ int main(int argc, char* argv[])
 
 #endif
 
-#define WRITE_KERNELS
+#undef WRITE_KERNELS
 #ifdef WRITE_KERNELS
+
+    l1_l1Inh->writeTextWeights("l1_l1inh_kernel.txt", 14);
 
 	const char * i_r1_s_filename = "i_r1_s_gauss.txt";
 	HyPerLayer * pre = i_r1_s->preSynapticLayer();
@@ -177,13 +180,19 @@ int main(int argc, char* argv[])
    //LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
    //retina->insertProbe(rptprobe);
 
-   //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 98, 42, 0, "L1:");
+   //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 56	, 76, 0, "L1:");
    //l1->insertProbe(ptprobe1);
 
-   //LayerProbe * ptprobe2 = new PointProbe("l1Inh_activity.txt", 24, 10, 0, "L1Inh:");
-   //l1Inh->insertProbe(ptprobe2);
+   //LayerProbe * ptprobe2 = new PointProbe("l2_activity.txt", 64, 64, 0, "L2:");
+   //l2->insertProbe(ptprobe2);
 
-   //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 17, 11, 0, "Image:");
+   //LayerProbe * ptprobe3 = new PointProbe("l1Inh_activity.txt", 14, 19, 0, "L1Inh:");
+   //l1Inh->insertProbe(ptprobe3);
+
+   //LayerProbe * ptprobe4 = new PointProbe("l2Inh_activity.txt", 16, 16, 0, "L2Inh:");
+   //l2Inh->insertProbe(ptprobe4);
+
+   //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 16, 16, 0, "Image:");
    //image->insertProbe(ptprobe3);
 
    //int retinaplacement = 9;
