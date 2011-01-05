@@ -28,8 +28,6 @@
  *    state.s3 => state s3 value
  */
 
-#include "../arch/opencl/pv_opencl.h"
-
 #define cl_random_state(s) (cl_taus_get(s))
 
 static inline uint4
