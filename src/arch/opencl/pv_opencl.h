@@ -18,17 +18,7 @@
 #  include <Profile/TauGpuAdapterOpenCLExp.h>
 #endif
 
-// OpenCL attributes
-//
-#  define CL_KERNEL       __kernel
-#  define CL_MEM_GLOBAL   __global
-#  define CL_MEM_LOCAL    __local
-
 #else
-
-#  define CL_KERNEL
-#  define CL_MEM_GLOBAL
-#  define CL_MEM_LOCAL
 
 #  define cl_uint           unsigned int
 
