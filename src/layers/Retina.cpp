@@ -52,8 +52,10 @@ Retina::Retina(const char * name, HyPerCol * hc)
 
 Retina::~Retina()
 {
-   free(evList);
    free(rand_state);
+#ifdef PV_USE_OPENCL
+   free(evList);
+#endif
 }
 
 int Retina::initialize(PVLayerType type)
@@ -366,8 +368,10 @@ int Retina::triggerReceive(InterColComm* comm)
 
    // copy data to device
    //
+#ifdef PV_USE_OPENCL
    status |= clPhiE->copyToDevice(&evList[EV_PHI_E]);
    status |= clPhiI->copyToDevice(&evList[EV_PHI_I]);
+#endif
 
    return status;
 }
@@ -381,7 +385,9 @@ int Retina::waitOnPublish(InterColComm* comm)
 
    // copy activity to device
    //
+#ifdef PV_USE_OPENCL
    status |= clActivity->copyToDevice(&evList[EV_ACTIVITY]);
+#endif
 
    return status;
 }
@@ -423,10 +429,9 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
 
    if (spikingFlag == 1) {
-      update_state(time, dt, nx, ny, nf, nb,
-                   &rParams, rand_state,
-                   phiExc, phiInh, activity, clayer->prevActivity);
-
+      Retina_update_state(time, dt, nx, ny, nf, nb,
+                          &rParams, rand_state,
+                          phiExc, phiInh, activity, clayer->prevActivity);
    }
    else {
       // retina is non spiking, pass scaled image through to activity
