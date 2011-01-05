@@ -53,8 +53,16 @@ Retina::Retina(const char * name, HyPerCol * hc)
 Retina::~Retina()
 {
    free(rand_state);
+
 #ifdef PV_USE_OPENCL
    free(evList);
+
+   delete clV;
+   delete clPhiE;
+   delete clPhiI;
+   delete clPhiIB;
+   delete clActivity;
+   delete clPrevTime;
 #endif
 }
 
@@ -80,11 +88,10 @@ int Retina::initialize(PVLayerType type)
 
    status = parent->addLayer(this);
 
-   // TODO - could free other layer parameters as they are not used
-
 #ifdef PV_USE_OPENCL
    numEvents = NUM_RETINA_EVENTS;
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+   assert(evList != NULL);
 
    initializeThreadBuffers();
    initializeThreadKernels();
@@ -306,11 +313,11 @@ int Retina::updateImage(float time, float dt)
 }
 #endif
 
-#ifdef PV_USE_OPENCL
 int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
+#ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
    status |= clWaitForEvents(numEvents, evList);
    for (int i = 1; i < numEvents; i++) {
@@ -319,58 +326,25 @@ int Retina::updateStateOpenCL(float time, float dt)
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
-   status |= krUpdate->run(clayer->numNeurons, nxl*nyl, 0, NULL, &evUpdate);
+   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
 
-   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_PHI_E]);
-   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_PHI_I]);
-   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_ACTIVITY]);
-
-   return status;
-}
+   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
+   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_I]);
+   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_R_ACTIVITY]);
 #endif
-
-int Retina::updateBorder(float time, float dt)
-{
-   int status = CL_SUCCESS;
-#ifdef PV_USE_OPENCL
-   // wait for memory to be copied from device
-   status = clWaitForEvents(numEvents, evList);
-
-   clReleaseEvent(evUpdate);               // update event will have also finished
-   for (int i = 0; i < numEvents; i++) {
-      clReleaseEvent(evList[i]);
-   }
-#endif
-   // calculate active indices
-   //
-   int numActive = 0;
-   PVLayerLoc & loc = clayer->loc;
-   pvdata_t * activity = clayer->activity->data;
-
-   for (int k = 0; k < clayer->numNeurons; k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-      if (activity[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-      }
-      clayer->numActive = numActive;
-   }
 
    return status;
 }
 
 int Retina::triggerReceive(InterColComm* comm)
 {
-   int status = CL_SUCCESS;
-
-   // deliver calls recvSynapticInput for all presynaptic connections
-   //
-   comm->deliver(parent, getLayerId());
+   int status = HyPerLayer::triggerReceive(comm);
 
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
-   status |= clPhiE->copyToDevice(&evList[EV_PHI_E]);
-   status |= clPhiI->copyToDevice(&evList[EV_PHI_I]);
+   status |= clPhiE->copyToDevice(&evList[EV_R_PHI_E]);
+   status |= clPhiI->copyToDevice(&evList[EV_R_PHI_I]);
 #endif
 
    return status;
@@ -378,15 +352,12 @@ int Retina::triggerReceive(InterColComm* comm)
 
 int Retina::waitOnPublish(InterColComm* comm)
 {
-   int status = CL_SUCCESS;
-
-   // wait for MPI border transfers to complete
-   status |= comm->wait(getLayerId());
+   int status = HyPerLayer::waitOnPublish(comm);
 
    // copy activity to device
    //
 #ifdef PV_USE_OPENCL
-   status |= clActivity->copyToDevice(&evList[EV_ACTIVITY]);
+   status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
 #endif
 
    return status;
