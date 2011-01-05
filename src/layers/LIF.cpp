@@ -84,6 +84,23 @@ LIF::~LIF()
    }
    free(Vth);
    free(rand_state);
+
+#ifdef PV_USE_OPENCL
+   free(evList);
+
+   delete clParams;
+   delete clRand;
+   delete clV;
+   delete clVth;
+   delete clG_E;
+   delete clG_I;
+   delete clG_IB;
+   delete clPhiE;
+   delete clPhiI;
+   delete clPhiIB;
+   delete clActivity;
+   delete clPrevTime;
+#endif
 }
 
 int LIF::initialize(PVLayerType type)
@@ -138,6 +155,7 @@ int LIF::initialize(PVLayerType type)
 
    numEvents = NUM_LIF_EVENTS;
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+   assert(evList != NULL);
 
    initializeThreadBuffers();
    initializeThreadKernels();
@@ -265,25 +283,57 @@ int LIF::setParams(PVParams * p)
    return 0;
 }
 
-#ifdef PV_USE_OPENCL
 int LIF::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
-   // setup and run kernel
-   // a. unmap the state variables so device can read and write
-   // b. pass state variables to kernel
-   // c. run kernel
-   // e. map the state variable for processing on CPU
+#ifdef PV_USE_OPENCL
+   // wait for memory to be copied to device
+   status |= clWaitForEvents(numEvents, evList);
+   for (int i = 1; i < numEvents; i++) {
+      clReleaseEvent(evList[i]);
+   }
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
+   status |= krUpdate->setKernelArg(0, time);
+   status |= krUpdate->setKernelArg(1, dt);
+   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
 
-   krUpdate->run(nx, ny, nxl, nyl, 0, NULL, &evList[0]);
+   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_E]);
+   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_I]);
+   status |= clPhiIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_IB]);
+   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
+#endif
 
    return status;
 }
+
+int LIF::triggerReceive(InterColComm* comm)
+{
+   int status = HyPerLayer::triggerReceive(comm);
+
+   // copy data to device
+   //
+#ifdef PV_USE_OPENCL
+   status |= clPhiE->copyToDevice(&evList[EV_LIF_PHI_E]);
+   status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_I]);
+   status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_IB]);
 #endif
+
+   return status;
+}
+
+int LIF::waitOnPublish(InterColComm* comm)
+{
+   int status = HyPerLayer::waitOnPublish(comm);
+
+   // copy activity to device
+   //
+#ifdef PV_USE_OPENCL
+   status |= clActivity->copyToDevice(&evList[EV_LIF_ACTIVITY]);
+#endif
+
+   return status;
+}
 
 int LIF::updateState(float time, float dt)
 {
