@@ -27,7 +27,7 @@ void Retina_update_state (
     const int ny,
     const int nf,
     const int nb,
-    const Retina_params * params,
+    Retina_params * params,
     uint4 * rnd,
     float * phiExc,
     float * phiInh,
