@@ -327,6 +327,8 @@ float HyPerCol::advanceTime(float sim_time)
    // the OpenCL device.
    //
    for (int l = 0; l < numLayers; l++) {
+      // after updateBorder completes all necessary data has been
+      // copied from the device (GPU) to the host (CPU)
       layers[l]->updateBorder(sim_time, deltaTime);
 
       // TODO - move this to layer
