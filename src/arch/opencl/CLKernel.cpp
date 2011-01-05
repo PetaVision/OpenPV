@@ -50,7 +50,7 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    if (status != CL_SUCCESS)
    {
        size_t len;
-       char buffer[4096];
+       char buffer[8192];
 
        printf("Error: Failed to build program executable!\n");
        status = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
