@@ -1,14 +1,18 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
-#include "conversions.hcl"
-
-#include "../arch/opencl/pv_opencl.h"
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
 #  define EXP expf
+#  define CL_KERNEL
+#  define CL_MEM_GLOBAL
+#  define CL_MEM_LOCAL
 #else  /* compiling with OpenCL */
 #  define EXP exp
+#  define CL_KERNEL       __kernel
+#  define CL_MEM_GLOBAL   __global
+#  define CL_MEM_LOCAL    __local
+#  include "conversions.hcl"
 #endif
 
 //
@@ -39,7 +43,7 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * activity)
 {
    int k;
-#ifndef __CL_PLATFORM_H
+#ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
 #else   
    k = get_global_id(0);
@@ -174,7 +178,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    phiInh[k]  = l_phiInh;
    phiInhB[k] = l_phiInhB;
 
-#ifndef __CL_PLATFORM_H
+#ifndef PV_USE_OPENCL
    } // loop over k
 #endif
 
