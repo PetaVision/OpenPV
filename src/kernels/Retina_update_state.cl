@@ -1,13 +1,11 @@
 #include "Retina_params.h"
-#include "cl_random.cl"
-
-#include "../arch/opencl/pv_uint4.h"
+#include "cl_random.hcl"
 
 #ifndef PI
 #  define PI 3.1415926535897932
 #endif
 
-#ifndef __CL_PLATFORM_H
+#ifndef PV_USE_OPENCL
 
 #  include <math.h>
 #  define EXP expf
@@ -23,39 +21,9 @@
 #  define CL_KERNEL     __kernel
 #  define CL_MEM_GLOBAL __global
 #  define CL_MEM_LOCAL  __local
+#  include "conversions.hcl"
 
-// This stuff needs to be moved to (or obtained from) separate file
-// perhaps conversions.h
-
-static inline int kxPos(int k, int nx, int ny, int nf)
-{
-   return (k/nf) % nx;
-}
-
-static inline int kyPos(int k, int nx, int ny, int nf)
-{
-   return k / (nx*nf);
-}
-
-static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
-{
-   return kf + (kx + (ky * nx)) * nf;
-}
-
-static inline int featureIndex(int k, int nx, int ny, int nf)
-{
-   return k % nf;
-}
-
-static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
-{
-   const int kx_ex = nb + kxPos(k, nx, ny, nf);
-   const int ky_ex = nb + kyPos(k, nx, ny, nf);
-   const int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
-}
-
-#endif /* __CL_PLATFORM_H */
+#endif /* PV_USE_OPENCL */
 
 /*
  * Spiking method for Retina
