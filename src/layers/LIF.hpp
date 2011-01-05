@@ -2,7 +2,7 @@
  * LIF.hpp
  *
  *  Created on: Dec 21, 2010
- *      Author: C. Rasmussen
+ *      Author: Craig Rasmussen
  *
  */
 
@@ -13,6 +13,12 @@
 #include "../arch/opencl/CLKernel.hpp"
 #include "../arch/opencl/pv_uint4.h"
 #include "../kernels/LIF_params.h"
+
+#define NUM_LIF_EVENTS   4
+#define EV_LIF_PHI_E     0
+#define EV_LIF_PHI_I     1
+#define EV_LIF_PHI_IB    2
+#define EV_LIF_ACTIVITY  3
 
 namespace PV
 {
@@ -27,10 +33,10 @@ public:
    LIF(const char* name, HyPerCol * hc, PVLayerType type);
    virtual ~LIF();
 
+   virtual int triggerReceive(InterColComm* comm);
    virtual int updateState(float time, float dt);
-#ifdef PV_USE_OPENCL
    virtual int updateStateOpenCL(float time, float dt);
-#endif
+   virtual int waitOnPublish(InterColComm* comm);
    virtual int writeState(const char * path, float time);
 
    int setParams(PVParams * p);
