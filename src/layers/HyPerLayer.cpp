@@ -411,7 +411,22 @@ int HyPerLayer::updateState(float time, float dt)
 
 int HyPerLayer::updateBorder(float time, float dt)
 {
-   return 0;
+   int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+   // wait for memory to be copied from device
+   if (numEvents > 0) {
+      status |= clWaitForEvents(numEvents, evList);
+   }
+   for (int i = 0; i < numEvents; i++) {
+      clReleaseEvent(evList[i]);
+   }
+
+   status |= clWaitForEvents(1, &evUpdate);
+   clReleaseEvent(evUpdate);
+#endif
+
+   return status;
 }
 
 int HyPerLayer::updateV() {
@@ -511,7 +526,9 @@ int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
 
 int HyPerLayer::triggerReceive(InterColComm* comm)
 {
-   comm->deliver(parent, getLayerId());
+   // deliver calls recvSynapticInput for all presynaptic connections
+   //
+   return comm->deliver(parent, getLayerId());
 }
 
 int HyPerLayer::publish(InterColComm* comm, float time)
@@ -527,6 +544,8 @@ int HyPerLayer::publish(InterColComm* comm, float time)
 
 int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
+   // wait for MPI border transfers to complete
+   //
    return comm->wait(getLayerId());
 }
 
@@ -684,6 +703,20 @@ int HyPerLayer::writeActivitySparse(float time)
 // write non-spiking activity
 int HyPerLayer::writeActivity(float time)
 {
+   // calculate active indices
+   //
+   int numActive = 0;
+   PVLayerLoc & loc = clayer->loc;
+   pvdata_t * activity = clayer->activity->data;
+
+   for (int k = 0; k < getNumNeurons(); k++) {
+      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+      if (activity[kex] > 0.0) {
+         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+      }
+      clayer->numActive = numActive;
+   }
+
    return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
 
