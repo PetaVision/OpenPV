@@ -15,9 +15,9 @@
 #include "Image.hpp"
 
 #define NUM_RETINA_EVENTS 3
-#define EV_PHI_E    0
-#define EV_PHI_I    1
-#define EV_ACTIVITY 2
+#define EV_R_PHI_E    0
+#define EV_R_PHI_I    1
+#define EV_R_ACTIVITY 2
 
 namespace PV
 {
@@ -32,17 +32,10 @@ public:
    int setParams(PVParams * p);
 
    virtual int triggerReceive(InterColComm* comm);
-   virtual int updateState (float time, float dt);
-   virtual int updateBorder(float time, float dt);
-   virtual int waitOnPublish(InterColComm* comm);
-#ifdef PV_USE_OPENCL
+   virtual int updateState(float time, float dt);
    virtual int updateStateOpenCL(float time, float dt);
-#endif
-
+   virtual int waitOnPublish(InterColComm* comm);
    virtual int writeState(const char * path, float time);
-#ifdef OBSOLETE
-   virtual int spike(float time, float dt, float prev, float prob, float probStim, float * probSpike);
-#endif
 
 protected:
 
