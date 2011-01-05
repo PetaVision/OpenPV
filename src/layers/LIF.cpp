@@ -2,7 +2,7 @@
  * LIF.cpp
  *
  *  Created on: Dec 21, 2010
- *      Author: C. Rasmussen
+ *      Author: Craig Rasmussen
  */
 
 #include "../include/pv_common.h"
@@ -32,7 +32,7 @@ void LIF_update_state(
     const int nf,
     const int nb,
 
-    const LIF_params * params,
+    LIF_params * params,
     uint4 * rnd,
 
     float * V,
@@ -135,6 +135,10 @@ int LIF::initialize(PVLayerType type)
    else {
       nxl = 16; nyl = 16;
    }
+
+   numEvents = NUM_LIF_EVENTS;
+   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+
    initializeThreadBuffers();
    initializeThreadKernels();
 #endif
@@ -192,8 +196,8 @@ int LIF::initializeThreadKernels()
 
    int argid = 0;
 
-   status |= krUpdate->setKernelArg(argid++, 0.0f); // time (changed by updateState)
-   status |= krUpdate->setKernelArg(argid++, 1.0f); // dt (changed by updateState)
+   status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
+   status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
 
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
@@ -204,10 +208,13 @@ int LIF::initializeThreadKernels()
    status |= krUpdate->setKernelArg(argid++, clRand);
 
    status |= krUpdate->setKernelArg(argid++, clV);
+   status |= krUpdate->setKernelArg(argid++, clVth);
    status |= krUpdate->setKernelArg(argid++, clG_E);
    status |= krUpdate->setKernelArg(argid++, clG_I);
    status |= krUpdate->setKernelArg(argid++, clG_IB);
+   status |= krUpdate->setKernelArg(argid++, clPhiE);
    status |= krUpdate->setKernelArg(argid++, clPhiI);
+   status |= krUpdate->setKernelArg(argid++, clPhiIB);
    status |= krUpdate->setKernelArg(argid++, clActivity);
 
    return status;
@@ -296,7 +303,7 @@ int LIF::updateState(float time, float dt)
       if (spikingFlag == 1) {
          LIF_update_state(time, dt, nx, ny, nf, nb,
                           &lParams, rand_state,
-                          clayer->V, clayer->Vth,
+                          clayer->V, Vth,
                           G_E, G_I, G_IB,
                           phiExc, phiInh, phiInhB, activity);
 
