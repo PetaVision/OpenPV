@@ -2,7 +2,7 @@
  * PVLayer.c
  *
  *  Created on: Nov 18, 2008
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "PVLayer.h"
@@ -131,11 +131,7 @@ int pvlayer_finalize(PVLayer * l)
 
    free(l->prevActivity);
    free(l->activeIndices);
-
    free(l->V);
-
-   free(l->params);
-
    free(l);
 
    return 0;
