@@ -106,16 +106,16 @@ int spike(float time, float dt,
 //    assume called with 1D kernel
 //
 CL_KERNEL
-void update_state (
+void Retina_update_state (
     const float time,
     const float dt,
-    const Retina_params * params,
 
     const int nx,
     const int ny,
     const int nf,
     const int nb,
 
+    CL_MEM_GLOBAL Retina_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * phiExc,
     CL_MEM_GLOBAL float * phiInh,
