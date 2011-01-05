@@ -20,6 +20,9 @@ namespace PV
 class LIF: public PV::HyPerLayer
 {
 public:
+
+   friend int test_LIF(int argc, char * argv[]);
+
    LIF(const char* name, HyPerCol * hc);
    LIF(const char* name, HyPerCol * hc, PVLayerType type);
    virtual ~LIF();
