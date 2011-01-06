@@ -34,7 +34,7 @@ Retina1D::~Retina1D()
 int Retina1D::createImage(pvdata_t * buf) {
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
+   const int nf = clayer->loc.nf;
 
    int min0 = 1;
    int maxR = 15;
@@ -64,7 +64,7 @@ int Retina1D::createImage(pvdata_t * buf) {
 //   min += t % 2;
 //   max += t % 2;
 
-   assert(this->clayer->numFeatures == 2);
+   assert(clayer->loc.nf == 2);
 
    for (int k = 0; k < clayer->numNeurons; k += 2) {
       int kx = kxPos(k, nx, ny, nf);
@@ -117,7 +117,7 @@ int Retina1D::createRandomImage(pvdata_t * buf) {
    patterns[7][1] = 1;
    patterns[7][2] = 1;
 
-   assert(this->clayer->numFeatures == 2);
+   assert(clayer->loc.nf == 2);
 
    // TODO - 3 doesn't divide evenly into 64
 //   for (int k = 0; k < clayer->numNeurons; k += 6) {
