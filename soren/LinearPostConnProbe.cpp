@@ -44,7 +44,7 @@ int LinearPostConnProbe::outputState(float time, HyPerConn * conn)
 
    int nxPost = post->clayer->loc.nx;
    int nyPost = post->clayer->loc.ny;
-   int nfPost = post->clayer->numFeatures;
+   int nfPost = post->clayer->loc.nf;
 
    PVPatch ** wPost = conn->convertPreSynapticWeights(time);
 
