@@ -18,29 +18,25 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "Image" = {
-   marginWidth = 0; //CER 2;
-   pMove = 0.067; //0.0; // CER 0.03125;  // every 16 ms
-   pSwitch = 0.0;    // switch between horizontal and vertical
-   writeImages = 0;  // write out image file when changes   
+   width = 8;
+   height = 5;
+   prefPosition = 1;
+   marginWidth = 2; //CER 2;
+   pMove = 0.1; //0.025; // CER 0.03125;  // every 16 ms
+   pSwitch = 0.1; //0.025;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
 };
-
-//HyPerLayer "Bars" = {
-//   marginWidth = 0; //CER 2;
-//   pMove = 0.02; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
-//   pSwitch = 0.0;    // switch between horizontal and vertical
-//   writeImages = 0;  // write out image file when changes   
-//};
 
 HyPerLayer "RetinaOn" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0; //CER 2;
+   marginWidth = 2; //CER 2;
    
    beginStim = 0;
    endStim   = 9000000;
 
-   burstFreq = 25; // 0.001; //20;   // Hz
-   burstDuration = 9000000; //7.5; // 1000000;  // ms
+   burstFreq = 40; // 0.001; //20;   // Hz
+   burstDuration = 1000; //7.5; //1000000; // ms
 
    spikingFlag = 1;     // spike as poisson
 
@@ -51,13 +47,13 @@ HyPerLayer "RetinaOn" = {
 HyPerLayer "RetinaOff" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0; //CER 2;
+   marginWidth = 2; //CER 2;
    
    beginStim = 0;
    endStim = 9000000;
    
-   burstFreq = 25;
-   burstDuration = 9000000; //7.5;
+   burstFreq = 40;
+   burstDuration = 1000; //7.5; //1000000;
    
    spikingFlag = 1;
    
@@ -71,21 +67,100 @@ HyPerLayer "L1" = {
    
    //restart = 1;
 
-   marginWidth = 0; //CER 3;
+   marginWidth = 2; //CER 3;
    
+
    noiseAmpE = 1.0;
    noiseAmpI = 1.0;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0; //Change VthRest Variable
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+
+
 };
 
 HyPerLayer "L1Inh" = {
    nxScale = 1; // 8;
    nyScale = 1; // 8;
 
-   marginWidth = 2; // 4;
+   marginWidth = 0; // 2; // 4;
    
-   noiseAmpE = 0.0;
-   noiseAmpI = 0.0;
+
+
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+
 };
+
+HyPerLayer "L2" = {
+   nxScale = 4; // 8;
+   nyScale = 4; // 8;
+   
+   //restart = 1;
+
+   marginWidth = 0; //CER 3;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+
+};
+
+HyPerLayer "L2Inh" = {
+   nxScale = 1; // 8;
+   nyScale = 1; // 8;
+
+   marginWidth = 0; // 2; // 4;
+   
+   noiseAmpE = 1.0;
+   noiseAmpI = 1.0;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+
+};
+
 
 ///////
 // 3 connections: 
@@ -133,30 +208,30 @@ HyPerConn "Image to RetinaOff Surround" = {
 };
 
 HyPerConn "RetinaOn to L1" = {
-   nxp = 16; // 64;
-   nyp = 16; // 64;
+   nxp = 20; // 64;
+   nyp = 20; // 64;
    
    stdpFlag   = 1;
    randomFlag = 1;
    
-   initFromLastFlag = 1;  //CER // restart
-   
-   //uniformWeights = 1;
+   initFromLastFlag = 0;  //CER // restart
+  
+   uniformWeights = 1;
    //strength = 1.5;
 
    //
    // these weights used if randomFlag==1
 
    wMin = 0.0;     
-   wMax = 1.5;
-   dWMax = 0.04;  // .01;
+   wMax = 0.75;
+   dWMax = 0.02;  // .01;
    
    //wMinInit = 4.0;  // default values if Gaussian is not defined
    //wMaxInit = 5;//6.30; // if not defined uses wMin and wMax.
    //wGaussMean = 5.0;//5.00;
    //wGaussStdev = 0.0;//1.00;
    
-   writeStep = 50000; // writes to output file every writeStep
+   writeStep = 10000; // writes to output file every writeStep
 
    // default settings not usually changed
 
@@ -167,8 +242,73 @@ HyPerConn "RetinaOn to L1" = {
 };
 
 HyPerConn "RetinaOff to L1" = {
-   nxp = 16;
-   nyp = 16;
+   nxp = 20;
+   nyp = 20;
+   
+   stdpFlag   = 1;
+   randomFlag = 1;
+
+   initFromLastFlag = 0;
+    
+   uniformWeights = 1;
+   //strength = 1.5;
+
+   wMin = 0.0;
+   wMax = 0.75;
+   dWMax = 0.02;
+   
+   writeStep = 10000;
+
+   ampLTP = 1.0;
+   ampLTD = 1.2;
+   tauLTP = 20;
+   tauLTD = 20;
+};
+
+HyPerConn "L1 to L1Inh" = {
+   nxp = 1; //4;
+   nyp = 1; //4;
+   strength = 8; //16;
+   
+   delay = 0;//5;
+
+   //uniformWeights = 1;
+   //wMinInit = 1;
+   //wMaxInit = 16;
+   //wMin = 0.0;
+   //wMax = 0.75;
+   //dWMax = 0.02;
+   
+   
+   sigma = 100;
+   rMax  = 100;
+   //writeStep = 1000; // writes to output file every writeStep
+};
+
+HyPerConn "L1Inh to L1" = {
+   nxp = 4; //16;
+   nyp = 4; //16;
+   strength = 32; //64;
+
+   delay = 0;//5;
+   
+   //uniformWeights = 1;
+   //wMinInit = 1;
+   //wMaxInit = 64;
+   //wMin = 0.0;
+   //wMax = 0.75;
+   //dWMax = 0.02;
+   
+
+   sigma = 100;
+   rMax  = 100;
+};
+
+
+HyPerConn "L1 to L2" = {
+   nxp = 15;
+   nyp = 15;
+   delay = 10;
    
    stdpFlag   = 1;
    randomFlag = 1;
@@ -179,35 +319,35 @@ HyPerConn "RetinaOff to L1" = {
    //strength = 1.5;
 
    wMin = 0.0;
-   wMax = 1.5;
-   dWMax = 0.04;
+   wMax = 0.75; //0.1875; //0.375; //0.75; //1.5
+   dWMax = 0.02;
    
-   writeStep = 50000;
+   writeStep = 10000;
 
    ampLTP = 1.0;
-   ampLTD = 1.2;
+   ampLTD = 1.2; // 1.4; 
    tauLTP = 20;
    tauLTD = 20;
 };
 
-HyPerConn "L1 to L1Inh" = {
-   nxp = 4;
-   nyp = 4;
-   strength = 16;
+HyPerConn "L2 to L2Inh" = {
+   nxp = 1; //4;
+   nyp = 1; //4;
+   strength = 16; //8;
    
-   delay = 5;
+   delay = 0;//5;
    
    sigma = 100;
    rMax  = 100;
 
-   writeStep = 1000; // writes to output file every writeStep
+   //writeStep = 1000; // writes to output file every writeStep
 };
 
-HyPerConn "L1Inh to L1" = {
-   nxp = 8;
-   nyp = 8;
-   strength = 16;
-   delay = 5;
+HyPerConn "L2Inh to L2" = {
+   nxp = 4; //16;
+   nyp = 4; //16;
+   strength = 64; //16;
+   delay = 0;//5;
 
    sigma = 100;
    rMax  = 100;
