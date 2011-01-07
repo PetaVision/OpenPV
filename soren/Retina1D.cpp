@@ -140,8 +140,7 @@ int Retina1D::updateState(float time, float dt)
 {
    int start;
 
-   fileread_params * params = (fileread_params *) clayer->params;
-   float prob = params->poissonEdgeProb;
+   float prob = rParams.probStim;
 
    pvdata_t * V = clayer->V;
    pvdata_t * activity = clayer->activity->data;
@@ -176,16 +175,15 @@ int Retina1D::spike(float time, float dt, float prob, int * start)
 {
    static int burstState = 0;
 
-   fileread_params * params = (fileread_params *) clayer->params;
    float poissonProb  = RAND_MAX * prob;
 
    int burstStatus = 0;
-   if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      burstStatus = sin( 2 * PI * time * params->burstFreq / 1000. ) >= 0.;
+   if (rParams.burstDuration <= 0 || rParams.burstFreq == 0) {
+      burstStatus = sin( 2 * PI * time * rParams.burstFreq / 1000. ) >= 0.;
    }
    else {
-      burstStatus = fmod(time/dt, 1000. / (dt * params->burstFreq));
-      burstStatus = burstStatus <= params->burstDuration;
+      burstStatus = fmod(time/dt, 1000. / (dt * rParams.burstFreq));
+      burstStatus = burstStatus <= rParams.burstDuration;
    }
 
    *start = 0;
@@ -197,7 +195,7 @@ int Retina1D::spike(float time, float dt, float prob, int * start)
       burstState = 0;
    }
 
-   int stimStatus = (time >= params->beginStim) && (time < params->endStim);
+   int stimStatus = (time >= rParams.beginStim) && (time < rParams.endStim);
    stimStatus = stimStatus && burstStatus;
 
    if (stimStatus) return ( rand() < poissonProb );
