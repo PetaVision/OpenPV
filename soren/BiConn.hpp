@@ -12,7 +12,7 @@ namespace PV {
 class BiConn: public PV::RuleConn {
 public:
    BiConn(const char * name,
-          HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel,
+          HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
           int type);
 
    virtual int outputState(FILE * fp, int k);
