@@ -13,7 +13,7 @@
 namespace PV {
 
 BiConn::BiConn(const char * name,
-               HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel,
+               HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
                int type)
 {
    this->type = type;
