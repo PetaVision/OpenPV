@@ -74,7 +74,6 @@ int Patterns::tag()
 int Patterns::initPattern(float val)
 {
    int width, height;
-   const int interval = 4;
 
    // extended frame
    const PVLayerLoc * loc = getLayerLoc();
@@ -145,7 +144,10 @@ int Patterns::initPattern(float val)
  */
 int Patterns::updateState(float time, float dt)
 {
+   update_timer->start();
+
    int size = 0;
+   int changed = 0;
 
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
@@ -182,16 +184,16 @@ int Patterns::updateState(float time, float dt)
       lastPosition = position;
       lastOrientation = orientation;
       lastUpdateTime = time;
+      changed = 1;
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
          snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", time);
          write(basicfilename);
       }
-      return 1;
    }
-   else {
-      return 0;
-   }
+   update_timer->stop();
+
+   return changed;
 }
 
 /**
