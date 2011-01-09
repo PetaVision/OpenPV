@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 {
    // create the managing hypercolumn
    //
-   HyPerCol * hc = new HyPerCol("column", argc, argv);
+   HyPerCol * hc = new HyPerCol("column", argc, argv, "../PetaVisionII");
 
    // create the layers
    //
@@ -172,8 +172,11 @@ int main(int argc, char* argv[])
    //ConnectionProbe * cProbe = new ConnectionProbe(114);
    //l1_l2->insertProbe(cProbe);
 
+   //ConnectionProbe * sProbe = new ConnectionProbe(277);
+   //i_r1_s->insertProbe(sProbe);
+
    //ConnectionProbe * cProbe = new ConnectionProbe(277);
-   //i_r1_s->insertProbe(cProbe);
+   //i_r1_c->insertProbe(cProbe);
 
    //PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
@@ -231,7 +234,7 @@ int main(int argc, char* argv[])
    hc->run();
 
    if (hc->columnId() == 0) {
-      printf("[0]: Finished\n");
+      printf("[0]: Finished\n");  fflush(stdout);
    }
 
    /* clean up (HyPerCol owns layers and connections, don't delete them) */
