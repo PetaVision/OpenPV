@@ -13,6 +13,7 @@
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
+#include "../utils/Timer.hpp"
 
 #define PROTECTED_NUMBER 13
 #define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
@@ -160,6 +161,8 @@ protected:
    float wPostTime;             // time of last conversion to wPostPatches
    float writeTime;             // time of next output
    float writeStep;             // output time interval
+
+   Timer * update_timer;
 
 protected:
    virtual int setPatchSize(const char * filename);

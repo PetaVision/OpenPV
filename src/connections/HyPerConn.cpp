@@ -48,6 +48,13 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 HyPerConn::~HyPerConn()
 {
+   if (parent->columnId() == 0) {
+      printf("%32s: total time in %6s %10s: ", name, "conn", "update ");
+      update_timer->elapsed_time();
+      fflush(stdout);
+   }
+   delete update_timer;
+
    free(name);
 
    assert(params != NULL);
@@ -87,6 +94,8 @@ int HyPerConn::initialize_base()
 
    this->probes = NULL;
    this->numProbes = 0;
+
+   this->update_timer = new Timer();
 
    // STDP parameters for modifying weights
    this->pIncr = NULL;
@@ -693,6 +702,8 @@ int HyPerConn::outputState(float time, bool last)
 
 int HyPerConn::updateState(float time, float dt)
 {
+   update_timer->start();
+
    if (stdpFlag) {
       const float fac = ampLTD;
       const float decay = expf(-dt / tauLTD);
@@ -712,6 +723,7 @@ int HyPerConn::updateState(float time, float dt)
       const int axonId = 0;       // assume only one for now
       updateWeights(axonId);
    }
+   update_timer->stop();
 
    return 0;
 }
