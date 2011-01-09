@@ -104,22 +104,22 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
    dt_sec = .001 * dt;   // convert to seconds
 
+   l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
-      l_rnd = cl_random_state(l_rnd);
+      l_rnd = cl_random_get(l_rnd);
       l_phiExc = l_phiExc + params->noiseAmpE*cl_random_prob(l_rnd);
-      l_rnd = cl_random_state(l_rnd);
    }
 
+   l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
-      l_rnd = cl_random_state(l_rnd);
+      l_rnd = cl_random_get(l_rnd);
       l_phiInh = l_phiInh + params->noiseAmpI*cl_random_prob(l_rnd);
-      l_rnd = cl_random_state(l_rnd);   
    }
 
+   l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
-      l_rnd = cl_random_state(l_rnd);
+      l_rnd = cl_random_get(l_rnd);
       l_phiInhB = l_phiInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
-      l_rnd = cl_random_state(l_rnd);
    }
 
    l_G_E  = l_phiExc  + l_G_E *EXP(-dt/tauE );
