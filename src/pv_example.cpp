@@ -18,7 +18,7 @@ using namespace PV;
 
 int main(int argc, char* argv[])
 {
-   HyPerCol * hc = new HyPerCol("column", argc, argv);
+   HyPerCol * hc = new HyPerCol("column", argc, argv, ".");
 
    // construct layers
    Image * image = new Image("Image", hc, hc->inputFile());
