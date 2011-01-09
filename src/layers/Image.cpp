@@ -184,6 +184,8 @@ int Image::tag()
 int Image::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
 {
    // this should never be called as an image shouldn't have an incoming connection
+   recvsyn_timer->start();
+   recvsyn_timer->stop();
    return 0;
 }
 
@@ -192,9 +194,10 @@ int Image::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
  */
 int Image::updateState(float time, float dt)
 {
-   // this should replace updateImage
    // make sure image is copied to activity buffer
    //
+   update_timer->start();
+   update_timer->stop();
    return 0;
 }
 
@@ -206,28 +209,9 @@ int Image::outputState(float time, bool last)
    return 0;
 }
 
-#ifdef OBSOLETE
-/**
- * update the image buffers
- *
- * return true if buffers have changed
- */
-bool Image::updateImage(float time, float dt)
-{
-   // default is to do nothing for now
-   // eventually could go through a list of images
-   return false;
-}
-#endif
-
 //! CLEAR IMAGE
 /*!
  * this is Image specific.
- * NOTE:
- *      - Shall I modify this method to return a bool as
- * updateImage() does?
- *      - If I do so, I should also modify clearImage() in ImagrCreator().
- *      .
  */
 int Image::clearImage()
 {
