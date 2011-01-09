@@ -125,7 +125,7 @@ int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
    uint4 state;
 
    for (int k = 0; k < count; k++) {
-      state = cl_random_state(rnd_state2[k]);
+      state = cl_random_get(rnd_state2[k]);
       if (state.s0 != rnd_state[k].s0) {
          printf("check_results: results differ at k==%d, rnd_state==%d, rnd_state2==%d\n",
                 k, state.s0, rnd_state[k].s0);
@@ -138,6 +138,6 @@ int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
 void c_rand(uint4 * rnd_state, int count)
 {
    for (int k = 0; k < count; k++) {
-      rnd_state[k] = cl_random_state(rnd_state[k]);
+      rnd_state[k] = cl_random_get(rnd_state[k]);
    }
 }
