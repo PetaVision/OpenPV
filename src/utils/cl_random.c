@@ -43,7 +43,7 @@ typedef struct
   }
 taus_state_t;
 
-uint4 cl_random_state(uint4 state)
+uint4 cl_random_get(uint4 state)
 {
    state.s0 = taus_get(&state.s1);
    return state;

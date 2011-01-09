@@ -17,7 +17,7 @@ extern "C"
 #endif
 
 uint4 * cl_random_init(size_t count);
-uint4   cl_random_state(uint4 state);
+uint4   cl_random_get(uint4 state);
 
 #ifdef __cplusplus
 }
