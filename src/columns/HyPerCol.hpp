@@ -30,7 +30,7 @@ class HyPerCol {
 
 public:
 
-   HyPerCol(const char* name, int argc, char* argv[]);
+   HyPerCol(const char* name, int argc, char* argv[], const char * path);
    virtual ~HyPerCol();
 
    int initFinish(void); // call after all layers/connections have been added
@@ -57,6 +57,7 @@ public:
    HyPerConn  * getConnection(int which)  {return connections[which];}
 
    char * getName()                       {return name;}
+   char * getPath()                       {return path;}
 
    CLDevice   * getCLDevice()             {return clDevice;}
 
@@ -124,6 +125,7 @@ private:
    HyPerConn  ** connections;
 
    char * name;
+   char * path;
    char * image_file;
    PVLayerLoc imageLoc;
 

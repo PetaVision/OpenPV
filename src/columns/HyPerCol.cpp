@@ -21,10 +21,11 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
+HyPerCol::HyPerCol(const char * name, int argc, char * argv[], const char * pv_path)
          : warmStart(false), isInitialized(false)
 {
    int opencl_device = 1;  // default to CPU for now
@@ -35,6 +36,12 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
 
    this->name = strdup(name);
    this->runTimer = new Timer();
+
+   path = (char *) malloc(1+PV_PATH_MAX);
+   assert(path != NULL);
+   path = getcwd(path, PV_PATH_MAX);
+   assert(strlen(path) + strlen(pv_path) < PV_PATH_MAX);
+   sprintf(path, "%s/%s", path, pv_path);
 
    char * param_file;
    simTime = 0;
@@ -115,13 +122,15 @@ HyPerCol::~HyPerCol()
 
    delete icComm;
 
-   printf("%16s: total time in %6s %10s: ", name, "column", "run");
+   printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
    runTimer->elapsed_time();
+   fflush(stdout);
    delete runTimer;
 
    free(connections);
    free(layers);
    free(name);
+   free(path);
 }
 
 int HyPerCol::initFinish(void)
