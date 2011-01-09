@@ -40,6 +40,16 @@ HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc, int numChannels)
 
 HyPerLayer::~HyPerLayer()
 {
+   if (parent->columnId() == 0) {
+      printf("%32s: total time in %6s %10s: ", name, "layer", "recvsyn");
+      recvsyn_timer->elapsed_time();
+      printf("%32s: total time in %6s %10s: ", name, "layer", "update ");
+      update_timer->elapsed_time();
+      fflush(stdout);
+   }
+   delete recvsyn_timer;
+   delete update_timer;
+
    if (clayer != NULL) {
       // pvlayer_finalize will free clayer
       pvlayer_finalize(clayer);
@@ -50,12 +60,6 @@ HyPerLayer::~HyPerLayer()
    if (numChannels > 0) {
       // potentials allocated contiguously so this frees all
       free(phi[0]);
-   }
-
-   if (parent->columnId() == 0) {
-      printf("%16s: total time in %6s %10s: ", name, "layer", "update");
-      update_timer->elapsed_time();
-      delete update_timer;
    }
 }
 
@@ -96,7 +100,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    this->numChannels = numChannels;
 
-   this->update_timer = new Timer();
+   this->update_timer  = new Timer();
+   this->recvsyn_timer = new Timer();
 
    PVParams * params = parent->parameters();
 
@@ -478,6 +483,8 @@ int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
+   recvsyn_timer->start();
+
    assert(neighbor >= 0);
    const int numExtended = activity->numItems;
 
@@ -512,6 +519,8 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
 //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }
+
+   recvsyn_timer->stop();
 
    return 0;
 }

@@ -173,6 +173,7 @@ protected:
 #endif
 
    Timer * update_timer;
+   Timer * recvsyn_timer;
 };
 
 } // namespace PV
