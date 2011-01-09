@@ -22,28 +22,18 @@ public:
    Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
 
-#ifdef OBSOLETE
-   virtual int initialize_base(const char * name, HyPerCol * hc);
-#endif
    virtual int initializeImage(const char * filename);
 
    // primary layer interface
    //
    virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
-//   virtual int publish(InterColComm * comm, float time);
    virtual int outputState(float time, bool last=false);
 
    // partially override implementation of LayerDataInterface interface
    //
    const pvdata_t * getLayerData()   { return data; }
 
-#ifdef OBSOLETE
-   const PVLayerLoc * getLayerLoc()  { return & clayer->loc; /*return &loc;*/ }
-   bool isExtended()                 { return true; }
-
-   virtual bool updateImage(float time, float dt);
-#endif
    virtual int  clearImage();
 
    float lastUpdate()  { return lastUpdateTime; }
