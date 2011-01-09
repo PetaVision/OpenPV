@@ -28,7 +28,7 @@
  *    state.s3 => state s3 value
  */
 
-#define cl_random_state(s) (cl_taus_get(s))
+#define cl_random_get(s) (cl_taus_get(s))
 
 static inline uint4
 cl_taus_get(uint4 state)
