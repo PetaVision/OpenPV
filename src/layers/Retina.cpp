@@ -42,7 +42,7 @@ void Retina_update_state (
 namespace PV {
 
 Retina::Retina(const char * name, HyPerCol * hc)
-  : HyPerLayer(name, hc, 2)
+  : HyPerLayer(name, hc, NUM_RETINA_CHANNELS)
 {
 #ifdef OBSOLETE
    this->img = new Image("Image", hc, hc->inputFile());
@@ -116,10 +116,16 @@ int Retina::initializeThreadBuffers()
 
    // these buffers are shared between host and device
    //
-   clV     = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
-   clPhiE  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
-   clPhiI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
-   clPhiIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
+
+   // TODO - use constant memory
+   clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
+   clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
+
+   clPhiE = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
+   clPhiI = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
+
+   assert(numChannels < 3);
+   clPhiIB = NULL;
 
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
@@ -129,29 +135,34 @@ int Retina::initializeThreadBuffers()
 
 int Retina::initializeThreadKernels()
 {
+   char kernelPath[256];
+   char kernelFlags[256];
+
    int status = CL_SUCCESS;
+   CLDevice * device = parent->getCLDevice();
+
+   sprintf(kernelPath,  "%s/src/kernels/Retina_update_state.cl", parent->getPath());
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -I %s/src/kernels/",   parent->getPath());
 
    // create kernels
    //
-   krUpdate = parent->getCLDevice()->createKernel("Retina_update_state.cl", "update_state");
+   krUpdate = device->createKernel(kernelPath, "Retina_update_state", kernelFlags);
 
    int argid = 0;
 
-   status |= krUpdate->setKernelArg(argid++, 0.0f); // time (changed by updateState)
-   status |= krUpdate->setKernelArg(argid++, 1.0f); // dt (changed by updateState)
-
-   // TODO - add Retina_params
+   status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
+   status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
 
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
 
-   // TODO - add rnd_state
+   status |= krUpdate->setKernelArg(argid++, clParams);
+   status |= krUpdate->setKernelArg(argid++, clRand);
 
    status |= krUpdate->setKernelArg(argid++, clPhiE);
    status |= krUpdate->setKernelArg(argid++, clPhiI);
-   status |= krUpdate->setKernelArg(argid++, clPhiIB);
    status |= krUpdate->setKernelArg(argid++, clActivity);
    status |= krUpdate->setKernelArg(argid++, clPrevTime);
 
@@ -169,12 +180,6 @@ int Retina::setParams(PVParams * p)
    clayer->params = &rParams;
 
    spikingFlag = (int) p->value(name, "spikingFlag", 1);
-
-#ifdef OBSOLETE
-   fileread_params * cp = (fileread_params *) clayer->params;
-   if (fparams->present(name, "invert"))  cp->invert  = fparams->value(name, "invert");
-   if (fparams->present(name, "uncolor")) cp->uncolor = fparams->value(name, "uncolor");
-#endif
 
    float probStim = p->value(name, "poissonEdgeProb" , 1.0f);
    float probBase = p->value(name, "poissonBlankProb", 0.0f);
@@ -202,127 +207,25 @@ int Retina::setParams(PVParams * p)
    return 0;
 }
 
-#ifdef OBSOLETE
-//! Sets the V data buffer
-/*!
- *
- * REMARKS:
- *      - this method is called from  updateImage()
- *      - copies from the Image data buffer into the V buffer
- *      - it normalizes the V buffer so that V <= 1.
- *      .
- *
- *
- */
-int Retina::copyFromImageBuffer()
-{
-   const int nf = clayer->numFeatures;
-   pvdata_t * V = clayer->V;
-
-   PVLayerLoc imageLoc = img->getImageLoc();
-
-   assert(clayer->loc.nx == imageLoc.nx && clayer->loc.ny == imageLoc.ny);
-
-   pvdata_t * ibuf = img->getImageBuffer();
-
-   // for now
-   assert(nf == 1);
-
-   // This is incorrect because V is extended
-   // might be able to use image buffer directly
-   //
-   //HyPerLayer::copyToBuffer(V, ibuf, &imageLoc, true, 1.0f);
-
-   // normalize so that V <= 1.0 (V in Retina is extended)
-   pvdata_t vmax = 0;
-   for (int k = 0; k < clayer->numExtended; k++) {
-      V[k] = ibuf[k];
-      vmax = ( V[k] > vmax ) ? V[k] : vmax;
-   }
-   if (vmax != 0){
-      for (int k = 0; k < clayer->numExtended; k++) {
-         V[k] = V[k] / vmax;
-      }
-   }
-/*
-   pvdata_t vmin = 0;
-   for (int k = 0; k < clayer->numExtended; k++) {
-      V[k] = ibuf[k];
-      vmin = V[k] < vmin ? V[k] : vmin;
-   }
-   if (vmin < -1){
-      for (int k = 0; k < clayer->numExtended; k++) {
-         V[k] = V[k] / fabs(vmin);
-      }
-   }
-*/
-
-   //
-   // otherwise handle OFF/ON cells
-
-   // f[0] are OFF, f[1] are ON cells
-//   const int count = imageLoc.nx * imageLoc.ny;
-//   if (fireOffPixels) {
-//      for (int k = 0; k < count; k++) {
-//         V[2*k]   = 1 - ibuf[k] / Imax;
-//         V[2*k+1] = ibuf[k] / Imax;
-//      }
-//   }
-//   else {
-//      for (int k = 0; k < count; k++) {
-//         V[2*k]   = ibuf[k] / Imax;
-//         V[2*k+1] = ibuf[k] / Imax;
-//      }
-
-   return 0;
-}
-
-//! updates the Image that Retina is exposed to
-/*!
- *
- * REMARKS:
- *      - This depends on the Image class. The data buffer is generally modulated
- *      by the intensity at the image location.
- *
- *
- */
-int Retina::updateImage(float time, float dt)
-{
-   bool changed = img->updateImage(time, dt);
-   if (not changed) return 0;
-
-   int status = copyFromImageBuffer();
-
-   PVLayer  * l   = clayer;
-   fileread_params * params = (fileread_params *) l->params;
-   pvdata_t * V = clayer->V;
-
-   if (params->invert) {
-      for (int k = 0; k < l->numExtended; k++) {
-         V[k] = 1 - V[k];
-      }
-   }
-
-   if (params->uncolor) {
-      for (int k = 0; k < l->numExtended; k++) {
-         V[k] = (V[k] == 0.0) ? 0.0 : 1.0;
-      }
-   }
-
-   return status;
-}
-#endif
 
 int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
+   static bool first = true;
 
 #ifdef PV_USE_OPENCL
-   // wait for memory to be copied to device
-   status |= clWaitForEvents(numEvents, evList);
-   for (int i = 1; i < numEvents; i++) {
-      clReleaseEvent(evList[i]);
+   if (first) {
+      first = false;
    }
+   else {
+      // wait for memory to be copied to device
+      status |= clWaitForEvents(numEvents, evList);
+      for (int i = 1; i < numEvents; i++) {
+         clReleaseEvent(evList[i]);
+      }
+   }
+
+   nxl = nyl = 1;
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);

@@ -14,7 +14,8 @@
 #include "../arch/opencl/pv_uint4.h"
 #include "Image.hpp"
 
-#define NUM_RETINA_EVENTS 3
+#define NUM_RETINA_CHANNELS 2
+#define NUM_RETINA_EVENTS   3
 #define EV_R_PHI_E    0
 #define EV_R_PHI_I    1
 #define EV_R_ACTIVITY 2
@@ -42,6 +43,8 @@ protected:
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
+
+   CLBuffer * clRand;
 #endif
 
    bool spikingFlag;        // specifies that layer is spiking
