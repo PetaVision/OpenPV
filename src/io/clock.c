@@ -115,10 +115,11 @@ void stop_clock()
   READ_CYCLE_COUNTER(cycle_end);
 #endif
 
-  fprintf(stderr, "%1.2f seconds elapsed (clock())\n",
+  fprintf(stdout, "     %1.2f seconds elapsed (clock())\n",
 	  (float)((double)(end-start) / CLOCKS_PER_SEC));
-  fprintf(stderr, "%1.2f seconds elapsed (CPU)\n", (float)(rend-rstart));
-  fprintf(stderr, "%1.2f seconds elapsed (wallclock)\n", (float)(tend-tstart));
+  fprintf(stdout, "     %1.2f seconds elapsed (CPU)\n", (float)(rend-rstart));
+  fprintf(stdout, "     %1.2f seconds elapsed (wallclock)\n", (float)(tend-tstart));
+  fflush(stdout);
 
 #ifdef MACH_TIMER
     mach_elapsed = mach_time_to_sec(mach_end - mach_start);
