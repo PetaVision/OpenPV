@@ -56,7 +56,7 @@
  */
 static inline 
 int spike(float time, float dt,
-          float prev, float stimFactor, uint4 * rnd_state, const Retina_params * params)
+          float prev, float stimFactor, uint4 * rnd_state, CL_MEM_GLOBAL Retina_params * params)
 {
    float probSpike;
    float burstStatus = 1;
@@ -95,8 +95,8 @@ int spike(float time, float dt,
       probSpike += probStim * sinAmp;  // negative prob is OK
    }
 
+   *rnd_state = cl_random_get(*rnd_state);
    int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
-   *rnd_state = cl_random_state(*rnd_state);
    return spike_flag;
 }
 
