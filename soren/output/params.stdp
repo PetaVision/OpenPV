@@ -173,21 +173,16 @@ HyPerConn "Image to RetinaOn Center" = {
    nxp = 1;
    nyp = 1;
    
-   //
-   // strength used if randomFlag==0
-   strength = 10;//7;
-   uniformWeights = 1;
+   strength  = 10;
+   normalize =  1;
 };
 
 HyPerConn "Image to RetinaOn Surround" = {
    nxp = 3;
    nyp = 3;
    
-   //
-   // strength used if randomFlag==0
-
-   strength = 10;//7;
-   uniformWeights = 1;
+   strength  = 10;
+   normalize =  1;
 };
 
 
@@ -195,16 +190,16 @@ HyPerConn "Image to RetinaOff Center" = {
    nxp = 1;
    nyp = 1;
    
-   strength = 10;//7;
-   uniformWeights = 1;
+   strength  = 10;
+   normalize =  1;
 };
 
 HyPerConn "Image to RetinaOff Surround" = {
    nxp = 3;
    nyp = 3;
    
-   strength = 10;//7;
-   uniformWeights = 1;
+   strength  = 10;
+   normalize =  1;
 };
 
 HyPerConn "RetinaOn to L1" = {
