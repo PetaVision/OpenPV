@@ -203,14 +203,18 @@ int LIF::initializeThreadBuffers()
 
 int LIF::initializeThreadKernels()
 {
+   char kernelPath[PV_PATH_MAX+128];
+   char kernelFlags[PV_PATH_MAX+128];
+
    int status = CL_SUCCESS;
    CLDevice * device = parent->getCLDevice();
 
+   sprintf(kernelPath, "%s/src/kernels/LIF_update_state.cl", parent->getPath());
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -I %s/src/kernels/", parent->getPath());
+
    // create kernels
    //
-   krUpdate = device->createKernel("kernels/LIF_update_state.cl",
-                                   "LIF_update_state",
-                                   "-I /Users/rasmussn/eclipse/workspace.petavision/PetaVisionII/src/kernels/");
+   krUpdate = device->createKernel(kernelPath, "LIF_update_state", kernelFlags);
 
    int argid = 0;
 
@@ -337,7 +341,7 @@ int LIF::waitOnPublish(InterColComm* comm)
 
 int LIF::updateState(float time, float dt)
 {
-   pv_debug_info("[%d]: LIF::updateState:", clayer->columnId);
+   update_timer->start();
 
 #ifndef PV_USE_OPENCL
       const int nx = clayer->loc.nx;
@@ -373,6 +377,8 @@ int LIF::updateState(float time, float dt)
 #else
       return updateStateOpenCL(time, dt);
 #endif
+
+   update_timer->stop();
 
    return 0;
 }
