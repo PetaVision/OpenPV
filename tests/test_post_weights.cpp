@@ -11,10 +11,10 @@
 
 #undef DEBUG_PRINT
 
+#include "Example.hpp"
 #include "../src/columns/HyPerCol.hpp"
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
-#include "../src/layers/Example.hpp"
 #include "../src/io/ConnectionProbe.hpp"
 #include "../src/io/PostConnProbe.hpp"
 
@@ -31,7 +31,7 @@ int main(int argc, char * argv[])
 
    int status = 0;
 
-   HyPerCol  * hc = new HyPerCol("column", argc, argv);
+   HyPerCol  * hc = new HyPerCol("column", argc, argv, "..");
    Example   * l1 = new Example("test_post_weights L1", hc);
    Example   * l2 = new Example("test_post_weights L2", hc);
    Example   * l3 = new Example("test_post_weights L3", hc);
