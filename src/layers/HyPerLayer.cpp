@@ -723,8 +723,8 @@ int HyPerLayer::writeActivitySparse(float time)
       if (activity[kex] > 0.0) {
          clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
       }
-      clayer->numActive = numActive;
    }
+   clayer->numActive = numActive;
 
    return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
