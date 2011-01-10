@@ -87,9 +87,20 @@ int Retina::initialize(PVLayerType type)
    status = parent->addLayer(this);
 
 #ifdef PV_USE_OPENCL
+   CLDevice * device = parent->getCLDevice();
+
+   numWait = 0;
    numEvents = NUM_RETINA_EVENTS;
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
    assert(evList != NULL);
+
+   // TODO - fix to use device and layer parameters
+   if (device->id() == 1) {
+      nxl = 1;  nyl = 1;
+   }
+   else {
+      nxl = 16; nyl = 8;
+   }
 
    initializeThreadBuffers();
    initializeThreadKernels();
@@ -142,7 +153,7 @@ int Retina::initializeThreadKernels()
    CLDevice * device = parent->getCLDevice();
 
    sprintf(kernelPath,  "%s/src/kernels/Retina_update_state.cl", parent->getPath());
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -I %s/src/kernels/",   parent->getPath());
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
 
    // create kernels
    //
@@ -217,12 +228,10 @@ int Retina::updateStateOpenCL(float time, float dt)
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
-   for (int i = 1; i < numWait; i++) {
+   for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
-
-   nxl = nyl = 1;
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
@@ -235,7 +244,7 @@ int Retina::updateStateOpenCL(float time, float dt)
    numWait += 3;
 #endif
 
-   update_timer->start();
+   update_timer->stop();
 
    return status;
 }
