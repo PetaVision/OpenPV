@@ -62,6 +62,11 @@ namespace PV {
 Timer::Timer()
 {
    rank = 0;
+   reset();
+}
+
+void Timer::reset()
+{
    time_start   = get_cpu_time();
    time_end     = time_start;
    time_elapsed = 0.0;

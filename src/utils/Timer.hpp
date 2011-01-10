@@ -18,7 +18,8 @@ namespace PV {
    class Timer {
    public:
       Timer();
-      
+      void reset();
+
       virtual double start();
       virtual double stop();
       virtual double elapsed_time();
