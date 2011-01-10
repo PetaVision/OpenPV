@@ -209,7 +209,7 @@ make-in-subdirs: force
 
 clean: clean-in-subdirs
 	rm -f *.o *.bin output/*.pvp
-	rm -f $(TESTS) $(MPI_TESTS) *.o *.bin output/*.pvp
+	rm -f $(TESTS) $(CL_TESTS) $(MPI_TESTS) *.o *.bin output/*.pvp
 	rm -f $(BUILDDIR)/*.o
 
 cleanall: clean
