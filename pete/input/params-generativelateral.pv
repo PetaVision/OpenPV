@@ -7,7 +7,8 @@ FileDefinition "OutputDir" =      "./output/generativelateral/"; // not used yet
 HyPerCol "column" = {
     nx = 32;            // number of horizontal pixels in the column
     ny = 32;            // number of vertical pixels in the column
-    dt = 1;            // time increment per timestep
+    dt = 1;             // time increment per timestep
+    randomSeed = 0;     // seed the column's random number generator.
 };
 
 // 7 layers:  Slideshow,
@@ -30,11 +31,16 @@ HyPerLayer "Slideshow" = {
     writeNonspikingActivity = 1;
         // Whether to write activity at each step in the nonspiking case 
     
-    offsetX = 0;        // Horizontal offset into image
-    offsetY = 0;        // Vertical offset into image
+    displayPeriod = 50; // Length of time each image in the movie is presented.
     persistenceProb = 1;// Probability of no jitter when updateImage is called
-    stepSize = 2;       // Amount of jitter each direction when jitter occurs
-    writeImages = 1;    // Whether to write image during outputState
+    // recurrenceProb   // Probability that offset returns to bias position
+    stepSize = 0;       // Amount of jitter each direction when jitter occurs
+    biasChangeTime = 10000; // How often to update bias position
+    writePosition = 0;  // Whether to write bias and offset to image-pos.txt
+    randomMovie = 0;    // Whether to call randomFrame()
+    // randomMovieProb  // If randomMovie != 0, prob that a given pixel is 1.
+    offsetX = 0;        // Initial horizontal offset into image
+    offsetY = 0;        // Initial vertical offset into image
 };
 
 HyPerLayer "Retina" = {
@@ -105,7 +111,7 @@ HyPerLayer "Layer A" = {
     nxScale = 1;        // scale factor between layer size and column size
     nyScale = 1;        // layer size = n{x,y}Scale * (column size)
     nf = 8;            // Number of features.  For images, use nf=3 for RGB
-    marginWidth = 16;   // Width of margin padding in pixels
+    marginWidth = 8;   // Width of margin padding in pixels
     writeStep = 1.0;    // How often to write updates; not used yet
     mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
     spikingFlag = 0;    // Whether there is spiking
@@ -133,7 +139,7 @@ HyPerLayer "Layer A" = {
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
     
-    relaxation = 0.001;   // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
 };
 
 HyPerLayer "ParaLayer A" = {
@@ -141,7 +147,7 @@ HyPerLayer "ParaLayer A" = {
     nxScale = 1;        // scale factor between layer size and column size
     nyScale = 1;        // layer size = n{x,y}Scale * (column size)
     nf = 8;            // Number of features.  For images, use nf=3 for RGB
-    marginWidth = 16;   // Width of margin padding in pixels
+    marginWidth = 8;   // Width of margin padding in pixels
     writeStep = 1.0;    // How often to write updates; not used yet
     mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
     spikingFlag = 0;    // Whether there is spiking
@@ -175,7 +181,7 @@ HyPerLayer "AnaLayer A" = {
     nxScale = 1;        // scale factor between layer size and column size
     nyScale = 1;        // layer size = n{x,y}Scale * (column size)
     nf = 8;            // Number of features.  For images, use nf=3 for RGB
-    marginWidth = 16;   // Width of margin padding in pixels
+    marginWidth = 8;   // Width of margin padding in pixels
     writeStep = 1.0;    // How often to write updates; not used yet
     mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
     spikingFlag = 0;    // Whether there is spiking
@@ -209,7 +215,7 @@ HyPerLayer "Layer B" = {
     nxScale = 1;        // scale factor between layer size and column size
     nyScale = 1;        // layer size = n{x,y}Scale * (column size)
     nf = 8;            // Number of features.  For images, use nf=3 for RGB
-    marginWidth = 16;   // Width of margin padding in pixels
+    marginWidth = 8;   // Width of margin padding in pixels
     writeStep = 1.0;    // How often to write updates; not used yet
     mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
     spikingFlag = 0;    // Whether there is spiking
@@ -237,7 +243,7 @@ HyPerLayer "Layer B" = {
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
     
-    relaxation = 0.001;   // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
 };
 
 
@@ -284,8 +290,6 @@ HyPerConn "Slideshow to Retina" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -344,8 +348,6 @@ HyPerConn "Retina to AnaRetina" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -405,8 +407,6 @@ HyPerConn "AnaRetina to Layer A" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -432,6 +432,9 @@ HyPerConn "AnaRetina to Layer A" = {
     // isGraded         // Doesn't appear to be used
     
     // no               // Doesn't appear to be used
+    
+    weightUpdatePeriod = 50.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "Layer A to AnaRetina Feedback" = {
@@ -441,8 +444,8 @@ HyPerConn "Layer A to AnaRetina Feedback" = {
 };
 
 HyPerConn "Layer A to ParaLayer A" = {
-    nxp = 33;            // Number of horizontal pixels in each patch
-    nyp = 33;            // Number of vertical pixels in each patch
+    nxp = 17;            // Number of horizontal pixels in each patch
+    nyp = 17;            // Number of vertical pixels in each patch
     nfp = 8;            // Number of features in each patch
 
     stdpFlag = 0;       // Whether to use spike timing dependent plasticity
@@ -471,8 +474,6 @@ HyPerConn "Layer A to ParaLayer A" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -498,6 +499,9 @@ HyPerConn "Layer A to ParaLayer A" = {
     // isGraded         // Doesn't appear to be used
     
     // no               // Doesn't appear to be used
+
+    weightUpdatePeriod = 100.0; // Period between updating the weights
+    relaxation = 1E-5;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "ParaLayer A to Layer A Feedback" = {
@@ -537,8 +541,6 @@ HyPerConn "Layer A to AnaLayer A" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -573,8 +575,8 @@ HyPerConn "AnaLayer A to Layer A Feedback" = {
 };
 
 HyPerConn "AnaLayer A to Layer B" = {
-    nxp = 33;            // Number of horizontal pixels in each patch
-    nyp = 33;            // Number of vertical pixels in each patch
+    nxp = 17;            // Number of horizontal pixels in each patch
+    nyp = 17;            // Number of vertical pixels in each patch
     nfp = 8;            // Number of features in each patch
 
     stdpFlag = 0;       // Whether to use spike timing dependent plasticity
@@ -603,8 +605,6 @@ HyPerConn "AnaLayer A to Layer B" = {
     initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
     
     randomFlag = 0;     // Whether to initialize with random weights
-    randomSeed = 0;     // Whether to initialize with random weights
-                        // (doesn't seem to ever seed anything)
     // uniformWeights   // If initializing w/ random weights, use uniform dist.
     // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
                         // Exactly one of uniformWeights and gaussianWeights
@@ -630,6 +630,9 @@ HyPerConn "AnaLayer A to Layer B" = {
     // isGraded         // Doesn't appear to be used
     
     // no               // Doesn't appear to be used
+
+    weightUpdatePeriod = 50.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "Layer B to AnaLayer A Feedback" = {
