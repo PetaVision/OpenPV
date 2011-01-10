@@ -14,16 +14,19 @@ CC  = mpicc
 CFLAGS = -g -std=c99 -Wall -I../src
 CPPFLAGS = -g -Wall -I../src
 
-#LIBS = $(LIBPV) -L$(GDALDIR)/lib -lgdal
 LIBS = $(LIBPV) -L$(GDALDIR) -lgdal
 
 CL_LD_FLAGS = -framework OpenCL
+
+CLASS_OBJS = $(BUILDDIR)/Example.o
 
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
         test_datatypes test_post_weights test_gauss2d test_cocirc test_mirror_BCs \
-        test_border_activity test_cl_random test_cl_lif
+        test_border_activity
+
+CL_TESTS = test_cl_random test_cl_lif
 
 MPI_TESTS = #test_read_header test_image_io test_weights_io test_constant_input
 
@@ -50,7 +53,7 @@ $(BUILDDIR)/%.o: %.c
 	@echo 'Finished building: $<'
 	@echo ' '
 
-all: make-in-subdirs $(TESTS) $(MPI_TESTS)
+all: make-in-subdirs $(CLASS_OBJS) $(TESTS) $(MPI_TESTS)
 
 check: runtests
 
@@ -90,14 +93,14 @@ test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(PVLIB)
 test_pos: $(BUILDDIR)/test_pos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_post_weights: $(BUILDDIR)/test_post_weights.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
+test_post_weights: $(BUILDDIR)/test_post_weights.o $(PVLIB) $(CLASS_OBJS)
+	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
-test_gauss2d: $(BUILDDIR)/test_gauss2d.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
+test_gauss2d: $(BUILDDIR)/test_gauss2d.o $(PVLIB) $(CLASS_OBJS)
+	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
-test_cocirc: $(BUILDDIR)/test_cocirc.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
+test_cocirc: $(BUILDDIR)/test_cocirc.o $(PVLIB) $(CLASS_OBJS)
+	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
 test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
@@ -105,14 +108,14 @@ test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
 test_extend_border: $(BUILDDIR)/test_extend_border.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_borders: $(BUILDDIR)/test_borders.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
+test_borders: $(BUILDDIR)/test_borders.o $(PVLIB) $(CLASS_OBJS)
+	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
 test_border_activity: $(BUILDDIR)/test_border_activity.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_mirror_BCs: $(BUILDDIR)/test_mirror_BCs.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
+test_mirror_BCs: $(BUILDDIR)/test_mirror_BCs.o $(PVLIB) $(CLASS_OBJS)
+	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
 test_datatypes: $(BUILDDIR)/test_datatypes.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
