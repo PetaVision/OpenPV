@@ -712,12 +712,6 @@ int HyPerLayer::writeState(const char * name, float time, bool last)
 
 int HyPerLayer::writeActivitySparse(float time)
 {
-   return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
-}
-
-// write non-spiking activity
-int HyPerLayer::writeActivity(float time)
-{
    // calculate active indices
    //
    int numActive = 0;
@@ -731,6 +725,16 @@ int HyPerLayer::writeActivity(float time)
       }
       clayer->numActive = numActive;
    }
+
+   return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
+}
+
+// write non-spiking activity
+int HyPerLayer::writeActivity(float time)
+{
+   // currently numActive only used by writeActivitySparse
+   //
+   clayer->numActive = 0;
 
    return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
