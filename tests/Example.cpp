@@ -15,6 +15,18 @@ Example::Example(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 1)
    initialize(TypeGeneric);
 }
 
+#ifdef PV_USE_OPENCL
+int Example::initializeThreadBuffers()
+{
+   return 0;
+}
+
+int Example::initializeThreadKernels()
+{
+   return 0;
+}
+#endif
+
 int Example::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
    pv_debug_info("[%d]: Example::recvSynapticInput: to layer %d from %d, neighbor %d",
