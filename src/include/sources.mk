@@ -12,6 +12,7 @@ HEADERS = $(SRCDIR)/arch/opencl/CLBuffer.hpp \
           $(SRCDIR)/connections/HyPerConn.hpp \
           $(SRCDIR)/connections/GaborConn.hpp \
           $(SRCDIR)/connections/CocircConn.hpp \
+          $(SRCDIR)/connections/KernelConn.hpp \
           $(SRCDIR)/connections/PoolConn.hpp \
           $(SRCDIR)/connections/RandomConn.hpp \
           $(SRCDIR)/connections/RuleConn.hpp \
@@ -50,6 +51,7 @@ CPPSRCS = $(SRCDIR)/arch/CLBuffer.cpp \
           $(SRCDIR)/connections/GaborConn.cpp \
           $(SRCDIR)/connections/CocircConn.cpp \
           $(SRCDIR)/connections/InhibConn.cpp \
+          $(SRCDIR)/connections/KernelConn.cpp \
           $(SRCDIR)/connections/PoolConn.cpp \
           $(SRCDIR)/connections/RandomConn.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
@@ -89,6 +91,7 @@ CPPOBJS = $(BUILDDIR)/CLBuffer.o \
           $(BUILDDIR)/GaborConn.o \
           $(BUILDDIR)/CocircConn.o \
           $(BUILDDIR)/InhibConn.o \
+          $(BUILDDIR)/KernelConn.o \
           $(BUILDDIR)/PoolConn.o \
           $(BUILDDIR)/RandomConn.o \
           $(BUILDDIR)/RuleConn.o \
