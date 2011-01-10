@@ -317,14 +317,10 @@ int Retina::updateState(float time, float dt)
       for (int k = 0; k < clayer->numNeurons; k++) {
          const int kex = kIndexExtended(k, nx, ny, nf, nb);
          activity[kex] = rParams.probStim * (phiExc[k] - phiInh[k]);
-         // TODO - get rid of this for performance
-         clayer->activeIndices[k] = globalIndexFromLocal(k, clayer->loc);
-
          // reset accumulation buffers
          phiExc[k] = 0.0;
          phiInh[k] = 0.0;
       }
-      clayer->numActive = clayer->numNeurons;
    }
    update_timer->stop();
 #else
