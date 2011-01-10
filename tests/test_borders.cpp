@@ -5,8 +5,8 @@
 
 #undef DEBUG_PRINT
 
+#include "Example.hpp"
 #include "../src/layers/HyPerLayer.hpp"
-#include "../src/layers/Example.hpp"
 
 const int numFeatures = 2;
 
@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
-   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
+   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv, "..");
    PV::Example * l = new PV::Example("Test Borders", hc);
 
    int nf  = numFeatures;
