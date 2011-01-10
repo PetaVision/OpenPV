@@ -11,7 +11,11 @@
 #include "../../include/pv_arch.h"
 
 #ifdef PV_USE_OPENCL
+#ifdef __APPLE__
 #  include <OpenCL/opencl.h>
+#else
+#  include <CL/opencl.h>
+#endif
 
 #ifdef PV_USE_TAU
 #  include <TAU.h>
