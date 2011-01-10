@@ -484,8 +484,8 @@ HyPerLayer "test_constant_input connection" = {
 //
 
 HyPerCol "test_cl_lif column" = {
-   nx = 128;
-   ny = 128;
+   nx = 256;
+   ny = 256;
    mirrorBCflag = 0;
 };
 
