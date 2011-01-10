@@ -17,6 +17,7 @@
 #else
 
 #  define EXP exp
+#  define COS  __cosf
 #  define FMOD __fmodf
 #  define CL_KERNEL     __kernel
 #  define CL_MEM_GLOBAL __global
@@ -81,7 +82,7 @@ int spike(float time, float dt,
    }
 
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      sinAmp = cos( 2*PI*time * params->burstFreq / 1000. );
+      sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
    }
    else {
       burstStatus = FMOD(time, 1000. / params->burstFreq);
