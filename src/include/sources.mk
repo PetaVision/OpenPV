@@ -2,7 +2,10 @@
 #          $(BUILDDIR)/spu \
 #          $(BUILDDIR)/pthreads
 
-HEADERS = $(SRCDIR)/include/pv_arch.h \
+HEADERS = $(SRCDIR)/arch/opencl/CLBuffer.hpp \
+          $(SRCDIR)/arch/opencl/CLDevice.hpp \
+          $(SRCDIR)/arch/opencl/CLKernel.hpp \
+          $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/include/pv_common.h \
           $(SRCDIR)/columns/HyPerCol.hpp \
           $(SRCDIR)/columns/HyPerColRunDelegate.hpp \
@@ -16,7 +19,7 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/layers/Gratings.hpp \
           $(SRCDIR)/layers/Image.hpp \
           $(SRCDIR)/layers/LayerDataInterface.hpp \
-          $(SRCDIR)/layers/LIF2.h \
+          $(SRCDIR)/layers/LIF.hpp \
           $(SRCDIR)/layers/Movie.hpp \
           $(SRCDIR)/layers/PVLayer.h \
           $(SRCDIR)/io/ConnectionProbe.hpp \
@@ -30,10 +33,15 @@ HEADERS = $(SRCDIR)/include/pv_arch.h \
           $(SRCDIR)/io/fileio.hpp \
           $(SRCDIR)/io/imageio.hpp \
           $(SRCDIR)/io/tiff.h \
+          $(SRCDIR)/utils/conversions.h \
+          $(SRCDIR)/utils/cl_random.h \
           $(SRCDIR)/utils/rng.h \
-          $(SRCDIR)/utils/conversions.h
+          $(SRCDIR)/utils/Timer.hpp
 
-CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
+CPPSRCS = $(SRCDIR)/arch/CLBuffer.cpp \
+          $(SRCDIR)/arch/CLDevice.cpp \
+          $(SRCDIR)/arch/CLKernel.cpp \
+          $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/columns/HyPerColRunDelegate.cpp \
           $(SRCDIR)/columns/Communicator.cpp \
           $(SRCDIR)/columns/InterColComm.cpp \
@@ -45,15 +53,13 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/connections/PoolConn.cpp \
           $(SRCDIR)/connections/RandomConn.cpp \
           $(SRCDIR)/connections/RuleConn.cpp \
-          $(SRCDIR)/layers/Example.cpp \
           $(SRCDIR)/layers/HyPerLayer.cpp \
           $(SRCDIR)/layers/Gratings.cpp \
           $(SRCDIR)/layers/Image.cpp \
           $(SRCDIR)/layers/LayerDataInterface.cpp \
           $(SRCDIR)/layers/Movie.cpp \
           $(SRCDIR)/layers/Retina.cpp \
-          $(SRCDIR)/layers/LGN.cpp \
-          $(SRCDIR)/layers/V1.cpp \
+          $(SRCDIR)/layers/LIF.cpp \
           $(SRCDIR)/io/ConnectionProbe.cpp \
           $(SRCDIR)/io/GLDisplay.cpp \
           $(SRCDIR)/io/LayerProbe.cpp \
@@ -66,7 +72,10 @@ CPPSRCS = $(SRCDIR)/columns/HyPerCol.cpp \
           $(SRCDIR)/io/imageio.cpp \
           $(SRCDIR)/io/parser/param_parser.cpp
 
-CPPOBJS = $(BUILDDIR)/HyPerCol.o \
+CPPOBJS = $(BUILDDIR)/CLBuffer.o \
+          $(BUILDDIR)/CLDevice.o \
+          $(BUILDDIR)/CLKernel.o \
+          $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/HyPerColRunDelegate.o \
           $(BUILDDIR)/Communicator.o \
           $(BUILDDIR)/InterColComm.o \
@@ -84,9 +93,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/RandomConn.o \
           $(BUILDDIR)/RuleConn.o \
           $(BUILDDIR)/Retina.o \
-          $(BUILDDIR)/Example.o \
-          $(BUILDDIR)/LGN.o \
-          $(BUILDDIR)/V1.o \
+          $(BUILDDIR)/LIF.o \
           $(BUILDDIR)/ConnectionProbe.o \
           $(BUILDDIR)/GLDisplay.o \
           $(BUILDDIR)/LayerProbe.o \
@@ -94,6 +101,7 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
           $(BUILDDIR)/PointProbe.o \
           $(BUILDDIR)/PostConnProbe.o \
           $(BUILDDIR)/StatsProbe.o \
+          $(BUILDDIR)/Timer.o \
           $(BUILDDIR)/PVParams.o \
           $(BUILDDIR)/fileio.o \
           $(BUILDDIR)/imageio.o \
@@ -101,22 +109,22 @@ CPPOBJS = $(BUILDDIR)/HyPerCol.o \
 
 CSRCS   = $(SRCDIR)/connections/PVConnection.c \
           $(SRCDIR)/layers/fileread.c \
-          $(SRCDIR)/layers/LIF2.c \
           $(SRCDIR)/layers/PVLayer.c \
           $(SRCDIR)/io/io.c \
           $(SRCDIR)/io/tiff.c \
           $(SRCDIR)/io/parser/param_lexer.c \
           $(SRCDIR)/utils/box_muller.c \
+          $(SRCDIR)/utils/cl_random.c \
           $(SRCDIR)/utils/conversions.c
 
 COBJS   = $(BUILDDIR)/PVConnection.o \
           $(BUILDDIR)/fileread.o \
-          $(BUILDDIR)/LIF2.o \
           $(BUILDDIR)/PVLayer.o \
           $(BUILDDIR)/io.o \
           $(BUILDDIR)/tiff.o \
           $(BUILDDIR)/param_lexer.o \
           $(BUILDDIR)/box_muller.o \
+          $(BUILDDIR)/cl_random.o \
           $(BUILDDIR)/conversions.o
 
 SRCS = $(CPPSRCS) $(CSRCS)
