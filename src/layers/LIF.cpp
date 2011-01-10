@@ -250,6 +250,7 @@ int LIF::setParams(PVParams * p)
    clayer->params = &lParams;
 
    spikingFlag = (int) p->value(name, "spikingFlag", 1);
+   assert(spikingFlag == 1);  // LIF is a spiking layer
 
    lParams.Vrest = p->value(name, "Vrest", V_REST);
    lParams.Vexc  = p->value(name, "Vexc" , V_EXC);
@@ -291,12 +292,15 @@ int LIF::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
+   update_timer->start();
+
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
-   status |= clWaitForEvents(numEvents, evList);
-   for (int i = 1; i < numEvents; i++) {
+   status |= clWaitForEvents(numWait, evList);
+   for (int i = 1; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
+   numWait = 0;
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
@@ -306,7 +310,11 @@ int LIF::updateStateOpenCL(float time, float dt)
    status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_I]);
    status |= clPhiIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_IB]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
+
+   numWait += 4;
 #endif
+
+   update_timer->stop();
 
    return status;
 }
@@ -321,6 +329,7 @@ int LIF::triggerReceive(InterColComm* comm)
    status |= clPhiE->copyToDevice(&evList[EV_LIF_PHI_E]);
    status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_I]);
    status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_IB]);
+   numWait += 3;
 #endif
 
    return status;
@@ -334,6 +343,7 @@ int LIF::waitOnPublish(InterColComm* comm)
    //
 #ifdef PV_USE_OPENCL
    status |= clActivity->copyToDevice(&evList[EV_LIF_ACTIVITY]);
+   numWait += 1;
 #endif
 
    return status;
@@ -341,44 +351,30 @@ int LIF::waitOnPublish(InterColComm* comm)
 
 int LIF::updateState(float time, float dt)
 {
+#ifndef PV_USE_OPENCL
    update_timer->start();
 
-#ifndef PV_USE_OPENCL
-      const int nx = clayer->loc.nx;
-      const int ny = clayer->loc.ny;
-      const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->loc.nf;
+   const int nb = clayer->loc.nb;
 
-      pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * phiInh   = getChannel(CHANNEL_INH);
-      pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
-      pvdata_t * activity = clayer->activity->data;
+   pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
+   pvdata_t * phiInh   = getChannel(CHANNEL_INH);
+   pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
+   pvdata_t * activity = clayer->activity->data;
 
-      if (spikingFlag == 1) {
-         LIF_update_state(time, dt, nx, ny, nf, nb,
-                          &lParams, rand_state,
-                          clayer->V, Vth,
-                          G_E, G_I, G_IB,
-                          phiExc, phiInh, phiInhB, activity);
-
-         // TODO - move to halo exchange so don't have to wait for data
-         // calculate active indices
-         //
-
-         int numActive = 0;
-         for (int k = 0; k < getNumNeurons(); k++) {
-            const int kex = kIndexExtended(k, nx, ny, nf, nb);
-            if (activity[kex] > 0.0) {
-               clayer->activeIndices[numActive++] = globalIndexFromLocal(k, clayer->loc);
-            }
-            clayer->numActive = numActive;
-         }
-      }
-#else
-      return updateStateOpenCL(time, dt);
-#endif
-
+   LIF_update_state(time, dt, nx, ny, nf, nb,
+                    &lParams, rand_state,
+                    clayer->V, Vth,
+                    G_E, G_I, G_IB,
+                    phiExc, phiInh, phiInhB, activity);
    update_timer->stop();
+#else
+
+   return updateStateOpenCL(time, dt);
+
+#endif
 
    return 0;
 }
