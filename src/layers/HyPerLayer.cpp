@@ -428,7 +428,7 @@ int HyPerLayer::updateBorder(float time, float dt)
    if (numWait > 0) {
       status |= clWaitForEvents(numWait, evList);
    }
-   for (int i = 0; i < numEvents; i++) {
+   for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
