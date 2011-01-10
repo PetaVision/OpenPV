@@ -1,3 +1,12 @@
+$(BUILDDIR)/CLBuffer.o: $(SRCDIR)/arch/opencl/CLBuffer.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/CLDevice.o: $(SRCDIR)/arch/opencl/CLDevice.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
+$(BUILDDIR)/CLKernel.o: $(SRCDIR)/arch/opencl/CLKernel.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
+
 $(BUILDDIR)/HyPerCol.o: $(SRCDIR)/columns/HyPerCol.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
@@ -49,19 +58,10 @@ $(BUILDDIR)/RandomConn.o: $(SRCDIR)/connections/RandomConn.cpp $(HEADERS)
 $(BUILDDIR)/RuleConn.o: $(SRCDIR)/connections/RuleConn.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
-$(BUILDDIR)/Example.o: $(SRCDIR)/layers/Example.cpp $(HEADERS)
-	$(CPP) -c $(CPPFLAGS) -o $@ $<
-
-$(BUILDDIR)/LIF2.o: $(SRCDIR)/layers/LIF2.c $(HEADERS)
-	$(CPP) -c $(CPPFLAGS) -o $@ $<
-
 $(BUILDDIR)/Retina.o: $(SRCDIR)/layers/Retina.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
-$(BUILDDIR)/LGN.o: $(SRCDIR)/layers/LGN.cpp $(HEADERS)
-	$(CPP) -c $(CPPFLAGS) -o $@ $<
-
-$(BUILDDIR)/V1.o: $(SRCDIR)/layers/V1.cpp $(HEADERS)
+$(BUILDDIR)/LIF.o: $(SRCDIR)/layers/LIF.cpp $(HEADERS)
 	$(CPP) -c $(CPPFLAGS) -o $@ $<
 
 $(BUILDDIR)/PVParams.o: $(SRCDIR)/io/PVParams.cpp $(HEADERS)
@@ -115,8 +115,14 @@ $(BUILDDIR)/tiff.o: $(SRCDIR)/io/tiff.c $(HEADERS)
 $(BUILDDIR)/param_lexer.o: $(SRCDIR)/io/parser/param_lexer.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
+$(BUILDDIR)/conversions.o: $(SRCDIR)/utils/conversions.c $(HEADERS)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 $(BUILDDIR)/box_muller.o: $(SRCDIR)/utils/box_muller.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(BUILDDIR)/conversions.o: $(SRCDIR)/utils/conversions.c $(HEADERS)
+$(BUILDDIR)/cl_random.o: $(SRCDIR)/utils/cl_random.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/Timer.o: $(SRCDIR)/utils/Timer.cpp $(HEADERS)
+	$(CPP) -c $(CPPFLAGS) -o $@ $<
