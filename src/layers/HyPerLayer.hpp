@@ -165,6 +165,7 @@ protected:
 
 
    int numEvents;             // number of events in event list
+   int numWait;               // number of events to wait for
    cl_event * evList;         // event list
    cl_event   evUpdate;
 

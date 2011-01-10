@@ -100,6 +100,11 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    this->numChannels = numChannels;
 
+#ifdef PV_USE_OPENCL
+   this->numEvents = 0;  // reset by derived classes
+   this->numWait   = 0;
+#endif
+
    this->update_timer  = new Timer();
    this->recvsyn_timer = new Timer();
 
@@ -420,12 +425,13 @@ int HyPerLayer::updateBorder(float time, float dt)
 
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied from device
-   if (numEvents > 0) {
-      status |= clWaitForEvents(numEvents, evList);
+   if (numWait > 0) {
+      status |= clWaitForEvents(numWait, evList);
    }
    for (int i = 0; i < numEvents; i++) {
       clReleaseEvent(evList[i]);
    }
+   numWait = 0;
 
    status |= clWaitForEvents(1, &evUpdate);
    clReleaseEvent(evUpdate);
