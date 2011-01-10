@@ -71,8 +71,6 @@ int HMaxSimple::updateState(float time, float dt)
 
    // make sure activity in border is zero
    //
-   // TODO - set numActive and active list?
-   int numActive = 0;
    for (int k = 0; k < clayer->numExtended; k++) {
       activity[k] = 0.0;
    }
