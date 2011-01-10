@@ -633,7 +633,6 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
-   // unsigned int * numActive = NULL;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -723,11 +722,10 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
-   // unsigned int * numActive = NULL;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
-   int localActive = l->numActive;
+   int localActive  = l->numActive;
    unsigned int * indices = l->activeIndices;
 
 #ifdef PV_USE_MPI
@@ -922,7 +920,6 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
             comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
       return status;
    }
-
 
    const int numPatchItems = nxp * nyp * nfp;
    const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
