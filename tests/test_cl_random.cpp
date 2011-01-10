@@ -1,10 +1,11 @@
 #include <OpenCL/opencl.h>
 
-#define PV_USE_OPENCL
+#undef PV_USE_OPENCL
 
 #include "../src/arch/opencl/CLDevice.hpp"
 #include "../src/arch/opencl/CLKernel.hpp"
 #include "../src/arch/opencl/CLBuffer.hpp"
+#include "../src/arch/opencl/pv_uint4.h"
 #include "../src/utils/Timer.hpp"
 #include "../src/utils/cl_random.h"
 
