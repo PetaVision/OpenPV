@@ -57,10 +57,8 @@ Retina::~Retina()
 #ifdef PV_USE_OPENCL
    free(evList);
 
-   delete clV;
    delete clPhiE;
    delete clPhiI;
-   delete clPhiIB;
    delete clActivity;
    delete clPrevTime;
 #endif
@@ -116,6 +114,8 @@ int Retina::initializeThreadBuffers()
 
    // these buffers are shared between host and device
    //
+
+   clV = NULL;
 
    // TODO - use constant memory
    clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
@@ -211,19 +211,16 @@ int Retina::setParams(PVParams * p)
 int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
-   static bool first = true;
+
+   update_timer->start();
 
 #ifdef PV_USE_OPENCL
-   if (first) {
-      first = false;
+   // wait for memory to be copied to device
+   status |= clWaitForEvents(numWait, evList);
+   for (int i = 1; i < numWait; i++) {
+      clReleaseEvent(evList[i]);
    }
-   else {
-      // wait for memory to be copied to device
-      status |= clWaitForEvents(numEvents, evList);
-      for (int i = 1; i < numEvents; i++) {
-         clReleaseEvent(evList[i]);
-      }
-   }
+   numWait = 0;
 
    nxl = nyl = 1;
 
@@ -234,7 +231,11 @@ int Retina::updateStateOpenCL(float time, float dt)
    status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
    status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_I]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_R_ACTIVITY]);
+
+   numWait += 3;
 #endif
+
+   update_timer->start();
 
    return status;
 }
@@ -248,6 +249,7 @@ int Retina::triggerReceive(InterColComm* comm)
 #ifdef PV_USE_OPENCL
    status |= clPhiE->copyToDevice(&evList[EV_R_PHI_E]);
    status |= clPhiI->copyToDevice(&evList[EV_R_PHI_I]);
+   numWait += 2;
 #endif
 
    return status;
@@ -261,6 +263,7 @@ int Retina::waitOnPublish(InterColComm* comm)
    //
 #ifdef PV_USE_OPENCL
    status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
+   numWait += 1;
 #endif
 
    return status;
@@ -290,9 +293,9 @@ int Retina::waitOnPublish(InterColComm* comm)
  */
 int Retina::updateState(float time, float dt)
 {
+#ifndef PV_USE_OPENCL
    update_timer->start();
 
-#ifndef PV_USE_OPENCL
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
@@ -323,13 +326,12 @@ int Retina::updateState(float time, float dt)
       }
       clayer->numActive = clayer->numNeurons;
    }
+   update_timer->stop();
 #else
 
    updateStateOpenCL(time, dt);
 
 #endif
-
-   update_timer->stop();
 
 #ifdef DEBUG_PRINT
    char filename[132];
