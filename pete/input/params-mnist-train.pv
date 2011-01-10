@@ -1,0 +1,1288 @@
+// params-mnist-train.pv
+//     input parameters file for training generative model with lateral
+//     connections on subset of mnist
+
+FileDefinition "ImageFileList" =  "./input/mnist/train/filenames.txt";
+FileDefinition "OutputDir" =      "./output/generativelateral/mnist"; // not used yet
+
+HyPerCol "column" = {
+    nx = 32;            // number of horizontal pixels in the column
+    ny = 32;            // number of vertical pixels in the column
+    dt = 1;             // time increment per timestep
+    randomSeed = 0;     // seed the column's random number generator.
+};
+
+// 13 layers:  Slideshow,
+//             Retina,
+//             AnaRetina,
+//             Layer A,
+//             ParaLayer A,
+//             AnaLayer A,
+//             Layer B,
+//             ParaLayer B,
+//             AnaLayer B,
+//             Layer C,
+//             ParaLayer C,
+//             AnaLayer C,
+//             IT,
+
+HyPerLayer "Slideshow" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 1;        // scale factor between layer size and column size
+    nyScale = 1;        // layer size = n{x,y}Scale * (column size)
+    nf = 1;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 0;    // Width of margin padding in pixels
+    // writeStep        // How often to write updates; not used yet
+    mirrorBCflag = 0;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case 
+    
+    displayPeriod = 50; // Length of time each image in the movie is presented.
+    persistenceProb = 1;// Probability of no jitter when updateImage is called
+    // recurrenceProb   // Probability that offset returns to bias position
+    stepSize = 0;       // Amount of jitter each direction when jitter occurs
+    biasChangeTime = 10000; // How often to update bias position
+    writePosition = 0;  // Whether to write bias and offset to image-pos.txt
+    randomMovie = 0;    // Whether to call randomFrame()
+    // randomMovieProb  // If randomMovie != 0, prob that a given pixel is 1.
+    offsetX = 0;        // Initial horizontal offset into image
+    offsetY = 0;        // Initial vertical offset into image
+};
+
+HyPerLayer "Retina" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 1;        // scale factor between layer size and column size
+    nyScale = 1;        // layer size = n{x,y}Scale * (column size)
+    nf = 1;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 0;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case 
+    
+    // fireOffPixels    // Currently commented out
+    // invert           // In deprecated or obsolete sections
+    // uncolor          // In deprecated or obsolete sections
+    poissonEdgeProb = 1; 
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+    // noiseOnFreq      // If present, poissonEdgeProb set to
+                        // min(1, noiseOnFreq * parent column's dt);
+                        // overrides setting poissonEdgeProb in this file
+    // noiseOffFreq     // If present, poissonBlankProb set to
+                        // min(1, noiseOffFreq * parent column's dt);
+                        // overrides setting poissonBlankProb in this file
+    beginStim = 1;
+    endStim = 40000;
+};
+
+HyPerLayer "AnaRetina" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 1;        // scale factor between layer size and column size
+    nyScale = 1;        // layer size = n{x,y}Scale * (column size)
+    nf = 1;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 8;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case 
+    
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "Layer A" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.5;      // scale factor between layer size and column size
+    nyScale = 0.5;      // layer size = n{x,y}Scale * (column size)
+    nf = 32;            // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 7;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+    
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+};
+
+HyPerLayer "ParaLayer A" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.5;      // scale factor between layer size and column size
+    nyScale = 0.5;      // layer size = n{x,y}Scale * (column size)
+    nf = 32;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 7;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "AnaLayer A" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.5;      // scale factor between layer size and column size
+    nyScale = 0.5;      // layer size = n{x,y}Scale * (column size)
+    nf = 32;            // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 6;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "Layer B" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.25;     // scale factor between layer size and column size
+    nyScale = 0.25;     // layer size = n{x,y}Scale * (column size)
+    nf = 128;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 3;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+    
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+};
+
+HyPerLayer "ParaLayer B" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.25;     // scale factor between layer size and column size
+    nyScale = 0.25;     // layer size = n{x,y}Scale * (column size)
+    nf = 128;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 3;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "AnaLayer B" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.25;     // scale factor between layer size and column size
+    nyScale = 0.25;     // layer size = n{x,y}Scale * (column size)
+    nf = 128;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 4;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "Layer C" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.125;    // scale factor between layer size and column size
+    nyScale = 0.125;    // layer size = n{x,y}Scale * (column size)
+    nf = 512;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 2;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+    
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+};
+
+HyPerLayer "ParaLayer C" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.125;    // scale factor between layer size and column size
+    nyScale = 0.125;    // layer size = n{x,y}Scale * (column size)
+    nf = 512;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 1;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "AnaLayer C" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.125;    // scale factor between layer size and column size
+    nyScale = 0.125;    // layer size = n{x,y}Scale * (column size)
+    nf = 512;           // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 4;    // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+HyPerLayer "IT" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.125;        // scale factor between layer size and column size
+    nyScale = 0.125;        // layer size = n{x,y}Scale * (column size)
+    nf = 1;            // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 1;   // Width of margin padding in pixels
+    writeStep = 1.0;    // How often to write updates; not used yet
+    mirrorBCflag = 1;   // Whether to use mirror boundary conditions at edges
+    spikingFlag = 0;    // Whether there is spiking
+    writeNonspikingActivity = 1;
+        // Whether to write activity at each step in the nonspiking case
+
+    Vrest = 0.0;     // Sets initial value of clayer->V
+    // Vexc             // Only used by updateFunc, which doesn't get called
+    // Vinh             // Only used by updateFunc, which doesn't get called
+    // VinhB            // Only used by updateFunc, which doesn't get called
+    // tau              // Only used by updateFunc, which doesn't get called
+    // tauE             // Only used by updateFunc, which doesn't get called
+    // tauI             // Only used by updateFunc, which doesn't get called
+    // tauIB            // Only used by updateFunc, which doesn't get called
+    // VthRest          // Sets initial value of clayer->Vth
+    // tauVth           // Only used by updateFunc, which doesn't get called
+    // deltaVth         //
+    noiseAmpE = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    noiseAmpI = 0.0;    // If positive, adds random noise to V,Vth,G[k];
+                        // also initial value of clayer->G_E
+    // noiseAmpIB       // Sets initial value of clayer->G_IB
+                        // if either noiseAmpE or noiseAmpI is positive
+    // noiseFreqE       // Only used by updateFunc, which doesn't get called
+    // noiseFreqI       // Only used by updateFunc, which doesn't get called
+    // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+};
+
+// 22 connections:  Slideshow to Retina
+//                  Retina to AnaRetina
+//                  AnaRetina to Layer A
+//                  Layer A to AnaRetina Feedback
+//                  Layer A to ParaLayer A
+//                  ParaLayer A to Layer A Feedback
+//                  Layer A to AnaLayer A
+//                  AnaLayer A to Layer A Feedback
+//                  AnaLayer A to Layer B
+//                  Layer B to AnaLayer A Feedback
+//                  Layer B to ParaLayer B
+//                  ParaLayer B to Layer B Feedback
+//                  Layer B to AnaLayer B
+//                  AnaLayer B to Layer B Feedback
+//                  AnaLayer B to Layer C
+//                  Layer C to AnaLayer B Feedback
+//                  Layer C to ParaLayer C
+//                  ParaLayer C to Layer C Feedback
+//                  Layer C to AnaLayer C
+//                  AnaLayer C to Layer C Feedback
+//                  AnaLayer C to IT
+//                  IT to AnaLayer C Feedback 
+
+HyPerConn "Slideshow to Retina" = {
+    nxp = 1;            // Number of horizontal pixels in each patch
+    nyp = 1;            // Number of vertical pixels in each patch
+    nfp = 1;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1.0;     // Used in Gaussian weights and normalizeWeights
+    aspect = 1;         // Used in Gaussian weights: aspect ratio
+    sigma = 1;          // Used in Gaussian weights: standard deviation
+    rMax = 1;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+};
+
+HyPerConn "Retina to AnaRetina" = {
+    nxp = 1;            // Number of horizontal pixels in each patch
+    nyp = 1;            // Number of vertical pixels in each patch
+    nfp = 1;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1.0;     // Used in Gaussian weights and normalizeWeights
+    aspect = 1;         // Used in Gaussian weights: aspect ratio
+    sigma = 1;          // Used in Gaussian weights: standard deviation
+    rMax = 1;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+};
+
+HyPerConn "AnaRetina to Layer A" = {
+    nxp = 9;            // Number of horizontal pixels in each patch
+    nyp = 9;            // Number of vertical pixels in each patch
+    nfp = 32;           // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 25.0;   // 1.0/255
+                        // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 1;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+        
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "Layer A to AnaRetina Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer A to ParaLayer A" = {
+    nxp = 15;            // Number of horizontal pixels in each patch
+    nyp = 15;            // Number of vertical pixels in each patch
+    nfp = 32;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    // strength = 1.0;    // Used in Gaussian weights and normalizeWeights
+    // aspect = 1;         // Used in Gaussian weights: aspect ratio
+    // sigma = 1;          // Used in Gaussian weights: standard deviation
+    // rMax = 1;           // Used in Gaussian weights
+    // numFlanks = 1;      // Used in Gaussian weights
+    // flankShift = 0;     // Used in Gaussian weights
+    // rotate = 1;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "ParaLayer A to Layer A Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer A to AnaLayer A" = {
+    nxp = 1;            // Number of horizontal pixels in each patch
+    nyp = 1;            // Number of vertical pixels in each patch
+    nfp = 32;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1.0;     // Used in Gaussian weights and normalizeWeights
+    aspect = 1;         // Used in Gaussian weights: aspect ratio
+    sigma = 1;          // Used in Gaussian weights: standard deviation
+    rMax = 1;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+};
+
+HyPerConn "AnaLayer A to Layer A Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "AnaLayer A to Layer B" = {
+    nxp = 7;            // Number of horizontal pixels in each patch
+    nyp = 7;            // Number of vertical pixels in each patch
+    nfp = 128;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1;    // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "Layer B to AnaLayer A Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer B to ParaLayer B" = {
+    nxp = 7;            // Number of horizontal pixels in each patch
+    nyp = 7;            // Number of vertical pixels in each patch
+    nfp = 128;          // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    // strength = 1.0;    // Used in Gaussian weights and normalizeWeights
+    // aspect = 1;         // Used in Gaussian weights: aspect ratio
+    // sigma = 1;          // Used in Gaussian weights: standard deviation
+    // rMax = 1;           // Used in Gaussian weights
+    // numFlanks = 1;      // Used in Gaussian weights
+    // flankShift = 0;     // Used in Gaussian weights
+    // rotate = 1;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "ParaLayer B to Layer B Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer B to AnaLayer B" = {
+    nxp = 1;            // Number of horizontal pixels in each patch
+    nyp = 1;            // Number of vertical pixels in each patch
+    nfp = 128;            // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1.0;     // Used in Gaussian weights and normalizeWeights
+    aspect = 1;         // Used in Gaussian weights: aspect ratio
+    sigma = 1;          // Used in Gaussian weights: standard deviation
+    rMax = 1;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+};
+
+HyPerConn "AnaLayer B to Layer B Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+                 
+HyPerConn "AnaLayer B to Layer C" = {
+    nxp = 5;            // Number of horizontal pixels in each patch
+    nyp = 5;            // Number of vertical pixels in each patch
+    nfp = 512;          // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1;    // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "Layer C to AnaLayer B Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer C to ParaLayer C" = {
+    nxp = 3;            // Number of horizontal pixels in each patch
+    nyp = 3;            // Number of vertical pixels in each patch
+    nfp = 512;          // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1;    // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "ParaLayer C to Layer C Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "Layer C to AnaLayer C" = {
+    nxp = 1;            // Number of horizontal pixels in each patch
+    nyp = 1;            // Number of vertical pixels in each patch
+    nfp = 512;          // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1;    // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "AnaLayer C to Layer C Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
+
+HyPerConn "AnaLayer C to IT" = {
+    nxp = 3;            // Number of horizontal pixels in each patch
+    nyp = 3;            // Number of vertical pixels in each patch
+    nfp = 1;          // Number of features in each patch
+
+    stdpFlag = 0;       // Whether to use spike timing dependent plasticity
+    // ampLTP           // Used to update plasticity increment pIncr
+    // ampLTD           // Used to update plasticity decrement pDecr
+    // tauLTP           // Used to update plasticity increment pIncr
+    // tauLTD           // Used to update plasticity decrement pDecr
+    
+    strength = 1;    // Used in Gaussian weights and normalizeWeights
+    aspect = 7;         // Used in Gaussian weights: aspect ratio
+    sigma = 7;          // Used in Gaussian weights: standard deviation
+    rMax = 7;           // Used in Gaussian weights
+    numFlanks = 1;      // Used in Gaussian weights
+    flankShift = 0;     // Used in Gaussian weights
+    rotate = 0;         // Used in Gaussian weights
+    
+    // wMax             // Used in updating weight patches
+                        // If wMax is not present and strength is, use strength for wMax
+    // wMin             // Used in updating weight patches
+    // dWMax            // Used in updating weight patches
+    
+    // normalize        // Whether to normalize weights during initialization
+    // normalize_max    // Used to normalize if normalize flag is set
+    // normalize_zero_offset  // Used to normalize if normalize flag is set
+    
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    
+    randomFlag = 0;     // Whether to initialize with random weights
+    // uniformWeights   // If initializing w/ random weights, use uniform dist.
+    // gaussianWeights  // If initializing w/ random weights, use Gaussian dist.
+                        // Exactly one of uniformWeights and gaussianWeights
+                        // must be set (Defaults are U=true, G=false)
+    // wMinInit         // For uniform dist. random weights, the minimum value
+    // wMaxInit         // For uniform dist. random weights, the maximum value
+    // wGaussMean       // For Gaussian dist. random weights, the mean
+    // wGaussStdev      // For Gaussian dist. random weights, the std. dev.
+    
+    smartWeights = 0;   // Whether to call HyPerConn::smartWeights.
+
+    // writeStep        // How often to write updates; not used yet
+    // delay            // Doesn't appear to be used
+    // fixDelay         // Doesn't appear to be used
+    // vel              // Doesn't appear to be used
+    // rmin             // Doesn't appear to be used
+    // rmax             // Doesn't appear to be used
+    // varDelayMin      // Doesn't appear to be used
+    // varDelayMax      // Doesn't appear to be used
+    // numDelay         // Not used as params->numDelay is set to
+                        // params->varDelayMax - params->varDelayMin + 1,
+                        // and then params->numDelay isn't used anyway
+    // isGraded         // Doesn't appear to be used
+    
+    // no               // Doesn't appear to be used
+    
+    symmetrizeWeights = 0; // Whether to use symmetrizeWeights
+
+    weightUpdatePeriod = 10.0; // Period between updating the weights
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+};
+
+HyPerConn "IT to AnaLayer C Feedback" = {
+    initFromLastFlag = 0; // Whether to initialize wgts w/ previous run's data
+    // For feedback connections, other parameters will be inferred from the
+    // associated feedforward connection 
+};
