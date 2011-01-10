@@ -150,9 +150,10 @@ int LIF::initialize(PVLayerType type)
       nxl = 1;  nyl = 1;
    }
    else {
-      nxl = 16; nyl = 16;
+      nxl = 16; nyl = 8;
    }
 
+   numWait = 0;
    numEvents = NUM_LIF_EVENTS;
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
    assert(evList != NULL);
@@ -210,7 +211,7 @@ int LIF::initializeThreadKernels()
    CLDevice * device = parent->getCLDevice();
 
    sprintf(kernelPath, "%s/src/kernels/LIF_update_state.cl", parent->getPath());
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -I %s/src/kernels/", parent->getPath());
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
 
    // create kernels
    //
@@ -297,7 +298,7 @@ int LIF::updateStateOpenCL(float time, float dt)
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
-   for (int i = 1; i < numWait; i++) {
+   for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
