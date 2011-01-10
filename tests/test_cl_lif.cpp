@@ -1,7 +1,6 @@
 #include <OpenCL/opencl.h>
 
 #undef PV_USE_OPENCL
-#define PV_CL_IMPL
 
 #include "../src/columns/HyPerCol.hpp"
 #include "../src/layers/LIF.hpp"
