@@ -26,16 +26,4 @@ public:
 
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int PV_LGN_recvSynapticInput(PVLayer * layer, PVLayer * lSource, int nActivity,
-                             float * fActivity, int nActive, int * activeIndices);
-int PV_LGN_updateState(PVLayer * layer);
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* LGN_HPP_ */
