@@ -275,24 +275,9 @@ int Movie::copyReducedImagePortion()
  */
 int Movie::randomFrame()
 {
-   const PVLayerLoc * loc = getLayerLoc();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-   const int nb = loc->nb;
-
-
-   int numActive = 0;
    for (int kex = 0; kex < clayer->numExtended; kex++) {
-      const int k = kIndexRestricted(kex, nx, ny, nf, nb);
       data[kex] = (pv_random_prob() < randomMovieProb) ? 1: 0;
-      if (k > 0 && data[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = k;
-      }
    }
-   clayer->numActive = numActive;
-
    return 0;
 }
 
