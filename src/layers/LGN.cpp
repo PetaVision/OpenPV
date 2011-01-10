@@ -40,7 +40,6 @@ int LGN::updateState(float time, float dt)
 
    // make sure activity in border is zero
    //
-   // TODO - set numActive and active list?
    for (int k = 0; k < clayer->numExtended; k++) {
       activity[k] = 0.0;
    }
