@@ -8,7 +8,8 @@
 #ifndef PV_USE_OPENCL
 
 #  include <math.h>
-#  define EXP expf
+#  define EXP  expf
+#  define COS  cosf
 #  define FMOD fmodf
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
