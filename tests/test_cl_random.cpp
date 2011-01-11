@@ -1,5 +1,3 @@
-#include <OpenCL/opencl.h>
-
 #undef PV_USE_OPENCL
 
 #include "../src/arch/opencl/CLDevice.hpp"
@@ -132,6 +130,9 @@ int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
                 k, state.s0, rnd_state[k].s0);
          return 1;
       }
+      float p1 = (float) ((float)  state.s0 / (float)  4294967296.0);
+      float p2 = (float) ((double) state.s0 / (double) 4294967296.0);
+      if (p1 != p2) printf("check_results[%d]: %f %f\n", k, p1, p2);
    }
    return 0;
 }
