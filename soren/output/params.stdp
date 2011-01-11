@@ -19,12 +19,12 @@ HyPerCol "column" = {
 
 HyPerLayer "Image" = {
    width = 8;
-   height = 5;
+   height = 8;
    prefPosition = 1;
    marginWidth = 2; //CER 2;
    pMove = 0.1; //0.025; // CER 0.03125;  // every 16 ms
    pSwitch = 0.1; //0.025;    // switch between horizontal and vertical
-   writeImages = 1;  // write out image file when changes   
+   writeImages = 0;  // write out image file when changes   
 };
 
 HyPerLayer "RetinaOn" = {
@@ -67,11 +67,10 @@ HyPerLayer "L1" = {
    
    //restart = 1;
 
-   marginWidth = 2; //CER 3;
-   
+   marginWidth = 0;
 
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpE = 0.3;
+   noiseAmpI = 0.3;
    noiseAmpIB = 0.0;
    Vrest = -70.0; //Change VthRest Variable
    Vexc = 0.0;
@@ -84,8 +83,6 @@ HyPerLayer "L1" = {
    VthRest = -55.0; //Vrest + 15.0
    tauVth = 10.0;
    deltaVth = 5.0;
-
-
 };
 
 HyPerLayer "L1Inh" = {
@@ -94,10 +91,8 @@ HyPerLayer "L1Inh" = {
 
    marginWidth = 0; // 2; // 4;
    
-
-
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;
+   noiseAmpE = 0.3;
+   noiseAmpI = 0.3;
    noiseAmpIB = 0.0;
    Vrest = -70.0;
    Vexc = 0.0;
