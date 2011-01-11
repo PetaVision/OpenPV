@@ -4,7 +4,9 @@ SRCDIR = $(PVDIR)/src
 LIBDIR = $(PVDIR)/lib
 MPIDIR =
 BUILDDIR = Debug
+
 INCDIR := $(PVDIR)
+PVLIB  := -L$(PVDIR)/lib
 
 # flags
 #
@@ -29,7 +31,7 @@ EXES = $(BUILDDIR)/$(TARGET)
 
 all: $(OBJS) $(EXES)
 
-$(BUILDDIR)/$(TARGET): $(BUILDDIR)/$(TARGET).o $(OBJS) $(LIBDIR)/libpv.a
+$(BUILDDIR)/$(TARGET): $(BUILDDIR)/$(TARGET).o $(OBJS)
 	$(CPP) -o $@ $< $(OBJS) -L$(LIBDIR) $(LIBS)
 
 $(BUILDDIR)/$(TARGET).o: $(TARGET).cpp
