@@ -46,9 +46,36 @@ int CLDevice::initialize(int device)
    int status = 0;
 
 #ifdef PV_USE_OPENCL
+   // get list of available platforms
+   //
+   cl_uint num_platforms;
+   cl_platform_id platforms[2];
+
+   size_t name_size = 63;
+   char platform_name[64];
+
+   status = clGetPlatformIDs(2, platforms, &num_platforms);
+   if (status != CL_SUCCESS) {
+      printf("Error: Failed to get platform ids!\n");
+      print_error_code(status);
+      exit(status);
+   }
+   if (num_platforms > 1) {
+      printf("Warning: number of platforms is %d\n", num_platforms);
+   }
+
+   // get info about the platform
+   //
+   status = clGetPlatformInfo(platforms[0], CL_PLATFORM_NAME, name_size, platform_name, &name_size);
+   if (status != CL_SUCCESS) {
+      printf("Error: Failed to get platform info!\n");
+      print_error_code(status);
+      exit(status);
+   }
+
    // get number of devices available
    //
-   status = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, MAX_DEVICES, device_ids, &num_devices);
+   status = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, MAX_DEVICES, device_ids, &num_devices);
    if (status != CL_SUCCESS) {
       printf("Error: Failed to find a device group!\n");
       print_error_code(status);
