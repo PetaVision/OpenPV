@@ -4,21 +4,97 @@ GDALDIR = /usr/local
 
 include $(SRCDIR)/include/sources.mk
 
-CC = mpicc
-CPP = mpic++
-#CC = gcc
-#CPP = g++
+# flags
+#
+dbg := 0
+mpi := 0
 
-INCLUDES = -I. -I$(GDALDIR)/include
-LIBS = -L $(GDALDIR)/lib -lgdal
+# detect OS                                                                               
+OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
+OSLOWER = $(shell uname -s 2>/dev/null | tr [:upper:] [:lower:])
+# 'linux' is output for Linux system, 'darwin' for OS X                                   
+DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
+
+# detect architecture
+OSARCH= $(shell uname -m)
+
+INCDIR  ?= .
+
+ifeq ($(DARWIN),)
+   SDKROOTDIR   := /home/rasmussn/local/NVIDIA_GPU_Computing_SDK
+   LIBDIR       := $(SDKROOTDIR)/shared/lib/
+   SHAREDDIR    := $(SDKROOTDIR)/shared/
+   SHAREDLIBDIR := $(SDKROOTDIR)/shared/lib/linux
+   OCLROOTDIR   := $(SDKROOTDIR)/OpenCL/
+   OCLCOMMONDIR := $(OCLROOTDIR)/common/
+   OCLLIBDIR    := $(OCLCOMMONDIR)/lib
+endif
+
+# Compilers
+ifeq ($(mpi),1)
+   CC  := mpicc
+   CPP := mpic++
+else
+   CC  := cc
+   CPP := c++
+endif
+LINK   := $(CPP) -fPIC
+
+# Includes
+ifeq ($(DARWIN),1)
+   INCLUDES += -I$(INCDIR)
+else
+   INCLUDES += -I$(INCDIR) -I$(OCLCOMMONDIR)/inc -I$(SHAREDDIR)/inc
+endif
+INCLUDES += -I$(GDALDIR)/include
+
+# Warning flags
+CWARN_FLAGS := -W
+
+# architecture flag for nvcc and gcc compilers build
+LIB_ARCH := $(OSARCH)
+
+ifeq ($(DARWIN),)
+   ARCH_FLAGS += -m64
+else
+   ARCH_FLAGS += -m64
+endif
+
+# Compiler-specific flags
+CFLAGS   := $(CWARN_FLAGS) $(ARCH_FLAGS)
+LINK     += $(ARCH_FLAGS)
+
+# Common flags
+COMMONFLAGS += -DUNIX
+
+# Add Mac Flags
+ifeq ($(DARWIN),1)
+   COMMONFLAGS += -DMAC
+endif
+
+# Debug/release configuration
+ifeq ($(dbg),1)
+   COMMONFLAGS += -g
+else
+   COMMONFLAGS += -O3
+   CFLAGS      += -fno-strict-aliasing
+endif
+
+# Libs
+ifneq ($(DARWIN),)
+   LIBS := -framework OpenCL
+else
+   LIBS := -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
+   LIBS += -lOpenCL
+endif
+LIBS += -L $(GDALDIR)/lib -lgdal
+
+# Add common flags
+CFLAGS   += $(INCLUDES) $(COMMONFLAGS) -DHAS_MAIN=1
+CPPFLAGS := $(CFLAGS)
+CFLAGS   += -std=c99
 
 MAKE = make
-
-# VEC_FLAGS = -ftree-vectorize -ftree-vectorizer-verbose=2
-CFLAGS = -g -std=c99 -Wall $(INCLUDES) $(VEC_FLAGS) -DHAS_MAIN=1
-CPPFLAGS = -g -Wall $(INCLUDES) $(VEC_FLAGS) -DHAS_MAIN=1
-
-#EXES = pv_example
 
 %.o: %.cpp
 	@echo 'Building file: $<'
