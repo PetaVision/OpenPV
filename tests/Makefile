@@ -1,22 +1,100 @@
 SRCDIR = ../src
 BUILDDIR = build
-GDALDIR = /opt/local/lib 
+GDALDIR = /opt/local
 #GDALDIR = /usr/local
 LIBPV = ../lib/libpv.a
 
 INPARAMS = input/params.test
 
-CPP = mpic++
-CC  = mpicc
-#CPP = c++
-#CC  = cc
+# flags
+#
+dbg := 0
+mpi := 0
 
-CFLAGS = -g -std=c99 -Wall -I../src
-CPPFLAGS = -g -Wall -I../src
+# detect OS                                                                               
+OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
+OSLOWER = $(shell uname -s 2>/dev/null | tr [:upper:] [:lower:])
+# 'linux' is output for Linux system, 'darwin' for OS X                                   
+DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
 
-LIBS = $(LIBPV) -L$(GDALDIR) -lgdal
+# detect architecture
+OSARCH= $(shell uname -m)
 
-CL_LD_FLAGS = -framework OpenCL
+INCDIR  ?= .
+
+ifeq ($(DARWIN),)
+   SDKROOTDIR   := /home/rasmussn/local/NVIDIA_GPU_Computing_SDK
+   LIBDIR       := $(SDKROOTDIR)/shared/lib/
+   SHAREDDIR    := $(SDKROOTDIR)/shared/
+   SHAREDLIBDIR := $(SDKROOTDIR)/shared/lib/linux
+   OCLROOTDIR   := $(SDKROOTDIR)/OpenCL/
+   OCLCOMMONDIR := $(OCLROOTDIR)/common/
+   OCLLIBDIR    := $(OCLCOMMONDIR)/lib
+endif
+
+# Compilers
+ifeq ($(mpi),1)
+   CC  := mpicc
+   CPP := mpic++
+else
+   CC  := cc
+   CPP := c++
+endif
+LINK   := $(CPP) -fPIC
+
+# Includes
+ifeq ($(DARWIN),1)
+   INCLUDES += -I$(INCDIR)
+else
+   INCLUDES += -I$(INCDIR) -I$(OCLCOMMONDIR)/inc -I$(SHAREDDIR)/inc
+endif
+INCLUDES += -I$(GDALDIR)/include
+
+# Warning flags
+CWARN_FLAGS := -W
+
+# architecture flag for nvcc and gcc compilers build
+LIB_ARCH := $(OSARCH)
+
+ifeq ($(DARWIN),)
+   ARCH_FLAGS += -m64
+else
+   ARCH_FLAGS += -m64
+endif
+
+# Compiler-specific flags
+CFLAGS   := $(CWARN_FLAGS) $(ARCH_FLAGS)
+LINK     += $(ARCH_FLAGS)
+
+# Common flags
+COMMONFLAGS += -DUNIX
+
+# Add Mac Flags
+ifeq ($(DARWIN),1)
+   COMMONFLAGS += -DMAC
+endif
+
+# Debug/release configuration
+ifeq ($(dbg),1)
+   COMMONFLAGS += -g
+else
+   COMMONFLAGS += -O3
+   CFLAGS      += -fno-strict-aliasing
+endif
+
+# Libs
+ifneq ($(DARWIN),)
+   LIBS := -framework OpenCL
+else
+   LIBS := -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
+   LIBS += -lOpenCL
+endif
+LIBS += $(LIBPV) -L$(GDALDIR)/lib -lgdal
+
+# Add common flags
+CFLAGS   += $(INCLUDES) $(COMMONFLAGS) -DHAS_MAIN=1
+CPPFLAGS := $(CFLAGS)
+CFLAGS   += -std=c99
 
 CLASS_OBJS = $(BUILDDIR)/Example.o
 
@@ -67,10 +145,10 @@ test_image_io: $(BUILDDIR)/test_image_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_cl_random: $(BUILDDIR)/test_cl_random.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS) $(CL_LD_FLAGS)
+	$(CPP) -o $@ $< $(LIBS)
 
 test_cl_lif: $(BUILDDIR)/test_cl_lif.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS) $(CL_LD_FLAGS)
+	$(CPP) -o $@ $< $(LIBS)
 
 test_weights_io: $(BUILDDIR)/test_weights_io.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
@@ -84,7 +162,7 @@ test_kxpos: $(BUILDDIR)/test_kxpos.o $(PVLIB)
 test_kypos: $(BUILDDIR)/test_kypos.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
-test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o  $(PVLIB)
+test_nearby_neighbor: $(BUILDDIR)/test_nearby_neighbor.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
 
 test_delta_pos: $(BUILDDIR)/test_delta_pos.o $(PVLIB)
