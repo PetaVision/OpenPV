@@ -13,7 +13,7 @@
 #include "../src/layers/Image.hpp"
 #include "../src/layers/Retina.hpp"
 #include "../src/connections/HyPerConn.hpp"
-#include "../src/layers/V1.hpp"
+#include "../src/layers/LIF.hpp"
 #include "../src/io/PointProbe.hpp"
 
 #include <assert.h>
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
    Image * image   = new Image("test_border_activity image", hc, image_file);
 //   Retina * retina = new Retina("test_border_activity retina", hc, image);
    Retina * retina = new Retina("test_border_activity retina", hc);
-   V1     * l1     = new V1("test_border_activity layer", hc);
+   LIF    * l1     = new LIF("test_border_activity layer", hc);
 
    new HyPerConn("test_border_activity connection 1", hc, image, retina, CHANNEL_EXC);
    new HyPerConn("test_border_activity connection 2", hc, retina, l1, CHANNEL_EXC);
