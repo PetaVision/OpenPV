@@ -8,8 +8,9 @@ INPARAMS = input/params.test
 
 # flags
 #
-dbg := 0
-mpi := 0
+dbg  := 0
+mpi  := 0
+gdal := 1
 
 # detect OS                                                                               
 OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
@@ -23,7 +24,7 @@ OSARCH= $(shell uname -m)
 INCDIR  ?= .
 
 ifeq ($(DARWIN),)
-   SDKROOTDIR   := /home/rasmussn/local/NVIDIA_GPU_Computing_SDK
+   SDKROOTDIR   := /opt/local/NVIDIA_GPU_Computing_SDK
    LIBDIR       := $(SDKROOTDIR)/shared/lib/
    SHAREDDIR    := $(SDKROOTDIR)/shared/
    SHAREDLIBDIR := $(SDKROOTDIR)/shared/lib/linux
@@ -48,7 +49,9 @@ ifeq ($(DARWIN),1)
 else
    INCLUDES += -I$(INCDIR) -I$(OCLCOMMONDIR)/inc -I$(SHAREDDIR)/inc
 endif
-INCLUDES += -I$(GDALDIR)/include
+ifeq ($(gdal),1)
+  INCLUDES += -I$(GDALDIR)/include
+endif
 
 # Warning flags
 CWARN_FLAGS := -W
@@ -67,11 +70,10 @@ CFLAGS   := $(CWARN_FLAGS) $(ARCH_FLAGS)
 LINK     += $(ARCH_FLAGS)
 
 # Common flags
-COMMONFLAGS += -DUNIX
-
-# Add Mac Flags
-ifeq ($(DARWIN),1)
+ifeq ($(DARWIN),0)
    COMMONFLAGS += -DMAC
+else
+   COMMONFLAGS += -DUNIX
 endif
 
 # Debug/release configuration
@@ -84,12 +86,14 @@ endif
 
 # Libs
 ifneq ($(DARWIN),)
-   LIBS := -framework OpenCL
+   LIBS := $(LIBPV) -framework OpenCL
 else
-   LIBS := -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
+   LIBS := $(LIBPV) -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
    LIBS += -lOpenCL
 endif
-LIBS += $(LIBPV) -L$(GDALDIR)/lib -lgdal
+ifeq ($(gdal),1)
+   LIBS += -L$(GDALDIR)/lib -lgdal
+endif
 
 # Add common flags
 CFLAGS   += $(INCLUDES) $(COMMONFLAGS) -DHAS_MAIN=1
