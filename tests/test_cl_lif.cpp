@@ -1,5 +1,3 @@
-#include <OpenCL/opencl.h>
-
 #undef PV_USE_OPENCL
 
 #include "../src/columns/HyPerCol.hpp"
