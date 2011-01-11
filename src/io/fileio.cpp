@@ -373,7 +373,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
    params[INDEX_NB]          = loc->nb;
-   params[INDEX_NF]          = loc->nf;
+   params[INDEX_NBANDS]          = loc->nf;
 
    timeToParams(time, &params[INDEX_TIME]);
 
