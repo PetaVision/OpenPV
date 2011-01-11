@@ -138,7 +138,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    int locBuf[locSize];
 
    // LayerLoc should contain 8 ints
-   assert(locSize == 8);
+   assert(locSize == 12);
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
