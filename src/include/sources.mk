@@ -24,7 +24,6 @@ HEADERS = $(SRCDIR)/arch/opencl/CLBuffer.hpp \
           $(SRCDIR)/layers/Movie.hpp \
           $(SRCDIR)/layers/PVLayer.h \
           $(SRCDIR)/io/ConnectionProbe.hpp \
-          $(SRCDIR)/io/GLDisplay.hpp \
           $(SRCDIR)/io/LayerProbe.hpp \
           $(SRCDIR)/io/LinearActivityProbe.hpp \
           $(SRCDIR)/io/PointProbe.hpp \
@@ -63,7 +62,6 @@ CPPSRCS = $(SRCDIR)/arch/CLBuffer.cpp \
           $(SRCDIR)/layers/Retina.cpp \
           $(SRCDIR)/layers/LIF.cpp \
           $(SRCDIR)/io/ConnectionProbe.cpp \
-          $(SRCDIR)/io/GLDisplay.cpp \
           $(SRCDIR)/io/LayerProbe.cpp \
           $(SRCDIR)/io/LinearActivityProbe.cpp \
           $(SRCDIR)/io/PointProbe.cpp \
@@ -98,7 +96,6 @@ CPPOBJS = $(BUILDDIR)/CLBuffer.o \
           $(BUILDDIR)/Retina.o \
           $(BUILDDIR)/LIF.o \
           $(BUILDDIR)/ConnectionProbe.o \
-          $(BUILDDIR)/GLDisplay.o \
           $(BUILDDIR)/LayerProbe.o \
           $(BUILDDIR)/LinearActivityProbe.o \
           $(BUILDDIR)/PointProbe.o \
