@@ -116,9 +116,10 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numCha
       l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
    }
 
-   for (k = 0; k < numNeurons; k++){
-      l->V[k] = V_REST;
-   }
+   // l->V[k] is initialized in initialize_base()
+   // for (k = 0; k < numNeurons; k++){
+   //    l->V[k] = V_REST;
+   // }
 
    return 0;
 }

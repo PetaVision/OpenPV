@@ -135,6 +135,11 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
+   float Vrest = params->value(name, "Vrest", V_REST);
+   for (int k = 0; k < this->getNumNeurons(); k++){
+      getV()[k] = Vrest;
+   }
+
    clayer->layerType = TypeGeneric;
 
    for (int m = 1; m < MAX_CHANNELS; m++) {
