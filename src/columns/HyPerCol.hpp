@@ -30,6 +30,7 @@ class HyPerCol {
 
 public:
 
+   HyPerCol(const char * name, int argc, char * argv[]);
    HyPerCol(const char* name, int argc, char* argv[], const char * path);
    virtual ~HyPerCol();
 
@@ -104,6 +105,7 @@ public:
    int outputState(float time);
 
 private:
+   int initializeCol(const char * name, int argc, char ** argv);
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus);
 

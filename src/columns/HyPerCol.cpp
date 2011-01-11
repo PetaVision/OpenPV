@@ -25,76 +25,19 @@
 
 namespace PV {
 
+HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
+         : warmStart(false), isInitialized(false)
+{
+   initializeCol(name, argc, argv);
+}
+
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], const char * pv_path)
          : warmStart(false), isInitialized(false)
 {
-   int opencl_device = 1;  // default to CPU for now
-
-   // TODO - fix these numbers to dynamically grow
-   maxLayers = MAX_LAYERS;
-   maxConnections = MAX_CONNECTIONS;
-
-   this->name = strdup(name);
-   this->runTimer = new Timer();
-
-   path = (char *) malloc(1+PV_PATH_MAX);
-   assert(path != NULL);
-   path = getcwd(path, PV_PATH_MAX);
+   initializeCol(name, argc, argv);
    assert(strlen(path) + strlen(pv_path) < PV_PATH_MAX);
    sprintf(path, "%s/%s", path, pv_path);
 
-   char * param_file;
-   simTime = 0;
-   numLayers = 0;
-   numConnections = 0;
-   layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
-   connections = (HyPerConn **) malloc(maxConnections * sizeof(HyPerConn *));
-
-   numSteps = 2;
-   image_file = NULL;
-   param_file = NULL;
-   unsigned long random_seed = 0;
-   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device, &random_seed);
-
-   // run only on CPU for now
-   initializeThreads(opencl_device);
-
-   // estimate for now
-   // TODO -get rid of maxGroups
-   int maxGroups = 2*(maxLayers + maxConnections);
-   params = new PVParams(param_file, maxGroups);
-
-   icComm = new InterColComm(&argc, &argv);
-
-   // initialize random seed
-   //
-   random_seed = getRandomSeed();
-   random_seed = params->value(name, "randomSeed", random_seed);
-   pv_srandom(random_seed);
-
-   if (param_file != NULL) free(param_file);
-
-   deltaTime = DELTA_T;
-   if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
-
-   int status = -1;
-   if (image_file) {
-      status = getImageInfo(image_file, icComm, &imageLoc);
-   }
-
-   if (status) {
-      imageLoc.nxGlobal = (int) params->value(name, "nx");
-      imageLoc.nyGlobal = (int) params->value(name, "ny");
-
-      // set loc based on global parameters and processor partitioning
-      //
-      setLayerLoc(&imageLoc, 1.0f, 1.0f, 0, 1);
-   }
-
-   runDelegate = NULL;
-
-   numProbes = 0;
-   probes = NULL;
 }
 
 HyPerCol::~HyPerCol()
@@ -153,6 +96,78 @@ int HyPerCol::initFinish(void)
    isInitialized = true;
 
    return status;
+}
+
+int HyPerCol::initializeCol(const char * name, int argc, char ** argv)
+{
+
+   int opencl_device = 1;  // default to CPU for now
+
+   // TODO - fix these numbers to dynamically grow
+   maxLayers = MAX_LAYERS;
+   maxConnections = MAX_CONNECTIONS;
+
+   this->name = strdup(name);
+   this->runTimer = new Timer();
+
+   path = (char *) malloc(1+PV_PATH_MAX);
+   assert(path != NULL);
+   path = getcwd(path, PV_PATH_MAX);
+
+   char * param_file;
+   simTime = 0;
+   numLayers = 0;
+   numConnections = 0;
+   layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
+   connections = (HyPerConn **) malloc(maxConnections * sizeof(HyPerConn *));
+
+   numSteps = 2;
+   image_file = NULL;
+   param_file = NULL;
+   unsigned long random_seed = 0;
+   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device, &random_seed);
+
+   // run only on CPU for now
+   initializeThreads(opencl_device);
+
+   // estimate for now
+   // TODO -get rid of maxGroups
+   int maxGroups = 2*(maxLayers + maxConnections);
+   params = new PVParams(param_file, maxGroups);
+
+   icComm = new InterColComm(&argc, &argv);
+
+   // initialize random seed
+   //
+   random_seed = getRandomSeed();
+   random_seed = params->value(name, "randomSeed", random_seed);
+   pv_srandom(random_seed);
+
+   if (param_file != NULL) free(param_file);
+
+   deltaTime = DELTA_T;
+   if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
+
+   int status = -1;
+   if (image_file) {
+      status = getImageInfo(image_file, icComm, &imageLoc);
+   }
+
+   if (status) {
+      imageLoc.nxGlobal = (int) params->value(name, "nx");
+      imageLoc.nyGlobal = (int) params->value(name, "ny");
+
+      // set loc based on global parameters and processor partitioning
+      //
+      setLayerLoc(&imageLoc, 1.0f, 1.0f, 0, 1);
+   }
+
+   runDelegate = NULL;
+
+   numProbes = 0;
+   probes = NULL;
+
+   return EXIT_SUCCESS;
 }
 
 int HyPerCol::columnId()
