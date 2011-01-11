@@ -54,7 +54,7 @@ cl_random_state(uint4 state)
 
 static inline float cl_random_prob(uint4 state)
 {
-   return (float) ((double) state.s0 / (double) 4294967296.0);
+   return (float) ((float) state.s0 / (float) 4294967296.0);
 }
 
 
