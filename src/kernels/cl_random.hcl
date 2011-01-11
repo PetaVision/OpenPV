@@ -48,5 +48,7 @@ cl_taus_get(uint4 state)
 
 static inline float cl_random_prob(uint4 state)
 {
-   return (float) ((double) state.s0 / (double) 4294967296.0);
+   // changed (double) cast to (float) cast
+   // hopefully this works, it is (partially) tested in tests/test_cl_random
+   return (float) ((float) state.s0 / (float) 4294967296.0);
 }
