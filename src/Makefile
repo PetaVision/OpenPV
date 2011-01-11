@@ -21,7 +21,7 @@ OSARCH= $(shell uname -m)
 INCDIR  ?= .
 
 ifeq ($(DARWIN),)
-   SDKROOTDIR   := /home/rasmussn/local/NVIDIA_GPU_Computing_SDK
+   SDKROOTDIR   := /opt/local/NVIDIA_GPU_Computing_SDK
    LIBDIR       := $(SDKROOTDIR)/shared/lib/
    SHAREDDIR    := $(SDKROOTDIR)/shared/
    SHAREDLIBDIR := $(SDKROOTDIR)/shared/lib/linux
