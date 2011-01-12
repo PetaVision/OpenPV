@@ -14,10 +14,10 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     initialize_base();
     initialize(name, hc, pre, post, channel);
-}  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
+}  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
     // no IdentConn-specific data members to initialize
@@ -27,8 +27,8 @@ int IdentConn::initialize_base() {
 int IdentConn::setPatchSize(const char * filename) {
     PVLayerLoc preLoc = pre->getCLayer()->loc;
     PVLayerLoc postLoc = post->getCLayer()->loc;
-    int nfPre = pre->getCLayer()->numFeatures;
-    int nfPost = post->getCLayer()->numFeatures;
+    int nfPre = pre->getLayerLoc()->nf;
+    int nfPost = post->getLayerLoc()->nf;
     if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny || nfPre != nfPost ) {
         fprintf( stderr,
                  "IdentConn Error: %s and %s do not have the same dimensions\n",

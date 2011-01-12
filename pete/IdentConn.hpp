@@ -17,7 +17,7 @@ namespace PV {
 class IdentConn : public KernelConn {
 public:
     IdentConn();
-    IdentConn(const char * name, HyPerCol *hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+    IdentConn(const char * name, HyPerCol *hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     int initialize_base();
     virtual int updateWeights(int axonID) {return EXIT_SUCCESS;}
 

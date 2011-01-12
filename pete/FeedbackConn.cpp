@@ -13,7 +13,7 @@ FeedbackConn::FeedbackConn() {
     initialize_base();
 }
 
-FeedbackConn::FeedbackConn(const char * name, HyPerCol *hc, int channel, GenerativeConn * ffconn) {
+FeedbackConn::FeedbackConn(const char * name, HyPerCol *hc, ChannelType channel, GenerativeConn * ffconn) {
     initialize_base();
     initialize(name, hc, channel, NULL, ffconn);
 }  // end of FeedbackConn::FeedbackConn(const char *, HyPerCol *, int, GenerativeConn *)
@@ -24,7 +24,7 @@ int FeedbackConn::initialize_base() {
 }
 
 int FeedbackConn::initialize(const char * name, HyPerCol * hc,
-            int channel, const char * filename, GenerativeConn * ffconn) {
+            ChannelType channel, const char * filename, GenerativeConn * ffconn) {
     feedforwardConn = ffconn;
     GenerativeConn::initialize(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), channel, filename);
 
@@ -56,7 +56,7 @@ int FeedbackConn::setPatchSize(const char * filename) {
         nyp /= (int) powf(2,-yscaleDiff);
         assert(feedforwardConn->yPatchSize()==nyp*powf( 2, (float) (-yscaleDiff) ));
     }
-    nfp = post->getCLayer()->numFeatures;
+    nfp = post->getLayerLoc()->nf;
 
     assert( checkPatchSize(nyp, pre->getXScale(), post->getXScale(), 'x') ==
             EXIT_SUCCESS );

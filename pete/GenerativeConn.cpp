@@ -21,14 +21,14 @@ GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
    //   HyPerLayer *, HyPerLayer *)
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
        initialize_base();
        initialize(name, hc, pre, post, channel);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, int)
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
         const char * filename) {
        initialize_base();
        initialize(name, hc, pre, post, channel, filename);
@@ -45,12 +45,12 @@ int GenerativeConn::initialize_base() {
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     return initialize(name, hc, pre, post, channel, NULL);
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
         const char * filename) {
     KernelConn::initialize(name, hc, pre, post, channel, filename);
     weightUpdatePeriod = parent->parameters()->value(name, "weightUpdatePeriod", 1.0f);
@@ -72,10 +72,10 @@ int GenerativeConn::updateWeights(int axonID) {
 
     int nPre = preSynapticLayer()->getNumNeurons();
     for(int kPre=0; kPre<nPre;kPre++) {
-        int nx = preSynapticLayer()->getCLayer()->loc.nx;
-        int ny = preSynapticLayer()->getCLayer()->loc.ny;
-        int nf = preSynapticLayer()->getCLayer()->numFeatures;
-        int pad = preSynapticLayer()->getCLayer()->loc.nPad;
+        int nx = preSynapticLayer()->getLayerLoc()->nx;
+        int ny = preSynapticLayer()->getLayerLoc()->ny;
+        int nf = preSynapticLayer()->getLayerLoc()->nf;
+        int pad = preSynapticLayer()->getLayerLoc()->nb;
         int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
 
         PVAxonalArbor * arbor = axonalArbor(kPre, 0);

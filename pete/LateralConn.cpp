@@ -14,10 +14,10 @@ LateralConn::LateralConn() {
 }  // end of LateralConn::LateralConn()
 
 LateralConn::LateralConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     initialize_base();
     initialize(name, hc, pre, post, channel);
-}  // end of LateralConn::LateralConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
+}  // end of LateralConn::LateralConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int LateralConn::initialize_base() {
     // no LateralConn-specific data members to initialize.
@@ -25,24 +25,24 @@ int LateralConn::initialize_base() {
 }  // end of LateralConn::initialize_base()
 
 int LateralConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     return initialize(name, hc, pre, post, channel, NULL);
 }
 
 int LateralConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel, const char * filename) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
 
-    PVLayerLoc preLoc = pre->getCLayer()->loc;
-    PVLayerLoc postLoc = post->getCLayer()->loc;
-    if( preLoc.nx != postLoc.nx || preLoc.ny != postLoc.ny ||
-            pre->getCLayer()->numFeatures != post->getCLayer()->numFeatures ) {
+    const PVLayerLoc * preLoc = pre->getLayerLoc();
+    const PVLayerLoc * postLoc = post->getLayerLoc();
+    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny ||
+            preLoc->nf != postLoc->nf ) {
         fprintf( stderr,
                  "LateralConn Error: %s and %s do not have the same dimensions\n",
                  pre->getName(),post->getName() );
         exit(1);
     }
     GenerativeConn::initialize(name, hc, pre, post, channel, filename);
-	int prePad = pre->getLayerLoc()->nPad;
+	int prePad = pre->getLayerLoc()->nb;
 	int xPatchHead = zPatchHead(0, nxp, 0, 0);
 	int yPatchHead = zPatchHead(0, nyp, 0, 0);
 	if( -xPatchHead > prePad || -yPatchHead > prePad) {
@@ -54,19 +54,19 @@ int LateralConn::initialize(const char * name, HyPerCol * hc,
 	// This should be fixed.
 
     return EXIT_SUCCESS;
-}  // end of LateralConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, int)
+}  // end of LateralConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int LateralConn::updateWeights(int axonID) {
 	const PVLayerLoc * preLoc = pre->getLayerLoc();
 	int nxPre = preLoc->nx;
 	int nyPre = preLoc->ny;
-	int nfPre = pre->getCLayer()->numFeatures;
+	int nfPre = preLoc->nf;
 	const PVLayerLoc * postLoc = post->getLayerLoc();
 	int nxPost = postLoc->nx;
 	int nyPost = postLoc->ny;
-	int nfPost = post->getCLayer()->numFeatures;
+	int nfPost = postLoc->nf;
 	assert(nxPre == nxPost && nyPre == nyPost && nfPre == nfPost);
-	int prePad = preLoc->nPad;
+	int prePad = preLoc->nb;
 	int nxExt = nxPre + 2*prePad;
 	int nyExt = nyPre + 2*prePad;
 	int xPatchHead = zPatchHead(0, nxp, 0, 0);

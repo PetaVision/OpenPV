@@ -20,11 +20,11 @@ namespace PV {
 class FeedbackConn : public GenerativeConn {
 public:
     FeedbackConn();
-    FeedbackConn(const char * name, HyPerCol *hc, int channel,
+    FeedbackConn(const char * name, HyPerCol *hc, ChannelType channel,
         GenerativeConn * ffconn);
 
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, int channel,
+    int initialize(const char * name, HyPerCol * hc, ChannelType channel,
         const char * filename, GenerativeConn * ffconn);
     inline GenerativeConn * getFeedforwardConn() {return feedforwardConn;}
     int updateWeights(int axonID);

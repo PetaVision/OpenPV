@@ -17,10 +17,10 @@ namespace PV {
 class LateralConn : public GenerativeConn {
 public:
     LateralConn();
-    LateralConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
+    LateralConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel);
-    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, int channel, const char * filename);
+    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
     int updateWeights(int axonID);
 
 protected:

@@ -20,17 +20,17 @@ public:
     GenerativeConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post);
     GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel);
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, int channel,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
             const char * filename);
 
     int initialize_base();
     int initialize(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, int channel,
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
             const char * filename);
     int initialize(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, int channel);
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     inline float getWeightUpdatePeriod() {return weightUpdatePeriod;}
     inline float getNextWeightUpdate() { return nextWeightUpdate;}
     inline float getRelaxation() { return relaxation; }

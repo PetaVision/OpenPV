@@ -16,7 +16,7 @@
 #include "../PetaVision/src/layers/Movie.hpp"
 #include "../PetaVision/src/layers/Image.hpp"
 #include "../PetaVision/src/layers/Retina.hpp"
-#include "../PetaVision/src/layers/V1.hpp"
+#include "../PetaVision/src/layers/NonspikingLayer.hpp"
 #include "../PetaVision/src/layers/GeislerLayer.hpp"
 #include "../PetaVision/src/io/ConnectionProbe.hpp"
 #include "../PetaVision/src/io/GLDisplay.hpp"
@@ -100,7 +100,7 @@ int main(int argc, char * argv[]) {
         printf("Enter your selection as a number from 0 to %d: ", NUMROUTINES-1);
         std::cin >> choice;
         if( choice < 0 || choice >= NUMROUTINES ) {
-            fprintf(stderr, "\"%d\" WASN'T ONE OF THE CHOICES! I QUIT!\n", choice);
+            fprintf(stderr, "\"%d\" is out of range.  Exiting.\n", choice);
             exit(EXIT_FAILURE);
         }
         printf("You picked %d.  Excellent choice.\n", choice);
@@ -222,7 +222,7 @@ int setupThreeLayerGenerativeModel(HyPerCol * hc) {
     L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
     retina->insertProbe(l2norm_retina);
 
-    V1 * anaretina = new V1("AnaRetina", hc);
+    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
     L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
     anaretina->insertProbe(l2norm_anaretina);
     hcprobe->addTerm(l2norm_anaretina, anaretina);
@@ -244,7 +244,7 @@ int setupThreeLayerGenerativeModel(HyPerCol * hc) {
 //    ChannelProbe * layerA_inh = new ChannelProbe("layerA_inh.txt", CHANNEL_INH);
 //    layerA->insertProbe(layerA_inh);
 
-    V1 * paralayerA = new V1("ParaLayer A", hc);
+    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
     L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
     paralayerA->insertProbe(l2norm_paralayerA);
     hcprobe->addTerm(l2norm_paralayerA, paralayerA);
@@ -254,7 +254,7 @@ int setupThreeLayerGenerativeModel(HyPerCol * hc) {
 //    ChannelProbe * paralayerA_inh = new ChannelProbe("paralayerA_inh.txt", CHANNEL_INH);
 //    paralayerA->insertProbe(paralayerA_inh);
 
-    V1 * analayerA = new V1("AnaLayer A", hc);
+    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
     L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
     analayerA->insertProbe(l2norm_analayerA);
     hcprobe->addTerm(l2norm_analayerA, analayerA);
@@ -327,7 +327,7 @@ int testCheckPatchSize(HyPerCol * hc) {
     // Layers
     Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
     Retina * retina = new Retina("Retina", hc);
-    V1 * layerA = new GenerativeLayer("Layer A", hc);
+    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
 
     // Connections
     KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
@@ -370,10 +370,10 @@ int testTransposeOfTranspose(HyPerCol * hc, const char * dumpweightsfile) {
     // Layers
     Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
     Retina * retina = new Retina("Retina", hc);
-    V1 * layerA = new V1("Layer A", hc);
-    V1 * layerB1to1 = new V1("Layer B One to one", hc);
-    V1 * layerBManyTo1 = new V1("Layer B Many to one", hc);
-    V1 * layerB1toMany = new V1("Layer B One to many", hc);
+    NonspikingLayer * layerA = new NonspikingLayer("Layer A", hc);
+    NonspikingLayer * layerB1to1 = new NonspikingLayer("Layer B One to one", hc);
+    NonspikingLayer * layerBManyTo1 = new NonspikingLayer("Layer B Many to one", hc);
+    NonspikingLayer * layerB1toMany = new NonspikingLayer("Layer B One to many", hc);
 
     // Connections
     KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
@@ -422,12 +422,10 @@ int testTransposeOfTranspose(HyPerCol * hc, const char * dumpweightsfile) {
 
     GenerativeConn * originalMap1toMany = new GenerativeConn("One to many original map", hc, layerA, layerB1toMany, CHANNEL_EXC);
     assert(originalMap1toMany);
-    FeedbackConn * transpose1toMany = new FeedbackConn("Transpose", hc, CHANNEL_INHB, originalMap1toMany);
+    FeedbackConn * transpose1toMany = new FeedbackConn("One to many transpose", hc, CHANNEL_INHB, originalMap1toMany);
     assert(transpose1toMany);
-    transpose1toMany->setName("One to many transpose");
-    FeedbackConn * transposeOfTranspose1toMany = new FeedbackConn("Transpose", hc, CHANNEL_INHB, transpose1toMany);
+    FeedbackConn * transposeOfTranspose1toMany = new FeedbackConn("One to many transpose of transpose", hc, CHANNEL_INHB, transpose1toMany);
     assert(transposeOfTranspose1toMany);
-    transposeOfTranspose1toMany->setName("One to many transpose of transpose");
 
     int status1toMany = testWeightsEqual(originalMap1toMany, transposeOfTranspose1toMany);
     if(status1toMany == EXIT_SUCCESS) {
@@ -561,7 +559,7 @@ int mnistTrain(HyPerCol * hc) {
     L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
     retina->insertProbe(l2norm_retina);
 
-    V1 * anaretina = new V1("AnaRetina", hc);
+    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
     L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
     anaretina->insertProbe(l2norm_anaretina);
     hcprobe->addTerm(l2norm_anaretina, anaretina);
@@ -573,12 +571,12 @@ int mnistTrain(HyPerCol * hc) {
     layerA->insertProbe(sparsity_layerA);
     hcprobe->addTerm(sparsity_layerA, layerA);
 
-    V1 * paralayerA = new V1("ParaLayer A", hc);
+    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
     L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
     paralayerA->insertProbe(l2norm_paralayerA);
     hcprobe->addTerm(l2norm_paralayerA, paralayerA);
 
-    V1 * analayerA = new V1("AnaLayer A", hc);
+    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
     L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
     analayerA->insertProbe(l2norm_analayerA);
     hcprobe->addTerm(l2norm_analayerA, analayerA);
@@ -590,12 +588,12 @@ int mnistTrain(HyPerCol * hc) {
     layerB->insertProbe(sparsity_layerB);
     hcprobe->addTerm(sparsity_layerB, layerB);
 
-    V1 * paralayerB = new V1("ParaLayer B", hc);
+    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
     L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
     paralayerB->insertProbe(l2norm_paralayerB);
     hcprobe->addTerm(l2norm_paralayerB, paralayerB);
 
-    V1 * analayerB = new V1("AnaLayer B", hc);
+    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
     L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
     analayerB->insertProbe(l2norm_analayerB);
     hcprobe->addTerm(l2norm_analayerB, analayerB);
@@ -607,12 +605,12 @@ int mnistTrain(HyPerCol * hc) {
     layerC->insertProbe(sparsity_layerC);
     hcprobe->addTerm(sparsity_layerC, layerC);
 
-    V1 * paralayerC = new V1("ParaLayer C", hc);
+    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
     L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
     paralayerC->insertProbe(l2norm_paralayerC);
     hcprobe->addTerm(l2norm_paralayerC, paralayerC);
 
-    V1 * analayerC = new V1("AnaLayer C", hc);
+    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
     L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
     analayerC->insertProbe(l2norm_analayerC);
     hcprobe->addTerm(l2norm_analayerC, analayerC);
@@ -696,7 +694,7 @@ int mnistTest(HyPerCol * hc) {
     L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
     retina->insertProbe(l2norm_retina);
 
-    V1 * anaretina = new V1("AnaRetina", hc);
+    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
     L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
     anaretina->insertProbe(l2norm_anaretina);
     hcprobe->addTerm(l2norm_anaretina, anaretina);
@@ -708,12 +706,12 @@ int mnistTest(HyPerCol * hc) {
     layerA->insertProbe(sparsity_layerA);
     hcprobe->addTerm(sparsity_layerA, layerA);
 
-    V1 * paralayerA = new V1("ParaLayer A", hc);
+    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
     L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
     paralayerA->insertProbe(l2norm_paralayerA);
     hcprobe->addTerm(l2norm_paralayerA, paralayerA);
 
-    V1 * analayerA = new V1("AnaLayer A", hc);
+    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
     L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
     analayerA->insertProbe(l2norm_analayerA);
     hcprobe->addTerm(l2norm_analayerA, analayerA);
@@ -725,12 +723,12 @@ int mnistTest(HyPerCol * hc) {
     layerB->insertProbe(sparsity_layerB);
     hcprobe->addTerm(sparsity_layerB, layerB);
 
-    V1 * paralayerB = new V1("ParaLayer B", hc);
+    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
     L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
     paralayerB->insertProbe(l2norm_paralayerB);
     hcprobe->addTerm(l2norm_paralayerB, paralayerB);
 
-    V1 * analayerB = new V1("AnaLayer B", hc);
+    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
     L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
     analayerB->insertProbe(l2norm_analayerB);
     hcprobe->addTerm(l2norm_analayerB, analayerB);
@@ -742,12 +740,12 @@ int mnistTest(HyPerCol * hc) {
     layerC->insertProbe(sparsity_layerC);
     hcprobe->addTerm(sparsity_layerC, layerC);
 
-    V1 * paralayerC = new V1("ParaLayer C", hc);
+    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
     L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
     paralayerC->insertProbe(l2norm_paralayerC);
     hcprobe->addTerm(l2norm_paralayerC, paralayerC);
 
-    V1 * analayerC = new V1("AnaLayer C", hc);
+    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
     L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
     analayerC->insertProbe(l2norm_analayerC);
     hcprobe->addTerm(l2norm_analayerC, analayerC);
@@ -842,7 +840,7 @@ int mnistNoOverlap(HyPerCol * hc) {
     L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
     retina->insertProbe(l2norm_retina);
 
-    V1 * anaretina = new V1("AnaRetina", hc);
+    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
     L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
     anaretina->insertProbe(l2norm_anaretina);
     hcprobe->addTerm(l2norm_anaretina, anaretina);
@@ -854,12 +852,12 @@ int mnistNoOverlap(HyPerCol * hc) {
     layerA->insertProbe(sparsity_layerA);
     hcprobe->addTerm(sparsity_layerA, layerA);
 
-    V1 * paralayerA = new V1("ParaLayer A", hc);
+    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
     L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
     paralayerA->insertProbe(l2norm_paralayerA);
     hcprobe->addTerm(l2norm_paralayerA, paralayerA);
 
-    V1 * analayerA = new V1("AnaLayer A", hc);
+    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
     L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
     analayerA->insertProbe(l2norm_analayerA);
     hcprobe->addTerm(l2norm_analayerA, analayerA);
@@ -871,12 +869,12 @@ int mnistNoOverlap(HyPerCol * hc) {
     layerB->insertProbe(sparsity_layerB);
     hcprobe->addTerm(sparsity_layerB, layerB);
 
-    V1 * paralayerB = new V1("ParaLayer B", hc);
+    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
     L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
     paralayerB->insertProbe(l2norm_paralayerB);
     hcprobe->addTerm(l2norm_paralayerB, paralayerB);
 
-    V1 * analayerB = new V1("AnaLayer B", hc);
+    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
     L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
     analayerB->insertProbe(l2norm_analayerB);
     hcprobe->addTerm(l2norm_analayerB, analayerB);
@@ -888,12 +886,12 @@ int mnistNoOverlap(HyPerCol * hc) {
     layerC->insertProbe(sparsity_layerC);
     hcprobe->addTerm(sparsity_layerC, layerC);
 
-    V1 * paralayerC = new V1("ParaLayer C", hc);
+    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
     L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
     paralayerC->insertProbe(l2norm_paralayerC);
     hcprobe->addTerm(l2norm_paralayerC, paralayerC);
 
-    V1 * analayerC = new V1("AnaLayer C", hc);
+    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
     L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
     analayerC->insertProbe(l2norm_analayerC);
     hcprobe->addTerm(l2norm_analayerC, analayerC);
