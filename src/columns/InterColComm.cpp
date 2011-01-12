@@ -19,15 +19,16 @@ namespace PV {
 InterColComm::InterColComm(int* argc, char*** argv) : Communicator(argc, argv)
 {
    numPublishers = 0;
-
-   for (int i = 0; i < MAX_PUBLISHERS; i++) {
+   publisherArraySize = INITIAL_PUBLISHER_ARRAY_SIZE;
+   publishers = (Publisher **) malloc( publisherArraySize * sizeof(Publisher *) );
+   for (int i = 0; i < publisherArraySize; i++) {
       publishers[i] = NULL;
    }
 }
 
 InterColComm::~InterColComm()
 {
-   for (int i = 0; i < MAX_PUBLISHERS; i++) {
+   for (int i = 0; i < numPublishers; i++) {
       if (publishers[i] != NULL) {
          delete publishers[i];
       }
@@ -37,6 +38,10 @@ InterColComm::~InterColComm()
 int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 {
    int pubId = pub->getLayerId();
+   if( pubId >= publisherArraySize) {
+      int status = resizePublishersArray(pubId+1);
+      assert(status == EXIT_SUCCESS);
+   }
 
    publishers[pubId] = new Publisher(pubId, this, numItems, pub->clayer->loc, numLevels);
    numPublishers += 1;
@@ -44,10 +49,36 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
    return pubId;
 }
 
+int InterColComm::resizePublishersArray(int newSize) {
+   /* If newSize is greater than the existing size publisherArraySize,
+    * create a new array of size newSize, and copy over the existing
+    * publishers.  publisherArraySize is updated, to equal newSize.
+    * If newSize <= publisherArraySize, do nothing
+    * Returns EXIT_SUCCESS if resizing was successful
+    * (or not needed; i.e. if newSize<=publisherArraySize)
+    * Returns EXIT_FAILURE if unable to allocate a new array; in this
+    * (unlikely) case, publishers and publisherArraySize are unchanged.
+    */
+   if( newSize > publisherArraySize ) {
+      Publisher ** newPublishers = (Publisher **) malloc( newSize * sizeof(Publisher *) );
+      if( newPublishers == NULL) return EXIT_FAILURE;
+      for( int k=0; k< publisherArraySize; k++ ) {
+         newPublishers[k] = publishers[k];
+      }
+      for( int k=publisherArraySize; k<newSize; k++) {
+          newPublishers[k] = NULL;
+      }
+      free(publishers);
+      publishers = newPublishers;
+      publisherArraySize = newSize;
+   }
+   return EXIT_SUCCESS;
+}
+
 int InterColComm::subscribe(HyPerConn* conn)
 {
    int pubId = conn->preSynapticLayer()->getLayerId();
-   assert(pubId < MAX_PUBLISHERS && pubId >= 0);
+   assert( pubId < publisherArraySize && pubId >= 0);
    return publishers[pubId]->subscribe(conn);
 }
 
@@ -113,7 +144,10 @@ Publisher::Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc lo
 
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
-   for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
+   this->subscriberArraySize = INITIAL_SUBSCRIBER_ARRAY_SIZE;
+   this->connection = (HyPerConn **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
+   assert(this->connection);
+   for (int i = 0; i < subscriberArraySize; i++) {
       this->connection[i] = NULL;
    }
 }
@@ -222,6 +256,17 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 
 int Publisher::subscribe(HyPerConn* conn)
 {
+   assert(numSubscribers <= subscriberArraySize);
+   if( numSubscribers == subscriberArraySize ) {
+      subscriberArraySize += RESIZE_ARRAY_INCR;
+      HyPerConn ** newConnection = (HyPerConn **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
+      assert(newConnection);
+      for( int k=0; k<numSubscribers; k++ ) {
+         newConnection[k] = connection[k];
+      }
+      free(connection);
+      connection = newConnection;
+   }
    connection[numSubscribers] = conn;
    numSubscribers += 1;
 

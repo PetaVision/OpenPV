@@ -8,8 +8,9 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
-// TODO - make number dynamic
-#define MAX_GROUPS 20   // maximum number of groups
+// #define MAX_GROUPS 20   // maximum number of groups
+
+// TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group
 
 #undef HAS_MAIN   // define if provides a main function
@@ -92,8 +93,8 @@ private:
 
 class PVParams {
 public:
-   PVParams(int maxGroups);
-   PVParams(const char * filename, int maxGroups);
+   PVParams(int initialSize);
+   PVParams(const char * filename, int initialSize);
    virtual ~PVParams();
 
    int   present(const char * groupName, const char * paramName);
@@ -108,7 +109,8 @@ public:
 
 private:
    int numGroups;
-   int maxGroups;
+   int groupArraySize;
+   // int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
    FilenameStack * fnstack;

@@ -110,9 +110,11 @@ private:
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus);
 
    int numSteps;
-   int maxLayers;
+   // int maxLayers;
+   int layerArraySize;
    int numLayers;
-   int maxConnections;
+   // int maxConnections;
+   int connectionArraySize;
    int numConnections;
 
    bool warmStart;

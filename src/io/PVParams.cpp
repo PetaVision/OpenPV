@@ -204,16 +204,16 @@ FilenameDef * FilenameStack::pop() {
 
 /**
  * @filename
- * @maxGroups
+ * @initialSize
  */
-PVParams::PVParams(const char * filename, int maxGroups)
+PVParams::PVParams(const char * filename, int initialSize)
 {
    const char * altfile = INPUT_PATH "inparams.txt";
 
    this->numGroups = 0;
-   this->maxGroups = maxGroups;
+   groupArraySize = initialSize;
 
-   groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
+   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 
@@ -233,14 +233,14 @@ PVParams::PVParams(const char * filename, int maxGroups)
 }
 
 /**
- * @maxGroups
+ * @initialSize
  */
-PVParams::PVParams(int maxGroups)
+PVParams::PVParams(int initialSize)
 {
    this->numGroups = 0;
-   this->maxGroups = maxGroups;
+   groupArraySize = initialSize;
 
-   groups = (ParameterGroup **) malloc(maxGroups * sizeof(ParameterGroup *));
+   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 }
@@ -326,7 +326,18 @@ const char * PVParams::getFilename(const char * id)
  */
 void PVParams::addGroup(char * keyword, char * name)
 {
-   assert(numGroups < maxGroups);
+   assert(numGroups <= groupArraySize);
+   if( numGroups == groupArraySize ) {
+      groupArraySize += RESIZE_ARRAY_INCR;
+      ParameterGroup ** newGroups = (ParameterGroup **) malloc( groupArraySize * sizeof(ParameterGroup *) );
+      assert(newGroups);
+      for(  int k=0; k< numGroups; k++ ) {
+         newGroups[k] = groups[k];
+      }
+      free(groups);
+      groups = newGroups;
+   }
+
    groups[numGroups++] = new ParameterGroup(name, stack);
 
    // the parameter group takes over control of the stack

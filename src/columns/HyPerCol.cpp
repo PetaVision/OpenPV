@@ -103,9 +103,11 @@ int HyPerCol::initializeCol(const char * name, int argc, char ** argv)
 
    int opencl_device = 1;  // default to CPU for now
 
-   // TODO - fix these numbers to dynamically grow
-   maxLayers = MAX_LAYERS;
-   maxConnections = MAX_CONNECTIONS;
+   layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
+   connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
+
+   // maxLayers = MAX_LAYERS;
+   // maxConnections = MAX_CONNECTIONS;
 
    this->name = strdup(name);
    this->runTimer = new Timer();
@@ -118,8 +120,8 @@ int HyPerCol::initializeCol(const char * name, int argc, char ** argv)
    simTime = 0;
    numLayers = 0;
    numConnections = 0;
-   layers = (HyPerLayer **) malloc(maxLayers * sizeof(HyPerLayer *));
-   connections = (HyPerConn **) malloc(maxConnections * sizeof(HyPerConn *));
+   layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
+   connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
    numSteps = 2;
    image_file = NULL;
@@ -132,7 +134,7 @@ int HyPerCol::initializeCol(const char * name, int argc, char ** argv)
 
    // estimate for now
    // TODO -get rid of maxGroups
-   int maxGroups = 2*(maxLayers + maxConnections);
+   int maxGroups = 2*(layerArraySize + connectionArraySize);
    params = new PVParams(param_file, maxGroups);
 
    icComm = new InterColComm(&argc, &argv);
@@ -222,7 +224,17 @@ int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
 
 int HyPerCol::addLayer(HyPerLayer * l)
 {
-   assert(numLayers < maxLayers);
+   assert(numLayers <= layerArraySize);
+   if( numLayers ==  layerArraySize ) {
+      layerArraySize += RESIZE_ARRAY_INCR;
+      HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
+      assert(newLayers);
+      for(int k=0; k<numLayers; k++) {
+         newLayers[k] = layers[k];
+      }
+      free(layers);
+      layers = newLayers;
+   }
    l->columnWillAddLayer(icComm, numLayers);
    layers[numLayers++] = l;
    return (numLayers - 1);
@@ -232,7 +244,17 @@ int HyPerCol::addConnection(HyPerConn * conn)
 {
    int connId = numConnections;
 
-   assert(numConnections < maxConnections);
+   assert(numConnections <= connectionArraySize);
+   if( numConnections == connectionArraySize ) {
+      connectionArraySize += RESIZE_ARRAY_INCR;
+      HyPerConn ** newConnections = (HyPerConn **) malloc( connectionArraySize * sizeof(HyPerConn *) );
+      assert(newConnections);
+      for(int k=0; k<numConnections; k++) {
+         newConnections[k] = connections[k];
+      }
+      free(connections);
+      connections = newConnections;
+   }
 
    // numConnections is the ID of this connection
    icComm->subscribe(conn);

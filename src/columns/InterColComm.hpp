@@ -15,8 +15,8 @@
 
 // maximum number of messages (each layer publishes to all neighbors)
 #define MAX_MESSAGES    MAX_NEIGHBORS
-#define MAX_PUBLISHERS  MAX_LAYERS
-#define MAX_SUBSCRIBERS MAX_LAYERS
+// #define MAX_PUBLISHERS  MAX_LAYERS
+// #define MAX_SUBSCRIBERS MAX_LAYERS
 
 namespace PV {
 
@@ -56,7 +56,8 @@ private:
 
    int pubId;
    int numSubscribers;
-   HyPerConn * connection[MAX_SUBSCRIBERS];
+   int subscriberArraySize;
+   HyPerConn ** connection;
    DataStore * store;
 
    PVLayerCube cube;
@@ -86,7 +87,9 @@ public:
 private:
 
    int numPublishers;
-   Publisher * publishers[MAX_PUBLISHERS];
+   int publisherArraySize;
+   Publisher ** publishers;
+   int resizePublishersArray(int newSize);
 };
 
 } // namespace PV

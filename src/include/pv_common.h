@@ -48,10 +48,13 @@
 #define VEL (2.0*RMAX)
 
 // Limits:
-#define MAX_NEIGHBORS    8
-#define MAX_LAYERS      10
-#define MAX_CONNECTIONS 100
-#define MAX_F_DELAY     21 // can have 0:MAX_F_DELAY-1 buffers of delay
+#define MAX_NEIGHBORS                   8
+#define INITIAL_LAYER_ARRAY_SIZE       10
+#define INITIAL_CONNECTION_ARRAY_SIZE  10
+#define INITIAL_PUBLISHER_ARRAY_SIZE  INITIAL_LAYER_ARRAY_SIZE
+#define INITIAL_SUBSCRIBER_ARRAY_SIZE INITIAL_LAYER_ARRAY_SIZE
+#define RESIZE_ARRAY_INCR               5
+#define MAX_F_DELAY                    21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 // estimate of maximum activity in a local layer
 #define EST_MAX_ACTIVITY 256
