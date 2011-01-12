@@ -27,7 +27,7 @@ TrainingGenLayer::~TrainingGenLayer() {
 }
 
 int TrainingGenLayer::initialize(int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay) {
-    setFuncs(NULL, NULL);
+    // setFuncs(NULL, NULL);
 	this->numTrainingLabels = numTrainingLabels;
     this->trainingLabels = NULL;
     curTrainingLabelIndex = 0;
