@@ -14,10 +14,15 @@ L2NormFunction::L2NormFunction(const char * name) : LayerFunction(name) {
 
 pvdata_t L2NormFunction::evaluate(float time, HyPerLayer * l) {
     pvdata_t l2norm = 0;
-    pvdata_t * Vbuffer = l->getV();
-    pvdata_t numNeurons = l->getNumNeurons();
+    pvdata_t * activityBuffer = l->getCLayer()->activity->data;
+    int numNeurons = l->getNumNeurons();
+    const int nx = l->getLayerLoc()->nx;
+    const int ny = l->getLayerLoc()->ny;
+    const int nf = l->getLayerLoc()->nf;
+    const int nb = l->getLayerLoc()->nb;
     for(int n=0; n<numNeurons; n++) {
-    	pvdata_t v = Vbuffer[n];
+        int nex = kIndexExtended(n, nx, ny, nf, nb);
+    	pvdata_t v = activityBuffer[nex];
         l2norm += v*v;
     }
     return 0.5*l2norm;

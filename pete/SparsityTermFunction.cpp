@@ -14,10 +14,15 @@ SparsityTermFunction::SparsityTermFunction(const char * name) : LayerFunction(na
 
 pvdata_t SparsityTermFunction::evaluate(float time, HyPerLayer * l) {
     pvdata_t sum = 0;
-    pvdata_t * Vbuffer = l->getV();
+    pvdata_t * activityBuffer = l->getCLayer()->activity->data;
     int numNeurons = l->getNumNeurons();
+    const int nx = l->getLayerLoc()->nx;
+    const int ny = l->getLayerLoc()->ny;
+    const int nf = l->getLayerLoc()->nf;
+    const int nb = l->getLayerLoc()->nb;
     for(int n=0; n<numNeurons; n++) {
-    	pvdata_t v = Vbuffer[n];
+        int nex = kIndexExtended(n, nx, ny, nf, nb);
+    	pvdata_t v = activityBuffer[nex];
         sum += log(1+v*v);
     }
     return sum;
