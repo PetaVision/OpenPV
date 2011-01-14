@@ -204,10 +204,10 @@ int Patterns::calcPosition(int pos, int step)
 {
    float dp = 1.0 / step;
    double p = pv_random_prob();
-   int random_walk = 0;
+   int random_walk = 1;
    int move_forward = 0;
    int move_backward = 0;
-   int random_jump = 1;
+   int random_jump = 0;
 
    if (random_walk) {
       if (p < 0.5){
@@ -222,12 +222,9 @@ int Patterns::calcPosition(int pos, int step)
       pos = (pos-1+step) % step;
    }
    else if (random_jump) {
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            return i;
-         }
+	   pos = int(p * step) % step;
       }
-   }
+
    return pos;
 }
 
