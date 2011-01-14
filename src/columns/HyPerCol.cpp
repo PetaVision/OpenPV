@@ -28,13 +28,13 @@ namespace PV {
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
          : warmStart(false), isInitialized(false)
 {
-   initializeCol(name, argc, argv);
+   initialize(name, argc, argv);
 }
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], const char * pv_path)
          : warmStart(false), isInitialized(false)
 {
-   initializeCol(name, argc, argv);
+   initialize(name, argc, argv);
    assert(strlen(path) + strlen(pv_path) < PV_PATH_MAX);
    sprintf(path, "%s/%s", path, pv_path);
 
@@ -98,7 +98,7 @@ int HyPerCol::initFinish(void)
    return status;
 }
 
-int HyPerCol::initializeCol(const char * name, int argc, char ** argv)
+int HyPerCol::initialize(const char * name, int argc, char ** argv)
 {
 
    int opencl_device = 1;  // default to CPU for now
