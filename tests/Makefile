@@ -10,7 +10,7 @@ INPARAMS = input/params.test
 #
 dbg  := 0
 mpi  := 0
-gdal := 1
+gdal := 0
 
 # detect OS                                                                               
 OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
@@ -108,7 +108,7 @@ TESTS = test_kg test_kxpos test_kypos test_pos \
         test_datatypes test_post_weights test_gauss2d test_cocirc test_mirror_BCs \
         test_border_activity
 
-CL_TESTS = test_cl_random test_cl_lif
+CL_TESTS = test_cl_random test_cl_lif test_cl_all
 
 MPI_TESTS = #test_read_header test_image_io test_weights_io test_constant_input
 
@@ -152,6 +152,9 @@ test_cl_random: $(BUILDDIR)/test_cl_random.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_cl_lif: $(BUILDDIR)/test_cl_lif.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+	
+test_cl_all: $(BUILDDIR)/test_cl_all.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_weights_io: $(BUILDDIR)/test_weights_io.o $(PVLIB)
