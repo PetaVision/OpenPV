@@ -85,17 +85,17 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    float * M = NULL;
    int kPre = this->kPre;
 
-   const PVLayer * lPre = c->preSynapticLayer()->clayer;
+   const PVLayerLoc * lPreLoc = c->preSynapticLayer()->getLayerLoc();
 
-   const int nxPre = lPre->loc.nx;
-   const int nyPre = lPre->loc.ny;
-   const int nfPre = lPre->loc.nf;
+   const int nxPre = lPreLoc->nx;
+   const int nyPre = lPreLoc->ny;
+   const int nfPre = lPreLoc->nf;
 
    // convert to extended frame
    if (kPre < 0) {
       // calculate kPre
       kPre = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-      kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPre->loc.nb);
+      kPre = kIndexExtended(kPre, nxPre, nyPre, nfPre, lPreLoc->nb);
    }
 
    fprintf(fp, "w%d:      \n", kPre);
@@ -128,16 +128,16 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    } // if (stdpVars)
 
    if (outputIndices) {
-      const PVLayer * lPost = c->postSynapticLayer()->clayer;
+      const PVLayerLoc * lPostLoc = c->postSynapticLayer()->getLayerLoc();
 
-      const int nxPostExt = lPost->loc.nx + 2*lPost->loc.nb;
-      const int nyPostExt = lPost->loc.ny + 2*lPost->loc.nb;
-      const int nfPost = lPost->loc.nf;
+      const int nxPostExt = lPostLoc->nx + 2*lPostLoc->nb;
+      const int nyPostExt = lPostLoc->ny + 2*lPostLoc->nb;
+      const int nfPost = lPostLoc->nf;
 
-      //const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
-      //const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPost->loc.nPad;;
-      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nb;
-      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPost->loc.nb;
+      //const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPostLoc->nPad;;
+      //const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPostLoc->nPad;;
+      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->nb;
+      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->nb;
 
       //
       // The following is incorrect because w->nx is reduced near boundary.
@@ -147,7 +147,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
       //int kyPost = zPatchHead(kyPre, w->ny, lPre->yScale, lPost->yScale);
 
 
-      write_patch_indices(fp, w, &lPost->loc, kxPost, kyPost, 0);
+      write_patch_indices(fp, w, lPostLoc, kxPost, kyPost, 0);
       fflush(fp);
    } // if(outputIndices)
 
