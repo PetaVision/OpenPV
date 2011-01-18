@@ -9,11 +9,11 @@
 #define GENERATIVELAYER_HPP_
 
 #include "../PetaVision/src/connections/HyPerConn.hpp"
-#include "../PetaVision/src/layers/NonspikingLayer.hpp"
+#include "../PetaVision/src/layers/ANNLayer.hpp"
 
 namespace PV {
 
-class GenerativeLayer : public NonspikingLayer {
+class GenerativeLayer : public ANNLayer {
 public:
 	GenerativeLayer(const char * name, HyPerCol * hc);
 	GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);

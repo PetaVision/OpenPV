@@ -12,11 +12,11 @@
 
 namespace PV {
 
-GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) : NonspikingLayer(name, hc) {
+GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc) {
 	initialize();
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *)
 
-GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type) : NonspikingLayer(name, hc){
+GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type) : ANNLayer(name, hc){
     initialize();
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *, PVLayerType *)
 
