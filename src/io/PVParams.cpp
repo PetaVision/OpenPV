@@ -180,7 +180,7 @@ FilenameDef * FilenameStack::getFilenameDef(unsigned int index) {
 }
 
 FilenameDef * FilenameStack::getFilenameDefByKey(const char * searchKey) {
-   for( unsigned int n = 0; n < maxCount; n++) {
+   for( unsigned int n = 0; n < count; n++) {
       if( !strcmp( searchKey, filenamedefs[n]->getKey() ) ) return filenamedefs[n];
    }
    return NULL;
