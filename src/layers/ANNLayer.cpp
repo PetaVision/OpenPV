@@ -5,16 +5,16 @@
  *      Author: pschultz
  */
 
-#include "NonspikingLayer.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
-NonspikingLayer::NonspikingLayer(const char* name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
+ANNLayer::ANNLayer(const char* name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
     initialize();
 }  // end NonspikingLayer::NonspikingLayer()
 
-NonspikingLayer::~NonspikingLayer() {}
+ANNLayer::~ANNLayer() {}
 
-int NonspikingLayer::initialize() {
+int ANNLayer::initialize() {
     return HyPerLayer::initialize(TypeNonspiking);
 }
 

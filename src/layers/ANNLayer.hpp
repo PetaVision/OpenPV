@@ -5,22 +5,22 @@
  *      Author: pschultz
  */
 
-#ifndef NONSPIKINGLAYER_HPP_
-#define NONSPIKINGLAYER_HPP_
+#ifndef ANNLAYER_HPP_
+#define ANNLAYER_HPP_
 
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
 
 namespace PV {
 
-class NonspikingLayer : public HyPerLayer {
+class ANNLayer : public HyPerLayer {
 public:
-    NonspikingLayer(const char* name, HyPerCol * hc);
-    ~NonspikingLayer();
+    ANNLayer(const char* name, HyPerCol * hc);
+    ~ANNLayer();
 protected:
     int initialize();
 }; // end of class NonspikingLayer
 
 }  // end namespace PV
 
-#endif /* NONSPIKINGLAYER_HPP_ */
+#endif /* ANNLAYER_HPP_ */
