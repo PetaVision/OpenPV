@@ -14,7 +14,7 @@
 
 namespace PV {
 
-class KernelConnDumpProbe {
+class KernelConnDumpProbe : public ConnectionProbe {
 public:
    KernelConnDumpProbe();
    KernelConnDumpProbe(const char * filenameformatstr);

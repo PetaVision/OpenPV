@@ -9,7 +9,7 @@
 
 namespace PV {
 
-KernelConnDumpProbe::KernelConnDumpProbe() {
+KernelConnDumpProbe::KernelConnDumpProbe() : ConnectionProbe(0) {
     textNotBinaryFlag = true;
     stdoutNotFileFlag = true;
     filenameFormatString = NULL;
@@ -17,7 +17,7 @@ KernelConnDumpProbe::KernelConnDumpProbe() {
     initializeProbe();
 }
 
-KernelConnDumpProbe::KernelConnDumpProbe(const char * filenameformatstr) {
+KernelConnDumpProbe::KernelConnDumpProbe(const char * filenameformatstr) : ConnectionProbe(0) {
     textNotBinaryFlag = false;
     stdoutNotFileFlag = false;
     filenameFormatString = (char *) malloc( ( strlen(filenameformatstr)+1 )*sizeof(char) );
@@ -26,7 +26,7 @@ KernelConnDumpProbe::KernelConnDumpProbe(const char * filenameformatstr) {
     initializeProbe();
 }
 
-KernelConnDumpProbe::KernelConnDumpProbe(const char * filenameformatstr, bool textNotBinary) {
+KernelConnDumpProbe::KernelConnDumpProbe(const char * filenameformatstr, bool textNotBinary) : ConnectionProbe(0) {
     textNotBinaryFlag = textNotBinary;
     stdoutNotFileFlag = false;
     filenameFormatString = (char *) malloc( ( strlen(filenameformatstr)+1 )*sizeof(char) );
@@ -46,10 +46,8 @@ int KernelConnDumpProbe::outputState(float time, HyPerConn * c) {
         fp = stdout;
     }
     else {
-        fp = fopen("/dev/null","w");
-        if( !fp ) return EXIT_FAILURE;
-        int len = fprintf(fp,filenameFormatString,time);
-        fclose(fp);
+        int len = printf(filenameFormatString,time);
+        printf("\n");
         if( len <= 0 ) return EXIT_FAILURE;
         char * filename = (char *) malloc( (len+1)*sizeof(char) );
         if( !filename ) return EXIT_FAILURE;
@@ -62,7 +60,7 @@ int KernelConnDumpProbe::outputState(float time, HyPerConn * c) {
 	int nyp = c->yPatchSize();
     int numPatches = c->numDataPatches(0);
     if( textNotBinaryFlag ) {
-        fprintf(fp, "time = %f", time);
+        fprintf(fp, "time = %f\n", time);
         fprintf(fp, "nfp=%d, nxp=%d, nyp=%d, numPatches=%d\n",nfp,nxp,nyp,numPatches);
         for( int k=0; k<numPatches; k++) {
             fprintf(fp, "Patch %d\n", k);
