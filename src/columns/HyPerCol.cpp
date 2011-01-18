@@ -484,7 +484,7 @@ int HyPerCol::outputState(float time)
 }
 
 int HyPerCol::checkMarginWidths() {
-   // For each connection, make sure that the post-synaptic margin width is
+   // For each connection, make sure that the pre-synaptic margin width is
    // large enough for the patch size.
 
    // TODO instead of having marginWidth supplied to HyPerLayers in the
@@ -496,14 +496,16 @@ int HyPerCol::checkMarginWidths() {
    int status1, status2;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
-      int padding = conn->pre->getLayerLoc()->nb;
+      HyPerLayer * pre = conn->preSynapticLayer();
+      HyPerLayer * post = conn->postSynapticLayer();
+      int padding = pre->getLayerLoc()->nb;
 
-      int xScalePre = conn->preSynapticLayer()->getXScale();
-      int xScalePost = conn->postSynapticLayer()->getXScale();
+      int xScalePre = pre->getXScale();
+      int xScalePost = post->getXScale();
       status1 = zCheckMarginWidth(conn, "x", padding, conn->xPatchSize(), xScalePre, xScalePost, status);
 
-      int yScalePre = conn->preSynapticLayer()->getYScale();
-      int yScalePost = conn->postSynapticLayer()->getYScale();
+      int yScalePre = pre->getYScale();
+      int yScalePost = post->getYScale();
       status2 = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
       status = (status == EXIT_SUCCESS && status1 == EXIT_SUCCESS && status2 == EXIT_SUCCESS) ?
                EXIT_SUCCESS : EXIT_FAILURE;
