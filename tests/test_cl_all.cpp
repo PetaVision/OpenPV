@@ -8,7 +8,6 @@
 #include "../src/arch/opencl/CLBuffer.hpp"
 #include "../src/utils/Timer.hpp"
 
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,8 +29,8 @@ int test_LIF(int argc, char * argv[])
    int nWarm = 10, nLoops = 100;
 
    HyPerCol * hc = new HyPerCol("test_cl_lif column", argc, argv, "..");
-   HyPerLayer      * retina = new Retina("test_cl_all layer", hc);
-   HyPerLayer      * l1 = new LIF("test_cl_lif layer", hc);
+   Retina   * retina = new Retina("test_cl_all layer", hc);
+   LIF      * l1 = new LIF("test_cl_lif layer", hc);
 
    const PVLayerLoc * loc = l1->getLayerLoc();
 
