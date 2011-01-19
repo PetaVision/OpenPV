@@ -5,9 +5,6 @@
  *      Author: pschultz
  */
 
-#include <assert.h>
-
-#include "GenerativeConn.hpp"
 #include "GenerativeLayer.hpp"
 
 namespace PV {

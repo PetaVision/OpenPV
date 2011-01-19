@@ -8,7 +8,7 @@
 #ifndef LATERALCONN_HPP_
 #define LATERALCONN_HPP_
 
-#include "GenerativeConn.hpp"
+#include "../PetaVision/src/connections/GenerativeConn.hpp"
 #include <assert.h>
 #include <string.h>
 
