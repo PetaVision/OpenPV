@@ -5,9 +5,7 @@ expNum = 1;
 				% set paths, may not be applicable to all octave installations
 %%pvp_matlabPath;
 
-%%if ( uioctave )
 setenv('GNUTERM', 'x11');
-%%endif
 
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
