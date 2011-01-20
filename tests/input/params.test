@@ -446,7 +446,6 @@ HyPerConn "test_border_activity connection 2" = {
 HyPerCol "test_constant_input column" = {
    nx = 128;
    ny = 128;
-   mirrorBCflag = 1;
 };
 
 HyPerLayer "test_constant_input image" = {
@@ -485,7 +484,6 @@ HyPerLayer "test_constant_input connection" = {
 HyPerCol "test_cl_lif column" = {
    nx = 256;
    ny = 256;
-   mirrorBCflag = 0;
 };
 
 HyPerLayer "test_cl_lif layer" = {
