@@ -10,7 +10,7 @@ INPARAMS = input/params.test
 #
 dbg  := 0
 mpi  := 0
-gdal := 0
+gdal := 1
 
 # detect OS                                                                               
 OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
@@ -105,8 +105,10 @@ CLASS_OBJS = $(BUILDDIR)/Example.o
 TESTS = test_kg test_kxpos test_kypos test_pos \
         test_nearby_neighbor test_delta_pos test_extend_border \
         test_patch_head test_delta test_sign test_borders \
-        test_datatypes test_post_weights test_gauss2d test_cocirc test_mirror_BCs \
-        test_border_activity
+        test_datatypes test_post_weights test_gauss2d test_cocirc \
+        test_mirror_BCs test_border_activity \
+        test_marginwidth_one_to_one test_marginwidth_many_to_one \
+        test_marginwidth_one_to_many test_transpose_transpose
 
 CL_TESTS = test_cl_random test_cl_lif test_cl_all
 
@@ -214,6 +216,18 @@ test_delta: $(BUILDDIR)/test_delta.o $(PVLIB)
 test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 	$(CC) -o $@ $<
 
+test_marginwidth_one_to_one: $(BUILDDIR)/test_marginwidth_one_to_one.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_many_to_one: $(BUILDDIR)/test_marginwidth_many_to_one.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_one_to_many: $(BUILDDIR)/test_marginwidth_one_to_many.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_transpose_transpose: $(BUILDDIR)/test_transpose_transpose.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_read_header with 1 node ..."
@@ -283,6 +297,14 @@ runtests: make-in-subdirs $(TESTS)
 #	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 #	@echo "Running test_borders ..."
 #	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
+	@echo "Running test_marginwidth_one_to_one ..."
+	@if ./test_marginwidth_one_to_one -p $(INPARAMS); then echo "test_marginwidth_one_to_one passed."; else echo "test_marginwidth_one_to_one failed"; fi
+	@echo "Running test_marginwidth_many_to_one ..."
+	@if ./test_marginwidth_many_to_one -p $(INPARAMS); then echo "test_marginwidth_many_to_one passed."; else echo "test_marginwidth_many_to_one failed"; fi
+	@echo "Running test_marginwidth_one_to_many ..."
+	@if ./test_marginwidth_one_to_many -p $(INPARAMS); then echo "test_marginwidth_one_to_many passed."; else echo "test_marginwidth_one_to_many failed"; fi
+	@echo "Running test_transpose_transpose ..."
+	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
