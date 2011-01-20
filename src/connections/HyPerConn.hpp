@@ -41,8 +41,6 @@ typedef struct {
 
 class HyPerConn {
 
-   friend class HyPerCol;
-
 public:
    HyPerConn();
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
