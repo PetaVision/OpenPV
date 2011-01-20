@@ -85,6 +85,7 @@ public:
 
    int numberOfColumns();
 
+   int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
