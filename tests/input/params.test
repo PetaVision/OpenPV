@@ -418,7 +418,6 @@ HyPerLayer "test_border_activity layer" = {
    nxScale = 1;
    nyScale = 1;
    marginWidth = 0;
-   spikingFlag = 0;
 };
 
 HyPerConn "test_border_activity connection 1" = {
@@ -495,3 +494,287 @@ HyPerLayer "test_cl_lif layer" = {
    marginWidth = 0;
    spikingFlag = 1;
 };
+
+//
+// This section defines parameters for test_marginwidth_one_to_one
+//
+
+HyPerCol "test_marginwidth_one_to_one column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_marginwidth_one_to_one Image" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerLayer "test_marginwidth_one_to_one Retina small marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 2;
+};
+
+HyPerLayer "test_marginwidth_one_to_one Retina large marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 4;
+};
+
+HyPerLayer "test_marginwidth_one_to_one Retina correct marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 3;
+};
+
+HyPerLayer "test_marginwidth_one_to_one ANNLayer" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerConn "test_marginwidth_one_to_one Image to Retina" = {
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+};
+
+HyPerConn "test_marginwidth_one_to_one Retina to ANNLayer" = {
+   nxp = 7;
+   nyp = 7;
+   nfp = 1;
+};
+
+//
+// This section defines parameters for test_marginwidth_many_to_one
+//
+
+HyPerCol "test_marginwidth_many_to_one column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_marginwidth_many_to_one Image" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerLayer "test_marginwidth_many_to_one Retina small marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 3;
+};
+
+HyPerLayer "test_marginwidth_many_to_one Retina large marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 5;
+};
+
+HyPerLayer "test_marginwidth_many_to_one Retina correct marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 4;
+};
+
+HyPerLayer "test_marginwidth_many_to_one ANNLayer" = {
+   nxScale = 0.25;
+   nyScale = 0.25;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerConn "test_marginwidth_many_to_one Image to Retina" = {
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+};
+
+HyPerConn "test_marginwidth_many_to_one Retina to ANNLayer" = {
+   nxp = 3;
+   nyp = 3;
+   nfp = 1;
+};
+
+//
+// This section defines parameters for test_marginwidth_one_to_many
+//
+
+HyPerCol "test_marginwidth_one_to_many column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_marginwidth_one_to_many Image" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerLayer "test_marginwidth_one_to_many Retina small marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 1;
+};
+
+HyPerLayer "test_marginwidth_one_to_many Retina large marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 3;
+};
+
+HyPerLayer "test_marginwidth_one_to_many Retina correct marginWidth" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 2;
+};
+
+HyPerLayer "test_marginwidth_one_to_many ANNLayer" = {
+   nxScale = 4;
+   nyScale = 4;
+   nf = 1;
+   marginWidth = 0;
+};
+
+HyPerConn "test_marginwidth_one_to_many Image to Retina" = {
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+};
+
+HyPerConn "test_marginwidth_one_to_many Retina to ANNLayer" = {
+   nxp = 20;
+   nyp = 20;
+   nfp = 1;
+};
+
+//
+// This section defines parameters for test_transpose_transpose
+//
+
+HyPerCol "test_transpose_transpose column" = {
+    nx = 32;            // number of horizontal pixels in the column
+    ny = 32;            // number of vertical pixels in the column
+    dt = 1;             // time increment per timestep
+    randomSeed = 118;   // seed the column's random number generator.
+};
+
+HyPerLayer "test_transpose_transpose Layer A" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 1;        // scale factor between layer size and column size
+    nyScale = 1;        // layer size = n{x,y}Scale * (column size)
+    nf = 8;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 14;    // Width of margin padding in pixels
+};
+
+HyPerLayer "test_transpose_transpose Layer B One to one" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 1.0;        // scale factor between layer size and column size
+    nyScale = 1.0;        // layer size = n{x,y}Scale * (column size)
+    nf = 8;            // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 8;   // Width of margin padding in pixels
+};
+
+HyPerLayer "test_transpose_transpose Layer B Many to one" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 0.5;      // scale factor between layer size and column size
+    nyScale = 0.5;      // layer size = n{x,y}Scale * (column size)
+    nf = 32;            // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 8;    // Width of margin padding in pixels
+};
+
+HyPerLayer "test_transpose_transpose Layer B One to many" = {
+    restart = 0;        // whether to load *_last.pvp files at initialization
+    nxScale = 2.0;      // scale factor between layer size and column size
+    nyScale = 2.0;      // layer size = n{x,y}Scale * (column size)
+    nf = 2;             // Number of features.  For images, use nf=3 for RGB
+    marginWidth = 14;    // Width of margin padding in pixels
+};
+
+HyPerConn "test_transpose_transpose One to one original map" = {
+    nxp = 15;
+    nyp = 15;
+    nfp = 8;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    randomFlag = 1;
+    uniformWeights = 1;
+    gaussianWeights = 0;
+    wMinInit = 0;
+    wMaxInit = 1;
+    smartWeights = 0;
+};
+
+HyPerConn "test_transpose_transpose One to one transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
+HyPerConn "test_transpose_transpose One to one transpose of transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
+HyPerConn "test_transpose_transpose Many to one original map" = {
+    nxp = 15;
+    nyp = 15;
+    nfp = 32;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    randomFlag = 1;
+    uniformWeights = 1;
+    gaussianWeights = 0;
+    wMinInit = 0;
+    wMaxInit = 1;
+    smartWeights = 0;
+};
+
+HyPerConn "test_transpose_transpose Many to one transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
+HyPerConn "test_transpose_transpose Many to one transpose of transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
+HyPerConn "test_transpose_transpose One to many original map" = {
+    nxp = 30;
+    nyp = 30;
+    nfp = 2;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    randomFlag = 1;
+    uniformWeights = 1;
+    gaussianWeights = 0;
+    wMinInit = 0;
+    wMaxInit = 1;
+    smartWeights = 0;
+};
+
+HyPerConn "test_transpose_transpose One to many transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
+HyPerConn "test_transpose_transpose One to many transpose of transpose" = {
+    initFromLastFlag = 0;
+    // feedback connection; other parameters inferred
+};
+
