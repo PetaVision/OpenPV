@@ -266,7 +266,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
-   checkMarginWidths();
+   if( checkMarginWidths() != EXIT_SUCCESS ) return EXIT_FAILURE;
 
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
@@ -329,7 +329,7 @@ int HyPerCol::run(int nTimeSteps)
       stop_clock();
 #endif
 
-   return 0;
+   return EXIT_SUCCESS;
 }
 
 float HyPerCol::advanceTime(float sim_time)
@@ -527,13 +527,13 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding,
       fprintf(stderr, "    Margin width %d, patch size %d, presynaptic scale %d, postsynaptic scale %d\n",
               padding, patchSize, scalePre, scalePost);
       fprintf(stderr, "    Needed margin width=%d\n", needed);
-      status = EXIT_FAILURE;
       if( numberOfColumns() > 1 || padding > 0 ) {
-         fprintf(stderr, "Exiting.\n");
-         exit(EXIT_FAILURE);
+         fprintf(stderr, "Unable to continue.\n");
+         status = EXIT_FAILURE;
       }
       else {
          fprintf(stderr, "Continuing, but there may be undesirable edge effects.\n");
+         status = EXIT_SUCCESS;
       }
    }
    else status = EXIT_SUCCESS;
