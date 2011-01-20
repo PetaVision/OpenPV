@@ -23,6 +23,10 @@ static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
 	buf[5] = loc->ky0;
 	buf[6] = loc->nb;
 	buf[7] = loc->nf;
+	buf[8] = loc->halo.lt;
+        buf[9] = loc->halo.rt;
+        buf[10] = loc->halo.dn;
+        buf[11] = loc->halo.up;
 }
 
 static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
@@ -35,6 +39,10 @@ static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
 	loc->ky0      = buf[5];
 	loc->nb       = buf[6];
 	loc->nf       = buf[7];
+        loc->halo.lt  = buf[8];
+        loc->halo.rt  = buf[9];
+        loc->halo.dn  = buf[10];
+        loc->halo.up  = buf[11];
 }
 
 int getFileType(const char * filename)
