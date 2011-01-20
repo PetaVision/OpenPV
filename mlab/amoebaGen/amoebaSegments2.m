@@ -15,7 +15,9 @@ list_segments = max( list_segments, 1 );
 fourier_coef = amoeba_struct.fourier_ratio .* randn(amoeba_struct.num_fourier, 1);
 fourier_coef = fourier_coef .* 2.^(amoeba_struct.fourier_amp);
 fourier_coef2 = repmat( amoeba_struct.fourier_ratio .* fourier_coef, [1, amoeba_struct.num_phi]);
-fourier_phase = (pi/2) * rand(amoeba_struct.num_fourier, 1);
+				%fourier_phase = (pi/2) * rand(amoeba_struct.num_fourier, 1);
+				% not sure why we used pi/2
+fourier_phase = (pi) * rand(amoeba_struct.num_fourier, 1);
 fourier_phase2 = repmat(fourier_phase, [1, amoeba_struct.num_phi]);
 fourier_term = fourier_coef2 .* cos( amoeba_struct.fourier_arg2 + fourier_phase2);
 fourier_sum = sum(fourier_term, 1);
