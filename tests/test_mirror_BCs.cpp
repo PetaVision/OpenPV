@@ -35,6 +35,10 @@ int main(int argc, char * argv[])
    sLoc.nx = sLoc.ny = nS;
    sLoc.nb = nB;
    sLoc.nf = nf;
+   sLoc.halo.lt = l->getLayerLoc()->halo.lt;
+   sLoc.halo.rt = l->getLayerLoc()->halo.rt;
+   sLoc.halo.dn = l->getLayerLoc()->halo.dn;
+   sLoc.halo.up = l->getLayerLoc()->halo.up;
 
    bLoc = sLoc;
 
