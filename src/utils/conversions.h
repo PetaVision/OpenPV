@@ -212,6 +212,12 @@ static inline size_t strideF(const PVLayerLoc * loc)
    return 1;
 }
 
+// Version for data structures in extended space (e.g., activity)
+static inline size_t strideFExtended(const PVLayerLoc * loc)
+{
+   return 1;
+}
+
 //! Returns stride in x dimension for linear indexing
 /*!
  * @loc
@@ -227,6 +233,12 @@ static inline size_t strideX(const PVLayerLoc * loc)
    return loc->nf;
 }
 
+// Version for data structures in extended space (e.g., activity)
+static inline size_t strideXExtended(const PVLayerLoc * loc)
+{
+   return loc->nf;
+}
+
 //! Returns stride in y dimension for linear indexing
 /*!
  * @loc
@@ -238,6 +250,12 @@ static inline size_t strideX(const PVLayerLoc * loc)
  *      k = ky * (nf*nx) + kx * nf + kf
  */
 static inline size_t strideY(const PVLayerLoc * loc)
+{
+   return loc->nf*loc->nx;
+}
+
+// Version for data structures in extended space (e.g., activity)
+static inline size_t strideYExtended(const PVLayerLoc * loc)
 {
    return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt);
 }
