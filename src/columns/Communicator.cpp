@@ -419,27 +419,28 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
    const size_t nxBorder = loc->nb;
    const size_t nyBorder = loc->nb;
 
-   const size_t sy = strideY(loc);
+   const size_t sx = strideXExtended(loc);
+   const size_t sy = strideYExtended(loc);
 
    switch (n) {
    case LOCAL:
-      return (nf*nxBorder         + sy * nyBorder);
+      return (sx*nxBorder         + sy * nyBorder);
    case NORTHWEST:
       return ((size_t) 0                         );
    case NORTH:
-      return (nf*nxBorder                        );
+      return (sx*nxBorder                        );
    case NORTHEAST:
-      return (nf*nxBorder + nf*nx                );
+      return (sx*nxBorder + sx*nx                );
    case WEST:
       return (                      sy * nyBorder);
    case EAST:
-      return (nf*nxBorder + nf*nx + sy * nyBorder);
+      return (sx*nxBorder + sx*nx + sy * nyBorder);
    case SOUTHWEST:
       return (                    + sy * (nyBorder + ny));
    case SOUTH:
-      return (nf*nxBorder         + sy * (nyBorder + ny));
+      return (sx*nxBorder         + sy * (nyBorder + ny));
    case SOUTHEAST:
-      return (nf*nxBorder + nf*nx + sy * (nyBorder + ny));
+      return (sx*nxBorder + sx*nx + sy * (nyBorder + ny));
    default:
       fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
    }
@@ -458,27 +459,28 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
    const size_t nxBorder = loc->nb;
    const size_t nyBorder = loc->nb;
 
-   const size_t sy = strideY(loc);
+   const size_t sx = strideXExtended(loc);
+   const size_t sy = strideYExtended(loc);
 
    switch (n) {
    case LOCAL:
-      return (nf*nxBorder + sy * nyBorder);
+      return (sx*nxBorder + sy * nyBorder);
    case NORTHWEST:
-      return (nf*nxBorder + sy * nyBorder);
+      return (sx*nxBorder + sy * nyBorder);
    case NORTH:
-      return (nf*nxBorder + sy * nyBorder);
+      return (sx*nxBorder + sy * nyBorder);
    case NORTHEAST:
-      return (nf*nx       + sy * nyBorder);
+      return (sx*nx       + sy * nyBorder);
    case WEST:
-      return (nf*nxBorder + sy * nyBorder);
+      return (sx*nxBorder + sy * nyBorder);
    case EAST:
-      return (nf*nx       + sy * nyBorder);
+      return (sx*nx       + sy * nyBorder);
    case SOUTHWEST:
-      return (nf*nxBorder + sy * ny);
+      return (sx*nxBorder + sy * ny);
    case SOUTH:
-      return (nf*nxBorder + sy * ny);
+      return (sx*nxBorder + sy * ny);
    case SOUTHEAST:
-      return (nf*nx       + sy * ny);
+      return (sx*nx       + sy * ny);
    default:
       fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
    }
