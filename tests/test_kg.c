@@ -3,6 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//
+// A replacement for globalIndexFromLocal from conversions.h.
+// WARNING - any changes in conversions.h should be reflected here.
+static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc)
+{
+   int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
+   int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
+   int  kf = featureIndex(kl, loc.nx, loc.ny, loc.nf);
+   return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
+}
+
+
 int main(int argc, char* argv[])
 {
    PVLayerLoc loc;
@@ -12,8 +24,8 @@ int main(int argc, char* argv[])
    int ij;
 #endif
 
-   printf("size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
-   printf("size_int==%ld size_float==%ld, size_sizet==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
+   //printf("size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
+   //printf("size_int==%ld size_float==%ld, size_size_t==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
 
    int nf = loc.nf = 3;
    int nx = loc.nx = 63;
@@ -26,7 +38,7 @@ int main(int argc, char* argv[])
    loc.nyGlobal = ny;
 
    for (kl = 0; kl < nx*ny*nf; kl++) {
-      kg = globalIndexFromLocal(kl, loc);
+      kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
          printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
@@ -53,7 +65,7 @@ int main(int argc, char* argv[])
         kx = kxPos(kl, loc.nx, loc.ny, nf);
         ky = kyPos(kl, loc.nx, loc.ny, nf);
 
-        kg  = globalIndexFromLocal(kl, loc);
+        kg  = globalIndexFromLocal_nompi(kl, loc);
         kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -70,7 +82,7 @@ int main(int argc, char* argv[])
      ky = kyPos(kl, loc.nx, loc.ny, nf);
      kf = featureIndex(kl, loc.nx, loc.ny, nf);
 
-     kg = globalIndexFromLocal(kl, loc);
+     kg = globalIndexFromLocal_nompi(kl, loc);
      kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -104,7 +116,7 @@ int main(int argc, char* argv[])
         int kl = ij + nx*ny*kf;
         int kx = kxPos(kl, loc.nx, loc.ny, nf);
         int ky = kyPos(kl, loc.nx, loc.ny, nf);
-        kg = globalIndexFromLocal(kl, loc);
+        kg = globalIndexFromLocal_nompi(kl, loc);
         kx = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
         ky = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
@@ -122,7 +134,7 @@ int main(int argc, char* argv[])
      ky = kyPos(kl, loc.nx, loc.ny, nf);
      kf = featureIndex(kl, loc.nx, loc.ny, nf);
 
-     kg = globalIndexFromLocal(kl, loc);
+     kg = globalIndexFromLocal_nompi(kl, loc);
      kxg = kxPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
@@ -150,7 +162,7 @@ int main(int argc, char* argv[])
   loc.nyGlobal = ny;
 
   for (kl = 0; kl < nx*ny*nf; kl++) {
-     kg = globalIndexFromLocal(kl, loc);
+     kg = globalIndexFromLocal_nompi(kl, loc);
 
      if (kg != kl) {
         printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
