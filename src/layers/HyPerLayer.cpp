@@ -768,6 +768,7 @@ int HyPerLayer::writeActivity(float time)
    return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
 
+#ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
 // modified to enable writing of non-spiking activity as well
 // use writeActivitySparse for efficient disk storage of sparse spiking activity
 int HyPerLayer::writeActivity(const char * filename, float time)
@@ -789,6 +790,7 @@ int HyPerLayer::writeActivity(const char * filename, float time)
 
    return status;
 }
+#endif // OBSOLETE
 
 /* copy src PVLayerCube to dest PVLayerCube */
 /* initialize src, dest to beginning of data structures */

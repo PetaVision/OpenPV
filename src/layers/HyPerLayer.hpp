@@ -81,7 +81,9 @@ public:
 
    virtual int outputState(float time, bool last=false);
    virtual int writeState(const char * name, float time, bool last=false);
+#ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
    virtual int writeActivity(const char * filename, float time);
+#endif // OBSOLETE
    virtual int writeActivity(float time);
    virtual int writeActivitySparse(float time);
    virtual int readState(const char * name, float * time);
