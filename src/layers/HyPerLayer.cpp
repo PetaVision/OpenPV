@@ -287,6 +287,8 @@ int HyPerLayer::gatherToInteriorBuffer(unsigned char * buf)
 int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
                              const PVLayerLoc * loc, bool extended, float scale)
 {
+   size_t sf, sx, sy;
+
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
@@ -297,11 +299,15 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
    if (extended) {
       nxBorder = loc->nb;
       nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
    }
-
-   const size_t sf = strideF(loc);
-   const size_t sx = strideX(loc);
-   const size_t sy = strideY(loc);
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -319,6 +325,8 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
 int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                              const PVLayerLoc * loc, bool extended, float scale)
 {
+   size_t sf, sx, sy;
+
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
@@ -329,11 +337,15 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
    if (extended) {
       nxBorder = loc->nb;
       nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
    }
-
-   const size_t sf = strideF(loc);
-   const size_t sx = strideX(loc);
-   const size_t sy = strideY(loc);
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -351,6 +363,8 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
 int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
                                const PVLayerLoc * loc, bool extended, float scale)
 {
+   size_t sf, sx, sy;
+
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
@@ -361,11 +375,15 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    if (extended) {
       nxBorder = loc->nb;
       nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
    }
-
-   const size_t sf = strideF(loc);
-   const size_t sx = strideX(loc);
-   const size_t sy = strideY(loc);
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -383,6 +401,8 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
                                const PVLayerLoc * loc, bool extended, float scale)
 {
+   size_t sf, sx, sy;
+
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
@@ -393,11 +413,15 @@ int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
    if (extended) {
       nxBorder = loc->nb;
       nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
    }
-
-   const size_t sf = strideF(loc);
-   const size_t sx = strideX(loc);
-   const size_t sy = strideY(loc);
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
@@ -791,17 +815,19 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 {
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + nb*nf;
-   pvdata_t * dst0 = dest->data + (nb - 1)*sy + (nb - 1)*nf;
+   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
+   pvdata_t * dst0 = dest->data + (nb - 1)*sy + (nb - 1)*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to -= nf;
          from += nf;
@@ -815,17 +841,19 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
    int nx = clayer->loc.nx;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb * sy + nb * nf;
-   pvdata_t * dst0 = dest->data + (nb-1) * sy + nb * nf;
+   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
+   pvdata_t * dst0 = dest->data + (nb-1)*sy + nb*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to += nf;
          from += nf;
@@ -839,17 +867,19 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
    int nx = clayer->loc.nx;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*nf;
-   pvdata_t * dst0 = dest->data + (nb-1)*sy + (nx + nb)*nf;
+   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*sx;
+   pvdata_t * dst0 = dest->data + (nb-1)*sy + (nx + nb)*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to += nf;
          from -= nf;
@@ -863,17 +893,19 @@ int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + nb*nf;
-   pvdata_t * dst0 = dest->data + nb*sy + (nb - 1)*nf;
+   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
+   pvdata_t * dst0 = dest->data + nb*sy + (nb - 1)*sx;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to -= nf;
          from += nf;
@@ -888,17 +920,19 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*nf;
-   pvdata_t * dst0 = dest->data + nb*sy + (nx + nb)*nf;
+   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*sx;
+   pvdata_t * dst0 = dest->data + nb*sy + (nx + nb)*sx;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to += nf;
          from -= nf;
@@ -912,17 +946,19 @@ int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + nb*nf;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nb - 1)*nf;
+   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + nb*sx;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nb - 1)*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to -= nf;
          from += nf;
@@ -937,17 +973,19 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb -1)*sy + nb*nf;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + nb*nf;
+   pvdata_t * src0 = src-> data + (ny + nb -1)*sy + nb*sx;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + nb*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nx; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to += nf;
          from += nf;
@@ -962,17 +1000,19 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
    int nb = dest->loc.nb;
-   size_t sy = strideY(&dest->loc);
+   size_t sf = strideFExtended(&dest->loc);
+   size_t sx = strideXExtended(&dest->loc);
+   size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + (nx + nb - 1)*nf;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nx + nb)*nf;
+   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + (nx + nb - 1)*sx;
+   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nx + nb)*sx;
 
    for (int ky = 0; ky < nb; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nb; kx++) {
          for (int kf = 0; kf < nf; kf++) {
-            to[kf] = from[kf];
+            to[kf*sf] = from[kf*sf];
          }
          to += nf;
          from -= nf;
