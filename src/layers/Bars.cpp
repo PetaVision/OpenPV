@@ -95,8 +95,8 @@ int Bars::clearImage()
 
    const int nx = loc->nx + 2*loc->nb;
    const int ny = loc->ny + 2*loc->nb;
-   const int sx = strideX(loc);
-   const int sy = strideY(loc);
+   const int sx = strideXExtended(loc);
+   const int sy = strideYExtended(loc);
 
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
@@ -131,8 +131,8 @@ bool Bars::updateImage(float time, float dt)
    // extended frame
    const int nx = loc->nx + 2*loc->nb;
    const int ny = loc->ny + 2*loc->nb;
-   const int sx = strideX(loc);
-   const int sy = strideY(loc);
+   const int sx = strideXExtended(loc);
+   const int sy = strideYExtended(loc);
 
    const int width = 1;
    const int step = 6;
