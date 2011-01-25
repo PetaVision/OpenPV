@@ -476,23 +476,6 @@ HyPerLayer "test_constant_input connection" = {
    wMaxInit = 1;
 };
 
-
-//
-// This section defines parameters for test_cl_lif
-//
-
-HyPerCol "test_cl_lif column" = {
-   nx = 256;
-   ny = 256;
-};
-
-HyPerLayer "test_cl_lif layer" = {
-   nxScale = 1;
-   nyScale = 1;
-   marginWidth = 0;
-   spikingFlag = 1;
-};
-
 //
 // This section defines parameters for test_marginwidth_one_to_one
 //
@@ -776,3 +759,35 @@ HyPerConn "test_transpose_transpose One to many transpose of transpose" = {
     // feedback connection; other parameters inferred
 };
 
+//
+// This section defines parameters for test_cl_all
+//
+
+HyPerCol "test_cl_all column" = {
+   nx = 256;
+   ny = 256;
+   mirrorBCflag = 0;
+};
+
+HyPerLayer "test_cl_all layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   spikingFlag = 1;
+};
+
+//
+// This section defines parameters for retina
+//
+
+HyPerCol "retina column" = {
+   nx = 256;
+   ny = 256;
+};
+
+HyPerLayer "retina layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   spikingFlag = 1;
+};
