@@ -8,8 +8,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "LinearPostConnProbe.hpp"
-#include "BiConn.hpp"
 
 #include "Patterns.hpp"
 
@@ -142,23 +140,23 @@ int main(int argc, char* argv[])
 
 #endif
 
-#define WRITE_KERNELS
+#undef WRITE_KERNELS
 #ifdef WRITE_KERNELS
 
 	const char * i_r1_s_filename = "i_r1_s_gauss.txt";
 	HyPerLayer * pre = i_r1_s->preSynapticLayer();
-	int npad = pre->clayer->loc.nPad;
+	int npad = pre->clayer->loc.nb;
 	int nx = pre->clayer->loc.nx;
 	int ny = pre->clayer->loc.ny;
-	int nf = pre->clayer->loc.nBands;
+	int nf = pre->clayer->loc.nf;
 	i_r1_s->writeTextWeights(i_r1_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * i_r0_s_filename = "i_r0_s_gauss.txt";
 	pre = i_r0_s->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	i_r0_s->writeTextWeights(i_r0_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #endif
