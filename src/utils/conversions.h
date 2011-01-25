@@ -383,7 +383,9 @@ static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
  */
 // TODO - put back in nx,ny,... so that it will vectorize with vector of kl's
 //
-// WARNING - If changed, copy changes to tests/test_kg.c. test_kg tests
+// WARNING - If changed, copy changes to the tests/test_kg.c and
+//           tests/test_extend_border.c files. These tests run a
+//           function equivalent to the mpi version of
 //           globalIndexFromLocal but without using MPI.
 static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
 {

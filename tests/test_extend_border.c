@@ -3,6 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//
+// A replacement for globalIndexFromLocal from conversions.h.
+// WARNING - any changes in conversions.h should be reflected here.
+static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc)
+{
+   int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
+   int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
+   int  kf = featureIndex(kl, loc.nx, loc.ny, loc.nf);
+   return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
+}
+
 int main(int argc, char* argv[])
 {
    int kg, kl, kb;
@@ -31,13 +42,13 @@ int main(int argc, char* argv[])
    loc.nf  = nf;
 
    for (kl = 0; kl < nf*nxGlobal*nyGlobal; kl++) {
-      kg = globalIndexFromLocal(kl, loc);
+      kg = globalIndexFromLocal_nompi(kl, loc);
       kb = kIndexExtended(kl, nx, ny, nf, nb);
       if (kb != kg) {
-	 printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
-	 exit(1);
+         printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
+         exit(1);
       }
    }
 
-  return 0;
+   return 0;
 }
