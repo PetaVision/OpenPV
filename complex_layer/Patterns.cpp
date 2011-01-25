@@ -21,7 +21,7 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    Image(name, hc)
 {
    // CER-new
-   fp = fopen("bar-pos.txt", "w");
+   //fp = fopen("bar-pos.txt", "w");
 
    this->type = type;
 
@@ -62,7 +62,7 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
 Patterns::~Patterns()
 {
    // CER-new
-   fclose(fp);
+   //fclose(fp);
 }
 
 int Patterns::tag()
