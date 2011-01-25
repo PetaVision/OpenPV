@@ -14,8 +14,8 @@ function [act_time, ...
   global NO NK % for the current layer
   global first_i_trial last_i_trial num_i_trials
   global pvp_index
-  global num_hist_activity_bins 
-
+  global num_hist_bins
+ 
   if nargin < 2
     pvp_order = 1;
   end%%if
@@ -91,14 +91,14 @@ function [act_time, ...
       ( activity( activity ~= 0 ) ) / 1; %...
   if isempty(hist_activity_bins) && numel(normalized_activity) > 0
     [hist_activity, hist_activity_bins] = ...
-	hist( normalized_activity(:), num_hist_activity_bins);
+	hist( normalized_activity(:), num_hist_bins);
   end%%if
   if numel(normalized_activity) > 0
     hist_activity = ...
 	hist( normalized_activity(:), hist_activity_bins);
   else
     hist_activity = ...
-	zeros(1,num_hist_activity_bins);
+	zeros(1,num_hist_bins);
   end
 
   debug_readActivity = 0;

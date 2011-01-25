@@ -47,11 +47,11 @@ endif
 NFC = 4;
 
 global FC_STR
-%FC_STR = ['_', num2str(4), 'fc'];
+				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 5;
-num_trials = 0; %( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials = ( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -76,12 +76,12 @@ elseif abs(TRAINING_FLAG) == 4
 endif
 
 
-machine_path = '/home/garkenyon/workspace/';
-%machine_path = '/Users/gkenyon/Documents/eclipse-workspace/';
+				%machine_path = '/home/garkenyon/workspace/';
+machine_path = '/Users/gkenyon/workspace/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/amoebaLTD_256/test_W2000_target']; %, FC_STR];
+target_path = [machine_path 'kernel2/input/128/test_target10K_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   target_path = [target_path, FC_STR, '/'];
@@ -89,7 +89,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel/input/amoebaLTD_256/test_W2000_distractor']; %, FC_STR];
+		     'kernel2/input/128/test_target10K_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -137,7 +137,7 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = 2:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
+read_activity = 3:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
 num_layers = N_LAYERS;
 
 if RECONSTRUCT_FLAG
@@ -145,31 +145,31 @@ if RECONSTRUCT_FLAG
 else
   reconstruct_activity = [];
 endif
-  
+
 				%acivity_array = cell(num_layers, num_trials);
-num_2AFC_tests = 4;
+num_2AFC_tests = 1;
 ave_activity = zeros(2, num_layers, num_trials);
 std_activity = zeros(2, num_layers, num_trials);
 max_activity = zeros(2, num_layers, num_trials);
 mnz_activity = zeros(2, num_layers, num_trials);
 snz_activity = zeros(2, num_layers, num_trials); % sum of positive
 				% values only
-global num_hist_activity_bins
-num_hist_activity_bins = 100;
+global num_hist_bins
+num_hist_bins = 100;
 hist_activity_bins = cell(num_layers, 1);
 for layer = 1 : num_layers
   hist_activity_bins{layer} = []; 
 endfor
-hist_activity = zeros(2, num_hist_activity_bins, num_layers);
+hist_activity = zeros(2, num_hist_bins, num_layers);
 hist_activity_cell = cell(2, num_layers);
 act_time = zeros(num_layers, num_trials);
 				% 1 == ave, 2 == max, 3 ==
 				% ave > 0, 4 == sum > 0
 twoAFC_test_str = cell(num_2AFC_tests, 1);
 twoAFC_test_str{1} = 'ave  ';
-twoAFC_test_str{2} = 'sum  ';
-twoAFC_test_str{3} = 'avenz';
-twoAFC_test_str{4} = 'sumnz';
+				%twoAFC_test_str{2} = 'sum  ';
+				%twoAFC_test_str{3} = 'avenz';
+				%twoAFC_test_str{4} = 'sumnz';
 
 twoAFC = zeros(2, num_layers, num_trials, num_2AFC_tests);
 
@@ -187,20 +187,20 @@ for j_trial = first_trial : skip_trial : last_trial
   
   %% Analyze activity layer by layer
   for layer = read_activity;
-        
+    
     %% layer names, L -> retina, V1; G->lateral; T->topdown
     if layer <= 3
       layer_level = layer - 1;
     else
       layer_level = layer - 3 - ( 3 + G4_FLAG ) * ( layer > (6 + G4_FLAG) );
-    end%%if % layer < 3
+    endif % layer < 3
     if layer <= 3
       layer_label = 'L';
     elseif layer <= ( 6 + G4_FLAG )
       layer_label = 'G';
     else
       layer_label = 'T';
-    end%%if % layer < 3
+    endif % layer < 3
 
     %% account for delays between layers
     if TOPDOWN_FLAG
@@ -209,7 +209,7 @@ for j_trial = first_trial : skip_trial : last_trial
     else
       i_trial = j_trial + (layer - 1);
     endif %TOPDOWN_FLAG
-        
+    
     for target_flag = min_target_flag : max_target_flag
       
       OUTPUT_PATH = activity_path{target_flag};
@@ -226,8 +226,8 @@ for j_trial = first_trial : skip_trial : last_trial
           pvp_readActivity(layer, i_trial, hist_bins_tmp, pvp_order);
 
       disp([ layerID{layer}, ...
-            ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
-            num2str(ave_activity(target_flag, layer, j_trial) ) ]);
+	    ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
+	    num2str(ave_activity(target_flag, layer, j_trial) ) ]);
       if isempty(activity{target_flag}) || ~any(activity{target_flag})
         continue;
       endif
@@ -248,23 +248,23 @@ for j_trial = first_trial : skip_trial : last_trial
 			  num2str(layer), ',', ...
 			  num2str(j_trial), ') = '];			  
 	disp([layerID{layer}, ': ', ...
-            'ave_activity', ...
+	      'ave_activity', ...
 	      subindex_str, ...
 	      num2str(ave_activity(target_flag, layer, j_trial))]);
 	disp([layerID{layer}, ': ', ...
-            'std_activity', ...
+	      'std_activity', ...
 	      subindex_str, ...
 	      num2str(std_activity(target_flag, layer, j_trial))]);
 	disp([layerID{layer}, ': ', ...
-            'sum_activity', ...
+	      'sum_activity', ...
 	      subindex_str, ...
 	      num2str(sum_activity(target_flag, layer, j_trial))]);
 	disp([layerID{layer}, ': ', ...
-            'mnz_activity', ...
+	      'mnz_activity', ...
 	      subindex_str, ...
 	      num2str(mnz_activity(target_flag, layer, j_trial))]);
 	disp([layerID{layer}, ': ', ...
-            'snz_activity', ...
+	      'snz_activity', ...
 	      subindex_str, ...
 	      num2str(snz_activity(target_flag, layer, j_trial))]);
       endif
@@ -302,16 +302,16 @@ for j_trial = first_trial : skip_trial : last_trial
       reconstruct_activity2 = ...
 	  ismember( layer, reconstruct_activity ) && ...
 	  ( reconstruct_count <= num_single_trials ); % * ...
-%	   size(reconstruct_activity,2) ) * ...%
-%	  (max_target_flag - min_target_flag + 1);
+				%	   size(reconstruct_activity,2) ) * ...%
+				%	  (max_target_flag - min_target_flag + 1);
       if reconstruct_activity2
         size_activity = ...
-            [ 1 , num_features(layer, j_trial), ...
-             num_cols(layer, j_trial), num_rows(layer, j_trial) ];
+	    [ 1 , num_features(layer, j_trial), ...
+	     num_cols(layer, j_trial), num_rows(layer, j_trial) ];
         recon_filename = ...
-            ['recon ', layer_label, num2str(layer_level), '_', ...
-             num2str(j_trial, NUM2STR_FORMAT), '_', ...
-             num2str(target_flag)];
+	    ['recon ', layer_label, num2str(layer_level), '_', ...
+	     num2str(j_trial, NUM2STR_FORMAT), '_', ...
+	     num2str(target_flag)];
 	fig_tmp = figure;
 	set(fig_tmp, 'Name', recon_filename);
         fig_tmp = ...
@@ -322,7 +322,7 @@ for j_trial = first_trial : skip_trial : last_trial
         fig_list = [fig_list; fig_tmp];
 	
       endif
-            
+      
       twoAFC(target_flag, layer, j_trial, 1) = ...
 	  ave_activity(target_flag, layer, j_trial);
       twoAFC(target_flag, layer, j_trial, 2) = ...
@@ -345,7 +345,7 @@ for j_trial = first_trial : skip_trial : last_trial
     fig_list = [fig_list; fig_tmp];
     
     for layer = read_activity;
-  
+      
       for target_flag = min_target_flag : max_target_flag
 
 	subplot_index = find(read_activity == layer);	
@@ -361,13 +361,13 @@ for j_trial = first_trial : skip_trial : last_trial
 	  bar_width = 0.6;
         endif
 	if any(hist_activity_cell{target_flag,layer}(:))
-	  bh = bar( hist_activity_bins{layer, 1}, ...
+	  bh = bar(hist_activity_bins{layer, 1}, ...
 		   log( squeeze( hist_activity_cell{target_flag,layer}(:) ) + 1), ...
 		   bar_width);
 	  hold on
 	  set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
 	  set( bh, 'FaceColor', [red_hist 0 blue_hist] );
-	end%%if
+	endif
 	
       endfor  % target_flag
     endfor  % layer
@@ -393,7 +393,7 @@ else
     plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   else
     plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
-  end%if
+  endif
 endif
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -483,11 +483,11 @@ for i_conn = plot_weights
     NO = NFP;
     plot_name = ...
 	[connID{i_conn}, '(', ...
-		     int2str(i_conn), ',', ...
-		     int2str(i_patch), ')' ];
+			   int2str(i_conn), ',', ...
+			   int2str(i_patch), ')' ];
     fig_tmp = pvp_reconstruct(weights{i_conn}{i_patch}*weight_invert(i_conn), ...
-		    plot_name, ...
-		    [], patch_size);
+			      plot_name, ...
+			      [], patch_size);
     fig_list = [fig_list; fig_tmp];
   endfor % i_patch
 endfor % i_conn
@@ -533,7 +533,7 @@ if max_target_flag > min_target_flag
 	['hist_activity', '.mat']
     hist_filename = [OUTPUT_PATH, hist_filename]
     %%save("-z", "-mat", hist_filename, "hist_activity" );
-            save('-mat', hist_filename, 'hist_activity');
+    save('-mat', hist_filename, 'hist_activity');
 
   endif
 
@@ -544,106 +544,89 @@ if max_target_flag > min_target_flag
     std_2AFC = squeeze( std( twoAFC, 0, 3 ) );
     
     %% pvp_calc2AFC();
-    twoAFC_hist = cell(2, num_layers, num_2AFC_tests);
-    twoAFC_bins = cell(num_layers, num_2AFC_tests);
+%%    twoAFC_hist = cell(2, num_layers, num_2AFC_tests);
+%%    twoAFC_bins = cell(num_layers, num_2AFC_tests);
     twoAFC_cumsum = cell(2, num_layers, num_2AFC_tests);
     twoAFC_ideal = cell(num_layers, num_2AFC_tests);
     
     for i_2AFC_test = 1 : num_2AFC_tests
       
-    subplot_index = 0;
-    num_subplots = length(read_activity);
-    twoAFC_hist_name = ['2AFC hist ', twoAFC_test_str{i_2AFC_test}];
-    fig_tmp = figure('Name', twoAFC_hist_name);
-    fig_list = [fig_list; fig_tmp];
-    for layer = read_activity
-      subplot_index = subplot_index + 1;
-      subplot(num_subplots, 1, subplot_index);
-      twoAFC_tmp = squeeze( twoAFC(:, layer, :, i_2AFC_test) );
-      [ twoAFC_hist_tmp, twoAFC_bins{layer, i_2AFC_test} ] = ...
-	  hist( twoAFC_tmp(:), num_hist_activity_bins );            
-      for target_flag = 1 : 2;
-	twoAFC_hist{target_flag, layer, i_2AFC_test} = ...
-	    hist( squeeze( twoAFC(target_flag, layer, :, i_2AFC_test) ), ...
-		 twoAFC_bins{layer, i_2AFC_test} );
-	twoAFC_hist{target_flag, layer, i_2AFC_test} = ...
-	    twoAFC_hist{target_flag, layer, i_2AFC_test} / ...
-	    sum( twoAFC_hist{target_flag, layer, i_2AFC_test} );
-	if target_flag == 1
-	  red_hist = 1;
-	  blue_hist = 0;
-	  bar_width = 0.8;
-	else
-	  red_hist = 0;
-	  blue_hist = 1;
-	  bar_width = 0.6;
-	endif
-	bh = bar( twoAFC_bins{layer, i_2AFC_test}, ...
-		 twoAFC_hist{target_flag, layer, i_2AFC_test}, ...
-		 bar_width);
-	set( bh, 'EdgeColor', [red_hist 0 blue_hist] );
-	set( bh, 'FaceColor', [red_hist 0 blue_hist] );
-	hold on
-      endfor  % target_flag
-    endfor  % layer
-    
-    subplot_index = 0;
-    num_subplots = length(read_activity);
-    twoAFC_ideal_name = ['2AFC ideal observer ', twoAFC_test_str{i_2AFC_test}];
-    fig_tmp = figure('Name', twoAFC_ideal_name);
-    fig_list = [fig_list; fig_tmp];
-    for layer = read_activity
-      for target_flag = 1 : 2;
-	twoAFC_cumsum{target_flag, layer, i_2AFC_test} = ...
-	    1 - cumsum( twoAFC_hist{target_flag, layer, i_2AFC_test} );
-      endfor
-      subplot_index = subplot_index + 1;
-      subplot(num_subplots, 1, subplot_index);
-      twoAFC_ideal{layer, i_2AFC_test} = ...
-	  0.5 + 0.5 * ...
-	  ( twoAFC_cumsum{1, layer, i_2AFC_test} - twoAFC_cumsum{2, layer, i_2AFC_test} );
-      bh = bar( twoAFC_bins{layer, i_2AFC_test}, twoAFC_ideal{layer, i_2AFC_test} );  
-      set( bh, 'EdgeColor', [0 1 0] );
-      set( bh, 'FaceColor', [0 1 0] );
-      set(gca, 'YLim', [0 1]);
-      hold on;
-    endfor
-    
-    subplot_index = 0;
-    num_subplots = length(read_activity);
-    twoAFC_ROC_name = ['2AFC ROC ', twoAFC_test_str{i_2AFC_test}];
-    fig_tmp = figure('Name', twoAFC_ROC_name);
-    fig_list = [fig_list; fig_tmp];
-    for layer = read_activity
-      subplot_index = subplot_index + 1;
-      subplot(num_subplots, 1, subplot_index);
-      axis([0 1 0 1]);
-      hold on;
-      lh = plot( [0, fliplr( twoAFC_cumsum{2, layer, i_2AFC_test} ), 1], ...
-		 [0, fliplr( twoAFC_cumsum{1, layer, i_2AFC_test} ), 1 ], ...
-		'-k');  
-      set( lh, 'LineWidth', 2 );
-    endfor
+      [twoAFC_hist, twoAFC_bins] = ...
+	  pvp_calc2AFCHist(twoAFC, ...
+			   read_activity, ...
+			   1, ...
+			   twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCHist(twoAFC_hist, ...
+			   twoAFC_bins, ...
+			   read_activity, ...
+			   twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
 
-    disp(twoAFC_test_str{i_2AFC_test});
-    for layer = read_activity
-      for target_flag = 1 : 2;
-      disp( ['mean_2AFC(', num2str(target_flag), ',', ...
-			  num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
-	     num2str(mean_2AFC(target_flag, layer, i_2AFC_test)), ...
-	     '+/- ', 
-	     num2str(std_2AFC(target_flag, layer, i_2AFC_test)), ...
-	     ] );
+      
+      [twoAFC_cumsum, twoAFC_ideal] = ...
+	  pvp_calc2AFCCumsum(twoAFC_hist, ...
+			     read_activity, ...
+			     1, ...
+			     twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCIdeal(twoAFC_ideal, ...
+			    twoAFC_bins, ...
+			    read_activity, ...
+			    1, ...
+			    twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
+
+      
+      [twoAFC_ROC] = ...
+	  pvp_calc2AFCCumsum(twoAFC_cumsum, ...
+			     read_activity, ...
+			     1, ...
+			     twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCROC(twoAFC_ROC, ...
+			  read_activity, ...
+			  1, ...
+			  twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
+
+      
+      
+      subplot_index = 0;
+      num_subplots = length(read_activity);
+      twoAFC_ROC_name = ['2AFC ROC ', twoAFC_test_str{i_2AFC_test}];
+      fig_tmp = figure('Name', twoAFC_ROC_name);
+      fig_list = [fig_list; fig_tmp];
+      for layer = read_activity
+	subplot_index = subplot_index + 1;
+	subplot(num_subplots, 1, subplot_index);
+	axis([0 1 0 1]);
+	hold on;
+	lh = plot( [0, fliplr( twoAFC_cumsum{2, layer, i_2AFC_test} ), 1], ...
+		  [0, fliplr( twoAFC_cumsum{1, layer, i_2AFC_test} ), 1 ], ...
+		  '-k');  
+	set( lh, 'LineWidth', 2 );
       endfor
-    endfor
-    for layer = read_activity
-      twoAFC_correct(layer, i_2AFC_test) = ...
-	  sum( squeeze( twoAFC(1,layer, :, i_2AFC_test) >
-		       twoAFC(2,layer, :, i_2AFC_test) ) ) / ...
-	  ( tot_trials + (tot_trials == 0) );
-      disp( ['twoAFC_correct(', num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
-	     num2str(twoAFC_correct(layer, i_2AFC_test)) ] );
-    endfor
+
+      disp(twoAFC_test_str{i_2AFC_test});
+      for layer = read_activity
+	for target_flag = 1 : 2;
+	  disp( ['mean_2AFC(', num2str(target_flag), ',', ...
+			    num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
+		 num2str(mean_2AFC(target_flag, layer, i_2AFC_test)), ...
+		 '+/- ', 
+		 num2str(std_2AFC(target_flag, layer, i_2AFC_test)), ...
+		 ] );
+	endfor
+      endfor
+      for layer = read_activity
+	twoAFC_correct(layer, i_2AFC_test) = ...
+	    sum( squeeze( twoAFC(1,layer, :, i_2AFC_test) >
+			 twoAFC(2,layer, :, i_2AFC_test) ) ) / ...
+	    ( tot_trials + (tot_trials == 0) );
+	disp( ['twoAFC_correct(', num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
+	       num2str(twoAFC_correct(layer, i_2AFC_test)) ] );
+      endfor
 
     endfor % i_2AFC_test
     
