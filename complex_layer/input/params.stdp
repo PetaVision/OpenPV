@@ -211,10 +211,10 @@ HyPerConn "RetinaOn to L1" = {
    nxp = 20; // 64;
    nyp = 20; // 64;
    
-   stdpFlag   = 0;
+   stdpFlag   = 1;
    randomFlag = 1;
    
-   initFromLastFlag = 1;
+   initFromLastFlag = 0;
    uniformWeights = 1;
    //strength = 1.5;
 
@@ -244,10 +244,10 @@ HyPerConn "RetinaOff to L1" = {
    nxp = 20;
    nyp = 20;
    
-   stdpFlag   = 0;
+   stdpFlag   = 1;
    randomFlag = 1;
 
-   initFromLastFlag = 1;
+   initFromLastFlag = 0;
     
    uniformWeights = 1;
    //strength = 1.5;
