@@ -108,7 +108,7 @@ int spike(float time, float dt,
 //    assume called with 1D kernel
 //
 CL_KERNEL
-void Retina_update_state (
+void Retina_spiking_update_state (
     const float time,
     const float dt,
 
@@ -143,7 +143,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_phiExc = phiExc[k];
    float l_phiInh = phiInh[k];
    float l_prev   = prevTime[kex];
-   float l_activ  = activity[kex];
+   float l_activ;
 
    l_activ = (float) spike(time, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, params);
    l_prev  = (l_activ > 0.0f) ? time : l_prev;
@@ -157,6 +157,62 @@ for (k = 0; k < nx*ny*nf; k++) {
    phiExc[k] = l_phiExc;
    phiInh[k] = l_phiInh;
    prevTime[kex] = l_prev;
+   activity[kex] = l_activ;
+
+#ifndef PV_USE_OPENCL
+   }
+#endif
+
+}
+
+//
+// update the state of a retinal layer (non-spiking)
+//
+//    assume called with 1D kernel
+//
+CL_KERNEL
+void Retina_nonspiking_update_state (
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    CL_MEM_GLOBAL Retina_params * params,
+    CL_MEM_GLOBAL float * phiExc,
+    CL_MEM_GLOBAL float * phiInh,
+    CL_MEM_GLOBAL float * activity)
+{
+   int k;
+#ifndef PV_USE_OPENCL
+for (k = 0; k < nx*ny*nf; k++) {
+#else   
+   k = get_global_id(0);
+#endif
+
+   int kex = kIndexExtended(k, nx, ny, nf, nb);
+
+   //
+   // kernel (nonheader part) begins here
+   //
+   
+   // load local variables from global memory
+   //
+   float l_phiExc = phiExc[k];
+   float l_phiInh = phiInh[k];
+   float l_activ;
+
+   l_activ = params->probStim*(l_phiExc - l_phiInh);
+
+   l_phiExc = 0.0f;
+   l_phiInh = 0.0f;
+
+   // store local variables back to global memory
+   //
+   phiExc[k] = l_phiExc;
+   phiInh[k] = l_phiInh;
    activity[kex] = l_activ;
 
 #ifndef PV_USE_OPENCL
