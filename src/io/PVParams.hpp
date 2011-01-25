@@ -101,11 +101,14 @@ public:
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue);
    ParameterGroup * group(const char * groupName);
+   const char * groupNameFromIndex(int index);
    const char * getFilename(const char * id);
 
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
    void action_filename_def(char * id, char * path);
+
+   int numberOfGroups() {return numGroups;}
 
 private:
    int numGroups;

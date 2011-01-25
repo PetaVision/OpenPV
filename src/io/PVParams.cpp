@@ -312,6 +312,11 @@ ParameterGroup * PVParams::group(const char * groupName)
    return NULL;
 }
 
+const char * PVParams::groupNameFromIndex(int index) {
+   bool inbounds = index >= 0 && index < numGroups;
+   return inbounds ? groups[index]->name() : NULL;
+}
+
 const char * PVParams::getFilename(const char * id)
 {
    FilenameDef * fd = fnstack->getFilenameDefByKey(id);
