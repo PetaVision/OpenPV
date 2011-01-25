@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-void Retina_update_state (
+void Retina_spiking_update_state (
     const float time,
     const float dt,
     const int nx,
@@ -33,6 +33,18 @@ void Retina_update_state (
     float * phiInh,
     float * activity,
     float * prevTime);
+
+void Retina_nonspiking_update_state (
+    const float time,
+    const float dt,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+    Retina_params * params,
+    float * phiExc,
+    float * phiInh,
+    float * activity);
 
 #ifdef __cplusplus
 }
