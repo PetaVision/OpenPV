@@ -19,18 +19,18 @@
 
 namespace PV {
 
-int test_LIF(int argc, char * argv[])
+int test_kernels(int argc, char * argv[])
 {
    Timer timer;
    CLKernel * kernel;
-   CLKernel * retinakernel;
+   CLKernel * retinaKernel;
 
    int status = CL_SUCCESS;
    int nWarm = 10, nLoops = 100;
 
-   HyPerCol * hc = new HyPerCol("test_cl_lif column", argc, argv, "..");
+   HyPerCol * hc = new HyPerCol("test_cl_all column", argc, argv, "..");
    Retina   * retina = new Retina("test_cl_all layer", hc);
-   LIF      * l1 = new LIF("test_cl_lif layer", hc);
+   LIF      * l1 = new LIF("test_cl_all layer", hc);
 
    const PVLayerLoc * loc = l1->getLayerLoc();
 
@@ -43,6 +43,7 @@ int test_LIF(int argc, char * argv[])
    const int nyl = l1->nyl;
 
    kernel = l1->krUpdate;
+   retinaKernel = retina->krUpdate;
 
    //printf("Executing on device...");
    //kernel->run(nx*ny, nxl*nyl);
@@ -60,12 +61,16 @@ int test_LIF(int argc, char * argv[])
 
    for (int n = 0; n < nWarm; n++) {
       kernel->run(nx*ny, nxl*nyl);
+      retinaKernel->run(nx*ny, nxl*nyl);
+
    }
 
    printf("Timing %d loops on device... ", nLoops);
    timer.start();
    for (int n = 0; n < nLoops; n++) {
       kernel->run(nx*ny, nxl*nyl);
+      retinaKernel->run(nx*ny, nxl*nyl);
+
    }
    status |= kernel->finish();
    timer.stop();
@@ -113,7 +118,7 @@ int test_LIF(int argc, char * argv[])
 
 int main(int argc, char * argv[])
 {
-   return PV::test_LIF(argc, argv);
+   return PV::test_kernels(argc, argv);
 }
 
 #ifdef NOTYET
