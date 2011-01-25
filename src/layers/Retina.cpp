@@ -130,7 +130,6 @@ int Retina::initializeThreadBuffers()
 
    // TODO - use constant memory
    clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
-   clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
 
    clPhiE = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
    clPhiI = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
@@ -139,7 +138,15 @@ int Retina::initializeThreadBuffers()
    clPhiIB = NULL;
 
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
-   clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
+
+   if (spikingFlag) {
+      clRand     = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
+      clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
+   }
+   else {
+      clRand = NULL;
+      clPrevTime = NULL;
+   }
 
    return status;
 }
@@ -157,7 +164,12 @@ int Retina::initializeThreadKernels()
 
    // create kernels
    //
-   krUpdate = device->createKernel(kernelPath, "Retina_update_state", kernelFlags);
+   if (spikingFlag) {
+      krUpdate = device->createKernel(kernelPath, "Retina_spiking_update_state", kernelFlags);
+   }
+   else {
+      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+   }
 
    int argid = 0;
 
@@ -170,12 +182,16 @@ int Retina::initializeThreadKernels()
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
 
    status |= krUpdate->setKernelArg(argid++, clParams);
-   status |= krUpdate->setKernelArg(argid++, clRand);
+   if (spikingFlag) {
+      status |= krUpdate->setKernelArg(argid++, clRand);
+   }
 
    status |= krUpdate->setKernelArg(argid++, clPhiE);
    status |= krUpdate->setKernelArg(argid++, clPhiI);
    status |= krUpdate->setKernelArg(argid++, clActivity);
-   status |= krUpdate->setKernelArg(argid++, clPrevTime);
+   if (spikingFlag) {
+      status |= krUpdate->setKernelArg(argid++, clPrevTime);
+   }
 
    return status;
 }
@@ -315,21 +331,13 @@ int Retina::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
 
    if (spikingFlag == 1) {
-      Retina_update_state(time, dt, nx, ny, nf, nb,
-                          &rParams, rand_state,
-                          phiExc, phiInh, activity, clayer->prevActivity);
+      Retina_spiking_update_state(time, dt, nx, ny, nf, nb,
+                                  &rParams, rand_state,
+                                  phiExc, phiInh, activity, clayer->prevActivity);
    }
    else {
-      // retina is non spiking, pass scaled image through to activity
-      // scale by poissonEdgeProb (maxRetinalActivity)
-      //
-      for (int k = 0; k < clayer->numNeurons; k++) {
-         const int kex = kIndexExtended(k, nx, ny, nf, nb);
-         activity[kex] = rParams.probStim * (phiExc[k] - phiInh[k]);
-         // reset accumulation buffers
-         phiExc[k] = 0.0;
-         phiInh[k] = 0.0;
-      }
+      Retina_nonspiking_update_state(time, dt, nx, ny, nf, nb,
+                                     &rParams, phiExc, phiInh, activity);
    }
    update_timer->stop();
 #else
