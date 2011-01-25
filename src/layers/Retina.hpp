@@ -26,6 +26,9 @@ namespace PV
 class Retina: public PV::HyPerLayer
 {
 public:
+
+   friend int test_kernels(int argc, char * argv[]);
+
    Retina(const char * name, HyPerCol * hc);
    virtual ~Retina();
 
