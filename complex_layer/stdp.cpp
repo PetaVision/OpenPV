@@ -21,7 +21,7 @@
 #include <src/layers/Gratings.hpp>
 #include <src/layers/Movie.hpp>
 #include <src/layers/Retina.hpp>
-#include <src/layers/V1.hpp>
+#include <src/layers/LIF.hpp>
 #include <src/connections/HyPerConn.hpp>
 #include <src/connections/RandomConn.hpp>
 #include <src/connections/KernelConn.hpp>
@@ -53,18 +53,18 @@ int main(int argc, char* argv[])
 
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
-   HyPerLayer * l1        = new V1("L1", hc);
+   HyPerLayer * l1        = new LIF("L1", hc);
 
 #ifdef INHIB
-   HyPerLayer * l1Inh  = new V1("L1Inh", hc);
+   HyPerLayer * l1Inh = new LIF("L1Inh", hc);
 #endif
 
 #ifdef L2
-   HyPerLayer * l2     = new V1("L2", hc);
+   HyPerLayer * l2 = new LIF("L2", hc);
 #endif
 
 #ifdef L2INHIB
-   HyPerLayer * l2Inh  = new V1("L2Inh", hc);
+   HyPerLayer * l2Inh = new LIF("L2Inh", hc);
 #endif
 
    // connect the layers
