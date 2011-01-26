@@ -84,6 +84,7 @@ LIF::~LIF()
    }
    free(Vth);
    free(rand_state);
+   free(R);
 
 #ifdef PV_USE_OPENCL
    free(evList);
@@ -98,11 +99,21 @@ LIF::~LIF()
    delete clPhiE;
    delete clPhiI;
    delete clPhiIB;
+   delete clR;
    delete clActivity;
    delete clPrevTime;
 #endif
+
 }
 
+
+// Initialize this class
+/*
+ *
+ * setParams() is called first so that we read all control parameters
+ * (rateFlag, tauRate, writeRate, etc) from the params file.
+ *
+ */
 int LIF::initialize(PVLayerType type)
 {
    float time = 0.0f;
@@ -139,6 +150,31 @@ int LIF::initialize(PVLayerType type)
    if (parent->parameters()->value(name, "restart", 0) != 0) {
       readState(name, &time);
    }
+
+   char filename[PV_PATH_MAX];
+   bool append = false;
+   
+   int writeRate = parent->parameters()->value(name, "writeRate", 0);
+   int writeVolt = parent->parameters()->value(name, "writeVolt", 0);
+
+   if (writeRate) {
+      sprintf(filename, "%s/R%d.pvp", OUTPUT_PATH, clayer->layerId);
+      rateFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+   } else {
+      rateFP = NULL;
+   }
+
+   if (writeVolt) {
+      sprintf(filename, "%s/V%d.pvp", OUTPUT_PATH, clayer->layerId);
+      voltFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+   } else {
+      voltFP = NULL;
+   }
+
+   // allocate memory for R
+   //
+   R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
+   assert(R != NULL);
 
    // initialize OpenCL parameters
    //
@@ -244,6 +280,14 @@ int LIF::initializeThreadKernels()
 }
 #endif
 
+// Set Parameters
+/*
+ * I've decided to not modify LIFParams to include a TAU_RATE.
+ * Instead, we read tauRate from the params file or used its
+ * predefined value. This is relevant only when we set rateFlag and
+ * compute firing rates
+ *
+ */
 int LIF::setParams(PVParams * p)
 {
    float dt_sec = .001 * parent->getDeltaTime();  // seconds
@@ -263,6 +307,7 @@ int LIF::setParams(PVParams * p)
    lParams.tauI  = p->value(name, "tauI" , TAU_INH);
    lParams.tauIB = p->value(name, "tauIB", TAU_INHB);
 
+   lParams.tauRate  = p->value(name, "tauRate",  TAU_RATE);
    lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
    lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
    lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
@@ -285,7 +330,7 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqE  > 1.0) lParams.noiseFreqE  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
-
+   
    return 0;
 }
 
@@ -380,9 +425,61 @@ int LIF::updateState(float time, float dt)
    return 0;
 }
 
-int LIF::writeState(const char * path, float time)
+
+
+//
+/*
+ * Parameters are set by setParams() before readState() is called.
+ * This means that rateFlag is already set.
+ *
+ */
+int LIF::readState(const char * name, float * time)
 {
-   HyPerLayer::writeState(path, time);
+
+   HyPerLayer::readState(name, time);
+
+
+   int status = 0;
+   char path[PV_PATH_MAX];
+
+   double dtime;
+
+   bool contiguous = false;
+   bool extended   = false;
+
+   Communicator * comm = parent->icCommunicator();
+
+   const char * last = "_last";
+   const char * name_str = (name != NULL) ? name : "";
+
+   PVLayerLoc * loc = & clayer->loc;
+
+   // are these extended variables?
+   extended = true;
+   snprintf(path, PV_PATH_MAX-1, "%s%s_R%s.pvp", OUTPUT_PATH, name_str, last);
+   status = read(path, comm, &dtime, R, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+
+}
+
+int LIF::writeState(const char * path, float time, bool last)
+{
+   int status = 0;
+   char path[PV_PATH_MAX];
+
+   bool contiguous = false;
+   bool extended   = false;
+
+   Communicator * comm = parent->icCommunicator();
+
+   const char * last_str = (last) ? "_last" : "";
+   const char * name_str = (name != NULL) ? name : "";
+
+   HyPerLayer::writeState(path, time, last);
+
+   snprintf(path, PV_PATH_MAX-1, "%s%s_R%s.pvp", OUTPUT_PATH, name_str, last_str);
+   status = write(path, comm, time, R, loc, PV_FLOAT_TYPE, extended, contiguous);
+
 
 #ifdef DEBUG_OUTPUT
    // print activity at center of image
@@ -407,6 +504,24 @@ int LIF::writeState(const char * path, float time)
 #endif
 
    return 0;
+}
+int LIF::outputState(float time, bool last)
+{
+   int status = 0;
+   PVParams * params = parent->parameters();
+
+   HyPerLayer::outputState(time, last);
+   
+   if (voltFP != NULL) {  // non-extended variable
+      status |= PV::writeStateVariable(voltFP, parent->icCommunicator(), time, clayer, clayer->V);
+   }
+
+
+   if (rateFP != NULL) {  // non-extended variable
+      status |= PV::writeStateVariable(rateFP, parent->icCommunicator(), time, clayer, R);
+   }
+
+   return status;
 }
 
 int LIF::findPostSynaptic(int dim, int maxSize, int col,
