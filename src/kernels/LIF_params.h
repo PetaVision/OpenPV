@@ -11,6 +11,7 @@ typedef struct LIF_params_ {
    float tauE;
    float tauI;
    float tauIB;
+   float tauRate;
 
    float VthRest;
    float tauVth;
