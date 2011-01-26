@@ -40,6 +40,7 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * phiExc,
     CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * phiInhB,
+    CL_MEM_GLOBAL float * R,
     CL_MEM_GLOBAL float * activity)
 {
    int k;
@@ -56,7 +57,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, tauE, tauI, tauIB, Vrest, VthRest, Vexc, Vinh, VinhB, tauVth, deltaVth;
+   float tau, tauE, tauI, tauIB, tauRate, Vrest, VthRest, Vexc, Vinh, VinhB, tauVth, deltaVth;
 
    float dt_sec;
    const float GMAX = 10.0;
@@ -76,6 +77,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_phiExc  = phiExc[k];
    float l_phiInh  = phiInh[k];
    float l_phiInhB = phiInhB[k];
+   
+   float l_R = R[k];
 
    // temporary arrays
    float tauInf, VmemInf;
@@ -90,12 +93,13 @@ for (k = 0; k < nx*ny*nf; k++) {
    tauE  = params->tauE;
    tauI  = params->tauI;
    tauIB = params->tauIB;
-
+   
    Vrest = params->Vrest;
    Vexc  = params->Vexc;
    Vinh  = params->Vinh;
    VinhB = params->VinhB;
 
+   tauRate  = params->tauRate;
    tauVth   = params->tauVth;
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
@@ -125,7 +129,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_E  = l_phiExc  + l_G_E *EXP(-dt/tauE );
    l_G_I  = l_phiInh  + l_G_I *EXP(-dt/tauI );
    l_G_IB = l_phiInhB + l_G_IB*EXP(-dt/tauIB);
-
+   
    tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
            / (1.0 + l_G_E + l_G_I + l_G_IB);
@@ -157,6 +161,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_Vth   = (l_V > l_Vth) ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = (l_V > l_Vth) ? l_G_IB + 1.0f    : l_G_IB;
 
+   // update average rate
+   l_R = l_active + l_R*EXP(-dt/tauRate);
+   
    //
    // These actions must be done outside of kernel
    //    1. set activity to 0 in boundary (if needed)
@@ -166,6 +173,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    // store local variables back to global memory
    //
    activity[kex] = l_activ;
+   
+   R[k] = l_R;
 
    V[k]   = l_V;
    Vth[k] = l_Vth;
