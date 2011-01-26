@@ -22,13 +22,18 @@ TrainingGenLayer::TrainingGenLayer(const char * name, HyPerCol * hc, const char 
     initialize( filename, displayPeriod, delay ); // trainingLabels allocated within this initialize call
 }
 
+TrainingGenLayer::TrainingGenLayer(const char * name, HyPerCol * hc, const char * filename)
+        : GenerativeLayer(name, hc) {
+    initialize( filename, hc->parameters() );
+}
+
 TrainingGenLayer::~TrainingGenLayer() {
     free(trainingLabels);
 }
 
 int TrainingGenLayer::initialize(int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay) {
     // setFuncs(NULL, NULL);
-	this->numTrainingLabels = numTrainingLabels;
+    this->numTrainingLabels = numTrainingLabels;
     this->trainingLabels = NULL;
     curTrainingLabelIndex = 0;
     this->displayPeriod = displayPeriod;
@@ -38,7 +43,7 @@ int TrainingGenLayer::initialize(int numTrainingLabels, int * trainingLabels, fl
     if( this->trainingLabels == NULL) return EXIT_FAILURE;
 
     for( int k=0; k<numTrainingLabels; k++ ) {
-    	this->trainingLabels[k] = trainingLabels[k];
+        this->trainingLabels[k] = trainingLabels[k];
     }
     pvdata_t * V = getV();
     for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
@@ -56,10 +61,20 @@ int TrainingGenLayer::initialize(const char * filename, float displayPeriod, flo
     return EXIT_SUCCESS;
 }
 
+int TrainingGenLayer::initialize(const char * filename, PVParams * params) {
+    float displayPeriod = params->value(name, "displayPeriod", -1);
+    float delay = params->value(name, "delay", -1);
+    if( displayPeriod < 0 || delay < 0) {
+    	fprintf(stderr, "Constructor for TrainingGenLayer \"%s\" requires parameters displayPeriod and delay to be set in the params file.\n", name);
+        exit(EXIT_FAILURE);
+    }
+    return initialize(filename, displayPeriod, delay);
+}
+
 int TrainingGenLayer::readTrainingLabels(const char * filename, int ** trainingLabelsFromFile) {
     FILE * instream = fopen(filename, "r");
     if( instream == NULL ) {
-        fprintf( stderr, "TrainingGenLayer: Unable to open \"%s\". Error %d\n", name, errno );
+        fprintf( stderr, "TrainingGenLayer: Unable to open \"%s\". Error %d\n", filename, errno );
         *trainingLabelsFromFile = NULL;
         return 0;
     }
@@ -73,16 +88,16 @@ int TrainingGenLayer::readTrainingLabels(const char * filename, int ** trainingL
         didReadLabel = fscanf(instream, "%d", &label);
         switch( didReadLabel ) {
         case 0:
-        	fseek( instream, 1L, SEEK_CUR );
-        	break;
+            fseek( instream, 1L, SEEK_CUR );
+            break;
         case 1:
-        	n++;
-        	oldlabels = labels;
-        	labels = (int *) malloc((size_t) n * sizeof(int) );
-        	assert(labels);
-        	for(int k=0; k<n-1; k++) labels[k] = oldlabels[k];
-        	labels[n-1] = label;
-        	free(oldlabels);
+            n++;
+            oldlabels = labels;
+            labels = (int *) malloc((size_t) n * sizeof(int) );
+            assert(labels);
+            for(int k=0; k<n-1; k++) labels[k] = oldlabels[k];
+            labels[n-1] = label;
+            free(oldlabels);
         }
     } while( didReadLabel != EOF );
     fclose(instream);
@@ -122,7 +137,7 @@ void TrainingGenLayer::sendBadNeuronMessage() {
     fprintf(stderr, "Number of training labels is %d\n", numTrainingLabels);
     fprintf(stderr, "Current label index is %d\n", curTrainingLabelIndex);
     fprintf(stderr, "Value of label %d is %d\n", curTrainingLabelIndex,
-    		trainingLabels[curTrainingLabelIndex]);
+            trainingLabels[curTrainingLabelIndex]);
     fprintf(stderr, "Number of neurons is %d\n", getNumNeurons());
 }
 

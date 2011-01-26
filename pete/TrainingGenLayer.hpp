@@ -17,9 +17,11 @@ class TrainingGenLayer : public GenerativeLayer {
 public:
 	TrainingGenLayer(const char * name, HyPerCol * hc, int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay );
 	TrainingGenLayer(const char * name, HyPerCol * hc, const char * filename, float displayPeriod, float delay );
+	TrainingGenLayer(const char * name, HyPerCol * hc, const char * filename);
 	virtual ~TrainingGenLayer();
     int initialize(int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay);
     int initialize(const char * filename, float displayPeriod, float delay);
+    int initialize(const char * filename, PVParams * params);
     int readTrainingLabels(const char * filename, int ** trainingLabels);
 
     virtual int updateState(float time, float dt);
