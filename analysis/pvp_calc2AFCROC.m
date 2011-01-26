@@ -23,9 +23,10 @@ function [twoAFC_ROC] = ...
     for target_ID = target_ID_ndx
       twoAFC_cumsum_tmp1 = twoAFC_cumsum{1, layer, target_ID};
       twoAFC_cumsum_tmp2 = twoAFC_cumsum{2, layer, target_ID};
-      twoAFC_ROC_tmp = ...      
-	  ([0, fliplr( twoAFC_cumsum_tmp2 ), 1], ...
-	   [0, fliplr( twoAFC_cumsum_tmp1 ), 1 ] );
+      num_ROC_bins = length(twoAFC_cumsum_tmp1)+2;
+      twoAFC_ROC_tmp = zeros(2, num_ROC_bins);
+      twoAFC_ROC_tmp(1,:) = [0, fliplr(twoAFC_cumsum_tmp2), 1];
+      twoAFC_ROC_tmp(2,:) = [0, fliplr(twoAFC_cumsum_tmp1), 1];
       twoAFC_ROC{layer, target_ID} = ...
 	  twoAFC_ROC_tmp;
     endfor  % target_ID

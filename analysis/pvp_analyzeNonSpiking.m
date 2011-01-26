@@ -51,7 +51,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 5;
-num_trials = ( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials = 0; %( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -59,6 +59,7 @@ else
 endif %TOPDOWN_FLAG
 last_trial = num_trials;
 skip_trial = 1;
+tot_trials = length( first_trial : skip_trial : num_trials );
 
 RAW_HIST_FLAG = 1;
 RECONSTRUCT_FLAG = 1;
@@ -74,7 +75,6 @@ elseif abs(TRAINING_FLAG) == 3
 elseif abs(TRAINING_FLAG) == 4
   G_STR = '_G4';
 endif
-
 
 				%machine_path = '/home/garkenyon/workspace/';
 machine_path = '/Users/gkenyon/workspace/';
@@ -382,6 +382,149 @@ for j_trial = first_trial : skip_trial : last_trial
 
 endfor % j_trial
 
+
+twoAFC_filename = ...
+    ['twoAFC', num2str(expNum), '.mat']
+twoAFC_filename = [twoAFC_path, twoAFC_filename]
+if tot_trials > num_single_trials
+  save('-mat', twoAFC_filename, 'twoAFC', 'tot_trials', ...
+       'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
+else
+  load(twoAFC_filename);
+endif
+
+%% 2AFC analysis
+
+max_target_flag = size(twoAFC, 1);
+min_target_flag = 1;
+tot_trials = size(twoAFC, 3); %length( first_trial : skip_trial : num_trials );
+plot_hist_activity_flag = 0;
+plot_2AFC_flag = tot_trials > num_single_trials;
+if max_target_flag > min_target_flag
+
+  if plot_hist_activity_flag
+    
+    subplot_index = 0;
+    num_subplots = length(read_activity);
+    hist_name = 'Cum Pixel Dist';
+    fig_tmp = figure('Name', hist_name);
+    fig_list = [fig_list; fig_tmp];
+    for layer = read_activity
+      subplot_index = subplot_index + 1;
+      subplot(num_subplots, 1, subplot_index);
+      hist_activity_tmp = ...
+	  hist_activity(1, :, layer) / ...
+	  sum( squeeze( hist_activity(1, :, layer) ) );
+      cum_activity_target = ...
+	  1 - cumsum( hist_activity_tmp );
+      hist_activity_tmp = ...
+	  hist_activity(2, :, layer) / ...
+	  sum( squeeze( hist_activity(2, :, layer) ) );
+      cum_activity_distractor = ...
+	  1 - cumsum( hist_activity_tmp );
+      twoAFC_correct = 0.5 + 0.5 * ...
+	  ( cum_activity_target - cum_activity_distractor );
+      bar( hist_activity_bins{layer}, twoAFC_correct );  
+    endfor
+    hist_filename = ...
+	['hist_activity', '.mat']
+    hist_filename = [OUTPUT_PATH, hist_filename]
+    %%save("-z", "-mat", hist_filename, "hist_activity" );
+    save('-mat', hist_filename, 'hist_activity');
+
+  endif
+
+  
+  if plot_2AFC_flag
+
+    mean_2AFC = squeeze( mean( twoAFC, 3 ) );
+    std_2AFC = squeeze( std( twoAFC, 0, 3 ) );
+    
+    %% pvp_calc2AFC();
+%%    twoAFC_hist = cell(2, num_layers, num_2AFC_tests);
+%%    twoAFC_bins = cell(num_layers, num_2AFC_tests);
+%%    twoAFC_cumsum = cell(2, num_layers, num_2AFC_tests);
+%%    twoAFC_ideal = cell(num_layers, num_2AFC_tests);
+    
+    for i_2AFC_test = 1 : num_2AFC_tests
+      
+      [twoAFC_hist, twoAFC_bins] = ...
+	  pvp_calc2AFCHist(twoAFC, ...
+			   read_activity, ...
+			   1, ...
+			   twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCHist(twoAFC_hist, ...
+			   twoAFC_bins, ...
+			   read_activity, ...
+			   twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
+
+      
+      [twoAFC_cumsum, twoAFC_ideal] = ...
+	  pvp_calc2AFCCumsum(twoAFC_hist, ...
+			     read_activity, ...
+			     1, ...
+			     twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCIdeal(twoAFC_ideal, ...
+			    twoAFC_bins, ...
+			    read_activity, ...
+			    1, ...
+			    twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
+
+      
+      [twoAFC_ROC] = ...
+	  pvp_calc2AFCROC(twoAFC_cumsum, ...
+			  read_activity, ...
+			  1, ...
+			  twoAFC_test_str{i_2AFC_test});
+      [fig_list_tmp] = ...
+	  pvp_plot2AFCROC(twoAFC_ROC, ...
+			  read_activity, ...
+			  1, ...
+			  twoAFC_test_str{i_2AFC_test});
+      fig_list = [fig_list; fig_list_tmp];
+
+      
+      disp(twoAFC_test_str{i_2AFC_test});
+      for layer = read_activity
+	for target_flag = 1 : 2;
+	  disp( ['mean_2AFC(', num2str(target_flag), ',', ...
+			    num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
+		 num2str(mean_2AFC(target_flag, layer, i_2AFC_test)), ...
+		 '+/- ', 
+		 num2str(std_2AFC(target_flag, layer, i_2AFC_test)), ...
+		 ] );
+	endfor
+      endfor
+      for layer = read_activity
+	twoAFC_correct(layer, i_2AFC_test) = ...
+	    sum( squeeze( twoAFC(1,layer, :, i_2AFC_test) >
+			 twoAFC(2,layer, :, i_2AFC_test) ) ) / ...
+	    ( tot_trials + (tot_trials == 0) );
+	disp( ['twoAFC_correct(', num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
+	       num2str(twoAFC_correct(layer, i_2AFC_test)) ] );
+      endfor
+
+    endfor % i_2AFC_test
+    
+    save('-mat', twoAFC_filename, 'twoAFC', 'twoAFC_hist', ...
+	 'twoAFC_cumsum', 'twoAFC_ideal', 'twoAFC_correct', 'twoAFC_ROC', ...
+	 'tot_trials', ...
+	 'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
+    
+  endif
+
+  pvp_saveFigList( fig_list, twoAFC_path, 'png');
+  fig_list = [];
+  
+endif
+
+
+
+
 %% plot connections
 global N_CONNECTIONS
 global NXP NYP NFP
@@ -496,154 +639,3 @@ FLAT_ARCHITECTURE = 0;
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
-
-
-%% 2AFC analysis
-
-plot_hist_activity_flag = 0;
-plot_2AFC_flag = num_trials > num_single_trials;
-if max_target_flag > min_target_flag
-  tot_trials = length( first_trial : skip_trial : num_trials );
-
-  if plot_hist_activity_flag
-    
-    subplot_index = 0;
-    num_subplots = length(read_activity);
-    hist_name = 'Cum Pixel Dist';
-    fig_tmp = figure('Name', hist_name);
-    fig_list = [fig_list; fig_tmp];
-    for layer = read_activity
-      subplot_index = subplot_index + 1;
-      subplot(num_subplots, 1, subplot_index);
-      hist_activity_tmp = ...
-	  hist_activity(1, :, layer) / ...
-	  sum( squeeze( hist_activity(1, :, layer) ) );
-      cum_activity_target = ...
-	  1 - cumsum( hist_activity_tmp );
-      hist_activity_tmp = ...
-	  hist_activity(2, :, layer) / ...
-	  sum( squeeze( hist_activity(2, :, layer) ) );
-      cum_activity_distractor = ...
-	  1 - cumsum( hist_activity_tmp );
-      twoAFC_correct = 0.5 + 0.5 * ...
-	  ( cum_activity_target - cum_activity_distractor );
-      bar( hist_activity_bins{layer}, twoAFC_correct );  
-    endfor
-    hist_filename = ...
-	['hist_activity', '.mat']
-    hist_filename = [OUTPUT_PATH, hist_filename]
-    %%save("-z", "-mat", hist_filename, "hist_activity" );
-    save('-mat', hist_filename, 'hist_activity');
-
-  endif
-
-  
-  if plot_2AFC_flag
-
-    mean_2AFC = squeeze( mean( twoAFC, 3 ) );
-    std_2AFC = squeeze( std( twoAFC, 0, 3 ) );
-    
-    %% pvp_calc2AFC();
-%%    twoAFC_hist = cell(2, num_layers, num_2AFC_tests);
-%%    twoAFC_bins = cell(num_layers, num_2AFC_tests);
-    twoAFC_cumsum = cell(2, num_layers, num_2AFC_tests);
-    twoAFC_ideal = cell(num_layers, num_2AFC_tests);
-    
-    for i_2AFC_test = 1 : num_2AFC_tests
-      
-      [twoAFC_hist, twoAFC_bins] = ...
-	  pvp_calc2AFCHist(twoAFC, ...
-			   read_activity, ...
-			   1, ...
-			   twoAFC_test_str{i_2AFC_test});
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCHist(twoAFC_hist, ...
-			   twoAFC_bins, ...
-			   read_activity, ...
-			   twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
-
-      
-      [twoAFC_cumsum, twoAFC_ideal] = ...
-	  pvp_calc2AFCCumsum(twoAFC_hist, ...
-			     read_activity, ...
-			     1, ...
-			     twoAFC_test_str{i_2AFC_test});
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCIdeal(twoAFC_ideal, ...
-			    twoAFC_bins, ...
-			    read_activity, ...
-			    1, ...
-			    twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
-
-      
-      [twoAFC_ROC] = ...
-	  pvp_calc2AFCCumsum(twoAFC_cumsum, ...
-			     read_activity, ...
-			     1, ...
-			     twoAFC_test_str{i_2AFC_test});
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCROC(twoAFC_ROC, ...
-			  read_activity, ...
-			  1, ...
-			  twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
-
-      
-      
-      subplot_index = 0;
-      num_subplots = length(read_activity);
-      twoAFC_ROC_name = ['2AFC ROC ', twoAFC_test_str{i_2AFC_test}];
-      fig_tmp = figure('Name', twoAFC_ROC_name);
-      fig_list = [fig_list; fig_tmp];
-      for layer = read_activity
-	subplot_index = subplot_index + 1;
-	subplot(num_subplots, 1, subplot_index);
-	axis([0 1 0 1]);
-	hold on;
-	lh = plot( [0, fliplr( twoAFC_cumsum{2, layer, i_2AFC_test} ), 1], ...
-		  [0, fliplr( twoAFC_cumsum{1, layer, i_2AFC_test} ), 1 ], ...
-		  '-k');  
-	set( lh, 'LineWidth', 2 );
-      endfor
-
-      disp(twoAFC_test_str{i_2AFC_test});
-      for layer = read_activity
-	for target_flag = 1 : 2;
-	  disp( ['mean_2AFC(', num2str(target_flag), ',', ...
-			    num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
-		 num2str(mean_2AFC(target_flag, layer, i_2AFC_test)), ...
-		 '+/- ', 
-		 num2str(std_2AFC(target_flag, layer, i_2AFC_test)), ...
-		 ] );
-	endfor
-      endfor
-      for layer = read_activity
-	twoAFC_correct(layer, i_2AFC_test) = ...
-	    sum( squeeze( twoAFC(1,layer, :, i_2AFC_test) >
-			 twoAFC(2,layer, :, i_2AFC_test) ) ) / ...
-	    ( tot_trials + (tot_trials == 0) );
-	disp( ['twoAFC_correct(', num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
-	       num2str(twoAFC_correct(layer, i_2AFC_test)) ] );
-      endfor
-
-    endfor % i_2AFC_test
-    
-    twoAFC_filename = ...
-	['twoAFC', num2str(expNum), '.mat']
-    twoAFC_filename = [twoAFC_path, twoAFC_filename]
-    save('-mat', twoAFC_filename, 'twoAFC', 'twoAFC_hist', ...
-	 'twoAFC_cumsum', 'twoAFC_ideal', 'twoAFC_correct', 'tot_trials', ...
-	 'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
-    
-  endif
-
-  pvp_saveFigList( fig_list, twoAFC_path, 'png');
-  fig_list = [];
-  
-endif
-
-
-
-
