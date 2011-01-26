@@ -70,6 +70,10 @@ HyPerConn::~HyPerConn()
       free(this->axonalArbor(0, l)->data);
       free(this->axonalArborList[l]);
    }
+
+   if(localWmaxFlag && Wmax != NULL){
+      free(Wmax);
+   }
 }
 
 //!
@@ -108,7 +112,7 @@ int HyPerConn::initialize_base()
    this->dWMax = 0.1;
    this->wMin = 0.0;
    this->wMax = 1.0;
-
+   this->localWmaxFlag = false;
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
 
@@ -163,7 +167,16 @@ int HyPerConn::initialize(const char * filename)
 
    return status;
 }
-
+//
+/*
+ *
+ * - setParams() is called before initializeSTDP() so that localWmaxFlag is already read
+ * from the params file.
+ * - Wmax lives in the restricted space as does the average rate in the post synaptic layer.
+ * - when localWmaxFlag is true we alocate memory to wmax and initialize it to wMax value
+ * which is set in setParams()
+ * .
+ */
 int HyPerConn::initializeSTDP()
 {
    int arbor = 0;
@@ -173,6 +186,50 @@ int HyPerConn::initializeSTDP()
       assert(pIncr != NULL);
       pDecr = pvcube_new(&post->clayer->loc, post->clayer->numExtended);
       assert(pDecr != NULL);
+
+      if(localWmaxFlag){
+         int numNeurons = post->getNumNeurons();
+         Wmax = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
+         assert(Wmax != NULL);
+         // eithe read Wmax from file or predefine them
+         PVParams * inputParams = parent->parameters();
+         if (inputParams->present(post->getName(), "initFromLastFlag") ) {
+            if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
+               // read Wmax from file for post connection layer
+               int status = 0;
+               char path[PV_PATH_MAX];
+
+               double dtime;
+
+               bool contiguous = false;
+               bool extended   = false;
+
+               Communicator * comm = parent->icCommunicator();
+
+               const char * last = "_last";
+               const char * name_str = post->getName();
+
+               PVLayerLoc * loc = & ((post->getClayer())->loc);
+               snprintf(path, PV_PATH_MAX-1, "%s%s_Wmax%s.pvp", OUTPUT_PATH, name_str, last);
+               status = read(path, comm, &dtime, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
+            }
+         }else{
+            for(int k=0; k<numNeurons; k++){
+               Wmax[k] = wMax;
+            }
+         }
+         int writeWmax  = inputParams->value(post->getName(),"writeWmax",0);
+         if(writeWmax){
+            char filename[PV_PATH_MAX];
+            bool append = false;
+            sprintf(filename, "%s/Wmax%d.pvp", OUTPUT_PATH, post->getLayerId());
+            wmaxFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+         }
+      }else{
+         Wmax = NULL;
+         wmaxFP = NULL;
+      }
+
    }
    else {
       pIncr = NULL;
@@ -244,6 +301,12 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    dWMax = filep->value(name, "dWMax", dWMax);
 
    stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
+
+   // set params for rate dependent Wmax
+   localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
+   gammaW     = filep->value(name,"gammaW",0.05);
+   alphaW     = filep->value(name,"alphaW",0.01);
+   averageR   = filep->value(name,"averageR",10.0);
 
    return 0;
 }
@@ -682,6 +745,29 @@ int HyPerConn::outputState(float time, bool last)
          status = writePostSynapticWeights(time, last);
          assert(status == 0);
       }
+
+      if(localWmaxFlag){
+         int status = 0;
+         char path[PV_PATH_MAX];
+
+         bool contiguous = false;
+         bool extended   = false;
+
+         Communicator * comm = parent->icCommunicator();
+
+         const char * last_str = (last) ? "_last" : "";
+         if(last){
+            const char * name_str = (post->getName() != NULL) ? post->getName() : "";
+
+            snprintf(path, PV_PATH_MAX-1, "%s%s_Wmax%s.pvp", OUTPUT_PATH, name_str, last_str);
+            status = write(path, comm, time, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+         } else {
+            if (wmaxFP != NULL) {  // non-extended variable
+               status |= PV::writeStateVariable(wmaxFP, comm, time, post->clayer, Wmax);
+            }
+         }
+      }
    }
    else if (stdpFlag && time >= writeTime) {
       writeTime += writeStep;
@@ -721,9 +807,25 @@ int HyPerConn::updateState(float time, float dt)
       }
 
       const int axonId = 0;       // assume only one for now
+      if(localWmaxFlag){
+         updateWmax();
+      }
       updateWeights(axonId);
    }
    update_timer->stop();
+
+   return 0;
+}
+
+int HyPerConn::updateWmax()
+{
+   int start = 0;
+   pvdata_t *    = post->getAverageActivity();
+   float tauRate  = parent->params->value(post->getName(), "tauRate",  TAU_RATE);
+   for (int i = start; i < (l->numNeurons + start); i++)
+   {
+      Wmax[i] += -gammaW * Wmax[i] - alphaW * ((R[i] / tauRate) -averageR);
+   }
 
    return 0;
 }
@@ -774,17 +876,39 @@ int HyPerConn::updateWeights(int axonId)
          pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
       }
 
-      // update weights
-      for (int y = 0; y < ny; y++) {
-         pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
-         //
-         // advance pointers in y
-         W += sy;
-         P += sy;
-         //
-         // postActivity and M are extended layer
-         postActivity += postStrideY;
-         M += postStrideY;
+      if(localWmaxFlag){
+         // update weights with local post-synaptic Wmax values
+         // Wmax lives in the restricted space - it is controlled
+         // by average rate in the post synaptic layer
+
+         for (int y = 0; y < ny; y++){
+            pvpatch_update_weights_localWMax(nk,W, M, P, preActivity, postActivity,dWMax,wMin,Wmax);
+            //
+            // advance pointers in y
+            W += sy;
+            P += sy;
+
+            //
+            // postActivity, M, and Wmax are extended layer variables
+            //
+            postActivity += postStrideY;
+            M            += postStrideY;
+            Wmax         += postStrideY;
+         }
+      } else {
+         // update weights
+         for (int y = 0; y < ny; y++) {
+            pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
+            //
+            // advance pointers in y
+            W += sy;
+            P += sy;
+            //
+            // postActivity and M are extended layer
+            postActivity += postStrideY;
+            M += postStrideY;
+         }
+
       }
    }
 
