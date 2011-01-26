@@ -38,11 +38,10 @@ public:
    virtual int updateStateOpenCL(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
    
-   virtual int readState(const char * name, float * time); 
-   virtual int writeState(const char * path, float time, bool last);
-   virtual int outputState(float time, bool last);
+   virtual int readState (float * time);
+   virtual int writeState(float time, bool last=false);
    
-   virtual pvdata_t * getR()  {return R;}
+   virtual pvdata_t * getAverageActivity()  {return R;}
    
    int setParams(PVParams * p);
 
@@ -69,10 +68,9 @@ protected:
    CLBuffer * clG_E;
    CLBuffer * clG_I;
    CLBuffer * clG_IB;
+   CLBuffer * clR;
 #endif
 
-   FILE * rateFP;
-   FILE * voltFP;
 private:
    virtual int initialize(PVLayerType type);
 
