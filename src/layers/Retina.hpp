@@ -39,7 +39,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateStateOpenCL(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
-   virtual int writeState(const char * path, float time);
+   virtual int writeState(float time);
 
 protected:
 

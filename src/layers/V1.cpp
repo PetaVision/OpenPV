@@ -57,7 +57,7 @@ int V1::initialize(PVLayerType type)
    parent->addLayer(this);
 
    if (parent->parameters()->value(name, "restart", 0) != 0) {
-      readState(name, &time);
+      readState(&time);
    }
 
    return status;
@@ -126,35 +126,6 @@ int V1::updateState(float time, float dt)
    else {
       return HyPerLayer::updateState(time, dt);
    }
-}
-
-int V1::writeState(const char * path, float time)
-{
-   HyPerLayer::writeState(path, time);
-
-#ifdef DEBUG_OUTPUT
-   // print activity at center of image
-
-   int sx = clayer->numFeatures;
-   int sy = sx*clayer->loc.nx;
-   pvdata_t * a = clayer->activity->data;
-
-   int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-   for (int f = 0; f < clayer->numFeatures; f++) {
-      printf("f = %d, a[%d] = %f\n", f, n, a[n]);
-      n += 1;
-   }
-   printf("\n");
-
-   n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-   n -= 8;
-   for (int f = 0; f < clayer->numFeatures; f++) {
-      printf("f = %d, a[%d] = %f\n", f, n, a[n]);
-      n += 1;
-   }
-#endif
-
-   return 0;
 }
 
 int V1::findPostSynaptic(int dim, int maxSize, int col,

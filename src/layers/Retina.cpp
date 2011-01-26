@@ -374,9 +374,9 @@ int Retina::updateState(float time, float dt)
    return 0;
 }
 
-int Retina::writeState(const char * path, float time)
+int Retina::writeState(float time)
 {
-   HyPerLayer::writeState(path, time);
+   int status = HyPerLayer::writeState(time);
 
    // print activity at center of image
 
@@ -396,7 +396,7 @@ int Retina::writeState(const char * path, float time)
   }
 #endif
 
-   return 0;
+   return status;
 }
 
 //! Spiking method for Retina

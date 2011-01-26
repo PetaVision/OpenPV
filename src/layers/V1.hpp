@@ -24,7 +24,7 @@ public:
    V1(const char* name, HyPerCol * hc, PVLayerType type);
 
    virtual int updateState(float time, float dt);
-   virtual int writeState(const char * path, float time);
+   virtual int writeState(float time);
 
    int setParams(PVParams * params, LIFParams * p);
 
