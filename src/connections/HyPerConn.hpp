@@ -133,16 +133,15 @@ protected:
    PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 
    bool     localWmaxFlag;  // presence of rate dependent wMax;
-   pvdata_t * Wmax;  // adaptive upper STDP weight boundary
-   float    alphaW;  // params in Wmax dynamics.
+   pvdata_t * Wmax;   // adaptive upper STDP weight boundary
+   float    alphaW;   // params in Wmax dynamics.
    float    gammaW;
    float    averageR; // predefined average rate
 
    FILE     * wmaxFP;
 
-
-   ChannelType channel;              // which channel of the post to update (e.g. inhibit)
-   int connId;               // connection id
+   ChannelType channel;    // which channel of the post to update (e.g. inhibit)
+   int connId;             // connection id
 
    char * name;
    int nxp, nyp, nfp;      // size of weight dimensions
