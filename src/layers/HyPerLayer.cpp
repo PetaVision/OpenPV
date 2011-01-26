@@ -80,7 +80,7 @@ int HyPerLayer::initialize(PVLayerType type)
    parent->addLayer(this);
 
    if (parent->parameters()->value(name, "restart", 0.0f) != 0.0f) {
-      readState(name, &time);
+      readState(&time);
    }
 
    return status;
@@ -653,88 +653,62 @@ int HyPerLayer::outputState(float time, bool last)
    return status;
 }
 
-int HyPerLayer::readState(const char * name, float * time)
+/**
+ * Return a file name to be used for output file for layer data
+ *
+ * WARNING - assumes length of buf >= PV_PATH_MAX
+ */
+const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, const char * term)
 {
-   int status = 0;
-   char path[PV_PATH_MAX];
+   snprintf(buf, PV_PATH_MAX-1, "%s%s_%s%s.pvp", OUTPUT_PATH, getName(), dataName, term);
+   return buf;
+}
 
+int HyPerLayer::readState(float * time)
+{
    double dtime;
-
+   char path[PV_PATH_MAX];
    bool contiguous = false;
    bool extended   = false;
 
+   int status = 0;
+
+   PVLayerLoc * loc = & clayer->loc;
    Communicator * comm = parent->icCommunicator();
 
-   const char * last = "_last";
-   const char * name_str = (name != NULL) ? name : "";
-
-   pvdata_t * V   = clayer->V;
+   getOutputFilename(path, "V", "_last");
+   status |= read(path, comm, &dtime, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    // TODO - this should be moved to getLayerData but can't yet because publish is call
    // as the first step and publish copies clayer->activity->data into data store.  If
    // clayer->activity is removed then we would read directly into data store.
-   pvdata_t * A = clayer->activity->data;
-
-   PVLayerLoc * loc = & clayer->loc;
-
-#ifdef OBSOLETE
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
-#endif
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, V, loc, PV_FLOAT_TYPE, extended, contiguous);
-
    extended = true;
-   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last);
-   status = read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+   pvdata_t * A = clayer->activity->data;
+   getOutputFilename(path, "A", "_last");
+   status |= read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return status;
 }
 
-int HyPerLayer::writeState(const char * name, float time, bool last)
+int HyPerLayer::writeState(float time, bool last)
 {
-   int status = 0;
    char path[PV_PATH_MAX];
-
    bool contiguous = false;
    bool extended   = false;
 
+   int status = 0;
+
+   PVLayerLoc * loc = & clayer->loc;
    Communicator * comm = parent->icCommunicator();
 
    const char * last_str = (last) ? "_last" : "";
-   const char * name_str = (name != NULL) ? name : "";
 
-   pvdata_t * V   = clayer->V;
-
-   const pvdata_t * A = getLayerData();
-
-   PVLayerLoc * loc = & clayer->loc;
-
-#ifdef OBSOLETE
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GE%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_GI%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_Vth%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-#endif
-
-   snprintf(path, PV_PATH_MAX-1, "%s%s_V%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, V, loc, PV_FLOAT_TYPE, extended, contiguous);
+   getOutputFilename(path, "V", last_str);
+   status |= write(path, comm, time, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    extended = true;
-   snprintf(path, PV_PATH_MAX-1, "%s%s_A%s.pvp", OUTPUT_PATH, name_str, last_str);
-   status = write(path, comm, time, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+   getOutputFilename(path, "A", last_str);
+   status |= write(path, comm, time, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return status;
 }

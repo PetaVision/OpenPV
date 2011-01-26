@@ -79,14 +79,14 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
+   virtual int readState (float * time);
+   virtual int writeState(float time, bool last=false);
    virtual int outputState(float time, bool last=false);
-   virtual int writeState(const char * name, float time, bool last=false);
 #ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
    virtual int writeActivity(const char * filename, float time);
 #endif // OBSOLETE
    virtual int writeActivity(float time);
    virtual int writeActivitySparse(float time);
-   virtual int readState(const char * name, float * time);
 
    virtual int insertProbe(LayerProbe * probe);
 
@@ -101,6 +101,8 @@ public:
    virtual int mirrorToSouthWest(PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToSouth    (PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToSouthEast(PVLayerCube * dest, PVLayerCube * src);
+
+   const char * getOutputFilename(char * buf, const char * dataName, const char * term);
 
    // Public access functions:
 
