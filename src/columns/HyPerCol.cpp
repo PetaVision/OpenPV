@@ -418,7 +418,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    bool last = true;
 
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(layers[l]->getName(), simTime, last);
+      layers[l]->writeState(simTime, last);
    }
 
    for (int c = 0; c < numConnections; c++) {
@@ -453,7 +453,7 @@ int HyPerCol::loadState()
 int HyPerCol::writeState()
 {
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(OUTPUT_PATH, simTime);
+      layers[l]->writeState(simTime);
    }
    return 0;
 }
