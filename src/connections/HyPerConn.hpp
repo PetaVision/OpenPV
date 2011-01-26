@@ -54,6 +54,7 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
+   virtual int updateWmax();
    virtual int updateWeights(int axonId);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
@@ -130,6 +131,15 @@ protected:
    PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
    PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
    PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
+
+   bool     localWmaxFlag;  // presence of rate dependent wMax;
+   pvdata_t * Wmax;  // adaptive upper STDP weight boundary
+   float    alphaW;  // params in Wmax dynamics.
+   float    gammaW;
+   float    averageR; // predefined average rate
+
+   FILE     * wmaxFP;
+
 
    ChannelType channel;              // which channel of the post to update (e.g. inhibit)
    int connId;               // connection id
