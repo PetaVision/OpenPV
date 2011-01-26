@@ -1,9 +1,12 @@
-// params-mnist-train.pv
+// params-noOverlap.pv
 //     input parameters file for training generative model with lateral
-//     connections on subset of mnist
+//     connections on subset of mnist, with non-overlapping receptive fields
+//     using protocol whereby pv.cpp can build the layers and connections
+//     completely from the params file
 
 FileDefinition "ImageFileList" =  "./input/mnist/train/filenames.txt";
 FileDefinition "OutputDir" =      "./output/generativelateral/mnist"; // not used yet
+FileDefinition "TrainingGenLayerFilename" = "./input/mnist/train/trainlabels.txt";
 
 HyPerCol "column" = {
     nx = 32;            // number of horizontal pixels in the column
@@ -158,7 +161,7 @@ HyPerLayer "Layer A" = {
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
     
-    relaxation = 5E-4;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
 };
 
 HyPerLayer "ParaLayer A" = {
@@ -271,7 +274,7 @@ HyPerLayer "Layer B" = {
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
     
-    relaxation = 5E-4;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
 };
 
 HyPerLayer "ParaLayer B" = {
@@ -384,7 +387,7 @@ HyPerLayer "Layer C" = {
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
     
-    relaxation = 5E-4;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
+    relaxation = 5E-3;  // GenerativeLayer rule: V(new) = V(old) + relaxation*dV/dt
 };
 
 HyPerLayer "ParaLayer C" = {
@@ -496,6 +499,9 @@ HyPerLayer "IT" = {
     // noiseFreqE       // Only used by updateFunc, which doesn't get called
     // noiseFreqI       // Only used by updateFunc, which doesn't get called
     // noiseFreqIB      // Only used by updateFunc, which doesn't get called
+    
+    displayPeriod = 25; // Display period for each training label
+    delay = 3;          // Delay between top of hierarchy and this layer
 };
 
 // 22 connections:  Slideshow to Retina
@@ -720,7 +726,7 @@ HyPerConn "AnaRetina to Layer A" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "Layer A to AnaRetina Feedback" = {
@@ -803,7 +809,7 @@ HyPerConn "Layer A to ParaLayer A" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "ParaLayer A to Layer A Feedback" = {
@@ -966,7 +972,7 @@ HyPerConn "AnaLayer A to Layer B" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "Layer B to AnaLayer A Feedback" = {
@@ -1049,7 +1055,7 @@ HyPerConn "Layer B to ParaLayer B" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;   // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "ParaLayer B to Layer B Feedback" = {
@@ -1212,7 +1218,7 @@ HyPerConn "AnaLayer B to Layer C" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "Layer C to AnaLayer B Feedback" = {
@@ -1295,7 +1301,7 @@ HyPerConn "Layer C to ParaLayer C" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "ParaLayer C to Layer C Feedback" = {
@@ -1378,7 +1384,7 @@ HyPerConn "Layer C to AnaLayer C" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "AnaLayer C to Layer C Feedback" = {
@@ -1397,7 +1403,7 @@ HyPerConn "AnaLayer C to Layer C Feedback" = {
 
 HyPerConn "AnaLayer C to IT" = {
     connTypeCode = 440; // Type of connection, defined in classcatalog.txt
-    connSerialNo = 18;  // Unique identifier
+    connSerialNo = 20;  // Unique identifier
     preLayerSerialNo = 11;  // Pre-synaptic layer's serial number
     postLayerSerialNo = 12;// Post-synaptic layer's serial number
     channelCode = 0;    // Connection's channel, defined in classcatalog.txt
@@ -1461,7 +1467,7 @@ HyPerConn "AnaLayer C to IT" = {
     symmetrizeWeights = 0; // Whether to use symmetrizeWeights
 
     weightUpdatePeriod = 5.0; // Period between updating the weights
-    relaxation = 1E-6;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
+    relaxation = 1E-5;  // GenerativeConn rule: A(new) = A(old) + relaxation*dA/dt
 };
 
 HyPerConn "IT to AnaLayer C Feedback" = {
