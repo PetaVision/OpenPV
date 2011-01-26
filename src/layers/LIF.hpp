@@ -37,8 +37,13 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateStateOpenCL(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
-   virtual int writeState(const char * path, float time);
-
+   
+   virtual int readState(const char * name, float * time); 
+   virtual int writeState(const char * path, float time, bool last);
+   virtual int outputState(float time, bool last);
+   
+   virtual pvdata_t * getR()  {return R;}
+   
    int setParams(PVParams * p);
 
 protected:
@@ -51,6 +56,7 @@ protected:
    pvdata_t * G_E;      // excitatory conductance
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
+   pvdata_t * R;        // average activity
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
@@ -65,6 +71,8 @@ protected:
    CLBuffer * clG_IB;
 #endif
 
+   FILE * rateFP;
+   FILE * voltFP;
 private:
    virtual int initialize(PVLayerType type);
 
