@@ -162,7 +162,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_IB  = (l_V > l_Vth) ? l_G_IB + 1.0f    : l_G_IB;
 
    // update average rate
-   l_R = l_active + l_R*EXP(-dt/tauRate);
+   l_R = l_activ + l_R*EXP(-dt/tauRate);
    
    //
    // These actions must be done outside of kernel
