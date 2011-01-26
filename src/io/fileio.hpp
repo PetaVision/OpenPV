@@ -30,6 +30,8 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
+int writeStateVariable(FILE *fp, Communicator * comm, double time, PVLayer * l, pvdata_t * VmemVals);
+
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l);
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l);
