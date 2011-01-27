@@ -12,12 +12,12 @@
 namespace PV {
 
 GeislerLayer::GeislerLayer(const char* name, HyPerCol * hc)
-  : V1(name, hc)
+  : ANNLayer(name, hc)
 {
 }
 
 GeislerLayer::GeislerLayer(const char* name, HyPerCol * hc, PVLayerType type)
-  : V1(name, hc)
+  : ANNLayer(name, hc)
 {
 }
 

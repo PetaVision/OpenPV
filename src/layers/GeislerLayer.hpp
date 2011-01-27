@@ -8,11 +8,11 @@
 #ifndef GEISLERLAYER_HPP_
 #define GEISLERLAYER_HPP_
 
-#include "V1.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
 
-class GeislerLayer: public PV::V1 {
+class GeislerLayer: public PV::ANNLayer {
 public:
    GeislerLayer(const char* name, HyPerCol * hc);
    GeislerLayer(const char* name, HyPerCol * hc, PVLayerType type);
