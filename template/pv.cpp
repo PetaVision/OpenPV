@@ -10,8 +10,8 @@
 #include <src/columns/HyPerCol.hpp>
 #include <src/io/LinearActivityProbe.hpp>
 #include <src/io/PointProbe.hpp>
+#include <src/layers/LIF.hpp>
 #include <src/layers/Retina.hpp>
-#include <src/layers/V1.hpp>
 #include <src/connections/HyPerConn.hpp>
 #include <src/connections/CocircConn.hpp>
 
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 
    // create the layers
    HyPerLayer * retina = new Retina("Retina", hc);
-   HyPerLayer * l1     = new V1("L1", hc);
+   HyPerLayer * l1     = new LIF("L1", hc);
 
    // connect the layers
    new HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
