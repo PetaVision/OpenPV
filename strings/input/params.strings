@@ -1,88 +1,37 @@
 //
-// params.cocirc
-//  - input parameters for pv_cocirc.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+// params.strings
+//  - input parameters for strings.cpp
+//  - this case study examines hierarchical processing of strings
 //
 
 HyPerCol "column" = {
-   nx = 64;
-   ny = 64;
+   nx = 32;
+   ny =  1;
    dt = .5;
 };
 
 //
-// Three layers, "Retina", "L1", "L2"
+// Three layers, "Strings", "Complex", "Complex Inhib"
 //
 
-HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   
-   nBorder = 0;
-
-   beginStim = 1;
-   endStim   = 11;
-
-   fireOffPixels = 0;          // if true, black (0) pixels fire as off
-   invert  = 0.0;
-   uncolor = 1.0;               // if true, pixels>0 become 1.0
-
-   spikingFlag = 0;             // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = 0.0;      // if so, on probability
-   poissonBlankProb = 0.0;      //       off probability
-
-   marginWidth = 0.0;           // set input to 0 within margin
+HyPerLayer "Strings" = {
+   nxScale = 2;
+   nyScale = 1;
+   marginWidth = 2;
 };
 
-HyPerLayer "L1" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 0;
-   noiseAmpI = 0;
+HyPerLayer "Complex" = {
+   nxScale = 1;
+   nyScale = 1;
 };
 
 //
 // 1 connection, 
-//    "Retina to L1"
-//    "L1 to L1"
+//    "Strings to Complex"
 //
 
-HyPerConn "Retina to L1" = {
+HyPerConn "Strings to Complex" = {
    nxp = 3;
    nyp = 1;
    strength = 20;
-
-   rotate = 1.0;
-   invert = 0.0;
-
-   aspect = 3.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
-
-HyPerConn "L1 to L1" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 27;
-   delay = 9.0;
-   
-   aspect = 1.0;
-   sigma  = 3.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self  = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
 };
