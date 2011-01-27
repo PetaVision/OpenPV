@@ -1,0 +1,17 @@
+Petavision may be obtained from sourceforge.net using the subversion command:
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk PetaVision
+    
+You should also check out one of the example projects, (strings, for example):
+
+    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/sandbox/strings strings
+    
+First build the PetaVision library:
+   1. cd to the root petavision project directory
+   2. Type make (this will build petavision/src/build/libpv.a)
+
+To run one of the examples (this project, for example):
+   1. First make the PetaVision library (see above)
+   2. cd to the project directory that you want to build
+   3. Type make
+   4. pv -n 500 -p input/params.strings
