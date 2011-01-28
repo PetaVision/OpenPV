@@ -295,6 +295,7 @@ float PVParams::value(const char * groupName, const char * paramName, float init
       return value(groupName, paramName);
    }
    else {
+      printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
       return initialValue;
    }
 }
