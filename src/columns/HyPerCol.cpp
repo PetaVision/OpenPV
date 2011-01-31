@@ -139,10 +139,13 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 
    icComm = new InterColComm(&argc, &argv);
 
+   // set random seed if it wasn't set in the command line
+   if( !random_seed ) {
+      random_seed = getRandomSeed();
+      random_seed = params->value(name, "randomSeed", random_seed);
+   }
+
    // initialize random seed
-   //
-   random_seed = getRandomSeed();
-   random_seed = params->value(name, "randomSeed", random_seed);
    pv_srandom(random_seed);
 
    if (param_file != NULL) free(param_file);
