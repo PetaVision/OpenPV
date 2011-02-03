@@ -4,13 +4,13 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;   // 128; // 
-   ny = 256;   // 128; // 
+   nx = 128; // 256;   // 
+   ny = 128; // 256;   // 
    dt = 1.0;
 };
 
 //
-// Two layers, "Retina"+"Image", "L1", 
+// layers
 //
 
 HyPerLayer "Movie" = {
@@ -25,18 +25,18 @@ HyPerLayer "Retina" = {
    mirrorBCflag = 0;  
 
    beginStim = 1;
-   endStim   = 40000;
+   endStim   = 10000;
 
    burstFreq = 1;      // Hz
-   burstDuration = 40000;  // ms
+   burstDuration = 10000;  // ms
    
    poissonEdgeProb = 1.0;
    poissonBlankProb = 0.0;
    
+   Vrest = 0.0;
    invert = 0;
-
    spikingFlag = 0;        
-
+   writeNonspikingActivity = 1;
 };
 
 HyPerLayer "L1" = {
@@ -56,7 +56,8 @@ HyPerLayer "L1" = {
    noiseAmpI = 0.0;  
    noiseAmpIB = 0.0; 
     
-   spikingFlag = 0;        
+   spikingFlag = 0;      
+   writeNonspikingActivity = 1;  
 };
 
 
@@ -78,6 +79,7 @@ HyPerLayer "L1 Geisler" = {
    noiseAmpIB = 0.0; 
     
    spikingFlag = 0;        
+   writeNonspikingActivity = 1;  
 };
 
 
@@ -99,6 +101,7 @@ HyPerLayer "L2 Geisler" = {
    noiseAmpIB = 0.0; 
     
    spikingFlag = 0;        
+   writeNonspikingActivity = 1;  
 };
 
 
@@ -120,6 +123,7 @@ HyPerLayer "L3 Geisler" = {
    noiseAmpIB = 0.0; 
     
    spikingFlag = 0;        
+   writeNonspikingActivity = 1;  
 };
 
 
@@ -141,6 +145,7 @@ HyPerLayer "L4 Geisler" = {
    noiseAmpIB = 0.0; 
     
    spikingFlag = 0;        
+   writeNonspikingActivity = 1;  
 };
 
 
@@ -248,7 +253,7 @@ HyPerConn "Movie to Retina" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1;
-   strength = 0.0039216;   // 1.0/255
+   strength = 1.0; // 0.0039216;   // 1.0/255
    
    delay = 0.0;
 };
@@ -270,6 +275,9 @@ HyPerConn "Retina to L1" = {
    rotate = 1;
    
    strength = 25.0;  //200; //
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 0.0;
 };
@@ -290,6 +298,9 @@ HyPerConn "Retina to L1 Inh" = {
    flankShift = 1.41; //0; //
    
    strength = 50.0; // 400; //
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 0.0;
 };
@@ -397,7 +408,7 @@ HyPerConn "L1 to L1 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength =  287.5; 
+   strength =  4000.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -413,7 +424,7 @@ HyPerConn "L1 to L1 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -287.5;  
+   strength = -4000.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -450,11 +461,11 @@ HyPerConn "L1 Geisler to L2 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 287.5;   
+   strength = 4000.0;   
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   
+   symmetrizeWeights = 1.0;
    delay = 0.0;   
 };
 
@@ -466,10 +477,11 @@ HyPerConn "L1 Geisler to L2 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -287.5; 
+   strength = -4000.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
+   symmetrizeWeights = 1.0;
    
    delay = 0.0;   
 };
@@ -505,10 +517,11 @@ HyPerConn "L2 Geisler to L3 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 287.5;  
+   strength = 4000.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
+   symmetrizeWeights = 1.0;
    
    delay = 0.0;   
 };
@@ -521,10 +534,11 @@ HyPerConn "L2 Geisler to L3 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -287.5; 
+   strength = -4000.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
+   symmetrizeWeights = 1.0;
    
    delay = 0.0;   
 };
@@ -560,10 +574,11 @@ HyPerConn "L3 Geisler to L4 Geisler Target" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = 287.5;  
+   strength = 4000.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
+   symmetrizeWeights = 1.0;
    
    delay = 0.0;   
 };
@@ -576,10 +591,11 @@ HyPerConn "L3 Geisler to L4 Geisler Distractor" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
-   strength = -287.5; 
+   strength = -4000.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
+   symmetrizeWeights = 1.0;
    
    delay = 0.0;   
 };

@@ -25,14 +25,14 @@ HyPerLayer "Image" = {
 HyPerLayer "Retina" = {
    nxScale = 1;
    nyScale = 1;
-   marginWidth = 0;
+   marginWidth = 3;
    mirrorBCflag = 0;  
 
-   beginStim = 1000;
-   endStim   = 101000;
+   beginStim = 200;
+   endStim   = 1000;
 
    burstFreq = 1;      // Hz
-   burstDuration = 101000;  // ms
+   burstDuration = 10000;  // ms
 
    spikingFlag = 1;        // spike as poisson
    invert = 0;
@@ -65,8 +65,8 @@ HyPerLayer "LGN" = {
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.2;
+   noiseAmpI= 0.2;  
    noiseAmpIB = 0.0;  
 };
 
@@ -94,8 +94,8 @@ HyPerLayer "LGNInhFF" = {
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.2;
+   noiseAmpI= 0.2;  
    noiseAmpIB = 0.0;  
 };
 
@@ -117,14 +117,14 @@ HyPerLayer "LGNInh" = {
    tauE = 1.0;
    tauI = 3.0;
    tauIB = 5.0;
-   VthRest = -50.0;
+   VthRest = -55.0;
    tauVth = 5.0;
    deltaVth = 5.0;
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.2;
+   noiseAmpI= 0.2;  
    noiseAmpIB = 0.0;  
 };
 
@@ -153,8 +153,8 @@ HyPerLayer "L1" = {
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.2;
+   noiseAmpI= 0.2;  
    noiseAmpIB = 0.0;  
 };
 
@@ -183,8 +183,8 @@ HyPerLayer "L1InhFF" = {
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.2;
+   noiseAmpI= 0.2;  
    noiseAmpIB = 0.0;  
 };
 
@@ -207,14 +207,14 @@ HyPerLayer "L1Inh" = {
    tauE = 1.0;
    tauI = 3.0;
    tauIB = 5.0;
-   VthRest = -50.0;
+   VthRest = -55.0;
    tauVth = 5.0;
    deltaVth = 5.0;
    noiseFreqE = 250.0;
    noiseFreqI = 250.0;
    noiseFreqIB = 250.0;
-   noiseAmpE = 1.0;
-   noiseAmpI = 1.0;  
+   noiseAmpE = 0.0;
+   noiseAmpI = 0.0;  
    noiseAmpIB = 0.0;  
 };
 
@@ -269,6 +269,9 @@ HyPerConn "Image to Retina" = {
    rMax  = 1;
    
    strength =  1.0; //0.0039216; //1/255;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 };
 
 
@@ -285,6 +288,9 @@ HyPerConn "Retina to LGN" = {
    rMax  = 1;
    
    strength = 3;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 };
 
 
@@ -301,6 +307,9 @@ HyPerConn "Retina to LGNInhFF" = {
    rMax  = 7;
    
    strength = 5.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 };
 
 
@@ -321,6 +330,9 @@ HyPerConn "LGN to LGNInhFF" = {
    
    delay = 1;
    strength = 0.0; //6.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
 };
 
@@ -337,7 +349,10 @@ HyPerConn "LGN to LGNInh" = {
    rMax  = 7;
    
    delay = 1;
-   strength = 3.0;  
+   strength = 0.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
 };
 
@@ -355,6 +370,9 @@ HyPerConn "LGN to L1" = {
    rotate = 1;
       
    strength = 48.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 8; //7.0;
 };
@@ -371,10 +389,12 @@ HyPerConn "LGN to L1InhFF" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   rotate = 1;
-   
+   rotate = 1;   
    
    strength = 48.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 8; //7.0;
 };
@@ -396,6 +416,9 @@ HyPerConn "LGNInhFF to LGN" = {
    rMax  = 7;
    
    strength = 12.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 1.0;
    
@@ -414,6 +437,9 @@ HyPerConn "LGNInhFF to LGN InhB" = {
    rMax  = 3.5;
    
    strength = 0.0; //2.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -432,6 +458,9 @@ HyPerConn "LGNInhFF to LGNInhFF Exc" = {
    rMax  = 3;
    
    strength = 0.0; //1.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
 };
 
@@ -448,6 +477,9 @@ HyPerConn "LGNInhFF to LGNInhFF" = {
    rMax  = 7;
    
    strength = 0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -466,6 +498,9 @@ HyPerConn "LGNInhFF to LGNInhFF InhB" = {
    rMax  = 7;
    
    strength = 0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -484,6 +519,9 @@ HyPerConn "LGNInhFF to LGNInh" = {
    rMax  = 7;
    
    strength = 0.0; //1.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -502,6 +540,9 @@ HyPerConn "LGNInhFF to LGNInh InhB" = {
    rMax  = 7;
    
    strength = 0.0; //1.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -527,6 +568,9 @@ HyPerConn "LGNInh to LGN" = {
    rMax  = 7;
    
    strength = 12.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
    
@@ -545,6 +589,9 @@ HyPerConn "LGNInh to LGNInhFF" = {
    rMax  = 7;
    
    strength = 0.0;  // 1.0
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0; 
 };
@@ -561,7 +608,10 @@ HyPerConn "LGNInh to LGNInh Exc" = {
    sigma = 1.5;
    rMax  = 3;
    
-   strength = 3.0;  
+   strength = 0.0; //3.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
 };
 
@@ -577,7 +627,10 @@ HyPerConn "LGNInh to LGNInh" = {
    sigma = 5;
    rMax  = 7;
    
-   strength = 3.0;
+   strength = 0.0; //3.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0; 
 };
@@ -600,7 +653,10 @@ HyPerConn "L1 to LGN" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 0.5;//0.5;  
+   strength = 0.0; //0.5;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 8; //7.0;
 };
@@ -618,7 +674,10 @@ HyPerConn "L1 to LGNInh" = {
    rMax  = 7;
    rotate = 1;
       
-   strength = 5.0;  
+   strength = 0.0; //5.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 8; //7.0;
 };
@@ -634,7 +693,7 @@ HyPerConn "L1 to L1" = {
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 6.0;
+   strength = 0.0; //6.0;
    
    delay = 18; //14.0;   
 };
@@ -669,10 +728,10 @@ HyPerConn "L1 to L1Inh" = {
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
 
+   strength = 0.0; //9;//24.0;
    normalize_flag = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   strength = 25;//24.0;
       
    delay = 18; //14.0;
 };
@@ -702,6 +761,9 @@ HyPerConn "L1InhFF to L1" = {
    flankShift = 1.4;
 
    strength = 6.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    delay = 1.0;
 };
@@ -725,7 +787,10 @@ HyPerConn "L1InhFF to L1 NonOriented" = {
    numFlanks = 1;
    flankShift = 0;
 
-   strength = 6.0;
+   strength = 0.0; //6.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    delay = 1.0;
 };
@@ -750,6 +815,9 @@ HyPerConn "L1InhFF to L1 InhB" = {
    flankShift = 1;
 
    strength = 0.0; //4.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -771,6 +839,9 @@ HyPerConn "L1InhFF to L1InhFF Exc" = {
    deltaThetaMax = 3.1415926535897931; //PI;
  
    strength = 0.0; //1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    //delay = 1.0;
 };
@@ -795,6 +866,9 @@ HyPerConn "L1InhFF to L1InhFF" = {
    flankShift = 1;
 
    strength = 0.0; //1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -819,6 +893,9 @@ HyPerConn "L1InhFF to L1InhFF InhB" = {
    flankShift = 1;
 
    strength = 0.0; //1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -843,6 +920,9 @@ HyPerConn "L1InhFF to L1Inh" = {
    flankShift = 1;
 
    strength = 0.0; //4.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -867,6 +947,9 @@ HyPerConn "L1InhFF to L1Inh InhB" = {
    flankShift = 1;
 
    strength = 0.0; /4.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -892,6 +975,9 @@ HyPerConn "L1Inh to L1" = {
    deltaThetaMax = 0.3926875; // PI / 8; // 3.1415926535897931; //PI;
 
    strength = 12.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
@@ -912,7 +998,10 @@ HyPerConn "L1Inh to L1Inh Exc" = {
    sigma_cocirc = 0.3926875; // PI / 8;
    deltaThetaMax = 0.3926875; // PI / 8; // 3.1415926535897931; //PI;
 
-   strength = 3.0;
+   strength = 0.0; //3.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
    
    delay = 1.0;
 };
@@ -933,7 +1022,10 @@ HyPerConn "L1Inh to L1Inh Inh" = {
    sigma_cocirc = 0.3926875; // PI / 8;
    deltaThetaMax = 0.3926875; // PI / 8; // 3.1415926535897931; //PI;
 
-   strength = 3.0;  // 16.0;
+   strength = 0.0; //3.0;  // 16.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
 
    //delay = 1.0;
 };
