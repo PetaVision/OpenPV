@@ -1,5 +1,6 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
+#include "../utils/pv_random.h"
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
@@ -44,7 +45,16 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * activity)
 {
    int k;
+
+   float exp_tauE = EXP(-dt/params->tauE);  
+   float exp_tauI = EXP(-dt/params->tauI);
+   float exp_tauIB = EXP(-dt/params->tauIB);
+   float exp_tauVth = EXP(-dt/params->tauVth);
+   float exp_tauRate = EXP(-dt/params->tauRate);
+
+
 #ifndef PV_USE_OPENCL
+
 for (k = 0; k < nx*ny*nf; k++) {
 #else   
    k = get_global_id(0);
@@ -108,6 +118,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
    dt_sec = .001 * dt;   // convert to seconds
 
+#undef CLRANDOM
+
+#ifdef CLRANDOM
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
@@ -125,16 +138,30 @@ for (k = 0; k < nx*ny*nf; k++) {
       l_rnd = cl_random_get(l_rnd);
       l_phiInhB = l_phiInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
    }
+#else
+   if (pv_random_prob() < dt_sec*params->noiseFreqE) {
+      l_phiExc = l_phiExc + params->noiseAmpE*pv_random_prob();
+   }
 
-   l_G_E  = l_phiExc  + l_G_E *EXP(-dt/tauE );
-   l_G_I  = l_phiInh  + l_G_I *EXP(-dt/tauI );
-   l_G_IB = l_phiInhB + l_G_IB*EXP(-dt/tauIB);
+   if (pv_random_prob() < dt_sec*params->noiseFreqI) {
+      l_phiInh = l_phiInh + params->noiseAmpI*pv_random_prob();
+   }
+
+   if (pv_random_prob() < dt_sec*params->noiseFreqIB) {
+      l_phiInhB = l_phiInhB + params->noiseAmpIB*pv_random_prob();
+   }
+#endif
+
+
+   l_G_E  = l_phiExc  + l_G_E *exp_tauE;
+   l_G_I  = l_phiInh  + l_G_I *exp_tauI;
+   l_G_IB = l_phiInhB + l_G_IB*exp_tauIB;
    
    tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
            / (1.0 + l_G_E + l_G_I + l_G_IB);
 
-   l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
+   l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);;
 
    //
    // start of LIF2_update_finish
@@ -144,7 +171,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_phiInh  = 0.0f;
    l_phiInhB = 0.0f;
 
-   l_Vth = VthRest + (l_Vth - VthRest)*EXP(-dt/tauVth);
+   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
 
    //
    // start of update_f
@@ -162,7 +189,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_IB  = (l_V > l_Vth) ? l_G_IB + 1.0f    : l_G_IB;
 
    // update average rate
-   l_R = l_activ + l_R*EXP(-dt/tauRate);
+   l_R = l_activ + l_R*exp_tauRate;
    
    //
    // These actions must be done outside of kernel
