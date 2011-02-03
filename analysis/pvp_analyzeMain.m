@@ -6,9 +6,9 @@ clear all
 				% pvp_matlabPath;
 
 				% if ( uioctave )
-if exist('setenv')
+%%if exist('setenv')
   setenv('GNUTERM', 'x11');
-endif %%
+%%endif %%
 				% endif %%
 
 				% Make the following global parameters available to all functions for convenience.
@@ -33,18 +33,18 @@ global SPIKING_FLAG
 SPIKING_FLAG = 1;
 
 %machine_path = '/nh/home/gkenyon/';
-machine_path = '/home/garkenyon/';
+machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
 workspace_path = [machine_path, 'workspace/'];
-project_path = [workspace_path, 'kernel/'];
+project_path = [workspace_path, 'kernel2/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/amoebaLTD_256/spiking_4fc/'];
+OUTPUT_PATH = [project_path, 'input/128/spiking/amoeba/4fc/'];
 
-image_path = [matlab_path, 'amoebaLTD/256_png/4/'];
-image_filename = [image_path 't/tar_0014_a.png'];
-target_filename{1} = [image_path 'a/tar_0014_a.png'];
+image_path = [matlab_path, 'amoeba/128_png/4/'];
+image_filename = [image_path 't/tar_0005_a.png'];
+target_filename{1} = [image_path 'a/tar_0005_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
 copyfile(main_file, OUTPUT_PATH);
@@ -56,8 +56,8 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 101000.0;
+BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
+END_TIME = 1200.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -87,7 +87,7 @@ plot_reconstruct = read_spikes; %uimatlab;
 plot_raster = read_spikes; %[layerIndex.l1];%read_spikes; %uimatlab;
 plot_reconstruct_target = [];%read_spikes; %[layerIndex.l1];
 plot_vmem = 1;
-plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh];
+plot_autocorr = [];% [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh];
 plot_xcorr = plot_autocorr;
 
 
@@ -128,7 +128,7 @@ clutter_rate_ndx = cell(num_layers, 1);
 invert_image_flag = 0;
 plot_input_image = 0;
 [target_struct.target, target_struct.clutter, image_ndx, fig_tmp] = ...
-    pvp_parseTarget( image_filename, ...
+    pvp_parseTarget(image_filename, ...
 		    target_filename, ...
 		    invert_image_flag, ...
 		    plot_input_image);
@@ -185,7 +185,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 16;
+num_epochs = 2;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);

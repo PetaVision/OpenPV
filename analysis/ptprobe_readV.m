@@ -1,7 +1,7 @@
 function [vmem_time, vmem_G_E, vmem_G_I, vmem_G_IB, vmem_V, vmem_Vth, vmem_a] = ...
     ptprobe_readV(filename)
 
-global OUTPUT_PATH 
+global SPIKE_PATH 
 %global NCOLS % for the current layer
 %global NFEATURES  % for the current layer
 global BEGIN_TIME END_TIME
@@ -9,7 +9,7 @@ global DELTA_T
 begin_step = floor(BEGIN_TIME / DELTA_T) + 1;
 vmem_steps = ceil( ( END_TIME - BEGIN_TIME ) / DELTA_T );
 
-filename = [OUTPUT_PATH, filename];
+filename = [SPIKE_PATH, filename];
 if ~exist(filename,'file')
     disp(['~exist(filename,''file'') in ptprobe file: ', filename]);
     return;

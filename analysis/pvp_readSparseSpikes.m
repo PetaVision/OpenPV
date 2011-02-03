@@ -89,9 +89,14 @@ function [spike_array] = ...
   endwhile
 
   if spike_count ~= total_spikes
+    disp(['spike_count = ', num2str(spike_count)]);
+    disp(['total_spikes = ', num2str(total_spikes)]);
     error('spike_count ~= total_spikes');
   endif
-  if step_count ~= total_steps
+  if step_count > total_steps %% total_spikes could be read before end
+    %% of epoch
+    disp(['step_count = ', num2str(step_count)]);
+    disp(['total_steps = ', num2str(total_steps)]);
     error('step_count ~= total_steps');
   endif
 

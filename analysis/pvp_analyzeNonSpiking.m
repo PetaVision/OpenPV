@@ -17,6 +17,9 @@ global ROTATE_FLAG % orientation axis rotated by DTH / 2
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH spiking_path twoAFC_path spiking_path activity_path
 
+plot_weights_flag = 1;
+plot_2AFC_flag = 0;
+
 global MIN_INTENSITY
 MIN_INTENSITY = 0;
 
@@ -526,6 +529,7 @@ endif
 
 
 %% plot connections
+if plot_weights_flag == 1
 global N_CONNECTIONS
 global NXP NYP NFP
 [connID, connIndex] = pvp_connectionID();
@@ -639,3 +643,4 @@ FLAT_ARCHITECTURE = 0;
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
+endif
