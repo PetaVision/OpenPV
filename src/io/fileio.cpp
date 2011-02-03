@@ -287,7 +287,10 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 
    if (icRank == 0) {
        FILE * fp = pvp_open_read_file(filename, comm);
-       if (fp == NULL) return -1;
+       if (fp == NULL) {
+          fprintf(stderr, "[%2d]: pvp_read_header: pvp_open_read_file: fp == NULL, filename==%s\n",
+                  comm->commRank(), filename);
+          return -1;}
 
        status = pvp_read_header(fp, time, filetype, datatype, params, numParams);
        pvp_close_file(fp, comm);
@@ -987,7 +990,12 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       //
       long offset = headerSize + 0 * localSize;
       fseek(fp, offset, SEEK_SET);
-      if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
+      status = ( fread(cbuf, localSize, 1, fp) != 1 );
+      if  (status != 0) {
+         fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%d\n",
+                 comm->commRank(), offset);
+         return status;}
+
 
       status = pvp_close_file(fp, comm);
    }
