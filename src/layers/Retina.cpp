@@ -251,8 +251,6 @@ int Retina::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
-   update_timer->start();
-
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
@@ -271,8 +269,6 @@ int Retina::updateStateOpenCL(float time, float dt)
 
    numWait += 3;
 #endif
-
-   update_timer->stop();
 
    return status;
 }
@@ -330,8 +326,8 @@ int Retina::waitOnPublish(InterColComm* comm)
  */
 int Retina::updateState(float time, float dt)
 {
-#ifndef PV_USE_OPENCL
    update_timer->start();
+#ifndef PV_USE_OPENCL
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
@@ -351,7 +347,7 @@ int Retina::updateState(float time, float dt)
       Retina_nonspiking_update_state(time, dt, nx, ny, nf, nb,
                                      &rParams, phiExc, phiInh, activity);
    }
-   update_timer->stop();
+
 #else
 
    updateStateOpenCL(time, dt);
@@ -370,7 +366,7 @@ int Retina::updateState(float time, float dt)
    printf("----------------\n");
 
 #endif
-
+   update_timer->stop();
    return 0;
 }
 
