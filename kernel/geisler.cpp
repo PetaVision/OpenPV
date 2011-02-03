@@ -6,23 +6,25 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "../PetaVision/src/columns/HyPerCol.hpp"
-#include "../PetaVision/src/connections/HyPerConn.hpp"
-#include "../PetaVision/src/connections/KernelConn.hpp"
-#include "../PetaVision/src/connections/CocircConn.hpp"
-#include "../PetaVision/src/connections/GeislerConn.hpp"
-#include "../PetaVision/src/connections/AvgConn.hpp"
-#include "../PetaVision/src/layers/Movie.hpp"
-#include "../PetaVision/src/layers/Image.hpp"
-#include "../PetaVision/src/layers/Retina.hpp"
-#include "../PetaVision/src/layers/V1.hpp"
-#include "../PetaVision/src/layers/GeislerLayer.hpp"
-#include "../PetaVision/src/io/ConnectionProbe.hpp"
-#include "../PetaVision/src/io/GLDisplay.hpp"
-#include "../PetaVision/src/io/PostConnProbe.hpp"
-#include "../PetaVision/src/io/LinearActivityProbe.hpp"
-#include "../PetaVision/src/io/PointProbe.hpp"
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <src/columns/HyPerCol.hpp>
+#include <src/connections/HyPerConn.hpp>
+#include <src/connections/KernelConn.hpp>
+#include <src/connections/CocircConn.hpp>
+#include <src/connections/GeislerConn.hpp>
+#include <src/connections/AvgConn.hpp>
+#include <src/layers/Movie.hpp>
+#include <src/layers/Image.hpp>
+#include <src/layers/Retina.hpp>
+#include <src/layers/LIF.hpp>
+#include <src/layers/ANNLayer.hpp>
+#include <src/layers/GeislerLayer.hpp>
+#include <src/io/ConnectionProbe.hpp>
+#include <src/io/GLDisplay.hpp>
+#include <src/io/PostConnProbe.hpp>
+#include <src/io/LinearActivityProbe.hpp>
+#include <src/io/PointProbe.hpp>
+#include <src/io/PointLIFProbe.hpp>
+#include <src/io/StatsProbe.hpp>
 
 //#include "../PetaVisionsrc/io/imageio.hpp"
 
@@ -48,7 +50,7 @@ int main(int argc, char* argv[]) {
 	// create the image
 	//
 	//const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/2/t/tar_0041_a.png";
-	const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/4/t/tar_0041_a.png";
+	const char * amoeba_filename = "../../MATLAB/amoeba/128_png/4/t/tar_0005_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
@@ -56,15 +58,15 @@ int main(int argc, char* argv[]) {
 	//
 	HyPerLayer * image = new Image("Image", hc, amoeba_filename);
 	HyPerLayer * retina = new Retina("Retina", hc);
-	HyPerLayer * lgn = new V1("LGN", hc);
-	HyPerLayer * lgninhff = new V1("LGNInhFF", hc);
-	HyPerLayer * lgninh = new V1("LGNInh", hc);
-	HyPerLayer * l1 = new V1("L1", hc);
-	HyPerLayer * l1inhff = new V1("L1InhFF", hc);
-	HyPerLayer * l1inh = new V1("L1Inh", hc);
+	HyPerLayer * lgn = new LIF("LGN", hc);
+	HyPerLayer * lgninhff = new LIF("LGNInhFF", hc);
+	HyPerLayer * lgninh = new LIF("LGNInh", hc);
+	HyPerLayer * l1 = new LIF("L1", hc);
+	HyPerLayer * l1inhff = new LIF("L1InhFF", hc);
+	HyPerLayer * l1inh = new LIF("L1Inh", hc);
 
 	// create averaging layers
-//	HyPerLayer * l1avg = new V1("L1Avg", hc);
+//	HyPerLayer * l1avg = new LIF("L1Avg", hc);
 
 	//display->addLayer(l1);
 	//display->addLayer(l1inh);
@@ -75,7 +77,8 @@ int main(int argc, char* argv[]) {
 	//
 
 	HyPerConn * image_retina  =
-		new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
+			new KernelConn("Image to Retina",   hc, image, retina, (ChannelType) 0);
+//		new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
 
 	// retinal connections
 	HyPerConn * r_lgn =
@@ -90,9 +93,9 @@ int main(int argc, char* argv[]) {
 //	HyPerConn * lgn_lgninhff =
 //		new KernelConn("LGN to LGNInhFF", 	hc, lgn, lgninhff,
 //			CHANNEL_EXC);
-	HyPerConn * lgn_lgninh =
-		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
-			CHANNEL_EXC);
+//	HyPerConn * lgn_lgninh =
+//		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
+//			CHANNEL_EXC);
 	HyPerConn * lgn_l1 =
 		new KernelConn("LGN to L1",     	hc, lgn,  l1,
 			CHANNEL_EXC);
@@ -129,40 +132,42 @@ int main(int argc, char* argv[]) {
 	HyPerConn * lgninh_lgn =
 		new KernelConn("LGNInh to LGN", 		hc, lgninh, lgn,
 			CHANNEL_INH);
-	HyPerConn * lgninh_lgninh_exc =
-		new KernelConn("LGNInh to LGNInh Exc", 	hc, lgninh, lgninh,
-			CHANNEL_EXC);
-	HyPerConn * lgninh_lgninh =
-		new KernelConn("LGNInh to LGNInh", 		hc, lgninh, lgninh,
-			CHANNEL_INH);
-
+//	HyPerConn * lgninh_lgninh_exc =
+//		new KernelConn("LGNInh to LGNInh Exc", 	hc, lgninh, lgninh,
+//			CHANNEL_EXC);
+//	HyPerConn * lgninh_lgninh =
+//		new KernelConn("LGNInh to LGNInh", 		hc, lgninh, lgninh,
+//			CHANNEL_INH);
+//
 
 	// L1 connections
-	const char * geisler_filename = "./input/128/test_target40K_target_G1/4fc/geisler_clean.pvp";
-	HyPerConn * l1_lgn =
-		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
-			CHANNEL_EXC);
-	HyPerConn * l1_lgninh =
-		new KernelConn("L1 to LGNInh",  hc, l1,     lgninh,
-			CHANNEL_EXC);
-	HyPerConn * l1_l1 =
-		new KernelConn("L1 to L1",      hc, l1,     l1,
-			CHANNEL_EXC, geisler_filename);
+//	const char * geisler_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
+	const char * target_kernel_filename = "./input/128/target10K_G1/w3_last.pvp";
+	const char * distractor_kernel_filename = "./input/128/distractor10K_G1/w3_last.pvp";
+//	HyPerConn * l1_lgn =
+//		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
+//			CHANNEL_EXC);
+//	HyPerConn * l1_lgninh =
+//		new KernelConn("L1 to LGNInh",  hc, l1,     lgninh,
+//			CHANNEL_EXC);
+//	HyPerConn * l1_l1 =
+//		new KernelConn("L1 to L1",      hc, l1,     l1,
+//			CHANNEL_EXC, target_kernel_filename);
 //	HyPerConn * l1_l1inhff =
 //		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
 //			CHANNEL_EXC);
-	HyPerConn * l1_l1inh =
-		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
-			CHANNEL_EXC, geisler_filename);
+//	HyPerConn * l1_l1inh =
+//		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
+//			CHANNEL_EXC, distractor_kernel_filename);
 
 
 	// L1 Inh FF connections
 	HyPerConn * l1inhff_l1 =
 		new CocircConn("L1InhFF to L1",   			hc, l1inhff,  l1,
 			CHANNEL_INH);
-	HyPerConn * l1inhff_l1_nonoriented =
-		new CocircConn("L1InhFF to L1 NonOriented", hc, l1inhff,  l1,
-			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1_nonoriented =
+//		new CocircConn("L1InhFF to L1 NonOriented", hc, l1inhff,  l1,
+//			CHANNEL_INH);
 //	HyPerConn * l1inhff_l1_inhB =
 //		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
 //			CHANNEL_INHB);
@@ -190,12 +195,12 @@ int main(int argc, char* argv[]) {
 //	HyPerConn * l1inh_l1inhff =
 //		new CocircConn("L1Inh to L1InhFF",  	hc, l1inh,  l1inhff,
 //			CHANNEL_INH);
-	HyPerConn * l1inh_l1inh_exc =
-		new CocircConn("L1Inh to L1Inh Exc",   	hc, l1inh,  l1inh,
-			CHANNEL_EXC);
-	HyPerConn * l1inh_l1inh_inh =
-		new CocircConn("L1Inh to L1Inh Inh",   	hc, l1inh,  l1inh,
-			CHANNEL_INH);
+//	HyPerConn * l1inh_l1inh_exc =
+//		new CocircConn("L1Inh to L1Inh Exc",   	hc, l1inh,  l1inh,
+//			CHANNEL_EXC);
+//	HyPerConn * l1inh_l1inh_inh =
+//		new CocircConn("L1Inh to L1Inh Inh",   	hc, l1inh,  l1inh,
+//			CHANNEL_INH);
 
 	// create averaging connections
 	//
@@ -233,72 +238,84 @@ int main(int argc, char* argv[]) {
 
 	int npad, nx, ny, nf;
 
-	npad = lgn->clayer->loc.nPad;
+	npad = lgn->clayer->loc.nb;
 	nx = lgn->clayer->loc.nx;
 	ny = lgn->clayer->loc.ny;
-	nf = lgn->clayer->loc.nBands;
+	nf = lgn->clayer->loc.nf;
 
 #define WRITE_VMEM
 #ifdef WRITE_VMEM
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
-		new PointProbe(Vmem_filename_LGNa1, 59,48,0, "LGNA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNa1, 64,64,0, "LGNA1:(67,89,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
+/*
 	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
 	LayerProbe * Vmem_probe_LGNc1 =
-		new PointProbe(Vmem_filename_LGNc1, 26,110,0, "LGNC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNc1, 64,64,0, "LGNC1:(61,58,0)");
 	lgn->insertProbe(Vmem_probe_LGNc1);
+*/
 
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointProbe(Vmem_filename_LGNInhFFa1, 59,48,0, "LGNInhA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(67,89,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
+/*
 	const char * Vmem_filename_LGNInhFFc1 = "Vmem_LGNInhFFc1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFc1 =
-		new PointProbe(Vmem_filename_LGNInhFFc1, 26,110,0, "LGNInhFFC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFc1, 64,64,0, "LGNInhFFC1:(61,58,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFc1);
+*/
 
 	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
 	LayerProbe * Vmem_probe_LGNInha1 =
-		new PointProbe(Vmem_filename_LGNInha1, 59,48,0, "LGNInhA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNInha1, 64,64,0, "LGNInhA1:(67,89,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
+/*
 	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
 	LayerProbe * Vmem_probe_LGNInhc1 =
-		new PointProbe(Vmem_filename_LGNInhc1, 26,110,0, "LGNInhC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhc1, 64,64,0, "LGNInhC1:(61,58,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
+*/
 
-	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
-	LayerProbe * Vmem_probe_V1a1 =
-		new PointProbe(Vmem_filename_V1a1, 59,48,2, "V1A1:(59,48,2)");
-	l1->insertProbe(Vmem_probe_V1a1);
+	const char * Vmem_filename_LIFa1 = "Vmem_LIFa1.txt";
+	LayerProbe * Vmem_probe_LIFa1 =
+		new PointLIFProbe(Vmem_filename_LIFa1, 64,64,0, "LIFA1:(59,48,2)");
+	l1->insertProbe(Vmem_probe_LIFa1);
 
-	const char * Vmem_filename_V1c1 = "Vmem_V1c1.txt";
-	LayerProbe * Vmem_probe_V1c1 =
-		new PointProbe(Vmem_filename_V1c1, 26,110,1, "V1C1:(61,58,5)");
-	l1->insertProbe(Vmem_probe_V1c1);
+/*
+	const char * Vmem_filename_LIFc1 = "Vmem_LIFc1.txt";
+	LayerProbe * Vmem_probe_LIFc1 =
+		new PointLIFProbe(Vmem_filename_LIFc1, 64,64,0, "LIFC1:(61,58,5)");
+	l1->insertProbe(Vmem_probe_LIFc1);
+*/
 
-	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
-	LayerProbe * Vmem_probe_V1InhFFa1 =
-		new PointProbe(Vmem_filename_V1InhFFa1, 59,48,2, "V1InhFFA1:(67,89,1)");
-	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
+	const char * Vmem_filename_LIFInhFFa1 = "Vmem_LIFInhFFa1.txt";
+	LayerProbe * Vmem_probe_LIFInhFFa1 =
+		new PointLIFProbe(Vmem_filename_LIFInhFFa1, 64,64,0, "LIFInhFFA1:(67,89,1)");
+	l1inhff->insertProbe(Vmem_probe_LIFInhFFa1);
 
-	const char * Vmem_filename_V1InhFFc1 = "Vmem_V1InhFFc1.txt";
-	LayerProbe * Vmem_probe_V1InhFFc1 =
-		new PointProbe(Vmem_filename_V1InhFFc1, 26,110,1, "V1InhFFC1:(61,58,5)");
-	l1inh->insertProbe(Vmem_probe_V1InhFFc1);
+/*
+	const char * Vmem_filename_LIFInhFFc1 = "Vmem_LIFInhFFc1.txt";
+	LayerProbe * Vmem_probe_LIFInhFFc1 =
+		new PointLIFProbe(Vmem_filename_LIFInhFFc1, 64,64,0, "LIFInhFFC1:(61,58,5)");
+	l1inh->insertProbe(Vmem_probe_LIFInhFFc1);
+*/
 
-	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
-	LayerProbe * Vmem_probe_V1Inha1 =
-		new PointProbe(Vmem_filename_V1Inha1, 59,48,2, "V1InhA1:(67,89,1)");
-	l1inh->insertProbe(Vmem_probe_V1Inha1);
+	const char * Vmem_filename_LIFInha1 = "Vmem_LIFInha1.txt";
+	LayerProbe * Vmem_probe_LIFInha1 =
+		new PointLIFProbe(Vmem_filename_LIFInha1, 64,64,0, "LIFInhA1:(67,89,1)");
+	l1inh->insertProbe(Vmem_probe_LIFInha1);
 
-	const char * Vmem_filename_V1Inhc1 = "Vmem_V1Inhc1.txt";
-	LayerProbe * Vmem_probe_V1Inhc1 =
-		new PointProbe(Vmem_filename_V1Inhc1, 26,110,1, "V1InhC1:(61,58,5)");
-	l1inh->insertProbe(Vmem_probe_V1Inhc1);
+/*
+	const char * Vmem_filename_LIFInhc1 = "Vmem_LIFInhc1.txt";
+	LayerProbe * Vmem_probe_LIFInhc1 =
+		new PointLIFProbe(Vmem_filename_LIFInhc1, 64,64,0, "LIFInhC1:(61,58,5)");
+	l1inh->insertProbe(Vmem_probe_LIFInhc1);
+*/
 #endif
 
 	if (0) { // ma
@@ -315,92 +332,89 @@ int main(int argc, char* argv[]) {
 	// write text weights
 	const char * r_lgn_filename = "r_lgn_gauss.txt";
 	HyPerLayer * pre = r_lgn->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	r_lgn->writeTextWeights(r_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * lgn_l1_filename = "lgn_l1_gauss.txt";
 	pre = lgn_l1->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	lgn_l1->writeTextWeights(lgn_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * lgninh_lgn_filename = "lgninh_lgn_gauss.txt";
 	pre = lgninh_lgn->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	lgninh_lgn->writeTextWeights(lgninh_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-	const char * lgninh_lgninh_exc_filename = "lgninh_lgninh_gap.txt";
-	pre = lgninh_lgninh_exc->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
-	nx = pre->clayer->loc.nx;
-	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
-	lgninh_lgninh_exc->writeTextWeights(lgninh_lgninh_exc_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+//	const char * lgninh_lgninh_exc_filename = "lgninh_lgninh_gap.txt";
+//	pre = lgninh_lgninh_exc->preSynapticLayer();
+//	npad = pre->clayer->loc.nb;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nf;
+//	lgninh_lgninh_exc->writeTextWeights(lgninh_lgninh_exc_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 //	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
 //	pre = l1_lgn->preSynapticLayer();
-//	npad = pre->clayer->loc.nPad;
+//	npad = pre->clayer->loc.nb;
 //	nx = pre->clayer->loc.nx;
 //	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nBands;
+//	nf = pre->clayer->loc.nf;
 //	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 //	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
 //	pre = l1_lgninh->preSynapticLayer();
-//	npad = pre->clayer->loc.nPad;
+//	npad = pre->clayer->loc.nb;
 //	nx = pre->clayer->loc.nx;
 //	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nBands;
+//	nf = pre->clayer->loc.nf;
 //	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * l1inhff_l1_filename = "l1inhff_l1_cocirc.txt";
 	pre = l1inhff_l1->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	l1inhff_l1->writeTextWeights(l1inhff_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 //	const char * l1_l1_filename = "l1_l1_geisler_exc.txt";
 //	pre = l1_l1->preSynapticLayer();
-//	npad = pre->clayer->loc.nPad;
+//	npad = pre->clayer->loc.nb;
 //	nx = pre->clayer->loc.nx;
 //	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nBands;
+//	nf = pre->clayer->loc.nf;
 //	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 //	const char * l1_l1inh_filename = "l1_l1inh_geisler_exc.txt";
 //	pre = l1_l1inh->preSynapticLayer();
 
-//	npad = pre->clayer->loc.nPad;
+//	npad = pre->clayer->loc.nb;
 //	nx = pre->clayer->loc.nx;
 //	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nBands;
+//	nf = pre->clayer->loc.nf;
 //	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 //	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
 //	pre = l1inh_l1->preSynapticLayer();
-//	npad = pre->clayer->loc.nPad;
+//	npad = pre->clayer->loc.nB;
 //	nx = pre->clayer->loc.nx;
 //	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nBands;
+//	nf = pre->clayer->loc.nf;
 //	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #else  // learn Geisler kernels
 
-//	const char * amoeba_fileOfFileNames = "./input/256/test_target10K_W287_distractor_G1/4fc/fileNames.txt"; //
-//	const char * train_fileOfFileNames = "./input/256/noanimal/0001/train/train_filenames.txt"; //
-	const char * test_fileOfFileNames = "./input/256/noanimal/0001/test/test_filenames.txt"; //
+	const char * test_fileOfFileNames = "./input/128/test_target10K_distractor_G1/4fc/fileNames.txt"; //
+//	const char * test_fileOfFileNames = "./input/128/distractor10K_G1/fileNames.txt";
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, test_fileOfFileNames, display_period);
-//	const char * amoeba_filename = "./input/test_amoebas/test0000.bmp"; // "./input/hard4.bmp"; //
-//	Image * image = new Image("Image", hc, amoeba_filename);
 	const char * image_file =  "./output/trainImage.tiff";
 	movie->write(image_file);
 	HyPerLayer * retina = new Retina("Retina", hc);
@@ -408,7 +422,7 @@ int main(int argc, char* argv[]) {
 	retina->insertProbe(stats_retina);
 	HyPerConn * image_retina  =
 		new KernelConn("Movie to Retina",   hc, movie, retina, CHANNEL_EXC);
-	HyPerLayer * l1 = new V1("L1", hc);
+	HyPerLayer * l1 = new ANNLayer("L1", hc);
 	HyPerConn * retina_l1 =
 		new KernelConn("Retina to L1",   hc, retina,  l1,
 			CHANNEL_EXC);
@@ -541,15 +555,13 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",  hc, l1,  l1_geisler,
 			CHANNEL_EXC);
-//	const char * geisler_filename_target = "./input/128/target40K_G1/w3_last.pvp";
-//	const char * geisler_filename_target = "./input/256/target10K_G1/w3_last.pvp";
-	const char * geisler_filename_target = "./input/256/animal/0001/train/w3_last.pvp";
+	const char * geisler_filename_target = "./input/128/target10K_G1/w3_last.pvp";
+//	const char * geisler_filename_target = "./input/256/animal/0001/train/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_target =
 		new KernelConn("L1 to L1 Geisler Target",  hc, l1,   l1_geisler,
 			CHANNEL_INH, geisler_filename_target);
-//	const char * geisler_filename_distractor = "./input/128/distractor40K_G1/w3_last.pvp";
-//	const char * geisler_filename_distractor = "./input/256/distractor10K_G1/w3_last.pvp";
-	const char * geisler_filename_distractor = "./input/256/noanimal/0001/train/w3_last.pvp";
+	const char * geisler_filename_distractor = "./input/128/distractor10K_G1/w3_last.pvp";
+//	const char * geisler_filename_distractor = "./input/256/noanimal/0001/train/w3_last.pvp";
 	HyPerConn * l1_l1_geisler_distractor =
 		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,  l1_geisler,
 			CHANNEL_INH, geisler_filename_distractor);
