@@ -777,6 +777,112 @@ int HyPerConn::outputState(float time, bool last)
    return status;
 }
 
+void STDP_update_state_post(
+      const float dt,
+
+      const int nx,
+      const int ny,
+      const int nf,
+      const int nb,
+
+      const int nxp,
+      const int nyp,
+
+      STDP_params * params,
+
+      float * M,
+      float * Wmax,
+      float * Apost,
+      float * Rpost)
+{
+
+   int kex;
+#ifndef PV_USE_OPENCL
+   for (kex = 0; kex < nx*ny*nf; kex++) {
+#else
+   kex = get_global_id(0);
+#endif
+
+   //
+   // kernel (nonheader part) begins here
+   //
+
+   // update the decrement variable
+   //
+   M[kex] = decay * M[kex] - fac * Apost[kex];
+
+#ifndef PV_USE_OPENCL
+   }
+#endif
+
+}
+
+
+/**
+ * Loop over presynaptic extended layer.  Calculate pIncr, and weights.
+ */
+void STDP_update_state_pre(
+      const float time,
+      const float dt,
+
+      const int nx,
+      const int ny,
+      const int nf,
+      const int nb,
+
+      const int nxp,
+      const int nyp,
+
+      STDP_params * params,
+
+      float * M,
+      float * P,
+      float * W,
+      float * Wmax,
+      float * Apre,
+      float * Apost)
+{
+
+   int kex;
+
+   float m[NXP*NYP], aPost[NXP*NYP], wMax[NXP*NYP];
+
+#ifndef PV_USE_OPENCL
+   for (kex = 0; kex < nx*ny*nf; kex++) {
+#else
+   kex = get_global_id(0);
+#endif
+
+   //
+   // kernel (nonheader part) begins here
+   //
+
+   // update the increment variable
+   //
+   float aPre = Apre[kex];
+   float * p = P[kex*stride];
+
+   // copy into local variable
+   //
+
+   copy(m, M);
+   copy(aPost, Apost);
+   copy(wMax, Wmax);
+
+   // update the weights
+   //
+   for (int kp = 0; kp < nxp*nyp; kp++) {
+      p[kp] = decay * p[kp] + ltpAmp * aPre;
+      w[kp] += dWMax * (aPre * m[kp] + aPost[kp] * p[kp]);
+      w[kp] = w[kp] < wMin ? wMin : w[kp];
+      w[kp] = w[kp] > wMax ? wMax : w[kp];
+   }
+#ifndef PV_USE_OPENCL
+   }
+#endif
+
+}
+
 int HyPerConn::updateState(float time, float dt)
 {
    update_timer->start();
@@ -874,7 +980,7 @@ int HyPerConn::updateWeights(int axonId)
 
          for (int y = 0; y < ny; y++) {
             // TODO
-            //pvpatch_update_weights_localWMax(nk,W, M, P, preActivity, postActivity,dWMax,wMin,Wmax);
+            pvpatch_update_weights_localWMax(nk,W, M, P, preActivity, postActivity,dWMax,wMin,Wmax);
             //
             // advance pointers in y
             W += sy;
