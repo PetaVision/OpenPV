@@ -315,8 +315,6 @@ int LIF::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;
 
-   update_timer->start();
-
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
@@ -336,8 +334,6 @@ int LIF::updateStateOpenCL(float time, float dt)
 
    numWait += 4;
 #endif
-
-   update_timer->stop();
 
    return status;
 }
@@ -374,8 +370,10 @@ int LIF::waitOnPublish(InterColComm* comm)
 
 int LIF::updateState(float time, float dt)
 {
-#ifndef PV_USE_OPENCL
+   int status = 0;
    update_timer->start();
+
+#ifndef PV_USE_OPENCL
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
@@ -392,14 +390,14 @@ int LIF::updateState(float time, float dt)
                     clayer->V, Vth,
                     G_E, G_I, G_IB,
                     phiExc, phiInh, phiInhB, R, activity);
-   update_timer->stop();
 #else
 
-   return updateStateOpenCL(time, dt);
+   status = updateStateOpenCL(time, dt);
 
 #endif
 
-   return 0;
+   update_timer->stop();
+   return status;
 }
 
 int LIF::readState(float * time)
