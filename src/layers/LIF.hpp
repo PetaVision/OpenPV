@@ -42,6 +42,9 @@ public:
    virtual int writeState(float time, bool last=false);
    
    virtual pvdata_t * getAverageActivity()  {return R;}
+   pvdata_t * getVth() {                         // name query
+      return Vth;
+   }
    
    int setParams(PVParams * p);
 
