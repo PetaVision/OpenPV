@@ -100,17 +100,17 @@ for (k = 0; k < nx*ny*nf; k++) {
    // define local param variables
    //
    tau   = params->tau;
-   tauE  = params->tauE;
-   tauI  = params->tauI;
-   tauIB = params->tauIB;
+   //tauE  = params->tauE;
+   //tauI  = params->tauI;
+   //tauIB = params->tauIB;
    
    Vrest = params->Vrest;
    Vexc  = params->Vexc;
    Vinh  = params->Vinh;
    VinhB = params->VinhB;
 
-   tauRate  = params->tauRate;
-   tauVth   = params->tauVth;
+   //tauRate  = params->tauRate;
+   //tauVth   = params->tauVth;
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
@@ -157,6 +157,10 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_I  = l_phiInh  + l_G_I *exp_tauI;
    l_G_IB = l_phiInhB + l_G_IB*exp_tauIB;
    
+   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
+   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
+   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
+
    tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
            / (1.0 + l_G_E + l_G_I + l_G_IB);
@@ -167,9 +171,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    // start of LIF2_update_finish
    //
 
-   l_phiExc  = 0.0f;
-   l_phiInh  = 0.0f;
-   l_phiInhB = 0.0f;
+   //l_phiExc  = 0.0f;
+   //l_phiInh  = 0.0f;
+   //l_phiInhB = 0.0f;
 
    l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
 
@@ -177,16 +181,14 @@ for (k = 0; k < nx*ny*nf; k++) {
    // start of update_f
    //
 
-   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
-   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
-   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
+   //l_activ = activity[kex];
 
-   l_activ = activity[kex];
-
-   l_activ = (l_V > l_Vth) ? 1.0f           : 0.0f;
-   l_V     = (l_V > l_Vth) ? Vrest          : l_V;
-   l_Vth   = (l_V > l_Vth) ? l_Vth + deltaVth : l_Vth;
-   l_G_IB  = (l_V > l_Vth) ? l_G_IB + 1.0f    : l_G_IB;
+//   l_activ = (l_V > l_Vth) ? 1.0f           : 0.0f;
+   bool fired_flag = (l_V > l_Vth);
+   l_activ = (float) fired_flag;
+   l_V     = fired_flag ? Vrest            : l_V;
+   l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
+   l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
 
    // update average rate
    l_R = l_activ + l_R*exp_tauRate;
