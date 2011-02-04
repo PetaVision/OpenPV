@@ -777,6 +777,7 @@ int HyPerConn::outputState(float time, bool last)
    return status;
 }
 
+#ifdef NOTYET
 void STDP_update_state_post(
       const float dt,
 
@@ -882,6 +883,7 @@ void STDP_update_state_pre(
 #endif
 
 }
+#endif // NOTYET - TODO
 
 int HyPerConn::updateState(float time, float dt)
 {
