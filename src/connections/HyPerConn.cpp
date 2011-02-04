@@ -980,7 +980,7 @@ int HyPerConn::updateWeights(int axonId)
 
          for (int y = 0; y < ny; y++) {
             // TODO
-            pvpatch_update_weights_localWMax(nk,W, M, P, preActivity, postActivity,dWMax,wMin,Wmax);
+            //pvpatch_update_weights_localWMax(nk,W, M, P, preActivity, postActivity,dWMax,wMin,Wmax);
             //
             // advance pointers in y
             W += sy;
