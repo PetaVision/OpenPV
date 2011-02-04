@@ -5,8 +5,8 @@
  *      Author: rasmussn
  */
 
-#ifndef POINTPROBE_HPP_
-#define POINTPROBE_HPP_
+#ifndef POINTLIFPROBE_HPP_
+#define POINTLIFPROBE_HPP_
 
 #include "LayerProbe.hpp"
 
