@@ -46,12 +46,13 @@ void LIF_update_state(
 {
    int k;
 
-   float exp_tauE = EXP(-dt/params->tauE);  
-   float exp_tauI = EXP(-dt/params->tauI);
-   float exp_tauIB = EXP(-dt/params->tauIB);
-   float exp_tauVth = EXP(-dt/params->tauVth);
-   float exp_tauRate = EXP(-dt/params->tauRate);
+   const float exp_tauE    = EXP(-dt/params->tauE);
+   const float exp_tauI    = EXP(-dt/params->tauI);
+   const float exp_tauIB   = EXP(-dt/params->tauIB);
+   const float exp_tauVth  = EXP(-dt/params->tauVth);
 
+   const float dt_sec = .001 * dt;   // convert to seconds
+   const float exp_tauRate = EXP(-dt_sec/params->tauRate);
 
 #ifndef PV_USE_OPENCL
 
@@ -67,9 +68,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, tauE, tauI, tauIB, tauRate, Vrest, VthRest, Vexc, Vinh, VinhB, tauVth, deltaVth;
+   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
 
-   float dt_sec;
    const float GMAX = 10.0;
 
    // local variables
@@ -100,23 +100,16 @@ for (k = 0; k < nx*ny*nf; k++) {
    // define local param variables
    //
    tau   = params->tau;
-   //tauE  = params->tauE;
-   //tauI  = params->tauI;
-   //tauIB = params->tauIB;
-   
-   Vrest = params->Vrest;
    Vexc  = params->Vexc;
    Vinh  = params->Vinh;
    VinhB = params->VinhB;
+   Vrest = params->Vrest;
 
-   //tauRate  = params->tauRate;
-   //tauVth   = params->tauVth;
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
    // add noise
    //
-   dt_sec = .001 * dt;   // convert to seconds
 
 #undef CLRANDOM
 
@@ -152,7 +145,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    }
 #endif
 
-
    l_G_E  = l_phiExc  + l_G_E *exp_tauE;
    l_G_I  = l_phiInh  + l_G_I *exp_tauI;
    l_G_IB = l_phiInhB + l_G_IB*exp_tauIB;
@@ -171,21 +163,19 @@ for (k = 0; k < nx*ny*nf; k++) {
    // start of LIF2_update_finish
    //
 
-   //l_phiExc  = 0.0f;
-   //l_phiInh  = 0.0f;
-   //l_phiInhB = 0.0f;
-
    l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
 
    //
    // start of update_f
    //
 
-   //l_activ = activity[kex];
+//   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
+//   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
+//   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-//   l_activ = (l_V > l_Vth) ? 1.0f           : 0.0f;
    bool fired_flag = (l_V > l_Vth);
-   l_activ = (float) fired_flag;
+
+   l_activ = fired_flag ? 1.0f             : 0.0f;
    l_V     = fired_flag ? Vrest            : l_V;
    l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
@@ -212,9 +202,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_I[k]  = l_G_I;
    G_IB[k] = l_G_IB;
 
-   phiExc[k]  = l_phiExc;
-   phiInh[k]  = l_phiInh;
-   phiInhB[k] = l_phiInhB;
+   phiExc[k]  = 0.0f;
+   phiInh[k]  = 0.0f;
+   phiInhB[k] = 0.0f;
 
 #ifndef PV_USE_OPENCL
    } // loop over k
