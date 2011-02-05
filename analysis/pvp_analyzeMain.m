@@ -47,7 +47,7 @@ image_filename = [image_path 't/tar_0005_a.png'];
 target_filename{1} = [image_path 'a/tar_0005_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
-copyfile(main_file, OUTPUT_PATH);
+copyfile([main_file, '.save'], OUTPUT_PATH);
 
 params_file = [project_path, 'input/params.geisler'];
 copyfile(params_file, OUTPUT_PATH);
@@ -185,7 +185,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 2;
+num_epochs = 1;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
@@ -1029,7 +1029,7 @@ if plot_vmem
   H2_vmem = cell(num_vmem_files, 1);
   vmem_skip = 2;
   layer = read_spikes( find(read_spikes, 1) );
-  BEGIN_TIME = epoch_struct.begin_time(num_epochs-1,layer);
+  BEGIN_TIME = epoch_struct.begin_time(ceil(num_epochs/2),layer);
   END_TIME = BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
   for i_vmem = 1 : vmem_skip : num_vmem_files
     [vmem_time{i_vmem}, ...
@@ -1040,12 +1040,17 @@ if plot_vmem
      vmem_Vth{i_vmem}, ...
      vmem_a{i_vmem} ] = ...
         ptprobe_readV(vmem_file_list{i_vmem});
+    if isempty(vmem_time{i_vmem})
+      continue;
+    endif
     vmem_start = 1;
     vmem_stop = length(vmem_time{i_vmem});
     if isempty(vmem_stop)
       vmem_stop = END_TIME;
     endif
-    plot_title = [ 'Vmem data: ', vmem_file_list{i_vmem} ];
+    vmem_str_last = strfind(vmem_file_list{i_vmem}, '.');
+    vmem_str_root = vmem_file_list{i_vmem}(1:vmem_str_last(1));
+    plot_title = vmem_str_root;
     fh = figure('Name', plot_title);
     fig_list = [fig_list; fh];
     [AX_vmem{i_vmem},H1_vmem{i_vmem},H2_vmem{i_vmem}] = ...
