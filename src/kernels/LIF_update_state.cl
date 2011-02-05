@@ -52,7 +52,7 @@ void LIF_update_state(
    const float exp_tauVth  = EXP(-dt/params->tauVth);
 
    const float dt_sec = .001 * dt;   // convert to seconds
-   const float exp_tauRate = EXP(-dt_sec/params->tauRate);
+   const float exp_tauRate = EXP(-dt/params->tauRate);
 
 #ifndef PV_USE_OPENCL
 
