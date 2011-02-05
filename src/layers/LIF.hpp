@@ -41,9 +41,14 @@ public:
    virtual int readState (float * time);
    virtual int writeState(float time, bool last=false);
    
-   virtual pvdata_t * getAverageActivity()  {return R;}
-   pvdata_t * getVth() {                         // name query
-      return Vth;
+   pvdata_t * getAverageActivity()  {return R;}
+   pvdata_t * getVth()              {return Vth;}
+   pvdata_t * getConductance(ChannelType ch) {
+      switch (ch) {
+         case CHANNEL_EXC:  return G_E;
+         case CHANNEL_INH:  return G_I;
+         case CHANNEL_INHB: return G_IB;
+      }
    }
    
    int setParams(PVParams * p);
