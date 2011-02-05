@@ -24,7 +24,7 @@ amoeba_struct.min_gap = 16; % 32; %
 amoeba_struct.max_gap = 32; % 64; % 
 amoeba_struct.fourier_amp = zeros(amoeba_struct.num_fourier, 1);
 % set amp of largest fourier component factor of 2 larger to make more distinct amoebas
-amoeba_struct.fourier_amp(amoeba_struct.num_fourier,1) = 1;
+% amoeba_struct.fourier_amp(amoeba_struct.num_fourier,1) = 1;
 
 [amoeba_image] = amoeba2D2(amoeba_struct);
 plotAmoeba2D2(amoeba_image,  t, nfour);

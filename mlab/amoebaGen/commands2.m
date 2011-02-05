@@ -1,72 +1,75 @@
 function [nz_image_cell] = commands2(image_size)
 
-if nargin < 1
-    image_size = [128 128]; [256 256];
-end
+  if nargin < 1
+    image_size =  [256 256]; %[128 128]; %
+  endif
 
-global image_dim
-image_dim = image_size;
+  global image_dim
+  image_dim = image_size;
 
-%  addpath('/Applications/Psychtoolbox/');
+				%  addpath('/Applications/Psychtoolbox/');
 
-% number of targets/fourier component
-numT = 10000;
-%  screen_color = [];
-%screen_rect = [0 0 256 256];
-%  screen_rect = [0 0 128 128];
-%[w0, window_rect]  = Screen('OpenWindow', 0, screen_color, screen_rect);
-%Screen('FillRect', w0, GrayIndex(w0));
+				% number of targets/fourier component
+  numT = 1; %%10000;
+				%  screen_color = [];
+				%screen_rect = [0 0 256 256];
+				%  screen_rect = [0 0 128 128];
+				%[w0, window_rect]  = Screen('OpenWindow', 0, screen_color, screen_rect);
+				%Screen('FillRect', w0, GrayIndex(w0));
 
-global plot_amoeba2D fh_amoeba2D
-plot_amoeba2D = 0;
-setenv('GNUTERM', 'x11');
-if plot_amoeba2D
+  global plot_amoeba2D fh_amoeba2D
+  plot_amoeba2D = 0;
+  setenv('GNUTERM', 'x11');
+  if plot_amoeba2D
     fh_amoeba2D = figure;
-end
+  endif
 
-%% sets number of fourier components
-%fourC = [2 4 6 8];
-fourC = [4];
-global nz_image
-nz_image = zeros(3, numT);
-nz_image_cell = cell(length(fourC), 1);
+  %% sets number of fourier components
+				%fourC = [2 4 6 8];
+  fourC = [4];
+  global nz_image
+  nz_image = zeros(3, numT);
+  nz_image_cell = cell(length(fourC), 1);
 
-global machine_path
-machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
-%machine_path = '/Users/gkenyon/Documents/MATLAB/amoeba_ltd/';
-if ~exist( 'machine_path', 'dir')
+  global machine_path
+  %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
+  machine_path = '/Users/gkenyon/MATLAB/amoeba_normalized/';
+  if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
-        error(MESSAGEID, MESSAGE);
-    end%%if
-end%%if
+      error(MESSAGEID, MESSAGE);
+    endif
+  endif
 
-global amoeba_file_path
-amoeba_file_path =  [ machine_path, num2str(image_dim(1)), '_png/']
-if ~exist( 'amoeba_file_path', 'dir')
+  global amoeba_file_path
+  amoeba_file_path =  [ machine_path, num2str(image_dim(1)), '_png/']
+  if ~exist( 'amoeba_file_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', amoeba_file_path ); 
     if SUCCESS ~= 1
-        error(MESSAGEID, MESSAGE);
-    end%%if
-end%%if
+      error(MESSAGEID, MESSAGE);
+    endif
+  endif
 
-global image_file_path image_file_name
+  global image_file_path image_file_name
 
-for i = 1:length(fourC)
+  for i = 1:length(fourC)
     nfour = fourC(i);
     nz_image = zeros(2,0);
     image_file_path = [ amoeba_file_path, num2str(nfour), '/']
     if ~exist( 'image_file_path', 'dir')
-       [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', image_file_path ); 
-       if SUCCESS ~= 1
-           error(MESSAGEID, MESSAGE);
-       end%%if
-    end%%if
+      [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', image_file_path ); 
+      if SUCCESS ~= 1
+        error(MESSAGEID, MESSAGE);
+      endif
+    endif
     
     for j = 1:numT
-        getAmoebaStats3(j, nfour);
+      getAmoebaStats3(j, nfour);
+      if mod(j, fix(numT/20)) == 0
         disp(num2str(j));
-    end
+      endif
+    endfor
+    
     nz_image_cell{i} = nz_image;
     figure
     [nz_image_hist, nz_image_bins] = ...
@@ -84,21 +87,21 @@ for i = 1:length(fourC)
     amoeba_hist_filename = ...
         [image_file_path, 'amoeba_hist', '.mat']
     save('-mat', amoeba_hist_filename, 'nz_image');
-end
+  endfor
 
 
-for i = 1:size(nz_image_cell,1)
+  for i = 1:size(nz_image_cell,1)
     mean_nz_tmp = mean(nz_image_cell{i}(1,:));
     std_nz_tmp = std(nz_image_cell{i}(1,:));
     mean_nz_tmp2 = mean(nz_image_cell{i}(2,:));
     std_nz_tmp2 = std(nz_image_cell{i}(2,:));
     disp( ['mean_nz(', num2str(i), ',:) =', num2str(mean_nz_tmp), ...
-	  ' +/- ', num2str(std_nz_tmp), ', ', num2str(mean_nz_tmp2), ...
-	  ' +/- ', num2str(std_nz_tmp2)] );
-end
-    
-%Screen('CloseAll');
+	   ' +/- ', num2str(std_nz_tmp), ', ', num2str(mean_nz_tmp2), ...
+	   ' +/- ', num2str(std_nz_tmp2)] );
+  endfor
+  
+				%Screen('CloseAll');
 
-%if ( uioctave )
-%endif
+				%if ( uioctave )
+				%endif
 
