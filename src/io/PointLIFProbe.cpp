@@ -78,6 +78,7 @@ int PointLIFProbe::outputState(float time, HyPerLayer * l)
       fprintf(fp, " G_IB=%6.3f", G_IB[k]);
       fprintf(fp, " V=%6.3f", l->clayer->V[k]);
       fprintf(fp, " Vth=%6.3f", Vth[k]);
+      fprintf(fp, " R=%6.3f", LIF_layer->getAverageActivity()[kex]);
       fprintf(fp, " a=%.1f\n", activity[kex]);
       fflush(fp);
    }
