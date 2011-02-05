@@ -9,7 +9,6 @@
 #include "../layers/HyPerLayer.hpp"
 #include "../layers/LIF.hpp"
 #include <string.h>
-#include <iostream>
 #include <assert.h>
 
 namespace PV {
@@ -22,14 +21,8 @@ namespace PV {
  * @msg
  */
 PointLIFProbe::PointLIFProbe(const char * filename, int xLoc, int yLoc, int fLoc,
-      const char * msg) :
-   LayerProbe(filename)
+      const char * msg) : PointProbe(filename, xLoc, yLoc, fLoc, msg)
 {
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
-   this->msg = strdup(msg);
-   this->sparseOutput = false;
 }
 
 /**
@@ -39,18 +32,8 @@ PointLIFProbe::PointLIFProbe(const char * filename, int xLoc, int yLoc, int fLoc
  * @msg
  */
 PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg) :
-   LayerProbe()
+   PointProbe(xLoc, yLoc, fLoc, msg)
 {
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
-   this->msg = strdup(msg);
-   this->sparseOutput = false;
-}
-
-PointLIFProbe::~PointLIFProbe()
-{
-   free(msg);
 }
 
 /**
@@ -65,33 +48,35 @@ PointLIFProbe::~PointLIFProbe()
  */
 int PointLIFProbe::outputState(float time, HyPerLayer * l)
 {
-   const PVLayer * clayer = l->clayer;
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
    assert(LIF_layer != NULL);
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->loc.nf;
+   const PVLayerLoc * loc = l->getLayerLoc();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
    const pvdata_t * activity = l->getLayerData();
 
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nb);
+   const int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    if (sparseOutput) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
       // we will control the end of line character from the ConditionalProbe.
    }
    else {
-      fprintf(fp, "%s t=%.1f", msg, time);
-      pvdata_t * G_E = LIF_layer->getChannel(CHANNEL_EXC);
-      pvdata_t * G_I = LIF_layer->getChannel(CHANNEL_INH);
-      pvdata_t * G_IB = LIF_layer->getChannel(CHANNEL_INHB);
-      pvdata_t * Vth = LIF_layer->getVth();
+      fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
+      pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
+      pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
+      pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
+      pvdata_t * Vth  = LIF_layer->getVth();
       fprintf(fp, " G_E=%6.3f", G_E[k]);
       fprintf(fp, " G_I=%6.3f", G_I[k]);
       fprintf(fp, " G_IB=%6.3f", G_IB[k]);
-      fprintf(fp, " V=%6.3f", clayer->V[k]);
+      fprintf(fp, " V=%6.3f", l->clayer->V[k]);
       fprintf(fp, " Vth=%6.3f", Vth[k]);
       fprintf(fp, " a=%.1f\n", activity[kex]);
       fflush(fp);
