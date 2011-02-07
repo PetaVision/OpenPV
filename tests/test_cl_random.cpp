@@ -7,9 +7,13 @@
 #include "../src/utils/Timer.hpp"
 #include "../src/utils/cl_random.h"
 
+#include "../src/kernels/cl_random.hcl"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#undef DEBUG_OUTPUT
 
 #define DEVICE 1
 
@@ -19,6 +23,8 @@
 #define NYL 8
 
 int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count);
+int print_results(uint4 * rnd_state, uint4 * rnd_state2, int count);
+
 void c_rand(uint4 * rnd_state, int count);
 
 int main(int argc, char * argv[])
@@ -76,10 +82,15 @@ int main(int argc, char * argv[])
 
    printf("Executing on device...");
    kernel->run(NX*NY, nxl*nyl);
+   printf("\n");
    
+#ifdef DEBUG_OUTPUT
+   status = print_results(rnd_state, rnd_state2, NX*NY);
+#endif
+
    // Check results for accuracy
    //
-   printf("\nChecking results...");
+   printf("Checking results...");
    d_rnd_state->copyFromDevice();
    status = check_results(rnd_state, rnd_state2, NX*NY);
    if (status != CL_SUCCESS) {
@@ -137,9 +148,26 @@ int check_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
    return 0;
 }
 
+int print_results(uint4 * rnd_state, uint4 * rnd_state2, int count)
+{
+   uint4 state;
+
+   FILE * fp = fopen("test_cl_random.results", "w");
+
+   for (int k = 1; k < count; k+=2) {
+      fprintf(fp, "%f %f   %f %f\n",
+              cl_random_prob(rnd_state[ k-1]), cl_random_prob(rnd_state[ k]),
+              cl_random_prob(rnd_state2[k-1]), cl_random_prob(rnd_state2[k])
+              );
+   }
+   fclose(fp);
+   return 0;
+}
+
 void c_rand(uint4 * rnd_state, int count)
 {
    for (int k = 0; k < count; k++) {
       rnd_state[k] = cl_random_get(rnd_state[k]);
    }
 }
+
