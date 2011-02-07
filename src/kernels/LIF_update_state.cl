@@ -111,7 +111,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    // add noise
    //
 
-#undef CLRANDOM
+#define CLRANDOM
 
 #ifdef CLRANDOM
    l_rnd = cl_random_get(l_rnd);
@@ -168,10 +168,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
    // start of update_f
    //
-
-//   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
-//   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
-//   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
    bool fired_flag = (l_V > l_Vth);
 
