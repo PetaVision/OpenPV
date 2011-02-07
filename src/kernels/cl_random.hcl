@@ -41,7 +41,7 @@ cl_taus_get(uint4 state)
   result.s2 = TAUSWORTHE (state.s2,  2, 25, 4294967288UL, 4);
   result.s3 = TAUSWORTHE (state.s3,  3, 11, 4294967280UL, 17);
 
-  result.s0 = (state.s1 ^ state.s2 ^ state.s3);
+  result.s0 = (result.s1 ^ result.s2 ^ result.s3);
 
   return result;
 }
