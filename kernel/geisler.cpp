@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
 	//
 
 	HyPerConn * image_retina  =
-			new KernelConn("Image to Retina",   hc, image, retina, (ChannelType) 0);
-//		new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
+			new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
+//			new KernelConn("Image to Retina",   hc, image, retina, (ChannelType) 0);
 
 	// retinal connections
 	HyPerConn * r_lgn =
@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
 //	HyPerConn * lgn_lgninhff =
 //		new KernelConn("LGN to LGNInhFF", 	hc, lgn, lgninhff,
 //			CHANNEL_EXC);
-//	HyPerConn * lgn_lgninh =
-//		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
-//			CHANNEL_EXC);
+	HyPerConn * lgn_lgninh =
+		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
+			CHANNEL_EXC);
 	HyPerConn * lgn_l1 =
 		new KernelConn("LGN to L1",     	hc, lgn,  l1,
 			CHANNEL_EXC);
@@ -141,24 +141,24 @@ int main(int argc, char* argv[]) {
 //
 
 	// L1 connections
-//	const char * geisler_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
+	const char * geisler_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
 	const char * target_kernel_filename = "./input/128/target10K_G1/w3_last.pvp";
 	const char * distractor_kernel_filename = "./input/128/distractor10K_G1/w3_last.pvp";
-//	HyPerConn * l1_lgn =
-//		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
-//			CHANNEL_EXC);
-//	HyPerConn * l1_lgninh =
-//		new KernelConn("L1 to LGNInh",  hc, l1,     lgninh,
-//			CHANNEL_EXC);
-//	HyPerConn * l1_l1 =
-//		new KernelConn("L1 to L1",      hc, l1,     l1,
-//			CHANNEL_EXC, target_kernel_filename);
+	HyPerConn * l1_lgn =
+		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
+			CHANNEL_EXC);
+	HyPerConn * l1_lgninh =
+		new KernelConn("L1 to LGNInh",  hc, l1,     lgninh,
+			CHANNEL_EXC);
+	HyPerConn * l1_l1 =
+		new KernelConn("L1 to L1",      hc, l1,     l1,
+			CHANNEL_EXC, target_kernel_filename);
 //	HyPerConn * l1_l1inhff =
 //		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
 //			CHANNEL_EXC);
-//	HyPerConn * l1_l1inh =
-//		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
-//			CHANNEL_EXC, distractor_kernel_filename);
+	HyPerConn * l1_l1inh =
+		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
+			CHANNEL_EXC, target_kernel_filename);
 
 
 	// L1 Inh FF connections
@@ -218,11 +218,11 @@ int main(int argc, char* argv[]) {
 
 	LayerProbe * statsretina = new StatsProbe(BufActivity,     "Retina :");
 	LayerProbe * statslgn = new StatsProbe(BufActivity,        "LGN :");
-	LayerProbe * statslgninhff = new StatsProbe(BufActivity,     "LGNInhFF :");
+	LayerProbe * statslgninhff = new StatsProbe(BufActivity,   "LGNInhFF :");
 	LayerProbe * statslgninh = new StatsProbe(BufActivity,     "LGNInh :");
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
-	LayerProbe * statsl1inhff = new StatsProbe(BufActivity,       "L1InhFF:  ");
-	LayerProbe * statsl1inh = new StatsProbe(BufActivity,       "L1Inh:  ");
+	LayerProbe * statsl1inhff = new StatsProbe(BufActivity,    "L1InhFF:  ");
+	LayerProbe * statsl1inh = new StatsProbe(BufActivity,      "L1Inh:  ");
 //	LayerProbe * statsl1avg = new StatsProbe(BufActivity,      "L1Avg  :");
 
 	retina->insertProbe(statsretina);
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 #ifdef WRITE_VMEM
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
-		new PointLIFProbe(Vmem_filename_LGNa1, 64,64,0, "LGNA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNa1, 64,64,0, "LGNA1:(64,64,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
 /*
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(64,64,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 /*
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 
 	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
 	LayerProbe * Vmem_probe_LGNInha1 =
-		new PointLIFProbe(Vmem_filename_LGNInha1, 64,64,0, "LGNInhA1:(67,89,0)");
+		new PointLIFProbe(Vmem_filename_LGNInha1, 64,64,0, "LGNInhA1:(64,64,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
 /*
@@ -281,39 +281,39 @@ int main(int argc, char* argv[]) {
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
 */
 
-	const char * Vmem_filename_LIFa1 = "Vmem_LIFa1.txt";
-	LayerProbe * Vmem_probe_LIFa1 =
-		new PointLIFProbe(Vmem_filename_LIFa1, 64,64,0, "LIFA1:(59,48,2)");
-	l1->insertProbe(Vmem_probe_LIFa1);
+	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
+	LayerProbe * Vmem_probe_V1a1 =
+		new PointLIFProbe(Vmem_filename_V1a1, 64,64,0, "V1A1:(59,48,2)");
+	l1->insertProbe(Vmem_probe_V1a1);
 
 /*
-	const char * Vmem_filename_LIFc1 = "Vmem_LIFc1.txt";
+	const char * Vmem_filename_LIFc1 = "Vmem_V1c1.txt";
 	LayerProbe * Vmem_probe_LIFc1 =
-		new PointLIFProbe(Vmem_filename_LIFc1, 64,64,0, "LIFC1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFc1, 64,64,0, "V1C1:(61,58,5)");
 	l1->insertProbe(Vmem_probe_LIFc1);
 */
 
-	const char * Vmem_filename_LIFInhFFa1 = "Vmem_LIFInhFFa1.txt";
-	LayerProbe * Vmem_probe_LIFInhFFa1 =
-		new PointLIFProbe(Vmem_filename_LIFInhFFa1, 64,64,0, "LIFInhFFA1:(67,89,1)");
-	l1inhff->insertProbe(Vmem_probe_LIFInhFFa1);
+	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
+	LayerProbe * Vmem_probe_V1InhFFa1 =
+		new PointLIFProbe(Vmem_filename_V1InhFFa1, 64,64,0, "V1InhFFA1:(64,64,0)");
+	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
 
 /*
-	const char * Vmem_filename_LIFInhFFc1 = "Vmem_LIFInhFFc1.txt";
+	const char * Vmem_filename_LIFInhFFc1 = "Vmem_V1InhFFc1.txt";
 	LayerProbe * Vmem_probe_LIFInhFFc1 =
-		new PointLIFProbe(Vmem_filename_LIFInhFFc1, 64,64,0, "LIFInhFFC1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFInhFFc1, 64,64,0, "V1InhFFC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_LIFInhFFc1);
 */
 
-	const char * Vmem_filename_LIFInha1 = "Vmem_LIFInha1.txt";
-	LayerProbe * Vmem_probe_LIFInha1 =
-		new PointLIFProbe(Vmem_filename_LIFInha1, 64,64,0, "LIFInhA1:(67,89,1)");
-	l1inh->insertProbe(Vmem_probe_LIFInha1);
+	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
+	LayerProbe * Vmem_probe_V1Inha1 =
+		new PointLIFProbe(Vmem_filename_V1Inha1, 64,64,0, "V1InhA1:(64,64,1)");
+	l1inh->insertProbe(Vmem_probe_V1Inha1);
 
 /*
-	const char * Vmem_filename_LIFInhc1 = "Vmem_LIFInhc1.txt";
+	const char * Vmem_filename_LIFInhc1 = "Vmem_V1Inhc1.txt";
 	LayerProbe * Vmem_probe_LIFInhc1 =
-		new PointLIFProbe(Vmem_filename_LIFInhc1, 64,64,0, "LIFInhC1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFInhc1, 64,64,0, "V1InhC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_LIFInhc1);
 */
 #endif
@@ -362,21 +362,21 @@ int main(int argc, char* argv[]) {
 //	nf = pre->clayer->loc.nf;
 //	lgninh_lgninh_exc->writeTextWeights(lgninh_lgninh_exc_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-//	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
-//	pre = l1_lgn->preSynapticLayer();
-//	npad = pre->clayer->loc.nb;
-//	nx = pre->clayer->loc.nx;
-//	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nf;
-//	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
+	pre = l1_lgn->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-//	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
-//	pre = l1_lgninh->preSynapticLayer();
-//	npad = pre->clayer->loc.nb;
-//	nx = pre->clayer->loc.nx;
-//	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nf;
-//	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
+	pre = l1_lgninh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * l1inhff_l1_filename = "l1inhff_l1_cocirc.txt";
 	pre = l1inhff_l1->preSynapticLayer();
@@ -386,28 +386,29 @@ int main(int argc, char* argv[]) {
 	nf = pre->clayer->loc.nf;
 	l1inhff_l1->writeTextWeights(l1inhff_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-//	const char * l1_l1_filename = "l1_l1_geisler_exc.txt";
-//	pre = l1_l1->preSynapticLayer();
-//	npad = pre->clayer->loc.nb;
-//	nx = pre->clayer->loc.nx;
-//	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nf;
-//	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
-//	const char * l1_l1inh_filename = "l1_l1inh_geisler_exc.txt";
-//	pre = l1_l1inh->preSynapticLayer();
+	const char * l1_l1_filename = "l1_l1_geisler_exc.txt";
+	pre = l1_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
-//	npad = pre->clayer->loc.nb;
-//	nx = pre->clayer->loc.nx;
-//	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nf;
-//	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
-//	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
-//	pre = l1inh_l1->preSynapticLayer();
-//	npad = pre->clayer->loc.nB;
-//	nx = pre->clayer->loc.nx;
-//	ny = pre->clayer->loc.ny;
-//	nf = pre->clayer->loc.nf;
-//	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+	const char * l1_l1inh_filename = "l1_l1inh_geisler_exc.txt";
+	pre = l1_l1inh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1inh_l1_filename = "l1inh_l1_geisler_inh.txt";
+	pre = l1inh_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #else  // learn Geisler kernels
 
