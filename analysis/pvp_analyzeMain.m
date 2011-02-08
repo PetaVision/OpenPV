@@ -47,7 +47,7 @@ image_filename = [image_path 't/tar_0005_a.png'];
 target_filename{1} = [image_path 'a/tar_0005_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
-copyfile([main_file, '.save'], OUTPUT_PATH);
+copyfile(main_file, [main_file, '.save'], OUTPUT_PATH);
 
 params_file = [project_path, 'input/params.geisler'];
 copyfile(params_file, OUTPUT_PATH);
@@ -56,8 +56,8 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 1200.0;
+BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
+END_TIME = 12000.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -87,7 +87,7 @@ plot_reconstruct = read_spikes; %uimatlab;
 plot_raster = read_spikes; %[layerIndex.l1];%read_spikes; %uimatlab;
 plot_reconstruct_target = [];%read_spikes; %[layerIndex.l1];
 plot_vmem = 1;
-plot_autocorr = [];% [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh];
+plot_autocorr = read_spikes;% [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh];
 plot_xcorr = plot_autocorr;
 
 
@@ -185,7 +185,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 1;
+num_epochs = 8;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);

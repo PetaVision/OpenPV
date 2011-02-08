@@ -13,7 +13,7 @@ vmem_time = [];
 vmem_G_E = [];
 vmem_G_I = [];
 vmem_G_IB = [];
-vmem_V = [];
+vmem_V = [];1
 vmem_Vth = [];
 vmem_a = [];
 
@@ -40,21 +40,25 @@ vmem_a = zeros(vmem_steps, 1);
 for i_step = 1:begin_step-1
     vmem_name = fscanf(fid, '%s', 1);
     vmem_time_tmp = fscanf(fid, ' t=%f', 1);
+    vmem_time_tmp = fscanf(fid, ' k=%i', 1);
     vmem_G_E_tmp = fscanf(fid, ' G_E=%f', 1);
     vmem_G_I_tmp = fscanf(fid, ' G_I=%f', 1);
     vmem_G_IB_tmp = fscanf(fid, ' G_IB=%f', 1);
     vmem_V_tmp = fscanf(fid, ' V=%f', 1);
     vmem_Vth_tmp = fscanf(fid, ' Vth=%f', 1);
+    vmem_R_tmp = fscanf(fid, ' R= %f', 1);
     vmem_a_tmp = fscanf(fid, ' a=%f\n', 1);
 end
 for i_step = 1:vmem_steps 
     vmem_name = fscanf(fid, '%s', 1);
     vmem_time(i_step) = fscanf(fid, ' t=%f', 1);
+    vmem_time_tmp = fscanf(fid, ' k=%i', 1);
     vmem_G_E(i_step) = fscanf(fid, ' G_E=%f', 1);
     vmem_G_I(i_step) = fscanf(fid, ' G_I=%f', 1);
     vmem_G_IB(i_step) = fscanf(fid, ' G_IB=%f', 1);
     vmem_V(i_step) = fscanf(fid, ' V=%f', 1);
     vmem_Vth(i_step) = fscanf(fid, ' Vth=%f', 1);
+    vmem_R_tmp = fscanf(fid, ' R= %f', 1);
     vmem_a(i_step) = fscanf(fid, ' a=%f\n', 1);
 end
 fclose(fid);
