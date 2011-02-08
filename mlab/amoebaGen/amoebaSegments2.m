@@ -54,26 +54,26 @@ function [amoeba_image_x, amoeba_image_y] = amoebaSegments2(amoeba_struct, distr
   if distractor_flag == 1
 
     if normalize_density_flag
-      center_x = 0;
-      center_y = 0;
-      center_x2 = 0;
-      center_y2 = 0;
-      nx = 0;
-      ny = 0;
+      amoeba_center_x = 0;
+      amoeba_center_y = 0;
+      amoeba_center_x2 = 0;
+      amoeba_center_y2 = 0;
+      amoeba_num_x = 0;
+      amoeba_num_y = 0;
       for i_seg = 1 : amoeba_struct.num_segments + 1
-        center_x = center_x + sum(amoeba_image_x{i_seg}(:));
-        center_y = center_y + sum(amoeba_image_y{i_seg}(:));
-        center_x2 = center_x2 + sum(amoeba_image_x{i_seg}(:).^2);
-        center_y2 = center_y2 + sum(amoeba_image_y{i_seg}(:).^2);
-	nx = nx + length(amoeba_image_x{i_seg}(:));
-	ny = ny + length(amoeba_image_y{i_seg}(:));
+        amoeba_center_x = amoeba_center_x + sum(amoeba_image_x{i_seg}(:));
+        amoeba_center_y = amoeba_center_y + sum(amoeba_image_y{i_seg}(:));
+        amoeba_center_x2 = amoeba_center_x2 + sum(amoeba_image_x{i_seg}(:).^2);
+        amoeba_center_y2 = amoeba_center_y2 + sum(amoeba_image_y{i_seg}(:).^2);
+	amoeba_num_x = amoeba_num_x + length(amoeba_image_x{i_seg}(:));
+	amoeba_num_y = amoeba_num_y + length(amoeba_image_y{i_seg}(:));
       endfor
-      center_x = center_x / nx;
-      center_y = center_y / ny;
-      center_x2 = center_x2 / nx;
-      center_y2 = center_y2 / ny;
-      amoeba_var_x2 = center_x2 - center_x * center_x;
-      amoeba_var_y2 = center_y2 - center_y * center_y;      
+      amoeba_center_x = amoeba_center_x / amoeba_num_x;
+      amoeba_center_y = amoeba_center_y / amoeba_num_y;
+      amoeba_center_x2 = amoeba_center_x2 / amoeba_num_x;
+      amoeba_center_y2 = amoeba_center_y2 / amoeba_num_y;
+      amoeba_var_x2 = amoeba_center_x2 - amoeba_center_x * amoeba_center_x;
+      amoeba_var_y2 = amoeba_center_y2 - amoeba_center_y * amoeba_center_y;      
     endif
     
     tot_segs = 0;
@@ -115,39 +115,39 @@ function [amoeba_image_x, amoeba_image_y] = amoebaSegments2(amoeba_struct, distr
     endwhile
 
     if normalize_density_flag
-      center_x = 0;
-      center_y = 0;
-      center_x2 = 0;
-      center_y2 = 0;
-      nx = 0;
-      ny = 0;
+      clutter_center_x = 0;
+      clutter_center_y = 0;
+      clutter_center_x2 = 0;
+      clutter_center_y2 = 0;
+      clutter_num_x = 0;
+      clutter_num_y = 0;
       for i_seg = 1 : amoeba_struct.num_segments + 1
-        center_x = center_x + sum(amoeba_image_x{i_seg}(:));
-        center_y = center_y + sum(amoeba_image_y{i_seg}(:));
-        center_x2 = center_x2 + sum(amoeba_image_x{i_seg}(:).^2);
-        center_y2 = center_y2 + sum(amoeba_image_y{i_seg}(:).^2);
-	nx = nx + length(amoeba_image_x{i_seg}(:));
-	ny = ny + length(amoeba_image_y{i_seg}(:));
+        clutter_center_x = clutter_center_x + sum(amoeba_image_x{i_seg}(:));
+        clutter_center_y = clutter_center_y + sum(amoeba_image_y{i_seg}(:));
+        clutter_center_x2 = clutter_center_x2 + sum(amoeba_image_x{i_seg}(:).^2);
+        clutter_center_y2 = clutter_center_y2 + sum(amoeba_image_y{i_seg}(:).^2);
+	clutter_num_x = clutter_num_x + length(amoeba_image_x{i_seg}(:));
+	clutter_num_y = clutter_num_y + length(amoeba_image_y{i_seg}(:));
       endfor
-      center_x = center_x / nx;
-      center_y = center_y / ny;
-      center_x2 = center_x2 / nx;
-      center_y2 = center_y2 / ny;
-      clutter_var_x2 = center_x2 - center_x * center_x;
-      clutter_var_y2 = center_y2 - center_y * center_y;
+      clutter_center_x = clutter_center_x / clutter_num_x;
+      clutter_center_y = clutter_center_y / clutter_num_y;
+      clutter_center_x2 = clutter_center_x2 / clutter_num_x;
+      clutter_center_y2 = clutter_center_y2 / clutter_num_y;
+      clutter_var_x2 = clutter_center_x2 - clutter_center_x * clutter_center_x;
+      clutter_var_y2 = clutter_center_y2 - clutter_center_y * clutter_center_y;          
 
       expansion_x = sqrt( amoeba_var_x2 /  clutter_var_x2 );
       expansion_y = sqrt( amoeba_var_y2 /  clutter_var_y2 );
       for i_seg = 1 : amoeba_struct.num_segments + 1
 	amoeba_image_x{i_seg}(:) = ...
-	    expansion_x * ( amoeba_image_x{i_seg}(:) - center_x ) + center_x;
+	    expansion_x * ( amoeba_image_x{i_seg}(:) - clutter_center_x ) + clutter_center_x;
  	amoeba_image_y{i_seg}(:) = ...
-	    expansion_y * ( amoeba_image_y{i_seg}(:) - center_y ) + center_y;
+	    expansion_y * ( amoeba_image_y{i_seg}(:) - clutter_center_y ) + clutter_center_y;
       endfor
 
-    endif
+    endif % normalize_density_flag
 
-  endif
+  endif % distractor_flag
 
   
 				% fix boundary conditions (use mirror BCs)

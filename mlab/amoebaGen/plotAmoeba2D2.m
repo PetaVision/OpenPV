@@ -1,8 +1,8 @@
-function plotAmoeba2D2(amoeba_image, t, nfour)
+function plotAmoeba2D2(amoeba_image, amoeba_struct, trial_ndx, nfourier)
 
-plotAmoebaPTB2(amoeba_image,t,true,nfour);
-plotAmoebaPTB2(amoeba_image,t,false,nfour);
-plotAmoebaR2(amoeba_image,t,nfour);
-plotAmoebaPTB2(amoeba_image,t,true,nfour, true);
+plotAmoebaPTB2(amoeba_image, amoeba_struct, trial_ndx, true, nfourier);
+plotAmoebaPTB2(amoeba_image, amoeba_struct, trial_ndx, false, nfourier);
+plotAmoebaR2(amoeba_image, amoeba_struct, trial_ndx, nfourier);
+plotAmoebaPTB2(amoeba_image, amoeba_struct, trial_ndx, true, nfourier, true);
 
 

@@ -1,4 +1,4 @@
-function [nz_image_cell] = commands2(image_size)
+function [] = commands2(image_size)
 
   if nargin < 1
     image_size =  [256 256]; %[128 128]; %
@@ -10,7 +10,9 @@ function [nz_image_cell] = commands2(image_size)
 				%  addpath('/Applications/Psychtoolbox/');
 
 				% number of targets/fourier component
-  numT = 1; %%10000;
+  numT = 1000; %%10000;
+  global trial num_trials
+  num_trials = numT;
 				%  screen_color = [];
 				%screen_rect = [0 0 256 256];
 				%  screen_rect = [0 0 128 128];
@@ -30,6 +32,9 @@ function [nz_image_cell] = commands2(image_size)
   global nz_image
   nz_image = zeros(3, numT);
   nz_image_cell = cell(length(fourC), 1);
+
+  global mean_amoeba_xy std_amoeba_xy mean_distractor_xy std_distractor_xy
+  std_xy_hist = cell(length(fourC), 2);
 
   global machine_path
   %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
@@ -52,8 +57,8 @@ function [nz_image_cell] = commands2(image_size)
 
   global image_file_path image_file_name
 
-  for i = 1:length(fourC)
-    nfour = fourC(i);
+  for i_FC = 1:length(fourC)
+    nfour = fourC(i_FC);
     nz_image = zeros(2,0);
     image_file_path = [ amoeba_file_path, num2str(nfour), '/']
     if ~exist( 'image_file_path', 'dir')
@@ -70,25 +75,46 @@ function [nz_image_cell] = commands2(image_size)
       endif
     endfor
     
-    nz_image_cell{i} = nz_image;
+    nz_image_cell{i_FC} = nz_image;
     figure
     [nz_image_hist, nz_image_bins] = ...
-        hist( nz_image_cell{i}(1,:) );
+        hist( nz_image_cell{i_FC}(1,:) );
     bh = bar( nz_image_bins, nz_image_hist, 0.8);
     set(bh, 'EdgeColor', [1 0 0]);
     set(bh, 'FaceColor', [1 0 0]);
     hold on;
     nz_image_hist = ...
-        hist( nz_image_cell{i}(2,:), nz_image_bins );
+        hist( nz_image_cell{i_FC}(2,:), nz_image_bins );
     bh = bar( nz_image_bins, nz_image_hist, 0.6);
     set(bh, 'EdgeColor', [0 0 1]);
     set(bh, 'FaceColor', [0 0 1]);
     
-    amoeba_hist_filename = ...
-        [image_file_path, 'amoeba_hist', '.mat']
-    save('-mat', amoeba_hist_filename, 'nz_image');
-  endfor
+    figure
+    std_amoeba = sqrt( std_amoeba_xy(:,1).^2 + std_amoeba_xy(:,2).^2 );
+    [std_amoeba_hist, std_amoeba_bins] = ...
+        hist( std_amoeba );
+    std_amoeba_hist = std_amoeba_hist / sum(std_amoeba_hist(:));
+    bh = bar( std_amoeba_bins, std_amoeba_hist, 0.8);
+    set(bh, 'EdgeColor', [1 0 0]);
+    set(bh, 'FaceColor', [1 0 0]);
+    hold on;
+    std_distractor = sqrt( std_distractor_xy(:,1).^2 + std_distractor_xy(:,2).^2 );
+    std_distractor_hist = ...
+        hist( std_distractor, std_amoeba_bins );
+    std_distractor_hist = std_distractor_hist / sum(std_distractor_hist(:));
+    bh = bar( std_amoeba_bins, std_distractor_hist, 0.6);
+    set(bh, 'EdgeColor', [0 0 1]);
+    set(bh, 'FaceColor', [0 0 1]);
 
+    std_xy_hist{i_FC, 1} = std_amoeba_hist; 
+    std_xy_hist{i_FC, 2} = std_distractor_hist; 
+
+    
+  endfor 
+
+  amoeba_hist_filename = ...
+      [image_file_path, 'amoeba_hist', '.mat']
+  save('-mat', amoeba_hist_filename, 'nz_image_cell');
 
   for i = 1:size(nz_image_cell,1)
     mean_nz_tmp = mean(nz_image_cell{i}(1,:));
@@ -98,6 +124,26 @@ function [nz_image_cell] = commands2(image_size)
     disp( ['mean_nz(', num2str(i), ',:) =', num2str(mean_nz_tmp), ...
 	   ' +/- ', num2str(std_nz_tmp), ', ', num2str(mean_nz_tmp2), ...
 	   ' +/- ', num2str(std_nz_tmp2)] );
+  endfor
+  
+  std_xy_hist_filename = ...
+      [image_file_path, 'std_xy_hist', '.mat']
+  save('-mat', std_xy_hist_filename, 'std_xy_hist');
+
+  num_FC = size(std_xy_hist,1);
+  for i_FC = 1:num_FC
+    mean_std_amoeba_tmp = mean(std_xy_hist{i_FC,1});
+    mean_std_distractor_tmp = mean(std_xy_hist{i_FC,2});
+    std_std_amoeba_tmp = std(std_xy_hist{i_FC,1});
+    std_std_distractor_tmp = std(std_xy_hist{i_FC,2});
+    disp( ['mean_std_amoeba(', num2str(i_FC), ') =', ...
+	   num2str(mean_std_amoeba_tmp), ...
+	   ' +/- ', ...
+	   num2str(std_std_amoeba_tmp) ] );
+    disp( ['mean_std_distractor(', num2str(i_FC), ') =', ...
+	   num2str(mean_std_distractor_tmp), ...
+	   ' +/- ', ...
+	   num2str(std_std_distractor_tmp) ] );
   endfor
   
 				%Screen('CloseAll');
