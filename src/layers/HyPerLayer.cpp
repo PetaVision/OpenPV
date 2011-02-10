@@ -636,14 +636,16 @@ int HyPerLayer::outputState(float time, bool last)
    float defaultWriteNonspikingActivity = 0.0;
 #endif
 
-   int writeNonspikingActivity =
-         (int) params->value(name, "writeNonspikingActivity", defaultWriteNonspikingActivity);
 
    if (spikingFlag != 0) {
       status = writeActivitySparse(time);
    }
-   else if (writeNonspikingActivity) {
-      status = writeActivity(time);
+   else {
+      int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
+            defaultWriteNonspikingActivity);
+      if (writeNonspikingActivity) {
+         status = writeActivity(time);
+      }
    }
 
    if (time >= writeTime) {
