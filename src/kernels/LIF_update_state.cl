@@ -111,7 +111,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    // add noise
    //
 
-#define CLRANDOM
+#undef CLRANDOM
 
 #ifdef CLRANDOM
    l_rnd = cl_random_get(l_rnd);
