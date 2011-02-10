@@ -35,12 +35,12 @@ SPIKING_FLAG = 1;
 %machine_path = '/nh/home/gkenyon/';
 machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
-workspace_path = [machine_path, 'workspace/'];
-project_path = [workspace_path, 'kernel2/'];
+workspace_path = [machine_path, 'workspace2/'];
+project_path = [workspace_path, 'geisler/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/128/spiking/amoeba/4fc/'];
+OUTPUT_PATH = [project_path, 'input/128/spiking/amoeba/'];
 
 image_path = [matlab_path, 'amoeba/128_png/4/'];
 image_filename = [image_path 't/tar_0005_a.png'];
@@ -56,12 +56,12 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 1000.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 12000.0;
+BEGIN_TIME = 1.0;  % (msec) start analysis here, used to exclude start up artifacts
+END_TIME = 1200.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
-STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
-STIM_END_TIME = -0.0;  % relative to end of epoch, must be <= 0
+STIM_BEGIN_TIME = 200.0;  % relative to begining of epoch, must be > 0
+STIM_END_TIME = -200.0;  % relative to end of epoch, must be <= 0
 BIN_STEP_SIZE = 5.0;  % (msec) used for all rate calculations
 DELTA_T = 1.0; % msec
 if ( STIM_BEGIN_TIME > 0.0 )
@@ -79,8 +79,8 @@ STIM_END_BIN = -floor( STIM_END_STEP / BIN_STEP_SIZE );
 %% get layers and layer specific analysis flags
 global N_LAYERS
 [layerID, layerIndex] = pvp_layerID();
-num_layers = N_LAYERS;
-read_spikes =  2:N_LAYERS;  %[layerIndex.l1];%list of spiking layers whose spike train are to be analyzed
+num_layers = 3;%%N_LAYERS;
+read_spikes =  2:3; %%2:N_LAYERS;  %[layerIndex.l1];%list of spiking layers whose spike train are to be analyzed
 
 %% plot flags
 plot_reconstruct = read_spikes; %uimatlab;
@@ -185,7 +185,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 8;
+num_epochs = 1;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
@@ -459,7 +459,7 @@ endfor % layer
 for layer = read_spikes;
   
   %% plot PSTH
-  time_bins = 1: epoch_struct.epoch_bins(layer);
+  time_bins = (1: epoch_struct.epoch_bins(layer))*BIN_STEP_SIZE;
   plot_title = ...
       [layer_struct.layerID{layer}, ' PSTH(', int2str(layer), ')'];
   fig_tmp = figure('Name',plot_title);
@@ -468,7 +468,8 @@ for layer = read_spikes;
   axis normal
   for i_target = 1 : target_struct.num_targets
 				%psth_target{layer,i_target} =  psth_target{layer,i_target} / num_epochs;
-    lh = plot(time_bins, psth_target{layer,i_target} / num_epochs, '-r');
+    lh = plot(time_bins, ...
+	      psth_target{layer,i_target} / num_epochs, '-r');
     set(lh, 'LineWidth', 2);
     hold on
   endfor %% % i_target
