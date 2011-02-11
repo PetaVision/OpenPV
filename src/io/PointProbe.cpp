@@ -2,11 +2,12 @@
  * PointProbe.cpp
  *
  *  Created on: Mar 10, 2009
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "PointProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
+#include "../layers/LIF.hpp"
 #include <string.h>
 
 namespace PV {
@@ -62,6 +63,8 @@ PointProbe::~PointProbe()
  */
 int PointProbe::outputState(float time, HyPerLayer * l)
 {
+   LIF * lif = dynamic_cast<LIF*>(l);
+
    const PVLayer * clayer = l->clayer;
 
    const int nx = clayer->loc.nx;
@@ -87,7 +90,11 @@ int PointProbe::outputState(float time, HyPerLayer * l)
       fprintf(fp, " V=%6.3f", clayer->V[k]);
 // TODO - get information from layer
 //      fprintf(fp, " Vth=%6.3f", clayer->Vth[k]);
-      fprintf(fp, " a=%.1f\n", activity[kex]);
+      if (lif != NULL) {
+         fprintf(fp, " R=%.1f", lif->getAverageActivity()[kex]);
+      }
+      fprintf(fp, " a=%.1f", activity[kex]);
+      fprintf(fp, "\n");
       fflush(fp);
    }
 
