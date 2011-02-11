@@ -47,7 +47,8 @@ int LayerData::outputState(float time, HyPerLayer * l)
    PVLayerLoc * loc = & ((l->getCLayer())->loc);
    bool contiguous = false;
    bool extended   = false;
-   int status = write(fp, comm, time, data, loc, PV_FLOAT_TYPE, extended, contiguous);
+   int status = 0;
+//   int status = write(fp, comm, time, data, loc, PV_FLOAT_TYPE, extended, contiguous);
    return status;
 }
 
