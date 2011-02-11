@@ -90,7 +90,8 @@ int StringImage::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int nei
    if (orientation == right) x += 2;
    x += jitter;
 
-   data[x + y*sy] = 1;
+   // need to make a tape/string of characters
+   // data[x + y*sy] = 1;
 
    return 0;
 }
