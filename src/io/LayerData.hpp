@@ -14,10 +14,6 @@
 #include "../io/fileio.hpp"
 #include <assert.h>
 
-enum DataType{
-   VTH = 0;
-
-};
 namespace PV {
 
 class LayerData: public LayerProbe {
