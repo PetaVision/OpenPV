@@ -8,7 +8,7 @@
 #ifndef STRINGIMAGE_HPP_
 #define STRINGIMAGE_HPP_
 
-#include <src/layers/Image.hpp>
+#include <src/layers/Retina.hpp>
 
 namespace PV {
 
@@ -19,10 +19,12 @@ enum PatternType {
 
 enum StringMode {left, right};
 
-class StringImage : public PV::Image {
+class StringImage : public PV::Retina {
 public:
    StringImage(const char * name, HyPerCol * hc);
    virtual ~StringImage();
+
+   virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
 
    void setProbMove(float p)     {pMove = p;}
@@ -40,12 +42,10 @@ protected:
 
    int writeImages;
    int position;
-   int lastPosition;
-   int prefPosition;
+   int jitter;
 
    float pJit;
    float pMove;
-   float pBackground;
 };
 
 }
