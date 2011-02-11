@@ -11,8 +11,7 @@
 
 namespace PV {
 
-StringImage::StringImage(const char * name, HyPerCol * hc) :
-   Image(name, hc)
+StringImage::StringImage(const char * name, HyPerCol * hc) : Retina(name, hc)
 {
    this->type = type;
 
@@ -20,11 +19,10 @@ StringImage::StringImage(const char * name, HyPerCol * hc) :
 
    // set default params
    // set reference position of bars
-   this->prefPosition = (loc->nx + 2*loc->nb) / 2.0;
-   this->position = this->prefPosition;
-   this->lastPosition = this->prefPosition;
+   this->position = (loc->nx + 2*loc->nb) / 2.0;
+   this->jitter   = 0;
 
-   // set bars orientation to default values
+   // set string orientation to default values
    this->orientation = left;
    this->lastOrientation = orientation;
 
@@ -34,8 +32,6 @@ StringImage::StringImage(const char * name, HyPerCol * hc) :
 
    pMove = params->value(name, "pMove", 0.0);
    pJit  = params->value(name, "pJitter", 0.0);
-
-   pBackground = (.5/1000.) * 50;   // dt==.5 ms, freq=50 Hz
 
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
@@ -48,8 +44,6 @@ StringImage::StringImage(const char * name, HyPerCol * hc) :
 
 StringImage::~StringImage()
 {
-// CER-new
-//fclose(fp);
 }
 
 int StringImage::tag()
@@ -63,22 +57,22 @@ int StringImage::tag()
  */
 int StringImage::initPattern()
 {
+   pvdata_t * data = getChannel(CHANNEL_EXC);
+
    for (int kex = 0; kex < getNumExtended(); kex++) {
-      data[kex] = (pv_random_prob() < pBackground) ? 1.0 : 0.0;
+      data[kex] = 0.0;
    }
    return 0;
 }
 
 /**
- * update the image buffers
+ * Set Phi[CHANNEL_EXC] based on string input and then call parent recvSynapticInput
  */
-int StringImage::updateState(float time, float dt)
+int StringImage::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
 {
    // for now alphabet is {i1,i2,f1,f2} (two phases)
 
-   // initialize pattern to background
-   //
-   initPattern();
+   pvdata_t * data = getChannel(CHANNEL_EXC);
 
    const PVLayerLoc * loc = getLayerLoc();
 
@@ -88,17 +82,28 @@ int StringImage::updateState(float time, float dt)
 
    if (pv_random_prob() < pMove) {  // move pattern with probability pMove
       orientation = (orientation == right) ? left : right;
-      if (orientation == right)   x += 2;
-      if (pv_random_prob() < 0.5) x += 1;  // pick phase with even probability
-      data[x + y*sy] = 1;
    }
    else if (pv_random_prob() < pJit) {
-      if (orientation == right)   x += 2;
-	  if (pv_random_prob() < 0.5) x += 1;  // pick phase with even probability
-	  data[x + y*sy] = 1;
+      jitter = (pv_random_prob() < 0.5) ? 0 : 1;  // pick phase with equal probability
    }
 
+   if (orientation == right) x += 2;
+   x += jitter;
+
+   data[x + y*sy] = 1;
+
    return 0;
+}
+
+
+/**
+ * Call recvSynapticInput to set Phi[CHANNEL_EXC] and then let Retina class
+ */
+int StringImage::updateState(float time, float dt)
+{
+   int status = recvSynapticInput(NULL, NULL, 0);
+   status |= Retina::updateState(time, dt);
+   return status;
 }
 
 } // namespace PV
