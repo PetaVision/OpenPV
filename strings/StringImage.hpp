@@ -12,13 +12,6 @@
 
 namespace PV {
 
-enum PatternType {
-  BARS  = 0,
-  RECTANGLES  = 1,
-};
-
-enum StringMode {left, right};
-
 class StringImage : public PV::Retina {
 public:
    StringImage(const char * name, HyPerCol * hc);
@@ -26,6 +19,8 @@ public:
 
    virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
+   virtual int outputState(float time, float dt);
+
 
    void setProbMove(float p)     {pMove = p;}
    void setProbJitter(float p)   {pJit  = p;}
@@ -34,15 +29,18 @@ public:
 
 protected:
 
-   int initPattern();
+   int initializeString();
+   int shiftString();
+   int updateLayerData();
+   int updateString();
 
-   PatternType type;
-   StringMode orientation;
-   StringMode lastOrientation;
+   int * string;
+   int   strWidth;
+   int   patternWidth;  // width of substring before pattern repeats
+   int   phase;         // phase/location of character within repeated substring
+   int   jitter;        // position of jitter (left==0/right==1)
 
    int writeImages;
-   int position;
-   int jitter;
 
    float pJit;
    float pMove;
