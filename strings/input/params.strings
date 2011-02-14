@@ -15,9 +15,9 @@ HyPerCol "column" = {
 //
 
 HyPerLayer "S1" = {
-   nxScale = 4;
+   nxScale = 8;
    nyScale = 1;
-   marginWidth = 0;
+   marginWidth = 4;
    
    pJitter = 0.1;       // jitter probability
    pMove   = 0.0025;    // switch between 'a' and 'b'
