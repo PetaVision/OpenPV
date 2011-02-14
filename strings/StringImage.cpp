@@ -13,18 +13,19 @@ namespace PV {
 
 StringImage::StringImage(const char * name, HyPerCol * hc) : Retina(name, hc)
 {
-   this->type = type;
-
    const PVLayerLoc * loc = getLayerLoc();
 
-   // set default params
-   // set reference position of bars
-   this->position = (loc->nx + 2*loc->nb) / 2.0;
-   this->jitter   = 0;
+   this->phase  = 0;
+   this->jitter = 0;
+   this->patternWidth  = 5;   // width of substring before pattern repeats
 
-   // set string orientation to default values
-   this->orientation = left;
-   this->lastOrientation = orientation;
+   // Margins for the string need to be 1/2 the margins for this
+   // layer assuming an nxp downward of 3 and because of larger scale
+   // for this image. Example, nxScale==4 requires a margin of 4
+   // for the simple cell layer. Every simple cell (in the margin)
+   // requires a cell on either side, thus margin of 2 for the string.
+   strWidth = 1 + parent->localWidth() + loc->nb;  // 1 extra for jitter
+   string = new int[strWidth];
 
    // check for explicit parameters in params.stdp
    //
@@ -36,64 +37,116 @@ StringImage::StringImage(const char * name, HyPerCol * hc) : Retina(name, hc)
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
 
-   initPattern();
-
-   // make sure initialization is finished
-   updateState(0.0, 0.0);
+   initializeString();
 }
 
 StringImage::~StringImage()
 {
+   delete [] string;
 }
 
 int StringImage::tag()
 {
-   if (orientation == left) return    position;
-   else                     return 10*position;
+   return phase;
 }
 
 /**
- * Initialize pattern with background noise
+ * Initialize string and image data
  */
-int StringImage::initPattern()
+int StringImage::initializeString()
 {
+   int kex;
    pvdata_t * data = getChannel(CHANNEL_EXC);
+
+   // string has different size than the layer because the
+   // string is effectively the image and this layer is the retina
+   for (kex = 0; kex < strWidth; kex++) {
+      string[kex] = 0;
+   }
+
+   for (kex = 0; kex < strWidth; kex += patternWidth) {
+      string[kex] = (pv_random_prob() < 0.5) ? 'a' : 'b';
+   }
+   phase = 1;  // string[0] position just given a character so advance phase to 1
 
    for (int kex = 0; kex < getNumExtended(); kex++) {
       data[kex] = 0.0;
    }
+
    return 0;
 }
 
 /**
- * Set Phi[CHANNEL_EXC] based on string input and then call parent recvSynapticInput
+ * Shift string and update image data
+ */
+int StringImage::shiftString()
+{
+   // shift string
+   //
+   for (int kex = strWidth-1; kex > 0; kex--) {
+      string[kex] = string[kex-1];
+   }
+
+   // bring in character from left
+   //
+   if (phase == 0) {
+      // character switches with equal probability
+      string[0] = (pv_random_prob() < 0.5) ? 'a' : 'b';
+   }
+   else {
+      string[0] = 0;
+   }
+   phase = (phase+1) % patternWidth;
+
+   return 0;
+}
+
+/**
+ * Update characters/features in layer data based on string input
+ * Assume nxp==3 looking at string and this layer has 8 characters.
+ * Working from left fill out data[0:7] = {a(-1), b(-1), a(0), b(0),
+ * a(+1), b(+1), blank, blank} based on whether there is an 'a' or 'b'
+ * in relative character position in string.
+ */
+int StringImage::updateLayerData()
+{
+   int scale = 1.0 / powf(2, getXScale());
+   pvdata_t * data = getChannel(CHANNEL_EXC);
+
+   for (int kex = 0; kex < getNumExtended(); kex += scale) {
+      int left = jitter + kex/scale;
+      int pPos = 0;  // position in pattern
+      for (int strPos = left; strPos < left+3; strPos++) {
+         if (string[strPos] != 0) {
+             data[kex+pPos++] = (string[strPos] == 'a') ? 1 : 0;
+             data[kex+pPos++] = (string[strPos] == 'b') ? 1 : 0;
+         }
+         else {
+            data[kex+pPos++] = 0;
+            data[kex+pPos++] = 0;
+
+         }
+      }
+      data[pPos++] = 0;    // blank positions
+      data[pPos++] = 0;
+   }
+
+   return 0;
+}
+
+/**
+ * Set Phi[CHANNEL_EXC] based on string input.  This replicates normal response to
+ * pre-synaptic activity.
  */
 int StringImage::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
 {
-   // for now alphabet is {i1,i2,f1,f2} (two phases)
-
-   pvdata_t * data = getChannel(CHANNEL_EXC);
-
-   const PVLayerLoc * loc = getLayerLoc();
-
-   int x  = this->position;
-   int y  = (loc->ny + 2*loc->nb) / 2;
-   int sy = strideYExtended(loc);
-
-   if (pv_random_prob() < pMove) {  // move pattern with probability pMove
-      orientation = (orientation == right) ? left : right;
+   if (pv_random_prob() < pMove) {
+      shiftString();  // advance tape
    }
-   else if (pv_random_prob() < pJit) {
-      jitter = (pv_random_prob() < 0.5) ? 0 : 1;  // pick phase with equal probability
+   if (pv_random_prob() < pJit) {
+      jitter = (1+jitter) % 2;
    }
-
-   if (orientation == right) x += 2;
-   x += jitter;
-
-   // need to make a tape/string of characters
-   // data[x + y*sy] = 1;
-
-   return 0;
+   return updateLayerData();
 }
 
 
@@ -102,9 +155,38 @@ int StringImage::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int nei
  */
 int StringImage::updateState(float time, float dt)
 {
-   int status = recvSynapticInput(NULL, NULL, 0);
+   int status = 0;
+
+   status |= recvSynapticInput(NULL, NULL, 0);
    status |= Retina::updateState(time, dt);
+   status |= outputState(time, dt);
+
    return status;
+}
+
+int StringImage::outputState(float time, float dt)
+{
+#ifdef DEBUG_OUTPUT
+   int kex;
+   printf("time==%f,", time);
+   for (kex = 0; kex < 32; kex++) {
+      if (string[kex] > 0) {
+         printf("%c,", (char)string[kex]);
+      }
+      else {
+         printf(" ,");
+      }
+   }
+   printf("%c\n", (char)string[kex]);
+
+   pvdata_t * data = getChannel(CHANNEL_EXC);
+   for (kex = 8; kex < 15; kex++) {
+      printf("%d,", (int)data[kex]);
+   }
+   printf("%d\n", (int)data[kex]);
+#endif
+
+   return 0;
 }
 
 } // namespace PV
