@@ -612,15 +612,17 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 
 int HyPerLayer::outputState(float time, bool last)
 {
-//   char path[PV_PATH_MAX];
    int status = 0;
+#ifdef OBSOLETE
+   char path[PV_PATH_MAX];
 
-//   const int nx = clayer->loc.nx;
-//   const int ny = clayer->loc.ny;
-//   const int nf = clayer->numFeatures;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->numFeatures;
 
-//   const int nxex = clayer->loc.nx + 2*clayer->loc.nb;
-//   const int nyex = clayer->loc.ny + 2*clayer->loc.nb;
+   const int nxex = clayer->loc.nx + 2*clayer->loc.nb;
+   const int nyex = clayer->loc.ny + 2*clayer->loc.nb;
+#endif
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
@@ -635,7 +637,6 @@ int HyPerLayer::outputState(float time, bool last)
 #else
    float defaultWriteNonspikingActivity = 0.0;
 #endif
-
 
    if (spikingFlag != 0) {
       status = writeActivitySparse(time);
