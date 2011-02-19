@@ -10,6 +10,7 @@
 #include "../io/io.h"
 #include "../include/default_params.h"
 #include "../utils/cl_random.h"
+#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -367,6 +368,54 @@ int Retina::updateState(float time, float dt)
 
 #endif
    update_timer->stop();
+   return 0;
+}
+
+int Retina::updateBorder(float time, float dt)
+{
+   // wait for OpenCL data transfers to finish
+   HyPerLayer::updateBorder(time, dt);
+
+   // Data has arrived from OpenCL device now safe to add background
+   // activity to border regions.  Update all of the regions regions
+   // even if using MPI and the border may be from an adjacent processor.
+   // TODO - check that MPI will overwrite the border regions after this
+   // function has been called.
+
+   const PVLayerLoc * loc = getLayerLoc();
+
+   const int nb = loc->nb;
+   if (nb == 0) return 0;
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+
+   const int nx_ex = nx + 2*nb;
+   const int sy = nf*nx_ex;
+
+   pvdata_t * activity_top = &clayer->activity->data[0];
+   pvdata_t * activity_bot = &clayer->activity->data[(nb+ny)*sy];
+
+   pvdata_t * activity_l = &clayer->activity->data[nb*sy];
+   pvdata_t * activity_r = &clayer->activity->data[nb*sy + nb+nx];
+
+   // top and bottom borders (including corners)
+   for (int kex = 0; kex < nx_ex*nf*nb; kex++) {
+      activity_top[kex] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
+      activity_bot[kex] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
+   }
+
+   // left and right borders
+   for (int y = 0; y < ny; y++) {
+      for (int x = 0; x < nf*nb; x++) {
+         activity_l[x] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
+         activity_r[x] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
+      }
+      activity_l += sy;
+      activity_r += sy;
+   }
+
    return 0;
 }
 
