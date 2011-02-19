@@ -38,6 +38,7 @@ public:
    virtual int triggerReceive(InterColComm* comm);
    virtual int updateState(float time, float dt);
    virtual int updateStateOpenCL(float time, float dt);
+   virtual int updateBorder(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
    virtual int writeState(float time);
 
