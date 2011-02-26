@@ -63,7 +63,7 @@ protected:
    pvdata_t * G_E;      // excitatory conductance
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
-   pvdata_t * R;        // average activity
+   pvdata_t * R;        // average activity (not extended)
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
