@@ -1000,5 +1000,13 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    return 0;
  }
 
+/**
+ * return some useful information about the layer
+ */
+int HyPerLayer::status(int k)
+{
+   return 0;
+}
+
 } // end of PV namespace
 

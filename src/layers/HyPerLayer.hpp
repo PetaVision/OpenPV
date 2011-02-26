@@ -136,6 +136,8 @@ public:
 
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
+   virtual int status(int k);
+
 protected:
    char * name;                 // well known name of layer
 
