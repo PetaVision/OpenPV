@@ -171,16 +171,6 @@ int Image::tag()
    return 0;
 }
 
-//pvdata_t * Image::getDataBuffer()
-//{
-//   return data;
-//}
-
-//PVLayerLoc Image::getDataLoc()
-//{
-//   return loc;
-//}
-
 int Image::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
 {
    // this should never be called as an image shouldn't have an incoming connection
