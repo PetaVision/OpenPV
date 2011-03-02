@@ -68,7 +68,7 @@ marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
 Example:  If the presynaptic layer is 128-by-128 and the postsynaptic
 layer is 64-by-64, then nxScaleRatio = 0.5.
 nxp must be odd.
-If nxp = 7, then marginWidthPre must be at least 
+If nxp = 7, then marginWidthPre must be at least 3*2 = 6
 
 ===============================================================
 
