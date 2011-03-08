@@ -50,7 +50,11 @@ public:
          case CHANNEL_INHB: return G_IB;
       }
    }
-   
+
+   virtual pvdata_t * getWmax() {return Wmax;}
+   virtual pvdata_t * getR(){return R;}
+   virtual bool getLocalWmaxFlag() {return localWmaxFlag;}
+
    int setParams(PVParams * p);
 
 protected:
@@ -64,6 +68,14 @@ protected:
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
    pvdata_t * R;        // average activity (not extended)
+
+   bool     localWmaxFlag;  // presence of rate dependent wMax;
+   pvdata_t * Wmax;   // adaptive upper STDP weight boundary
+   float    wMax;
+   float    wMin;
+   float    alphaW;   // params in Wmax dynamics.
+   float    tauWmax;  // should include in LIF_params
+   float    averageR; // predefined average rate
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
