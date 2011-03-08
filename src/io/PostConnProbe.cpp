@@ -6,6 +6,7 @@
  */
 
 #include "PostConnProbe.hpp"
+#include "../layers/LIF.hpp"
 #include <assert.h>
 
 namespace PV {
@@ -88,6 +89,14 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    const PVLayer * lPre = c->preSynapticLayer()->clayer;
    const PVLayer * lPost = c->postSynapticLayer()->clayer;
+   // check if post is a LIF layer
+   LIF * LIF_layer = dynamic_cast<LIF *>(c->postSynapticLayer());
+   bool localWmaxFlag;
+   if (LIF_layer != NULL){
+      localWmaxFlag = LIF_layer->getLocalWmaxFlag();
+   } else {
+      localWmaxFlag = false;
+   }
 
    const int nxPre = lPre->loc.nx;
    const int nyPre = lPre->loc.ny;
