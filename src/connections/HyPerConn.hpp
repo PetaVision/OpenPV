@@ -54,7 +54,6 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
-   virtual int updateWmax();
    virtual int updateWeights(int axonId);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
@@ -126,7 +125,7 @@ protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
    HyPerCol       * parent;
-   PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for pre-synaptic layer
+   PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
    PVPatch       ** pIncr;      // list of stdp patches Psij variable
    PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
    PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
@@ -134,11 +133,6 @@ protected:
 
    bool     localWmaxFlag;  // presence of rate dependent wMax;
    pvdata_t * Wmax;   // adaptive upper STDP weight boundary
-   float    alphaW;   // params in Wmax dynamics.
-   float    gammaW;
-   float    averageR; // predefined average rate
-
-   FILE     * wmaxFP;
 
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    int connId;             // connection id
