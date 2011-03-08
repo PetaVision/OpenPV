@@ -9,24 +9,33 @@
 #define LAYERDATA_HPP_
 
 #include "LayerProbe.hpp"
-#include "../columns/HyPerCol.hpp"
 #include "../include/pv_types.h"
-#include "../io/fileio.hpp"
-#include <assert.h>
+
+
+
+
+enum DataType{
+   TYPE_VTH = 0,
+   TYPE_WMAX = 1,    // extended
+   TYPE_R = 2,       // restricted
+};
 
 namespace PV {
 
+class HyPerCol;
+
 class LayerData: public LayerProbe {
 public:
-   LayerData(const char * filename, HyPerCol * hc, HyPerLayer * l, pvdata_t * data, bool append);
+   LayerData(DataType data_type, bool append);
 
-   virtual int outputState(float time, HyPerLayer * l) = 0;
+   virtual int outputState(float time, HyPerLayer * l) ;
 
 protected:
-   HyPerCol * parent;
-   const pvdata_t * data;
+   DataType data_type;
    bool  append;
-
+   bool  extended;
+   bool  write_header;
+   bool  open_file;
 };
 
 }
