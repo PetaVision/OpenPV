@@ -186,9 +186,7 @@ int HyPerConn::initializeSTDP()
       if(localWmaxFlag){
          LIF * LIF_layer = dynamic_cast<LIF *>(post);
          assert(LIF_layer != NULL);
-         //Wmax = post->getWmax();
          Wmax = LIF_layer->getWmax();
-         cout << "Wmax pointer in HyPerConn: " << Wmax << endl;
          assert(Wmax != NULL);
       } else {
          Wmax = NULL;
