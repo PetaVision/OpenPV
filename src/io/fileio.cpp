@@ -634,6 +634,107 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
    return status;
 }
 
+int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
+{
+   int status = 0;
+   int nxBlocks, nyBlocks, numItems;
+
+   // TODO - everything isn't implemented yet so make sure we are using it correctly
+   assert(contiguous == false);
+   assert(datatype == PV_FLOAT_TYPE);
+
+   // scale factor for floating point conversion
+   float scale = 1.0f;
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int icRank = comm->commRank();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
+
+   if (extended) {
+      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
+   }
+   else {
+      numItems = nx * ny * nf;
+   }
+
+   const size_t localSize = numItems * pv_sizeof(datatype);
+
+   if (contiguous) {
+      nxBlocks = 1;
+      nyBlocks = 1;
+   }
+   else {
+      nxBlocks = nxProcs;
+      nyBlocks = nyProcs;
+   }
+
+   unsigned char * cbuf = (unsigned char *) malloc(localSize);
+   assert(cbuf != NULL);
+
+   if (datatype == PV_FLOAT_TYPE) {
+      float * fbuf = (float *) cbuf;
+      status = HyPerLayer::copyToBuffer(fbuf, data, loc, extended, scale);
+   }
+
+#ifdef PV_USE_MPI
+   const int tag = PVP_FILE_TYPE;
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
+
+   if (icRank > 0) {
+
+#ifdef PV_USE_MPI
+      const int dest = 0;
+      MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: write: sent to 0, nx==%d ny==%d numItems==%d\n",
+              comm->commRank(), nx, ny, numItems);
+#endif
+#endif // PV_USE_MPI
+
+   }
+   else {
+
+      const int numParams = NUM_PAR_BYTE_PARAMS;
+      const int headerSize = numParams * sizeof(int);
+
+      // write local image portion
+      size_t numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+      assert(numWrite == localSize);
+
+#ifdef PV_USE_MPI
+      int src = -1;
+      for (int py = 0; py < nyProcs; py++) {
+         for (int px = 0; px < nxProcs; px++) {
+            if (++src == 0) continue;
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: write: receiving from %d nx==%d ny==%d numItems==%d\n",
+                    comm->commRank(), src, nx, ny, numItems);
+#endif
+            MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+
+            long offset = headerSize + src * localSize;
+            fseek(fp, offset, SEEK_SET);
+            numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+            assert(numWrite == localSize);
+         }
+      }
+#endif // PV_USE_MPI
+
+      free(cbuf);
+
+   }
+
+   return status;
+}
+
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = 0;
