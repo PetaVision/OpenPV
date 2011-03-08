@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// only for my dumb debugging
+#include <iostream>
+using namespace std;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,6 +50,34 @@ void LIF_update_state(
     float * phiInh,
     float * phiInhB,
     float * R,
+    float * activity);
+
+void LIF_update_state_localWmax(
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    const float gammaW,
+    const float alphaW,
+    const float averageR,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * phiExc,
+    float * phiInh,
+    float * phiInhB,
+    float * R,
+    float * Wmax,
     float * activity);
 
 #ifdef __cplusplus
@@ -89,6 +121,9 @@ LIF::~LIF()
    free(rand_state);
    free(R);
 
+   if(localWmaxFlag){
+      free(Wmax);
+   }
 #ifdef PV_USE_OPENCL
    free(evList);
 
@@ -115,7 +150,9 @@ LIF::~LIF()
  *
  * setParams() is called first so that we read all control parameters
  * (rateFlag, tauRate, writeRate, etc) from the params file.
- *
+ * Wmax is an extended variable so that it matches the decrement variable M in
+ * the HyPerConn class (M is a post layer extended variable)
+ * R (rate) is a restricted variable
  */
 int LIF::initialize(PVLayerType type)
 {
@@ -148,16 +185,29 @@ int LIF::initialize(PVLayerType type)
       Vth[k] = VTH_REST;
    }
 
+   // allocate memory for R
+   //
+   R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
+   assert(R != NULL);
+
+   // allocate memory for wMax
+   if(localWmaxFlag){
+      const size_t numExtended = getNumExtended();
+      Wmax = (pvdata_t *) calloc(numExtended, sizeof(pvdata_t) );
+      assert(Wmax != NULL);
+      cout << "Wmax pointer in LIF: " << Wmax << endl;
+      for (size_t k = 0; k < numExtended; k++){
+         Wmax[k] = wMax;
+      }
+   }else{
+      Wmax = NULL;
+   }
+
    parent->addLayer(this);
 
    if (parent->parameters()->value(name, "restart", 0) != 0) {
       readState(&time);
    }
-
-   // allocate memory for R
-   //
-   R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
-   assert(R != NULL);
 
    // initialize OpenCL parameters
    //
@@ -308,6 +358,17 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
    
+   // set wMax parameters
+   wMax = p->value(name, "wMax", 0.75);
+   wMin = p->value(name, "wMin", 0.0);
+
+
+   // set params for rate dependent Wmax
+   localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
+   tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
+   alphaW     = p->value(name,"alphaW",0.01);
+   averageR   = p->value(name,"averageR",10.0);
+
    return 0;
 }
 
@@ -385,11 +446,21 @@ int LIF::updateState(float time, float dt)
    pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
    pvdata_t * activity = clayer->activity->data;
 
-   LIF_update_state(time, dt, nx, ny, nf, nb,
-                    &lParams, rand_state,
-                    clayer->V, Vth,
-                    G_E, G_I, G_IB,
-                    phiExc, phiInh, phiInhB, R, activity);
+   if(localWmaxFlag){
+      //float tauRate  = parent->parameters()->value(getName(), "tauRate", TAU_RATE);
+      LIF_update_state_localWmax(time, dt, nx, ny, nf, nb,
+                          tauWmax,alphaW,averageR,
+                          &lParams, rand_state,
+                          clayer->V, Vth,
+                          G_E, G_I, G_IB,
+                          phiExc, phiInh, phiInhB, R, Wmax, activity);
+   } else {
+      LIF_update_state(time, dt, nx, ny, nf, nb,
+                       &lParams, rand_state,
+                       clayer->V, Vth,
+                       G_E, G_I, G_IB,
+                       phiExc, phiInh, phiInhB, R, activity);
+   }
 #else
 
    status = updateStateOpenCL(time, dt);
@@ -413,21 +484,29 @@ int LIF::readState(float * time)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "Vth", "_last");
-   status = read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_E", "_last");
-   status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_I", "_last");
-   status = read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_IB", "_last");
-   status = read(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= read(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "R", "_last");
    status = read(path, comm, &dtime, R, loc, PV_FLOAT_TYPE, extended, contiguous);
 
+   if(localWmaxFlag && Wmax != NULL){
+      extended = true;
+      getOutputFilename(path, "Wmax", "_last");
+      status |= read(path, comm, &dtime, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
+   }
+
    *time = (float) dtime;
+   return status;
+
 }
 
 int LIF::writeState(float time, bool last)
@@ -455,8 +534,14 @@ int LIF::writeState(float time, bool last)
    getOutputFilename(path, "G_IB", last_str);
    status = write(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   getOutputFilename(path, "R", "_last");
+   getOutputFilename(path, "R", last_str);
    status = write(path, comm, time, R, loc, PV_FLOAT_TYPE, extended, contiguous);
+
+   if(localWmaxFlag){
+      extended = true;
+      getOutputFilename(path, "Wmax", last_str);
+      status = write(path, comm, time, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
+   }
 
 #ifdef DEBUG_OUTPUT
    // print activity at center of image
@@ -508,6 +593,7 @@ extern "C" {
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIF_update_state.cl"
+#  include "../kernels/LIF_update_state_localWmax.cl"
 #endif
 
 #ifdef __cplusplus
