@@ -592,7 +592,12 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
    //
    return comm->wait(getLayerId());
 }
-
+//
+/* Inserts a new probe into an array of LayerProbes.
+ *
+ *
+ *
+ */
 int HyPerLayer::insertProbe(LayerProbe * p)
 {
    LayerProbe ** tmp;
