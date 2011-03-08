@@ -1,3 +1,6 @@
+#ifndef CL_RANDOM_HCL_
+#define CL_RANDOM_HCL_
+
 /* rng/taus.c                                                                      
  *                                                                                 
  * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2007 James Theiler, Brian Gough     
@@ -52,3 +55,5 @@ static inline float cl_random_prob(uint4 state)
    // hopefully this works, it is (partially) tested in tests/test_cl_random
    return (float) ((float) state.s0 / (float) 4294967296.0);
 }
+
+#endif // CL_RANDOM_HCL_
