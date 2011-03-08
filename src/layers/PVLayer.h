@@ -94,8 +94,9 @@ int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
 int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
                            const float * RESTRICT p, float aPre,
                            const float * RESTRICT aPost, float dWmax, float wMin, float wMax);
-
-
+int pvpatch_update_weights_localWMax(int nk, float * RESTRICT w, const float * RESTRICT m,
+                           const float * RESTRICT p, float aPre,
+                           const float * RESTRICT aPost, float dWMax, float wMin, float * RESTRICT Wmax);
 int pvlayer_outputState(PVLayer * l); // default implementation: stats and activity files
 
 #ifdef __cplusplus
