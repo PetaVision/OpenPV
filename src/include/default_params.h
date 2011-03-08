@@ -18,7 +18,8 @@
 #define TAU_EXC   1.0
 #define TAU_INH  5.0
 #define TAU_INHB 10.0
-#define TAU_RATE 100.0
+#define TAU_RATE 100000.0 // in ms
+#define TAU_WMAX 100000.0 // in ms
 #define TAU_VTH  10.0
 #define DELTA_VTH 5.0
 #define GLOBAL_GAIN  1.0
