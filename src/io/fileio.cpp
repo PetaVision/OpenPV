@@ -163,7 +163,7 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
 
 int pvp_close_file(FILE * fp, Communicator * comm)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    if (fp != NULL) {
       status = fclose(fp);
    }
@@ -172,8 +172,8 @@ int pvp_close_file(FILE * fp, Communicator * comm)
 
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
-   int status = 0;
-   int tmp_status = 0;
+   int status = PV_SUCCESS;
+   int tmp_status = PV_SUCCESS;
 
    int nxProcs = comm->numCommColumns();
    int nyProcs = comm->numCommRows();
@@ -243,7 +243,7 @@ static
 int pvp_read_header(FILE * fp, double * time, int * filetype,
                     int * datatype, int params[], int * numParams)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
 
    if (*numParams < 2) {
       *numParams = 0;
@@ -282,7 +282,7 @@ int pvp_read_header(FILE * fp, double * time, int * filetype,
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    const int icRank = comm->commRank();
 
    if (icRank == 0) {
@@ -323,7 +323,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
                      int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int nxBlocks, nyBlocks, numItems;
    int params[NUM_BIN_PARAMS];
 
@@ -392,7 +392,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
 int read(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
@@ -408,16 +408,11 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 
    const int icRank = comm->commRank();
 
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-   const int nb = loc->nb;
-
    if (extended) {
-      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
+      numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
    }
    else {
-      numItems = nx * ny * nf;
+      numItems = loc->nx * loc->ny * loc->nf;
    }
 
    const size_t localSize = numItems * pv_sizeof(datatype);
@@ -538,7 +533,34 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
+   FILE * fp = NULL;
+
+   if (comm->commRank() == 0) {
+      int numItems;
+      if (extended) {
+         numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
+      }
+      else {
+         numItems = loc->nx * loc->ny * loc->nf;
+      }
+      const size_t localSize = numItems * pv_sizeof(datatype);
+
+      const bool append = false;
+      fp = pvp_open_write_file(filename, comm, append);
+
+      const int numParams = NUM_PAR_BYTE_PARAMS;
+      status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE, datatype,
+                                pv_sizeof(datatype), extended, contiguous, numParams, localSize);
+      if (status != PV_SUCCESS) return status;
+   }
+   status |= write(fp, comm, time, data, loc, datatype, extended, contiguous);
+   status |= pvp_close_file(fp, comm);
+   
+   return status;
+}
+
+#ifdef OBSOLETE_NOW
    int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
@@ -641,11 +663,12 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
 
    return status;
 }
+#endif OBSOLETE_NOW
 
 int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
@@ -709,9 +732,10 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
 
    }
    else {
-
       const int numParams = NUM_PAR_BYTE_PARAMS;
       const int headerSize = numParams * sizeof(int);
+
+      assert(fp != NULL);
 
       // write local image portion
       size_t numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
@@ -737,7 +761,6 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
 #endif // PV_USE_MPI
 
       free(cbuf);
-
    }
 
    return status;
@@ -745,7 +768,7 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
 
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -834,7 +857,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
@@ -958,7 +981,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 int readWeights(PVPatch ** patches, int numPatches, const char * filename,
                 Communicator * comm, double * time, const PVLayerLoc * loc, bool extended)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int filetype, datatype;
 
    int numParams = NUM_WGT_PARAMS;
@@ -1102,7 +1125,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       fseek(fp, offset, SEEK_SET);
       status = ( fread(cbuf, localSize, 1, fp) != 1 );
       if  (status != 0) {
-         fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%d\n",
+         fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
                  comm->commRank(), offset);
          return status;
       }
@@ -1137,7 +1160,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch ** patches, int numPatches)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
 
    bool extended = true;
