@@ -41,6 +41,11 @@
 #define ABS_REFACTORY_PERIOD 3
 #define REFACTORY_PERIOD     5
 
-#define DISPLAY_PERIOD 1.0
+// estimate of maximum activity in a local layer
+#define EST_MAX_ACTIVITY 256
+
+// weight parameters
+#define WEIGHT_DEAD_VALUE  0.0
+#define WEIGHT_MIN_VALUE   0.001
 
 #endif /* DEFAULT_PARAMS_H_ */

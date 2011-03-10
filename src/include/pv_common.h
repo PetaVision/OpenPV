@@ -59,8 +59,7 @@
 #define RESIZE_ARRAY_INCR               5
 #define MAX_F_DELAY                    21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
-// estimate of maximum activity in a local layer
-#define EST_MAX_ACTIVITY 256
+#define DISPLAY_PERIOD 1.0
 
 // TODO: As soon as the interfaces stabilize, use the type-checked/safer prototypes
 //#define UPDATE_FN int (*)( int numNeurons, float *V, float *phi, float *f, void *params)
