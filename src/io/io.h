@@ -28,6 +28,8 @@
 
 #define NUM_PAR_BYTE_PARAMS (NUM_BIN_PARAMS)
 
+#define PV_ERR_FILE_NOT_FOUND 1
+
 #define PV_BYTE_TYPE       1
 #define PV_INT_TYPE        2
 #define PV_FLOAT_TYPE      3
