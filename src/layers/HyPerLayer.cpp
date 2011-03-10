@@ -61,6 +61,8 @@ HyPerLayer::~HyPerLayer()
       // potentials allocated contiguously so this frees all
       free(phi[0]);
    }
+
+   if (labels != NULL) free(labels);
 }
 
 /**
@@ -153,6 +155,10 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
          phi[m] = phi[0] + m * getNumNeurons();
       }
    }
+
+   // TODO - should labels be extended?
+   labels = (int *) calloc(getNumNeurons(), sizeof(int));
+   assert(labels != NULL);
 
    return 0;
 }
@@ -398,8 +404,9 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
-int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
-                               const PVLayerLoc * loc, bool extended, float scale)
+#ifdef OBSOLETE //(Made a template function and moved to HyPerLayer.hpp)
+int HyPerLayer::copyFromBuffer(const T * buf, T * data,
+                               const PVLayerLoc * loc, bool extended, T scale)
 {
    size_t sf, sx, sy;
 
@@ -435,6 +442,7 @@ int HyPerLayer::copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
    }
    return 0;
 }
+#endif
 
 int HyPerLayer::updateState(float time, float dt)
 {
@@ -685,7 +693,12 @@ int HyPerLayer::readState(float * time)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "V", "_last");
-   status |= read(path, comm, &dtime, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read(path, comm, &dtime, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
+   assert(status == PV_SUCCESS);
+
+   getOutputFilename(path, "labels", "");
+   status = read(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
+   assert(status == PV_SUCCESS || status == PV_ERR_FILE_NOT_FOUND);  // not required to exist
 
    // TODO - this should be moved to getLayerData but can't yet because publish is call
    // as the first step and publish copies clayer->activity->data into data store.  If
@@ -693,7 +706,8 @@ int HyPerLayer::readState(float * time)
    extended = true;
    pvdata_t * A = clayer->activity->data;
    getOutputFilename(path, "A", "_last");
-   status |= read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+   assert(status == PV_SUCCESS);
 
    return status;
 }
@@ -1006,11 +1020,14 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
  }
 
 /**
- * return some useful information about the layer
+ * Return the label (if any) of a neuron in this layer.  A label may be the
+ * orientation (for example) of a neuron.  Creating a label for a neuron is
+ * normally done by offline analysis after the synaptic weights for connections
+ * to the layer have been learned.
  */
-int HyPerLayer::status(int k)
+int HyPerLayer::label(int k)
 {
-   return 0;
+   return labels[k];
 }
 
 } // end of PV namespace
