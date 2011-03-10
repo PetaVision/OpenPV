@@ -127,6 +127,8 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    const int kyPostEx = kyPost + nbPost;
    const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+2*nbPost, nyPost+2*nbPost, nfPost);
 
+   const bool postFired = lPost->activity->data[kPostEx] > 0.0;
+
    w = wPost[kPost];
 
    const int nw = w->nx * w->ny * w->nf;
@@ -156,19 +158,17 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
          break;
       }
    }
-   if (stdpVars) {
-      if (lPost->activity->data[kPostEx] > 0.0) fprintf(fp, "*");
+   if (stdpVars && (postFired || changed)) {
+      if (postFired) fprintf(fp, "*");
       else fprintf(fp, " ");
       fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", time, kPost, kxPost,
             kyPost, kfPost, kxPre, kyPre);
       if (image) fprintf(fp, "tag==%d ", image->tag());
+      fprintf(fp, "\n");
    }
    if (stdpVars && changed) {
       text_write_patch_extra(fp, w, w->data, wPrev, wActiv);
       fflush(fp);
-   }
-   else {
-      fprintf(fp, "\n");
    }
 
    for (k = 0; k < nw; k++) {
@@ -204,7 +204,7 @@ int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
    assert(fp != NULL);
 
    for (f = 0; f < nf; f++) {
-      fprintf(fp, "f = %i\n  ", f);
+      //fprintf(fp, "f = %i\n  ", f);
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
             int offset = i*sx + j*sy + f*sf;
@@ -220,7 +220,7 @@ int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
                fprintf(fp, "%s%5.3f (%+4.2f) ", c, data[offset], diff);
             }
          }
-         fprintf(fp, "\n  ");
+         //fprintf(fp, "\n  ");
       }
       fprintf(fp, "\n");
    }
