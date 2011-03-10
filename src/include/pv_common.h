@@ -10,7 +10,10 @@
 
 #include "pv_arch.h"
 
-// Common "C" includes for new HyPerStructure Petavision
+// Common include file for Petavision
+
+// Return value for successful function return
+#define PV_SUCCESS 0
 
 // For debugging/control:
 #undef  DEBUG_OUTPUT
