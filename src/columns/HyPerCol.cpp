@@ -6,7 +6,7 @@
  */
 
 #define TIMER_ON
-#undef TIMESTEP_OUTPUT
+#define TIMESTEP_OUTPUT
 
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
