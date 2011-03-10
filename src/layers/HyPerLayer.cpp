@@ -72,7 +72,7 @@ HyPerLayer::~HyPerLayer()
  */
 int HyPerLayer::initialize(PVLayerType type)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    float time = 0.0f;
 
    // IMPORTANT:
@@ -458,7 +458,7 @@ int HyPerLayer::updateState(float time, float dt)
 
 int HyPerLayer::updateBorder(float time, float dt)
 {
-   int status = CL_SUCCESS;
+   int status = PV_SUCCESS;
 
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied from device
@@ -625,7 +625,7 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 
 int HyPerLayer::outputState(float time, bool last)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
 #ifdef OBSOLETE
    char path[PV_PATH_MAX];
 
@@ -687,7 +687,7 @@ int HyPerLayer::readState(float * time)
    bool contiguous = false;
    bool extended   = false;
 
-   int status = 0;
+   int status = PV_SUCCESS;
 
    PVLayerLoc * loc = & clayer->loc;
    Communicator * comm = parent->icCommunicator();
@@ -722,7 +722,7 @@ int HyPerLayer::writeState(float time, bool last)
    bool contiguous = false;
    bool extended   = false;
 
-   int status = 0;
+   int status = PV_SUCCESS;
 
    PVLayerLoc * loc = & clayer->loc;
    Communicator * comm = parent->icCommunicator();
@@ -773,7 +773,7 @@ int HyPerLayer::writeActivity(float time)
 // use writeActivitySparse for efficient disk storage of sparse spiking activity
 int HyPerLayer::writeActivity(const char * filename, float time)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    PVLayerLoc * loc = &clayer->loc;
 
    const int n = loc->nx * loc->ny * loc->nf;
