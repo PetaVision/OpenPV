@@ -156,7 +156,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
       }
    }
 
-   // TODO - should labels be extended?
+   // labels are not extended
    labels = (int *) calloc(getNumNeurons(), sizeof(int));
    assert(labels != NULL);
 
@@ -699,6 +699,10 @@ int HyPerLayer::readState(float * time)
    getOutputFilename(path, "labels", "");
    status = read(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS || status == PV_ERR_FILE_NOT_FOUND);  // not required to exist
+   if (status == PV_ERR_FILE_NOT_FOUND) {
+      if (labels != NULL) free(labels);
+      labels = NULL;
+   }
 
    // TODO - this should be moved to getLayerData but can't yet because publish is call
    // as the first step and publish copies clayer->activity->data into data store.  If
@@ -1027,7 +1031,8 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
  */
 int HyPerLayer::label(int k)
 {
-   return labels[k];
+   if (labels == NULL) return 0;
+   else                return labels[k];
 }
 
 } // end of PV namespace
