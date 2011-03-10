@@ -49,8 +49,10 @@ public:
    static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);
 
-   static int copyFromBuffer(const pvdata_t * buf, pvdata_t * data,
-                             const PVLayerLoc * loc, bool extended, float scale);
+   template <typename T>
+   static int copyFromBuffer(const T * buf, T * data,
+                             const PVLayerLoc * loc, bool extended, T scale);
+
    static int copyFromBuffer(const unsigned char * buf, pvdata_t * data,
                              const PVLayerLoc * loc, bool extended, float scale);
 
@@ -136,7 +138,7 @@ public:
 
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
-   virtual int status(int k);
+   virtual int label(int k);
 
 protected:
    char * name;                 // well known name of layer
@@ -146,6 +148,8 @@ protected:
 
    int numProbes;
    LayerProbe ** probes;
+
+   int * labels;                // label for the feature a neuron is tuned to
 
    bool mirrorBCflag;           // true when mirror BC are to be applied
 
@@ -169,7 +173,6 @@ protected:
    CLBuffer * clPrevTime;
    CLBuffer * clParams;       // for transferring params to kernel
 
-
    int numEvents;             // number of events in event list
    int numWait;               // number of events to wait for
    cl_event * evList;         // event list
@@ -184,5 +187,46 @@ protected:
 };
 
 } // namespace PV
+
+// Template functions
+//
+template <typename T>
+int PV::HyPerLayer::copyFromBuffer(const T * buf, T * data,
+                                   const PVLayerLoc * loc, bool extended, T scale)
+{
+   size_t sf, sx, sy;
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+
+   int nxBorder = 0;
+   int nyBorder = 0;
+
+   if (extended) {
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
+   }
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
+
+   int ii = 0;
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            data[iex*sx + jex*sy + f*sf] = scale * buf[ii++];
+         }
+      }
+   }
+   return 0;
+}
 
 #endif /* HYPERLAYER_HPP_ */
