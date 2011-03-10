@@ -389,7 +389,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    return status;
 }
 
-int read(const char * filename, Communicator * comm, double * time, pvdata_t * data,
+int read(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = 0;
@@ -397,7 +397,8 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
    assert(contiguous == false);
-   assert(datatype == PV_FLOAT_TYPE);
+   assert(datatype == PV_FLOAT_TYPE || datatype == PV_INT_TYPE);
+   assert(sizeof(float) == sizeof(int));
 
    // scale factor for floating point conversion
    float scale = 1.0f;
@@ -455,7 +456,8 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       int numParams, numRead, type, nxIn, nyIn, nfIn;
 
       FILE * fp = pv_open_binary(filename, &numParams, &type, &nxIn, &nyIn, &nfIn);
-      assert(fp != NULL);
+      if (fp == NULL) return PV_ERR_FILE_NOT_FOUND;
+      
       assert(numParams == NUM_PAR_BYTE_PARAMS);
       assert(type      == PVP_FILE_TYPE);
 
@@ -472,19 +474,21 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       const int nxBlocks = params[INDEX_NX_PROCS];
       const int nyBlocks = params[INDEX_NY_PROCS];
 
-//      loc->nx       = params[INDEX_NX];
-//      loc->ny       = params[INDEX_NY];
-//      loc->nxGlobal = params[INDEX_NX_GLOBAL];
-//      loc->nyGlobal = params[INDEX_NY_GLOBAL];
-//      loc->kx0      = params[INDEX_KX0];
-//      loc->ky0      = params[INDEX_KY0];
-//      loc->nPad     = params[INDEX_NB];
-//      loc->nBands   = params[INDEX_NF];
+#ifdef OBSOLETE // 3/10/2011
+      loc->nx       = params[INDEX_NX];
+      loc->ny       = params[INDEX_NY];
+      loc->nxGlobal = params[INDEX_NX_GLOBAL];
+      loc->nyGlobal = params[INDEX_NY_GLOBAL];
+      loc->kx0      = params[INDEX_KX0];
+      loc->ky0      = params[INDEX_KY0];
+      loc->nPad     = params[INDEX_NB];
+      loc->nBands   = params[INDEX_NF];
+#endif
 
       *time = timeFromParams(&params[INDEX_TIME]);
 
       assert(dataSize == (int) pv_sizeof(datatype));
-      assert(dataType == PV_FLOAT_TYPE);
+      assert(dataType == PV_FLOAT_TYPE || dataType == PV_INT_TYPE);
       assert(nxBlocks == comm->numCommColumns());
       assert(nyBlocks == comm->numCommRows());
       assert(numRecords == comm->commSize());
@@ -517,7 +521,11 @@ int read(const char * filename, Communicator * comm, double * time, pvdata_t * d
       //
       if (datatype == PV_FLOAT_TYPE) {
          float * fbuf = (float *) cbuf;
-         status = HyPerLayer::copyFromBuffer(fbuf, data, loc, extended, scale);
+         status = HyPerLayer::copyFromBuffer(fbuf, (float*) data, loc, extended, scale);
+      }
+      else if (datatype == PV_INT_TYPE) {
+         int * fbuf = (int *) cbuf;
+         status = HyPerLayer::copyFromBuffer(fbuf, (int*) data, loc, extended, 1);
       }
 
       free(cbuf);
