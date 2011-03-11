@@ -57,6 +57,20 @@ function [mass_xcorr, ...
     xcorr_flag = 1;
   endif
 
+DEBUG_FLAG = 0;
+if DEBUG_FLAG
+  disp(["size(pre_spike_train) = ", num2str(size(pre_spike_train))]);
+  disp(["size(post_spike_train) = ", num2str(size(post_spike_train))]);
+  disp(["xcorr_struct = ", num2str(cell2mat(struct2cell(xcorr_struct)))]);
+  disp(["size(pre_ndx) = ", num2str(size(pre_ndx))]);
+  disp(["size_pre = ", num2str(size_pre)]);
+  disp(["size(post_ndx) = ", num2str(size(post_ndx))]);
+  disp(["size_post = ", num2str(size_post)]);
+  disp(["is_auto = ", num2str(is_auto)]);
+  disp(["xcorr_flag = ", num2str(xcorr_flag)]);
+endif
+
+
   if xcorr_flag
     xcorr_array = zeros( num_pre, num_post, 2 );
     xcorr_dist = zeros( num_pre, num_post );
