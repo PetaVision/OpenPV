@@ -13,6 +13,8 @@ global N NROWS NCOLS % for the current layer
 global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
 global ROTATE_FLAG % orientation axis rotated by DTH / 2
+global THETA_MAX
+THETA_MAX = 2 * pi;
 
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH spiking_path twoAFC_path spiking_path activity_path
@@ -47,14 +49,15 @@ else
   kernel_str = 'clean';
 endif
 
-NFC = 4;
+MNIST_flag = 1;
 
+NFC = 4;
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 5;
-num_trials = 0; %( TRAINING_FLAG <= 0 ) * 999; % %
+num_single_trials = 10;
+num_trials = ( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -69,36 +72,43 @@ RECONSTRUCT_FLAG = 1;
 DEBUG_FLAG = 1;
 
 global G_STR
-if abs(TRAINING_FLAG) == 1
-  G_STR = '_G1';
-elseif abs(TRAINING_FLAG) == 2
-  G_STR = '_G2';
-elseif abs(TRAINING_FLAG) == 3
-  G_STR = '_G3';
-elseif abs(TRAINING_FLAG) == 4
-  G_STR = '_G4';
+if MNIST_flag == 0
+  if abs(TRAINING_FLAG) == 1
+    G_STR = '_G1';
+  elseif abs(TRAINING_FLAG) == 2
+    G_STR = '_G2';
+  elseif abs(TRAINING_FLAG) == 3
+    G_STR = '_G3';
+  elseif abs(TRAINING_FLAG) == 4
+    G_STR = '_G4';
+  endif
+else
+  G_STR = '_6';
 endif
-
 				%machine_path = '/home/garkenyon/workspace/';
-machine_path = '/Users/gkenyon/workspace/';
+machine_path = '/Users/gkenyon/workspace2/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel2/input/128/test_target10K_target']; %, FC_STR];
+target_path = [machine_path 'geisler/input/256/MNIST_unaliased/test10K_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
-  target_path = [target_path, FC_STR, '/'];
+  if MNIST_flag == 0
+    target_path = [target_path, FC_STR, '/'];
+  endif
 endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel2/input/128/test_target10K_distractor']; %, FC_STR];
+		     'geisler/input/256/MNIST_unaliased/test10K_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
 if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR, '/'];
-  distractor_path = [distractor_path, FC_STR, '/'];
+  if MNIST_flag == 0
+    distractor_path = [distractor_path, FC_STR, '/'];
+  endif
 endif % ~isempty(distractor_path)
 
 twoAFC_path = target_path;
@@ -140,7 +150,7 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = 3:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
+read_activity = 2:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
 num_layers = N_LAYERS;
 
 if RECONSTRUCT_FLAG
@@ -537,7 +547,7 @@ if TRAINING_FLAG > 0
   plot_weights = []; %N_CONNECTIONS;
 else
   if max_target_flag > min_target_flag
-    plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    plot_weights = [1:N_CONNECTIONS+1]; %%( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   else
     plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   endif
@@ -550,7 +560,7 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 1;
+%%FLAT_ARCH_FLAG = 1;
 write_pvp_kernel_flag = 1;
 write_mat_kernel_flag = 1;
 weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -621,7 +631,7 @@ for i_conn = plot_weights
   endif % write_mat_kernel_flag
   NK = 1;
   NO = floor( NFEATURES / NK );
-  skip_patches = num_patches;
+  skip_patches = 1;%%num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
