@@ -12,35 +12,42 @@ function [fh] = ...
   global FLAT_ARCH_FLAG
   global NUM2STR_FORMAT
   global OUTPUT_PATH
+  global THETA_MAX
   
   if ~exist('NUM2STR_FORMAT') || isempty(NUM2STR_FORMAT)
     NUM2STR_FORMAT = '%03.3i';
-  end%%if
+  endif
   
   if ~exist('MIN_INTENSITY') || isempty(MIN_INTENSITY)
     MIN_INTENSITY = 0;
-  end%%if
+  endif
   
-  if ~exist('DTH', 'var') || isempty(DTH)
-    DTH = 180 / NO;
-  end%%if
+  if ~exist('THETA_MAX', 'var') || isempty(THETA_MAX)
+   THETA_MAX = pi;
+  endif
 
   if ~any(recon_array(:) ~= 0.0) % any(A) tests whether any of the elements
     return;
-  end%%if
+  endif
 
   if ~exist('size_recon', 'var') || isempty(size_recon) || nargin < 4
     size_recon = [NK NO NCOLS NROWS];
-  end%%if
+  endif
   NK = size_recon(1);
   NO  = size_recon(2);
   NCOLS  = size_recon(3);
   NROWS = size_recon(4);
   NFEATURES = NK * NO;
   
+  if ~exist('DTH', 'var') || isempty(DTH)
+    DTH = THETA_MAX / NO;
+  endif
+
   if ~exist('plot_recon_flag', 'var') || isempty(plot_recon_flag) || nargin < 5
     plot_recon_flag = 1;
-  end%%if
+  endif
+
+  flip_ij = 1;
 
 				% disp(['size_recon = ', num2str(size_recon)]);
 
@@ -48,7 +55,7 @@ function [fh] = ...
 				%  if ave_recon < 0
 				%    recon_array = -recon_array;
 				%    ave_recon = -ave_recon;
-				%  end%%if
+				%  endif
   max_recon = max(recon_array(:));
   min_recon = min(recon_array(:));
   
@@ -59,10 +66,10 @@ function [fh] = ...
     min_recon_val = min_recon;
   else
     min_recon_val = min( (max_recon - ave_recon) / 2, 0 );
-  end%%if
+  endif
   if min_recon_val == max_recon
     min_recon_val = 0;
-  end%%if
+  endif
   max_recon_val = max_recon;
 				%min_recon_val = max( 0, ave_recon );
   disp(['min_recon_val = ', num2str(min_recon_val)]);
@@ -71,10 +78,10 @@ function [fh] = ...
   edge_len = sqrt(2)/2;
   if (NO==1)
     edge_len = sqrt(2)/2;
-  end%%if
+  endif
   if log2_size > 5
     edge_len = (log2_size - 5) * edge_len;
-  end%%if
+  endif
   
   theta_offset = 0.5 * ROTATE_FLAG;
   max_line_width = 2.5;
@@ -83,13 +90,17 @@ function [fh] = ...
   if ~FLAT_ARCH_FLAG && NO > 1  && plot_recon_flag
     if ~exist('fh','var') || isempty(fh) || nargin < 3
       fh = figure;
-    end%%if
+    endif
     set(fh, 'Name', plot_title);
     axis([0 NCOLS+1 0 NROWS+1]);
-    axis square;
-    axis tight
-    box on
-    axis on
+    axis "square";
+    axis "tight";
+    axis "image";
+    if flip_ij
+      axis "ij"
+    endif
+    box "off"
+    axis "off"
 				%colorbar('East');
     colormap('gray');
 
@@ -100,7 +111,7 @@ function [fh] = ...
       first_recon_ndx = 1;
     else
       last_recon_ndx = length(recon_array);
-    end%%if
+    endif
     for recon_index = first_recon_ndx : last_recon_ndx
       i_recon = recon_ndx(recon_index);
       recon_val = recon_array(recon_index);
@@ -108,7 +119,7 @@ function [fh] = ...
 	continue;
       else
 	recon_val = ( recon_val - min_recon_val ) / ( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
-      end%%if
+      endif
       [i_k, i_theta, j_col, i_row] = ind2sub( size_recon, i_recon );
       clear i_k
       i_theta = i_theta - 1 + theta_offset;
@@ -122,12 +133,21 @@ function [fh] = ...
       set( lh, 'LineWidth', line_width );
       line_color = 1 - recon_val;
       set( lh, 'Color', line_color*(1-MIN_INTENSITY)*[1 1 1]);
-    end%%for
+    endfor
   elseif ~FLAT_ARCH_FLAG && NO == 1 && plot_recon_flag
     fh = zeros(1,NFEATURES);
     fh = figure;
     recon2D = reshape( recon_array(:), [NCOLS, NROWS] );
     set(fh, 'Name', plot_title);
+    axis([0 NCOLS+1 0 NROWS+1]);
+    axis "square";
+    axis "tight";
+    axis "image";
+    if flip_ij
+      axis "ij"
+    endif
+    box "off"
+    axis "off"
     imagesc( recon2D' );  % plots recod2D as an image
     colormap('gray');
   elseif FLAT_ARCH_FLAG
@@ -141,13 +161,22 @@ function [fh] = ...
 	fh = figure;
       else
 	figure(fh);
-      end%%if
+      endif
       set(fh, 'Name', plot_title);
+      axis([0 NCOLS+1 0 NROWS+1]);
+      axis "square";
+      axis "tight";
+      axis "image";
+      if flip_ij
+	axis "ij"
+      endif
+      box "off"
+      axis "off"
       tmp = squeeze( max(recon3D,[],1) );
 				%imagesc( gca, tmp' );  % plots recod2D as an image
       imagesc( tmp' );  % plots recod2D as an image
       colormap('gray');
-    end%%if
+    endif
 %%    plot_title_tmp = ...
 %%	[OUTPUT_PATH, plot_title, '.tiff'];
 %%    recon3D = uint8(255*recon3D);
@@ -158,6 +187,6 @@ function [fh] = ...
 	  [OUTPUT_PATH, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
       imwrite( squeeze( recon3D(i_feature,:,:) )', ...
 	      plot_title_tmp, 'tiff');
-    end%%for
-  end%%if
+    endfor
+  endif
  
