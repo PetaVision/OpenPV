@@ -2,14 +2,22 @@
 close all
 clear all
 
+start_timer = time;
+
 				% set paths, may not be applicable to all octave installations
 				% pvp_matlabPath;
 
 				% if ( uioctave )
 %%if exist('setenv')
-  setenv('GNUTERM', 'x11');
+%%  setenv('GNUTERM', 'x11');
 %%endif %%
 				% endif %%
+
+global NUM_PROCS 
+NUM_PROCS = 6;    
+
+global parallel_flag  
+parallel_flag = 1;
 
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
@@ -32,19 +40,19 @@ FLAT_ARCH_FLAG = 1;
 global SPIKING_FLAG
 SPIKING_FLAG = 1;
 
-%machine_path = '/nh/home/gkenyon/';
-machine_path = '/Users/gkenyon/';
+machine_path = '/home/garkenyon/';
+%%machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
-workspace_path = [machine_path, 'workspace2/'];
+workspace_path = [machine_path, 'workspace/'];
 project_path = [workspace_path, 'geisler/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/128/spiking/amoeba/'];
+OUTPUT_PATH = [project_path, 'input/amoeba_256/spiking/amoeba/'];
 
-image_path = [matlab_path, 'amoeba/128_png/4/'];
-image_filename = [image_path 't/tar_0005_a.png'];
-target_filename{1} = [image_path 'a/tar_0005_a.png'];
+image_path = [matlab_path, 'amoeba_test/256_png/4/'];
+image_filename = [image_path 't/tar_0049_a.png'];
+target_filename{1} = [image_path 'a/tar_0049_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
 copyfile(main_file, [main_file, '.save'], OUTPUT_PATH);
@@ -56,8 +64,8 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 1.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 1200.0;
+BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
+END_TIME = 12200.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 200.0;  % relative to begining of epoch, must be > 0
@@ -79,8 +87,8 @@ STIM_END_BIN = -floor( STIM_END_STEP / BIN_STEP_SIZE );
 %% get layers and layer specific analysis flags
 global N_LAYERS
 [layerID, layerIndex] = pvp_layerID();
-num_layers = 3;%%N_LAYERS;
-read_spikes =  2:3; %%2:N_LAYERS;  %[layerIndex.l1];%list of spiking layers whose spike train are to be analyzed
+num_layers = N_LAYERS;
+read_spikes = 2:N_LAYERS;  %[layerIndex.l1, layerIndex.l1inh];% list of spiking layers whose spike train are to be analyzed
 
 %% plot flags
 plot_reconstruct = read_spikes; %uimatlab;
@@ -159,8 +167,8 @@ layer_struct.size_layer = cell(num_layers,1);
 				% data structures for correlation analysis
 				%stft_array = cell( num_layers, 1);
 xcorr_struct = struct;
-xcorr_struct.min_freq = 40;
-xcorr_struct.max_freq = 60;
+xcorr_struct.min_freq = 15;
+xcorr_struct.max_freq = 50;
 xcorr_struct.size_border_mask = 4;
 max_lag = 128/DELTA_T; 
 xcorr_struct.max_lag = max_lag; 
@@ -185,7 +193,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 1;
+num_epochs = 5;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
@@ -374,10 +382,10 @@ for layer = read_spikes;
   [xcorr_struct] = ...
       pvp_powerMask(layer, xcorr_struct, target_struct, power_array);
 
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 
 
@@ -579,6 +587,7 @@ fig_list = [];
 
 
 %% calc target and clutter xcorr
+start_xcorr_timer = time;
 
 %% init mass corr data structures
 mass_target_xcorr = cell(target_struct.num_targets, num_layers);
@@ -607,7 +616,27 @@ for layer = read_spikes;
         '(', ...
           num2str(layer), ',', num2str(i_epoch), ')']);
   
-
+parallel_flag = 1;
+if parallel_flag
+  [mass_target_xcorr, ...
+   mass_target_autocorr, ...
+   mass_clutter_xcorr, ...
+   mass_clutter_autocorr, ...
+   mass_target2clutter_xcorr, ...
+   mass_target2clutter_autocorr] = ...
+      pvp_targetXCorrPCell(layer, ...
+		      epoch_struct, ...
+		      layer_struct, ...
+		      target_struct, ...
+		      xcorr_struct, ...
+		      mass_target_xcorr, ...
+		      mass_target_autocorr, ...
+		      mass_clutter_xcorr, ...
+		      mass_clutter_autocorr, ...
+		      mass_target2clutter_xcorr, ...
+		      mass_target2clutter_autocorr);
+else
+ 
   [mass_target_xcorr, ...
    mass_target_autocorr, ...
    mass_clutter_xcorr, ...
@@ -625,6 +654,7 @@ for layer = read_spikes;
 		      mass_clutter_autocorr, ...
 		      mass_target2clutter_xcorr, ...
 		      mass_target2clutter_autocorr);
+endif
   
 endfor %% % layer
   
@@ -769,8 +799,14 @@ pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
+stop_xcorr_timer = time;
+total_xcorr_timer = stop_xcorr_timer - start_xcorr_timer;
+disp(["total_xcorr_timer = ", num2str(total_xcorr_timer)]);
+
 
 %% Eigen analysis
+start_eigen_timer = time;
+start_sparsecorr_timer = time;
 if calc_eigen
   disp('beginning eigen analysis...');
 else
@@ -792,6 +828,25 @@ for layer = read_spikes;
   endif %%
   disp(['layer( ', num2str(layer), ')']);
 
+if parallel_flag
+  [mass_xcorr, ...
+   mass_autocorr, ...
+   mass_xcorr_mean, ...
+   mass_xcorr_std, ...
+   xcorr_array, ...
+   xcorr_dist ] = ...
+      pvp_sparseXCorrPCell(layer, ...
+		      epoch_struct, ...
+		      layer_struct, ...
+		      target_struct, ...
+		      xcorr_struct, ...
+		      mass_xcorr, ...
+		      mass_autocorr, ...
+		      mass_xcorr_mean, ...
+		      mass_xcorr_std, ...
+		      xcorr_array, ...
+		      xcorr_dist);
+else
   [mass_xcorr, ...
    mass_autocorr, ...
    mass_xcorr_mean, ...
@@ -809,6 +864,8 @@ for layer = read_spikes;
 		      mass_xcorr_std, ...
 		      xcorr_array, ...
 		      xcorr_dist);
+endif
+
 endfor %% % layer
 
   %% plot mass xcorr
@@ -893,6 +950,9 @@ pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
   
+stop_sparsecorr_timer = time;
+total_sparsecorr_timer = stop_sparsecorr_timer - start_sparsecorr_timer;
+disp(["total_sparsecorr_timer = ", num2str(total_sparsecorr_timer)]);
   
   %%find eigen vectors
 for layer = read_spikes;
@@ -909,13 +969,16 @@ for layer = read_spikes;
 	 layer_struct.num_rows(layer) ];
     disp(['computing eigenvectors(', num2str(layer),')']);
     options.issym = 1;
+    xcorr_array{i_mode, layer} = ...
+	(1/2)*(xcorr_array{i_mode, layer} + ...
+	       xcorr_array{i_mode, layer}') / ...
+	num_epochs;
     mean_xcorr_array = ...
 	mean( xcorr_array{i_mode, layer}(:) );
+    xcorr_array{i_mode, layer} = ...
+	xcorr_array{i_mode, layer} - mean_xcorr_array;
     [eigen_vec, eigen_value, eigen_flag] = ...
-        eigs( ( (1/2)*(xcorr_array{i_mode, layer} + ...
-		       xcorr_array{i_mode, layer}') - ...
-               mean_xcorr_array ) / ...
-             num_epochs, num_eigen, 'lm', options);
+        eigs( xcorr_array{i_mode, layer}, num_eigen, 'lm', options);
     [sort_eigen, sort_eigen_ndx] = ...
 	sort( diag( eigen_value ), 'descend' );
     for i_vec = 1:num_eigen
@@ -928,7 +991,8 @@ for layer = read_spikes;
              num2str(i_vec), ')'];
       disp([layer_struct.layerID{layer}, ...
             ' eigenvalues', ...
-            '(', num2str(layer), ',' num2str(i_mode), ',', num2str(i_vec),') = ', ...
+            '(', num2str(layer), ',' num2str(i_mode), ',', ...
+	      num2str(i_vec),') = ', ...
             num2str(eigen_value(i_vec,i_vec))]);
       xcorr_eigenvector{layer, i_mode, i_vec} = ...
 	  eigen_vec(:, sort_eigen_ndx(i_vec));
@@ -942,19 +1006,22 @@ for layer = read_spikes;
       if mean(eigen_vec_tmp(:)) < 0
         eigen_vec_tmp = -eigen_vec_tmp;
       endif %%
-      fh_tmp = ...
+      fig_tmp = ...
           pvp_reconstruct(full(eigen_vec_tmp), ...
 			  plot_title, [], ...
 			  size_recon);
       fig_list = [fig_list; fig_tmp];
     endfor %% % i_vec
-    
   endfor %% % i_mode
 endfor %% % layer
+
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
 fig_list = [];
 
+stop_eigen_timer = time;
+total_eigen_timer = stop_eigen_timer - start_eigen_timer;
+disp(["total_eigen_timer = ", num2str(total_eigen_timer)]);
 
 %% plot connections
 global N_CONNECTIONS
@@ -1108,3 +1175,6 @@ endif %%
 
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 
+stop_timer = time;
+total_timer = stop_timer - start_timer;
+disp(["total_timer = ", num2str(total_timer)]);
