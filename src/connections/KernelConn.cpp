@@ -161,12 +161,12 @@ float KernelConn::maxWeight()
 
 int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,
                                    float shift, float rotate, float aspect, float sigma,
-                                   float r2Max, float strength)
+                                   float r2Max, float strength, float thetaMax)
 {
    int kPatch;
    kPatch = kernelIndexToPatchIndex(kKernel);
    return HyPerConn::gauss2DCalcWeights(wp, kPatch, no, numFlanks,
-                                        shift, rotate, aspect, sigma, r2Max, strength);
+                                        shift, rotate, aspect, sigma, r2Max, strength, thetaMax);
 }
 
 int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPost,
