@@ -444,6 +444,41 @@ int Retina::writeState(float time)
    return status;
 }
 
+int Retina::outputState(float time, bool last)
+{
+   int status = 0;
+#define WRITE_NONSPIKING_ACTIVITY
+#ifdef WRITE_NONSPIKING_ACTIVITY
+   float defaultWriteNonspikingActivity = 1.0;
+#else
+   float defaultWriteNonspikingActivity = 0.0;
+#endif
+   PVParams * params = parent->parameters();
+   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
+   if (spikingFlag != 0){
+      status = HyPerLayer::outputState(time, last);
+      return status;
+   }
+   int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
+         defaultWriteNonspikingActivity);
+   if (writeNonspikingActivity != 0){
+      float * Vtmp = this->getV();
+      const PVLayerCube * activity_cube = this->getCLayer()->activity;
+      const float * atmp = activity_cube->data; //this->getLayerData(); // write activity on this time step
+      int nx = this->getCLayer()->loc.nx;
+      int ny = this->getCLayer()->loc.ny;
+      int nf = this->getCLayer()->loc.nf;
+      int nb = this->getCLayer()->loc.nb;
+      for (int k = 0; k < this->getNumNeurons(); k++) {
+         int kext = kIndexExtended( k, nx, ny, nf, nb);
+         Vtmp[k] = atmp[kext];
+      }
+      status = HyPerLayer::outputState(time, last);
+   }
+   return status;
+}
+
+
 //! Spiking method for Retina
 /*!
  * Returns 1 if an event should occur, 0 otherwise. This is a stochastic model.
