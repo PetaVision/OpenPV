@@ -106,7 +106,7 @@ public:
 
    virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
                           int numFlanks, float shift, float rotate, float aspect, float sigma,
-                          float r2Max, float strength);
+                          float r2Max, float strength, float thetaMax);
 
    virtual int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
          float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,

@@ -233,23 +233,25 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    assert(numParams == 9); // catch changes in structure
 
    params->delay    = (int) filep->value(name, "delay", params->delay);
-   params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
+   //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
-   params->vel      = filep->value(name, "vel", params->vel);
-   params->rmin     = filep->value(name, "rmin", params->rmin);
+   //params->vel      = filep->value(name, "vel", params->vel);
+   //params->rmin     = filep->value(name, "rmin", params->rmin);
    params->rmax     = filep->value(name, "rmax", params->rmax);
 
-   params->varDelayMin = (int) filep->value(name, "varDelayMin", params->varDelayMin);
-   params->varDelayMax = (int) filep->value(name, "varDelayMax", params->varDelayMax);
-   params->numDelay    = (int) filep->value(name, "numDelay"   , params->numDelay);
-   params->isGraded    = (int) filep->value(name, "isGraded"   , params->isGraded);
+   //params->varDelayMin = (int) filep->value(name, "varDelayMin", params->varDelayMin);
+   //params->varDelayMax = (int) filep->value(name, "varDelayMax", params->varDelayMax);
+   //params->numDelay    = (int) filep->value(name, "numDelay"   , params->numDelay);
+   //params->isGraded    = (int) filep->value(name, "isGraded"   , params->isGraded);
 
    assert(params->delay < MAX_F_DELAY);
-   params->numDelay = params->varDelayMax - params->varDelayMin + 1;
+   //params->numDelay = params->varDelayMax - params->varDelayMin + 1;
 
    //
    // now set params that are not in the params struct (instance variables)
 
+   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
+   if (stdpFlag) {
    ampLTP = filep->value(name, "ampLTP", ampLTP);
    ampLTD = filep->value(name, "ampLTD", ampLTD);
    tauLTP = filep->value(name, "tauLTP", tauLTP);
@@ -262,10 +264,10 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 
    dWMax = filep->value(name, "dWMax", dWMax);
 
-   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
 
    // set params for rate dependent Wmax
    localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
+   }
 
    return 0;
 }
@@ -452,11 +454,13 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
    float sigma = 0.8;
    float rMax = 1.4;
    float strength = 1.0;
+   float thetaMax = 1.0;  // max orientation in units of PI
 
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
    strength = params->value(name, "strength", strength);
+   thetaMax = params->value(name, "thetaMax", thetaMax);
 
    float r2Max = rMax * rMax;
 
@@ -466,7 +470,7 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength);
+            aspect, sigma, r2Max, strength, thetaMax);
    }
 
    return patches;
@@ -1688,7 +1692,8 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
  * calculate gaussian weights to segment lines
  */
 int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
-      float shift, float rotate, float aspect, float sigma, float r2Max, float strength)
+      float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
+      float thetaMax)
 {
 //   const PVLayer * lPre = pre->clayer;
 //   const PVLayer * lPost = post->clayer;
@@ -1738,7 +1743,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    const int sf_tmp = wp_tmp->sf;
    assert(sf_tmp == 1);
 
-   // get distances to nearest neighbor in post synaptic layer
+   // get distances to nearest neighbor in post synaptic layer (meaured relative to pre-synatpic cell)
    float xDistNNPreUnits;
    float xDistNNPostUnits;
    dist2NearestCell(kxPre_tmp, pre->getXScale(), post->getXScale(),
@@ -1760,7 +1765,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
    kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
 
-   // get distance to patch head
+   // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;
    xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
    float yDistHeadPostUnits;
@@ -1784,10 +1789,10 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    //   int noPost = no;
    // number of orientations only used if aspect != 1
    const int noPost = post->getLayerLoc()->nf;
-   const float dthPost = PI / (float) noPost;
+   const float dthPost = PI*thetaMax / (float) noPost;
    const float th0Post = rotate * dthPost / 2.0f;
    const int noPre = pre->getLayerLoc()->nf;
-   const float dthPre = PI / (float) noPre;
+   const float dthPre = PI*thetaMax / (float) noPre;
    const float th0Pre = rotate * dthPre / 2.0f;
    const int fPre = kPre % pre->getLayerLoc()->nf;
    assert(fPre == kfPre_tmp);
@@ -1814,9 +1819,11 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
                continue;
             }
 
-            // rotate the reference frame by th
-            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
-            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
+            // rotate the reference frame by th (change sign of thPost?)
+//            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
+//            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
+            float xp = xDelta * cosf(thPost) - yDelta * sinf(thPost);
+            float yp = xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
