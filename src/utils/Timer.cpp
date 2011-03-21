@@ -20,7 +20,7 @@
 #  include <mach/mach_time.h>
 #else
 #  include <sys/time.h>
-#endif USE_MACH_TIMER
+#endif // USE_MACH_TIMER
 
 
 /**
