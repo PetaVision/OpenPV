@@ -99,7 +99,7 @@ int test_kernels(int argc, char * argv[])
                        &(l1->lParams), l1->rand_state,
                        l1->clayer->V, l1->Vth,
                        l1->G_E, l1->G_I, l1->G_IB,
-                       phiExc, phiInh, phiInhB, activity);
+                       phiExc, phiInh, phiInhB, l1->R, activity);
    }
    timer.stop();
    timer.elapsed_time();
