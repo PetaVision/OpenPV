@@ -13,6 +13,7 @@
 #include "CLKernel.hpp"
 #include "CLDevice.hpp"
 
+#include <assert.h>
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -254,8 +255,9 @@ static char *
 load_program_source(const char *filename)
 {
     struct stat statbuf;
-    FILE        *fh;
-    char        *source;
+    FILE * fh;
+    char * source;
+    size_t count;
 
     fh = fopen(filename, "r");
     if (fh == 0) {
@@ -265,7 +267,9 @@ load_program_source(const char *filename)
 
     stat(filename, &statbuf);
     source = (char *) malloc(statbuf.st_size + 1);
-    fread(source, statbuf.st_size, 1, fh);
+    count = fread(source, statbuf.st_size, 1, fh);
+    assert(count == 1);
+
     source[statbuf.st_size] = '\0';
 
     return source;
