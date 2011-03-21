@@ -54,6 +54,13 @@ int CLDevice::initialize(int device)
    size_t name_size = 63;
    char platform_name[64];
 
+   status = clGetPlatformIDs(0, NULL, &num_platforms);
+   if (status != CL_SUCCESS) {
+      printf("Error: Failed to get number of available platforms!\n");
+      print_error_code(status);
+      exit(status);
+   }
+
    status = clGetPlatformIDs(2, platforms, &num_platforms);
    if (status != CL_SUCCESS) {
       printf("Error: Failed to get platform ids!\n");
@@ -107,7 +114,7 @@ int CLDevice::initialize(int device)
       print_error_code(status);
       exit(status);
    }
-#endif PV_USE_OPENCL
+#endif // PV_USE_OPENCL
 
    return status;
 }
