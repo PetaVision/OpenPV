@@ -265,6 +265,8 @@ int LIF::initializeThreadBuffers()
    clPhiI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
    clPhiIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
 
+   clR = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, R);
+
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
@@ -307,6 +309,7 @@ int LIF::initializeThreadKernels()
    status |= krUpdate->setKernelArg(argid++, clPhiE);
    status |= krUpdate->setKernelArg(argid++, clPhiI);
    status |= krUpdate->setKernelArg(argid++, clPhiIB);
+   status |= krUpdate->setKernelArg(argid++, clR);
    status |= krUpdate->setKernelArg(argid++, clActivity);
 
    return status;
