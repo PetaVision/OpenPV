@@ -157,7 +157,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
            / (1.0 + l_G_E + l_G_I + l_G_IB);
 
-   l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);;
+   l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
 
    //
    // start of LIF2_update_finish
@@ -187,6 +187,8 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    // store local variables back to global memory
    //
+   rnd[k] = l_rnd;
+
    activity[kex] = l_activ;
    
    R[k] = l_R;
