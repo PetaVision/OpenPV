@@ -206,6 +206,8 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    // store local variables back to global memory
    //
+   rnd[k] = l_rnd;
+
    activity[kex] = l_activ;
 
    R[k] = l_R;
