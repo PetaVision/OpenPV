@@ -1,6 +1,5 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
-#include "../utils/pv_random.h"
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
@@ -14,6 +13,11 @@
 #  define CL_MEM_GLOBAL   __global
 #  define CL_MEM_LOCAL    __local
 #  include "conversions.hcl"
+#endif
+
+#define USE_CLRANDOM
+#ifndef USE_CLRANDOM
+#  include "../utils/pv_random.h"
 #endif
 
 //
@@ -111,9 +115,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    // add noise
    //
 
-#undef CLRANDOM
-
-#ifdef CLRANDOM
+#ifdef USE_CLRANDOM
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
