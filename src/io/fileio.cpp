@@ -663,7 +663,7 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
 
    return status;
 }
-#endif OBSOLETE_NOW
+#endif //OBSOLETE_NOW
 
 int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
