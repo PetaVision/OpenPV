@@ -498,11 +498,11 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 
    MPI_Datatype * comms = new MPI_Datatype [NUM_NEIGHBORHOOD];
    
-   const int nxBorder = loc->nPad;
-   const int nyBorder = loc->nPad;
+   const int nxBorder = loc->nb;
+   const int nyBorder = loc->nb;
 
    // TODO - is this numFeatures
-   const int nf = loc->nBands;
+   const int nf = loc->nf;
 
    count       = loc->ny;
    blocklength = nf*loc->nx;
