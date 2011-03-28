@@ -49,8 +49,7 @@ int main(int argc, char* argv[]) {
 
 	// create the image
 	//
-	//const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/2/t/tar_0041_a.png";
-	const char * amoeba_filename = "../../MATLAB/amoeba/128_png/4/t/tar_0005_a.png";
+	const char * amoeba_filename = "../../MATLAB/amoeba_test/256_png/4/t/tar_0049_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
 	HyPerLayer * image = new Image("Image", hc, amoeba_filename);
 	HyPerLayer * retina = new Retina("Retina", hc);
 	HyPerLayer * lgn = new LIF("LGN", hc);
-#define LGN_ONLY
+#undef LGN_ONLY
 #ifndef LGN_ONLY
 	HyPerLayer * lgninhff = new LIF("LGNInhFF", hc);
 	HyPerLayer * lgninh = new LIF("LGNInh", hc);
@@ -145,9 +144,9 @@ int main(int argc, char* argv[]) {
 //
 
 	// L1 connections
-	const char * geisler_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
-	const char * target_kernel_filename = "./input/128/amoeba10K_G1/w3_last.pvp";
-	const char * distractor_kernel_filename = "./input/128/distractor10K_G1/w3_last.pvp";
+	const char * geisler_filename = "./input/amoeba_256/test_W287_target_G1/4fc/dirty.pvp";
+	const char * target_kernel_filename = "./input/amoeba_256/target40K_G1/w3_last.pvp";
+	const char * distractor_kernel_filename = "./input/128/distractor40K_G1/w3_last.pvp";
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -184,9 +183,9 @@ int main(int argc, char* argv[]) {
 //	HyPerConn * l1inhff_l1inhff_inhB =
 //		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
 //			CHANNEL_INHB);
-//	HyPerConn * l1inhff_l1inh =
-//		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
-//			CHANNEL_INH);
+	HyPerConn * l1inhff_l1inh =
+		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
+			CHANNEL_INH);
 //	HyPerConn * l1inhff_l1inh_inhB =
 //		new CocircConn("L1InhFF to L1Inh InhB",   	hc, l1inhff,  l1inh,
 //			CHANNEL_INHB);
@@ -269,7 +268,7 @@ int main(int argc, char* argv[]) {
 #ifndef LGN_ONLY
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhFFA1:(64,64,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 /*
