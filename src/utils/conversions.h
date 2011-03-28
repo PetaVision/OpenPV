@@ -389,7 +389,7 @@ static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
 //           globalIndexFromLocal but without using MPI.
 static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
 {
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
    int  kf = featureIndex(kl, loc.nx, loc.ny, loc.nf);
