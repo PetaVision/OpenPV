@@ -49,7 +49,8 @@ int main(int argc, char* argv[]) {
 
 	// create the image
 	//
-	const char * amoeba_filename = "../../MATLAB/amoeba_test/256_png/4/t/tar_0049_a.png";
+	//const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/2/t/tar_0041_a.png";
+	const char * amoeba_filename = "../../MATLAB/amoeba/128_png/4/t/tar_0005_a.png";
 	//display->setDelay(0);
 	//display->setImage(image);
 
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]) {
 	HyPerLayer * image = new Image("Image", hc, amoeba_filename);
 	HyPerLayer * retina = new Retina("Retina", hc);
 	HyPerLayer * lgn = new LIF("LGN", hc);
-#undef LGN_ONLY
+#define LGN_ONLY
 #ifndef LGN_ONLY
 	HyPerLayer * lgninhff = new LIF("LGNInhFF", hc);
 	HyPerLayer * lgninh = new LIF("LGNInh", hc);
@@ -144,9 +145,9 @@ int main(int argc, char* argv[]) {
 //
 
 	// L1 connections
-	const char * geisler_filename = "./input/amoeba_256/test_W287_target_G1/4fc/dirty.pvp";
-	const char * target_kernel_filename = "./input/amoeba_256/target40K_G1/w3_last.pvp";
-	const char * distractor_kernel_filename = "./input/128/distractor40K_G1/w3_last.pvp";
+	const char * geisler_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
+	const char * target_kernel_filename = "./input/128/amoeba10K_G1/w3_last.pvp";
+	const char * distractor_kernel_filename = "./input/128/distractor10K_G1/w3_last.pvp";
 	HyPerConn * l1_lgn =
 		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
 			CHANNEL_EXC);
@@ -183,9 +184,9 @@ int main(int argc, char* argv[]) {
 //	HyPerConn * l1inhff_l1inhff_inhB =
 //		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
 //			CHANNEL_INHB);
-	HyPerConn * l1inhff_l1inh =
-		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
-			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1inh =
+//		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
+//			CHANNEL_INH);
 //	HyPerConn * l1inhff_l1inh_inhB =
 //		new CocircConn("L1InhFF to L1Inh InhB",   	hc, l1inhff,  l1inh,
 //			CHANNEL_INHB);
@@ -268,7 +269,7 @@ int main(int argc, char* argv[]) {
 #ifndef LGN_ONLY
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhFFA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(64,64,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 /*
@@ -428,9 +429,11 @@ int main(int argc, char* argv[]) {
 
 #undef TRAINING_TRIALS
 #ifdef TRAINING_TRIALS
-	const char * fileOfFileNames = "./input/128/target10K_G1/fileNames.txt"; //
+	//const char * fileOfFileNames = "./input/128/target10K_G1/fileNames.txt"; //
+	const char * fileOfFileNames = "./input/256/MNIST_unaliased/target10K_6/fileNames.txt"; //
 #else
-	const char * fileOfFileNames = "./input/128/test_target10K_distractor_G1/4fc/fileNames.txt"; //
+	const char * fileOfFileNames = "./input/256/bowtie/distractor_75/4fc/fileNames.txt"; //
+	//const char * fileOfFileNames = "./input/256/MNIST_unaliased/test10K_distractor_6/fileNames.txt"; //
 #endif
 	float display_period = 1.0;
 	Image * movie = new Movie("Movie", hc, fileOfFileNames, display_period);
@@ -450,6 +453,26 @@ int main(int argc, char* argv[]) {
 			CHANNEL_INH);
 	LayerProbe * statsl1 = new StatsProbe(BufActivity,  "L1     :");
 	l1->insertProbe(statsl1);
+
+	// write text weights
+	int npad, nx, ny, nf;
+	const char * retina_l1_filename = "retina_l1_gauss.txt";
+	HyPerLayer * pre = retina_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	retina_l1->writeTextWeights(retina_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * retina_l1_inh_filename = "retina_l1_inh_gauss.txt";
+	pre = retina_l1_inh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	retina_l1_inh->writeTextWeights(retina_l1_inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+
 
 #ifdef TRAINING_TRIALS
 
@@ -573,16 +596,22 @@ int main(int argc, char* argv[]) {
 	HyPerConn * l1_l1_geisler =
 		new CocircConn("L1 to L1 Geisler",  hc, l1,  l1_geisler,
 			CHANNEL_EXC);
-	const char * geisler_filename_target = "./input/128/target10K_G1/w3_last.pvp";
+//	const char * geisler_filename_target = "./input/256/MNIST/target10K_6/w3_last.pvp";
 //	const char * geisler_filename_target = "./input/256/animal/0001/train/w3_last.pvp";
-	HyPerConn * l1_l1_geisler_target =
-		new KernelConn("L1 to L1 Geisler Target",  hc, l1,   l1_geisler,
-			CHANNEL_INH, geisler_filename_target);
-	const char * geisler_filename_distractor = "./input/128/distractor10K_G1/w3_last.pvp";
+//	HyPerConn * l1_l1_geisler_target =
+//		new KernelConn("L1 to L1 Geisler Target",  hc, l1,   l1_geisler,
+//			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l1_l1_bowtie_target =
+		new KernelConn("L1 to L1 Bowtie Target",  hc, l1,   l1_geisler,
+			CHANNEL_INH);
+//	const char * geisler_filename_distractor = "./input/256/MNIST/distractor10K_6/w3_last.pvp";
 //	const char * geisler_filename_distractor = "./input/256/noanimal/0001/train/w3_last.pvp";
-	HyPerConn * l1_l1_geisler_distractor =
-		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,  l1_geisler,
-			CHANNEL_INH, geisler_filename_distractor);
+//	HyPerConn * l1_l1_geisler_distractor =
+//		new KernelConn("L1 to L1 Geisler Distractor", 	hc, l1,  l1_geisler,
+//			CHANNEL_INH, geisler_filename_distractor);
+	HyPerConn * l1_l1_bowtie_distractor =
+		new KernelConn("L1 to L1 Bowtie Distractor", hc, l1,  l1_geisler,
+			CHANNEL_INH);
 	LayerProbe * statsl1_geisler = new StatsProbe(BufActivity,   "L1 Geisler :");
 	l1_geisler->insertProbe(statsl1_geisler);
 
@@ -594,15 +623,21 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L1 Geisler to L2 Geisler",  hc, l1_geisler, l2_geisler,
 			CHANNEL_EXC);
 //	const char * geisler2_filename_target = "./input/128/amoeba10K_G2/w7_last.pvp";
-	const char * geisler2_filename_target = "./input/256/target40K_G2/w7_last.pvp";
-	HyPerConn * l1_geisler_l2_geisler_target =
-		new KernelConn("L1 Geisler to L2 Geisler Target",  hc, l1_geisler,  l2_geisler,
-			CHANNEL_INH, geisler_filename_target);
+//	const char * geisler2_filename_target = "./input/256/target40K_G2/w7_last.pvp";
+//	HyPerConn * l1_geisler_l2_geisler_target =
+//		new KernelConn("L1 Geisler to L2 Geisler Target",  hc, l1_geisler,  l2_geisler,
+//			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l1_geisler_l2_bowtie_target =
+		new KernelConn("L1 to L2 Bowtie Target", hc, l1_geisler, l2_geisler,
+			CHANNEL_INH);
 //	const char * geisler2_filename_distractor = "./input/128/distractor10K_G2/w7_last.pvp";
-	const char * geisler2_filename_distractor = "./input/256/distractor40K_G2/w7_last.pvp";
-	HyPerConn * l1_geisler_l2_geisler_distractor =
-		new KernelConn("L1 Geisler to L2 Geisler Distractor", hc, l1_geisler,  l2_geisler,
-			CHANNEL_INH, geisler_filename_distractor);
+//	const char * geisler2_filename_distractor = "./input/256/distractor40K_G2/w7_last.pvp";
+//	HyPerConn * l1_geisler_l2_geisler_distractor =
+//		new KernelConn("L1 Geisler to L2 Geisler Distractor", hc, l1_geisler,  l2_geisler,
+//			CHANNEL_INH, geisler_filename_distractor);
+	HyPerConn * l1_geisler_l2_bowtie_distractor =
+		new KernelConn("L1 to L2 Bowtie Distractor", hc, l1_geisler,  l2_geisler,
+				CHANNEL_INH);
 
 	HyPerLayer * l3_geisler = new GeislerLayer("L3 Geisler", hc);
 	LayerProbe * statsl3_geisler = new StatsProbe(BufActivity,  "L3 Geisler :");
@@ -612,14 +647,20 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L2 Geisler to L3 Geisler",  hc, l2_geisler, l3_geisler,
 			CHANNEL_EXC);
 
-	const char * geisler3_filename_target = "./input/256/amoeba20K_97x97_G3/w10_last.pvp";
-	HyPerConn * l2_geisler_l3_geisler_target =
-		new KernelConn("L2 Geisler to L3 Geisler Target",  hc, l2_geisler,  l3_geisler,
-			CHANNEL_INH, geisler_filename_target);
-	const char * geisler3_filename_distractor = "./input/256/distractor20K_97x97_G3/w10_last.pvp";
-	HyPerConn * l2_geisler_l3_geisler_distractor =
-		new KernelConn("L2 Geisler to L3 Geisler Distractor", 	hc, l2_geisler,     l3_geisler,
-			CHANNEL_INH, geisler_filename_distractor);
+//	const char * geisler3_filename_target = "./input/256/amoeba20K_97x97_G3/w10_last.pvp";
+//	HyPerConn * l2_geisler_l3_geisler_target =
+//		new KernelConn("L2 Geisler to L3 Geisler Target",  hc, l2_geisler,  l3_geisler,
+//			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l2_geisler_l3_bowtie_target =
+		new KernelConn("L2 to L3 Bowtie Target",  hc, l2_geisler,  l3_geisler,
+			CHANNEL_INH);
+//	const char * geisler3_filename_distractor = "./input/256/distractor20K_97x97_G3/w10_last.pvp";
+//	HyPerConn * l2_geisler_l3_geisler_distractor =
+//		new KernelConn("L2 Geisler to L3 Geisler Distractor", 	hc, l2_geisler,     l3_geisler,
+//			CHANNEL_INH, geisler_filename_distractor);
+	HyPerConn * l2_geisler_l3_bowtie_distractor =
+		new KernelConn("L2 to L3 Bowtie Distractor", hc, l2_geisler,     l3_geisler,
+			CHANNEL_INH);
 
 #define G4_LAYER
 #ifdef G4_LAYER
@@ -631,14 +672,20 @@ int main(int argc, char* argv[]) {
 		new CocircConn("L3 Geisler to L4 Geisler",   hc, l3_geisler,  	l4_geisler,
 			CHANNEL_EXC);
 
-	const char * geisler4_filename_target = "./input/256/amoeba40K_G4/w13_last.pvp";
-	HyPerConn * l3_geisler_l4_geisler_target =
-		new KernelConn("L3 Geisler to L4 Geisler Target", hc, l3_geisler, l4_geisler,
-			CHANNEL_INH, geisler_filename_target);
-	const char * geisler4_filename_distractor = "./input/256/distractor40K_G4/w13_last.pvp";
-	HyPerConn * l3_geisler_l4_geisler_distractor =
-		new KernelConn("L3 Geisler to L4 Geisler Distractor", hc, l3_geisler, l4_geisler,
-			CHANNEL_INH, geisler_filename_distractor);
+//	const char * geisler4_filename_target = "./input/256/amoeba40K_G4/w13_last.pvp";
+//	HyPerConn * l3_geisler_l4_geisler_target =
+//		new KernelConn("L3 Geisler to L4 Geisler Target", hc, l3_geisler, l4_geisler,
+//			CHANNEL_INH, geisler_filename_target);
+	HyPerConn * l3_geisler_l4_bowtie_target =
+		new KernelConn("L3 to L4 Bowtie Target", hc, l3_geisler, l4_geisler,
+			CHANNEL_INH);
+//	const char * geisler4_filename_distractor = "./input/256/distractor40K_G4/w13_last.pvp";
+//	HyPerConn * l3_geisler_l4_geisler_distractor =
+//		new KernelConn("L3 Geisler to L4 Geisler Distractor", hc, l3_geisler, l4_geisler,
+//			CHANNEL_INH, geisler_filename_distractor);
+	HyPerConn * l3_geisler_l4_bowtie_distractor =
+		new KernelConn("L3 to L4 Bowtie Distractor", hc, l3_geisler, l4_geisler,
+			CHANNEL_INH);
 
 #endif G4_LAYER
 
@@ -799,6 +846,8 @@ int main(int argc, char* argv[]) {
 
 
 #endif  // TRAINING_TRIALS
+
+
 
 #endif  // SPIKING
 
