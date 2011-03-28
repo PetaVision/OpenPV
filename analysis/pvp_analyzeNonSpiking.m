@@ -14,7 +14,7 @@ global NFEATURES  % for the current layer
 global NO NK dK % for the current layer
 global ROTATE_FLAG % orientation axis rotated by DTH / 2
 global THETA_MAX
-THETA_MAX = 2 * pi;
+THETA_MAX = 1 * pi;
 
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH spiking_path twoAFC_path spiking_path activity_path
@@ -49,7 +49,8 @@ else
   kernel_str = 'clean';
 endif
 
-MNIST_flag = 1;
+MNIST_flag = 0;
+bowtie_flag = 1;
 
 NFC = 4;
 global FC_STR
@@ -72,7 +73,8 @@ RECONSTRUCT_FLAG = 1;
 DEBUG_FLAG = 1;
 
 global G_STR
-if MNIST_flag == 0
+G_STR = '';
+if ((MNIST_flag == 0) && (bowtie_flag = 0))
   if abs(TRAINING_FLAG) == 1
     G_STR = '_G1';
   elseif abs(TRAINING_FLAG) == 2
@@ -82,15 +84,17 @@ if MNIST_flag == 0
   elseif abs(TRAINING_FLAG) == 4
     G_STR = '_G4';
   endif
-else
+elseif MNIST_flag == 1
   G_STR = '_6';
+elseif bowtie_flag == 1
+  G_STR = '';
 endif
 				%machine_path = '/home/garkenyon/workspace/';
-machine_path = '/home/garkenyon/workspace/';
+machine_path = '/Users/gkenyon/workspace2/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/amoeba_256/test_W287_target']; %, FC_STR];
+target_path = [machine_path 'geisler/input/256/bowtie/target_75']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   if MNIST_flag == 0
@@ -100,7 +104,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'kernel/input/amoeba_256/test_W287_distractor']; %, FC_STR];
+		     'geisler/input/256/bowtie/distractor_75']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -552,7 +556,7 @@ if TRAINING_FLAG > 0
   plot_weights = []; %N_CONNECTIONS;
 else
   if max_target_flag > min_target_flag
-    plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    plot_weights = [1:N_CONNECTIONS+1]; %%( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   else
     plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   endif
@@ -565,7 +569,7 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 1;
+%%FLAT_ARCH_FLAG = 1;
 write_pvp_kernel_flag = 1;
 write_mat_kernel_flag = 1;
 weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -636,7 +640,7 @@ for i_conn = plot_weights
   endif % write_mat_kernel_flag
   NK = 1;
   NO = floor( NFEATURES / NK );
-  skip_patches = num_patches;
+  skip_patches = 1;%%num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
