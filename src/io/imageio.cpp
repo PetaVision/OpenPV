@@ -527,6 +527,7 @@ int scatterImageFilePVP(const char * filename,
       int dest = -1;
       const int tag = PVP_FILE_TYPE;
       const MPI_Comm mpi_comm = comm->communicator();
+      const int recordSize = numItems * sizeof(unsigned char);
 
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
