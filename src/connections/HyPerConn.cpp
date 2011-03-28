@@ -454,13 +454,22 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
    float sigma = 0.8;
    float rMax = 1.4;
    float strength = 1.0;
+   float deltaThetaMax = 2.0f * PI;  // max orientation in units of PI
    float thetaMax = 1.0;  // max orientation in units of PI
+   float bowtieFlag = 0.0f;  // flag for setting bowtie angle
+   float bowtieAngle = PI * 2.0f;  // bowtie angle
+
 
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
    strength = params->value(name, "strength", strength);
+   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
    thetaMax = params->value(name, "thetaMax", thetaMax);
+   bowtieFlag = params->value(name, "bowtieFlag", bowtieFlag);
+   if (bowtieFlag == 1.0f){
+      bowtieAngle = params->value(name, "bowtieAngle", bowtieAngle);
+   }
 
    float r2Max = rMax * rMax;
 
@@ -470,7 +479,7 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength, thetaMax);
+            aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
    }
 
    return patches;
@@ -1693,14 +1702,12 @@ int HyPerConn::smartWeights(PVPatch * wp, int k)
  */
 int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
-      float thetaMax)
+      float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
 //   const PVLayer * lPre = pre->clayer;
 //   const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
-   float deltaThetaMax = 2.0 * PI;
-   //   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
 
    // get dimensions of (potentially shrunken patch)
    const int nxPatch = wp->nx;
@@ -1824,6 +1831,14 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 //            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
             float xp = xDelta * cosf(thPost) - yDelta * sinf(thPost);
             float yp = xDelta * sinf(thPost) + yDelta * cosf(thPost);
+
+            if (bowtieFlag == 1.0f){
+               float offaxis_angle = atan2(yp, xp);
+               if ( ((offaxis_angle > bowtieAngle) && (offaxis_angle < (PI - bowtieAngle))) ||
+                     ((offaxis_angle < -bowtieAngle) && (offaxis_angle > (-PI + bowtieAngle))) ){
+                  continue;
+               }
+            }
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
