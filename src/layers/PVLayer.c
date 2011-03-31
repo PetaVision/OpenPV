@@ -248,6 +248,9 @@ int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
 {
    int k;
    for (k = 0; k < nk; k++) {
+      // The next statement allows some synapses to "die".
+      // TODO - check to see if its faster to not use branching
+      if (w[k] < WEIGHT_MIN_VALUE) continue;
        w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
        w[k] = w[k] < wMin ? wMin : w[k];
        w[k] = w[k] > wMax ? wMax : w[k];
@@ -262,6 +265,9 @@ int pvpatch_update_weights_localWMax(int nk, float * RESTRICT w, const float * R
    int k;
    for (k = 0; k < nk; k++) {
       //printf("Wmax[%d] = %f m[%d] = %f\n",k,Wmax[k],k,m[k]);
+      // The next statement allows some synapses to "die".
+      // TODO - check to see if its faster to not use branching
+      if (w[k] < WEIGHT_MIN_VALUE) continue;
        w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
        w[k] = w[k] < wMin ? wMin : w[k];
        w[k] = w[k] > Wmax[k] ? Wmax[k] : w[k];
