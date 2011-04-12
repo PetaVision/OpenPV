@@ -367,6 +367,7 @@ int LIF::setParams(PVParams * p)
 
 
    // set params for rate dependent Wmax
+   localWmaxFlag = false;
    localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
    tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
    alphaW     = p->value(name,"alphaW",0.01);
