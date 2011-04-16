@@ -176,7 +176,7 @@ int HyPerLayer::initializeLayerId(int layerId)
 
    setLayerId(layerId);
 
-   sprintf(filename, "%s/a%d.pvp", OUTPUT_PATH, clayer->layerId);
+   sprintf(filename, "%s/a%d.pvp", parent->getOutputPath(), clayer->layerId);
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
    return 0;
@@ -676,7 +676,7 @@ int HyPerLayer::outputState(float time, bool last)
  */
 const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, const char * term)
 {
-   snprintf(buf, PV_PATH_MAX-1, "%s%s_%s%s.pvp", OUTPUT_PATH, getName(), dataName, term);
+   snprintf(buf, PV_PATH_MAX-1, "%s/%s_%s%s.pvp", parent->getOutputPath(), getName(), dataName, term);
    return buf;
 }
 
