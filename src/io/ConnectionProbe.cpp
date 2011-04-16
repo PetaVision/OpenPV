@@ -40,10 +40,10 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->stdpVars = true;
 }
 
-ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
+ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre)
 {
    char path[PV_PATH_MAX];
-   sprintf(path, "%s%s", OUTPUT_PATH, filename);
+   sprintf(path, "%s/%s", hc->getOutputPath(), filename);
 
    this->kPre = kPre;
    this->fp = fopen(path, "w");
@@ -52,10 +52,10 @@ ConnectionProbe::ConnectionProbe(const char * filename, int kPre)
    this->stdpVars = true;
 }
 
-ConnectionProbe::ConnectionProbe(const char * filename, int kxPre, int kyPre, int kfPre)
+ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre)
 {
    char path[PV_PATH_MAX];
-   sprintf(path, "%s%s", OUTPUT_PATH, filename);
+   sprintf(path, "%s/%s", hc->getOutputPath(), filename);
    this->fp   = fopen(path, "w");
 
    this->kxPre = kxPre;
