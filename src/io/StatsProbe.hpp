@@ -14,7 +14,7 @@ namespace PV {
 
 class StatsProbe: public PV::LayerProbe {
 public:
-   StatsProbe(const char * filename, PVBufType type, const char * msg);
+   StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg);
    StatsProbe(PVBufType type, const char * msg);
    virtual ~StatsProbe();
 

@@ -17,8 +17,8 @@ namespace PV {
  * @type
  * @msg
  */
-StatsProbe::StatsProbe(const char * filename, PVBufType type, const char * msg)
-   : LayerProbe(filename)
+StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg)
+   : LayerProbe(filename, hc)
 {
    this->msg = strdup(msg);
    this->type = type;
