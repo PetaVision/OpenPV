@@ -29,8 +29,8 @@ PostConnProbe::PostConnProbe(int kPost)
  * @filename
  * @kPost
  */
-PostConnProbe::PostConnProbe(const char * filename, int kPost)
-   : ConnectionProbe(filename, 0)
+PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost)
+   : ConnectionProbe(filename, hc, 0)
 {
    this->kxPost = 0;
    this->kyPost = 0;
@@ -53,8 +53,8 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->wActiv = NULL;
 }
 
-PostConnProbe::PostConnProbe(const char * filename,int kxPost, int kyPost, int kfPost)
-   : ConnectionProbe(filename, 0, 0, 0)
+PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost)
+   : ConnectionProbe(filename, hc, 0, 0, 0)
 {
    this->kxPost = kxPost;
    this->kyPost = kyPost;
