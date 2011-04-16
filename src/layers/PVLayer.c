@@ -144,33 +144,6 @@ float pvlayer_getWeight(float x0, float x, float r, float sigma)
    return expf(0.5 * dx * dx / (sigma * sigma));
 }
 
-// Default implementation -- output some stats and activity files
-int pvlayer_outputState(PVLayer *l)
-{
-   char str[16];
-   static int append = 0;
-   int cid = l->columnId;
-
-   const int nx = l->loc.nx;
-   const int ny = l->loc.ny;
-   const int nf = l->loc.nf;
-
-   // Print avg, max/min, etc of f.
-   sprintf(str, "[%d]:L%1.1d: f:", cid, l->layerId);
-   printStats(l->activity->data, l->numNeurons, str);
-
-   // Output spike events and V
-   sprintf(str, "[%d]:f%1.1d", cid, l->layerId);
-   pv_dump_sparse(str, append, l->activity->data, nx, ny, nf);
-   sprintf(str, "[%d]:V%1.1d", cid, l->layerId);
-   pv_dump(str, append, l->V, nx, ny, nf);
-
-   // append to dump file after original open
-   append = 1;
-
-   return 0;
-}
-
 int pvlayer_copyUpdate(PVLayer* l) {
    int k;
    pvdata_t * activity = l->activity->data;
