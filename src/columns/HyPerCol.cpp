@@ -74,6 +74,7 @@ HyPerCol::~HyPerCol()
    free(layers);
    free(name);
    free(path);
+   free(outputPath);
 }
 
 int HyPerCol::initFinish(void)
@@ -124,10 +125,17 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
    numSteps = 2;
+   outputPath = NULL;
    image_file = NULL;
    param_file = NULL;
    unsigned long random_seed = 0;
-   parse_options(argc, argv, &image_file, &param_file, &numSteps, &opencl_device, &random_seed);
+   parse_options(argc, argv, &outputPath, &image_file, &param_file,
+                 &numSteps, &opencl_device, &random_seed);
+
+   if (outputPath == NULL) {
+      outputPath = strdup(OUTPUT_PATH);
+      assert(outputPath != NULL);
+   }
 
    // run only on CPU for now
    initializeThreads(opencl_device);

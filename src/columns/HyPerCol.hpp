@@ -59,6 +59,7 @@ public:
 
    char * getName()                       {return name;}
    char * getPath()                       {return path;}
+   char * getOutputPath()                 {return outputPath;}
 
    CLDevice   * getCLDevice()             {return clDevice;}
 
@@ -131,6 +132,7 @@ private:
 
    char * name;
    char * path;
+   char * outputPath;     // path to output file directory
    char * image_file;
    PVLayerLoc imageLoc;
 
