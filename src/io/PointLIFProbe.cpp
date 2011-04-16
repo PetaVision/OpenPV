@@ -20,8 +20,8 @@ namespace PV {
  * @fLoc
  * @msg
  */
-PointLIFProbe::PointLIFProbe(const char * filename, int xLoc, int yLoc, int fLoc,
-      const char * msg) : PointProbe(filename, xLoc, yLoc, fLoc, msg)
+PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
+      const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
 {
 }
 
