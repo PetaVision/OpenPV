@@ -12,6 +12,7 @@
 
 namespace PV {
 
+class HyPerCol;
 class HyPerLayer;
 
 typedef enum {
@@ -22,7 +23,7 @@ typedef enum {
 class LayerProbe {
 public:
    LayerProbe();
-   LayerProbe(const char * filename);
+   LayerProbe(const char * filename, HyPerCol * hc);
    virtual ~LayerProbe();
 
    virtual int outputState(float time, HyPerLayer * l) = 0;

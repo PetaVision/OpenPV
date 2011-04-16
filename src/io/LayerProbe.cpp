@@ -18,10 +18,10 @@ LayerProbe::LayerProbe()
 /**
  * @filename
  */
-LayerProbe::LayerProbe(const char * filename)
+LayerProbe::LayerProbe(const char * filename, HyPerCol * hc)
 {
    char path[PV_PATH_MAX];
-   sprintf(path, "%s%s", OUTPUT_PATH, filename);
+   sprintf(path, "%s/%s", hc->getOutputPath(), filename);
    fp = fopen(path, "w");
 }
 
