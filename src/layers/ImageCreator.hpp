@@ -84,7 +84,8 @@ public:
 	bool ifModified() { return modified; };
 
 private:
-	bool     modified;
+	HyPerCol * hc;
+	bool modified;
 
 	unsigned char * drawBuffer;
 

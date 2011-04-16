@@ -25,6 +25,7 @@ namespace PV {
  */
 ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
 {
+   this->hc = hc;
    initialize();
 #ifdef OBSOLETE
    updateImage(0.0, 0.0);
@@ -546,16 +547,16 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
    isbinon = ((options % 2) ? 1 : 0);
 
    if (istifon) {
-      snprintf(tiffilename, 255, "%simages/%s.tif", OUTPUT_PATH, basicfilename);
+      snprintf(tiffilename, 255, "%s/images/%s.tif", hc->getOutputPath(), basicfilename);
       //status |= tiff_write_file(tiffilename, data, loc->nx, loc->ny);
       status |= tiff_write_file_drawBuffer(tiffilename, drawBuffer, loc->nx, loc->ny);
    }
    if (istxton) {
-      snprintf(txtfilename, 255, "%simages/%s.txt", OUTPUT_PATH, basicfilename);
+      snprintf(txtfilename, 255, "%s/images/%s.txt", hc->getOutputPath(), basicfilename);
       status |= writeImageToTxt(txtfilename);
    }
    if (isbinon) {
-      snprintf(binfilename, 255, "%simages/%s.bin", OUTPUT_PATH, basicfilename);
+      snprintf(binfilename, 255, "%s/images/%s.bin", hc->getOutputPath(), basicfilename);
       status |= writeImageToBin(binfilename);
    }
 
