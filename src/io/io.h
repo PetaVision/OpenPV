@@ -90,12 +90,12 @@ int log_parameters(int n_time_steps, char * input_filename);
 
 int printStats(pvdata_t * buf, int nItems, char * msg);
 
-int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
-int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
+int pv_dump(const char * output_path, const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
+int pv_dump_sparse(const char * output_path, const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
 
 int pv_write_patch(FILE * fp, int numTotal, float minVal, float maxVal, PVPatch * p);
 
-int pv_write_patches(const char * filename, int append,
+int pv_write_patches(const char * output_path, const char * filename, int append,
                      int nx, int ny, int nf, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches);
 int pv_read_patches(FILE *fp, int nxp, int nyp, int nfp, float minVal, float maxVal,
@@ -106,7 +106,7 @@ int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
 int    pv_close_binary(FILE * fp);
 size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
 
-int parse_options(int argc, char * argv[], char ** input_file,
+int parse_options(int argc, char * argv[], char ** output_path, char ** input_file,
                   char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed);
 
 #ifdef __cplusplus

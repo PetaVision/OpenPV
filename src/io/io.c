@@ -24,10 +24,8 @@ void usage()
    printf("\nUsage:\n");
    printf(" -p <parameters filename>\n");
    printf(" [-n <number of timesteps>]\n");
-   printf(" [-i <input filename>]\n");
-//   printf("\nA good test is:\n");
-//   printf(" ./Debug/pv -n 100 -p input/params.pv -i input/horizontal-lines.tif\n");
-//   printf("\nThen check results in Octave/MATLAB using analysis/pv_analyze.m\n\n");
+   printf(" [-o <output directory>\n");
+   printf(" [-i <input image filename>]\n");
 }
 
 /**
@@ -38,7 +36,7 @@ void usage()
  * @n_time_steps
  * @device
  */
-int parse_options(int argc, char * argv[], char ** input_file,
+int parse_options(int argc, char * argv[], char ** output_path, char ** input_file,
                   char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed)
 {
    if (argc < 2) {
@@ -51,6 +49,7 @@ int parse_options(int argc, char * argv[], char ** input_file,
    pv_getopt_int(argc, argv, "-n", n_time_steps);
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-i", input_file);
+   pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
    pv_getopt_unsigned_long(argc, argv, "-s", random_seed);
 
@@ -111,7 +110,7 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
    return -1;  // not found
 }
 
-
+#ifdef OBSOLETE
 // For MATLAB use, just save a number with name as comment
 #define LOGINTPARM(paramfile, which) \
     fprintf(paramfile, "%d %% %s\n", which, #which)
@@ -119,42 +118,8 @@ static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
     fprintf(paramfile, "%f %% %s\n", which, #which)
 #define LOGSPARM(paramfile, which) \
     fprintf(paramfile, #which "=%s\n", which)
-
-/**
- * @n_time_steps
- * @input@filename
- */
-#ifdef OBSOLETE
-int log_parameters(int n_time_steps, char *input_filename)
-{
-   // Write our runtime parameters to a logfile, so that
-   // anyone using using the output can extract this
-   // information for analysis, rather than hardcoding.
-   char param_filename[PV_PATH_MAX];
-   FILE * paramfile;
-   sprintf(param_filename, OUTPUT_PATH "/" PARAMS_FILE);
-
-   paramfile = fopen(param_filename, "w");
-
-   if (paramfile == NULL) {
-      printf("Couldn't open parameter logfile %s. Aborting.\n", param_filename);
-      return -1;
-   }
-
-   // TODO: need to get these per-layer
-   LOGINTPARM(paramfile,NX);
-   LOGINTPARM(paramfile,NY);
-   LOGINTPARM(paramfile,NO);
-   LOGINTPARM(paramfile,NK);
-   LOGINTPARM(paramfile,(NX*NY*NO*NK));
-   LOGFPARM(paramfile,DTH);
-   LOGINTPARM(paramfile,n_time_steps);
-   //LOGSPARM(paramfile,input_filename); //causes MATLAB problems
-   fclose(paramfile);
-
-   return 0;
-}
 #endif
+
 
 #define TIFF_FILE_TYPE    1
 #define BINARY_FILE_TYPE  2
@@ -468,7 +433,8 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
  * @ny
  * @nf
  */
-int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
+int pv_dump(const char * output_path, const char * filename,
+            int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
    int params[NUM_BIN_PARAMS];
@@ -477,7 +443,7 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
 
    int nItems = nx * ny * nf;
 
-   sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
+   sprintf(fullpath, "%s/%s.bin", output_path, filename);
 
    if (append) fp = fopen(fullpath, "ab");
    else        fp = fopen(fullpath, "wb");
@@ -518,7 +484,8 @@ int pv_dump(const char * filename, int append, pvdata_t * I, int nx, int ny, int
  * @ny
  * @nf
  */
-int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int ny, int nf)
+int pv_dump_sparse(const char * output_path, const char * filename,
+                   int append, pvdata_t * I, int nx, int ny, int nf)
 {
    char fullpath[PV_PATH_MAX];
    int params[NUM_BIN_PARAMS];
@@ -528,7 +495,7 @@ int pv_dump_sparse(const char * filename, int append, pvdata_t * I, int nx, int 
 
    int nItems = nx * ny * nf;
 
-   sprintf(fullpath, "%s/%s_sparse.bin", OUTPUT_PATH, filename);
+   sprintf(fullpath, "%s/%s_sparse.bin", output_path, filename);
 
    if (append) fp = fopen(fullpath, "ab");
    else        fp = fopen(fullpath, "wb");
@@ -717,7 +684,7 @@ int pv_read_patch_old(FILE * fp, float nf, float minVal, float maxVal, PVPatch *
  * @numPatches
  * @patches
  */
-int pv_write_patches(const char * filename, int append,
+int pv_write_patches(const char * output_path, const char * filename, int append,
                      int nxp, int nyp, int nfp, float minVal, float maxVal,
                      int numPatches, PVPatch ** patches)
 {
@@ -731,7 +698,7 @@ int pv_write_patches(const char * filename, int append,
    // write maxVal as an integer so round up
    const float newMaxVal = ceilf(maxVal);
 
-   sprintf(fullpath, "%s/%s.bin", OUTPUT_PATH, filename);
+   sprintf(fullpath, "%s/%s.bin", output_path, filename);
 
    if (append) fp = fopen(fullpath, "ab");
    else        fp = fopen(fullpath, "wb");
