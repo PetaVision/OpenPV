@@ -801,7 +801,7 @@ FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * 
 
    FILE * fp = fopen(filename, "rb");
    if (fp == NULL) {
-      pv_log(stderr, "pv_open_binary: couldn't open output file %s\n", filename);
+      pv_log(stderr, "pv_open_binary: couldn't open input file %s\n", filename);
       return NULL;
    }
 
