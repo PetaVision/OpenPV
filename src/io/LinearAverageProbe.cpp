@@ -60,7 +60,7 @@ int LinearAverageProbe::outputState(float time, HyPerLayer * l)
    if (fpGif == NULL) {
       int numOnLines = 0;
       char path[PV_PATH_MAX];
-      sprintf(path, "%s%s", OUTPUT_PATH, gifFile);
+      sprintf(path, "%s/%s", l->parent->getOutputPath(), gifFile);
 //      fpGif = fopen(path, "r");
 
       int nx = clayer->loc.nxGlobal;
@@ -108,7 +108,7 @@ int LinearAverageProbe::outputState(float time, HyPerLayer * l)
       // get list of locations
    }
 
-   float dt = parent->getDeltaTime();
+   float dt = hc->getDeltaTime();
    int nf = clayer->loc.nf;
 
    if (dim == DimX) {
