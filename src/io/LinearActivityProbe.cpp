@@ -18,7 +18,7 @@ namespace PV {
 LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int linePos, int f)
    : LayerProbe()
 {
-   this->parent = hc;
+   this->hc = hc;
    this->dim = dim;
    this->linePos = linePos;
    this->f   = f;
@@ -32,9 +32,9 @@ LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int lineP
  * @f
  */
 LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, PVDimType dim, int linePos, int f)
-    : LayerProbe(filename)
+    : LayerProbe(filename, hc)
 {
-   this->parent = hc;
+   this->hc = hc;
    this->dim = dim;
    this->linePos = linePos;
    this->f   = f;
@@ -63,7 +63,7 @@ int LinearActivityProbe::outputState(float time, HyPerLayer * l)
    const int nf = clayer->loc.nf;
    const int nb = clayer->loc.nb;
 
-   float dt = parent->getDeltaTime();
+   float dt = hc->getDeltaTime();
 
    double sum = 0.0;
    float freq;

@@ -26,7 +26,7 @@ public:
    virtual int outputState(float time, HyPerLayer * l);
 
 protected:
-   HyPerCol * parent;
+   HyPerCol * hc;
    PVDimType dim;
    int linePos;
    int f;
