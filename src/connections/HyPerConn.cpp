@@ -289,7 +289,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    if (inputParams->present(getName(), "initFromLastFlag")) {
       if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
          char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", OUTPUT_PATH, getConnectionId());
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
           readWeights(patches, numPatches, name);
           if (normalize_flag) {
              normalizeWeights(patches, numPatches);
@@ -597,10 +597,10 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    if (filename == NULL) {
       if (last) {
-         snprintf(path, PV_PATH_MAX-1, "%sw%d_last.pvp", OUTPUT_PATH, getConnectionId());
+         snprintf(path, PV_PATH_MAX-1, "%s/w%d_last.pvp", parent->getOutputPath(), getConnectionId());
       }
       else {
-         snprintf(path, PV_PATH_MAX - 1, "%sw%d.pvp", OUTPUT_PATH, getConnectionId());
+         snprintf(path, PV_PATH_MAX - 1, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
       }
    }
    else {
@@ -621,7 +621,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    // only write first weight patch
 
-   sprintf(outfile, "%sw%d.tif", OUTPUT_PATH, getConnectionId());
+   sprintf(outfile, "%s/w%d.tif", parent->getOutputPath(), getConnectionId());
    FILE * fd = fopen(outfile, "wb");
    if (fd == NULL) {
       fprintf(stderr, "writeWeights: ERROR opening file %s\n", outfile);
@@ -641,7 +641,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    char outfile[PV_PATH_MAX];
 
    if (filename != NULL) {
-      snprintf(outfile, PV_PATH_MAX-1, "%s%s", OUTPUT_PATH, filename);
+      snprintf(outfile, PV_PATH_MAX-1, "%s/%s", parent->getOutputPath(), filename);
       fd = fopen(outfile, "w");
       if (fd == NULL) {
          fprintf(stderr, "writeWeights: ERROR opening file %s\n", filename);
@@ -1577,7 +1577,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    const int nfPostPatch = lPre->loc.nf;
 
    const char * last_str = (last) ? "_last" : "";
-   snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", OUTPUT_PATH, getConnectionId(), last_str);
+   snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
 
    const PVLayerLoc * loc  = post->getLayerLoc();
    Communicator   * comm = parent->icCommunicator();
