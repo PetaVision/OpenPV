@@ -14,7 +14,7 @@ namespace PV {
 
 class PointProbe: public PV::LayerProbe {
 public:
-   PointProbe(const char * filename, int xLoc, int yLoc, int fLoc, const char * msg);
+   PointProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc, const char * msg);
    PointProbe(int xLoc, int yLoc, int fLoc, const char * msg);
    virtual ~PointProbe();
 

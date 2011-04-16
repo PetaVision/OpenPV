@@ -19,9 +19,9 @@ namespace PV {
  * @fLoc
  * @msg
  */
-PointProbe::PointProbe(const char * filename, int xLoc, int yLoc, int fLoc,
+PointProbe::PointProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
       const char * msg) :
-   LayerProbe(filename)
+   LayerProbe(filename, hc)
 {
    this->xLoc = xLoc;
    this->yLoc = yLoc;
