@@ -13,11 +13,12 @@ ColProbe::ColProbe() {
     fp = stdout;
 }
 
-ColProbe::ColProbe(const char * filename) {
+ColProbe::ColProbe(const char * filename, HyPerCol * hc) {
     char * path;
-    size_t len = strlen(OUTPUT_PATH) + strlen(filename) + 1;
+    const char * output_path = hc->getOutputPath();
+    size_t len = strlen(output_path) + strlen(filename) + 1;
     path = (char *) malloc( len * sizeof(char) );
-    sprintf(path, "%s%s", OUTPUT_PATH, filename);
+    sprintf(path, "%s/%s", output_path, filename);
     fp = fopen(path, "w");
     free(path);
 }

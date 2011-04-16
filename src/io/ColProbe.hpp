@@ -16,7 +16,7 @@ namespace PV {
 class ColProbe {
 public:
     ColProbe();
-    ColProbe(const char * filename);
+    ColProbe(const char * filename, HyPerCol * hc);
     virtual ~ColProbe();
 
     virtual int outputState(float time, HyPerCol * hc) {return EXIT_SUCCESS;}
