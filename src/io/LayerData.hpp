@@ -18,6 +18,7 @@ enum DataType{
    TYPE_VTH = 0,
    TYPE_WMAX = 1,    // extended
    TYPE_R = 2,       // restricted
+   TYPE_VTHREST = 3, // restricted
 };
 
 namespace PV {
