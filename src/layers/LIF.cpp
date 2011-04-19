@@ -21,9 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// only for my dumb debugging
-#include <iostream>
-using namespace std;
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,7 +58,7 @@ void LIF_update_state_localWmax(
     const int nf,
     const int nb,
 
-    const float gammaW,
+    const float tauWmax,
     const float alphaW,
     const float averageR,
 
@@ -78,6 +75,37 @@ void LIF_update_state_localWmax(
     float * phiInhB,
     float * R,
     float * Wmax,
+    float * activity);
+
+void LIF_update_state_localWmaxVth(
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    const float tauWmax,
+    const float tauVthRest,
+    const float alphaVthRest,
+    const float alphaW,
+    const float averageR,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * phiExc,
+    float * phiInh,
+    float * phiInhB,
+    float * R,
+    float * Wmax,
+    float * VthRest,
     float * activity);
 
 #ifdef __cplusplus
@@ -124,6 +152,10 @@ LIF::~LIF()
    if(localWmaxFlag){
       free(Wmax);
    }
+   if(localVthRestFlag){
+      free(VthRest);
+   }
+
 #ifdef PV_USE_OPENCL
    free(evList);
 
@@ -160,6 +192,8 @@ int LIF::initialize(PVLayerType type)
    int status = CL_SUCCESS;
 
    const size_t numNeurons = getNumNeurons();
+   localWmaxFlag    = false;
+   localVthRestFlag = false;
 
    setParams(parent->parameters());
    clayer->layerType = type;
@@ -183,15 +217,21 @@ int LIF::initialize(PVLayerType type)
    assert(Vth != NULL);
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = VTH_REST;
+      //Vth[k] = V_REST + 0.1;
    }
 
    // allocate memory for R
    //
    R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
    assert(R != NULL);
+   cout << "R pointer in LIF: " << R << endl;
+   for (size_t k = 0; k < numNeurons; k++){
+      R[k] = 0.0;
+   }
 
    // allocate memory for wMax
    if(localWmaxFlag){
+      // mwmory for Wmax (extended array)
       const size_t numExtended = getNumExtended();
       Wmax = (pvdata_t *) calloc(numExtended, sizeof(pvdata_t) );
       assert(Wmax != NULL);
@@ -201,6 +241,27 @@ int LIF::initialize(PVLayerType type)
       }
    }else{
       Wmax = NULL;
+   }
+
+   if(localVthRestFlag){
+      // memory for Vthrest (restricted array)
+      VthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
+      assert(VthRest != NULL);
+      cout << "VthRest pointer in LIF: " << VthRest << endl;
+      for (size_t k = 0; k < numNeurons; k++){
+         //VthRest[k] = VTH_REST;
+         //VthRest[k] = V_REST;
+         VthRest[k] = lParams.VthRest;
+         if (k % 64 == 0){
+          cout << ( k - (k%64)) / 64 <<":"<<endl;
+         }
+         cout << VthRest[k] << " ";
+         if((k+1) % 16 == 0){
+            cout << endl;
+         }
+      }
+   } else {
+      VthRest = NULL;
    }
 
    parent->addLayer(this);
@@ -339,6 +400,7 @@ int LIF::setParams(PVParams * p)
 
    lParams.tauRate  = p->value(name, "tauRate",  TAU_RATE);
    lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
+   //lParams.VthRest  = p->value(name, "VthRest" , V_REST);
    lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
    lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
 
@@ -367,9 +429,11 @@ int LIF::setParams(PVParams * p)
 
 
    // set params for rate dependent Wmax
-   localWmaxFlag = false;
    localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
    tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
+   localVthRestFlag = (bool) p->value(name, "localVthRestFlag", (float) localVthRestFlag);
+   tauVthRest  = p->value(name,"tauVthRest",TAU_VTHREST); // in ms
+   alphaVthRest= p->value(name,"alphaVthRest",0.01);
    alphaW     = p->value(name,"alphaW",0.01);
    averageR   = p->value(name,"averageR",10.0);
 
@@ -450,15 +514,25 @@ int LIF::updateState(float time, float dt)
    pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
    pvdata_t * activity = clayer->activity->data;
 
-   if(localWmaxFlag){
-      //float tauRate  = parent->parameters()->value(getName(), "tauRate", TAU_RATE);
+   if(localWmaxFlag && localVthRestFlag){
+      LIF_update_state_localWmaxVth(time, dt, nx, ny, nf, nb,
+                          tauWmax,tauVthRest,alphaVthRest,alphaW,averageR,
+                          &lParams, rand_state,
+                          clayer->V, Vth,
+                          G_E, G_I, G_IB,
+                          phiExc, phiInh, phiInhB, R, Wmax, VthRest, activity);
+   } else if(localWmaxFlag && !localVthRestFlag){
       LIF_update_state_localWmax(time, dt, nx, ny, nf, nb,
                           tauWmax,alphaW,averageR,
                           &lParams, rand_state,
                           clayer->V, Vth,
                           G_E, G_I, G_IB,
                           phiExc, phiInh, phiInhB, R, Wmax, activity);
-   } else {
+   }
+
+
+
+      else {
       LIF_update_state(time, dt, nx, ny, nf, nb,
                        &lParams, rand_state,
                        clayer->V, Vth,
@@ -514,6 +588,13 @@ int LIF::readState(float * time)
       assert(status == PV_SUCCESS);
    }
 
+   if(localVthRestFlag && VthRest != NULL){
+      extended = false;
+      getOutputFilename(path, "VthRest", "_last");
+      status = read(path, comm, &dtime, VthRest, loc, PV_FLOAT_TYPE, extended, contiguous);
+      assert(status == PV_SUCCESS);
+   }
+
    *time = (float) dtime;
    return status;
 
@@ -551,6 +632,12 @@ int LIF::writeState(float time, bool last)
       extended = true;
       getOutputFilename(path, "Wmax", last_str);
       status = write(path, comm, time, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
+   }
+
+   if(localVthRestFlag){
+      extended = false;
+      getOutputFilename(path, "VthRest", last_str);
+      status = write(path, comm, time, VthRest, loc, PV_FLOAT_TYPE, extended, contiguous);
    }
 
 #ifdef DEBUG_OUTPUT
@@ -604,6 +691,7 @@ extern "C" {
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIF_update_state.cl"
 #  include "../kernels/LIF_update_state_localWmax.cl"
+#  include "../kernels/LIF_update_state_localWmaxVth.cl"
 #endif
 
 #ifdef __cplusplus
