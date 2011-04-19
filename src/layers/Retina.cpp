@@ -309,8 +309,8 @@ int Retina::waitOnPublish(InterColComm* comm)
  *      - prevActivity[] buffer holds the time when a neuron last spiked.
  *      - not used if nonspiking
  *      - it sets the probStim and probBase.
- *              - probStim = poissonEdgeProb * V[k];
- *              - probBase = poissonBlankProb
+ *              - probStim = noiseOnFreq * dt_sec * (phiExc - phiInh); the last ()  is V[k];
+ *              - probBase = noiseOffFreq * dt_sec;
  *              .
  *      - activity[] is set to 0 or 1 depending on the return of spike()
  *      - this depends on the last time a neuron spiked as well as on V[]
@@ -318,9 +318,6 @@ int Retina::waitOnPublish(InterColComm* comm)
  *      - V points to the same memory space as data in the Image so that when Image
  *      is updated, V gets updated too.
  *      .
- * NOTES:
- *      - poissonEdgeProb = noiseOnFreq * dT
- *      - poissonBlankProb = noiseOffFreq * dT
  *      .
  *
  *
