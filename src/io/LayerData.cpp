@@ -25,6 +25,8 @@ LayerData::LayerData(DataType data_type, bool append)
       this->extended   = true;
    } else if (data_type == TYPE_R){
       this->extended   = false;
+   } else if (data_type == TYPE_VTHREST){
+      this->extended   = false;
    }
 
    this->append = append;
@@ -73,6 +75,9 @@ int LayerData::outputState(float time, HyPerLayer * l)
       } else if (data_type == TYPE_R){
          data = LIF_layer->getR();
          l->getOutputFilename(filename, "R", last_str);
+      } else if (data_type == TYPE_VTHREST){
+         data = LIF_layer->getVthRest();
+         l->getOutputFilename(filename, "VthRest", last_str);
       }
 
       this->fp = pvp_open_write_file(filename, comm, this->append);
@@ -92,6 +97,8 @@ int LayerData::outputState(float time, HyPerLayer * l)
          data = LIF_layer->getWmax();
       } else if (data_type == TYPE_R){
          data = LIF_layer->getR();
+      } else if (data_type == TYPE_VTHREST){
+         data = LIF_layer->getVthRest();
       }
    }
 
