@@ -53,8 +53,10 @@ public:
    }
 
    virtual pvdata_t * getWmax() {return Wmax;}
+   virtual pvdata_t * getVthRest(){return VthRest;}
    virtual pvdata_t * getR(){return R;}
    virtual bool getLocalWmaxFlag() {return localWmaxFlag;}
+   virtual bool getLocalVthRestFlag() {return localVthRestFlag;}
 
    int setParams(PVParams * p);
 
@@ -71,7 +73,11 @@ protected:
    pvdata_t * R;        // average activity (not extended)
 
    bool     localWmaxFlag;  // presence of rate dependent wMax;
+   bool     localVthRestFlag; // presence of rate dependent VthRest
    pvdata_t * Wmax;   // adaptive upper STDP weight boundary
+   pvdata_t * VthRest; // adaptive VthRest
+   float    tauVthRest;
+   float    alphaVthRest;
    float    wMax;
    float    wMin;
    float    alphaW;   // params in Wmax dynamics.
