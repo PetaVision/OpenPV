@@ -21,6 +21,7 @@
 #define TAU_RATE 100000.0 // in ms
 #define TAU_WMAX 100000.0 // in ms
 #define TAU_VTH  10.0
+#define TAU_VTHREST 10000.0 // in ms
 #define DELTA_VTH 5.0
 #define GLOBAL_GAIN  1.0
 #define ASPECT_RATIO 4.0
