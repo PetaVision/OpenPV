@@ -224,7 +224,7 @@ int LIF::initialize(PVLayerType type)
    //
    R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
    assert(R != NULL);
-   cout << "R pointer in LIF: " << R << endl;
+   fprintf(stdout, "R pointer in LIF: %d \n", R );
    for (size_t k = 0; k < numNeurons; k++){
       R[k] = 0.0;
    }
@@ -235,7 +235,7 @@ int LIF::initialize(PVLayerType type)
       const size_t numExtended = getNumExtended();
       Wmax = (pvdata_t *) calloc(numExtended, sizeof(pvdata_t) );
       assert(Wmax != NULL);
-      cout << "Wmax pointer in LIF: " << Wmax << endl;
+      fprintf(stdout,"Wmax pointer in LIF: %d \n", Wmax);
       for (size_t k = 0; k < numExtended; k++){
          Wmax[k] = wMax;
       }
@@ -247,17 +247,17 @@ int LIF::initialize(PVLayerType type)
       // memory for Vthrest (restricted array)
       VthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
       assert(VthRest != NULL);
-      cout << "VthRest pointer in LIF: " << VthRest << endl;
+      fprintf(stdout,"VthRest pointer in LIF: %d\n", VthRest);
       for (size_t k = 0; k < numNeurons; k++){
          //VthRest[k] = VTH_REST;
          //VthRest[k] = V_REST;
          VthRest[k] = lParams.VthRest;
          if (k % 64 == 0){
-          cout << ( k - (k%64)) / 64 <<":"<<endl;
+          fprintf(stdout,"%d:\n", ( k - (k%64)) / 64 );
          }
-         cout << VthRest[k] << " ";
+         fprintf(stdout,"%f ", VthRest[k] );
          if((k+1) % 16 == 0){
-            cout << endl;
+            fprintf(stdout,"\n");
          }
       }
    } else {
