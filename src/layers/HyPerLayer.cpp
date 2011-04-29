@@ -492,7 +492,7 @@ int HyPerLayer::updateV() {
       V[k] = V[k] < 0.5f ? 0.0f : V[k];
 #endif
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::setActivity() {
@@ -509,19 +509,19 @@ int HyPerLayer::setActivity() {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       activity[kex] = V[k];
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::resetPhiBuffers() {
    int n = getNumNeurons();
    resetBuffer( getChannel(CHANNEL_EXC), n );
    resetBuffer( getChannel(CHANNEL_INH), n );
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
    for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)

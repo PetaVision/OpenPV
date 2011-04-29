@@ -12,8 +12,9 @@
 
 // Common include file for Petavision
 
-// Return value for successful function return
+// Return value for successful/unsuccessful function return
 #define PV_SUCCESS 0
+#define PV_FAILURE 1
 
 // For debugging/control:
 #undef  DEBUG_OUTPUT
