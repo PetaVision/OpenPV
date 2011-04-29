@@ -56,6 +56,7 @@ public:
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
+   ColProbe * getColProbe(int which)      {return probes[which];}
 
    char * getName()                       {return name;}
    char * getPath()                       {return path;}
@@ -88,6 +89,7 @@ public:
 
    int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}
+   int numberOfProbes()                   {return numProbes;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
    int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
