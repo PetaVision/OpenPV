@@ -729,7 +729,7 @@ int HyPerConn::outputState(float time, bool last)
       }
 
    }
-   else if ( time >= writeTime ) {
+   else if ( time >= writeTime && writeStep >= 0) {
       writeTime += writeStep;
 
       status = writeWeights(time, last);
