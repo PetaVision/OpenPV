@@ -129,7 +129,7 @@ int HyPerConn::initialize_base()
  *      - Each neuron in the pre-synaptic layer can project "up"
  *      a number of arbors. Each arbor connects to a patch in the post-synaptic
  *      layer.
- *      - writeTime and writeStep are used to write post-synaptic pataches.These
+ *      - writeTime and writeStep are used to write post-synaptic patches.These
  *      patches are written every writeStep.
  *      .
  */
@@ -729,15 +729,17 @@ int HyPerConn::outputState(float time, bool last)
       }
 
    }
-   else if (stdpFlag && time >= writeTime) {
+   else if ( time >= writeTime ) {
       writeTime += writeStep;
 
       status = writeWeights(time, last);
       assert(status == 0);
 
-      convertPreSynapticWeights(time);
-      status = writePostSynapticWeights(time, last);
-      assert(status == 0);
+      if( stdpFlag ) {
+         convertPreSynapticWeights(time);
+         status = writePostSynapticWeights(time, last);
+         assert(status == 0);
+      }
 
       // append to output file after original open
       ioAppend = true;
@@ -2300,19 +2302,19 @@ int HyPerConn::setPatchSize(const char * filename)
       fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
       fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->loc.nf, post->getName() );
-      exit(EXIT_FAILURE);
+      exit(PV_FAILURE);
    }
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
    status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
-   if( status != EXIT_SUCCESS) return status;
+   if( status != PV_SUCCESS) return status;
 
    int yScalePre = pre->getYScale();
    int yScalePost = post->getYScale();
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
-   if( status != EXIT_SUCCESS) return status;
+   if( status != PV_SUCCESS) return status;
 
-   status = filename ? patchSizeFromFile(filename) : EXIT_SUCCESS;
+   status = filename ? patchSizeFromFile(filename) : PV_SUCCESS;
 
    return status;
 }
@@ -2374,7 +2376,7 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
       fprintf(stderr, "Exiting.\n");
       exit(1);
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 
