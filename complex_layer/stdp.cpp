@@ -17,6 +17,7 @@
 #include <src/io/PostConnProbe.hpp>
 #include <src/io/LinearActivityProbe.hpp>
 #include <src/io/PointProbe.hpp>
+#include <src/io/PointLIFProbe.hpp>
 #include <src/io/StatsProbe.hpp>
 #include <src/layers/Gratings.hpp>
 #include <src/layers/Movie.hpp>
@@ -34,9 +35,17 @@ void dump_weights(PVPatch ** patches, int numPatches);
 
 #define INHIB
 
-#undef L2
+#define C1
 
-#undef L2INHIB
+#define C1INHIB
+
+#undef S2
+
+#undef S2INHIB
+
+#undef S2toC1
+
+
 
 int main(int argc, char* argv[])
 {
@@ -53,19 +62,28 @@ int main(int argc, char* argv[])
 
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
-   HyPerLayer * l1        = new LIF("L1", hc);
+   HyPerLayer * s1        = new LIF("S1", hc);
 
 #ifdef INHIB
-   HyPerLayer * l1Inh = new LIF("L1Inh", hc);
+   HyPerLayer * s1Inh = new LIF("S1Inh", hc);
 #endif
 
-#ifdef L2
-   HyPerLayer * l2 = new LIF("L2", hc);
+#ifdef C1
+   HyPerLayer * c1 = new LIF("C1", hc);
 #endif
 
-#ifdef L2INHIB
-   HyPerLayer * l2Inh = new LIF("L2Inh", hc);
+#ifdef C1INHIB
+   HyPerLayer * c1Inh = new LIF("C1Inh", hc);
 #endif
+
+#ifdef S2
+   HyPerLayer * s2 = new LIF("S2", hc);
+#endif
+
+#ifdef S2INHIB
+   HyPerLayer * s2Inh = new LIF("S2Inh", hc);
+#endif
+
 
    // connect the layers
    //
@@ -74,20 +92,33 @@ int main(int argc, char* argv[])
    HyPerConn * i_r1_s  = new KernelConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
    HyPerConn * i_r0_c  = new KernelConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
    HyPerConn * i_r0_s  = new KernelConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
-   HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
-   HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
-#ifdef L2
-   HyPerConn * l1_l2   = new HyPerConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
+   HyPerConn * r1_s1   = new HyPerConn("RetinaOn to S1", hc, retinaOn, s1, CHANNEL_EXC);
+   HyPerConn * r0_s1   = new HyPerConn("RetinaOff to S1", hc, retinaOff, s1, CHANNEL_EXC);
+#ifdef C1
+   HyPerConn * s1_c1   = new HyPerConn("S1 to C1", hc, s1, c1, CHANNEL_EXC);
 #endif
 
-#ifdef L2INHIB
-   HyPerConn * l2_l2Inh = new HyPerConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
-   HyPerConn * l2Inh_l2 = new KernelConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
+#ifdef C1INHIB
+   HyPerConn * c1_c1Inh = new KernelConn("C1 to C1Inh", hc, c1, c1Inh, CHANNEL_EXC);
+   HyPerConn * c1Inh_c1 = new KernelConn("C1Inh to C1", hc, c1Inh, c1, CHANNEL_INH);
 #endif
 
 #ifdef INHIB
-   HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
-   HyPerConn * l1Inh_l1 = new KernelConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
+   HyPerConn * s1_s1Inh = new KernelConn("S1 to S1Inh",  hc, s1,  s1Inh, CHANNEL_EXC);
+   HyPerConn * s1Inh_s1 = new KernelConn("S1Inh to S1",  hc, s1Inh,  s1, CHANNEL_INH);
+#endif
+
+#ifdef S2
+   HyPerConn * c1_s2   = new HyPerConn("C1 to S2", hc, c1, s2, CHANNEL_EXC);
+#endif
+
+#ifdef S2INHIB
+   HyPerConn * s2_s2Inh = new KernelConn("S2 to S2Inh", hc, s2, s2Inh, CHANNEL_EXC);
+   HyPerConn * s2Inh_s2 = new KernelConn("S2Inh to S2", hc, s2Inh, s2, CHANNEL_INH);
+#endif
+
+#ifdef S2toC1
+   HyPerConn * s2_c1   = new HyPerConn("S2 to C1", hc, s2, c1, CHANNEL_EXC);
 #endif
 
 
@@ -98,7 +129,7 @@ int main(int argc, char* argv[])
    display->setImage(image);
    display->addLayer(retinaOn);
    display->addLayer(retinaOff);
-   display->addLayer(l1);
+   display->addLayer(s1);
 #endif
 
    // add probes
@@ -175,11 +206,11 @@ int main(int argc, char* argv[])
    //LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
    //retina->insertProbe(rptprobe);
 
-   //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 98, 42, 0, "L1:");
-   //l1->insertProbe(ptprobe1);
+   //LayerProbe * ptprobe1 = new PointLIFProbe("l2_activity.txt", 10, 38, 0, "L2:");
+   //l2->insertProbe(ptprobe1);
 
-   //LayerProbe * ptprobe2 = new PointProbe("l1Inh_activity.txt", 24, 10, 0, "L1Inh:");
-   //l1Inh->insertProbe(ptprobe2);
+   //LayerProbe * ptprobe2 = new PointLIFProbe("l2Inh_activity.txt", 5, 16, 0, "L2Inh:");
+   //l2Inh->insertProbe(ptprobe2);
 
    //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 17, 11, 0, "Image:");
    //image->insertProbe(ptprobe3);
@@ -246,5 +277,6 @@ void dump_weights(PVPatch ** patches, int numPatches)
    }
    fclose(fp);
 }
+
 
 
