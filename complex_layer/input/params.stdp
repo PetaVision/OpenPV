@@ -11,6 +11,8 @@ HyPerCol "column" = {
    nx = 32; //128;   // until we get going with images
    ny = 32; //128;
    dt = .5;
+   
+   randomSeed = 1296748800.000000;
 };
 
 //
@@ -22,9 +24,18 @@ HyPerLayer "Image" = {
    height = 8;
    prefPosition = 7;
    marginWidth = 2; //CER 2;
-   pMove = 0.1; // CER 0.03125;  // every 16 ms
+   pMove = 0.2; // CER 0.03125;  // every 16 ms
    pSwitch = 0.0025;    // switch between horizontal and vertical
-   writeImages = 0;  // write out image file when changes   
+   writeImages = 0;  // write out image file when changes
+   
+   restart = 0.0;
+   Vrest = -70.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+   nyScale = 1.0;
+   nxScale = 1.0;
+   
 };
 
 HyPerLayer "RetinaOn" = {
@@ -35,13 +46,23 @@ HyPerLayer "RetinaOn" = {
    beginStim = 0;
    endStim   = 9000000;
 
-   burstFreq = 40; //25; // 0.001; //20;   // Hz
-   burstDuration = 1000; //7.5; //1000000; // ms
+   burstFreq = 4000; //25; // 0.001; //20;   // Hz
+   burstDuration = 10; //7.5; //1000000; // ms
 
    spikingFlag = 1;     // spike as poisson
 
    noiseOnFreq  = 100;  // (Hz) when this is defined poissonEdge overridden
    noiseOffFreq = 25;//50;   // (Hz) when this is defined poissonBlank overridden
+   
+   writeNonspikingActivity = 0.0;
+   
+   no = 1.0;
+   poissonBlankProb = 0.0;
+   poissonEdgeProb = 1.0;
+   Vrest = -70.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
 };
 
 HyPerLayer "RetinaOff" = {
@@ -52,22 +73,32 @@ HyPerLayer "RetinaOff" = {
    beginStim = 0;
    endStim = 9000000;
    
-   burstFreq = 40; //25;
-   burstDuration = 1000; //7.5; //1000000;
+   burstFreq = 4000; //25;
+   burstDuration = 10; //7.5; //1000000;
    
    spikingFlag = 1;
    
    noiseOnFreq = 100;
    noiseOffFreq = 25;//50;
+   
+   writeNonspikingActivity = 0.0;
+   
+   no = 1.0;
+   poissonBlankProb = 0.0;
+   poissonEdgeProb = 1.0;
+   Vrest = -70.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
 };
 
-HyPerLayer "L1" = {
+HyPerLayer "S1" = {
    nxScale = 4; // 8;
    nyScale = 4; // 8;
    
    //restart = 1;
 
-   marginWidth = 0; //CER 3;
+   marginWidth = 4; //CER 3;
    
 
    noiseAmpE = 0.2;
@@ -85,16 +116,25 @@ HyPerLayer "L1" = {
    tauVth = 10.0;
    deltaVth = 5.0;
 
+   writeNonspikingActivity = 0.0;
+   spikingFlag = 1.0;
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
 
 };
 
-HyPerLayer "L1Inh" = {
+HyPerLayer "S1Inh" = {
    nxScale = 1; // 8;
    nyScale = 1; // 8;
 
    marginWidth = 0; // 2; // 4;
-   
-
 
    noiseAmpE = 0.2;
    noiseAmpI = 0.2;
@@ -111,15 +151,27 @@ HyPerLayer "L1Inh" = {
    tauVth = 10.0;
    deltaVth = 5.0;
 
+   writeNonspikingActivity = 0.0;
+   spikingFlag = 1.0;
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+   
 };
 
-HyPerLayer "L2" = {
+HyPerLayer "C1" = {
    nxScale = 2; // 8;
    nyScale = 2; // 8;
    
    //restart = 1;
 
-   marginWidth = 0; //CER 3;
+   marginWidth = 4; //CER 3;
    
    noiseAmpE = 0.2;
    noiseAmpI = 0.2;
@@ -135,10 +187,21 @@ HyPerLayer "L2" = {
    VthRest = -55.0; //Vrest + 15.0
    tauVth = 10.0;
    deltaVth = 5.0;
+   
+   spikingFlag = 1.0;
 
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
 };
 
-HyPerLayer "L2Inh" = {
+HyPerLayer "C1Inh" = {
    nxScale = 1; // 8;
    nyScale = 1; // 8;
 
@@ -159,70 +222,308 @@ HyPerLayer "L2Inh" = {
    tauVth = 10.0;
    deltaVth = 5.0;
 
+   spikingFlag = 1.0;
+   
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+   
 };
 
+
+HyPerLayer "S2" = {
+   nxScale = 4; // 8;
+   nyScale = 4; // 8;
+   
+   //restart = 1;
+
+   marginWidth = 4; //CER 3;
+   
+   noiseAmpE = 0.2;
+   noiseAmpI = 0.2;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+   
+   spikingFlag = 1.0;
+
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+};
+
+
+HyPerLayer "S2Inh" = {
+   nxScale = 1; // 8;
+   nyScale = 1; // 8;
+
+   marginWidth = 0; // 2; // 4;
+
+   noiseAmpE = 0.2;
+   noiseAmpI = 0.2;
+   noiseAmpIB = 0.0;
+   Vrest = -70.0;
+   Vexc = 0.0;
+   Vinh = -75.0;
+   VinhB = -90.0;
+   tau = 20.0;
+   tauE = 1.0;
+   tauI = 5.0;
+   tauIB = 10.0;
+   VthRest = -55.0; //Vrest + 15.0
+   tauVth = 10.0;
+   deltaVth = 5.0;
+
+   writeNonspikingActivity = 0.0;
+   spikingFlag = 1.0;
+   no = 1.0;
+   restart = 0.0;
+   noiseFreqIB = 250.0;
+   noiseFreqI = 250.0;
+   noiseFreqE = 250.0;
+   tauRate = 100.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+   
+};
 
 ///////
 // 3 connections: 
 //    "Image to RetinaOn Center"
 //    "Image to RetinaOn Surround"
-//    "L1 to L1Inh"
-//    "L1Inh to L1"
+//    "S1 to S1Inh"
+//    "S1Inh to S1"
+//    "S1 to C1"
+//    "C1 to C1Inh"
+//    "C1inh to C1"
+//    "C1 to S2"
+//    "S2 to S2Inh"
+//    "S2Inh to S2"
 
 HyPerConn "Image to RetinaOn Center" = {
    nxp = 1;
    nyp = 1;
    
-   //
-   // strength used if randomFlag==0
+   normalize = 1.0;
+   
+   aspect = 1.0;
+   sigma = 1.0;
+   rMax =  4; //sqrt(nxp * nxp + nyp * nyp)
    strength = 10;//7;
-   uniformWeights = 1;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
 };
 
 HyPerConn "Image to RetinaOn Surround" = {
    nxp = 3;
    nyp = 3;
-   
-   //
-   // strength used if randomFlag==0
 
+   normalize = 1.0;
+
+   aspect = 1.0;
+   sigma = 1.0;
+   rMax = 324; //sqrt(nxp * nxp + nyp * nyp);
    strength = 10;//7;
-   uniformWeights = 1;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
 };
 
 
 HyPerConn "Image to RetinaOff Center" = {
    nxp = 1;
    nyp = 1;
-   
+
+   normalize = 1.0;
+
+   aspect = 1.0;
+   sigma = 1.0;
+   rMax = 4; //sqrt(nxp * nxp + nyp * nyp);
    strength = 10;//7;
-   uniformWeights = 1;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
 };
 
 HyPerConn "Image to RetinaOff Surround" = {
    nxp = 3;
    nyp = 3;
-   
+
+   normalize = 1.0;
+
+   aspect = 1.0;
+   sigma = 1.0;
+   rMax = 324; //sqrt(nxp * nxp + nyp * nyp);
    strength = 10;//7;
-   uniformWeights = 1;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
 };
 
-HyPerConn "RetinaOn to L1" = {
+HyPerConn "RetinaOn to S1" = {
    nxp = 20; // 64;
    nyp = 20; // 64;
    
-   stdpFlag   = 1;
+   stdpFlag   = 0;
    randomFlag = 1;
    
-   initFromLastFlag = 0;
+   initFromLastFlag = 1;
+   
    uniformWeights = 1;
    //strength = 1.5;
 
    //
    // these weights used if randomFlag==1
 
-   wMin = 0.0;     
-   wMax = 0.75;
+   wMin = 0.01;     
+   wMax = 0.5;
    dWMax = 0.02;  // .01;
    
    //wMinInit = 4.0;  // default values if Gaussian is not defined
@@ -238,22 +539,45 @@ HyPerConn "RetinaOn to L1" = {
    ampLTD = 1.2; //1.1;
    tauLTP = 20;
    tauLTD = 20;
+   
+   wMaxInit = 0.75;
+   wMinInit = 0.0;
+   gaussianWeights = 0.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   normalize = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   strength = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
+   
 };
 
-HyPerConn "RetinaOff to L1" = {
+HyPerConn "RetinaOff to S1" = {
    nxp = 20;
    nyp = 20;
    
-   stdpFlag   = 1;
+   stdpFlag   = 0;
    randomFlag = 1;
 
-   initFromLastFlag = 0;
+   initFromLastFlag = 1;
     
    uniformWeights = 1;
    //strength = 1.5;
 
-   wMin = 0.0;
-   wMax = 0.75;
+   wMin = 0.01;
+   wMax = 0.5;
    dWMax = 0.02;
    
    writeStep = 10000;
@@ -262,9 +586,32 @@ HyPerConn "RetinaOff to L1" = {
    ampLTD = 1.2;
    tauLTP = 20;
    tauLTD = 20;
+   
+   wMaxInit = 0.75;
+   wMinInit = 0.0;
+   gaussianWeights = 0.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   normalize = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   strength = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
+ 
 };
 
-HyPerConn "L1 to L1Inh" = {
+HyPerConn "S1 to S1Inh" = {
    nxp = 1; //4;
    nyp = 1; //4;
    strength = 8; //16;
@@ -278,13 +625,48 @@ HyPerConn "L1 to L1Inh" = {
    //wMax = 0.75;
    //dWMax = 0.02;
    
+   normalize = 1.0;
    
+   aspect = 1.0; 
    sigma = 100;
    rMax  = 100;
    //writeStep = 1000; // writes to output file every writeStep
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0; 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.01;
+   wMin = 0.0;
+   wMax = 8.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
 };
 
-HyPerConn "L1Inh to L1" = {
+HyPerConn "S1Inh to S1" = {
    nxp = 4; //16;
    nyp = 4; //16;
    strength = 32; //64;
@@ -298,15 +680,51 @@ HyPerConn "L1Inh to L1" = {
    //wMax = 0.75;
    //dWMax = 0.02;
    
-
+   normalize = 1.0;
+   
+   aspect = 1.0;
    sigma = 100;
    rMax  = 100;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 32.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
 };
 
 
-HyPerConn "L1 to L2" = {
-   nxp = 3;
-   nyp = 3;
+HyPerConn "S1 to C1" = {
+   nxp = 5;
+   nyp = 5;
    delay = 0;
    
    stdpFlag   = 1;
@@ -317,8 +735,8 @@ HyPerConn "L1 to L2" = {
    //uniformWeights = 1;
    //strength = 1.5;
 
-   wMin = 0.0;
-   wMax = 0.75; //0.1875; //0.375; //0.75; //1.5
+   wMin = 0.01;
+   wMax = 0.5; //0.1875; //0.375; //0.75; //1.5
    dWMax = 0.02;
    
    writeStep = 10000;
@@ -327,27 +745,335 @@ HyPerConn "L1 to L2" = {
    ampLTD = 1.2; // 1.4; 
    tauLTP = 20;
    tauLTD = 20;
+   
+   wMaxInit = 0.5;
+   wMinInit = 0.0;
+   gaussianWeights = 0.0;
+   uniformWeights = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   normalize = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   strength = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
 };
 
-HyPerConn "L2 to L2Inh" = {
+HyPerConn "C1 to C1Inh" = {
    nxp = 1; //4;
    nyp = 1; //4;
-   strength = 16; //8;
+   strength = 8; //8;
    
    delay = 0;//5;
    
+   normalize = 1.0;
+   
+   aspect = 1.0;
    sigma = 100;
    rMax  = 100;
 
    //writeStep = 1000; // writes to output file every writeStep
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 16.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
+   
 };
 
-HyPerConn "L2Inh to L2" = {
+HyPerConn "C1Inh to C1" = {
    nxp = 2; //16;
    nyp = 2; //16;
-   strength = 16; //16;
+   strength = 8; //16;
    delay = 0;//5;
 
+   normalize = 1.0;
+   
+   aspect = 1.0;
    sigma = 100;
    rMax  = 100;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 16.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
 };
+
+
+HyPerConn "C1 to S2" = {
+   nxp = 18;
+   nyp = 18;
+   delay = 8;
+   
+   stdpFlag   = 1;
+   randomFlag = 1;
+
+   initFromLastFlag = 0;
+   
+   //uniformWeights = 1;
+   //strength = 1.5;
+
+   wMin = 0.0;
+   wMax = 0.5; //0.1875; //0.375; //0.75; //1.5
+   dWMax = 0.02;
+   
+   writeStep = 10000;
+
+   ampLTP = 1.0;
+   ampLTD = 1.6; // 1.4; 
+   tauLTP = 20;
+   tauLTD = 20;
+   
+   wMaxInit = 0.5;
+   wMinInit = 0.0;
+   gaussianWeights = 0.0;
+   uniformWeights = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   normalize = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   strength = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
+};
+
+
+HyPerConn "S2 to S2Inh" = {
+   nxp = 1; //4;
+   nyp = 1; //4;
+   strength = 8; //16;
+   
+   delay = 0;//5;
+
+   //uniformWeights = 1;
+   //wMinInit = 1;
+   //wMaxInit = 16;
+   //wMin = 0.0;
+   //wMax = 0.75;
+   //dWMax = 0.02;
+   
+   normalize = 1.0;
+   
+   aspect = 1.0; 
+   sigma = 100;
+   rMax  = 100;
+   //writeStep = 1000; // writes to output file every writeStep
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0; 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.01;
+   wMin = 0.0;
+   wMax = 8.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+};
+
+HyPerConn "S2Inh to S2" = {
+   nxp = 4; //16;
+   nyp = 4; //16;
+   strength = 32; //64;
+
+   delay = 0;//5;
+   
+   //uniformWeights = 1;
+   //wMinInit = 1;
+   //wMaxInit = 64;
+   //wMin = 0.0;
+   //wMax = 0.75;
+   //dWMax = 0.02;
+   
+   normalize = 1.0;
+   
+   aspect = 1.0;
+   sigma = 100;
+   rMax  = 100;
+   
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 32.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
+};
+
+
+HyPerConn "S2 to C1" = {
+   nxp = 5;
+   nyp = 5;
+   delay = 8;
+   
+   stdpFlag   = 1;
+   randomFlag = 1;
+
+   initFromLastFlag = 0;
+   
+   //uniformWeights = 1;
+   //strength = 1.5;
+
+   wMin = 0.0;
+   wMax = 1.0; //0.1875; //0.375; //0.75; //1.5
+   dWMax = 0.02;
+   
+   writeStep = 10000;
+
+   ampLTP = 1.0;
+   ampLTD = 1.6; // 1.4; 
+   tauLTP = 20;
+   tauLTD = 20;
+   
+   wMaxInit = 0.5;
+   wMinInit = 0.0;
+   gaussianWeights = 0.0;
+   uniformWeights = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   normalize = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   strength = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   
+};
+
