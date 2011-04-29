@@ -157,6 +157,9 @@ protected:
    float writeTime;             // time of next output
    float writeStep;             // output time interval
 
+   bool spikingFlag;
+   bool writeNonspikingActivity;
+
    // OpenCL variables
    //
 #ifdef PV_USE_OPENCL

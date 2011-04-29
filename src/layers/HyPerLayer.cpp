@@ -134,6 +134,17 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
+#undef WRITE_NONSPIKING_ACTIVITY
+#ifdef WRITE_NONSPIKING_ACTIVITY
+   float defaultWriteNonspikingActivity = 1.0;
+#else
+   float defaultWriteNonspikingActivity = 0.0;
+#endif
+
+   spikingFlag = (bool) params->value(name, "spikingFlag", 0);
+   if( !spikingFlag )
+      writeNonspikingActivity = (bool) params->value(name, "writeNonspikingActivity", defaultWriteNonspikingActivity);
+
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
@@ -641,29 +652,17 @@ int HyPerLayer::outputState(float time, bool last)
       probes[i]->outputState(time, this);
    }
 
-   PVParams * params = parent->parameters();
-   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
 
-#undef WRITE_NONSPIKING_ACTIVITY
-#ifdef WRITE_NONSPIKING_ACTIVITY
-   float defaultWriteNonspikingActivity = 1.0;
-#else
-   float defaultWriteNonspikingActivity = 0.0;
-#endif
-
-   if (spikingFlag != 0) {
-      status = writeActivitySparse(time);
-   }
-   else {
-      int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
-            defaultWriteNonspikingActivity);
-      if (writeNonspikingActivity) {
-         status = writeActivity(time);
-      }
-   }
-
-   if (time >= writeTime) {
+   if (time >= writeTime && writeStep >= 0) {
       writeTime += writeStep;
+      if (spikingFlag != 0) {
+         status = writeActivitySparse(time);
+      }
+      else {
+         if (writeNonspikingActivity) {
+            status = writeActivity(time);
+         }
+      }
    }
 
    return status;
