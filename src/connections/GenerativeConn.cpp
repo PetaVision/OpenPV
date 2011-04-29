@@ -39,7 +39,7 @@ int GenerativeConn::initialize_base() {
     weightUpdatePeriod = 1.0;
     nextWeightUpdate = weightUpdatePeriod;
     relaxation = 1.0;
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
     // KernelConn constructor calls KernelConn::initialize_base()
     // and the similarly for HyPerConn constructor, so I don't need to.
 }
@@ -56,26 +56,27 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     weightUpdatePeriod = parent->parameters()->value(name, "weightUpdatePeriod", 1.0f);
     nextWeightUpdate = weightUpdatePeriod;
     relaxation = parent->parameters()->value(name, "relaxation", 1.0f);
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }
 
 int GenerativeConn::updateState(float time, float dt) {
+    int status = PV_SUCCESS;
     if(time > nextWeightUpdate) {
         nextWeightUpdate += weightUpdatePeriod;
-        updateWeights(0);
+        status = updateWeights(0);
     }
-    return EXIT_SUCCESS;
+    return status;
 }  // end of GenerativeConn::updateState(float, float)
 
 int GenerativeConn::updateWeights(int axonID) {
     printf("updateWeights for connection %s\n", name);
 
     int nPre = preSynapticLayer()->getNumNeurons();
+    int nx = preSynapticLayer()->getLayerLoc()->nx;
+    int ny = preSynapticLayer()->getLayerLoc()->ny;
+    int nf = preSynapticLayer()->getLayerLoc()->nf;
+    int pad = preSynapticLayer()->getLayerLoc()->nb;
     for(int kPre=0; kPre<nPre;kPre++) {
-        int nx = preSynapticLayer()->getLayerLoc()->nx;
-        int ny = preSynapticLayer()->getLayerLoc()->ny;
-        int nf = preSynapticLayer()->getLayerLoc()->nf;
-        int pad = preSynapticLayer()->getLayerLoc()->nb;
         int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
 
         PVAxonalArbor * arbor = axonalArbor(kPre, 0);
@@ -99,7 +100,7 @@ int GenerativeConn::updateWeights(int axonID) {
         }
     }
 
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }  // end of GenerativeConn::updateWeights(int);
 
 }  // end of namespace PV block
