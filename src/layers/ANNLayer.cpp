@@ -8,9 +8,9 @@
 #include "ANNLayer.hpp"
 
 namespace PV {
-ANNLayer::ANNLayer(const char* name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
+ANNLayer::ANNLayer(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
     initialize();
-}  // end NonspikingLayer::NonspikingLayer()
+}  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
 
 ANNLayer::~ANNLayer() {}
 
