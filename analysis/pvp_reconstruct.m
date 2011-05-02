@@ -1,6 +1,6 @@
 
 function [fh] = ...
-      pvp_reconstruct( recon_array, ...
+      pvp_reconstruct(recon_array, ...
 		      plot_title, ...
 		      fh, ...
 		      size_recon, ...
@@ -13,6 +13,10 @@ function [fh] = ...
   global NUM2STR_FORMAT
   global OUTPUT_PATH
   global THETA_MAX
+
+  if numel(recon_array(:)) <=1
+    return;
+  endif
   
   if ~exist('NUM2STR_FORMAT') || isempty(NUM2STR_FORMAT)
     NUM2STR_FORMAT = '%03.3i';
@@ -157,7 +161,7 @@ function [fh] = ...
 	( recon3D - min_recon_val ) ./ ...
 	( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
     if plot_recon_flag
-      if ( ~exist('fh','var') || isempty(fh) || nargin < 5 )
+      if ( ~exist('fh','var') || isempty(fh) || nargin < 3 )
 	fh = figure;
       else
 	figure(fh);
@@ -173,7 +177,6 @@ function [fh] = ...
       box "off"
       axis "off"
       tmp = squeeze( max(recon3D,[],1) );
-				%imagesc( gca, tmp' );  % plots recod2D as an image
       imagesc( tmp' );  % plots recod2D as an image
       colormap('gray');
     endif
