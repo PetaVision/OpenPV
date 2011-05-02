@@ -160,7 +160,6 @@ int HyPerConn::initialize(const char * filename)
    assert(wPatches[arbor] != NULL);
 
    writeTime = parent->simulationTime();
-   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
 
    parent->addConnection(this);
 
@@ -221,6 +220,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    return initialize(name, hc, pre, post, channel, NULL);
 }
 
+// set member variables specified by user
 int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 {
    const char * name = getName();
@@ -232,12 +232,13 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    numParams = sizeof(*p) / sizeof(float);
    assert(numParams == 9); // catch changes in structure
 
+   writeStep = (int) filep->value(name, "writeStep", 0);
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
    //params->vel      = filep->value(name, "vel", params->vel);
    //params->rmin     = filep->value(name, "rmin", params->rmin);
-   params->rmax     = filep->value(name, "rmax", params->rmax);
+   //params->rmax     = filep->value(name, "rmax", params->rmax);
 
    //params->varDelayMin = (int) filep->value(name, "varDelayMin", params->varDelayMin);
    //params->varDelayMax = (int) filep->value(name, "varDelayMax", params->varDelayMax);
@@ -252,21 +253,20 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 
    stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
    if (stdpFlag) {
-   ampLTP = filep->value(name, "ampLTP", ampLTP);
-   ampLTD = filep->value(name, "ampLTD", ampLTD);
-   tauLTP = filep->value(name, "tauLTP", tauLTP);
-   tauLTD = filep->value(name, "tauLTD", tauLTD);
+      ampLTP = filep->value(name, "ampLTP", ampLTP);
+      ampLTD = filep->value(name, "ampLTD", ampLTD);
+      tauLTP = filep->value(name, "tauLTP", tauLTP);
+      tauLTD = filep->value(name, "tauLTD", tauLTD);
 
-   wMax = filep->value(name, "strength", wMax);
-   // let wMax override strength if user provides it
-   wMax = filep->value(name, "wMax", wMax);
-   wMin = filep->value(name, "wMin", wMin);
+      wMax = filep->value(name, "strength", wMax);
+      // let wMax override strength if user provides it
+      wMax = filep->value(name, "wMax", wMax);
+      wMin = filep->value(name, "wMin", wMin);
 
-   dWMax = filep->value(name, "dWMax", dWMax);
+      dWMax = filep->value(name, "dWMax", dWMax);
 
-
-   // set params for rate dependent Wmax
-   localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
+      // set params for rate dependent Wmax
+      localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
    }
 
    return 0;
