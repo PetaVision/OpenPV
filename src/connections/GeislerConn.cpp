@@ -25,7 +25,7 @@ GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                          HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel);
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
