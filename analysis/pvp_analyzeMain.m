@@ -50,12 +50,13 @@ global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
 OUTPUT_PATH = [project_path, 'input/amoeba_256/spiking/amoeba/'];
 
+%%image_path = [matlab_path, 'amoebaX2/256_png/4/'];
 image_path = [matlab_path, 'amoeba_test/256_png/4/'];
 image_filename = [image_path 't/tar_0049_a.png'];
 target_filename{1} = [image_path 'a/tar_0049_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
-copyfile(main_file, [main_file, '.save'], OUTPUT_PATH);
+copyfile(main_file, [OUTPUT_PATH, 'geisler.cpp.save'] );
 
 params_file = [project_path, 'input/params.geisler'];
 copyfile(params_file, OUTPUT_PATH);
@@ -167,8 +168,8 @@ layer_struct.size_layer = cell(num_layers,1);
 				% data structures for correlation analysis
 				%stft_array = cell( num_layers, 1);
 xcorr_struct = struct;
-xcorr_struct.min_freq = 15;
-xcorr_struct.max_freq = 50;
+xcorr_struct.min_freq = 30;
+xcorr_struct.max_freq = 60;
 xcorr_struct.size_border_mask = 4;
 max_lag = 128/DELTA_T; 
 xcorr_struct.max_lag = max_lag; 
@@ -1023,48 +1024,6 @@ stop_eigen_timer = time;
 total_eigen_timer = stop_eigen_timer - start_eigen_timer;
 disp(["total_eigen_timer = ", num2str(total_eigen_timer)]);
 
-%% plot connections
-global N_CONNECTIONS
-global NXP NYP NFP
-[connID, connIndex] = pvp_connectionID();
-plot_weights = 1:0;%N_CONNECTIONS;
-weights = cell(N_CONNECTIONS, 1);
-pvp_header = cell(N_CONNECTIONS, 1);
-nxp = cell(N_CONNECTIONS, 1);
-nyp = cell(N_CONNECTIONS, 1);
-nfp = cell(N_CONNECTIONS, 1);
-for i_conn = plot_weights
-  [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_header{i_conn}, pvp_index ] ...
-      = pvp_readWeights(i_conn);
-  NK = 1;
-  NO = floor( NFEATURES / NK );
-  pvp_header_tmp = pvp_header{i_conn};
-  num_patches = pvp_header_tmp(pvp_index.WGT_NUMPATCHES);
-  NFP = pvp_header_tmp(pvp_index.WGT_NFP);
-  skip_patches = 1; %num_patches;
-  for i_patch = 1 : skip_patches : num_patches
-    NXP = nxp{i_conn}(i_patch);
-    NYP = nyp{i_conn}(i_patch);
-    N = NFP * NXP * NYP;
-    plot_title = ...
-        [connID{i_conn}, ...
-         '(', ...
-           int2str(i_conn), ...
-           ',', ...
-           int2str(i_patch), ...
-           ')'];
-    size_recon = ...
-        [1, NFP, NXP, NYP];
-    fig_tmp = ...
-        pvp_reconstruct(weights{i_conn}{i_patch}, ...
-			plot_title, ...
-			[], ...
-			size_recon, ...
-			1);
-    fig_list = [fig_list; fig_tmp];
-  endfor %% % i_patch
-endfor %% % i_conn
-
 
 %%read membrane potentials from point probes
 if plot_vmem
@@ -1137,6 +1096,9 @@ if plot_vmem
   endfor %% % i_vmem
 endif %% %plot_vmem
 
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+close all;
+fig_list = [];
 
 
 %% plot psth's of all layers together
@@ -1174,7 +1136,57 @@ if plot_rates
 endif %%
 
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+close all;
+fig_list = [];
+
 
 stop_timer = time;
 total_timer = stop_timer - start_timer;
 disp(["total_timer = ", num2str(total_timer)]);
+
+%% plot connections
+global N_CONNECTIONS
+global NXP NYP NFP
+[connID, connIndex] = pvp_connectionID();
+N_CONNECTIONS = 16;
+plot_weights = 1:N_CONNECTIONS;
+weights = cell(N_CONNECTIONS, 1);
+pvp_header = cell(N_CONNECTIONS, 1);
+nxp = cell(N_CONNECTIONS, 1);
+nyp = cell(N_CONNECTIONS, 1);
+nfp = cell(N_CONNECTIONS, 1);
+for i_conn = plot_weights
+  [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_header{i_conn}, pvp_index ] ...
+      = pvp_readWeights(i_conn);
+  NK = 1;
+  NO = floor( NFEATURES / NK );
+  pvp_header_tmp = pvp_header{i_conn};
+  num_patches = pvp_header_tmp(pvp_index.WGT_NUMPATCHES);
+  NFP = pvp_header_tmp(pvp_index.WGT_NFP);
+  skip_patches = 1; %num_patches;
+  for i_patch = 1 : skip_patches : num_patches
+    NXP = nxp{i_conn}(i_patch);
+    NYP = nyp{i_conn}(i_patch);
+    N = NFP * NXP * NYP;
+    plot_title = ...
+        [connID{i_conn}, ...
+         '(', ...
+           int2str(i_conn), ...
+           ',', ...
+           int2str(i_patch), ...
+           ')'];
+    size_recon = ...
+        [1, NFP, NXP, NYP];
+    fig_tmp = ...
+        pvp_reconstruct(weights{i_conn}{i_patch}, ...
+			plot_title, ...
+			[], ...
+			size_recon, ...
+			1);
+    fig_list = [fig_list; fig_tmp];
+  endfor %% % i_patch
+endfor %% % i_conn
+
+
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+
