@@ -19,7 +19,7 @@ RandomConn::RandomConn(const char * name,
    HyPerConn::initialize_base();
 
    randDistType = UNIFORM; //Uniform distribution is the default
-   HyPerConn::initialize(name, hc, pre, post, channel);
+   HyPerConn::initialize(name, hc, pre, post, channel, NULL);
 }
 
 RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -28,7 +28,7 @@ RandomConn::RandomConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
 
    randDistType = distrib;
-   initialize(name, hc, pre, post, channel);
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 int RandomConn::initializeRandomWeights(unsigned long seed)
