@@ -19,7 +19,7 @@ RuleConn::RuleConn()
 RuleConn::RuleConn(const char * name,
                    HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel)
 {
-   initialize(name, hc, pre, post, channel);
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 PVPatch ** RuleConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
