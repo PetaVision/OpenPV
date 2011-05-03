@@ -8,10 +8,10 @@
 
 "HyPerCol"     { yylval.sval = strdup(yytext); return T_KEYWORD; }
 "HyPerConn"    { yylval.sval = strdup(yytext); return T_KEYWORD; }
-
-"PVLayer"      { yylval.sval = strdup(yytext); return T_KEYWORD; }
 "HyPerLayer"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"V1"           { yylval.sval = strdup(yytext); return T_KEYWORD; }
+"ColProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
+"ConnectionProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
+"LayerProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
 
 [a-zA-Z][a-zA-Z0-9_]* {
    yylval.sval = strdup(yytext);
