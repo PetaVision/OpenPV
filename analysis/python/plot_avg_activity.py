@@ -39,7 +39,7 @@ if len(sys.argv) >= 4:
    step = int(sys.argv[3])
 
 if len(sys.argv) >= 5:
-   begin = float(sys.argv[4])
+   begin = int(sys.argv[4])
 
 if len(sys.argv) >= 6:
    vmax = float(sys.argv[5])
@@ -47,6 +47,7 @@ if len(sys.argv) >= 6:
 print "(begin, end, step, max) == ", begin, end, step, vmax
 
 activ = rs.PVReadSparse(sys.argv[1], extended)
+
 
 for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
@@ -68,12 +69,17 @@ for end in range(begin+step, end, step):
    ax.set_ylabel('Ky GLOBAL')
    ax.set_title('Activity: min=%1.1f, max=%1.1f time=%d' %(min, max, activ.time))
    ax.format_coord = format_coord
-   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=vmax)
+   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=max)
+
 
    ax = fig.add_subplot(2,1,2)
    ax.set_ylabel('Ky Avg Activity')
    ax.plot(s, 'o')
    ax.set_ylim(0.0, vmax)
+
+   #attempt at colorbar
+   #cax = fig.add_axes([0.85, 0.1, 0.075, 0.8]) 
+   #fig.colorbar(A, cax=cax)
 
    plt.show()
 
