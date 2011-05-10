@@ -124,9 +124,9 @@ function [connID, connIndex] = pvp_connectionID()
   %connIndex.l1inhff_l1ihff_inhB = ij_conn;
   %connID{ 1, ij_conn } =  'L1InhFF to L1InhFF InhB';
 
-  %ij_conn = ij_conn + 1;
-  %connIndex.l1inhff_l1inh = ij_conn;
-  %connID{ 1, ij_conn } =  'L1InhFF to L1Inh';
+  ij_conn = ij_conn + 1;
+  connIndex.l1inhff_l1inh = ij_conn;
+  connID{ 1, ij_conn } =  'L1InhFF to L1Inh';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inhff_l1ih_inhB = ij_conn;
@@ -142,15 +142,15 @@ function [connID, connIndex] = pvp_connectionID()
   %connIndex.l1inh_l1inhff = ij_conn;
   %connID{ 1, ij_conn } =  'L1Inh to L1Inh FF';
 
-  %ij_conn = ij_conn + 1;
-  %connIndex.l1inh_l1inh = ij_conn;
-  %connID{ 1, ij_conn } =  'L1Inh to L1Inh';
+  ij_conn = ij_conn + 1;
+  connIndex.l1inh_l1inh = ij_conn;
+  connID{ 1, ij_conn } =  'L1Inh to L1Inh';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inh_l1inh_exc = ij_conn;
   %connID{ 1, ij_conn } =  'L1Inh to L1Inh Exc';
 
-  N_CONNECTIONS = 14;
+  N_CONNECTIONS = 16;
 
 
 else % NON_SPIKING

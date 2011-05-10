@@ -50,7 +50,7 @@ else
 endif
 
 MNIST_flag = 0;
-bowtie_flag = 1;
+bowtie_flag = 0;
 
 NFC = 4;
 global FC_STR
@@ -58,7 +58,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 10;
-num_trials = ( TRAINING_FLAG <= 0 ) * 999; % %
+num_trials = 0;%%( TRAINING_FLAG <= 0 ) * 999; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -74,7 +74,7 @@ DEBUG_FLAG = 1;
 
 global G_STR
 G_STR = '';
-if ((MNIST_flag == 0) && (bowtie_flag = 0))
+if ((MNIST_flag == 0) && (bowtie_flag == 0))
   if abs(TRAINING_FLAG) == 1
     G_STR = '_G1';
   elseif abs(TRAINING_FLAG) == 2
@@ -84,17 +84,15 @@ if ((MNIST_flag == 0) && (bowtie_flag = 0))
   elseif abs(TRAINING_FLAG) == 4
     G_STR = '_G4';
   endif
-elseif MNIST_flag == 1
+else
   G_STR = '_6';
-elseif bowtie_flag == 1
-  G_STR = '';
 endif
 				%machine_path = '/home/garkenyon/workspace/';
-machine_path = '/Users/gkenyon/workspace2/';
+machine_path = '/home/garkenyon/workspace/';
 				%machine_path = '/nh/home/gkenyon/workspace/';
 global target_path
 target_path = [];
-target_path = [machine_path 'geisler/input/256/bowtie/target_75']; %, FC_STR];
+target_path = [machine_path 'kernel/input/amoeba_256/test_W287_target']; %, FC_STR];
 if ~isempty(target_path)
   target_path = [target_path, G_STR, '/'];
   if MNIST_flag == 0
@@ -104,7 +102,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = [machine_path, ...
-		     'geisler/input/256/bowtie/distractor_75']; %, FC_STR];
+		     'kernel/input/amoeba_256/test_W287_distractor']; %, FC_STR];
 else
   distractor_path = [];
 endif
@@ -556,7 +554,7 @@ if TRAINING_FLAG > 0
   plot_weights = []; %N_CONNECTIONS;
 else
   if max_target_flag > min_target_flag
-    plot_weights = [1:N_CONNECTIONS+1]; %%( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   else
     plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
   endif
@@ -569,7 +567,7 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-%%FLAT_ARCH_FLAG = 1;
+FLAT_ARCH_FLAG = 1;
 write_pvp_kernel_flag = 1;
 write_mat_kernel_flag = 1;
 weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -640,7 +638,7 @@ for i_conn = plot_weights
   endif % write_mat_kernel_flag
   NK = 1;
   NO = floor( NFEATURES / NK );
-  skip_patches = 1;%%num_patches;
+  skip_patches = num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
