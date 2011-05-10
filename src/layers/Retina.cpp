@@ -221,17 +221,22 @@ int Retina::setParams(PVParams * p)
 
    spikingFlag = (int) p->value(name, "spikingFlag", 1);
 
-   float probStim = p->value(name, "poissonEdgeProb" , 1.0f);
-   float probBase = p->value(name, "poissonBlankProb", 0.0f);
-
+   float probStim = 1.0f;
+   float probBase = 0.0f;
    if (p->present(name, "noiseOnFreq")) {
       probStim = p->value(name, "noiseOnFreq") * dt_sec;
-      if (probStim > 1.0) probStim = 1.0;
    }
+   else {
+      probStim = p->value(name, "poissonEdgeProb" , 1.0f);
+   }
+   if (probStim > 1.0) probStim = 1.0f;
    if (p->present(name, "noiseOffFreq")) {
       probBase = p->value(name, "noiseOffFreq") * dt_sec;
-      if (probBase > 1.0) probBase = 1.0;
    }
+   else {
+      probBase = p->value(name, "poissonBlankProb", 0.0f);
+   }
+   if (probBase > 1.0) probBase = 1.0f;
 
    // default parameters
    //
