@@ -224,7 +224,7 @@ int LIF::initialize(PVLayerType type)
    //
    R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
    assert(R != NULL);
-   fprintf(stdout, "R pointer in LIF: %d \n", R );
+   //fprintf(stdout, "R pointer in LIF: %d \n", R );
    for (size_t k = 0; k < numNeurons; k++){
       R[k] = 0.0;
    }
@@ -424,18 +424,21 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
    
    // set wMax parameters
-   wMax = p->value(name, "wMax", 0.75);
-   wMin = p->value(name, "wMin", 0.0);
-
+   localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
+   if (localWmaxFlag) {
+      wMax = p->value(name, "wMax", 0.75);
+      wMin = p->value(name, "wMin", 0.0);
+      tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
+      alphaW     = p->value(name,"alphaW",0.01);
+      averageR   = p->value(name,"averageR",10.0);
+   }
 
    // set params for rate dependent Wmax
-   localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
-   tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
    localVthRestFlag = (bool) p->value(name, "localVthRestFlag", (float) localVthRestFlag);
-   tauVthRest  = p->value(name,"tauVthRest",TAU_VTHREST); // in ms
-   alphaVthRest= p->value(name,"alphaVthRest",0.01);
-   alphaW     = p->value(name,"alphaW",0.01);
-   averageR   = p->value(name,"averageR",10.0);
+   if (localVthRestFlag) {
+      tauVthRest  = p->value(name,"tauVthRest",TAU_VTHREST); // in ms
+      alphaVthRest= p->value(name,"alphaVthRest",0.01);
+   }
 
    return 0;
 }
