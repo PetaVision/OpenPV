@@ -79,7 +79,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, Vrest, Vexc, Vinh, VinhB, deltaVth;
+   float tau, Vrest, Vexc, Vinh, VinhB, deltaVth, Vthrest;
 
    const float GMAX = 10.0;
 
@@ -118,7 +118,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    VinhB = params->VinhB;
    Vrest = params->Vrest;
 
-   //VthRest  = params->VthRest;
+   Vthrest  = params->VthRest;
    deltaVth = params->deltaVth;
 
    // add noise
@@ -175,24 +175,32 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
    // start of LIF2_update_finish
    //
-   // update average rate
-   l_R = (l_activ / tauRate) + l_R*exp_tauRate;
-   // multiply by 1000.0 to get the firing rate per second, which is how averageR is estimated
-   l_Wmax = - alphaW * (1000.0*l_R - averageR) + (l_Wmax + alphaW * (1000.0*l_R - averageR)) * exp_tauWmax;
-   l_VthRest = - alphaVthRest * (1000.0*l_R - averageR) + (l_VthRest + alphaVthRest * (1000.0*l_R - averageR)) * exp_tauVthRest;
    l_Vth = l_VthRest + (l_Vth - l_VthRest)*exp_tauVth;
 
    //
    // start of update_f
    //
 
-//   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
-//   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
-//   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
    bool fired_flag = (l_V > l_Vth);
 
    l_activ = fired_flag ? 1.0f             : 0.0f;
+
+   // update average rate
+   l_R = (l_activ / tauRate) + l_R*exp_tauRate;
+   // multiply by 1000.0 to get the firing rate per second, which is how averageR is estimated
+   // dynamics I: dynamics linked to average firing rate
+   l_Wmax = - alphaW * (1000.0*l_R - averageR) + (l_Wmax + alphaW * (1000.0*l_R - averageR)) * exp_tauWmax;
+   // dynamics II: linked to firing or not firing information - like VthRest does
+   //l_Wmax = fired_flag ? (l_Wmax - 0.0001) : (l_Wmax + 0.00000001);
+
+   // dynamics I: linked to average firing rate
+   //l_VthRest =  alphaVthRest * (1000.0*l_R - averageR) + (l_VthRest - alphaVthRest * (1000.0*l_R - averageR)) * exp_tauVthRest;
+   // dynamics II: linked to firing or not firing information
+   l_VthRest = fired_flag ? (l_VthRest + 1000.0/tauVthRest ) : l_VthRest;
+   l_VthRest = Vthrest + (l_VthRest - Vthrest) * exp_tauVthRest;
+
+
    l_V     = fired_flag ? Vrest            : l_V;
    l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
