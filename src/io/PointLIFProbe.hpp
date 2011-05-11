@@ -15,9 +15,17 @@ namespace PV {
 class PointLIFProbe: public PointProbe {
 public:
    PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc, const char * msg);
+   PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
+
    PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg);
+   PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
 
    virtual int outputState(float time, HyPerLayer * l);
+
+protected:
+   float writeTime;             // time of next output
+   float writeStep;             // output time interval
+
 };
 
 }
