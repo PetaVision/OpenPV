@@ -248,12 +248,13 @@ int LIF::initialize(PVLayerType type)
       VthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
       assert(VthRest != NULL);
       fprintf(stdout,"VthRest pointer in LIF: %d\n", VthRest);
+      int nx = clayer->loc.nx;
       for (size_t k = 0; k < numNeurons; k++){
          //VthRest[k] = VTH_REST;
          //VthRest[k] = V_REST;
          VthRest[k] = lParams.VthRest;
-         if (k % 64 == 0){
-          fprintf(stdout,"%d:\n", ( k - (k%64)) / 64 );
+         if (k % nx == 0){
+            fprintf(stdout,"%d:\n", ( k - (k%nx)) / nx );
          }
          fprintf(stdout,"%f ", VthRest[k] );
          if((k+1) % 16 == 0){
@@ -399,8 +400,8 @@ int LIF::setParams(PVParams * p)
    lParams.tauIB = p->value(name, "tauIB", TAU_INHB);
 
    lParams.tauRate  = p->value(name, "tauRate",  TAU_RATE);
-   lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
-   //lParams.VthRest  = p->value(name, "VthRest" , V_REST);
+   //lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
+   lParams.VthRest  = p->value(name, "VthRest" , V_REST);
    lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
    lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
 
