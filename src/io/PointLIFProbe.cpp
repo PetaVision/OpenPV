@@ -23,6 +23,8 @@ namespace PV {
 PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
       const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
 {
+   writeTime = 0.0;
+   writeStep = 10.0;
 }
 
 /**
@@ -34,6 +36,22 @@ PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int
 PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg) :
    PointProbe(xLoc, yLoc, fLoc, msg)
 {
+   writeTime = 0.0;
+   writeStep = 10.0;
+}
+
+PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
+      float writeStep, const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
+{
+   writeTime = 0.0;
+   this->writeStep = writeStep;
+}
+
+PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, const char * msg) :
+   PointProbe(xLoc, yLoc, fLoc, msg)
+{
+   writeTime = 0.0;
+   this->writeStep = writeStep;
 }
 
 /**
@@ -54,6 +72,7 @@ int PointLIFProbe::outputState(float time, HyPerLayer * l)
    assert(LIF_layer != NULL);
 
    bool localWmaxFlag = LIF_layer->getLocalWmaxFlag();
+   bool localVthRestFlag = LIF_layer->getLocalVthRestFlag();
 
    const PVLayerLoc * loc = l->getLayerLoc();
 
@@ -67,30 +86,35 @@ int PointLIFProbe::outputState(float time, HyPerLayer * l)
    const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
    const int kex = kIndexExtended(k, nx, ny, nf, nb);
 
-   if (sparseOutput) {
-      fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
-      // we will control the end of line character from the ConditionalProbe.
-   }
-   else {
-      fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
-      pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
-      pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
-      pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
-      pvdata_t * Vth  = LIF_layer->getVth();
-      fprintf(fp, " G_E=%6.3f", G_E[k]);
-      fprintf(fp, " G_I=%6.3f", G_I[k]);
-      fprintf(fp, " G_IB=%6.3f", G_IB[k]);
-      fprintf(fp, " V=%6.3f", l->clayer->V[k]);
-      fprintf(fp, " Vth=%6.3f", Vth[k]);
-      // scale rate by 1000.0 to get firing per second
-      fprintf(fp, " R=%6.3f", 1000.0 * LIF_layer->getAverageActivity()[k]);
-      if (localWmaxFlag){
-         fprintf(fp," Wmax=%6.3f",LIF_layer->getWmax()[kex]);
+   if (time >= writeTime) {
+      writeTime += writeStep;
+      if (sparseOutput) {
+         fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
+         // we will control the end of line character from the ConditionalProbe.
       }
-      fprintf(fp, " a=%.1f\n", activity[kex]);
-      fflush(fp);
+      else {
+         fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
+         pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
+         pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
+         pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
+         pvdata_t * Vth  = LIF_layer->getVth();
+         fprintf(fp, " G_E=%6.3f", G_E[k]);
+         fprintf(fp, " G_I=%6.3f", G_I[k]);
+         fprintf(fp, " G_IB=%6.3f", G_IB[k]);
+         fprintf(fp, " V=%6.3f", l->clayer->V[k]);
+         fprintf(fp, " Vth=%6.3f", Vth[k]);
+         // scale rate by 1000.0 to get firing per second
+         fprintf(fp, " R=%6.3f", 1000.0 * LIF_layer->getAverageActivity()[k]);
+         if (localWmaxFlag){
+            fprintf(fp," Wmax=%6.3f",LIF_layer->getWmax()[kex]);
+         }
+         if (localVthRestFlag){
+            fprintf(fp," VthRest=%6.3f",LIF_layer->getVthRest()[k]);
+         }
+         fprintf(fp, " a=%.1f\n", activity[kex]);
+         fflush(fp);
+      }
    }
-
    return 0;
 }
 
