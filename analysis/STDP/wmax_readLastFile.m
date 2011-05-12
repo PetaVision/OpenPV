@@ -25,7 +25,9 @@ NYscaled = NY * yScale;
 % data lives in the extended space? maybe not!
 % need to pass an extended boolean variable
 
-numItems = (NXscaled + 2*nPad)*(NYscaled + 2*nPad);
+%numItems = (NXscaled + 2*nPad)*(NYscaled + 2*nPad);
+
+%numItems = NXscaled*NYscaled;
 
 nxMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
            %  (retina to L1)
@@ -35,7 +37,20 @@ nyMar = 8; % this is 0.5* nxp for pre-syn to post-syn connections
 
 debug = 0;
 
-    
+% Note: We write rows first.  When we reshape, reshaping goes column first.
+% For eample for a 
+%     1     2     3
+%     4     5     6     (1)
+%     7     8     9
+% we write it as a = a = [1 2 3, 4 5 6, 7 8 9]. When we reshape it,
+% > reshape(a,[ 3 3 ] )
+% we get
+%
+%     1     4     7
+%     2     5     8    (2)
+%     3     6     9
+% instead of the correct answer (1).
+     
 if exist(filename,'file')
 
     fid = fopen(filename, 'r', 'native');
@@ -48,12 +63,12 @@ if exist(filename,'file')
 
 
     % read the data field
-    [data, count] = fread(fid, numItems, 'float32');
+    [data, count] = fread(fid, NXread*NYread, 'float32');
     size(data)
     fprintf('count = %d\n',count);
 
     if 0
-        recon2D = reshape(data, [NXscaled, NYscaled] );
+        recon2D = reshape(data, [NXread, NYread] );
         %recon2D = rot90(recon2D);
         %recon2D = 1 - recon2D;
         %figure('Name','Rate Array ');
@@ -81,7 +96,7 @@ function [time, NX, NY, NF, numParams] = readFirstHeader(fid)
 
 
 % NOTE: see analysis/python/PVReadWeights.py for reading params
-head = fread(fid,3,'int')
+head = fread(fid,3,'int');
 
 % type is 4 for Voltage files
 if head(3) ~= 1 % PVP_FILE_TYPE

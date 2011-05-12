@@ -1,6 +1,6 @@
 function [average_array, ave_rate] = stdp_readAverageActivity(fname, begin_step, end_step)
 
-global input_dir n_time_steps 
+global input_dir output_dir n_time_steps 
 
 filename = fname;
 filename = [input_dir, filename];
@@ -8,7 +8,7 @@ fprintf('read spikes from %s\n',filename);
 fprintf('begin_step = %d end_step = %d\n',begin_step, end_step);
 %pause
 
-debug = 1;  % if 1 prints spiking neurons
+debug = 0;  % if 1 prints spiking neurons
 
 ave_rate = 0;
 
@@ -80,7 +80,7 @@ if exist(filename,'file')
         
     end % loop over sim steps
     fclose(fid);
-    ave_rate = 2 * 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) );
+    ave_rate = 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) * 0.5 );
     average_array =  average_array * ...
         ( 2 * 1000.0 / ( end_step - begin_step + 1 ) );
     

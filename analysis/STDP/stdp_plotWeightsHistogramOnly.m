@@ -11,20 +11,23 @@ debug = 0;
 
 filename = fname;
 filename = [input_dir, filename];
+fprintf('read weights from %s\n',filename);
 
 NXlayer = NX * xScale; % L1 size
 NYlayer = NY * yScale;
+fprintf('NXlayer = %d NYlayer = %d\n', NXlayer, NYlayer);
+%pause
 
 N=NXlayer*NYlayer;
 
 nbins = 100;
 TSTEP = 1;  % plot every TSTEP
 
-if scaleWeights
-    edges = 0:0.01:0.75; % scaled weights
-else
-    edges = 0:255;      % bin locations
-end
+% if scaleWeights
+%     edges = 0:0.01:0.75; % scaled weights
+% else
+%     edges = 0:255;      % bin locations
+% end
 
 if exist(filename,'file')
     
@@ -36,11 +39,17 @@ if exist(filename,'file')
         time,numPatches,NXP,NYP,NFP);
     
     if numPatches ~= NXlayer*NYlayer
-        disp('mismatch between numPatches and NX*NY')
+        disp('mismatch between numPatches and NXlayer * NYlayer')
         return
     end
     patch_size = NXP*NYP;
     
+    if scaleWeights
+        edges = 0:0.01:maxVal; % scaled weights
+    else
+        edges = 0:255;      % bin locations
+    end
+
     recordID = 0; % number of weights records (configs)
    
     % NOTE: The file may have the full header written before each record,
@@ -122,7 +131,7 @@ if exist(filename,'file')
             hist(A,nbins);
             title(['Time ' num2str(time) ' Weights Histogram']);
             %hold on
-            pause(0.1)
+            pause(1)
             % store first histogram
             if hist_change
                 n = histc(A,edges);
@@ -151,7 +160,7 @@ if exist(filename,'file')
                 title(['Time ' num2str(time) ' Weights Histogram']);
             end
             %hold on
-            pause(0.1)
+            pause(1)
             
         end
         

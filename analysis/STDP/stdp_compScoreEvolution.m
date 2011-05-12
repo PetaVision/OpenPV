@@ -206,97 +206,97 @@ while (~eofFlag)
     end % loop over post-synaptic neurons
     
    
-    if comp_kmeans 
-
-    %% compute K-means
-    
-    % data is n x patch_size where n = NX * NY
-    [centers,mincenter,mindist,q2,quality] = kmeans(W_array,numCenters);
-    %size(centers)  % numCenters x patch_size
-    %size(mincenter)% n x 1
-    %q2
-    %quality
-
-    % compute cluster weights
-    for k=1:numCenters
-        clustW(k) = sum(find(mincenter == k));
-    end
-    clustW = clustW ./sum(clustW);
-
-    % normalize centers
-    for k=1:numCenters
-        centers(k,:) = centers(k,:) ./ norm(centers(k,:));
-    end
-    
-    % sort centers according to weight
-    
-    [sortW,sortI] = sort(clustW,'descend');
-    
-    %% plot centers in reverse order of their weights
-    numColumns = 4; % number of row plots
-    numRows = ceil(numCenters/numColumns);
-    
-    if(plot_centers)
-        %figure('Name',['Weights K-means Centers: time ' num2str(time)]);
-        figure(f_cluster(f));
+    if comp_kmeans
+        
+        %% compute K-means
+        
+        % data is n x patch_size where n = NX * NY
+        [centers,mincenter,mindist,q2,quality] = kmeans(W_array,numCenters);
+        %size(centers)  % numCenters x patch_size
+        %size(mincenter)% n x 1
+        %q2
+        %quality
+        
+        % compute cluster weights
         for k=1:numCenters
-            fprintf('cluster %d w = %f\n',k,sortW(k));
-            %patch = clustW(k) * reshape(centers(k,:),[4 4])';
-            patch = reshape(centers(sortI(k),:),[4 4])';
-            subplot(numRows,numColumns,k);
-            colormap gray
-            imagesc(patch); % 'CDataMapping','direct'
-            title(['Center ' num2str(k) ' w = ' num2str(clustW(sortI(k)),2) ] );
-            %xlabel(['w = ' num2str(clustW(sortI(k)))] );
-            colorbar
-            axis square
-            axis off
+            clustW(k) = sum(find(mincenter == k));
         end
-
-    end
-
-    
-    %% write centers
-
-    if(write_centers)
-        if time >= 0
-            if f==1,fprintf(fid_centers,'%d ',(startTime + time)/1000),end
+        clustW = clustW ./sum(clustW);
+        
+        % normalize centers
+        for k=1:numCenters
+            centers(k,:) = centers(k,:) ./ norm(centers(k,:));
+        end
+        
+        % sort centers according to weight
+        
+        [sortW,sortI] = sort(clustW,'descend');
+        
+        %% plot centers in reverse order of their weights
+        numColumns = 4; % number of row plots
+        numRows = ceil(numCenters/numColumns);
+        
+        if(plot_centers)
+            %figure('Name',['Weights K-means Centers: time ' num2str(time)]);
+            figure(f_cluster(f));
             for k=1:numCenters
-                fprintf(fid_centers,'%f ', sortW(k));
-                for j=1:numel(centers(sortI(k),:))
-                    fprintf(fid_centers,'%f ',centers(sortI(k),j));
+                fprintf('cluster %d w = %f\n',k,sortW(k));
+                %patch = clustW(k) * reshape(centers(k,:),[4 4])';
+                patch = reshape(centers(sortI(k),:),[4 4])';
+                subplot(numRows,numColumns,k);
+                colormap gray
+                imagesc(patch); % 'CDataMapping','direct'
+                title(['Center ' num2str(k) ' w = ' num2str(clustW(sortI(k)),2) ] );
+                %xlabel(['w = ' num2str(clustW(sortI(k)))] );
+                colorbar
+                axis square
+                axis off
+            end
+            
+        end
+        
+        
+        %% write centers
+        
+        if(write_centers)
+            if time >= 0
+                if f==1,fprintf(fid_centers,'%d ',(startTime + time)/1000),end
+                for k=1:numCenters
+                    fprintf(fid_centers,'%f ', sortW(k));
+                    for j=1:numel(centers(sortI(k),:))
+                        fprintf(fid_centers,'%f ',centers(sortI(k),j));
+                    end
                 end
             end
         end
-    end
-    
-    
-    %% compute learning score
-    learning_score = 0;
-    for k=1:numCenters
-        fprintf('cluster %d w = %f ',k,clustW(sortI(k)));
-        [O, I ]= max(centers(sortI(k),:) * Features ) ;  
-        fprintf('max_overlap = %f for feature %d\n', O, I); 
-        learning_score = learning_score + sortW(k) * O;
-    end
-    fprintf('learning score = %f\n',learning_score);
-    figure(h_score);
-    if time >= 0
-       plot([(startTime + time)/1000],[learning_score],sym{f});hold on
-       fprintf('time = %d\n',(startTime + time)/1000 );
-    end
-    if time == 0 & f == 1
-        xlabel('time');
-        ylabel('learning score');
-        pause
-    end
-
-    
-    if(write_scores & time >= 0)
-        if f==1,fprintf(fid_scores,'%d ',(startTime+time)/1000),end
-        fprintf(fid_scores,'%f ',learning_score);        
-    end
-    
+        
+        
+        %% compute learning score
+        learning_score = 0;
+        for k=1:numCenters
+            fprintf('cluster %d w = %f ',k,clustW(sortI(k)));
+            [O, I ]= max(centers(sortI(k),:) * Features ) ;
+            fprintf('max_overlap = %f for feature %d\n', O, I);
+            learning_score = learning_score + sortW(k) * O;
+        end
+        fprintf('learning score = %f\n',learning_score);
+        figure(h_score);
+        if time >= 0
+            plot([(startTime + time)/1000],[learning_score],sym{f});hold on
+            fprintf('time = %d\n',(startTime + time)/1000 );
+        end
+        if time == 0 & f == 1
+            xlabel('time');
+            ylabel('learning score');
+            pause
+        end
+        
+        
+        if(write_scores & time >= 0)
+            if f==1,fprintf(fid_scores,'%d ',(startTime+time)/1000),end
+            fprintf(fid_scores,'%f ',learning_score);
+        end
+        
     end % comp_kmeans
     
     eofFlag = eofFlag | feof(fid{f});

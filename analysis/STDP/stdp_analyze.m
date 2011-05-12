@@ -1,5 +1,5 @@
 %%
-close all
+%close all
 %clear all
 
 % Make the global parameters available at the command-line for convenience.
@@ -8,10 +8,11 @@ global spike_array num_target rate_array target_ndx vmem_array
 global input_dir output_dir conn_dir output_path input_path
 global patch_size write_step
 
-input_dir = '/Users/manghel/Documents/workspace/earth/output/';
+input_dir = '/Users/manghel/Documents/workspace/marian/output/';
+%input_dir = '/Users/manghel/Documents/workspace/earth/output/';
 %input_dir = '/Users/manghel/Documents/workspace/soren/output/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/adaptiveWmax1/';
-%input_dir = '/Users/manghel/Documents/STDP-sim/soren11/';
+%input_dir = '/Users/manghel/Documents/workspace/STDP-sim/movie10/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-phases/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-good-w1.5-ltd-1.2-vhbars/';
 %input_dir = '/Users/manghel/Documents/STDP-sim/output-final_w3_bf40_bd10_dw04_bars/';
@@ -19,14 +20,14 @@ input_dir = '/Users/manghel/Documents/workspace/earth/output/';
 output_dir = '/Users/manghel/Documents/workspace/soren/output/';
 conn_dir = '/Users/manghel/Documents/STDP-sim/conn_probes_8_8/';
 
-num_layers = 4;
+num_layers = 5;
 n_time_steps = 200000; % the argument of -n; even when dt = 0.5 
 patch_size = 16;  % nxp * nyp
 write_step = 50000; % set in params.stdp
 
 
-begin_step = 0;       % where we start the analysis (used by readSparseSpikes)
-end_step   = 2000;
+begin_step = 90000;   % where we start the analysis (used by readSparseSpikes)
+end_step   = 95000;
 stim_begin = 1;       % generally not true, but I read spikes
                       % starting from begin_step
 stim_end = 1000000;
@@ -36,8 +37,8 @@ stim_end = stim_end - begin_step + 1;
 stim_steps = stim_begin : stim_end;
 bin_size = 10;
 
-NX            = 32;
-NY            = 32;      % 8;  % use xScale and yScale to get layer values
+NX            = 16; %32;
+NY            = 16; %32;      % 8;  % use xScale and yScale to get layer values
 dT            = 0.5;     % miliseconds
 burstFreq     = 25; %50; % Hz  (50=20ms)
 burstDuration = 9000000; % since patterns move %7.5; 
@@ -67,6 +68,7 @@ plot_weights_rate_evolution = 0;
 
 %% analyze synaptic weights
 plot_weights_field       = 0;
+plot_RF_field            = 0; % plots the receptive field (RF)
 plot_weights_projections = 0;
 plot_weights_histogram  = 0;
 plot_weights_corr       = 0; % read spikes first
@@ -77,8 +79,9 @@ comp_weights_PCA        = 0;
 comp_weights_Kmeans     = 0; % add Documents/MATLAB/Kmeans to path
 comp_weights_KmeansAD   = 0; % add Documents/MATLAB/Kmeans to path
 comp_conc_weights_Kmeans= 0; % add Documents/MATLAB/Kmeans to path
+comp_RF_Kmeans          = 0;
 comp_score_evolution    = 0; % add Documents/MATLAB/Kmeans to path
-numCenters              = 64; % param for comp_weights_Kmeans,
+numCenters              = 32;% param for comp_weights_Kmeans,
                              % comp_conc_weights_Kmeans, and
                              % comp_score_evolution
 
@@ -212,7 +215,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     end
     
     
-    if plot_rate_array & layer >=4
+    if plot_rate_array & layer >=2
         disp('read spikes and plot average activity (rate aray)')
         %begin_step = 0;  % where we start the analysis (used by readSparseSpikes)
         %end_step   = 4500;
@@ -225,7 +228,6 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
 
         NXscaled = NX * xScale;
         NYscaled = NY * yScale;
-        figure('Name',['Average Rate for ',l_name]);
         recon2D = reshape( rate_array{layer}, [NXscaled, NYscaled] );
         %recon2D = rot90(recon2D);
         %recon2D = 1 - recon2D;
@@ -240,7 +242,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         
         % compute rate
         disp(['ave_rate(',num2str(layer),') = ', num2str(mean(rate2D(:)))]);
-        
+        figure('Name',['Average Rate for ',l_name]);
         %imagesc( recon2D');  % plots recon2D as an image
         imagesc( rate2D');  % plots recon2D as an image
         colorbar
@@ -548,7 +550,7 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         bin_centers = 0;
         bin_edges =1;
         
-        for W=4:4:60
+        for W=4:4:60 % window size
             
         for nPost = 1:numel(kPostIndices)
             kPost = kPostIndices(nPost);
@@ -981,6 +983,22 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
         
     end
     
+    
+    % Analyze the receptive field (RF) field and its distribution
+    % Analyze the weights evoltion
+    % NOTE: The number of weights distribution recorded is
+    % (n_time_steps/write_step) 
+    if plot_RF_field == 1 & layer == 4
+        disp('plot Receptive Field field')
+
+        % a layer may be connected to multiple pre-synaptic layers and each
+        % connection has its own weights
+       
+        stdp_plotReceptiveField(w_file,xScale,yScale,Xtarg,Ytarg);
+        pause
+        
+    end
+    
     % Analyze the weights field and the weight patch projections
     % on a number of directions (features)
     % NOTE: The number of weights distribution recorded is
@@ -1105,8 +1123,12 @@ for layer = 1:num_layers; % layer 1 here is layer 0 in PV
     end
   
     
+     if comp_RF_Kmeans == 1 & layer == 4        
+        disp('compute K-means for Receptive Fields: ');
+        stdp_compReceptiveFieldsKmeans(w_last,numCenters, xScale,yScale);
+     end
     
-    if comp_score_evolution == 1 & layer >= 4
+    if comp_score_evolution == 1 & layer == 4
         disp('compute the evolution of the learning score: ');
         stdp_compScoreEvolution(w_file,w_last,numCenters, xScale,yScale);        
     end

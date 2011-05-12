@@ -307,6 +307,21 @@ patches allign to the expected feature vectors.
      that belong to the concatenated clusters. 
 
 
+> TO DO:
+
+The ICA paper - plos 6, Savin, Jishi, Triesch - plots the difference betwen the
+synaptic weights to the on and off synaptic inputs. 
+
+
+a) We should do K-means clustering for
+these "receptive fields." We should also estimate them using reverse correlation analysis.
+
+Set comp_RF_Kmeans = 1. 
+
+
+b) We should plot RF field!
+
+Set plot_RF_field = 1.
 
 
 > Learning score evolution
@@ -379,7 +394,9 @@ March 2008, 514-523
 
 
 REVERSE CORRELATION ANALYSIS
-
+NOTE: There is an easier way to do it by building influence matrices
+betweeb consecutive layers and multiplyong them to get the corelations
+between distant layers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -430,5 +447,31 @@ binary pixels selected independently with probability randomMovieProb
        - for each post-syn neuron that fires, update the number of spikes in 
        nPostSpikes array and the average pre activity in prePatchAverage.
 
+
+
+~~~~~~~~~~~~~~~
+
+HOMEOSTATIC CONTROL
+
+~~~~~~~~~~~~~~
+
+> the driving routine is wmax_analyze.m
+
+  - if read_features it reads for each neuron in the post-synaptic
+  layer - here L1 - the set on input neurons to its synaptic receptive
+  field - here inputs from RetinaOn and RetinaOff. Then it reads the
+  rate information computed using PV and determines the features -
+  regardless of their complexity - that each neuron should
+  learn. There are two cases here. First, when the images are fixed,
+  we know for sure what each neuron in L1 should learn. Second, even
+  if the image change, the set of features will be the same, but we
+  cannot assign a feature to a specific neuron. Instead, as we did
+  before, we find out if a neuron learned a feature from this feature
+  set.
+
+	- reads activity from 
+
+	- for each post-syn neuron it reads the pre-syn neurons connected to it.
+	They are read from files writen by PV::postConnProbes().
 
 

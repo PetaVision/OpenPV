@@ -5,6 +5,7 @@ global input_dir n_time_steps
 filename = fname;
 filename = [input_dir, filename];
 fprintf('read spikes from %s\n',filename);
+fprintf('begin_step = %d end_step = %d\n',begin_step, end_step);
 
 debug = 0;  % if 1 prints spiking neurons
 
@@ -74,7 +75,7 @@ if exist(filename,'file')
         else
             t=t+1;
             T(t) = time;
-            R(t) = (num_spikes*1.0)/N;
+            R(t) = 2000 * (num_spikes*1.0)/N;
         end
         
         total_spikes = total_spikes + num_spikes;
@@ -85,7 +86,7 @@ if exist(filename,'file')
     xlabel('time');
     ylabel('average activity');
     
-    ave_rate = 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) );
+    ave_rate = 1000 * total_spikes / ( N * ( end_step - begin_step + 1 ) * 0.5 );
     fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
         i_step,minInd,maxInd,ave_rate);
     %pause
@@ -135,7 +136,7 @@ if exist(filename,'file')
     end
     fclose(fid);
     spikes = sparse(spike_step, spike_id, 1, end_step - begin_step + 1, N, total_spikes);
-    ave_rate = 1000 * sum(spikes(:)) / ( N * ( end_step - begin_step + 1 ) );
+    ave_rate = 1000 * sum(spikes(:)) / ( N * ( end_step - begin_step + 1 ) * 0.5);
     disp(['ave_rate = ', num2str(ave_rate)]);
     size(spikes)
 else

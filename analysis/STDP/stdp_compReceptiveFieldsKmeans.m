@@ -1,4 +1,4 @@
-function A = stdp_compConcWeightsKmeans(fname, numCenters, xScale, yScale)
+function A = stdp_compReceptiveFieldsKmeans(fname, numCenters, xScale, yScale)
 % cluster the "weight" fields for all pre-synaptic layers
 % connected to the same post-synaptic layer; all weight patches
 % get concatenated and klustering is then performed.
@@ -13,11 +13,10 @@ global input_dir  output_dir NX NY
 NXscaled = NX * xScale; % L1 size
 NYscaled = NY * yScale;
 
-print_features = 0;
+
 scaleWeights = 1;
 write_centers =0;
 plot_centers = 1;
-comp_score = 0;
 
 debug = 0;
 
@@ -42,7 +41,7 @@ end
 %% open output file pointers
 
 if(write_centers)
-    centers_file = [output_dir,'WeightsConcKmeansCenters',num2str(numCenters),'.dat'];
+    centers_file = [output_dir,'ReceptiveFieldsCenters',num2str(numCenters),'.dat'];
     fid_centers = fopen(centers_file,'w');
 end
 
@@ -65,20 +64,8 @@ for f=1:numel(fname)
     patch_size = NXP*NYP;
     
 end
-    
-%% compute features matrix
-Features = compFeatures(NXP, NYP);
-% Features is a patch_size x numFeatures matrix
-if print_features
-    for f=1:size(Features,2)
-        fprintf('feature %d: ',f);
-        for i=1:patch_size
-            fprintf('%.2f ',Features(i,f) );
-        end
-        fprintf('\n');
-    end
-    pause
-end
+
+%% To insert computing Gabor filters here
         
 
 %% read the last weights field (configuration)
@@ -115,7 +102,11 @@ for f=1:numel(fname)
                     %pause
                 end
                 if(~isempty(w) & nItems ~= 0)
-                    W_array(k,(f-1)*patch_size+1:f*patch_size) = w(1:patch_size);
+                    if f==1
+                        W_array(k,:) = w(1:patch_size);
+                    else
+                        W_array(k,:) = W_array(k,:) - w(1:patch_size)';
+                    end
                     %pause
                 end
             end % if ~ feof
@@ -151,23 +142,23 @@ end
 [sortW,sortI] = sort(clustW,'descend');
 
 %% plot centers in reverse order of their weights
-numColumns = numel(fname); % for each pre-synaptic layer
+numColumns = 4; % for each pre-synaptic layer
 % ex, ON and OFF pre-synaptic layers
-numRows = numCenters;
+numRows = ceil(numCenters/numColumns);
 
 if(plot_centers)
-    figure('Name',['Weights K-means Centers: time ' num2str(time)]);
+    figure('Name',['Receptive Fields K-means Centers: time ' num2str(time)]);
 
     for k=1:numCenters
         fprintf('cluster %d w = %f\n',k,sortW(k));
-        title_str = ['Center ' num2str(k) ' w = ' num2str(clustW(sortI(k)),2) ];
         for f=1:numel(fname)
-            patch = reshape(centers(sortI(k),(f-1)*patch_size+1:f*patch_size),[4 4])';
-            subplot(numRows,numColumns,(k-1) * numColumns + f);
+            patch = reshape(centers(sortI(k),:),[4 4])';
+            subplot(numRows,numColumns,k);
             colormap gray
             imagesc(patch); % 'CDataMapping','direct'
-            %title(title_str);
-            %colorbar
+            title_str = ['Center ' num2str(k) ' w = ' num2str(clustW(sortI(k)),2) ];
+            title(title_str);
+            colorbar
             axis square
             axis off
         end
@@ -293,43 +284,3 @@ end
 % End subfunction
 %
 
-function F = compFeatures(NXP, NYP)
-
-% these are projections for 4x4 receptive fields
-% in the Bars images experiments; it includes both
-% vertical and horizontal features
-
-F = zeros(NXP*NYP,8);
-V = zeros(1,NXP*NYP);
-
-% vertical features
-for p=1:4
-    V(:) = 0;
-    ind = p:4:16;
-    V(ind) = 1;
-    V = V ./ norm(V);
-    %patch = reshape(V,[NXP NYP])';
-    %figure(p)
-    %imagesc(patch,'CDataMapping','direct');
-    F(:,p) = V'; % when V gets reshaped and transposed
-                    % we get the right feature
-    %pause
-end
-
-% horizontal features
-
-for p=1:4
-    V(:) = 0;
-    V( (p-1)*4 +1 : p*4) = 1;
-    V = V ./ norm(V);
-    %patch = reshape(V,[NXP NYP])';
-    %figure(p)
-    %imagesc(patch,'CDataMapping','direct');
-    F(:,4+p) = V'; % when V gets reshaped and transposed
-                    % we get the right feature
-    %pause
-end
-
-
-% End subfunction
-%

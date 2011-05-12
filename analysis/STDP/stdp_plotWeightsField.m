@@ -10,6 +10,8 @@ function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
 
 global input_dir  NX NY 
 
+margins_defined = 1;
+
 filename = fname;
 filename = [input_dir, filename];
     
@@ -21,7 +23,7 @@ NYlayer = NY * yScale;
 
 fprintf('scaled NX = %d scaled NY = %d\n',NXlayer,NYlayer);
 
-PLOT_STEP = 1;
+PLOT_STEP = 10;
 plotTarget = 0;
 
 %figure('Name','Weights Fields');
@@ -93,6 +95,13 @@ if exist(filename,'file')
             fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
                 time,numPatches,NXP,NYP,NFP);
             %pause
+            % if minVal and/or maxVal change dynamically (homeostatic
+            % control) adjust the color of the patch accordingly
+            if scaleWeights
+                PATCH(:) = 0.5*(maxVal+minVal);
+            else
+                PATCH (:) = 122;
+            end
         else
             first_record = 0;
         end
@@ -148,16 +157,35 @@ if exist(filename,'file')
             
             
             k=0;
-            for j=(NYPbor/2):NYPbor:(NYlayer*NYPbor)
-                for i=(NXPbor/2):NXPbor:(NXlayer*NXPbor)
+            % this only holds for even patches
+%             for j=(NYPbor/2):NYPbor:(NYlayer*NYPbor)
+%                 for i=(NXPbor/2):NXPbor:(NXlayer*NXPbor)
+%                     k=k+1;
+%                     %W_array(k,:)
+%                     patch = reshape(W_array(k,:),[NXP NYP]);
+%                     %PATCH(b1+1-b:b1+b,a1+1-a:a1+a) = patch';
+%                     PATCH(2:NYP+1,2:NXP+1) = patch';
+%                     %patch
+%                     %PATCH
+%                     %pause
+%                     A(j-b1+1:j+b1,i-a1+1:i+a1) = PATCH;
+%                     %imagesc(A,'CDataMapping','direct');
+%                     %pause
+%                 end
+%             end
+            
+            % this only holds for even patches
+            for j=1:NYlayer
+                for i=1:NXlayer
                     k=k+1;
                     %W_array(k,:)
                     patch = reshape(W_array(k,:),[NXP NYP]);
-                    PATCH(b1+1-b:b1+b,a1+1-a:a1+a) = patch';
+                    %PATCH(b1+1-b:b1+b,a1+1-a:a1+a) = patch';
+                    PATCH(2:NYP+1,2:NXP+1) = patch';
                     %patch
                     %PATCH
                     %pause
-                    A(j-b1+1:j+b1,i-a1+1:i+a1) = PATCH;
+                    A(1+(j-1)*NYPbor:j*NYPbor,1+(i-1)*NXPbor:i*NXPbor) = PATCH;
                     %imagesc(A,'CDataMapping','direct');
                     %pause
                 end
@@ -177,20 +205,34 @@ if exist(filename,'file')
                     hold on
                     % plot squares around the neurons that share the same
                     % receptive field
-                    for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
-                        plot([i, i],[0,NYlayer*NYPbor],'-r');
-                        
-                    end
-                    for j=(0.5+2*NYPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
-                        plot([0,NXlayer*NXPbor],[j,j],'-r');
-                    end
-                    pause
+                    % this works when there are no margins and it generates
+                    % a boundary layer of width 2 in this case
+                    % With margins defined there is no need for a boundary
+                    % layer!
+                    if (margins_defined)
+                        for i=0.5:xShare*NXPbor:(NXlayer*NXPbor+1)
+                            plot([i, i],[0.5,NYlayer*NYPbor+0.5],'-r');
+                            
+                        end
+                        for j=0.5:yShare*NYPbor:(NYlayer*NYPbor+1)
+                            plot([0.5,NXlayer*NXPbor+0.5],[j,j],'-r');
+                        end
+                    else
+                        for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
+                            plot([i, i],[0,NYlayer*NYPbor],'-r');
+                            
+                        end
+                        for j=(0.5+2*NYPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
+                            plot([0,NXlayer*NXPbor],[j,j],'-r');
+                        end
+                    end % margins_defined
+                    %pause
                 end
             else            % other records (not first)
                 if (mod(numRecords,PLOT_STEP) == 0)
                     %fprintf('time = %f\n',time);
                     if weightsChange
-                       figure('Name',['Weights Change Field ' num2str(time)]); 
+                       %figure('Name',['Weights Change Field ' num2str(time)]); 
                        imagesc(A-Ainit,'CDataMapping','direct');
                     else
                        figure('Name',['Weights Field ' num2str(time)]);
@@ -203,13 +245,28 @@ if exist(filename,'file')
                     
                     % plot squares around the neurons that share the same
                     % receptive field
-                    for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
-                        plot([i, i],[0,NYlayer*NYPbor],'-r');
-                        
-                    end
-                    for j=(0.5+2*NXPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
-                        plot([0,NXlayer*NXPbor],[j,j],'-r');
-                    end
+                    % this works when there are no margins and it generates
+                    % a boundary layer of width 2 in this case
+                    % With margins defined there is no need for a boundary
+                    % layer! 
+                    
+                    if (margins_defined)
+                        for i=0.5:xShare*NXPbor:(NXlayer*NXPbor+1)
+                            plot([i, i],[0.5,NYlayer*NYPbor+0.5],'-r');
+                            
+                        end
+                        for j=0.5:yShare*NYPbor:(NYlayer*NYPbor+1)
+                            plot([0.5,NXlayer*NXPbor+0.5],[j,j],'-r');
+                        end
+                    else
+                        for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
+                            plot([i, i],[0,NYlayer*NYPbor],'-r');
+                            
+                        end
+                        for j=(0.5+2*NYPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
+                            plot([0,NXlayer*NXPbor],[j,j],'-r');
+                        end
+                    end % margins_defined
                     %pause
                     
                     % plot target pixels
@@ -365,12 +422,10 @@ function [a,b,a1,b1,NXPbor,NYPbor] = compPatches(NXP,NYP)
 if (mod(NXP,2) & mod(NYP,2))  % odd size patches
     a= (NXP-1)/2;    % NXP = 2a+1;
     b= (NYP-1)/2;    % NYP = 2b+1;
-    NXPold = NXP;
-    NYPold = NYP;
     NXPbor = NXP+2; % patch with borders
     NYPbor = NYP+2;
-    a1= (NXPbor-1)/2;    % NXP = 2a+1;
-    b1= (NYPbor-1)/2;    % NYP = 2b+1;
+    a1= (NXPbor-1)/2;    % NXP = 2a1+1;
+    b1= (NYPbor-1)/2;    % NYP = 2b1+1;
 
     dX = (NXPbor+1)/2;  % used in ploting the target
     dY = (NYPbor+1)/2;
@@ -379,8 +434,6 @@ else                 % even size patches
 
     a= NXP/2;    % NXP = 2a;
     b= NYP/2;    % NYP = 2b;
-    NXPold = NXP;
-    NYPold = NYP;
     NXPbor = NXP+2;   % add border pixels for visualization purposes
     NYPbor = NYP+2;
     a1=  NXPbor/2;    % NXP = 2a1;

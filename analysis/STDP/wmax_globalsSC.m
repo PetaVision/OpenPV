@@ -1,4 +1,4 @@
-function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,yScale] = stdp_globals(layer)
+function [ffile, vfile, rfile, wfile, wlast, lname, xScale, yScale] = stdp_globalsSC(layer)
 
 %    global NO
 
@@ -29,10 +29,7 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         lname = 'Image';
         wfile={''};
         wlast={''};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
@@ -44,10 +41,7 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         lname = 'RetinaOn';
         wfile = {''};  % Image to RetinaOn 
         wlast = {'w0_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
@@ -59,68 +53,55 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         lname = 'RetinaOff';
         wfile = {''};  % RetinaOff to V1
         wlast = {'w1_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
         NO = 1;
-    elseif (layer == 4) %V1
+    elseif (layer == 4) %S1
         ffile = 'a3.pvp';
-        vfile = 'L1_V.pvp';
-        rfile = 'L1_R.pvp';
-        lname = 'L1';
+        vfile = 'S1_V.pvp';
+        rfile = 'S1_R.pvp';
+        lname = 'S1';
         wfile = {'w4_post.pvp','w5_post.pvp'};
         wlast = {'w4_post_last.pvp', 'w5_post_last.pvp' };
-        wMaxfile = 'L1_Wmax.pvp';
-        wMaxlast = 'L1_Wmax_last.pvp';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 4;
         yScale = 4;
         NO = 1;
-    elseif (layer == 5) %V1Inh
+    elseif (layer == 5) %S1Inh
         ffile = 'a4.pvp';
         vfile = 'V4.pvp';
         rfile = '';
-        lname = 'V1Inh';
+        lname = 'S1Inh';
         wfile = {''};
         wlast = {''};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
         NO = 1;
-    elseif (layer == 6) %V2
+    elseif (layer == 6) %C1
         ffile = 'a5.pvp';
         vfile = 'V5.pvp';
         rfile = '';
-        wfile = {'w4_post.pvp'};
-        wlast = {'w2_post_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
+        lname = 'C1';
+        wfile = {'w8_post.pvp'};
+        wlast = {'w8_post_last.pvp'};
+
         preFiles = {''};
-        xScale = 1;
-        yScale = 1;
+        xScale = 2;
+        yScale = 2;
         NO = 1;
-    elseif (layer == 6) %V2Inh
+    elseif (layer == 7) %C1Inh
         ffile = 'a6.pvp';
         vfile = 'V6.pvp';
         rfile = '';
-        wfile = {'w4_post.pvp'};
-        wlast = {'w2_post_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
+        lname = 'C1Inh';
+        wfile = {''};
+        wlast = {''};
+ 
         preFiles = {''};
         xScale = 1;
         yScale = 1;
