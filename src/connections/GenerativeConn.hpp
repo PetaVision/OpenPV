@@ -36,12 +36,15 @@ public:
     inline float getRelaxation() { return relaxation; }
     virtual int updateState(float time, float dt);
     int updateWeights(int axonID);
+    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
 
 protected:
     float weightUpdatePeriod;
     float nextWeightUpdate;
     float relaxation;
+    bool nonnegConstraintFlag;
+    int normalizeMethod;
 };
 
 }  // end of block for namespace PV

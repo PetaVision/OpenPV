@@ -52,10 +52,13 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
         const char * filename) {
-    KernelConn::initialize(name, hc, pre, post, channel, filename);
-    weightUpdatePeriod = parent->parameters()->value(name, "weightUpdatePeriod", 1.0f);
+    PVParams * params = hc->parameters();
+    weightUpdatePeriod = params->value(name, "weightUpdatePeriod", 1.0f);
     nextWeightUpdate = weightUpdatePeriod;
-    relaxation = parent->parameters()->value(name, "relaxation", 1.0f);
+    relaxation = params->value(name, "relaxation", 1.0f);
+    nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
+    normalizeMethod = params->value(name, "normalizeMethod", 0.f); // default is not to constrain kernelwise to spheres.
+    KernelConn::initialize(name, hc, pre, post, channel, filename);
     return PV_SUCCESS;
 }
 
@@ -93,14 +96,45 @@ int GenerativeConn::updateWeights(int axonID) {
             int lineoffsetw = 0;
             int lineoffseta = 0;
             for( int k=0; k<nk; k++ ) {
-                wtpatch[lineoffsetw + k] += a*postactRef[lineoffseta + k];
+               float w = wtpatch[lineoffsetw + k] + a*postactRef[lineoffseta + k];
+               if( nonnegConstraintFlag && w < 0) w = 0;
+               wtpatch[lineoffsetw + k] = w;
             }
             lineoffsetw += syw;
             lineoffseta += sya;
         }
     }
+    normalizeWeights( kernelPatches, numDataPatches(0) );
 
     return PV_SUCCESS;
 }  // end of GenerativeConn::updateWeights(int);
+
+PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) {
+   int neuronsperpatch;
+   switch( normalizeMethod ) {
+   case 0:
+      break;
+   case 1:
+      patches = KernelConn::normalizeWeights(patches, numPatches);
+      break;
+   case 2:
+      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);
+      for( int n=0; n<neuronsperpatch; n++ ) {
+         pvdata_t s = 0;
+         for( int k=0; k<numPatches; k++ ) {
+            pvdata_t d = patches[k]->data[n];
+            s += d*d;
+         }
+         for( int k=0; k<numPatches; k++ ) {
+            patches[k]->data[n] /= sqrt(s);
+         }
+      }
+      break;
+   default:
+      fprintf(stderr,"Connection \"%s\": Unrecognized normalizeMethod %d.  Using HyPerConn::normalize().", this->getName(), normalizeMethod);
+      break;
+   }
+   return patches;
+}  // end of GenerativeConn::normalizeWeights
 
 }  // end of namespace PV block
