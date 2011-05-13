@@ -46,11 +46,13 @@ public:
    pvdata_t * getAverageActivity()  {return R;}
    pvdata_t * getVth()              {return Vth;}
    pvdata_t * getConductance(ChannelType ch) {
+      pvdata_t * conductance;
       switch (ch) {
-         case CHANNEL_EXC:  return G_E;
-         case CHANNEL_INH:  return G_I;
-         case CHANNEL_INHB: return G_IB;
+         case CHANNEL_EXC:  conductance = G_E; break;
+         case CHANNEL_INH:  conductance = G_I; break;
+         case CHANNEL_INHB: conductance = G_IB; break;
       }
+      return conductance;
    }
 
    virtual pvdata_t * getWmax() {return Wmax;}

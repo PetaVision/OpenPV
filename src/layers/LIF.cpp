@@ -235,7 +235,7 @@ int LIF::initialize(PVLayerType type)
       const size_t numExtended = getNumExtended();
       Wmax = (pvdata_t *) calloc(numExtended, sizeof(pvdata_t) );
       assert(Wmax != NULL);
-      fprintf(stdout,"Wmax pointer in LIF: %d \n", Wmax);
+      fprintf(stdout,"Wmax pointer in LIF: %ld \n", (long int) Wmax);
       for (size_t k = 0; k < numExtended; k++){
          Wmax[k] = wMax;
       }
@@ -247,14 +247,14 @@ int LIF::initialize(PVLayerType type)
       // memory for Vthrest (restricted array)
       VthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
       assert(VthRest != NULL);
-      fprintf(stdout,"VthRest pointer in LIF: %d\n", VthRest);
+      fprintf(stdout,"VthRest pointer in LIF: %ld\n", (long int) VthRest);
       int nx = clayer->loc.nx;
       for (size_t k = 0; k < numNeurons; k++){
          //VthRest[k] = VTH_REST;
          //VthRest[k] = V_REST;
          VthRest[k] = lParams.VthRest;
          if (k % nx == 0){
-            fprintf(stdout,"%d:\n", ( k - (k%nx)) / nx );
+            fprintf(stdout,"%lu:\n", ( k - (k%nx)) / nx );
          }
          fprintf(stdout,"%f ", VthRest[k] );
          if((k+1) % 16 == 0){

@@ -134,6 +134,7 @@ int LIF2_update_explicit_euler(PVLayer * l, float dt)
    }
    return LIF2_update_finish(l, dt);
 #endif
+   return 0;
 }
 
 int LIF2_update_implicit_euler(PVLayer * l, float dt)
@@ -166,6 +167,7 @@ int LIF2_update_implicit_euler(PVLayer * l, float dt)
    }
    return LIF2_update_finish(l, dt);
 #endif
+   return 0;
 }
 
 int LIF2_update_exact_linear(PVLayer * l, float dt)
@@ -215,6 +217,7 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
 
    return LIF2_update_finish(l, dt);
 #endif
+   return 0;
 }
 
 void print_stats(PVLayer * l)
@@ -321,6 +324,7 @@ int LIF2_update_finish(PVLayer * l, float dt)
 
    return update_f(l, start); // resets V if f == 1
 #endif
+   return 0;
 }
 
 int LIF2_init(PVLayer * l)
