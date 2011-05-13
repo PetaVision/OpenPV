@@ -65,8 +65,8 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 12200.0;
+BEGIN_TIME = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
+END_TIME = 1200.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 200.0;  % relative to begining of epoch, must be > 0
@@ -194,7 +194,7 @@ num_eigen = 3;
 xcorr_struct.num_eigen = num_eigen;
 xcorr_struct.calc_power_mask = 1;
 xcorr_struct.num_sig = 4;  %% ? throws memory allocation error
-calc_eigen = 1;
+calc_eigen = 0;
 xcorr_struct.calc_eigen = calc_eigen;
 
 xcorr_eigenvector = cell( num_layers, num_modes, num_eigen);
@@ -203,7 +203,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 5;
+num_epochs = 1;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
@@ -823,7 +823,7 @@ if calc_eigen
   disp('beginning eigen analysis...');
 else
   pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-  error('abort eigen analysis');
+  warning('abort eigen analysis');
 endif
 
 mass_xcorr = cell(num_modes, num_layers);
@@ -833,7 +833,10 @@ mass_autocorr = cell(num_modes, num_layers);
 xcorr_array = cell(num_modes, num_layers);
 xcorr_dist = cell(num_modes, num_layers);
 
-for layer = read_spikes;
+for layer = read_spikes
+  if ~calc_eigen 
+    continue;
+  endif
   plot_xcorr2 = ismember( layer, plot_xcorr );
   if ~plot_xcorr2
     continue;
@@ -882,7 +885,7 @@ endfor %% % layer
 
   %% plot mass xcorr
 for layer = read_spikes;
-  plot_xcorr2 = ismember( layer, plot_xcorr );
+  plot_xcorr2 = ismember( layer, plot_xcorr ) && calc_eigen;
   if ~plot_xcorr2
     continue;
   endif %%
@@ -906,7 +909,7 @@ endfor %% % layer
 
     
 for layer = read_spikes;
-  plot_xcorr2 = ismember( layer, plot_xcorr );
+  plot_xcorr2 = ismember( layer, plot_xcorr ) && calc_eigen;
   if ~plot_xcorr2
     continue;
   endif %%
@@ -938,7 +941,7 @@ endfor %% % layer
 
 
 for layer = read_spikes;
-  plot_xcorr2 = ismember( layer, plot_xcorr );
+  plot_xcorr2 = ismember( layer, plot_xcorr ) && calc_eigen;
   if ~plot_xcorr2
     continue;
   endif %%
@@ -968,7 +971,7 @@ disp(["total_sparsecorr_timer = ", num2str(total_sparsecorr_timer)]);
   
   %%find eigen vectors
 for layer = read_spikes;
-  plot_xcorr2 = ismember( layer, plot_xcorr );
+  plot_xcorr2 = ismember( layer, plot_xcorr ) && calc_eigen;
   if ~plot_xcorr2
     continue;
   endif %%
@@ -1041,17 +1044,17 @@ if plot_vmem
   disp('plot_vmem')
   
 				% TODO: the following info should be read from a pv ouptut file
-  vmem_file_list = {'Vmem_LGNa1.txt', ...
+  vmem_file_list = {'Vmem_LGNA1.txt', ...
 		    'Vmem_LGNc1.txt', ...
-		    'Vmem_LGNInhFFa1.txt', ...
+		    'Vmem_LGNInhFFA1.txt', ...
 		    'Vmem_LGNInhFFc1.txt', ...
-		    'Vmem_LGNInha1.txt', ...
+		    'Vmem_LGNInhA1.txt', ...
 		    'Vmem_LGNInhc1.txt', ...
-		    'Vmem_V1a1.txt', ...
+		    'Vmem_V1A1.txt', ...
 		    'Vmem_V1c1.txt', ...
-		    'Vmem_V1InhFFa1.txt', ...
+		    'Vmem_V1InhFFA1.txt', ...
 		    'Vmem_V1InhFFc1.txt', ...
-		    'Vmem_V1Inha1.txt', ...
+		    'Vmem_V1InhA1.txt', ...
 		    'Vmem_V1Inhc1.txt'};
 				%  vmem_layers = [2,3,4,5];
   num_vmem_files = size(vmem_file_list,2);
@@ -1068,7 +1071,7 @@ if plot_vmem
   vmem_skip = 2;
   layer = read_spikes( find(read_spikes, 1) );
   BEGIN_TIME = epoch_struct.begin_time(ceil(num_epochs/2),layer);
-  END_TIME = BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
+  END_TIME = epoch_struct.end_time(ceil(num_epochs/2),layer); %%BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
   for i_vmem = 1 : vmem_skip : num_vmem_files
     [vmem_time{i_vmem}, ...
      vmem_G_E{i_vmem}, ...
