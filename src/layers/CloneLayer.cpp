@@ -10,10 +10,10 @@
 
 // CloneLayer can be used to implement gap junctions
 namespace PV {
-CloneLayer::CloneLayer(const char * name, HyPerCol * hc, HyPerLayer * clone) :
+CloneLayer::CloneLayer(const char * name, HyPerCol * hc, HyPerLayer * originalLayer) :
    HyPerLayer(name, hc, MAX_CHANNELS)
 {
-   initialize(clone);
+   initialize(sourceLayer);
 }
 
 CloneLayer::~CloneLayer()
@@ -21,10 +21,10 @@ CloneLayer::~CloneLayer()
     clayer->V = NULL;
 }
 
-int CloneLayer::initialize(HyPerLayer * clone)
+int CloneLayer::initialize(HyPerLayer * originalLayer)
 {
    int status_init = HyPerLayer::initialize(TypeNonspiking);
-   sourceLayer = clone;
+   sourceLayer = originalLayer;
    free(clayer->V);
    clayer->V = sourceLayer->getV();
   return status_init;
