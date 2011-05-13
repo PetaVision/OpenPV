@@ -13,7 +13,7 @@ namespace PV {
 CloneLayer::CloneLayer(const char * name, HyPerCol * hc, HyPerLayer * originalLayer) :
    HyPerLayer(name, hc, MAX_CHANNELS)
 {
-   initialize(sourceLayer);
+   initialize(originalLayer);
 }
 
 CloneLayer::~CloneLayer()
