@@ -24,7 +24,7 @@ PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int
       const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
-   writeStep = 10.0;
+   writeStep = hc->getDeltaTime();
 }
 
 /**
@@ -37,7 +37,7 @@ PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg) :
    PointProbe(xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
-   writeStep = 10.0;
+   writeStep = hc->getDeltaTime();  // Marian, do not change this default!
 }
 
 PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
