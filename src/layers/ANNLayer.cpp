@@ -15,7 +15,23 @@ ANNLayer::ANNLayer(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_
 ANNLayer::~ANNLayer() {}
 
 int ANNLayer::initialize() {
-    return HyPerLayer::initialize(TypeNonspiking);
+    HyPerLayer::initialize(TypeNonspiking);
+    PVParams * params = parent->parameters();
+    VThresh = params->value(name, "VThresh", min_pvdata_t);
+    VMax = params->value(name, "VMax", max_pvdata_t);
+    VMin = params->value(name, "VMin", VThresh);
+    return PV_SUCCESS;
 }
+
+int ANNLayer::updateV() {
+   HyPerLayer::updateV();
+   pvdata_t * V = getV();
+   for( int k=0; k<getNumNeurons(); k++ ) {
+     V[k] = V[k] > VMax ? VMax : V[k];
+     V[k] = V[k] < VThresh ? VMin : V[k];
+   }
+   return PV_SUCCESS;
+}
+
 
 }  // end namespace PV

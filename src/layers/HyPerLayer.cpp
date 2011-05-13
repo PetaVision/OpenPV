@@ -463,6 +463,7 @@ int HyPerLayer::updateState(float time, float dt)
    updateV();
    setActivity();
    resetPhiBuffers();
+   updateActiveIndices();
 
    return 0;
 }
@@ -494,14 +495,15 @@ int HyPerLayer::updateV() {
    pvdata_t * phiInh = getChannel(CHANNEL_INH);
    for( int k=0; k<getNumNeurons(); k++ ) {
       V[k] = phiExc[k] - phiInh[k];
-#undef SET_MAX
-#ifdef SET_MAX
-      V[k] = V[k] > 1.0f ? 1.0f : V[k];
-#endif
-#undef SET_THRESH
-#ifdef SET_THRESH
-      V[k] = V[k] < 0.5f ? 0.0f : V[k];
-#endif
+// functionality of MAX and THRESH moved to ANNLayer
+//#undef SET_MAX
+//#ifdef SET_MAX
+//      V[k] = V[k] > 1.0f ? 1.0f : V[k];
+//#endif
+//#undef SET_THRESH
+//#ifdef SET_THRESH
+//      V[k] = V[k] < 0.5f ? 0.0f : V[k];
+//#endif
    }
    return PV_SUCCESS;
 }
@@ -740,19 +742,19 @@ int HyPerLayer::writeState(float time, bool last)
 
 int HyPerLayer::writeActivitySparse(float time)
 {
-   // calculate active indices
+   // calculate active indices  -- Moved to HyPerLayer method
    //
-   int numActive = 0;
-   PVLayerLoc & loc = clayer->loc;
-   pvdata_t * activity = clayer->activity->data;
-
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-      if (activity[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-      }
-   }
-   clayer->numActive = numActive;
+//   int numActive = 0;
+//   PVLayerLoc & loc = clayer->loc;
+//   pvdata_t * activity = clayer->activity->data;
+//
+//   for (int k = 0; k < getNumNeurons(); k++) {
+//      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+//      if (activity[kex] > 0.0) {
+//         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+//      }
+//   }
+//   clayer->numActive = numActive;
 
    return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }

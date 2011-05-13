@@ -400,8 +400,8 @@ int LIF::setParams(PVParams * p)
    lParams.tauIB = p->value(name, "tauIB", TAU_INHB);
 
    lParams.tauRate  = p->value(name, "tauRate",  TAU_RATE);
-   //lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
-   lParams.VthRest  = p->value(name, "VthRest" , V_REST);
+   lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
+   //lParams.VthRest  = p->value(name, "VthRest" , V_REST);
    lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
    lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
 
@@ -548,9 +548,24 @@ int LIF::updateState(float time, float dt)
    status = updateStateOpenCL(time, dt);
 
 #endif
-
+   updateActiveIndices();
    update_timer->stop();
    return status;
+}
+
+
+int LIF::updateActiveIndices(){
+   int numActive = 0;
+   PVLayerLoc & loc = clayer->loc;
+   pvdata_t * activity = clayer->activity->data;
+
+   for (int k = 0; k < getNumNeurons(); k++) {
+      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+      if (activity[kex] > 0.0) {
+         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+      }
+   }
+   clayer->numActive = numActive;
 }
 
 int LIF::readState(float * time)

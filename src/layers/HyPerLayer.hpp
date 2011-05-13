@@ -70,6 +70,7 @@ public:
    virtual int updateV();
    virtual int setActivity();
    virtual int resetPhiBuffers();
+   virtual int updateActiveIndices(){return PV_SUCCESS;};
    int resetBuffer(pvdata_t * buf, int numItems);
 
    virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
@@ -129,6 +130,7 @@ public:
    void setParent(HyPerCol* parent)  {this->parent = parent;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
+   bool getSpikingFlag()             {return this->spikingFlag;}
 
    // implementation of LayerDataInterface interface
    //

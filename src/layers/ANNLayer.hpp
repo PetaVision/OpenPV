@@ -8,8 +8,10 @@
 #ifndef ANNLAYER_HPP_
 #define ANNLAYER_HPP_
 
-#include "HyPerLayer.hpp"
-#include "../columns/HyPerCol.hpp"
+#include "HyPerLayer.hpp"#ifndef ANNLAYER_HPP_
+#define ANNLAYER_HPP_
+
+//#include "../columns/HyPerCol.hpp"
 
 namespace PV {
 
@@ -17,6 +19,10 @@ class ANNLayer : public HyPerLayer {
 public:
     ANNLayer(const char* name, HyPerCol * hc);
     ~ANNLayer();
+    virtual int updateV();
+    pvdata_t VThresh;
+    pvdata_t VMax;
+    pvdata_t VMin;
 protected:
     int initialize();
 }; // end of class NonspikingLayer
