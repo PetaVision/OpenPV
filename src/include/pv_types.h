@@ -10,6 +10,8 @@
 
 #include "PVLayerLoc.h"
 #include <stdlib.h>   /* for size_t */
+#include <float.h>
+
 
 #define PV_ON  1
 #define PV_OFF 0
@@ -26,6 +28,8 @@
 
 /* The common type for data */
 #define pvdata_t float
+#define max_pvdata_t FLT_MAX
+#define min_pvdata_t FLT_MIN
 
 /* The common type for integer sizes (e.g. nxp patch size) */
 #define pvdim_t int
