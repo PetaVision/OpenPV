@@ -25,10 +25,11 @@ extern FILE* yyin;
 int pv_parseParameters(PV::PVParams* action_handler);
 
 #ifdef HAS_MAIN
+#define INITIALNUMGROUPS 20   // maximum number of groups
 int main()
 {
    yyin = fopen("parser/params.txt", "r");
-   PV::PVParams* handler = new PV::PVParams(MAX_GROUPS);
+   PV::PVParams* handler = new PV::PVParams(INITIAL_NUM_GROUPS);
 
    pv_parseParameters(handler);
 
@@ -97,13 +98,26 @@ Parameter * ParameterStack::pop()
 ParameterGroup::ParameterGroup(char * name, ParameterStack * stack)
 {
    this->groupName = name;
+   this->groupKeyword = NULL;
    this->stack     = stack;
 }
 
 ParameterGroup::~ParameterGroup()
 {
    free(groupName);
+   free(groupKeyword);
    delete stack;
+}
+
+int ParameterGroup::setGroupKeyword(const char * keyword) {
+   if( groupKeyword == NULL ) {
+      size_t keywordlen = strlen(keyword);
+      groupKeyword = (char *) malloc(keywordlen);
+      if( groupKeyword ) {
+          strcpy(groupKeyword, keyword);
+      }
+   }
+   return groupKeyword == NULL ? PV_FAILURE : PV_SUCCESS;
 }
 
 /**
@@ -318,6 +332,11 @@ const char * PVParams::groupNameFromIndex(int index) {
    return inbounds ? groups[index]->name() : NULL;
 }
 
+const char * PVParams::groupKeywordFromIndex(int index) {
+   bool inbounds = index >= 0 && index < numGroups;
+   return inbounds ? groups[index]->getGroupKeyword() : NULL;
+}
+
 const char * PVParams::getFilename(const char * id)
 {
    FilenameDef * fd = fnstack->getFilenameDefByKey(id);
@@ -344,12 +363,13 @@ void PVParams::addGroup(char * keyword, char * name)
       groups = newGroups;
    }
 
-   groups[numGroups++] = new ParameterGroup(name, stack);
+   groups[numGroups] = new ParameterGroup(name, stack);
+   groups[numGroups]->setGroupKeyword(keyword);
 
    // the parameter group takes over control of the stack
    stack = new ParameterStack(MAX_PARAMS);
 
-   free(keyword);   // not used
+   numGroups++;
 }
 
 /**
@@ -364,7 +384,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
 
 #ifdef DEBUG_PARSING
    fflush(stdout);
-   printf("action_parameter_group: %s \"%s\" = \n", keyword, name);
+   printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
    fflush(stdout);
 #endif
 

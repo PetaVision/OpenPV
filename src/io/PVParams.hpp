@@ -8,8 +8,6 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
-// #define MAX_GROUPS 20   // maximum number of groups
-
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group
 
@@ -52,12 +50,15 @@ public:
    virtual ~ParameterGroup();
 
    const char * name()   { return groupName; }
+   const char * getGroupKeyword() { return groupKeyword; }
+   int setGroupKeyword(const char * keyword);
 
    int   present(const char * name);
    float value  (const char * name);
 
 private:
    char * groupName;
+   char * groupKeyword;
    ParameterStack * stack;
 };
 
@@ -102,6 +103,7 @@ public:
    float value  (const char * groupName, const char * paramName, float initialValue);
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
+   const char * groupKeywordFromIndex(int index);
    const char * getFilename(const char * id);
 
    void action_parameter_group(char * keyword, char * name);
