@@ -16,6 +16,7 @@ typedef struct LIF_params_ {
    float VthRest;
    float tauVth;
    float deltaVth;
+   float deltaVthRest;
 
    float noiseFreqE;
    float noiseAmpE;
