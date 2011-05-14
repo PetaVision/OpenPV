@@ -23,6 +23,7 @@
 #define TAU_VTH  10.0
 #define TAU_VTHREST 10000.0 // in ms
 #define DELTA_VTH 5.0
+#define DELTA_VTH_REST 0.1
 #define GLOBAL_GAIN  1.0
 #define ASPECT_RATIO 4.0
 #define RMAX_EDGE 4.0
