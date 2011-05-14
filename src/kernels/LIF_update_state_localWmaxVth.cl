@@ -79,7 +79,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, Vrest, Vexc, Vinh, VinhB, deltaVth, Vthrest;
+   float tau, Vrest, Vexc, Vinh, VinhB, deltaVth, deltaVthRest, Vthrest;
 
    const float GMAX = 10.0;
 
@@ -120,6 +120,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    Vthrest  = params->VthRest;
    deltaVth = params->deltaVth;
+   deltaVthRest = params->deltaVthRest;
 
    // add noise
    //
@@ -197,7 +198,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    // dynamics I: linked to average firing rate
    //l_VthRest =  alphaVthRest * (1000.0*l_R - averageR) + (l_VthRest - alphaVthRest * (1000.0*l_R - averageR)) * exp_tauVthRest;
    // dynamics II: linked to firing or not firing information
-   l_VthRest = fired_flag ? (l_VthRest + 1000.0/tauVthRest ) : l_VthRest;
+   l_VthRest = fired_flag ? (l_VthRest + deltaVthRest) : l_VthRest;
    l_VthRest = Vthrest + (l_VthRest - Vthrest) * exp_tauVthRest;
 
 
