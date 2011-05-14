@@ -732,9 +732,6 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
 
    }
    else {
-      const int numParams = NUM_PAR_BYTE_PARAMS;
-      const int headerSize = numParams * sizeof(int);
-
       assert(fp != NULL);
 
       // write local image portion
@@ -752,6 +749,8 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
 #endif
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
+            const int numParams = NUM_PAR_BYTE_PARAMS;
+            const int headerSize = numParams * sizeof(int);
             long offset = headerSize + src * localSize;
             fseek(fp, offset, SEEK_SET);
             numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
@@ -1216,7 +1215,9 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
+#ifdef PV_USE_MPI
       const int headerSize = numParams * sizeof(int);
+#endif // PV_USE_MPI
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 
