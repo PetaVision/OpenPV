@@ -1,6 +1,7 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
 #include "../utils/pv_random.h"
+#include "../include/pv_common.h"
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
@@ -190,16 +191,29 @@ for (k = 0; k < nx*ny*nf; k++) {
    // update average rate
    l_R = (l_activ / tauRate) + l_R*exp_tauRate;
    // multiply by 1000.0 to get the firing rate per second, which is how averageR is estimated
-   // dynamics I: dynamics linked to average firing rate
-   l_Wmax = - alphaW * (1000.0*l_R - averageR) + (l_Wmax + alphaW * (1000.0*l_R - averageR)) * exp_tauWmax;
-   // dynamics II: linked to firing or not firing information - like VthRest does
-   //l_Wmax = fired_flag ? (l_Wmax - 0.0001) : (l_Wmax + 0.00000001);
 
-   // dynamics I: linked to average firing rate
-   //l_VthRest =  alphaVthRest * (1000.0*l_R - averageR) + (l_VthRest - alphaVthRest * (1000.0*l_R - averageR)) * exp_tauVthRest;
-   // dynamics II: linked to firing or not firing information
-   l_VthRest = fired_flag ? (l_VthRest + deltaVthRest) : l_VthRest;
-   l_VthRest = Vthrest + (l_VthRest - Vthrest) * exp_tauVthRest;
+   switch (WMAX_DYNAMICS) {
+   case RATE_DYNAMICS: // dynamics I: dynamics linked to average firing rate
+      l_Wmax = - alphaW * (1000.0*l_R - averageR) + (l_Wmax + alphaW * (1000.0*l_R - averageR)) * exp_tauWmax;
+      break;
+   case FIRING_DYNAMICS:// dynamics II: linked to firing or not firing information - like VthRest does
+      l_Wmax = fired_flag ? (l_Wmax - 0.0001) : (l_Wmax + 0.00000001);
+      break;
+   }
+
+
+   switch (VTHREST_DYNAMICS){
+   case  RATE_DYNAMICS: // dynamics I: linked to average firing rate
+      l_VthRest =  alphaVthRest * (1000.0*l_R - averageR) +
+                   (l_VthRest - alphaVthRest * (1000.0*l_R - averageR)) * exp_tauVthRest;
+      break;
+   case FIRING_DYNAMICS:  // dynamics II: linked to firing or not firing information
+      l_VthRest = fired_flag ? (l_VthRest + deltaVthRest) : l_VthRest;
+      l_VthRest = Vthrest + (l_VthRest - Vthrest) * exp_tauVthRest;
+      break;
+   }
+
+
 
 
    l_V     = fired_flag ? Vrest            : l_V;
