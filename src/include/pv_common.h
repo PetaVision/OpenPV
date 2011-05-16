@@ -31,6 +31,13 @@
 #define EXACT_LINEAR 2
 #define INTEGRATION_METHOD EXACT_LINEAR
 
+// control dynamics
+#define STATIC_DYNAMICS   0
+#define RATE_DYNAMICS     1
+#define FIRING_DYNAMICS   2
+#define WMAX_DYNAMICS     STATIC_DYNAMICS
+#define VTHREST_DYNAMICS  FIRING_DYNAMICS
+
 // Misc:
 #define eventtype_t float
 #define RAD_TO_DEG_x2   (2.0*180.0/PI)
