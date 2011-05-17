@@ -508,6 +508,23 @@ int HyPerLayer::updateV() {
    return PV_SUCCESS;
 }
 
+int HyPerLayer::updateActiveIndices(){
+   if (!spikingFlag) return PV_SUCCESS;
+   int numActive = 0;
+   PVLayerLoc & loc = clayer->loc;
+   pvdata_t * activity = clayer->activity->data;
+
+   for (int k = 0; k < getNumNeurons(); k++) {
+      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+      if (activity[kex] > 0.0) {
+         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+      }
+   }
+   clayer->numActive = numActive;
+}
+
+
+
 int HyPerLayer::setActivity() {
    const int nx = getLayerLoc()->nx;
    const int ny = getLayerLoc()->ny;

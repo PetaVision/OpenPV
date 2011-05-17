@@ -70,7 +70,7 @@ public:
    virtual int updateV();
    virtual int setActivity();
    virtual int resetPhiBuffers();
-   virtual int updateActiveIndices(){return PV_SUCCESS;};
+   virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
    virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
