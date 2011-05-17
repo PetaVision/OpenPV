@@ -455,15 +455,16 @@ int Retina::outputState(float time, bool last)
 #else
    float defaultWriteNonspikingActivity = 0.0;
 #endif
-   PVParams * params = parent->parameters();
-   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
+//   PVParams * params = parent->parameters();  // all run-time params now stored in HyPerLayer
+//   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
    if (spikingFlag != 0){
+      updateActiveIndices();
       status = HyPerLayer::outputState(time, last);
       return status;
    }
-   int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
-         defaultWriteNonspikingActivity);
-   if (writeNonspikingActivity != 0){
+//   int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
+//         defaultWriteNonspikingActivity);
+   else if (writeNonspikingActivity != 0){
       float * Vtmp = this->getV();
       const PVLayerCube * activity_cube = this->getCLayer()->activity;
       const float * atmp = activity_cube->data; //this->getLayerData(); // write activity on this time step
