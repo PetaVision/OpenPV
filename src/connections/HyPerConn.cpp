@@ -232,7 +232,9 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    numParams = sizeof(*p) / sizeof(float);
    assert(numParams == 9); // catch changes in structure
 
-   writeStep = (int) filep->value(name, "writeStep", 0);
+   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
+   float default_writeStep =  2.0f * ( (float) stdpFlag - 0.5 );
+   writeStep = (int) filep->value(name, "writeStep", default_writeStep);
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
@@ -251,7 +253,6 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //
    // now set params that are not in the params struct (instance variables)
 
-   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
    if (stdpFlag) {
       ampLTP = filep->value(name, "ampLTP", ampLTP);
       ampLTD = filep->value(name, "ampLTD", ampLTD);
@@ -298,11 +299,21 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       }
    }
 
-   int randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
+   int randomFlag = 0.0f;
+   if (inputParams->present(getName(), "randomFlag")){
+      randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
+   }
+
    // int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
    // randomSeed now belongs to the HyPerCol
-   int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
-   int cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
+   int smartWeights = 0.0f;
+   if (inputParams->present(getName(), "smartWeights")){
+      smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
+   }
+   int cocircWeights = 0.0f;
+   if (inputParams->present(getName(), "cocircWeights")){
+      cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
+   }
 
    if (randomFlag != 0) { // if (randomFlag != 0 || randomSeed != 0) {
        initializeRandomWeights(patches, numPatches);
@@ -448,34 +459,37 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
    PVParams * params = parent->parameters();
 
    // default values (chosen for center on cell of one pixel)
-   int noPost = (int) params->value(post->getName(), "no", nfp);
-
+   int noPost = nfp;
    float aspect = 1.0; // circular (not line oriented)
    float sigma = 0.8;
    float rMax = 1.4;
    float strength = 1.0;
    float deltaThetaMax = 2.0f * PI;  // max orientation in units of PI
    float thetaMax = 1.0;  // max orientation in units of PI
+   int numFlanks = 1;
+   float shift = 0.0f;
+   float rotate = 0.0f;
    float bowtieFlag = 0.0f;  // flag for setting bowtie angle
    float bowtieAngle = PI * 2.0f;  // bowtie angle
-
 
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
    strength = params->value(name, "strength", strength);
-   deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
-   thetaMax = params->value(name, "thetaMax", thetaMax);
-   bowtieFlag = params->value(name, "bowtieFlag", bowtieFlag);
-   if (bowtieFlag == 1.0f){
-      bowtieAngle = params->value(name, "bowtieAngle", bowtieAngle);
+   if (nfp > 1) {
+      noPost = (int) params->value(post->getName(), "no", nfp);
+      deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
+      thetaMax = params->value(name, "thetaMax", thetaMax);
+      numFlanks = (int) params->value(name, "numFlanks", 1.0f);
+      shift = params->value(name, "flankShift", 0.0f);
+      rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
+      bowtieFlag = params->value(name, "bowtieFlag", bowtieFlag);
+      if (bowtieFlag == 1.0f) {
+         bowtieAngle = params->value(name, "bowtieAngle", bowtieAngle);
+      }
    }
-
    float r2Max = rMax * rMax;
 
-   int numFlanks = (int) params->value(name, "numFlanks", 1.0f);
-   float shift = params->value(name, "flankShift", 0.0f);
-   float rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
@@ -1709,7 +1723,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 //   const PVLayer * lPre = pre->clayer;
 //   const PVLayer * lPost = post->clayer;
 
-   bool self = (pre != post);
+   bool self = (pre != post) || (pre->getCLayer()->V != post->getCLayer()->V); // 2nd expression checks for gap junction
 
    // get dimensions of (potentially shrunken patch)
    const int nxPatch = wp->nx;
@@ -1829,10 +1843,10 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
             }
 
             // rotate the reference frame by th (change sign of thPost?)
-//            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
-//            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
-            float xp = xDelta * cosf(thPost) - yDelta * sinf(thPost);
-            float yp = xDelta * sinf(thPost) + yDelta * cosf(thPost);
+            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
+            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
+//            float xp = xDelta * cosf(thPost) - yDelta * sinf(thPost);
+//            float yp = xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
             if (bowtieFlag == 1.0f){
                float offaxis_angle = atan2(yp, xp);
@@ -2236,9 +2250,18 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
    float strength = params->value(name, "strength", 1.0f);
-   float normalize_max = params->value(name, "normalize_max", 0.0f);
-   float normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
-   float normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
+   float normalize_max = 0.0f;
+   float normalize_zero_offset = 0.0f;
+   float normalize_cutoff = 0.0f;
+   if (params->present(getName(),"normalize_max")){
+      normalize_max = params->value(name, "normalize_max", 0.0f);
+   }
+   if (params->present(getName(),"normalize_zero_offset")){
+      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+   }
+   if (params->present(getName(),"normalize_cutoff")){
+      normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
+   }
 
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
