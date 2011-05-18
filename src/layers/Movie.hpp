@@ -37,22 +37,24 @@ private:
    int copyReducedImagePortion();
    const char * getNextFileName();
 
-   float displayPeriod;     // length of time a frame is displayed
-   float nextDisplayTime;   // time of next frame
+   float displayPeriod;   // length of time a frame is displayed
+   float nextDisplayTime; // time of next frame
 
    int stepSize;
 
-   int offsetX;             // offset of layer section within full movie frame
+   int offsetX;           // offset of layer section within full movie frame
    int offsetY;
 
-   int biasX;              // offsetX/Y jitter around biasX/Y location
+   int jitterFlag;        // If true, use jitter
+
+   int biasX;             // offsetX/Y jitter around biasX/Y location
    int biasY;
 
-   float recurrenceProb;
-   float persistenceProb;
+   float recurrenceProb;  // If using jitter, probability that offset returns to bias position
+   float persistenceProb; // If using jitter, probability that offset stays the same
 
-   int writePosition;
-   int biasChangeTime;
+   int writePosition;     // If using jitter, write positions to input/image-pos.txt
+   int biasChangeTime;    // If using jitter, time period for recalculating bias position
 
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;

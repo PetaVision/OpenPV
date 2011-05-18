@@ -79,12 +79,19 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
    this->nextDisplayTime = hc->simulationTime() + this->displayPeriod;
    stepSize          = (int) params->value(name, "stepSize", 0);
-   recurrenceProb    = params->value(name,"recurrenceProb", 1.0);
-   persistenceProb   = params->value(name,"persistenceProb", 1.0);
-   biasChangeTime    = (int) params->value(name,"biasChangeTime", 1000);
-   writePosition     = (int) params->value(name,"writePosition", 1);
+
+   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
+   writePosition = 0;
+   if( jitterFlag ) {
+      persistenceProb   = params->value(name,"persistenceProb", 1.0);
+      recurrenceProb    = params->value(name,"recurrenceProb", 1.0);
+      biasChangeTime    = (int) params->value(name,"biasChangeTime", 1000);
+      writePosition     = (int) params->value(name,"writePosition", 1);
+   }
    randomMovie       = (int) params->value(name,"randomMovie",0);
-   randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
+   if( randomMovie ) {
+      randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
+   }
    offsetX           = (int) params->value(name,"offsetX", 0);
    offsetY           = (int) params->value(name,"offsetY", 0);
 
@@ -184,17 +191,19 @@ bool Movie::updateImage(float time, float dt)
       // need all image bands until converted to gray scale
       loc->nf = imageLoc.nf;
 
-      // move bias
-      if( time > 0 && !(((int)time) % biasChangeTime) ){
-         calcBias(stepSize, imageLoc.nx - loc->nx - stepSize);
-      }
+      if( jitterFlag ) {
+         // move bias
+         if( time > 0 && !(((int)time) % biasChangeTime) ){
+            calcBias(stepSize, imageLoc.nx - loc->nx - stepSize);
+         }
 
-      // move offset
-      double p = pv_random_prob();
-      if (p > persistenceProb){
-         calcBiasedOffset(stepSize, imageLoc.nx - loc->nx - stepSize);
-         if(writePosition){
-            fprintf(fp_pos,"%d %d ",biasX,biasY);
+         // move offset
+         double p = pv_random_prob();
+         if (p > persistenceProb){
+            calcBiasedOffset(stepSize, imageLoc.nx - loc->nx - stepSize);
+            if(writePosition){
+               fprintf(fp_pos,"%d %d ",biasX,biasY);
+            }
          }
       }
 
@@ -275,6 +284,7 @@ int Movie::copyReducedImagePortion()
  */
 int Movie::randomFrame()
 {
+   assert(randomMovie); // randomMovieProb was set only if randomMovie is true
    for (int kex = 0; kex < clayer->numExtended; kex++) {
       data[kex] = (pv_random_prob() < randomMovieProb) ? 1: 0;
    }
@@ -370,6 +380,7 @@ void Movie::calcBias(int step, int sizeLength)
  */
 void Movie::calcBiasedOffset(int step, int sizeLength)
 {
+   assert(jitterFlag); // calcBiasedOffset should only be called when jitterFlag is true
    const float dp = 1.0 / step;
    double p = pv_random_prob();
 
