@@ -10,6 +10,7 @@
 
 #include "PVConnection.h"
 #include "../columns/InterColComm.hpp"
+#include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
