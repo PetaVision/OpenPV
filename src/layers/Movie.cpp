@@ -77,30 +77,30 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    //
    PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
-   this->nextDisplayTime = hc->simulationTime() + this->displayPeriod;
-   stepSize          = (int) params->value(name, "stepSize", 0);
+   nextDisplayTime = hc->simulationTime() + this->displayPeriod;
+
+   offsetX           = (int) params->value(name,"offsetX", 0);
+   offsetY           = (int) params->value(name,"offsetY", 0);
+
+   resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 
    jitterFlag = params->value(name,"jitterFlag", 0) != 0;
    writePosition = 0;
    if( jitterFlag ) {
+      stepSize          = (int) params->value(name, "stepSize", 0);
       persistenceProb   = params->value(name,"persistenceProb", 1.0);
       recurrenceProb    = params->value(name,"recurrenceProb", 1.0);
       biasChangeTime    = (int) params->value(name,"biasChangeTime", 1000);
       writePosition     = (int) params->value(name,"writePosition", 1);
+      biasX   = offsetX;
+      biasY   = offsetY;
    }
    randomMovie       = (int) params->value(name,"randomMovie",0);
    if( randomMovie ) {
       randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
    }
-   offsetX           = (int) params->value(name,"offsetX", 0);
-   offsetY           = (int) params->value(name,"offsetY", 0);
-
-   resetPositionInBounds();  // ensure that offsets keep loc within image bounds
-   
-   biasX   = offsetX;
-   biasY   = offsetY;
-
    if(writePosition){
+      assert(jitterFlag);
       fp_pos = fopen("input/image-pos.txt","a");
       assert(fp_pos != NULL);
       fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
@@ -329,6 +329,7 @@ const char * Movie::getNextFileName()
  */
 void Movie::calcBias(int step, int sizeLength)
 {
+   assert(jitterFlag);
    const float dp = 1.0 / step;
    double p;
    const int random_walk = 0;
