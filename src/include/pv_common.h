@@ -8,6 +8,9 @@
 #ifndef PV_COMMON_H
 #  define PV_COMMON_H
 
+#include <stdlib.h>
+#include <errno.h>
+#include <assert.h>
 #include "pv_arch.h"
 
 // Common include file for Petavision
