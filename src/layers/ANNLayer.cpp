@@ -17,7 +17,7 @@ ANNLayer::~ANNLayer() {}
 int ANNLayer::initialize() {
     HyPerLayer::initialize(TypeNonspiking);
     PVParams * params = parent->parameters();
-    VThresh = params->value(name, "VThresh", min_pvdata_t);
+    VThresh = params->value(name, "VThresh", -max_pvdata_t);
     VMax = params->value(name, "VMax", max_pvdata_t);
     VMin = params->value(name, "VMin", VThresh);
     return PV_SUCCESS;
