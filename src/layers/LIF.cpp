@@ -404,7 +404,6 @@ int LIF::setParams(PVParams * p)
    //lParams.VthRest  = p->value(name, "VthRest" , V_REST);
    lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
    lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
-   lParams.deltaVthRest = p->value(name, "deltaVthRest", DELTA_VTH_REST);
 
    // NOTE: in LIFDefaultParams, noise ampE, ampI, ampIB were
    // ampE=0*NOISE_AMP*( 1.0/TAU_EXC )
@@ -439,6 +438,7 @@ int LIF::setParams(PVParams * p)
    localVthRestFlag = (bool) p->value(name, "localVthRestFlag", (float) localVthRestFlag);
    if (localVthRestFlag) {
       tauVthRest  = p->value(name,"tauVthRest",TAU_VTHREST); // in ms
+      lParams.deltaVthRest = p->value(name, "deltaVthRest", DELTA_VTH_REST);
       alphaVthRest= p->value(name,"alphaVthRest",0.01);
    }
 
@@ -554,20 +554,6 @@ int LIF::updateState(float time, float dt)
    return status;
 }
 
-
-int LIF::updateActiveIndices(){
-   int numActive = 0;
-   PVLayerLoc & loc = clayer->loc;
-   pvdata_t * activity = clayer->activity->data;
-
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-      if (activity[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-      }
-   }
-   clayer->numActive = numActive;
-}
 
 int LIF::readState(float * time)
 {
