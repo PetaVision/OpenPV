@@ -521,6 +521,7 @@ int HyPerLayer::updateActiveIndices(){
       }
    }
    clayer->numActive = numActive;
+   return PV_SUCCESS;
 }
 
 
