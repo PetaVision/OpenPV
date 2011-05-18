@@ -1723,7 +1723,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
 //   const PVLayer * lPre = pre->clayer;
 //   const PVLayer * lPost = post->clayer;
 
-   bool self = (pre != post) || (pre->getCLayer()->V != post->getCLayer()->V); // 2nd expression checks for gap junction
+   bool self = (pre != post);
 
    // get dimensions of (potentially shrunken patch)
    const int nxPatch = wp->nx;
