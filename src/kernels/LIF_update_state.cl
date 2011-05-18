@@ -15,7 +15,7 @@
 #  include "conversions.hcl"
 #endif
 
-#define USE_CLRANDOM
+#undef USE_CLRANDOM
 #ifndef USE_CLRANDOM
 #  include "../utils/pv_random.h"
 #endif
