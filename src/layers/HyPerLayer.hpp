@@ -14,6 +14,7 @@
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
 #include "../io/LayerProbe.hpp"
+#include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
 
