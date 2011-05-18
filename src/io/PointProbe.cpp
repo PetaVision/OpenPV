@@ -7,7 +7,7 @@
 
 #include "PointProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
-#include "../layers/LIF.hpp"
+// #include "../layers/LIF.hpp" // Commented out May 18, 2011.  LIF-specific code moved to PointLIFProbe back in March.
 #include <string.h>
 
 namespace PV {
@@ -63,7 +63,7 @@ PointProbe::~PointProbe()
  */
 int PointProbe::outputState(float time, HyPerLayer * l)
 {
-   LIF * lif = dynamic_cast<LIF*>(l);
+   // LIF * lif = dynamic_cast<LIF*>(l);  // Commented out May 18, 2011.  LIF-specific code moved to PointLIFProbe back in March.
 
    const PVLayer * clayer = l->clayer;
 
