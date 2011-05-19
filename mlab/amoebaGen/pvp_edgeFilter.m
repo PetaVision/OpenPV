@@ -1,21 +1,21 @@
 
 close all
 clear all
-%%setenv('GNUTERM', 'x11');
+setenv('GNUTERM', 'x11');
 %%fh = figure;
 %%close(fh);
 
-image_dir = "~/Pictures/";
+image_dir = "~/Pictures/Textured_Dog_Cat_Spherical_T1/";
 
 target_dir = ...
-    [image_dir, "segmented_images/annotated_dogs/"]; %%"AnimalDB/Targets/"];  %%
+    [image_dir, "Dog/"]; %%"AnimalDB/Targets/"];  %%
 target_subdir = ...
     [ target_dir, 'original/' ];
 target_path = ...
     [target_subdir, '*.jpg'];
 
 distractor_dir = ...
-    [image_dir, "AnimalDB/Distractors/"]; 
+    [image_dir, "Cat/"]; 
 distractor_subdir = ...
     [ distractor_dir, 'original/' ];
 distractor_path = ...
@@ -38,7 +38,7 @@ if ~exist( 'canny_target_dir', 'dir')
 endif
 
 canny_distractor_dir = ...
-    [ target_dir, canny_name ];
+    [ distractor_dir, canny_name ];
 if ~exist( 'canny_distractor_dir', 'dir')
   [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', canny_distractor_dir); 
   if SUCCESS ~= 1
@@ -63,7 +63,7 @@ if DoG_flag
   endif
   
   DoG_distractor_dir = ...
-      [ target_dir, 'DoG/' ];
+      [ distractor_dir, 'DoG/' ];
   if ~exist( 'DoG_distractor_dir', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', DoG_distractor_dir); 
     if SUCCESS ~= 1
@@ -198,10 +198,11 @@ for target_flag = 1 : distractor_flag + 1
       mask_base_name = [mask_base_name, "_mask"];
       mask_image_name = [mask_dir, mask_base_name, ".jpg"];    
       if exist( mask_image_name, "file")
-	[mask_image_color, mask_image_map, mask_image_alpha] = ...
+	mask_image_color = ...
 	    imread(mask_image_name);
 	mask_image_gray = col2gray(mask_image_color);
-	
+
+	canny_gray_val = 0;
 	mask_image_canny = ...
 	    image_canny .* (mask_image_gray == 0) + ...
 	    canny_gray_val .* (mask_image_gray > 0);
@@ -218,7 +219,7 @@ for target_flag = 1 : distractor_flag + 1
 	  savefile2(mask_DoG_filename, mask_image_DoG);
 	endif
       else
-	disp(["exist( 'mask_image_name', ""file"") ", mask_image_name]);
+	disp(["~exist( 'mask_image_name', ""file"") ", mask_image_name]);
       endif %% exist( 'mask_image_name', "file")
     endif  %% mask_flag
     
