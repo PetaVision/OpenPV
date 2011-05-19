@@ -233,7 +233,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    assert(numParams == 9); // catch changes in structure
 
    stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
-   float default_writeStep =  stdpFlag ? -1.0 : 1.0; // 2.0f * ( (float) stdpFlag - 0.5 );
+   float default_writeStep =  stdpFlag ? 1.0 : -1.0; // 2.0f * ( (float) stdpFlag - 0.5 );
    writeStep = (int) filep->value(name, "writeStep", default_writeStep);
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
@@ -743,7 +743,7 @@ int HyPerConn::outputState(float time, bool last)
       }
 
    }
-   else if ( time >= writeTime && writeStep >= 0) {
+   else if ( (time >= writeTime) && (writeStep >= 0) ) {
       writeTime += writeStep;
 
       status = writeWeights(time, last);
