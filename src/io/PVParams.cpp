@@ -13,9 +13,10 @@
 #include <string.h>
 
 #define FILENAMESTACKMAXCOUNT 10
+#define PARAMETERSTRINGSTACK_INITIALCOUNT 5
 
 // define for debug output
-#undef DEBUG_PARSING
+#define DEBUG_PARSING
 
 /**
  * @yyin
@@ -58,6 +59,27 @@ Parameter::~Parameter()
 }
 
 /**
+ * @name
+ * @value
+ */
+ParameterString::ParameterString(const char * name, const char * value)
+{
+   paramName = (char *) malloc(strlen(name) + 1);
+   strcpy(paramName,name);
+   size_t valuelen = strlen(value)-2;  // strip quotes
+   assert(value[0]=='"' && value[valuelen+1]=='"');
+   paramValue = (char *) malloc(valuelen+1);
+   strncpy(paramValue,value+1,valuelen);
+   paramValue[valuelen] = '\0';
+}
+
+ParameterString::~ParameterString()
+{
+   free(paramName);
+   free(paramValue);
+}
+
+/**
  * @maxCount
  */
 ParameterStack::ParameterStack(int maxCount)
@@ -91,6 +113,65 @@ Parameter * ParameterStack::pop()
    return parameters[count--];
 }
 
+/*
+ * initialCount
+ */
+ParameterStringStack::ParameterStringStack(int initialCount)
+{
+   allocation = initialCount;
+   count = 0;
+   parameterStrings = (ParameterString **) calloc( allocation, sizeof(ParameterString *));
+}
+
+ParameterStringStack::~ParameterStringStack()
+{
+   for( int i=0; i<count; i++ ) {
+      delete parameterStrings[i];
+   }
+   free(parameterStrings);
+}
+
+/*
+ * @param
+ */
+int ParameterStringStack::push(ParameterString * param)
+{
+   assert( count <= allocation );
+   if( count == allocation ) {
+      int newallocation = allocation + RESIZE_ARRAY_INCR;
+      ParameterString ** newparameterStrings = (ParameterString **) malloc( newallocation*sizeof(ParameterString *) );
+      if( !newparameterStrings ) return PV_FAILURE;
+      for( int i=0; i<count; i++ ) {
+         newparameterStrings[i] = parameterStrings[i];
+      }
+      allocation = newallocation;
+      free(parameterStrings);
+      parameterStrings = newparameterStrings;
+   }
+   assert( count < allocation );
+   parameterStrings[count++] = param;
+   return PV_SUCCESS;
+}
+
+ParameterString * ParameterStringStack::pop()
+{
+   if(count > 0) {
+      return parameterStrings[count--];
+   }
+   else return NULL;
+}
+
+const char * ParameterStringStack::lookup(const char * targetname)
+{
+   const char * result = NULL;
+   for( int i=0; i<count; i++ ) {
+      if( !strcmp(parameterStrings[i]->getName(),targetname) ) {
+         result = parameterStrings[i]->getValue();
+      }
+   }
+   return result;
+}
+
 /**
  * @name
  * @stack
@@ -100,6 +181,7 @@ ParameterGroup::ParameterGroup(char * name, ParameterStack * stack)
    this->groupName = name;
    this->groupKeyword = NULL;
    this->stack     = stack;
+   this->stringStack = NULL;
 }
 
 ParameterGroup::~ParameterGroup()
@@ -107,17 +189,28 @@ ParameterGroup::~ParameterGroup()
    free(groupName);
    free(groupKeyword);
    delete stack;
+   delete stringStack;
 }
 
 int ParameterGroup::setGroupKeyword(const char * keyword) {
    if( groupKeyword == NULL ) {
       size_t keywordlen = strlen(keyword);
-      groupKeyword = (char *) malloc(keywordlen);
+      groupKeyword = (char *) malloc(keywordlen+1);
       if( groupKeyword ) {
           strcpy(groupKeyword, keyword);
       }
    }
    return groupKeyword == NULL ? PV_FAILURE : PV_SUCCESS;
+}
+
+int ParameterGroup::setStringStack(ParameterStringStack * stringStack) {
+   this->stringStack = stringStack;
+   // ParameterGroup::setStringStack takes ownership of the stringStack;
+   // i.e. it will delete it when the ParameterGroup is deleted.
+   // You shouldn't use a stringStack after calling this routine with it.
+   // Instead, query it with ParameterGroup::stringPresent and
+   // ParameterGroup::stringValue methods.
+   return stringStack==NULL ? PV_FAILURE : PV_SUCCESS;
 }
 
 /**
@@ -129,10 +222,10 @@ int ParameterGroup::present(const char * name)
    for (int i = 0; i < count; i++) {
       Parameter * p = stack->peek(i);
       if (strcmp(name, p->name()) == 0) {
-         return 1;
+         return 1;  // string is present
       }
    }
-   return 0;
+   return 0;  // string not present
 }
 
 /**
@@ -150,6 +243,35 @@ float ParameterGroup::value(const char * name)
    fprintf(stderr, "PVParams::ParameterGroup::value: ERROR, couldn't find a value for %s"
                    " in group %s\n", name, groupName);
    exit(1);
+}
+
+int ParameterGroup::stringPresent(const char * stringName) {
+   // not really necessary, as stringValue returns NULL if the
+   // string is not found, but included on the analogy with
+   // value and present methods for floating-point parameters
+   if( !stringName ) return 0;
+   int count = stringStack->size();
+   for( int i=0; i<count; i++) {
+      ParameterString * pstr = stringStack->peek(i);
+      assert(pstr);
+      if( !strcmp( stringName, pstr->getName() ) ) {
+         return 1;  // string is present
+      }
+   }
+   return 0;  // string not present
+}
+
+const char * ParameterGroup::stringValue(const char * stringName ) {
+   if( !stringName ) return NULL;
+   int count = stringStack->size();
+   for( int i=0; i<count; i++ ) {
+      ParameterString * pstr = stringStack->peek(i);
+      assert(pstr);
+      if( !strcmp( stringName, pstr->getName() ) ) {
+         return pstr->getValue();
+      }
+   }
+   return NULL;
 }
 
 FilenameDef::FilenameDef(char * newKey, char * newValue) {
@@ -224,12 +346,14 @@ PVParams::PVParams(const char * filename, int initialSize)
 {
    const char * altfile = INPUT_PATH "inparams.txt";
 
-   this->numGroups = 0;
-   groupArraySize = initialSize;
-
-   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
-   stack = new ParameterStack(MAX_PARAMS);
-   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+   initialize(initialSize);  // initialize defines all the member variables set in the commented-out section
+//   this->numGroups = 0;
+//   groupArraySize = initialSize;
+//
+//   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
+//   stack = new ParameterStack(MAX_PARAMS);
+//   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+//   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 
    if (filename == NULL) {
       printf("PVParams::PVParams: trying to open alternate input file %s\n", altfile);
@@ -251,19 +375,37 @@ PVParams::PVParams(const char * filename, int initialSize)
  */
 PVParams::PVParams(int initialSize)
 {
-   this->numGroups = 0;
-   groupArraySize = initialSize;
-
-   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
-   stack = new ParameterStack(MAX_PARAMS);
-   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+   initialize(initialSize);  // initialize defines all the member variables set in the commented-out section
+//   this->numGroups = 0;
+//   groupArraySize = initialSize;
+//
+//   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
+//   stack = new ParameterStack(MAX_PARAMS);
+//   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+//   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
 }
 
 PVParams::~PVParams()
 {
    free(groups);
    delete stack;
+   delete stringStack;
    delete fnstack;
+}
+
+/*
+ * @initialSize
+ */
+int PVParams::initialize(int initialSize) {
+   this->numGroups = 0;
+   groupArraySize = initialSize;
+
+   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
+   stack = new ParameterStack(MAX_PARAMS);
+   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+
+   return ( groups && stack && stringStack && fnstack ) ? PV_SUCCESS : PV_FAILURE;
 }
 
 /**
@@ -311,6 +453,36 @@ float PVParams::value(const char * groupName, const char * paramName, float init
    else {
       printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
       return initialValue;
+   }
+}
+
+/*
+ *  @groupName
+ *  @paramStringName
+ */
+int PVParams::stringPresent(const char * groupName, const char * paramStringName) {
+   ParameterGroup * g = group(groupName);
+   if (g == NULL) {
+      fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+              groupName);
+      exit(1);
+   }
+
+   return g->stringPresent(paramStringName);
+}
+
+/*
+ *  @groupName
+ *  @paramStringName
+ */
+const char * PVParams::stringValue(const char * groupName, const char * paramStringName) {
+   if( stringPresent(groupName, paramStringName) ) {
+      ParameterGroup * g = group(groupName);
+      return g->stringValue(paramStringName);
+   }
+   else {
+      printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
+      return NULL;
    }
 }
 
@@ -365,9 +537,11 @@ void PVParams::addGroup(char * keyword, char * name)
 
    groups[numGroups] = new ParameterGroup(name, stack);
    groups[numGroups]->setGroupKeyword(keyword);
+   groups[numGroups]->setStringStack(stringStack);
 
-   // the parameter group takes over control of the stack
+   // the parameter group takes over control of the PVParams's stack and stringStack; make new ones.
    stack = new ParameterStack(MAX_PARAMS);
+   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
 
    numGroups++;
 }
@@ -407,11 +581,22 @@ void PVParams::action_parameter_def(char * id, double val)
    stack->push(p);
 }
 
+void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
+#ifdef DEBUG_PARSING
+   fflush(stdout);
+   printf("action_parameter_string_def: %s = %s\n", id, stringval);
+   fflush(stdout);
+#endif
+   ParameterString * pstr = new ParameterString(id, stringval);
+   stringStack->push(pstr);
+}
+
+// Deprecate action_filename_def?
 void PVParams::action_filename_def(char * id, char * path)
 {
 #ifdef DEBUG_PARSING
    fflush(stdout);
-   printf("action_filename_decl: %s = %s\n", id, path);
+   printf("action_filename_def: %s = %s\n", id, path);
    fflush(stdout);
 #endif
    size_t pathlength = strlen( path );

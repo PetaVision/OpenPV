@@ -8,6 +8,8 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
+#include "../include/pv_common.h"
+
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group
 
@@ -28,6 +30,19 @@ private:
    double paramValue;
 };
 
+class ParameterString {
+public:
+   ParameterString(const char * name, const char * value);
+   virtual ~ParameterString();
+
+   const char * getName()      { return paramName; }
+   const char * getValue()           { return paramValue; }
+
+private:
+   char * paramName;
+   char * paramValue;
+};
+
 class ParameterStack {
 public:
    ParameterStack(int maxCount);
@@ -44,6 +59,23 @@ private:
    Parameter ** parameters;
 };
 
+class ParameterStringStack {
+public:
+   ParameterStringStack(int initialCount);
+   virtual ~ParameterStringStack();
+
+   int push(ParameterString * param);
+   ParameterString * pop();
+   ParameterString * peek(int index)    { return index>=0 && index<count ? parameterStrings[index] : NULL; }
+   int size()                           { return count; }
+   const char * lookup(const char * targetname);
+
+private:
+   int count;
+   int allocation;
+   ParameterString ** parameterStrings;
+};
+
 class ParameterGroup {
 public:
    ParameterGroup(char * name, ParameterStack * stack);
@@ -52,14 +84,17 @@ public:
    const char * name()   { return groupName; }
    const char * getGroupKeyword() { return groupKeyword; }
    int setGroupKeyword(const char * keyword);
-
+   int setStringStack(ParameterStringStack * stringStack);
    int   present(const char * name);
    float value  (const char * name);
+   int   stringPresent(const char * stringName);
+   const char * stringValue(const char * stringName);
 
 private:
    char * groupName;
    char * groupKeyword;
    ParameterStack * stack;
+   ParameterStringStack * stringStack;
 };
 
 class FilenameDef {
@@ -101,6 +136,8 @@ public:
    int   present(const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue);
+   int   stringPresent(const char * groupName, const char * paramStringName);
+   const char * stringValue(const char * groupName, const char * paramStringName);
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
@@ -108,8 +145,8 @@ public:
 
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
-   void action_filename_def(char * id, char * path);
-
+   void action_parameter_string_def(const char * id, const char * stringval);
+   void action_filename_def(char * id, char * path); // Deprecate?
    int numberOfGroups() {return numGroups;}
 
 private:
@@ -118,8 +155,10 @@ private:
    // int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
-   FilenameStack * fnstack;
+   ParameterStringStack * stringStack;
+   FilenameStack * fnstack; // Deprecate?
 
+   int initialize(int initialSize);
    void addGroup(char * keyword, char * name);
 };
 

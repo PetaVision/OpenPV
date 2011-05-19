@@ -1,26 +1,26 @@
 %{
 #include <stdio.h>
+#include <float.h>
 #include "param_parser.hpp"
 %}
 
 %%
-"FileDefinition" { yylval.sval = strdup(yytext); return T_FILE_KEYWORD; }
+([+]|[-])?(([0-9]+(\.[0-9]*)?)|([0-9]*\.[0-9]+)|([0-9](\.[0-9]*)?[Ee]([+]|[-])?[0-9]+)) {
+   yylval.dval = strtod(yytext, NULL);
+   return T_NUMBER;
+}
 
-"HyPerCol"     { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"HyPerConn"    { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"HyPerLayer"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"ColProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"ConnectionProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
-"LayerProbe"   { yylval.sval = strdup(yytext); return T_KEYWORD; }
+[+]?(infinity) { yylval.dval = FLT_MAX; return T_NUMBER; }
+-infinity { yylval.dval = -FLT_MAX; return T_NUMBER; }
+
+"true" { yylval.dval = 1; return T_NUMBER; }
+"false" { yylval.dval = 0; return T_NUMBER; }
+
+"FileDefinition" { yylval.sval = strdup(yytext); return T_FILE_KEYWORD; }
 
 [a-zA-Z][a-zA-Z0-9_]* {
    yylval.sval = strdup(yytext);
    return T_ID;
-}
-
-([+]|[-])?(([0-9]+(\.[0-9]*)?)|([0-9]*\.[0-9]+)|([0-9](\.[0-9]*)?[Ee]([+]|[-])?[0-9]+)) {
-   yylval.dval = atof(yytext);
-   return T_NUMBER;
 }
 
 [\"][a-zA-Z0-9_ ]*[\"] { yylval.sval = strdup(yytext); return T_STRING; }

@@ -40,20 +40,18 @@
       know about them.  */
    enum yytokentype {
      T_STRING = 258,
-     T_KEYWORD = 259,
-     T_ID = 260,
-     T_NUMBER = 261,
-     T_FILE_KEYWORD = 262,
-     T_FILENAME = 263
+     T_ID = 259,
+     T_NUMBER = 260,
+     T_FILE_KEYWORD = 261,
+     T_FILENAME = 262
    };
 #endif
 /* Tokens.  */
 #define T_STRING 258
-#define T_KEYWORD 259
-#define T_ID 260
-#define T_NUMBER 261
-#define T_FILE_KEYWORD 262
-#define T_FILENAME 263
+#define T_ID 259
+#define T_NUMBER 260
+#define T_FILE_KEYWORD 261
+#define T_FILENAME 262
 
 
 
@@ -63,7 +61,7 @@ typedef union YYSTYPE
 #line 37 "params.y"
 {char * sval; double dval; }
 /* Line 1529 of yacc.c.  */
-#line 67 "param_parser.hpp"
+#line 65 "param_parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
