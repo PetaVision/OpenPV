@@ -51,14 +51,15 @@ endif
 
 MNIST_flag = 0;
 bowtie_flag = 0;
+animal_flag = 0;
 
 NFC = 4;
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 10;
-num_trials = 0;%%( TRAINING_FLAG <= 0 ) * 999; % %
+num_single_trials = 15;
+num_trials = 0;%%599; % %
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -74,41 +75,43 @@ DEBUG_FLAG = 1;
 
 global G_STR
 G_STR = '';
-if ((MNIST_flag == 0) && (bowtie_flag == 0))
+if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
   if abs(TRAINING_FLAG) == 1
-    G_STR = '_G1';
+    G_STR = '_G1/';
   elseif abs(TRAINING_FLAG) == 2
-    G_STR = '_G2';
+    G_STR = '_G2/';
   elseif abs(TRAINING_FLAG) == 3
-    G_STR = '_G3';
+    G_STR = '_G3/';
   elseif abs(TRAINING_FLAG) == 4
-    G_STR = '_G4';
+    G_STR = '_G4/';
   endif
-else
-  G_STR = '_6';
+elseif MNIST_flag == 1
+  G_STR = '_6/';
+elseif bowtie_flag == 1 || animal_flag == 1
+  G_STR = '';
 endif
-				%machine_path = '/home/garkenyon/workspace/';
-machine_path = '/home/garkenyon/workspace/';
-				%machine_path = '/nh/home/gkenyon/workspace/';
+machine_path = '/Users/gkenyon/workspace/';
+
 global target_path
 target_path = [];
-target_path = [machine_path 'kernel/input/amoeba_256/test_W287_target']; %, FC_STR];
+target_path = ...
+    [machine_path "kernel/input/256/test_target40K_W325_target"]; 
 if ~isempty(target_path)
-  target_path = [target_path, G_STR, '/'];
-  if MNIST_flag == 0
+  target_path = [target_path, G_STR];
+  if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
     target_path = [target_path, FC_STR, '/'];
   endif
 endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
-  distractor_path = [machine_path, ...
-		     'kernel/input/amoeba_256/test_W287_distractor']; %, FC_STR];
+  distractor_path = ...
+      [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 else
   distractor_path = [];
 endif
 if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR, '/'];
-  if MNIST_flag == 0
+  if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
     distractor_path = [distractor_path, FC_STR, '/'];
   endif
 endif % ~isempty(distractor_path)
@@ -180,11 +183,11 @@ hist_activity_cell = cell(2, num_layers);
 act_time = zeros(num_layers, num_trials);
 				% 1 == ave, 2 == max, 3 ==
 				% ave > 0, 4 == sum > 0
-twoAFC_test_str = cell(num_2AFC_tests, 1);
+twoAFC_test_str = cell(4, 1);
 twoAFC_test_str{1} = 'ave  ';
-				%twoAFC_test_str{2} = 'sum  ';
-				%twoAFC_test_str{3} = 'avenz';
-				%twoAFC_test_str{4} = 'sumnz';
+twoAFC_test_str{2} = 'sum  ';
+twoAFC_test_str{3} = 'mnz';
+twoAFC_test_str{4} = 'snz';
 
 twoAFC = zeros(2, num_layers, num_trials, num_2AFC_tests);
 
@@ -256,7 +259,7 @@ for j_trial = first_trial : skip_trial : last_trial
       mnz_activity(target_flag, layer, j_trial) = ...
 	  mean( activity{target_flag}( activity{target_flag} > 0 ) );
       snz_activity(target_flag, layer, j_trial) = ...
-	  sum( activity{target_flag}( activity{target_flag} > 0 ) );
+	  mean( activity{target_flag}( activity{target_flag} > 0.5 ) );
 
       if DEBUG_FLAG
 	subindex_str = ['(', num2str(target_flag), ',', ...
@@ -390,7 +393,7 @@ for j_trial = first_trial : skip_trial : last_trial
   
   reconstruct_count = reconstruct_count + 1;
   raw_hist_count = raw_hist_count + 1;
-  
+   
   pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
   close all;
   fig_list = [];
@@ -401,15 +404,14 @@ endfor % j_trial
 twoAFC_filename = ...
     ['twoAFC', num2str(expNum), '.mat']
 twoAFC_filename = [twoAFC_path, twoAFC_filename]
-if tot_trials > num_single_trials
-  plot_2AFC_flag = 1;
-  save('-mat', twoAFC_filename, 'twoAFC', 'tot_trials', ...
-       'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
-else
-  if exist(twoAFC_filename,"file")
+if plot_2AFC_flag == 1
+  if exist("twoAFC") && ~isempty(twoAFC)
+    save('-mat', twoAFC_filename, 'twoAFC', 'tot_trials', ...
+	 'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
+  elseif exist(twoAFC_filename,"file")
     load(twoAFC_filename);
   else
-      plot_2AFC_flag = 0;
+    plot_2AFC_flag = 0;
   endif
 endif
 
@@ -419,7 +421,7 @@ max_target_flag = size(twoAFC, 1);
 min_target_flag = 1;
 tot_trials = size(twoAFC, 3); %length( first_trial : skip_trial : num_trials );
 plot_hist_activity_flag = 0 && plot_2AFC_flag;
-plot_2AFC_flag = (tot_trials > num_single_trials) && plot_2AFC_flag;
+%%plot_2AFC_flag = (tot_trials > num_single_trials) && plot_2AFC_flag;
 if max_target_flag > min_target_flag
 
   if plot_hist_activity_flag
@@ -457,29 +459,38 @@ if max_target_flag > min_target_flag
   
   if plot_2AFC_flag
 
-    mean_2AFC = squeeze( mean( twoAFC, 3 ) );
-    std_2AFC = squeeze( std( twoAFC, 0, 3 ) );
-    
-    %% pvp_calc2AFC();
-%%    twoAFC_hist = cell(2, num_layers, num_2AFC_tests);
-%%    twoAFC_bins = cell(num_layers, num_2AFC_tests);
-%%    twoAFC_cumsum = cell(2, num_layers, num_2AFC_tests);
-%%    twoAFC_ideal = cell(num_layers, num_2AFC_tests);
-    
-    for i_2AFC_test = 1 : num_2AFC_tests
+    artificial_trials = [1:75, 151:225, 301:375, 451:525];
+    natural_trials = [76:150, 226:300, 376:450, 526:599];
+    body_trials = [1:150];
+    far_trials = [151:300];
+    head_trials = [301:450];
+    middle_trials = [451:599];
+    all_trials =  [1:size(twoAFC,3)];
+    twoAFC_trials = natural_trials; %%all_trials; 
+        
+    mean_2AFC = squeeze( mean( twoAFC(:,:,twoAFC_trials,:), 3 ) );
+    std_2AFC = squeeze( std( twoAFC(:,:,twoAFC_trials,:), 0, 3 ) );
+
+    twoAFC_correct = zeros(num_layers, size(twoAFC,4));
+    twoAFC_errorbar = zeros(num_layers, size(twoAFC,4));
+
+    baseline_layer = 0;
+
+    twoAFC_list = [1];
+    for i_2AFC_test = twoAFC_list %%1 : num_2AFC_tests
       
       [twoAFC_hist, twoAFC_bins] = ...
-	  pvp_calc2AFCHist(twoAFC, ...
+	  pvp_calc2AFCHist(twoAFC(:,:,twoAFC_trials,i_2AFC_test), ...
 			   read_activity, ...
 			   1, ...
-			   twoAFC_test_str{i_2AFC_test});
+			   twoAFC_test_str{i_2AFC_test}, ...
+			   baseline_layer);
       [fig_list_tmp] = ...
 	  pvp_plot2AFCHist(twoAFC_hist, ...
 			   twoAFC_bins, ...
 			   read_activity, ...
 			   twoAFC_test_str{i_2AFC_test});
       fig_list = [fig_list; fig_list_tmp];
-
       
       [twoAFC_cumsum, twoAFC_ideal] = ...
 	  pvp_calc2AFCCumsum(twoAFC_hist, ...
@@ -495,7 +506,7 @@ if max_target_flag > min_target_flag
       fig_list = [fig_list; fig_list_tmp];
 
       
-      [twoAFC_ROC] = ...
+      [twoAFC_ROC, twoAFC_AUC] = ...
 	  pvp_calc2AFCROC(twoAFC_cumsum, ...
 			  read_activity, ...
 			  1, ...
@@ -520,14 +531,45 @@ if max_target_flag > min_target_flag
 	endfor
       endfor
       for layer = read_activity
-	twoAFC_correct(layer, i_2AFC_test) = ...
-	    sum( squeeze( twoAFC(1,layer, :, i_2AFC_test) >
-			 twoAFC(2,layer, :, i_2AFC_test) ) ) / ...
-	    ( tot_trials + (tot_trials == 0) );
-	disp( ['twoAFC_correct(', num2str(layer), ',', num2str(i_2AFC_test), ') = ', ...
-	       num2str(twoAFC_correct(layer, i_2AFC_test)) ] );
-      endfor
 
+	twoAFC_tmp = squeeze( twoAFC(:, layer, :, i_2AFC_test) );
+	if (baseline_layer > 0) && (layer > baseline_layer)
+	  twoAFC_baseline = ...
+	      squeeze(twoAFC(:,baseline_layer,:,i_2AFC_test));
+	  twoAFC_tmp = twoAFC_baseline - twoAFC_tmp;
+	  %%twoAFC_tmp = ...
+	  %%    twoAFC_tmp ./ ...
+	  %%    (twoAFC_baseline + (twoAFC_baseline == 0));
+	elseif (baseline_layer < 0) && (layer > abs(baseline_layer))
+	  twoAFC_baseline = ...
+	      squeeze(twoAFC(:,abs(baseline_layer),:,i_2AFC_test));
+	  twoAFC_tmp = twoAFC_tmp - twoAFC_baseline;
+	  %%twoAFC_tmp = ...
+	  %%    twoAFC_tmp ./ ...
+	  %%    (twoAFC_baseline + (twoAFC_baseline == 0));
+	endif
+	twoAFC_correct(layer, i_2AFC_test) = ...
+	    sum( squeeze(twoAFC_tmp(1, twoAFC_trials) >
+			 twoAFC_tmp(2, twoAFC_trials) ) ) / ...
+	    ( length(twoAFC_trials) + (length(twoAFC_trials) == 0) );
+	if ( twoAFC_correct(layer, i_2AFC_test) * length(twoAFC_trials) ) ~= 0
+	  twoAFC_errorbar(layer, i_2AFC_test) = ...
+	      sqrt( 1 - twoAFC_correct(layer, i_2AFC_test) ) / ...
+	      sqrt(twoAFC_correct(layer, i_2AFC_test) * ...
+		   length(twoAFC_trials) );
+	else
+	  twoAFC_errorbar(layer, i_2AFC_test) = 0;
+	endif
+	disp( ['twoAFC_correct(', num2str(layer), ...
+			       ',', num2str(i_2AFC_test), ') = ', ...
+	       num2str(twoAFC_correct(layer, i_2AFC_test)), ...
+	       "+/-", ...
+	       num2str(twoAFC_errorbar(layer, i_2AFC_test))] );
+	disp( ['twoAFC_AUC(', num2str(layer), ...
+			       ',', num2str(i_2AFC_test), ') = ', ...
+	       num2str(twoAFC_AUC(layer, 1))] );
+      endfor
+      
     endfor % i_2AFC_test
     
     save('-mat', twoAFC_filename, 'twoAFC', 'twoAFC_hist', ...
@@ -567,7 +609,7 @@ weight_invert(12) = -1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 1;
+FLAT_ARCH_FLAG = 0;
 write_pvp_kernel_flag = 1;
 write_mat_kernel_flag = 1;
 weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -649,10 +691,41 @@ for i_conn = plot_weights
 	[connID{i_conn}, '(', ...
 			   int2str(i_conn), ',', ...
 			   int2str(i_patch), ')' ];
-    fig_tmp = pvp_reconstruct(weights{i_conn}{i_patch}*weight_invert(i_conn), ...
-			      plot_name, ...
-			      [], patch_size);
+    pixels_per_cell = 5;
+    [fig_tmp, recon_colormap] = ...
+	pvp_reconstruct(weights{i_conn}{i_patch}*weight_invert(i_conn), ...
+			plot_name, ...
+			[], patch_size, [], ...
+			pixels_per_cell);
     fig_list = [fig_list; fig_tmp];
+    plot_recon_subsection = 1;
+    plot_recon_subsection
+    if plot_recon_subsection
+      weights_sub = ...
+	  weights{i_conn}{i_patch}*weight_invert(i_conn);
+      weights_sub = ...
+	  reshape(weights_sub, patch_size);
+      sub_size = floor( NROWS / 8 );
+      row_start = 1 + sub_size;
+      row_end = row_start + sub_size - 1;
+      col_start = 1 + sub_size;
+      col_end = col_start + sub_size - 1;
+      weights_sub = ...
+	  weights_sub(1,:, col_start:col_end, row_start:row_end);
+      patch_size_sub = [1 NFEATURES  sub_size sub_size];
+      plot_name_sub = ...
+	[connID{i_conn}, '(', ...
+			   int2str(i_conn), ',', ...
+			   int2str(i_patch), ')', ...
+	 " insert"];
+      pixels_per_cell_sub = 5*sub_size;
+      [fig_sub, recon_colormap] = ...
+	  pvp_reconstruct(weights_sub(:), ...
+			  plot_name_sub, ...
+			  [], patch_size_sub, [], ...
+			  pixels_per_cell_sub);
+      fig_list = [fig_list; fig_sub];      
+    endif
   endfor % i_patch
 endfor % i_conn
 FLAT_ARCHITECTURE = 0;

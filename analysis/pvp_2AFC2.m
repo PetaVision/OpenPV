@@ -1,9 +1,9 @@
 clear all
 setenv("GNUTERM", "x11");
 %pvp_matlabPath;
-%%twoAFC_path = '/Users/gkenyon/Documents/eclipse-workspace/kernel/input/256/';
+%%twoAFC_path = '/Users/gkenyon/workspace2/geisler/input/256/';
 twoAFC_path = '/Users/gkenyon/workspace/kernel/input/256/';
-FC_list = [2 4 6 8];
+FC_list = [4]; %%[2 4 6 8];
 len_FC = length(FC_list);
 max_expNum = 1;  % maximum number of independent experiments to be combined
 twoAFC_array = cell(len_FC, max_expNum);
@@ -13,12 +13,12 @@ twoAFC_errorbar = cell(len_FC, max_expNum);
 expNum_list = [1];  % list for combining results from several experiments
 len_expNum = length(expNum_list);
 local_path = pwd;
-TRAINING_FLAG = -1
+TRAINING_FLAG = -1;
 for i_fc = 1 : len_FC
   num_FC = FC_list(i_fc);
   disp(['num_FC = ', num2str(num_FC)]);
-  twoAFC_dir = [twoAFC_path, 'test_target40K_W325_target'];
-  %twoAFC_dir = [twoAFC_path, 'test_target10K_W287_target']; 
+  %twoAFC_dir = [twoAFC_path, 'target_125'];
+  twoAFC_dir = [twoAFC_path, 'test_target40K_W325_target']; 
   if abs(TRAINING_FLAG) == 1
     twoAFC_dir = [twoAFC_dir, '_G1'];
   elseif abs(TRAINING_FLAG) == 2
@@ -27,6 +27,8 @@ for i_fc = 1 : len_FC
     twoAFC_dir = [twoAFC_dir, '_G3'];
   elseif abs(TRAINING_FLAG) == 4
     twoAFC_dir = [twoAFC_dir, '_G4'];
+  else
+    twoAFC_dir = [twoAFC_dir, ''];    
   endif
   twoAFC_dir = [twoAFC_dir, ...
 		'/', num2str(num_FC), 'fc'];
