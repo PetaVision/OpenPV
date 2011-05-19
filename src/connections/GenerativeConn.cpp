@@ -14,13 +14,6 @@ GenerativeConn::GenerativeConn() {
 }  // end of GenerativeConn::GenerativeConn()
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post) {
-       initialize_base();
-       initialize(name, hc, pre, post, channel, NULL);
-}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *)
-
-GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
        initialize_base();
        initialize(name, hc, pre, post, channel);
@@ -36,9 +29,9 @@ GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
    //   HyPerLayer *, HyPerLayer *, int, const char *)
 
 int GenerativeConn::initialize_base() {
-    weightUpdatePeriod = 1.0;
-    nextWeightUpdate = weightUpdatePeriod;
     relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalizeMethod = 0;
     return PV_SUCCESS;
     // KernelConn constructor calls KernelConn::initialize_base()
     // and the similarly for HyPerConn constructor, so I don't need to.
@@ -53,26 +46,15 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
         const char * filename) {
     PVParams * params = hc->parameters();
-    weightUpdatePeriod = params->value(name, "weightUpdatePeriod", 1.0f);
-    nextWeightUpdate = weightUpdatePeriod;
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
-    normalizeMethod = params->value(name, "normalizeMethod", 0.f); // default is not to constrain kernelwise to spheres.
-    KernelConn::initialize(name, hc, pre, post, channel, filename);
+    normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is not to constrain kernelwise to spheres.
+    PeriodicUpdateConn::initialize(name, hc, pre, post, channel, filename);
     return PV_SUCCESS;
 }
 
-int GenerativeConn::updateState(float time, float dt) {
-    int status = PV_SUCCESS;
-    if(time > nextWeightUpdate) {
-        nextWeightUpdate += weightUpdatePeriod;
-        status = updateWeights(0);
-    }
-    return status;
-}  // end of GenerativeConn::updateState(float, float)
-
 int GenerativeConn::updateWeights(int axonID) {
-    printf("updateWeights for connection %s\n", name);
+    printf("updateWeights for GenerativeConn %s\n", name);
 
     int nPre = preSynapticLayer()->getNumNeurons();
     int nx = preSynapticLayer()->getLayerLoc()->nx;

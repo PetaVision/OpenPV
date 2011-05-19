@@ -8,17 +8,13 @@
 #ifndef GENERATIVECONN_HPP_
 #define GENERATIVECONN_HPP_
 
-#include <assert.h>
-#include "KernelConn.hpp"
-#include "../columns/HyPerCol.hpp"
+#include "PeriodicUpdateConn.hpp"
 
 namespace PV {
 
-class GenerativeConn : public KernelConn {
+class GenerativeConn : public PeriodicUpdateConn {
 public:
     GenerativeConn();
-    GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post);
     GenerativeConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     GenerativeConn(const char * name, HyPerCol * hc,
@@ -31,17 +27,12 @@ public:
             const char * filename);
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
-    inline float getWeightUpdatePeriod() {return weightUpdatePeriod;}
-    inline float getNextWeightUpdate() { return nextWeightUpdate;}
     inline float getRelaxation() { return relaxation; }
-    virtual int updateState(float time, float dt);
-    int updateWeights(int axonID);
+    virtual int updateWeights(int axonID);
     virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
 
 protected:
-    float weightUpdatePeriod;
-    float nextWeightUpdate;
     float relaxation;
     bool nonnegConstraintFlag;
     int normalizeMethod;
