@@ -9,11 +9,11 @@
 
 namespace PV {
 
-GenColProbe::GenColProbe() : ColProbe() {
+GenColProbe::GenColProbe(const char * probename) : ColProbe(probename) {
     initialize_base();
 }  // end GenColProbe::GenColProbe()
 
-GenColProbe::GenColProbe(const char * filename) : ColProbe(filename) {
+GenColProbe::GenColProbe(const char * probename, const char * filename, HyPerCol * hc) : ColProbe(probename, filename, hc) {
     initialize_base();
 }  // end GenColProbe::GenColProbe(const char *)
 
@@ -53,7 +53,7 @@ pvdata_t GenColProbe::evaluate(float time) {
     pvdata_t sum = 0;
     for( int n=0; n<numTerms; n++) {
     	gencolprobeterm thisterm = terms[n];
-        sum += thisterm.coeff*( ((LayerFunctionProbe *) thisterm.function)->getFunction()->evaluate(time, (HyPerLayer *) thisterm.layer) );
+        sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(time, thisterm.layer) );
     }
     return sum;
 }  // end GenColProbe::evaluate(float)

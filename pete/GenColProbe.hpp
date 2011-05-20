@@ -8,24 +8,25 @@
 #ifndef GENCOLPROBE_HPP_
 #define GENCOLPROBE_HPP_
 
-#define DEFAULT_GENCOLPROBE_COEFFICIENT ((pvdata_t) 1.0)
+#define DEFAULT_GENCOLPROBE_COEFFICIENT ((pvdata_t) 1)
 
 #include "../PetaVision/src/io/ColProbe.hpp"
 #include "../PetaVision/src/columns/HyPerCol.hpp"
 #include "../PetaVision/src/layers/HyPerLayer.hpp"
 #include "LayerFunctionProbe.hpp"
 
+namespace PV {
+
 typedef struct gencolprobeterm_ {
-    void * function; // LayerFunctionProbe * function;
-    void * layer; // HyPerLayer * layer;
+    LayerFunctionProbe * function;
+    HyPerLayer * layer;
     pvdata_t coeff;
 } gencolprobeterm;
 
-namespace PV {
 class GenColProbe : public ColProbe {
 public:
-	GenColProbe();
-	GenColProbe(const char * filename);
+	GenColProbe(const char * name);
+	GenColProbe(const char * probename, const char * filename, HyPerCol * hc);
 	~GenColProbe();
 	int initialize_base();
 
@@ -37,7 +38,6 @@ public:
 protected:
 	int numTerms;
 	gencolprobeterm * terms;
-
 
 }; // end class GenColProbe
 
