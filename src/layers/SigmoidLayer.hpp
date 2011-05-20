@@ -24,9 +24,6 @@ public:
    virtual int setActivity();
    virtual int resetPhiBuffers();
    LIF * sourceLayer;
-   pvdata_t VThresh;
-   pvdata_t VMax;
-   pvdata_t VMin;
 };
 
 }

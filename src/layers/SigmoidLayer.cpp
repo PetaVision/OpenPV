@@ -34,10 +34,6 @@ int SigmoidLayer::initialize(LIF * originalLayer)
    }
    phi[0] = NULL;
    numChannels = 0;
-   PVParams * params = parent->parameters();
-   VThresh = params->value(name, "VThresh", -max_pvdata_t);
-   VMax = params->value(name, "VMax", max_pvdata_t);
-   VMin = params->value(name, "VMin", VThresh);
    return status_init;
 }
 
@@ -61,10 +57,23 @@ int SigmoidLayer::setActivity() {
    for( int k=0; k<getNumExtended(); k++ ) {
       activity[k] = 0; // Would it be faster to only do the margins?
    }
+   pvdata_t sig_scale = 1.0f;
+   pvdata_t Vth = sourceLayer->getLIFParams()->VthRest;
+   pvdata_t V0 = sourceLayer->getLIFParams()->Vrest;
+   if ( Vth > V0 ){
+      sig_scale = 1 / (Vth - V0);
+   }
    for( int k=0; k<getNumNeurons(); k++ ) {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
-      activity[kex] = V[k] > VMax ? VMax : V[k];
-      activity[kex] = activity[kex] < VThresh ? VMin : activity[kex];
+      if (V[k] > Vth){
+         activity[kex] = 1.0f;
+      }
+      else if (V[k] < V0){
+         activity[kex] = 0.0f;
+      }
+      else{
+         activity[kex] = (V[k] - V0) * sig_scale;
+      }
    }
    return PV_SUCCESS;
 }
