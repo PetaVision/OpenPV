@@ -11,30 +11,27 @@
 #include <string.h>
 #include <assert.h>
 
-#include "GenerativeConn.hpp"
+#include "TransposeConn.hpp"
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 
 namespace PV {
 
-class FeedbackConn : public GenerativeConn {
+class FeedbackConn : public TransposeConn {
 public:
     FeedbackConn();
     FeedbackConn(const char * name, HyPerCol *hc, ChannelType channel,
-        GenerativeConn * ffconn);
+        KernelConn * ffconn);
 
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, ChannelType channel,
-        const char * filename, GenerativeConn * ffconn);
-    inline GenerativeConn * getFeedforwardConn() {return feedforwardConn;}
-    int updateWeights(int axonID);
+    int initialize(const char * name, HyPerCol * hc, ChannelType channel, KernelConn * ffconn);
 
 protected:
     int setPatchSize(const char * filename);
     PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename);
-    int transposeKernels();
-    GenerativeConn * feedforwardConn;
+
+    KernelConn * feedforwardConn; // same as TransposeConn's originalConn; kept for backward compatibility
 };
 
 }  // end of block for namespace PV
