@@ -449,19 +449,23 @@ int Retina::writeState(float time)
 int Retina::outputState(float time, bool last)
 {
    int status = 0;
-#define WRITE_NONSPIKING_ACTIVITY
-#ifdef WRITE_NONSPIKING_ACTIVITY
-   float defaultWriteNonspikingActivity = 1.0;
-#else
-   float defaultWriteNonspikingActivity = 0.0;
-#endif
-//   PVParams * params = parent->parameters();  // all run-time params now stored in HyPerLayer
+
+// Commented out in May 2011.  All run-time params now are read in HyPerLayer
+// #define WRITE_NONSPIKING_ACTIVITY
+//#ifdef WRITE_NONSPIKING_ACTIVITY
+//   float defaultWriteNonspikingActivity = 1.0;
+//#else
+//   float defaultWriteNonspikingActivity = 0.0;
+//#endif
+//   PVParams * params = parent->parameters();
 //   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
    if (spikingFlag != 0){
       updateActiveIndices();
       status = HyPerLayer::outputState(time, last);
       return status;
    }
+
+// Commented out in May 2011.  All run-time params now are read in HyPerLayer
 //   int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
 //         defaultWriteNonspikingActivity);
    else if (writeNonspikingActivity != 0){
