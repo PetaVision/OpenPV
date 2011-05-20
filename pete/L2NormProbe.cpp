@@ -12,7 +12,7 @@ namespace PV {
 L2NormProbe::L2NormProbe(const char * msg) : LayerFunctionProbe(msg) {
     function = new L2NormFunction(msg);
 }
-L2NormProbe::L2NormProbe(const char * filename, const char * msg) : LayerFunctionProbe(filename, msg) {
+L2NormProbe::L2NormProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
     function = new L2NormFunction(msg);
 }
 

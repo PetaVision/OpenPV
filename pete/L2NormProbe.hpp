@@ -15,7 +15,7 @@ namespace PV {
 class L2NormProbe : public LayerFunctionProbe {
 public:
 	L2NormProbe(const char * msg);
-	L2NormProbe(const char * filename, const char * msg);
+	L2NormProbe(const char * filename, HyPerCol * hc, const char * msg);
 	~L2NormProbe();
     int outputState(float time, HyPerLayer * l);
     pvdata_t evaluate();
