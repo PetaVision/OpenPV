@@ -16,13 +16,19 @@ namespace PV {
 class ColProbe {
 public:
     ColProbe();
+    ColProbe(const char * probeName);
     ColProbe(const char * filename, HyPerCol * hc);
+    ColProbe(const char * probeName, const char * filename, HyPerCol * hc);
     virtual ~ColProbe();
 
-    virtual int outputState(float time, HyPerCol * hc) {return EXIT_SUCCESS;}
+    virtual int outputState(float time, HyPerCol * hc) {return PV_SUCCESS;}
+    const char * getColProbeName() { return colProbeName; }
 
 protected:
     FILE * fp;
+    char * colProbeName;
+    int initialize_path(const char * filename, HyPerCol * hc);
+    int setColProbeName(const char * name);
 }; // end class ColProbe
 
 }  // end namespace PV
