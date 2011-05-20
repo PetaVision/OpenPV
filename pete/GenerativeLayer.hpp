@@ -9,9 +9,6 @@
 #define GENERATIVELAYER_HPP_
 
 #include "../PetaVision/src/layers/ANNLayer.hpp"
-#include "../PetaVision/src/connections/HyPerConn.hpp"
-#include "../PetaVision/src/connections/GenerativeConn.hpp"
-#include <assert.h>
 
 namespace PV {
 

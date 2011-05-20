@@ -18,10 +18,10 @@ GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType t
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *, PVLayerType *)
 
 int GenerativeLayer::initialize() {
-	PVParams * params = parent->parameters();
-	relaxation = params->value(name, "relaxation", 1.0);
-	activityThreshold = params->value(name, "activityThreshold", 0);
-	return EXIT_SUCCESS;
+    PVParams * params = parent->parameters();
+    relaxation = params->value(name, "relaxation", 1.0);
+    activityThreshold = params->value(name, "activityThreshold", 0);
+    return EXIT_SUCCESS;
 }  // end of GenerativeLayer::initialize()
 
 int GenerativeLayer::updateV() {
