@@ -54,6 +54,7 @@ public:
       return conductance;
    }
 
+   virtual LIF_params * getLIFParams() {return &lParams;};
    virtual pvdata_t * getWmax() {return Wmax;}
    virtual pvdata_t * getVthRest(){return VthRest;}
    virtual pvdata_t * getR(){return R;}

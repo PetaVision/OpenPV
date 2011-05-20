@@ -10,18 +10,19 @@
 #define CLONELAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include "LIF.hpp"
 
 namespace PV {
 
 // CloneLayer can be used to implement gap junctions between spiking neurons
 class CloneLayer: public HyPerLayer {
 public:
-   CloneLayer(const char * name, HyPerCol * hc, HyPerLayer * clone);
+   CloneLayer(const char * name, HyPerCol * hc, LIF * clone);
    virtual ~CloneLayer();
-   int initialize(HyPerLayer * clone);
+   int initialize(LIF * clone);
    virtual int updateV();
    virtual int setActivity();
-   HyPerLayer * sourceLayer;
+   LIF * sourceLayer;
 };
 
 }
