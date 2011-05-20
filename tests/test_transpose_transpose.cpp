@@ -167,11 +167,12 @@ int testTransposeOfTransposeWeights(KernelConn * originalMap, TransposeConn * tr
       printf("%s: test_transpose_transpose passed.\n", message);
    }
    else {
-      fprintf(stderr, "%s: test_transpose_transpose passed.\n", message);
+      fprintf(stderr, "%s: test_transpose_transpose failed.\n", message);
       dumpWeights(originalMap, stdout);
       dumpWeights(transpose, stdout);
       dumpWeights(transposeOfTranspose, stdout);
    }
+   return status;
 }
 
 int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
