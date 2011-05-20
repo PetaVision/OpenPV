@@ -1,24 +1,24 @@
 /*
- * TrainingGenLayer.hpp
+ * TrainingLayer.hpp
  *
  *  Created on: Dec 8, 2010
  *      Author: pschultz
  */
 
-#ifndef TRAININGGENLAYER_HPP_
-#define TRAININGGENLAYER_HPP_
+#ifndef TRAININGLAYER_HPP_
+#define TRAININGLAYER_HPP_
 
 #include "GenerativeLayer.hpp"
 
 namespace PV {
 
-class TrainingGenLayer : public GenerativeLayer {
+class TrainingLayer : public ANNLayer {
 
 public:
-	TrainingGenLayer(const char * name, HyPerCol * hc, int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay );
-	TrainingGenLayer(const char * name, HyPerCol * hc, const char * filename, float displayPeriod, float delay );
-	TrainingGenLayer(const char * name, HyPerCol * hc, const char * filename);
-	virtual ~TrainingGenLayer();
+	TrainingLayer(const char * name, HyPerCol * hc, int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay );
+	TrainingLayer(const char * name, HyPerCol * hc, const char * filename, float displayPeriod, float delay );
+	TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
+	virtual ~TrainingLayer();
     int initialize(int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay);
     int initialize(const char * filename, float displayPeriod, float delay);
     int initialize(const char * filename, PVParams * params);
@@ -38,9 +38,9 @@ protected:
     int setLabeledNeuron() {return setLabeledNeuronToValue(1.0f);}
     int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
     void sendBadNeuronMessage();
-}; // end class TrainingGenLayer
+}; // end class TrainingLayer
 
 }  // end namespace PV block
 
 
-#endif /* TRAININGGENLAYER_HPP_ */
+#endif /* TRAININGLAYER_HPP_ */
