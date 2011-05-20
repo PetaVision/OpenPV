@@ -17,9 +17,9 @@ namespace PV {
 class LayerFunctionProbe : public StatsProbe {
 public:
 	LayerFunctionProbe(const char * msg);
-	LayerFunctionProbe(const char * filename, const char * msg);
+	LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg);
 	LayerFunctionProbe(const char * msg, LayerFunction * F);
-	LayerFunctionProbe(const char * filename, const char * msg, LayerFunction * F);
+	LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg, LayerFunction * F);
 
 	LayerFunction * getFunction() {return function;}
 	void setFunction(LayerFunction * f) {function = f;}

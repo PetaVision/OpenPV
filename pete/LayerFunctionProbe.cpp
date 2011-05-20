@@ -14,8 +14,8 @@ LayerFunctionProbe::LayerFunctionProbe(const char * msg) :
     function = NULL;
 }  // end LayerFunctionProbe::LayerFunctionProbe(const char *)
 
-LayerFunctionProbe::LayerFunctionProbe(const char * filename, const char * msg) :
-    StatsProbe(filename, BufV, msg) {
+LayerFunctionProbe::LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg) :
+    StatsProbe(filename, hc, BufV, msg) {
     function = NULL;
 }  // end LayerFunctionProbe::LayerFunctionProbe(const char *, const char *)
 
@@ -24,8 +24,8 @@ LayerFunctionProbe::LayerFunctionProbe(const char * msg, LayerFunction * F) :
     function = F;
 }  // end LayerFunctionProbe::LayerFunctionProbe(const char *, LayerFunction *)
 
-LayerFunctionProbe::LayerFunctionProbe(const char * filename, const char * msg, LayerFunction * F) :
-    StatsProbe(filename, BufV, msg) {
+LayerFunctionProbe::LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg, LayerFunction * F) :
+    StatsProbe(filename, hc, BufV, msg) {
     function = F;
 }  // end LayerFunctionProbe::LayerFunctionProbe(const char *, const char *, LayerFunction *)
 
