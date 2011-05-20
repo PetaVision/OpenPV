@@ -16,7 +16,7 @@ namespace PV {
 class SparsityTermProbe : public LayerFunctionProbe {
 public:
 	SparsityTermProbe(const char * msg);
-	SparsityTermProbe(const char * filename, const char * msg);
+	SparsityTermProbe(const char * filename, HyPerCol * hc, const char * msg);
 	~SparsityTermProbe();
     virtual int outputState(float time, HyPerLayer * l);
 };

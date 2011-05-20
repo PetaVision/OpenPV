@@ -12,7 +12,7 @@ namespace PV {
 SparsityTermProbe::SparsityTermProbe(const char * msg) : LayerFunctionProbe(msg) {
     function = new SparsityTermFunction(msg);
 }
-SparsityTermProbe::SparsityTermProbe(const char * filename, const char * msg) : LayerFunctionProbe(filename, msg) {
+SparsityTermProbe::SparsityTermProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
     function = new SparsityTermFunction(msg);
 }
 
