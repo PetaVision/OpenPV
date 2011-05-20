@@ -1,5 +1,5 @@
 /*
- * L2NormFunction.cpp
+ * SparsityTermFunction.cpp
  *
  *  Created on: Nov 26, 2010
  *      Author: pschultz
