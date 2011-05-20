@@ -17,7 +17,7 @@ namespace PV {
 class VProbe : public LayerProbe {
 public:
     VProbe();
-    VProbe(const char * filename);
+    VProbe(const char * filename, HyPerCol * hc);
 
     virtual int outputState(float time, HyPerLayer * l);
 

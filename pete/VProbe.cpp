@@ -10,10 +10,10 @@
 namespace PV {
 
 VProbe::VProbe() : LayerProbe() {
-}  // end ChannelProbe::ChannelProbe(ChannelType)
+}  // end VProbe::VProbe(ChannelType)
 
-VProbe::VProbe(const char * filename) : LayerProbe(filename){
-}  // end ChannelProbe::ChannelProbe(const char *, ChannelType)
+VProbe::VProbe(const char * filename, HyPerCol * hc) : LayerProbe(filename, hc){
+}  // end VProbe::VProbe(const char *, HyPerCol *)
 
 int VProbe::outputState(float time, HyPerLayer * l) {
     pvdata_t * buf = l->getV();
@@ -23,6 +23,6 @@ int VProbe::outputState(float time, HyPerLayer * l) {
         fprintf(fp, "    neuron %8d, value=%g\n", k, buf[k]);
     }
     return EXIT_SUCCESS;
-}  // end ChannelProbe::outputState(float, HyPerLayer *)
+}  // end VProbe::outputState(float, HyPerLayer *)
 
 }  // end namespace PV
