@@ -10,8 +10,6 @@
 
 #include "HyPerLayer.hpp"
 
-//#include "../columns/HyPerCol.hpp"
-
 namespace PV {
 
 class ANNLayer : public HyPerLayer {
@@ -24,7 +22,7 @@ public:
     pvdata_t VMin;
 protected:
     int initialize();
-}; // end of class NonspikingLayer
+}; // end of class ANNLayer
 
 }  // end namespace PV
 
