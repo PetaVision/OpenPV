@@ -6,22 +6,22 @@
  */
 
 #include "HyPerLayer.hpp"
-#include "CloneLayer.hpp"
+#include "GapLayer.hpp"
 
 // CloneLayer can be used to implement gap junctions
 namespace PV {
-CloneLayer::CloneLayer(const char * name, HyPerCol * hc, LIF * originalLayer) :
+GapLayer::GapLayer(const char * name, HyPerCol * hc, LIF * originalLayer) :
    HyPerLayer(name, hc, MAX_CHANNELS)
 {
    initialize(originalLayer);
 }
 
-CloneLayer::~CloneLayer()
+GapLayer::~GapLayer()
 {
     clayer->V = NULL;
 }
 
-int CloneLayer::initialize(LIF * originalLayer)
+int GapLayer::initialize(LIF * originalLayer)
 {
    int status_init = HyPerLayer::initialize(TypeNonspiking);
    this->spikingFlag = false;
@@ -31,7 +31,7 @@ int CloneLayer::initialize(LIF * originalLayer)
    return status_init;
 }
 
-int CloneLayer::updateV() {
+int GapLayer::updateV() {
    pvdata_t * V = getV();
    pvdata_t * phiExc = getChannel(CHANNEL_EXC);
    pvdata_t exp_deltaT = 1.0f - exp(-this->getParent()->getDeltaTime() / sourceLayer->getLIFParams()->tau);
@@ -42,7 +42,7 @@ int CloneLayer::updateV() {
    return PV_SUCCESS;
 }
 
-int CloneLayer::setActivity() {
+int GapLayer::setActivity() {
 
    HyPerLayer::setActivity();
 

@@ -8,8 +8,7 @@
 #ifndef ANNLAYER_HPP_
 #define ANNLAYER_HPP_
 
-#include "HyPerLayer.hpp"#ifndef ANNLAYER_HPP_
-#define ANNLAYER_HPP_
+#include "HyPerLayer.hpp"
 
 //#include "../columns/HyPerCol.hpp"
 

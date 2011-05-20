@@ -216,8 +216,7 @@ int LIF::initialize(PVLayerType type)
    Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vth != NULL);
    for (size_t k = 0; k < numNeurons; k++){
-      Vth[k] = VTH_REST;
-      //Vth[k] = V_REST + 0.1;
+      Vth[k] = lParams.VthRest;
    }
 
    // allocate memory for R
