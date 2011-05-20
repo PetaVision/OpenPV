@@ -234,7 +234,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 
    stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
    float default_writeStep =  stdpFlag ? 1.0 : -1.0; // 2.0f * ( (float) stdpFlag - 0.5 );
-   writeStep = (int) filep->value(name, "writeStep", default_writeStep);
+   writeStep = filep->value(name, "writeStep", default_writeStep);
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
