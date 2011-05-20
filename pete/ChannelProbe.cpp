@@ -13,9 +13,9 @@ ChannelProbe::ChannelProbe(ChannelType channel) : LayerProbe() {
     pChannel = channel;
 }  // end ChannelProbe::ChannelProbe(ChannelType)
 
-ChannelProbe::ChannelProbe(const char * filename, ChannelType channel) : LayerProbe(filename){
+ChannelProbe::ChannelProbe(const char * filename, HyPerCol * hc, ChannelType channel) : LayerProbe(filename, hc){
     pChannel = channel;
-}  // end ChannelProbe::ChannelProbe(const char *, ChannelType)
+}  // end ChannelProbe::ChannelProbe(const char *, HyPerCol *, ChannelType)
 
 int ChannelProbe::outputState(float time, HyPerLayer * l) {
     pvdata_t * buf = l->getChannel(pChannel);
