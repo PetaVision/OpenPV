@@ -10,7 +10,6 @@
 
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
-#include "../connections/PVConnection.h"
 #include "../io/clock.h"
 #include "../io/imageio.hpp"
 #include "../io/io.h"

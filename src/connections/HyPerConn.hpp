@@ -8,7 +8,6 @@
 #ifndef HYPERCONN_HPP_
 #define HYPERCONN_HPP_
 
-#include "PVConnection.h"
 #include "../columns/InterColComm.hpp"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"

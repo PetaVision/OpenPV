@@ -12,7 +12,6 @@
 
 #include "InterColComm.hpp"
 #include "HyPerCol.hpp"
-#include "../connections/PVConnection.h"
 
 namespace PV {
 
