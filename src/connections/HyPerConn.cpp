@@ -393,23 +393,33 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 {
    PVParams * inputParams = parent->parameters();
 
-   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f);
-   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f);
+   float uniform_weights = 1.0;
+   float gaussian_weights = 0.0;
+   if( inputParams->present(getName(), "uniformWeights") )
+      uniform_weights = inputParams->value(getName(), "uniformWeights");
+   if( inputParams->present(getName(), "gaussianWeights") )
+      gaussian_weights = inputParams->value(getName(), "gaussianWeights");
 
-   if(uniform_weights && gaussian_weights){
-      fprintf(stderr,"multiple random weights distributions defined: exit\n");
-      exit(-1);
+   if( uniform_weights && gaussian_weights ){
+      fprintf(stderr,"multiple random weights distributions defined.  Exiting\n");
+      exit(EXIT_FAILURE);
+   }
+
+   if( !(uniform_weights || gaussian_weights) ) {
+      fprintf(stderr,"When randomFlag is set, either uniformWeights or gaussianWeights must be specified.  Exiting\n");
+      exit(EXIT_FAILURE);
+   }
+
+   if(uniform_weights) {
+      inputParams->value(getName(), "uniformWeights", uniform_weights); // generate warning if uniformWeights set by default
    }
 
    if (uniform_weights) {
-      float wMin = inputParams->value(getName(), "wMin", 0.0f);
-      float wMax = inputParams->value(getName(), "wMax", 10.0f);
+      float wMin = stdpFlag ? inputParams->value(getName(), "wMin", 0.0f) : this->wMin;
+      float wMax = stdpFlag ? inputParams->value(getName(), "wMax", 10.0f) : this->wMax;
 
       float wMinInit = inputParams->value(getName(), "wMinInit", wMin);
       float wMaxInit = inputParams->value(getName(), "wMaxInit", wMax);
-
-      // int seed = (int) inputParams->value(getName(), "randomSeed", 0);
-      // randomSeed now part of HyPerCol
 
       for (int k = 0; k < numPatches; k++) {
          uniformWeights(patches[k], wMinInit, wMaxInit);
@@ -1635,7 +1645,17 @@ int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax)
    const int syp = wp->sy;
    const int sfp = wp->sf;
 
-   const double p = (wMax - wMin) / pv_random_max();
+   double p;
+   if( wMax <= wMin ) {
+      if( wMax < wMin ) {
+         fprintf(stderr, "Warning: wMax less than wMin.  Changing wMax = %f to wMin value of %f\n", wMax, wMin);
+         wMax = wMin;
+      }
+      p = 0;
+   }
+   else {
+       p = (wMax - wMin) / pv_random_max();
+   }
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
