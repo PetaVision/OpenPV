@@ -10,7 +10,6 @@
 
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
-#include "../connections/PVConnection.h"
 #include "../io/fileio.hpp"
 #include "../utils/cl_random.h"
 
