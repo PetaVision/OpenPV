@@ -49,6 +49,9 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
     normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is not to constrain kernelwise to spheres.
+    if( normalizeMethod ) {
+       normalizeConstant = params->value(name, "normalizeConstant", 1.0f);
+    }
     PeriodicUpdateConn::initialize(name, hc, pre, post, channel, filename);
     return PV_SUCCESS;
 }
@@ -108,7 +111,7 @@ PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) 
             s += d*d;
          }
          for( int k=0; k<numPatches; k++ ) {
-            patches[k]->data[n] /= sqrt(s);
+            patches[k]->data[n] *= normalizeConstant/sqrt(s);
          }
       }
       break;

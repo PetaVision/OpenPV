@@ -36,6 +36,7 @@ protected:
     float relaxation;
     bool nonnegConstraintFlag;
     int normalizeMethod;
+    float normalizeConstant;
 };
 
 }  // end of block for namespace PV
