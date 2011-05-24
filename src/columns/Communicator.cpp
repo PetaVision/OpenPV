@@ -415,7 +415,7 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
-   const size_t nf = loc->nf;
+   // const size_t nf = loc->nf;  // Unused variable commented out May 24, 2011
    const size_t nxBorder = loc->nb;
    const size_t nyBorder = loc->nb;
 
@@ -455,7 +455,7 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
-   const size_t nf = loc->nf;
+   // const size_t nf = loc->nf;  // Unused variable commented out May 24, 2011
    const size_t nxBorder = loc->nb;
    const size_t nyBorder = loc->nb;
 
