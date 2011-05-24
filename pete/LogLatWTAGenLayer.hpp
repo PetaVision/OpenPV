@@ -11,7 +11,7 @@
 #ifndef LOGLATWTAGENLAYER_HPP_
 #define LOGLATWTAGENLAYER_HPP_
 
-#include "GenerativeLayer.hpp"
+#include "../PetaVision/src/layers/GenerativeLayer.hpp"
 
 namespace PV {
 
