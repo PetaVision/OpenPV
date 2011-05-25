@@ -59,7 +59,7 @@ HyPerConn::~HyPerConn()
 
    free(name);
 
-   assert(params != NULL);
+   // assert(params != NULL); // freeing a null pointer is not an error
    free(params);
 
    deleteWeights();
@@ -67,12 +67,13 @@ HyPerConn::~HyPerConn()
    // free the task information
 
    for (int l = 0; l < numAxonalArborLists; l++) {
-      // following frees all data patches for border region l because all
-      // patches are allocated together, so freeing freeing first one will do
-      free(this->axonalArbor(0, l)->data);
-      free(this->axonalArborList[l]);
+      if( axonalArborList[l] ) {
+         free(axonalArbor(0, l)->data);
+         // axonalArbor(0,l) frees all data patches for arbor l because all
+         // axonalArbor patches for that l were created in a single calloc().
+         free(axonalArborList[l]);
+      }
    }
-
 }
 
 //!
