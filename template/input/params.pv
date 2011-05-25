@@ -1,88 +1,739 @@
 //
-// params.cocirc
-//  - input parameters for pv_cocirc.cpp
-//  - initially, this case study examines how a one dimensional object (line segment) can
-//    be synchronized
+// 
+// parameter file for GJKs retina project, initially with moving bars as input
 //
 
 HyPerCol "column" = {
-   nx = 64;
-   ny = 64;
-   dt = .5;
+   nx = 256;
+   ny = 256;
+   dt = 1.;                  // according GK
+   randomSeed = 1020304050.0; // remove when running for real
 };
 
 //
-// Three layers, "Retina", "L1", "L2"
+// Six layers: Image Cone Horizontal BipolarOn  Ganglion Amacrine with clones and sigmoids
 //
 
-HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
+HyPerLayer "Image" = {      // 0          // animation with horizontal and vertical lines
+   width        = 32;                 // width of the vertical bar
+   height       = 32;                 // width of the horizontal bar 
+   prefPosition = 7;                  // ?
+   marginWidth  = 0;                  // ?
+   pMove        = 0.2;                // every 16 ms ????
+   pSwitch      = 0.0025;             // switch between horizontal and vertical
+   writeImages  = 0;                  // write out image file when changes
    
-   nBorder = 0;
-
-   beginStim = 1;
-   endStim   = 11;
-
-   fireOffPixels = 0;          // if true, black (0) pixels fire as off
-   invert  = 0.0;
-   uncolor = 1.0;               // if true, pixels>0 become 1.0
-
-   spikingFlag = 0;             // spike as poisson?
-   noiseOnFreq = 50;
-   poissonEdgeProb  = 0.0;      // if so, on probability
-   poissonBlankProb = 0.0;      //       off probability
-
-   marginWidth = 0.0;           // set input to 0 within margin
-};
-
-HyPerLayer "L1" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   no = 1;
-   nBorder = 0;
+   restart      = 0.0;                // ?
+   Vrest        = -70.0;              // ?
+   mirrorBCflag = 0.0;                // ?
+   writeStep    = 1000;                // ?
+   nf           = 1.0;                // ?
+   nyScale      = 1.0;                // ?
+   nxScale      = 1.0;                // ?
+   writeNonspikingActivity = 1.0;      // 
    
-   noiseAmpE = 0;
-   noiseAmpI = 0;
 };
 
+HyPerLayer "Cone" = {       // 1 //
+
+//Case 3: nxScalePost < nxScalePre.
+//(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
 //
-// 1 connection, 
-//    "Retina to L1"
-//    "L1 to L1"
+//nxp must be odd.
 //
-
-HyPerConn "Retina to L1" = {
-   nxp = 3;
-   nyp = 1;
-   strength = 20;
-
-   rotate = 1.0;
-   invert = 0.0;
-
-   aspect = 3.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
+//marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
+//(since nxScalePre will be a positive multiple of nxScalePost,
+//1/nxScaleRatio is a positive integer).
+//   npx npy 3 3 
+//    
+//   (3-1)/2*(1/0.5) = 2 should be the margin
+//    ^
+	nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // no longer an ANN layer 
+	marginWidth      = 2.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	Vrest            = -70.;    //
+	restart          = 0.0;     // non
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 20.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 2.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = 100000.0;   // firing threshold disabled                           <=============== disabled
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 0.0;     // jump of threshold when firing                          <=============== disabled
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.0;     // 1 means conductance is equal to lead conductance               <======== no noise  
+	noiseAmpI        = 0.0;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 0.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 0.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
 };
 
-HyPerConn "L1 to L1" = {
-   nxp = 5;
+
+
+HyPerLayer "BipolarON" = {	
+    nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // no longer an ANN layer 
+	marginWidth      = 0.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	Vrest            = -70.;    //
+	restart          = 0.0;     // non
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 20.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = 100000.0;   // firing threshold disabled                           <=============== disabled
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 5.0;     // jump of threshold when firing
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.0;     // 1 means conductance is equal to lead conductance               <======== no noise  
+	noiseAmpI        = 0.0;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 0.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 0.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+};
+
+
+
+HyPerLayer "Horizontal" = {
+
+
+// Case 2: nxScalePost > nxScalePre.
+// (the post-synaptic layer has more neurons than the pre-synaptic layer)
+//
+// nxp must be an odd multiple of the nxScaleRatio
+//
+// marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
+//
+// nxp is 6
+//
+//   ((6/2)-1)/2
+//     ^     
+	nxScale      = 0.5; // 5/18 discussion with Garret
+	nyScale      = 0.5; // three are fewer horizontal 
+	nf           = 1;    // one feature for now
+	spikingFlag      = 1;       // no longer an ANN layer 
+	marginWidth      = 1.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	Vrest            = -70.;    //
+	restart          = 0.0;     // non
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 20.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = 100000.0;   // firing threshold disabled                           <=============== disabled
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 5.0;     // jump of threshold when firing
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.0;     // 1 means conductance is equal to lead conductance               <======== no noise  
+	noiseAmpI        = 0.0;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 0.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 0.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+
+};
+
+
+
+HyPerLayer "Ganglion" = {
+	nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // the whole idea 
+	marginWidth      = 0.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	Vrest            = -70.;    //
+	restart          = 0.0;     // non
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 20.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = -55.0;   // firing threshold 15 mV above rest
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 5.0;     // jump of threshold when firing
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance  
+	noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 250.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+};
+
+
+HyPerLayer "Amacrine" = {
+	nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // the whole idea 
+	marginWidth      = 0.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	Vrest            = -70.;    //
+	restart          = 0.0;     // non
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 20.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+    VthRest          = -61.0;   // firing threshold 15 mV above rest
+		
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 5.0;     // jump of threshold when firing
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance  
+	noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 250.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+};
+
+
+HyPerLayer "RetinaON" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2; //CER 2;
+   
+   beginStim = 0;
+   endStim   = 9000000;
+
+   burstFreq = 4000; //25; // 0.001; //20;   // Hz
+   burstDuration = 10; //7.5; //1000000; // ms
+
+   spikingFlag = 1;     // spike as poisson
+
+   noiseOnFreq  = 100;  // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 25;//50;   // (Hz) when this is defined poissonBlank overridden
+   
+   writeNonspikingActivity = 0.0;
+   
+   no = 1.0;
+   poissonBlankProb = 0.0;
+   poissonEdgeProb = 1.0;
+   Vrest = -70.0;
+   mirrorBCflag = 0.0;
+   writeStep = 0.5;
+   nf = 1.0;
+};
+
+
+
+//
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//
+//  0   Image to Cone                 forward
+//  1   ConeSigmoid to BipolarON      forward
+//  2   ConeSigmoid to Horizontal     forward
+//  3   HoriGap to HoriGap            gapjunct
+//  4   HoriSigmoid to Cone           feedback 
+//  5   BipolarSigmoid to Ganglion    forward
+//  6   BipolarSigmoid to Amacrine    forward
+//  7   GangliGap to AmaGap           gapjunct
+//  8   AmaGap to GangliGap           gagjunct
+//  9   AmaGap to AmaGap              gapjunct
+// 10   Amacrine to Ganglion          feedback
+// 11   Image to RetinaON             feedback
+//
+
+HyPerConn "Image to Cone" = {        // 0
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 1.0;
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 1.4; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 1.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "ConeSigmoid to BipolarON" = {        // 1
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.1;
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 1.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "ConeSigmoid to Horizontal" = {        // 2
+  
+//Case 3: nxScalePost < nxScalePre.
+//(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
+//
+//nxp must be odd.
+//
+//marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
+//(since nxScalePre will be a positive multiple of nxScalePost,
+//1/nxScaleRatio is a positive integer).
+
+	nxp           = 3;  // odd times 1 because of scale factor
+	nyp           = 3;  //
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.0;
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 2.0; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection was 1.4
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "HoriGap to HoriGap" = {        // 3  gap junction, watch the strength
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.00; // debug off                    <=================================
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "HoriSigmoid to Cone" = {        // 4
+  
+// Case 2: nxScalePost > nxScalePre.
+// (the post-synaptic layer has more neurons than the pre-synaptic layer)
+//
+// nxp must be an odd multiple of the nxScaleRatio
+//
+// marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
+     
+	nxp           = 6; // odd times 2 because of scale factor
+	nyp           = 6; // 
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.0; // debug off
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 1.4; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 1.0; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "BipolarSigmoid to Ganglion" = {        // 5
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 1.0;
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+
+HyPerConn "BipolarSigmoid to Amacrine" = {        // 6
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0;       // strength requires normalize 
+	strength      = 0.0;      //   <=====================  debug
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+
+HyPerConn "GangliGap to AmaGap" = {        // 7  gap junction
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.00; //                     <=================================
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "AmaGap to GangliGap" = {        // 8   gap junction
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.00; //                     <=================================
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "AmaGap to AmaGap" = {        // 9  gap junction, watch the strength
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // strength requires normalize 
+	strength      = 0.00; //                     <========================= debug
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // do not write these out
+};
+
+HyPerConn "Amacrine to Ganglion" = {        // 10
+     
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0;  // strength requires normalize 
+	strength      = 0.0;  //  <============================   debug
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for gaussian or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	rmax          = 4.0; // not used
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for gaussian/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = 1000;  // 
+};
+
+HyPerConn "Image to RetinaON" = {
+   nxp = 1;
    nyp = 1;
-   strength = 27;
-   delay = 9.0;
+   
+   normalize = 1.0;
    
    aspect = 1.0;
-   sigma  = 3.0;
-   lambda = 100.0;
-   rMax   = 100.0;
+   sigma = 1.0;
+   rMax =  4; 
+   strength = 10;//7;
    
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self  = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
+   writeStep = 0.5;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
 };
+
