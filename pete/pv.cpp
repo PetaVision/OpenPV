@@ -3,949 +3,945 @@
  *
  */
 
-#include <stdlib.h>
 #include <time.h>
 #include <string>
 #include <iostream>
 
+#include "../PetaVision/src/include/pv_common.h"
+
 #include "../PetaVision/src/columns/HyPerCol.hpp"
+
+#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include "../PetaVision/src/layers/PVLayer.h"
+#include "../PetaVision/src/layers/ANNLayer.hpp"
+#include "../PetaVision/src/layers/GenerativeLayer.hpp"
+#include "../PetaVision/src/layers/LogLatWTAGenLayer.hpp"
+#include "../PetaVision/src/layers/GeislerLayer.hpp"
+#include "../PetaVision/src/layers/PoolingANNLayer.hpp"
+#include "../PetaVision/src/layers/PtwiseProductLayer.hpp"
+#include "../PetaVision/src/layers/TrainingLayer.hpp"
+#include "../PetaVision/src/layers/HMaxSimple.hpp"
+#include "../PetaVision/src/layers/Image.hpp"
+#include "../PetaVision/src/layers/CreateMovies.hpp"
+#include "../PetaVision/src/layers/ImageCreator.hpp"
+#include "../PetaVision/src/layers/Movie.hpp"
+#include "../PetaVision/src/layers/Patterns.hpp"
+#include "../PetaVision/src/layers/LGN.hpp"
+#include "../PetaVision/src/layers/LIF.hpp"
+#include "../PetaVision/src/layers/Retina.hpp"
+
+#include "../PetaVision/src/connections/HyPerConn.hpp"
+#include "../PetaVision/src/connections/AvgConn.hpp"
+#include "../PetaVision/src/connections/ConvolveConn.hpp"
 #include "../PetaVision/src/connections/HyPerConn.hpp"
 #include "../PetaVision/src/connections/KernelConn.hpp"
-#include "../PetaVision/src/connections/GeislerConn.hpp"
 #include "../PetaVision/src/connections/CocircConn.hpp"
-#include "../PetaVision/src/layers/Movie.hpp"
-#include "../PetaVision/src/layers/Image.hpp"
-#include "../PetaVision/src/layers/Retina.hpp"
-#include "../PetaVision/src/layers/NonspikingLayer.hpp"
-#include "../PetaVision/src/layers/GeislerLayer.hpp"
-#include "../PetaVision/src/io/ConnectionProbe.hpp"
-#include "../PetaVision/src/io/GLDisplay.hpp"
-#include "../PetaVision/src/io/PostConnProbe.hpp"
-#include "../PetaVision/src/io/LinearActivityProbe.hpp"
-#include "../PetaVision/src/io/PointProbe.hpp"
-#include "../PetaVision/src/io/StatsProbe.hpp"
-#include "../PetaVision/src/layers/PVLayer.h"
+#include "../PetaVision/src/connections/GaborConn.hpp"
+#include "../PetaVision/src/connections/GeislerConn.hpp"
+#include "../PetaVision/src/connections/GenerativeConn.hpp"
+#include "../PetaVision/src/connections/FeedbackConn.hpp"
+#include "../PetaVision/src/connections/PoolingGenConn.hpp"
+#include "../PetaVision/src/connections/IdentConn.hpp"
+#include "../PetaVision/src/connections/CloneKernelConn.hpp"
+#include "../PetaVision/src/connections/TransposeConn.hpp"
+#include "../PetaVision/src/connections/PoolConn.hpp"
+#include "../PetaVision/src/connections/RuleConn.hpp"
+#include "../PetaVision/src/connections/SubunitConn.hpp"
 
-#include "GenerativeLayer.hpp"
-#include "TrainingGenLayer.hpp"
-#include "GenerativeConn.hpp"
-#include "FeedbackConn.hpp"
-#include "IdentConn.hpp"
-#include "LateralConn.hpp"
-#include "L2NormProbe.hpp"
-#include "SparsityTermProbe.hpp"
-#include "GenColProbe.hpp"
-#include "ChannelProbe.hpp"
-#include "VProbe.hpp"
+#include "../PetaVision/src/io/ConnectionProbe.hpp"
+#include "../PetaVision/src/io/LayerProbe.hpp"
+#include "../PetaVision/src/io/PointProbe.hpp"
+#include "../PetaVision/src/io/L2NormProbe.hpp"
+#include "../PetaVision/src/io/SparsityTermProbe.hpp"
+#include "../PetaVision/src/io/GenColProbe.hpp"
+#include "../PetaVision/src/io/LogLatWTAProbe.hpp"
 
 using namespace PV;
 
-int setupThreeLayerGenerativeModel(HyPerCol * hc);
-int testCheckPatchSize(HyPerCol * hc);
-int testTransposeOfTranspose(HyPerCol * hc, const char * dumpweightsfile);
-int mnistTrain(HyPerCol * hc);
-int mnistTest(HyPerCol * hc);
-int mnistNoOverlap(HyPerCol * hc);
+typedef struct GroupNameComponentList_ {
+    const char * groupname;
+    const HyPerCol * hc;
+    size_t count;
+    char ** componentarray;
+} GroupNameComponentList;
 
-int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2);
-int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index);
-int dumpWeights(KernelConn * kconn, FILE * stream);
-
-int parse_getopt_str_extension(int argc, char * argv[], const char * opt, char ** sVal);
+HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
+Image * addImage(const char * name, HyPerCol *hc);
+Movie * addMovie(const char * name, HyPerCol *hc);
+Patterns * addPatterns(const char * name, HyPerCol *hc);
+HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
+ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfNotPresent);
+void getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayer);
+HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName);
+HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName);
+LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, const char ** message, const char ** filename);
+int decodeChannel(int channel, ChannelType * channelType);
+int checknewobject(void * object, const char * kw, const char * name);
 
 int main(int argc, char * argv[]) {
-    // create the managing hypercolumn
-    //
+    int status = EXIT_SUCCESS;
+    const char * columnName = "column";
+    HyPerCol * hc = new HyPerCol(columnName, argc, argv);
+    PVParams * params = hc->parameters();
+    HyPerCol * addedHyPerCol;
+    HyPerConn * addedHyPerConn;
+    HyPerLayer * addedHyPerLayer;
+    ColProbe * addedColProbe;
+    LayerProbe * addedLayerProbe;
+    ConnectionProbe * addedConnectionProbe;
 
-    char * routinename;
-    char * paramsfilename;
-
-#define NUMROUTINES 6
-    const char * allowedroutinenames[] = {
-            "setupThreeLayerGenerativeModel",
-            "testCheckPatchSize",
-            "transposeOfTranspose",
-            "mnistTrain",
-            "mnistTest",
-            "mnistNoOverlap"
-    };  // NUMROUTINES is the number of entries in this array
-
-    const char * paramsfiles[] = {
-            "input/params-generativelateral.pv",
-            "input/params-testcheckPatchSize.pv",
-            "input/params-testTransposeOfTranspose.pv",
-            "input/params-mnist-train.pv",
-            "input/params-mnist-test.pv",
-            "input/params-mnist-no-overlap.pv"
+    const char * allowedkeywordarray[] = {
+            "_Start_HyPerCols_",
+              "HyPerCol",
+            "_Stop_HyPerCols_",
+            "_Start_HyPerLayers_",
+              "HyPerLayer",
+                "ANNLayer",
+                  "GeislerLayer",
+                  "GenerativeLayer",
+                    "LogLatWTAGenLayer",
+                  "PoolingANNLayer",
+                  "PtwiseProductLayer",
+                  "TrainingLayer",
+                "HMaxSimple",
+                "Image",
+                  "CreateMovies",
+                  "ImageCreator",
+                  "Movie",
+                  "Patterns",
+              "LGN",
+              "LIF",
+              "Retina",
+            "_Stop_HyPerLayers_",
+            "_Start_HyPerConns_",
+              "HyPerConn",
+                "AvgConn",
+                "ConvolveConn",
+                "KernelConn",
+                  "CloneKernelConn",
+                  "CocircConn",
+                  "GaborConn",
+                  "GeislerConn",
+                  "IdentConn",
+                  "PeriodicUpdateConn",
+                    "GenerativeConn",
+                      "PoolingGenConn",
+                    "KernelLinCombConn",
+                    "TransposeConn",
+                      "FeedbackConn",
+                "PoolConn",
+                "RuleConn",
+                "SubunitConn",
+            "_Stop_HyPerConns_",
+            "_Start_ColProbes_",
+              "ColProbe",
+                "GenColProbe",
+            "_Stop_ColProbes_",
+            "_Start_LayerProbes_",
+              "LayerProbe",
+                "PointProbe",
+                "LayerFunctionProbe",
+                  "L2NormProbe",
+                  "SparsityTermProbe",
+                  "LogLatWTAProbe",
+            "_Stop_LayerProbes_",
+            "_Start_ConnectionProbes_",
+              "ConnectionProbe",
+            "_Stop_ConnectionProbes_",
+            "_End_allowedkeywordarray"
     };
+    int first_hypercol_index = -1;
+    int last_hypercol_index = -1;
+    int first_hyperconn_index = -1;
+    int last_hyperconn_index = -1;
+    int first_hyperlayer_index = -1;
+    int last_hyperlayer_index = -1;
+    int first_colprobe_index = -1;
+    int last_colprobe_index = -1;
+    int first_connectionprobe_index = -1;
+    int last_connectionprobe_index = -1;
+    int first_layerprobe_index = -1;
+    int last_layerprobe_index = -1;
 
-    int status = parse_getopt_str_extension(argc, argv, "--routine", &routinename);
-    int choice = -1;
-    if( status == 0 ) {
-        for( int k=0; k<NUMROUTINES; k++ ) {
-            if( !strcmp(routinename, allowedroutinenames[k]) ) {
-                choice = k;
+    int j;
+    for( j=0; strcmp(allowedkeywordarray[j],"_End_allowedkeywordarray"); j++ ) {
+        const char * kw = allowedkeywordarray[j];
+        if( !strcmp(kw,"_Start_HyPerCols_") ) { first_hypercol_index = j; continue;}
+        if( !strcmp(kw,"_Stop_HyPerCols_") )  { last_hypercol_index = j; continue;}
+        if( !strcmp(kw,"_Start_HyPerConns_") ) { first_hyperconn_index = j; continue;}
+        if( !strcmp(kw,"_Stop_HyPerConns_") ) { last_hyperconn_index = j; continue;}
+        if( !strcmp(kw,"_Start_HyPerLayers_") ) { first_hyperlayer_index = j; continue;}
+        if( !strcmp(kw,"_Stop_HyPerLayers_") ) { last_hyperlayer_index = j; continue;}
+        if( !strcmp(kw,"_Start_ColProbes_") ) { first_colprobe_index = j; continue;}
+        if( !strcmp(kw,"_Stop_ColProbes_") ) { last_colprobe_index = j; continue;}
+        if( !strcmp(kw,"_Start_ConnectionProbes_") ) { first_connectionprobe_index = j; continue;}
+        if( !strcmp(kw,"_Stop_ConnectionProbes_") ) { last_connectionprobe_index = j; continue;}
+        if( !strcmp(kw,"_Start_LayerProbes_") ) { first_layerprobe_index = j; continue;}
+        if( !strcmp(kw,"_Stop_LayerProbes_") ) { last_layerprobe_index = j; continue;}
+    }
+    assert( first_hypercol_index >= 0 );
+    assert( last_hypercol_index >= 0 );
+    assert( first_hyperconn_index >= 0 );
+    assert( last_hyperconn_index >= 0 );
+    assert( first_hyperlayer_index >= 0 );
+    assert( last_hyperlayer_index >= 0 );
+    assert( first_colprobe_index >= 0 );
+    assert( last_colprobe_index >= 0 );
+    assert( first_connectionprobe_index >= 0 );
+    assert( last_connectionprobe_index >= 0 );
+    assert( first_layerprobe_index >= 0 );
+    assert( last_layerprobe_index > 0 );
+
+    int numclasskeywords = j;
+
+    int numGroups = params->numberOfGroups();
+
+    // Make sure first group defines a column
+    if( strcmp(params->groupKeywordFromIndex(0), "HyPerCol") ) {
+        fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
+        return EXIT_FAILURE;
+    }
+
+    for( int k=0; k<numGroups; k++ ) {
+        const char * kw = params->groupKeywordFromIndex(k);
+        const char * name = params->groupNameFromIndex(k);
+
+        int matchedkeyword = -1;
+        for( j=0; j<numclasskeywords; j++ ) {
+            if( !strcmp( kw, allowedkeywordarray[j]) ) {
+                matchedkeyword = j;
                 break;
             }
         }
+        if( matchedkeyword < 0 ) {
+            fprintf(stderr, "Parameter group \"%s\" has unknown class keyword \"%s\"\n", name, kw);
+            status = PV_FAILURE;
+            break;
+        }
+
+        bool didAddObject = false;
+
+        if( j > first_hypercol_index && j < last_hypercol_index ) {
+            addedHyPerCol = addHyPerColToColumn(kw, name, hc);
+            didAddObject = addedHyPerCol != NULL;
+        }
+        else if( j > first_hyperconn_index && j < last_hyperconn_index ) {
+            addedHyPerConn = addConnToColumn(kw, name, hc);
+            didAddObject = addedHyPerConn != NULL;
+        }
+        else if( j > first_hyperlayer_index && j < last_hyperlayer_index ) {
+            addedHyPerLayer = addLayerToColumn(kw, name, hc);
+            didAddObject = addedHyPerLayer != NULL;
+        }
+        else if( j > first_colprobe_index && j < last_colprobe_index ) {
+            addedColProbe = addColProbeToColumn(kw, name, hc);
+            didAddObject = addedColProbe != NULL;
+        }
+        else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
+            addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
+            didAddObject = addedConnectionProbe != NULL;
+        }
+        else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
+            addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
+            didAddObject = addedHyPerCol != NULL;
+        }
+        else {
+            fprintf(stderr, "Parameter group \"%s\" class keyword \"%s\" cannot be categorized\n", name, kw);
+            didAddObject = false;
+        }
+
+        if( !didAddObject ) {
+            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+        }
     }
 
-    if( choice < 0 ) {
-        printf("Please specify a routine using the --routine option.\n");
-        printf("Acceptable routines are:\n");
-        for(int k=0; k<NUMROUTINES; k++) {
-            printf("%2d. %s\n", k, allowedroutinenames[k]);
-        }
-        printf("----\n");
-        printf("Enter your selection as a number from 0 to %d: ", NUMROUTINES-1);
-        std::cin >> choice;
-        if( choice < 0 || choice >= NUMROUTINES ) {
-            fprintf(stderr, "\"%d\" is out of range.  Exiting.\n", choice);
-            exit(EXIT_FAILURE);
-        }
-        printf("You picked %d.  Excellent choice.\n", choice);
+    if( hc->numberOfLayers() == 0 ) {
+        fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", columnName);
+        status = EXIT_FAILURE;
+    }
+    if( hc->numberOfConnections() == 0 ) {
+        fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", columnName);
+        status = EXIT_FAILURE;
+    }
+    if( status != EXIT_SUCCESS ) {
+        fprintf(stderr,"Aborting.\n");
+        return status;
     }
 
-    const char * optionp = "-p";
-    int paramsfileindex = parse_getopt_str_extension(argc, argv, optionp, &paramsfilename);
-    int myargc = argc + ( paramsfileindex < 0 ? 2 : 0 );
-    char ** myargv = (char **) malloc((size_t) (myargc+1) * sizeof(char *) );
-    assert(myargv != NULL);
-    for(int k=0; k<argc; k++) myargv[k] = argv[k];
-    if(paramsfileindex == -1 ) {
-        assert( myargc == argc+2 );
-        myargv[argc] = (char *) malloc((strlen(optionp)+1)*sizeof(char));
-        assert(myargv[argc]);
-        strcpy(myargv[argc], optionp);
-        paramsfileindex = argc+1;
-    }
-    else if ( paramsfileindex >= argc) {
-        fprintf(stderr, "paramsfileindex should be less than argc, but paramsfileindex=%d and argc=%d.  Aborting.\n", paramsfileindex, argc);
-        exit(EXIT_FAILURE);
-    }
-    // Now paramsfileindex is in the range [0,myargc) and points to the slot right after "-p"
-    myargv[paramsfileindex] = (char *) malloc((strlen(paramsfiles[choice])+1)*sizeof(char));
-    assert(myargv[paramsfileindex]);
-    strcpy(myargv[paramsfileindex], paramsfiles[choice]);
-    myargv[myargc] = NULL;
-
-    HyPerCol * hc = new HyPerCol("column", myargc, myargv);
-    switch( choice ) {
-    case 0:
-        setupThreeLayerGenerativeModel(hc);
-        break;
-    case 1:
-        testCheckPatchSize(hc);
-        break;
-    case 2:
-#define DUMPWEIGHTSFILE "output/dumpweights.txt"
-        status = testTransposeOfTranspose(hc, DUMPWEIGHTSFILE);
-        if( status != EXIT_SUCCESS ) {
-            fprintf(stderr, "testTransposeOfTranspose failed.\n");
-            exit(status);
-        }
-        break;
-    case 3:
-        status = mnistTrain(hc);
-        if( status != EXIT_SUCCESS ) {
-            fprintf(stderr, "mnistTrain error.\n");
-            exit(status);
-        }
-        break;
-    case 4:
-        status = mnistTest(hc);
-        if( status != EXIT_SUCCESS ) {
-            fprintf(stderr, "mnistTest error.\n");
-            exit(status);
-        }
-        break;
-    case 5:
-        status = mnistNoOverlap(hc);
-        if( status != EXIT_SUCCESS ) {
-            fprintf(stderr, "mnistNoOverlap error.\n");
-            exit(status);
-        }
-        break;
-    }
-
-    hc->run();
-
-    /* clean up (HyPerCol owns layers and connections, don't delete them) */
-    delete hc;
-
-    return EXIT_SUCCESS;
+    if( hc->numberOfTimeSteps() > 0 ) status = hc->run();
+    delete hc; /* clean up (HyPerCol owns layers and connections, don't delete them) */
+    if( status != PV_SUCCESS ) fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int setupThreeLayerGenerativeModel(HyPerCol * hc) {
-
-    /* This routine sets up a generative model with three layers:
-     * A retina, a generative layer A, and a generative layer B.
-     * There are feedforward connections from R to A to B.
-     * There are feedback connections from B to A.
-     * There are lateral connections within A.
-     * To set this up in PetaVision, auxiliary layers
-     * must be defined:  the "AnaRetina" between the retina and layer A;
-     * the "ParaLayer A" beside layer A;
-     * and the "AnaLayer A" between Layer A and Layer B.
-     * A feedback connection from A to the AnaRetina provides A'a,
-     * a feedforward connection from the retina to the Anaretina provides r,
-     * so that the AnaRetina collects r-A'a.  A feedforward connection to
-     * layer A then provides A(r-A'a).
-     * In a similar fashion, AnaLayer A collects (a-B'b) and a feedforward
-     * connection to Layer B provides B(a-B'b).
-     * A lateral connection from A to ParaLayer A provides (I-A~)a to the
-     * ParaLayer A, and then a feedback connection provides (I-A~)(I-A~)a
-     * to layer A.
-     */
-
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
-    PVParams * params = hc->parameters();
-
-    // Layers
-
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
-    }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
-    }
-
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-
-    Retina * retina = new Retina("Retina", hc);
-    L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
-    retina->insertProbe(l2norm_retina);
-
-    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
-    L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
-    anaretina->insertProbe(l2norm_anaretina);
-    hcprobe->addTerm(l2norm_anaretina, anaretina);
-
-//    ChannelProbe * anaretina_exc = new ChannelProbe("anaretina_exc.txt", CHANNEL_EXC);
-//    anaretina->insertProbe(anaretina_exc);
-//    ChannelProbe * anaretina_inh = new ChannelProbe("anaretina_inh.txt", CHANNEL_INH);
-//    anaretina->insertProbe(anaretina_inh);
-
-    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
-    L2NormProbe * l2norm_layerA = new L2NormProbe("Layer A     :");
-    SparsityTermProbe * sparsity_layerA = new SparsityTermProbe("Layer A     :");
-    layerA->insertProbe(l2norm_layerA);
-    layerA->insertProbe(sparsity_layerA);
-    hcprobe->addTerm(sparsity_layerA, layerA);
-
-//    ChannelProbe * layerA_exc = new ChannelProbe("layerA_exc.txt", CHANNEL_EXC);
-//    layerA->insertProbe(layerA_exc);
-//    ChannelProbe * layerA_inh = new ChannelProbe("layerA_inh.txt", CHANNEL_INH);
-//    layerA->insertProbe(layerA_inh);
-
-    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
-    L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
-    paralayerA->insertProbe(l2norm_paralayerA);
-    hcprobe->addTerm(l2norm_paralayerA, paralayerA);
-
-//    ChannelProbe * paralayerA_exc = new ChannelProbe("paralayerA_exc.txt", CHANNEL_EXC);
-//    paralayerA->insertProbe(paralayerA_exc);
-//    ChannelProbe * paralayerA_inh = new ChannelProbe("paralayerA_inh.txt", CHANNEL_INH);
-//    paralayerA->insertProbe(paralayerA_inh);
-
-    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
-    L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
-    analayerA->insertProbe(l2norm_analayerA);
-    hcprobe->addTerm(l2norm_analayerA, analayerA);
-
-//    ChannelProbe * analayerA_exc = new ChannelProbe("analayerA_exc.txt", CHANNEL_EXC);
-//    analayerA->insertProbe(analayerA_exc);
-//    ChannelProbe * analayerA_inh = new ChannelProbe("analayerA_inh.txt", CHANNEL_INH);
-//    analayerA->insertProbe(analayerA_inh);
-
-    GenerativeLayer * layerB = new GenerativeLayer("Layer B", hc);
-    L2NormProbe * l2norm_layerB = new L2NormProbe("Layer B     :");
-    SparsityTermProbe * sparsity_layerB = new SparsityTermProbe("Layer B     :");
-    layerB->insertProbe(l2norm_layerB);
-    layerB->insertProbe(sparsity_layerB);
-    hcprobe->addTerm(sparsity_layerB, layerB);
-
-//    ChannelProbe * layerB_exc = new ChannelProbe("layerB_exc.txt", CHANNEL_EXC);
-//    layerB->insertProbe(layerB_exc);
-//    ChannelProbe * layerB_inh = new ChannelProbe("layerB_inh.txt", CHANNEL_INH);
-//    layerB->insertProbe(layerB_inh);
-
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    IdentConn * retina_anaretina = new IdentConn("Retina to AnaRetina", hc, retina, anaretina, CHANNEL_EXC);
-    assert(retina_anaretina);
-    GenerativeConn * anaretina_layerA = new GenerativeConn("AnaRetina to Layer A", hc, anaretina, layerA, CHANNEL_EXC);
-    assert(anaretina_layerA);
-    FeedbackConn * layerA_anaretinaFB = new FeedbackConn("Layer A to AnaRetina Feedback", hc, CHANNEL_INH, anaretina_layerA);
-    assert(layerA_anaretinaFB);
-    LateralConn * layerA_paralayerA = new LateralConn("Layer A to ParaLayer A", hc, layerA, paralayerA, CHANNEL_EXC);
-    assert(layerA_paralayerA);
-    FeedbackConn * paralayerA_layerAFB = new FeedbackConn("ParaLayer A to Layer A Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerA_layerAFB);
-    IdentConn * layerA_analayerA = new IdentConn("Layer A to AnaLayer A", hc, layerA, analayerA, CHANNEL_EXC);
-    assert(layerA_analayerA);
-    IdentConn * analayerA_layerAFB = new IdentConn("AnaLayer A to Layer A Feedback", hc, analayerA, layerA, CHANNEL_INH);
-    assert(analayerA_layerAFB);
-    GenerativeConn * analayerA_layerB = new GenerativeConn("AnaLayer A to Layer B", hc, analayerA, layerB, CHANNEL_EXC);
-    assert(analayerA_layerB);
-    FeedbackConn * layerB_analayerAFB = new FeedbackConn("Layer B to AnaLayer A Feedback", hc, CHANNEL_INH, analayerA_layerB);
-    assert(layerB_analayerAFB);
-
-    return EXIT_SUCCESS;
+HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+    return hc;
 }
 
-int testCheckPatchSize(HyPerCol * hc) {
-
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
-
-    // create the visualization display
-    //
-    //GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-
-    PVParams * params = hc->parameters();
-
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
+HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+    bool keywordMatched;
+	HyPerLayer * addedLayer;
+    assert( hc != NULL );
+    if( !strcmp(classkeyword, "HyPerLayer") ) {
+        keywordMatched = true;
+    	fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
+        addedLayer = NULL;
     }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
+    if( !strcmp(classkeyword, "ANNLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
     }
-
-    // Layers
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-    Retina * retina = new Retina("Retina", hc);
-    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
-
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    KernelConn * retina_layerA = new KernelConn("Retina to Layer A", hc, retina, layerA, CHANNEL_EXC);
-    assert(retina_layerA);
-
-    return EXIT_SUCCESS;
+    if( !strcmp(classkeyword, "GeislerLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new GeislerLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "GenerativeLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new GenerativeLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "LogLatWTAGenLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "PoolingANNLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new PoolingANNLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "PtwiseProductLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new PtwiseProductLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "TrainingLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) addTrainingLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "HMaxSimple") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "Image") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) addImage(name, hc);
+    	checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "CreateMovies") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "ImageCreator") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new ImageCreator(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "Movie") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) addMovie(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "Patterns") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) addPatterns(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "LGN") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new LGN(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "LIF") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new LIF(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !strcmp(classkeyword, "Retina") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new Retina(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
+    if( !keywordMatched ) {
+        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
+    }
+    return addedLayer;
 }
 
-int testTransposeOfTranspose(HyPerCol * hc, const char * dumpweightsfile) {
-    // This should be moved to the tests directory of petavision once the
-    // generative classes are moved there.
+TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
+    TrainingLayer * addedLayer;
+	const char * traininglabelspath = hc->parameters()->stringValue(name, "trainingLabelsPath");
+    if( traininglabelspath ) {
+        addedLayer = new TrainingLayer(name, hc, traininglabelspath);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Parameter group for class TrainingLayer must set string parameter trainingLabelsPath\n", name);
+    	addedLayer = NULL;
+    }
+    return addedLayer;
+}
 
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
+Image * addImage( const char * name, HyPerCol * hc) {
+    Image * addedLayer;
+    const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
+    if (imagelabelspath) {
+        addedLayer = new Image(name, hc, imagelabelspath);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Parameter group for class Image must set string parameter imageListPath\n", name);
+        addedLayer = NULL;
+    }
+    return addedLayer;
+}
 
+Movie * addMovie(const char * name, HyPerCol * hc) {
+    Movie * addedLayer;
+    const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
+    if (imagelabelspath) {
+        addedLayer = new Movie(name, hc, imagelabelspath);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Parameter group for class Movie must set string parameter imageListPath\n", name);
+        addedLayer = NULL;
+    }
+    return addedLayer;
+}
+
+Patterns * addPatterns(const char * name, HyPerCol *hc) {
+    const char * allowedPatternTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+            "BARS",
+            "RECTANGLES",
+            "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+    };
+    const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");
+    if( ! patternTypeStr ) {
+        fprintf(stderr, "Group \"%s\": Parameter group for class Patterns must set string parameter patternType\n", name);
+        return NULL;
+    }
+    PatternType patternType;
+    int patternTypeMatch = false;
+    for( int i=0; strcmp(allowedPatternTypes[i],"_End_allowedPatternTypes"); i++ ) {
+    	const char * thispatterntype = allowedPatternTypes[i];
+        if( !strcmp(patternTypeStr, thispatterntype) ) {
+            patternType = (PatternType) i;
+            patternTypeMatch = true;
+            break;
+        }
+    }
+    if( patternTypeMatch ) {
+        return new Patterns(name, hc, patternType);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, patternTypeStr);
+        return NULL;
+    }
+}
+
+
+HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+    HyPerConn * addedConn = NULL;
+    assert( hc != NULL );
+    const char * fileName;
+    HyPerLayer * preLayer, * postLayer;
+    HyPerConn * auxConn;
     PVParams * params = hc->parameters();
 
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
+    ChannelType channelType;
+    int channelNo = (int) params->value(name, "channelCode", -1);
+    if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
+        fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
+        return NULL;
     }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
+    bool keywordMatched = false;
+    if( !strcmp(classkeyword, "HyPerConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
     }
-    FILE * dumpWeightStream;
-    if( dumpweightsfile != NULL ) {
-        dumpWeightStream = fopen(dumpweightsfile, "w");
-        assert(dumpWeightStream);
+    if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
+        keywordMatched = true;
+        fprintf(stderr, "Connection \"%s\": AvgConn not implemented (I don't know what delegate does).\n", name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+        if( auxConn && preLayer && postLayer ) {
+        	addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn)  );
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = (HyPerConn * ) new CocircConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new GaborConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "GeislerConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = new GeislerConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
+        // Filename is ignored
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+        	addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType );
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+        if( auxConn && preLayer && postLayer ) {
+        	addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn) );
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
+        keywordMatched = true;
+        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+        if( auxConn ) {
+            addedConn = (HyPerConn *) new FeedbackConn(name, hc, channelType, dynamic_cast<KernelConn *>(auxConn) );
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
+    	// filename is ignored as PoolConn doesn't have a constructor that takes a filename
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new PoolConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "RuleConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new RuleConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            addedConn = (HyPerConn * ) new SubunitConn(name, hc, preLayer, postLayer, channelType);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
+    if( !keywordMatched ) {
+        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
+    }
+    return addedConn;
+}
+
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+    PoolingGenConn * addedConn;
+    HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
+    HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
+    if( secondaryPreLayer && secondaryPostLayer ) {
+        addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel);
     }
     else {
-        dumpWeightStream = stdout;
+        addedConn = NULL;
     }
+    return NULL;
+}
 
-    // Layers
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-    Retina * retina = new Retina("Retina", hc);
-    NonspikingLayer * layerA = new NonspikingLayer("Layer A", hc);
-    NonspikingLayer * layerB1to1 = new NonspikingLayer("Layer B One to one", hc);
-    NonspikingLayer * layerBManyTo1 = new NonspikingLayer("Layer B Many to one", hc);
-    NonspikingLayer * layerB1toMany = new NonspikingLayer("Layer B One to many", hc);
+const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterStringName, bool warnIfNotPresent) {
+    bool shouldGetValue = warnIfNotPresent ? true : params->stringPresent(groupName, parameterStringName);
+    const char * str;
+    str = shouldGetValue ? params->stringValue(groupName, parameterStringName) : NULL;
+    return str;
+}
 
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    KernelConn * retina_layerA = new KernelConn("Retina to Layer A", hc, retina, layerA, CHANNEL_EXC);
-    assert(retina_layerA);
-    GenerativeConn * originalMap1to1 = new GenerativeConn("One to one original map", hc, layerA, layerB1to1, CHANNEL_EXC);
-    assert(originalMap1to1);
-    FeedbackConn * transpose1to1 = new FeedbackConn("One to one transpose", hc, CHANNEL_INHB, originalMap1to1);
-    assert(transpose1to1);
-    FeedbackConn * transposeOfTranspose1to1 = new FeedbackConn("One to one transpose of transpose", hc, CHANNEL_INHB, transpose1to1);
-    assert(transposeOfTranspose1to1);
+void getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayerPtr) {
+    *preLayerPtr = getLayerFromParameterGroup(name, hc, "preLayerName");
+    *postLayerPtr = getLayerFromParameterGroup(name, hc, "postLayerName");
+}
 
-    int status1to1 = testWeightsEqual(originalMap1to1, transposeOfTranspose1to1);
-    if(status1to1 == EXIT_SUCCESS) {
-        printf("One-to-one case: testTransposeOfTranspose passed.\n");
+HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
+    HyPerLayer * l = NULL;
+    PVParams * params = hc->parameters();
+    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, true);
+    if( !layerName ) return NULL;
+    int n = hc->numberOfLayers();
+    for( int i=0; i<n; i++ ) {
+    	HyPerLayer * curLayer = hc->getLayer(i);
+    	const char * curName = curLayer->getName();
+    	assert(curName);
+        if( !strcmp(curName,layerName) ) {
+            l = curLayer;
+        }
+    }
+    if( l == NULL )  {
+        fprintf(stderr, "Group \"%s\": could not find layer \"%s\"\n", groupName, layerName);
+    }
+    return l;
+}
+
+HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
+    HyPerConn * c = NULL;
+    PVParams * params = hc->parameters();
+    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, true);
+    if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
+    int n = hc->numberOfConnections();
+    for( int i=0; i<n; i++ ) {
+    	HyPerConn * curConn = hc->getConnection(i);
+    	const char * curName = curConn->getName();
+    	assert(curName);
+        if( !strcmp(curName,connName) ) {
+            c = curConn;
+        }
+    }
+    if( c == NULL )  {
+        fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
+    }
+    return c;
+}
+
+ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
+    ColProbe * p = NULL;
+    PVParams * params = hc->parameters();
+    const char * colProbeName = getStringValueFromParameterGroup(groupName, params, parameterStringName, false);
+    if( !colProbeName ) return NULL;  // error message was printed by getStringValueFromParameterGroup
+    int n = hc->numberOfProbes();
+    for( int i=0; i<n; i++ ) {
+    	ColProbe * curColProbe = hc->getColProbe(i);
+    	const char * curName = curColProbe->getColProbeName();
+    	assert(curName);
+        if( !strcmp(curName,colProbeName) ) {
+            p = curColProbe;
+        }
+    }
+    return p;
+}
+
+ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName, HyPerCol * hc) {
+    ColProbe * addedProbe;
+    bool keywordMatched = false;
+    const char * fileName = getStringValueFromParameterGroup(probeName, hc->parameters(), "probeOutputFile", false);
+    if( !strcmp(classkeyword, "ColProbe") ) {
+        keywordMatched = true;
+        addedProbe = new ColProbe(probeName, fileName, hc);
+        insertColProbe(addedProbe, hc, classkeyword);
+    }
+    if( !strcmp(classkeyword, "GenColProbe") ) {
+    	keywordMatched = true;
+        addedProbe = (ColProbe *) new GenColProbe(probeName, fileName, hc);
+        insertColProbe(addedProbe, hc, classkeyword);
+    }
+    if( !keywordMatched ) {
+        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, probeName);
+        addedProbe = NULL;
+    }
+    return addedProbe;
+}
+
+void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword) {
+    if( colProbe != NULL ) {
+        hc->insertProbe(colProbe);
+        printf("Added %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
     }
     else {
-        fprintf(stderr, "One-to-one case: testTransposeOfTranspose failed; dumping weights to ");
-        dumpweightsfile != NULL ? fprintf(stderr, "%s\n", dumpweightsfile) :
-                          fprintf(stderr, "standard output\n");
-        dumpWeights(originalMap1to1, dumpWeightStream);
-        dumpWeights(transpose1to1, dumpWeightStream);
-        dumpWeights(transposeOfTranspose1to1, dumpWeightStream);
+        fprintf(stderr, "Unable to add %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
     }
+}
 
-    GenerativeConn * originalMapManyTo1 = new GenerativeConn("Many to one original map", hc, layerA, layerBManyTo1, CHANNEL_EXC);
-    assert(originalMapManyTo1);
-    FeedbackConn * transposeManyTo1 = new FeedbackConn("Many to one transpose", hc, CHANNEL_INHB, originalMapManyTo1);
-    assert(transposeManyTo1);
-    FeedbackConn * transposeOfTransposeManyTo1 = new FeedbackConn("Many to one transpose of transpose", hc, CHANNEL_INHB, transposeManyTo1);
-    assert(transposeOfTransposeManyTo1);
-
-    int statusManyTo1 = testWeightsEqual(originalMapManyTo1, transposeOfTransposeManyTo1);
-    if(statusManyTo1 == EXIT_SUCCESS) {
-        printf("Many-to-one case: testTransposeOfTranspose passed.\n");
+ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+    ConnectionProbe * addedProbe;
+    PVParams * params = hc->parameters();
+    int kPre, kxPre, kyPre, kfPre;
+    bool keywordMatched = true;
+    if( !strcmp(classkeyword, "ConnectionProbe") ) {
+    	keywordMatched = true;
+        int indexmethod = params->present(name, "kPre");
+        int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+    	if( indexmethod && coordmethod ) {
+    	    fprintf(stderr, "Group \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+    	    return NULL;
+    	}
+    	if( !indexmethod && !indexmethod) {
+    	    fprintf(stderr, "Group \"%s\": Neither kPre nor (kxPre,kyPre,kfPre) were defined\n", name);
+    	    return NULL;
+    	}
+        if( indexmethod ) {
+            kPre = params->value(name, "kPre");
+            addedProbe = new ConnectionProbe(kPre);
+        }
+        else if( coordmethod ) {
+            kxPre = params->value(name, "kxPre");
+            kyPre = params->value(name, "kyPre");
+            kfPre = params->value(name, "kfPre");
+            addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre);
+        }
+        else {
+            assert(false);
+        }
     }
-    else {
-        fprintf(stderr, "Many-to-one case: testTransposeOfTranspose failed; dumping weights to ");
-        dumpweightsfile != NULL ? fprintf(stderr, "%s\n", dumpweightsfile) :
-                          fprintf(stderr, "standard output\n");
-        dumpWeights(originalMapManyTo1, dumpWeightStream);
-        dumpWeights(transposeManyTo1, dumpWeightStream);
-        dumpWeights(transposeOfTransposeManyTo1, dumpWeightStream);
+    if( !keywordMatched ) { // The reason this is a separate if statement and not an else statement attached to if( !strcmp... )
+    	                    // is that if subclasses are added, addConnectionProbeToColumn() should be extended along the lines
+    	                    // of the other add.*ToColumn() functions.
+        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
     }
+    checknewobject((void *) addedProbe, classkeyword, name);
+    return addedProbe;
+}
 
-    GenerativeConn * originalMap1toMany = new GenerativeConn("One to many original map", hc, layerA, layerB1toMany, CHANNEL_EXC);
-    assert(originalMap1toMany);
-    FeedbackConn * transpose1toMany = new FeedbackConn("One to many transpose", hc, CHANNEL_INHB, originalMap1toMany);
-    assert(transpose1toMany);
-    FeedbackConn * transposeOfTranspose1toMany = new FeedbackConn("One to many transpose of transpose", hc, CHANNEL_INHB, transpose1toMany);
-    assert(transposeOfTranspose1toMany);
+#define LAYERPROBEMSGLENGTH 32
+LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+    int status;
+	bool errorFound = false;
 
-    int status1toMany = testWeightsEqual(originalMap1toMany, transposeOfTranspose1toMany);
-    if(status1toMany == EXIT_SUCCESS) {
-        printf("One-to-many case: testTransposeOfTranspose passed.\n");
+    LayerProbe * addedProbe;
+    char * probename;
+    HyPerLayer * targetlayer;
+    const char * message;
+    const char * filename;
+    PVParams * params = hc->parameters();
+    GenColProbe * parentcolprobe;
+    if( !strcmp(classkeyword, "LayerProbe") ) {
+        fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
+        addedProbe = NULL;
     }
-    else {
-        fprintf(stderr, "One-to-many case: testTransposeOfTranspose failed; dumping weights to ");
-        dumpweightsfile != NULL ? fprintf(stderr, "%s\n", dumpweightsfile) :
-                          fprintf(stderr, "standard output\n");
-        dumpWeights(originalMap1toMany, dumpWeightStream);
-        dumpWeights(transpose1toMany, dumpWeightStream);
-        dumpWeights(transposeOfTranspose1toMany, dumpWeightStream);
+    int xLoc, yLoc, fLoc;
+    if( !strcmp(classkeyword, "PointProbe") ) {
+        status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+        errorFound = status!=PV_SUCCESS;
+        if( !errorFound ) {
+            xLoc = params->value(name, "xLoc", -1);
+            yLoc = params->value(name, "yLoc", -1);
+            fLoc = params->value(name, "fLoc", -1);
+            if( xLoc < 0 || yLoc < 0 || fLoc < 0) {
+                fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
+                errorFound = true;
+            }
+        }
+        if( !errorFound ) {
+            if( filename ) {
+                addedProbe = (LayerProbe *) new PointProbe(filename, hc, xLoc, yLoc, fLoc, message);
+            }
+            else {
+                addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
+            }
+            if( !addedProbe ) {
+                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+                 errorFound = true;
+            }
+        }
     }
+    if( !strcmp(classkeyword, "L2NormProbe") ) {
+    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+        errorFound = status!=PV_SUCCESS;
+    	if( !errorFound ) {
+            if( filename ) {
+                addedProbe = (LayerProbe *) new L2NormProbe(filename, hc, message);
+            }
+            else {
+                addedProbe = (LayerProbe *) new L2NormProbe(message);
+            }
+            if( !addedProbe ) {
+                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+                 errorFound = true;
+            }
+        }
+    	if( !errorFound ) {
+            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+            if( parentcolprobe )
+            {
+                pvdata_t coeff = params->value(name, "coeff", 1);
+            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            }
+    	}
+    }
+    if( !strcmp(classkeyword, "SparsityTermProbe") ) {
+    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+        errorFound = status!=PV_SUCCESS;
+    	if( !errorFound ) {
+            if( filename ) {
+                addedProbe = (LayerProbe *) new SparsityTermProbe(filename, hc, message);
+            }
+            else {
+                addedProbe = (LayerProbe *) new SparsityTermProbe(message);
+            }
+            if( !addedProbe ) {
+                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+                 errorFound = true;
+            }
+        }
+    	if( !errorFound ) {
+            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+            if( parentcolprobe )
+            {
+                pvdata_t coeff = params->value(name, "coeff", 1);
+            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            }
+    	}
+    }
+    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
+    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+        errorFound = status!=PV_SUCCESS;
+    	if( !errorFound ) {
+            if( filename ) {
+                addedProbe = (LayerProbe *) new LogLatWTAProbe(filename, hc, message);
+            }
+            else {
+                addedProbe = (LayerProbe *) new LogLatWTAProbe(message);
+            }
+            if( !addedProbe ) {
+                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+                 errorFound = true;
+            }
+        }
+    	if( !errorFound ) {
+            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+            if( parentcolprobe )
+            {
+                pvdata_t coeff = params->value(name, "coeff", 1);
+            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            }
+    	}
+    }
+    assert(targetlayer);
+    if( addedProbe ) targetlayer->insertProbe(addedProbe);
+    checknewobject((void *) addedProbe, classkeyword, name);
+    return addedProbe;
+}
 
-    if( dumpWeightStream != NULL && dumpWeightStream != stdout ) fclose( dumpWeightStream );
-    int status = ( status1to1==EXIT_SUCCESS &&
-                   statusManyTo1==EXIT_SUCCESS &&
-                   status1toMany==EXIT_SUCCESS ) ? EXIT_SUCCESS : EXIT_FAILURE;
+int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, const char ** messagePtr, const char ** filenamePtr) {
+    PVParams * params = hc->parameters();
+    const char * message;
+    const char * filename;
+	*targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
+    if( ! *targetLayerPtr ) {
+        fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
+        return PV_FAILURE;
+    }
+	message = getStringValueFromParameterGroup(name, params, "message", false);
+    if( ! message ) {
+    	size_t messagelen = strlen(name);
+    	assert(LAYERPROBEMSGLENGTH>0);
+    	messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
+        char * newmessage = (char *) malloc(LAYERPROBEMSGLENGTH+1);
+        if( ! newmessage ) {
+            fprintf(stderr, "Group \"%s\": Unable to allocate memory for message\n", name);
+            return PV_FAILURE;
+        }
+        for( size_t c=0; c<messagelen; c++ ) {
+            newmessage[c] = name[c];
+        }
+        for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
+            newmessage[c] = ' ';
+        }
+        newmessage[LAYERPROBEMSGLENGTH-1] = ':';
+        newmessage[LAYERPROBEMSGLENGTH] = '\0';
+        message = newmessage;
+        newmessage = NULL;
+        printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
+    }
+    *messagePtr = message;
+    filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
+    *filenamePtr = filename;
+    filename = NULL;
+    return PV_SUCCESS;
+}
+
+int decodeChannel(int channel, ChannelType * channelType) {
+    int status = PV_SUCCESS;
+    switch( channel ) {
+    case CHANNEL_EXC:
+        *channelType = CHANNEL_EXC;
+        break;
+    case CHANNEL_INH:
+        *channelType = CHANNEL_INH;
+        break;
+    case CHANNEL_INHB:
+        *channelType = CHANNEL_INHB;
+        break;
+    default:
+        status = PV_FAILURE;
+        break;
+    }
     return status;
 }
 
-int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
-
-    int status = EXIT_SUCCESS;
-    int numWeightPatches = conn1->numWeightPatches(0);
-    if( numWeightPatches != conn2->numWeightPatches(0) ) {
-        fprintf(stderr, "testEqualWeights:  numWeightPatches not equal.\n");
-        return EXIT_FAILURE;
+int checknewobject(void * object, const char * kw, const char * name) {
+    if( object == NULL ) {
+        fprintf(stderr, "Group \"%s\": Unable to add object of class %s\n", name, kw);
+        return PV_FAILURE;
     }
-
-    for( int patchindex = 0; patchindex < numWeightPatches; patchindex++ ) {
-        int status1 = testPatchesEqual( conn1->axonalArbor(patchindex, LOCAL)->weights, conn2->axonalArbor(patchindex, LOCAL)->weights, patchindex);
-        if(status1 != EXIT_SUCCESS) {
-            status = status1;
-        }
+    else {
+        printf("Added %s \"%s\"\n", kw, name);
+        return PV_SUCCESS;
     }
-    return status;
-}
-
-int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index) {
-    int nx1 = patch1->nx;
-    int nx2 = patch2->nx;
-    if( nx1 != nx2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: nx not equal (%d versus %d).\n", index, nx1, nx2);
-        return EXIT_FAILURE;
-    }
-    int ny1 = patch1->ny;
-    int ny2 = patch2->ny;
-    if( ny1 != ny2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: ny not equal (%d versus %d).\n", index, ny1, ny2);
-        return EXIT_FAILURE;
-    }
-    int nf1 = patch1->nf;
-    int nf2 = patch2->nf;
-    if( nf1 != nf2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: nf not equal (%d versus %d).\n", index, nf1, nf2);
-        return EXIT_FAILURE;
-    }
-    int sx1 = patch1->sx;
-    int sx2 = patch2->sx;
-    if( nf1 != nf2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: sx not equal (%d versus %d).\n", index, sx1, sx2);
-        return EXIT_FAILURE;
-    }
-    int sy1 = patch1->sy;
-    int sy2 = patch2->sy;
-    if( sy1 != sy2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: nf not equal (%d versus %d).\n", index, sy1, sy2);
-        return EXIT_FAILURE;
-    }
-    int sf1 = patch1->sf;
-    int sf2 = patch2->sf;
-    if( sf1 != sf2 ) {
-        fprintf(stderr, "testWeightsEqual: index %d: sf not equal (%d versus %d).\n", index, sf1, sf2);
-        return EXIT_FAILURE;
-    }
-
-    int status = EXIT_SUCCESS;
-    int n = nx1*ny1*nf1;
-    for(int k=0; k<n; k++) {
-        if( fabs(patch1->data[k] - patch2->data[k]) > 0.0001 ) {
-            fprintf(stderr, "testWeightsEqual: index into layer = %d, index into patch = %d,\n", index, k);
-            fprintf(stderr, "    (%f versus %f).\n",patch1->data[k],patch2->data[k]);
-            status = EXIT_FAILURE;
-        }
-    }
-    return status;
-}
-
-int dumpWeights(KernelConn * kconn, FILE * stream) {
-    int numKernelPatches = kconn->numDataPatches(0);
-    fprintf(stream, "Dumping weights for connection %s\n", kconn->getName() );
-    for(int kn = 0; kn < numKernelPatches; kn++) {
-        PVPatch * kp = kconn->getKernelPatch(kn);
-        int nx = kp->nx;
-        int ny = kp->ny;
-        int nf = kp->nf;
-        fprintf(stream, "Kernel Patch %d: nx=%d, ny=%d, nf=%d\n",
-                kn, nx, ny, nf);
-        for(int k=0; k<nx*ny*nf; k++) {
-            fprintf(stream, "    Index %4d, x=%3d, y=%3d, f=%3d: Value %g\n", k,
-                    kxPos(k, nx, ny, nf), kyPos(k, nx, ny, nf),
-                    featureIndex(k, nx, ny, nf), kp->data[k]);
-        }
-    }
-    return EXIT_SUCCESS;
-}
-
-int mnistTrain(HyPerCol * hc) {
-
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
-    PVParams * params = hc->parameters();
-
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
-    }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
-    }
-
-    // Layers
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-
-    Retina * retina = new Retina("Retina", hc);
-    L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
-    retina->insertProbe(l2norm_retina);
-
-    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
-    L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
-    anaretina->insertProbe(l2norm_anaretina);
-    hcprobe->addTerm(l2norm_anaretina, anaretina);
-
-    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
-    L2NormProbe * l2norm_layerA = new L2NormProbe("Layer A     :");
-    SparsityTermProbe * sparsity_layerA = new SparsityTermProbe("Layer A     :");
-    layerA->insertProbe(l2norm_layerA);
-    layerA->insertProbe(sparsity_layerA);
-    hcprobe->addTerm(sparsity_layerA, layerA);
-
-    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
-    L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
-    paralayerA->insertProbe(l2norm_paralayerA);
-    hcprobe->addTerm(l2norm_paralayerA, paralayerA);
-
-    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
-    L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
-    analayerA->insertProbe(l2norm_analayerA);
-    hcprobe->addTerm(l2norm_analayerA, analayerA);
-
-    GenerativeLayer * layerB = new GenerativeLayer("Layer B", hc);
-    L2NormProbe * l2norm_layerB = new L2NormProbe("Layer B     :");
-    SparsityTermProbe * sparsity_layerB = new SparsityTermProbe("Layer B     :");
-    layerB->insertProbe(l2norm_layerB);
-    layerB->insertProbe(sparsity_layerB);
-    hcprobe->addTerm(sparsity_layerB, layerB);
-
-    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
-    L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
-    paralayerB->insertProbe(l2norm_paralayerB);
-    hcprobe->addTerm(l2norm_paralayerB, paralayerB);
-
-    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
-    L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
-    analayerB->insertProbe(l2norm_analayerB);
-    hcprobe->addTerm(l2norm_analayerB, analayerB);
-
-    GenerativeLayer * layerC = new GenerativeLayer("Layer C", hc);
-    L2NormProbe * l2norm_layerC = new L2NormProbe("Layer C     :");
-    SparsityTermProbe * sparsity_layerC = new SparsityTermProbe("Layer C     :");
-    layerC->insertProbe(l2norm_layerC);
-    layerC->insertProbe(sparsity_layerC);
-    hcprobe->addTerm(sparsity_layerC, layerC);
-
-    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
-    L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
-    paralayerC->insertProbe(l2norm_paralayerC);
-    hcprobe->addTerm(l2norm_paralayerC, paralayerC);
-
-    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
-    L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
-    analayerC->insertProbe(l2norm_analayerC);
-    hcprobe->addTerm(l2norm_analayerC, analayerC);
-
-    float displayPeriod = hc->parameters()->value("Slideshow", "displayPeriod");
-    TrainingGenLayer * traininglayer = new TrainingGenLayer("IT", hc, "input/mnist/train/trainlabels.txt", displayPeriod, 3.0f);
-
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    IdentConn * retina_anaretina = new IdentConn("Retina to AnaRetina", hc, retina, anaretina, CHANNEL_EXC);
-    assert(retina_anaretina);
-    GenerativeConn * anaretina_layerA = new GenerativeConn("AnaRetina to Layer A", hc, anaretina, layerA, CHANNEL_EXC);
-    assert(anaretina_layerA);
-    FeedbackConn * layerA_anaretinaFB = new FeedbackConn("Layer A to AnaRetina Feedback", hc, CHANNEL_INH, anaretina_layerA);
-    assert(layerA_anaretinaFB);
-    LateralConn * layerA_paralayerA = new LateralConn("Layer A to ParaLayer A", hc, layerA, paralayerA, CHANNEL_EXC);
-    assert(layerA_paralayerA);
-    FeedbackConn * paralayerA_layerAFB = new FeedbackConn("ParaLayer A to Layer A Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerA_layerAFB);
-    IdentConn * layerA_analayerA = new IdentConn("Layer A to AnaLayer A", hc, layerA, analayerA, CHANNEL_EXC);
-    assert(layerA_analayerA);
-    IdentConn * analayerA_layerAFB = new IdentConn("AnaLayer A to Layer A Feedback", hc, analayerA, layerA, CHANNEL_INH);
-    assert(analayerA_layerAFB);
-    GenerativeConn * analayerA_layerB = new GenerativeConn("AnaLayer A to Layer B", hc, analayerA, layerB, CHANNEL_EXC);
-    assert(analayerA_layerB);
-    FeedbackConn * layerB_analayerAFB = new FeedbackConn("Layer B to AnaLayer A Feedback", hc, CHANNEL_INH, analayerA_layerB);
-    assert(layerB_analayerAFB);
-    LateralConn * layerB_paralayerB = new LateralConn("Layer B to ParaLayer B", hc, layerB, paralayerB, CHANNEL_EXC);
-    assert(layerB_paralayerB);
-    FeedbackConn * paralayerB_layerBFB = new FeedbackConn("ParaLayer B to Layer B Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerB_layerBFB);
-    IdentConn * layerB_analayerB = new IdentConn("Layer B to AnaLayer B", hc, layerB, analayerB, CHANNEL_EXC);
-    assert(layerB_analayerB);
-    IdentConn * analayerB_layerBFB = new IdentConn("AnaLayer B to Layer B Feedback", hc, analayerB, layerB, CHANNEL_INH);
-    assert(analayerB_layerBFB);
-    GenerativeConn * analayerB_layerC = new GenerativeConn("AnaLayer B to Layer C", hc, analayerB, layerC, CHANNEL_EXC);
-    assert(analayerB_layerC);
-    FeedbackConn * traininglayer_analayerBFB = new FeedbackConn("Layer C to AnaLayer B Feedback", hc, CHANNEL_INH, analayerB_layerC);
-    assert(traininglayer_analayerBFB);
-
-    LateralConn * layerC_paralayerC = new LateralConn("Layer C to ParaLayer C", hc, layerC, paralayerC, CHANNEL_EXC);
-    assert(layerC_paralayerC);
-    FeedbackConn * paralayerC_layerCFB = new FeedbackConn("ParaLayer C to Layer C Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerC_layerCFB);
-    IdentConn * layerC_analayerC = new IdentConn("Layer C to AnaLayer C", hc, layerC, analayerC, CHANNEL_EXC);
-    assert(layerC_analayerC);
-    IdentConn * analayerC_layerCFB = new IdentConn("AnaLayer C to Layer C Feedback", hc, analayerC, layerC, CHANNEL_INH);
-    assert(analayerC_layerCFB);
-    GenerativeConn * analayerC_traininglayer = new GenerativeConn("AnaLayer C to IT", hc, analayerC, traininglayer, CHANNEL_EXC);
-    assert(analayerC_traininglayer);
-    FeedbackConn * traininglayer_analayerCFB = new FeedbackConn("IT to AnaLayer C Feedback", hc, CHANNEL_INH, analayerC_traininglayer);
-    assert(traininglayer_analayerCFB);
-
-    return EXIT_SUCCESS;
-
-}
-
-int mnistTest(HyPerCol * hc) {
-
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
-    PVParams * params = hc->parameters();
-
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
-    }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
-    }
-
-    // Layers
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-
-    Retina * retina = new Retina("Retina", hc);
-    L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
-    retina->insertProbe(l2norm_retina);
-
-    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
-    L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
-    anaretina->insertProbe(l2norm_anaretina);
-    hcprobe->addTerm(l2norm_anaretina, anaretina);
-
-    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
-    L2NormProbe * l2norm_layerA = new L2NormProbe("Layer A     :");
-    SparsityTermProbe * sparsity_layerA = new SparsityTermProbe("Layer A     :");
-    layerA->insertProbe(l2norm_layerA);
-    layerA->insertProbe(sparsity_layerA);
-    hcprobe->addTerm(sparsity_layerA, layerA);
-
-    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
-    L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
-    paralayerA->insertProbe(l2norm_paralayerA);
-    hcprobe->addTerm(l2norm_paralayerA, paralayerA);
-
-    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
-    L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
-    analayerA->insertProbe(l2norm_analayerA);
-    hcprobe->addTerm(l2norm_analayerA, analayerA);
-
-    GenerativeLayer * layerB = new GenerativeLayer("Layer B", hc);
-    L2NormProbe * l2norm_layerB = new L2NormProbe("Layer B     :");
-    SparsityTermProbe * sparsity_layerB = new SparsityTermProbe("Layer B     :");
-    layerB->insertProbe(l2norm_layerB);
-    layerB->insertProbe(sparsity_layerB);
-    hcprobe->addTerm(sparsity_layerB, layerB);
-
-    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
-    L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
-    paralayerB->insertProbe(l2norm_paralayerB);
-    hcprobe->addTerm(l2norm_paralayerB, paralayerB);
-
-    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
-    L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
-    analayerB->insertProbe(l2norm_analayerB);
-    hcprobe->addTerm(l2norm_analayerB, analayerB);
-
-    GenerativeLayer * layerC = new GenerativeLayer("Layer C", hc);
-    L2NormProbe * l2norm_layerC = new L2NormProbe("Layer C     :");
-    SparsityTermProbe * sparsity_layerC = new SparsityTermProbe("Layer C     :");
-    layerC->insertProbe(l2norm_layerC);
-    layerC->insertProbe(sparsity_layerC);
-    hcprobe->addTerm(sparsity_layerC, layerC);
-
-    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
-    L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
-    paralayerC->insertProbe(l2norm_paralayerC);
-    hcprobe->addTerm(l2norm_paralayerC, paralayerC);
-
-    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
-    L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
-    analayerC->insertProbe(l2norm_analayerC);
-    hcprobe->addTerm(l2norm_analayerC, analayerC);
-
-    GenerativeLayer * itLayer = new GenerativeLayer("IT", hc);
-    VProbe * vprobe_it = new VProbe();
-    itLayer->insertProbe(vprobe_it);
-
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    IdentConn * retina_anaretina = new IdentConn("Retina to AnaRetina", hc, retina, anaretina, CHANNEL_EXC);
-    assert(retina_anaretina);
-    GenerativeConn * anaretina_layerA = new GenerativeConn("AnaRetina to Layer A", hc, anaretina, layerA, CHANNEL_EXC);
-    assert(anaretina_layerA);
-    FeedbackConn * layerA_anaretinaFB = new FeedbackConn("Layer A to AnaRetina Feedback", hc, CHANNEL_INH, anaretina_layerA);
-    assert(layerA_anaretinaFB);
-    LateralConn * layerA_paralayerA = new LateralConn("Layer A to ParaLayer A", hc, layerA, paralayerA, CHANNEL_EXC);
-    assert(layerA_paralayerA);
-    FeedbackConn * paralayerA_layerAFB = new FeedbackConn("ParaLayer A to Layer A Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerA_layerAFB);
-    IdentConn * layerA_analayerA = new IdentConn("Layer A to AnaLayer A", hc, layerA, analayerA, CHANNEL_EXC);
-    assert(layerA_analayerA);
-    IdentConn * analayerA_layerAFB = new IdentConn("AnaLayer A to Layer A Feedback", hc, analayerA, layerA, CHANNEL_INH);
-    assert(analayerA_layerAFB);
-    GenerativeConn * analayerA_layerB = new GenerativeConn("AnaLayer A to Layer B", hc, analayerA, layerB, CHANNEL_EXC);
-    assert(analayerA_layerB);
-    FeedbackConn * layerB_analayerAFB = new FeedbackConn("Layer B to AnaLayer A Feedback", hc, CHANNEL_INH, analayerA_layerB);
-    assert(layerB_analayerAFB);
-    LateralConn * layerB_paralayerB = new LateralConn("Layer B to ParaLayer B", hc, layerB, paralayerB, CHANNEL_EXC);
-    assert(layerB_paralayerB);
-    FeedbackConn * paralayerB_layerBFB = new FeedbackConn("ParaLayer B to Layer B Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerB_layerBFB);
-    IdentConn * layerB_analayerB = new IdentConn("Layer B to AnaLayer B", hc, layerB, analayerB, CHANNEL_EXC);
-    assert(layerB_analayerB);
-    IdentConn * analayerB_layerBFB = new IdentConn("AnaLayer B to Layer B Feedback", hc, analayerB, layerB, CHANNEL_INH);
-    assert(analayerB_layerBFB);
-    GenerativeConn * analayerB_layerC = new GenerativeConn("AnaLayer B to Layer C", hc, analayerB, layerC, CHANNEL_EXC);
-    assert(analayerB_layerC);
-    FeedbackConn * traininglayer_analayerBFB = new FeedbackConn("Layer C to AnaLayer B Feedback", hc, CHANNEL_INH, analayerB_layerC);
-    assert(traininglayer_analayerBFB);
-
-    LateralConn * layerC_paralayerC = new LateralConn("Layer C to ParaLayer C", hc, layerC, paralayerC, CHANNEL_EXC);
-    assert(layerC_paralayerC);
-    FeedbackConn * paralayerC_layerCFB = new FeedbackConn("ParaLayer C to Layer C Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerC_layerCFB);
-    IdentConn * layerC_analayerC = new IdentConn("Layer C to AnaLayer C", hc, layerC, analayerC, CHANNEL_EXC);
-    assert(layerC_analayerC);
-    IdentConn * analayerC_layerCFB = new IdentConn("AnaLayer C to Layer C Feedback", hc, analayerC, layerC, CHANNEL_INH);
-    assert(analayerC_layerCFB);
-    GenerativeConn * analayerC_it = new GenerativeConn("AnaLayer C to IT", hc, analayerC, itLayer, CHANNEL_EXC);
-    assert(analayerC_it);
-    FeedbackConn * it_analayerCFB = new FeedbackConn("IT to AnaLayer C Feedback", hc, CHANNEL_INH, analayerC_it);
-    assert(it_analayerCFB);
-
-    return EXIT_SUCCESS;
-
-}
-
-int parse_getopt_str_extension(int argc, char * argv[], const char * opt, char ** sVal) {
-      for ( int i = 1; i < argc-1; i++ ) {
-         if ( !strcmp(argv[i], opt) ) {
-            *sVal = argv[i+1];
-            return i+1;  // return the index such that argv[i] is the value of the desired option
-         }
-      }
-      return -1;  // not found
-}
-
-int mnistNoOverlap(HyPerCol * hc) {
-
-    GenColProbe * hcprobe = new GenColProbe();
-    hc->insertProbe(hcprobe);
-    PVParams * params = hc->parameters();
-
-    const char * fileOfFileNames = params->getFilename("ImageFileList");
-    if( !fileOfFileNames ) {
-        fprintf(stderr, "No ImageFileList was defined in parameters file\n");
-        delete hc;
-        return EXIT_FAILURE;
-    }
-    const char * outputDir = params->getFilename("OutputDir");
-    if( !outputDir ) {
-        outputDir = OUTPUT_PATH;
-        fprintf(stderr, "No OutputDir was defined in parameters file; using %s\n",outputDir);
-    }
-
-    // Layers
-    Movie * slideshow = new Movie("Slideshow", hc, fileOfFileNames);
-
-    Retina * retina = new Retina("Retina", hc);
-    L2NormProbe * l2norm_retina = new L2NormProbe("Retina      :");
-    retina->insertProbe(l2norm_retina);
-
-    NonspikingLayer * anaretina = new NonspikingLayer("AnaRetina", hc);
-    L2NormProbe * l2norm_anaretina = new L2NormProbe("AnaRetina   :");
-    anaretina->insertProbe(l2norm_anaretina);
-    hcprobe->addTerm(l2norm_anaretina, anaretina);
-
-    GenerativeLayer * layerA = new GenerativeLayer("Layer A", hc);
-    L2NormProbe * l2norm_layerA = new L2NormProbe("Layer A     :");
-    SparsityTermProbe * sparsity_layerA = new SparsityTermProbe("Layer A     :");
-    layerA->insertProbe(l2norm_layerA);
-    layerA->insertProbe(sparsity_layerA);
-    hcprobe->addTerm(sparsity_layerA, layerA);
-
-    NonspikingLayer * paralayerA = new NonspikingLayer("ParaLayer A", hc);
-    L2NormProbe * l2norm_paralayerA = new L2NormProbe("ParaLayer A :");
-    paralayerA->insertProbe(l2norm_paralayerA);
-    hcprobe->addTerm(l2norm_paralayerA, paralayerA);
-
-    NonspikingLayer * analayerA = new NonspikingLayer("AnaLayer A", hc);
-    L2NormProbe * l2norm_analayerA = new L2NormProbe("AnaLayer A  :");
-    analayerA->insertProbe(l2norm_analayerA);
-    hcprobe->addTerm(l2norm_analayerA, analayerA);
-
-    GenerativeLayer * layerB = new GenerativeLayer("Layer B", hc);
-    L2NormProbe * l2norm_layerB = new L2NormProbe("Layer B     :");
-    SparsityTermProbe * sparsity_layerB = new SparsityTermProbe("Layer B     :");
-    layerB->insertProbe(l2norm_layerB);
-    layerB->insertProbe(sparsity_layerB);
-    hcprobe->addTerm(sparsity_layerB, layerB);
-
-    NonspikingLayer * paralayerB = new NonspikingLayer("ParaLayer B", hc);
-    L2NormProbe * l2norm_paralayerB = new L2NormProbe("ParaLayer B :");
-    paralayerB->insertProbe(l2norm_paralayerB);
-    hcprobe->addTerm(l2norm_paralayerB, paralayerB);
-
-    NonspikingLayer * analayerB = new NonspikingLayer("AnaLayer B", hc);
-    L2NormProbe * l2norm_analayerB = new L2NormProbe("AnaLayer B  :");
-    analayerB->insertProbe(l2norm_analayerB);
-    hcprobe->addTerm(l2norm_analayerB, analayerB);
-
-    GenerativeLayer * layerC = new GenerativeLayer("Layer C", hc);
-    L2NormProbe * l2norm_layerC = new L2NormProbe("Layer C     :");
-    SparsityTermProbe * sparsity_layerC = new SparsityTermProbe("Layer C     :");
-    layerC->insertProbe(l2norm_layerC);
-    layerC->insertProbe(sparsity_layerC);
-    hcprobe->addTerm(sparsity_layerC, layerC);
-
-    NonspikingLayer * paralayerC = new NonspikingLayer("ParaLayer C", hc);
-    L2NormProbe * l2norm_paralayerC = new L2NormProbe("ParaLayer C :");
-    paralayerC->insertProbe(l2norm_paralayerC);
-    hcprobe->addTerm(l2norm_paralayerC, paralayerC);
-
-    NonspikingLayer * analayerC = new NonspikingLayer("AnaLayer C", hc);
-    L2NormProbe * l2norm_analayerC = new L2NormProbe("AnaLayer C  :");
-    analayerC->insertProbe(l2norm_analayerC);
-    hcprobe->addTerm(l2norm_analayerC, analayerC);
-
-    float displayPeriod = hc->parameters()->value("Slideshow", "displayPeriod");
-    TrainingGenLayer * traininglayer = new TrainingGenLayer("IT", hc, "input/mnist/train/trainlabels.txt", displayPeriod, 3.0f);
-
-    // Connections
-    KernelConn * slideshow_retina = new KernelConn("Slideshow to Retina", hc, slideshow, retina, CHANNEL_EXC);
-    assert(slideshow_retina);
-    IdentConn * retina_anaretina = new IdentConn("Retina to AnaRetina", hc, retina, anaretina, CHANNEL_EXC);
-    assert(retina_anaretina);
-    GenerativeConn * anaretina_layerA = new GenerativeConn("AnaRetina to Layer A", hc, anaretina, layerA, CHANNEL_EXC);
-    assert(anaretina_layerA);
-    FeedbackConn * layerA_anaretinaFB = new FeedbackConn("Layer A to AnaRetina Feedback", hc, CHANNEL_INH, anaretina_layerA);
-    assert(layerA_anaretinaFB);
-    LateralConn * layerA_paralayerA = new LateralConn("Layer A to ParaLayer A", hc, layerA, paralayerA, CHANNEL_EXC);
-    assert(layerA_paralayerA);
-    FeedbackConn * paralayerA_layerAFB = new FeedbackConn("ParaLayer A to Layer A Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerA_layerAFB);
-    IdentConn * layerA_analayerA = new IdentConn("Layer A to AnaLayer A", hc, layerA, analayerA, CHANNEL_EXC);
-    assert(layerA_analayerA);
-    IdentConn * analayerA_layerAFB = new IdentConn("AnaLayer A to Layer A Feedback", hc, analayerA, layerA, CHANNEL_INH);
-    assert(analayerA_layerAFB);
-    GenerativeConn * analayerA_layerB = new GenerativeConn("AnaLayer A to Layer B", hc, analayerA, layerB, CHANNEL_EXC);
-    assert(analayerA_layerB);
-    FeedbackConn * layerB_analayerAFB = new FeedbackConn("Layer B to AnaLayer A Feedback", hc, CHANNEL_INH, analayerA_layerB);
-    assert(layerB_analayerAFB);
-    LateralConn * layerB_paralayerB = new LateralConn("Layer B to ParaLayer B", hc, layerB, paralayerB, CHANNEL_EXC);
-    assert(layerB_paralayerB);
-    FeedbackConn * paralayerB_layerBFB = new FeedbackConn("ParaLayer B to Layer B Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerB_layerBFB);
-    IdentConn * layerB_analayerB = new IdentConn("Layer B to AnaLayer B", hc, layerB, analayerB, CHANNEL_EXC);
-    assert(layerB_analayerB);
-    IdentConn * analayerB_layerBFB = new IdentConn("AnaLayer B to Layer B Feedback", hc, analayerB, layerB, CHANNEL_INH);
-    assert(analayerB_layerBFB);
-    GenerativeConn * analayerB_layerC = new GenerativeConn("AnaLayer B to Layer C", hc, analayerB, layerC, CHANNEL_EXC);
-    assert(analayerB_layerC);
-    FeedbackConn * traininglayer_analayerBFB = new FeedbackConn("Layer C to AnaLayer B Feedback", hc, CHANNEL_INH, analayerB_layerC);
-    assert(traininglayer_analayerBFB);
-
-    LateralConn * layerC_paralayerC = new LateralConn("Layer C to ParaLayer C", hc, layerC, paralayerC, CHANNEL_EXC);
-    assert(layerC_paralayerC);
-    FeedbackConn * paralayerC_layerCFB = new FeedbackConn("ParaLayer C to Layer C Feedback", hc, CHANNEL_INH, layerA_paralayerA);
-    assert(paralayerC_layerCFB);
-    IdentConn * layerC_analayerC = new IdentConn("Layer C to AnaLayer C", hc, layerC, analayerC, CHANNEL_EXC);
-    assert(layerC_analayerC);
-    IdentConn * analayerC_layerCFB = new IdentConn("AnaLayer C to Layer C Feedback", hc, analayerC, layerC, CHANNEL_INH);
-    assert(analayerC_layerCFB);
-    GenerativeConn * analayerC_traininglayer = new GenerativeConn("AnaLayer C to IT", hc, analayerC, traininglayer, CHANNEL_EXC);
-    assert(analayerC_traininglayer);
-    FeedbackConn * traininglayer_analayerCFB = new FeedbackConn("IT to AnaLayer C Feedback", hc, CHANNEL_INH, analayerC_traininglayer);
-    assert(traininglayer_analayerCFB);
-
-    return EXIT_SUCCESS;
-
 }
