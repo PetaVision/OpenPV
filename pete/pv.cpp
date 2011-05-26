@@ -395,7 +395,7 @@ TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
 
 Image * addImage( const char * name, HyPerCol * hc) {
     Image * addedLayer;
-    const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
+    const char * imagelabelspath = hc->parameters()->stringValue(name, "imagePath");
     if (imagelabelspath) {
         addedLayer = new Image(name, hc, imagelabelspath);
     }
