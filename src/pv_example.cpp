@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
    HyPerLayer * l1      = new LIF("L1", hc);
 
    // connect the layers
+   new PV::HyPerConn("Image to Retina", hc, image, retina, CHANNEL_EXC);
    new PV::HyPerConn("Retina to L1", hc, retina, l1, CHANNEL_EXC);
 
    // finish initialization now that everything is connected
