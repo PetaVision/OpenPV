@@ -3,6 +3,7 @@
 #include <float.h>
 #include "param_parser.hpp"
 %}
+%option nounput
 
 %%
 ([+]|[-])?(([0-9]+(\.[0-9]*)?)|([0-9]*\.[0-9]+)|([0-9](\.[0-9]*)?[Ee]([+]|[-])?[0-9]+)) {
