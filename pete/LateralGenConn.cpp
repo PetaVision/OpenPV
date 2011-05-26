@@ -1,35 +1,42 @@
 /*
- * LateralConn.cpp
+ * LateralGenConn.cpp
  *
  *  Created on: Nov 25, 2010
  *      Author: pschultz
  */
 
-#include "LateralConn.hpp"
+#include "LateralGenConn.hpp"
 
 namespace PV {
 
-LateralConn::LateralConn() {
+LateralGenConn::LateralGenConn() {
     initialize_base();
-}  // end of LateralConn::LateralConn()
+}  // end of LateralGenConn::LateralGenConn()
 
-LateralConn::LateralConn(const char * name, HyPerCol *hc,
+LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     initialize_base();
     initialize(name, hc, pre, post, channel);
-}  // end of LateralConn::LateralConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
+}  // end of LateralGenConn::LateralGenConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
-int LateralConn::initialize_base() {
-    // no LateralConn-specific data members to initialize.
+LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+        const char * filename) {
+    initialize_base();
+    initialize(name, hc, pre, post, channel, filename);
+}
+
+int LateralGenConn::initialize_base() {
+    // no LateralGenConn-specific data members to initialize.
     return EXIT_SUCCESS;
-}  // end of LateralConn::initialize_base()
+}  // end of LateralGenConn::initialize_base()
 
-int LateralConn::initialize(const char * name, HyPerCol * hc,
+int LateralGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     return initialize(name, hc, pre, post, channel, NULL);
 }
 
-int LateralConn::initialize(const char * name, HyPerCol * hc,
+int LateralGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
 
     const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -37,7 +44,7 @@ int LateralConn::initialize(const char * name, HyPerCol * hc,
     if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny ||
             preLoc->nf != postLoc->nf ) {
         fprintf( stderr,
-                 "LateralConn Error: %s and %s do not have the same dimensions\n",
+                 "LateralGenConn Error: %s and %s do not have the same dimensions\n",
                  pre->getName(),post->getName() );
         exit(1);
     }
@@ -54,9 +61,9 @@ int LateralConn::initialize(const char * name, HyPerCol * hc,
 	// This should be fixed.
 
     return EXIT_SUCCESS;
-}  // end of LateralConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
+}  // end of LateralGenConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
-int LateralConn::updateWeights(int axonID) {
+int LateralGenConn::updateWeights(int axonID) {
 	const PVLayerLoc * preLoc = pre->getLayerLoc();
 	int nxPre = preLoc->nx;
 	int nyPre = preLoc->ny;
@@ -100,9 +107,9 @@ int LateralConn::updateWeights(int axonID) {
         }
     }
     return EXIT_SUCCESS;
-}  // end of LateralConn::updateWeights(int)
+}  // end of LateralGenConn::updateWeights(int)
 
-PVPatch ** LateralConn::initializeWeights(PVPatch ** patches, int numPatches,
+PVPatch ** LateralGenConn::initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename) {
     // initialize to identity
 	if( nxp != nyp ) {
@@ -120,6 +127,6 @@ PVPatch ** LateralConn::initializeWeights(PVPatch ** patches, int numPatches,
         kp->data[idx] = 1;
     }
     return patches;
-}  // end of LateralConn::initializeWeights(PVPatch **, int)
+}  // end of LateralGenConn::initializeWeights(PVPatch **, int)
 
 }  // end of namespace PV block
