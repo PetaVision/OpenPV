@@ -1146,15 +1146,15 @@ int HyPerConn::createAxonalArbors()
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
-#ifndef FEATURES_LAST
+// #ifndef FEATURES_LAST
    const int psf = 1;
    const int psx = nfp;
    const int psy = psx * nxPost;
-#else
-   const int psx = 1;
-   const int psy = nxPost;
-   const int psf = psy * nyPost;
-#endif
+//#else
+//   const int psx = 1;
+//   const int psy = nxPost;
+//   const int psf = psy * nyPost;
+//#endif
 
    // activity and STDP M variable are extended into margins
    //
