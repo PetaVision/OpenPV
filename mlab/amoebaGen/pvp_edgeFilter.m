@@ -5,21 +5,25 @@ setenv('GNUTERM', 'x11');
 %%fh = figure;
 %%close(fh);
 
-image_dir = "~/Pictures/Textured_Dog_Cat_Spherical_T1/";
+image_dir = "~/Pictures/";
+image_type = "png";
 
 target_dir = ...
-    [image_dir, "Dog/"]; %%"AnimalDB/Targets/"];  %%
+    [image_dir, "Lena/"]; %%"AnimalDB/Targets/"];  %%
 target_subdir = ...
-    [ target_dir, 'original/' ];
+    [ target_dir, '' ];
 target_path = ...
-    [target_subdir, '*.jpg'];
+    [target_subdir, '*.', image_type];
 
-distractor_dir = ...
-    [image_dir, "Cat/"]; 
-distractor_subdir = ...
-    [ distractor_dir, 'original/' ];
-distractor_path = ...
-    [distractor_subdir, '*.jpg'];
+distractor_flag = 0;
+if distractor_flag
+  distractor_dir = ...
+      [image_dir, "Cat/"]; 
+  distractor_subdir = ...
+      [ distractor_dir, 'original/' ];
+  distractor_path = ...
+      [distractor_subdir, '*.', image_type];
+endif
 
 sigma_canny = 1.0;%0.5;%
 if sigma_canny == 1
@@ -37,12 +41,14 @@ if ~exist( 'canny_target_dir', 'dir')
   endif
 endif
 
-canny_distractor_dir = ...
-    [ distractor_dir, canny_name ];
-if ~exist( 'canny_distractor_dir', 'dir')
-  [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', canny_distractor_dir); 
-  if SUCCESS ~= 1
-    error(MESSAGEID, MESSAGE);
+if distractor_flag
+  canny_distractor_dir = ...
+      [ distractor_dir, canny_name ];
+  if ~exist( 'canny_distractor_dir', 'dir')
+    [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', canny_distractor_dir); 
+    if SUCCESS ~= 1
+      error(MESSAGEID, MESSAGE);
+    endif
   endif
 endif
 
@@ -62,15 +68,17 @@ if DoG_flag
     endif
   endif
   
-  DoG_distractor_dir = ...
-      [ distractor_dir, 'DoG/' ];
-  if ~exist( 'DoG_distractor_dir', 'dir')
-    [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', DoG_distractor_dir); 
-    if SUCCESS ~= 1
-      error(MESSAGEID, MESSAGE);
+  if distractor_flag
+    DoG_distractor_dir = ...
+	[ distractor_dir, 'DoG/' ];
+    if ~exist( 'DoG_distractor_dir', 'dir')
+      [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', DoG_distractor_dir); 
+      if SUCCESS ~= 1
+	error(MESSAGEID, MESSAGE);
+      endif
     endif
   endif
-  
+
 endif
 
 mask_flag = 0;
@@ -87,15 +95,17 @@ if mask_flag
     endif
   endif
   
-  mask_canny_distractor_dir = ...
-      [ distractor_dir, 'mask_canny/' ];
-  if ~exist( 'mask_canny_distractor_dir', 'dir')
-    [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', mask_canny_distractor_dir); 
-    if SUCCESS ~= 1
-      error(MESSAGEID, MESSAGE);
+  if distractor_flag
+    mask_canny_distractor_dir = ...
+	[ distractor_dir, 'mask_canny/' ];
+    if ~exist( 'mask_canny_distractor_dir', 'dir')
+      [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', mask_canny_distractor_dir); 
+      if SUCCESS ~= 1
+	error(MESSAGEID, MESSAGE);
+      endif
     endif
   endif
-  
+
   if DoG_flag
     
     mask_DoG_target_dir = ...
@@ -107,12 +117,14 @@ if mask_flag
       endif
     endif
     
-    mask_DoG_distractor_dir = ...
-	[ target_dir, 'mask_DoG/' ];
-    if ~exist( 'mask_DoG_distractor_dir', 'dir')
-      [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', mask_DoG_distractor_dir); 
-      if SUCCESS ~= 1
-	error(MESSAGEID, MESSAGE);
+    if distractor_flag
+      mask_DoG_distractor_dir = ...
+	  [ target_dir, 'mask_DoG/' ];
+      if ~exist( 'mask_DoG_distractor_dir', 'dir')
+	[SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', mask_DoG_distractor_dir); 
+	if SUCCESS ~= 1
+	  error(MESSAGEID, MESSAGE);
+	endif
       endif
     endif
     
@@ -120,7 +132,6 @@ if mask_flag
   
 endif
 
-distractor_flag = 1;
 image_struct = cell(2,1);
 num_images = zeros(2,1);
 for target_flag = 1 : distractor_flag + 1
@@ -135,7 +146,7 @@ for target_flag = 1 : distractor_flag + 1
   disp(['num_images = ', num2str(num_images(target_flag))]);
   for i_image = 1 : num_images(target_flag)
     image_name = image_struct{target_flag}(i_image).name;
-    base_name = image_name(1:strfind(image_name, '.jpg')-1);
+    base_name = image_name(1:strfind(image_name, [".", image_type])-1);
     image_name = [image_subdir, image_name];
     %%    [image_color, image_map, image_alpha] = ...
     image_color = ...
@@ -153,9 +164,9 @@ for target_flag = 1 : distractor_flag + 1
       canny_filename = ...
 	  [canny_target_dir, base_name];
     else
-       canny_filename = ...
+      canny_filename = ...
 	  [canny_distractor_dir, base_name];
-   endif
+    endif
     savefile2(canny_filename, image_canny);
 
     if DoG_flag == 1
@@ -165,10 +176,10 @@ for target_flag = 1 : distractor_flag + 1
 	      sigma_center, ...
 	      amp_surround, ...
 	      sigma_surround);
-    image_DoG = ...
-	extended_image_DoG(image_margin+1:end-image_margin, ...
+      image_DoG = ...
+	  extended_image_DoG(image_margin+1:end-image_margin, ...
 			     image_margin+1:end-image_margin);
-    %%[image_DoG] = grayBorder(image_DoG, DoG_margin_width, DoG_gray_val);
+      %%[image_DoG] = grayBorder(image_DoG, DoG_margin_width, DoG_gray_val);
       if target_flag == 1
 	DoG_filename = ...
 	    [DoG_target_dir, base_name];
@@ -189,14 +200,15 @@ for target_flag = 1 : distractor_flag + 1
       else
 	i_image_rand = ceil(rand()*num_images(1));
 	mask_image_name = image_struct{1}(i_image_rand).name;
-	mask_base_name = mask_image_name(1:strfind(mask_image_name, '.jpg')-1);
+	mask_base_name = mask_image_name(1:strfind(mask_image_name, ...
+						   ['.', image_type])-1);
 	mask_canny_image_dir = mask_canny_distractor_dir;
 	if DoG_flag
 	  mask_DoG_image_dir = mask_DoG_distractor_dir;
 	endif
       endif
       mask_base_name = [mask_base_name, "_mask"];
-      mask_image_name = [mask_dir, mask_base_name, ".jpg"];    
+      mask_image_name = [mask_dir, mask_base_name, ".", image_type];    
       if exist( mask_image_name, "file")
 	mask_image_color = ...
 	    imread(mask_image_name);
