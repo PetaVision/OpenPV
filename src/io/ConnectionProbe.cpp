@@ -6,6 +6,7 @@
  */
 
 #include "ConnectionProbe.hpp"
+#include "../connections/STDPConn.hpp"
 #include <assert.h>
 
 namespace PV {
@@ -108,9 +109,10 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    int kPost = arbor->offset;
 
    if (stdpVars) {
+      STDPConn * stdp_conn = dynamic_cast<STDPConn *>(c);
 
-      if (c->getPlasticityDecrement() != NULL) {
-         M = &(c->getPlasticityDecrement()->data[kPost]); // STDP decrement variable
+      if (stdp_conn->getPlasticityDecrement() != NULL) {
+         M = &(stdp_conn->getPlasticityDecrement()->data[kPost]); // STDP decrement variable
       }
 
       if (P != NULL && M != NULL) {
