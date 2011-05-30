@@ -22,8 +22,25 @@ public:
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
 
+   virtual PVPatch     * getPlasticityIncrement(int k, int arbor);
+   inline  PVLayerCube * getPlasticityDecrement()     {return pDecr;}
 
+protected:
 
+   int initialize();
+
+   PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
+   PVPatch       ** pIncr;      // list of stdp patches Psij variable
+
+   bool     localWmaxFlag;  // presence of rate dependent wMax;
+   pvdata_t * Wmax;   // adaptive upper STDP weight boundary
+
+   // STDP parameters for modifying weights
+   float ampLTP; // long term potentiation amplitude
+   float ampLTD; // long term depression amplitude
+   float tauLTP;
+   float tauLTD;
+   float dWMax;
 };
 
 }
