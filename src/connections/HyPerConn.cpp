@@ -37,7 +37,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel);
+   initialize(name, hc, pre, post, channel, NULL);
 }
 
 // provide filename or set to NULL
@@ -67,7 +67,7 @@ HyPerConn::~HyPerConn()
    // free the task information
 
    for (int l = 0; l < numAxonalArborLists; l++) {
-      if( axonalArborList[l] ) {
+      if ( axonalArborList[l] ) {
          free(axonalArbor(0, l)->data);
          // axonalArbor(0,l) frees all data patches for arbor l because all
          // axonalArbor patches for that l were created in a single calloc().
@@ -101,6 +101,7 @@ int HyPerConn::initialize_base()
 
    this->update_timer = new Timer();
 
+#ifdef OBSOLETE_STDP
    // STDP parameters for modifying weights
    this->pIncr = NULL;
    this->pDecr = NULL;
@@ -110,9 +111,10 @@ int HyPerConn::initialize_base()
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax = 0.1;
+   this->localWmaxFlag = false;
+#endif
    this->wMin = 0.0;
    this->wMax = 1.0;
-   this->localWmaxFlag = false;
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
 
@@ -149,7 +151,9 @@ int HyPerConn::initialize(const char * filename)
 
    wPatches[arbor] = createWeights(wPatches[arbor]);
 
+#ifdef OBSOLETE_STDP
    initializeSTDP();
+#endif
 
    // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
    //  weight patches may shrink
@@ -161,12 +165,14 @@ int HyPerConn::initialize(const char * filename)
    assert(wPatches[arbor] != NULL);
 
    writeTime = parent->simulationTime();
+   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
 
    parent->addConnection(this);
 
    return status;
 }
-//
+
+#ifdef OBSOLETE_STDP
 /*
  * Using a dynamic_cast operator to convert (downcast) a pointer to a base class (HyPerLayer)
  * to a pointer to a derived class (LIF). This way I do not need to define a virtual
@@ -199,6 +205,7 @@ int HyPerConn::initializeSTDP()
    }
    return 0;
 }
+#endif
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
@@ -215,11 +222,13 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    return initialize(filename);
 }
 
+#ifdef OBSOLETE
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel)
 {
    return initialize(name, hc, pre, post, channel, NULL);
 }
+#endif
 
 // set member variables specified by user
 int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
@@ -233,9 +242,6 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    numParams = sizeof(*p) / sizeof(float);
    assert(numParams == 9); // catch changes in structure
 
-   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
-   float default_writeStep =  stdpFlag ? 1.0 : -1.0; // 2.0f * ( (float) stdpFlag - 0.5 );
-   writeStep = filep->value(name, "writeStep", default_writeStep);
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
 
@@ -254,22 +260,27 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    //
    // now set params that are not in the params struct (instance variables)
 
+#ifdef OBSOLETE_STDP
+   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
    if (stdpFlag) {
       ampLTP = filep->value(name, "ampLTP", ampLTP);
       ampLTD = filep->value(name, "ampLTD", ampLTD);
       tauLTP = filep->value(name, "tauLTP", tauLTP);
       tauLTD = filep->value(name, "tauLTD", tauLTD);
+#endif
 
       wMax = filep->value(name, "strength", wMax);
       // let wMax override strength if user provides it
       wMax = filep->value(name, "wMax", wMax);
       wMin = filep->value(name, "wMin", wMin);
 
+#ifdef OBSOLETE_STDP
       dWMax = filep->value(name, "dWMax", dWMax);
 
       // set params for rate dependent Wmax
       localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
    }
+#endif
 
    return 0;
 }
@@ -300,21 +311,10 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       }
    }
 
-   int randomFlag = 0.0f;
-   if (inputParams->present(getName(), "randomFlag")){
-      randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
-   }
+   int randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
 
-   // int randomSeed = (int) inputParams->value(getName(), "randomSeed", 0.0f);
-   // randomSeed now belongs to the HyPerCol
-   int smartWeights = 0.0f;
-   if (inputParams->present(getName(), "smartWeights")){
-      smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
-   }
-   int cocircWeights = 0.0f;
-   if (inputParams->present(getName(), "cocircWeights")){
-      cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
-   }
+   int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
+   int cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
 
    if (randomFlag != 0) { // if (randomFlag != 0 || randomSeed != 0) {
        initializeRandomWeights(patches, numPatches);
@@ -394,21 +394,17 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 {
    PVParams * inputParams = parent->parameters();
 
-   float uniform_weights = 1.0;
-   float gaussian_weights = 0.0;
-   if( inputParams->present(getName(), "uniformWeights") )
-      uniform_weights = inputParams->value(getName(), "uniformWeights");
-   if( inputParams->present(getName(), "gaussianWeights") )
-      gaussian_weights = inputParams->value(getName(), "gaussianWeights");
+   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f);
+   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f);
 
-   if( uniform_weights && gaussian_weights ){
-      fprintf(stderr,"multiple random weights distributions defined.  Exiting\n");
-      exit(EXIT_FAILURE);
+   if (uniform_weights && gaussian_weights) {
+      fprintf(stderr,"multiple random weights distributions defined:  Exiting\n");
+      exit(PV_FAILURE);
    }
 
    if( !(uniform_weights || gaussian_weights) ) {
       fprintf(stderr,"When randomFlag is set, either uniformWeights or gaussianWeights must be specified.  Exiting\n");
-      exit(EXIT_FAILURE);
+      exit(PV_FAILURE);
    }
 
    if(uniform_weights) {
@@ -416,11 +412,8 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    }
 
    if (uniform_weights) {
-      float wMin = stdpFlag ? inputParams->value(getName(), "wMin", 0.0f) : this->wMin;
-      float wMax = stdpFlag ? inputParams->value(getName(), "wMax", 10.0f) : this->wMax;
-
-      float wMinInit = inputParams->value(getName(), "wMinInit", wMin);
-      float wMaxInit = inputParams->value(getName(), "wMaxInit", wMax);
+      float wMinInit = inputParams->value(getName(), "wMinInit", (float) wMin);
+      float wMaxInit = inputParams->value(getName(), "wMaxInit", (float) wMax);
 
       for (int k = 0; k < numPatches; k++) {
          uniformWeights(patches[k], wMinInit, wMaxInit);
@@ -479,7 +472,7 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
    float thetaMax = 1.0;  // max orientation in units of PI
    int numFlanks = 1;
    float shift = 0.0f;
-   float rotate = 0.0f;
+   float rotate = 0.0f;   // rotate so that axis isn't aligned
    float bowtieFlag = 0.0f;  // flag for setting bowtie angle
    float bowtieAngle = PI * 2.0f;  // bowtie angle
 
@@ -491,16 +484,16 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
       noPost = (int) params->value(post->getName(), "no", nfp);
       deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
       thetaMax = params->value(name, "thetaMax", thetaMax);
-      numFlanks = (int) params->value(name, "numFlanks", 1.0f);
-      shift = params->value(name, "flankShift", 0.0f);
-      rotate = params->value(name, "rotate", 0.0f); // rotate so that axis isn't aligned
+      numFlanks = (int) params->value(name, "numFlanks", (float) numFlanks);
+      shift = params->value(name, "flankShift", shift);
+      rotate = params->value(name, "rotate", rotate);
       bowtieFlag = params->value(name, "bowtieFlag", bowtieFlag);
       if (bowtieFlag == 1.0f) {
          bowtieAngle = params->value(name, "bowtieAngle", bowtieAngle);
       }
    }
-   float r2Max = rMax * rMax;
 
+   float r2Max = rMax * rMax;
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
@@ -605,7 +598,9 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    const float minVal = minWeight();
    float maxVal = 0.0;
-   if(localWmaxFlag){
+
+#ifdef OBSOLETE_STDP
+   if (localWmaxFlag) {
       const int numExtended = post->getNumExtended();
       for(int kPost = 0;kPost < numExtended; kPost++){
          if(Wmax[kPost] > maxVal){
@@ -615,6 +610,9 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
    } else {
       maxVal = maxWeight();
    }
+#else
+   maxVal = maxWeight();
+#endif
 
    const PVLayerLoc * loc = pre->getLayerLoc();
 
@@ -688,9 +686,12 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    fprintf(fd, "   post (nx,ny,nf) = (%i,%i,%i)\n",
            post->getLayerLoc()->nx, post->getLayerLoc()->ny, post->getLayerLoc()->nf);
    fprintf(fd, "\n");
+#ifdef OBSOLETE_STDP
    if (stdpFlag) {
       pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
    }
+#endif
+
    int arbor = 0;
    pv_text_write_patch(fd, wPatches[arbor][k]);
    fprintf(fd, "----------------------------\n");
@@ -747,11 +748,13 @@ int HyPerConn::outputState(float time, bool last)
       status = writeWeights(time, last);
       assert(status == 0);
 
+#ifdef OBSOLETE_STDP
       if (stdpFlag) {
          convertPreSynapticWeights(time);
          status = writePostSynapticWeights(time, last);
          assert(status == 0);
       }
+#endif
 
    }
    else if ( (time >= writeTime) && (writeStep >= 0) ) {
@@ -760,11 +763,13 @@ int HyPerConn::outputState(float time, bool last)
       status = writeWeights(time, last);
       assert(status == 0);
 
-      if( stdpFlag ) {
+#ifdef OBSOLETE_STDP
+      if ( stdpFlag ) {
          convertPreSynapticWeights(time);
          status = writePostSynapticWeights(time, last);
          assert(status == 0);
       }
+#endif
 
       // append to output file after original open
       ioAppend = true;
@@ -883,6 +888,7 @@ void STDP_update_state_pre(
 
 int HyPerConn::updateState(float time, float dt)
 {
+#ifdef OBSOLETE_STDP
    update_timer->start();
 
    if (stdpFlag) {
@@ -905,6 +911,7 @@ int HyPerConn::updateState(float time, float dt)
       updateWeights(axonId);
    }
    update_timer->stop();
+#endif
 
    return 0;
 }
@@ -914,6 +921,7 @@ int HyPerConn::updateState(float time, float dt)
  */
 int HyPerConn::updateWeights(int axonId)
 {
+#ifdef OBSOLETE_STDP
    // Steps:
    // 1. Update pDecr (assume already done as it should only be done once)
    // 2. update Psij (pIncr) for each synapse
@@ -994,6 +1002,7 @@ int HyPerConn::updateWeights(int axonId)
 
       }
    }
+#endif
 
    return 0;
 }
@@ -1020,6 +1029,7 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
+#ifdef OBSOLETE_STDP
 PVPatch * HyPerConn::getPlasticityIncrement(int k, int arbor)
 {
    // a separate arbor/patch of plasticity for every neuron
@@ -1028,6 +1038,7 @@ PVPatch * HyPerConn::getPlasticityIncrement(int k, int arbor)
    }
    return NULL;
 }
+#endif
 
 PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
@@ -1085,6 +1096,7 @@ int HyPerConn::deleteWeights()
       free(wPostPatches);
    }
 
+#ifdef OBSOLETE_STDP
    if (stdpFlag) {
       const int arbor = 0;
       int numPatches = numWeightPatches(arbor);
@@ -1094,6 +1106,7 @@ int HyPerConn::deleteWeights()
       free(pIncr);
       pvcube_delete(pDecr);
    }
+#endif
 
    return 0;
 }
@@ -1243,7 +1256,9 @@ int HyPerConn::createAxonalArbors()
 
          arbor->data = &dataPatches[kex];
          arbor->weights = this->getWeights(kex, n);
+#ifdef OBSOLETE_STDP
          arbor->plasticIncr = this->getPlasticityIncrement(kex, n);
+#endif
 
          // initialize the receiving (of spiking data) phi variable
          pvdata_t * phi = post->getChannel(channel) + kl;
@@ -1263,6 +1278,8 @@ int HyPerConn::createAxonalArbors()
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
 
          pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
+
+#ifdef OBSOLETE_STDP
          if (stdpFlag) {
             //
             // This code seems to be adding the offset twice (modulo that
@@ -1273,6 +1290,7 @@ int HyPerConn::createAxonalArbors()
             //                 (size_t)dy * (size_t)arbor->weights->sy;
             pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
          }
+#endif
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
@@ -1580,7 +1598,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    const float minVal = minWeight();
    float maxVal = 0.0;
 
-   if(localWmaxFlag){
+#ifdef OBSOLETE_STDP
+   if (localWmaxFlag){
       const int numExtended = lPost->numExtended;
 
       for(int kPost = 0; kPost < numExtended; kPost++){
@@ -1591,6 +1610,9 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    } else {
       maxVal = maxWeight();
    }
+#else
+   maxVal = maxWeight();
+#endif
 
    const int numPostPatches = lPost->numNeurons;
 
@@ -2271,18 +2293,9 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    PVParams * params = parent->parameters();
    float strength = params->value(name, "strength", 1.0f);
-   float normalize_max = 0.0f;
-   float normalize_zero_offset = 0.0f;
-   float normalize_cutoff = 0.0f;
-   if (params->present(getName(),"normalize_max")){
-      normalize_max = params->value(name, "normalize_max", 0.0f);
-   }
-   if (params->present(getName(),"normalize_zero_offset")){
-      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
-   }
-   if (params->present(getName(),"normalize_cutoff")){
-      normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
-   }
+   float normalize_max = params->value(name, "normalize_max", 0.0f);
+   float normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+   float normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
 
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
