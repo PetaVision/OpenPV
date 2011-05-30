@@ -30,9 +30,9 @@ int SigmoidLayer::initialize(LIF * originalLayer)
    clayer->V = sourceLayer->getV();
    if (numChannels > 0) {
       // potentials allocated contiguously so this frees all
-      free(phi[0]);
+      free(GSyn[0]);
    }
-   phi[0] = NULL;
+   GSyn[0] = NULL;
    numChannels = 0;
    return status_init;
 }

@@ -59,7 +59,7 @@ HyPerLayer::~HyPerLayer()
 
    if (numChannels > 0) {
       // potentials allocated contiguously so this frees all
-      free(phi[0]);
+      free(GSyn[0]);
    }
 
    if (labels != NULL) free(labels);
@@ -156,14 +156,14 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
    clayer->layerType = TypeGeneric;
 
    for (int m = 1; m < MAX_CHANNELS; m++) {
-      phi[m] = NULL;
+      GSyn[m] = NULL;
    }
    if (numChannels > 0) {
-      phi[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
-      assert(phi[0] != NULL);
+      GSyn[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
+      assert(GSyn[0] != NULL);
 
       for (int m = 1; m < numChannels; m++) {
-         phi[m] = phi[0] + m * getNumNeurons();
+         GSyn[m] = GSyn[0] + m * getNumNeurons();
       }
    }
 
@@ -491,10 +491,10 @@ int HyPerLayer::updateBorder(float time, float dt)
 
 int HyPerLayer::updateV() {
    pvdata_t * V = getV();
-   pvdata_t * phiExc = getChannel(CHANNEL_EXC);
-   pvdata_t * phiInh = getChannel(CHANNEL_INH);
+   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
+   pvdata_t * GSynInh = getChannel(CHANNEL_INH);
    for( int k=0; k<getNumNeurons(); k++ ) {
-      V[k] = phiExc[k] - phiInh[k];
+      V[k] = GSynExc[k] - GSynInh[k];
 // functionality of MAX and THRESH moved to ANNLayer
 //#undef SET_MAX
 //#ifdef SET_MAX
@@ -576,20 +576,20 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
       PVAxonalArbor * arbor = conn->axonalArbor(kPre, neighbor);
-      PVPatch * phi = arbor->data;
+      PVPatch * GSyn = arbor->data;
       PVPatch * weights = arbor->weights;
 
-      // WARNING - assumes weight and phi patches from task same size
+      // WARNING - assumes weight and GSyn patches from task same size
       //         - assumes patch stride sf is 1
 
-      int nk  = phi->nf * phi->nx;
-      int ny  = phi->ny;
-      int sy  = phi->sy;        // stride in layer
+      int nk  = GSyn->nf * GSyn->nx;
+      int ny  = GSyn->ny;
+      int sy  = GSyn->sy;        // stride in layer
       int syw = weights->sy;    // stride in patch
 
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
-         pvpatch_accumulate(nk, phi->data + y*sy, a, weights->data + y*syw);
+         pvpatch_accumulate(nk, GSyn->data + y*sy, a, weights->data + y*syw);
 //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }
