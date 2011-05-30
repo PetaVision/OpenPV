@@ -193,9 +193,8 @@ int GeislerConn::updateWeights(int axonID)
    aPreThresh = 0.0f;
 #endif
 
-   const pvdata_t * postLayerData = post->getLayerData();
-
 #ifdef TRAINING_G1_TRIALS
+   const pvdata_t * postLayerData = post->getLayerData();
    pvdata_t aPostMax = -FLT_MAX;
    int num_post = post->clayer->numNeurons;
    for (int kPost = 0; kPost < num_post; kPost++) {
