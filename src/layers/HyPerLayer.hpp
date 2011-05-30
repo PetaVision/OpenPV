@@ -122,7 +122,7 @@ public:
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
    pvdata_t * getChannel(ChannelType ch) {                         // name query
-      return ch < this->numChannels ? phi[ch] : NULL;
+      return ch < this->numChannels ? GSyn[ch] : NULL;
    }
    int getXScale()                   {return clayer->xScale;}
    int getYScale()                   {return clayer->yScale;}
@@ -147,7 +147,7 @@ protected:
    char * name;                 // well known name of layer
 
    int numChannels;             // number of channels
-   pvdata_t * phi[MAX_CHANNELS];
+   pvdata_t * GSyn[MAX_CHANNELS];
 
    int numProbes;
    LayerProbe ** probes;
