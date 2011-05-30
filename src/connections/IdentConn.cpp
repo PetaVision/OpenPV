@@ -16,7 +16,7 @@ IdentConn::IdentConn() {
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
     initialize_base();
-    initialize(name, hc, pre, post, channel);
+    initialize(name, hc, pre, post, channel, NULL);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
