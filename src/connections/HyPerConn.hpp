@@ -70,9 +70,11 @@ public:
                                   const char * filename);
 
    virtual PVPatch * getWeights(int kPre, int arbor);
+#ifdef OBSOLETE_STDP
    virtual PVPatch * getPlasticityIncrement(int k, int arbor);
 
    inline PVLayerCube * getPlasticityDecrement()     {return pDecr;}
+#endif
 
    inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
 
@@ -126,14 +128,18 @@ protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
    HyPerCol       * parent;
+#ifdef OBSOLETE_STDP
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
    PVPatch       ** pIncr;      // list of stdp patches Psij variable
+#endif
    PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
    PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
    PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 
+#ifdef OBSOLETE_STDP
    bool     localWmaxFlag;  // presence of rate dependent wMax;
    pvdata_t * Wmax;   // adaptive upper STDP weight boundary
+#endif
 
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    int connId;             // connection id
@@ -146,19 +152,23 @@ protected:
 
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
+#ifdef OBSOLETE_STDP
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude
    float ampLTD; // long term depression amplitude
    float tauLTP;
    float tauLTD;
    float dWMax;
+#endif
    float wMax;
    float wMin;
 
    int numProbes;
    ConnectionProbe ** probes; // probes used to output data
 
+#ifdef OBSOLETE_STDP
    bool stdpFlag;               // presence of spike timing dependent plasticity
+#endif
    bool ioAppend;               // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
    float writeTime;             // time of next output
@@ -173,11 +183,15 @@ protected:
 
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
+#ifdef OBSOLETE
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+#endif
    int initialize_base();
    int initialize(const char * filename);
+#ifdef OBSOLETE_STDP
    int initializeSTDP();
+#endif
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
    // PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
