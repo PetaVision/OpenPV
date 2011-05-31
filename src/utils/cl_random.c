@@ -34,7 +34,6 @@
 #include <assert.h>
 
 static inline unsigned int taus_get (void *vstate);
-static double taus_get_float (void *vstate);
 static void taus_set (void *state, unsigned int s);
 
 typedef struct
@@ -49,17 +48,20 @@ uint4 cl_random_get(uint4 state)
    return state;
 }
 
-uint4 * cl_random_init(size_t count)
+uint4 * cl_random_init(size_t count, unsigned int seed)
 {
    int i;
 
    uint4 * state = (uint4 *) malloc(count * sizeof(uint4));
    assert(state != NULL);
 
+   // a zero seed can cause problems (see taus_set)
+   seed = (seed == 0) ? 1 : seed;
+
    // initialize state array using a separate seed for each element
    //
    for (i = 0; i < count; i++) {
-      taus_set(&state[i].s1, i+1);
+      taus_set(&state[i].s1, i+seed);
       state[i].s0 = (state[i].s1 ^ state[i].s2 ^ state[i].s3);
    }
 
@@ -71,8 +73,9 @@ taus_set (void * vstate, unsigned int s)
 {
    taus_state_t *state = (taus_state_t *) vstate;
 
-  if (s == 0)
+  if (s == 0) {
     s = 1;      /* default seed is 1 */
+  }
 
 // original for unsigned long int
 //#define LCG(n) ((69069 * n) & 0xffffffffUL)
