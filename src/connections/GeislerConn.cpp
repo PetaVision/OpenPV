@@ -180,36 +180,8 @@ int GeislerConn::updateWeights(int axonID)
 
    const pvdata_t * preLayerData = pre->getLayerData();
 
-   //TODO! following method is not MPI compatible (gives different answers depending on partition)
-#undef TRAINING_G1_TRIALS
-#ifdef TRAINING_G1_TRIALS
-
-  pvdata_t aPreMax = -FLT_MAX;
-   for (int kPre = 0; kPre < num_pre_extended; kPre++) {
-      aPreMax = (aPreMax > preLayerData[kPre]) ? aPreMax : preLayerData[kPre];
-   }
-   aPreThresh = aPreMax / 2.0f;
-#else
    aPreThresh = 0.0f;
-#endif
-
-#ifdef TRAINING_G1_TRIALS
-   const pvdata_t * postLayerData = post->getLayerData();
-   pvdata_t aPostMax = -FLT_MAX;
-   int num_post = post->clayer->numNeurons;
-   for (int kPost = 0; kPost < num_post; kPost++) {
-      int kPostEx = kIndexExtended(kPost,
-                               post->clayer->loc.nx,
-                               post->clayer->loc.ny,
-                               post->clayer->loc.nBands,
-                               post->clayer->loc.nPad);
-      aPostMax = (aPostMax > postLayerData[kPostEx]) ? aPostMax : postLayerData[kPostEx];
-   }
-   aPostThresh = aPostMax / 2.0f;
-#else
    aPostThresh = 0.0;
-#endif
-
    int nKernels = numDataPatches(axonID);
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
