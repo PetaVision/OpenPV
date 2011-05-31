@@ -44,7 +44,7 @@ HyPerCol * build(int argc, char * argv[]) {
    LayerProbe * addedLayerProbe;
    ConnectionProbe * addedConnectionProbe;
 
-   const char * allowedkeywordarray[] = {
+   const char * allowedkeywordarray[] = { // indentation indicates derived class hierarchy
            "_Start_HyPerCols_",
              "HyPerCol",
            "_Stop_HyPerCols_",
@@ -57,15 +57,17 @@ HyPerCol * build(int argc, char * argv[]) {
                  "PoolingANNLayer",
                  "PtwiseProductLayer",
                  "TrainingLayer",
+               "GapLayer",
                "HMaxSimple",
                "Image",
                  "CreateMovies",
                  "ImageCreator",
                  "Movie",
                  "Patterns",
-             "LGN",
-             "LIF",
-             "Retina",
+               "LGN",
+               "LIF",
+               "Retina",
+               "SigmoidLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -80,7 +82,6 @@ HyPerCol * build(int argc, char * argv[]) {
                  "PeriodicUpdateConn",
                    "GenerativeConn",
                      "PoolingGenConn",
-                   "KernelLinCombConn",
                    "TransposeConn",
                      "FeedbackConn",
                "PoolConn",
@@ -102,7 +103,7 @@ HyPerCol * build(int argc, char * argv[]) {
            "_Start_ConnectionProbes_",
              "ConnectionProbe",
            "_Stop_ConnectionProbes_",
-           "_End_allowedkeywordarray" // Don't delete this; with this line you can add or remove keywords without having to keep track of the total number of keywords.
+           "_End_allowedkeywordarray" // Don't delete this; it provides a for-loop test that doesn't require you to keep track of the total number of keywords.
    };
    int first_hypercol_index = -1;
    int last_hypercol_index = -1;
@@ -311,6 +312,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
         addedLayer = (HyPerLayer *) new LIF(name, hc);
         checknewobject((void *) addedLayer, classkeyword, name);
     }
+    if( !strcmp(classkeyword, "GapLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) addGapLayer(name, hc);
+        checknewobject((void *) addedLayer, classkeyword, name);
+    }
     if( !strcmp(classkeyword, "Retina") ) {
         keywordMatched = true;
         addedLayer = (HyPerLayer *) new Retina(name, hc);
@@ -335,6 +341,24 @@ TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
     return addedLayer;
 }
 
+GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
+    HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+    if( originalLayer == NULL ) {
+       fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
+       return NULL;
+    }
+    LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+    GapLayer * addedLayer;
+    if (originalLIFLayer) {
+        addedLayer = new GapLayer(name, hc, originalLIFLayer);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIF layer\n", name, originalLayer->getName());
+        addedLayer = NULL;
+    }
+    return addedLayer;
+}
+
 Image * addImage( const char * name, HyPerCol * hc) {
     Image * addedLayer;
     const char * imagelabelspath = hc->parameters()->stringValue(name, "imagePath");
@@ -342,7 +366,7 @@ Image * addImage( const char * name, HyPerCol * hc) {
         addedLayer = new Image(name, hc, imagelabelspath);
     }
     else {
-        fprintf(stderr, "Group \"%s\": Parameter group for class Image must set string parameter imageListPath\n", name);
+        fprintf(stderr, "Group \"%s\": Parameter group for class Image must set string parameter imagePath\n", name);
         addedLayer = NULL;
     }
     return addedLayer;
@@ -389,6 +413,24 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
         fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, patternTypeStr);
         return NULL;
     }
+}
+
+SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
+    HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+    if( originalLayer == NULL ) {
+       fprintf(stderr, "Group \"%s\": Parameter group for class SigmoidLayer must set string parameter originalLayerName\n", name);
+       return NULL;
+    }
+    LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+    SigmoidLayer * addedLayer;
+    if (originalLIFLayer) {
+        addedLayer = new SigmoidLayer(name, hc, originalLIFLayer);
+    }
+    else {
+        fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
+        addedLayer = NULL;
+    }
+    return addedLayer;
 }
 
 
@@ -482,6 +524,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
         }
         checknewobject((void *) addedConn, classkeyword, name);
     }
+    if( !keywordMatched && !strcmp(classkeyword, "PeriodicUpdateConn") ) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        if( preLayer && postLayer ) {
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = new PeriodicUpdateConn(name, hc, preLayer, postLayer, channelType, fileName);
+        }
+        checknewobject((void *) addedConn, classkeyword, name);
+    }
     if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
         keywordMatched = true;
         getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -495,7 +546,8 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
         keywordMatched = true;
         getPreAndPostLayers(name, hc, &preLayer, &postLayer);
         if( preLayer && postLayer ) {
-        	addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType );
+            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+            addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName );
         }
         checknewobject((void *) addedConn, classkeyword, name);
     }
@@ -547,17 +599,17 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
     return addedConn;
 }
 
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
     PoolingGenConn * addedConn;
     HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
     HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
     if( secondaryPreLayer && secondaryPostLayer ) {
-        addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel);
+        addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename);
     }
     else {
         addedConn = NULL;
     }
-    return NULL;
+    return addedConn;
 }
 
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterStringName, bool warnIfNotPresent) {

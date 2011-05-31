@@ -25,6 +25,7 @@
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"
+#include "../layers/GapLayer.hpp"
 #include "../layers/HMaxSimple.hpp"
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
@@ -34,6 +35,7 @@
 #include "../layers/LGN.hpp"
 #include "../layers/LIF.hpp"
 #include "../layers/Retina.hpp"
+#include "../layers/SigmoidLayer.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #include "../connections/AvgConn.hpp"
@@ -69,11 +71,13 @@ HyPerCol * build(int argc, char * argv[]);
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
+GapLayer * addGapLayer(const char * name, HyPerCol * hc);
 Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
+SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
