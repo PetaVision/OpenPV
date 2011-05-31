@@ -29,14 +29,15 @@ class ConnectionProbe;
  */
 typedef struct {
    int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
-   int fixDelay; // fixed output delay. TODO: should be float
-   int varDelayMin; // minimum variable conduction delay
-   int varDelayMax; // maximum variable conduction delay
-   int numDelay;
-   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
-   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
-   float rmin; // minimum connection distance
-   float rmax; // maximum connection distance
+// Commenting out unused parameters.  Is PVConnParams still necessary?
+//   int fixDelay; // fixed output delay. TODO: should be float
+//   int varDelayMin; // minimum variable conduction delay
+//   int varDelayMax; // maximum variable conduction delay
+//   int numDelay;
+//   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
+//   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
+//   float rmin; // minimum connection distance
+//   float rmax; // maximum connection distance
 } PVConnParams;
 
 class HyPerConn {

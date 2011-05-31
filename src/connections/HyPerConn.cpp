@@ -24,8 +24,10 @@ namespace PV {
 
 PVConnParams defaultConnParams =
 {
-   /*delay*/ 0, /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
-   /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
+   /*delay*/ 0
+   // Commenting out the same parameters that are commented out in setParams()
+   // , /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
+   // /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
 };
 
 HyPerConn::HyPerConn()
@@ -240,7 +242,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    memcpy(params, p, sizeof(*p));
 
    numParams = sizeof(*p) / sizeof(float);
-   assert(numParams == 9); // catch changes in structure
+   assert(numParams == 1); // catch changes in structure
 
    params->delay    = (int) filep->value(name, "delay", params->delay);
    //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
@@ -431,8 +433,9 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
          }
       }
    else{
-      fprintf(stderr,"no random weights distribution was defined: exit\n");
-      exit(-1);
+      // fprintf(stderr,"no random weights distribution was defined: exit\n");
+      // exit(-1);
+      assert(0); // Because of the checking done before this if-statement, it should be impossible to reach here.
    }
    return patches;
 }
