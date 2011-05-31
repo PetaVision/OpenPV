@@ -207,8 +207,11 @@ int LIF::initialize(PVLayerType type)
       G_IB = G_E + 2*numNeurons;
    }
 
+   // random seed should be different for different layers
+   unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
+
    // a random state variable is needed for every neuron/clthread
-   rand_state = cl_random_init(numNeurons);
+   rand_state = cl_random_init(numNeurons, seed);
 
    // initialize layer data
    //
