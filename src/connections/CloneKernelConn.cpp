@@ -53,40 +53,35 @@ int CloneKernelConn::setPatchSize(const char * filename) {
    return status;
 }
 
-PVPatch ** CloneKernelConn::createWeights(PVPatch ** patches,
-      int nPatches, int nxPatch, int nyPatch, int nfPatch) {
-   assert(numAxonalArborLists == 1);
-   assert(patches == NULL);
-   assert(nPatches == originalConn->numWeightPatches(0));
-   kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
-   if(kernelPatches == NULL) {
-      fprintf(stderr, "Group \"%s\": Unable to allocate memory for kernelPatches.\n", name);
-      exit(EXIT_FAILURE);
-   }
-   for(int k=0; k<nPatches; k++) {
-      kernelPatches[k] = originalConn->getKernelPatch(k);
-   }
-   return kernelPatches;
-}
+PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
+      int nxPatch, int nyPatch, int nfPatch) {
 
-PVPatch ** CloneKernelConn::createWeights(PVPatch ** patches) {
    const int arbor = 0;
-   int nPatches = originalConn->numWeightPatches(arbor);
-
-   return createWeights(patches, nPatches, nxp, nyp, nfp);
-}
-
-int CloneKernelConn::createAxonalArbors() {
-   for( int k=0; k<numAxonalArborLists; k++ ) {
-      axonalArborList[k] = originalConn->axonalArbor(0,k);
+   int numKernelPatches = numDataPatches(arbor);
+   assert( numKernelPatches == originalConn->numDataPatches(arbor) );
+   assert(kernelPatches == NULL);
+   kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   assert(kernelPatches != NULL);
+   for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
+      kernelPatches[kernelIndex] = originalConn->getKernelPatch(kernelIndex);
    }
-   return PV_SUCCESS;
+   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
+      patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
+      int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
+      patches[patchIndex]->data = kernelPatches[kernelIndex]->data;
+   }
+   return patches;
 }
 
 PVPatch ** CloneKernelConn::initializeWeights(PVPatch ** patches,
       int numPatches, const char * filename) {
    return patches;
-   // nothing to be done as the patches point to originalConn's space.
+   // nothing to be done as the weight patches point to originalConn's space.
+}
+
+int CloneKernelConn::deleteWeights() {
+   free(kernelPatches);  // don't delete kernelPatches[k] as it belongs to originalConn
+   return HyPerConn::deleteWeights();
 }
 
 } // end namespace PV

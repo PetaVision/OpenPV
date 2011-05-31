@@ -30,12 +30,11 @@ public:
    // the inherited method is called by the base class's initialize.
 
 protected:
-   virtual PVPatch ** createWeights(PVPatch ** patches,
-         int nPatches, int nxPatch, int nyPatch, int nfPatch);
-   PVPatch ** createWeights(PVPatch ** patches);
-   virtual int createAxonalArbors();
+   PVPatch ** allocWeights(PVPatch ** patches, int nPatches,
+         int nxPatch, int nyPatch, int nfPatch);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
             const char * filename);
+   int deleteWeights();
 
    KernelConn * originalConn;
 
