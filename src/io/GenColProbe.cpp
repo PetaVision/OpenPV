@@ -59,7 +59,7 @@ pvdata_t GenColProbe::evaluate(float time) {
 }  // end GenColProbe::evaluate(float)
 
 int GenColProbe::outputState(float time, HyPerCol * hc) {
-    printf("time = %f, %s = %f\n", time, hc->getName(), evaluate(time));
+    fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), evaluate(time));
     return EXIT_SUCCESS;
 }  // end GenColProbe::outputState(float)
 
