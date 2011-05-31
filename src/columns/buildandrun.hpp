@@ -52,6 +52,7 @@
 #include "../connections/TransposeConn.hpp"
 #include "../connections/PoolConn.hpp"
 #include "../connections/RuleConn.hpp"
+#include "../connections/STDPConn.hpp"
 #include "../connections/SubunitConn.hpp"
 
 #include "../io/ConnectionProbe.hpp"

@@ -85,6 +85,7 @@ HyPerCol * build(int argc, char * argv[]) {
                      "FeedbackConn",
                "PoolConn",
                "RuleConn",
+               "STDPConn",
                "SubunitConn",
            "_Stop_HyPerConns_",
            "_Start_ColProbes_",
@@ -579,6 +580,14 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
         }
         checknewobject((void *) addedConn, classkeyword, name);
     }
+   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
     if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
         keywordMatched = true;
         getPreAndPostLayers(name, hc, &preLayer, &postLayer);
