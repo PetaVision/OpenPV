@@ -64,7 +64,6 @@ HyPerCol * build(int argc, char * argv[]) {
                  "ImageCreator",
                  "Movie",
                  "Patterns",
-               "LGN",
                "LIF",
                "Retina",
                "SigmoidLayer",
@@ -300,11 +299,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
     if( !strcmp(classkeyword, "Patterns") ) {
         keywordMatched = true;
         addedLayer = (HyPerLayer *) addPatterns(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "LGN") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new LGN(name, hc);
         checknewobject((void *) addedLayer, classkeyword, name);
     }
     if( !strcmp(classkeyword, "LIF") ) {

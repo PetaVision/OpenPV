@@ -32,7 +32,6 @@
 #include "../layers/ImageCreator.hpp"
 #include "../layers/Movie.hpp"
 #include "../layers/Patterns.hpp"
-#include "../layers/LGN.hpp"
 #include "../layers/LIF.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
