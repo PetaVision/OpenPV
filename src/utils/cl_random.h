@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
 
-uint4 * cl_random_init(size_t count);
+uint4 * cl_random_init(size_t count, unsigned int seed);
 uint4   cl_random_get(uint4 state);
 
 #ifdef __cplusplus
