@@ -5,6 +5,8 @@
  *      Author: Marian Anghel
  */
 
+#ifdef OBSOLETE /* Use Patterns(name, hc, BARS) instead of Bars(name, hc) */
+
 #include "Bars.hpp"
 #include "../include/pv_common.h"  // for PI
 #include "../utils/pv_random.h"
@@ -13,9 +15,7 @@ namespace PV {
 Bars::Bars(const char * name, HyPerCol * hc) :
    Image(name, hc)
 {
-#ifdef OBSOLETE
    initialize_data(&loc);
-#endif
 
    // set default params
    // set reference position of bars
@@ -256,3 +256,4 @@ void Bars::calcPosition(float step)
 }
 
 } // namespace PV
+#endif
