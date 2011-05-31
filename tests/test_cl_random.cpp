@@ -64,8 +64,9 @@ int main(int argc, char * argv[])
    
    const size_t mem_size = NX*NY*sizeof(uint4);
    
-   uint4 * rnd_state  = cl_random_init(NX*NY);
-   uint4 * rnd_state2 = cl_random_init(NX*NY);
+   unsigned int seed = 1;
+   uint4 * rnd_state  = cl_random_init(NX*NY, seed);
+   uint4 * rnd_state2 = cl_random_init(NX*NY, seed);
 
    assert(rnd_state  != NULL);
    assert(rnd_state2 != NULL);
