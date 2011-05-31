@@ -94,8 +94,11 @@ int Retina::initialize(PVLayerType type)
    l->numNeurons  = nx * ny * nf;
    l->numExtended = (nx + 2*nb) * (ny + 2*nb) * nf;
 
+   // random seed should be different for different layers
+   unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
+
    // a random state variable is needed for every neuron/clthread
-   rand_state = cl_random_init(l->numNeurons);
+   rand_state = cl_random_init(l->numNeurons, seed);
 
    status = parent->addLayer(this);
 
