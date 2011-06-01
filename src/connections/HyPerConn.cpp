@@ -271,7 +271,7 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
       tauLTD = filep->value(name, "tauLTD", tauLTD);
 #endif
 
-      wMax = filep->value(name, "strength", wMax);
+      wMax = filep->value(name, "strength", wMax, false);
       // let wMax override strength if user provides it
       wMax = filep->value(name, "wMax", wMax);
       wMin = filep->value(name, "wMin", wMin);
@@ -376,7 +376,7 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    PVParams * inputParams = parent->parameters();
 
    float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f, false);
-   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f, true);
+   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f, false);
 
    if (uniform_weights && gaussian_weights) {
       fprintf(stderr,"multiple random weights distributions defined:  Exiting\n");
