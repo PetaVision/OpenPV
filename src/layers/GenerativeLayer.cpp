@@ -31,7 +31,7 @@ int GenerativeLayer::updateV() {
    for( int k=0; k<getNumNeurons(); k++ ) {
       V[k] += relaxation*(phiExc[k] - phiInh[k] - sparsitytermderivative(V[k]));
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }  // end of GenerativeLayer::updateV()
 
 int GenerativeLayer::setActivity() {
