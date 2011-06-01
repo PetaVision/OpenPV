@@ -290,63 +290,42 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 // returns handle to initialized weight patches
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
+   // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an InitWeightsMethod
+   //       instantiation as an argument.  The routines called below would be put into derived classes
+   //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
-   bool normalize_flag = (bool) inputParams->value(name, "normalize", 0.0f);
 
-   if (filename != NULL) {
-       readWeights(patches, numPatches, filename);
-       if (normalize_flag) {
-          normalizeWeights(patches, numPatches);
-       }
-       return patches;
+   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
+   int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
+   int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
+   int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
+
+   if( filename != NULL ) {
+      readWeights(patches, numPatches, filename);
    }
-
-   if (inputParams->present(getName(), "initFromLastFlag")) {
-      if ((int) inputParams->value(getName(), "initFromLastFlag") == 1) {
-         char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
-          readWeights(patches, numPatches, name);
-          if (normalize_flag) {
-             normalizeWeights(patches, numPatches);
-          }
-          return patches;
-      }
+   else if (initFromLastFlag) {
+      char name[PV_PATH_MAX];
+      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
+      readWeights(patches, numPatches, name);
    }
-
-   int randomFlag = (int) inputParams->value(getName(), "randomFlag", 0.0f);
-
-   int smartWeights = (int) inputParams->value(getName(), "smartWeights",0.0f);
-   int cocircWeights = (int) inputParams->value(getName(), "cocircWeights",0.0f);
-
-   if (randomFlag != 0) { // if (randomFlag != 0 || randomSeed != 0) {
+   else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
        initializeRandomWeights(patches, numPatches);
-       // initializeRandomWeights(patches, numPatches, randomSeed);
-       if (normalize_flag) {
-          normalizeWeights(patches, numPatches);
-       }
-       return patches;
    }
-   else if (smartWeights != 0) {
+   else if (smartWeights) {
        initializeSmartWeights(patches, numPatches);
-       if (normalize_flag) {
-          normalizeWeights(patches, numPatches);
-       }
-       return patches;
    }
-   else if (cocircWeights != 0) {
+   else if (cocircWeights) {
        initializeCocircWeights(patches, numPatches);
-       if (normalize_flag) {
-          normalizeWeights(patches, numPatches);
-       }
-       return patches;
    }
    else {
+      inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
       initializeDefaultWeights(patches, numPatches);
-      if (normalize_flag) {
-         normalizeWeights(patches, numPatches);
-      }
-      return patches;
    }
+   bool normalize_flag = (bool) inputParams->value(name, "normalize", 0.0f, true);
+   if (normalize_flag) {
+      normalizeWeights(patches, numPatches);
+   }
+   return patches;
 }
 
 int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
@@ -396,8 +375,8 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
 {
    PVParams * inputParams = parent->parameters();
 
-   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f);
-   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f);
+   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f, false);
+   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f, true);
 
    if (uniform_weights && gaussian_weights) {
       fprintf(stderr,"multiple random weights distributions defined:  Exiting\n");
@@ -410,7 +389,7 @@ PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches
    }
 
    if(uniform_weights) {
-      inputParams->value(getName(), "uniformWeights", uniform_weights); // generate warning if uniformWeights set by default
+      inputParams->value(getName(), "uniformWeights", uniform_weights, true); // generate warning if uniformWeights set by default
    }
 
    if (uniform_weights) {
@@ -1658,8 +1637,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-// int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed)
-int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax)
+int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
+      // changed variable names to avoid confusion with data members this->wMin and this->wMax
 {
    pvdata_t * w = wp->data;
 
@@ -1672,27 +1651,27 @@ int HyPerConn::uniformWeights(PVPatch * wp, float wMin, float wMax)
    const int sfp = wp->sf;
 
    double p;
-   if( wMax <= wMin ) {
-      if( wMax < wMin ) {
-         fprintf(stderr, "Warning: wMax less than wMin.  Changing wMax = %f to wMin value of %f\n", wMax, wMin);
-         wMax = wMin;
+   if( maxwgt <= minwgt ) {
+      if( maxwgt < minwgt ) {
+         fprintf(stderr, "Warning: uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n", maxwgt, minwgt);
+         maxwgt = minwgt;
       }
       p = 0;
    }
    else {
-       p = (wMax - wMin) / pv_random_max();
+       p = (minwgt - minwgt) / pv_random_max();
    }
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = wMin + p * pv_random();
+            w[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
          }
       }
    }
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 
