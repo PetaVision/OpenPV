@@ -1659,7 +1659,7 @@ int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
       p = 0;
    }
    else {
-       p = (minwgt - minwgt) / pv_random_max();
+       p = (maxwgt - minwgt) / pv_random_max();
    }
 
    // loop over all post-synaptic cells in patch
