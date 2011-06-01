@@ -135,7 +135,7 @@ public:
 
    int   present(const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName);
-   float value  (const char * groupName, const char * paramName, float initialValue);
+   float value  (const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent=true);
    int   stringPresent(const char * groupName, const char * paramStringName);
    const char * stringValue(const char * groupName, const char * paramStringName);
    ParameterGroup * group(const char * groupName);

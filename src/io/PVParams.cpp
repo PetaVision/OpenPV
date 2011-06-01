@@ -445,13 +445,15 @@ float PVParams::value(const char * groupName, const char * paramName)
  * @paramName
  * @initialValue
  */
-float PVParams::value(const char * groupName, const char * paramName, float initialValue)
+float PVParams::value(const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent)
 {
    if (present(groupName, paramName)) {
       return value(groupName, paramName);
    }
    else {
-      printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
+      if( warnIfAbsent ) {
+          printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
+      }
       return initialValue;
    }
 }
