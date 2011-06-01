@@ -80,7 +80,7 @@ int manyToOneForTransposeConn(int argc, char * argv[]) {
    TransposeConn * transposeOfTransposeManyTo1 = new TransposeConn("test_transpose_transpose Many to one transpose of transpose", hc, layerA, layerBManyTo1, CHANNEL_INHB, transposeManyTo1);
    assert(transposeOfTransposeManyTo1);
 
-   int status = testTransposeOfTransposeWeights(originalMapManyTo1, transposeManyTo1, transposeOfTransposeManyTo1, "Many-to-one case, FeedbackConn");
+   int status = testTransposeOfTransposeWeights(originalMapManyTo1, transposeManyTo1, transposeOfTransposeManyTo1, "Many-to-one case, TransposeConn");
    delete hc;
    return status;
 }
@@ -99,7 +99,7 @@ int oneToManyForTransposeConn(int argc, char * argv[]) {
    TransposeConn * transposeOfTranspose1toMany = new TransposeConn("test_transpose_transpose One to many transpose of transpose", hc, layerA, layerB1toMany, CHANNEL_INHB, transpose1toMany);
    assert(transposeOfTranspose1toMany);
 
-   int status = testTransposeOfTransposeWeights(originalMap1toMany, transpose1toMany, transposeOfTranspose1toMany, "One-to-many case, FeedbackConn");
+   int status = testTransposeOfTransposeWeights(originalMap1toMany, transpose1toMany, transposeOfTranspose1toMany, "One-to-many case, TransposeConn");
    delete hc;
    return status;
 }
