@@ -375,12 +375,12 @@ float HyPerCol::advanceTime(float sim_time)
       layers[l]->outputState(sim_time);
 
       // deliver new synaptic activity to layer
-      //
+      // HyPerLayer::triggerReceive affects the layers
+      // on the post-synaptic side of a connection with
+      // the called layer as a pre-synaptic layer.
+      // So, all layers need to call triggerReceive
+      // before any layers call updateState.
       layers[l]->triggerReceive(icComm);
-
-      // update layer and calculate new activity
-      //
-      layers[l]->updateState(sim_time, deltaTime);
    }
 
    // This loop separate from the update layer loop above
@@ -388,6 +388,10 @@ float HyPerCol::advanceTime(float sim_time)
    // the OpenCL device.
    //
    for (int l = 0; l < numLayers; l++) {
+      // update layer and calculate new activity
+      //
+      layers[l]->updateState(sim_time, deltaTime);
+
       // after updateBorder completes all necessary data has been
       // copied from the device (GPU) to the host (CPU)
       layers[l]->updateBorder(sim_time, deltaTime);
