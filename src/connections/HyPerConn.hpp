@@ -208,10 +208,8 @@ protected:
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
 
-   int uniformWeights(PVPatch * wp, float wMin, float wMax);
+   int uniformWeights(PVPatch * wp, float minwgt, float maxwgt);
    int gaussianWeights(PVPatch * wp, float mean, float stdev);
-   // int uniformWeights(PVPatch * wp, float wMin, float wMax, int * seed);
-   // int gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed);
 
    int smartWeights(PVPatch * wp, int k);
 
