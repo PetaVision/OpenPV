@@ -615,75 +615,96 @@ PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer 
     return addedConn;
 }
 
-const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterStringName, bool warnIfNotPresent) {
-    bool shouldGetValue = warnIfNotPresent ? true : params->stringPresent(groupName, parameterStringName);
+const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterStringName, bool warnIfAbsent) {
+    bool shouldGetValue = warnIfAbsent ? true : params->stringPresent(groupName, parameterStringName);
     const char * str;
     str = shouldGetValue ? params->stringValue(groupName, parameterStringName) : NULL;
     return str;
 }
 
-void getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayerPtr) {
-    const char * separator = " to ";
-	*preLayerPtr = getLayerFromParameterGroup(name, hc, "preLayerName");
-    *postLayerPtr = getLayerFromParameterGroup(name, hc, "postLayerName");
-    if( *preLayerPtr == NULL && *postLayerPtr == NULL ) {
-        // Check to see if the string " to " appears exactly once in name
-    	// If so, use part preceding " to " as pre-layer, and part after " to " as post.
-    	const char * locto = strstr(name, separator);
-    	const char * nextto = strstr(locto+1, separator);
-    	if( locto != NULL && nextto == NULL ) {
-    	    char * layerNames = (char *) malloc(strlen(name) + 1);
-    	    assert(layerNames);
-    	    strcpy(layerNames, name);
-    	    char * preLayerName = layerNames;
-            size_t preLen = locto - name;
-    	    preLayerName[preLen] = '\0';
-    	    char * postLayerName = layerNames + preLen + strlen(separator);
-    	    *preLayerPtr = getLayerFromParameterGroup(name, hc, preLayerName);
-    	    *postLayerPtr = getLayerFromParameterGroup(name, hc, postLayerName);
-    	    free(layerNames);
-    	}
-    }
+int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayerPtr) {
+   const char * separator = " to ";
+   *preLayerPtr = getLayerFromParameterGroup(name, hc, "preLayerName", false);
+   *postLayerPtr = getLayerFromParameterGroup(name, hc, "postLayerName", false);
+   if( *preLayerPtr == NULL && *postLayerPtr == NULL ) {
+      // Check to see if the string " to " appears exactly once in name
+      // If so, use part preceding " to " as pre-layer, and part after " to " as post.
+      const char * locto = strstr(name, separator);
+      const char * nextto = strstr(locto+1, separator);
+      if( locto != NULL && nextto == NULL ) {
+         char * layerNames = (char *) malloc(strlen(name) + 1);
+         assert(layerNames);
+         strcpy(layerNames, name);
+         char * preLayerName = layerNames;
+         size_t preLen = locto - name;
+         preLayerName[preLen] = '\0';
+         char * postLayerName = layerNames + preLen + strlen(separator);
+         *preLayerPtr = getLayerFromName(preLayerName, hc);
+         if( *preLayerPtr == NULL ) {
+            fprintf(stderr, "Group \"%s\": Unable to get presynaptic layer \"%s\".\n", name, preLayerName);
+         }
+         *postLayerPtr = getLayerFromName(postLayerName, hc);
+         if( *postLayerPtr == NULL ) {
+            fprintf(stderr, "Group \"%s\": Unable to get postsynaptic layer \"%s\".\n", name, postLayerName);
+         }
+         free(layerNames);
+      }
+   }
+   if( *preLayerPtr == NULL && *postLayerPtr != NULL ) {
+      fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
+   }
+   if( *preLayerPtr != NULL && *postLayerPtr == NULL ) {
+      fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
+   }
+   return *preLayerPtr != NULL && *postLayerPtr != NULL ? PV_SUCCESS : PV_FAILURE;
 }
 
-HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
-    HyPerLayer * l = NULL;
+// make a method in HyPerCol?
+HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
     PVParams * params = hc->parameters();
-    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, true);
+    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
     if( !layerName ) return NULL;
-    int n = hc->numberOfLayers();
-    for( int i=0; i<n; i++ ) {
-    	HyPerLayer * curLayer = hc->getLayer(i);
-    	const char * curName = curLayer->getName();
-    	assert(curName);
-        if( !strcmp(curName,layerName) ) {
-            l = curLayer;
-        }
-    }
-    if( l == NULL )  {
+    HyPerLayer * l = getLayerFromName(layerName, hc);
+    if( l == NULL && warnIfAbsent )  {
         fprintf(stderr, "Group \"%s\": could not find layer \"%s\"\n", groupName, layerName);
     }
     return l;
 }
 
-HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
-    HyPerConn * c = NULL;
+HyPerLayer * getLayerFromName(const char * layerName, HyPerCol * hc) {
+   int n = hc->numberOfLayers();
+   for( int i=0; i<n; i++ ) {
+      HyPerLayer * curLayer = hc->getLayer(i);
+      assert(curLayer);
+      const char * curLayerName = curLayer->getName();
+      assert(curLayerName);
+      if( !strcmp( curLayer->getName(), layerName) ) return curLayer;
+   }
+   return NULL;
+}
+
+HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
     PVParams * params = hc->parameters();
-    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, true);
+    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
     if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
-    int n = hc->numberOfConnections();
-    for( int i=0; i<n; i++ ) {
-    	HyPerConn * curConn = hc->getConnection(i);
-    	const char * curName = curConn->getName();
-    	assert(curName);
-        if( !strcmp(curName,connName) ) {
-            c = curConn;
-        }
-    }
-    if( c == NULL )  {
+    HyPerConn * c = getConnFromName(connName, hc);
+    if( c == NULL && warnIfAbsent)  {
         fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
     }
     return c;
+}
+
+// make a method in HyPerCol?
+HyPerConn * getConnFromName(const char * connName, HyPerCol * hc) {
+   int n = hc->numberOfConnections();
+   for( int i=0; i<n; i++ ) {
+      HyPerConn * curConn = hc->getConnection(i);
+      assert(curConn);
+      const char * curConnName = curConn->getName();
+      assert(curConnName);
+      if( !strcmp( curConn->getName(), connName) ) return curConn;
+   }
+   return NULL;
 }
 
 ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
