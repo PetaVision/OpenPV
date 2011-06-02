@@ -28,12 +28,10 @@ int SigmoidLayer::initialize(LIF * originalLayer)
    sourceLayer = originalLayer;
    free(clayer->V);
    clayer->V = sourceLayer->getV();
-   if (numChannels > 0) {
-      // potentials allocated contiguously so this frees all
-      free(GSyn[0]);
-   }
-   GSyn[0] = NULL;
-   numChannels = 0;
+
+   // don't need conductance channels
+   freeChannels();
+
    return status_init;
 }
 
