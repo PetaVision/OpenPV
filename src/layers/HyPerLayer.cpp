@@ -55,14 +55,21 @@ HyPerLayer::~HyPerLayer()
       pvlayer_finalize(clayer);
       clayer = NULL;
    }
+   
    free(name);
-
-   if (numChannels > 0) {
-      // potentials allocated contiguously so this frees all
-      free(GSyn[0]);
-   }
-
+   freeChannels();
+   
    if (labels != NULL) free(labels);
+}
+
+void HyPerLayer::freeChannels()
+{
+   if (numChannels > 0) {
+      free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
+      free(GSyn);     // this frees the array pointers to separate conductance channels
+      GSyn = NULL;
+      numChannels = 0;
+   }
 }
 
 /**
@@ -155,16 +162,22 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    clayer->layerType = TypeGeneric;
 
-   for (int m = 1; m < MAX_CHANNELS; m++) {
-      GSyn[m] = NULL;
-   }
+   // allocate storage for the conductance arrays
+   //
    if (numChannels > 0) {
+      GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
+      assert(GSyn != NULL);
+
       GSyn[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
       assert(GSyn[0] != NULL);
 
       for (int m = 1; m < numChannels; m++) {
          GSyn[m] = GSyn[0] + m * getNumNeurons();
       }
+   }
+   else {
+      numChannels = 0;
+      GSyn = NULL;
    }
 
    // labels are not extended
