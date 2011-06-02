@@ -116,7 +116,7 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
    HyPerConn::readWeights(patches, numPatches, filename);
    // return HyPerConn::normalizeWeights(patches, numPatches);
 
-   if( inputParams->value(name, "normalize", 0.0f, true) ) {
+   if( parent->parameters()->value(name, "normalize", 0.0f, true) ) {
       patches = HyPerConn::normalizeWeights(patches, numPatches);
    }
    return patches;
