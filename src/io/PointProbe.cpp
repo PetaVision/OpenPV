@@ -78,16 +78,13 @@ int PointProbe::outputState(float time, HyPerLayer * l)
 
    if (sparseOutput) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
-      // we will control the end of line character from the ConditionalProbe.
    }
-   else {
-      if (activity[kex] != 0.0) {
+   else if (activity[kex] != 0.0) {
       fprintf(fp, "%s t=%.1f", msg, time);
-      fprintf(fp, " V=%6.3f", clayer->V[k]);
-      fprintf(fp, " a=%.1f", activity[kex]);
+      fprintf(fp, " V=%6.5f", clayer->V[k]);
+      fprintf(fp, " a=%.5f", activity[kex]);
       fprintf(fp, "\n");
       fflush(fp);
-      }
    }
 
    return 0;
