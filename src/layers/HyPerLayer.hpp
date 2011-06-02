@@ -144,10 +144,13 @@ public:
    virtual int label(int k);
 
 protected:
+
+   void freeChannels();
+
    char * name;                 // well known name of layer
 
    int numChannels;             // number of channels
-   pvdata_t * GSyn[MAX_CHANNELS];
+   pvdata_t ** GSyn;            // of dynamic length numChannels
 
    int numProbes;
    LayerProbe ** probes;
