@@ -114,7 +114,12 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
    HyPerConn::readWeights(patches, numPatches, filename);
-   return HyPerConn::normalizeWeights(patches, numPatches);
+   // return HyPerConn::normalizeWeights(patches, numPatches);
+
+   if( inputParams->value(name, "normalize", 0.0f, true) ) {
+      patches = HyPerConn::normalizeWeights(patches, numPatches);
+   }
+   return patches;
 }
 
 int KernelConn::numDataPatches(int arbor)
@@ -184,7 +189,7 @@ int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPo
          numFlanks, shift, aspect, rotate, sigma, r2Max, strength);
 }
 
-   PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
+PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);
