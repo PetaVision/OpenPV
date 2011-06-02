@@ -175,6 +175,9 @@ protected:
    float writeTime;             // time of next output
    float writeStep;             // output time interval
 
+   bool writeCompressedWeights; // true=write weights with 8-bit precision;
+                                // false=write weights with float precision
+
    Timer * update_timer;
 
 protected:

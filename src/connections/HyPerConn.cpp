@@ -125,6 +125,8 @@ int HyPerConn::initialize_base()
       axonalArborList[i] = NULL;
    }
 
+   this->writeCompressedWeights = true;
+
    return 0;
 }
 
@@ -283,6 +285,8 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
       localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
    }
 #endif
+
+   writeCompressedWeights = filep->value(name, "writeCompressedWeights", true);
 
    return 0;
 }
@@ -618,7 +622,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    status = PV::writeWeights(path, comm, (double) time, append,
                              loc, nxp, nyp, nfp, minVal, maxVal,
-                             patches, numPatches);
+                             patches, numPatches, writeCompressedWeights);
    assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
@@ -1617,7 +1621,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 
    status = PV::writeWeights(path, comm, (double) time, append,
                              loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
-                             wPostPatches, numPostPatches);
+                             wPostPatches, numPostPatches,writeCompressedWeights);
    assert(status == 0);
 
    return 0;

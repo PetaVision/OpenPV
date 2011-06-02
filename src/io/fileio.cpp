@@ -55,8 +55,8 @@ size_t pv_sizeof_patch(int count, int datatype)
  * Copy patches into an unsigned char buffer
  */
 int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
-                     int nxp, int nyp, int nfp, float minVal, float maxVal)
-{
+                     int nxp, int nyp, int nfp, float minVal, float maxVal,
+                     bool compressed=true) {
    unsigned char * cptr = buf;
 
    for (int k = 0; k < numPatches; k++) {
@@ -74,32 +74,54 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
 
       cptr += 2 * sizeof(unsigned short);
 
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
-               float val = data[x*sxp + y*syp + f*sfp];
-               val = 255.0 * (val - minVal) / (maxVal - minVal);
-               *cptr++ = (unsigned char) (val + 0.5f);
+      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(p->nf);
+      if( compressed ) {
+         for (int y = 0; y < p->ny; y++) {
+            for (int x = 0; x < p->nx; x++) {
+               for (int f = 0; f < p->nf; f++) {
+                  float val = data[x*sxp + y*syp + f*sfp];
+                  val = 255.0 * (val - minVal) / (maxVal - minVal);
+                  *cptr++ = (unsigned char) (val + 0.5f);
+               }
             }
          }
+
+         // write leftover null characters
+         int nExtra = sizeof(unsigned char)*numExtraNeurons;
+
+         for (int i = 0; i < nExtra; i++) {
+            *cptr++ = (unsigned char) 0;
+         }
       }
+      else {
+         for (int y = 0; y < p->ny; y++) {
+            for (int x = 0; x < p->nx; x++) {
+               for (int f = 0; f < p->nf; f++) {
+                  float val = data[x*sxp + y*syp + f*sfp];
+                  memcpy(cptr, &val, sizeof(float));
+                  cptr += sizeof(float);
+               }
+            }
+         }
 
-      // write leftover null characters
-      int nExtra = nxp * nyp * nfp - p->nx * p->ny * p->nf;
-
-      for (int i = 0; i < nExtra; i++) {
-         *cptr++ = (unsigned char) 0;
+         // write leftover null characters
+         if( numExtraNeurons > 0 ) {
+            int nExtra = sizeof(pvdata_t)*numExtraNeurons;
+            memset(cptr, 0, nExtra);
+            cptr += nExtra;
+         }
       }
    }
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 /**
  * Set patches given an unsigned char input buffer
  */
 int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
-                    int nxp, int nyp, int nfp, float minVal, float maxVal)
+                    int nxp, int nyp, int nfp, float minVal, float maxVal,
+                    bool compress=true)
 {
    unsigned char * cptr = buf;
 
@@ -123,23 +145,45 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
 
       cptr += 2 * sizeof(unsigned short);
 
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
-               // data are packed into chars
-               float val = (float) *cptr++;
-               int offset = x*sxp + y*syp + f*sfp;
-               data[offset] = minVal + (maxVal - minVal) * (val / 255.0);
+      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(p->nf);
+      if( compress ) {
+         for (int y = 0; y < p->ny; y++) {
+            for (int x = 0; x < p->nx; x++) {
+               for (int f = 0; f < p->nf; f++) {
+                  // data are packed into chars
+                  float val = (float) *cptr++;
+                  int offset = x*sxp + y*syp + f*sfp;
+                  data[offset] = minVal + (maxVal - minVal) * (val / 255.0);
+               }
             }
          }
-      }
 
-      // skip leftover null characters
-      int nExtra = nxp * nyp * nfp - p->nx * p->ny * p->nf;
-      cptr += nExtra;
+         // skip leftover null characters
+         int nExtra = sizeof(unsigned char)*numExtraNeurons;
+         cptr += nExtra;
+      }
+      else {
+         for (int y = 0; y < p->ny; y++) {
+            for (int x = 0; x < p->nx; x++) {
+               for (int f = 0; f < p->nf; f++) {
+                  int offset = x*sxp + y*syp + f*sfp;
+                  float * valptr;
+                  memcpy(valptr, cptr, sizeof(float));
+                  cptr += sizeof(float);
+                  data[offset] = (pvdata_t) (*valptr);
+               }
+            }
+         }
+
+         // skip leftover null characters
+         if( numExtraNeurons > 0 ) {
+            int nExtra = sizeof(pvdata_t)*numExtraNeurons;
+            cptr += nExtra;
+         }
+      }
    }
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 FILE * pvp_open_read_file(const char * filename, Communicator * comm)
@@ -1035,7 +1079,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // make sure file is consistent with expectations
    //
-   status = (datatype != PV_BYTE_TYPE);
+   status = ( datatype != PV_BYTE_TYPE && datatype != PV_FLOAT_TYPE );
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, datatype==%d\n",
               comm->commRank(), datatype);
@@ -1134,8 +1178,9 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // set the contents of the weights patches from the unsigned character buffer, cbuf
    //
-   status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal);
-   if (status != 0) {
+   bool compress = datatype == PV_BYTE_TYPE;
+   status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+   if (status != PV_SUCCESS) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
               comm->commRank(), numPatches);
    }
@@ -1157,7 +1202,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
  */
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch ** patches, int numPatches)
+                 PVPatch ** patches, int numPatches, bool compress) // compress has default of true
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
@@ -1165,7 +1210,8 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    bool extended = true;
    bool contiguous = false;   // for now
 
-   int datatype = PV_BYTE_TYPE;
+   // int datatype = PV_BYTE_TYPE;
+   int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -1191,7 +1237,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    assert(cbuf != NULL);
 
-   pvp_copy_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal);
+   pvp_copy_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
 
 #ifdef PV_USE_MPI
    const int tag = PVP_WGT_FILE_TYPE;
