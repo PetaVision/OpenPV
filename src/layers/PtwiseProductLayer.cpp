@@ -1,7 +1,7 @@
 /*
  * PtwiseProductLayer.cpp
  *
- * The output V is the pointwise product of phiExc and phiInh
+ * The output V is the pointwise product of GSynExc and GSynInh
  *
  * "Exc" and "Inh" are really misnomers for this class, but the
  * terminology is inherited from the base class.
@@ -19,10 +19,10 @@ PtwiseProductLayer::PtwiseProductLayer(const char * name, HyPerCol * hc) : ANNLa
 
 int PtwiseProductLayer::updateV() {
     pvdata_t * V = getV();
-    pvdata_t * phiExc = getChannel(CHANNEL_EXC);
-    pvdata_t * phiInh = getChannel(CHANNEL_INH);
+    pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
+    pvdata_t * GSynInh = getChannel(CHANNEL_INH);
     for( int k=0; k<getNumNeurons(); k++ ) {
-        V[k] = phiExc[k] * phiInh[k];
+        V[k] = GSynExc[k] * GSynInh[k];
     }
     return PV_SUCCESS;
 }  // end PtwiseProductLayer::updateV()

@@ -1,8 +1,8 @@
 /*
  * PoolingANNLayer.cpp
  *
- * The output V is determined from phiExc and phiInh
- * using the formula phiExc*phiInh*(biasExc*phiExc+biasInh*phiInh)
+ * The output V is determined from GSynExc and GSynInh
+ * using the formula GSynExc*GSynInh*(biasExc*GSynExc+biasInh*GSynInh)
  * biasExc and biasInh are set by the params file parameter bias:
  * biasExc = (1+bias)/2;  biasInh = (1-bias)/2
  *
@@ -30,10 +30,10 @@ int PoolingANNLayer::initialize() {
 
 int PoolingANNLayer::updateV() {
     pvdata_t * V = getV();
-    pvdata_t * phiExc = this->getChannel(CHANNEL_EXC);
-    pvdata_t * phiInh = this->getChannel(CHANNEL_INH);
+    pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+    pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
     for( int k=0; k<getNumNeurons(); k++ ) {
-       V[k] = phiExc[k]*phiInh[k]*(getBiasa()*phiExc[k]+getBiasb()*phiInh[k]);
+       V[k] = GSynExc[k]*GSynInh[k]*(getBiasa()*GSynExc[k]+getBiasb()*GSynInh[k]);
     }
     return PV_SUCCESS;
 }  // end of PoolingANNLayer::updateV()

@@ -1,7 +1,7 @@
 /*
  * PtwiseProductLayer.hpp
  *
- * The output V is the pointwise product of phiExc and phiInh
+ * The output V is the pointwise product of GSynExc and GSynInh
  *
  * "Exc" and "Inh" are really misnomers for this class, but the
  * terminology is inherited from the base class.

@@ -26,10 +26,10 @@ int GenerativeLayer::initialize() {
 
 int GenerativeLayer::updateV() {
    pvdata_t * V = getV();
-   pvdata_t * phiExc = this->getChannel(CHANNEL_EXC);
-   pvdata_t * phiInh = this->getChannel(CHANNEL_INH);
+   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
    for( int k=0; k<getNumNeurons(); k++ ) {
-      V[k] += relaxation*(phiExc[k] - phiInh[k] - sparsitytermderivative(V[k]));
+      V[k] += relaxation*(GSynExc[k] - GSynInh[k] - sparsitytermderivative(V[k]));
    }
    return PV_SUCCESS;
 }  // end of GenerativeLayer::updateV()

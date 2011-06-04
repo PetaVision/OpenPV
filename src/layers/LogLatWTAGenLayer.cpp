@@ -32,8 +32,8 @@ int LogLatWTAGenLayer::initialize() {
 
 int LogLatWTAGenLayer::updateV() {
     pvdata_t * V = getV();
-    pvdata_t * phiExc = this->getChannel(CHANNEL_EXC);
-    pvdata_t * phiInh = this->getChannel(CHANNEL_INH);
+    pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+    pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
     // int nx = getLayerLoc()->nx;
     // int ny = getLayerLoc()->ny;
     int nf = getLayerLoc()->nf;
@@ -46,7 +46,7 @@ int LogLatWTAGenLayer::updateV() {
         pvdata_t latWTAexpr = latWTAterm(Vthispos,nf); // a'*Aslash*a
         for( int f=0; f<nf; f++) {
         	int kf = k+f;
-        	dV[k] = phiExc[kf]-phiInh[kf]-2*(sumacrossfeatures-V[kf])/(1+latWTAexpr);
+        	dV[k] = GSynExc[kf]-GSynInh[kf]-2*(sumacrossfeatures-V[kf])/(1+latWTAexpr);
         	V[kf] += getRelaxation()*dV[k];
             if(V[kf] < 0) V[kf] = 0;
         }

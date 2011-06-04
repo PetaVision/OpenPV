@@ -33,11 +33,11 @@ int GapLayer::initialize(LIF * originalLayer)
 
 int GapLayer::updateV() {
    pvdata_t * V = getV();
-   pvdata_t * phiExc = getChannel(CHANNEL_EXC);
+   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
    pvdata_t exp_deltaT = 1.0f - exp(-this->getParent()->getDeltaTime() / sourceLayer->getLIFParams()->tau);
    for( int k=0; k<getNumNeurons(); k++ ) {
-//      V[k] += phiExc[k];  // different from superclass behavior, adds to V rather than replacing
-      V[k] += phiExc[k] * exp_deltaT;  //!!! uses base tau, not the true time-dep tau
+//      V[k] += GSynExc[k];  // different from superclass behavior, adds to V rather than replacing
+      V[k] += GSynExc[k] * exp_deltaT;  //!!! uses base tau, not the true time-dep tau
    }
    return PV_SUCCESS;
 }

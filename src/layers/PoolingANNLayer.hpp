@@ -1,13 +1,8 @@
 /*
  * PoolingANNLayer.hpp
  *
- * The output V is determined from phiExc and phiInh
- * using the formula phiExc*phiInh*(biasExc*phiExc+biasInh*phiInh)
- * biasExc and biasInh are set by the params file parameter bias:
- * biasExc = (1+bias)/2;  biasInh = (1-bias)/2
- *
- * The output V is determined from phiExc and phiInh
- * using the formula phiExc*phiInh*(biasExc*phiExc+biasInh*phiInh)
+ * The output V is determined from GSynExc and GSynInh
+ * using the formula GSynExc*GSynInh*(biasExc*GSynExc+biasInh*GSynInh)
  * biasExc and biasInh are set by the params file parameter bias:
  * biasExc = (1+bias)/2;  biasInh = (1-bias)/2
  *
