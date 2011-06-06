@@ -21,10 +21,10 @@ int buildandrun(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
    if( hc->numberOfTimeSteps() > 0 ) {
-	  status = hc->run();
-	  if( status != PV_SUCCESS ) {
+      status = hc->run();
+      if( status != PV_SUCCESS ) {
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
-	  }
+      }
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -153,473 +153,473 @@ HyPerCol * build(int argc, char * argv[]) {
 
    // Make sure first group defines a column
    if( strcmp(params->groupKeywordFromIndex(0), "HyPerCol") ) {
-       fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
-       delete hc;
-       return NULL;
+      fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
+      delete hc;
+      return NULL;
    }
 
    for( int k=0; k<numGroups; k++ ) {
-       const char * kw = params->groupKeywordFromIndex(k);
-       const char * name = params->groupNameFromIndex(k);
+      const char * kw = params->groupKeywordFromIndex(k);
+      const char * name = params->groupNameFromIndex(k);
 
-       int matchedkeyword = -1;
-       for( j=0; j<numclasskeywords; j++ ) {
-           if( !strcmp( kw, allowedkeywordarray[j]) ) {
-               matchedkeyword = j;
-               break;
-           }
-       }
-       if( matchedkeyword < 0 ) {
-           fprintf(stderr, "Parameter group \"%s\" has unknown class keyword \"%s\"\n", name, kw);
-           delete hc;
-           return NULL;
-       }
+      int matchedkeyword = -1;
+      for( j=0; j<numclasskeywords; j++ ) {
+         if( !strcmp( kw, allowedkeywordarray[j]) ) {
+            matchedkeyword = j;
+            break;
+         }
+      }
+      if( matchedkeyword < 0 ) {
+         fprintf(stderr, "Parameter group \"%s\" has unknown class keyword \"%s\"\n", name, kw);
+         delete hc;
+         return NULL;
+      }
 
-       bool didAddObject = false;
+      bool didAddObject = false;
 
-       if( j > first_hypercol_index && j < last_hypercol_index ) {
-           addedHyPerCol = addHyPerColToColumn(kw, name, hc);
-           didAddObject = addedHyPerCol != NULL;
-       }
-       else if( j > first_hyperconn_index && j < last_hyperconn_index ) {
-           addedHyPerConn = addConnToColumn(kw, name, hc);
-           didAddObject = addedHyPerConn != NULL;
-       }
-       else if( j > first_hyperlayer_index && j < last_hyperlayer_index ) {
-           addedHyPerLayer = addLayerToColumn(kw, name, hc);
-           didAddObject = addedHyPerLayer != NULL;
-       }
-       else if( j > first_colprobe_index && j < last_colprobe_index ) {
-           addedColProbe = addColProbeToColumn(kw, name, hc);
-           didAddObject = addedColProbe != NULL;
-       }
-       else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
-           addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
-           didAddObject = addedConnectionProbe != NULL;
-       }
-       else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
-           addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
-           didAddObject = addedHyPerCol != NULL;
-       }
-       else {
-           fprintf(stderr, "Parameter group \"%s\" class keyword \"%s\" cannot be categorized\n", name, kw);
-           didAddObject = false;
-       }
+      if( j > first_hypercol_index && j < last_hypercol_index ) {
+         addedHyPerCol = addHyPerColToColumn(kw, name, hc);
+         didAddObject = addedHyPerCol != NULL;
+      }
+      else if( j > first_hyperconn_index && j < last_hyperconn_index ) {
+         addedHyPerConn = addConnToColumn(kw, name, hc);
+         didAddObject = addedHyPerConn != NULL;
+      }
+      else if( j > first_hyperlayer_index && j < last_hyperlayer_index ) {
+         addedHyPerLayer = addLayerToColumn(kw, name, hc);
+         didAddObject = addedHyPerLayer != NULL;
+      }
+      else if( j > first_colprobe_index && j < last_colprobe_index ) {
+         addedColProbe = addColProbeToColumn(kw, name, hc);
+         didAddObject = addedColProbe != NULL;
+      }
+      else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
+         addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
+         didAddObject = addedConnectionProbe != NULL;
+      }
+      else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
+         addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
+         didAddObject = addedHyPerCol != NULL;
+      }
+      else {
+         fprintf(stderr, "Parameter group \"%s\" class keyword \"%s\" cannot be categorized\n", name, kw);
+         didAddObject = false;
+      }
 
-       if( !didAddObject ) {
-           fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
-       }
+      if( !didAddObject ) {
+         fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+      }
    }
 
    if( hc->numberOfLayers() == 0 ) {
-       fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
-       delete hc;
-       return NULL;
+      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      delete hc;
+      return NULL;
    }
    if( hc->numberOfConnections() == 0 ) {
-       fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
-       delete hc;
-       return NULL;
+      fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
+      delete hc;
+      return NULL;
    }
    return hc;
 }
 
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-    return hc;
+   return hc;
 }
 
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-    bool keywordMatched;
-	HyPerLayer * addedLayer;
-    assert( hc != NULL );
-    if( !strcmp(classkeyword, "HyPerLayer") ) {
-        keywordMatched = true;
-    	fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
-        addedLayer = NULL;
-    }
-    if( !strcmp(classkeyword, "ANNLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
-    }
-    if( !strcmp(classkeyword, "GeislerLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new GeislerLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "GenerativeLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new GenerativeLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "LogLatWTAGenLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "PoolingANNLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new PoolingANNLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "PtwiseProductLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new PtwiseProductLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "TrainingLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) addTrainingLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "HMaxSimple") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "Image") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) addImage(name, hc);
-    	checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "CreateMovies") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "ImageCreator") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new ImageCreator(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "Movie") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) addMovie(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "Patterns") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) addPatterns(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "LIF") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new LIF(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "GapLayer") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) addGapLayer(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !strcmp(classkeyword, "Retina") ) {
-        keywordMatched = true;
-        addedLayer = (HyPerLayer *) new Retina(name, hc);
-        checknewobject((void *) addedLayer, classkeyword, name);
-    }
-    if( !keywordMatched ) {
-        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
-    }
-    return addedLayer;
+   bool keywordMatched;
+   HyPerLayer * addedLayer;
+   assert( hc != NULL );
+   if( !strcmp(classkeyword, "HyPerLayer") ) {
+      keywordMatched = true;
+      fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
+      addedLayer = NULL;
+   }
+   if( !strcmp(classkeyword, "ANNLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   }
+   if( !strcmp(classkeyword, "GeislerLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new GeislerLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "GenerativeLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new GenerativeLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "LogLatWTAGenLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "PoolingANNLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new PoolingANNLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "PtwiseProductLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new PtwiseProductLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "TrainingLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addTrainingLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "HMaxSimple") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "Image") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addImage(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "CreateMovies") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "ImageCreator") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ImageCreator(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "Movie") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addMovie(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "Patterns") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addPatterns(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "LIF") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LIF(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "GapLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addGapLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "Retina") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new Retina(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !keywordMatched ) {
+      fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
+   }
+   return addedLayer;
 }
 
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
-    TrainingLayer * addedLayer;
-	const char * traininglabelspath = hc->parameters()->stringValue(name, "trainingLabelsPath");
-    if( traininglabelspath ) {
-        addedLayer = new TrainingLayer(name, hc, traininglabelspath);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Parameter group for class TrainingLayer must set string parameter trainingLabelsPath\n", name);
-    	addedLayer = NULL;
-    }
-    return addedLayer;
+   TrainingLayer * addedLayer;
+   const char * traininglabelspath = hc->parameters()->stringValue(name, "trainingLabelsPath");
+   if( traininglabelspath ) {
+      addedLayer = new TrainingLayer(name, hc, traininglabelspath);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Parameter group for class TrainingLayer must set string parameter trainingLabelsPath\n", name);
+      addedLayer = NULL;
+   }
+   return addedLayer;
 }
 
 GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
-    HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-    if( originalLayer == NULL ) {
-       fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
-       return NULL;
-    }
-    LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
-    GapLayer * addedLayer;
-    if (originalLIFLayer) {
-        addedLayer = new GapLayer(name, hc, originalLIFLayer);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIF layer\n", name, originalLayer->getName());
-        addedLayer = NULL;
-    }
-    return addedLayer;
+   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+   if( originalLayer == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+   GapLayer * addedLayer;
+   if (originalLIFLayer) {
+      addedLayer = new GapLayer(name, hc, originalLIFLayer);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIF layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
 }
 
 Image * addImage( const char * name, HyPerCol * hc) {
-    Image * addedLayer;
-    const char * imagelabelspath = hc->parameters()->stringValue(name, "imagePath");
-    if (imagelabelspath) {
-        addedLayer = new Image(name, hc, imagelabelspath);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Parameter group for class Image must set string parameter imagePath\n", name);
-        addedLayer = NULL;
-    }
-    return addedLayer;
+   Image * addedLayer;
+   const char * imagelabelspath = hc->parameters()->stringValue(name, "imagePath");
+   if (imagelabelspath) {
+      addedLayer = new Image(name, hc, imagelabelspath);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Parameter group for class Image must set string parameter imagePath\n", name);
+      addedLayer = NULL;
+   }
+   return addedLayer;
 }
 
 Movie * addMovie(const char * name, HyPerCol * hc) {
-    Movie * addedLayer;
-    const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
-    if (imagelabelspath) {
-        addedLayer = new Movie(name, hc, imagelabelspath);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Parameter group for class Movie must set string parameter imageListPath\n", name);
-        addedLayer = NULL;
-    }
-    return addedLayer;
+   Movie * addedLayer;
+   const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
+   if (imagelabelspath) {
+      addedLayer = new Movie(name, hc, imagelabelspath);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Parameter group for class Movie must set string parameter imageListPath\n", name);
+      addedLayer = NULL;
+   }
+   return addedLayer;
 }
 
 Patterns * addPatterns(const char * name, HyPerCol *hc) {
-    const char * allowedPatternTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-            "BARS",
-            "RECTANGLES",
-            "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-    };
-    const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");
-    if( ! patternTypeStr ) {
-        fprintf(stderr, "Group \"%s\": Parameter group for class Patterns must set string parameter patternType\n", name);
-        return NULL;
-    }
-    PatternType patternType;
-    int patternTypeMatch = false;
-    for( int i=0; strcmp(allowedPatternTypes[i],"_End_allowedPatternTypes"); i++ ) {
-    	const char * thispatterntype = allowedPatternTypes[i];
-        if( !strcmp(patternTypeStr, thispatterntype) ) {
-            patternType = (PatternType) i;
-            patternTypeMatch = true;
-            break;
-        }
-    }
-    if( patternTypeMatch ) {
-        return new Patterns(name, hc, patternType);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, patternTypeStr);
-        return NULL;
-    }
+   const char * allowedPatternTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "BARS",
+         "RECTANGLES",
+         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");
+   if( ! patternTypeStr ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class Patterns must set string parameter patternType\n", name);
+      return NULL;
+   }
+   PatternType patternType;
+   int patternTypeMatch = false;
+   for( int i=0; strcmp(allowedPatternTypes[i],"_End_allowedPatternTypes"); i++ ) {
+      const char * thispatterntype = allowedPatternTypes[i];
+      if( !strcmp(patternTypeStr, thispatterntype) ) {
+         patternType = (PatternType) i;
+         patternTypeMatch = true;
+         break;
+      }
+   }
+   if( patternTypeMatch ) {
+      return new Patterns(name, hc, patternType);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, patternTypeStr);
+      return NULL;
+   }
 }
 
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
-    HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-    if( originalLayer == NULL ) {
-       fprintf(stderr, "Group \"%s\": Parameter group for class SigmoidLayer must set string parameter originalLayerName\n", name);
-       return NULL;
-    }
-    LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
-    SigmoidLayer * addedLayer;
-    if (originalLIFLayer) {
-        addedLayer = new SigmoidLayer(name, hc, originalLIFLayer);
-    }
-    else {
-        fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
-        addedLayer = NULL;
-    }
-    return addedLayer;
+   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+   if( originalLayer == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class SigmoidLayer must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+   SigmoidLayer * addedLayer;
+   if (originalLIFLayer) {
+      addedLayer = new SigmoidLayer(name, hc, originalLIFLayer);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
 }
 
 
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-    HyPerConn * addedConn = NULL;
-    assert( hc != NULL );
-    const char * fileName;
-    HyPerLayer * preLayer, * postLayer;
-    HyPerConn * auxConn;
-    PVParams * params = hc->parameters();
+   HyPerConn * addedConn = NULL;
+   assert( hc != NULL );
+   const char * fileName;
+   HyPerLayer * preLayer, * postLayer;
+   HyPerConn * auxConn;
+   PVParams * params = hc->parameters();
 
-    ChannelType channelType;
-    int channelNo = (int) params->value(name, "channelCode", -1);
-    if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
-        fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
-        return NULL;
-    }
-    bool keywordMatched = false;
-    if( !strcmp(classkeyword, "HyPerConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
-        keywordMatched = true;
-        fprintf(stderr, "Connection \"%s\": AvgConn not implemented (I don't know what delegate does).\n", name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-        if( auxConn && preLayer && postLayer ) {
-        	addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn)  );
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = (HyPerConn * ) new CocircConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new GaborConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "GeislerConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = new GeislerConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
-        // Filename is ignored
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "PeriodicUpdateConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = new PeriodicUpdateConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-            addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName );
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-        if( auxConn && preLayer && postLayer ) {
-        	addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn) );
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
-        keywordMatched = true;
-        auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-        if( auxConn ) {
-            addedConn = (HyPerConn *) new FeedbackConn(name, hc, channelType, dynamic_cast<KernelConn *>(auxConn) );
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
-    	// filename is ignored as PoolConn doesn't have a constructor that takes a filename
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new PoolConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched && !strcmp(classkeyword, "RuleConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new RuleConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
+   ChannelType channelType;
+   int channelNo = (int) params->value(name, "channelCode", -1);
+   if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
+      return NULL;
+   }
+   bool keywordMatched = false;
+   if( !strcmp(classkeyword, "HyPerConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType);
+
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
-    if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
-            addedConn = (HyPerConn * ) new SubunitConn(name, hc, preLayer, postLayer, channelType);
-        }
-        checknewobject((void *) addedConn, classkeyword, name);
-    }
-    if( !keywordMatched ) {
-        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
-    }
-    return addedConn;
+   if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
+      keywordMatched = true;
+      fprintf(stderr, "Connection \"%s\": AvgConn not implemented (I don't know what delegate does).\n", name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+      if( auxConn && preLayer && postLayer ) {
+         addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn)  );
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = (HyPerConn * ) new CocircConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new GaborConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GeislerConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new GeislerConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
+      // Filename is ignored
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "PeriodicUpdateConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new PeriodicUpdateConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName );
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+      if( auxConn && preLayer && postLayer ) {
+         addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn) );
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
+      keywordMatched = true;
+      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
+      if( auxConn ) {
+         addedConn = (HyPerConn *) new FeedbackConn(name, hc, channelType, dynamic_cast<KernelConn *>(auxConn) );
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
+      // filename is ignored as PoolConn doesn't have a constructor that takes a filename
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new PoolConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "RuleConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new RuleConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
+     keywordMatched = true;
+     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+     if( preLayer && postLayer ) {
+       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType);
+     }
+     checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         addedConn = (HyPerConn * ) new SubunitConn(name, hc, preLayer, postLayer, channelType);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched ) {
+      fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
+   }
+   return addedConn;
 }
 
 PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
-    PoolingGenConn * addedConn;
-    HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
-    HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
-    if( secondaryPreLayer && secondaryPostLayer ) {
-        addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename);
-    }
-    else {
-        addedConn = NULL;
-    }
-    return addedConn;
+   PoolingGenConn * addedConn;
+   HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
+   HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
+   if( secondaryPreLayer && secondaryPostLayer ) {
+       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename);
+   }
+   else {
+       addedConn = NULL;
+   }
+   return addedConn;
 }
 
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterStringName, bool warnIfAbsent) {
-    bool shouldGetValue = warnIfAbsent ? true : params->stringPresent(groupName, parameterStringName);
-    const char * str;
-    str = shouldGetValue ? params->stringValue(groupName, parameterStringName) : NULL;
-    return str;
+   bool shouldGetValue = warnIfAbsent ? true : params->stringPresent(groupName, parameterStringName);
+   const char * str;
+   str = shouldGetValue ? params->stringValue(groupName, parameterStringName) : NULL;
+   return str;
 }
 
 int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayerPtr) {
@@ -661,14 +661,14 @@ int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayer
 
 // make a method in HyPerCol?
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
-    PVParams * params = hc->parameters();
-    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
-    if( !layerName ) return NULL;
-    HyPerLayer * l = getLayerFromName(layerName, hc);
-    if( l == NULL && warnIfAbsent )  {
-        fprintf(stderr, "Group \"%s\": could not find layer \"%s\"\n", groupName, layerName);
-    }
-    return l;
+   PVParams * params = hc->parameters();
+   const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
+   if( !layerName ) return NULL;
+   HyPerLayer * l = getLayerFromName(layerName, hc);
+   if( l == NULL && warnIfAbsent )  {
+      fprintf(stderr, "Group \"%s\": could not find layer \"%s\"\n", groupName, layerName);
+   }
+   return l;
 }
 
 HyPerLayer * getLayerFromName(const char * layerName, HyPerCol * hc) {
@@ -684,14 +684,14 @@ HyPerLayer * getLayerFromName(const char * layerName, HyPerCol * hc) {
 }
 
 HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
-    PVParams * params = hc->parameters();
-    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
-    if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
-    HyPerConn * c = getConnFromName(connName, hc);
-    if( c == NULL && warnIfAbsent)  {
-        fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
-    }
-    return c;
+   PVParams * params = hc->parameters();
+   const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
+   if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
+   HyPerConn * c = getConnFromName(connName, hc);
+   if( c == NULL && warnIfAbsent)  {
+      fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
+   }
+   return c;
 }
 
 // make a method in HyPerCol?
@@ -708,277 +708,277 @@ HyPerConn * getConnFromName(const char * connName, HyPerCol * hc) {
 }
 
 ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
-    ColProbe * p = NULL;
-    PVParams * params = hc->parameters();
-    const char * colProbeName = getStringValueFromParameterGroup(groupName, params, parameterStringName, false);
-    if( !colProbeName ) return NULL;  // error message was printed by getStringValueFromParameterGroup
-    int n = hc->numberOfProbes();
-    for( int i=0; i<n; i++ ) {
-    	ColProbe * curColProbe = hc->getColProbe(i);
-    	const char * curName = curColProbe->getColProbeName();
-    	assert(curName);
-        if( !strcmp(curName,colProbeName) ) {
-            p = curColProbe;
-        }
-    }
-    return p;
+   ColProbe * p = NULL;
+   PVParams * params = hc->parameters();
+   const char * colProbeName = getStringValueFromParameterGroup(groupName, params, parameterStringName, false);
+   if( !colProbeName ) return NULL;  // error message was printed by getStringValueFromParameterGroup
+   int n = hc->numberOfProbes();
+   for( int i=0; i<n; i++ ) {
+      ColProbe * curColProbe = hc->getColProbe(i);
+      const char * curName = curColProbe->getColProbeName();
+      assert(curName);
+      if( !strcmp(curName,colProbeName) ) {
+         p = curColProbe;
+      }
+   }
+   return p;
 }
 
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName, HyPerCol * hc) {
-    ColProbe * addedProbe;
-    bool keywordMatched = false;
-    const char * fileName = getStringValueFromParameterGroup(probeName, hc->parameters(), "probeOutputFile", false);
-    if( !strcmp(classkeyword, "ColProbe") ) {
-        keywordMatched = true;
-        addedProbe = new ColProbe(probeName, fileName, hc);
-        insertColProbe(addedProbe, hc, classkeyword);
-    }
-    if( !strcmp(classkeyword, "GenColProbe") ) {
-    	keywordMatched = true;
-        addedProbe = (ColProbe *) new GenColProbe(probeName, fileName, hc);
-        insertColProbe(addedProbe, hc, classkeyword);
-    }
-    if( !keywordMatched ) {
-        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, probeName);
-        addedProbe = NULL;
-    }
-    return addedProbe;
+   ColProbe * addedProbe;
+   bool keywordMatched = false;
+   const char * fileName = getStringValueFromParameterGroup(probeName, hc->parameters(), "probeOutputFile", false);
+   if( !strcmp(classkeyword, "ColProbe") ) {
+      keywordMatched = true;
+      addedProbe = new ColProbe(probeName, fileName, hc);
+      insertColProbe(addedProbe, hc, classkeyword);
+   }
+   if( !strcmp(classkeyword, "GenColProbe") ) {
+      keywordMatched = true;
+      addedProbe = (ColProbe *) new GenColProbe(probeName, fileName, hc);
+      insertColProbe(addedProbe, hc, classkeyword);
+   }
+   if( !keywordMatched ) {
+      fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, probeName);
+      addedProbe = NULL;
+   }
+   return addedProbe;
 }
 
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword) {
-    if( colProbe != NULL ) {
-        hc->insertProbe(colProbe);
-        printf("Added %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
-    }
-    else {
-        fprintf(stderr, "Unable to add %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
-    }
+   if( colProbe != NULL ) {
+      hc->insertProbe(colProbe);
+      printf("Added %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
+   }
+   else {
+      fprintf(stderr, "Unable to add %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
+   }
 }
 
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-    ConnectionProbe * addedProbe;
-    PVParams * params = hc->parameters();
-    int kPre, kxPre, kyPre, kfPre;
-    bool keywordMatched = true;
-    if( !strcmp(classkeyword, "ConnectionProbe") ) {
-    	keywordMatched = true;
-        int indexmethod = params->present(name, "kPre");
-        int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
-    	if( indexmethod && coordmethod ) {
-    	    fprintf(stderr, "Group \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
-    	    return NULL;
-    	}
-    	if( !indexmethod && !indexmethod) {
-    	    fprintf(stderr, "Group \"%s\": Neither kPre nor (kxPre,kyPre,kfPre) were defined\n", name);
-    	    return NULL;
-    	}
-        if( indexmethod ) {
-            kPre = params->value(name, "kPre");
-            addedProbe = new ConnectionProbe(kPre);
-        }
-        else if( coordmethod ) {
-            kxPre = params->value(name, "kxPre");
-            kyPre = params->value(name, "kyPre");
-            kfPre = params->value(name, "kfPre");
-            addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre);
-        }
-        else {
-            assert(false);
-        }
-    }
-    if( !keywordMatched ) { // The reason this is a separate if statement and not an else statement attached to if( !strcmp... )
-    	                    // is that if subclasses are added, addConnectionProbeToColumn() should be extended along the lines
-    	                    // of the other add.*ToColumn() functions.
-        fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
-    }
-    checknewobject((void *) addedProbe, classkeyword, name);
-    return addedProbe;
+   ConnectionProbe * addedProbe;
+   PVParams * params = hc->parameters();
+   int kPre, kxPre, kyPre, kfPre;
+   bool keywordMatched = true;
+   if( !strcmp(classkeyword, "ConnectionProbe") ) {
+      keywordMatched = true;
+      int indexmethod = params->present(name, "kPre");
+      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+      if( indexmethod && coordmethod ) {
+         fprintf(stderr, "Group \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         return NULL;
+      }
+      if( !indexmethod && !indexmethod) {
+         fprintf(stderr, "Group \"%s\": Neither kPre nor (kxPre,kyPre,kfPre) were defined\n", name);
+         return NULL;
+      }
+      if( indexmethod ) {
+         kPre = params->value(name, "kPre");
+         addedProbe = new ConnectionProbe(kPre);
+      }
+      else if( coordmethod ) {
+         kxPre = params->value(name, "kxPre");
+         kyPre = params->value(name, "kyPre");
+         kfPre = params->value(name, "kfPre");
+         addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre);
+      }
+      else {
+         assert(false);
+      }
+   }
+   if( !keywordMatched ) { // The reason this is a separate if statement and not an else statement attached to if( !strcmp... )
+                     // is that if subclasses are added, addConnectionProbeToColumn() should be extended along the lines
+                     // of the other add.*ToColumn() functions.
+      fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
+   }
+   checknewobject((void *) addedProbe, classkeyword, name);
+   return addedProbe;
 }
 
 #define LAYERPROBEMSGLENGTH 32
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-    int status;
-	bool errorFound = false;
+   int status;
+   bool errorFound = false;
 
-    LayerProbe * addedProbe;
-    char * probename;
-    HyPerLayer * targetlayer;
-    const char * message;
-    const char * filename;
-    PVParams * params = hc->parameters();
-    GenColProbe * parentcolprobe;
-    if( !strcmp(classkeyword, "LayerProbe") ) {
-        fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
-        addedProbe = NULL;
-    }
-    int xLoc, yLoc, fLoc;
-    if( !strcmp(classkeyword, "PointProbe") ) {
-        status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-        errorFound = status!=PV_SUCCESS;
-        if( !errorFound ) {
-            xLoc = params->value(name, "xLoc", -1);
-            yLoc = params->value(name, "yLoc", -1);
-            fLoc = params->value(name, "fLoc", -1);
-            if( xLoc < 0 || yLoc < 0 || fLoc < 0) {
-                fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
-                errorFound = true;
-            }
-        }
-        if( !errorFound ) {
-            if( filename ) {
-                addedProbe = (LayerProbe *) new PointProbe(filename, hc, xLoc, yLoc, fLoc, message);
-            }
-            else {
-                addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
-            }
-            if( !addedProbe ) {
-                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
-                 errorFound = true;
-            }
-        }
-    }
-    if( !strcmp(classkeyword, "L2NormProbe") ) {
-    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-        errorFound = status!=PV_SUCCESS;
-    	if( !errorFound ) {
-            if( filename ) {
-                addedProbe = (LayerProbe *) new L2NormProbe(filename, hc, message);
-            }
-            else {
-                addedProbe = (LayerProbe *) new L2NormProbe(message);
-            }
-            if( !addedProbe ) {
-                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
-                 errorFound = true;
-            }
-        }
-    	if( !errorFound ) {
-            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
-            if( parentcolprobe )
-            {
-                pvdata_t coeff = params->value(name, "coeff", 1);
-            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
-            }
-    	}
-    }
-    if( !strcmp(classkeyword, "SparsityTermProbe") ) {
-    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-        errorFound = status!=PV_SUCCESS;
-    	if( !errorFound ) {
-            if( filename ) {
-                addedProbe = (LayerProbe *) new SparsityTermProbe(filename, hc, message);
-            }
-            else {
-                addedProbe = (LayerProbe *) new SparsityTermProbe(message);
-            }
-            if( !addedProbe ) {
-                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
-                 errorFound = true;
-            }
-        }
-    	if( !errorFound ) {
-            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
-            if( parentcolprobe )
-            {
-                pvdata_t coeff = params->value(name, "coeff", 1);
-            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
-            }
-    	}
-    }
-    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
-    	status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-        errorFound = status!=PV_SUCCESS;
-    	if( !errorFound ) {
-            if( filename ) {
-                addedProbe = (LayerProbe *) new LogLatWTAProbe(filename, hc, message);
-            }
-            else {
-                addedProbe = (LayerProbe *) new LogLatWTAProbe(message);
-            }
-            if( !addedProbe ) {
-                 fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
-                 errorFound = true;
-            }
-        }
-    	if( !errorFound ) {
-            parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
-            if( parentcolprobe )
-            {
-                pvdata_t coeff = params->value(name, "coeff", 1);
-            	parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
-            }
-    	}
-    }
-    assert(targetlayer);
-    if( addedProbe ) targetlayer->insertProbe(addedProbe);
-    checknewobject((void *) addedProbe, classkeyword, name);
-    return addedProbe;
+   LayerProbe * addedProbe;
+   char * probename;
+   HyPerLayer * targetlayer;
+   const char * message;
+   const char * filename;
+   PVParams * params = hc->parameters();
+   GenColProbe * parentcolprobe;
+   if( !strcmp(classkeyword, "LayerProbe") ) {
+      fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
+      addedProbe = NULL;
+   }
+   int xLoc, yLoc, fLoc;
+   if( !strcmp(classkeyword, "PointProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         xLoc = params->value(name, "xLoc", -1);
+         yLoc = params->value(name, "yLoc", -1);
+         fLoc = params->value(name, "fLoc", -1);
+         if( xLoc < 0 || yLoc < 0 || fLoc < 0) {
+            fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
+            errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new PointProbe(filename, hc, xLoc, yLoc, fLoc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             errorFound = true;
+         }
+      }
+   }
+   if( !strcmp(classkeyword, "L2NormProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new L2NormProbe(filename, hc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new L2NormProbe(message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         if( parentcolprobe )
+         {
+            pvdata_t coeff = params->value(name, "coeff", 1);
+            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+         }
+      }
+   }
+   if( !strcmp(classkeyword, "SparsityTermProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new SparsityTermProbe(filename, hc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new SparsityTermProbe(message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         if( parentcolprobe )
+         {
+            pvdata_t coeff = params->value(name, "coeff", 1);
+            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+         }
+      }
+   }
+   if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new LogLatWTAProbe(filename, hc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new LogLatWTAProbe(message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         if( parentcolprobe )
+         {
+            pvdata_t coeff = params->value(name, "coeff", 1);
+            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+         }
+      }
+   }
+   assert(targetlayer);
+   if( addedProbe ) targetlayer->insertProbe(addedProbe);
+   checknewobject((void *) addedProbe, classkeyword, name);
+   return addedProbe;
 }
 
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, const char ** messagePtr, const char ** filenamePtr) {
-    PVParams * params = hc->parameters();
-    const char * message;
-    const char * filename;
-	*targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
-    if( ! *targetLayerPtr ) {
-        fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
-        return PV_FAILURE;
-    }
-	message = getStringValueFromParameterGroup(name, params, "message", false);
-    if( ! message ) {
-    	size_t messagelen = strlen(name);
-    	assert(LAYERPROBEMSGLENGTH>0);
-    	messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
-        char * newmessage = (char *) malloc(LAYERPROBEMSGLENGTH+1);
-        if( ! newmessage ) {
-            fprintf(stderr, "Group \"%s\": Unable to allocate memory for message\n", name);
-            return PV_FAILURE;
-        }
-        for( size_t c=0; c<messagelen; c++ ) {
-            newmessage[c] = name[c];
-        }
-        for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
-            newmessage[c] = ' ';
-        }
-        newmessage[LAYERPROBEMSGLENGTH-1] = ':';
-        newmessage[LAYERPROBEMSGLENGTH] = '\0';
-        message = newmessage;
-        newmessage = NULL;
-        printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
-    }
-    *messagePtr = message;
-    filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
-    *filenamePtr = filename;
-    filename = NULL;
-    return PV_SUCCESS;
+   PVParams * params = hc->parameters();
+   const char * message;
+   const char * filename;
+   *targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
+   if( ! *targetLayerPtr ) {
+      fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
+      return PV_FAILURE;
+   }
+   message = getStringValueFromParameterGroup(name, params, "message", false);
+   if( ! message ) {
+      size_t messagelen = strlen(name);
+      assert(LAYERPROBEMSGLENGTH>0);
+      messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
+      char * newmessage = (char *) malloc(LAYERPROBEMSGLENGTH+1);
+      if( ! newmessage ) {
+         fprintf(stderr, "Group \"%s\": Unable to allocate memory for message\n", name);
+         return PV_FAILURE;
+      }
+      for( size_t c=0; c<messagelen; c++ ) {
+         newmessage[c] = name[c];
+      }
+      for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
+         newmessage[c] = ' ';
+      }
+      newmessage[LAYERPROBEMSGLENGTH-1] = ':';
+      newmessage[LAYERPROBEMSGLENGTH] = '\0';
+      message = newmessage;
+      newmessage = NULL;
+      printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
+   }
+   *messagePtr = message;
+   filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
+   *filenamePtr = filename;
+   filename = NULL;
+   return PV_SUCCESS;
 }
 
 int decodeChannel(int channel, ChannelType * channelType) {
-    int status = PV_SUCCESS;
-    switch( channel ) {
-    case CHANNEL_EXC:
-        *channelType = CHANNEL_EXC;
-        break;
-    case CHANNEL_INH:
-        *channelType = CHANNEL_INH;
-        break;
-    case CHANNEL_INHB:
-        *channelType = CHANNEL_INHB;
-        break;
-    default:
-        status = PV_FAILURE;
-        break;
-    }
-    return status;
+   int status = PV_SUCCESS;
+   switch( channel ) {
+   case CHANNEL_EXC:
+      *channelType = CHANNEL_EXC;
+      break;
+   case CHANNEL_INH:
+      *channelType = CHANNEL_INH;
+      break;
+   case CHANNEL_INHB:
+      *channelType = CHANNEL_INHB;
+      break;
+   default:
+      status = PV_FAILURE;
+      break;
+   }
+   return status;
 }
 
 int checknewobject(void * object, const char * kw, const char * name) {
-    if( object == NULL ) {
-        fprintf(stderr, "Group \"%s\": Unable to add object of class %s\n", name, kw);
-        return PV_FAILURE;
-    }
-    else {
-        printf("Added %s \"%s\"\n", kw, name);
-        return PV_SUCCESS;
-    }
+   if( object == NULL ) {
+      fprintf(stderr, "Group \"%s\": Unable to add object of class %s\n", name, kw);
+      return PV_FAILURE;
+   }
+   else {
+      printf("Added %s \"%s\"\n", kw, name);
+      return PV_SUCCESS;
+   }
 }
