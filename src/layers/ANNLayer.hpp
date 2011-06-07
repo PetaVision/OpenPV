@@ -14,14 +14,20 @@ namespace PV {
 
 class ANNLayer : public HyPerLayer {
 public:
-    ANNLayer(const char* name, HyPerCol * hc);
-    ~ANNLayer();
-    virtual int updateV();
-    pvdata_t VThresh;
-    pvdata_t VMax;
-    pvdata_t VMin;
+   ANNLayer(const char* name, HyPerCol * hc);
+   ~ANNLayer();
+   virtual int updateV();
+   virtual int applyVMax();
+   virtual int applyVThresh();
+   pvdata_t getVThresh()        { return VThresh; }
+   pvdata_t getVMax()           { return VMax; }
+   pvdata_t getVMin()           { return VMin; }
 protected:
-    int initialize();
+   int initialize();
+   virtual int readVThreshParams(PVParams * params);
+   pvdata_t VThresh;
+   pvdata_t VMax;
+   pvdata_t VMin;
 }; // end of class ANNLayer
 
 }  // end namespace PV
