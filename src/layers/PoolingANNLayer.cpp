@@ -18,7 +18,7 @@
 
 namespace PV {
 
-PoolingANNLayer::PoolingANNLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc) {
+PoolingANNLayer::PoolingANNLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, 2) {
     initialize();
 }  // end of PoolingANNLayer::PoolingANNLayer(const char *, HyPerCol *)
 
