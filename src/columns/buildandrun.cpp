@@ -199,7 +199,7 @@ HyPerCol * build(int argc, char * argv[]) {
       }
       else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
          addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
-         didAddObject = addedHyPerCol != NULL;
+         didAddObject = addedLayerProbe != NULL;
       }
       else {
          fprintf(stderr, "Parameter group \"%s\" class keyword \"%s\" cannot be categorized\n", name, kw);
@@ -801,7 +801,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    bool errorFound = false;
 
    LayerProbe * addedProbe;
-   char * probename;
+   // char * probename;
    HyPerLayer * targetlayer;
    const char * message;
    const char * filename;
@@ -832,7 +832,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
          }
          if( !addedProbe ) {
-             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
              errorFound = true;
          }
       }
@@ -848,7 +848,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             addedProbe = (LayerProbe *) new L2NormProbe(message);
          }
          if( !addedProbe ) {
-             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             fprintf(stderr, "Group \"%s\": Unable to create probe \n", name);
              errorFound = true;
          }
       }
@@ -872,7 +872,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             addedProbe = (LayerProbe *) new SparsityTermProbe(message);
          }
          if( !addedProbe ) {
-             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
              errorFound = true;
          }
       }
@@ -896,7 +896,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             addedProbe = (LayerProbe *) new LogLatWTAProbe(message);
          }
          if( !addedProbe ) {
-             fprintf(stderr, "Group \"%s\": Unable to create probe \"%s\"\n", name, probename);
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
              errorFound = true;
          }
       }
