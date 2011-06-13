@@ -239,7 +239,7 @@ int Movie::outputState(float time, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "./output/Movie_%f.tif", time);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), time);
       write(basicFilename);
    }
 
