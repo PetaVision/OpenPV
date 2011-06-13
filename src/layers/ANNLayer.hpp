@@ -1,5 +1,5 @@
 /*
- * NonspikingLayer.hpp
+ * ANNLayer.cpp
  *
  *  Created on: Dec 21, 2010
  *      Author: pschultz
@@ -14,6 +14,7 @@ namespace PV {
 
 class ANNLayer : public HyPerLayer {
 public:
+   ANNLayer(const char* name, HyPerCol * hc, int numChannels);
    ANNLayer(const char* name, HyPerCol * hc);
    ~ANNLayer();
    virtual int updateV();
@@ -25,8 +26,8 @@ public:
 protected:
    int initialize();
    virtual int readVThreshParams(PVParams * params);
-   pvdata_t VThresh;
    pvdata_t VMax;
+   pvdata_t VThresh;
    pvdata_t VMin;
 }; // end of class ANNLayer
 
