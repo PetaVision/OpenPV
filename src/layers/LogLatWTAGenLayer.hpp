@@ -19,16 +19,12 @@ class LogLatWTAGenLayer : public GenerativeLayer {
 public:
     LogLatWTAGenLayer(const char * name, HyPerCol * hc);
     ~LogLatWTAGenLayer();
-    int initialize_base();
-    int initialize();
-
-    virtual pvdata_t latWTAterm(pvdata_t * V, int nf);
 
 protected:
-    int updateV();
-
-private:
-    pvdata_t * dV;
+    int initialize();
+    int updateSparsityTermDerivative();
+    virtual pvdata_t latWTAterm(pvdata_t * V, int nf);
+    pvdata_t sparsitytermcoeff;
 };
 
 }  // end namespace PV block

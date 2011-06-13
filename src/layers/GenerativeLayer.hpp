@@ -2,7 +2,10 @@
  * GenerativeLayer.hpp
  *
  * A class derived from ANNLayer where the update rule is
- * new = old + relaxation*(excitatorychannel - inhibitorychannel - log(1+old^2)
+ * dAnew = excitatorychannel - inhibitorychannel + auxChannelCoeff*auxiliarychannel - d(log(1+old^2))/d(old)
+ * dAnew = persistence*dAold + (1-persistenceOfMemory)*dAnew
+ * A = A + relaxation*dAnew
+ * dAold = dAnew
  *
  *  Created on: Oct 27, 2010
  *      Author: pschultz
@@ -19,20 +22,24 @@ class GenerativeLayer : public ANNLayer {
 public:
    GenerativeLayer(const char * name, HyPerCol * hc);
 //   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
+   ~GenerativeLayer();
+   int initialize_base();
    int initialize();
 
    pvdata_t getRelaxation() {return relaxation;}
    pvdata_t getActivityThreshold() { return activityThreshold; }
-   virtual pvdata_t sparsityterm(pvdata_t v) { return logf(1+v*v);}
-   virtual pvdata_t sparsitytermderivative(pvdata_t v) { return 2.0*v/(1+v*v); }
 
 protected:
-   int updateV();
-   int setActivity();
+   virtual int updateV();
+   virtual int setActivity();
+   virtual int updateSparsityTermDerivative();
 
    pvdata_t relaxation; // V(new) = V(old) - relaxation*(gradient wrt V)
-   pvdata_t activityThreshold;
-   pvdata_t auxChannelCoeff;
+   pvdata_t activityThreshold;  // values with absolute value below threshold are zero
+   pvdata_t auxChannelCoeff; // coefficient on channel 2 in update rule
+   pvdata_t persistence;  // "stickiness" of the rate of change of weights
+   pvdata_t * dAold;  // buffer holding past rate of change of weights
+   pvdata_t * sparsitytermderivative;  // buffer holding derivative of sparsity function
 };
 
 }  // end namespace PV block
