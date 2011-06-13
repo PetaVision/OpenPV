@@ -167,10 +167,10 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
             for (int x = 0; x < p->nx; x++) {
                for (int f = 0; f < p->nf; f++) {
                   int offset = x*sxp + y*syp + f*sfp;
-                  float * valptr;
-                  memcpy(valptr, cptr, sizeof(float));
+                  float val;
+                  memcpy(&val, cptr, sizeof(float));
                   cptr += sizeof(float);
-                  data[offset] = (pvdata_t) (*valptr);
+                  data[offset] = (pvdata_t) val;
                }
             }
          }
