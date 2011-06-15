@@ -39,12 +39,12 @@ int LogLatWTAGenLayer::updateSparsityTermDerivative() {
 }  // end of LogLatWTAGenLayer::updateSparsityTermDerivative()
 
 pvdata_t LogLatWTAGenLayer::latWTAterm(pvdata_t * V, int nf) {
-	pvdata_t z=0;
-    for( int p=0; p<nf; p++) {
-    	for( int q=0; q<nf; q++) {
-    	    if( p== q) z += V[p]*V[q];
-        }
-    }
+   pvdata_t z=0;
+   for( int p=0; p<nf; p++) {
+      for( int q=0; q<nf; q++) {
+         if( p!=q ) z += V[p]*V[q];
+      }
+   }
     return z;
 }  // end of LogLatWTAGenLayer::latWTAterm(pvdata_t *, int)
 
