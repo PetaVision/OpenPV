@@ -1,5 +1,4 @@
 %%
-
 close all
 clear all
 expNum = 1;
@@ -18,10 +17,10 @@ global THETA_MAX
 THETA_MAX = 1 * pi;
 
 global num_trials first_trial last_trial skip_trial
-global OUTPUT_PATH spiking_path twoAFC_path spiking_path activity_path
+global OUTPUT_PATH SPIKE_PATH twoAFC_path activity_path
 
-plot_weights_flag = 1;
-plot_2AFC_flag = 0;
+plot_weights_flag = 0;
+plot_2AFC_flag = 1;
 
 global MIN_INTENSITY
 MIN_INTENSITY = 0;
@@ -30,7 +29,7 @@ global NUM2STR_FORMAT
 NUM2STR_FORMAT = '%04.4i';
 
 global FLAT_ARCH_FLAG
-FLAT_ARCH_FLAG = 1;
+FLAT_ARCH_FLAG = 0;
 
 global TOPDOWN_FLAG
 TOPDOWN_FLAG = 0;
@@ -53,14 +52,16 @@ endif
 MNIST_flag = 0;
 bowtie_flag = 0;
 animal_flag = 0;
+dogcat_flag = 1;
 
 NFC = 4;
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 15;
-num_trials = 0;%%599; % %
+num_single_trials = 1; %%11;
+num_trials = 0; %%199; %% cannot exceed ~1024 for 256x256 image because
+%%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
 else
@@ -76,7 +77,8 @@ DEBUG_FLAG = 1;
 
 global G_STR
 G_STR = '';
-if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
+if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0) && ...
+    (dogcat_flag == 0))
   if abs(TRAINING_FLAG) == 1
     G_STR = '_G1/';
   elseif abs(TRAINING_FLAG) == 2
@@ -88,37 +90,44 @@ if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
   endif
 elseif MNIST_flag == 1
   G_STR = '_6/';
-elseif bowtie_flag == 1 || animal_flag == 1
-  G_STR = '';
+elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
+  G_STR = '/';
 endif
-machine_path = '/Users/gkenyon/workspace/';
+machine_path = ...
+    '/Users/gkenyon/workspace2/';
+%%    '/Users/gkenyon/workspace/';
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "kernel/input/256/test_target40K_W325_target"]; 
+    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
+%%    [machine_path "geisler/input/256/cat/likimas512"];    
+%%    [machine_path "kernel/input/256/amoeba/test_target40K_W400_target"];
 if ~isempty(target_path)
   target_path = [target_path, G_STR];
-  if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
+  if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
     target_path = [target_path, FC_STR, '/'];
   endif
 endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-      [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
+    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
+%%      []; 
+%%      [machine_path, "kernel/input/256/amoeba/test_target40K_W400_distractor"]; 
+%%      [machine_path, "geisler/input/256/amoeba/distractor40K"]; 
 else
   distractor_path = [];
 endif
 if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR, '/'];
-  if ((MNIST_flag == 0) && (bowtie_flag == 0) && (animal_flag == 0))
+  if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
     distractor_path = [distractor_path, FC_STR, '/'];
   endif
 endif % ~isempty(distractor_path)
 
 twoAFC_path = target_path;
-spiking_path = target_path; %[machine_path, 'kernel/input/spiking_target10K', FC_STR];
+SPIKE_PATH = target_path; %[machine_path, 'kernel/input/spiking_target10K', FC_STR];
 				%twoAFC_path = [twoAFC_path, G_STR, '/'];
 				%spiking_path = [spiking_path, G_STR, '/'];
 activity_path = {target_path; distractor_path};
@@ -320,9 +329,8 @@ for j_trial = first_trial : skip_trial : last_trial
 				% plot reconstructed image
       reconstruct_activity2 = ...
 	  ismember( layer, reconstruct_activity ) && ...
-	  ( reconstruct_count <= num_single_trials ); % * ...
-				%	   size(reconstruct_activity,2) ) * ...%
-				%	  (max_target_flag - min_target_flag + 1);
+	  ( mod(reconstruct_count-1,num_single_trials) == 0 ); % * ...
+%%	  ( reconstruct_count <= num_single_trials ); % * ...
       if reconstruct_activity2
         size_activity = ...
 	    [ 1 , num_features(layer, j_trial), ...
@@ -355,7 +363,7 @@ for j_trial = first_trial : skip_trial : last_trial
     
   endfor  % layer
   
-  if RAW_HIST_FLAG && ( raw_hist_count <= num_single_trials )
+  if RAW_HIST_FLAG && ( mod(raw_hist_count-1,num_single_trials)==0 )
     
     raw_hist_filename = ...
         ['raw hist ', ...
@@ -412,6 +420,7 @@ if plot_2AFC_flag == 1
   elseif exist(twoAFC_filename,"file")
     load(twoAFC_filename);
   else
+    disp("twoAFC not found");
     plot_2AFC_flag = 0;
   endif
 endif
@@ -467,7 +476,7 @@ if max_target_flag > min_target_flag
     head_trials = [301:450];
     middle_trials = [451:599];
     all_trials =  [1:size(twoAFC,3)];
-    twoAFC_trials = natural_trials; %%all_trials; 
+    twoAFC_trials = all_trials; %%all_trials; 
         
     mean_2AFC = squeeze( mean( twoAFC(:,:,twoAFC_trials,:), 3 ) );
     std_2AFC = squeeze( std( twoAFC(:,:,twoAFC_trials,:), 0, 3 ) );
@@ -498,6 +507,8 @@ if max_target_flag > min_target_flag
 			     read_activity, ...
 			     1, ...
 			     twoAFC_test_str{i_2AFC_test});
+      plot_ideal = 0;
+      if plot_ideal
       [fig_list_tmp] = ...
 	  pvp_plot2AFCIdeal(twoAFC_ideal, ...
 			    twoAFC_bins, ...
@@ -505,6 +516,7 @@ if max_target_flag > min_target_flag
 			    1, ...
 			    twoAFC_test_str{i_2AFC_test});
       fig_list = [fig_list; fig_list_tmp];
+      endif
 
       
       [twoAFC_ROC, twoAFC_AUC] = ...
@@ -574,7 +586,10 @@ if max_target_flag > min_target_flag
     endfor % i_2AFC_test
     
     save('-mat', twoAFC_filename, 'twoAFC', 'twoAFC_hist', ...
-	 'twoAFC_cumsum', 'twoAFC_ideal', 'twoAFC_correct', 'twoAFC_ROC', ...
+	 'twoAFC_cumsum', 'twoAFC_ideal', 'twoAFC_correct',
+	 'twoAFC_errorbar', ...
+	 'twoAFC_ROC', ...
+	 'twoAFC_AUC', ...
 	 'tot_trials', ...
 	 'ave_activity', 'std_activity', 'sum_activity', 'mnz_activity', 'snz_activity');
     
@@ -620,7 +635,8 @@ for i_conn = plot_weights
   weight_max = -10000000.;
   weight_ave = 0;
   if i_conn < N_CONNECTIONS+1
-    [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_conn_header{i_conn}, pvp_index ] ...
+    [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, ...
+     pvp_conn_header{i_conn}, pvp_index ] ...
 	= pvp_readWeights(i_conn);
     pvp_conn_header_tmp = pvp_conn_header{i_conn};
     NXP = pvp_conn_header_tmp(pvp_index.WGT_NXP);
@@ -699,7 +715,7 @@ for i_conn = plot_weights
 			[], patch_size, [], ...
 			pixels_per_cell);
     fig_list = [fig_list; fig_tmp];
-    plot_recon_subsection = 1;
+    plot_recon_subsection = 0;
     plot_recon_subsection
     if plot_recon_subsection
       weights_sub = ...
