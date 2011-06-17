@@ -224,28 +224,48 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
 
    if (loc->nx       != params[INDEX_NX])        {status = -1; tmp_status = INDEX_NX;}
    if (tmp_status == INDEX_NX) {
+      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
          fprintf(stderr, "nx = %d != params[%d]==%d ", loc->nx, INDEX_NX, params[INDEX_NX]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = 0; // kernels can be used regardless of layer size
+      }
    }
    if (loc->ny       != params[INDEX_NY])        {status = -1; tmp_status = INDEX_NY;}
    if (tmp_status == INDEX_NY) {
+      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
          fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = 0; // kernels can be used regardless of layer size
+      }
    }
    if (loc->nf != params[INDEX_NF]) {status = -1; tmp_status = INDEX_NF;}
    if (tmp_status == INDEX_NF) {
          fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
    }
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = -1; tmp_status = INDEX_NX_GLOBAL;}
    if (tmp_status == INDEX_NX_GLOBAL) {
+      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
          fprintf(stderr, "nxGlobal = %d != params[%d]==%d ", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = 0; // kernels can be used regardless of layer size
+      }
    }
    if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = -1; tmp_status = INDEX_NY_GLOBAL;}
    if (tmp_status == INDEX_NY_GLOBAL) {
+      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
          fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = 0; // kernels can be used regardless of layer size
+      }
    }
    if (nxProcs != params[INDEX_NX_PROCS]) {status = -1; tmp_status = INDEX_NX_PROCS;}
    if (tmp_status == INDEX_NX_PROCS) {
