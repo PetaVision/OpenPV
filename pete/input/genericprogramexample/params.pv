@@ -3,6 +3,8 @@ HyPerCol "column" = {
     ny = 256;
     dt = 1;
     randomSeed = 0;
+    numSteps = 10;
+    outputPath = "output/genericprogramexample/";
 };
 
 Image "Image" = {
