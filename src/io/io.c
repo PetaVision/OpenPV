@@ -26,6 +26,8 @@ void usage()
    printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
    printf(" [-i <input image filename>]\n");
+   printf(" [-s <random number generator seed>]\n");
+   printf(" [-d <OpenCL device>]\n");
 }
 
 /**
