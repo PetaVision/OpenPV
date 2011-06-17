@@ -28,7 +28,7 @@ function [wire_hndl, ...
 
   N_fourier = 7;%%5;
   %% N_Fourier: number of Fourier components (starting with 0) used to
-  %% construct smoot random outline along each axis
+  %% construct smooth random outline along each axis
   Npts = 2*8*2;
   %% Npts: number of points at which to evalutate/fit polynomial
   %% must be even so that 0 and 180 degrees are explicitly represented
@@ -88,12 +88,10 @@ function [wire_hndl, ...
 
   %% match intercepts
   %% Real part of cross-sections much match at intersections
-
   Npts_quarter = 1 + round(Npts/4);
   Npts_half = 1 + round(Npts/2);
   Npts_3quarter = 1 + round(3*Npts/4);
   amoeba_Rdiff = zeros(2,3);
-
   for axis_id = 1:3
     axis_id2 = axis_id + 2;
     axis_id2 = 1 + mod(axis_id2 - 1, 3);
@@ -103,7 +101,6 @@ function [wire_hndl, ...
 	amoeba_Rval(Npts_half,axis_id) - amoeba_Rval(Npts_3quarter, axis_id2);
   endfor
   amoeba_Rdiff_original = amoeba_Rdiff;
-
   for axis_id = 1:3
     for j_arg = [ (Npts_3quarter + 1) : (Npts + Npts_quarter - 1)]
       i_arg = 1 + mod( j_arg - 1, Npts);
@@ -122,11 +119,6 @@ function [wire_hndl, ...
     endfor
   endfor
   
-  %% 1. scale xy-plane to match xz-plane at +x intercept of xy-plane
-  %% 2. scale xy-plane to match xz-plane at -x intercept of xy-plane  
-  %% 3. scale yz-plane to match xy-plane at +y intercept of yz-plane
-  %% 4. scale yz-plane to match xy-plane at -y intercept of yz-plane  
-  %% 5. scale zx-plane to match yz-plane at +z intercept of zx-plane
 
   amoeba_Rnew = amoeba_Rval;
 
