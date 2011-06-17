@@ -57,8 +57,6 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 }
 
 int GenerativeConn::updateWeights(int axonID) {
-    printf("updateWeights for GenerativeConn %s\n", name);
-
     int nPre = preSynapticLayer()->getNumNeurons();
     int nx = preSynapticLayer()->getLayerLoc()->nx;
     int ny = preSynapticLayer()->getLayerLoc()->ny;
@@ -115,8 +113,22 @@ PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) 
          }
       }
       break;
+   case 3:
+      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);
+      for( int k=0; k<numPatches; k++ ) {
+         PVPatch * curpatch = patches[k];
+         pvdata_t s = 0;
+         for( int n=0; n<neuronsperpatch; n++ ) {
+            pvdata_t d = curpatch->data[n];
+            s += d*d;
+         }
+         for( int n=0; n<neuronsperpatch; n++ ) {
+            curpatch->data[n] *= normalizeConstant/sqrt(s);
+         }
+      }
+      break;
    default:
-      fprintf(stderr,"Connection \"%s\": Unrecognized normalizeMethod %d.  Using HyPerConn::normalize().", this->getName(), normalizeMethod);
+      fprintf(stderr,"Connection \"%s\": Unrecognized normalizeMethod %d.  Using HyPerConn::normalize().\n", this->getName(), normalizeMethod);
       break;
    }
    return patches;
