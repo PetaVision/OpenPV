@@ -46,7 +46,9 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
       return -1;
    }
 
-   *n_time_steps = 1;
+   // *n_time_steps = 1;
+   // parse_options should not set defaults; calling routine should set default
+   // before calling parse_options.
 
    pv_getopt_int(argc, argv, "-n", n_time_steps);
    pv_getopt_int(argc, argv, "-d", opencl_device);

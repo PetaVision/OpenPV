@@ -98,16 +98,11 @@ int HyPerCol::initFinish(void)
    return status;
 }
 
+#define NUMSTEPS 1
 int HyPerCol::initialize(const char * name, int argc, char ** argv)
 {
-
-   int opencl_device = 1;  // default to CPU for now
-
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
-
-   // maxLayers = MAX_LAYERS;
-   // maxConnections = MAX_CONNECTIONS;
 
    this->name = strdup(name);
    this->runTimer = new Timer();
@@ -123,7 +118,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
-   numSteps = 2;
+   int opencl_device = 1;  // default to CPU for now
+   numSteps = 0; // numSteps = 2;
    outputPath = NULL;
    image_file = NULL;
    param_file = NULL;
@@ -131,18 +127,39 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    parse_options(argc, argv, &outputPath, &image_file, &param_file,
                  &numSteps, &opencl_device, &random_seed);
 
-   if (outputPath == NULL) {
-      outputPath = strdup(OUTPUT_PATH);
-      assert(outputPath != NULL);
+   int groupArraySize = 2*(layerArraySize + connectionArraySize);
+   params = new PVParams(param_file, groupArraySize);  // PVParams::addGroup can resize if initialGroups is exceeded
+   free(param_file);
+   param_file = NULL;
+
+   // set number of steps from params file if it wasn't set on the command line
+   if( !numSteps ) {
+      if( params->present(name, "numSteps") ) {
+         numSteps = params->value(name, "numSteps");
+      }
+      else {
+         numSteps = NUMSTEPS;
+         printf("Number of steps specified neither in the command line nor the params file.\n"
+                "Number of steps set to default %d\n",NUMSTEPS);
+      }
+   }
+
+   // set output path from params file if it wasn't set on the command line
+   if (outputPath == NULL ) {
+      if( params->stringPresent(name, "outputPath") ) {
+         outputPath = strdup(params->stringValue(name, "outputPath"));
+         assert(outputPath != NULL);
+      }
+      else {
+         outputPath = strdup(OUTPUT_PATH);
+         assert(outputPath != NULL);
+         printf("Output path specified neither in command line nor in params file.\n"
+                "Output path set to default \"%s\n",OUTPUT_PATH);
+      }
    }
 
    // run only on CPU for now
    initializeThreads(opencl_device);
-
-   // estimate for now
-   // TODO -get rid of maxGroups
-   int maxGroups = 2*(layerArraySize + connectionArraySize);
-   params = new PVParams(param_file, maxGroups);
 
    icComm = new InterColComm(&argc, &argv);
 
@@ -156,35 +173,36 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          printf("Using time to get random seed. Seed set to %lu\n", random_seed);
       }
    }
+   pv_srandom(random_seed); // initialize random seed
 
-   // initialize random seed
-   pv_srandom(random_seed);
-
-   if (param_file != NULL) free(param_file);
-
-   deltaTime = DELTA_T;
-   if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
-
+   // set image file from params file if it wasn't set on the command line
+   if (image_file == NULL ) {
+      if (params->stringPresent(name, "imageFile")) {
+         image_file = strdup(params->stringValue(name, "imageFile"));
+         assert(image_file);
+      }
+   }
    int status = -1;
    if (image_file) {
       status = getImageInfo(image_file, icComm, &imageLoc);
    }
-
    if (status) {
       imageLoc.nxGlobal = (int) params->value(name, "nx");
       imageLoc.nyGlobal = (int) params->value(name, "ny");
-
       // set loc based on global parameters and processor partitioning
       //
       setLayerLoc(&imageLoc, 1.0f, 1.0f, 0, 1);
    }
+
+   deltaTime = DELTA_T;
+   if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
 
    runDelegate = NULL;
 
    numProbes = 0;
    probes = NULL;
 
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerCol::columnId()
@@ -281,7 +299,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
-   if( checkMarginWidths() != EXIT_SUCCESS ) return EXIT_FAILURE;
+   if( checkMarginWidths() != PV_SUCCESS ) return PV_FAILURE;
 
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
@@ -344,7 +362,7 @@ int HyPerCol::run(int nTimeSteps)
       stop_clock();
 #endif
 
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 float HyPerCol::advanceTime(float sim_time)
@@ -502,7 +520,7 @@ int HyPerCol::outputState(float time)
    for( int n = 0; n < numProbes; n++ ) {
        probes[n]->outputState(time, this);
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerCol::checkMarginWidths() {
@@ -514,7 +532,7 @@ int HyPerCol::checkMarginWidths() {
    // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
    // be allocated and initialized until after nPad is determined.
 
-   int status = EXIT_SUCCESS;
+   int status = PV_SUCCESS;
    int status1, status2;
    for( int c=0; c < numConnections; c++ ) {
       HyPerConn * conn = connections[c];
@@ -529,8 +547,8 @@ int HyPerCol::checkMarginWidths() {
       int yScalePre = pre->getYScale();
       int yScalePost = post->getYScale();
       status2 = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
-      status = (status == EXIT_SUCCESS && status1 == EXIT_SUCCESS && status2 == EXIT_SUCCESS) ?
-               EXIT_SUCCESS : EXIT_FAILURE;
+      status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
+               PV_SUCCESS : PV_FAILURE;
    }
    return status;
 }  // end HyPerCol::checkMarginWidths()
@@ -542,7 +560,7 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding,
    int needed = scaleDiff > 0 ? ( patchSize/( (int) powf(2,scaleDiff) )/2 ) :
                                 ( (patchSize/2) * ( (int) powf(2,-scaleDiff) ) );
    if( padding < needed ) {
-      if( prevStatus == EXIT_SUCCESS ) {
+      if( prevStatus == PV_SUCCESS ) {
          fprintf(stderr, "Margin width error.\n");
       }
       fprintf(stderr, "Connection \"%s\", dimension %s:\n", conn->getName(), dim);
@@ -551,14 +569,14 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding,
       fprintf(stderr, "    Needed margin width=%d\n", needed);
       if( numberOfColumns() > 1 || padding > 0 ) {
          fprintf(stderr, "Unable to continue.\n");
-         status = EXIT_FAILURE;
+         status = PV_FAILURE;
       }
       else {
          fprintf(stderr, "Continuing, but there may be undesirable edge effects.\n");
-         status = EXIT_SUCCESS;
+         status = PV_SUCCESS;
       }
    }
-   else status = EXIT_SUCCESS;
+   else status = PV_SUCCESS;
    return status;
 }
 
