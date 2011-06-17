@@ -109,7 +109,9 @@ function [fh, recon_colormap] = ...
     endif
     set(fh, 'Name', plot_title);
     axis([0 NCOLS+1 0 NROWS+1]);
-    axis "square";
+    if NROWS == NCOLS
+      axis "square";
+    endif
     axis "tight";
     axis "image";
     if flip_ij
@@ -252,7 +254,9 @@ function [fh, recon_colormap] = ...
     recon2D = reshape( recon_array(:), [NCOLS, NROWS] );
     set(fh, 'Name', plot_title);
     axis([0 NCOLS+1 0 NROWS+1]);
-    axis "square";
+    if NROWS == NCOLS
+      axis "square";
+    endif
     axis "tight";
     axis "image";
     if flip_ij
@@ -276,7 +280,9 @@ function [fh, recon_colormap] = ...
       endif
       set(fh, 'Name', plot_title);
       axis([0 NCOLS+1 0 NROWS+1]);
-      axis "square";
+      if NROWS == NCOLS
+	axis "square";
+      endif
       axis "tight";
       axis "image";
       if flip_ij
