@@ -44,16 +44,16 @@ machine_path = '/home/garkenyon/';
 %%machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
 workspace_path = [machine_path, 'workspace/'];
-project_path = [workspace_path, 'geisler/'];
+project_path = [workspace_path, 'geisler2.1/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/amoeba_256/spiking/amoeba/'];
+OUTPUT_PATH = [project_path, 'input/amoeba/spiking/'];
 
-image_path = [matlab_path, 'amoebaX2/256_png/4/'];
-%%image_path = [matlab_path, 'amoeba_test/256_png/4/'];
-image_filename = [image_path 't/tar_0000_a.png'];
-target_filename{1} = [image_path 'a/tar_0000_a.png'];
+%%image_path = [matlab_path, 'amoebaX2/256_png/4/'];
+image_path = [matlab_path, 'amoeba_test/256_png/4/'];
+image_filename = [image_path 't/tar_0049_a.png'];
+target_filename{1} = [image_path 'a/tar_0049_a.png'];
 
 main_file = [project_path, 'geisler.cpp'];
 copyfile(main_file, [OUTPUT_PATH, 'geisler.cpp.save'] );
@@ -65,12 +65,12 @@ global pvp_order
 pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
-BEGIN_TIME = 0.0;  % (msec) start analysis here, used to exclude start up artifacts
+BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
 END_TIME = 1200.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
-STIM_BEGIN_TIME = 200.0;  % relative to begining of epoch, must be > 0
-STIM_END_TIME = -200.0;  % relative to end of epoch, must be <= 0
+STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
+STIM_END_TIME = -0.0;  % relative to end of epoch, must be <= 0
 BIN_STEP_SIZE = 5.0;  % (msec) used for all rate calculations
 DELTA_T = 1.0; % msec
 if ( STIM_BEGIN_TIME > 0.0 )
@@ -370,6 +370,11 @@ for layer = read_spikes;
           num2str(tmp_rate),', [k, kcol, krow, kf] = ', ...
           num2str([k-1, kcol-1, krow-1, kf-1]) ]);
   endfor %% % i_rank
+
+  if rate_array_tmp(1) == 0
+    read_spikes = setdiff(read_spikes, layer);
+    continue;
+  endif
   
   
   %%plot power reconstruction
@@ -1203,4 +1208,5 @@ endfor %% % i_conn
 
 
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+close all;
 
