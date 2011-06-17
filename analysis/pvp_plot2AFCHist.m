@@ -7,7 +7,6 @@ function [fig_list] = ...
 		       twoAFC_str)
 
   global num_hist_bins
-  
 
   [max_target_flag, num_layers, num_target_IDs] = size(twoAFC_hist);
   if ~exist("layer_ndx") || isempty(layer_ndx) || nargin < 3
@@ -19,7 +18,10 @@ function [fig_list] = ...
   if ~exist("twoAFC_str") || isempty(twoAFC_str) || nargin < 5
     twoAFC_str = [];
   endif
-  
+
+  tmp = cell2mat(twoAFC_bins);
+  tmp = tmp(:,3:end);
+  axis_max = max(tmp(:));
   num_subplots = length(layer_ndx);
   twoAFC_hist_name = ['2AFC hist ', twoAFC_str];
   fig_list = [];
@@ -35,6 +37,11 @@ function [fig_list] = ...
       subplot_index = subplot_index + 1;
       subplot(num_subplots, 1, subplot_index);
       axis "nolabel"
+      set(gca, "YTickLabel", []);
+      if layer > 2
+	%%axis([0 axis_max ]);
+      endif
+      hold on
       twoAFC_bins_tmp = ...
 	  twoAFC_bins{layer, target_ID};
       for target_flag = 1 : max_target_flag;
