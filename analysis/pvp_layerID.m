@@ -44,6 +44,10 @@ if ( SPIKING_FLAG == 1 )
     i_layer = i_layer + 1;
     layerIndex.l1inh = i_layer;
     layerID{ 1, i_layer } =  'L1Inh';
+
+    i_layer = i_layer + 1;
+    layerIndex.l1inh = i_layer;
+    layerID{ 1, i_layer } =  'L1InhGap';
     
 else  % NON_SPIKING
     
