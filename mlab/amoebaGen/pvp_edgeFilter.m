@@ -9,7 +9,7 @@ image_dir = "~/Pictures/";
 image_type = "png";
 
 target_dir = ...
-    [image_dir, "Lena/"]; %%"AnimalDB/Targets/"];  %%
+    [image_dir, "likimas/"]; %%"AnimalDB/Targets/"];  %%
 target_subdir = ...
     [ target_dir, '' ];
 target_path = ...
@@ -34,7 +34,7 @@ endif
 
 canny_target_dir = ...
     [ target_dir, canny_name ];
-if ~exist( 'canny_target_dir', 'dir')
+if ~exist( canny_target_dir, 'dir')
   [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', canny_target_dir); 
   if SUCCESS ~= 1
     error(MESSAGEID, MESSAGE);
@@ -44,7 +44,7 @@ endif
 if distractor_flag
   canny_distractor_dir = ...
       [ distractor_dir, canny_name ];
-  if ~exist( 'canny_distractor_dir', 'dir')
+  if ~exist( canny_distractor_dir, 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', canny_distractor_dir); 
     if SUCCESS ~= 1
       error(MESSAGEID, MESSAGE);
@@ -61,7 +61,7 @@ if DoG_flag
   
   DoG_target_dir = ...
       [ target_dir, 'DoG/' ];
-  if ~exist( 'DoG_target_dir', 'dir')
+  if ~exist( DoG_target_dir, 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', DoG_target_dir); 
     if SUCCESS ~= 1
       error(MESSAGEID, MESSAGE);
@@ -71,7 +71,7 @@ if DoG_flag
   if distractor_flag
     DoG_distractor_dir = ...
 	[ distractor_dir, 'DoG/' ];
-    if ~exist( 'DoG_distractor_dir', 'dir')
+    if ~exist( DoG_distractor_dir, 'dir')
       [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', DoG_distractor_dir); 
       if SUCCESS ~= 1
 	error(MESSAGEID, MESSAGE);
@@ -88,7 +88,7 @@ if mask_flag
   
   mask_canny_target_dir = ...
       [ target_dir, 'mask_canny/' ];
-  if ~exist( 'mask_canny_target_dir', 'dir')
+  if ~exist( mask_canny_target_dir, 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', mask_canny_target_dir); 
     if SUCCESS ~= 1
       error(MESSAGEID, MESSAGE);
