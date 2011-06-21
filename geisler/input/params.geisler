@@ -645,7 +645,7 @@ KernelConn "L1 to L1" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "./input/amoeba/ODD_kernels/dirty.pvp";
+   initWeightsFile = "./input/amoeba/ODD_kernels/dirty_mpi_2X2.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
@@ -669,7 +669,7 @@ KernelConn "L1 to L1Inh" = {
    nxp = 65; 
    nyp = 65; 
    nfp = 8;
-   initWeightsFile = "./input/amoeba/ODD_kernels/dirty.pvp";
+   initWeightsFile = "./input/amoeba/ODD_kernels/dirty_mpi_2X2.pvp";
 
    stdpFlag   = 0;
    randomFlag = 0;  
