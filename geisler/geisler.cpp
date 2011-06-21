@@ -256,74 +256,74 @@ int main(int argc, char* argv[]) {
 #ifdef WRITE_VMEM
 	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
 	LayerProbe * Vmem_probe_LGNa1 =
-		new PointLIFProbe(Vmem_filename_LGNa1, 64,64,0, "LGNA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_LGNa1, hc, 64,64,0, "LGNA1:(64,64,0)");
 	lgn->insertProbe(Vmem_probe_LGNa1);
 
 /*
 	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
 	LayerProbe * Vmem_probe_LGNc1 =
-		new PointLIFProbe(Vmem_filename_LGNc1, 64,64,0, "LGNC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNc1, hc, 64,64,0, "LGNC1:(61,58,0)");
 	lgn->insertProbe(Vmem_probe_LGNc1);
 */
 
 #ifndef LGN_ONLY
 	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFa1 =
-		new PointLIFProbe(Vmem_filename_LGNInhFFa1, 64,64,0, "LGNInhA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, hc, 64,64,0, "LGNInhA1:(64,64,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
 
 /*
 	const char * Vmem_filename_LGNInhFFc1 = "Vmem_LGNInhFFc1.txt";
 	LayerProbe * Vmem_probe_LGNInhFFc1 =
-		new PointLIFProbe(Vmem_filename_LGNInhFFc1, 64,64,0, "LGNInhFFC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhFFc1, hc, 64,64,0, "LGNInhFFC1:(61,58,0)");
 	lgninhff->insertProbe(Vmem_probe_LGNInhFFc1);
 */
 
 	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
 	LayerProbe * Vmem_probe_LGNInha1 =
-		new PointLIFProbe(Vmem_filename_LGNInha1, 64,64,0, "LGNInhA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_LGNInha1, hc, 64,64,0, "LGNInhA1:(64,64,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInha1);
 
 /*
 	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
 	LayerProbe * Vmem_probe_LGNInhc1 =
-		new PointLIFProbe(Vmem_filename_LGNInhc1, 64,64,0, "LGNInhC1:(61,58,0)");
+		new PointLIFProbe(Vmem_filename_LGNInhc1, hc, 64,64,0, "LGNInhC1:(61,58,0)");
 	lgninh->insertProbe(Vmem_probe_LGNInhc1);
 */
 
 	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
 	LayerProbe * Vmem_probe_V1a1 =
-		new PointLIFProbe(Vmem_filename_V1a1, 64,64,0, "V1A1:(59,48,2)");
+		new PointLIFProbe(Vmem_filename_V1a1, hc, 64,64,0, "V1A1:(59,48,2)");
 	l1->insertProbe(Vmem_probe_V1a1);
 
 /*
 	const char * Vmem_filename_LIFc1 = "Vmem_V1c1.txt";
 	LayerProbe * Vmem_probe_LIFc1 =
-		new PointLIFProbe(Vmem_filename_LIFc1, 64,64,0, "V1C1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFc1, hc, 64,64,0, "V1C1:(61,58,5)");
 	l1->insertProbe(Vmem_probe_LIFc1);
 */
 
 	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
 	LayerProbe * Vmem_probe_V1InhFFa1 =
-		new PointLIFProbe(Vmem_filename_V1InhFFa1, 64,64,0, "V1InhFFA1:(64,64,0)");
+		new PointLIFProbe(Vmem_filename_V1InhFFa1, hc, 64,64,0, "V1InhFFA1:(64,64,0)");
 	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
 
 /*
 	const char * Vmem_filename_LIFInhFFc1 = "Vmem_V1InhFFc1.txt";
 	LayerProbe * Vmem_probe_LIFInhFFc1 =
-		new PointLIFProbe(Vmem_filename_LIFInhFFc1, 64,64,0, "V1InhFFC1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFInhFFc1, hc, 64,64,0, "V1InhFFC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_LIFInhFFc1);
 */
 
 	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
 	LayerProbe * Vmem_probe_V1Inha1 =
-		new PointLIFProbe(Vmem_filename_V1Inha1, 64,64,0, "V1InhA1:(64,64,1)");
+		new PointLIFProbe(Vmem_filename_V1Inha1, hc, 64,64,0, "V1InhA1:(64,64,1)");
 	l1inh->insertProbe(Vmem_probe_V1Inha1);
 
 /*
 	const char * Vmem_filename_LIFInhc1 = "Vmem_V1Inhc1.txt";
 	LayerProbe * Vmem_probe_LIFInhc1 =
-		new PointLIFProbe(Vmem_filename_LIFInhc1, 64,64,0, "V1InhC1:(61,58,5)");
+		new PointLIFProbe(Vmem_filename_LIFInhc1, hc, 64,64,0, "V1InhC1:(61,58,5)");
 	l1inh->insertProbe(Vmem_probe_LIFInhc1);
 */
 #endif // LGN_ONLY
