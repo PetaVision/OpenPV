@@ -21,7 +21,7 @@ int ChannelProbe::outputState(float time, HyPerLayer * l) {
     pvdata_t * buf = l->getChannel(pChannel);
     int n = l->getNumNeurons();
     for( int k=0; k<n; k++) {
-        fprintf(fp, "Layer %s, channel %d, time %f, neuron %8d, value=%10.8f\n",
+        fprintf(fp, "Layer %s, channel %d, time %f, neuron %8d, value=%.8g\n",
         		l->getName(), (int) pChannel, time, k, buf[k]);
     }
     return EXIT_SUCCESS;
