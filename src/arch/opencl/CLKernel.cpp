@@ -19,7 +19,9 @@
 
 namespace PV {
 
+#ifdef PV_USE_OPENCL
 static char * load_program_source(const char *filename);
+#endif // PV_USE_OPENCL
 
 CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
                    const char * filename, const char * name, const char * options)
@@ -251,6 +253,7 @@ int CLKernel::setLocalArg(int argid, size_t size)
    return status;
 }
 
+#ifdef PV_USE_OPENCL
 static char *
 load_program_source(const char *filename)
 {
@@ -274,5 +277,6 @@ load_program_source(const char *filename)
 
     return source;
 }
+#endif // PV_USE_OPENCL
 
 }
