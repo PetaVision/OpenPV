@@ -1,5 +1,5 @@
 /*
- * CloneLayer.hpp
+ * SigmoidLayer.hpp
  * can be used to implement Sigmoid junctions
  *
  *  Created on: May 11, 2011
@@ -22,7 +22,7 @@ public:
    int initialize(LIF * clone);
    virtual int updateV();
    virtual int setActivity();
-   virtual int resetPhiBuffers();
+   virtual int resetGSynBuffers();
    LIF * sourceLayer;
 };
 

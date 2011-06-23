@@ -1,5 +1,5 @@
 /*
- * CloneLayer.cpp
+ * SigmoidLayer.cpp
  *
  *  Created on: May 11, 2011
  *      Author: garkenyon
@@ -39,7 +39,7 @@ int SigmoidLayer::updateV() {
    return PV_SUCCESS;
 }
 
-int SigmoidLayer::resetPhiBuffers() {
+int SigmoidLayer::resetGSynBuffers() {
    return PV_SUCCESS;
 }
 

@@ -17,18 +17,6 @@
 
 namespace PV {
 
-#ifdef OBSOLETE
-HyPerLayerParams defaultParams =
-{
-    V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
-    TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
-    VTH_REST,  TAU_VTH, DELTA_VTH,           // tau (ms)
-    250, NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
-    250, NOISE_AMP*1.0,
-    250, NOISE_AMP*1.0                       // noise (G)
-};
-#endif
-
 ///////
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
@@ -428,46 +416,6 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
-#ifdef OBSOLETE //(Made a template function and moved to HyPerLayer.hpp)
-int HyPerLayer::copyFromBuffer(const T * buf, T * data,
-                               const PVLayerLoc * loc, bool extended, T scale)
-{
-   size_t sf, sx, sy;
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-
-   int nxBorder = 0;
-   int nyBorder = 0;
-
-   if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
-      sf = strideFExtended(loc);
-      sx = strideXExtended(loc);
-      sy = strideYExtended(loc);
-   }
-   else {
-      sf = strideF(loc);
-      sx = strideX(loc);
-      sy = strideY(loc);
-   }
-
-   int ii = 0;
-   for (int j = 0; j < ny; j++) {
-      int jex = j + nyBorder;
-      for (int i = 0; i < nx; i++) {
-         int iex = i + nxBorder;
-         for (int f = 0; f < nf; f++) {
-            data[iex*sx + jex*sy + f*sf] = scale * buf[ii++];
-         }
-      }
-   }
-   return 0;
-}
-#endif
-
 int HyPerLayer::updateState(float time, float dt)
 {
    // just copy accumulation buffer to membrane potential
@@ -475,7 +423,7 @@ int HyPerLayer::updateState(float time, float dt)
 
    updateV();
    setActivity();
-   resetPhiBuffers();
+   resetGSynBuffers();
    updateActiveIndices();
 
    return 0;
@@ -556,14 +504,18 @@ int HyPerLayer::setActivity() {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::resetPhiBuffers() {
+int HyPerLayer::resetGSynBuffers() {
    int n = getNumNeurons();
-   resetBuffer( getChannel(CHANNEL_EXC), n );
-   resetBuffer( getChannel(CHANNEL_INH), n );
+   for( int k=0; k<numChannels; k++ ) {
+      resetBuffer( getChannel((ChannelType) k), n );
+   }
+   // resetBuffer( getChannel(CHANNEL_EXC), n );
+   // resetBuffer( getChannel(CHANNEL_INH), n );
    return PV_SUCCESS;
 }
 
 int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
+   assert(buf);
    for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
    return PV_SUCCESS;
 }
@@ -670,16 +622,6 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 int HyPerLayer::outputState(float time, bool last)
 {
    int status = PV_SUCCESS;
-#ifdef OBSOLETE
-   char path[PV_PATH_MAX];
-
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->numFeatures;
-
-   const int nxex = clayer->loc.nx + 2*clayer->loc.nb;
-   const int nyex = clayer->loc.ny + 2*clayer->loc.nb;
-#endif
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(time, this);
@@ -799,30 +741,6 @@ int HyPerLayer::writeActivity(float time)
 
    return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
 }
-
-#ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
-// modified to enable writing of non-spiking activity as well
-// use writeActivitySparse for efficient disk storage of sparse spiking activity
-int HyPerLayer::writeActivity(const char * filename, float time)
-{
-   int status = PV_SUCCESS;
-   PVLayerLoc * loc = &clayer->loc;
-
-   const int n = loc->nx * loc->ny * loc->nf;
-   pvdata_t * buf = new pvdata_t[n];
-   assert(buf != NULL);
-
-   const bool extended = true;
-   status = copyToBuffer(buf, getLayerData(), loc, extended, 1.0);
-
-   // gather the local portions and write the image
-   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
-
-   delete buf;
-
-   return status;
-}
-#endif // OBSOLETE
 
 /* copy src PVLayerCube to dest PVLayerCube */
 /* initialize src, dest to beginning of data structures */

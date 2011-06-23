@@ -70,7 +70,7 @@ public:
 
    virtual int updateV();
    virtual int setActivity();
-   virtual int resetPhiBuffers();
+   virtual int resetGSynBuffers();
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
@@ -121,6 +121,7 @@ public:
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
+   int getNumChannels()              {return numChannels;}
    pvdata_t * getChannel(ChannelType ch) {                         // name query
       return ch < this->numChannels ? GSyn[ch] : NULL;
    }
