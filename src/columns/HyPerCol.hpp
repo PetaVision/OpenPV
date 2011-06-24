@@ -111,7 +111,7 @@ public:
 private:
    int initialize(const char * name, int argc, char ** argv);
    int checkMarginWidths();
-   int zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus);
+   int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
 
    int numSteps;
    // int maxLayers;

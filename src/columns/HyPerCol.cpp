@@ -538,25 +538,26 @@ int HyPerCol::checkMarginWidths() {
       HyPerConn * conn = connections[c];
       HyPerLayer * pre = conn->preSynapticLayer();
       HyPerLayer * post = conn->postSynapticLayer();
-      int padding = pre->getLayerLoc()->nb;
 
       int xScalePre = pre->getXScale();
       int xScalePost = post->getXScale();
-      status1 = zCheckMarginWidth(conn, "x", padding, conn->xPatchSize(), xScalePre, xScalePost, status);
+      status1 = zCheckMarginWidth(conn, "x", conn->xPatchSize(), xScalePre, xScalePost, status);
 
       int yScalePre = pre->getYScale();
       int yScalePost = post->getYScale();
-      status2 = zCheckMarginWidth(conn, "y", padding, conn->yPatchSize(), yScalePre, yScalePost, status);
+      status2 = zCheckMarginWidth(conn, "y", conn->yPatchSize(), yScalePre, yScalePost, status);
       status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
                PV_SUCCESS : PV_FAILURE;
    }
    return status;
 }  // end HyPerCol::checkMarginWidths()
 
-int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding, int patchSize, int scalePre, int scalePost, int prevStatus) {
+int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus) {
    int status;
    int scaleDiff = scalePre - scalePost;
    // if post has higher neuronal density than pre, scaleDiff < 0.
+   HyPerLayer * pre = conn->preSynapticLayer();
+   int padding = conn->preSynapticLayer()->getLayerLoc()->nb;
    int needed = scaleDiff > 0 ? ( patchSize/( (int) powf(2,scaleDiff) )/2 ) :
                                 ( (patchSize/2) * ( (int) powf(2,-scaleDiff) ) );
    if( padding < needed ) {
@@ -564,9 +565,9 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int padding,
          fprintf(stderr, "Margin width error.\n");
       }
       fprintf(stderr, "Connection \"%s\", dimension %s:\n", conn->getName(), dim);
-      fprintf(stderr, "    Margin width %d, patch size %d, presynaptic scale %d, postsynaptic scale %d\n",
+      fprintf(stderr, "    Pre-synaptic margin width %d, patch size %d, presynaptic scale %d, postsynaptic scale %d\n",
               padding, patchSize, scalePre, scalePost);
-      fprintf(stderr, "    Needed margin width=%d\n", needed);
+      fprintf(stderr, "    Layer %s needs margin width of at least %d\n", pre->getName(), needed);
       if( numberOfColumns() > 1 || padding > 0 ) {
          fprintf(stderr, "Unable to continue.\n");
          status = PV_FAILURE;
