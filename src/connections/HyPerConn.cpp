@@ -214,6 +214,17 @@ int HyPerConn::initializeSTDP()
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
+   int postnumchannels = post->getNumChannels();
+   if(postnumchannels <= 0) {
+      fprintf(stderr, "Connection \"%s\": layer \"%s\" has no channels and cannot be a post-synaptic layer.  Exiting.\n",
+              name, post->getName());
+      exit(EXIT_FAILURE);
+   }
+   if( channel < 0 || channel >= postnumchannels ) {
+      fprintf(stderr, "Connection \"%s\": given channel is %d but channels for post-synaptic layer \"%s\" are 0 through %d. Exiting.\n",
+              name, channel, post->getName(), post->getNumChannels()-1);
+      exit(EXIT_FAILURE);
+   }
    this->parent = hc;
    this->pre = pre;
    this->post = post;
@@ -1628,7 +1639,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 }
 
 /**
- * calculate random weights for a patch given a range between wMin and wMax
+ * calculate random weights for a patch from the uniform distribution on a given interval
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary
@@ -1680,7 +1691,7 @@ int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
 
 
 /**
- * calculate random weights for a patch given a range between wMin and wMax
+ * calculate random weights for a patch from a gaussian distribution
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary
