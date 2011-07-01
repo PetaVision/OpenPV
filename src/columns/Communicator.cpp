@@ -199,8 +199,8 @@ bool Communicator::hasNeighbor(int neighbor)
       return hasSoutheasternNeighbor(icRank);
    default:
       fprintf(stderr, "ERROR:hasNeighbor: bad index\n");
+      return false;
    }
-   return false;
 }
 
 /**
@@ -403,8 +403,8 @@ int Communicator::neighborIndex(int commId, int index)
       return southeast(commId);
    default:
       fprintf(stderr, "ERROR:neighborIndex: bad index\n");
+      return -1;
    }
-   return -1;
 }
 
 /**
@@ -443,8 +443,8 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
       return (sx*nxBorder + sx*nx + sy * (nyBorder + ny));
    default:
       fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
+      return 0;
    }
-   return 0;
 }
 
 /**
@@ -483,8 +483,8 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
       return (sx*nx       + sy * ny);
    default:
       fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
+      return 0;
    }
-   return 0;
 }
 
 /**
