@@ -867,7 +867,6 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       // TODO - use collective?
       //
       const int icSize = comm->commSize();
-      unsigned int totalActive = numNeurons * icSize;
 
 #endif // PV_USE_MPI
 
@@ -907,7 +906,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 // more than once it is really wrong.  It shouldn't be needed because writes are ordered.
 //            long offset = p * numNeurons * sizeof(float);
 //            fseek(fp, offset, SEEK_SET);
-            if ( fwrite(VmemVals, sizeof(float), numNeurons, fp) != numNeurons ) return -1;
+            if ( fwrite(VmemVals, sizeof(float), numNeurons, fp) != (unsigned int) numNeurons ) return -1;
       }
 #endif // PV_USE_MPI
 
