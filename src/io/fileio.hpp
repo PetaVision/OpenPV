@@ -9,6 +9,7 @@
 #define FILEIO_HPP_
 
 #include "io.h"
+#include <mpi.h>
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
 
