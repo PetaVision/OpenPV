@@ -15,6 +15,10 @@ HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 
    initialize(TypeGeneric);
 }
 
+HMaxSimple::~HMaxSimple(){
+
+}
+
 int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
 {
    pv_debug_info("[%d]: HMaxSimple::recvSynapticInput: layer %d from %d)",
@@ -93,7 +97,7 @@ int HMaxSimple::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int HMaxSimple::outputState(float time)
+int HMaxSimple::outputState(float time, bool last)
 {
    pv_debug_info("[%d]: HMaxSimple::outputState:", clayer->columnId);
 
