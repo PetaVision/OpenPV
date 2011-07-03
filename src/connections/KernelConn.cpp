@@ -8,6 +8,7 @@
 #include "KernelConn.hpp"
 #include <assert.h>
 #include <float.h>
+#include <mpi.h>
 #include "../io/io.h"
 
 namespace PV {
@@ -41,9 +42,18 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int KernelConn::initialize_base()
 {
+   plasticityFlag = false;
    kernelPatches = NULL;
    return HyPerConn::initialize_base();
 }
+
+int KernelConn::initialize(const char * name, HyPerCol * hc,
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename){
+   PVParams * params = parent->parameters();
+   plasticityFlag = (bool) params->value(name, "plasticityFlag", 0);
+   return KernelConn::initialize(name, hc, pre, post, channel, filename);
+}
+
 
 PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
@@ -163,6 +173,93 @@ float KernelConn::maxWeight()
    }
    return max_weight;
 }
+
+
+int KernelConn::updateState(float time, float dt){
+   // merge kernel changes across processes
+   int status = PV_SUCCESS;
+#ifdef PV_USE_MPI
+   if (~plasticityFlag) {
+      return status;
+   }
+   Communicator * comm = parent->icCommunicator();
+   const MPI_Comm mpi_comm = comm->communicator();
+
+   const int axonId = 0;       // assume only one for now
+   const int numPatches = numDataPatches(axonId);
+   const size_t patchSize = nxp*nyp*nfp*sizeof(float);
+   const size_t localSize = numPatches * patchSize;
+
+   //TODO!!! preallocate buf
+   float * buf = (float *) malloc(localSize);
+   float * buf0 = buf;
+   assert(buf != NULL);
+
+   // load kernel weights in buffer
+   for (int k = 0; k < numPatches; k++) {
+      PVPatch * p = kernelPatches[k];
+      const pvdata_t * data = p->data;
+
+      const int sxp = p->sx;
+      const int syp = p->sy;
+      const int sfp = p->sf;
+
+      for (int y = 0; y < p->ny; y++) {
+         for (int x = 0; x < p->nx; x++) {
+            for (int f = 0; f < p->nf; f++) {
+               float val = data[x * sxp + y * syp + f * sfp];
+               memcpy(buf, &val, sizeof(float));
+               buf += sizeof(float);
+            }
+         }
+      }
+   }
+
+   // sum weights from each proc into buf, send and recv buffers are the same
+   int ierr;
+   ierr = MPI_Allreduce(MPI_IN_PLACE, buf,localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+
+   // replace individual kernel weights with average over procs
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+   const int nProcs = nxProcs * nyProcs;
+   buf = buf0;
+   for (int k = 0; k < numPatches; k++) {
+      PVPatch * p = kernelPatches[k];
+      const pvdata_t * data = p->data;
+
+      const int sxp = p->sx;
+      const int syp = p->sy;
+      const int sfp = p->sf;
+
+      for (int y = 0; y < p->ny; y++) {
+         for (int x = 0; x < p->nx; x++) {
+            for (int f = 0; f < p->nf; f++) {
+               float val;
+               memcpy(&val, buf, sizeof(float));
+               val /= nProcs;
+               data[x * sxp + y * syp + f * sfp] = val;
+               buf += sizeof(float);
+            }
+         }
+      }
+   }
+
+   return status;
+#else
+   return status;
+#endif // PV_USE_MPI
+
+
+}
+
+
+int KernelConn::updateWeights(int axonId){
+
+   return 0;
+}
+
+
 
 int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,
                                    float shift, float rotate, float aspect, float sigma,

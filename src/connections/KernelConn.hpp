@@ -16,6 +16,8 @@ class KernelConn: public HyPerConn {
 
 public:
 
+   bool plasticityFlag;
+
    KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
@@ -26,9 +28,9 @@ public:
 
    virtual int numDataPatches(int arbor);
 
-   virtual int updateState(float time, float dt){ return 0;};
+   virtual int updateState(float time, float dt);
 
-   virtual int updateWeights(int axonId){ return 0;};
+   virtual int updateWeights(int axonId);
 
    virtual float minWeight();
    virtual float maxWeight();
@@ -53,6 +55,8 @@ protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    virtual int deleteWeights();
    virtual int initialize_base();
+   virtual int initialize(const char * name, HyPerCol * hc,
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
