@@ -226,7 +226,7 @@ int KernelConn::updateState(float time, float dt){
    buf = buf0;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = kernelPatches[k];
-      const pvdata_t * data = p->data;
+      pvdata_t * data = p->data;
 
       const int sxp = p->sx;
       const int syp = p->sy;
