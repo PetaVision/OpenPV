@@ -910,7 +910,8 @@ int HyPerConn::updateState(float time, float dt)
    update_timer->stop();
 #endif
 
-   return 0;
+   const int axonId = 0;       // assume only one for now
+   return updateWeights(axonId);
 }
 //
 /* M (m or pDecr->data) is an extended post-layer variable
@@ -1639,7 +1640,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 }
 
 /**
- * calculate random weights for a patch from the uniform distribution on a given interval
+ * calculate random weights for a patch given a range between wMin and wMax
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary
@@ -1691,7 +1692,7 @@ int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
 
 
 /**
- * calculate random weights for a patch from a gaussian distribution
+ * calculate random weights for a patch given a range between wMin and wMax
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary

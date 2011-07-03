@@ -185,14 +185,14 @@ protected:
    int patchSizeFromFile(const char * filename);
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
 
-   int initialize(const char * name, HyPerCol * hc,
+   virtual int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
 #ifdef OBSOLETE
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 #endif
-   int initialize_base();
-   int initialize(const char * filename);
+   virtual int initialize_base();
+   virtual int initialize(const char * filename);
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
