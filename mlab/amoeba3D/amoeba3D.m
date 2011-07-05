@@ -36,8 +36,10 @@ function [wire_hndl, ...
   symmetry_flag = zeros(1,3);
   symmetry_flag(1) = 0; %% only 1st dimension should ever be symmetric
 
-  %% i_plane: (row, col), (row, depth), (col,depth)
-  %% dimensions order: (row, col, depth)
+  %% i_plane: 
+  %% dimensions order: x->y, y->z, z->x, use right hand rule, arrow
+  %% indicates direction of rotation angle from first axis to second
+  %% axis argument
   amoeba_Rval = zeros(Npts, 3);
   fourier_arg = [0:(Npts-1)] * (2*pi) / Npts;
   fourier_arg2 = ...
@@ -58,7 +60,7 @@ function [wire_hndl, ...
     amoeba_Rval(:,i_plane) = sum( fourier_term, 1 );
   endfor
 
-  %% scale realand imaginary parts of X-sections to match specified min and max radii
+  %% scale real and imaginary parts of X-sections to match specified min and max radii
   max_real_Rval = zeros(1,3);
   min_real_Rval = zeros(1,3);
   ave_real_Rval = zeros(1,3);
@@ -88,9 +90,7 @@ function [wire_hndl, ...
 
   %% match intercepts
   %% Real part of cross-sections much match at intersections
-  Npts_quarter = 1 + round(Npts/4);
-  Npts_half = 1 + round(Npts/2);
-  Npts_3quarter = 1 + round(3*Npts/4);
+  [Npts_quarter, Npts_half, Npts_3quarter] = cardinalPts(Npts);
   amoeba_Rdiff = zeros(2,3);
   for axis_id = 1:3
     axis_id2 = axis_id + 2;
@@ -275,37 +275,46 @@ function [wire_hndl, ...
   print(wire_fig_hndl, wire_filename, wire_option);
 
   return;
-  
-  %% find polynomial of the form
-  %% sum( coef_poly(i_pow, i_axis) * amoeba_xyz(i_pt, i_axis) ^ i_pow ) = ...
-  %% const_poly(i_axis) == 1
-  
-  Npoly = Npts - 2; %%(3*Npts - 6)/3;
-  %% each intersection appears twice
-  %% remove 0 and 180 degree intersecton pts along each axis (same pts
-  %% appear elsewhere)
-  amoeba_xyz = zeros(Npoly, 3);
-  amoeba_xyz(:,1) = ...
-      [amoeba_x(2:(Npts_half-2),1), amoeba_x(Npts_half:Npts,1)];
-  amoeba_xyz(:,2) = ...
-      [amoeba_x(2:(Npts_half-2),2), amoeba_x(Npts_half:Npts,2)];
-  amoeba_xyz(:,3) = ...
-      [amoeba_x(2:(Npts_half-2),3), amoeba_x(Npts_half:Npts,3)];
-  const_poly = ones(3*Npoly, 1);
-  mat_poly2D = zeros(3*Npoly, 3*Npoly);
-  for i_pt = 1 : 3*Npoly
-    xyz_pt = 1 + mod(i_pt-1, Npoly);
-    i_plane = ceil(i_pt / Npoly);
-    for i_pow = 1 : Npoly
-	  mat_poly2D(i_pt, i_pow + Npoly * (i_plane-1)) = ...
-	      amoeba_xyz(xyz_pt, i_plane).^i_pow;
+
+  find_polynomial_flag = 0
+  if find_polynomial_flag
+    %% find polynomial of the form
+    %% sum( coef_poly(i_pow, i_axis) * amoeba_xyz(i_pt, i_axis) ^ i_pow ) = ...
+    %% const_poly(i_axis) == 1
+    
+    Npoly = Npts - 2; %%(3*Npts - 6)/3;
+    %% each intersection appears twice
+    %% remove 0 and 180 degree intersecton pts along each axis (same pts
+    %% appear elsewhere)
+    amoeba_xyz = zeros(Npoly, 3);
+    amoeba_xyz(:,1) = ...
+	[amoeba_x(2:(Npts_half-2),1), amoeba_x(Npts_half:Npts,1)];
+    amoeba_xyz(:,2) = ...
+	[amoeba_x(2:(Npts_half-2),2), amoeba_x(Npts_half:Npts,2)];
+    amoeba_xyz(:,3) = ...
+	[amoeba_x(2:(Npts_half-2),3), amoeba_x(Npts_half:Npts,3)];    
+    
+    const_poly = ones(3*Npoly, 1);
+    mat_poly2D = zeros(3*Npoly, 3*Npoly);
+    for i_pt = 1 : 3*Npoly
+      xyz_pt = 1 + mod(i_pt-1, Npoly);
+      i_plane = ceil(i_pt / Npoly);
+      for i_pow = 1 : Npoly
+	mat_poly2D(i_pt, i_pow + Npoly * (i_plane-1)) = ...
+	    amoeba_xyz(xyz_pt, i_plane).^i_pow;
+      endfor
     endfor
-  endfor
-  coef_poly = mat_poly2D \ const_poly;
-  coef_poly = reshape(coef_poly, [Npoly, 3]);
+    coef_poly = mat_poly2D \ const_poly;
+    coef_poly = reshape(coef_poly, [Npoly, 3]);
+  endif
+
+  
+  
 
   %% draw polynomial surface
   amoeba_3D_fig = figure;
+
+  
   num_ndx = 2*ceil(amoeba_Rmax);
   x_ndx = 1:num_ndx;
   y_ndx = 1:num_ndx;
@@ -314,4 +323,45 @@ function [wire_hndl, ...
   y_min = amoeba_y2(Npts_half, 2);
   y_delta = (y_max - y_min) / num_ndx;
   surf(amoeba_x2(:), amoeba_y2(:), amoeba_z2(:));
+  
+endfunction
 
+
+
+function [amoeba3D_surf] = amoeba3DSurf(amoeba_x, amoeba_y, amoeba_z, fourier_arg)
+  Npts = size(amoeba_x,1);
+  [Npts_quarter, Npts_half, Npts_3quarter] = ...
+      cardinalPts(Npts);
+  ameoba3D_surf = zeros(Npts, Npts, 3);
+  amoeba3D_surf(1,:,3) = amoeba_z(1,3); %% first row, z = zmax
+  amoeba3D_surf(Npts,:,3) = amoeba_z(Npts_half,3); %% last row, z = zmin
+  for i_row = 2 : Npts_quarter
+    amoeba3D_surf(i_row,1,1) = amoeba_x(i_row,3);
+    amoeba3D_surf(i_row,Npts_half,1) = amoeba_x(Npts-i_row+2,3);
+    amoeba3D_surf(i_row,Npts_quarter,2) = amoeba_y(Npts_quarter-i_row+1,2);
+    amoeba3D_surf(i_row,Npts_3quarter,2) = amoeba_y(Npts_quarter+i_row-1,2);
+    amoeba3D_surf(i_row,1,3) = amoeba_z(i_row,3);
+    amoeba3D_surf(i_row,Npts_half,3) = amoeba_z(Npts-i_row+2,3);
+    amoeba3D_surf(i_row,Npts_quarter,3) = amoeba_z(Npts_quarter-i_row+1,2);
+    amoeba3D_surf(i_row,Npts_3quarter,3) = amoeba_z(Npts_quarter+i_row-1,2);
+    theta_angle = fourier_arg(i_row)
+    for i_col = [ (2 : Npts_quarter-1), ...
+		 (Npts_quarter+1):(Npts_half-1), ...
+		 (Npts_half+1):(Npts_3quarter-1), ...
+		 (Npts_3quarter+1):(Npts-1) ]
+      phi_angle = fourier_arg(i_col);
+      %% find Rpoly 
+    endfor %% i_col
+  endfor %% i_row
+  
+endfunction
+
+function [amoeba3D_poly] = amoeba3DPoly()
+endfunction  %% amoeba3DPoly
+
+
+function [Npts_quarter, Npts_half, Npts_3quarter] = cardinalPts(Npts)
+  Npts_quarter = 1 + round(Npts/4);
+  Npts_half = 1 + round(Npts/2);
+  Npts_3quarter = 1 + round(3*Npts/4);
+endfunction  %% cardinalPts
