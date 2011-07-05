@@ -95,6 +95,7 @@ HyPerCol * build(int argc, char * argv[]) {
            "_Start_LayerProbes_",
              "LayerProbe",
                "PointProbe",
+               "StatsProbe",
                "LayerFunctionProbe",
                  "L2NormProbe",
                  "SparsityTermProbe",
@@ -830,6 +831,22 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
          else {
             addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+             errorFound = true;
+         }
+      }
+   }
+   if( !strcmp(classkeyword, "StatsProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new StatsProbe(filename, hc, BufActivity, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new StatsProbe(BufActivity, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);

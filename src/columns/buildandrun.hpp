@@ -58,6 +58,7 @@
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
+#include "../io/StatsProbe.hpp"
 #include "../io/L2NormProbe.hpp"
 #include "../io/SparsityTermProbe.hpp"
 #include "../io/GenColProbe.hpp"
