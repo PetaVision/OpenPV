@@ -57,7 +57,9 @@ public:
 
    int copyFromInteriorBuffer(const unsigned char * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
+#ifdef OBSOLETE
    int gatherToInteriorBuffer(unsigned char * buf);
+#endif
 
 protected:
 
@@ -68,14 +70,8 @@ protected:
 
    //int initializeImage(const char * filename);
 
-#ifdef OBSOLETE
-   Communicator * comm;           // the communicator object for reading/writing files
-#endif
    MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
-#ifdef OBSOLETE
-   PVLayerLoc loc;        // size/location of layer
-#endif
    pvdata_t * data;       // buffer containing reduced image
    char * filename;       // path to file if a file exists
 
@@ -83,6 +79,7 @@ protected:
    pvdata_t * imageData;  // buffer containing image
 
    int writeImages;      // controls writing of image file during outputState
+   bool useGrayScale;    // whether to convert image to grayscale
 
    float lastPhase;
    float lastUpdateTime; // time of last image update

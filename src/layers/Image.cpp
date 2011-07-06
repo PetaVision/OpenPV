@@ -30,55 +30,7 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename)
 Image::~Image()
 {
    if (filename != NULL) free(filename);
-#ifdef OBSOLETE
-   if (data != NULL) {
-      free(data);
-      data = NULL;
-   }
-#endif
 }
-
-#ifdef OBSOLETE
-int Image::initialize_base(const char * name, HyPerCol * hc)
-{
-   this->comm = hc->icCommunicator();
-
-   PVParams * params = hc->parameters();
-
-   PVLayerLoc * loc = & clayer->loc;
-   loc->nf = 1;
-   loc->nPad = (int) params->value(name, "marginWidth", 0);
-
-   // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
-
-   return 0;
-}
-#endif
-
-#ifdef OBSOLETE
-int Image::initGlobal(int colId, int colRow, int colCol, int nRows, int nCols)
-{
-   int status = HyPerLayer::initGlobal(colId, colRow, colCol, nRows, nCols);
-
-   // need all image bands until converted to gray scale
-   PVLayerLoc * loc = & clayer->loc;
-   clayer->loc.nBands = getImageLoc().nBands;
-
-   initialize_data(loc);
-
-   read(filename);
-
-   // for now convert images to grayscale
-   if (loc->nf > 1) {
-      this->toGrayScale();
-   }
-
-   // exchange border information
-   exchange();
-   return 0;
-}
-#endif
 
 /**
  * data lives in an extended frame of size
@@ -89,6 +41,7 @@ int Image::initializeImage(const char * filename)
    int status = 0;
 
    this->writeImages = (int) parent->parameters()->value(name, "writeImages", 0);
+   this->useGrayScale = parent->parameters()->value(name,"useGrayScale",1) != 0;
 
    if (filename != NULL) {
       this->filename = strdup(filename);
@@ -100,23 +53,8 @@ int Image::initializeImage(const char * filename)
    }
    this->lastUpdateTime = 0.0;
 
-   // get size info from image so that data buffer can be allocated
 // TODO - must make image conform to layer size
 
-#ifdef OBSOLETE
-   // allocate storage for actual image
-   //
-//   int N = imageLoc.nx * imageLoc.ny * imageLoc.nBands;
-//   imageData = (pvdata_t *) calloc(sizeof(pvdata_t), N);
-//   assert(imageData != NULL);
-
-   // allocate storage for layer data buffer
-   //
-   const int N = (dataLoc->nx + 2*dataLoc->nPad) * (dataLoc->ny + 2*dataLoc->nPad)
-               * dataloc->nf;
-   data = (pvdata_t *) calloc(sizeof(pvdata_t), N);
-   assert(data != NULL);
-#endif
    data = clayer->activity->data;
 
    // create mpi_datatypes for border transfer
@@ -126,8 +64,8 @@ int Image::initializeImage(const char * filename)
       read(filename);
    }
 
-   // for now convert images to grayscale
-   if (getLayerLoc()->nf > 1) {
+   // convert images to grayscale if useGrayScale is set
+   if (useGrayScale) {
       this->toGrayScale();
    }
 
@@ -268,10 +206,10 @@ int Image::exchange()
    return parent->icCommunicator()->exchange(data, mpi_datatypes, getLayerLoc());
 }
 
+#ifdef OBSOLETE
 int Image::gatherToInteriorBuffer(unsigned char * buf)
 {
    return HyPerLayer::gatherToInteriorBuffer(buf);
-#ifdef OBSOLETE
    const PVLayerLoc * loc = getLayerLoc();
 
    assert(loc->nf == 1);
@@ -306,8 +244,8 @@ int Image::gatherToInteriorBuffer(unsigned char * buf)
    free(srcBuf);
 
    return 0;
-#endif
 }
+#endif
 
 int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
 {
@@ -389,10 +327,15 @@ int Image::toGrayScale()
 
    // turn off the color
    clayer->loc.nf = 1;
+   clayer->numNeurons = clayer->loc.nx * clayer->loc.ny;
+   clayer->numExtended = (clayer->loc.nx + 2*clayer->loc.nb) * (clayer->loc.ny + 2*clayer->loc.nb);
 
    return 0;
 }
 
+// convertToGrayScale() seems broken since it doesn't use loc->nb,
+// and no other routine in trunk calls it.
+#ifdef OBSOLETE // Marked obsolete July 6, 2011
 int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
 {
    const int nx = loc->nx;
@@ -423,6 +366,7 @@ int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
 
    return 0;
 }
+#endif // OBSOLETE
 
 int Image::convolve(int width)
 {
