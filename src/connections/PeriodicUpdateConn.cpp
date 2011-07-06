@@ -5,6 +5,8 @@
  *      Author: peteschultz
  */
 
+#ifdef OBSOLETE
+
 #include "PeriodicUpdateConn.hpp"
 
 namespace PV {
@@ -50,3 +52,4 @@ int PeriodicUpdateConn::updateWeights(int axonID) {
 }
 
 }  // end namespace PV
+#endif

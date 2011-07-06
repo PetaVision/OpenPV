@@ -34,10 +34,10 @@ int PoolingGenConn::initialize_base() {
 int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
         ChannelType channel, const char * filename) {
+    GenerativeConn::initialize(name, hc, pre, post, channel, filename);
     if( checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ) {
         this->pre2 = pre2;
         this->post2 = post2;
-        GenerativeConn::initialize(name, hc, pre, post, channel, filename);
         return PV_SUCCESS;
     }
     else {
@@ -77,8 +77,6 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
 }  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
 
 int PoolingGenConn::updateWeights(int axonID) {
-    printf("updateWeights for PoolingGenConn %s\n", name);
-
     int nPre = preSynapticLayer()->getNumNeurons();
     int nx = preSynapticLayer()->getLayerLoc()->nx;
     int ny = preSynapticLayer()->getLayerLoc()->ny;
@@ -111,6 +109,7 @@ int PoolingGenConn::updateWeights(int axonID) {
         }
     }
     normalizeWeights( kernelPatches, numDataPatches(0) );
+    lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;
 }

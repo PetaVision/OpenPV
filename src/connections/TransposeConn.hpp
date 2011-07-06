@@ -8,11 +8,11 @@
 #ifndef TRANSPOSECONN_HPP_
 #define TRANSPOSECONN_HPP_
 
-#include "PeriodicUpdateConn.hpp"
+#include "KernelConn.hpp"
 
 namespace PV {
 
-class TransposeConn: public PeriodicUpdateConn {
+class TransposeConn: public KernelConn {
 public:
     TransposeConn();
     TransposeConn(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn);

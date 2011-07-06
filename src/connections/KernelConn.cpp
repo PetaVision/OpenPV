@@ -8,7 +8,6 @@
 #include "KernelConn.hpp"
 #include <assert.h>
 #include <float.h>
-#include <mpi.h>
 #include "../io/io.h"
 
 namespace PV {
@@ -42,18 +41,21 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int KernelConn::initialize_base()
 {
-   plasticityFlag = false;
    kernelPatches = NULL;
-   return HyPerConn::initialize_base();
+   lastUpdateTime = 0.f;
+   plasticityFlag = false;
+   return PV_SUCCESS; // return HyPerConn::initialize_base();
+   // KernelConn constructor calls HyPerConn::HyPerConn(), which
+   // calls HyPerConn::initialize_base().
 }
 
-int KernelConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename){
-   PVParams * params = parent->parameters();
-   plasticityFlag = (bool) params->value(name, "plasticityFlag", 0);
-   return KernelConn::initialize(name, hc, pre, post, channel, filename);
+int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename ) {
+   HyPerConn::initialize(name, hc, pre, post, channel, filename);
+   PVParams * params = hc->parameters();
+   plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag);
+   weightUpdateTime = initializeUpdateTime(params);
+   return PV_SUCCESS;
 }
-
 
 PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
@@ -77,6 +79,12 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
       patches[patchIndex]->data = kernelPatches[kernelIndex]->data;
    }
    return patches;
+}
+
+int KernelConn::initializeUpdateTime(PVParams * params) {
+   float defaultUpdatePeriod = 1.f;
+   weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
+   return PV_SUCCESS;
 }
 
 /*TODO  createWeights currently breaks in this subclass if called more than once,
@@ -174,28 +182,49 @@ float KernelConn::maxWeight()
    return max_weight;
 }
 
-
-int KernelConn::updateState(float time, float dt){
-   // merge kernel changes across processes
+int KernelConn::updateState(float time, float dt) {
    int status = PV_SUCCESS;
-#ifdef PV_USE_MPI
-   if (~plasticityFlag) {
+   if( !plasticityFlag ) {
       return status;
    }
-   Communicator * comm = parent->icCommunicator();
-   const MPI_Comm mpi_comm = comm->communicator();
+   if( time >= weightUpdateTime) {
+      computeNewWeightUpdateTime(time, weightUpdateTime);
+      const int axonID = 0;    // assume only one for now
+      status = updateWeights(axonID);
+      // TODO error handling
 
-   const int axonId = 0;       // assume only one for now
-   const int numPatches = numDataPatches(axonId);
-   const size_t patchSize = nxp*nyp*nfp*sizeof(float);
+#ifdef PV_USE_MPI
+      status = reduceKernels(axonID);  // combine partial changes in each column
+#endif // PV_USE_MPI
+   }
+   return status;
+}
+
+int KernelConn::updateWeights(int axonId){
+   lastUpdateTime = parent->simulationTime();
+   return 0;
+}
+
+float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime) {
+   weightUpdateTime += weightUpdatePeriod;
+   return weightUpdateTime;
+}
+
+#ifdef PV_USE_MPI
+int KernelConn::reduceKernels(const int axonID) {
+   const int numPatches = numDataPatches(axonID);
+   const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
 
    //TODO!!! preallocate buf
-   float * buf = (float *) malloc(localSize);
-   float * buf0 = buf;
-   assert(buf != NULL);
+   pvdata_t * buf = (pvdata_t *) malloc(localSize);
+   if(buf == NULL) {
+      fprintf(stderr, "KernelConn::reduceKernels:Unable to allocate memory\n");
+      exit(1);
+   }
 
-   // load kernel weights in buffer
+   // Copy this column's weights into buf
+   int idx = 0;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = kernelPatches[k];
       const pvdata_t * data = p->data;
@@ -207,23 +236,27 @@ int KernelConn::updateState(float time, float dt){
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
             for (int f = 0; f < p->nf; f++) {
-               float val = data[x * sxp + y * syp + f * sfp];
-               memcpy(buf, &val, sizeof(float));
-               buf += sizeof(float);
+               buf[idx] = data[x*sxp + y*syp + f*sfp];
+               idx++;
             }
          }
       }
    }
 
-   // sum weights from each proc into buf, send and recv buffers are the same
+   // MPI_Allreduce combines all processor's buf's and puts the common result
+   // into each processor's buf.
+   Communicator * comm = parent->icCommunicator();
+   const MPI_Comm mpi_comm = comm->communicator();
    int ierr;
-   ierr = MPI_Allreduce(MPI_IN_PLACE, buf,localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, buf, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   // TODO error handling
 
-   // replace individual kernel weights with average over procs
+   // buf now holds the sum over all processes.
+   // Divide by number of processes to get average and copy back to patches
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
    const int nProcs = nxProcs * nyProcs;
-   buf = buf0;
+   idx = 0;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = kernelPatches[k];
       pvdata_t * data = p->data;
@@ -235,30 +268,16 @@ int KernelConn::updateState(float time, float dt){
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
             for (int f = 0; f < p->nf; f++) {
-               float val;
-               memcpy(&val, buf, sizeof(float));
-               val /= nProcs;
-               data[x * sxp + y * syp + f * sfp] = val;
-               buf += sizeof(float);
+               data[x*sxp + y*syp + f*sfp] = buf[idx]/nProcs;
+               idx++;
             }
          }
       }
    }
 
-   return status;
-#else
-   return status;
+   return PV_SUCCESS;
+}
 #endif // PV_USE_MPI
-
-
-}
-
-
-int KernelConn::updateWeights(int axonId){
-
-   return 0;
-}
-
 
 
 int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,

@@ -78,11 +78,13 @@ HyPerCol * build(int argc, char * argv[]) {
                  "GaborConn",
                  "GeislerConn",
                  "IdentConn",
-                 "PeriodicUpdateConn",
-                   "GenerativeConn",
-                     "PoolingGenConn",
-                   "TransposeConn",
-                     "FeedbackConn",
+#ifdef OBSOLETE
+                "PeriodicUpdateConn",
+#endif // OBSOLETE
+                "GenerativeConn",
+                   "PoolingGenConn",
+                 "TransposeConn",
+                   "FeedbackConn",
                "PoolConn",
                "RuleConn",
                "STDPConn",
@@ -285,7 +287,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    if( !strcmp(classkeyword, "CreateMovies") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+      addedLayer = (HyPerLayer *) new CreateMovies(name, hc);
       checknewobject((void *) addedLayer, classkeyword, name);
    }
    if( !strcmp(classkeyword, "ImageCreator") ) {
@@ -520,6 +522,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "PeriodicUpdateConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -529,6 +532,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);

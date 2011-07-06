@@ -8,11 +8,11 @@
 #ifndef GENERATIVECONN_HPP_
 #define GENERATIVECONN_HPP_
 
-#include "PeriodicUpdateConn.hpp"
+#include "KernelConn.hpp"
 
 namespace PV {
 
-class GenerativeConn : public PeriodicUpdateConn {
+class GenerativeConn : public KernelConn {
 public:
     GenerativeConn();
     GenerativeConn(const char * name, HyPerCol * hc,

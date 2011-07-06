@@ -9,14 +9,17 @@
 #define KERNELCONN_HPP_
 
 #include "HyPerConn.hpp"
+#ifdef PV_USE_MPI
+#  include <mpi.h>
+#else
+#  include "../include/mpi_stubs.h"
+#endif
 
 namespace PV {
 
 class KernelConn: public HyPerConn {
 
 public:
-
-   bool plasticityFlag;
 
    KernelConn();
 
@@ -27,10 +30,6 @@ public:
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
 
    virtual int numDataPatches(int arbor);
-
-   virtual int updateState(float time, float dt);
-
-   virtual int updateWeights(int axonId);
 
    virtual float minWeight();
    virtual float maxWeight();
@@ -51,21 +50,37 @@ public:
    PVPatch * getKernelPatch(int kernelIndex)   {return kernelPatches[kernelIndex];}
    virtual int writeWeights(float time, bool last=false);
 
+   bool getPlasticityFlag() {return plasticityFlag;}
+   float getWeightUpdatePeriod() {return weightUpdatePeriod;}
+   float getWeightUpdateTime() {return weightUpdateTime;}
+   float getLastUpdateTime() {return lastUpdateTime;}
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
+   bool plasticityFlag;
+   float weightUpdatePeriod;
+   float weightUpdateTime;
+   float lastUpdateTime;
+
    virtual int deleteWeights();
    virtual int initialize_base();
    virtual int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
+   virtual int initializeUpdateTime(PVParams * params);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
+   virtual int updateState(float time, float dt);
+   virtual int updateWeights(int axonId);
+   virtual float computeNewWeightUpdateTime(float time, float currentUpdateTime);
+#ifdef PV_USE_MPI
+   virtual int reduceKernels(int axonID);
+#endif // PV_USE_MPI
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename);
-
 };
 
 }

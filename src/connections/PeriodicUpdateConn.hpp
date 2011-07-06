@@ -5,6 +5,8 @@
  *      Author: peteschultz
  */
 
+#ifdef OBSOLETE
+
 #ifndef PERIODICUPDATECONN_HPP_
 #define PERIODICUPDATECONN_HPP_
 
@@ -34,3 +36,4 @@ protected:
 }  // end namespace PV
 
 #endif /* PERIODICUPDATECONN_HPP_ */
+#endif // ifdef OBSOLETE

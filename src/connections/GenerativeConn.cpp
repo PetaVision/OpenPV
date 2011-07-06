@@ -29,17 +29,20 @@ GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
    //   HyPerLayer *, HyPerLayer *, int, const char *)
 
 int GenerativeConn::initialize_base() {
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    normalizeMethod = 0;
-    return PV_SUCCESS;
-    // KernelConn constructor calls KernelConn::initialize_base()
-    // and the similarly for HyPerConn constructor, so I don't need to.
+   plasticityFlag = true; // Default value; override in params
+   weightUpdatePeriod = 1;   // Default value; override in params
+
+   relaxation = 1.0;
+   nonnegConstraintFlag = false;
+   normalizeMethod = 0;
+   return PV_SUCCESS;
+   // Base class constructor calls base class initialize_base
+   // so derived class initialize_base doesn't need to.
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-    return initialize(name, hc, pre, post, channel, NULL);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+   return initialize(name, hc, pre, post, channel, NULL);
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
@@ -48,11 +51,11 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     PVParams * params = hc->parameters();
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
-    normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is not to constrain kernelwise to spheres.
+    normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is no constraint
     if( normalizeMethod ) {
        normalizeConstant = params->value(name, "normalizeConstant", 1.0f);
     }
-    PeriodicUpdateConn::initialize(name, hc, pre, post, channel, filename);
+    KernelConn::initialize(name, hc, pre, post, channel, filename);
     return PV_SUCCESS;
 }
 
@@ -88,6 +91,7 @@ int GenerativeConn::updateWeights(int axonID) {
         }
     }
     normalizeWeights( kernelPatches, numDataPatches(0) );
+    lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;
 }  // end of GenerativeConn::updateWeights(int);

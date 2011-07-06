@@ -23,14 +23,23 @@ TransposeConn::~TransposeConn() {
 }  // TransposeConn::~TransposeConn()
 
 int TransposeConn::initialize_base() {
-    originalConn = NULL;
-    return PV_SUCCESS;
+   plasticityFlag = true; // Default value; override in params
+   weightUpdatePeriod = 1;   // Default value; override in params
+   // TransposeConn::initialize_base() gets called after
+   // KernelConn::initialize_base() so these default values override
+   // those in KernelConn::initialize_base().
+   // TransposeConn::initialize_base() gets called before
+   // KernelConn::initialize(), so these values still get overridden
+   // by the params file values.
+
+   originalConn = NULL;
+   return PV_SUCCESS;
 }  // TransposeConn::initialize_base()
 
 int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn) {
 
-	originalConn = auxConn;
-    return KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL);
+   originalConn = auxConn;
+   return KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL);
 }
 
 PVPatch ** TransposeConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename) {
@@ -81,7 +90,14 @@ int TransposeConn::setPatchSize(const char * filename) {
 }  // TransposeConn::setPatchSize(const char *)
 
 int TransposeConn::updateWeights(int axonID) {
-    return transposeKernels();
+   int status;
+   if(originalConn->getLastUpdateTime() > lastUpdateTime ) {
+      status = transposeKernels();
+      lastUpdateTime = parent->simulationTime();
+   }
+   else
+      status = PV_SUCCESS;
+   return status;
 }  // end of TransposeConn::updateWeights(int);
 
 int TransposeConn::transposeKernels() {
