@@ -1640,7 +1640,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
 }
 
 /**
- * calculate random weights for a patch given a range between wMin and wMax
+ * generate random weights for a patch from a uniform distribution
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary
@@ -1692,7 +1692,7 @@ int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
 
 
 /**
- * calculate random weights for a patch given a range between wMin and wMax
+ * generate random weights for a patch from a gaussian distribution
  * NOTES:
  *    - the pointer w already points to the patch head in the data structure
  *    - it only sets the weights to "real" neurons, not to neurons in the boundary
