@@ -227,7 +227,7 @@ const pvdata_t * HyPerLayer::getLayerData()
  **/
 int HyPerLayer::numberOfNeurons(int borderId)
 {
-   int numNeurons = 0;
+   int numNeurons;
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
@@ -255,6 +255,7 @@ int HyPerLayer::numberOfNeurons(int borderId)
       numNeurons = nxBorder * nyBorder * nf;   break;
    default:
       fprintf(stderr, "ERROR:HyPerLayer:numberOfBorderNeurons: bad border index %d\n", borderId);
+      numNeurons = 0; break;
    }
 
    return numNeurons;
@@ -292,9 +293,9 @@ int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLa
       return mirrorToSouthEast(border, cube);
    default:
       fprintf(stderr, "ERROR:HyPerLayer:copyToBorder: bad border index %d\n", whichBorder);
+      return -1;
    }
 
-   return -1;
 }
 
 int HyPerLayer::gatherToInteriorBuffer(unsigned char * buf)
