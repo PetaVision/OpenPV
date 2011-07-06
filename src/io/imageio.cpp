@@ -222,7 +222,7 @@ int gatherImageFile(const char * filename,
       range_buf = 1.0;
    }
    for (int i = 0; i < numItems; i++) {
-      char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / (max_buf - min_buf);
+      char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / range_buf;
    }
    int status = gatherImageFile(filename, comm, loc, char_buf);
    free(char_buf);
@@ -242,7 +242,7 @@ int gatherImageFilePVP(const char * filename,
                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
-   const int maxBands = 3;
+   // const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -253,7 +253,7 @@ int gatherImageFilePVP(const char * filename,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   assert(numBands <= maxBands);
+   // assert(numBands <= maxBands);
 
    const int nxny     = nx * ny;
    const int numItems = nxny * numBands;
@@ -343,7 +343,7 @@ int gatherImageFileGDAL(const char * filename,
    int status = 0;
 
 #ifdef PV_USE_GDAL
-   const int maxBands = 3;
+   // const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -354,7 +354,7 @@ int gatherImageFileGDAL(const char * filename,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   assert(numBands <= maxBands);
+   // assert(numBands <= maxBands);
 
    const int nxny = nx * ny;
 
@@ -399,9 +399,11 @@ int gatherImageFileGDAL(const char * filename,
 #endif
       }
 
-      GDALRasterBand * band[maxBands];
+      // GDALRasterBand * band[maxBands];
 
       assert(numBands <= dataset->GetRasterCount());
+
+      GDALRasterBand ** band = (GDALRasterBand **) malloc( numBands * sizeof(GDALRasterBand *) );
 
       for (int b = 0; b < numBands; b++) {
          band[b] = dataset->GetRasterBand(b+1);
