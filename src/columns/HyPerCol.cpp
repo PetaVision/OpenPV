@@ -36,7 +36,6 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[], const char * pv_p
    initialize(name, argc, argv);
    assert(strlen(path) + strlen(pv_path) < PV_PATH_MAX);
    sprintf(path, "%s/%s", path, pv_path);
-
 }
 
 HyPerCol::~HyPerCol()
@@ -387,24 +386,26 @@ float HyPerCol::advanceTime(float sim_time)
       connections[c]->outputState(sim_time);
    }
 
-   // Update the layers (activity)
-   //
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->outputState(sim_time);
-
       // deliver new synaptic activity to any
       // postsynaptic layers for which this
       // layer is presynaptic.
       layers[l]->triggerReceive(icComm);
    }
 
-   for( int l = 0; l < numLayers; l++ ) {
-      // update layer and calculate new activity.
-      // All the layers need to call trigger receive
-      // before any layers call updateState,
-      // because there's no guarantee that the
-      // presynaptic layer will update before the
-      // postsynaptic layer.
+   // Update the layers (activity)
+   // In order for probing the GSyn channels to work,
+   // this needs to be after all the triggerReceive
+   // calls and before any of the updateState calls.
+   // This is because triggerReceive updates the GSyn
+   // buffers but updateState clears them.
+   // However, this means that V and A is one step behind
+   // probes of GSyn.
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->outputState(sim_time);
+   }
+   
+   for(int l = 0; l < numLayers; l++) {
       layers[l]->updateState(sim_time, deltaTime);
    }
 
