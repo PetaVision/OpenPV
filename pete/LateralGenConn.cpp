@@ -28,7 +28,7 @@ LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
 
 int LateralGenConn::initialize_base() {
     // no LateralGenConn-specific data members to initialize.
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }  // end of LateralGenConn::initialize_base()
 
 int LateralGenConn::initialize(const char * name, HyPerCol * hc,
@@ -60,7 +60,7 @@ int LateralGenConn::initialize(const char * name, HyPerCol * hc,
 	// If -xPatchHead > prePad || -yPatchHead > prePad evaluates to true, updateWeights will crash.
 	// This should be fixed.
 
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }  // end of LateralGenConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int LateralGenConn::updateWeights(int axonID) {
@@ -106,7 +106,7 @@ int LateralGenConn::updateWeights(int axonID) {
             }
         }
     }
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }  // end of LateralGenConn::updateWeights(int)
 
 PVPatch ** LateralGenConn::initializeWeights(PVPatch ** patches, int numPatches,
