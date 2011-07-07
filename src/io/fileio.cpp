@@ -506,7 +506,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: read: received from 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numItems);
+              comm->commRank(), loc->nx, loc->ny, numItems);
 #endif
 #endif // PV_USE_MPI
    }
@@ -560,7 +560,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
-                    comm->commRank(), dest, nx, ny, numItems);
+                    comm->commRank(), dest, loc->nx, loc->ny, numItems);
 #endif
             long offset = headerSize + dest * localSize;
             fseek(fp, offset, SEEK_SET);
