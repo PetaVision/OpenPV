@@ -143,6 +143,7 @@ public:
    const char * groupKeywordFromIndex(int index);
    const char * getFilename(const char * id);
 
+   void action_pvparams_directive(char * id, double val);
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
    void action_parameter_string_def(const char * id, const char * stringval);
@@ -157,6 +158,7 @@ private:
    ParameterStack * stack;
    ParameterStringStack * stringStack;
    FilenameStack * fnstack; // Deprecate?
+   bool debugParsing;
 
    int initialize(int initialSize);
    void addGroup(char * keyword, char * name);

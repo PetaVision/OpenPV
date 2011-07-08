@@ -45,9 +45,14 @@ int pv_parseParameters(PV::PVParams* action_handler)
 %%
 
 declarations : /* empty */
+             | declarations pvparams_directive
              | declarations parameter_group
              | declarations filename_def
              ;
+
+pvparams_directive : T_ID '=' T_NUMBER ';'
+                         { handler->action_pvparams_directive($1, $3); }
+                   ;
 
 parameter_group : T_ID T_STRING '=' '{' parameter_defs '}' ';'
                       { handler->action_parameter_group($1, $2); }

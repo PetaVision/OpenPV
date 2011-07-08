@@ -404,6 +404,11 @@ int PVParams::initialize(int initialSize) {
    stack = new ParameterStack(MAX_PARAMS);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+#ifdef DEBUG_PARSING
+   debugParsing = true;
+#else
+   debugParsing = false;
+#endif//DEBUG_PARSING
 
    return ( groups && stack && stringStack && fnstack ) ? PV_SUCCESS : PV_FAILURE;
 }
@@ -549,6 +554,23 @@ void PVParams::addGroup(char * keyword, char * name)
 }
 
 /**
+ * @val
+ */
+void PVParams::action_pvparams_directive(char * id, double val)
+{
+   if( !strcmp(id,"debugParsing") ) {
+      debugParsing = (val != 0);
+      printf("debugParsing turned ");
+      if(debugParsing) {
+         printf("on.\n");
+      }
+      else {
+         printf("off.\n");
+      }
+   }
+}
+
+/**
  * @keyword
  * @name
  */
@@ -558,11 +580,11 @@ void PVParams::action_parameter_group(char * keyword, char * name)
    int len = strlen(++name);
    name[len-1] = '\0';
 
-#ifdef DEBUG_PARSING
-   fflush(stdout);
-   printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
-   fflush(stdout);
-#endif
+   if(debugParsing) {
+      fflush(stdout);
+      printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
+      fflush(stdout);
+   }
 
    // build a parameter group
    addGroup(keyword, name);
@@ -574,21 +596,21 @@ void PVParams::action_parameter_group(char * keyword, char * name)
  */
 void PVParams::action_parameter_def(char * id, double val)
 {
-#ifdef DEBUG_PARSING
-   fflush(stdout);
-   printf("action_parameter_def: %s = %lf\n", id, val);
-   fflush(stdout);
-#endif
+   if(debugParsing) {
+      fflush(stdout);
+      printf("action_parameter_def: %s = %lf\n", id, val);
+      fflush(stdout);
+   }
    Parameter * p = new Parameter(id, val);
    stack->push(p);
 }
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
-#ifdef DEBUG_PARSING
-   fflush(stdout);
-   printf("action_parameter_string_def: %s = %s\n", id, stringval);
-   fflush(stdout);
-#endif
+   if(debugParsing) {
+      fflush(stdout);
+      printf("action_parameter_string_def: %s = %s\n", id, stringval);
+      fflush(stdout);
+   }
    ParameterString * pstr = new ParameterString(id, stringval);
    stringStack->push(pstr);
 }
@@ -596,11 +618,11 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
 // Deprecate action_filename_def?
 void PVParams::action_filename_def(char * id, char * path)
 {
-#ifdef DEBUG_PARSING
-   fflush(stdout);
-   printf("action_filename_def: %s = %s\n", id, path);
-   fflush(stdout);
-#endif
+   if(debugParsing) {
+      fflush(stdout);
+      printf("action_filename_def: %s = %s\n", id, path);
+      fflush(stdout);
+   }
    size_t pathlength = strlen( path );
    assert( pathlength >= 2 ); // path still includes the delimiting quotation marks
    char * filenameptr = (char *) malloc( sizeof(char)*( pathlength - 1) );
