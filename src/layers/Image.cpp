@@ -39,9 +39,12 @@ Image::~Image()
 int Image::initializeImage(const char * filename)
 {
    int status = 0;
+   PVParams * params = parent->parameters();
+   this->writeImages  = params->value(name, "writeImages", 0) != 0;
+   this->useGrayScale = params->value(name,"useGrayScale",1) != 0;
+   this->offsetX      = (int) params->value(name,"offsetX", 0);
+   this->offsetY      = (int) params->value(name,"offsetY", 0);
 
-   this->writeImages = (int) parent->parameters()->value(name, "writeImages", 0);
-   this->useGrayScale = parent->parameters()->value(name,"useGrayScale",1) != 0;
 
    if (filename != NULL) {
       this->filename = strdup(filename);

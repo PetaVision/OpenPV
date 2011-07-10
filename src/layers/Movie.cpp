@@ -63,24 +63,13 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    // need all image bands until converted to gray scale
    loc->nf = imageLoc.nf;
 
-#ifdef OBSOLETE
-   initialize_data(loc);
-
-//   N = loc.nx * loc.ny * loc.nBands;
-//   imageData = new float [N];
-//   for (int i = 0; i < N; ++i) {
-//      imageData[i] = 0;
-//   }
-//
-#endif
-
    //
    PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
-   offsetX           = (int) params->value(name,"offsetX", 0);
-   offsetY           = (int) params->value(name,"offsetY", 0);
+   // offsetX = (int) params->value(name,"offsetX", 0); // offsetX,offsetY moved to Image
+   // offsetY = (int) params->value(name,"offsetY", 0);
 
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 

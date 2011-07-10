@@ -80,6 +80,8 @@ protected:
 
    int writeImages;      // controls writing of image file during outputState
    bool useGrayScale;    // whether to convert image to grayscale
+   int offsetX;          // offset of layer section within full image frame
+   int offsetY;
 
    float lastPhase;
    float lastUpdateTime; // time of last image update

@@ -42,8 +42,8 @@ private:
 
    int stepSize;
 
-   int offsetX;           // offset of layer section within full movie frame
-   int offsetY;
+   // int offsetX; // moved to Image
+   // int offsetY;
 
    int jitterFlag;        // If true, use jitter
 
