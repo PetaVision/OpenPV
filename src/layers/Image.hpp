@@ -50,16 +50,13 @@ public:
    int exchange();
 
    int toGrayScale();
-   static int convertToGrayScale(PVLayerLoc * loc, unsigned char * buf);
+   static unsigned char * convertToGrayScale(unsigned char * buf, int nx, int ny, int numBands);
 
    int  convolve(int width);
    void setTau(float t)                { tau = t; }
 
-   int copyFromInteriorBuffer(const unsigned char * buf, float fac);
+   int copyFromInteriorBuffer(unsigned char * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
-#ifdef OBSOLETE
-   int gatherToInteriorBuffer(unsigned char * buf);
-#endif
 
 protected:
 
@@ -79,7 +76,8 @@ protected:
    pvdata_t * imageData;  // buffer containing image
 
    int writeImages;      // controls writing of image file during outputState
-   bool useGrayScale;    // whether to convert image to grayscale
+   // bool useGrayScale;    // whether to convert image to grayscale
+   // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
    int offsetX;          // offset of layer section within full image frame
    int offsetY;
 

@@ -255,8 +255,8 @@ int gatherImageFilePVP(const char * filename,
    const int numBands = loc->nf;
    // assert(numBands <= maxBands);
 
-   const int nxny     = nx * ny;
-   const int numItems = nxny * numBands;
+   // const int nxny     = nx * ny;
+   const int numItems = nx * ny * numBands;
 
 #ifdef PV_USE_MPI
    const int tag = PVP_FILE_TYPE;
@@ -311,24 +311,26 @@ int gatherImageFilePVP(const char * filename,
 
 #ifdef PV_USE_MPI
       int src = -1;
-      unsigned char * tmp = (unsigned char *) malloc(numItems * sizeof(unsigned char));
-      assert(tmp != NULL);
+      unsigned char * icBuf = (unsigned char *) malloc(numItems * sizeof(unsigned char));
+      assert(icBuf != NULL);
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d ny==%d numItems==%d\n",
-                    comm->commRank(), src, nx, ny, numItems);
+            fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d ny==%d nf==%d, numItems==%d\n",
+                    comm->commRank(), src, nx, ny, numBands, numItems);
 #endif
-            MPI_Recv(tmp, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+            MPI_Recv(icBuf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             long offset = headerSize + src * recordSize;
             fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(tmp, sizeof(unsigned char), numItems, fp);
+            numWrite = fwrite(icBuf, sizeof(unsigned char), numItems, fp);
             assert(numWrite == numItems);
          }
       }
-      free(tmp);
+      free(icBuf);
+      // TODO write to a file with params[INDEX_NX_PROCS] = params[INDEX_NY_PROCS] = 1
+      // so that reading the file doesn't depend on having the same number of processes.
 #endif // PV_USE_MPI
 
       status = fclose(fp);
@@ -356,7 +358,7 @@ int gatherImageFileGDAL(const char * filename,
    const int numBands = loc->nf;
    // assert(numBands <= maxBands);
 
-   const int nxny = nx * ny;
+   const int nxnynf = nx * ny * numBands;
 
 #ifdef PV_USE_MPI
    const int tag = 14;
@@ -367,12 +369,13 @@ int gatherImageFileGDAL(const char * filename,
 #ifdef PV_USE_MPI
       const int dest = 0;
 
-      for (int b = 0; b < numBands; b++) {
-         MPI_Send(&buf[b*nxny], nxny, MPI_BYTE, dest, tag, mpi_comm);
-      }
+      MPI_Send(buf, nx*ny*numBands, MPI_BYTE, dest, tag, mpi_comm);
+      // for (int b = 0; b < numBands; b++) {
+      //   MPI_Send(&buf[b*nxny], nxny, MPI_BYTE, dest, tag, mpi_comm);
+      // }
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, nxny);
+      fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d nf==%d size==%d\n",
+              comm->commRank(), nx, ny, numBands, nxnynf);
 #endif
 #endif // PV_USE_MPI
    }
@@ -401,24 +404,26 @@ int gatherImageFileGDAL(const char * filename,
 
       // GDALRasterBand * band[maxBands];
 
-      assert(numBands <= dataset->GetRasterCount());
+      assert(numBands <= dataset->GetRasterCount()); // Since dataset was created using numBands, what is this assert testing for?
 
-      GDALRasterBand ** band = (GDALRasterBand **) malloc( numBands * sizeof(GDALRasterBand *) );
+      // GDALRasterBand ** band = (GDALRasterBand **) malloc( numBands * sizeof(GDALRasterBand *) );
 
-      for (int b = 0; b < numBands; b++) {
-         band[b] = dataset->GetRasterBand(b+1);
-      }
+      // for (int b = 0; b < numBands; b++) {
+      //    band[b] = dataset->GetRasterBand(b+1);
+      // }
 
       // write local image portion
-      for (int b = 0; b < numBands; b++) {
-         band[b]->RasterIO(GF_Write, 0, 0, nx, ny,
-                           &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-      }
+      dataset->RasterIO(GF_Write, 0, 0, nx, ny, buf, nx, ny, GDT_Byte,
+                        numBands, NULL,numBands, numBands*nx, 1);
+      // for (int b = 0; b < numBands; b++) {
+      //    band[b]->RasterIO(GF_Write, 0, 0, nx, ny,
+      //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
+      // }
 
 #ifdef PV_USE_MPI
       int src = -1;
-      unsigned char * tmp = (unsigned char *) malloc(nxny * sizeof(unsigned char));
-      assert(tmp != NULL);
+      unsigned char * icBuf = (unsigned char *) malloc(nxnynf * sizeof(unsigned char));
+      assert(icBuf != NULL);
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++src == 0) continue;
@@ -430,14 +435,16 @@ int gatherImageFileGDAL(const char * filename,
                     comm->commRank(), src, nx, ny, nxny*numBands,
                     numTotal*comm->commSize());
 #endif
-            for (int b = 0; b < numBands; b++) {
-               MPI_Recv(tmp, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-               band[b]->RasterIO(GF_Write, kx, ky, nx, ny,
-                                 tmp, nx, ny, GDT_Byte, 0, 0);
-            }
+            dataset->RasterIO(GF_Write, kx, ky, nx, ny, icBuf, nx, ny, GDT_Byte,
+                              numBands, NULL, numBands, numBands*nx, 1);
+            // for (int b = 0; b < numBands; b++) {
+            //    MPI_Recv(icBuf, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+            //    band[b]->RasterIO(GF_Write, kx, ky, nx, ny,
+            //                      tmp, nx, ny, GDT_Byte, 0, 0);
+            // }
          }
       }
-      free(tmp);
+      free(icBuf);
 #endif // PV_USE_MPI
       GDALClose(dataset);
    }
@@ -463,7 +470,7 @@ int scatterImageFilePVP(const char * filename,
                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
 {
    int status = 0;
-   const int maxBands = 3;
+   // const int maxBands = 3;
 
    const int icRank = comm->commRank();
 
@@ -471,10 +478,10 @@ int scatterImageFilePVP(const char * filename,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   assert(numBands <= maxBands);
+   // assert(numBands <= maxBands);
 
-   const int nxny     = nx * ny;
-   const int numItems = nxny * numBands;
+   // const int nxny     = nx * ny;
+   const int numItems = nx * ny * numBands;
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -485,8 +492,8 @@ int scatterImageFilePVP(const char * filename,
       MPI_Recv(buf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numItems);
+      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d nf==%d numItems==%d\n",
+              comm->commRank(), nx, ny, numBands, numItems);
 #endif
 #endif // PV_USE_MPI
    }
@@ -524,6 +531,9 @@ int scatterImageFilePVP(const char * filename,
       assert(nxProcs == comm->numCommColumns());
       assert(nyProcs == comm->numCommRows());
       assert(numRecords == comm->commSize());
+      // TODO when in MPI, reading a file should not depend
+      // on the number of processors being the same between
+      // reading and writing
 
 #ifdef PV_USE_MPI
       int dest = -1;
@@ -567,7 +577,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    int status = 0;
 
 #ifdef PV_USE_GDAL
-   const int maxBands = 3;
+   // const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -578,21 +588,23 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   assert(numBands <= maxBands);
 
-   const int nxny = nx * ny;
+   // assert(numBands <= maxBands);
+
+   // const int nxny = nx * ny;
+   const int numTotal = nx * ny * numBands;
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
-      const int numTotal = nxny * numBands;
 
       const int src = 0;
       const int tag = 13;
       const MPI_Comm mpi_comm = comm->communicator();
 
-      for (int b = 0; b < numBands; b++) {
-         MPI_Recv(&buf[b*nxny], numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-      }
+      MPI_Recv(buf, numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      // for (int b = 0; b < numBands; b++) {
+      //    MPI_Recv(&buf[b*nxny], numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      // }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d size==%d\n",
               comm->commRank(), nx, ny, numTotal);
@@ -606,6 +618,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
+      const int bandsInFile = dataset->GetRasterCount();
 
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;
@@ -620,13 +633,13 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          return -1;
       }
 
-      GDALRasterBand * band[maxBands];
+      // GDALRasterBand * band[maxBands];
 
-      assert(numBands <= dataset->GetRasterCount());
+      assert(numBands == 1 || numBands == bandsInFile);
 
-      for (int b = 0; b < numBands; b++) {
-         band[b] = dataset->GetRasterBand(b+1);
-      }
+      // for (int b = 0; b < numBands; b++) {
+      //    band[b] = dataset->GetRasterBand(b+1);
+      // }
 
 #ifdef PV_USE_MPI
       int dest = -1;
@@ -644,20 +657,26 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                     comm->commRank(), dest, nx, ny, nx*ny,
                     nx*ny*comm->commSize());
 #endif
-            for (int b = 0; b < numBands; b++) {
-               band[b]->RasterIO(GF_Read, kx, ky, nx, ny,
-                                 &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-               MPI_Send(&buf[b*nxny], nx*ny, MPI_BYTE, dest, tag, mpi_comm);
-            }
+            dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
+                              nx, ny, GDT_Byte, bandsInFile, NULL,
+                              bandsInFile, bandsInFile*nx, 1);
+            MPI_Send(buf, numTotal, MPI_BYTE, dest, tag, mpi_comm);
+            // for (int b = 0; b < numBands; b++) {
+            //    band[b]->RasterIO(GF_Read, kx, ky, nx, ny,
+            //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
+            //    MPI_Send(&buf[b*nxny], nx*ny, MPI_BYTE, dest, tag, mpi_comm);
+            // }
          }
       }
 #endif // PV_USE_MPI
 
       // get local image portion
-      for (int b = 0; b < numBands; b++) {
-         band[b]->RasterIO(GF_Read, xOffset, yOffset, nx, ny,
-                           &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-      }
+      dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
+                        GDT_Byte, bandsInFile, NULL, bandsInFile, bandsInFile*nx, 1);
+      // for (int b = 0; b < numBands; b++) {
+      //    band[b]->RasterIO(GF_Read, xOffset, yOffset, nx, ny,
+      //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
+      // }
       GDALClose(dataset);
    }
 #else

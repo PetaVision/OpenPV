@@ -60,8 +60,8 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
 //   }
    imageData = NULL;
 
-   // need all image bands until converted to gray scale
-   loc->nf = imageLoc.nf;
+   // Image::read takes care of grayscale, so loc->nf should be left alone.
+   // loc->nf = imageLoc.nf;
 
    //
    PVParams * params = hc->parameters();
@@ -105,10 +105,10 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
       read(filename, offsetX, offsetY);
    }
 
-   // for now convert images to grayscale
-   if (loc->nf > 1) {
-      toGrayScale();
-   }
+   // grayScale call moved to Image::read, called immediately above
+   // if (loc->nf > 1) {
+   //    toGrayScale();
+   // }
 
    // exchange border information
    exchange();
@@ -141,8 +141,12 @@ pvdata_t * Movie::getImageBuffer()
 
 PVLayerLoc Movie::getImageLoc()
 {
-//   return imageLoc;
-   return clayer->loc;
+   return imageLoc;
+//   return clayer->loc;
+   // imageLoc contains size information of the image file being loaded;
+   // clayer->loc contains size information of the layer, which may
+   // be smaller than the whole image.  To get clayer->loc, use
+   // getLayerLoc().  --pete 2011-07-10
 }
 
 int Movie::updateState(float time, float dt)
@@ -177,8 +181,8 @@ bool Movie::updateImage(float time, float dt)
          }
       }
 
-      // need all image bands until converted to gray scale
-      loc->nf = imageLoc.nf;
+      // Image::read takes care of grayscale, so loc->nf should be left alone.
+      // loc->nf = imageLoc.nf;
 
       if( jitterFlag ) {
          // move bias
@@ -205,10 +209,10 @@ bool Movie::updateImage(float time, float dt)
       }
       read(filename, offsetX, offsetY);
 
-      // for now convert images to grayscale
-      if (loc->nf > 1) {
-         toGrayScale();
-      }
+      // grayScale call moved to Image::read(), called immediately above
+      // if (loc->nf > 1) {
+      //    toGrayScale();
+      // }
    } // randomMovie
 
    // exchange border information

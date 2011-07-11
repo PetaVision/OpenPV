@@ -41,7 +41,8 @@ int Image::initializeImage(const char * filename)
    int status = 0;
    PVParams * params = parent->parameters();
    this->writeImages  = params->value(name, "writeImages", 0) != 0;
-   this->useGrayScale = params->value(name,"useGrayScale",1) != 0;
+   // this->useGrayScale = params->value(name,"useGrayScale",1) != 0;
+   // toGrayScale() will be called if params database nf=1 and image file's nf>1
    this->offsetX      = (int) params->value(name,"offsetX", 0);
    this->offsetY      = (int) params->value(name,"offsetY", 0);
 
@@ -64,13 +65,14 @@ int Image::initializeImage(const char * filename)
    mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    if (filename != NULL) {
-      read(filename);
+      read(filename, offsetX, offsetY);
    }
 
-   // convert images to grayscale if useGrayScale is set
-   if (useGrayScale) {
-      this->toGrayScale();
-   }
+   // grayScale call moved to Image::read(), which is called immediately above.
+   // (if filename=NULL, there's nothing to convert to grayscale anyway)
+   // if (useGrayScale) {
+   //    toGrayScale();
+   // }
 
    // exchange border information
    exchange();
@@ -162,12 +164,17 @@ int Image::read(const char * filename, int offsetX, int offsetY)
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
 
-   const int n = loc->nx * loc->ny * loc->nf;
+   const int n = loc->nx * loc->ny * imageLoc.nf;
+   // Use number of bands in file instead of in params, to allow for grayscale conversion
    unsigned char * buf = new unsigned char[n];
    assert(buf != NULL);
 
    // read the image and scatter the local portions
    status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
+   if( loc->nf == 1 && imageLoc.nf > 1 ) {
+      buf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf);
+   }
+   // now buf is loc->nf by loc->nx by loc->ny
 
    if (status == 0) {
       float fac = 1.0f / 255.0f;  // normalize to 1.0
@@ -209,97 +216,39 @@ int Image::exchange()
    return parent->icCommunicator()->exchange(data, mpi_datatypes, getLayerLoc());
 }
 
-#ifdef OBSOLETE
-int Image::gatherToInteriorBuffer(unsigned char * buf)
-{
-   return HyPerLayer::gatherToInteriorBuffer(buf);
-   const PVLayerLoc * loc = getLayerLoc();
-
-   assert(loc->nf == 1);
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   const int nxBorder = loc->nb;
-   const int nyBorder = loc->nb;
-
-   const size_t sy = strideY(loc);
-   const int sb = sy * (ny + loc->halo.dn + loc->halo.up);
-
-   // only interior portion of local data needed
-   //
-   unsigned char * srcBuf = (unsigned char *) malloc(nx * ny * sizeof(unsigned char));
-   assert(srcBuf != NULL);
-
-   int ii = 0;
-   for (int b = 0; b < loc->nf; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            srcBuf[ii++] = (unsigned char) (255.0f * data[iex + jex*sy + b*sb]);
-         }
-      }
-   }
-
-   gather(parent->icCommunicator(), loc, buf, srcBuf);
-
-   free(srcBuf);
-
-   return 0;
-}
-#endif
 
 int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
 {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
    const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int nBorder = loc->nb;
 
-   const int nxBorder = loc->nb;
-   const int nyBorder = loc->nb;
-
-   const size_t sy = nx + loc->halo.lt + loc->halo.rt;
-   const size_t sb = sy * (ny + loc->halo.dn + loc->halo.up);
-
-   int ii = 0;
-   for (int b = 0; b < loc->nf; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            buf[ii++] = (unsigned char) (fac * data[iex + jex*sy + b*sb]);
-         }
-      }
+   for(int n=0; n<getNumNeurons(); n++) {
+      int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+      buf[n] = (unsigned char) (fac * data[n_ex]);
    }
    return 0;
 }
 
-int Image::copyFromInteriorBuffer(const unsigned char * buf, float fac)
+int Image::copyFromInteriorBuffer(unsigned char * buf, float fac)
 {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
    const int ny = loc->ny;
+   const int nf = loc->nf;
 
-   const int nxBorder = loc->nb;
-   const int nyBorder = loc->nb;
+   const int nBorder = loc->nb;
 
-   const size_t sy = nx + loc->halo.lt + loc->halo.rt;
-   const size_t sb = sy * (ny + loc->halo.dn + loc->halo.up);
-
-   int ii = 0;
-   for (int b = 0; b < loc->nf; b++) {
-      for (int j = 0; j < ny; j++) {
-         int jex = j + nyBorder;
-         for (int i = 0; i < nx; i++) {
-            int iex = i + nxBorder;
-            data[iex + jex*sy + b*sb] = fac * (pvdata_t) buf[ii++];
-         }
-      }
+   for(int n=0; n<getNumNeurons(); n++) {
+      int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+      data[n_ex] = fac*buf[n];
    }
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 10, 2011
 int Image::toGrayScale()
 {
    const PVLayerLoc * loc = getLayerLoc();
@@ -335,41 +284,38 @@ int Image::toGrayScale()
 
    return 0;
 }
+#endif // OBSOLETE
 
-// convertToGrayScale() seems broken since it doesn't use loc->nb,
-// and no other routine in trunk calls it.
-#ifdef OBSOLETE // Marked obsolete July 6, 2011
-int Image::convertToGrayScale(PVLayerLoc * loc, unsigned char * buf)
+unsigned char * Image::convertToGrayScale(unsigned char * buf, int nx, int ny, int numBands)
 {
-   const int nx = loc->nx;
-   const int ny = loc->ny;
+   // even though the numBands argument goes last, the routine assumes that
+   // the organization of buf is, bands vary fastest, then x, then y.
 
-   const int numBands = loc->nf;
+   if (numBands < 2) return buf;
+   const int sxcolor = numBands;
+   const int sycolor = numBands*nx;
+   const int sb = 1;
 
-   const int sx = 1;
-   const int sy = nx;
-   const int sb = nx * ny;
+   const int sxgray = 1;
+   const int sygray = nx;
 
-   if (numBands < 2) return 0;
+   unsigned char * graybuf = new unsigned char[nx*ny];
 
    for (int j = 0; j < ny; j++) {
       for (int i = 0; i < nx; i++) {
          float val = 0;
          for (int b = 0; b < numBands; b++) {
-            float d = buf[i*sx + j*sy + b*sb];
+            float d = buf[i*sxcolor + j*sycolor + b*sb];
             val += d*d;
          }
          // store the converted image in the first color band
-         buf[i*sx + j*sy + 0*sb] = (unsigned char) sqrtf(val/numBands);
+         graybuf[i*sxgray + j*sygray] = (unsigned char) sqrtf(val/numBands);
       }
    }
+   delete buf;
 
-   // turn off the color
-   loc->nf = 1;
-
-   return 0;
+   return graybuf;
 }
-#endif // OBSOLETE
 
 int Image::convolve(int width)
 {

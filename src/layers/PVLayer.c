@@ -272,10 +272,6 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
    int err = 0;
    for (k = 0; k < nk; k++) {
       v[k] = v[k] + a*w[k];
-//      if (w[k] > 0.0) {
-//         printf("  w[%d] = %f %f %f %p\n", k, w[k], v[k], a, &v[k]);
-//         err = -1;
-//      }
    }
    return err;
 }
