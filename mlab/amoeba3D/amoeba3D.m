@@ -350,13 +350,24 @@ function [amoeba3D_surf] = amoeba3DSurf(amoeba_x, amoeba_y, amoeba_z, fourier_ar
 		 (Npts_half+1):(Npts_3quarter-1), ...
 		 (Npts_3quarter+1):(Npts-1) ]
       phi_angle = fourier_arg(i_col);
+      %% solve for z given x and y
+      
       %% find Rpoly 
     endfor %% i_col
   endfor %% i_row
   
-endfunction
+endfunction  %% amoeba3DSurf
 
-function [amoeba3D_poly] = amoeba3DPoly()
+function [amoeba3D_poly] = amoeba3DPoly(x,y,z,amoeba_x, amoeba_y, amoeba_z)
+    Npts = size(amoeba_x,1);
+    x_factor = repmat(x, size(amoeba_x));
+    y_factor = repmat(y, size(amoeba_y));
+    z_factor = repmat(z, size(amoeba_z));
+    x_factor = x_factor - amoeba_x;
+    y_factor = y_factor - amoeba_y;
+    z_factor = z_factor - amoeba_z;
+    sum_factor = x_factor + y_factor + z_factor;
+    prod_factor = prod(sum_factor(:));
 endfunction  %% amoeba3DPoly
 
 
