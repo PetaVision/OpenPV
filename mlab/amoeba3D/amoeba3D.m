@@ -276,7 +276,7 @@ function [wire_hndl, ...
 
   return;
 
-  find_polynomial_flag = 0
+  find_polynomial_flag = 1
   if find_polynomial_flag
     %% find polynomial of the form
     %% sum( coef_poly(i_pow, i_axis) * amoeba_xyz(i_pt, i_axis) ^ i_pow ) = ...
@@ -306,6 +306,8 @@ function [wire_hndl, ...
     endfor
     coef_poly = mat_poly2D \ const_poly;
     coef_poly = reshape(coef_poly, [Npoly, 3]);
+
+    
   endif
 
   
