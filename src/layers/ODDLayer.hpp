@@ -12,10 +12,10 @@
 
 namespace PV {
 
-class GeislerLayer: public PV::ANNLayer {
+class ODDLayer: public PV::ANNLayer {
 public:
-   GeislerLayer(const char* name, HyPerCol * hc);
-   GeislerLayer(const char* name, HyPerCol * hc, PVLayerType type);
+   ODDLayer(const char* name, HyPerCol * hc);
+   ODDLayer(const char* name, HyPerCol * hc, PVLayerType type);
    virtual int updateState(float time, float dt);
 
 private:
