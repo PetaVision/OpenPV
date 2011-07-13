@@ -1,0 +1,837 @@
+//
+// params.geisler
+//  - input parameters for geisler.cpp, a study of geisler kernels with amoeba/no-amoeba images
+//
+
+HyPerCol "column" = {
+   nx = 256;   // until we get going with images
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1;  // uncomment to set my hand, else use clock time to generate seed
+};
+
+//
+// 7 layers, "Retina"+"Image", "LGN", "LGNInhFF", "LGNInh", "L1", "L1InhFF", "L1Inh"
+//
+
+Image "Image" = {
+    imagePath = "../../MATLAB/amoeba_test/256_png/4/t/tar_0049_a.png";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = false; // true (no quotes) is translated to 1
+    writeImages = 0;
+};
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq  = 200;    // (Hz) when this is defined poissonEdge overridden
+    noiseOffFreq = 10;    // (Hz) when this is defined poissonEdge overridden
+    //poissonEdgeProb = 1;
+    //poissonBlankProb = 0;
+ 	burstFreq = 1;      // Hz
+    burstDuration = 10000;  // ms
+
+    beginStim = 200;
+    endStim   = 12200;
+};
+
+
+
+LIF "LGN" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+LIF "LGNInhFF" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+LIF "LGNInh" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+LIF "L1" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+LIF "L1InhFF" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 8;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+LIF "L1Inh" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 8;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+GapLayer "L1Inh Gap" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 8;
+    originalLayerName = "L1Inh";
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = false;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.0;
+   	noiseAmpI= 0.0;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+
+///////
+// 31 connections: 
+//    "Retina to LGN"
+//    "Retina to LGNInhFF"
+//    "LGN to LGNInh"
+//    "LGN to LGNInhFF"
+//    "LGN to L1"
+//    "LGN to L1InhFF"
+//    "LGNInhFF to LGN"
+//    "LGNInhFF to LGN InhB"
+//    "LGNInhFF to LGNInhFF Exc"
+//    "LGNInhFF to LGNInhFF"
+//    "LGNInhFF to LGNInhFF InhB"
+//    "LGNInhFF to LGNInh"
+//    "LGNInhFF to LGNInh InhB"
+//    "LGNInh to LGN"
+//    "L1Inh to L1Inh Exc"
+//    "L1Inh to L1Inh"
+//    "L1 to LGN"
+//    "L1 to LGNInh"
+//    "L1 to L1"
+//    "L1 to L1InhFF"
+//    "L1 to L1Inh"
+//    "L1InhFF to L1"
+//    "L1InhFF to L1 InhB"
+//    "L1InhFF to L1InhFF"
+//    "L1InhFF to L1InhFF InhB"
+//    "L1InhFF to L1InfFF Exc"
+//    "L1InhFF to L1Inh"
+//    "L1InhFF to L1Inh InhB"
+//    "L1Inh to L1"
+//    "L1Inh to L1Inh Exc"
+//    "L1Inh to L1Inh Inh"
+
+
+// Retina connections
+
+KernelConn "Image to Retina" = {
+   preLayerName = "Image";
+   postLayerName = "Retina";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+   
+   strength =  1.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "Retina to LGN" = {
+   preLayerName = "Retina";
+   postLayerName = "LGN";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+   
+   strength = 3;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "Retina to LGNInhFF" = {
+   preLayerName = "Retina";
+   postLayerName = "LGNInhFF";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+   
+   strength = 8.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+
+// LGN connections
+
+KernelConn "LGN to LGNInh" = {
+   preLayerName = "LGN";
+   postLayerName = "LGNInh";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+   
+   strength = 8.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   delay = 0;
+   symmetrizeWeights = 0;   
+   delay = 0;
+};
+
+KernelConn "LGN to L1" = {
+   preLayerName = "LGN";
+   postLayerName = "L1";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 48.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 8; //7.0;
+};
+
+
+KernelConn "LGN to L1InhFF" = {
+   preLayerName = "LGN";
+   postLayerName = "L1InhFF";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;   
+   
+   strength = 48.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 8; //7.0;
+};
+
+
+
+// LGNInhFF connections
+
+KernelConn "LGNInhFF to LGN" = {
+   preLayerName = "LGNInhFF";
+   postLayerName = "LGN";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+    
+   strength = 4.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 1;
+};
+
+
+
+
+// LGN Inh connections
+
+KernelConn "LGNInh to LGN" = {
+   preLayerName = "LGNInh";
+   postLayerName = "LGN";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 0;
+    
+   strength = 8; //4.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 1;
+   
+};
+
+
+
+
+// L1 connections 
+
+KernelConn "L1 to LGN" = {
+   preLayerName = "L1";
+   postLayerName = "LGN";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 5;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 1.0; //0.5;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 8; //7.0;
+};
+
+KernelConn "L1 to LGNInh" = {
+   preLayerName = "L1";
+   postLayerName = "LGNInh";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 5;
+   sigma = 5;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+      
+   strength = 2.0; //1.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 8; //7.0;
+};
+
+KernelConn "L1 to L1" = {
+   preLayerName = "L1";
+   postLayerName = "L1";
+   channelCode = 0;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   initWeightsFile = "./input/amoeba/ODD_kernels/dirty_mpi_2X2.pvp";
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   strength = 16.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 1;
+   
+   delay = 18; 
+};
+
+
+KernelConn "L1 to L1Inh" = {
+   preLayerName = "L1";
+   postLayerName = "L1Inh";
+   channelCode = 0;
+   nxp = 65; 
+   nyp = 65; 
+   nfp = 8;
+   initWeightsFile = "./input/amoeba/ODD_kernels/dirty_mpi_2X2.pvp";
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   strength = 144.0;//128; //
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 1;
+      
+   delay = 18;
+};
+
+
+
+
+// L1InhFF connections
+
+KernelConn "L1InhFF to L1" = {
+   preLayerName = "L1InhFF";
+   postLayerName = "L1";
+   channelCode = 1;
+   nxp = 7;
+   nyp = 7;
+   nfp = 8;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   rotate = 1;
+   
+   deltaThetaMax =  0.52360; //PI / 6;
+   numFlanks = 2;
+   flankShift = 1.4;
+
+   strength = 2.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   delay = 1.0;
+};
+
+
+KernelConn "L1InhFF to L1Inh" = {
+   preLayerName = "L1InhFF";
+   postLayerName = "L1Inh";
+   channelCode = 1;
+   nxp = 7;
+   nyp = 7;
+   nfp = 8;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   rotate = 1;
+   
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   numFlanks = 2;
+   flankShift = 1.4;
+
+   strength = 2.0; //1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   delay = 1.0;
+};
+
+
+
+
+// L1 Inh connections
+
+KernelConn "L1Inh to L1" = {
+   preLayerName = "L1Inh";
+   postLayerName = "L1";
+   channelCode = 1;
+   nxp = 7;
+   nyp = 7;
+   nfp = 8;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+   
+   deltaThetaMax =  0.52360; //PI / 6;
+   
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   delay = 1.0;
+};
+
+KernelConn "L1Inh to L1Inh Gap" = {
+   preLayerName = "L1Inh Gap";
+   postLayerName = "L1Inh Gap";
+   channelCode = 1;
+   nxp = 7;
+   nyp = 7;
+   nfp = 8;
+
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   cocircSelf = 0;
+   rotate = 1;
+   
+   deltaThetaMax =  0.001; //0.52360; //PI / 6;
+
+   strength = 0.025;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   delay = 0.0;
+};
+
+
+
+
+
+
