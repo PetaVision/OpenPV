@@ -35,9 +35,9 @@ void dump_weights(PVPatch ** patches, int numPatches);
 
 #define INHIB
 
-#define C1
+#undef C1
 
-#define C1INHIB
+#undef C1INHIB
 
 #undef S2
 
@@ -56,9 +56,9 @@ int main(int argc, char* argv[])
    // create the layers
    //
 
-   //Image * image = new Movie("Image", hc, "input/earth-files.txt", 1.0);
+   Image * image = new Movie("Image", hc, "../t_fileOfFilenames.txt", 10.0);
    //Image * image = new Patterns("Image", hc, RECTANGLES);
-   Image * image = new Patterns("Image", hc, BARS);
+   //Image * image = new Patterns("Image", hc, BARS);
 
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
