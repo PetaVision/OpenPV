@@ -51,7 +51,7 @@ HyPerCol * build(int argc, char * argv[]) {
            "_Start_HyPerLayers_",
              "HyPerLayer",
                "ANNLayer",
-                 "GeislerLayer",
+                 "ODDLayer",
                  "GenerativeLayer",
                    "LogLatWTAGenLayer",
                  "PoolingANNLayer",
@@ -76,7 +76,7 @@ HyPerCol * build(int argc, char * argv[]) {
                  "CloneKernelConn",
                  "CocircConn",
                  "GaborConn",
-                 "GeislerConn",
+                 "ODDConn",
                  "IdentConn",
 #ifdef OBSOLETE
                 "PeriodicUpdateConn",
@@ -245,9 +245,9 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
       checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
-   if( !strcmp(classkeyword, "GeislerLayer") ) {
+   if( !strcmp(classkeyword, "ODDLayer") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) new GeislerLayer(name, hc);
+      addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
       checknewobject((void *) addedLayer, classkeyword, name);
    }
    if( !strcmp(classkeyword, "GenerativeLayer") ) {
@@ -504,12 +504,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "GeislerConn") ) {
+   if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GeislerConn(name, hc, preLayer, postLayer, channelType, fileName);
+         addedConn = new ODDConn(name, hc, preLayer, postLayer, channelType, fileName);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
