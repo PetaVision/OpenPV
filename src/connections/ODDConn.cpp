@@ -1,11 +1,11 @@
 /*
- * CocircConn.cpp
+ * ODDConn.cpp
  *
- *  Created on: Nov 10, 2008
- *      Author: rasmussn
+ *  Created on: ?
+ *      Author: kenyon
  */
 
-#include "GeislerConn.hpp"
+#include "ODDConn.hpp"
 #include "../io/io.h"
 #include "../utils/conversions.h"
 #include "../include/pv_types.h"
@@ -15,20 +15,20 @@
 
 namespace PV {
 
-GeislerConn::GeislerConn()
+ODDConn::ODDConn()
 {
    printf("GeislerConn::GeislerConn: running default constructor\n");
    initialize_base();
 }
 
-GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                          HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
 }
 
-GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post)
 {
    initialize_base();
@@ -36,14 +36,14 @@ GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 // provide filename or set to NULL
-GeislerConn::GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
 }
 
-int GeislerConn::initialize_base()
+int ODDConn::initialize_base()
 {
    numUpdates = 0;
    avePreActivity = NULL;
@@ -53,7 +53,7 @@ int GeislerConn::initialize_base()
 }
 
 
-PVPatch ** GeislerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+PVPatch ** ODDConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch)
 {
    patches = KernelConn::createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
@@ -76,7 +76,7 @@ PVPatch ** GeislerConn::createWeights(PVPatch ** patches, int nPatches, int nxPa
    return patches;
 }
 
-int GeislerConn::deleteWeights()
+int ODDConn::deleteWeights()
 {
    const int arbor = 0;
 
@@ -90,14 +90,14 @@ int GeislerConn::deleteWeights()
    return KernelConn::deleteWeights();
 }
 
-PVPatch ** GeislerConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
+PVPatch ** ODDConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
 {
    // patches should already be initialized to zero
    return patches;
 }
 
 
-int GeislerConn::updateState(float time, float dt)
+int ODDConn::updateState(float time, float dt)
 {
    int axonID = 0;
    int num_kernels = this->numDataPatches(axonID);
@@ -165,7 +165,7 @@ int GeislerConn::updateState(float time, float dt)
 }
 
 
-int GeislerConn::updateWeights(int axonID)
+int ODDConn::updateWeights(int axonID)
 {
    pvdata_t aPreThresh = 0.0f;
    pvdata_t aPostThresh = 0.0f;
@@ -221,7 +221,7 @@ int GeislerConn::updateWeights(int axonID)
    return 0;
 }
 
-int GeislerConn::writeWeights(float time, bool last)
+int ODDConn::writeWeights(float time, bool last)
 {
 #ifdef APPLY_GEISLER_WEIGHTS
 	// do nothing, kernels are already up to date
@@ -250,7 +250,7 @@ int GeislerConn::writeWeights(float time, bool last)
 
 
 
-PVPatch ** GeislerConn::normalizeWeights(PVPatch ** patches, int numPatches)
+PVPatch ** ODDConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
    int axonID = 0;
    int num_kernels = this->numDataPatches(axonID);

@@ -1,30 +1,30 @@
 /*
- * CocircConn.h
+ * ODDConn.h
  *
- *  Created on: Nov 10, 2008
- *      Author: rasmussn
+ *  Created on: ?
+ *      Author: kenyon
  */
 
-#ifndef GEISLERCONN_HPP_
-#define GEISLERCONN_HPP_
+#ifndef ODDCONN_HPP_
+#define ODDCONN_HPP_
 
-#undef APPLY_GEISLER_WEIGHTS
+#undef APPLY_ODD_WEIGHTS
 
 #include "../connections/KernelConn.hpp"
 
 namespace PV {
 
-class GeislerConn: public KernelConn {
+class ODDConn: public KernelConn {
 private:
 
 public:
 
-   GeislerConn();
-   GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   ODDConn();
+   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename);
-   GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel);
-   GeislerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
