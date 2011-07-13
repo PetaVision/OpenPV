@@ -19,7 +19,7 @@ THETA_MAX = 1 * pi;
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH SPIKE_PATH twoAFC_path activity_path
 
-plot_weights_flag = 0;
+plot_weights_flag = 1;
 plot_2AFC_flag = 1;
 
 global MIN_INTENSITY
@@ -29,7 +29,7 @@ global NUM2STR_FORMAT
 NUM2STR_FORMAT = '%04.4i';
 
 global FLAT_ARCH_FLAG
-FLAT_ARCH_FLAG = 0;
+FLAT_ARCH_FLAG = 1;
 
 global TOPDOWN_FLAG
 TOPDOWN_FLAG = 0;
@@ -52,15 +52,15 @@ endif
 MNIST_flag = 0;
 bowtie_flag = 0;
 animal_flag = 0;
-dogcat_flag = 1;
+dogcat_flag = 0;
 
 NFC = 4;
 global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 1; %%11;
-num_trials = 0; %%199; %% cannot exceed ~1024 for 256x256 image because
+num_single_trials = 11;
+num_trials = 1000; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -94,13 +94,14 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/Users/gkenyon/workspace2/';
+    '/Users/gkenyon/workspace-indigo/';
 %%    '/Users/gkenyon/workspace/';
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
+    [machine_path "ODD/input/amoeba/test_target40K_W325_target"];
+%%    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
 %%    [machine_path "geisler/input/256/cat/likimas512"];    
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W400_target"];
 if ~isempty(target_path)
@@ -112,7 +113,8 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
+    [machine_path "ODD/input/amoeba/test_target40K_W325_distractor"];
+%%    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
 %%      []; 
 %%      [machine_path, "kernel/input/256/amoeba/test_target40K_W400_distractor"]; 
 %%      [machine_path, "geisler/input/256/amoeba/distractor40K"]; 
