@@ -8,8 +8,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "LinearPostConnProbe.hpp"
-#include "BiConn.hpp"
 
 #include "Patterns.hpp"
 
@@ -19,6 +17,7 @@
 #include <src/io/PostConnProbe.hpp>
 #include <src/io/LinearActivityProbe.hpp>
 #include <src/io/PointProbe.hpp>
+#include <src/io/PointLIFProbe.hpp>
 #include <src/io/StatsProbe.hpp>
 #include <src/layers/Gratings.hpp>
 #include <src/layers/Movie.hpp>
@@ -34,40 +33,57 @@ using namespace PV;
 
 void dump_weights(PVPatch ** patches, int numPatches);
 
-#undef L2
-
 #define INHIB
 
-#undef L2INHIB
+#undef C1
+
+#undef C1INHIB
+
+#undef S2
+
+#undef S2INHIB
+
+#undef S2toC1
+
+
 
 int main(int argc, char* argv[])
 {
    // create the managing hypercolumn
    //
-   HyPerCol * hc = new HyPerCol("column", argc, argv, "../PetaVisionII");
+   HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    // create the layers
    //
 
-   //Image * image = new Movie("Image", hc, "input/earth-files.txt", 1.0);
+   Image * image = new Movie("Image", hc, "../t_fileOfFilenames.txt", 1000.0);
    //Image * image = new Patterns("Image", hc, RECTANGLES);
-   Image * image = new Patterns("Image", hc, BARS);
+   //Image * image = new Patterns("Image", hc, BARS);
 
    HyPerLayer * retinaOn  = new Retina("RetinaOn", hc);
    HyPerLayer * retinaOff = new Retina("RetinaOff", hc);
-   HyPerLayer * l1        = new LIF("L1", hc);
+   HyPerLayer * s1        = new LIF("S1", hc);
 
 #ifdef INHIB
-   HyPerLayer * l1Inh  = new LIF("L1Inh", hc);
+   HyPerLayer * s1Inh = new LIF("S1Inh", hc);
 #endif
 
-#ifdef L2
-   HyPerLayer * l2     = new LIF("L2", hc);
+#ifdef C1
+   HyPerLayer * c1 = new LIF("C1", hc);
 #endif
 
-#ifdef L2INHIB
-   HyPerLayer * l2Inh  = new LIF("L2Inh", hc);
+#ifdef C1INHIB
+   HyPerLayer * c1Inh = new LIF("C1Inh", hc);
 #endif
+
+#ifdef S2
+   HyPerLayer * s2 = new LIF("S2", hc);
+#endif
+
+#ifdef S2INHIB
+   HyPerLayer * s2Inh = new LIF("S2Inh", hc);
+#endif
+
 
    // connect the layers
    //
@@ -76,32 +92,44 @@ int main(int argc, char* argv[])
    HyPerConn * i_r1_s  = new KernelConn("Image to RetinaOn Surround", hc, image, retinaOn, CHANNEL_INH);
    HyPerConn * i_r0_c  = new KernelConn("Image to RetinaOff Center", hc, image, retinaOff, CHANNEL_INH);
    HyPerConn * i_r0_s  = new KernelConn("Image to RetinaOff Surround", hc, image, retinaOff, CHANNEL_EXC);
-   HyPerConn * r1_l1   = new HyPerConn("RetinaOn to L1", hc, retinaOn, l1, CHANNEL_EXC);
-   HyPerConn * r0_l1   = new HyPerConn("RetinaOff to L1", hc, retinaOff, l1, CHANNEL_EXC);
+   HyPerConn * r1_s1   = new HyPerConn("RetinaOn to S1", hc, retinaOn, s1, CHANNEL_EXC);
+   HyPerConn * r0_s1   = new HyPerConn("RetinaOff to S1", hc, retinaOff, s1, CHANNEL_EXC);
+#ifdef C1
+   HyPerConn * s1_c1   = new HyPerConn("S1 to C1", hc, s1, c1, CHANNEL_EXC);
+#endif
 
-#ifdef L2
-   HyPerConn * l1_l2   = new HyPerConn("L1 to L2", hc, l1, l2, CHANNEL_EXC);
+#ifdef C1INHIB
+   HyPerConn * c1_c1Inh = new KernelConn("C1 to C1Inh", hc, c1, c1Inh, CHANNEL_EXC);
+   HyPerConn * c1Inh_c1 = new KernelConn("C1Inh to C1", hc, c1Inh, c1, CHANNEL_INH);
 #endif
 
 #ifdef INHIB
-   HyPerConn * l1_l1Inh = new HyPerConn("L1 to L1Inh",  hc, l1,  l1Inh, CHANNEL_EXC);
-   HyPerConn * l1Inh_l1 = new KernelConn("L1Inh to L1",  hc, l1Inh,  l1, CHANNEL_INH);
+   HyPerConn * s1_s1Inh = new KernelConn("S1 to S1Inh",  hc, s1,  s1Inh, CHANNEL_EXC);
+   HyPerConn * s1Inh_s1 = new KernelConn("S1Inh to S1",  hc, s1Inh,  s1, CHANNEL_INH);
 #endif
 
-#ifdef L2INHIB
-   HyPerConn * l2_l2Inh = new HyPerConn("L2 to L2Inh", hc, l2, l2Inh, CHANNEL_EXC);
-   HyPerConn * l2Inh_l2 = new KernelConn("L2Inh to L2", hc, l2Inh, l2, CHANNEL_INH);
+#ifdef S2
+   HyPerConn * c1_s2   = new HyPerConn("C1 to S2", hc, c1, s2, CHANNEL_EXC);
 #endif
+
+#ifdef S2INHIB
+   HyPerConn * s2_s2Inh = new KernelConn("S2 to S2Inh", hc, s2, s2Inh, CHANNEL_EXC);
+   HyPerConn * s2Inh_s2 = new KernelConn("S2Inh to S2", hc, s2Inh, s2, CHANNEL_INH);
+#endif
+
+#ifdef S2toC1
+   HyPerConn * s2_c1   = new HyPerConn("S2 to C1", hc, s2, c1, CHANNEL_EXC);
+#endif
+
 
 
 #ifdef DISPLAY
    GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
-   display->setDelay(200);
+   display->setDelay(800);
    display->setImage(image);
-   //display->addLayer(retinaOn);
-   //display->addLayer(retinaOff);
-   display->addLayer(l1);
-   display->addLayer(l2);
+   display->addLayer(retinaOn);
+   display->addLayer(retinaOff);
+   display->addLayer(s1);
 #endif
 
    // add probes
@@ -146,22 +174,20 @@ int main(int argc, char* argv[])
 #undef WRITE_KERNELS
 #ifdef WRITE_KERNELS
 
-    l1_l1Inh->writeTextWeights("l1_l1inh_kernel.txt", 14);
-
 	const char * i_r1_s_filename = "i_r1_s_gauss.txt";
 	HyPerLayer * pre = i_r1_s->preSynapticLayer();
-	int npad = pre->clayer->loc.nPad;
+	int npad = pre->clayer->loc.nb;
 	int nx = pre->clayer->loc.nx;
 	int ny = pre->clayer->loc.ny;
-	int nf = pre->clayer->loc.nBands;
+	int nf = pre->clayer->loc.nf;
 	i_r1_s->writeTextWeights(i_r1_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 	const char * i_r0_s_filename = "i_r0_s_gauss.txt";
 	pre = i_r0_s->preSynapticLayer();
-	npad = pre->clayer->loc.nPad;
+	npad = pre->clayer->loc.nb;
 	nx = pre->clayer->loc.nx;
 	ny = pre->clayer->loc.ny;
-	nf = pre->clayer->loc.nBands;
+	nf = pre->clayer->loc.nf;
 	i_r0_s->writeTextWeights(i_r0_s_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
 
 #endif
@@ -172,30 +198,21 @@ int main(int argc, char* argv[])
    //ConnectionProbe * cProbe = new ConnectionProbe(114);
    //l1_l2->insertProbe(cProbe);
 
-   //ConnectionProbe * sProbe = new ConnectionProbe(277);
-   //i_r1_s->insertProbe(sProbe);
-
    //ConnectionProbe * cProbe = new ConnectionProbe(277);
-   //i_r1_c->insertProbe(cProbe);
+   //i_r1_s->insertProbe(cProbe);
 
    //PostConnProbe * pcProbe0 = new LinearPostConnProbe(PV::DimX, locY, 0);
 
    //LayerProbe * rptprobe = new PointProbe(25, 0, 0, "R :");
    //retina->insertProbe(rptprobe);
 
-   //LayerProbe * ptprobe1 = new PointProbe("l1_activity.txt", 56	, 76, 0, "L1:");
-   //l1->insertProbe(ptprobe1);
+   //LayerProbe * ptprobe1 = new PointLIFProbe("l2_activity.txt", 10, 38, 0, "L2:");
+   //l2->insertProbe(ptprobe1);
 
-   //LayerProbe * ptprobe2 = new PointProbe("l2_activity.txt", 64, 64, 0, "L2:");
-   //l2->insertProbe(ptprobe2);
+   //LayerProbe * ptprobe2 = new PointLIFProbe("l2Inh_activity.txt", 5, 16, 0, "L2Inh:");
+   //l2Inh->insertProbe(ptprobe2);
 
-   //LayerProbe * ptprobe3 = new PointProbe("l1Inh_activity.txt", 14, 19, 0, "L1Inh:");
-   //l1Inh->insertProbe(ptprobe3);
-
-   //LayerProbe * ptprobe4 = new PointProbe("l2Inh_activity.txt", 16, 16, 0, "L2Inh:");
-   //l2Inh->insertProbe(ptprobe4);
-
-   //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 16, 16, 0, "Image:");
+   //LayerProbe * ptprobe3 = new PointProbe("image_activity.txt", 17, 11, 0, "Image:");
    //image->insertProbe(ptprobe3);
 
    //int retinaplacement = 9;
@@ -234,7 +251,7 @@ int main(int argc, char* argv[])
    hc->run();
 
    if (hc->columnId() == 0) {
-      printf("[0]: Finished\n");  fflush(stdout);
+      printf("[0]: Finished\n");
    }
 
    /* clean up (HyPerCol owns layers and connections, don't delete them) */
@@ -260,5 +277,6 @@ void dump_weights(PVPatch ** patches, int numPatches)
    }
    fclose(fp);
 }
+
 
 
