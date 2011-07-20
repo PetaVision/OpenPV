@@ -39,8 +39,8 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   setParams(hc->parameters(), &defaultConnParams);
    initialize(name, hc, pre, post, channel, NULL);
+   createAndInitWeights(NULL);
 }
 
 // provide filename or set to NULL
@@ -48,8 +48,8 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
-   setParams(hc->parameters(), &defaultConnParams);
    initialize(name, hc, pre, post, channel, filename);
+   createAndInitWeights(filename);
 }
 
 HyPerConn::~HyPerConn()
@@ -128,7 +128,7 @@ int HyPerConn::initialize_base()
       axonalArborList[i] = NULL;
    }
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 //!
@@ -141,13 +141,11 @@ int HyPerConn::initialize_base()
  *      patches are written every writeStep.
  *      .
  */
-int HyPerConn::initialize(const char * filename)
+int HyPerConn::createAndInitWeights(const char * filename)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    const int arbor = 0;
    numAxonalArborLists = 1;
-
-   this->connId = parent->numberOfConnections();
 
    setPatchSize(filename);
 
@@ -165,11 +163,6 @@ int HyPerConn::initialize(const char * filename)
 
    initializeWeights(wPatches[arbor], numWeightPatches(arbor), filename);
    assert(wPatches[arbor] != NULL);
-
-   writeTime = parent->simulationTime();
-   writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
-
-   parent->addConnection(this);
 
    return status;
 }
@@ -212,6 +205,8 @@ int HyPerConn::initializeSTDP()
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
+   int status = PV_SUCCESS;
+
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
       fprintf(stderr, "Connection \"%s\": layer \"%s\" has no channels and cannot be a post-synaptic layer.  Exiting.\n",
@@ -232,7 +227,14 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->name = strdup(name);
    assert(this->name != NULL);
 
-   return initialize(filename);
+   writeTime = parent->simulationTime();
+   writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
+
+   status = setParams(hc->parameters(), &defaultConnParams);
+
+   this->connId = parent->addConnection(this);
+
+   return status;
 }
 
 // set member variables specified by user
@@ -1024,15 +1026,9 @@ int HyPerConn::createAxonalArbors()
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
-// #ifndef FEATURES_LAST
    const int psf = 1;
    const int psx = nfp;
    const int psy = psx * nxPost;
-//#else
-//   const int psx = 1;
-//   const int psy = nxPost;
-//   const int psf = psy * nyPost;
-//#endif
 
    // activity and STDP M variable are extended into margins
    //
@@ -1151,7 +1147,7 @@ int HyPerConn::createAxonalArbors()
 int HyPerConn::adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy)
 {
    pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
-   return 0;
+   return PV_SUCCESS;
 }
 
 PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
