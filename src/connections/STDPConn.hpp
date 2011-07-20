@@ -42,6 +42,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename);
+   int createAndInitWeights(const char * filename);
 
    virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
 
