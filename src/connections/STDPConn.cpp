@@ -15,8 +15,8 @@ namespace PV {
 STDPConn::STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                    ChannelType channel, const char * filename) : HyPerConn()
 {
-   setParams(hc->parameters());
    initialize(name, hc, pre, post, channel, filename);
+   createAndInitWeights(filename);
 }
 
 STDPConn::~STDPConn()
@@ -33,6 +33,8 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
                          HyPerLayer * pre, HyPerLayer * post,
                          ChannelType channel, const char * filename)
 {
+   int status = HyPerConn::initialize(name, hc, pre, post, channel, filename);
+
    // STDP parameters for modifying weights
    this->pIncr = NULL;
    this->pDecr = NULL;
@@ -44,8 +46,14 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
    this->stdpFlag = true;
    this->localWmaxFlag = false;
 
-   const int arbor = 0;
+   status |= setParams(hc->parameters());
+   return status;
+}
+
+int STDPConn::createAndInitWeights(const char * filename)
+{
    if (stdpFlag) {
+      const int arbor = 0;
       pIncr = createWeights(NULL, numWeightPatches(arbor), nxp, nyp, nfp);
       assert(pIncr != NULL);
       pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
@@ -62,7 +70,7 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
    }
 
    // This needs to be called after pIncr is created
-   return HyPerConn::initialize(name, hc, pre, post, channel, filename);
+   return HyPerConn::createAndInitWeights(filename);
 }
 
 int STDPConn::deleteWeights()
@@ -106,19 +114,18 @@ PVLayerCube * STDPConn::getPlasticityDecrement()
 // set member variables specified by user
 int STDPConn::setParams(PVParams * filep)
 {
-   const char * name = getName();
+   stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
 
-   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
    if (stdpFlag) {
-      ampLTP = filep->value(name, "ampLTP", ampLTP);
-      ampLTD = filep->value(name, "ampLTD", ampLTD);
-      tauLTP = filep->value(name, "tauLTP", tauLTP);
-      tauLTD = filep->value(name, "tauLTD", tauLTD);
+      ampLTP = filep->value(getName(), "ampLTP", ampLTP);
+      ampLTD = filep->value(getName(), "ampLTD", ampLTD);
+      tauLTP = filep->value(getName(), "tauLTP", tauLTP);
+      tauLTD = filep->value(getName(), "tauLTD", tauLTD);
 
-      dWMax = filep->value(name, "dWMax", dWMax);
+      dWMax = filep->value(getName(), "dWMax", dWMax);
 
       // set params for rate dependent Wmax
-      localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
+      localWmaxFlag = (bool) filep->value(getName(), "localWmaxFlag", (float) localWmaxFlag);
    }
 
    return 0;
@@ -292,7 +299,7 @@ int STDPConn::writeTextWeightsExtra(FILE * fd, int k)
 
 int STDPConn::adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy)
 {
-   int status = STDPConn::adjustAxonalPatches(arbor, nxPatch, nyPatch, dx, dy);
+   int status = HyPerConn::adjustAxonalPatches(arbor, nxPatch, nyPatch, dx, dy);
 
    if (stdpFlag && status == PV_SUCCESS) {
       pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
