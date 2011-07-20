@@ -14,6 +14,7 @@
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../utils/Timer.hpp"
+#include <stdlib.h>
 
 #define PROTECTED_NUMBER 13
 #define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
@@ -64,6 +65,8 @@ public:
    virtual int writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last);
    virtual int writeTextWeights(const char * filename, int k);
+   virtual int writeTextWeightsExtra(FILE * fd, int k)  {return 0;}
+
    virtual int writePostSynapticWeights(float time, bool last=false);
 
    int readWeights(const char * filename);
@@ -71,19 +74,17 @@ public:
                                   const char * filename);
 
    virtual PVPatch * getWeights(int kPre, int arbor);
-#ifdef OBSOLETE_STDP
-   virtual PVPatch * getPlasticityIncrement(int k, int arbor);
 
-   inline PVLayerCube * getPlasticityDecrement()     {return pDecr;}
-#endif
+   virtual PVPatch * getPlasticityIncrement(int k, int arbor)   {return NULL;}
+   virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
 
    inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
 
    inline const char * getName()                     {return name;}
    inline int          getDelay()                    {return params->delay;}
 
-   virtual float minWeight()                          {return 0.0;}
-   virtual float maxWeight()                          {return wMax;}
+   virtual float minWeight()                         {return 0.0;}
+   virtual float maxWeight()                         {return wMax;}
 
    inline int xPatchSize()                           {return nxp;}
    inline int yPatchSize()                           {return nyp;}
@@ -185,14 +186,11 @@ protected:
    int patchSizeFromFile(const char * filename);
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
 
-   virtual int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
-#ifdef OBSOLETE
-   int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
-#endif
    virtual int initialize_base();
    virtual int initialize(const char * filename);
+   int initialize(const char * name, HyPerCol * hc,
+                  HyPerLayer * pre, HyPerLayer * post,
+                  ChannelType channel, const char * filename);
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
@@ -222,6 +220,7 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors();
+   virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
 
    // static member functions
 
