@@ -2,7 +2,7 @@
  * HyPerConn.cpp
  *
  *  Created on: Oct 21, 2008
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "HyPerConn.hpp"
@@ -39,6 +39,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
+   setParams(hc->parameters(), &defaultConnParams);
    initialize(name, hc, pre, post, channel, NULL);
 }
 
@@ -47,6 +48,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
+   setParams(hc->parameters(), &defaultConnParams);
    initialize(name, hc, pre, post, channel, filename);
 }
 
@@ -107,25 +109,24 @@ int HyPerConn::initialize_base()
    // STDP parameters for modifying weights
    this->pIncr = NULL;
    this->pDecr = NULL;
-   this->stdpFlag = false;
    this->ampLTP = 1.0;
    this->ampLTD = 1.1;
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax = 0.1;
+   this->stdpFlag = false;
    this->localWmaxFlag = false;
 #endif
    this->wMin = 0.0;
    this->wMax = 1.0;
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
+   this->writeCompressedWeights = true;
 
    for (int i = 0; i < MAX_ARBOR_LIST; i++) {
       wPatches[i] = NULL;
       axonalArborList[i] = NULL;
    }
-
-   this->writeCompressedWeights = true;
 
    return 0;
 }
@@ -148,9 +149,6 @@ int HyPerConn::initialize(const char * filename)
 
    this->connId = parent->numberOfConnections();
 
-   PVParams * inputParams = parent->parameters();
-   setParams(inputParams, &defaultConnParams);
-
    setPatchSize(filename);
 
    wPatches[arbor] = createWeights(wPatches[arbor]);
@@ -169,7 +167,7 @@ int HyPerConn::initialize(const char * filename)
    assert(wPatches[arbor] != NULL);
 
    writeTime = parent->simulationTime();
-   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
+   writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
 
    parent->addConnection(this);
 
@@ -236,14 +234,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    return initialize(filename);
 }
-
-#ifdef OBSOLETE
-int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel)
-{
-   return initialize(name, hc, pre, post, channel, NULL);
-}
-#endif
 
 // set member variables specified by user
 int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
@@ -593,27 +583,12 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
    int status = 0;
    char path[PV_PATH_MAX];
 
-   const float minVal = minWeight();
-   float maxVal = 0.0;
+   if (patches == NULL) return 0;
 
-#ifdef OBSOLETE_STDP
-   if (localWmaxFlag) {
-      const int numExtended = post->getNumExtended();
-      for(int kPost = 0;kPost < numExtended; kPost++){
-         if(Wmax[kPost] > maxVal){
-            maxVal = Wmax[kPost];
-         }
-      }
-   } else {
-      maxVal = maxWeight();
-   }
-#else
-   maxVal = maxWeight();
-#endif
+   const float minVal = minWeight();
+   const float maxVal = maxWeight();
 
    const PVLayerLoc * loc = pre->getLayerLoc();
-
-   if (patches == NULL) return 0;
 
    if (filename == NULL) {
       if (last) {
@@ -683,11 +658,10 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    fprintf(fd, "   post (nx,ny,nf) = (%i,%i,%i)\n",
            post->getLayerLoc()->nx, post->getLayerLoc()->ny, post->getLayerLoc()->nf);
    fprintf(fd, "\n");
-#ifdef OBSOLETE_STDP
-   if (stdpFlag) {
-      pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
-   }
-#endif
+
+   // give a chance for derived classes to add extra information
+   //
+   writeTextWeightsExtra(fd, k);
 
    int arbor = 0;
    pv_text_write_patch(fd, wPatches[arbor][k]);
@@ -774,114 +748,6 @@ int HyPerConn::outputState(float time, bool last)
 
    return status;
 }
-
-#ifdef NOTYET
-void STDP_update_state_post(
-      const float dt,
-
-      const int nx,
-      const int ny,
-      const int nf,
-      const int nb,
-
-      const int nxp,
-      const int nyp,
-
-      STDP_params * params,
-
-      float * M,
-      float * Wmax,
-      float * Apost,
-      float * Rpost)
-{
-
-   int kex;
-#ifndef PV_USE_OPENCL
-   for (kex = 0; kex < nx*ny*nf; kex++) {
-#else
-   kex = get_global_id(0);
-#endif
-
-   //
-   // kernel (nonheader part) begins here
-   //
-
-   // update the decrement variable
-   //
-   M[kex] = decay * M[kex] - fac * Apost[kex];
-
-#ifndef PV_USE_OPENCL
-   }
-#endif
-
-}
-
-
-/**
- * Loop over presynaptic extended layer.  Calculate pIncr, and weights.
- */
-void STDP_update_state_pre(
-      const float time,
-      const float dt,
-
-      const int nx,
-      const int ny,
-      const int nf,
-      const int nb,
-
-      const int nxp,
-      const int nyp,
-
-      STDP_params * params,
-
-      float * M,
-      float * P,
-      float * W,
-      float * Wmax,
-      float * Apre,
-      float * Apost)
-{
-
-   int kex;
-
-   float m[NXP*NYP], aPost[NXP*NYP], wMax[NXP*NYP];
-
-#ifndef PV_USE_OPENCL
-   for (kex = 0; kex < nx*ny*nf; kex++) {
-#else
-   kex = get_global_id(0);
-#endif
-
-   //
-   // kernel (nonheader part) begins here
-   //
-
-   // update the increment variable
-   //
-   float aPre = Apre[kex];
-   float * p = P[kex*stride];
-
-   // copy into local variable
-   //
-
-   copy(m, M);
-   copy(aPost, Apost);
-   copy(wMax, Wmax);
-
-   // update the weights
-   //
-   for (int kp = 0; kp < nxp*nyp; kp++) {
-      p[kp] = decay * p[kp] + ltpAmp * aPre;
-      w[kp] += dWMax * (aPre * m[kp] + aPost[kp] * p[kp]);
-      w[kp] = w[kp] < wMin ? wMin : w[kp];
-      w[kp] = w[kp] > wMax ? wMax : w[kp];
-   }
-#ifndef PV_USE_OPENCL
-   }
-#endif
-
-}
-#endif // NOTYET - TODO
 
 int HyPerConn::updateState(float time, float dt)
 {
@@ -1108,6 +974,7 @@ int HyPerConn::deleteWeights()
 
    return 0;
 }
+
 //!
 /*!
  *
@@ -1253,10 +1120,8 @@ int HyPerConn::createAxonalArbors()
          assert(kl < lPost->numNeurons);
 
          arbor->data = &dataPatches[kex];
-         arbor->weights = this->getWeights(kex, n);
-#ifdef OBSOLETE_STDP
-         arbor->plasticIncr = this->getPlasticityIncrement(kex, n);
-#endif
+         arbor->weights = getWeights(kex, n);
+         arbor->plasticIncr = getPlasticityIncrement(kex, n);
 
          // initialize the receiving (of spiking data) phi variable
          pvdata_t * phi = post->getChannel(channel) + kl;
@@ -1274,25 +1139,18 @@ int HyPerConn::createAxonalArbors()
          arbor->offset = kl;
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
-
-         pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
-
-#ifdef OBSOLETE_STDP
-         if (stdpFlag) {
-            //
-            // This code seems to be adding the offset twice (modulo that
-            // the weight strides are different from activity strides)
-            // and should be removed when verified
-            //
-            // arbor->offset += (size_t)dx * (size_t)arbor->weights->sx +
-            //                 (size_t)dy * (size_t)arbor->weights->sy;
-            pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
-         }
-#endif
+         //
+         adjustAxonalPatches(arbor, nxPatch, nyPatch, dx, dy);
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
 
+   return 0;
+}
+
+int HyPerConn::adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy)
+{
+   pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
    return 0;
 }
 
@@ -1594,23 +1452,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    const PVLayer * lPost = post->getCLayer();
 
    const float minVal = minWeight();
-   float maxVal = 0.0;
-
-#ifdef OBSOLETE_STDP
-   if (localWmaxFlag){
-      const int numExtended = lPost->numExtended;
-
-      for(int kPost = 0; kPost < numExtended; kPost++){
-         if(Wmax[kPost] > maxVal){
-            maxVal = Wmax[kPost];
-         }
-      }
-   } else {
-      maxVal = maxWeight();
-   }
-#else
-   maxVal = maxWeight();
-#endif
+   const float maxVal = maxWeight();
 
    const int numPostPatches = lPost->numNeurons;
 
