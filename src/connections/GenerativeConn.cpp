@@ -51,10 +51,6 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     PVParams * params = hc->parameters();
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
-    normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is no constraint
-    if( normalizeMethod ) {
-       normalizeConstant = params->value(name, "normalizeConstant", 1.0f);
-    }
     KernelConn::initialize(name, hc, pre, post, channel, filename);
     return PV_SUCCESS;
 }
@@ -96,6 +92,27 @@ int GenerativeConn::updateWeights(int axonID) {
     return PV_SUCCESS;
 }  // end of GenerativeConn::updateWeights(int);
 
+int GenerativeConn::initNormalize() {
+   PVParams * params = parent->parameters();
+   normalizeMethod = (int) params->value(name, "normalizeMethod", 0.f); // default is no constraint
+   switch( normalizeMethod ) {
+   case 0:
+      break;
+   case 1:
+      KernelConn::initNormalize();
+      break;
+   case 2: // fallthrough is intentional
+   case 3:
+      normalizeConstant = params->value(name, "normalizeConstant", 1.0f);
+      break;
+   default:
+      fprintf(stderr,"Connection \"%s\": Unrecognized normalizeMethod %d.  Using normalizeMethod = 1 (KernelConn's normalizeWeights).\n", this->getName(), normalizeMethod);
+      KernelConn::initNormalize();
+      break;
+   }
+   return PV_SUCCESS;
+}
+
 PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) {
    int neuronsperpatch;
    switch( normalizeMethod ) {
@@ -132,7 +149,7 @@ PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) 
       }
       break;
    default:
-      fprintf(stderr,"Connection \"%s\": Unrecognized normalizeMethod %d.  Using HyPerConn::normalize().\n", this->getName(), normalizeMethod);
+      assert(false); // This possibility was eliminated in initNormalize().
       break;
    }
    return patches;

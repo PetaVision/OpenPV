@@ -118,6 +118,7 @@ public:
          float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
          float aspect, float rotate, float sigma, float r2Max, float strength);
 
+   virtual int initNormalize();
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
@@ -180,6 +181,11 @@ protected:
                                 // false=write weights with float precision
 
    Timer * update_timer;
+
+   float normalize_strength;
+   float normalize_max;
+   float normalize_zero_offset;
+   float normalize_cutoff;
 
 protected:
    virtual int setPatchSize(const char * filename);

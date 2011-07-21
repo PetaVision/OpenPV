@@ -330,6 +330,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    }
    bool normalize_flag = (bool) inputParams->value(name, "normalize", 0.0f, true);
    if (normalize_flag) {
+      initNormalize();
       normalizeWeights(patches, numPatches);
    }
    return patches;
@@ -2124,15 +2125,17 @@ int HyPerConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
 }
 
+int HyPerConn::initNormalize() {
+   PVParams * params = parent->parameters();
+   normalize_strength = params->value(name, "strength", 1.0f);
+   normalize_max = params->value(name, "normalize_max", 0.0f);
+   normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+   normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * normalize_strength;
+   return PV_SUCCESS;
+}
 
 PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {
-   PVParams * params = parent->parameters();
-   float strength = params->value(name, "strength", 1.0f);
-   float normalize_max = params->value(name, "normalize_max", 0.0f);
-   float normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
-   float normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * strength;
-
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
    for (int k = 0; k < numPatches; k++) {
@@ -2163,13 +2166,13 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
       }
       float scale_factor = 1.0f;
       if (normalize_max == 1.0f) {
-         scale_factor = strength / ( fabs(maxVal) + (maxVal == 0.0f) );
+         scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
       }
        else if (sum != 0.0f) {
-         scale_factor = strength / sum;
+         scale_factor = normalize_strength / sum;
       }
        else if (sum == 0.0f && sigma2 > 0.0f) {
-         scale_factor = strength / sqrtf(sigma2);
+         scale_factor = normalize_strength / sqrtf(sigma2);
       }
       w = wp->data;
       for (int ky = 0; ky < ny; ky++) {

@@ -29,6 +29,7 @@ public:
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
     inline float getRelaxation() { return relaxation; }
     virtual int updateWeights(int axonID);
+    virtual int initNormalize();
     virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
 

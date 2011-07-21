@@ -25,6 +25,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    constructWeights(NULL);
 }
 
+#ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post) : HyPerConn()
 {
@@ -32,6 +33,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize(name, hc, pre, post, CHANNEL_EXC, NULL); // use default channel
    constructWeights(NULL);
 }
+#endif
 
 // provide filename or set to NULL
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -135,11 +137,12 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
    HyPerConn::readWeights(patches, numPatches, filename);
-   // return HyPerConn::normalizeWeights(patches, numPatches);
 
-   if( parent->parameters()->value(name, "normalize", 0.0f, true) ) {
-      patches = HyPerConn::normalizeWeights(patches, numPatches);
-   }
+   // Kernels were already normalized by initializeWeights --pfs
+   //
+   // if( parent->parameters()->value(name, "normalize", 0.0f, true) ) {
+   //   patches = HyPerConn::normalizeWeights(patches, numPatches);
+   // }
    return patches;
 }
 
