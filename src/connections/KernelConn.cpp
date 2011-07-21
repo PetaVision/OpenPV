@@ -18,25 +18,28 @@ KernelConn::KernelConn()
 }
 
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel)
+      HyPerLayer * post, ChannelType channel) : HyPerConn()
 {
-   initialize_base();
+   KernelConn::initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
+   constructWeights(NULL);
 }
 
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post)
+      HyPerLayer * post) : HyPerConn()
 {
-   initialize_base();
-   initialize(name, hc, pre, post, channel, NULL); // use default channel
+   KernelConn::initialize_base();
+   initialize(name, hc, pre, post, CHANNEL_EXC, NULL); // use default channel
+   constructWeights(NULL);
 }
 
 // provide filename or set to NULL
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename)
+      HyPerLayer * post, ChannelType channel, const char * filename) : HyPerConn()
 {
-   initialize_base();
+   KernelConn::initialize_base();
    initialize(name, hc, pre, post, channel, filename);
+   constructWeights(filename);
 }
 
 int KernelConn::initialize_base()

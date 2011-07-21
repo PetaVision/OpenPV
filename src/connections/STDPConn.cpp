@@ -70,7 +70,7 @@ int STDPConn::createAndInitWeights(const char * filename)
    }
 
    // This needs to be called after pIncr is created
-   return HyPerConn::createAndInitWeights(filename);
+   return HyPerConn::constructWeights(filename);
 }
 
 int STDPConn::deleteWeights()

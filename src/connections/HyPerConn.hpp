@@ -187,7 +187,7 @@ protected:
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
 
    virtual int initialize_base();
-   int createAndInitWeights(const char * filename);
+   int constructWeights(const char * filename);
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename);

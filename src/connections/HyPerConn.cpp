@@ -40,7 +40,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
-   createAndInitWeights(NULL);
+   constructWeights(NULL);
 }
 
 // provide filename or set to NULL
@@ -49,7 +49,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
-   createAndInitWeights(filename);
+   constructWeights(filename);
 }
 
 HyPerConn::~HyPerConn()
@@ -141,7 +141,7 @@ int HyPerConn::initialize_base()
  *      patches are written every writeStep.
  *      .
  */
-int HyPerConn::createAndInitWeights(const char * filename)
+int HyPerConn::constructWeights(const char * filename)
 {
    int status = PV_SUCCESS;
    const int arbor = 0;
