@@ -16,7 +16,7 @@ STDPConn::STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLaye
                    ChannelType channel, const char * filename) : HyPerConn()
 {
    initialize(name, hc, pre, post, channel, filename);
-   createAndInitWeights(filename);
+   constructWeights(filename);
 }
 
 STDPConn::~STDPConn()
@@ -50,7 +50,7 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
    return status;
 }
 
-int STDPConn::createAndInitWeights(const char * filename)
+int STDPConn::constructWeights(const char * filename)
 {
    if (stdpFlag) {
       const int arbor = 0;
