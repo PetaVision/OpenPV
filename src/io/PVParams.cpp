@@ -421,7 +421,7 @@ int PVParams::present(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+      fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
               groupName);
       exit(1);
    }
