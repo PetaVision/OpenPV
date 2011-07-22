@@ -1,10 +1,12 @@
 function filenames_cell = pvp_makeFileOfFilenames()
 
   image_dir_base = ...
-    "~/Pictures/Textured_Dog_Cat_Spherical_T1/";       
+          "~/MATLAB/figures/amoeba/64_png/4/";       
+%%    "~/Pictures/Textured_Dog_Cat_Spherical_T1/";       
   image_dir = ...
-      [ image_dir_base, "Cat/"]; 
-  image_subdir_name = "DoG";
+      [ image_dir_base ];
+%%      [ image_dir_base, "Cat/"]; 
+  image_subdir_name = "t"; %% "DoG";
   image_subdir = [image_dir, image_subdir_name, "/"];
   image_path = ...
       [image_subdir, "*.png"];
@@ -17,7 +19,7 @@ function filenames_cell = pvp_makeFileOfFilenames()
   else
     image_ndx = 1:num_images
   endif
-  image_skip = 2;
+  image_skip = 10;
   filenames_cell = cell(num_images,2);
   num_names = zeros(2,1);
   for i_image = 1 : num_images

@@ -7,18 +7,10 @@ function [] = commands2(image_size)
   global image_dim
   image_dim = image_size;
 
-				%  addpath('/Applications/Psychtoolbox/');
-
 				% number of targets/fourier component
-  numT = 1000; %%10000;
+  numT = 10000; %%10000;
   global trial num_trials
   num_trials = numT;
-				%  screen_color = [];
-				%screen_rect = [0 0 256 256];
-				%  screen_rect = [0 0 128 128];
-				%[w0, window_rect]  = Screen('OpenWindow', 0, screen_color, screen_rect);
-				%Screen('FillRect', w0, GrayIndex(w0));
-
   global plot_amoeba2D fh_amoeba2D
   plot_amoeba2D = 0;
   setenv('GNUTERM', 'x11');
@@ -38,7 +30,7 @@ function [] = commands2(image_size)
 
   global machine_path
   %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
-  machine_path = '/Users/gkenyon/MATLAB/amoeba_normalized/';
+  machine_path = '/Users/gkenyon/MATLAB/figures/amoeba/';
   if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
@@ -145,9 +137,3 @@ function [] = commands2(image_size)
 	   ' +/- ', ...
 	   num2str(std_std_distractor_tmp) ] );
   endfor
-  
-				%Screen('CloseAll');
-
-				%if ( uioctave )
-				%endif
-
