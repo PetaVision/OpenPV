@@ -12,8 +12,6 @@ import PVConversions as conv
 import scipy.cluster.vq as sp
 import math
 
-
-
 def format_coord(x, y):
    col = int(x+0.5)
    row = int(y+0.5)
@@ -87,8 +85,7 @@ endtest = end
 steptest = step
 begintest = begin
 atest = rs.PVReadSparse(sys.argv[20], extended)
-#zetest = rs.PVReadSparse(sys.argv[21], extended)
-w =  rw.PVReadWeights(sys.argv[21])
+w = rw.PVReadWeights(sys.argv[21])
 wO = rw.PVReadWeights(sys.argv[22])
 zerange = end
 count1 = 0
@@ -109,10 +106,11 @@ count15 = 0
 count16 = 0
 count17 = 0
 count18 = 0
-margin = 30
+
+A1pos = np.array([0,0])
+
 
 pa = []
-
 
 print "(begin, end, step, max) == ", begin, end, step, vmax
 
@@ -129,6 +127,8 @@ avg = np.mean(pa)
 AW = np.zeros((lenofo, lenofo))
 AWO = np.zeros((lenofo, lenofo))
 SUMAW = np.zeros((lenofo, lenofo))
+whereA1 = np.zeros((lenofo, lenofo))
+
 
 space = 1
 nx  = w.nx
@@ -141,17 +141,15 @@ coord = 1
 nx_im = nx * (nxp + space) + space
 ny_im = ny * (nyp + space) + space
 numpat = w.numPatches
+margin = 20
 
 im = np.zeros((nx_im, ny_im))
 im[:,:] = (w.max - w.min) / 2.
-countnum = 0
+
 
 im2 = np.zeros((nx_im, ny_im))
 im2[:,:] = (w.max - w.min) / 2.
 
-thecount=0
-A1pos = np.array([0,0])
-countpos = 0
 
 print "avg = ", avg
 print "median = ", median
@@ -160,6 +158,8 @@ co = 0
 for g in range(2):
    if g == 0:
       for end in range(begin+step, step+1, step):
+         countpos = 0
+         countposcomp = 0
          A1 = a1.avg_activity(begin, end)
          A2 = a2.avg_activity(begin, end)
          A3 = a3.avg_activity(begin, end)
@@ -177,7 +177,6 @@ for g in range(2):
          A15 = a15.avg_activity(begin, end)
          A16 = a16.avg_activity(begin, end)
          AF = np.zeros((lenofo, lenofo))
-         countpos = 0
 
          lenofo = len(A1)
          lenofb = lenofo * lenofo
@@ -185,7 +184,8 @@ for g in range(2):
          for i in range(lenofo):
             for j in range(lenofo):
                #print A1[i, j]
-               check = [A1[i,j], A2[i,j], A3[i,j], A4[i,j], A5[i,j], A6[i,j], A7[i,j], A8[i,j], A9[i,j], A10[i,j], A11[i,j], A12[i,j], A13[i,j], A14[i,j], A15[i,j], A16[i,j]] 
+               check = [A1[i,j], A2[i,j], A3[i,j], A4[i,j], A5[i,j], A6[i,j], A7[i,j], A8[i,j], A9[i,j], A10[i,j], A11[i,j], A12[i,j], A13[i,j], A14[i,j], A15[i,j], A16[i,j]]
+
                checkmax = np.max(check)
                wheremax = np.argmax(check)
                half = checkmax / 2.0
@@ -234,19 +234,37 @@ for g in range(2):
                if co == 1:
                   AF[i, j] = 0.0
                   count1 += 1
-                  AWO[i, j] = 1.0    
+                  AWO[i, j] = 1.0
+                  if wheremax == 0:
+                     if i > margin and i < (w.nx - margin):
+                        if j > margin and j < (w.ny - margin):
+                           if countpos == 0:
+                              A1pos = [i, j]
+                           else:
+                              A1pos = np.vstack((A1pos, [i, j]))
+                           countpos+=1   
 
-   
+          
                elif co == 2:
                   AF[i, j] = 0.06
                   count2 += 1
                   AWO[i, j] = 2.0
+                  if wheremax == 0:
+                     if i > margin and i < (w.nx - margin):
+                        if j > margin and j < (w.ny - margin):
+                           if countposcomp == 0:
+                              A1comp = [i, j]
+                           else:
+                              A1comp = np.vstack((A1comp, [i, j]))
+                           countposcomp+=1   
+
 
 
                elif co == 3:
                   AF[i, j] = 0.12
                   count3 += 1
                   AWO[i, j] = 3.0
+
 
                elif co == 4:
                   AF[i, j] = 0.18
@@ -260,12 +278,11 @@ for g in range(2):
                   AWO[i, j] = 5.0
 
 
+
                elif co == 6:
                   AF[i, j] = 0.3
                   count6 += 1
                   AWO[i, j] = 6.0
-
-
 #######
                   #if A1[i ,f]
 #######
@@ -275,15 +292,6 @@ for g in range(2):
                   AF[i, j] = 0.36
                   count7 += 1
                   AWO[i, j] = 7.0
-                  if wheremax == 0:
-                     countnum += 1
-                     if i > margin and i < (w.nx - margin):
-                        if j > margin and j < (w.ny - margin):
-                           if countpos == 0:
-                              A1pos = [i, j]
-                           else:
-                              A1pos = np.vstack((A1pos, [i, j]))
-                           countpos+=1
 
 
                elif co == 8:
@@ -297,6 +305,7 @@ for g in range(2):
                   count9 += 1
                   AWO[i, j] = 9.0
 
+
                elif co == 10:
                   AF[i, j] = 0.54
                   count10 += 1
@@ -307,14 +316,19 @@ for g in range(2):
                   AF[i, j] = 0.60
                   count11 += 1
                   AWO[i, j] = 11.0
+
+
                elif co == 12:
                   AF[i, j] = 0.66
                   count12 += 1
                   AWO[i, j] = 12.0
+
+
                elif co == 13:
                   AF[i, j] = 0.72
                   count13 += 1
                   AWO[i, j] = 13.0
+
                elif co == 14:
                   AF[i, j] = 0.78
                   count14 += 1
@@ -340,9 +354,6 @@ for g in range(2):
          #print "15", count15
          #print "16", count16
 
-      print "pos shape = ", np.shape(A1pos)
-      print "A1pos = ", A1pos
-
       a1.rewind()
       a2.rewind()
       a3.rewind()
@@ -363,16 +374,12 @@ for g in range(2):
       countg = 0
       testgraph = []
       test = []
-      numofsteps = 500
-      #print A1pos
-      #print np.shape(A1pos)
-      #A1pos = np.vstack((A1pos, [0, 0]))
-
-
+      numofsteps = 2000
       for k in range(zerange):    ####### range(step)
          if k%1000 == 0:
             print "at ", k
          A1t = []
+         A1lt = []
          A2t = []
          A3t = []
          A4t = []
@@ -408,15 +415,27 @@ for g in range(2):
          #A15A = a15.next_record()
          #A16A = a16.next_record()
          A1t = np.zeros((1, np.shape(A1pos)[0]))
-
-#####
          for g in range(np.shape(A1pos)[0]):
             w = A1pos[g]
             i = w[0]
             j = w[1]
             for h in range(len(A1A)):
                if A1A[h] == ((lenofo * i) + j):
-                  A1t[0, g] += 1
+                  A1t[0,g] += 1
+         A1tcomp = np.zeros((1, np.shape(A1comp)[0]))
+         count1 = 0
+         for g in range(np.shape(A1comp)[0]):
+            w = A1comp[g]
+            i = w[0]
+            j = w[1]
+            for h in range(len(A1A)):
+               if A1A[h] == ((lenofo * i) + j):
+                  #print "count1 = ", count1
+                  #print "a1tcomp = ", A1tcomp
+                  #print "g = ", g
+                  A1tcomp[0,g] += 1
+                  count1 +=1
+
                   """
                   if AW[i, j] == 2:
                      t = 0
@@ -523,7 +542,7 @@ for g in range(2):
                         if A13A[h] == ((lenofo * i) + j):
                            t = 1
                      if t == 1:
-                        A13t = np.append(A13t,1)
+t                        A13t = np.append(A13t,1)
                      else:
                         A13t = np.append(A13t, 0)
                   if AW[i, j] == 14:
@@ -541,10 +560,10 @@ for g in range(2):
                         if A15A[h] == ((lenofo * i) + j):
                            t = 1
                      if t == 1:
-                        A15t = np.append(A15t,1)
+3                        A15t = np.append(A15t,1)
                      else:
                         A15t = np.append(A15t, 0)
-                  if AW[i, j] == 16:
+t                  if AW[i, j] == 16:
                      t = 0
                      for h in range(len(A16A)):
                         if A16A[h] == ((lenofo * i) + j):
@@ -558,23 +577,220 @@ for g in range(2):
          #if np.sum(test) > 0:
          #   print "test = ", test
          #   print "sum = ", sum(test)
-         #print "A1t = ", A1t
-         d = k / numofsteps
-         #print
-         #print "A1t = ", A1t
-         #print np.shape(A1t)
 
+         d = k / numofsteps
+
+
+         if k > numofsteps and k != zerange - 1:
+            if (k+1)%(numofsteps*2) == 0:
+               if np.shape(A1t)[1] < np.shape(A1tcomp)[1]:
+                  A1tcomp = np.split(A1tcomp[0], [np.shape(A1t)[1]-np.shape(A1tcomp)[1]])
+                  A1p = A1t
+                  A1pcomp = A1tcomp[0]
+               elif np.shape(A1t)[1] > np.shape(A1tcomp)[1]:
+                  A1t = np.split(A1t[0], [np.shape(A1tcomp)[1]-np.shape(A1t)[1]])
+                  A1p = A1t[0]             
+                  A1pcomp = A1tcomp
+               else:
+                  A1p = A1t
+                  A1pcomp = A1tcomp
+
+            if k%(numofsteps*2)+1 > 0 and k%(numofsteps*2)+1 <= numofsteps:
+               if np.shape(A1t)[1] < np.shape(A1tcomp)[1]:
+                  A1tcomp = np.split(A1tcomp[0], [np.shape(A1t)[1]-np.shape(A1tcomp)[1]])
+                  A1p = np.vstack((A1p, A1t))
+                  A1pcomp = np.vstack((A1pcomp, A1tcomp[0]))
+               elif np.shape(A1t)[1] > np.shape(A1tcomp)[1]:
+                  A1t = np.split(A1t[0], [np.shape(A1tcomp)[1]-np.shape(A1t)[1]])
+                  A1p = np.vstack((A1p, A1t[0]))
+                  A1pcomp = np.vstack((A1pcomp, A1tcomp))
+                  print A1pcomp
+               else:
+                  A1p = np.vstack((A1p, A1t))
+                  A1pcomp = np.vstack((A1pcomp, A1tcomp))
+        
+
+            if k == (numofsteps*3)-1:
+
+               A1q = A1p.sum(axis=0)
+               A1q = np.vstack((A1q, A1pcomp.sum(axis=0)))
+            if k%(numofsteps*2)+1 == numofsteps and k != (d*3)-1:
+               A1q = np.vstack((A1q, A1p.sum(axis=0)))
+               A1q = np.vstack((A1q, A1pcomp.sum(axis=0)))
+
+
+
+
+         """
+##########
          if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
             if k == (numofsteps * d):
-               A1p = A1t
-               thecount+=1
+               A2p = np.sum(A2t)
             else:
-               A1p = np.vstack((A1p,A1t))
-               thecount+=1
+               A2p = np.append(A2p,np.sum(A2t))
          if k == (numofsteps-1):
-            A1q = A1p.sum(axis=0) 
+            A2q = np.average(A2p) 
          if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A1q = np.vstack((A1q, A1p.sum(axis=0)))
+            A2q = np.append(A2q, np.average(A2p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A3p = np.sum(A3t)
+            else:
+               A3p = np.append(A3p,np.sum(A3t))
+         if k == (numofsteps-1):
+            A3q = np.average(A3p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A3q = np.append(A3q, np.average(A3p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A4p = np.sum(A4t)
+            else:
+               A4p = np.append(A4p,np.sum(A4t))
+         if k == (numofsteps-1):
+            A4q = np.average(A4p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A4q = np.append(A4q, np.average(A4p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A5p = np.sum(A5t)
+            else:
+               A5p = np.append(A5p,np.sum(A5t))
+         if k == (numofsteps-1):
+            A5q = np.average(A5p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A5q = np.append(A5q, np.average(A5p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A6p = np.sum(A6t)
+            else:
+               A6p = np.append(A6p,np.sum(A6t))
+         if k == (numofsteps-1):
+            A6q = np.average(A6p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A6q = np.append(A6q, np.average(A6p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A7p = np.sum(A7t)
+            else:
+               A7p = np.append(A7p,np.sum(A7t))
+         if k == (numofsteps-1):
+            A7q = np.average(A7p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A7q = np.append(A7q, np.average(A7p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A8p = np.sum(A8t)
+            else:
+               A8p = np.append(A8p,np.sum(A8t))
+         if k == (numofsteps-1):
+            A8q = np.average(A8p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A8q = np.append(A8q, np.average(A8p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A9p = np.sum(A9t)
+            else:
+               A9p = np.append(A9p,np.sum(A9t))
+         if k == (numofsteps-1):
+            A9q = np.average(A9p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A9q = np.append(A9q, np.average(A9p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A10p = np.sum(A10t)
+            else:
+               A10p = np.append(A10p,np.sum(A10t))
+         if k == (numofsteps-1):
+            A10q = np.average(A10p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A10q = np.append(A10q, np.average(A10p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A11p = np.sum(A11t)
+            else:
+               A11p = np.append(A11p,np.sum(A11t))
+         if k == (numofsteps-1):
+            A11q = np.average(A11p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A11q = np.append(A11q, np.average(A11p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A12p = np.sum(A12t)
+            else:
+               A12p = np.append(A12p,np.sum(A12t))
+         if k == (numofsteps-1):
+            A12q = np.average(A12p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A12q = np.append(A12q, np.average(A12p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A13p = np.sum(A13t)
+            else:
+               A13p = np.append(A13p,np.sum(A13t))
+         if k == (numofsteps-1):
+            A13q = np.average(A13p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A13q = np.append(A13q, np.average(A13p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A14p = np.sum(A14t)
+            else:
+               A14p = np.append(A14p,np.sum(A14t))
+         if k == (numofsteps-1):
+            A14q = np.average(A14p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A14q = np.append(A14q, np.average(A14p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A15p = np.sum(A15t)
+            else:
+               A15p = np.append(A15p,np.sum(A15t))
+         if k == (numofsteps-1):
+            A15q = np.average(A15p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A15q = np.append(A15q, np.average(A15p))
+
+##########
+         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
+            if k == (numofsteps * d):
+               A16p = np.sum(A16t)
+            else:
+               A16p = np.append(A16p,np.sum(A16t))
+         if k == (numofsteps-1):
+            A16q = np.average(A16p) 
+         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
+            A16q = np.append(A16q, np.average(A16p))
+
+         """
+
+
+
 
          #for i in range(4):
          #   testq = np.append(testq, 0)
@@ -647,73 +863,74 @@ for g in range(2):
 
          #test = SUMAW / countg
 
-      #A2q = (A2q / len(A2t)) / (numofsteps / 100.0)
-      #A3q = (A3q / len(A3t)) / (numofsteps / 100.0)
-      #A4q = (A4q / len(A4t)) / (numofsteps / 100.0)
-      #A5q = (A5q / len(A5t)) / (numofsteps / 100.0)
-      #A6q = (A6q / len(A6t)) / (numofsteps / 100.0)
-      #A7q = (A7q / len(A7t)) / (numofsteps / 100.0)
-      #A8q = (A8q / len(A8t)) / (numofsteps / 100.0)
-      #A9q = (A9q / len(A9t)) / (numofsteps / 100.0)
-      #A10q = (A10q / len(A10t)) / (numofsteps / 100.0)
-      #A11q = (A11q / len(A11t)) / (numofsteps / 100.0)
-      #A12q = (A12q / len(A12t)) / (numofsteps / 100.0)
-      #A13q = (A13q / len(A13t)) / (numofsteps / 100.0)
-      #A14q = (A14q / len(A14t)) / (numofsteps / 100.0)
-      #A15q = (A15q / len(A15t)) / (numofsteps / 100.0)
-      #A16q = (A16q / len(A16t)) / (numofsteps / 100.0)
 
+
+      #A1q = (A1q / len(A1t)) / (numofsteps / 1000.0)
+      #A1lq = (A1lq / len(A1lt)) / (numofsteps / 1000.0)
+      #A2q = (A2q / len(A2t)) / (numofsteps / 1000.0)
+      #A3q = (A3q / len(A3t)) / (numofsteps / 1000.0)
+      #A4q = (A4q / len(A4t)) / (numofsteps / 1000.0)
+      #A5q = (A5q / len(A5t)) / (numofsteps / 1000.0)
+      #A6q = (A6q / len(A6t)) / (numofsteps / 1000.0)
+      #A7q = (A7q / len(A7t)) / (numofsteps / 1000.0)
+      #A8q = (A8q / len(A8t)) / (numofsteps / 1000.0)
+      #A9q = (A9q / len(A9t)) / (numofsteps / 1000.0)
+      #A10q = (A10q / len(A10t)) / (numofsteps / 1000.0)
+      #A11q = (A11q / len(A11t)) / (numofsteps / 1000.0)
+      #A12q = (A12q / len(A12t)) / (numofsteps / 1000.0)
+      #A13q = (A13q / len(A13t)) / (numofsteps / 1000.0)
+      #A14q = (A14q / len(A14t)) / (numofsteps / 1000.0)
+      #A15q = (A15q / len(A15t)) / (numofsteps / 1000.0)
+      #A16q = (A16q / len(A16t)) / (numofsteps / 1000.0)
+
+
+      #f = open('averaged-activity.txt', 'w')
+      #for l in range(2000): #(len(A1q)/2)):
+      #   f.write('1; %1.1f\n' %(A1q[l]))
+      #for l in range(2000): #((len(A1q)/2)):
+      #   f.write('0; %1.1f\n' %(A1lq[l]))
 
       sh = np.shape(A1q)
       print "shape = ", sh
 
-
-
       for i in range(sh[0]):
-         z = i%8
          if i == 0:
             a = np.array([1])
-         if i != 0 and (z==0 or z==1 or z==2 or z==3):
+         if i%2 == 0 and i != 0:
             a = np.vstack((a, 1))
-         if z==4 or z==5 or z==6 or z==7 and i!= 0:
-            a = np.vstack((a,0))
-      #print "A1q shape = ", np.shape(A1q)
-      #print "a shape = ", np.shape(a)
+         if i%2 != 0 and i != 0:
+            a = np.vstack((a, 0))
+      A1q = np.insert(A1q, [0], a, axis=1)
+
+
+      np.savetxt("roc-info.txt", A1q, fmt='%d', delimiter = ';')  
+      print "A1q = ", A1q
 
 
       res = np.sum(A1q, axis=1)
       hist1 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
-      hist2 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
+      hist0 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
+
+      
 
       for i in range(len(res)):
-         z = i%8
-         if z==0 or z==1 or z==2 or z==3:
-            ph = ((res[i])/float(sh[1]))
+         if i%2 == 0:
+            ph = ((res[i]-1)/float(sh[1]))
             hist1[ph] += 1
-         if z==4 or z==5 or z==6 or z==7:
+         else:
             ph = (res[i]/float(sh[1]))
-            hist2[ph] += 1
-
-      A1q = np.insert(A1q, [0], a, axis=1)
-
-      np.savetxt("roc-info.txt", A1q, fmt='%d', delimiter = ';')        
-
+            hist0[ph] += 1
 
       fig = plt.figure()
-      ax = fig.add_subplot(111)
+      ax = fig.add_subplot(212, axisbg='darkslategray')
       
-      ax.plot(np.arange(len(hist1)), hist1, '-o', color='b')
-      ax.plot(np.arange(len(hist2)), hist2, '--o', color='b')
+      ax.plot(np.arange(len(hist1)), hist1, '-o', color='y')
+      ax = fig.add_subplot(211, axisbg='darkslategray')
 
-      #ax.plot(np.arange(len(hist0)), hist0, 'o', color='y')
+      ax.plot(np.arange(len(hist0)), hist0, '-o', color='y')
 
-      ax.set_xlabel('CLIQUE BINS')
-      ax.set_ylabel('COUNT')
-      ax.set_title('Clique Histogram')
-      ax.set_xlim(0, 1+(np.max(res)/sh[1]))
+      #ax.set_xlim(0, 1+(np.max(res)/sh[1]))
       ax.grid(True)
-
-
 
 
 
@@ -722,24 +939,6 @@ for g in range(2):
 
 
       sys.exit()
-##################################################################
-
-      f = open('averaged-activity.txt', 'w')
-
-
-      for l in range(200): #((len(A1q)/2)):
-         f.write('1; %1.1f; %1.1f\n' %(A1q[l], A1q[l+400]))
-      for l in range(200): #((len(A1q)/2)):
-         f.write('0; %1.1f; %1.1f\n' %(A1q[l+200], A1q[l+600]))
-
-      #print "len = ", len(A1q)
-      #print "half = ", (len(A1q) / 2)
-      #sys.exit()      
-
-
-
-
-
 
       hz = 0.5
       fpm = 1000 / hz
@@ -1035,174 +1234,4 @@ for g in range(2):
 #end fig loop
 
    sys.exit()
-
-
-   """
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A2p = np.sum(A2t)
-
-            else:
-               A2p = np.append(A2p,np.sum(A2t))
-         if k == (numofsteps-1):
-            A2q = np.average(A2p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A2q = np.append(A2q, np.average(A2p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A3p = np.sum(A3t)
-            else:
-               A3p = np.append(A3p,np.sum(A3t))
-         if k == (numofsteps-1):
-            A3q = np.average(A3p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A3q = np.append(A3q, np.average(A3p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A4p = np.sum(A4t)
-            else:
-               A4p = np.append(A4p,np.sum(A4t))
-         if k == (numofsteps-1):
-            A4q = np.average(A4p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A4q = np.append(A4q, np.average(A4p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A5p = np.sum(A5t)
-            else:
-               A5p = np.append(A5p,np.sum(A5t))
-         if k == (numofsteps-1):
-            A5q = np.average(A5p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A5q = np.append(A5q, np.average(A5p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A6p = np.sum(A6t)
-            else:
-               A6p = np.append(A6p,np.sum(A6t))
-         if k == (numofsteps-1):
-            A6q = np.average(A6p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A6q = np.append(A6q, np.average(A6p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A7p = np.sum(A7t)
-            else:
-               A7p = np.append(A7p,np.sum(A7t))
-         if k == (numofsteps-1):
-            A7q = np.average(A7p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A7q = np.append(A7q, np.average(A7p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A8p = np.sum(A8t)
-            else:
-               A8p = np.append(A8p,np.sum(A8t))
-         if k == (numofsteps-1):
-            A8q = np.average(A8p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A8q = np.append(A8q, np.average(A8p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A9p = np.sum(A9t)
-            else:
-               A9p = np.append(A9p,np.sum(A9t))
-         if k == (numofsteps-1):
-            A9q = np.average(A9p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A9q = np.append(A9q, np.average(A9p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A10p = np.sum(A10t)
-            else:
-               A10p = np.append(A10p,np.sum(A10t))
-         if k == (numofsteps-1):
-            A10q = np.average(A10p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A10q = np.append(A10q, np.average(A10p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A11p = np.sum(A11t)
-            else:
-               A11p = np.append(A11p,np.sum(A11t))
-         if k == (numofsteps-1):
-            A11q = np.average(A11p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A11q = np.append(A11q, np.average(A11p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A12p = np.sum(A12t)
-            else:
-               A12p = np.append(A12p,np.sum(A12t))
-         if k == (numofsteps-1):
-            A12q = np.average(A12p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A12q = np.append(A12q, np.average(A12p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A13p = np.sum(A13t)
-            else:
-               A13p = np.append(A13p,np.sum(A13t))
-         if k == (numofsteps-1):
-            A13q = np.average(A13p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A13q = np.append(A13q, np.average(A13p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A14p = np.sum(A14t)
-            else:
-               A14p = np.append(A14p,np.sum(A14t))
-         if k == (numofsteps-1):
-            A14q = np.average(A14p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A14q = np.append(A14q, np.average(A14p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A15p = np.sum(A15t)
-            else:
-               A15p = np.append(A15p,np.sum(A15t))
-         if k == (numofsteps-1):
-            A15q = np.average(A15p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A15q = np.append(A15q, np.average(A15p))
-
-##########
-         if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
-            if k == (numofsteps * d):
-               A16p = np.sum(A16t)
-            else:
-               A16p = np.append(A16p,np.sum(A16t))
-         if k == (numofsteps-1):
-            A16q = np.average(A16p) 
-         if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
-            A16q = np.append(A16q, np.average(A16p))
-
-   """
 

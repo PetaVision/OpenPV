@@ -48,7 +48,6 @@ print "(begin, end, step, max) == ", begin, end, step, vmax
 
 activ = rs.PVReadSparse(sys.argv[1], extended)
 
-
 for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
 
@@ -62,37 +61,25 @@ for end in range(begin+step, end, step):
        s[col] = np.sum(A[:,col])
    s = s/numrows
 
-   b = np.reshape(A, (len(A)* len(A)))
-   print b
-   c = np.shape(b)[0]
-   
-   his = np.zeros((np.max(A)+1))
-   print his
-   for i in range(c):
-      his[b[i]] +=1
-   print his
-
-
 
    fig = plt.figure()
-   ax = fig.add_subplot(2,1,1)
+   ax = fig.add_subplot(1,1,1)
 
    ax.set_xlabel('Kx GLOBAL')
    ax.set_ylabel('Ky GLOBAL')
    ax.set_title('Activity: min=%1.1f, max=%1.1f time=%d' %(min, max, activ.time))
    ax.format_coord = format_coord
-   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=max)
- 
-   ax = fig.add_subplot(2,1,2)
-   ax.set_ylabel('Ky Avg Activity')
-   ax.plot(s, 'o')
-   ax.set_ylim(0.0, vmax)
+   ax.imshow(A, cmap=cm.gray, interpolation='nearest', vmin=0., vmax=max)
+
+
+   #ax = fig.add_subplot(2,1,2)
+   #ax.set_ylabel('Ky Avg Activity')
+   #ax.plot(s, 'o')
+   #ax.set_ylim(0.0, vmax)
 
    #attempt at colorbar
    #cax = fig.add_axes([0.85, 0.1, 0.075, 0.8]) 
    #fig.colorbar(A, cax=cax)
-
-
 
    plt.show()
 

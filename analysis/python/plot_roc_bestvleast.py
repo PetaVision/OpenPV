@@ -1,3 +1,4 @@
+
 """
 Plot the highest activity of four different bar positionings
 """
@@ -12,42 +13,6 @@ import PVConversions as conv
 import scipy.cluster.vq as sp
 import math
 
-
-
-def format_coord(x, y):
-   col = int(x+0.5)
-   row = int(y+0.5)
-   if coord == 3:
-      check = ((x - 0.5) % 16)
-      if check < 4:
-         x2 = ((x - 0.5) % 16) - 7 + (x / 16.0)
-         y2 = ((y - 0.5) % 16) - 7 + (y / 16.0) 
-      elif check < 10:
-         x2 = ((x - 0.5) % 16) - 7.5 + (x / 16.0)
-         y2 = ((y - 0.5) % 16) - 7.5 + (y / 16.0) 
-      else:
-         x2 = ((x - 0.5) % 16) - 8 + (x / 16.0)
-         y2 = ((y - 0.5) % 16) - 8 + (y / 16.0) 
-      x = (x / 16.0)
-      y = (y / 16.0)
-      
-
-      if col>=0 and col<numcols and row>=0 and row<numrows:
-         z = P[row,col]
-         return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, z)
-      else:
-         return 'x=%1.4d, y=%1.4d, x2=%1.4d, y2=%1.4d'%(int(x), int(y), int(x2), int(y2))      
-
-   if coord == 1:
-      x2 = (x / 20.0)
-      y2 = (y / 20.0)
-      x = (x / 5.0)
-      y = (y / 5.0)
-      if col>=0 and col<numcols and row>=0 and row<numrows:
-         z = P[row,col]
-         return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, z)
-      else:
-         return 'x=%1.4d, y=%1.4d, x2=%1.4d, y2=%1.4d'%(int(x), int(y), int(x2), int(y2))
 
 """
 Show how to modify the coordinate formatter to report the image "z"
@@ -109,7 +74,7 @@ count15 = 0
 count16 = 0
 count17 = 0
 count18 = 0
-margin = 30
+margin = 15
 
 pa = []
 
@@ -127,6 +92,8 @@ median = np.median(pa)
 avg = np.mean(pa)
 
 AW = np.zeros((lenofo, lenofo))
+AWmin = np.zeros((lenofo, lenofo))
+
 AWO = np.zeros((lenofo, lenofo))
 SUMAW = np.zeros((lenofo, lenofo))
 
@@ -151,6 +118,8 @@ im2[:,:] = (w.max - w.min) / 2.
 
 thecount=0
 A1pos = np.array([0,0])
+minpos = np.array([0,0])
+minlist = np.array([0,0])
 countpos = 0
 
 print "avg = ", avg
@@ -186,11 +155,51 @@ for g in range(2):
             for j in range(lenofo):
                #print A1[i, j]
                check = [A1[i,j], A2[i,j], A3[i,j], A4[i,j], A5[i,j], A6[i,j], A7[i,j], A8[i,j], A9[i,j], A10[i,j], A11[i,j], A12[i,j], A13[i,j], A14[i,j], A15[i,j], A16[i,j]] 
+
                checkmax = np.max(check)
+               checkmin = np.min(check)
                wheremax = np.argmax(check)
+               wheremin = np.argmin(check)
+               #print "wheremin = ", wheremin
+
                half = checkmax / 2.0
                sort = np.sort(check)
                co = 0
+               if wheremin == 0:
+                  AWmin[i, j] = 1
+               if wheremin == 1:
+                  AWmin[i, j] = 2
+               if wheremin == 2:
+                  AWmin[i, j] = 3
+               if wheremin == 3:
+                  AWmin[i, j] = 4
+               if wheremin == 4:
+                  AWmin[i, j] = 5
+               if wheremin == 5:
+                  AWmin[i, j] = 6
+               if wheremin == 6:
+                  AWmin[i, j] = 7
+               if wheremin == 7:
+                  AWmin[i, j] = 8
+               if wheremin == 8:
+                  AWmin[i, j] = 9
+               if wheremin == 9:
+                  AWmin[i, j] = 10
+               if wheremin == 10:
+                  AWmin[i, j] = 11
+               if wheremin == 11:
+                  AWmin[i, j] = 12
+               if wheremin == 12:
+                  AWmin[i, j] = 13
+               if wheremin == 13:
+                  AWmin[i, j] = 14
+               if wheremin == 14:
+                  AWmin[i, j] = 15
+               if wheremin == 15:
+                  AWmin[i, j] = 16
+
+
+
                if wheremax == 0:
                   AW[i, j] = 1
                if wheremax == 1:
@@ -228,117 +237,27 @@ for g in range(2):
                #print AF[i, j]
                #print "check = ", sort
                #print "half = ", half
-               for e in range(len(check)):
-                  if check[e] >= half:
-                     co += 1
-               if co == 1:
-                  AF[i, j] = 0.0
-                  count1 += 1
-                  AWO[i, j] = 1.0    
+               countnum += 1
+               if i > margin and i < (w.nx - margin):
+                  if j > margin and j < (w.ny - margin):
+                           #print "QUICKLY"
+                     if countpos == 0:
+                        A1pos = [i, j]
+                        minpos = [i, j]
+                        A1list = [wheremax]
+                        minlist = [wheremin]
+                     else:
+                        A1pos = np.vstack((A1pos, [i, j]))
+                        minpos = np.vstack((minpos, [i,j]))
+                        A1list = np.vstack((A1list, wheremax))
+                        minlist = np.vstack((minlist, wheremin))
+                     countpos+=1
 
-   
-               elif co == 2:
-                  AF[i, j] = 0.06
-                  count2 += 1
-                  AWO[i, j] = 2.0
-
-
-               elif co == 3:
-                  AF[i, j] = 0.12
-                  count3 += 1
-                  AWO[i, j] = 3.0
-
-               elif co == 4:
-                  AF[i, j] = 0.18
-                  count4 += 1
-                  AWO[i, j] = 4.0
+      print "np.shape = ", np.shape(minlist)
+      print "minlist = ", minlist
+      print "minpos = ", minpos
 
 
-               elif co == 5:
-                  AF[i, j] = 0.24
-                  count5 += 1
-                  AWO[i, j] = 5.0
-
-
-               elif co == 6:
-                  AF[i, j] = 0.3
-                  count6 += 1
-                  AWO[i, j] = 6.0
-
-
-#######
-                  #if A1[i ,f]
-#######
-
-
-               elif co == 7:
-                  AF[i, j] = 0.36
-                  count7 += 1
-                  AWO[i, j] = 7.0
-                  if wheremax == 0:
-                     countnum += 1
-                     if i > margin and i < (w.nx - margin):
-                        if j > margin and j < (w.ny - margin):
-                           if countpos == 0:
-                              A1pos = [i, j]
-                           else:
-                              A1pos = np.vstack((A1pos, [i, j]))
-                           countpos+=1
-
-
-               elif co == 8:
-                  AF[i, j] = 0.42
-                  count8 += 1
-                  AWO[i, j] = 8.0
-
-
-               elif co == 9:
-                  AF[i, j] = 0.48
-                  count9 += 1
-                  AWO[i, j] = 9.0
-
-               elif co == 10:
-                  AF[i, j] = 0.54
-                  count10 += 1
-                  AWO[i, j] = 10.0
-
-
-               elif co == 11:
-                  AF[i, j] = 0.60
-                  count11 += 1
-                  AWO[i, j] = 11.0
-               elif co == 12:
-                  AF[i, j] = 0.66
-                  count12 += 1
-                  AWO[i, j] = 12.0
-               elif co == 13:
-                  AF[i, j] = 0.72
-                  count13 += 1
-                  AWO[i, j] = 13.0
-               elif co == 14:
-                  AF[i, j] = 0.78
-                  count14 += 1
-                  AWO[i, j] = 14.0
-               elif co == 15:
-                  AF[i, j] = 0.84
-                  count15 += 1
-                  AWO[i, j] = 15.0
-               elif co == 16:
-                  AF[i, j] = 0.9
-                  count16 += 1
-                  AWO[i, j] = 16.0
-               else:
-                  AF[i, j] = 1.0
-                  count18 += 1
-                  #print "ELSE"
-               #print "co = ", co
-               #print
-               #print AF[i ,j]
-               #print 
-         #print "13", count13
-         #print "14", count14
-         #print "15", count15
-         #print "16", count16
 
       print "pos shape = ", np.shape(A1pos)
       print "A1pos = ", A1pos
@@ -367,11 +286,13 @@ for g in range(2):
       #print A1pos
       #print np.shape(A1pos)
       #A1pos = np.vstack((A1pos, [0, 0]))
-
-
+      sail = 0
       for k in range(zerange):    ####### range(step)
-         if k%1000 == 0:
+         if k%1000 == 0 and sail > 0:
             print "at ", k
+            print "Done"
+            sys.exit()
+         sail+=1
          A1t = []
          A2t = []
          A3t = []
@@ -392,173 +313,164 @@ for g in range(2):
 
          countg += 1
          A1A = a1.next_record()
-         #A2A = a2.next_record()
-         #A3A = a3.next_record()
-         #A4A = a4.next_record()
-         #A5A = a5.next_record()
-         #A6A = a6.next_record()
-         #A7A = a7.next_record()
-         #A8A = a8.next_record()
-         #A9A = a9.next_record()
-         #A10A = a10.next_record()
-         #A11A = a11.next_record()
-         #A12A = a12.next_record()
-         #A13A = a13.next_record()
-         #A14A = a14.next_record()
-         #A15A = a15.next_record()
-         #A16A = a16.next_record()
+         A2A = a2.next_record()
+         A3A = a3.next_record()
+         A4A = a4.next_record()
+         A5A = a5.next_record()
+         A6A = a6.next_record()
+         A7A = a7.next_record()
+         A8A = a8.next_record()
+         A9A = a9.next_record()
+         A10A = a10.next_record()
+         A11A = a11.next_record()
+         A12A = a12.next_record()
+         A13A = a13.next_record()
+         A14A = a14.next_record()
+         A15A = a15.next_record()
+         A16A = a16.next_record()
          A1t = np.zeros((1, np.shape(A1pos)[0]))
+         mint = np.zeros((1, np.shape(A1pos)[0]))
+
 
 #####
          for g in range(np.shape(A1pos)[0]):
             w = A1pos[g]
             i = w[0]
             j = w[1]
-            for h in range(len(A1A)):
-               if A1A[h] == ((lenofo * i) + j):
-                  A1t[0, g] += 1
-                  """
-                  if AW[i, j] == 2:
-                     t = 0
-                     for h in range(len(A2A)):
-                        if A2A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t ==1:
-                        A2t = np.append(A2t,1)
-                     else:
-                        A2t = np.append(A2t, 0)
-                  if AW[i, j] == 3:
-                     t = 0
-                     for h in range(len(A3A)):
-                        if A3A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A3t = np.append(A3t,1)
-                     else:
-                        A3t = np.append(A3t, 0)
-                  if AW[i, j] == 4:
-                     t = 0
-                     for h in range(len(A4A)):
-                        if A4A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A4t = np.append(A4t,1)
-                     else:
-                        A4t = np.append(A4t, 0)
-                  if AW[i, j] == 5:
-                     t = 0
-                     for h in range(len(A5A)):
-                        if A5A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A5t = np.append(A5t,1)
-                     else:
-                        A5t = np.append(A5t, 0)
-                  if AW[i, j] == 6:
-                     t = 0
-                     for h in range(len(A6A)):
-                        if A6A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A6t = np.append(A6t,1)
-                     else:
-                        A6t = np.append(A6t, 0)
-                  if AW[i, j] == 7:
-                     t = 0
-                     for h in range(len(A7A)):
-                        if A7A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A7t = np.append(A7t,1)
-                     else:
-                        A7t = np.append(A7t, 0)
-                  if AW[i, j] == 8:
-                     t = 0
-                     for h in range(len(A8A)):
-                        if A8A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A8t = np.append(A8t,1)
-                     else:
-                        A8t = np.append(A8t, 0)
-                  if AW[i, j] == 9:
-                     t = 0
-                     for h in range(len(A9A)):
-                        if A9A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A9t = np.append(A9t,1)
-                     else:
-                        A9t = np.append(A9t, 0)
-                  if AW[i, j] == 10:
-                     t = 0
-                     for h in range(len(A10A)):
-                        if A10A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A10t = np.append(A10t,1)
-                     else:
-                        A10t = np.append(A10t, 0)
-                  if AW[i, j] == 11:
-                     t = 0
-                     for h in range(len(A11A)):
-                        if A11A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A11t = np.append(A11t,1)
-                     else:
-                        A11t = np.append(A11t, 0)
-                  if AW[i, j] == 12:
-                     t = 0
-                     for h in range(len(A12A)):
-                        if A12A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A12t = np.append(A12t,1)
-                     else:
-                        A12t = np.append(A12t, 0)
-                  if AW[i, j] == 13:
-                     t = 0
-                     for h in range(len(A13A)):
-                        if A13A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A13t = np.append(A13t,1)
-                     else:
-                        A13t = np.append(A13t, 0)
-                  if AW[i, j] == 14:
-                     t = 0
-                     for h in range(len(A14A)):
-                        if A14A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A14t = np.append(A14t,1)
-                     else:
-                        A14t = np.append(A14t, 0)
-                  if AW[i, j] == 15:
-                     t = 0
-                     for h in range(len(A15A)):
-                        if A15A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A15t = np.append(A15t,1)
-                     else:
-                        A15t = np.append(A15t, 0)
-                  if AW[i, j] == 16:
-                     t = 0
-                     for h in range(len(A16A)):
-                        if A16A[h] == ((lenofo * i) + j):
-                           t = 1
-                     if t == 1:
-                        A16t = np.append(A16t,1)
-                     else:
-                        A16t = np.append(A16t, 0)
-                  """
+
+            if A1list[g] == 0:
+               for h in range(len(A1A)):
+                  if A1A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 1:
+               for h in range(len(A2A)):
+                  if A2A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 2:
+               for h in range(len(A3A)):
+                  if A3A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 3:
+               for h in range(len(A4A)):
+                  if A4A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 4:
+               for h in range(len(A5A)):
+                  if A5A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 5:
+               for h in range(len(A6A)):
+                  if A6A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 6:
+               for h in range(len(A7A)):
+                  if A7A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 7:
+               for h in range(len(A8A)):
+                  if A8A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 8:
+               for h in range(len(A9A)):
+                  if A9A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 9:
+               for h in range(len(A10A)):
+                  if A10A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 10:
+               for h in range(len(A11A)):
+                  if A11A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 11:
+               for h in range(len(A12A)):
+                  if A12A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 12:
+               for h in range(len(A13A)):
+                  if A13A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+            if A1list[g] == 13:
+               for h in range(len(A14A)):
+                  if A14A[h] == ((lenofo * i) + j):
+                     A1t[0, g] += 1
+
+
+
+         if 1 == 1:
+            for x in range(len(minlist)):
+               w = minpos[x]
+               i = w[0]
+               j = w[1]
+
+               if minlist[x] == 0:
+                  for y in range(len(A1A)):
+                     if A1A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 1:
+                  for y in range(len(A2A)):
+                     if A2A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 2:
+                  for y in range(len(A3A)):
+                     if A3A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 3:
+                  for y in range(len(A4A)):
+                     if A4A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 4:
+                  for y in range(len(A5A)):
+                     if A5A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 5:
+                  for y in range(len(A6A)):
+                     if A6A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 6:
+                  for y in range(len(A7A)):
+                     if A7A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 7:
+                  for y in range(len(A8A)):
+                     if A8A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 8:
+                  for y in range(len(A9A)):
+                     if A9A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 9:
+                  for y in range(len(A10A)):
+                     if A10A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 10:
+                  for y in range(len(A11A)):
+                     if A11A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 11:
+                  for y in range(len(A12A)):
+                     if A12A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 12:
+                  for y in range(len(A13A)):
+                     if A13A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+               if minlist[x] == 13:
+                  for y in range(len(A14A)):
+                     if A14A[y] == ((lenofo * i) + j):
+                        mint[0, x] += 1
+
+
+
+
 
          #if np.sum(test) > 0:
          #   print "test = ", test
          #   print "sum = ", sum(test)
          #print "A1t = ", A1t
+         #print "mint = ", mint
+
+
          d = k / numofsteps
          #print
          #print "A1t = ", A1t
@@ -567,138 +479,86 @@ for g in range(2):
          if k >= (numofsteps*d) and k < ((numofsteps * d) + numofsteps):
             if k == (numofsteps * d):
                A1p = A1t
+               minp = mint
                thecount+=1
             else:
                A1p = np.vstack((A1p,A1t))
+               minp = np.vstack((minp, mint))
+               #print "A1p = ", A1p
+               #print "minp = ", minp
+               #print
                thecount+=1
          if k == (numofsteps-1):
             A1q = A1p.sum(axis=0) 
+            minq = minp.sum(axis=0)
          if k == ((numofsteps*d) + (numofsteps-1)) and k != (numofsteps-1):
             A1q = np.vstack((A1q, A1p.sum(axis=0)))
-
-         #for i in range(4):
-         #   testq = np.append(testq, 0)
-                     #if AW[i, j] == 2:
-                     #   for g in range(len(A2A)):
-                     #      if A2A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 3:
-                     #   for g in range(len(A3A)):
-                     #      if A3A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 4:
-                     #   for g in range(len(A4A)):
-                     #      if A4A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 5:
-                     #   for g in range(len(A5A)):
-                     #      if A5A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 6:
-                     #   for g in range(len(A6A)):
-                     #      if A6A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 7:
-                     #   for g in range(len(A7A)):
-                     #      if A7A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 8:
-                     #   for g in range(len(A8A)):
-                     #      if A8A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 9:
-                     #   for g in range(len(A9A)):
-                     #      if A9A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 10:
-                     #   for g in range(len(A10A)):
-                     #      if A10A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 11:
-                     #   for g in range(len(A11A)):
-                     #      if A11A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 12:
-                     #   for g in range(len(A12A)):
-                     #      if A12A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 13:
-                     #   for g in range(len(A13A)):
-                     #      if A13A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 14:
-                     #   for g in range(len(A14A)):
-                     #      if A14A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #f AW[i, j] == 15:
-                     #   for g in range(len(A15A)):
-                     #      if A15A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
-                     #if AW[i, j] == 16:
-                     #   for g in range(len(A16A)):
-                     #      if A16A[g] == ((4 * i) + j):
-                     #         SUMAW[i, j] += 1
+            minq = np.vstack((minq, minp.sum(axis=0)))
+            #print "A1q = ", A1q
+            #print "minq = ", minq
 
 
-         #fig = plt.figure()
-         #ax = fig.add_subplot(111)
-         #ax.set_title("SUMAW")
-         #ax.imshow(SUMAW, cmap=cm.binary, interpolation='nearest')
 
-         #test = SUMAW / countg
+      print "a1q = ", A1q
+      print "minq = ", minq
 
-      #A2q = (A2q / len(A2t)) / (numofsteps / 100.0)
-      #A3q = (A3q / len(A3t)) / (numofsteps / 100.0)
-      #A4q = (A4q / len(A4t)) / (numofsteps / 100.0)
-      #A5q = (A5q / len(A5t)) / (numofsteps / 100.0)
-      #A6q = (A6q / len(A6t)) / (numofsteps / 100.0)
-      #A7q = (A7q / len(A7t)) / (numofsteps / 100.0)
-      #A8q = (A8q / len(A8t)) / (numofsteps / 100.0)
-      #A9q = (A9q / len(A9t)) / (numofsteps / 100.0)
-      #A10q = (A10q / len(A10t)) / (numofsteps / 100.0)
-      #A11q = (A11q / len(A11t)) / (numofsteps / 100.0)
-      #A12q = (A12q / len(A12t)) / (numofsteps / 100.0)
-      #A13q = (A13q / len(A13t)) / (numofsteps / 100.0)
-      #A14q = (A14q / len(A14t)) / (numofsteps / 100.0)
-      #A15q = (A15q / len(A15t)) / (numofsteps / 100.0)
-      #A16q = (A16q / len(A16t)) / (numofsteps / 100.0)
 
 
       sh = np.shape(A1q)
+      minsh = np.shape(minq)
       print "shape = ", sh
+      print "minshape = ", minsh
+
 
 
 
       for i in range(sh[0]):
-         z = i%8
+         z = i%2
          if i == 0:
             a = np.array([1])
-         if i != 0 and (z==0 or z==1 or z==2 or z==3):
+            b = np.array([0])
+            A1qf = np.array(A1q[i])
+            minqf = np.array(minq[i])
+         if i != 0 and (z==0):
             a = np.vstack((a, 1))
-         if z==4 or z==5 or z==6 or z==7 and i!= 0:
-            a = np.vstack((a,0))
+            b = np.vstack((b, 0))
+            A1qf = np.vstack((A1qf, A1q[i]))
+            minqf = np.vstack((minqf, minq[i]))
+         #if z==4 or z==5 or z==6 or z==7 and i!= 0:
+         #   a = np.vstack((a,0))
       #print "A1q shape = ", np.shape(A1q)
       #print "a shape = ", np.shape(a)
 
+      print A1qf
+      print minqf
+
 
       res = np.sum(A1q, axis=1)
+      minres = np.sum(minq, axis=1)
       hist1 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
-      hist2 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
+      hist2 = np.zeros((np.max(minres)/minsh[1])+3, dtype=int)
 
       for i in range(len(res)):
-         z = i%8
-         if z==0 or z==1 or z==2 or z==3:
+         z = i%2
+         if z==0:
             ph = ((res[i])/float(sh[1]))
             hist1[ph] += 1
-         if z==4 or z==5 or z==6 or z==7:
-            ph = (res[i]/float(sh[1]))
-            hist2[ph] += 1
+            minph = (minres[i]/float(minsh[1]))
+            hist2[minph] += 1
+#         if z==4 or z==5 or z==6 or z==7:
+#            ph = (res[i]/float(sh[1]))
+#            hist2[ph] += 1
 
-      A1q = np.insert(A1q, [0], a, axis=1)
+      a = np.vstack((a, b))
+      A1qf = np.vstack((A1qf, minqf))
 
-      np.savetxt("roc-info.txt", A1q, fmt='%d', delimiter = ';')        
+
+      A1qf = np.insert(A1qf, [0], a, axis=1)
 
 
+      np.savetxt("roc-info.txt", A1qf, fmt='%d', delimiter = ';')        
+
+      sys.exit()
       fig = plt.figure()
       ax = fig.add_subplot(111)
       

@@ -112,7 +112,7 @@ count18 = 0
 
 pa = []
 
-for endtest in range(begintest+steptest, steptest+1, steptest):
+for endtest in range(begintest+steptest, endtest, steptest):
    Atest = atest.avg_activity(begintest, endtest)
    lenofo = len(Atest)
    for i in range(lenofo):
@@ -149,7 +149,7 @@ print "median = ", median
 co = 0
 for g in range(2):
    if g == 0:
-      for end in range(begin+step, step+1, step):
+      for end in range(begin+step, end, step):
          A1 = a1.avg_activity(begin, end)
          A2 = a2.avg_activity(begin, end)
          A3 = a3.avg_activity(begin, end)
@@ -190,6 +190,10 @@ for g in range(2):
                   count1 += 1
                   AW[i, j] = 1.0
                   AWO[i, j] = 1.0
+                  
+
+
+
                elif co == 2:
                   AF[i, j] = 0.06
                   count2 += 1
@@ -290,7 +294,7 @@ for g in range(2):
 
             im[y:y+nyp, x:x+nxp] = p
             im2[y:y+nyp, x:x+nxp] = pO
-         """
+
          k = 16
          wd = sp.whiten(kd)
          result = sp.kmeans2(wd, k)
@@ -396,17 +400,17 @@ for g in range(2):
          kcountper14 = kcount14 / acount 
          kcountper15 = kcount15 / acount 
          kcountper16 = kcount16 / acount 
-         """
+
 
          h = [count1, count2, count3, count4, count5, count6, count7, count8, count9, count10, count11, count12, count13, count14, count15, count16, count18]
          h2 = [0, count1, count2, count3, count4, count5, count6, count7, count8, count9, count10, count11, count12, count13, count14, count15, count16, count18] 
 
          fig4 = plt.figure()
-         ax4 = fig4.add_subplot(111)
+         ax4 = fig4.add_subplot(111,  axisbg='darkslategray')
          loc = np.array(range(len(h)))+0.5
          width = 1.0
-         ax4.bar(loc, h, width=width, bottom=0, color='b')
-         ax4.plot(np.arange(len(h2)), h2, ls = '-', marker = 'o', color='b', linewidth=4.0)
+         ax4.bar(loc, h, width=width, bottom=0, color='y')
+         ax4.plot(np.arange(len(h2)), h2, ls = '-', marker = 'o', color='y')
          ax4.set_title("Number of Neurons that Respond to Higher than .5 max firing rate")
          ax4.set_ylabel("Number of Neurons")
          ax4.set_xlabel("Number of Presented Lines")
@@ -465,7 +469,7 @@ for g in range(2):
 
 
 
-         """
+
          fig = plt.figure()
          ax = fig.add_subplot(111)
    
@@ -483,7 +487,7 @@ for g in range(2):
 
 
 
-         """
+
          plt.show()
 
 #end fig loop

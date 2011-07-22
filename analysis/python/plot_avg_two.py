@@ -32,30 +32,31 @@ if len(sys.argv) < 3:
    print "usage: plot_avg_activity filename [end_time step_time begin_time]"
    sys.exit()
 
-if len(sys.argv) >= 3:
-   end = int(sys.argv[2])
 
-if len(sys.argv) >= 4:
-   step = int(sys.argv[3])
+end = int(sys.argv[3])
+step = int(sys.argv[4])
+begin = int(sys.argv[5])
 
-if len(sys.argv) >= 5:
-   begin = int(sys.argv[4])
-
-if len(sys.argv) >= 6:
-   vmax = float(sys.argv[5])
 
 print "(begin, end, step, max) == ", begin, end, step, vmax
 
 activ = rs.PVReadSparse(sys.argv[1], extended)
+activ2 = rs.PVReadSparse(sys.argv[2], extended)
 
 
 for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
+   A2 = activ2.avg_activity(begin, end)
 
    numrows, numcols = A.shape
 
+
    min = np.min(A)
    max = np.max(A)
+   min2 = np.min(A2)
+   max2 = np.max(A2)
+
+
 
    s = np.zeros(numcols)
    for col in range(numcols):
@@ -65,6 +66,11 @@ for end in range(begin+step, end, step):
    b = np.reshape(A, (len(A)* len(A)))
    print b
    c = np.shape(b)[0]
+
+   b2 = np.reshape(A2, (len(A2)* len(A2)))
+   print b
+   c2 = np.shape(b2)[0]
+
    
    his = np.zeros((np.max(A)+1))
    print his
@@ -72,6 +78,7 @@ for end in range(begin+step, end, step):
       his[b[i]] +=1
    print his
 
+   A3 = A + A2
 
 
    fig = plt.figure()
@@ -81,7 +88,7 @@ for end in range(begin+step, end, step):
    ax.set_ylabel('Ky GLOBAL')
    ax.set_title('Activity: min=%1.1f, max=%1.1f time=%d' %(min, max, activ.time))
    ax.format_coord = format_coord
-   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=max)
+   ax.imshow(A3, cmap=cm.jet, interpolation='nearest', vmin=0., vmax=np.max(A3))
  
    ax = fig.add_subplot(2,1,2)
    ax.set_ylabel('Ky Avg Activity')
@@ -91,8 +98,6 @@ for end in range(begin+step, end, step):
    #attempt at colorbar
    #cax = fig.add_axes([0.85, 0.1, 0.075, 0.8]) 
    #fig.colorbar(A, cax=cax)
-
-
 
    plt.show()
 

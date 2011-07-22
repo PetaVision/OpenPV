@@ -12,9 +12,12 @@ if len(sys.argv) < 2:
    exit()
 
 w_split_val = 255/2.
+print "1st", w_split_val
 if len(sys.argv) >= 3:
    w_split_val = float(sys.argv[2])
 
+print "2nd", w_split_val
+sys.exit()
 w = rw.PVReadWeights(sys.argv[1])
 h = w.clique_histogram(w_split_val)
 print 'total =', sum(h)

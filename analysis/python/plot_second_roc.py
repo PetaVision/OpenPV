@@ -109,7 +109,7 @@ count15 = 0
 count16 = 0
 count17 = 0
 count18 = 0
-margin = 30
+margin = 35
 
 pa = []
 
@@ -235,6 +235,15 @@ for g in range(2):
                   AF[i, j] = 0.0
                   count1 += 1
                   AWO[i, j] = 1.0    
+                  if wheremax == 0:
+                     countnum += 1
+                     if i > margin and i < (w.nx - margin):
+                        if j > margin and j < (w.ny - margin):
+                           if countpos == 0:
+                              A1pos = [i, j]
+                           else:
+                              A1pos = np.vstack((A1pos, [i, j]))
+                           countpos+=1
 
    
                elif co == 2:
@@ -275,15 +284,6 @@ for g in range(2):
                   AF[i, j] = 0.36
                   count7 += 1
                   AWO[i, j] = 7.0
-                  if wheremax == 0:
-                     countnum += 1
-                     if i > margin and i < (w.nx - margin):
-                        if j > margin and j < (w.ny - margin):
-                           if countpos == 0:
-                              A1pos = [i, j]
-                           else:
-                              A1pos = np.vstack((A1pos, [i, j]))
-                           countpos+=1
 
 
                elif co == 8:
@@ -363,7 +363,7 @@ for g in range(2):
       countg = 0
       testgraph = []
       test = []
-      numofsteps = 500
+      numofsteps = 200
       #print A1pos
       #print np.shape(A1pos)
       #A1pos = np.vstack((A1pos, [0, 0]))
@@ -670,12 +670,12 @@ for g in range(2):
 
 
       for i in range(sh[0]):
-         z = i%8
+         z = i%20
          if i == 0:
             a = np.array([1])
-         if i != 0 and (z==0 or z==1 or z==2 or z==3):
+         if i != 0 and (z==0 or z==1 or z==2 or z==3 or z==4 or z==5 or z==6 or z==7 or z==8 or z==9):
             a = np.vstack((a, 1))
-         if z==4 or z==5 or z==6 or z==7 and i!= 0:
+         if z==10 or z==11 or z==12 or z==13 or z==14 or z==15 or z==16 or z==17 or z==18 or z==19 and i!= 0:
             a = np.vstack((a,0))
       #print "A1q shape = ", np.shape(A1q)
       #print "a shape = ", np.shape(a)
@@ -686,17 +686,17 @@ for g in range(2):
       hist2 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
 
       for i in range(len(res)):
-         z = i%8
-         if z==0 or z==1 or z==2 or z==3:
+         z = i%20
+         if z==0 or z==1 or z==2 or z==3 or z==4 or z==5 or z==6 or z==7 or z==8 or z==9:
             ph = ((res[i])/float(sh[1]))
             hist1[ph] += 1
-         if z==4 or z==5 or z==6 or z==7:
+         if z==10 or z==11 or z==12 or z==13 or z==14 or z==15 or z==16 or z==17 or z==18 or z==19:
             ph = (res[i]/float(sh[1]))
             hist2[ph] += 1
 
       A1q = np.insert(A1q, [0], a, axis=1)
 
-      np.savetxt("roc-info.txt", A1q, fmt='%d', delimiter = ';')        
+      np.savetxt("roc-info-smaller-2.txt", A1q, fmt='%d', delimiter = ';')        
 
 
       fig = plt.figure()
@@ -713,11 +713,11 @@ for g in range(2):
       ax.set_xlim(0, 1+(np.max(res)/sh[1]))
       ax.grid(True)
 
-
-
-
-
       plt.show()
+
+
+
+
 
 
 

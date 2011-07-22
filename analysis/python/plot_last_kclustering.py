@@ -1,7 +1,7 @@
 """
-Plots the k-means clustering
+Plots the time stability for a random individual patch
 """
-
+import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,17 +11,100 @@ import PVReadWeights as rw
 import PVConversions as conv
 import scipy.cluster.vq as sp
 import math
+import random
 
 if len(sys.argv) < 2:
-   print "usage: kclustering filename on, filename off, k"
+   print "usage: time_stability post_filename"
    print len(sys.argv)
    sys.exit()
 
 w = rw.PVReadWeights(sys.argv[1])
 
+space = 1
+
+d = np.zeros((4,4))
+
+nx = w.nx
+ny = w.ny
+nxp = w.nxp
+nyp = w.nyp
+coor = nxp * nyp
+print coor
+
+patlen = nxp * nyp
+numpat = w.numPatches
+nf = w.nf
+check = sys.argv[1]
+a = check.find("w")
+b = check[a].strip("w")
+print b
+
+margin = 10
+
+
+marginstart = margin
+marginend = nx - margin
+acount = 0
+patchposition = []
+
+
+nx  = w.nx
+ny  = w.ny
+nxp = w.nxp
+nyp = w.nyp
+
+
+
+test = 0
+
+#print testnumber
+#testnumber = (69 + (62 * 128))
+
+exp = []
+exppn = []
+exp2 = []
+exppn2 = []
+
+body = w.recSize + 4
+hs = w.headerSize
+filesize = os.path.getsize(sys.argv[1])
+bint = filesize / body
+
+print
+print "Number of steps = ", bint
+print
+#forwardjump = input('How many steps forward:')
+forwardjump = bint - 2
+bint = bint - forwardjump
+
+sqnxynum = math.sqrt(bint)
+nxynum = int(round(sqnxynum, 0))
+nxynum += 1
+
+
+nx2 = nxynum 
+ny2 = nxynum
+nx_im = nx2 * (nxp + space) + space
+ny_im = ny2 * (nyp + space) + space
+im = np.zeros((nx_im, ny_im))
+im[:,:] = (w.max - w.min) / 2.
+
+
+if forwardjump == 0:
+   print
+else:
+   leap = ((body * forwardjump) + (100 * forwardjump)) 
+   w.file.seek(leap, os.SEEK_CUR)
+
 if len(sys.argv) == 3:
    wOff = rw.PVReadWeights(sys.argv[2])
+   if forwardjump == 0:
+      print
+   else:
+      leap = ((body * forwardjump) + (100 * forwardjump)) 
+      wOff.file.seek(leap, os.SEEK_CUR)
 
+###########################################################################
 
 space = 1
 
@@ -33,7 +116,8 @@ nxp = w.nxp
 nyp = w.nyp
 numpat = w.numPatches
 nf = w.nf
-margin = nx / 4
+margin = int(nx / 2.5)
+print "margin = ", margin
 marginstart = margin
 marginend = nx - margin
 acount = 0
@@ -60,7 +144,7 @@ if len(sys.argv) == 2:
          return 'x=%1.4d, y=%1.4d, x2=%1.4d, y2=%1.4d'%(int(x), int(y), int(x2), int(y2))
 
 
-   k = 100
+   k = 64  #24
    for ko in range(numpat):
       kxOn = conv.kxPos(ko, nx, ny, nf)
       kyOn = conv.kyPos(ko, nx, ny, nf)

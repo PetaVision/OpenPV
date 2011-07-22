@@ -174,9 +174,8 @@ corrMatrixOffaOn = np.zeros([4,4])
 countOn = 0
 countOff = 0
 countOffaOn = 0
-dWMax = 0.5
+dWMax = 0.75
 realmax = nxp * dWMax
-
 
 x = w.numPatches
 nx = w.nx
@@ -222,13 +221,13 @@ print fOn[1],"   ", fOff[1]
 print fOn[2],"   ", fOff[2]
 print fOn[3],"   ", fOff[3]
 print
-print "On"
-print corrMatrixOn
-print "Off"
-print corrMatrixOff
-print
-print "Off next to On"
-print corrMatrixOffaOn
+#print "On"
+#print corrMatrixOn
+#print "Off"
+#print corrMatrixOff
+#print
+#print "Off next to On"
+#print corrMatrixOffaOn
 print
 print "number of cells = ", n
 print

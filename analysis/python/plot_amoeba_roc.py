@@ -84,6 +84,7 @@ extended = False
 w = rw.PVReadWeights(sys.argv[1])
 wOff = rw.PVReadWeights(sys.argv[2])
 
+
 nx  = w.nx
 ny  = w.ny
 nxp = w.nxp
@@ -122,7 +123,6 @@ print "weights done"
 activ = rs.PVReadSparse(sys.argv[3], extended)
 
 
-
 end = int(sys.argv[4])
 step = int(sys.argv[5])
 begin = int(sys.argv[6])
@@ -130,6 +130,7 @@ begin = int(sys.argv[6])
 count = 0
 for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
+
 
    this = 7 + count
    count += 1
@@ -162,7 +163,7 @@ for end in range(begin+step, end, step):
       for xi in range(len(A)):
          x = int(zPatchHead(int(xi), 5, -math.log(rr, 2), -math.log(1, 2)))
          y = int(zPatchHead(int(yi), 5, -math.log(rr, 2), -math.log(1, 2)))
-         if 58 > x >= 0 and 58 > y >= 0:
+         if (65-nxp) > x >= 0 and (65-nxp) > y >= 0:
             if A[yi, xi] > 0:
                patch = predub[yi * (nx) + xi]
                patchOff = predubOff[yi * (nx) + xi]
@@ -174,28 +175,51 @@ for end in range(begin+step, end, step):
                      im[y + yy, x + xx] += patch[yy, xx] * A[yi, xi]
                      im[y + yy, x + xx] -= patchOff[yy, xx] * A[yi, xi]
 
-
-
-   fig = plt.figure()
-   ax = fig.add_subplot(3,1,1)
-
-   ax.imshow(mi, interpolation='Nearest', cmap='gray')
-
-   ax = fig.add_subplot(3,1,2)
-   #ax.imshow(mi, interpolation='Nearest', cmap='gray', origin="lower")
-   ax.set_xlabel('activity')
-   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(A))
    
+   im = np.ravel(im)
+   mi = np.ravel(mi)
+   print "mi = ", np.max(mi)
 
-   ax = fig.add_subplot(313)
-   ax.set_xlabel('image reconstruction')
-   ax.imshow(im, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(im))
+   print "im shape = ", np.shape(im)
 
+   
+   tnum = 64*64
 
+   rocim = np.zeros(((tnum*10), 2)) 
+   print "rocim shape = ", np.shape(rocim)
+   countw = 0
+   countg = 0
+   for g in range(10):
+      w = (g+1) / 10.
 
+      immax=np.max(im) * w
+      #print "immax = ", immax
+      pos = 0
+      fpos = 0
 
+      for i in range(tnum):
+         if im[i] >= immax:
+            if mi[i] == 1:
+               rocim[countg,0] = 1
+               rocim[countg,1] = w
+               pos+=1
+            elif mi[i] == 0:
+               rocim[countg,0] = -1
+               rocim[countg,1] = w
+               fpos+=1
+            else:
+               print "stopped"
+               sys.exit()
+            countg+=1
 
+      #print "pos = ", pos
+      #print "fpos = ", fpos
+   #print "g count = ", countg
+   rocim = rocim[0:countg]
 
-   plt.show()
+   np.savetxt("roc-info%o.txt" %(count), rocim, fmt='%f', delimiter = ';')
 
-#end fig loop
+  
+  
+  
+  

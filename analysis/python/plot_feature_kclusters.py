@@ -12,6 +12,7 @@ import PVConversions as conv
 import scipy.cluster.vq as sp
 import math
 
+
 if len(sys.argv) < 2:
    print "usage: kclustering filename on, filename off, k"
    print len(sys.argv)
@@ -19,13 +20,14 @@ if len(sys.argv) < 2:
 
 w = rw.PVReadWeights(sys.argv[1])
 
+
 if len(sys.argv) == 3:
    wOff = rw.PVReadWeights(sys.argv[2])
 
 
 space = 1
 
-d = np.zeros((5,5))
+d = np.zeros((4,4))
 
 nx = w.nx
 ny = w.ny
@@ -33,15 +35,155 @@ nxp = w.nxp
 nyp = w.nyp
 numpat = w.numPatches
 nf = w.nf
-margin = nx / 4
+margin = 10
 marginstart = margin
 marginend = nx - margin
 acount = 0
 
-print "nx = ", nx
-print "ny = ", ny
-print "nxp = ", nxp
-print "nyp = ", nyp
+
+# create feature list for comparing weights from on and off cells
+f = np.zeros(w.patchSize)
+f2 = np.zeros(w.patchSize)
+fe1 = []
+fe2 = []
+fe3 = []
+fe4 = []
+fe5 = []
+fe6 = []
+fe7 = []
+fe8 = []
+fcomp = []
+
+f = w.normalize(f)
+f2 = w.normalize(f2)
+
+
+# vertical lines from right side
+f = np.zeros([w.nxp, w.nyp]) # first line
+f[:,0] = 1
+fe1.append(f)
+
+f = np.zeros([w.nxp, w.nyp]) # second line
+f[:,1] = 1
+fe2.append(f)
+
+f2 = np.zeros([w.nxp, w.nyp]) # third line
+f2[:,2] = 1
+fe3.append(f2)
+
+f = np.zeros([w.nxp, w.nyp])
+f[:,3] = 1
+fe4.append(f)
+
+#horizontal lines from the top
+f = np.zeros([w.nxp, w.nyp])
+f[0,:] = 1
+fe5.append(f)
+
+f = np.zeros([w.nxp, w.nyp])
+f[1,:] = 1
+fe6.append(f)
+
+f = np.zeros([w.nxp, w.nyp])
+f[2,:] = 1
+fe7.append(f)
+
+f = np.zeros([w.nxp, w.nyp])
+f[3,:] = 1
+fe8.append(f)
+
+#print "f8", fe8
+#print "f7", fe7
+#print "f6", fe6
+#print "f5", fe5
+#print "f4", fe4
+#print "f3", fe3
+#print "f2", fe2
+#print "f1", fe1
+
+
+
+
+
+
+
+
+
+def whatFeature(k):
+   result = []
+   fcomp = []
+   k = np.reshape(k,(nxp,nyp))
+
+   f1 = k * fe1
+   f1 = np.sum(f1)
+   fcomp.append(f1)
+   #print f1
+
+   f2 = k * fe2
+   f2 = np.sum(f2)
+   #print f2
+   fcomp.append(f2)
+
+   f3 = k * fe3
+   f3 = np.sum(f3)
+   #print f3
+   fcomp.append(f3)
+
+   f4 = k * fe4
+   f4 = np.sum(f4)
+   #print f4
+   fcomp.append(f4)
+
+   f5 = k * fe5
+   f5 = np.sum(f5)
+   #print f5
+   fcomp.append(f5)
+
+   f6 = k * fe6
+   f6 = np.sum(f6)
+   #print f6
+   fcomp.append(f6)
+
+   f7 = k * fe7
+   f7 = np.sum(f7)
+   #print f7
+   fcomp.append(f7)
+
+   f8 = k * fe8
+   f8 = np.sum(f8)
+   #print f8
+   fcomp.append(f8)
+
+   maxp = np.max(fcomp) / 4.0
+
+   return maxp
+
+   #if maxp == f1:
+      #print "f1"
+   #   result.append(1)
+   #if maxp == f2:
+      #print "f2"
+   #   result.append(2)
+   #if maxp == f3:
+      #print "f3"
+   #   result.append(3)
+   #if maxp == f4:
+      #print "f4"
+   #   result.append(4)
+   #if maxp == f5:
+      #print "f5"
+   #   result.append(5)
+   #if maxp == f6:
+      #print "f6"
+   #   result.append(6)
+   #if maxp == f7:
+      #print "f7"
+   #   result.append(7)
+   #if maxp == f8:
+      #print "f8"
+   #  result.append(8)
+
+   #return result
 
 
 
@@ -60,7 +202,7 @@ if len(sys.argv) == 2:
          return 'x=%1.4d, y=%1.4d, x2=%1.4d, y2=%1.4d'%(int(x), int(y), int(x2), int(y2))
 
 
-   k = 100
+   k = 8
    for ko in range(numpat):
       kxOn = conv.kxPos(ko, nx, ny, nf)
       kyOn = conv.kyPos(ko, nx, ny, nf)
@@ -86,8 +228,8 @@ if len(sys.argv) == 2:
    im[:,:] = (w.max - w.min) / 2.
 
 
-   nx_im2 = nx * (nxp + space) + space
-   ny_im2 = ny * (nyp + space) + space
+   nx_im2 = nx * (nxp)
+   ny_im2 = ny * (nyp)
 
    im2 = np.zeros((nx_im2, ny_im2))
    im2[:,:] = (w.max - w.min) / 2.
@@ -157,6 +299,7 @@ if len(sys.argv) == 2:
    while t == 1:
 
       feature = input('Please which k-cluster to compare: ')
+ 
       feature -= 1
 
       count = 0
@@ -171,9 +314,14 @@ if len(sys.argv) == 2:
             if marginstart < kyOn < marginend:
                if cluster[count] == feature:
                   e = p
-                  e = e.reshape(nxp, nyp)
-                  numrows, numcols = e.shape
-                  count = count + 1
+                  a = whatFeature(e)
+                  if a > 0.7:
+                     e = e.reshape(nxp, nyp)
+                     numrows, numcols = e.shape
+                     count = count + 1
+                  else:
+                     e = d
+                     count += 1
                else:
                   e = d
                   count = count + 1
@@ -182,8 +330,8 @@ if len(sys.argv) == 2:
          else:
             e = d
 
-         x = space + (space + nxp) * (ko % nx)
-         y = space + (space + nyp) * (ko / nx)
+         x = (nxp) * (ko % nx)
+         y = (nyp) * (ko / nx)
 
 
          im2[y:y+nyp, x:x+nxp] = e
@@ -195,7 +343,7 @@ if len(sys.argv) == 2:
 
       ax.set_xlabel('Kx GLOBAL')
       ax.set_ylabel('Ky GLOBAL')
-      ax.set_title('ON Weight Patches')
+      ax.set_title('Weight Patches')
       ax.format_coord = format_coord
       ax.imshow(im2, cmap=cm.jet, interpolation='nearest', vmin=w.min, vmax=w.max)
 
@@ -231,7 +379,7 @@ if len(sys.argv) == 3:
          return 'x=%1.4d, y=%1.4d, x2=%1.4d, y2=%1.4d'%(int(x), int(y), int(x2), int(y2))
 
 
-   k = 64
+   k = 16
    for ko in range(numpat):
       kxOn = conv.kxPos(ko, nx, ny, nf)
       kyOn = conv.kyPos(ko, nx, ny, nf)
@@ -386,8 +534,8 @@ if len(sys.argv) == 3:
    ax.set_title('On and Off K-means')
    ax.set_axis_off()
    ax.text(textx, texty,'ON\n\nOff', fontsize='xx-large', rotation='horizontal') 
-   #ax.text( -5, 12, "Percent %.2f   %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f" %(kcountper1,  kcountper2,  kcountper3, kcountper4, kcountper5, kcountper6, kcountper7, kcountper8, kcountper9, kcountper10, kcountper11, kcountper12, kcountper13, kcountper14, kcountper15, kcountper16), fontsize='large', rotation='horizontal')
-   #ax.text(-4, 14, "Patch   1      2       3       4       5       6       7       8       9      10      11     12     13     14     15     16", fontsize='x-large', rotation='horizontal')
+   ax.text( -5, 12, "Percent %.2f   %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f    %.2f" %(kcountper1,  kcountper2,  kcountper3, kcountper4, kcountper5, kcountper6, kcountper7, kcountper8, kcountper9, kcountper10, kcountper11, kcountper12, kcountper13, kcountper14, kcountper15, kcountper16), fontsize='large', rotation='horizontal')
+   ax.text(-4, 14, "Patch   1      2       3       4       5       6       7       8       9      10      11     12     13     14     15     16", fontsize='x-large', rotation='horizontal')
 
    ax.imshow(im, cmap=cm.jet, interpolation='nearest', vmin=w.min, vmax=w.max)
 
@@ -412,9 +560,14 @@ if len(sys.argv) == 3:
             if marginstart < kyOn < marginend:
                if cluster[count] == feature:
                   e = p
-                  e = e.reshape(nxp, nyp)
-                  numrows, numcols = e.shape
-                  count = count + 1
+                  a = whatFeature(p)
+                  if a > 0.7:
+                     e = e.reshape(nxp, nyp)
+                     numrows, numcols = e.shape
+                     count = count + 1
+                  else:
+                     e = d
+                     count += 1
                else:
                   e = d
                   count = count + 1
@@ -439,9 +592,14 @@ if len(sys.argv) == 3:
             if marginstart < kyOn < marginend:
                if cluster[count] == feature:
                   e = p
-                  e = e.reshape(nxp, nyp)
-                  numrows, numcols = e.shape
-                  count = count + 1
+                  a = whatFeature(e)
+                  if a > 0.7:
+                     e = e.reshape(nxp, nyp)
+                     numrows, numcols = e.shape
+                     count = count + 1
+                  else:
+                     e = d
+                     count += 1
                else:
                   e = d
                   count = count + 1

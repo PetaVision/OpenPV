@@ -91,6 +91,7 @@ begintest = begin
 atest = rs.PVReadSparse(sys.argv[20], extended)
 w = rw.PVReadWeights(sys.argv[21])
 wO = rw.PVReadWeights(sys.argv[22])
+zerange = int(sys.argv[17])
 count1 = 0
 count2 = 0
 count3 = 0
@@ -112,7 +113,7 @@ count18 = 0
 
 pa = []
 
-for endtest in range(begintest+steptest, steptest+1, steptest):
+for endtest in range(begintest+steptest, endtest, steptest):
    Atest = atest.avg_activity(begintest, endtest)
    lenofo = len(Atest)
    for i in range(lenofo):
@@ -122,7 +123,8 @@ median = np.median(pa)
 avg = np.mean(pa)
 
 AW = np.zeros((lenofo, lenofo))
-AWO = AW
+AWO = np.zeros((lenofo, lenofo))
+SUMAW = np.zeros((lenofo, lenofo))
 
 space = 1
 nx  = w.nx
@@ -134,6 +136,7 @@ d = np.zeros((4,4))
 coord = 1
 nx_im = nx * (nxp + space) + space
 ny_im = ny * (nyp + space) + space
+numpat = w.numPatches
 
 im = np.zeros((nx_im, ny_im))
 im[:,:] = (w.max - w.min) / 2.
@@ -149,7 +152,7 @@ print "median = ", median
 co = 0
 for g in range(2):
    if g == 0:
-      for end in range(begin+step, step+1, step):
+      for end in range(begin+step, end, step):
          A1 = a1.avg_activity(begin, end)
          A2 = a2.avg_activity(begin, end)
          A3 = a3.avg_activity(begin, end)
@@ -176,9 +179,44 @@ for g in range(2):
                #print A1[i, j]
                check = [A1[i,j], A2[i,j], A3[i,j], A4[i,j], A5[i,j], A6[i,j], A7[i,j], A8[i,j], A9[i,j], A10[i,j], A11[i,j], A12[i,j], A13[i,j], A14[i,j], A15[i,j], A16[i,j]] 
                checkmax = np.max(check)
+               wheremax = np.argmax(check)
                half = checkmax / 2.0
                sort = np.sort(check)
                co = 0
+               if wheremax == 0:
+                  AW[i, j] = 1
+               if wheremax == 1:
+                  AW[i, j] = 2
+               if wheremax == 2:
+                  AW[i, j] = 3
+               if wheremax == 3:
+                  AW[i, j] = 4
+               if wheremax == 4:
+                  AW[i, j] = 5
+               if wheremax == 5:
+                  AW[i, j] = 6
+               if wheremax == 6:
+                  AW[i, j] = 7
+               if wheremax == 7:
+                  AW[i, j] = 8
+               if wheremax == 8:
+                  AW[i, j] = 9
+               if wheremax == 9:
+                  AW[i, j] = 10
+               if wheremax == 10:
+                  AW[i, j] = 11
+               if wheremax == 11:
+                  AW[i, j] = 12
+               if wheremax == 12:
+                  AW[i, j] = 13
+               if wheremax == 13:
+                  AW[i, j] = 14
+               if wheremax == 14:
+                  AW[i, j] = 15
+               if wheremax == 15:
+                  AW[i, j] = 16
+               
+
                #print AF[i, j]
                #print "check = ", sort
                #print "half = ", half
@@ -188,53 +226,72 @@ for g in range(2):
                if co == 1:
                   AF[i, j] = 0.0
                   count1 += 1
-                  AW[i, j] = 1.0
-                  AWO[i, j] = 1.0
+                  AWO[i, j] = 1.0                  
                elif co == 2:
                   AF[i, j] = 0.06
                   count2 += 1
+                  AWO[i, j] = 2.0
                elif co == 3:
                   AF[i, j] = 0.12
                   count3 += 1
+                  AWO[i, j] = 3.0
                elif co == 4:
                   AF[i, j] = 0.18
                   count4 += 1
+                  AWO[i, j] = 4.0
                elif co == 5:
                   AF[i, j] = 0.24
                   count5 += 1
+                  AWO[i, j] = 5.0
                elif co == 6:
                   AF[i, j] = 0.3
                   count6 += 1
+                  AWO[i, j] = 6.0
+#######
+                  #if A1[i ,f]
+#######
+
+
                elif co == 7:
                   AF[i, j] = 0.36
                   count7 += 1
+                  AWO[i, j] = 7.0
                elif co == 8:
                   AF[i, j] = 0.42
                   count8 += 1
+                  AWO[i, j] = 8.0
                elif co == 9:
                   AF[i, j] = 0.48
                   count9 += 1
+                  AWO[i, j] = 9.0
                elif co == 10:
                   AF[i, j] = 0.54
                   count10 += 1
+                  AWO[i, j] = 10.0
                elif co == 11:
                   AF[i, j] = 0.60
                   count11 += 1
+                  AWO[i, j] = 11.0
                elif co == 12:
                   AF[i, j] = 0.66
                   count12 += 1
+                  AWO[i, j] = 12.0
                elif co == 13:
                   AF[i, j] = 0.72
                   count13 += 1
+                  AWO[i, j] = 13.0
                elif co == 14:
                   AF[i, j] = 0.78
                   count14 += 1
+                  AWO[i, j] = 14.0
                elif co == 15:
                   AF[i, j] = 0.84
                   count15 += 1
+                  AWO[i, j] = 15.0
                elif co == 16:
                   AF[i, j] = 0.9
                   count16 += 1
+                  AWO[i, j] = 16.0
                else:
                   AF[i, j] = 1.0
                   count18 += 1
@@ -248,8 +305,180 @@ for g in range(2):
          #print "15", count15
          #print "16", count16
 
+      a1.rewind()
+      a2.rewind()
+      a3.rewind()
+      a4.rewind()
+      a5.rewind()
+      a6.rewind()
+      a7.rewind()
+      a8.rewind()
+      a9.rewind()
+      a10.rewind()
+      a11.rewind()
+      a12.rewind()
+      a13.rewind()
+      a14.rewind()
+      a15.rewind()
+      a16.rewind()
+
+      countg = 0
+      testgraph = []
+      test = []
+      numofsteps = 10
+      for k in range(zerange):    ####### range(step)
+         if k%1000 == 0:
+            print "at ", k
+         test = []
+         countg += 1
+         A1A = a1.next_record()
+         #A2A = a2.next_record()
+         #A3A = a3.next_record()
+         #A4A = a4.next_record()
+         #A5A = a5.next_record()
+         #A6A = a6.next_record()
+         #A7A = a7.next_record()
+         #A8A = a8.next_record()
+         #A9A = a9.next_record()
+         #A10A = a10.next_record()
+         #A11A = a11.next_record()
+         #A12A = a12.next_record()
+         #A13A = a13.next_record()
+         #A14A = a14.next_record()
+         #A15A = a15.next_record()
+         #A16A = a16.next_record()
+         for i in range(lenofo):
+            for j in range(lenofo):
+               if AWO[i, j] == 1:
+                  if AW[i, j] == 1:
+                     t = 0
+                     for h in range(len(A1A)):
+                        if A1A[h] == ((lenofo * i) + j):
+                           t = 1
+                           #SUMAW[i, j] += 1
+                     if t == 1:
+                        test = np.append(test,1)
+                        #print "its echo lasts longer"
+                     else:
+                        test = np.append(test, 0)
+
+         #if np.sum(test) > 0:
+         #   print "test = ", test
+         #   print "sum = ", sum(test)
+         if k == 0:
+            testq = np.sum(test)
+         else:
+            testq = np.append(testq, np.sum(test))
+         #for i in range(4):
+         #   testq = np.append(testq, 0)
+                     #if AW[i, j] == 2:
+                     #   for g in range(len(A2A)):
+                     #      if A2A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 3:
+                     #   for g in range(len(A3A)):
+                     #      if A3A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 4:
+                     #   for g in range(len(A4A)):
+                     #      if A4A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 5:
+                     #   for g in range(len(A5A)):
+                     #      if A5A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 6:
+                     #   for g in range(len(A6A)):
+                     #      if A6A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 7:
+                     #   for g in range(len(A7A)):
+                     #      if A7A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 8:
+                     #   for g in range(len(A8A)):
+                     #      if A8A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 9:
+                     #   for g in range(len(A9A)):
+                     #      if A9A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 10:
+                     #   for g in range(len(A10A)):
+                     #      if A10A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 11:
+                     #   for g in range(len(A11A)):
+                     #      if A11A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 12:
+                     #   for g in range(len(A12A)):
+                     #      if A12A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 13:
+                     #   for g in range(len(A13A)):
+                     #      if A13A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 14:
+                     #   for g in range(len(A14A)):
+                     #      if A14A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #f AW[i, j] == 15:
+                     #   for g in range(len(A15A)):
+                     #      if A15A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
+                     #if AW[i, j] == 16:
+                     #   for g in range(len(A16A)):
+                     #      if A16A[g] == ((4 * i) + j):
+                     #         SUMAW[i, j] += 1
 
 
+         #fig = plt.figure()
+         #ax = fig.add_subplot(111)
+         #ax.set_title("SUMAW")
+         #ax.imshow(SUMAW, cmap=cm.binary, interpolation='nearest')
+
+         #test = SUMAW / countg
+         
+      testq = (testq / len(test)) / (numofsteps / 100.0)
+      hz = 0.5
+      fpm = 1000 / hz
+         
+         
+
+      activity = []
+      for i in range((zerange/2)):
+         if i%fpm == 0:
+            w = i
+            e = w + 1000
+         if i >= w and i <= e:
+            activity = np.append(activity, 1)
+         else:
+            activity = np.append(activity, 0)
+
+
+      fig = plt.figure()
+      ax = fig.add_subplot(212)
+   
+      ax.set_title('Image')
+      ax.set_xlabel("Time (ms)")
+      ax.set_autoscale_on(False)
+      ax.set_ylim(0,1.1)
+      ax.set_xlim(0, len(activity))
+      ax.plot(np.arange(len(activity)), activity, color='y', ls = '-')
+
+
+         
+         #fig = plt.figure()
+      ax = fig.add_subplot(211)
+      ax.set_title("test")
+      ax.set_ylabel("Avg Firing Rate for A1")
+      ax.plot(np.arange(len(testq)), testq, color='y', ls = '-')
+      plt.show() 
+
+
+      sys.exit()
+      if 1 == 1:
          kd = []
          AW = AW.reshape(lenofb, 1)
          AWO = AWO.reshape(lenofb, 1)
@@ -290,7 +519,7 @@ for g in range(2):
 
             im[y:y+nyp, x:x+nxp] = p
             im2[y:y+nyp, x:x+nxp] = pO
-         """
+
          k = 16
          wd = sp.whiten(kd)
          result = sp.kmeans2(wd, k)
@@ -396,17 +625,17 @@ for g in range(2):
          kcountper14 = kcount14 / acount 
          kcountper15 = kcount15 / acount 
          kcountper16 = kcount16 / acount 
-         """
+
 
          h = [count1, count2, count3, count4, count5, count6, count7, count8, count9, count10, count11, count12, count13, count14, count15, count16, count18]
          h2 = [0, count1, count2, count3, count4, count5, count6, count7, count8, count9, count10, count11, count12, count13, count14, count15, count16, count18] 
 
          fig4 = plt.figure()
-         ax4 = fig4.add_subplot(111)
+         ax4 = fig4.add_subplot(111,  axisbg='darkslategray')
          loc = np.array(range(len(h)))+0.5
          width = 1.0
-         ax4.bar(loc, h, width=width, bottom=0, color='b')
-         ax4.plot(np.arange(len(h2)), h2, ls = '-', marker = 'o', color='b', linewidth=4.0)
+         ax4.bar(loc, h, width=width, bottom=0, color='y')
+         ax4.plot(np.arange(len(h2)), h2, ls = '-', marker = 'o', color='y')
          ax4.set_title("Number of Neurons that Respond to Higher than .5 max firing rate")
          ax4.set_ylabel("Number of Neurons")
          ax4.set_xlabel("Number of Presented Lines")
@@ -465,7 +694,7 @@ for g in range(2):
 
 
 
-         """
+
          fig = plt.figure()
          ax = fig.add_subplot(111)
    
@@ -483,7 +712,7 @@ for g in range(2):
 
 
 
-         """
+
          plt.show()
 
 #end fig loop

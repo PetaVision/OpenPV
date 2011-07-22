@@ -242,7 +242,6 @@ for g in range(2):
                   count2 += 1
                   AWO[i, j] = 2.0
 
-
                elif co == 3:
                   AF[i, j] = 0.12
                   count3 += 1
@@ -252,6 +251,15 @@ for g in range(2):
                   AF[i, j] = 0.18
                   count4 += 1
                   AWO[i, j] = 4.0
+                  if wheremax == 0:
+                     countnum += 1
+                     if i > margin and i < (w.nx - margin):
+                        if j > margin and j < (w.ny - margin):
+                           if countpos == 0:
+                              A1pos = [i, j]
+                           else:
+                              A1pos = np.vstack((A1pos, [i, j]))
+                           countpos+=1
 
 
                elif co == 5:
@@ -275,15 +283,6 @@ for g in range(2):
                   AF[i, j] = 0.36
                   count7 += 1
                   AWO[i, j] = 7.0
-                  if wheremax == 0:
-                     countnum += 1
-                     if i > margin and i < (w.nx - margin):
-                        if j > margin and j < (w.ny - margin):
-                           if countpos == 0:
-                              A1pos = [i, j]
-                           else:
-                              A1pos = np.vstack((A1pos, [i, j]))
-                           countpos+=1
 
 
                elif co == 8:
@@ -363,7 +362,7 @@ for g in range(2):
       countg = 0
       testgraph = []
       test = []
-      numofsteps = 500
+      numofsteps = 2000
       #print A1pos
       #print np.shape(A1pos)
       #A1pos = np.vstack((A1pos, [0, 0]))
@@ -670,12 +669,12 @@ for g in range(2):
 
 
       for i in range(sh[0]):
-         z = i%8
+         z = i%2
          if i == 0:
             a = np.array([1])
-         if i != 0 and (z==0 or z==1 or z==2 or z==3):
+         if i != 0 and (z==0): #or z==1 or z==2 or z==3):
             a = np.vstack((a, 1))
-         if z==4 or z==5 or z==6 or z==7 and i!= 0:
+         if z==1 and i!=0: #or z==5 or z==6 or z==7 and i!= 0:
             a = np.vstack((a,0))
       #print "A1q shape = ", np.shape(A1q)
       #print "a shape = ", np.shape(a)
@@ -686,11 +685,11 @@ for g in range(2):
       hist2 = np.zeros((np.max(res)/sh[1])+3, dtype=int)
 
       for i in range(len(res)):
-         z = i%8
-         if z==0 or z==1 or z==2 or z==3:
+         z = i%2
+         if z==0: #or z==1 or z==2 or z==3:
             ph = ((res[i])/float(sh[1]))
             hist1[ph] += 1
-         if z==4 or z==5 or z==6 or z==7:
+         if z==1:# or z==5 or z==6 or z==7:
             ph = (res[i]/float(sh[1]))
             hist2[ph] += 1
 
@@ -700,10 +699,10 @@ for g in range(2):
 
 
       fig = plt.figure()
-      ax = fig.add_subplot(111)
+      ax = fig.add_subplot(111, axisbg='darkslategray')
       
-      ax.plot(np.arange(len(hist1)), hist1, '-o', color='b')
-      ax.plot(np.arange(len(hist2)), hist2, '--o', color='b')
+      ax.plot(np.arange(len(hist1)), hist1, '-o', color='y')
+      ax.plot(np.arange(len(hist2)), hist2, '-o', color='y')
 
       #ax.plot(np.arange(len(hist0)), hist0, 'o', color='y')
 

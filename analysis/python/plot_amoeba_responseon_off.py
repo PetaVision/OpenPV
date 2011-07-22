@@ -84,6 +84,9 @@ extended = False
 w = rw.PVReadWeights(sys.argv[1])
 wOff = rw.PVReadWeights(sys.argv[2])
 
+sw = rw.PVReadWeights(sys.argv[3])
+swOff = rw.PVReadWeights(sys.argv[4])
+
 nx  = w.nx
 ny  = w.ny
 nxp = w.nxp
@@ -95,6 +98,8 @@ ny_im = ny * (nyp + space) + space
 
 predub = np.zeros(((nx*nx),(nxp * nxp)))
 predubOff = np.zeros(((nx*nx),(nxp * nxp)))
+spredub = np.zeros(((nx*nx),(nxp * nxp)))
+spredubOff = np.zeros(((nx*nx),(nxp * nxp)))
 
 
 numpat = w.numPatches
@@ -103,9 +108,13 @@ print "numpat = ", numpat
 for k in range(numpat):
    p = w.next_patch()
    pOff = wOff.next_patch()
+   sp = sw.next_patch()
+   spOff = swOff.next_patch()
 
    predub[k] = p
    predubOff[k] = pOff
+   spredub[k] = sp
+   spredubOff[k] = spOff
 
 print "weights done"
 
@@ -119,19 +128,21 @@ print "weights done"
 
 
 
-activ = rs.PVReadSparse(sys.argv[3], extended)
+activ = rs.PVReadSparse(sys.argv[5], extended)
+sactiv = rs.PVReadSparse(sys.argv[6], extended)
 
 
-
-end = int(sys.argv[4])
-step = int(sys.argv[5])
-begin = int(sys.argv[6])
+end = int(sys.argv[7])
+step = int(sys.argv[8])
+begin = int(sys.argv[9])
 
 count = 0
 for end in range(begin+step, end, step):
    A = activ.avg_activity(begin, end)
+   sA = sactiv.avg_activity(begin, end)
 
-   this = 7 + count
+
+   this = 10 + count
    count += 1
    print "this = ", this
    print "file = ", sys.argv[this]
@@ -156,6 +167,7 @@ for end in range(begin+step, end, step):
    print "a w start"
    rr = nx / 64
    im = np.zeros((64, 64))
+   ims = np.zeros((64, 64))
 
 
    for yi in range(len(A)):
@@ -166,13 +178,20 @@ for end in range(begin+step, end, step):
             if A[yi, xi] > 0:
                patch = predub[yi * (nx) + xi]
                patchOff = predubOff[yi * (nx) + xi]
+               spatch = spredub[yi * (nx) + xi]
+               spatchOff = spredubOff[yi * (nx) + xi]
 
                patch = np.reshape(patch, (nxp, nxp))
                patchOff = np.reshape(patchOff, (nxp, nxp))
+               spatch = np.reshape(spatch, (nxp, nxp))
+               spatchOff = np.reshape(spatchOff, (nxp, nxp))
                for yy in range(nyp):
                   for xx in range(nxp):
                      im[y + yy, x + xx] += patch[yy, xx] * A[yi, xi]
                      im[y + yy, x + xx] -= patchOff[yy, xx] * A[yi, xi]
+
+                     ims[y + yy, x + xx] += spatch[yy, xx] * sA[yi, xi]
+                     ims[y + yy, x + xx] -= spatchOff[yy, xx] * sA[yi, xi]
 
 
 
@@ -183,13 +202,13 @@ for end in range(begin+step, end, step):
 
    ax = fig.add_subplot(3,1,2)
    #ax.imshow(mi, interpolation='Nearest', cmap='gray', origin="lower")
-   ax.set_xlabel('activity')
-   ax.imshow(A, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(A))
+   ax.set_xlabel('regular')
+   ax.imshow(im, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(im))
    
 
    ax = fig.add_subplot(313)
-   ax.set_xlabel('image reconstruction')
-   ax.imshow(im, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(im))
+   ax.set_xlabel('scrambled')
+   ax.imshow(ims, cmap=cm.jet, interpolation='nearest', vmin = 0.0, vmax = np.max(ims))
 
 
 
