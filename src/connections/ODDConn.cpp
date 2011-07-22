@@ -209,7 +209,7 @@ int ODDConn::updateWeights(int axonID)
 
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-             gWeights[k] += aPre  * ( aPost[k] > aPostThresh ) ? aPost[k] : 0.0;
+             gWeights[k] += aPre  * ( ( aPost[k] > aPostThresh ) ? aPost[k] : 0.0 );
          }
           // advance pointers in y
          gWeights += sy;
