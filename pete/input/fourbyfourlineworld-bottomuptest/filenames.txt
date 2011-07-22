@@ -1,0 +1,8 @@
+./input/fourbyfourlineworld-imagespace/image08.png
+./input/fourbyfourlineworld-imagespace/image07.png
+./input/fourbyfourlineworld-imagespace/image06.png
+./input/fourbyfourlineworld-imagespace/image05.png
+./input/fourbyfourlineworld-imagespace/image04.png
+./input/fourbyfourlineworld-imagespace/image03.png
+./input/fourbyfourlineworld-imagespace/image02.png
+./input/fourbyfourlineworld-imagespace/image01.png
