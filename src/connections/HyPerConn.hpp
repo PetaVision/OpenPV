@@ -75,7 +75,6 @@ public:
 
    virtual PVPatch * getWeights(int kPre, int arbor);
 
-   virtual PVPatch * getPlasticityPatch(int k, int arbor)   {return NULL;}
    virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
 
    inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
