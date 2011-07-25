@@ -2218,6 +2218,7 @@ int HyPerConn::calcPatchSize(int axon_index, int kex,
    const int nxexPost = nxPost + 2 * postPad;
    const int nyexPost = nyPost + 2 * postPad;
 
+#ifdef OBSOLETE // Marked obsolete Jul 25, 2011.  These variables are no longer used in this function.
    const int numAxons = numAxonalArborLists;
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
@@ -2225,6 +2226,7 @@ int HyPerConn::calcPatchSize(int axon_index, int kex,
    const int psf = 1;
    const int psx = nfp;
    const int psy = psx * nxPost;
+#endif
 
    // local indices in extended frame
    int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
