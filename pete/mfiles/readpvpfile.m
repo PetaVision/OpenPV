@@ -122,6 +122,7 @@ if isempty(errorstring)
                                     'Readpvpfile:Warning:data{%f}{%f}{%f}, patch %d: shrunken patches not implemented',f,x,y,p);
                             end
                         end
+                        data{f}.values{y,x} = data{f}.values{y,x}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
                     end
                 end
             end
