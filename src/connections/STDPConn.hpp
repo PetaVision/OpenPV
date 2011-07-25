@@ -43,9 +43,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename, bool stdpFlag);
-   virtual int initPlasticityPatches();
-
-   virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
+   int initPlasticityPatches();
 
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
    PVPatch       ** pIncr;      // list of stdp patches Psij variable
