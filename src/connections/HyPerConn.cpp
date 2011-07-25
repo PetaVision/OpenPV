@@ -40,7 +40,6 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
-   constructWeights(NULL);
 }
 
 // provide filename or set to NULL
@@ -49,7 +48,6 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
-   constructWeights(filename);
 }
 
 HyPerConn::~HyPerConn()
@@ -231,6 +229,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
 
    status = setParams(hc->parameters(), &defaultConnParams);
+   constructWeights(filename);
 
    this->connId = parent->addConnection(this);
 
@@ -1039,6 +1038,7 @@ int HyPerConn::createAxonalArbors()
       assert(axonalArborList[n] != NULL);
    }
 
+   initPlasticityPatches();
    for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
@@ -1118,7 +1118,7 @@ int HyPerConn::createAxonalArbors()
 
          arbor->data = &dataPatches[kex];
          arbor->weights = getWeights(kex, n);
-         arbor->plasticIncr = getPlasticityIncrement(kex, n);
+         arbor->plasticIncr = getPlasticityPatch(kex, n);
 
          // initialize the receiving (of spiking data) phi variable
          pvdata_t * phi = post->getChannel(channel) + kl;

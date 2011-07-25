@@ -588,9 +588,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+     bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
      if( preLayer && postLayer ) {
        fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName);
+       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag);
      }
      checknewobject((void *) addedConn, classkeyword, name);
    }

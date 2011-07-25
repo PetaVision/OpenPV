@@ -26,7 +26,7 @@ ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
-   constructWeights(NULL);
+   // constructWeights(NULL); // HyPerConn::constructWeights moved back into HyPerConn::initialize
 }
 
 #ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
@@ -45,7 +45,7 @@ ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename);
-   constructWeights(filename);
+   // constructWeights(filename); // HyPerConn::constructWeights moved back into HyPerConn::initialize
 }
 
 int ODDConn::initialize_base()

@@ -17,13 +17,14 @@ KernelConn::KernelConn()
    initialize_base();
 }
 
+#ifdef OBSOLETE // marked obsolete Jul 22, 2011.  Other constructor has been given filename with a default of NULL
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel) : HyPerConn()
 {
    KernelConn::initialize_base();
    initialize(name, hc, pre, post, channel, NULL);
-   constructWeights(NULL);
 }
+#endif // OBSOLETE
 
 #ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -31,17 +32,14 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    KernelConn::initialize_base();
    initialize(name, hc, pre, post, CHANNEL_EXC, NULL); // use default channel
-   constructWeights(NULL);
 }
-#endif
+#endif // OBSOLETE
 
-// provide filename or set to NULL
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) : HyPerConn()
+      HyPerLayer * post, ChannelType channel, const char * filename = NULL) : HyPerConn()
 {
    KernelConn::initialize_base();
    initialize(name, hc, pre, post, channel, filename);
-   constructWeights(filename);
 }
 
 int KernelConn::initialize_base()

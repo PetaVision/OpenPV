@@ -17,7 +17,7 @@ class STDPConn : HyPerConn {
 public:
    STDPConn();
    STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename=NULL);
+            ChannelType channel, const char * filename=NULL, bool stdpFlag=true);
    virtual ~STDPConn();
 
    int setParams(PVParams * params);
@@ -34,15 +34,16 @@ public:
    virtual int outputState(float time, bool last=false);
    virtual int writeTextWeightsExtra(FILE * fd, int k);
 
-   virtual PVPatch     * getPlasticityIncrement(int k, int arbor);
+   virtual PVPatch     * getPlasticityPatch(int k, int arbor);
    virtual PVLayerCube * getPlasticityDecrement();
 
 protected:
 
+   int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename);
-   int constructWeights(const char * filename);
+                  ChannelType channel, const char * filename, bool stdpFlag);
+   virtual int initPlasticityPatches();
 
    virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
 

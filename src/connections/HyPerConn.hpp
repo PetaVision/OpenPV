@@ -75,7 +75,7 @@ public:
 
    virtual PVPatch * getWeights(int kPre, int arbor);
 
-   virtual PVPatch * getPlasticityIncrement(int k, int arbor)   {return NULL;}
+   virtual PVPatch * getPlasticityPatch(int k, int arbor)   {return NULL;}
    virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
 
    inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
@@ -226,6 +226,7 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors();
+   virtual int initPlasticityPatches() { return PV_SUCCESS; }
    virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
 
    // static member functions

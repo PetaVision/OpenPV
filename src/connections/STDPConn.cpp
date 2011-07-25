@@ -13,10 +13,10 @@
 namespace PV {
 
 STDPConn::STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                   ChannelType channel, const char * filename) : HyPerConn()
+                   ChannelType channel, const char * filename, bool stdpFlag) : HyPerConn()
 {
-   initialize(name, hc, pre, post, channel, filename);
-   constructWeights(filename);
+   initialize_base();
+   initialize(name, hc, pre, post, channel, filename, stdpFlag);
 }
 
 STDPConn::~STDPConn()
@@ -24,18 +24,8 @@ STDPConn::~STDPConn()
    deleteWeights();
 }
 
-/*
- * Using a dynamic_cast operator to convert (downcast) a pointer to a base class (HyPerLayer)
- * to a pointer to a derived class (LIF). This way I do not need to define a virtual
- * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
- */
-int STDPConn::initialize(const char * name, HyPerCol * hc,
-                         HyPerLayer * pre, HyPerLayer * post,
-                         ChannelType channel, const char * filename)
-{
-   int status = HyPerConn::initialize(name, hc, pre, post, channel, filename);
-
-   // STDP parameters for modifying weights
+int STDPConn::initialize_base() {
+   // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    this->pIncr = NULL;
    this->pDecr = NULL;
    this->ampLTP = 1.0;
@@ -43,15 +33,22 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax = 0.1;
-   this->stdpFlag = true;
    this->localWmaxFlag = false;
+   return PV_SUCCESS;
+}
 
-   status |= setParams(hc->parameters());
+int STDPConn::initialize(const char * name, HyPerCol * hc,
+                         HyPerLayer * pre, HyPerLayer * post,
+                         ChannelType channel, const char * filename, bool stdpFlag)
+{
+   this->stdpFlag = stdpFlag; // needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
+   int status = HyPerConn::initialize(name, hc, pre, post, channel, filename);
+   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set.
+
    return status;
 }
 
-int STDPConn::constructWeights(const char * filename)
-{
+int STDPConn::initPlasticityPatches() {
    if (stdpFlag) {
       const int arbor = 0;
       pIncr = createWeights(NULL, numWeightPatches(arbor), nxp, nyp, nfp);
@@ -60,17 +57,7 @@ int STDPConn::constructWeights(const char * filename)
       assert(pDecr != NULL);
    }
 
-   if (localWmaxFlag){
-      LIF * LIF_layer = dynamic_cast<LIF *>(post);
-      assert(LIF_layer != NULL);
-      Wmax = LIF_layer->getWmax();
-      assert(Wmax != NULL);
-   } else {
-      Wmax = NULL;
-   }
-
-   // This needs to be called after pIncr is created
-   return HyPerConn::constructWeights(filename);
+   return PV_SUCCESS;
 }
 
 int STDPConn::deleteWeights()
@@ -97,7 +84,7 @@ int STDPConn::initializeThreadKernels()
    return 0;
 }
 
-PVPatch * STDPConn::getPlasticityIncrement(int k, int arbor)
+PVPatch * STDPConn::getPlasticityPatch(int k, int arbor)
 {
    // a separate arbor/patch of plasticity for every neuron
    if (stdpFlag) {
@@ -112,9 +99,15 @@ PVLayerCube * STDPConn::getPlasticityDecrement()
 }
 
 // set member variables specified by user
+/*
+ * Using a dynamic_cast operator to convert (downcast) a pointer to a base class (HyPerLayer)
+ * to a pointer to a derived class (LIF). This way I do not need to define a virtual
+ * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
+ */
 int STDPConn::setParams(PVParams * filep)
 {
-   stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
+   // stdpFlag is now set by constructor
+   // stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
 
    if (stdpFlag) {
       ampLTP = filep->value(getName(), "ampLTP", ampLTP);
@@ -126,6 +119,14 @@ int STDPConn::setParams(PVParams * filep)
 
       // set params for rate dependent Wmax
       localWmaxFlag = (bool) filep->value(getName(), "localWmaxFlag", (float) localWmaxFlag);
+   }
+   if (localWmaxFlag){ // Not sure if the if(localWmaxFlag) should be inside or outside the if(stdpFlag) statement
+      LIF * LIF_layer = dynamic_cast<LIF *>(post);
+      assert(LIF_layer != NULL);
+      Wmax = LIF_layer->getWmax();
+      assert(Wmax != NULL);
+   } else {
+      Wmax = NULL;
    }
 
    return 0;
