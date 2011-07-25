@@ -34,7 +34,6 @@ public:
    virtual int outputState(float time, bool last=false);
    virtual int writeTextWeightsExtra(FILE * fd, int k);
 
-   virtual PVPatch     * getPlasticityPatch(int k, int arbor);
    virtual PVLayerCube * getPlasticityDecrement();
 
 protected:
