@@ -189,8 +189,13 @@ protected:
 
 protected:
    virtual int setPatchSize(const char * filename);
-   int patchSizeFromFile(const char * filename);
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
+   int calcPatchSize(int n, int kex,
+                     int * kl, int * offset,
+                     int * nxPatch, int * nyPatch,
+                     int * dx, int * dy);
+
+   int patchSizeFromFile(const char * filename);
 
    virtual int initialize_base();
    int constructWeights(const char * filename);
@@ -226,8 +231,6 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors();
-   virtual int initPlasticityPatches() { return PV_SUCCESS; }
-   virtual int adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy);
 
    // static member functions
 
