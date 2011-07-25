@@ -43,19 +43,42 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
 {
    this->stdpFlag = stdpFlag; // needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
    int status = HyPerConn::initialize(name, hc, pre, post, channel, filename);
-   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set.
+
+   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
+   status |= initPlasticityPatches();
 
    return status;
 }
 
-int STDPConn::initPlasticityPatches() {
-   if (stdpFlag) {
-      const int arbor = 0;
-      pIncr = createWeights(NULL, numWeightPatches(arbor), nxp, nyp, nfp);
-      assert(pIncr != NULL);
-      pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-      assert(pDecr != NULL);
-   }
+int STDPConn::initPlasticityPatches()
+{
+   if (!stdpFlag) return PV_SUCCESS;
+
+   const int arbor = 0;
+   const int numAxons = numAxonalArborLists;
+
+   pIncr = createWeights(NULL, numWeightPatches(arbor), nxp, nyp, nfp);
+   assert(pIncr != NULL);
+   pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   assert(pDecr != NULL);
+
+   for (int n = 0; n < numAxons; n++) {
+      int numArbors = numWeightPatches(n);
+
+      // kex is in extended frame
+      for (int kex = 0; kex < numArbors; kex++) {
+         int kl, offset, nxPatch, nyPatch, dx, dy;
+         PVAxonalArbor * arbor = axonalArbor(kex, n);
+
+         calcPatchSize(n, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
+
+         // adjust patch size (shrink) to fit within interior of post-synaptic layer
+         //
+         arbor->plasticIncr = pIncr[kex];
+         pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
+
+      } // loop over arbors (pre-synaptic neurons)
+   } // loop over neighbors
 
    return PV_SUCCESS;
 }
@@ -82,15 +105,6 @@ int STDPConn::initializeThreadBuffers()
 int STDPConn::initializeThreadKernels()
 {
    return 0;
-}
-
-PVPatch * STDPConn::getPlasticityPatch(int k, int arbor)
-{
-   // a separate arbor/patch of plasticity for every neuron
-   if (stdpFlag) {
-      return pIncr[k];
-   }
-   return NULL;
 }
 
 PVLayerCube * STDPConn::getPlasticityDecrement()
@@ -296,17 +310,6 @@ int STDPConn::writeTextWeightsExtra(FILE * fd, int k)
       pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
    }
    return 0;
-}
-
-int STDPConn::adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy)
-{
-   int status = HyPerConn::adjustAxonalPatches(arbor, nxPatch, nyPatch, dx, dy);
-
-   if (stdpFlag && status == PV_SUCCESS) {
-      pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
-   }
-
-   return status;
 }
 
 #ifdef NOTYET
