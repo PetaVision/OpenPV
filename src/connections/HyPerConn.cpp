@@ -998,6 +998,7 @@ int HyPerConn::deleteWeights()
  */
 int HyPerConn::createAxonalArbors()
 {
+#ifdef OBSOLETE
    const PVLayer * lPre  = pre->getCLayer();
    const PVLayer * lPost = post->getCLayer();
 
@@ -1022,13 +1023,14 @@ int HyPerConn::createAxonalArbors()
    const int nxexPost = nxPost + 2 * postPad;
    const int nyexPost = nyPost + 2 * postPad;
 
+#endif
    const int numAxons = numAxonalArborLists;
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
    const int psf = 1;
    const int psx = nfp;
-   const int psy = psx * nxPost;
+   const int psy = psx * post->getLayerLoc()->nx;
 
    // activity and STDP M variable are extended into margins
    //
@@ -1038,7 +1040,6 @@ int HyPerConn::createAxonalArbors()
       assert(axonalArborList[n] != NULL);
    }
 
-   initPlasticityPatches();
    for (int n = 0; n < numAxons; n++) {
       int numArbors = numWeightPatches(n);
       PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
@@ -1049,6 +1050,7 @@ int HyPerConn::createAxonalArbors()
 
          // kex is in extended frame, this makes transformations more difficult
 
+#ifdef OBSOLETE
          // local indices in extended frame
          int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
          int kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
@@ -1115,15 +1117,20 @@ int HyPerConn::createAxonalArbors()
          int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
          assert(kl >= 0);
          assert(kl < lPost->numNeurons);
+#else
+         int kl, offset, nxPatch, nyPatch, dx, dy;
+#endif
+         calcPatchSize(n, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
          arbor->data = &dataPatches[kex];
          arbor->weights = getWeights(kex, n);
-         arbor->plasticIncr = getPlasticityPatch(kex, n);
+         arbor->plasticIncr = NULL;   // will be set later by STDPConn if needed
 
-         // initialize the receiving (of spiking data) phi variable
-         pvdata_t * phi = post->getChannel(channel) + kl;
-         pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, phi);
+         // initialize the receiving (of spiking data) gSyn variable
+         pvdata_t * gSyn = post->getChannel(channel) + kl;
+         pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
+#ifdef OBSOLETE
          // get offset in extended frame for post-synaptic M STDP variable
          //
          kxPost += postPad;
@@ -1132,23 +1139,17 @@ int HyPerConn::createAxonalArbors()
          kl = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
          assert(kl >= 0);
          assert(kl < lPost->numExtended);
-
-         arbor->offset = kl;
+#endif
+         arbor->offset = offset;
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
-         adjustAxonalPatches(arbor, nxPatch, nyPatch, dx, dy);
+         pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
 
    return 0;
-}
-
-int HyPerConn::adjustAxonalPatches(PVAxonalArbor * arbor, int nxPatch, int nyPatch, int dx, int dy)
-{
-   pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
-   return PV_SUCCESS;
 }
 
 PVPatch ** HyPerConn::convertPreSynapticWeights(float time)
@@ -2184,6 +2185,131 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches)
       }
    }
    return patches;
+}
+
+int HyPerConn::calcPatchSize(int axon_index, int kex,
+                             int * kl_out, int * offset_out,
+                             int * nxPatch_out, int * nyPatch_out,
+                             int * dx_out, int * dy_out)
+{
+   int status = PV_SUCCESS;
+
+   const PVLayer * lPre  = pre->getCLayer();
+   const PVLayer * lPost = post->getCLayer();
+
+   const int prePad  = lPre->loc.nb;
+   const int postPad = lPost->loc.nb;
+
+   const int nxPre  = lPre->loc.nx;
+   const int nyPre  = lPre->loc.ny;
+   const int kx0Pre = lPre->loc.kx0;
+   const int ky0Pre = lPre->loc.ky0;
+   const int nfPre  = lPre->loc.nf;
+
+   const int nxexPre = nxPre + 2 * prePad;
+   const int nyexPre = nyPre + 2 * prePad;
+
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int kx0Post = lPost->loc.kx0;
+   const int ky0Post = lPost->loc.ky0;
+   const int nfPost  = lPost->loc.nf;
+
+   const int nxexPost = nxPost + 2 * postPad;
+   const int nyexPost = nyPost + 2 * postPad;
+
+   const int numAxons = numAxonalArborLists;
+
+   // these strides are for post-synaptic phi variable, a non-extended layer variable
+   //
+   const int psf = 1;
+   const int psx = nfp;
+   const int psy = psx * nxPost;
+
+   // local indices in extended frame
+   int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
+   int kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
+
+   // convert to global non-extended frame
+   kxPre += kx0Pre - prePad;
+   kyPre += ky0Pre - prePad;
+
+   // global non-extended post-synaptic frame
+   int kxPost = zPatchHead( kxPre, nxp, pre->getXScale(), post->getXScale() );
+   int kyPost = zPatchHead( kyPre, nyp, pre->getYScale(), post->getYScale() );
+
+   // TODO - can get nf from weight patch but what about kf0?
+   // weight patch is actually a pencil and so kfPost is always 0?
+   int kfPost = 0;
+
+   // convert to local non-extended post-synaptic frame
+   kxPost = kxPost - kx0Post;
+   kyPost = kyPost - ky0Post;
+
+   // adjust location so patch is in bounds
+   int dx = 0;
+   int dy = 0;
+   int nxPatch = nxp;
+   int nyPatch = nyp;
+
+   if (kxPost < 0) {
+      nxPatch -= -kxPost;
+      kxPost = 0;
+      if (nxPatch < 0) nxPatch = 0;
+      dx = nxp - nxPatch;
+   }
+   else if (kxPost + nxp > nxPost) {
+      nxPatch -= kxPost + nxp - nxPost;
+      if (nxPatch <= 0) {
+         nxPatch = 0;
+         kxPost = nxPost - 1;
+      }
+   }
+
+   if (kyPost < 0) {
+      nyPatch -= -kyPost;
+      kyPost = 0;
+      if (nyPatch < 0) nyPatch = 0;
+      dy = nyp - nyPatch;
+   }
+   else if (kyPost + nyp > nyPost) {
+      nyPatch -= kyPost + nyp - nyPost;
+      if (nyPatch <= 0) {
+         nyPatch = 0;
+         kyPost  = nyPost - 1;
+      }
+   }
+
+   // if out of bounds in x (y), also out in y (x)
+   if (nxPatch == 0 || nyPatch == 0) {
+      dx = 0;
+      dy = 0;
+      nxPatch = 0;
+      nyPatch = 0;
+   }
+
+   // local non-extended index but shifted to be in bounds
+   int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
+   assert(kl >= 0);
+   assert(kl < lPost->numNeurons);
+
+   // get offset in extended frame
+   kxPost += postPad;
+   kyPost += postPad;
+
+   int offset = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
+   assert(offset >= 0);
+   assert(offset < lPost->numExtended);
+
+   // set return variables
+   *kl_out = kl;
+   *offset_out = offset;
+   *nxPatch_out = nxPatch;
+   *nyPatch_out = nyPatch;
+   *dx_out = dx;
+   *dy_out = dy;
+
+   return status;
 }
 
 int HyPerConn::setPatchSize(const char * filename)
