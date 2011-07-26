@@ -298,7 +298,10 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(int nTimeSteps)
 {
-   if( checkMarginWidths() != PV_SUCCESS ) return PV_FAILURE;
+   if( checkMarginWidths() != PV_SUCCESS ) {
+      fprintf(stderr, "Margin width failure; unable to continue.\n");
+      return PV_FAILURE;
+   }
 
    int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
@@ -570,7 +573,6 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSiz
               padding, patchSize, scalePre, scalePost);
       fprintf(stderr, "    Layer %s needs margin width of at least %d\n", pre->getName(), needed);
       if( numberOfColumns() > 1 || padding > 0 ) {
-         fprintf(stderr, "Unable to continue.\n");
          status = PV_FAILURE;
       }
       else {
