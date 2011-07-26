@@ -33,8 +33,12 @@ function [pad_image] = imageNetPad(original_image, ...
   pad_size = size(standard_image,max_dim) - size(standard_image,min_dim);
   pad_size1 = floor(pad_size/2);
   pad_size2 = ceil(pad_size/2);
-  pad_size1 = min(pad_size1,  size(standard_image,min_dim));
-  pad_size2 = min(pad_size2,  size(standard_image,min_dim));
+  if pad_size2 >= size(standard_image,min_dim)
+    pad_image = [];
+    return;
+  endif
+  %%pad_size1 = min(pad_size1,  size(standard_image,min_dim));
+  %%pad_size2 = min(pad_size2,  size(standard_image,min_dim));
   pad_image = ...
       zeros([size(standard_image,max_dim),...
 	     size(standard_image,max_dim),...

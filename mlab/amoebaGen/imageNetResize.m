@@ -1,5 +1,6 @@
 function [tot_images, ...
 	  tot_discarded, ...
+	  tot_masks, ...
 	  num_BB_mismatch, ...
 	  ave_height, ...
 	  ave_width, ...
@@ -18,9 +19,12 @@ function [tot_images, ...
     image_resize = [256 256];
   endif
   if nargin < 3 || ~exist(object_name) || isempty(object_name)
-    object_list{1} = "truck";  %% could be a list?
+    object_list{1} = "automobile";  %% could be a list?
   endif
 
+  global NUM_FIGS
+  NUM_FIGS = 0;
+  
   num_objects = length(object_list);
   num_BB_mismatch = 0;
   ave_height = 0;
@@ -28,6 +32,7 @@ function [tot_images, ...
   ave_area = 0;
   tot_images = 0;
   tot_discarded = 0;
+  tot_masks = 0;
   for i_object = 1 : num_objects
     object_name = object_list{i_object};
     
@@ -49,6 +54,7 @@ function [tot_images, ...
       if ~strcmp(subdir_struct(i_subdir).name(1),"n")
 	continue;
       endif
+      disp(["i_subdir = ", num2str(i_subdir)]);
       images_path = ...
 	  [object_dir, ...
 	   subdir_struct(i_subdir).name, "/", ...
@@ -88,22 +94,19 @@ function [tot_images, ...
 	    original_image = original_image(:,:,1:3);
 	  endif
 	endif
-	tot_images = tot_images + 1;
-	ave_height = ave_height + original_info.Height;
-	ave_width = ave_width + original_info.Width;
-	ave_area = ave_area + original_info.Height * original_info.Width;
-	if i_image == 0
-	  original_name
-	  original_info
-	  image(original_image)
-	  keyboard
-	endif
 	[pad_image] = ...
 	    imageNetPad(original_image, ...
 			original_info, ...
 			image_resize);
+	if isempty(pad_image)
+	  continue;
+	endif
 	standard_name = [standard_dir, base_name, ".png"];
 	imwrite(pad_image, standard_name);
+	tot_images = tot_images + 1;
+	ave_height = ave_height + original_info.Height;
+	ave_width = ave_width + original_info.Width;
+	ave_area = ave_area + original_info.Height * original_info.Width;
 	if annotation_flag
 	  xml_file = [annotation_path, ...
 		      subdir_struct(i_subdir).name, "/", ...
@@ -113,12 +116,19 @@ function [tot_images, ...
 	    %%keyboard
 	    [mask_image, BB_mask, BB_scale_x, BB_scale_y] = ...
 		imageNetMaskBB(original_image, original_info, xml_file);
+	    if isempty(mask_image)
+	      continue;
+	    endif
 	    [pad_mask_image] = ...
 		imageNetPad(mask_image, ...
 			    original_info, ...
 			    image_resize);
+	    if isempty(pad_image)
+	      continue;
+	    endif
 	    mask_name = [masks_dir, base_name, ".png"];
 	    imwrite(pad_mask_image, mask_name);
+	    tot_masks = tot_masks + 1;
 	    num_BB_mismatch = ...
 		num_BB_mismatch + ((BB_scale_x ~= 1) || (BB_scale_y ~= 1));	    
 	  endif
@@ -133,4 +143,4 @@ function [tot_images, ...
   ave_area = ave_area / tot_images;
   
   
-endfunction
+endfunction%% imageNetResize

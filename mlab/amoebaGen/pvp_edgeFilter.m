@@ -9,16 +9,16 @@ image_dir = "~/Pictures/";
 image_type = "png";
 
 target_dir = ...
-    [image_dir, "likimas/"]; %%"AnimalDB/Targets/"];  %%
+    [image_dir, "ImageNet/truck/"];  %%
 target_subdir = ...
-    [ target_dir, '' ];
+    [ target_dir, "standard/" ];
 target_path = ...
     [target_subdir, '*.', image_type];
 
 distractor_flag = 0;
 if distractor_flag
   distractor_dir = ...
-      [image_dir, "Cat/"]; 
+      [image_dir, "ImageNet/automobile/"]; 
   distractor_subdir = ...
       [ distractor_dir, 'original/' ];
   distractor_path = ...
