@@ -7,7 +7,7 @@ HyPerCol "column" = {
     nx = 4;          
     ny = 4;          
     dt = 1;           
-    randomSeed = 0;   
+    randomSeed = 1;   
     outputPath = "./output/fourbyfourlineworld-bottomuptest/";
     numSteps = 4000;
 };

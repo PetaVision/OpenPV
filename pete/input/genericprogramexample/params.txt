@@ -2,7 +2,7 @@ HyPerCol "column" = {
     nx = 256;
     ny = 256;
     dt = 1;
-    randomSeed = 0;
+    randomSeed = 1;
     numSteps = 10;
     outputPath = "output/genericprogramexample/";
 };

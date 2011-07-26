@@ -2,11 +2,13 @@
 //     input parameters file for training generative model with pooling
 //     and log lateral competition, on mnist digits in various positions
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 64;
     ny = 64;
     dt = 1;
-    randomSeed = 0;
+    randomSeed = 1;
     numSteps = 1000000;
     outputPath = "output/mnist+pos/";
 };
