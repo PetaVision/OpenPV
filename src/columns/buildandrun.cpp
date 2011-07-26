@@ -51,9 +51,9 @@ HyPerCol * build(int argc, char * argv[]) {
            "_Start_HyPerLayers_",
              "HyPerLayer",
                "ANNLayer",
-                 "ODDLayer",
                  "GenerativeLayer",
                    "LogLatWTAGenLayer",
+                 "ODDLayer",
                  "PoolingANNLayer",
                  "PtwiseProductLayer",
                  "TrainingLayer",
@@ -76,13 +76,10 @@ HyPerCol * build(int argc, char * argv[]) {
                  "CloneKernelConn",
                  "CocircConn",
                  "GaborConn",
-                 "ODDConn",
                  "IdentConn",
-#ifdef OBSOLETE
-                "PeriodicUpdateConn",
-#endif // OBSOLETE
-                "GenerativeConn",
+                 "GenerativeConn",
                    "PoolingGenConn",
+                 "ODDConn",
                  "TransposeConn",
                    "FeedbackConn",
                "PoolConn",
@@ -522,17 +519,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
-#ifdef OBSOLETE
-   if( !keywordMatched && !strcmp(classkeyword, "PeriodicUpdateConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new PeriodicUpdateConn(name, hc, preLayer, postLayer, channelType, fileName);
-      }
-      checknewobject((void *) addedConn, classkeyword, name);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
