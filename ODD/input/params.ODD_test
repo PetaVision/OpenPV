@@ -9,8 +9,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 1009;  // num images plus (num layers + 1) * delay
-//   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_target_G1/4fc/";
-   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_distractor_G1/4fc/";
+   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_uncompressed_distractor_G1/4fc/";
 };
 
 //
@@ -18,8 +17,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-//    imageListPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_target_G1/4fc/fileNames.txt";
-    imageListPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_distractor_G1/4fc/fileNames.txt";
+    imageListPath = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/test_target40K_W325_uncompressed_distractor_G1/4fc/fileNames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -293,7 +291,7 @@ IdentConn "L1 to L1 ODD" = {
     
     wMax = 1.0;
     wMin = 0;
-    writeCompressedWeights = 1.0;
+    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     weightUpdatePeriod = 1.0;
 
@@ -309,22 +307,22 @@ KernelConn "L1 to L1 ODD Target" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 325.0;
+   strength = 975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
-   wMax = 325.0;
+   wMax = 975.0;
    wMin = 0;
-   writeCompressedWeights = 1.0;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -340,22 +338,22 @@ KernelConn "L1 to L1 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -325.0;
+   strength = -975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
    wMax = 0.0;
-   wMin = -325;
-   writeCompressedWeights = 1.0;
+   wMin = -750;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -396,22 +394,22 @@ KernelConn "L1 to L2 ODD Target" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 325.0;
+   strength = 975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
-   wMax = 325.0;
+   wMax = 975.0;
    wMin = 0;
-   writeCompressedWeights = 1.0;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -427,22 +425,22 @@ KernelConn "L1 to L2 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -325.0;
+   strength = -975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
    wMax = 0.0;
-   wMin = -325;
-   writeCompressedWeights = 1.0;
+   wMin = -750;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -484,22 +482,22 @@ KernelConn "L2 to L3 ODD Target" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 325.0;
+   strength = 975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
-   wMax = 325.0;
+   wMax = 975.0;
    wMin = 0;
-   writeCompressedWeights = 1.0;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -515,22 +513,22 @@ KernelConn "L2 to L3 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -325.0;
+   strength = -975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
    wMax = 0.0;
-   wMin = -325;
-   writeCompressedWeights = 1.0;
+   wMin = -750;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -558,7 +556,7 @@ IdentConn "L3 to L4 ODD" = {
 
     wMax = 1.0;
     wMin = 0;
-    writeCompressedWeights = 1.0;
+    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     weightUpdatePeriod = 1.0;
 
@@ -574,22 +572,22 @@ KernelConn "L3 to L4 ODD Target" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/target40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 325.0;
+   strength = 975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
-   wMax = 325.0;
+   wMax = 975.0;
    wMin = 0;
-   writeCompressedWeights = 1.0;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
@@ -605,22 +603,22 @@ KernelConn "L3 to L4 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/amoeba/distractor40K_G1_uncompressed/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -325.0;
+   strength = -975.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 1;
    
    wMax = 0.0;
-   wMin = -325;
-   writeCompressedWeights = 1.0;
+   wMin = -750;
+   writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    weightUpdatePeriod = 1.0;
