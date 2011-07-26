@@ -9,7 +9,7 @@ HyPerCol "column" = {
     dt = 1;
     numSteps = 1000000;  // number of images times display period
     randomSeed = 1;
-    outputPath = "./output/unsupervised/";
+    outputPath = "./output/unsupervised4x4/";
 };
 
 Movie "Slideshow" = {
