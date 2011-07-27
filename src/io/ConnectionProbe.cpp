@@ -55,9 +55,21 @@ ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre)
 
 ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre)
 {
-   char path[PV_PATH_MAX];
-   sprintf(path, "%s/%s", hc->getOutputPath(), filename);
+   const char * outputPath = hc->getOutputPath();
+   size_t outputpathlen = strlen(outputPath);
+   size_t filenamelen = strlen(filename);
+   size_t pathlen = outputpathlen + filenamelen;
+   if( pathlen >= PV_PATH_MAX || pathlen < outputpathlen || pathlen < filenamelen || pathlen + 2 <= pathlen) {
+      fprintf(stderr, "ConnectionProbe: path to output file too long.  Exiting.\n");
+      exit(EXIT_FAILURE);
+   }
+   char * path = malloc((pathlen+2)*sizeof(char));
+   sprintf(path, "%s/%s", outputPath, filename);
    this->fp   = fopen(path, "w");
+   if( !this->fp ) {
+      fprintf(stderr, "ConnectionProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
+      exit(EXIT_FAILURE);
+   }
 
    this->kxPre = kxPre;
    this->kyPre = kyPre;

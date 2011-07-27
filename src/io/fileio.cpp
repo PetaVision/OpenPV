@@ -201,6 +201,10 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
    if (comm->commRank() == 0) {
       if (append) fp = fopen(filename, "ab");
       else        fp = fopen(filename, "wb");
+      if( !fp ) {
+         fprintf(stderr, "pvp_open_write_file: Unable to open \"%s\" for writing.  Error %d\n", filename, errno);
+         exit(EXIT_FAILURE);
+      }
    }
    return fp;
 }
