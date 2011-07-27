@@ -63,7 +63,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre
       fprintf(stderr, "ConnectionProbe: path to output file too long.  Exiting.\n");
       exit(EXIT_FAILURE);
    }
-   char * path = malloc((pathlen+2)*sizeof(char));
+   char * path = (char *) malloc((pathlen+2)*sizeof(char));
    sprintf(path, "%s/%s", outputPath, filename);
    this->fp   = fopen(path, "w");
    if( !this->fp ) {
