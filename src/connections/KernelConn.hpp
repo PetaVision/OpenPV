@@ -24,10 +24,14 @@ public:
    KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              ChannelType channel, const char * filename);
+              ChannelType channel, const char * filename = NULL);
+#ifdef OBSOLETE // marked obsolete Jul 25, 2011.  This case covered since other constructor's filename argumernt now has a default of null
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel);
+#endif // OBSOLETE
+#ifdef OBSOLETE // marked obsolete Jul 25, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+#endif // OBSOLETE
 
    virtual int numDataPatches(int arbor);
 

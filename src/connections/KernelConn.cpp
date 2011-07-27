@@ -36,7 +36,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif // OBSOLETE
 
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename = NULL) : HyPerConn()
+      HyPerLayer * post, ChannelType channel, const char * filename) : HyPerConn()
 {
    KernelConn::initialize_base();
    initialize(name, hc, pre, post, channel, filename);
