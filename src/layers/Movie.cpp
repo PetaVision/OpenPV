@@ -48,7 +48,10 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
 
    // get size info from image so that data buffer can be allocated
    int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
-   assert(status == 0);
+   if(status != 0) {
+      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
+      exit(EXIT_FAILURE);
+   }
 
    // create mpi_datatypes for border transfer
    mpi_datatypes = Communicator::newDatatypes(loc);
