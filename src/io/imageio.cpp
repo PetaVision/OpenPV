@@ -358,9 +358,9 @@ int gatherImageFileGDAL(const char * filename,
    const int numBands = loc->nf;
    // assert(numBands <= maxBands);
 
+#ifdef PV_USE_MPI
    const int nxnynf = nx * ny * numBands;
 
-#ifdef PV_USE_MPI
    const int tag = 14;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
@@ -591,8 +591,10 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
    // assert(numBands <= maxBands);
 
+#ifdef PV_USE_MPI
    // const int nxny = nx * ny;
    const int numTotal = nx * ny * numBands;
+#endif
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
