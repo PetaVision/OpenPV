@@ -152,10 +152,9 @@ GenerativeConn "AnaRetina to V1" = {
     weightUpdatePeriod = 100;
     relaxation = 0.1;
     nonnegConstraintFlag = 1;
-    normalizeMethod = 1;
-//    normalizeConstant = 2;
+    normalizeConstant = 2;
 
-//    sumSquaresByKernelValue = 4;
+    sumSquaresByKernelValue = 4;
 };
 
 FeedbackConn "V1 to AnaRetina Feedback" = {
