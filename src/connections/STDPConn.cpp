@@ -33,7 +33,6 @@ int STDPConn::initialize_base() {
    this->tauLTP = 20;
    this->tauLTD = 20;
    this->dWMax = 0.1;
-   this->localWmaxFlag = false;
    return PV_SUCCESS;
 }
 
@@ -215,27 +214,6 @@ int STDPConn::updateWeights(int axonId)
          pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
       }
 
-      if (localWmaxFlag) {
-         // update weights with local post-synaptic Wmax values
-         // Wmax lives in the restricted space - it is controlled
-         // by average rate in the post synaptic layer
-         float * Wmax_pointer = &Wmax[postOffset];
-         for (int y = 0; y < ny; y++) {
-            // TODO
-            pvpatch_update_weights_localWMax(nk,W,M,P,preActivity,postActivity,dWMax,wMin,Wmax_pointer);
-            //
-            // advance pointers in y
-            W += sy;
-            P += sy;
-
-            //
-            // postActivity, M are extended post-layer variables
-            //
-            postActivity += postStrideY;
-            M            += postStrideY;
-            Wmax_pointer += postStrideY;
-         }
-      } else {
          // update weights
          for (int y = 0; y < ny; y++) {
             pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
@@ -249,7 +227,6 @@ int STDPConn::updateWeights(int axonId)
             M += postStrideY;
          }
 
-      }
    }
 
    return 0;
@@ -278,20 +255,7 @@ int STDPConn::outputState(float time, bool last)
 
 float STDPConn::maxWeight()
 {
-   float maxVal = 0.0;
-
-   if (localWmaxFlag) {
-      const int numExtended = post->getNumExtended();
-      for (int kPost = 0; kPost < numExtended; kPost++){
-         if(Wmax[kPost] > maxVal){
-            maxVal = Wmax[kPost];
-         }
-      }
-   } else {
-      maxVal = wMax;
-   }
-
-   return maxVal;
+   return wMax;
 }
 
 int STDPConn::writeTextWeightsExtra(FILE * fd, int k)

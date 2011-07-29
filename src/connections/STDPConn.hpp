@@ -48,8 +48,6 @@ protected:
    PVPatch       ** pIncr;      // list of stdp patches Psij variable
 
    bool       stdpFlag;         // presence of spike timing dependent plasticity
-   bool       localWmaxFlag;    // presence of rate dependent wMax;
-   pvdata_t * Wmax;             // adaptive upper STDP weight boundary
 
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude
