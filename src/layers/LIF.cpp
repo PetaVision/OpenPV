@@ -102,7 +102,6 @@ LIF::~LIF()
    delete clPhiE;
    delete clPhiI;
    delete clPhiIB;
-   delete clR;
    delete clActivity;
    delete clPrevTime;
 #endif
@@ -214,8 +213,6 @@ int LIF::initializeThreadBuffers()
    clPhiI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
    clPhiIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
 
-   clR = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, R);
-
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
@@ -258,7 +255,6 @@ int LIF::initializeThreadKernels()
    status |= krUpdate->setKernelArg(argid++, clPhiE);
    status |= krUpdate->setKernelArg(argid++, clPhiI);
    status |= krUpdate->setKernelArg(argid++, clPhiIB);
-   status |= krUpdate->setKernelArg(argid++, clR);
    status |= krUpdate->setKernelArg(argid++, clActivity);
 
    return status;
@@ -306,10 +302,6 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
    
-   // set wMax and wMin parameters
-
-    wMax = p->value(name, "wMax", 0.75);
-    wMin = p->value(name, "wMin", 0.0);
 
    return 0;
 }
