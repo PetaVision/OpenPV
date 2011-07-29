@@ -15,11 +15,19 @@
 
 using namespace PV;
 
-int buildandrun(int argc, char * argv[]) {
+int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **)) {
    HyPerCol * hc = build(argc, argv);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
+   if( customadd != NULL ) {
+      status = (*customadd)(hc, argc, argv);
+      if(status != PV_SUCCESS) {
+         fprintf(stderr, "customadd function failed with return value %d\n", status);
+         exit(status);
+      }
+   }
+
    if( hc->numberOfTimeSteps() > 0 ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {

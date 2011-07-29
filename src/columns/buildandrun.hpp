@@ -66,7 +66,7 @@
 
 using namespace PV;
 
-int buildandrun(int argc, char * argv[]);
+int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **) = NULL);
 HyPerCol * build(int argc, char * argv[]);
 
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
