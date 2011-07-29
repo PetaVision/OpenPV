@@ -42,7 +42,6 @@ public:
    virtual int readState (float * time);
    virtual int writeState(float time, bool last=false);
    
-   pvdata_t * getAverageActivity()  {return R;}
    pvdata_t * getVth()              {return Vth;}
    pvdata_t * getConductance(ChannelType ch) {
       pvdata_t * conductance;
@@ -55,11 +54,6 @@ public:
    }
 
    virtual LIF_params * getLIFParams() {return &lParams;};
-   virtual pvdata_t * getWmax() {return Wmax;}
-   virtual pvdata_t * getVthRest(){return VthRest;}
-   virtual pvdata_t * getR(){return R;}
-   virtual bool getLocalWmaxFlag() {return localWmaxFlag;}
-   virtual bool getLocalVthRestFlag() {return localVthRestFlag;}
 
    int setParams(PVParams * p);
 
@@ -69,23 +63,14 @@ protected:
    LIF_params lParams;
    uint4 * rand_state;  // state for random numbers
 
-   pvdata_t * Vth;      // threshhold potential
+   pvdata_t * Vth;      // threshold potential
    pvdata_t * G_E;      // excitatory conductance
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
-   pvdata_t * R;        // average activity (not extended)
 
-   bool     localWmaxFlag;  // presence of rate dependent wMax;
-   bool     localVthRestFlag; // presence of rate dependent VthRest
-   pvdata_t * Wmax;   // adaptive upper STDP weight boundary
-   pvdata_t * VthRest; // adaptive VthRest
-   float    tauVthRest;
-   float    alphaVthRest;
    float    wMax;
    float    wMin;
-   float    alphaW;   // params in Wmax dynamics.
-   float    tauWmax;  // should include in LIF_params
-   float    averageR; // predefined average rate
+
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
