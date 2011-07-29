@@ -178,9 +178,8 @@ HyPerCol * build(int argc, char * argv[]) {
          }
       }
       if( matchedkeyword < 0 ) {
-         fprintf(stderr, "Parameter group \"%s\" has unknown class keyword \"%s\"\n", name, kw);
-         delete hc;
-         return NULL;
+         fprintf(stderr, "Parameter group \"%s\": skipping unrecognized class word \"%s\"\n", name, kw);
+         continue;
       }
 
       bool didAddObject = false;
@@ -796,7 +795,6 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
    return addedProbe;
 }
 
-#define LAYERPROBEMSGLENGTH 32
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    int status;
    bool errorFound = false;
@@ -932,6 +930,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    return addedProbe;
 }
 
+#define LAYERPROBEMSGLENGTH 32
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, const char ** messagePtr, const char ** filenamePtr) {
    PVParams * params = hc->parameters();
    const char * message;
