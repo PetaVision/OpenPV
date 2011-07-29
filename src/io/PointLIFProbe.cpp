@@ -62,17 +62,12 @@ PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, cons
  * includes boundaries.
  *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or "restricted"
  *     frame.
- *     - When localWmaxFlag is defined in the layer, Wmax covers the extended frame.
- *     - the rate array R is in the restricted space.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
 int PointLIFProbe::outputState(float time, HyPerLayer * l)
 {
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
    assert(LIF_layer != NULL);
-
-   bool localWmaxFlag = LIF_layer->getLocalWmaxFlag();
-   bool localVthRestFlag = LIF_layer->getLocalVthRestFlag();
 
    const PVLayerLoc * loc = l->getLayerLoc();
 
@@ -103,14 +98,6 @@ int PointLIFProbe::outputState(float time, HyPerLayer * l)
          fprintf(fp, " G_IB=%6.3f", G_IB[k]);
          fprintf(fp, " V=%6.3f", l->clayer->V[k]);
          fprintf(fp, " Vth=%6.3f", Vth[k]);
-         // scale rate by 1000.0 to get firing per second
-         fprintf(fp, " R=%6.3f", 1000.0 * LIF_layer->getAverageActivity()[k]);
-         if (localWmaxFlag){
-            fprintf(fp," Wmax=%6.3f",LIF_layer->getWmax()[kex]);
-         }
-         if (localVthRestFlag){
-            fprintf(fp," VthRest=%6.3f",LIF_layer->getVthRest()[k]);
-         }
          fprintf(fp, " a=%.1f\n", activity[kex]);
          fflush(fp);
       }
