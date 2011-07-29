@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 namespace PV {
 
@@ -106,11 +107,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    this->name = strdup(name);
    this->runTimer = new Timer();
 
-   path = (char *) malloc(1+PV_PATH_MAX);
-   assert(path != NULL);
-   path = getcwd(path, PV_PATH_MAX);
-
    char * param_file;
+   char * working_dir;
    simTime = 0;
    numLayers = 0;
    numConnections = 0;
@@ -122,9 +120,23 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    outputPath = NULL;
    image_file = NULL;
    param_file = NULL;
+   working_dir = NULL;
    unsigned long random_seed = 0;
    parse_options(argc, argv, &outputPath, &image_file, &param_file,
-                 &numSteps, &opencl_device, &random_seed);
+                 &numSteps, &opencl_device, &random_seed, &working_dir);
+
+   if(working_dir) {
+      int status = chdir(working_dir);
+      if(status) {
+         fprintf(stderr, "Unable to switch directory to \"%s\"\n", working_dir);
+         fprintf(stderr, "chdir returned error %d\n", errno);
+         exit(status);
+      }
+   }
+
+   path = (char *) malloc(1+PV_PATH_MAX);
+   assert(path != NULL);
+   path = getcwd(path, PV_PATH_MAX);
 
    int groupArraySize = 2*(layerArraySize + connectionArraySize);
    params = new PVParams(param_file, groupArraySize);  // PVParams::addGroup can resize if initialGroups is exceeded
@@ -156,6 +168,30 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
                 "Output path set to default \"%s\n",OUTPUT_PATH);
       }
    }
+   // see if outputPath exists, and try to create it if it doesn't.
+   struct stat opstat;
+   int outputpathstatus = stat(outputPath, &opstat);
+   if( outputpathstatus ) {
+      if( errno == 2 /* No such file or directory */) {
+         fprintf(stderr, "Output path \"%s\" does not exist; attempting to create\n", outputPath);
+         outputpathstatus = mkdir(outputPath, 0700);
+         if( outputpathstatus ) {
+            fprintf(stderr, "Output path could not be created: error %d\n", errno);
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         fprintf(stderr, "Checking status of output path \"%s\" gave error %d\n", outputPath, errno);
+         exit(EXIT_FAILURE);
+      }
+   }
+   else { // outputPath exist; now check if it's a directory.
+      if( !(opstat.st_mode && S_IFDIR) ) {
+         fprintf(stderr, "Output path \"%s\" exists but is not a directory\n", outputPath);
+         exit(EXIT_FAILURE);
+      }
+   }
+   printf("%d %p\n",&opstat, (void *) outputpathstatus);
 
    // run only on CPU for now
    initializeThreads(opencl_device);

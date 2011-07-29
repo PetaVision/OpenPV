@@ -28,6 +28,7 @@ void usage()
    printf(" [-i <input image filename>]\n");
    printf(" [-s <random number generator seed>]\n");
    printf(" [-d <OpenCL device>]\n");
+   printf(" [-w <working directory>]\n");
 }
 
 /**
@@ -39,7 +40,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], char ** output_path, char ** input_file,
-                  char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed)
+                  char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed, char ** working_dir)
 {
    if (argc < 2) {
       usage();
@@ -56,6 +57,7 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
    pv_getopt_unsigned_long(argc, argv, "-s", random_seed);
+   pv_getopt_str(argc, argv, "-w", working_dir);
 
    return 0;
 }
