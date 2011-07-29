@@ -122,7 +122,13 @@ if isempty(errorstring)
                                     'Readpvpfile:Warning:data{%f}{%f}{%f}, patch %d: shrunken patches not implemented',f,x,y,p);
                             end
                         end
-                        data{f}.values{y,x} = data{f}.values{y,x}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                        if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
+                            data{f}.values{y,x} = data{f}.values{y,x}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                        elseif hdr.datatype ~= 3
+                            error('readpvpfile:baddatatype',...
+                                  'Weight file type requires hdr.datatype of 1 or 3; received %d',...
+                                  hdr.datatype);
+                        end
                     end
                 end
             end
