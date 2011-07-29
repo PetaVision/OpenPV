@@ -15,16 +15,7 @@ function [] = commands3(image_size, target_type, num_trials)
   image_dim = image_size;
   addpath("../MNIST", "-begin");
 
-				%  addpath('/Applications/Psychtoolbox/');
-
-				% number of targets/fourier component
- %% global j_trial num_trials
   disp(["num_trials = ", num2str(num_trials)]);
-				%  screen_color = [];
-				%screen_rect = [0 0 256 256];
-				%  screen_rect = [0 0 128 128];
-				%[w0, window_rect]  = Screen('OpenWindow', 0, screen_color, screen_rect);
-				%Screen('FillRect', w0, GrayIndex(w0));
 
   global plot_amoeba2D fh_amoeba2D
   plot_amoeba2D = 0;
@@ -33,9 +24,8 @@ function [] = commands3(image_size, target_type, num_trials)
     fh_amoeba2D = figure;
   endif
   
-  global machine_path
-  %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
-  machine_path = '/Users/gkenyon/MATLAB/captcha/';
+  global machine_path  %% assume we're in the /workspace-*/PetaVision/mlab/MNIST directory
+  machine_path = '../../../../MATLAB/figures/amoeba/'; %%'/Users/gkenyon/MATLAB/captcha/';
   if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1

@@ -34,13 +34,13 @@ function getAmoebaStats4(trial_ndx, target_id, target_type, ...
 				%rand('twister', sum(100*clock));  % rand automatically initialize "randomly"
 				%amoeba_struct.rand_state = {rand('twister')};
   amoeba_struct.rand_state = {rand('state')};
-  amoeba_struct.num_segments = 4;%% 2^4; %%
+  amoeba_struct.num_segments = 2^4; %%
   amoeba_struct.image_rect_size = image_dim(1);
 
   amoeba_struct.num_targets = 1;
-  amoeba_struct.num_distractors = 4; %in addition to amoeba targets, total
+  amoeba_struct.num_distractors = 2; %in addition to amoeba targets, total
 				% objects is sum of both
-  amoeba_struct.segments_per_distractor = 2^(-2); % %as fraction
+  amoeba_struct.segments_per_distractor = 2^(-4); % %as fraction
 				% of num_segments, 2^(-2)  used in psychophysics
   amoeba_struct.target_outer_max = 0.5;%max/min outer radius of target annulus, units of image rect
   amoeba_struct.target_outer_min = 0.5; %% value in Geisler paper
@@ -52,9 +52,9 @@ function getAmoebaStats4(trial_ndx, target_id, target_type, ...
   amoeba_struct.fourier_amp = zeros(amoeba_struct.num_fourier, 1);
 				% set amp of largest fourier component factor of 2 larger to make more distinct amoebas
 				% amoeba_struct.fourier_amp(amoeba_struct.num_fourier,1) = 1;
-  amoeba_struct.min_resize = 2;
-  amoeba_struct.max_resize = 5;
-  amoeba_struct.closed_prob = .5;  %% prob of closed vs open(linear) amoeba/clutter
+  amoeba_struct.min_resize = 1; %% use 2 for MNIST
+  amoeba_struct.max_resize = 1; %% use 5 for MNIST
+  amoeba_struct.closed_prob = 1;  %% prob of closed vs open(linear) amoeba/clutter, use 0.5 for MNISt
   amoeba_struct.num_phi = 1024;
   amoeba_struct.range_phi = 2*pi; %% < 2*pi generates open figures
 

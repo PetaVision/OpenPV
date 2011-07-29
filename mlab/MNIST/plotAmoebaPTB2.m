@@ -1,12 +1,15 @@
-function plotAmoebaPTB2(amoeba_image, amoeba_struct, trial, ...
-			amoeba_flag, nfourier, aflag)
+function plotAmoebaPTB2(amoeba_image, ...
+			amoeba_struct, ...
+			trial, ...
+			amoeba_flag, ...
+			aflag)
 % global w0
 global image_dim
 global nz_image
 global amoeba_file_path
 global image_file_path image_file_name
 
-if nargin < 6 || isempty(aflag)
+if nargin < 5 || isempty(aflag)
     aflag = 0;
 end
 
