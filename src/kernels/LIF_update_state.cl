@@ -45,7 +45,6 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * phiExc,
     CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * phiInhB,
-    CL_MEM_GLOBAL float * R,
     CL_MEM_GLOBAL float * activity)
 {
    int k;
@@ -56,7 +55,6 @@ void LIF_update_state(
    const float exp_tauVth  = EXP(-dt/params->tauVth);
 
    const float dt_sec = .001 * dt;   // convert to seconds
-   const float exp_tauRate = EXP(-dt/params->tauRate);
 
 #ifndef PV_USE_OPENCL
 
@@ -92,8 +90,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_phiInh  = phiInh[k];
    float l_phiInhB = phiInhB[k];
    
-   float l_R = R[k];
-
    // temporary arrays
    float tauInf, VmemInf;
 
@@ -178,9 +174,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
 
-   // update average rate
-   l_R = l_activ + l_R*exp_tauRate;
-   
    //
    // These actions must be done outside of kernel
    //    1. set activity to 0 in boundary (if needed)
@@ -193,8 +186,6 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    activity[kex] = l_activ;
    
-   R[k] = l_R;
-
    V[k]   = l_V;
    Vth[k] = l_Vth;
 
