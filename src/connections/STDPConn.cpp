@@ -131,16 +131,6 @@ int STDPConn::setParams(PVParams * filep)
 
       dWMax = filep->value(getName(), "dWMax", dWMax);
 
-      // set params for rate dependent Wmax
-      localWmaxFlag = (bool) filep->value(getName(), "localWmaxFlag", (float) localWmaxFlag);
-   }
-   if (localWmaxFlag){ // Not sure if the if(localWmaxFlag) should be inside or outside the if(stdpFlag) statement
-      LIF * LIF_layer = dynamic_cast<LIF *>(post);
-      assert(LIF_layer != NULL);
-      Wmax = LIF_layer->getWmax();
-      assert(Wmax != NULL);
-   } else {
-      Wmax = NULL;
    }
 
    return 0;
