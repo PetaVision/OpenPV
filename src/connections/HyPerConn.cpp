@@ -225,13 +225,14 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->name = strdup(name);
    assert(this->name != NULL);
 
+   this->connId = parent->addConnection(this);
+
    writeTime = parent->simulationTime();
    writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
 
    status = setParams(hc->parameters(), &defaultConnParams);
    constructWeights(filename);
 
-   this->connId = parent->addConnection(this);
 
    return status;
 }
