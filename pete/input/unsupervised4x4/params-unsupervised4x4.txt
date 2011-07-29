@@ -148,17 +148,15 @@ GenerativeConn "AnaRetina to V1" = {
     uniformWeights = 1;
     wMinInit = 0;
     wMaxInit = 1;
-    normalize = 1;
+    normalize = 3;
 
     symmetrizeWeights = 0;
 
     weightUpdatePeriod = 100;
     relaxation = 0.1;
     nonnegConstraintFlag = 1;
-    normalizeMethod = 1;
-//    normalizeConstant = 2;
-
-//    sumSquaresByKernelValue = 4;
+    normalizeMethod = 3;
+    normalizeConstant = 1.41421356;
 };
 
 FeedbackConn "V1 to AnaRetina Feedback" = {
@@ -172,11 +170,6 @@ FeedbackConn "V1 to AnaRetina Feedback" = {
     stdpFlag = 0;
 
     initFromLastFlag = 0;
-};
-
-StatsProbe "V1 Stats" = {
-    targetLayer = "V1";
-    // probeOutputFile = "V1Stats.txt";
 };
 
 GenColProbe "Total Energy Probe" = {
