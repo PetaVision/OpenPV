@@ -45,67 +45,8 @@ void LIF_update_state(
     float * phiExc,
     float * phiInh,
     float * phiInhB,
-    float * R,
     float * activity);
 
-void LIF_update_state_localWmax(
-    const float time,
-    const float dt,
-
-    const int nx,
-    const int ny,
-    const int nf,
-    const int nb,
-
-    const float tauWmax,
-    const float alphaW,
-    const float averageR,
-
-    LIF_params * params,
-    uint4 * rnd,
-
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * phiExc,
-    float * phiInh,
-    float * phiInhB,
-    float * R,
-    float * Wmax,
-    float * activity);
-
-void LIF_update_state_localWmaxVth(
-    const float time,
-    const float dt,
-
-    const int nx,
-    const int ny,
-    const int nf,
-    const int nb,
-
-    const float tauWmax,
-    const float tauVthRest,
-    const float alphaVthRest,
-    const float alphaW,
-    const float averageR,
-
-    LIF_params * params,
-    uint4 * rnd,
-
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * phiExc,
-    float * phiInh,
-    float * phiInhB,
-    float * R,
-    float * Wmax,
-    float * VthRest,
-    float * activity);
 
 #ifdef __cplusplus
 }
@@ -146,14 +87,7 @@ LIF::~LIF()
    }
    free(Vth);
    free(rand_state);
-   free(R);
 
-   if(localWmaxFlag){
-      free(Wmax);
-   }
-   if(localVthRestFlag){
-      free(VthRest);
-   }
 
 #ifdef PV_USE_OPENCL
    free(evList);
@@ -180,10 +114,8 @@ LIF::~LIF()
 /*
  *
  * setParams() is called first so that we read all control parameters
- * (rateFlag, tauRate, writeRate, etc) from the params file.
- * Wmax is an extended variable so that it matches the decrement variable M in
- * the HyPerConn class (M is a post layer extended variable)
- * R (rate) is a restricted variable
+ * from the params file.
+ *
  */
 int LIF::initialize(PVLayerType type)
 {
@@ -191,8 +123,7 @@ int LIF::initialize(PVLayerType type)
    int status = CL_SUCCESS;
 
    const size_t numNeurons = getNumNeurons();
-   localWmaxFlag    = false;
-   localVthRestFlag = false;
+
 
    setParams(parent->parameters());
    clayer->layerType = type;
@@ -219,51 +150,6 @@ int LIF::initialize(PVLayerType type)
    assert(Vth != NULL);
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest;
-   }
-
-   // allocate memory for R
-   //
-   R = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
-   assert(R != NULL);
-   //fprintf(stdout, "R pointer in LIF: %d \n", R );
-   for (size_t k = 0; k < numNeurons; k++){
-      R[k] = 0.0;
-   }
-
-   // allocate memory for wMax
-   if(localWmaxFlag){
-      // mwmory for Wmax (extended array)
-      const size_t numExtended = getNumExtended();
-      Wmax = (pvdata_t *) calloc(numExtended, sizeof(pvdata_t) );
-      assert(Wmax != NULL);
-      fprintf(stdout,"Wmax pointer in LIF: %ld \n", (long int) Wmax);
-      for (size_t k = 0; k < numExtended; k++){
-         Wmax[k] = wMax;
-      }
-   }else{
-      Wmax = NULL;
-   }
-
-   if(localVthRestFlag){
-      // memory for Vthrest (restricted array)
-      VthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t) );
-      assert(VthRest != NULL);
-      fprintf(stdout,"VthRest pointer in LIF: %ld\n", (long int) VthRest);
-      int nx = clayer->loc.nx;
-      for (size_t k = 0; k < numNeurons; k++){
-         //VthRest[k] = VTH_REST;
-         //VthRest[k] = V_REST;
-         VthRest[k] = lParams.VthRest;
-         if (k % nx == 0){
-            fprintf(stdout,"%lu:\n", ( k - (k%nx)) / nx );
-         }
-         fprintf(stdout,"%f ", VthRest[k] );
-         if((k+1) % 16 == 0){
-            fprintf(stdout,"\n");
-         }
-      }
-   } else {
-      VthRest = NULL;
    }
 
    parent->addLayer(this);
@@ -400,11 +286,6 @@ int LIF::setParams(PVParams * p)
    lParams.tauI  = p->value(name, "tauI" , TAU_INH);
    lParams.tauIB = p->value(name, "tauIB", TAU_INHB);
 
-   lParams.tauRate  = p->value(name, "tauRate",  TAU_RATE);
-   lParams.VthRest  = p->value(name, "VthRest" , VTH_REST);
-   //lParams.VthRest  = p->value(name, "VthRest" , V_REST);
-   lParams.tauVth   = p->value(name, "tauVth"  , TAU_VTH);
-   lParams.deltaVth = p->value(name, "deltaVth", DELTA_VTH);
 
    // NOTE: in LIFDefaultParams, noise ampE, ampI, ampIB were
    // ampE=0*NOISE_AMP*( 1.0/TAU_EXC )
@@ -425,23 +306,10 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
    
-   // set wMax parameters
-   localWmaxFlag = (bool) p->value(name, "localWmaxFlag", (float) localWmaxFlag);
-   if (localWmaxFlag) {
-      wMax = p->value(name, "wMax", 0.75);
-      wMin = p->value(name, "wMin", 0.0);
-      tauWmax     = p->value(name,"tauWmax",TAU_WMAX); // in ms
-      alphaW     = p->value(name,"alphaW",0.01);
-      averageR   = p->value(name,"averageR",10.0);
-   }
+   // set wMax and wMin parameters
 
-   // set params for rate dependent Wmax
-   localVthRestFlag = (bool) p->value(name, "localVthRestFlag", (float) localVthRestFlag);
-   if (localVthRestFlag) {
-      tauVthRest  = p->value(name,"tauVthRest",TAU_VTHREST); // in ms
-      lParams.deltaVthRest = p->value(name, "deltaVthRest", DELTA_VTH_REST);
-      alphaVthRest= p->value(name,"alphaVthRest",0.01);
-   }
+    wMax = p->value(name, "wMax", 0.75);
+    wMin = p->value(name, "wMin", 0.0);
 
    return 0;
 }
@@ -520,31 +388,9 @@ int LIF::updateState(float time, float dt)
    pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
    pvdata_t * activity = clayer->activity->data;
 
-   if(localWmaxFlag && localVthRestFlag){
-      LIF_update_state_localWmaxVth(time, dt, nx, ny, nf, nb,
-                          tauWmax,tauVthRest,alphaVthRest,alphaW,averageR,
-                          &lParams, rand_state,
-                          clayer->V, Vth,
-                          G_E, G_I, G_IB,
-                          phiExc, phiInh, phiInhB, R, Wmax, VthRest, activity);
-   } else if(localWmaxFlag && !localVthRestFlag){
-      LIF_update_state_localWmax(time, dt, nx, ny, nf, nb,
-                          tauWmax,alphaW,averageR,
-                          &lParams, rand_state,
-                          clayer->V, Vth,
-                          G_E, G_I, G_IB,
-                          phiExc, phiInh, phiInhB, R, Wmax, activity);
-   }
+   LIF_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+         G_I, G_IB, phiExc, phiInh, phiInhB, activity);
 
-
-
-      else {
-      LIF_update_state(time, dt, nx, ny, nf, nb,
-                       &lParams, rand_state,
-                       clayer->V, Vth,
-                       G_E, G_I, G_IB,
-                       phiExc, phiInh, phiInhB, R, activity);
-   }
 #else
 
    status = updateStateOpenCL(time, dt);
@@ -584,24 +430,6 @@ int LIF::readState(float * time)
    status = read(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
-   getOutputFilename(path, "R", "_last");
-   status = read(path, comm, &dtime, R, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   if(localWmaxFlag && Wmax != NULL){
-      extended = true;
-      getOutputFilename(path, "Wmax", "_last");
-      status = read(path, comm, &dtime, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
-      assert(status == PV_SUCCESS);
-   }
-
-   if(localVthRestFlag && VthRest != NULL){
-      extended = false;
-      getOutputFilename(path, "VthRest", "_last");
-      status = read(path, comm, &dtime, VthRest, loc, PV_FLOAT_TYPE, extended, contiguous);
-      assert(status == PV_SUCCESS);
-   }
-
    *time = (float) dtime;
    return status;
 
@@ -632,20 +460,6 @@ int LIF::writeState(float time, bool last)
    getOutputFilename(path, "G_IB", last_str);
    status = write(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
 
-   getOutputFilename(path, "R", last_str);
-   status = write(path, comm, time, R, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   if(localWmaxFlag){
-      extended = true;
-      getOutputFilename(path, "Wmax", last_str);
-      status = write(path, comm, time, Wmax, loc, PV_FLOAT_TYPE, extended, contiguous);
-   }
-
-   if(localVthRestFlag){
-      extended = false;
-      getOutputFilename(path, "VthRest", last_str);
-      status = write(path, comm, time, VthRest, loc, PV_FLOAT_TYPE, extended, contiguous);
-   }
 
 #ifdef DEBUG_OUTPUT
    // print activity at center of image
@@ -697,8 +511,6 @@ extern "C" {
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIF_update_state.cl"
-#  include "../kernels/LIF_update_state_localWmax.cl"
-#  include "../kernels/LIF_update_state_localWmaxVth.cl"
 #endif
 
 #ifdef __cplusplus
