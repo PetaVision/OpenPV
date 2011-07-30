@@ -193,7 +193,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          exit(EXIT_FAILURE);
       }
    }
-   printf("%d %p\n",&opstat, (void *) outputpathstatus);
 
    // run only on CPU for now
    initializeThreads(opencl_device);
