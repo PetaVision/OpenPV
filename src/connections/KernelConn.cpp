@@ -279,6 +279,7 @@ int KernelConn::reduceKernels(const int axonID) {
       }
    }
 
+   free(buf);
    return PV_SUCCESS;
 }
 #endif // PV_USE_MPI
