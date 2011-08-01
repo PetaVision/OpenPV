@@ -667,3 +667,9 @@ LogLatWTAProbe "Layer B Lateral Competition Penalty" = {
     coeff = 1.0;
     probeOutputFile = "Layer_B_LatCompPenalty.txt";
 };
+
+ChannelProbe "Reconstructed Image ChannelProbe" = {
+    targetLayer = "Reconstructed Image";
+    probeOutputFile = "Reconstructed_Image_Channel1.txt";
+    channelCode = 1;
+};

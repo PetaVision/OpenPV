@@ -4,6 +4,8 @@
 //     of 4x4 tilings of the same image from 4x4 line world;
 //     and a is a V1-type layer
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 16;
     ny = 16;

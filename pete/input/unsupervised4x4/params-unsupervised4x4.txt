@@ -148,7 +148,7 @@ GenerativeConn "AnaRetina to V1" = {
     uniformWeights = 1;
     wMinInit = 0;
     wMaxInit = 1;
-    normalize = 3;
+    normalize = 1;
 
     symmetrizeWeights = 0;
 
