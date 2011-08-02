@@ -172,8 +172,11 @@ bool Movie::updateImage(float time, float dt)
 
    if(randomMovie){
       randomFrame();
+      lastUpdateTime = time;
    } else {
+      bool needNewImage = false;
       if (time >= nextDisplayTime) {
+         needNewImage = true;
          if (filename != NULL) free(filename);
          filename = strdup(getNextFileName());
          assert(filename != NULL);
@@ -182,10 +185,8 @@ bool Movie::updateImage(float time, float dt)
          if(writePosition){
             fprintf(fp_pos,"%f %s: \n",time,filename);
          }
-      }
-
-      // Image::read takes care of grayscale, so loc->nf should be left alone.
-      // loc->nf = imageLoc.nf;
+         lastUpdateTime = time;
+      } // time >= nextDisplayTime
 
       if( jitterFlag ) {
          // move bias
@@ -196,32 +197,27 @@ bool Movie::updateImage(float time, float dt)
          // move offset
          double p = pv_random_prob();
          if (p > persistenceProb){
+            needNewImage = true;
             calcBiasedOffset(stepSize, imageLoc.nx - loc->nx - stepSize);
             if(writePosition){
                fprintf(fp_pos,"%d %d ",biasX,biasY);
             }
          }
+         // ensure that offsets keep loc within image bounds
+         resetPositionInBounds();
+         if(writePosition){
+            fprintf(fp_pos,"\t\t%f %d %d\n",time,offsetX,offsetY);
+         }
+         lastUpdateTime = time;
+      } // jitterFlag
+
+      if( needNewImage ){
+         read(filename, offsetX, offsetY);
       }
-
-
-      // ensure that offsets keep loc within image bounds
-      resetPositionInBounds();
-
-      if(writePosition){
-         fprintf(fp_pos,"\t\t%f %d %d\n",time,offsetX,offsetY);
-      }
-      read(filename, offsetX, offsetY);
-
-      // grayScale call moved to Image::read(), called immediately above
-      // if (loc->nf > 1) {
-      //    toGrayScale();
-      // }
    } // randomMovie
 
    // exchange border information
    exchange();
-
-   lastUpdateTime = time;
 
    return true;
 }
