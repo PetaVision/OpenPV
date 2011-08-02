@@ -79,6 +79,12 @@ LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type)
    initialize(type, "LIF_update_state");
 }
 
+LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels)
+  : HyPerLayer(name, hc, num_channels)
+{
+   initialize(type, "LIF_update_state");
+}
+
 LIF::~LIF()
 {
    if (numChannels > 0) {
