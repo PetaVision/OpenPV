@@ -26,7 +26,7 @@
 //    assume called with 1D kernel
 //
 CL_KERNEL
-void LIF_update_state(
+void LIFGap_update_state(
     const float time, 
     const float dt,
 
@@ -34,7 +34,8 @@ void LIF_update_state(
     const int ny,
     const int nf,
     const int nb,
-
+    
+    
     CL_MEM_GLOBAL LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * V,
@@ -45,7 +46,12 @@ void LIF_update_state(
     CL_MEM_GLOBAL float * GSynExc,
     CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * GSynInhB,
-    CL_MEM_GLOBAL float * activity)
+    CL_MEM_GLOBAL float * activity, 
+
+    const float sum_gap,
+    CL_MEM_GLOBAL float * G_Gap,
+    CL_MEM_GLOBAL float * GSynGap
+    )
 {
    int k;
 
@@ -85,10 +91,12 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
+   float l_G_Gap = G_Gap[k];
 
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
+   float l_GSynGap  = GSynGap[k];
    
    // temporary arrays
    float tauInf, VmemInf;
@@ -150,10 +158,13 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
    l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
    l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
-
-   tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
-   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
-           / (1.0 + l_G_E + l_G_I + l_G_IB);
+   
+   // Gap junctions
+   l_G_Gap = l_GSynGap;  // -l_V * sum_gap
+   
+   tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
+   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_G_Gap)
+           / (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
 
    l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
 
@@ -192,10 +203,13 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_E[k]  = l_G_E;
    G_I[k]  = l_G_I;
    G_IB[k] = l_G_IB;
+   G_Gap[k] = l_G_Gap;
 
    GSynExc[k]  = 0.0f;
    GSynInh[k]  = 0.0f;
    GSynInhB[k] = 0.0f;
+   GSynGap[k]  = 0.0f;
+   
 
 #ifndef PV_USE_OPENCL
    } // loop over k
