@@ -73,6 +73,7 @@ HyPerCol * build(int argc, char * argv[]) {
                  "Movie",
                  "Patterns",
                "LIF",
+                  "LIFGap",
                "Retina",
                "SigmoidLayer",
            "_Stop_HyPerLayers_",
@@ -88,6 +89,7 @@ HyPerCol * build(int argc, char * argv[]) {
                  "GenerativeConn",
                    "PoolingGenConn",
                  "ODDConn",
+                 "GapConn",
                  "TransposeConn",
                    "FeedbackConn",
                "PoolConn",
@@ -312,6 +314,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "LIF") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LIF(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "LIFGap") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LIFGap(name, hc);
       checknewobject((void *) addedLayer, classkeyword, name);
    }
    if( !strcmp(classkeyword, "GapLayer") ) {
@@ -587,6 +594,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
        addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag);
      }
      checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GapConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new GapConn(name, hc, preLayer, postLayer, channelType, fileName);
+      }
+      checknewobject((void *) addedConn, classkeyword, name);
    }
    if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
       keywordMatched = true;
