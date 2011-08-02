@@ -37,7 +37,8 @@
 enum ChannelType {
   CHANNEL_EXC  = 0,
   CHANNEL_INH  = 1,
-  CHANNEL_INHB = 2
+  CHANNEL_INHB = 2,
+  CHANNEL_GAP = 3
 };
 
 typedef struct PVPatch_ {
