@@ -221,7 +221,7 @@ int KernelConn::reduceKernels(const int axonID) {
    const size_t localSize = numPatches * patchSize;
 
    //TODO!!! preallocate buf
-   pvdata_t * buf = (pvdata_t *) malloc(localSize);
+   pvdata_t * buf = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
    if(buf == NULL) {
       fprintf(stderr, "KernelConn::reduceKernels:Unable to allocate memory\n");
       exit(1);
