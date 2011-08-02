@@ -2,7 +2,7 @@
  * ODDConn.cpp
  *
  *  Created on: ?
- *      Author: kenyon
+ *      Author: Kenyon
  */
 
 #include "ODDConn.hpp"

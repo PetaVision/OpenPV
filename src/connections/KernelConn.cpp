@@ -39,7 +39,8 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename) : HyPerConn()
 {
    KernelConn::initialize_base();
-   initialize(name, hc, pre, post, channel, filename);
+   KernelConn::initialize(name, hc, pre, post, channel, filename);
+   // HyPerConn::initialize is not virtual
 }
 
 int KernelConn::initialize_base()

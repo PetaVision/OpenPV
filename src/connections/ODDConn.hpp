@@ -1,8 +1,8 @@
 /*
- * ODDConn.h
+ * ODDConn.hpp
  *
  *  Created on: ?
- *      Author: kenyon
+ *      Author: Kenyon
  */
 
 #ifndef ODDCONN_HPP_
