@@ -174,6 +174,7 @@ bool Movie::updateImage(float time, float dt)
       randomFrame();
       lastUpdateTime = time;
    } else {
+      bool needNewImage = false;
       if (time >= nextDisplayTime) {
          needNewImage = true;
          if (filename != NULL) free(filename);
