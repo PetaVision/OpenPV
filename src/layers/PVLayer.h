@@ -18,6 +18,7 @@ typedef enum {
    TypeRetina,
    TypeSimple,
    TypeLIFSimple,
+   TypeLIFGap,
    TypeLIFSimple2,
    TypeLIFFlankInhib,
    TypeLIFFeedbackInhib,

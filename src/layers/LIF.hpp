@@ -15,9 +15,9 @@
 #include "../kernels/LIF_params.h"
 
 #define NUM_LIF_EVENTS   4
-#define EV_LIF_PHI_E     0
-#define EV_LIF_PHI_I     1
-#define EV_LIF_PHI_IB    2
+#define EV_LIF_GSYN_E     0
+#define EV_LIF_GSYN_I     1
+#define EV_LIF_GSYN_IB    2
 #define EV_LIF_ACTIVITY  3
 
 namespace PV
@@ -32,6 +32,7 @@ public:
 
    LIF(const char* name, HyPerCol * hc);
    LIF(const char* name, HyPerCol * hc, PVLayerType type);
+   LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels);
    virtual ~LIF();
 
    virtual int triggerReceive(InterColComm* comm);
@@ -43,8 +44,11 @@ public:
    virtual int writeState(float time, bool last=false);
    
    pvdata_t * getVth()              {return Vth;}
-   pvdata_t * getConductance(ChannelType ch) {
-      pvdata_t * conductance;
+   virtual pvdata_t * getConductance(ChannelType ch) {
+         return ch < this->numChannels ? G_E + ch*getNumNeurons() : NULL;
+      }
+/*
+     pvdata_t * conductance = NULL;
       switch (ch) {
          case CHANNEL_EXC:  conductance = G_E; break;
          case CHANNEL_INH:  conductance = G_I; break;
@@ -52,6 +56,7 @@ public:
       }
       return conductance;
    }
+*/
 
    virtual LIF_params * getLIFParams() {return &lParams;};
 
@@ -59,7 +64,8 @@ public:
 
 protected:
 
-   bool spikingFlag;    // specifies that layer is spiking
+   // spikingFlag is member variable of HyPerLayer
+   // bool spikingFlag;    // specifies that layer is spiking
    LIF_params lParams;
    uint4 * rand_state;  // state for random numbers
 
@@ -68,13 +74,9 @@ protected:
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
 
-   float    wMax;
-   float    wMin;
-
-
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
+   virtual int initializeThreadBuffers(char * kernelName);
+   virtual int initializeThreadKernels(char * kernelName);
 
    // OpenCL buffers
    //
@@ -83,12 +85,13 @@ protected:
    CLBuffer * clG_E;
    CLBuffer * clG_I;
    CLBuffer * clG_IB;
-   CLBuffer * clR;
+   virtual int getNumCLEvents(){return NUM_LIF_EVENTS};
 #endif
 
-private:
-   virtual int initialize(PVLayerType type);
+protected:
+   virtual int initialize(PVLayerType type, const char * kernel_name);
 
+private:
    int findPostSynaptic(int dim, int maxSize, int col,
 	// input: which layer, which neuron
 			HyPerLayer *lSource, float pos[],

@@ -42,9 +42,9 @@ void LIF_update_state(
     float * G_E,
     float * G_I,
     float * G_IB,
-    float * phiExc,
-    float * phiInh,
-    float * phiInhB,
+    float * GSynExc,
+    float * GSynInh,
+    float * GSynInhB,
     float * activity);
 
 
@@ -70,13 +70,13 @@ LIFParams LIFDefaultParams =
 LIF::LIF(const char* name, HyPerCol * hc)
   : HyPerLayer(name, hc, MAX_CHANNELS)
 {
-   initialize(TypeLIFSimple);
+   initialize(TypeLIFSimple, "LIF_update_state");
 }
 
 LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type)
   : HyPerLayer(name, hc, MAX_CHANNELS)
 {
-   initialize(type);
+   initialize(type, "LIF_update_state");
 }
 
 LIF::~LIF()
@@ -99,9 +99,9 @@ LIF::~LIF()
    delete clG_E;
    delete clG_I;
    delete clG_IB;
-   delete clPhiE;
-   delete clPhiI;
-   delete clPhiIB;
+   delete clGSynE;
+   delete clGSynI;
+   delete clGSynIB;
    delete clActivity;
    delete clPrevTime;
 #endif
@@ -116,7 +116,7 @@ LIF::~LIF()
  * from the params file.
  *
  */
-int LIF::initialize(PVLayerType type)
+int LIF::initialize(PVLayerType type, const char * kernel_name)
 {
    float time = 0.0f;
    int status = CL_SUCCESS;
@@ -171,12 +171,13 @@ int LIF::initialize(PVLayerType type)
    }
 
    numWait = 0;
-   numEvents = NUM_LIF_EVENTS;
+   numEvents = getNumCLEvents(); //NUM_LIF_EVENTS;
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
    assert(evList != NULL);
 
-   initializeThreadBuffers();
-   initializeThreadKernels();
+   numKernelArgs = 0;
+   initializeThreadBuffers(kernel_name);
+   initializeThreadKernels(kernel_name);
 #endif
 
    return status;
@@ -187,7 +188,7 @@ int LIF::initialize(PVLayerType type)
  * Initialize OpenCL buffers.  This must be called after PVLayer data have
  * been allocated.
  */
-int LIF::initializeThreadBuffers()
+int LIF::initializeThreadBuffers(char * kernel_name)
 {
    int status = CL_SUCCESS;
 
@@ -209,9 +210,9 @@ int LIF::initializeThreadBuffers()
    clG_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_I);
    clG_IB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_IB);
 
-   clPhiE  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
-   clPhiI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
-   clPhiIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
+   clGSynE  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
+   clGSynI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
+   clGSynIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
 
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
@@ -219,7 +220,7 @@ int LIF::initializeThreadBuffers()
    return status;
 }
 
-int LIF::initializeThreadKernels()
+int LIF::initializeThreadKernels(char * kernel_name)
 {
    char kernelPath[PV_PATH_MAX+128];
    char kernelFlags[PV_PATH_MAX+128];
@@ -227,12 +228,12 @@ int LIF::initializeThreadKernels()
    int status = CL_SUCCESS;
    CLDevice * device = parent->getCLDevice();
 
-   sprintf(kernelPath, "%s/src/kernels/LIF_update_state.cl", parent->getPath());
+   sprintf(kernelPath, "%s/src/kernels/%s.cl", parent->getPath(), kernel_name);
    sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
 
    // create kernels
    //
-   krUpdate = device->createKernel(kernelPath, "LIF_update_state", kernelFlags);
+   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
 
    int argid = 0;
 
@@ -252,10 +253,11 @@ int LIF::initializeThreadKernels()
    status |= krUpdate->setKernelArg(argid++, clG_E);
    status |= krUpdate->setKernelArg(argid++, clG_I);
    status |= krUpdate->setKernelArg(argid++, clG_IB);
-   status |= krUpdate->setKernelArg(argid++, clPhiE);
-   status |= krUpdate->setKernelArg(argid++, clPhiI);
-   status |= krUpdate->setKernelArg(argid++, clPhiIB);
+   status |= krUpdate->setKernelArg(argid++, clGSynE);
+   status |= krUpdate->setKernelArg(argid++, clGSynI);
+   status |= krUpdate->setKernelArg(argid++, clGSynIB);
    status |= krUpdate->setKernelArg(argid++, clActivity);
+   numKernelArgs = argid;
 
    return status;
 }
@@ -322,9 +324,9 @@ int LIF::updateStateOpenCL(float time, float dt)
    status |= krUpdate->setKernelArg(1, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
 
-   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_E]);
-   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_I]);
-   status |= clPhiIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_PHI_IB]);
+   status |= clGSynE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_E]);
+   status |= clGSynI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_I]);
+   status |= clGSynIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_IB]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
 
    numWait += 4;
@@ -340,9 +342,9 @@ int LIF::triggerReceive(InterColComm* comm)
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
-   status |= clPhiE->copyToDevice(&evList[EV_LIF_PHI_E]);
-   status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_I]);
-   status |= clPhiI->copyToDevice(&evList[EV_LIF_PHI_IB]);
+   status |= clGSynE->copyToDevice(&evList[EV_LIF_GSYN_E]);
+   status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
+   status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_IB]);
    numWait += 3;
 #endif
 
@@ -375,13 +377,13 @@ int LIF::updateState(float time, float dt)
    const int nf = clayer->loc.nf;
    const int nb = clayer->loc.nb;
 
-   pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
-   pvdata_t * phiInh   = getChannel(CHANNEL_INH);
-   pvdata_t * phiInhB  = getChannel(CHANNEL_INHB);
+   pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+   pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+   pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
    pvdata_t * activity = clayer->activity->data;
 
    LIF_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, phiExc, phiInh, phiInhB, activity);
+         G_I, G_IB, GSynExc, GSynInh, GSynInhB, activity);
 
 #else
 

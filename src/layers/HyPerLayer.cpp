@@ -100,6 +100,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 #ifdef PV_USE_OPENCL
    this->numEvents = 0;  // reset by derived classes
    this->numWait   = 0;
+   this->numKernelArgs = 0;
 #endif
 
    this->update_timer  = new Timer();

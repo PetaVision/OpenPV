@@ -34,8 +34,8 @@ protected:
    virtual int initializeLayerId(int layerId);
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers() = 0;
-   virtual int initializeThreadKernels() = 0;
+   virtual int initializeThreadBuffers(char * kernelName) = 0;
+   virtual int initializeThreadKernels(char * kernelName) = 0;
 #endif
 
 private:
@@ -183,7 +183,11 @@ protected:
    CLBuffer * clPrevTime;
    CLBuffer * clParams;       // for transferring params to kernel
 
+
+   int numKernelArgs;             // number of events in event list
+   virtual int getNumKernelArgs(){return numKernelArgs};
    int numEvents;             // number of events in event list
+   virtual int getNumCLEvents(){return numEvents};
    int numWait;               // number of events to wait for
    cl_event * evList;         // event list
    cl_event   evUpdate;
