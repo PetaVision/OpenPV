@@ -19,6 +19,7 @@ typedef enum {
    TypeSimple,
    TypeLIFSimple,
    TypeLIFGap,
+   TypeLIFHC,
    TypeLIFSimple2,
    TypeLIFFlankInhib,
    TypeLIFFeedbackInhib,
