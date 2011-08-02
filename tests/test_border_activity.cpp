@@ -35,7 +35,7 @@ int main(int argc, char * argv[])
 
    const char * image_file = "input/const_one_64x64.tif";
 
-   HyPerCol * hc = new HyPerCol("column", argc, argv, "..");
+   HyPerCol * hc = new HyPerCol("column", argc, argv);
 
    Image * image   = new Image("test_border_activity image", hc, image_file);
    Retina * retina = new Retina("test_border_activity retina", hc);

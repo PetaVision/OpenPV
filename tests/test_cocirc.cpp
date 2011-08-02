@@ -22,7 +22,7 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   PV::HyPerCol * hc = new PV::HyPerCol("test_cocirc column", argc, argv, "..");
+   PV::HyPerCol * hc = new PV::HyPerCol("test_cocirc column", argc, argv);
    PV::Example * pre = new PV::Example("test_cocirc pre", hc);
    PV::Example * post = new PV::Example("test_cocirc post", hc);
    PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc, pre,

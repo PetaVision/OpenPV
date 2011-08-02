@@ -31,7 +31,7 @@ int main(int argc, char * argv[])
 
    int status = 0;
 
-   HyPerCol  * hc = new HyPerCol("column", argc, argv, "..");
+   HyPerCol  * hc = new HyPerCol("column", argc, argv);
    Example   * l1 = new Example("test_post_weights L1", hc);
    Example   * l2 = new Example("test_post_weights L2", hc);
    Example   * l3 = new Example("test_post_weights L3", hc);

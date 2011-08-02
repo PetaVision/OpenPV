@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
-   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv, "..");
+   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;

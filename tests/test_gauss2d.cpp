@@ -22,7 +22,7 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", argc, argv, "..");
+   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", argc, argv);
    PV::Example * pre = new PV::Example("test_gauss2d pre", hc);
    PV::Example * post = new PV::Example("test_gauss2d post", hc);
    PV::HyPerConn * cHyPer = new HyPerConn("test_gauss2d hyperconn", hc, pre,
