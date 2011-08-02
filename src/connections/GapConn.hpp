@@ -15,6 +15,8 @@ namespace PV {
 class GapConn: public PV::KernelConn {
 public:
    GapConn();
+   GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+         HyPerLayer * post, ChannelType channel, const char * filename);
    virtual ~GapConn();
    virtual int initNormalize();
 private:

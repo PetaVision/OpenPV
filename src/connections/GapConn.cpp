@@ -14,6 +14,12 @@ GapConn::GapConn()
 {
 }
 
+GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, const char * filename) :
+      KernelConn(name, hc, pre,post, channel, filename){
+
+}
+
 GapConn::~GapConn()
 {
 }
