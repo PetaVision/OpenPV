@@ -345,13 +345,12 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                              const PVLayerLoc * loc, bool extended, float scale)
 {
    size_t sf, sx, sy;
+   int nxBorder, nyBorder;
+   int numItems;
 
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
-
-   int nxBorder = 0;
-   int nyBorder = 0;
 
    if (extended) {
       nxBorder = loc->nb;
@@ -359,11 +358,15 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
       sf = strideFExtended(loc);
       sx = strideXExtended(loc);
       sy = strideYExtended(loc);
+      numItems = nf*(nx+2*nxBorder)*(ny+2*nyBorder);
    }
    else {
+      nxBorder = 0;
+      nyBorder = 0;
       sf = strideF(loc);
       sx = strideX(loc);
       sy = strideY(loc);
+      numItems = nf*nx*ny;
    }
 
    int ii = 0;
@@ -376,6 +379,10 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
          }
       }
    }
+   // If extended is true, there will be space at the end of the buffer.
+   // Clear it so that the same output file is always produced from the
+   // same value of data.
+   while(ii<numItems) buf[ii++] = 0;
    return 0;
 }
 
