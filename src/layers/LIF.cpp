@@ -82,8 +82,10 @@ LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type)
 LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels)
   : HyPerLayer(name, hc, num_channels)
 {
-   initialize(type, "LIF_update_state");
+  // this is the constructor to be used by derived classes, it does not produce
+  // a function class but is asking for an init by the derived class
 }
+
 
 LIF::~LIF()
 {
