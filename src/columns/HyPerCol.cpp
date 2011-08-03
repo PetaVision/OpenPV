@@ -238,6 +238,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    numProbes = 0;
    probes = NULL;
 
+   filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", false);
+
    return PV_SUCCESS;
 }
 

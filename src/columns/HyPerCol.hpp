@@ -79,6 +79,8 @@ public:
    int localWidth()                       {return imageLoc.nx;}
    int localHeight()                      {return imageLoc.ny;}
 
+   int includeLayerName()                 {return filenamesContainLayerNames;}
+
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
 
    const char * inputFile()               {return image_file;}
@@ -147,6 +149,9 @@ private:
 
    int numProbes;
    ColProbe ** probes;
+
+   bool filenamesContainLayerNames; // Whether filenames of layers' clayer->activeFP
+                                    // have the form a5.pvp or a5_NameOfLayer.pvp
 
 }; // class HyPerCol
 

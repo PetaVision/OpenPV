@@ -188,8 +188,11 @@ int HyPerLayer::initializeLayerId(int layerId)
    bool append = false;
 
    setLayerId(layerId);
-
-   sprintf(filename, "%s/a%d.pvp", parent->getOutputPath(), clayer->layerId);
+   if( parent->includeLayerName() ) {
+      snprintf(filename, PV_PATH_MAX, "%s/a%d_%s.pvp", parent->getOutputPath(), clayer->layerId, name);
+   } else {
+      snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), clayer->layerId);
+   }
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
    return 0;
