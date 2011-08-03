@@ -167,7 +167,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          outputPath = strdup(OUTPUT_PATH);
          assert(outputPath != NULL);
          printf("Output path specified neither in command line nor in params file.\n"
-                "Output path set to default \"%s\n",OUTPUT_PATH);
+                "Output path set to default \"%s\"\n",OUTPUT_PATH);
       }
    }
    // see if outputPath exists, and try to create it if it doesn't.
