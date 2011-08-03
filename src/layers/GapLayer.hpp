@@ -20,8 +20,11 @@ public:
    GapLayer(const char * name, HyPerCol * hc, LIFGap * clone);
    virtual ~GapLayer();
    int initialize(LIFGap * clone);
+      // use LIFGap as source layer instead (LIFGap updates gap juctions more accurately)
+#ifdef OBSOLETE
    virtual int updateV();
-   virtual int setActivity();
+#endif
+virtual int setActivity();
    LIFGap * sourceLayer;
 };
 
