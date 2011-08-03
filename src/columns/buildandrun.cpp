@@ -356,13 +356,13 @@ GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
       fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
       return NULL;
    }
-   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+   LIFGap * originalLIFLayer = dynamic_cast<LIFGap *>(originalLayer);
    GapLayer * addedLayer;
    if (originalLIFLayer) {
       addedLayer = new GapLayer(name, hc, originalLIFLayer);
    }
    else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIF layer\n", name, originalLayer->getName());
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIFGap layer\n", name, originalLayer->getName());
       addedLayer = NULL;
    }
    return addedLayer;
