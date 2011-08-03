@@ -3,8 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
-#include "ChannelProbe.hpp"
+#include "columns/buildandrun.hpp"
 
 #define MAIN_USES_ADDCUSTOM
 
