@@ -8,7 +8,7 @@
 #include "HyPerLayer.hpp"
 #include "GapLayer.hpp"
 
-// CloneLayer can be used to implement gap junctions
+// GapLayer can be used to implement gap junctions
 namespace PV {
 GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) :
    HyPerLayer(name, hc, MAX_CHANNELS)
