@@ -326,6 +326,13 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addGapLayer(name, hc);
       checknewobject((void *) addedLayer, classkeyword, name);
    }
+   if( !strcmp(classkeyword, "SigmoidLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
+      checknewobject((void *) addedLayer, classkeyword, name);
+   }
+
+
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Retina(name, hc);
@@ -996,6 +1003,9 @@ int decodeChannel(int channel, ChannelType * channelType) {
       break;
    case CHANNEL_INHB:
       *channelType = CHANNEL_INHB;
+      break;
+   case CHANNEL_GAP:
+      *channelType = CHANNEL_GAP;
       break;
    default:
       status = PV_FAILURE;
