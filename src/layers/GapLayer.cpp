@@ -8,7 +8,7 @@
 #include "HyPerLayer.hpp"
 #include "GapLayer.hpp"
 
-// GapLayer can be used to implement gap junctions
+// CloneLayer can be used to implement gap junctions
 namespace PV {
 GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) :
    HyPerLayer(name, hc, MAX_CHANNELS)
@@ -32,23 +32,21 @@ int GapLayer::initialize(LIFGap * originalLayer)
 }
 
 // use LIFGap as source layer instead (LIFGap updates gap juctions more accurately)
-#ifdef OBSOLETE
 int GapLayer::updateV() {
+#ifdef OBSOLETE
    pvdata_t * V = getV();
    pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
    pvdata_t exp_deltaT = 1.0f - exp(-this->getParent()->getDeltaTime() / sourceLayer->getLIFParams()->tau);
    for( int k=0; k<getNumNeurons(); k++ ) {
       V[k] += GSynExc[k] * exp_deltaT;  //!!! uses base tau, not the true time-dep tau
-   }
+#endif
    return PV_SUCCESS;
 }
-#endif
-
 
 //!!!TODO: add param in LIFGap for spikelet amplitude
 int GapLayer::setActivity() {
 
-   HyPerLayer::setActivity();
+   HyPerLayer::setActivity(); // this copies the potential into the activity buffer
 
    // extended activity may not be current but this is alright since only local activity is used
    // !!! will break (non-deterministic) if layers are updated simultaneously--fix is to use datastore
