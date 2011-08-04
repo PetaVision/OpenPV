@@ -8,6 +8,10 @@
 #include "GapConn.hpp"
 #include "../layers/LIFGap.hpp"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 namespace PV {
 
 GapConn::GapConn()
@@ -15,9 +19,8 @@ GapConn::GapConn()
 }
 
 GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) :
-      KernelConn(name, hc, pre,post, channel, filename){
-
+      HyPerLayer * post, ChannelType channel, const char * filename) {
+    initialize(name, hc, pre, post, channel, filename);
 }
 
 GapConn::~GapConn()
@@ -34,6 +37,8 @@ int GapConn::initNormalize(){
       initNormalizeFlag = true;
       pvdata_t gap_strength;
       gap_strength = this->normalize_strength * this->postSynapticLayer()->getNumNeurons() / this->preSynapticLayer()->getNumNeurons();
+      fprintf(stdout,"GapConn strength %f postSyn %i preSyn %i \n",this->normalize_strength,this->postSynapticLayer()->getNumNeurons(),this->preSynapticLayer()->getNumNeurons());
+      fprintf(stdout,"GapConn gap_strength %f \n",gap_strength);
       postLIFGap->addGapStrength(gap_strength);
    }
    return status;
