@@ -21,9 +21,9 @@ public:
    virtual ~GapLayer();
    int initialize(LIFGap * clone);
       // use LIFGap as source layer instead (LIFGap updates gap juctions more accurately)
-#ifdef OBSOLETE
+
    virtual int updateV();
-#endif
+
 virtual int setActivity();
    LIFGap * sourceLayer;
 };
