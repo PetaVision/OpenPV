@@ -83,7 +83,9 @@ HyPerCol * build(int argc, char * argv[]) {
                "ConvolveConn",
                "KernelConn",
                  "CloneKernelConn",
+#ifdef OBSOLETE
                  "CocircConn",
+#endif
                  "GaborConn",
                  "IdentConn",
                  "GenerativeConn",
@@ -505,6 +507,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -514,6 +517,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#endif
    if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);

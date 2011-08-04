@@ -43,7 +43,9 @@
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/GapConn.hpp"
+#ifdef OBSOLETE
 #include "../connections/CocircConn.hpp"
+#endif
 #include "../connections/GaborConn.hpp"
 #include "../connections/ODDConn.hpp"
 #include "../connections/GapConn.hpp"

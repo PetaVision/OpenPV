@@ -5,6 +5,8 @@
  *      Author: rasmussn
  */
 
+#ifdef OBSOLETE // Marked obsolete Aug 4.  Use KernelConn with cocircWeights set to true in the params file
+
 #ifndef COCIRCCONN_HPP_
 #define COCIRCCONN_HPP_
 
@@ -34,3 +36,5 @@ public:
 }
 
 #endif /* COCIRCCONN_HPP_ */
+
+#endif // OBSOLETE

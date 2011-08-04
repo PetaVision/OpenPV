@@ -5,6 +5,8 @@
  *      Author: rasmussn
  */
 
+#ifdef OBSOLETE // Marked obsolete Aug 4.  Use KernelConn with cocircWeights set to true in the params file
+
 #include "CocircConn.hpp"
 #include "../io/io.h"
 #include "../utils/conversions.h"
@@ -63,3 +65,5 @@ int CocircConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 }
 
 } // namespace PV
+
+#endif // OBSOLETE
