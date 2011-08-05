@@ -237,12 +237,12 @@ int ODDConn::writeWeights(float time, bool last)
    const int num_weights = nxp * nyp * nfp;
    for (int iKernel = 0; iKernel < num_kernels; iKernel++){
       pvdata_t * kernelWeights = kernelPatches[iKernel]->data;
-      pvdata_t * geislerWeights = geislerPatches[iKernel]->data;
+      pvdata_t * ODDWeights = geislerPatches[iKernel]->data;
       for (int iWeight = 0; iWeight < num_weights; iWeight++){
          int kfPost = iWeight % num_kernels;
          pvdata_t kernelNorm =
             (avePreActivity[iKernel] / numUpdates ) * (avePostActivity[kfPost] / numUpdates );
-         kernelWeights[iWeight] = geislerWeights[iWeight];
+         kernelWeights[iWeight] = ODDWeights[iWeight];
          kernelWeights[iWeight] /= numUpdates;
 //         kernelWeights[iWeight] -= kernelNorm;
          kernelWeights[iWeight] /= fabs(kernelNorm + (kernelNorm==0));
