@@ -214,18 +214,18 @@ int STDPConn::updateWeights(int axonId)
          pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
       }
 
-         // update weights
-         for (int y = 0; y < ny; y++) {
-            pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
-            //
-            // advance pointers in y
-            W += sy;
-            P += sy;
-            //
-            // postActivity and M are extended layer
-            postActivity += postStrideY;
-            M += postStrideY;
-         }
+      // update weights
+      for (int y = 0; y < ny; y++) {
+         pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
+         //
+         // advance pointers in y
+         W += sy;
+         P += sy;
+         //
+         // postActivity and M are extended layer
+         postActivity += postStrideY;
+         M += postStrideY;
+      }
 
    }
 
