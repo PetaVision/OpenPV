@@ -49,6 +49,7 @@ int Image::initializeImage(const char * filename)
 
    if (filename != NULL) {
       this->filename = strdup(filename);
+      assert(this->filename != NULL);
       status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    }
    else {
