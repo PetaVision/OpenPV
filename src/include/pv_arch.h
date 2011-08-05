@@ -5,7 +5,7 @@
 #define PV_ARCH_64
 
 /* define this if using a vendor supplied MPI library */
-#undef PV_USE_MPI
+#define PV_USE_MPI
 
 /* define this if using OpenCL for threads on CPU or GPU */
 #undef PV_USE_OPENCL
@@ -17,7 +17,7 @@
 #define PV_USE_GDAL
 
 /* maximum length of a path */
-#define PV_PATH_MAX 127
+#define PV_PATH_MAX 256 // 127  // imageNet uses long folder names
 
 /* define if using pthreads */
 #undef PV_USE_PTHREADS
