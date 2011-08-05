@@ -37,8 +37,6 @@ int GapConn::initNormalize(){
       initNormalizeFlag = true;
       pvdata_t gap_strength;
       gap_strength = this->normalize_strength * this->postSynapticLayer()->getNumNeurons() / this->preSynapticLayer()->getNumNeurons();
-      fprintf(stdout,"GapConn strength %f postSyn %i preSyn %i \n",this->normalize_strength,this->postSynapticLayer()->getNumNeurons(),this->preSynapticLayer()->getNumNeurons());
-      fprintf(stdout,"GapConn gap_strength %f \n",gap_strength);
       postLIFGap->addGapStrength(gap_strength);
    }
    return status;
