@@ -204,7 +204,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_phiInh = phiInh[k];
    float l_activ;
 
-   l_activ = params->probStim*(l_phiExc - l_phiInh);
+   // adding base prob should not change default behavior
+   l_activ = params->probStim*(l_phiExc - l_phiInh) + params->probBase;
 
    l_phiExc = 0.0f;
    l_phiInh = 0.0f;
