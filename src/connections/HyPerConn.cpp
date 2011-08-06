@@ -458,7 +458,7 @@ PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPat
    float sigma = 0.8;
    float rMax = 1.4;
    float strength = 1.0;
-   float deltaThetaMax = 2.0f * PI;  // max orientation in units of PI
+   float deltaThetaMax = 2.0f * PI;  // max difference in orientation between pre and post
    float thetaMax = 1.0;  // max orientation in units of PI
    int numFlanks = 1;
    float shift = 0.0f;
@@ -1648,7 +1648,7 @@ int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
    const int sf_tmp = wp_tmp->sf;
    assert(sf_tmp == 1);
 
-   // get distances to nearest neighbor in post synaptic layer (meaured relative to pre-synatpic cell)
+   // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic cell)
    float xDistNNPreUnits;
    float xDistNNPostUnits;
    dist2NearestCell(kxPre_tmp, pre->getXScale(), post->getXScale(),
