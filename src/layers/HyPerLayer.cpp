@@ -62,8 +62,9 @@ void HyPerLayer::freeChannels()
 
 /**
  * Primary method for derived layer initialization.  This should be called
- * after initialize_base has been called.  WARNING, very little should be
- * done here as it should be done in derived class.
+ * after initialize_base has been called.
+ * WARNING, should only called by derived class
+ * (initialize is not called by base HyPerLayer, which is an abstract class).
  */
 int HyPerLayer::initialize(PVLayerType type)
 {
@@ -139,7 +140,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    spikingFlag = (bool) params->value(name, "spikingFlag", 0);
    if( !spikingFlag )
-      writeNonspikingActivity = (bool) params->value(name, "writeNonspikingActivity", defaultWriteNonspikingActivity);
+      writeNonspikingActivity = (bool) params->value(name,
+         "writeNonspikingActivity", defaultWriteNonspikingActivity);
 
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
@@ -151,7 +153,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    clayer->layerType = TypeGeneric;
 
-   // allocate storage for the conductance arrays
+   // allocate storage for the input conductance arrays
    //
    if (numChannels > 0) {
       GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
