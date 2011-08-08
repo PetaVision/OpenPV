@@ -70,7 +70,7 @@ protected:
    uint4 * rand_state;  // state for random numbers
 
    pvdata_t * Vth;      // threshold potential
-   pvdata     VthRest;  // VthRest potential
+   pvdata_t   VthRest;  // VthRest potential
    pvdata_t * G_E;      // excitatory conductance
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
