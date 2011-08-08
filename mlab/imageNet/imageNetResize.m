@@ -21,6 +21,7 @@ function [tot_images ...
   %% box data
 
   begin_time = time();
+  more off
 
   if nargin < 1 || ~exist(imageNet_path) || isempty(imageNet_path)
     imageNet_path = "~/Pictures/imageNet/";
@@ -29,7 +30,10 @@ function [tot_images ...
     image_resize = [256 360];
   endif
   if nargin < 3 || ~exist(object_list) || isempty(object_list)
-    object_list{1} = "dog";  %% could be a list?
+    object_list{1} = "cat";  %% could be a list?
+  endif
+  if nargin < 4 || ~exist(image_type) || isempty(image_type)
+    image_type = ".png";  %% could be a list?
   endif
 
   global NUM_FIGS
@@ -49,7 +53,12 @@ function [tot_images ...
     if ~exist(object_dir, "dir")
       error(["object_dir does not exist: ", object_dir]);
     endif
-    
+    standard_parent_dir = ...
+	[ imageNet_path, "standard/", object_name, "/" ];
+    mkdir(standard_parent_dir);
+    masks_parent_dir = ...
+	[ imageNet_path, "masks/", object_name, "/" ];
+    mkdir(masks_parent_dir);
     tot_images = zeros(1,num_objects);
     tot_masks = zeros(1,num_objects);
     tot_discarded = zeros(1,num_objects);
@@ -69,7 +78,7 @@ function [tot_images ...
     subdir_struct = dir([object_dir,"*"]);
     num_subdirs = length(subdir_struct);
     disp(["num_subdirs = ", num2str(num_subdirs)]);
-    for i_subdir = 128: 129 %%138 : num_subdirs
+    for i_subdir = 12 : num_subdirs %% : fix(num_subdirs/2) %% 
       if 0 %%~strcmp(subdir_struct(i_subdir).name(1),"n")
 	continue;
       endif
@@ -96,13 +105,11 @@ function [tot_images ...
 	end
       endif
       standard_dir = ...
-	  [imageNet_path, "standard/", ...
-	   object_name, "/", ...
+	  [standard_parent_dir, ...
 	   subdir_struct(i_subdir).name, "/"];
       mkdir(standard_dir); %% does not clobber
       masks_dir = ...
-	  [imageNet_path, "masks/", ...
-	   object_name, "/", ...
+	  [masks_parent_dir, ...
 	   subdir_struct(i_subdir).name, "/"];
       mkdir(masks_dir); 
       images_struct = dir([images_path, "n*.*"]);
@@ -146,7 +153,7 @@ function [tot_images ...
 	if isempty(pad_image)
 	  continue;
 	endif
-	standard_name = [standard_dir, base_name, ".png"];
+	standard_name = [standard_dir, base_name, image_type];
 	imwrite(pad_image, standard_name);
 	tot_images(1,i_object) = ...
 	    tot_images(1,i_object) + 1;

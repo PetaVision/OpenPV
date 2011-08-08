@@ -17,7 +17,7 @@ function [tot_images, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "dog";  %% could be a list?
+    object_name = "cat";  %% could be a list?
   endif
   if nargin < 3 || ~exist(mask_flag) || isempty(mask_flag)
     mask_flag = 1;  %% 
