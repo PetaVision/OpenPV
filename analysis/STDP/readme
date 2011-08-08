@@ -124,15 +124,79 @@ WMAX ANALYSIS - for adaptive, neuron dependent wMax models
 
 > the main driving routine is wmax_analyze.m
 
-> set plot_wMax = 1 and it reads wMax and rate (R) configurations
-  saved at the end of a simulation by calling wmax_readFile(). We make
-  2D plots for wMax and rate. It also makes a plot of (averageR - R) vs wMax.
+> set plot_wMax = 1 and it reads wMax, rate (R), and VthRest
+  configurations saved at the end of a simulation by calling
+  wmax_readLastFile(). We make 2D plots for wMax, rate, and
+  VthRest. It also makes a plot of (averageR - R) vs wMax.  and
+  VthRest vs Rate.
 
 > set comp_scores = 1 which calls wmax_compScores(). This plots the
   score for each neuron vs its wMax value.
 
-> set plot_rate = 1. We read the evoltuion of the layer R variable. We compare
+> set plot_rate = 1. We read the evolution of the layer R variable. We compare
 the evolution of individual neurons with their spiking time series.
+
+    - if read_spikes we read the spike array and compute average spiking rate. Plot
+    average spiking rate vs average rate.
+
+    - if plot_raster uses the spike array read if read_spikes to make
+      a raster plot of spiking activity vs time.
+
+    - if read_rate_array calls stdp_readAverageActivity() to read the average activity 
+    and makes a 2D plot using imagesc().
+
+    - if plot_rate_array it calls stdp_readAverageActivity() to
+      compute the average firing rate wuthin a time window set by 
+      begin_step  and end_step.
+
+    NOTE: Set n_time_steps correctly for this to work!
+
+
+> set plot_weights_histogram = 1 which calls W =
+  stdp_plotWeightsHistogramOnly(w_file{i},xScale,yScale,TSTEP);
+  
+> set plot_weights_field = 1 to 
+
+> set read_probe = 1 to read data from various probes. If
+read_probe_data = 1 it reads the data by calling
+ptprobe_readV(). Otherwise, it only plots the data - which was read
+before.
+
+	- I also introduce a function ptprobe_readValues() in order to
+	read, and return, from the LIF probe the advanceWmax values.
+
+
+> set read_features = 1 to do:
+  - if read_feature_files = 1 calls wmax_readFeatures(xScale, yScale, ...
+  rate_file,pc_file, 0) which reads:
+
+ 1) rates from the file [output_dir/rate_file] - rate 
+  has to be pre-computed and written to this file first. To do this select plot_rate, 
+  then read_rate_array, and  write_rate. The computed rate is written to output_dir!!
+
+ 2) indexes pre-synaptic neurons afferent to each post-syn neuron. note that conn_dir needs to 
+  be defined. This dir is /Users/manghel/Documents/workspace/STDP-sim/PCProbes.
+  The pre-synaptic neurons are written to the cel larray preIndexes{kPost}.
+
+  3) for each post-syn neuron it sets its feature array equal to the
+  activity in the pre-synaptic layer for the afferent pre-syn indices to this neuron.
+
+   - if read_weights_files calls wmax_readLastWeightsField() to read weight patches in cell arrays
+    Won_array and Woff_array.
+
+   - if read_wMax it calls wmax_readLastFile() to read wMax.
+
+   - if print_features then it prints:
+     1) indexes if print_indexes = 1
+     2) weight patches if print_weights = 1
+
+   - if compute_overlap it computes the overlap between weight patches and features.
+   - if compute_overlap_histogram it plots the histogram of the overlaps.
+
+Notes:
+
+-  use wmax_globalsSC.m to set the file names for various layers in a
+  model with simple and complex cells layers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

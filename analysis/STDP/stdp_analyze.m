@@ -1,3 +1,4 @@
+
 %%
 %close all
 %clear all
@@ -77,7 +78,7 @@ plot_patch              = 0;
 comp_weights_PCA        = 0;
 %% K means analysis
 comp_weights_Kmeans     = 0; % add Documents/MATLAB/Kmeans to path
-comp_weights_KmeansAD   = 0; % add Documents/MATLAB/Kmeans to path
+comp_weights_KmeansAD   = 0; % add Documents/MATLAB/KmeansMA to path
 comp_conc_weights_Kmeans= 0; % add Documents/MATLAB/Kmeans to path
 comp_RF_Kmeans          = 0;
 comp_score_evolution    = 0; % add Documents/MATLAB/Kmeans to path

@@ -154,7 +154,7 @@ if exist(filename,'file')
         for k=1:numCenters
             fprintf('cluster %d w = %f\n',k,sortW(k));
             %patch = clustW(k) * reshape(centers(k,:),[4 4])';
-            patch = reshape(centers(sortI(k),:),[4 4])';
+            patch = reshape(centers(sortI(k),:),[5 5])';
             subplot(numRows,numColumns,k);
             colormap gray
             imagesc(patch); % 'CDataMapping','direct'

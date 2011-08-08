@@ -1,4 +1,4 @@
-function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
+function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg, PLOT_STEP)
 % plot "weights" (typically after turning on just one neuron)
 % Xtarg and Ytarg contain the X and Y coordinates of the target
 % xScale and yScale are scale factors for this layer
@@ -7,11 +7,14 @@ function A = stdp_plotWeightsField(fname, xScale, yScale,Xtarg, Ytarg)
 % We plot a square around the neurons that have the same receptive
 % field. xShare and yShare define the size of the layer patch that
 % contains neurons that have the same receptive.
+% If defined, we plot every PLOT_STEP.
 
 global input_dir  NX NY 
 
 margins_defined = 1;
-
+wThreshold = 8; % introduced to remove very large weights and make the 
+                % color range cover the vast majority of weights and not
+                % be stretched by a few outlyers 
 filename = fname;
 filename = [input_dir, filename];
     
@@ -23,7 +26,6 @@ NYlayer = NY * yScale;
 
 fprintf('scaled NX = %d scaled NY = %d\n',NXlayer,NYlayer);
 
-PLOT_STEP = 10;
 plotTarget = 0;
 
 %figure('Name','Weights Fields');
@@ -62,8 +64,7 @@ if exist(filename,'file')
 
     
     if weightsChange
-       PATCH = zeros(NXPbor,NYPbor);
-                      % PATCH contains borders
+       PATCH = zeros(NXPbor,NYPbor); % PATCH contains borders
     else
         if scaleWeights
             PATCH = ones(NXPbor,NYPbor) * (0.5*(maxVal+minVal));
@@ -97,11 +98,13 @@ if exist(filename,'file')
             %pause
             % if minVal and/or maxVal change dynamically (homeostatic
             % control) adjust the color of the patch accordingly
+            maxVal = min([maxVal wThreshold]); % see thresholding below
             if scaleWeights
                 PATCH(:) = 0.5*(maxVal+minVal);
             else
                 PATCH (:) = 122;
             end
+            %PATCH (:) = 0;
         else
             first_record = 0;
         end
@@ -129,6 +132,10 @@ if exist(filename,'file')
                     if scaleWeights
                        w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
                     end
+                    % remove very large values
+                    ind = find(w > wThreshold);
+                    w(ind) = 0.0;
+                    
                     if debug 
                         for r=1:patch_size
                             fprintf('%d ',w(r));
@@ -289,6 +296,143 @@ if exist(filename,'file')
     
     fclose(fid);
     fprintf('feof reached: numRecords = %d time = %f\n',numRecords,time);
+    
+    %% read now the last configuration of weights.
+    [path,name,ext,ver] = fileparts(fname);
+    
+    last_file = [name '_last.pvp'];
+    last_file = [input_dir, last_file];
+    fprintf('read last weights from %s\n',last_file);
+    fid=fopen(last_file,'r','native');
+    [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
+        readFirstHeader(fid);
+    fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+        time,numPatches,NXP,NYP,NFP);
+    
+    if numPatches ~= NXlayer*NYlayer
+        disp('mismatch between numPatches and NX*NY')
+        return
+    end
+            
+    k=0;
+    
+    for j=1:NYlayer
+        for i=1:NXlayer
+            if ~feof(fid)
+                k=k+1;
+                nx = fread(fid, 1, 'uint16'); % unsigned short
+                ny = fread(fid, 1, 'uint16'); % unsigned short
+                nItems = nx*ny*NFP;
+                if debug
+                    fprintf('k = %d nx = %d ny = %d nItems = %d: ',...
+                        k,nx,ny,nItems);
+                end
+                
+                w = fread(fid, nItems, 'uchar'); % unsigned char
+                % scale weights: they are quantized before written
+                if scaleWeights
+                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                end
+                % remove very large values
+                ind = find(w > wThreshold);
+                w(ind) = 0.0;
+                
+                if debug
+                    for r=1:patch_size
+                        fprintf('%d ',w(r));
+                    end
+                    fprintf('\n');
+                    pause
+                end
+                if(~isempty(w) & nItems ~= 0)
+                    W_array(k,:) = w(1:patch_size);
+                    %pause
+                end
+            end % if ~ feof
+        end
+    end % loop over post-synaptic neurons
+        
+    % make the matrix of patches and plot patches for this time step
+    A = [];
+    
+    if(~isempty(W_array))
+               
+        k=0;
+        for j=1:NYlayer
+            for i=1:NXlayer
+                k=k+1;
+                %W_array(k,:)
+                patch = reshape(W_array(k,:),[NXP NYP]);
+                %PATCH(b1+1-b:b1+b,a1+1-a:a1+a) = patch';
+                PATCH(2:NYP+1,2:NXP+1) = patch';
+                %patch
+                %PATCH
+                %pause
+                A(1+(j-1)*NYPbor:j*NYPbor,1+(i-1)*NXPbor:i*NXPbor) = PATCH;
+                %imagesc(A,'CDataMapping','direct');
+                %pause
+            end
+        end
+        
+   
+        %fprintf('time = %f\n',time);
+        if weightsChange
+            %figure('Name',['Weights Change Field ' num2str(time)]);
+            imagesc(A-Ainit,'CDataMapping','direct');
+        else
+            figure('Name',['Weights Field ' num2str(time)]);
+            imagesc(A,'CDataMapping','direct');
+        end
+        %colorbar
+        axis square
+        axis off
+        hold on
+        
+        % plot squares around the neurons that share the same
+        % receptive field
+        % this works when there are no margins and it generates
+        % a boundary layer of width 2 in this case
+        % With margins defined there is no need for a boundary
+        % layer!
+        
+        if (margins_defined)
+            for i=0.5:xShare*NXPbor:(NXlayer*NXPbor+1)
+                plot([i, i],[0.5,NYlayer*NYPbor+0.5],'-r');
+                
+            end
+            for j=0.5:yShare*NYPbor:(NYlayer*NYPbor+1)
+                plot([0.5,NXlayer*NXPbor+0.5],[j,j],'-r');
+            end
+        else
+            for i=(0.5+2*NXPbor):xShare*NXPbor:(NXlayer*NXPbor+1)
+                plot([i, i],[0,NYlayer*NYPbor],'-r');
+                
+            end
+            for j=(0.5+2*NYPbor):yShare*NYPbor:(NYlayer*NYPbor+1)
+                plot([0,NXlayer*NXPbor],[j,j],'-r');
+            end
+        end % margins_defined
+        %pause
+        
+        % plot target pixels
+        if plotTarget
+            for t=1:length(Xtarg)
+                I=Xtarg(t);
+                J=Ytarg(t);
+                plot([(J-1)*NXP+dY],[(I-1)*NXP+dX],'.r','MarkerSize',12)
+            end
+        end
+        pause(0.1)
+        hold off
+        
+        Aold = A;
+        avWeights = avWeights + A;
+        
+        
+    end
+    
+    
+    %% plot average weight field
     avWeights = avWeights / numRecords;
     figure('Name','Time Averaged Weights');
     imagesc(avWeights,'CDataMapping','direct');

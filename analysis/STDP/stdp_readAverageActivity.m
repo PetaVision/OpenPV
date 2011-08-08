@@ -34,12 +34,12 @@ if exist(filename,'file')
         if (feof(fid))
             n_time_steps = i_step - 1;
             eofstat = feof(fid);
-            fprintf('feof reached: n_time_steps = %d eof = %d\n',...
-                n_time_steps,eofstat);
+            fprintf('feof reached: n_time_steps = %d time = %f eof = %d\n',...
+                n_time_steps,time,eofstat);
             break;
         else
             time = fread(fid,1,'float64');
-            %fprintf('time = %f\n',time);
+            fprintf('time = %f\n',time);
             num_spikes = fread(fid, 1, 'int');
             eofstat = feof(fid);
             %fprintf('eofstat = %d\n', eofstat);
@@ -84,8 +84,8 @@ if exist(filename,'file')
     average_array =  average_array * ...
         ( 2 * 1000.0 / ( end_step - begin_step + 1 ) );
     
-    fprintf('i_step = %d minInd = %d maxInd = %d aveRate = %f\n',...
-        i_step,minInd,maxInd,ave_rate);
+    fprintf('i_step = %d time = %f minInd = %d maxInd = %d aveRate = %f\n',...
+        i_step,time,minInd,maxInd,ave_rate);
     
 else
     disp(['Skipping, could not open ', filename]);

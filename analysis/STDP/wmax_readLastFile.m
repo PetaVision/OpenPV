@@ -42,7 +42,7 @@ debug = 0;
 %     1     2     3
 %     4     5     6     (1)
 %     7     8     9
-% we write it as a = a = [1 2 3, 4 5 6, 7 8 9]. When we reshape it,
+% we write it as a = [1 2 3, 4 5 6, 7 8 9]. When we reshape it,
 % > reshape(a,[ 3 3 ] )
 % we get
 %

@@ -1,4 +1,4 @@
-function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,yScale] = stdp_globals(layer)
+function [ffile, vfile, rfile, wfile, wlast, lname, xScale,yScale] = stdp_globals(layer)
 
 %    global NO
 
@@ -29,10 +29,7 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         lname = 'Image';
         wfile={''};
         wlast={''};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
@@ -44,10 +41,7 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         lname = 'RetinaOn';
         wfile = {''};  % Image to RetinaOn 
         wlast = {'w0_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
@@ -57,73 +51,37 @@ function [ffile, vfile, rfile, wfile, wlast, lname, wMaxfile, wMaxlast, xScale,y
         vfile = 'V2.pvp';
         rfile = '';
         lname = 'RetinaOff';
-        wfile = {''};  % RetinaOff to V1
+        wfile = {''};  % Image to RetinaOff 
         wlast = {'w1_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-        wRfile = '';
-        wRlast = '';
+
         preFiles = {''};
         xScale = 1;
         yScale = 1;
         NO = 1;
-    elseif (layer == 4) %V1
+    elseif (layer == 4) %S1
         ffile = 'a3.pvp';
-        vfile = 'L1_V.pvp';
-        rfile = 'L1_R.pvp';
-        lname = 'L1';
+        vfile = 'S1_V.pvp';
+        rfile = 'S1_R.pvp';
+        lname = 'S1';
         wfile = {'w4_post.pvp','w5_post.pvp'};
         wlast = {'w4_post_last.pvp', 'w5_post_last.pvp' };
-        wMaxfile = 'L1_Wmax.pvp';
-        wMaxlast = 'L1_Wmax_last.pvp';
-        wRfile = '';
-        wRlast = '';
+        
+        
         preFiles = {''};
-        xScale = 4;
-        yScale = 4;
+        xScale = 4; %8;%4;
+        yScale = 4; %8;%4;
         NO = 1;
-    elseif (layer == 5) %V1Inh
+    elseif (layer == 5) %C1
         ffile = 'a4.pvp';
         vfile = 'V4.pvp';
         rfile = '';
-        lname = 'V1Inh';
-        wfile = {''};
-        wlast = {''};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
+        lname = 'C1';
+        wfile = {'w6_post.pvp'};
+        wlast = {'w6_post_last.pvp'};
+
         preFiles = {''};
-        xScale = 1;
-        yScale = 1;
-        NO = 1;
-    elseif (layer == 6) %V2
-        ffile = 'a5.pvp';
-        vfile = 'V5.pvp';
-        rfile = '';
-        wfile = {'w4_post.pvp'};
-        wlast = {'w2_post_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
-        preFiles = {''};
-        xScale = 1;
-        yScale = 1;
-        NO = 1;
-    elseif (layer == 6) %V2Inh
-        ffile = 'a6.pvp';
-        vfile = 'V6.pvp';
-        rfile = '';
-        wfile = {'w4_post.pvp'};
-        wlast = {'w2_post_last.pvp'};
-        wMaxfile = '';
-        wMaxlast = '';
-                wRfile = '';
-        wRlast = '';
-        preFiles = {''};
-        xScale = 1;
-        yScale = 1;
+        xScale = 2;
+        yScale = 2;
         NO = 1;
     end
 	

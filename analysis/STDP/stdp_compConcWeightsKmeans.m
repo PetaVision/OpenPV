@@ -162,7 +162,7 @@ if(plot_centers)
         fprintf('cluster %d w = %f\n',k,sortW(k));
         title_str = ['Center ' num2str(k) ' w = ' num2str(clustW(sortI(k)),2) ];
         for f=1:numel(fname)
-            patch = reshape(centers(sortI(k),(f-1)*patch_size+1:f*patch_size),[4 4])';
+            patch = reshape(centers(sortI(k),(f-1)*patch_size+1:f*patch_size),[5 5])';
             subplot(numRows,numColumns,(k-1) * numColumns + f);
             colormap gray
             imagesc(patch); % 'CDataMapping','direct'

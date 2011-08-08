@@ -1,7 +1,8 @@
-function A = stdp_plotWeightsHistogramOnly(fname, xScale,yScale, TSTEP)
+function A = stdp_plotWeightsHistogramOnly(fname, l_name, xScale,yScale, TSTEP)
 % At each time step plots the weights histopgram.
 % Returns the last weights distribution.
 % NOTE: The weights are quantized in the range [0,255].
+%       It plots every TSTEP.
 
 global input_dir  NX NY 
 
@@ -21,7 +22,7 @@ fprintf('NXlayer = %d NYlayer = %d\n', NXlayer, NYlayer);
 N=NXlayer*NYlayer;
 
 nbins = 100;
-TSTEP = 1;  % plot every TSTEP
+
 
 % if scaleWeights
 %     edges = 0:0.01:0.75; % scaled weights
@@ -30,7 +31,7 @@ TSTEP = 1;  % plot every TSTEP
 % end
 
 if exist(filename,'file')
-    
+   
     fid=fopen(filename,'r','native');
 
     [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
@@ -66,8 +67,9 @@ if exist(filename,'file')
            
             if time > 0
                 
-                fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+                fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d ',...
                     time,numPatches,NXP,NYP,NFP);
+                fprintf('minVal = %f maxVal = %f\n',minVal,maxVal);
                 %pause
             else
                 break; % EOF found
@@ -98,7 +100,9 @@ if exist(filename,'file')
                     end
                     if debug
                         for r=1:patch_size
+                            %if w(r) > 1
                             fprintf('%d ',w(r));
+                            %end
                         end
                         fprintf('\n');
                         %pause
@@ -122,16 +126,24 @@ if exist(filename,'file')
             [m,n]=size(W_array);
             fprintf('%d %d %d\n',recordID,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
-            %ind = find(A > 0.0);
-            %[n,xout] = hist(A(ind),nbins);
-            %n = histc(A,edges);
-            %plot(xout,n,'-g','LineWidth',3);
-            %figure('Name', ['Time ' num2str(time) ' Weights Histogram']);
-            %bar(edges,n);
-            hist(A,nbins);
-            title(['Time ' num2str(time) ' Weights Histogram']);
-            %hold on
-            pause(1)
+            ind = find(A > 0.0);
+            if 1
+                figure('Name',[l_name ' Weights Histogram ' num2str(time)]); 
+                hist(A(ind),nbins);
+                %title(['Time ' num2str(time) ' Weights Histogram']);
+                %hold on
+                pause(1)
+            end
+            if 0
+                figure('Name',[l_name ' Weights Histogram ' num2str(time)]); 
+                [n,xout] = hist(A(ind),nbins);
+                %n = histc(A,edges);
+                plot(xout,n,'-g','LineWidth',3);
+                %bar(edges,n);
+                %title(['Time ' num2str(time) ' Weights Histogram']);
+                pause(1)
+            end
+            
             % store first histogram
             if hist_change
                 n = histc(A,edges);
@@ -146,7 +158,7 @@ if exist(filename,'file')
             [m,n]=size(W_array);
             fprintf('%d %d %d \n',recordID,m,n);
             A = reshape(W_array, [1 (N*patch_size)] ) ;
-            %ind = find(A > 0.0);
+            ind = find(A > 0.0);
             %[n,xout] = hist(A(ind),nbins);
             %n = histc(A,edges);
             %plot(xout,n,'-r');
@@ -156,19 +168,110 @@ if exist(filename,'file')
                 bar(edges,n-n0,'r');
             else
                 %bar(edges,n,'r');
-                hist(A,nbins);
-                title(['Time ' num2str(time) ' Weights Histogram']);
+                if 1
+                    figure('Name',[l_name 'Weights Histogram ' num2str(time)]);
+                    hist(A(ind),nbins);
+                    title(['Time ' num2str(time) ' Weights Histogram']);
+                end
+                if 0
+                    figure('Name',[l_name 'Weights Histogram ' num2str(time)]);
+                    [n,xout] = hist(A(ind),nbins);
+                    %n = histc(A,edges);
+                    plot(xout,n,'-g','LineWidth',3);
+                    %bar(edges,n);
+                    pause(1)
+                end
             end
             %hold on
             pause(1)
             
         end
-        
+        if debug
+            pause
+        end
     end
     fclose(fid);
 
+    %% read now the last configuration of weights.
+    [path,name,ext,ver] = fileparts(fname);
+    
+    last_file = [name '_last.pvp'];
+    last_file = [input_dir, last_file];
+    fprintf('read last weights from %s\n',last_file);
+    fid=fopen(last_file,'r','native');
 
-else
+    [time,numPatches,numParams,NXP,NYP,NFP,minVal,maxVal] = ...
+        readFirstHeader(fid);
+    fprintf('time = %f numPatches = %d NXP = %d NYP = %d NFP = %d\n',...
+        time,numPatches,NXP,NYP,NFP);
+    
+    if numPatches ~= NXlayer*NYlayer
+        disp('mismatch between numPatches and NXlayer * NYlayer')
+        return
+    end
+    
+    W_array = []; %this is N x patch_size array
+                      % where N =NX x NY
+    k = 0;
+    for j=1:NYlayer
+        for i=1:NXlayer
+            if ~feof(fid)
+                k=k+1;
+                nx = fread(fid, 1, 'uint16'); % unsigned short
+                ny = fread(fid, 1, 'uint16'); % unsigned short
+                nItems = nx*ny*NFP;
+                if debug
+                    fprintf('k = %d nx = %d ny = %d nItems = %d: ',...
+                        k,nx,ny,nItems);
+                end
+                
+                w = fread(fid, nItems, 'uchar'); % unsigned char
+                % scale weights
+                if scaleWeights
+                    w = minVal + (maxVal - minVal) * ( (w * 1.0)/ 255.0);
+                end
+                if debug
+                    for r=1:patch_size
+                        %if w(r) > 1
+                        fprintf('%d ',w(r));
+                        %end
+                    end
+                    fprintf('\n');
+                    %pause
+                end
+                if(~isempty(w) & nItems ~= 0)
+                    W_array(k,:) = w(1:patch_size);
+                    %pause
+                end
+            end % if ~feof
+        end
+    end % loop over post-synaptic neurons
+     
+    A = reshape(W_array, [1 (N*patch_size)] ) ;
+    %ind = find(A > 0.0);
+    ind = find(A );
+    if hist_change
+        n = histc(A,edges);
+        bar(edges,n-n0,'r');
+    else
+        %bar(edges,n,'r');
+        if 1
+            figure('Name',[l_name ' Weights Histogram ' num2str(time)]);
+            hist(A(ind),nbins);
+            %title(['Time ' num2str(time) ' Weights Histogram']);
+        end
+        if 0
+            figure('Name',[l_name ' Weights Histogram ' num2str(time)]);
+            [n,xout] = hist(A(ind),nbins);
+            %n = histc(A,edges);
+            plot(xout,n,'-g','LineWidth',3);
+            %bar(edges,n);
+            pause(1)
+        end
+    end
+    
+    fclose(fid);
+else % if exist(filename)
     
      disp(['Skipping, could not open ', filename]);
     

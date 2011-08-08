@@ -43,6 +43,7 @@ fid = fopen(filename);
 activity = fscanf(fid, '%f', [NX NX]);
 activity = activity';  % transpose since it reads in column order
             % and we write in row order
+%imagesc(activity)
 
 if debug
     [m,n] = size(activity);
@@ -141,7 +142,111 @@ for kyPost=0:(NYpost-1)
     end
 end % kyPost loop
 
+%% plot features as weights field is ploted
+plot_features = 1;
+if plot_features
+    
+    margins_defined = 1;
+    
+    xShare = 4; % define the size of the layer patch that 
+    yShare = 4; % contains neurons that have the same receptive field.
+
+    [a,b,a1,b1,NXPbor,NYPbor] = compPatches(nxpPost,nypPost);
+    fprintf('a = %d b = %d a1 = %d b1 = %d NXPbor = %d NYPbor = %d\n',...
+        a,b,a1,b1,NXPbor,NYPbor);
+    PATCH = 2.0*ones(NXPbor,NYPbor); % PATCH contains borders
+    A = [];
+    
+    k = 0;
+    for j=1:NYpost
+        for i=1:NXpost
+            k=k+1;
+            if length(features{k})
+               patch = reshape(features{k},[nxpPost nxpPost]);
+            else
+               patch = 2.0*ones(nxpPost,nxpPost); 
+            end
+            PATCH(2:nxpPost+1,2:nxpPost+1) = patch';
+            A(1+(j-1)*NYPbor:j*NYPbor,1+(i-1)*NXPbor:i*NXPbor) = PATCH;
+        end
+    end
+    
+    figure('Name', [ pc_file ' Features Field']);
+    imagesc(A,'CDataMapping','direct');
+    %colorbar
+    axis square
+    axis off
+    hold on
+    % plot squares around the neurons that share the same
+    % receptive field
+    % this works when there are no margins and it generates
+    % a boundary layer of width 2 in this case
+    % With margins defined there is no need for a boundary
+    % layer!
+    if (margins_defined)
+        for i=0.5:xShare*NXPbor:(NXpost*NXPbor+1)
+            plot([i, i],[0.5,NYpost*NYPbor+0.5],'-r');            
+        end
+        for j=0.5:yShare*NYPbor:(NYpost*NYPbor+1)
+            plot([0.5,NXpost*NXPbor+0.5],[j,j],'-r');
+        end
+    else
+        for i=(0.5+2*NXPbor):xShare*NXPbor:(NXpost*NXPbor+1)
+            plot([i, i],[0,NYpost*NYPbor],'-r');
+            
+        end
+        for j=(0.5+2*NYPbor):yShare*NYPbor:(NYpost*NYPbor+1)
+            plot([0,NXpost*NXPbor],[j,j],'-r');
+        end
+    end % margins_defined
+                    
+    % write features
+    [m,n] = size(A);
+    filename = [output_dir, pc_file, '.dat'];
+    fid=fopen(filename,'w');
+    for j=1:m
+        for i=1:n
+            fprintf(fid,'%f ',A(j,i));
+        end
+        fprintf(fid,'\n');
+    end
+    fclose(fid);
+                
+end % plot_features
+
 disp('done!');
 
 end % end of function
 
+function [a,b,a1,b1,NXPbor,NYPbor] = compPatches(NXP,NYP)
+
+
+if (mod(NXP,2) & mod(NYP,2))  % odd size patches
+    a= (NXP-1)/2;    % NXP = 2a+1;
+    b= (NYP-1)/2;    % NYP = 2b+1;
+    NXPbor = NXP+2; % patch with borders
+    NYPbor = NYP+2;
+    a1= (NXPbor-1)/2;    % NXP = 2a1+1;
+    b1= (NYPbor-1)/2;    % NYP = 2b1+1;
+
+    dX = (NXPbor+1)/2;  % used in ploting the target
+    dY = (NYPbor+1)/2;
+
+else                 % even size patches
+
+    a= NXP/2;    % NXP = 2a;
+    b= NYP/2;    % NYP = 2b;
+    NXPbor = NXP+2;   % add border pixels for visualization purposes
+    NYPbor = NYP+2;
+    a1=  NXPbor/2;    % NXP = 2a1;
+    b1=  NYPbor/2;    % NYP = 2b1;
+
+    dX = NXPbor/2;  % used in ploting the target
+    dY = NYPbor/2;
+
+end
+
+
+        
+end % End subfunction
+%
