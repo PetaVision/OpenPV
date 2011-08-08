@@ -12,6 +12,8 @@
 #include "HyPerLayer.hpp"
 #include "LIF.hpp"
 
+#include "../kernels/LIF_params.h"
+
 namespace PV {
 
 // CloneLayer can be used to implement Sigmoid junctions between spiking neurons
@@ -24,6 +26,9 @@ public:
    virtual int setActivity();
    virtual int resetGSynBuffers();
    LIF * sourceLayer;
+private:
+   float V0;
+   float Vth;
 };
 
 }
