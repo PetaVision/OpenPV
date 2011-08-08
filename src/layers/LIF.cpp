@@ -286,7 +286,7 @@ int LIF::setParams(PVParams * p)
    lParams.Vexc  = p->value(name, "Vexc" , V_EXC);
    lParams.Vinh  = p->value(name, "Vinh" , V_INH);
    lParams.VinhB = p->value(name, "VinhB", V_INHB);
-
+   lParams.VthRest = p->value(name,"VthRest",VTH_REST);
    lParams.tau   = p->value(name, "tau"  , TAU_VMEM);
    lParams.tauE  = p->value(name, "tauE" , TAU_EXC);
    lParams.tauI  = p->value(name, "tauI" , TAU_INH);
