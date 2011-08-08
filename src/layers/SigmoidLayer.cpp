@@ -7,6 +7,9 @@
 
 #include "HyPerLayer.hpp"
 #include "SigmoidLayer.hpp"
+#include <stdio.h>
+
+#include "../include/default_params.h"
 
 // CloneLayer can be used to implement Sigmoid junctions
 namespace PV {
@@ -24,6 +27,10 @@ SigmoidLayer::~SigmoidLayer()
 int SigmoidLayer::initialize(LIF * originalLayer)
 {
    int status_init = HyPerLayer::initialize(TypeNonspiking);
+
+   V0 = parent->parameters()->value(name, "Vrest", V_REST);
+   Vth = parent->parameters()->value(name,"VthRest",VTH_REST);
+
    this->spikingFlag = false;
    sourceLayer = originalLayer;
    free(clayer->V);
@@ -56,8 +63,6 @@ int SigmoidLayer::setActivity() {
       activity[k] = 0; // Would it be faster to only do the margins?
    }
    pvdata_t sig_scale = 1.0f;
-   pvdata_t Vth = sourceLayer->getLIFParams()->VthRest;
-   pvdata_t V0 = sourceLayer->getLIFParams()->Vrest;
    if ( Vth > V0 ){
       sig_scale = 1 / (Vth - V0);
    }
@@ -73,7 +78,10 @@ int SigmoidLayer::setActivity() {
          activity[kex] = (V[k] - V0) * sig_scale;
       }
    }
+   fprintf(stdout,"This is SigmoidLayer %s with rest potential %f and threshold %f \n",this->getName(),V0,Vth);
+
    return PV_SUCCESS;
+
 }
 
 
