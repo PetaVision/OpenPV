@@ -339,7 +339,7 @@ int HyPerCol::run(int nTimeSteps)
 {
    if( checkMarginWidths() != PV_SUCCESS ) {
       fprintf(stderr, "Margin width failure; unable to continue.\n");
-      return PV_FAILURE;
+      return PV_MARGINWIDTH_FAILURE;
    }
 
    int step = 0;
@@ -590,7 +590,7 @@ int HyPerCol::checkMarginWidths() {
       int yScalePost = post->getYScale();
       status2 = zCheckMarginWidth(conn, "y", conn->yPatchSize(), yScalePre, yScalePost, status);
       status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
-               PV_SUCCESS : PV_FAILURE;
+               PV_SUCCESS : PV_MARGINWIDTH_FAILURE;
    }
    return status;
 }  // end HyPerCol::checkMarginWidths()
@@ -612,7 +612,7 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSiz
               padding, patchSize, scalePre, scalePost);
       fprintf(stderr, "    Layer %s needs margin width of at least %d\n", pre->getName(), needed);
       if( numberOfColumns() > 1 || padding > 0 ) {
-         status = PV_FAILURE;
+         status = PV_MARGINWIDTH_FAILURE;
       }
       else {
          fprintf(stderr, "Continuing, but there may be undesirable edge effects.\n");

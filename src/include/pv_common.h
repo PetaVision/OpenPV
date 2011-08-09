@@ -18,6 +18,7 @@
 // Return value for successful/unsuccessful function return
 #define PV_SUCCESS 0
 #define PV_FAILURE 1
+#define PV_MARGINWIDTH_FAILURE 65
 
 // For debugging/control:
 #undef  DEBUG_OUTPUT
