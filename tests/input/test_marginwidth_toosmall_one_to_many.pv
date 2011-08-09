@@ -1,0 +1,29 @@
+debugParsing = false;
+
+HyPerCol "test_marginwidth_one_to_many column" = {
+   nx = 64;
+   ny = 64;
+   numSteps = 1;
+   outputPath = "output/";
+   filenamesContainLayerNames = true;
+};
+
+Retina "presynaptic layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 1;
+};
+
+ANNLayer "postsynaptic layer" = {
+   nxScale = 4;
+   nyScale = 4;
+   nf = 1;
+   marginWidth = 0;
+};
+
+KernelConn "pre to post connection" = {
+   nxp = 20;
+   nyp = 20;
+   nfp = 1;
+};
