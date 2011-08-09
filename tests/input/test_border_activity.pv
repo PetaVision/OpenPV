@@ -1,0 +1,47 @@
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_border_activity image" = {
+   nxScale = 1;
+   nyScale = 1;
+};
+
+HyPerLayer "test_border_activity retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 3;
+   spikingFlag = 0;
+   poissonEdgeProb = 1;
+   mirrorBCflag = 1;  
+   writeNonspikingActivity = 1;
+};
+
+HyPerLayer "test_border_activity layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 0;
+   writeNonspikingActivity = 1;
+};
+
+HyPerConn "test_border_activity connection 1" = {
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   randomFlag = 1;
+   uniformWeights = 1; // use uniform weights to initialize
+   wMinInit = 1;   // all weight to constant (1)
+   wMaxInit = 1;
+};
+
+HyPerConn "test_border_activity connection 2" = {
+   nxp = 7;
+   nyp = 7;
+   nfp = 1;
+   randomFlag = 1;
+   uniformWeights = 1; // use uniform weights to initialize
+   wMinInit = 1;   // all weight to constant (1)
+   wMaxInit = 1;
+   normalize = false;
+};

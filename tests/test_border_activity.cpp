@@ -23,6 +23,7 @@
 // The activity in L1 given a 7x7 weight patch,
 // with all weights initialized to 1.
 //
+#define ARGC 3
 #define UNIFORM_ACTIVITY_VALUE 49
 
 using namespace PV;
@@ -35,7 +36,15 @@ int main(int argc, char * argv[])
 
    const char * image_file = "input/const_one_64x64.tif";
 
-   HyPerCol * hc = new HyPerCol("column", argc, argv);
+   char * cl_args[ARGC];
+   cl_args[0] = strdup(argv[0]);
+   cl_args[1] = strdup("-p");
+   cl_args[2] = strdup("input/test_border_activity.pv");
+   HyPerCol * hc = new HyPerCol("column", ARGC, cl_args);
+   for( int k=0; k<ARGC; k++ )
+   {
+      free(cl_args[k]);
+   }
 
    Image * image   = new Image("test_border_activity image", hc, image_file);
    Retina * retina = new Retina("test_border_activity retina", hc);
@@ -57,6 +66,7 @@ int main(int argc, char * argv[])
 
    status = check_activity(l1);
 
+   delete hc;
    return status;
 }
 
