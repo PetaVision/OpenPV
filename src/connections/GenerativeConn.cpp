@@ -40,10 +40,12 @@ int GenerativeConn::initialize_base() {
    // so derived class initialize_base doesn't need to.
 }
 
+#ifdef OBSOLETE
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
    return initialize(name, hc, pre, post, channel, NULL);
 }
+#endif OBSOLETE
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
@@ -86,7 +88,7 @@ int GenerativeConn::updateWeights(int axonID) {
             lineoffseta += sya;
         }
     }
-    normalizeWeights( kernelPatches, numDataPatches(0) );
+    // normalizeWeights now called in KernelConn::updateState // normalizeWeights( kernelPatches, numDataPatches(0) );
     lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;

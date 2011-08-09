@@ -181,6 +181,7 @@ protected:
 
    Timer * update_timer;
 
+   bool normalize_flag;
    float normalize_strength;
    float normalize_max;
    float normalize_zero_offset;

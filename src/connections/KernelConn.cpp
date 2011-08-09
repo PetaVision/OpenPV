@@ -137,11 +137,6 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
 {
    HyPerConn::readWeights(patches, numPatches, filename);
 
-   // Kernels were already normalized by initializeWeights --pfs
-   //
-   // if( parent->parameters()->value(name, "normalize", 0.0f, true) ) {
-   //   patches = HyPerConn::normalizeWeights(patches, numPatches);
-   // }
    return patches;
 }
 
@@ -200,7 +195,14 @@ int KernelConn::updateState(float time, float dt) {
 
 #ifdef PV_USE_MPI
       status = reduceKernels(axonID);  // combine partial changes in each column
+      // TODO? error handling
 #endif // PV_USE_MPI
+
+      if( normalize_flag ) {
+         PVPatch ** p = normalizeWeights(kernelPatches, numDataPatches(axonID));
+         status = p==kernelPatches ? PV_SUCCESS : PV_FAILURE;
+      }
+      // TODO? error handling
    }
    return status;
 }

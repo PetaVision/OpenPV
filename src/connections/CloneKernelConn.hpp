@@ -29,6 +29,8 @@ public:
    // filename should always be null, but this prototype is needed because
    // the inherited method is called by the base class's initialize.
 
+   virtual int initNormalize();
+
 protected:
    PVPatch ** allocWeights(PVPatch ** patches, int nPatches,
          int nxPatch, int nyPatch, int nfPatch);

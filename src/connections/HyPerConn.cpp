@@ -125,6 +125,7 @@ int HyPerConn::initialize_base()
       wPatches[i] = NULL;
       axonalArborList[i] = NULL;
    }
+   this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
 
    return PV_SUCCESS;
 }
@@ -328,9 +329,8 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
       initializeDefaultWeights(patches, numPatches);
    }
-   bool normalize_flag = (bool) inputParams->value(name, "normalize", 0.0f, true);
+   initNormalize(); // Derived-class methods that override initNormalize must set member variable normalize_flag
    if (normalize_flag) {
-      initNormalize();
       normalizeWeights(patches, numPatches);
    }
    return patches;
@@ -2129,10 +2129,13 @@ int HyPerConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
-   normalize_strength = params->value(name, "strength", 1.0f);
-   normalize_max = params->value(name, "normalize_max", 0.0f);
-   normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
-   normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * normalize_strength;
+   normalize_flag = params->value(name, "normalize", normalize_flag);
+   if( normalize_flag ) {
+      normalize_strength = params->value(name, "strength", 1.0f);
+      normalize_max = params->value(name, "normalize_max", 0.0f);
+      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+      normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * normalize_strength;
+   }
    return PV_SUCCESS;
 }
 

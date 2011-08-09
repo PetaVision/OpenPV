@@ -108,7 +108,7 @@ int PoolingGenConn::updateWeights(int axonID) {
             lineoffseta += sya;
         }
     }
-    normalizeWeights( kernelPatches, numDataPatches(0) );
+    // normalizeWeights now called in KernelConn::updateState // normalizeWeights( kernelPatches, numDataPatches(0) );
     lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;

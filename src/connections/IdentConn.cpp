@@ -53,4 +53,9 @@ PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
     return patches;
 }  // end of IdentConn::initializeWeights(PVPatch **, int, const char *)
 
+int IdentConn::initNormalize() {
+   normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
+   return PV_SUCCESS;
+}
+
 }  // end of namespace PV block

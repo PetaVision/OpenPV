@@ -24,9 +24,11 @@ public:
     int initialize_base();
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-            const char * filename);
+            const char * filename=NULL);
+#ifdef OBSOLETE
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+#endif OBSOLETE
     inline float getRelaxation() { return relaxation; }
     virtual int updateWeights(int axonID);
     virtual int initNormalize();

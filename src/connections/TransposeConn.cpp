@@ -52,6 +52,11 @@ PVPatch ** TransposeConn::initializeWeights(PVPatch ** patches, int numPatches, 
     return patches;
 }  // TransposeConn::initializeWeights(PVPatch **, int, const char *)
 
+int TransposeConn::initNormalize() {
+   normalize_flag = false;
+   return PV_SUCCESS;
+}
+
 int TransposeConn::setPatchSize(const char * filename) {
     int status = PV_SUCCESS;
 

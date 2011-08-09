@@ -53,6 +53,11 @@ int CloneKernelConn::setPatchSize(const char * filename) {
    return status;
 }
 
+int CloneKernelConn::initNormalize() {
+   normalize_flag = false;
+   return PV_SUCCESS;
+}
+
 PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
       int nxPatch, int nyPatch, int nfPatch) {
 
