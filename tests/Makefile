@@ -9,7 +9,7 @@ INPARAMS = input/params.test
 # flags
 #
 dbg  := 0
-mpi  := 0
+mpi  := 1
 gdal := 1
 
 # detect OS                                                                               
@@ -102,13 +102,29 @@ CFLAGS   += -std=c99
 
 CLASS_OBJS = $(BUILDDIR)/Example.o
 
-TESTS = test_kg test_kxpos test_kypos test_pos \
-        test_nearby_neighbor test_delta_pos test_extend_border \
-        test_patch_head test_delta test_sign test_borders \
-        test_datatypes test_post_weights test_gauss2d test_cocirc \
-        test_mirror_BCs test_border_activity \
-        test_marginwidth_one_to_one test_marginwidth_many_to_one \
-        test_marginwidth_one_to_many test_transpose_transpose
+TESTS = test_kg \
+        test_kxpos \
+        test_kypos test_pos \
+        test_nearby_neighbor \
+        test_delta_pos test_extend_border \
+        test_patch_head test_delta \
+        test_sign test_borders \
+        test_datatypes test_post_weights \
+        test_gauss2d test_cocirc \
+        test_mirror_BCs \
+        test_border_activity \
+        test_marginwidth_toosmall_many_to_one \
+        test_marginwidth_toolarge_many_to_one \
+        test_marginwidth_correctsize_many_to_one \
+        test_marginwidth_toosmall_one_to_one \
+        test_marginwidth_toolarge_one_to_one \
+        test_marginwidth_correctsize_one_to_one \
+        test_marginwidth_toosmall_one_to_many \
+        test_marginwidth_toolarge_one_to_many \
+        test_marginwidth_correctsize_one_to_many \
+        test_transpose_transpose
+#        test_marginwidth_one_to_one test_marginwidth_many_to_one \
+#        test_marginwidth_one_to_many
 
 CL_TESTS = test_cl_random test_cl_lif test_cl_all
 
@@ -216,14 +232,41 @@ test_delta: $(BUILDDIR)/test_delta.o $(PVLIB)
 test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 	$(CC) -o $@ $<
 
-test_marginwidth_one_to_one: $(BUILDDIR)/test_marginwidth_one_to_one.o $(PVLIB)
+test_marginwidth_toosmall_many_to_one: $(BUILDDIR)/test_marginwidth_toosmall_many_to_one.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_marginwidth_many_to_one: $(BUILDDIR)/test_marginwidth_many_to_one.o $(PVLIB)
+test_marginwidth_toolarge_many_to_one: $(BUILDDIR)/test_marginwidth_toolarge_many_to_one.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-test_marginwidth_one_to_many: $(BUILDDIR)/test_marginwidth_one_to_many.o $(PVLIB)
+test_marginwidth_correctsize_many_to_one: $(BUILDDIR)/test_marginwidth_correctsize_many_to_one.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_toosmall_one_to_one: $(BUILDDIR)/test_marginwidth_toosmall_one_to_one.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_toolarge_one_to_one: $(BUILDDIR)/test_marginwidth_toolarge_one_to_one.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_correctsize_one_to_one: $(BUILDDIR)/test_marginwidth_correctsize_one_to_one.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_toosmall_one_to_many: $(BUILDDIR)/test_marginwidth_toosmall_one_to_many.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_toolarge_one_to_many: $(BUILDDIR)/test_marginwidth_toolarge_one_to_many.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_marginwidth_correctsize_one_to_many: $(BUILDDIR)/test_marginwidth_correctsize_one_to_many.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+#test_marginwidth_one_to_one: $(BUILDDIR)/test_marginwidth_one_to_one.o $(PVLIB)
+#	$(CPP) -o $@ $< $(LIBS)
+
+#test_marginwidth_many_to_one: $(BUILDDIR)/test_marginwidth_many_to_one.o $(PVLIB)
+#	$(CPP) -o $@ $< $(LIBS)
+
+#test_marginwidth_one_to_many: $(BUILDDIR)/test_marginwidth_one_to_many.o $(PVLIB)
+#	$(CPP) -o $@ $< $(LIBS)
 
 test_transpose_transpose: $(BUILDDIR)/test_transpose_transpose.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
@@ -292,19 +335,37 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_mirror_BCs ..."
 	@if ./test_mirror_BCs -p $(INPARAMS); then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
-	@if ./test_border_activity -p $(INPARAMS); then echo "test_border_activity passed."; else echo "test_border_activity failed"; fi
+	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity failed"; fi
 #	@echo "Running test_constant_input with 1 node ..."
 #	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 #	@echo "Running test_borders ..."
 #	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
-	@echo "Running test_marginwidth_one_to_one ..."
-	@if ./test_marginwidth_one_to_one -p $(INPARAMS); then echo "test_marginwidth_one_to_one passed."; else echo "test_marginwidth_one_to_one failed"; fi
-	@echo "Running test_marginwidth_many_to_one ..."
-	@if ./test_marginwidth_many_to_one -p $(INPARAMS); then echo "test_marginwidth_many_to_one passed."; else echo "test_marginwidth_many_to_one failed"; fi
-	@echo "Running test_marginwidth_one_to_many ..."
-	@if ./test_marginwidth_one_to_many -p $(INPARAMS); then echo "test_marginwidth_one_to_many passed."; else echo "test_marginwidth_one_to_many failed"; fi
-	@echo "Running test_transpose_transpose ..."
-	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
+#	@echo "Running test_marginwidth_one_to_one ..."
+#	@if ./test_marginwidth_one_to_one -p $(INPARAMS); then echo "test_marginwidth_one_to_one passed."; else echo "test_marginwidth_one_to_one failed"; fi
+#	@echo "Running test_marginwidth_many_to_one ..."
+#	@if ./test_marginwidth_many_to_one -p $(INPARAMS); then echo "test_marginwidth_many_to_one passed."; else echo "test_marginwidth_many_to_one failed"; fi
+#	@echo "Running test_marginwidth_one_to_many ..."
+#	@if ./test_marginwidth_one_to_many -p $(INPARAMS); then echo "test_marginwidth_one_to_many passed."; else echo "test_marginwidth_one_to_many failed"; fi
+#	@echo "Running test_transpose_transpose ..."
+#	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
+	@echo "Running test_marginwidth_toosmall_one_to_one ..."
+	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
+	@echo "Running test_marginwidth_toolarge_one_to_one ..."
+	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
+	@echo "Running test_marginwidth_correctsize_one_to_one ..."
+	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
+	@echo "Running test_marginwidth_toosmall_many_to_one ..."
+	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
+	@echo "Running test_marginwidth_toolarge_many_to_one ..."
+	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
+	@echo "Running test_marginwidth_correctsize_many_to_one ..."
+	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
+	@echo "Running test_marginwidth_toosmall_one_to_many ..."
+	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
+	@echo "Running test_marginwidth_toolarge_one_to_many ..."
+	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
+	@echo "Running test_marginwidth_correctsize_one_to_many ..."
+	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
