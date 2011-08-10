@@ -33,10 +33,12 @@ int GapConn::initNormalize(){
    LIFGap * postLIFGap = NULL;
    postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
    assert(postLIFGap != NULL);
+//   fprintf(stdout,"This is connection %i with flag %i \n",this->getConnectionId(),initNormalizeFlag);
    if (this->initNormalizeFlag == false){
       initNormalizeFlag = true;
       pvdata_t gap_strength;
-      gap_strength = this->normalize_strength * this->postSynapticLayer()->getNumNeurons() / this->preSynapticLayer()->getNumNeurons();
+      gap_strength = this->normalize_strength / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
+//      fprintf(stdout,"This is connection %i, setting initNormalizeFlag to true and adding gap_strength %f \n",this->getConnectionId(),gap_strength);
       postLIFGap->addGapStrength(gap_strength);
    }
    return status;
