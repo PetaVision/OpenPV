@@ -65,29 +65,36 @@ int PointProbe::outputState(float time, HyPerLayer * l)
 {
    // LIF * lif = dynamic_cast<LIF*>(l);  // Commented out May 18, 2011.  LIF-specific code moved to PointLIFProbe back in March.
 
-   const PVLayer * clayer = l->clayer;
+   const PVLayerLoc * loc = l->getLayerLoc();
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->loc.nf;
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int xLocLocal = xLoc - kx0;
+   const int yLocLocal = yLoc - ky0;
+   if( xLocLocal < 0 || xLocLocal >= nx ||
+       yLocLocal < 0 || yLocLocal >= ny) return PV_SUCCESS;
+   const int nf = loc->nf;
 
+   const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 
-   const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, clayer->loc.nb);
+   const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+   const int kex = kIndexExtended(k, nx, ny, nf, loc->nb);
 
    if (sparseOutput) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
    }
    else if (activity[kex] != 0.0) {
       fprintf(fp, "%s t=%.1f", msg, time);
-      fprintf(fp, " V=%6.5f", clayer->V[k]);
+      fprintf(fp, " V=%6.5f", V[k]);
       fprintf(fp, " a=%.5f", activity[kex]);
       fprintf(fp, "\n");
       fflush(fp);
    }
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 } // namespace PV
