@@ -57,6 +57,7 @@ int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, 
    HyPerConn::initialize(name, hc, pre, post, channel, filename);
    PVParams * params = hc->parameters();
    plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag);
+   symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    weightUpdateTime = initializeUpdateTime(params);
    return PV_SUCCESS;
 }
@@ -319,7 +320,6 @@ PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
    const int num_kernels = numDataPatches(arbor);
    HyPerConn::normalizeWeights(kernelPatches, num_kernels);
    PVParams * inputParams = parent->parameters();
-   float symmetrizeWeightsFlag = inputParams->value(name, "symmetrizeWeights",0);
    if ( symmetrizeWeightsFlag ){
       symmetrizeWeights(kernelPatches, num_kernels);
    }

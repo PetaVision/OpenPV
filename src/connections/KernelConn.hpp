@@ -65,6 +65,7 @@ protected:
    float weightUpdatePeriod;
    float weightUpdateTime;
    float lastUpdateTime;
+   bool symmetrizeWeightsFlag;
 
    virtual int deleteWeights();
    virtual int initialize_base();
