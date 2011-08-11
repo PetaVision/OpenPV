@@ -60,6 +60,9 @@ PointProbe::~PointProbe()
  *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or "restricted"
  *     frame.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
+ *     - In MPI runs, xLoc and yLoc refer to global coordinates.
+ *     writeState is only called by the processor with (xLoc,yLoc) in its
+ *     non-extended region.
  */
 int PointProbe::outputState(float time, HyPerLayer * l)
 {
@@ -77,11 +80,22 @@ int PointProbe::outputState(float time, HyPerLayer * l)
        yLocLocal < 0 || yLocLocal >= ny) return PV_SUCCESS;
    const int nf = loc->nf;
 
-   const pvdata_t * V = l->getV();
-   const pvdata_t * activity = l->getLayerData();
-
    const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
    const int kex = kIndexExtended(k, nx, ny, nf, loc->nb);
+
+   return writeState(time, l, k, kex);
+}
+
+/**
+ * @time
+ * @l
+ * @k
+ * @kex
+ */
+int PointProbe::writeState(float time, HyPerLayer * l, int k, int kex) {
+
+   const pvdata_t * V = l->getV();
+   const pvdata_t * activity = l->getLayerData();
 
    if (sparseOutput) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);

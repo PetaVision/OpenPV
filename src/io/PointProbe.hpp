@@ -29,6 +29,8 @@ protected:
    char * msg;
 
    bool sparseOutput;
+
+   int writeState(float time, HyPerLayer * l, int k, int kex);
 };
 
 }

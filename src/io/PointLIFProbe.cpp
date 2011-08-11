@@ -57,6 +57,8 @@ PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, cons
 /**
  * @time
  * @l
+ * @k
+ * @kex
  * NOTES:
  *     - Only the activity buffer covers the extended frame - this is the frame that
  * includes boundaries.
@@ -64,22 +66,13 @@ PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, cons
  *     frame.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
-int PointLIFProbe::outputState(float time, HyPerLayer * l)
+int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
 {
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
    assert(LIF_layer != NULL);
 
-   const PVLayerLoc * loc = l->getLayerLoc();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-   const int nb = loc->nb;
-
+   const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
-
-   const int k = kIndex(xLoc, yLoc, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    if (time >= writeTime) {
       writeTime += writeStep;
@@ -96,7 +89,7 @@ int PointLIFProbe::outputState(float time, HyPerLayer * l)
          fprintf(fp, " G_E=%6.3f", G_E[k]);
          fprintf(fp, " G_I=%6.3f", G_I[k]);
          fprintf(fp, " G_IB=%6.3f", G_IB[k]);
-         fprintf(fp, " V=%6.3f", l->clayer->V[k]);
+         fprintf(fp, " V=%6.3f", V[k]);
          fprintf(fp, " Vth=%6.3f", Vth[k]);
          fprintf(fp, " a=%.1f\n", activity[kex]);
          fflush(fp);

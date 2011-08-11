@@ -20,7 +20,7 @@ public:
    PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg);
    PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int writeState(float time, HyPerLayer * l, int k, int kex);
 
 protected:
    float writeTime;             // time of next output
