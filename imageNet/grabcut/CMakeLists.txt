@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+PROJECT( grabcut_proj )
+FIND_PACKAGE( OpenCV REQUIRED )
+ADD_EXECUTABLE( grabcut grabcut.cxx )
+TARGET_LINK_LIBRARIES( grabcut ${OpenCV_LIBS} )
