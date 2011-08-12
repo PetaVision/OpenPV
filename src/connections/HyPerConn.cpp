@@ -303,33 +303,35 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
 
-   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-   int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
-   int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
-   int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
-
    if( filename != NULL ) {
       readWeights(patches, numPatches, filename);
    }
-   else if (initFromLastFlag) {
-      char name[PV_PATH_MAX];
-      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
-      readWeights(patches, numPatches, name);
-   }
-   else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
-       initializeRandomWeights(patches, numPatches);
-   }
-   else if (smartWeights) {
-       initializeSmartWeights(patches, numPatches);
-   }
-   else if (cocircWeights) {
-       initializeCocircWeights(patches, numPatches);
-   }
    else {
-      inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
-      initializeDefaultWeights(patches, numPatches);
+      int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
+      int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
+      int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
+      int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
+
+      if (initFromLastFlag) {
+         char name[PV_PATH_MAX];
+         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
+         readWeights(patches, numPatches, name);
+      }
+      else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
+          initializeRandomWeights(patches, numPatches);
+      }
+      else if (smartWeights) {
+          initializeSmartWeights(patches, numPatches);
+      }
+      else if (cocircWeights) {
+          initializeCocircWeights(patches, numPatches);
+      }
+      else {
+         inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
+         initializeDefaultWeights(patches, numPatches);
+      }
    }
-   initNormalize(); // Derived-class methods that override initNormalize must set member variable normalize_flag
+   initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       normalizeWeights(patches, numPatches);
    }
@@ -754,8 +756,9 @@ int HyPerConn::outputState(float time, bool last)
 
 int HyPerConn::updateState(float time, float dt)
 {
-#ifdef OBSOLETE_STDP
    update_timer->start();
+
+#ifdef OBSOLETE_STDP
 
    if (stdpFlag) {
       const float fac = ampLTD;
@@ -776,11 +779,12 @@ int HyPerConn::updateState(float time, float dt)
       const int axonId = 0;       // assume only one for now
       updateWeights(axonId);
    }
-   update_timer->stop();
 #endif
 
    const int axonId = 0;       // assume only one for now
-   return updateWeights(axonId);
+   int status = updateWeights(axonId);
+   update_timer->stop();
+   return status;
 }
 //
 /* M (m or pDecr->data) is an extended post-layer variable
