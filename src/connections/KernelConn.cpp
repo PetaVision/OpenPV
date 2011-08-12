@@ -184,6 +184,7 @@ float KernelConn::maxWeight()
 }
 
 int KernelConn::updateState(float time, float dt) {
+   update_timer->start();
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
       return status;
@@ -205,6 +206,8 @@ int KernelConn::updateState(float time, float dt) {
       }
       // TODO? error handling
    }
+
+   update_timer->stop();
    return status;
 }
 
@@ -319,7 +322,6 @@ PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
    const int arbor = 0;
    const int num_kernels = numDataPatches(arbor);
    HyPerConn::normalizeWeights(kernelPatches, num_kernels);
-   PVParams * inputParams = parent->parameters();
    if ( symmetrizeWeightsFlag ){
       symmetrizeWeights(kernelPatches, num_kernels);
    }
