@@ -34,7 +34,7 @@ function [tot_images ...
     image_resize = [256 360];
   endif
   if nargin < 3 || ~exist(object_list) || isempty(object_list)
-    object_list{1} = "cat"; 
+    object_list{1} = "dog"; 
   endif
   if nargin < 4 || ~exist(image_type) || isempty(image_type)
     image_type = ".png";  %% 
@@ -54,7 +54,7 @@ function [tot_images ...
   
   global VERBOSE_FLAG
   if ~exist("VERBOSE_FLAG") || isempty(VERBOSE_FLAG)
-    VERBOSE_FLAG = 1;
+    VERBOSE_FLAG = 0;
   endif
 
   global UNAVAILABLE_INFO
@@ -192,14 +192,13 @@ function [tot_images ...
 
       tot_discarded(i_object) = ...
 	  tot_discarded(i_object) + num_images;
+      if exist("image_info") && ~isempty(image_info) 
       for i_image = 1 : num_images
-	if ~exist("image_info{i_image}") || isempty(image_info{i_image}) || image_info{i_image}.image_flag == 0
+	if image_info{i_image}.image_flag == 0
 	  continue;
 	endif
 	tot_images(1,i_object) = ...
 	    tot_images(1,i_object) + image_info{i_image}.image_flag;
-	tot_masks(1,i_object) = ...
-	    tot_masks(1,i_object) + image_info{i_image}.mask_flag;
 	ave_height(1,i_object) = ...
 	    ave_height(1,i_object) + image_info{i_image}.Height;
 	ave_width(1,i_object) = ...
@@ -220,10 +219,16 @@ function [tot_images ...
 	  std_width_landscape(1,i_object) = ...
 	      std_width_landscape(1,i_object) + image_info{i_image}.Width.^2;
 	endif
+	if image_info{i_image}.image_flag == 0
+	  continue;
+	endif
+	tot_masks(1,i_object) = ...
+	    tot_masks(1,i_object) + image_info{i_image}.mask_flag;
 	num_BB_mismatch(i_object) = ...
 	    num_BB_mismatch(i_object) + ...
 	    ((image_info{i_image}.BB_scale_x ~= 1) || (image_info{i_image}.BB_scale_y ~= 1));	    
       endfor %% i_image
+    endif%% exist("image_info")
 
     endfor %% i_subdir
     
