@@ -366,8 +366,12 @@ PVParams::PVParams(const char * filename, int initialSize)
       fprintf(stderr, "PVParams::PVParams: FAILED to open file %s\n", filename);
       exit(1);
    }
-   pv_parseParameters(this);
+   int status = pv_parseParameters(this);
    fclose(yyin);
+   if( status != 0) {
+      exit(status);
+   }
+   printf("pv_parseParameters status is %d\n", status);
 }
 
 /**
