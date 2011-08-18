@@ -1,5 +1,11 @@
 function [data,hdr] = readpvpfile(filename)
 % Usage:[data,hdr] = readpvpfile(filename)
+% filename is a pvp file (any type)
+% data is a cell array containing the data.
+%     In general, data has one element for each time step written.
+%     Each element is a struct containing the fields 'time' and 'values'
+%     For activities, values is an nx-by-ny-by-nf array.
+%     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
 
 filedata = dir(filename);
 if length(filedata) ~= 1
