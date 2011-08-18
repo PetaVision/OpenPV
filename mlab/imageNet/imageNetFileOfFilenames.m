@@ -22,7 +22,7 @@ function [train_filenames, test_filenames, ...
     num_train = -1;  %% -1 use all images in train_dir
   endif
   if nargin < 4 || ~exist(num_test) || isempty(num_test)
-    num_test = -1;  %% -1 use all images in test_dir not in train_dir
+    num_test = 720;  %% -1 use all images in test_dir not in train_dir
   endif
   if nargin < 5 || ~exist(train_dir) || isempty(train_dir)
     train_dir = "DoGMask";  %% 
