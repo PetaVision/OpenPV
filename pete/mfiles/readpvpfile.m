@@ -1,5 +1,5 @@
 function [data,hdr] = readpvpfile(filename)
-% [data,hdr] = readpvpfile(filename)
+% Usage:[data,hdr] = readpvpfile(filename)
 
 filedata = dir(filename);
 if length(filedata) ~= 1
@@ -34,9 +34,8 @@ switch hdr.filetype
         framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-        % who defined this stupid format?
         nxprocs = hdr.nxGlobal/hdr.nx;
-        nyprocs = hdr.nyGlobal/hdr.ny; % I mean, what is the "contiguous" flag supposed to indicate?
+        nyprocs = hdr.nyGlobal/hdr.ny;
         framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
         numframes = (filedata(1).bytes - hdr.headersize)/framesize;
     otherwise
