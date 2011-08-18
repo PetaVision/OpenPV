@@ -16,14 +16,14 @@ global ROTATE_FLAG % orientation axis rotated by DTH / 2
 global THETA_MAX
 THETA_MAX = 1 * pi;
 global COMPRESSED_FLAG
-COMPRESSED_FLAG = 1;
+COMPRESSED_FLAG = 0;
 
 
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH SPIKE_PATH twoAFC_path activity_path
 
+plot_2AFC_flag = 0;
 plot_weights_flag = 1;
-plot_2AFC_flag = 1;
 
 global MIN_INTENSITY
 MIN_INTENSITY = 0;
@@ -55,7 +55,7 @@ endif
 MNIST_flag = 0;
 bowtie_flag = 0;
 animal_flag = 0;
-dogcat_flag = 0;
+dogcat_flag = 1;
 
 NFC = 4;
 global FC_STR
@@ -63,7 +63,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 0;%%1000; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 0; %%720; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -97,13 +97,14 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/Users/gkenyon/workspace/';
-%%    '/Users/gkenyon/workspace-indigo/';
+    '/Users/gkenyon/workspace-indigo/';
+%%    '/Users/gkenyon/workspace/';
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
+    [machine_path "ODD/input/imageNet/DoG/test/dog"];
+%%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
 %%    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
 %%    [machine_path "geisler/input/256/cat/likimas512"];    
@@ -116,7 +117,8 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-      [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
+    [machine_path "ODD/input/imageNet/DoG/test/cat"];
+%%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
 %%    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
 %%      []; 
@@ -702,7 +704,7 @@ for i_conn = plot_weights
   endif % write_mat_kernel_flag
   NK = 1;
   NO = floor( NFEATURES / NK );
-  skip_patches = num_patches;
+  skip_patches = 1; %%num_patches;
   for i_patch = 1 : skip_patches : num_patches
     NCOLS = nxp{i_conn}(i_patch);
     NROWS = nyp{i_conn}(i_patch);
