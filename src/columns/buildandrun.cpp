@@ -15,7 +15,7 @@
 
 using namespace PV;
 
-int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **)) {
+int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **)) {
    HyPerCol * hc = build(argc, argv);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
@@ -32,6 +32,13 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
       status = hc->run();
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+      }
+   }
+   if( customexit != NULL ) {
+      status = (*customexit)(hc, argc, argv);
+      if( status != PV_SUCCESS) {
+         fprintf(stderr, "customexit function failed with return value %d\n", status);
+         exit(status);
       }
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
