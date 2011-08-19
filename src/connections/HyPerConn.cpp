@@ -782,10 +782,17 @@ int HyPerConn::updateState(float time, float dt)
 #endif
 
    const int axonId = 0;       // assume only one for now
-   int status = updateWeights(axonId);
+   int status = calc_dW(axonId);        // Calculate changes in weights
+   // TODO error handling
+   status = updateWeights(axonId);  // Apply changes in weights
    update_timer->stop();
    return status;
 }
+
+int HyPerConn::calc_dW(int axonId) {
+   return 0;
+}
+
 //
 /* M (m or pDecr->data) is an extended post-layer variable
  *

@@ -22,6 +22,7 @@ class KernelConn: public HyPerConn {
 public:
 
    KernelConn();
+   virtual ~KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel, const char * filename = NULL);
@@ -66,6 +67,9 @@ protected:
    float weightUpdateTime;
    float lastUpdateTime;
    bool symmetrizeWeightsFlag;
+#ifdef PV_USE_MPI
+   pvdata_t * mpiReductionBuffer;
+#endif // PV_USE_MPI
 
    virtual int deleteWeights();
    virtual int initialize_base();

@@ -43,11 +43,20 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    // HyPerConn::initialize is not virtual
 }
 
+KernelConn::~KernelConn() {
+#ifdef PV_USE_MPI
+   free(mpiReductionBuffer);
+#endif // PV_USE_MPI
+}
+
 int KernelConn::initialize_base()
 {
    kernelPatches = NULL;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
+#ifdef PV_USE_MPI
+   mpiReductionBuffer = NULL;
+#endif // PV_USE_MPI
    return PV_SUCCESS; // return HyPerConn::initialize_base();
    // KernelConn constructor calls HyPerConn::HyPerConn(), which
    // calls HyPerConn::initialize_base().
@@ -59,6 +68,18 @@ int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, 
    plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag);
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    weightUpdateTime = initializeUpdateTime(params);
+#ifdef PV_USE_MPI
+   // preallocate buffer for MPI_Allreduce call in reduceKernels
+   int axonID = 0; // for now, only one axonal arbor
+   const int numPatches = numDataPatches(axonID);
+   const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
+   const size_t localSize = numPatches * patchSize;
+   mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
+   if(mpiReductionBuffer == NULL) {
+      fprintf(stderr, "KernelConn::initialize:Unable to allocate memory\n");
+      exit(PV_FAILURE);
+   }
+#endif // PV_USE_MPI
    return PV_SUCCESS;
 }
 
@@ -192,7 +213,7 @@ int KernelConn::updateState(float time, float dt) {
    if( time >= weightUpdateTime) {
       computeNewWeightUpdateTime(time, weightUpdateTime);
       const int axonID = 0;    // assume only one for now
-      status = updateWeights(axonID);
+      status = calc_dW(axonID);  // calculate changes in weights
       // TODO error handling
 
 #ifdef PV_USE_MPI
@@ -200,6 +221,7 @@ int KernelConn::updateState(float time, float dt) {
       // TODO? error handling
 #endif // PV_USE_MPI
 
+      updateWeights(axonID);  // calculate new weights from changes
       if( normalize_flag ) {
          PVPatch ** p = normalizeWeights(kernelPatches, numDataPatches(axonID));
          status = p==kernelPatches ? PV_SUCCESS : PV_FAILURE;
@@ -227,14 +249,14 @@ int KernelConn::reduceKernels(const int axonID) {
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
 
-   //TODO!!! preallocate buf
-   pvdata_t * buf = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
-   if(buf == NULL) {
-      fprintf(stderr, "KernelConn::reduceKernels:Unable to allocate memory\n");
-      exit(1);
-   }
+   //Now uses member variable mpiReductionBuffer
+   // pvdata_t * buf = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
+   // if(buf == NULL) {
+   //    fprintf(stderr, "KernelConn::reduceKernels:Unable to allocate memory\n");
+   //    exit(1);
+   // }
 
-   // Copy this column's weights into buf
+   // Copy this column's weights into mpiReductionBuffer
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = kernelPatches[k];
@@ -247,22 +269,22 @@ int KernelConn::reduceKernels(const int axonID) {
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
             for (int f = 0; f < p->nf; f++) {
-               buf[idx] = data[x*sxp + y*syp + f*sfp];
+               mpiReductionBuffer[idx] = data[x*sxp + y*syp + f*sfp];
                idx++;
             }
          }
       }
    }
 
-   // MPI_Allreduce combines all processor's buf's and puts the common result
-   // into each processor's buf.
+   // MPI_Allreduce combines all processors' buffers and puts the common result
+   // into each processor's buffer.
    Communicator * comm = parent->icCommunicator();
    const MPI_Comm mpi_comm = comm->communicator();
    int ierr;
-   ierr = MPI_Allreduce(MPI_IN_PLACE, buf, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, mpiReductionBuffer, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    // TODO error handling
 
-   // buf now holds the sum over all processes.
+   // mpiReductionBuffer now holds the sum over all processes.
    // Divide by number of processes to get average and copy back to patches
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -279,14 +301,14 @@ int KernelConn::reduceKernels(const int axonID) {
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
             for (int f = 0; f < p->nf; f++) {
-               data[x*sxp + y*syp + f*sfp] = buf[idx]/nProcs;
+               data[x*sxp + y*syp + f*sfp] = mpiReductionBuffer[idx]/nProcs;
                idx++;
             }
          }
       }
    }
 
-   free(buf);
+   // free(buf);
    return PV_SUCCESS;
 }
 #endif // PV_USE_MPI

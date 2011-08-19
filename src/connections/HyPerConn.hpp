@@ -56,6 +56,7 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
+   virtual int calc_dW(int axonId);
    virtual int updateWeights(int axonId);
 
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
