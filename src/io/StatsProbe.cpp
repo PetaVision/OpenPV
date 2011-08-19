@@ -48,7 +48,7 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
 {
    int nk;
    const pvdata_t * buf;
-   float fMin = FLT_MAX, fMax = FLT_MIN;
+   float fMin = FLT_MAX, fMax = -FLT_MAX;
    double sum = 0.0;
 
    switch (type) {
@@ -72,20 +72,36 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
       if (a > fMax) fMax = a;
    }
 
+#ifdef PV_USE_MPI
+   InterColComm * icComm = l->getParent()->icCommunicator();
+   MPI_Comm comm = icComm->communicator();
+   int ierr;
+   const int rcvProc = 0;
+   double reducedsum;
+   float reducedmin, reducedmax;
+   ierr = MPI_Reduce(&sum, &reducedsum, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+   ierr = MPI_Reduce(&fMin, &reducedmin, 1, MPI_FLOAT, MPI_MIN, rcvProc, comm);
+   ierr = MPI_Reduce(&fMax, &reducedmax, 1, MPI_FLOAT, MPI_MAX, rcvProc, comm);
+   if( icComm->commRank() != rcvProc ) {
+      return 0;
+   }
+   sum = reducedsum;
+   fMin = reducedmin;
+   fMax = reducedmax;
+   nk = l->getNumGlobalNeurons();
+#endif // PV_USE_MPI
+   pvdata_t avg = sum/nk;
    if (type == BufActivity) {
-      float freq = 1000.0 * (sum/nk);
+      float freq = 1000.0 * avg;
       fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, time,
               nk, (float)sum, fMin, freq, fMax);
    }
    else {
       fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, time,
-              nk, (float)sum, fMin, (float)(sum / nk), fMax);
+              nk, (float)sum, fMin, (float) avg, fMax);
    }
 
    fflush(fp);
-
-   // or just
-   // printstats(l);
 
    return 0;
 }
