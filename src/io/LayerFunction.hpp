@@ -17,7 +17,7 @@ namespace PV {
 class LayerFunction {
 public:
     LayerFunction(const char * name);
-    ~LayerFunction();
+    virtual ~LayerFunction();
     virtual pvdata_t evaluate(float time, HyPerLayer * l) {return 0;}
     char * getName() {return name;}
     void setName(const char * name);
