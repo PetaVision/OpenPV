@@ -1,13 +1,16 @@
 function [status_info] = imageNetEdgeKernel(target_pathname, mask_pathname)
 
   global mask_flag
+  global antimask_flag
   global DoG_flag
   global canny_flag
   global DoG_subdir
   global DoG_mask_subdir
+  global DoG_antimask_subdir
   global DoG_struct
   global canny_subdir
   global canny_mask_subdir
+  global canny_antimask_subdir
   global canny_struct
   global image_margin
 
@@ -91,6 +94,19 @@ function [status_info] = imageNetEdgeKernel(target_pathname, mask_pathname)
 	disp([" failed: imageNetEdgeExtract::imwrite: ", DoG_mask_pathname]);
 	return;
       end
+      if antimask_flag
+	antimask_DoG = ...
+	    image_DoG .* (mask_gray == 0) + ...
+	    DoG_gray_val .* (mask_gray > 0);
+	DoG_antimask_pathname = ...
+	    [DoG_antimask_subdir, target_filename];
+	try
+	  imwrite(uint8(antimask_DoG), DoG_antimask_pathname);
+	catch
+	  disp([" failed: imageNetEdgeExtract::imwrite: ", DoG_antimask_pathname]);
+	  return;
+	end
+      endif
       status_info.DoG_mask_flag = 1;
     endif  %% mask_flag
   endif
@@ -124,6 +140,19 @@ function [status_info] = imageNetEdgeKernel(target_pathname, mask_pathname)
 	disp([" failed: imageNetEdgeExtract::imwrite: ", canny_mask_pathname]);
 	return;
       end
+      if antimask_flag
+	antimask_canny = ...
+	    image_canny .* (mask_gray == 0) + ...
+	    canny_gray_val .* (mask_gray > 0);
+	canny_antimask_pathname = ...
+	    [canny_antimask_subdir, target_filename];
+	try
+	  imwrite(uint8(antimask_canny), canny_antimask_pathname);
+	catch
+	  disp([" failed: imageNetEdgeExtract::imwrite: ", canny_antimask_pathname]);
+	  return;
+	end
+      endif
       status_info.canny_mask_flag = 1;
     endif %% mask_flag
   endif %% canny_flag

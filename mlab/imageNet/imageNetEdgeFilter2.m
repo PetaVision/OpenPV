@@ -10,20 +10,23 @@ function [tot_images, ...
 			  mask_flag, mask_only_flag, ...
 			  DoG_flag, DoG_struct, ...
 			  canny_flag, canny_struct, ...
-			  num_procs)
+			  num_procs, antimask_flag)
 
   %% perform edge filtering on standardized image net images, 
   %% mirror BCs used to pad images before edge extraction.
   %% also performs edge extraction on mask images if present
 
   global mask_flag
+  global antimask_flag
   global DoG_flag
   global canny_flag
   global DoG_subdir
   global DoG_mask_subdir
+  global DoG_antimask_subdir
   global DoG_struct
   global canny_subdir
   global canny_mask_subdir
+  global canny_antimask_subdir
   global canny_struct
   global image_margin
 
@@ -70,6 +73,9 @@ function [tot_images, ...
   if nargin < 9 || ~exist(num_procs) || isempty(num_procs)
     num_procs = 4;  %% 
   endif
+  if nargin < 10 || ~exist(antimask_flag) || isempty(antimask_flag)
+    antimask_flag = mask_flag;  %% apply edge filtering to unmasked portion of images 
+  endif
   
   %%setenv('GNUTERM', 'x11');
 
@@ -100,6 +106,10 @@ function [tot_images, ...
     if mask_flag 
       DoG_mask_dir = [imageNet_path, "DoGMask", filesep, object_name, filesep];
       mkdir(DoG_mask_dir);
+      if antimask_flag
+	DoG_antimask_dir = [imageNet_path, "DoGAntiMask", filesep, object_name, filesep];
+	mkdir(DoG_antimask_dir);
+      endif
     endif %% mask_flag
   endif %% DoG_flag
   canny_flag = 0.0;
@@ -109,6 +119,10 @@ function [tot_images, ...
     if mask_flag 
       canny_mask_dir = [imageNet_path, "canny_mask", filesep, object_name, filesep];
       mkdir(canny_mask_dir);
+      if antimask_flag
+	canny_antimask_dir = [imageNet_path, "cannyAntiMask", filesep, object_name, filesep];
+	mkdir(canny_antimask_dir);
+      endif
     endif %% mask_flag
   endif %% canny_flag
 
@@ -170,13 +184,19 @@ function [tot_images, ...
     if DoG_flag
       DoG_subdir = ...
 	  [DoG_dir, ...
-	   subdir_folder, "/"];
+	   subdir_folder, filesep];
       mkdir(DoG_subdir);
       if mask_flag
 	DoG_mask_subdir = ...
 	    [DoG_mask_dir, ...
-	     subdir_folder, "/"];
+	     subdir_folder, filesep];
 	mkdir(DoG_mask_subdir);
+	if antimask_flag
+	  DoG_antimask_subdir = ...
+	      [DoG_antimask_dir, ...
+	       subdir_folder, filese];
+	  mkdir(DoG_antimask_subdir);
+	endif
       endif  %% mask_flag
     endif %% DoG_flag
 
@@ -190,6 +210,12 @@ function [tot_images, ...
 	    [canny_mask_dir, ...
 	     subdir_folder, "/"];
 	mkdir(canny_mask_subdir);
+	if antimask_flag
+	  canny_antimask_subdir = ...
+	      [canny_antimask_dir, ...
+	       subdir_folder, filese];
+	  mkdir(canny_antimask_subdir);
+	endif
       endif  %% mask_flag
     endif %% canny_flag
 

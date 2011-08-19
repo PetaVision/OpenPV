@@ -4,7 +4,7 @@ function [train_filenames, test_filenames, ...
 	  tot_test_images,  ...
 	  tot_time] = ...
       imageNetFileOfFilenames(imageNet_path, object_name, ...
-		     num_train, num_test, train_dir, test_dir, cross_category_flag)
+			      num_train, num_test, train_dir, test_dir, cross_category_flag, shuffle_flag)
 
   %% makes list of paths to  imageNet image files for training and testing
   %% training files are drawn from images folder train_dir
@@ -16,13 +16,13 @@ function [train_filenames, test_filenames, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "dog";  %% could be a list?
+    object_name = "cat";  %% could be a list?
   endif
   if nargin < 3 || ~exist(num_train) || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
   endif
   if nargin < 4 || ~exist(num_test) || isempty(num_test)
-    num_test = 720;  %% -1 use all images in test_dir not in train_dir
+    num_test = -1;  %% -1 use all images in test_dir not in train_dir
   endif
   if nargin < 5 || ~exist(train_dir) || isempty(train_dir)
     train_dir = "DoGMask";  %% 
@@ -38,6 +38,10 @@ function [train_filenames, test_filenames, ...
   if nargin < 7 || ~exist(cross_category_flag) || isempty(cross_category_flag)
     cross_category_flag = 0;  %% 
   endif
+  if nargin < 8 || ~exist(shuffle_flag) || isempty(shuffle_flag)
+    shuffle_flag = 1;  %% 
+  endif
+  
  
   %%setenv('GNUTERM', 'x11');
 
@@ -139,7 +143,7 @@ function [train_filenames, test_filenames, ...
     num_test = tot_test_files;
   endif
 
-  if num_train < tot_train_files
+  if num_train < tot_train_files || shuffle_flag
     [rank_ndx, write_train_ndx] = sort(rand(tot_train_images,1));
   else
     write_train_ndx = 1:num_train;
@@ -153,7 +157,7 @@ function [train_filenames, test_filenames, ...
   endfor %%
   fclose(fid_train);
   
-  if num_test < tot_test_files
+  if num_test < tot_test_files  || shuffle_flag
     [rank_ndx, write_test_ndx] = sort(rand(tot_test_images,1));
   else
     write_test_ndx = 1:num_test;
