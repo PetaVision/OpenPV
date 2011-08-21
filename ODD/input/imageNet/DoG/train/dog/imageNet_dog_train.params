@@ -8,8 +8,8 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 22450;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG/train/dog/";
+   numSteps = 22472;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/dog/";
 };
 
 //
@@ -55,10 +55,10 @@ Retina "Retina" = {
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
     burstFreq = 1;
-    burstDuration = 22450;
+    burstDuration = 22466;
 
     beginStim = 1;
-    endStim = 22450;
+    endStim = 22466;
 };
 
 
