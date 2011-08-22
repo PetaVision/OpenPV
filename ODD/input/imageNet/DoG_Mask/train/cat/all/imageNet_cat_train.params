@@ -1,0 +1,249 @@
+//
+// params.ODDconn
+//  - input parameters for ODD.cpp for learning ODD kernels
+//
+
+HyPerCol "column" = {
+   nx = 360;   // until we get going with images
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 924; //22450;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/";
+};
+
+//
+// layers
+//
+//tot_train_files = 1517; //22443
+//tot_test_files = 5335; //97089
+
+Movie "Image" = {
+    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/cat/train_fileOfFilenames.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+    writeImages = 0;
+    Vrest = 0.0;
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1515;
+
+    beginStim = 1;
+    endStim = 1517;
+};
+
+
+
+ANNLayer "L1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+};
+
+
+
+
+
+//  connections: 
+
+KernelConn "Movie to Retina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    aspect = 1;
+    sigma = 1;
+    rMax  = 1;
+      
+    strength = 4.0;  
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    symmetrizeWeights = 0;
+
+    wMax = 4.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+// Retina connections
+
+KernelConn "Retina to L1" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+    
+   delay = 0;
+};
+
+
+
+KernelConn "Retina to L1 Inh" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.41;
+   rotate = 1;
+       
+   strength = 25.0; //50.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   writeCompressedWeights = 0.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+
+
+
+// ODD connections
+
+
+ODDConn "L1 to L1" = {
+   preLayerName = "L1";
+   postLayerName = "L1";
+   channelCode = 2;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0;  
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   strength = 400.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   wMax = 400.0;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 1;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0; 
+};
+
+
+
+StatsProbe "Retina Stats" = {
+    targetLayer = "Retina";
+//    probeOutputFile = "Retina_Stats.txt";
+};
+
+StatsProbe "L1 Stats" = {
+    targetLayer = "L1";
+//    probeOutputFile = "L1_Stats.txt";
+};
+
