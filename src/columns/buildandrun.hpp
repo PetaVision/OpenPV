@@ -70,6 +70,7 @@
 #include "../connections/InitRuleWeights.hpp"
 #include "../connections/InitSubUnitWeights.hpp"
 #include "../connections/InitIdentWeights.hpp"
+#include "../connections/InitUniformWeights.hpp"
 
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"

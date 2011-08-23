@@ -472,6 +472,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
       weightInitializer = new InitCocircWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformWeight"))) {
+      weightInitializer = new InitUniformWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
       weightInitializer = new InitSmartWeights();
    }
