@@ -8,8 +8,8 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 609;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/test/dog/terrier/";
+   numSteps = 109;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_all/";
 };
 
 //
@@ -19,7 +19,7 @@ HyPerCol "column" = {
 //tot_test_files = 97089
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames.txt";
+    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames_test100.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -58,7 +58,7 @@ Retina "Retina" = {
     burstDuration = 22450;
 
     beginStim = 1;
-    endStim = 600;
+    endStim = 100;
 };
 
 
@@ -319,13 +319,13 @@ KernelConn "L1 to L1 ODD Target" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 500.0;
+   strength = 400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
-   wMax = 500.0;
+   wMax = 400.0;
    wMin = 0;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
@@ -343,21 +343,21 @@ KernelConn "L1 to L1 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -500.0;
+   strength = -400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
    wMax = 0.0;
-   wMin = -500;
+   wMin = -400;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
@@ -406,13 +406,13 @@ KernelConn "L1 to L2 ODD Target" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 500.0;
+   strength = 400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
-   wMax = 500.0;
+   wMax = 400.0;
    wMin = 0;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
@@ -430,21 +430,21 @@ KernelConn "L1 to L2 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -500.0;
+   strength = -400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
    wMax = 0.0;
-   wMin = -500;
+   wMin = -400;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
@@ -494,13 +494,13 @@ KernelConn "L2 to L3 ODD Target" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 500.0;
+   strength = 400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
-   wMax = 500.0;
+   wMax = 400.0;
    wMin = 0;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
@@ -518,21 +518,21 @@ KernelConn "L2 to L3 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -500.0;
+   strength = -400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
    wMax = 0.0;
-   wMin = -500;
+   wMin = -400;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
@@ -584,13 +584,13 @@ KernelConn "L3 to L4 ODD Target" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = 500.0;
+   strength = 400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
-   wMax = 500.0;
+   wMax = 400.0;
    wMin = 0;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
@@ -608,21 +608,21 @@ KernelConn "L3 to L4 ODD Distractor" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/w3_last.pvp";
    
    stdpFlag   = 0;
    randomFlag = 0;  
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
-   strength = -500.0;
+   strength = -400.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
    
    wMax = 0.0;
-   wMin = -500;
+   wMin = -400;
    writeCompressedWeights = 0.0;
    normalize_cutoff = 0;
    plasticityFlag = 0;
