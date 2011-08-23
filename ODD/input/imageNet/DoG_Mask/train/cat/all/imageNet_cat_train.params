@@ -8,7 +8,7 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 924; //22450;  // num images plus (num layers + 1) * delay
+   numSteps = 1424; //22450;  // num images plus (num layers + 1) * delay
    outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_Mask/train/cat/all/";
 };
 
@@ -55,10 +55,10 @@ Retina "Retina" = {
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
     burstFreq = 1;
-    burstDuration = 1515;
+    burstDuration = 1517;
 
     beginStim = 1;
-    endStim = 1517;
+    endStim = 1417;
 };
 
 
@@ -97,6 +97,7 @@ KernelConn "Movie to Retina" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
+    weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 1;
     rMax  = 1;
@@ -107,8 +108,6 @@ KernelConn "Movie to Retina" = {
     normalize_max = 0.0;
     symmetrizeWeights = 0;
 
-    wMax = 4.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     weightUpdatePeriod = -1.0;
@@ -126,12 +125,10 @@ KernelConn "Retina to L1" = {
    nxp = 7; 
    nyp = 7; 
    nfp = 8;
-   
-   stdpFlag   = 0;
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
-
+   
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
@@ -149,7 +146,6 @@ KernelConn "Retina to L1" = {
    symmetrizeWeights = 0;
 
    writeCompressedWeights = 0.0;
-   gauss2DCalcWeights = 1;
    no = 8;
    normalize_cutoff = 0;
    plasticityFlag = 0;
@@ -167,12 +163,10 @@ KernelConn "Retina to L1 Inh" = {
    nxp = 7; 
    nyp = 7; 
    nfp = 8;
-   
-   stdpFlag   = 0;
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
@@ -190,7 +184,6 @@ KernelConn "Retina to L1 Inh" = {
    symmetrizeWeights = 0;
    
    writeCompressedWeights = 0.0;
-   gauss2DCalcWeights = 1;
    no = 8;
    normalize_cutoff = 0;
    plasticityFlag = 0;
