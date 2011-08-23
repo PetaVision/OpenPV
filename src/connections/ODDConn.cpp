@@ -262,7 +262,9 @@ int ODDConn::writeWeights(float time, bool last)
          kernelWeights[iWeight] /= fabs(kernelNorm + (kernelNorm==0));
       }
    }
-   this->normalizeWeights(this->kernelPatches, this->numDataPatches(axonID));
+   if (this->normalize_flag){
+      this->normalizeWeights(this->kernelPatches, this->numDataPatches(axonID));
+   }
 #endif
    return KernelConn::writeWeights(time, last);
 }
