@@ -14,18 +14,22 @@
 
 namespace PV {
 
+class InitIdentWeights;
+
 class IdentConn : public KernelConn {
 public:
-   IdentConn();
-   IdentConn(const char * name, HyPerCol *hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+    IdentConn();
+    IdentConn(const char * name, HyPerCol *hc,
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitIdentWeights *weightInitializer);
+
    int initialize_base();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
    virtual int initNormalize();
 
 protected:
-   int setPatchSize(const char * filename);
-   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
-         const char * filename);
+    int setPatchSize(const char * filename);
+    //virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+    //      const char * filename);
 };
 
 }  // end of block for namespace PV

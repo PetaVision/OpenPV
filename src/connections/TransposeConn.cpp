@@ -39,7 +39,7 @@ int TransposeConn::initialize_base() {
 int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn) {
 
    originalConn = auxConn;
-   return KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL);
+   return KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL, NULL);
 }
 
 PVPatch ** TransposeConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename) {

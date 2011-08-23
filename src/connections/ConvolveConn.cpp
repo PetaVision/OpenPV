@@ -10,9 +10,9 @@
 namespace PV {
 
 ConvolveConn::ConvolveConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                           ChannelType channel)
+                           ChannelType channel, InitWeights *weightInit)
 {
-   HyPerConn::initialize(name, hc, pre, post, channel, NULL);
+   HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
 }
 
 int ConvolveConn::initialize(const char * filename)

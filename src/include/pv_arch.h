@@ -5,7 +5,7 @@
 #define PV_ARCH_64
 
 /* define this if using a vendor supplied MPI library */
-#define PV_USE_MPI
+#undef PV_USE_MPI
 
 /* define this if using OpenCL for threads on CPU or GPU */
 #undef PV_USE_OPENCL

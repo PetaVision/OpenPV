@@ -25,7 +25,7 @@ public:
    virtual ~KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              ChannelType channel, const char * filename = NULL);
+              ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL);
 #ifdef OBSOLETE // marked obsolete Jul 25, 2011.  This case covered since other constructor's filename argumernt now has a default of null
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel);
@@ -39,6 +39,8 @@ public:
    virtual float minWeight();
    virtual float maxWeight();
 
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
    virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
          int numFlanks, float shift, float rotate, float aspect, float sigma,
          float r2Max, float strength, float deltaThetaMax, float thetaMax,
@@ -48,6 +50,7 @@ public:
          float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
          float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
          float aspect, float rotate, float sigma, float r2Max, float strength);
+#endif
 
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches);
@@ -75,6 +78,8 @@ protected:
    virtual int initialize_base();
    virtual int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
+   virtual int initialize(const char * name, HyPerCol * hc,
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,

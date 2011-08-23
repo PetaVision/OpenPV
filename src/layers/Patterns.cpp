@@ -27,13 +27,76 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
 
    // set default params
    // set reference position of bars
-   this->prefPosition = 3;
+   this->prefPosition = 0; // 3; why was the old default 3???
    this->position = this->prefPosition;
    this->lastPosition = this->prefPosition;
 
    // set bars orientation to default values
-   this->orientation = vertical;
-   this->lastOrientation = orientation;
+   //this->orientation = vertical;
+   //this->lastOrientation = orientation;
+   const char * allowedPatternModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "HORIZONTAL",
+         "VERTICAL",
+         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   //if the orientation isn't set, use vertical as the default...
+   const char * patternModeStr = hc->parameters()->stringValue(name, "orientation");
+   if( ! patternModeStr ) {
+      this->orientation = vertical;
+      this->lastOrientation = orientation;
+   }
+   else {
+      PatternMode patternMode;
+      int patternModeMatch = false;
+      for( int i=0; strcmp(allowedPatternModes[i],"_End_allowedPatternTypes"); i++ ) {
+         const char * thispatternmode = allowedPatternModes[i];
+         if( !strcmp(patternModeStr, thispatternmode) ) {
+            patternMode = (PatternMode) i;
+            patternModeMatch = true;
+            break;
+         }
+      }
+      if( patternModeMatch ) {
+         this->orientation = patternMode;
+         this->lastOrientation = patternMode;
+      }
+      else { //if the set orientation isn't recognized, use vertical as default
+         this->orientation = vertical;
+         this->lastOrientation = orientation;
+      }
+   }
+
+   //set movement type (random walk is default)
+   const char * allowedMovementTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "RANDOMWALK",
+         "MOVEFORWARD",
+         "MOVEBACKWARD",
+         "RANDOMJUMP",
+         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   //if the movement type isn't set, use random walk as the default...
+   const char * movementTypeStr = hc->parameters()->stringValue(name, "movementType");
+   if( ! movementTypeStr ) {
+      this->movementType = RANDOMWALK;
+   }
+   else {
+      MovementType movementType;
+      int movementTypeMatch = false;
+      for( int i=0; strcmp(allowedMovementTypes[i],"_End_allowedPatternTypes"); i++ ) {
+         const char * thisMovementType = allowedMovementTypes[i];
+         if( !strcmp(movementTypeStr, thisMovementType) ) {
+            movementType = (MovementType) i;
+            movementTypeMatch = true;
+            break;
+         }
+      }
+      if( movementTypeMatch ) {
+         this->movementType = movementType;
+      }
+      else { //if the set movement type isn't recognized, use random walk as default
+         this->movementType = RANDOMWALK;
+      }
+   }
 
    const PVLayerLoc * loc = getLayerLoc();
 
@@ -49,6 +112,11 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
 
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
+
+
+   movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
+
+
 
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
@@ -204,11 +272,14 @@ int Patterns::calcPosition(int pos, int step)
 {
    // float dp = 1.0 / step;
    double p = pv_random_prob();
+   /*
+    * now use movementType to determine which kind of movement to make
    int random_walk = 1;
    int move_forward = 0;
    int move_backward = 0;
-   int random_jump = 0;
+   int random_jump = 0;*/
 
+   /* old code:
    if (random_walk) {
       if (p < 0.5){
          pos = (pos+1) % step;
@@ -222,8 +293,35 @@ int Patterns::calcPosition(int pos, int step)
       pos = (pos-1+step) % step;
    }
    else if (random_jump) {
-           pos = int(p * step) % step;
+      pos = int(p * step) % step;
+   }*/
+
+   switch (movementType) {
+   case RANDOMWALK:
+      if (p < 0.5){
+         pos = (pos+1) % step;
+      } else {
+         pos = (pos-1+step) % step;
       }
+      break;
+   case MOVEFORWARD:
+     pos = (pos+movementSpeed) % step;
+     break;
+   case MOVEBACKWARD:
+      pos = (pos-movementSpeed) % step;
+     break;
+   case RANDOMJUMP:
+      pos = int(p * step) % step;
+      break;
+   default: //in case of any problems with setting the movementType var, just use the
+            //random walk as default
+      if (p < 0.5){
+         pos = (pos+1) % step;
+      } else {
+         pos = (pos-1+step) % step;
+      }
+      break;
+   }
 
    return pos;
 }

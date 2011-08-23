@@ -17,6 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include "../connections/InitWeights.hpp"
+#include "../connections/InitCocircWeights.hpp"
+#include "../connections/InitSmartWeights.hpp"
+#include "../connections/InitUniformRandomWeights.hpp"
+#include "../connections/InitGaussianRandomWeights.hpp"
 
 namespace PV {
 
@@ -39,7 +44,14 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
+   initialize(name, hc, pre, post, channel, NULL, NULL);
+}
+
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, InitWeights *weightInit)
+{
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL, weightInit);
 }
 
 // provide filename or set to NULL
@@ -47,8 +59,16 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename);
+   initialize(name, hc, pre, post, channel, filename, NULL);
 }
+
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
+{
+   initialize_base();
+   initialize(name, hc, pre, post, channel, filename, weightInit);
+}
+
 
 HyPerConn::~HyPerConn()
 {
@@ -76,6 +96,9 @@ HyPerConn::~HyPerConn()
          free(axonalArborList[l]);
       }
    }
+
+   delete(weightInitializer);
+
 }
 
 //!
@@ -97,6 +120,8 @@ int HyPerConn::initialize_base()
    this->numAxonalArborLists = 1;
    this->channel = CHANNEL_EXC;
    this->ioAppend = false;
+
+   this->weightInitializer = NULL;
 
    this->probes = NULL;
    this->numProbes = 0;
@@ -148,7 +173,7 @@ int HyPerConn::constructWeights(const char * filename)
 
    setPatchSize(filename);
 
-   wPatches[arbor] = createWeights(wPatches[arbor]);
+   wPatches[arbor] = createWeights(wPatches[arbor]); //allocates memory for weights
 
 #ifdef OBSOLETE_STDP
    initializeSTDP();
@@ -202,9 +227,16 @@ int HyPerConn::initializeSTDP()
 #endif
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename)
+      HyPerLayer * post, ChannelType channel, const char * filename) {
+   return initialize(name, hc, pre, post, channel, filename, NULL);
+}
+
+
+int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
 {
    int status = PV_SUCCESS;
+
 
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
@@ -225,6 +257,44 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    free(this->name);  // name will already have been set in initialize_base()
    this->name = strdup(name);
    assert(this->name != NULL);
+
+   //if a weightinitializer hasn't been created already, use the default--> either 2D Gauss or read from file
+   if(weightInit==NULL) {
+      PVParams * inputParams = parent->parameters();
+      bool randomFlag = inputParams->value(name, "randomFlag", 0.0f, false) != 0;
+      bool smartWeights = inputParams->value(name, "smartWeights",0.0f, false) != 0;
+      bool cocircWeights = inputParams->value(name, "cocircWeights",0.0f, false) != 0;
+      bool uniform_weights = inputParams->value(name, "uniformWeights", 1.0f, false) != 0;
+      bool gaussian_weights = inputParams->value(name, "gaussianWeights", 0.0f, false) != 0;
+
+      if ((randomFlag)&&(uniform_weights)) { // if (randomFlag != 0 || randomSeed != 0) {
+         this->weightInitializer = new InitUniformRandomWeights();
+         //initializeRandomWeights(patches, numPatches);
+      }
+      else if ((randomFlag)&&(gaussian_weights)) { // if (randomFlag != 0 || randomSeed != 0) {
+         this->weightInitializer = new InitGaussianRandomWeights();
+         //initializeRandomWeights(patches, numPatches);
+      }
+      else if (smartWeights) {
+         this->weightInitializer = new InitSmartWeights();
+         //initializeSmartWeights(patches, numPatches);
+      }
+      else if (cocircWeights) {
+         this->weightInitializer = new InitCocircWeights();
+         //initializeCocircWeights(patches, numPatches);
+      }
+      else {
+         this->weightInitializer = new InitWeights();
+         //inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
+         //initializeDefaultWeights(patches, numPatches);
+      }
+      fprintf(stderr, "This method of initializing weights has been depreciated.  Please use the param \"weightInitType\"\n");
+
+   }
+   else {
+      this->weightInitializer = weightInit;
+   }
+
 
    this->connId = parent->addConnection(this);
 
@@ -303,34 +373,48 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
    //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
 
-   if( filename != NULL ) {
-      readWeights(patches, numPatches, filename);
+   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
+//   int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
+//   int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
+//   int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
+
+//   if( filename != NULL ) {
+//      //readWeights(patches, numPatches, filename);
+//   }
+//   else if (initFromLastFlag) {
+//      char name[PV_PATH_MAX];
+//      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
+//      //readWeights(patches, numPatches, name);
+//   }
+//   else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
+//       initializeRandomWeights(patches, numPatches);
+//   }
+//   else if (smartWeights) {
+//       initializeSmartWeights(patches, numPatches);
+//   }
+//   else if (cocircWeights) {
+//       initializeCocircWeights(patches, numPatches);
+//   }
+//   else {
+//      inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
+//      initializeDefaultWeights(patches, numPatches);
+//   }
+
+   if (initFromLastFlag) {
+      char nametmp[PV_PATH_MAX];
+      snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
+      weightInitializer->initializeWeights(patches, numPatches, nametmp, this);
    }
    else {
-      int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-      int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
-      int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
-      int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
+      weightInitializer->initializeWeights(patches, numPatches, filename, this);
 
-      if (initFromLastFlag) {
-         char name[PV_PATH_MAX];
-         snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
-         readWeights(patches, numPatches, name);
-      }
-      else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
-          initializeRandomWeights(patches, numPatches);
-      }
-      else if (smartWeights) {
-          initializeSmartWeights(patches, numPatches);
-      }
-      else if (cocircWeights) {
-          initializeCocircWeights(patches, numPatches);
-      }
-      else {
-         inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
-         initializeDefaultWeights(patches, numPatches);
-      }
+      //call to original for comparing result with my new one:
+      //initializeDefaultWeights(patches, numPatches);
+      //initializeCocircWeights(patches, numPatches);
+      //initializeSmartWeights(patches, numPatches);
    }
+
+   bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       normalizeWeights(patches, numPatches);
@@ -373,6 +457,9 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
    }
    return 0;
 }
+
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
 /*!
  * NOTES:
  *    - numPatches also counts the neurons in the boundary layer. It gives the size
@@ -574,6 +661,7 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
 
    return patches;
 }
+#endif
 
 int HyPerConn::writeWeights(float time, bool last)
 {
@@ -1491,6 +1579,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last)
    return 0;
 }
 
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
 /**
  * generate random weights for a patch from a uniform distribution
  * NOTES:
@@ -2137,6 +2227,7 @@ int HyPerConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
    return 0;
 
 }
+#endif
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();

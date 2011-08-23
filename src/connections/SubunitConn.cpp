@@ -4,6 +4,7 @@
  *  Created on: Jan 26, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "SubUnitWeight" in the params file
 
 #include "SubunitConn.hpp"
 #include "../io/io.h"
@@ -96,3 +97,4 @@ int SubunitConn::weights(PVPatch * wp)
 }
 
 } // namespace PV
+#endif

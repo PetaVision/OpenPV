@@ -14,6 +14,7 @@
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../utils/Timer.hpp"
+#include "InitWeights.hpp"
 #include <stdlib.h>
 
 #define PROTECTED_NUMBER 13
@@ -23,6 +24,11 @@ namespace PV {
 
 class HyPerCol;
 class HyPerLayer;
+class InitWeights;
+class InitUniformRandomWeights;
+class InitGaussianRandomWeights;
+class InitSmartWeights;
+class InitCocircWeights;
 class ConnectionProbe;
 
 /**
@@ -49,6 +55,10 @@ public:
              ChannelType channel);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
              ChannelType channel, const char * filename);
+   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+             ChannelType channel, const char * filename, InitWeights *weightInit);
+   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+             ChannelType channel, InitWeights *weightInit);
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
@@ -71,9 +81,12 @@ public:
    virtual int writePostSynapticWeights(float time, bool last=false);
 
    int readWeights(const char * filename);
+
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                   const char * filename);
-
+#endif
    virtual PVPatch * getWeights(int kPre, int arbor);
 
    virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
@@ -81,6 +94,11 @@ public:
    inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
 
    inline const char * getName()                     {return name;}
+   inline HyPerCol * getParent()                     {return parent;}
+   inline HyPerLayer * getPre()                        {return pre;}
+   inline HyPerLayer * getPost()                       {return post;}
+   inline ChannelType getChannel()                 {return channel;}
+   inline InitWeights * getWeightInitializer()    {return weightInitializer;}
    inline int          getDelay()                    {return params->delay;}
 
    virtual float minWeight()                         {return 0.0;}
@@ -108,6 +126,8 @@ public:
                              int * kxPostOut, int * kyPostOut, int * kfPostOut,
                              int * dxOut, int * dyOut, int * nxpOut, int * nypOut);
 
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
    virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
                              int numFlanks, float shift, float rotate, float aspect, float sigma,
                              float r2Max, float strength, float deltaThetaMax, float thetaMax,
@@ -117,7 +137,7 @@ public:
          float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
          float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
          float aspect, float rotate, float sigma, float r2Max, float strength);
-
+#endif
    virtual int initNormalize();
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
 
@@ -188,6 +208,12 @@ protected:
    float normalize_zero_offset;
    float normalize_cutoff;
 
+   //This object handles calculating weights.  All the initialize weights methods for all connection classes
+   //are being moved into subclasses of this object.  The default root InitWeights class will create
+   //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,
+   //this class will try to read the weights from a file or will do a 2D Gaussian.
+   InitWeights *weightInitializer;
+
 protected:
    virtual int setPatchSize(const char * filename);
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
@@ -200,20 +226,26 @@ protected:
 
    virtual int initialize_base();
    int constructWeights(const char * filename);
+   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
+         HyPerLayer * post, ChannelType channel, const char * filename);
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename);
+                  ChannelType channel, const char * filename,
+                  InitWeights *weightInit);
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
          const char * filename);
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
    // PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
    PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, int numPatches);
    PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
+#endif
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch);
    PVPatch ** createWeights(PVPatch ** patches);
@@ -221,11 +253,13 @@ protected:
          int nyPatch, int nfPatch);
    PVPatch ** allocWeights(PVPatch ** patches);
 
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
    int uniformWeights(PVPatch * wp, float minwgt, float maxwgt);
    int gaussianWeights(PVPatch * wp, float mean, float stdev);
 
    int smartWeights(PVPatch * wp, int k);
-
+#endif
    virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 

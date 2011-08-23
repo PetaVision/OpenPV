@@ -13,10 +13,11 @@
 namespace PV {
 
 STDPConn::STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                   ChannelType channel, const char * filename, bool stdpFlag) : HyPerConn()
+                   ChannelType channel, const char * filename, bool stdpFlag,
+                   InitWeights *weightInit) : HyPerConn()
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, stdpFlag);
+   initialize(name, hc, pre, post, channel, filename, stdpFlag, weightInit);
 }
 
 STDPConn::~STDPConn()
@@ -38,10 +39,10 @@ int STDPConn::initialize_base() {
 
 int STDPConn::initialize(const char * name, HyPerCol * hc,
                          HyPerLayer * pre, HyPerLayer * post,
-                         ChannelType channel, const char * filename, bool stdpFlag)
+                         ChannelType channel, const char * filename, bool stdpFlag, InitWeights *weightInit)
 {
    this->stdpFlag = stdpFlag; // needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
-   int status = HyPerConn::initialize(name, hc, pre, post, channel, filename);
+   int status = HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
    status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
    status |= initPlasticityPatches();

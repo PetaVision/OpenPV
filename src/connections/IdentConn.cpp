@@ -14,9 +14,9 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitIdentWeights *weightInitializer) {
     initialize_base();
-    initialize(name, hc, pre, post, channel, NULL);
+    initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
@@ -40,6 +40,7 @@ int IdentConn::setPatchSize(const char * filename) {
     return PV_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
 
+#ifdef OBSOLETE // This method has been moved to InitIdentWeights.  To initialize IdentConns set the param "weightInitType" to "InitIdentWeight" in the params file
 PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
           const char * filename) {
     int numKernels = numDataPatches(0);
@@ -52,6 +53,7 @@ PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
     }
     return patches;
 }  // end of IdentConn::initializeWeights(PVPatch **, int, const char *)
+#endif
 
 int IdentConn::initNormalize() {
    normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights

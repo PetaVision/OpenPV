@@ -4,6 +4,7 @@
  *  Created on: Apr 7, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "PoolWeight" in the params file
 
 #include "PoolConn.hpp"
 #include <assert.h>
@@ -86,3 +87,4 @@ int PoolConn::poolWeights(PVPatch * wp, int fPre, int xScale, int yScale, float 
 }
 
 } // namespace PV
+#endif

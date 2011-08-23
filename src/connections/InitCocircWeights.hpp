@@ -1,0 +1,45 @@
+/*
+ * InitCocircWeights.hpp
+ *
+ *  Created on: Aug 8, 2011
+ *      Author: kpeterson
+ */
+
+#ifndef INITCOCIRCWEIGHTS_HPP_
+#define INITCOCIRCWEIGHTS_HPP_
+
+#include "InitWeights.hpp"
+#include "InitWeightsParams.hpp"
+#include "InitCocircWeightsParams.hpp"
+
+namespace PV {
+
+class InitWeightsParams;
+class InitCocircWeights;
+
+class InitCocircWeights: public PV::InitWeights {
+public:
+   InitCocircWeights();
+//   InitCocircWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+//         ChannelType channel);
+   virtual ~InitCocircWeights();
+
+   virtual int calcWeights(PVPatch * patch, int patchIndex,
+         InitWeightsParams *weightParams);
+   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+
+
+protected:
+   virtual int initialize_base();
+//   int initialize(const char * name, HyPerCol * hc,
+//                  HyPerLayer * pre, HyPerLayer * post,
+//                  ChannelType channel);
+
+private:
+   bool calcDistChordCocircKurvePreNKurvePost(
+            float xDelta, float yDelta, int kfPost, InitCocircWeightsParams *weightParamPtr, float thPost);
+   int cocircCalcWeights(PVPatch * patch, InitCocircWeightsParams * weightParamPtr);
+};
+
+} /* namespace PV */
+#endif /* INITCOCIRCWEIGHTS_HPP_ */

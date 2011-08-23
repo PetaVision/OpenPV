@@ -25,7 +25,14 @@ ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                          HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
+   initialize(name, hc, pre, post, channel, NULL, NULL);
+   // constructWeights(NULL); // HyPerConn::constructWeights moved back into HyPerConn::initialize
+}
+ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+                         HyPerLayer * post, ChannelType channel, InitWeights *weightInit)
+{
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL, weightInit);
    // constructWeights(NULL); // HyPerConn::constructWeights moved back into HyPerConn::initialize
 }
 
@@ -44,7 +51,14 @@ ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename);
+   initialize(name, hc, pre, post, channel, filename, NULL);
+   // constructWeights(filename); // HyPerConn::constructWeights moved back into HyPerConn::initialize
+}
+ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
+{
+   initialize_base();
+   initialize(name, hc, pre, post, channel, filename, weightInit);
    // constructWeights(filename); // HyPerConn::constructWeights moved back into HyPerConn::initialize
 }
 

@@ -4,6 +4,7 @@
  *  Created on: Apr 5, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "RuleWeight" in the params file
 
 #ifndef RULECONN_HPP_
 #define RULECONN_HPP_
@@ -36,3 +37,4 @@ private:
 }
 
 #endif /* RULECONN_HPP_ */
+#endif

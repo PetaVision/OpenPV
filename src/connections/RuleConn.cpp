@@ -4,6 +4,7 @@
  *  Created on: Apr 5, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "RuleWeight" in the params file
 
 #include "RuleConn.hpp"
 #include <assert.h>
@@ -171,3 +172,4 @@ int RuleConn::ruleWeights(PVPatch * wp, int kPre, int xScale, int yScale, float 
 }
 
 } // namespace PV
+#endif

@@ -459,6 +459,59 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
 }
 
 
+/*
+ * THis method parses the weightInitType parameter and creates an
+ * appropriate InitWeight object for the chosen weight initialization.
+ *
+ */
+InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+      ChannelType channel) {
+   const char * weightInitTypeStr = hc->parameters()->stringValue(name, "weightInitType");
+   InitWeights *weightInitializer;
+
+   if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
+      weightInitializer = new InitCocircWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
+      weightInitializer = new InitSmartWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
+      weightInitializer = new InitUniformRandomWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformGaussianRandomWeight"))) {
+      weightInitializer = new InitGaussianRandomWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
+      weightInitializer = new InitGaborWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
+      weightInitializer = new InitPoolWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "RuleWeight"))) {
+      weightInitializer = new InitRuleWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
+      weightInitializer = new InitSubUnitWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
+      weightInitializer = new InitWeights();
+   }
+   else { //default is also Gauss2D
+      fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
+      weightInitializer = new InitWeights();
+   }
+
+   return weightInitializer;
+}
+
+/*
+ * This method is getting changed radically to use the new InitWeights class.  This class and any that extend it
+ * will implement any weight initialization methods that are necessary.  Depending on keywords set in the params file
+ * a different subtype of InitWeights will be created and passed to the connection class.  A few classes will be made
+ * obsolete because all of their code was weight initialization, all of which will be moved to the new InitWeights
+ * class.
+ *
+ */
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    HyPerConn * addedConn = NULL;
    assert( hc != NULL );
@@ -466,9 +519,14 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    HyPerLayer * preLayer, * postLayer;
    HyPerConn * auxConn;
    PVParams * params = hc->parameters();
+   InitWeights *weightInitializer;
 
    ChannelType channelType;
    int channelNo = (int) params->value(name, "channelCode", -1);
+
+   //add code here for checking weight initialization type.  default is 2D Gauss or read from file
+   weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+
    if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
       fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
       return NULL;
@@ -480,7 +538,11 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
 
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName);
+
+         //add code here for checking weight initialization type.  default is 2D Gauss or read from file
+         //weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+
+         addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -492,7 +554,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType);
+         addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -501,7 +563,11 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName);
+
+         //add code here for checking weight initialization type.  default is 2D Gauss or read from file
+         //weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+
+         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -515,7 +581,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       checknewobject((void *) addedConn, classkeyword, name);
    }
 #ifdef OBSOLETE
-   if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
+   /*
+    * CocircConn was made obselete
+    */
+    if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
@@ -524,7 +593,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
-#endif
    if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -533,6 +601,8 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+   }
+#endif
    if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -547,7 +617,8 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
+         InitIdentWeights *identWeightInitializer = new InitIdentWeights();
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType, identWeightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -556,7 +627,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName);
+         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -565,7 +636,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName );
+         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -586,6 +657,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
       // filename is ignored as PoolConn doesn't have a constructor that takes a filename
       keywordMatched = true;
@@ -603,13 +675,14 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#endif
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
      bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
      if( preLayer && postLayer ) {
        fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag);
+       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag, weightInitializer);
      }
      checknewobject((void *) addedConn, classkeyword, name);
    }
@@ -618,10 +691,11 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GapConn(name, hc, preLayer, postLayer, channelType, fileName);
+         addedConn = new GapConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -630,18 +704,19 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
+#endif
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
    }
    return addedConn;
 }
 
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit) {
    PoolingGenConn * addedConn;
    HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
    HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
    if( secondaryPreLayer && secondaryPostLayer ) {
-       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename);
+       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename, weightInit);
    }
    else {
        addedConn = NULL;

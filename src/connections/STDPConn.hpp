@@ -17,7 +17,8 @@ class STDPConn : HyPerConn {
 public:
    STDPConn();
    STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename=NULL, bool stdpFlag=true);
+            ChannelType channel, const char * filename=NULL, bool stdpFlag=true,
+            InitWeights *weightInit=NULL);
    virtual ~STDPConn();
 
    int setParams(PVParams * params);
@@ -41,7 +42,7 @@ protected:
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename, bool stdpFlag);
+                  ChannelType channel, const char * filename, bool stdpFlag, InitWeights *weightInit);
    int initPlasticityPatches();
 
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer

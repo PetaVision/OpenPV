@@ -19,8 +19,8 @@ GapConn::GapConn()
 }
 
 GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) {
-    initialize(name, hc, pre, post, channel, filename);
+      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit) {
+    initialize(name, hc, pre, post, channel, filename, weightInit);
 }
 
 GapConn::~GapConn()

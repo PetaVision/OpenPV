@@ -17,7 +17,17 @@ enum PatternType {
   RECTANGLES  = 1,
 };
 
-enum PatternMode {vertical, horizontal};
+enum PatternMode {
+   vertical = 0,
+   horizontal = 1,
+};
+
+enum MovementType {
+   RANDOMWALK = 0,
+   MOVEFORWARD = 1,
+   MOVEBACKWARD = 2,
+   RANDOMJUMP = 3,
+};
 
 class Patterns : public PV::Image {
 public:
@@ -43,6 +53,9 @@ protected:
    PatternType type;
    PatternMode orientation;
    PatternMode lastOrientation;
+   MovementType movementType; //save the type of movement
+                              //(random walk, horizontal or vertical drift
+                              //or random jumping)
 
    int writeImages;
    int position;
@@ -50,6 +63,8 @@ protected:
    int prefPosition;
    float pSwitch;
    float pMove;
+   int movementSpeed; //save a movement speed in pixels/time step
+
 
    int minWidth, maxWidth;
    int minHeight, maxHeight;

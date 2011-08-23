@@ -4,6 +4,7 @@
  *  Created on: Apr 7, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "PoolWeight" in the params file
 
 #ifndef POOLCONN_HPP_
 #define POOLCONN_HPP_
@@ -31,3 +32,4 @@ private:
 }
 
 #endif /* POOLCONN_HPP_ */
+#endif

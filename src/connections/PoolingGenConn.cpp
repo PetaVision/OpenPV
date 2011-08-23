@@ -13,7 +13,14 @@ PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
         ChannelType channel) {
         initialize_base();
-        initialize(name, hc, pre, post, pre2, post2, channel, NULL);
+        initialize(name, hc, pre, post, pre2, post2, channel, NULL, NULL);
+}  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
+   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int)
+PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
+        HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+        ChannelType channel, InitWeights *weightInit) {
+        initialize_base();
+        initialize(name, hc, pre, post, pre2, post2, channel, NULL, weightInit);
 }  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int)
 
@@ -21,7 +28,14 @@ PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
         ChannelType channel, const char * filename) {
         initialize_base();
-        initialize(name, hc, pre, post, pre2, post2, channel, filename);
+        initialize(name, hc, pre, post, pre2, post2, channel, filename, NULL);
+}  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
+   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *)
+PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
+        HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+        ChannelType channel, const char * filename, InitWeights *weightInit) {
+        initialize_base();
+        initialize(name, hc, pre, post, pre2, post2, channel, filename, weightInit);
 }  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *)
 
@@ -33,8 +47,8 @@ int PoolingGenConn::initialize_base() {
 
 int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-        ChannelType channel, const char * filename) {
-    GenerativeConn::initialize(name, hc, pre, post, channel, filename);
+        ChannelType channel, const char * filename, InitWeights *weightInit) {
+    GenerativeConn::initialize(name, hc, pre, post, channel, filename, weightInit);
     if( checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ) {
         this->pre2 = pre2;
         this->post2 = post2;
@@ -49,7 +63,7 @@ int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
 int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
         ChannelType channel) {
-    return initialize(name, hc, pre, post, pre2, post2, channel, NULL);
+    return initialize(name, hc, pre, post, pre2, post2, channel, NULL, NULL);
 }  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *)
 

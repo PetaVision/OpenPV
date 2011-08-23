@@ -35,11 +35,11 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 #endif // OBSOLETE
 
-KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) : HyPerConn()
+KernelConn::   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+      ChannelType channel, const char * filename, InitWeights *weightInit) : HyPerConn()
 {
    KernelConn::initialize_base();
-   KernelConn::initialize(name, hc, pre, post, channel, filename);
+   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    // HyPerConn::initialize is not virtual
 }
 
@@ -61,9 +61,13 @@ int KernelConn::initialize_base()
    // KernelConn constructor calls HyPerConn::HyPerConn(), which
    // calls HyPerConn::initialize_base().
 }
+int KernelConn::initialize(const char * name, HyPerCol * hc,
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
+   return KernelConn::initialize(name, hc, pre, post, channel, filename, NULL);
+}
 
-int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename ) {
-   HyPerConn::initialize(name, hc, pre, post, channel, filename);
+int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit ) {
+   HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    PVParams * params = hc->parameters();
    plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag);
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
@@ -145,7 +149,7 @@ int KernelConn::deleteWeights()
    return HyPerConn::deleteWeights();
 }
 
-PVPatch ** KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
+PVPatch **  KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
    int arbor = 0;
@@ -157,7 +161,7 @@ PVPatch ** KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
 PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
-   HyPerConn::readWeights(patches, numPatches, filename);
+   //HyPerConn::readWeights(patches, numPatches, filename);
 
    return patches;
 }
@@ -314,6 +318,8 @@ int KernelConn::reduceKernels(const int axonID) {
 #endif // PV_USE_MPI
 
 
+#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
+                //use the param "weightInitType" to choose an initialization type
 int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,
                                    float shift, float rotate, float aspect, float sigma,
                                    float r2Max, float strength,
@@ -338,6 +344,7 @@ int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPo
          sigma_kurve, sigma_chord, delta_theta_max, cocirc_self, delta_radius_curvature,
          numFlanks, shift, aspect, rotate, sigma, r2Max, strength);
 }
+#endif
 
 PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches)
 {

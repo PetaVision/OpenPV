@@ -14,12 +14,18 @@ namespace PV {
 
 class PoolingGenConn : public GenerativeConn {
 public:
-    PoolingGenConn(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-            ChannelType channel);
-    PoolingGenConn(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-            ChannelType channel, const char * filename);
+   PoolingGenConn(const char * name, HyPerCol * hc,
+           HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+           ChannelType channel);
+   PoolingGenConn(const char * name, HyPerCol * hc,
+           HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+           ChannelType channel, InitWeights *weightInit);
+   PoolingGenConn(const char * name, HyPerCol * hc,
+           HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+           ChannelType channel, const char * filename);
+   PoolingGenConn(const char * name, HyPerCol * hc,
+           HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+           ChannelType channel, const char * filename, InitWeights *weightInit);
 
     HyPerLayer * getPre2() { return pre2; }
     HyPerLayer * getPost2() { return post2; }
@@ -28,9 +34,12 @@ public:
 
 protected:
     int initialize_base();
+//    int initialize(const char * name, HyPerCol * hc,
+//            HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
+//            ChannelType channel, const char * filename);
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-            ChannelType channel, const char * filename);
+            ChannelType channel, const char * filename, InitWeights *weightInit);
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
             ChannelType channel);

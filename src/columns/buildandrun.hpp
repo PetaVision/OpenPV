@@ -60,6 +60,17 @@
 #include "../connections/STDPConn.hpp"
 #include "../connections/SubunitConn.hpp"
 
+#include "../connections/InitWeights.hpp"
+#include "../connections/InitCocircWeights.hpp"
+#include "../connections/InitSmartWeights.hpp"
+#include "../connections/InitUniformRandomWeights.hpp"
+#include "../connections/InitGaussianRandomWeights.hpp"
+#include "../connections/InitGaborWeights.hpp"
+#include "../connections/InitPoolWeights.hpp"
+#include "../connections/InitRuleWeights.hpp"
+#include "../connections/InitSubUnitWeights.hpp"
+#include "../connections/InitIdentWeights.hpp"
+
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
@@ -82,8 +93,10 @@ Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
+InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+      ChannelType channel);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

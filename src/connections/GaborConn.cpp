@@ -5,6 +5,8 @@
  *      Author: rasmussn
  */
 
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "GaborWeight" in the params file
+
 #include "GaborConn.hpp"
 #include "../io/io.h"
 #include <assert.h>
@@ -16,7 +18,7 @@ GaborConn::GaborConn(const char * name,
                      HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
+   initialize(name, hc, pre, post, channel, NULL, NULL);
 }
 
 PVPatch ** GaborConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
@@ -52,25 +54,27 @@ PVPatch ** GaborConn::initializeGaborWeights(PVPatch ** patches, int numPatches)
    float rMax   = 8.0;
    float lambda = sigma/0.8;    // gabor wavelength
    float strength = 1.0;
+   float phi = 0;
 
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
    lambda   = params->value(name, "lambda", lambda);
    strength = params->value(name, "strength", strength);
+   phi = params->value(name, "phi", phi);
 
    float r2Max = rMax * rMax;
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
-      gaborWeights(patches[kernelIndex], xScale, yScale, aspect, sigma, r2Max, lambda, strength);
+      gaborWeights(patches[kernelIndex], xScale, yScale, aspect, sigma, r2Max, lambda, strength, phi);
    }
 #endif
    return patches;
 }
 
 int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
-                            float aspect, float sigma, float r2Max, float lambda, float strength)
+                            float aspect, float sigma, float r2Max, float lambda, float strength, float phi)
 {
    PVParams * params = parent->parameters();
 
@@ -81,7 +85,7 @@ int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
 
    pvdata_t * w = wp->data;
 
-   const float phi = 0.0;  // phase
+   //const float phi = 3.1416;  // phase
 
    const int nx = wp->nx;
    const int ny = wp->ny;
@@ -150,3 +154,4 @@ int GaborConn::gaborWeights(PVPatch * wp, int xScale, int yScale,
 }
 
 } // Namespace PV
+#endif

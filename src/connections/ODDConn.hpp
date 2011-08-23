@@ -23,8 +23,14 @@ public:
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename);
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+               ChannelType channel, const char * filename, InitWeights *weightInit);
+   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel);
+   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+               ChannelType channel, InitWeights *weightInit);
+#ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
+#endif
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);

@@ -4,6 +4,7 @@
  *  Created on: Jan 26, 2009
  *      Author: rasmussn
  */
+#ifdef OBSOLETE // Use KernelConn or HyperConn and set the param "weightInitType" to "SubUnitWeight" in the params file
 
 #ifndef LINESEGMENTS_HPP_
 #define LINESEGMENTS_HPP_
@@ -28,3 +29,4 @@ protected:
 } // namespace PV
 
 #endif /* LINESEGMENTS_HPP_ */
+#endif

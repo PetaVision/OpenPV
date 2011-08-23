@@ -15,7 +15,7 @@ AvgConn::AvgConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer 
                  ChannelType channel, HyPerConn * delegate)
 {
    this->delegate = (delegate == NULL) ? this : delegate;
-   HyPerConn::initialize(name, hc, pre, post, channel, NULL);
+   HyPerConn::initialize(name, hc, pre, post, channel, NULL, NULL);
    initialize();
 }
 

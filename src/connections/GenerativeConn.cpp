@@ -16,7 +16,14 @@ GenerativeConn::GenerativeConn() {
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
        initialize_base();
-       initialize(name, hc, pre, post, channel);
+       initialize(name, hc, pre, post, channel, NULL, NULL);
+}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
+   //   HyPerLayer *, HyPerLayer *, int)
+GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+        InitWeights *weightInit) {
+       initialize_base();
+       initialize(name, hc, pre, post, channel, NULL, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, int)
 
@@ -24,7 +31,14 @@ GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
         const char * filename) {
        initialize_base();
-       initialize(name, hc, pre, post, channel, filename);
+       initialize(name, hc, pre, post, channel, filename, NULL);
+}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
+   //   HyPerLayer *, HyPerLayer *, int, const char *)
+GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+        const char * filename, InitWeights *weightInit) {
+       initialize_base();
+       initialize(name, hc, pre, post, channel, filename, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, int, const char *)
 
@@ -43,17 +57,17 @@ int GenerativeConn::initialize_base() {
 #ifdef OBSOLETE
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-   return initialize(name, hc, pre, post, channel, NULL);
+   return initialize(name, hc, pre, post, channel, NULL, NULL);
 }
 #endif OBSOLETE
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-        const char * filename) {
+        const char * filename, InitWeights *weightInit) {
     PVParams * params = hc->parameters();
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
-    KernelConn::initialize(name, hc, pre, post, channel, filename);
+    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
     return PV_SUCCESS;
 }
 
