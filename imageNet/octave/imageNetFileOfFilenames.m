@@ -1,10 +1,20 @@
 
-function [train_filenames, test_filenames, ...
+function [train_filenames, ...
+	  test_filenames, ...
 	  tot_train_images, ...
 	  tot_test_images,  ...
-	  tot_time] = ...
-      imageNetFileOfFilenames(imageNet_path, object_name, ...
-			      num_train, num_test, train_dir, test_dir, cross_category_flag, shuffle_flag)
+	  tot_time, ...
+	  rand_state] = ...
+      imageNetFileOfFilenames(imageNet_path, ...
+			      object_name, ...
+			      num_train, ...
+			      num_test, ...
+			      train_dir, ...
+			      test_dir, ...
+			      cross_category_flag, ...
+			      shuffle_flag, ...
+			      object_keyword, ...
+			      rand_state)
 
   %% makes list of paths to  imageNet image files for training and testing
   %% training files are drawn from images folder train_dir
@@ -16,7 +26,7 @@ function [train_filenames, test_filenames, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "cat";  %% could be a list?
+    object_name = "dog";  %% could be a list?
   endif
   if nargin < 3 || ~exist(num_train) || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
@@ -41,6 +51,13 @@ function [train_filenames, test_filenames, ...
   if nargin < 8 || ~exist(shuffle_flag) || isempty(shuffle_flag)
     shuffle_flag = 1;  %% 
   endif
+  if nargin < 9 || ~exist(object_keyword) || isempty(object_keyword)
+    object_keyword = ["terrier"];  %% []; %% 
+  endif
+  if nargin < 10 || ~exist(rand_state) || isempty(rand_state)
+    rand_state = rand("state");
+  endif
+  rand("state", rand_state);
   
  
   %%setenv('GNUTERM', 'x11');
@@ -52,6 +69,10 @@ function [train_filenames, test_filenames, ...
   test_filenames = {};
   filenames_path = [imageNet_path, "list", filesep, object_name, filesep];
   mkdir([imageNet_path, "list"]);
+  if ~isempty(object_keyword)
+    filenames_path = [filenames_path, object_keyword, filesep];
+  endif
+
   mkdir(filenames_path);
 
   %% path to generic image processing routins
@@ -89,7 +110,16 @@ function [train_filenames, test_filenames, ...
   disp(["num_subdirs = ", num2str(num_subdirs)]);
 
   for i_subdir = 1 : num_subdirs %%fix(num_subdirs/2)
+    
     subdir_folder = subdir_folders{i_subdir};
+    keyword_ndx = [0];
+    if ~isempty(object_keyword)
+      keyword_ndx = strfind( subdir_folder, object_keyword);
+    endif
+    if isempty(keyword_ndx)
+      continue;
+    endif
+
     disp(["i_subdir = ", num2str(i_subdir)]);
     disp(["subdir_name = ", subdir_folder]);
 
@@ -149,7 +179,8 @@ function [train_filenames, test_filenames, ...
     write_train_ndx = 1:num_train;
   endif
 
-  fileOfFilenames_train = [filenames_path, "train_fileOfFilenames.txt"];
+  num_fileOfFilenames_train = length(glob([filenames_path, "train_fileOfFilenames", "[0-9]*.txt"]));
+  fileOfFilenames_train = [filenames_path, "train_fileOfFilenames", num2str(num_fileOfFilenames_train+1), ".txt"];
   disp(["fileOfFilenames_train = ", fileOfFilenames_train]);
   fid_train = fopen(fileOfFilenames_train, "w", "native");
   for i_file = 1 : num_train
@@ -163,13 +194,19 @@ function [train_filenames, test_filenames, ...
     write_test_ndx = 1:num_test;
   endif
 
-  fileOfFilenames_test = [filenames_path, "test_fileOfFilenames.txt"];
+  num_fileOfFilenames_test = length(glob([filenames_path, "test_fileOfFilenames", "[0-9]*.txt"]));
+  fileOfFilenames_test = [filenames_path, "test_fileOfFilenames", num2str(num_fileOfFilenames_test+1), ".txt"];
   disp(["fileOfFilenames_test = ", fileOfFilenames_test]);
   fid_test = fopen(fileOfFilenames_test, "w", "native");
   for i_file = 1 : num_test
     fprintf(fid_test, "%s\n", test_filenames{write_test_ndx(i_file)});
   endfor %%
   fclose(fid_test);
+
+  num_rand_state = length(glob([filenames_path, "rand_state", "[0-9]*.mat"]));
+  rand_state_filename = [filenames_path, "rand_state", num2str(num_rand_state+1), ".mat"];
+  disp(["rand_state_filename = ", rand_state_filename]);
+  save("-binary", rand_state_filename, "rand_state");
 
   end_time = time;
   tot_time = end_time - begin_time;
