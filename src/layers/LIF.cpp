@@ -452,16 +452,16 @@ int LIF::writeState(float time, bool last)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "Vth", last_str);
-   status = write(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = write_pvdata(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_E", last_str);
-   status = write(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = write_pvdata(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_I", last_str);
-   status = write(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = write_pvdata(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    getOutputFilename(path, "G_IB", last_str);
-   status = write(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = write_pvdata(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
 
 
 #ifdef DEBUG_OUTPUT

@@ -32,11 +32,11 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
 int read(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
-int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
+int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
-int write(FILE * fp, Communicator * comm, double time, const pvdata_t * data,
-          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
+int write_pvdata(FILE * fp, Communicator * comm, double time, const pvdata_t * data,
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, int tag);
 
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l);
 

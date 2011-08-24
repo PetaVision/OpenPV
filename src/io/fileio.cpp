@@ -598,7 +598,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
    return status;
 }
 
-int write(const char * filename, Communicator * comm, double time, const pvdata_t * data,
+int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = PV_SUCCESS;
@@ -622,119 +622,14 @@ int write(const char * filename, Communicator * comm, double time, const pvdata_
                                 pv_sizeof(datatype), extended, contiguous, numParams, localSize);
       if (status != PV_SUCCESS) return status;
    }
-   status |= write(fp, comm, time, data, loc, datatype, extended, contiguous);
+   status |= write_pvdata(fp, comm, time, data, loc, datatype, extended, contiguous, PVP_FILE_TYPE);
    status |= pvp_close_file(fp, comm);
    
    return status;
 }
 
-#ifdef OBSOLETE_NOW
-   int nxBlocks, nyBlocks, numItems;
-
-   // TODO - everything isn't implemented yet so make sure we are using it correctly
-   assert(contiguous == false);
-   assert(datatype == PV_FLOAT_TYPE);
-
-   // scale factor for floating point conversion
-   float scale = 1.0f;
-
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-
-   const int icRank = comm->commRank();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-   const int nb = loc->nb;
-
-   if (extended) {
-      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
-   }
-   else {
-      numItems = nx * ny * nf;
-   }
-
-   const size_t localSize = numItems * pv_sizeof(datatype);
-
-   if (contiguous) {
-      nxBlocks = 1;
-      nyBlocks = 1;
-   }
-   else {
-      nxBlocks = nxProcs;
-      nyBlocks = nyProcs;
-   }
-
-   unsigned char * cbuf = (unsigned char *) malloc(localSize);
-   assert(cbuf != NULL);
-
-   if (datatype == PV_FLOAT_TYPE) {
-      float * fbuf = (float *) cbuf;
-      status = HyPerLayer::copyToBuffer(fbuf, data, loc, extended, scale);
-   }
-
-#ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-   if (icRank > 0) {
-
-#ifdef PV_USE_MPI
-      const int dest = 0;
-      MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: write: sent to 0, nx==%d ny==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numItems);
-#endif
-#endif // PV_USE_MPI
-
-   }
-   else {
-      const bool append = false;
-      const int numParams = NUM_PAR_BYTE_PARAMS;
-      const int headerSize = numParams * sizeof(int);
-
-      FILE * fp = pvp_open_write_file(filename, comm, append);
-
-      status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE,
-                                datatype, pv_sizeof(datatype), extended, contiguous, numParams, localSize);
-      if (status != 0) return status;
-
-      // write local image portion
-      size_t numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
-      assert(numWrite == localSize);
-
-#ifdef PV_USE_MPI
-      int src = -1;
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++src == 0) continue;
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: write: receiving from %d nx==%d ny==%d numItems==%d\n",
-                    comm->commRank(), src, nx, ny, numItems);
-#endif
-            MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-
-            long offset = headerSize + src * localSize;
-            fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
-            assert(numWrite == localSize);
-         }
-      }
-#endif // PV_USE_MPI
-
-      free(cbuf);
-      status = pvp_close_file(fp, comm);
-   }
-
-   return status;
-}
-#endif //OBSOLETE_NOW
-
-int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
-          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
+int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, int tag)
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks, numItems;
@@ -783,7 +678,7 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
    }
 
 #ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
+   // const int tag = PVP_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
@@ -793,7 +688,7 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
       const int dest = 0;
       MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: write: sent to 0, nx==%d ny==%d numItems==%d\n",
+      fprintf(stderr, "[%2d]: write_pvdata: sent to 0, nx==%d ny==%d numItems==%d\n",
               comm->commRank(), nx, ny, numItems);
 #endif
 #endif // PV_USE_MPI
@@ -822,17 +717,48 @@ int write(FILE *fp, Communicator * comm, double time, const pvdata_t * data,
             long offset = headerSize + src * localSize;
             fseek(fp, offset, SEEK_SET);
             numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+            fflush(fp); // for debugging
             assert(numWrite == localSize);
          }
       }
 #endif // PV_USE_MPI
 
-      free(cbuf);
    }
+   free(cbuf);
 
    return status;
 }
 
+int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
+{
+   int status;
+   bool extended = false; // V is a non-extended layer
+   bool contiguous = false; // TODO implement contiguous=true case
+
+   // write header, but only at the beginning
+#ifdef PV_USE_MPI
+   int rank = comm->commRank();
+#else // PV_USE_MPI
+   int rank = 0;
+#endif // PV_USE_MPI
+   if( rank == 0 ) {
+      long fpos = ftell(fp);
+      if (fpos == 0L) {
+         int numParams = NUM_BIN_PARAMS;
+         status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
+                                   PV_FLOAT_TYPE, sizeof(int), extended, contiguous, numParams, (size_t) l->numNeurons);
+         if (status != PV_SUCCESS) return status;
+      }
+      // write time and V-buffer
+      //
+      if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
+   }
+
+   return write_pvdata(fp, comm, time, l->V, &(l->loc), PV_FLOAT_TYPE,
+                       extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
+}
+
+#ifdef OBSOLETE // Marked obsolete Aug 22, 2011
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = PV_SUCCESS;
@@ -920,6 +846,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 
    return status;
 }
+#endif // OBSOLETE
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
@@ -1233,7 +1160,6 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    bool extended = true;
    bool contiguous = false;   // for now
 
-   // int datatype = PV_BYTE_TYPE;
    int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
 
    const int nxProcs = comm->numCommColumns();

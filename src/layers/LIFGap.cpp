@@ -243,7 +243,7 @@ int LIFGap::writeState(float time, bool last)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "G_Gap", last_str);
-   status = write(path, comm, time, G_Gap, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = write_pvdata(path, comm, time, G_Gap, loc, PV_FLOAT_TYPE, extended, contiguous);
 
 
 #ifdef DEBUG_OUTPUT

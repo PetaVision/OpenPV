@@ -57,7 +57,8 @@ int ANNLayer::applyVThresh() {
    if( VThresh > -FLT_MIN ) {
       pvdata_t * V = getV();
       for( int k=0; k<getNumNeurons(); k++ ) {
-         if(V[k] < VThresh) V[k] = VMin;
+         if(V[k] < VThresh)
+            V[k] = VMin;
       }
    }
    return PV_SUCCESS;

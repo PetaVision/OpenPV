@@ -718,11 +718,11 @@ int HyPerLayer::writeState(float time, bool last)
    const char * last_str = (last) ? "_last" : "";
 
    getOutputFilename(path, "V", last_str);
-   status |= write(path, comm, time, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= write_pvdata(path, comm, time, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
 
    extended = true;
    getOutputFilename(path, "A", last_str);
-   status |= write(path, comm, time, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= write_pvdata(path, comm, time, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return status;
 }
