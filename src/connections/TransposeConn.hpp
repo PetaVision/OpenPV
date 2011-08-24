@@ -19,7 +19,7 @@ public:
     virtual ~TransposeConn();
     inline KernelConn * getOriginalConn() {return originalConn;}
 
-    virtual int initNormalize();
+//    virtual int initNormalize();
     virtual int updateWeights(int axonId);
 
 protected:

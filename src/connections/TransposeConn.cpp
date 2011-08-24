@@ -39,6 +39,7 @@ int TransposeConn::initialize_base() {
 int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn) {
 
    originalConn = auxConn;
+   normalize_flag = false; // HyPerConn::initializeWeights never gets called (most of what it does isn't needed) so initNormalize never gets called
    return KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL, NULL);
 }
 
@@ -52,10 +53,10 @@ PVPatch ** TransposeConn::initializeWeights(PVPatch ** patches, int numPatches, 
     return patches;
 }  // TransposeConn::initializeWeights(PVPatch **, int, const char *)
 
-int TransposeConn::initNormalize() {
-   normalize_flag = false;
-   return PV_SUCCESS;
-}
+// int TransposeConn::initNormalize() {
+//    normalize_flag = false;
+//    return PV_SUCCESS;
+// }
 
 int TransposeConn::setPatchSize(const char * filename) {
     int status = PV_SUCCESS;
@@ -105,6 +106,8 @@ int TransposeConn::updateWeights(int axonID) {
    return status;
 }  // end of TransposeConn::updateWeights(int);
 
+// TODO reorganize transposeKernels():  Loop over kernelNumberFB on outside, call transposeOneKernel(kpFB, kernelnumberFB), which handles all the cases.
+// This would play better with Kris's initWeightsMethod.
 int TransposeConn::transposeKernels() {
     // compute the transpose of originalConn->kernelPatches and
     // store into this->kernelPatches
