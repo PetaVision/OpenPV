@@ -18,27 +18,27 @@
 namespace PV {
 
 typedef struct gencolprobeterm_ {
-    LayerFunctionProbe * function;
-    HyPerLayer * layer;
-    pvdata_t coeff;
+   LayerFunctionProbe * function;
+   HyPerLayer * layer;
+   pvdata_t coeff;
 } gencolprobeterm;
 
 class GenColProbe : public ColProbe {
 public:
-	GenColProbe(const char * name);
-	GenColProbe(const char * probename, const char * filename, HyPerCol * hc);
-	~GenColProbe();
-	int initialize_base();
+   GenColProbe(const char * name);
+   GenColProbe(const char * probename, const char * filename, HyPerCol * hc);
+   ~GenColProbe();
+   int initialize_base();
 
-	int addTerm(LayerFunctionProbe * p, HyPerLayer * l);
-	int addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
-	virtual pvdata_t evaluate(float time);
-	virtual int outputState(float time, HyPerCol * hc);
-	virtual int writeState(float time, HyPerCol * hc, pvdata_t value);
+   int addTerm(LayerFunctionProbe * p, HyPerLayer * l);
+   int addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
+   virtual pvdata_t evaluate(float time);
+   virtual int outputState(float time, HyPerCol * hc);
+   virtual int writeState(float time, HyPerCol * hc, pvdata_t value);
 
 protected:
-	int numTerms;
-	gencolprobeterm * terms;
+   int numTerms;
+   gencolprobeterm * terms;
 
 }; // end class GenColProbe
 
