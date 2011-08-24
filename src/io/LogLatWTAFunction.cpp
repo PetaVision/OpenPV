@@ -12,7 +12,7 @@ namespace PV {
 LogLatWTAFunction::LogLatWTAFunction(const char * name) : LayerFunction(name) {
 }  // end LogLatWTAFunction::LogLatWTAFunction(const char * name, HyPerLayer *)
 
-pvdata_t LogLatWTAFunction::evaluate(float time, HyPerLayer * l) {
+pvdata_t LogLatWTAFunction::evaluateLocal(float time, HyPerLayer * l) {
     pvdata_t sum = 0;
     pvdata_t * activityBuffer = l->getCLayer()->activity->data;
     int numNeurons = l->getNumNeurons();

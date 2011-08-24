@@ -10,23 +10,42 @@
 namespace PV {
 
 LayerFunction::LayerFunction(const char * name) {
-	this->name = NULL;
-    setName(name);
+   this->name = NULL;
+   setName(name);
 }
 
 LayerFunction::~LayerFunction() {
-    free(name);
+   free(name);
 }
 
 void LayerFunction::setName(const char * name) {
-    size_t len = strlen(name);
-    if( this->name ) {
-        free( this->name );
-    }
-    this->name = (char *) malloc( (len+1)*sizeof(char) );
-    if( this->name) {
-        strcpy(this->name, name);
-    }
+   size_t len = strlen(name);
+   if( this->name ) {
+      free( this->name );
+   }
+   this->name = (char *) malloc( (len+1)*sizeof(char) );
+   if( this->name) {
+      strcpy(this->name, name);
+   }
 }
+
+pvdata_t LayerFunction::evaluate(float time, HyPerLayer * l) {
+   pvdata_t value = evaluateLocal(time, l);
+   pvdata_t reduced = functionReduce(value, l);
+   return reduced;
+}
+
+#ifdef PV_USE_MPI
+pvdata_t LayerFunction::functionReduce(pvdata_t localValue, HyPerLayer * l) {
+   InterColComm * icComm = l->getParent()->icCommunicator();
+   MPI_Comm comm = icComm->communicator();
+   int rank = icComm->commRank();
+   double value = (double) localValue;
+   double reduced;
+   int ierr;
+   ierr = MPI_Reduce(&value, &reduced, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+   return rank == 0 ? (pvdata_t) reduced : 0.0;
+}
+#endif // PV_USE_MPI
 
 }  // end namespace PV
