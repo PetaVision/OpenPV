@@ -27,7 +27,6 @@ int L2NormProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
 #endif // PV_USE_MPI
    int nk = l->getNumNeurons();
    fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, time, nk, value);
-   fflush(fp);
 
    return PV_SUCCESS;
 }

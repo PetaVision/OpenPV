@@ -29,7 +29,6 @@ int LogLatWTAProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
 #endif // PV_USE_MPI
    int nk = l->getNumNeurons();
    fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, time, nk, value);
-   fflush(fp);
 
    return PV_SUCCESS;
 }
