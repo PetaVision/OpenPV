@@ -500,7 +500,7 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
       weightInitializer = new InitWeights();
    }
    else { //default is also Gauss2D
-      fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
+      //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
       weightInitializer = new InitWeights();
    }
 
