@@ -21,7 +21,7 @@ int GenColProbe::initialize_base() {
     numTerms = 0;
     terms = NULL;
 
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }
 
 GenColProbe::~GenColProbe() {
@@ -36,7 +36,7 @@ int GenColProbe::addTerm(LayerFunctionProbe * p, HyPerLayer * l) {
 
 int GenColProbe::addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff) {
     gencolprobeterm * newtheterms = (gencolprobeterm *) malloc( (numTerms+1)*sizeof(gencolprobeterm) );
-    if( !newtheterms ) return EXIT_FAILURE;
+    if( !newtheterms ) return PV_FAILURE;
     for( int n=0; n<numTerms; n++) {
         newtheterms[n] = terms[n];
     }
@@ -46,7 +46,7 @@ int GenColProbe::addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff)
     free(terms);
     terms = newtheterms;
     numTerms++;
-    return EXIT_SUCCESS;
+    return PV_SUCCESS;
 }  // end GenColProbe::addTerm(LayerFunctionProbe *, HyPerLayer *)
 
 pvdata_t GenColProbe::evaluate(float time) {
@@ -59,8 +59,21 @@ pvdata_t GenColProbe::evaluate(float time) {
 }  // end GenColProbe::evaluate(float)
 
 int GenColProbe::outputState(float time, HyPerCol * hc) {
-    fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), evaluate(time));
-    return EXIT_SUCCESS;
+   pvdata_t colprobeval = evaluate(time);
+#ifdef PV_USE_MPI
+   if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+#endif // PV_USE_MPI
+   fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), colprobeval);
+   return PV_SUCCESS;
 }  // end GenColProbe::outputState(float)
+
+int GenColProbe::writeState(float time, HyPerCol * hc, pvdata_t value) {
+#ifdef PV_USE_MPI
+   // In MPI mode, this function should only be called by the root processor.
+   assert(hc->icCommunicator()->commRank() == 0);
+#endif // PV_USE_MPI
+   int printstatus = fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), evaluate(time));
+   return printstatus > 0 ? PV_SUCCESS : PV_FAILURE;
+}
 
 }  // end namespace PV

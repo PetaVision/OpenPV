@@ -34,6 +34,7 @@ public:
 	int addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
 	virtual pvdata_t evaluate(float time);
 	virtual int outputState(float time, HyPerCol * hc);
+	virtual int writeState(float time, HyPerCol * hc, pvdata_t value);
 
 protected:
 	int numTerms;
