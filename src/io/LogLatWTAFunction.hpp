@@ -20,7 +20,7 @@ class LogLatWTAFunction : public LayerFunction {
 public:
    LogLatWTAFunction(const char * name);
 
-   virtual pvdata_t evaluate(float time, HyPerLayer * l);
+   virtual pvdata_t evaluateLocal(float time, HyPerLayer * l);
 
 }; // end class LogWTAFunction
 

@@ -16,7 +16,7 @@ class L2NormFunction : public LayerFunction {
 public:
     L2NormFunction(const char * name);
 
-    virtual pvdata_t evaluate(float time, HyPerLayer * l);
+    virtual pvdata_t evaluateLocal(float time, HyPerLayer * l);
 
 }; // end class L2NormFunction
 
