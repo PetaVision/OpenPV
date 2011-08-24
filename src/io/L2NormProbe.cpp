@@ -10,24 +10,26 @@
 namespace PV {
 
 L2NormProbe::L2NormProbe(const char * msg) : LayerFunctionProbe(msg) {
-    function = new L2NormFunction(msg);
+   function = new L2NormFunction(msg);
 }
 L2NormProbe::L2NormProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
-    function = new L2NormFunction(msg);
+   function = new L2NormFunction(msg);
 }
 
 L2NormProbe::~L2NormProbe() {
-    delete function;
+   delete function;
 }
 
-int L2NormProbe::outputState(float time, HyPerLayer * l) {
-    int nk = l->getNumNeurons();
-    pvdata_t l2norm = function->evaluate(time, l);
+int L2NormProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
+#ifdef PV_USE_MPI
+   // In MPI mode, this function should only be called by the root processor.
+   assert(l->getParent()->icCommunicator()->commRank() == 0);
+#endif // PV_USE_MPI
+   int nk = l->getNumNeurons();
+   fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, time, nk, value);
+   fflush(fp);
 
-    fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, time, nk, l2norm);
-    fflush(fp);
-
-    return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 }  // end namespace PV

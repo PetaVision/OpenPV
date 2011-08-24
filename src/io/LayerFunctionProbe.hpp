@@ -24,6 +24,7 @@ public:
 	LayerFunction * getFunction() {return function;}
 	void setFunction(LayerFunction * f) {function = f;}
 	virtual int outputState(float time, HyPerLayer * l);
+	virtual int writeState(float time, HyPerLayer * l, pvdata_t value);
 
 protected:
 	LayerFunction * function;
