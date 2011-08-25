@@ -49,13 +49,14 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int numPatches, co
 
    //parentConn = callingConn;
 
-   InitWeightsParams *weightParams = createNewWeightParams(callingConn);
+   InitWeightsParams *weightParams = NULL;
 
    if( filename != NULL ) {
       //check status?
       readWeights(patches, numPatches, filename, callingConn);
    }
    else {
+      weightParams = createNewWeightParams(callingConn);
       //allocate unshrunk patch method
       for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
 
@@ -74,10 +75,9 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int numPatches, co
 
       }
 
-      //call copy weights to original possibly shrunk patch method...
+      delete(weightParams);
    }
 
-   delete(weightParams);
    return patches;
 
 }
