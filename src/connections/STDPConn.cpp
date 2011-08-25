@@ -129,6 +129,8 @@ int STDPConn::setParams(PVParams * filep)
       tauLTP = filep->value(getName(), "tauLTP", tauLTP);
       tauLTD = filep->value(getName(), "tauLTD", tauLTD);
 
+      wMax = filep->value(getName(), "wMax", wMax);
+      wMin = filep->value(getName(), "wMin", wMin);
       dWMax = filep->value(getName(), "dWMax", dWMax);
 
    }
