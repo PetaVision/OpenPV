@@ -288,7 +288,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          //inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
          //initializeDefaultWeights(patches, numPatches);
       }
-      fprintf(stderr, "This method of initializing weights has been depreciated.  Please use the param \"weightInitType\"\n");
+      fprintf(stderr, "Connection \"%s: This method of initializing weights has been deprecated.\n"
+                      "  Please pass an InitWeights object to the constructor.\n"
+                      "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
 
    }
    else {
@@ -416,7 +418,7 @@ PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, cons
       //initializeSmartWeights(patches, numPatches);
    }
 
-   bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
+   // bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       normalizeWeights(patches, numPatches);
