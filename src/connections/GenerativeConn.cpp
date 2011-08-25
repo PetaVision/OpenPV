@@ -96,7 +96,6 @@ int GenerativeConn::calc_dW(int axonID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // (in theory) independent of the number of processors.
-   char fname[PV_PATH_MAX];
    int nPre = preSynapticLayer()->getNumNeurons();
    int nx = preSynapticLayer()->getLayerLoc()->nx;
    int ny = preSynapticLayer()->getLayerLoc()->ny;
