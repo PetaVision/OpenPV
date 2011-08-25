@@ -349,8 +349,10 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
 
       wMax = filep->value(name, "strength", wMax, false);
       // let wMax override strength if user provides it
-      wMax = filep->value(name, "wMax", wMax);
-      wMin = filep->value(name, "wMin", wMin);
+
+      // moved to STDPConn (not used elsewhere in project)
+      //wMax = filep->value(name, "wMax", wMax);
+      //wMin = filep->value(name, "wMin", wMin);
 
 #ifdef OBSOLETE_STDP
       dWMax = filep->value(name, "dWMax", dWMax);
