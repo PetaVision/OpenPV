@@ -533,13 +533,13 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    ChannelType channelType;
    int channelNo = (int) params->value(name, "channelCode", -1);
 
-   //add code here for checking weight initialization type.  default is 2D Gauss or read from file
-   weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
-
    if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
       fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
       return NULL;
    }
+
+   weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+
    bool keywordMatched = false;
    if( !strcmp(classkeyword, "HyPerConn") ) {
       keywordMatched = true;
@@ -547,9 +547,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
 
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-
-         //add code here for checking weight initialization type.  default is 2D Gauss or read from file
-         //weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
 
          addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
@@ -572,9 +569,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-
-         //add code here for checking weight initialization type.  default is 2D Gauss or read from file
-         //weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
 
          addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
@@ -717,6 +711,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
    }
+   delete weightInitializer;
    return addedConn;
 }
 

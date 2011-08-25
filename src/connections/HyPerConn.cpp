@@ -97,7 +97,7 @@ HyPerConn::~HyPerConn()
       }
    }
 
-   delete(weightInitializer);
+   // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
 }
 
