@@ -496,11 +496,17 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
       weightInitializer = new InitSubUnitWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "IdentWeight"))) {
+      weightInitializer = new InitIdentWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
       weightInitializer = new InitWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
+      weightInitializer = new InitWeights();
+   }
    else { //default is also Gauss2D
-      //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
+      fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
       weightInitializer = new InitWeights();
    }
 
@@ -620,8 +626,8 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         InitIdentWeights *identWeightInitializer = new InitIdentWeights();
-         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType, identWeightInitializer);
+         //InitIdentWeights *identWeightInitializer = new InitIdentWeights();
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
       }
       checknewobject((void *) addedConn, classkeyword, name);
    }
