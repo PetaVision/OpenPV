@@ -14,7 +14,7 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitIdentWeights *weightInitializer) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer) {
     initialize_base();
     initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)

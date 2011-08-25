@@ -20,7 +20,7 @@ class IdentConn : public KernelConn {
 public:
     IdentConn();
     IdentConn(const char * name, HyPerCol *hc,
-            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitIdentWeights *weightInitializer);
+            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer);
 
    int initialize_base();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
