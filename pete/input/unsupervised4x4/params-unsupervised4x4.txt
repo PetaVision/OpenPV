@@ -3,6 +3,8 @@
 //     by minimizing \|x-A^Ta\|^2/2 when x is four-by-four line world
 //     and a is a V1-type layer
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 4;
     ny = 4;

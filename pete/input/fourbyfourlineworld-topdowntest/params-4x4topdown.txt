@@ -3,6 +3,8 @@
 //     and log lateral competition, on world of four horizontal and four
 //     vertical lines
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 4;
     ny = 4;

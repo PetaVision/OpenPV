@@ -3,6 +3,8 @@
 //     and log lateral competition, on world of four horizontal and four
 //     vertical lines
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 4;          
     ny = 4;          
@@ -351,7 +353,7 @@ KernelConn "AnaRetina to Layer A" = {
     preLayerName = "AnaRetina";
     postLayerName = "Layer A";
 
-    channelCode = 0;    
+    channelCode = 0;
     
     nxp = 1;            
     nyp = 1;            

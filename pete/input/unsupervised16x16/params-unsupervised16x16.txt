@@ -3,11 +3,13 @@
 //     by minimizing \|x-A^Ta\|^2/2 when x is four-by-four line world
 //     and a is a V1-type layer
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 16;
     ny = 16;
     dt = 1;
-    numSteps = 1000000;  // number of images times display period
+    numSteps = 250000;  // number of images times display period
     randomSeed = 1;
     outputPath = "./output/unsupervised16x16/";
 };
@@ -39,7 +41,7 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 100.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
@@ -59,7 +61,7 @@ ANNLayer "AnaRetina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 10.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
@@ -76,7 +78,7 @@ LogLatWTAGenLayer "V1" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
-    marginWidth = 1;
+    marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -141,11 +143,12 @@ GenerativeConn "AnaRetina to V1" = {
     delay = 0;
 
     initFromLastFlag = 0;
-    randomFlag = 1;
-    uniformWeights = 1;
+    weightInitType = "UniformRandomWeight";
+    // randomFlag = 1;
+    // uniformWeights = 1;
     wMinInit = 0;
     wMaxInit = 1;
-    normalize = 1;
+    normalize = 0;
 
     symmetrizeWeights = 0;
 

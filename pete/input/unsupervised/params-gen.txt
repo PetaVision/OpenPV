@@ -3,6 +3,8 @@
 //     by minimizing \|x-A^Ta\|^2/2 when x is four-by-four line world
 //     and a is a training layer
 
+debugParsing = false;
+
 HyPerCol "column" = {
     nx = 256;
     ny = 256;
@@ -10,6 +12,7 @@ HyPerCol "column" = {
     numSteps = 60000;  // number of images times display period
     randomSeed = 1;
     outputPath = "./output/unsupervised/";
+    filenamesContainLayerNames = true;
 };
 
 Movie "Slideshow" = {
@@ -32,26 +35,26 @@ Movie "Slideshow" = {
     offsetX = 0;
     offsetY = 0;
 };
-
-Retina "Retina" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 100.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    poissonEdgeProb = 1;
-    poissonBlankProb = 0;
-    burstFreq = 1;
-    burstDuration = 40000;
-
-    beginStim = 1;
-    endStim = 40000;
-};
+// 
+// Retina "Retina" = {
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 1;
+//     marginWidth = 0;
+//     writeStep = 100.0;
+//     mirrorBCflag = 1;
+//     spikingFlag = 0;
+//     writeNonspikingActivity = 1;
+// 
+//     poissonEdgeProb = 1;
+//     poissonBlankProb = 0;
+//     burstFreq = 1;
+//     burstDuration = 40000;
+// 
+//     beginStim = 1;
+//     endStim = 40000;
+// };
 
 ANNLayer "AnaRetina" = {
     restart = 0;
@@ -59,7 +62,7 @@ ANNLayer "AnaRetina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = 10.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
@@ -77,7 +80,7 @@ LogLatWTAGenLayer "V1" = {
     nyScale = 0.5;
     nf = 32;
     marginWidth = 1;
-    writeStep = 25.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
@@ -88,16 +91,16 @@ LogLatWTAGenLayer "V1" = {
     VMax = infinity;
     VMin = 0;
 
-    relaxation = 0.05; //
+    relaxation = 0.01; //
     sparsesityTermCoefficient = 1.0; //
 };
 
 
 // Connections
 
-IdentConn "Slideshow to Retina" = {
+IdentConn "Slideshow to AnaRetina" = {
     preLayerName = "Slideshow";
-    postLayerName = "Retina";
+    postLayerName = "AnaRetina";
 
     channelCode = 0;
 
@@ -112,20 +115,20 @@ IdentConn "Slideshow to Retina" = {
 
     initFromLastFlag = 0;
 };
-
-IdentConn "Retina to AnaRetina" = {
-    preLayerName = "Retina";
-    postLayerName = "AnaRetina";
-
-    channelCode = 0;
-
-    writeStep = -1;
-
-    delay = 0;
-    stdpFlag = 0;
-
-    initFromLastFlag = 0;
-};
+// 
+// IdentConn "Retina to AnaRetina" = {
+//     preLayerName = "Retina";
+//     postLayerName = "AnaRetina";
+// 
+//     channelCode = 0;
+// 
+//     writeStep = -1;
+// 
+//     delay = 0;
+//     stdpFlag = 0;
+// 
+//     initFromLastFlag = 0;
+// };
 
 GenerativeConn "AnaRetina to V1" = {
     preLayerName = "AnaRetina";
@@ -176,7 +179,7 @@ FeedbackConn "V1 to AnaRetina Feedback" = {
 
 StatsProbe "V1 Stats" = {
     targetLayer = "V1";
-    // probeOutputFile = "V1Stats.txt";
+    probeOutputFile = "V1Stats.txt";
 };
 
 GenColProbe "Total Energy Probe" = {
