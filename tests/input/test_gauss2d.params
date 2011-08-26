@@ -1,0 +1,114 @@
+// test_gauss2d.params
+// Layers and connections for test_gauss2d
+
+HyPerCol "test_gauss2d column" = {
+   nx = 16;
+   ny = 16;
+   outputPath = "output/test_gauss2d/";
+};
+
+HyPerLayer "test_gauss2d pre" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   marginWidth = 2;
+};
+
+HyPerLayer "test_gauss2d post" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   marginWidth = 2;  
+};
+
+HyPerConn "test_gauss2d hyperconn" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 5;
+   nyp = 5;
+   aspect = 2;
+   sigma = 3;
+   rMax = 5;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
+
+HyPerConn "test_gauss2d kernelconn" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 5;
+   nyp = 5;
+   aspect = 2;
+   sigma = 3;
+   rMax = 5;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
+
+HyPerLayer "test_gauss2d pre 2" = {
+   nxScale = 2;
+   nyScale = 2;
+   nf = 4;
+   marginWidth = 4;
+};
+
+HyPerLayer "test_gauss2d post 2" = {
+   nxScale = 2;
+   nyScale = 2;
+   nf = 4;
+   marginWidth = 4;  
+};
+
+HyPerConn "test_gauss2d hyperconn 1 to 2" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
+   aspect = 2;
+   sigma = 6;
+   rMax = 8;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
+
+HyPerConn "test_gauss2d kernelconn 1 to 2" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 10;  // must be scale factor times odd number
+   nyp = 10;
+   aspect = 2;
+   sigma = 6;
+   rMax = 8;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
+
+HyPerConn "test_gauss2d hyperconn 2 to 1" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 5; // must be odd
+   nyp = 5;
+   aspect = 2;
+   sigma = 3;
+   rMax = 5;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
+
+HyPerConn "test_gauss2d kernelconn 2 to 1" = {
+   weightInitType = "Gauss2DWeight";
+   nxp = 5;
+   nyp = 5;
+   aspect = 2;
+   sigma = 3;
+   rMax = 5;
+   strength = 1.0;
+   normalize = 0.0;
+   normalize_cutoff = 0.0;
+   writeCompressedWeights = false;
+};
