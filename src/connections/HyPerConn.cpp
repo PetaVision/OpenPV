@@ -369,6 +369,11 @@ int HyPerConn::setParams(PVParams * filep, PVConnParams * p)
    return 0;
 }
 
+int HyPerConn::correctPIndex(int patchIndex) {
+   return patchIndex;
+}
+
+
 // returns handle to initialized weight patches
 PVPatch ** HyPerConn::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
 {

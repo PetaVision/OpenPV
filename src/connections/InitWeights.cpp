@@ -60,11 +60,12 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int numPatches, co
       //allocate unshrunk patch method
       for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
 
+         int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
          //create full sized patch:
          PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[patchIndex]);
 
          //calc weights for patch:
-         int successFlag = calcWeights(wp_tmp, patchIndex, weightParams);
+         int successFlag = calcWeights(wp_tmp, correctedPatchIndex, weightParams);
          if (successFlag != 1) {
             fprintf(stderr, "Failed to create weights! Exiting...");
             exit(1);

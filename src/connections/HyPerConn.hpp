@@ -147,6 +147,9 @@ public:
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
 
+   virtual int correctPIndex(int patchIndex);
+
+
 protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;

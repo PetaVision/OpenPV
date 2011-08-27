@@ -63,6 +63,8 @@ public:
    float getWeightUpdateTime() {return weightUpdateTime;}
    float getLastUpdateTime() {return lastUpdateTime;}
 
+   virtual int correctPIndex(int patchIndex);
+
 protected:
    PVPatch ** kernelPatches;   // list of kernel patches
    bool plasticityFlag;

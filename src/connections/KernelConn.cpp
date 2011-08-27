@@ -149,6 +149,11 @@ int KernelConn::deleteWeights()
    return HyPerConn::deleteWeights();
 }
 
+int KernelConn::correctPIndex(int patchIndex) {
+   return kernelIndexToPatchIndex(patchIndex);
+}
+
+
 PVPatch **  KernelConn::initializeWeights(PVPatch ** patches, int numPatches,
       const char * filename)
 {
