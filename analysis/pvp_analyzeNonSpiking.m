@@ -22,7 +22,7 @@ COMPRESSED_FLAG = 0;
 global num_trials first_trial last_trial skip_trial
 global OUTPUT_PATH SPIKE_PATH twoAFC_path activity_path
 
-plot_2AFC_flag = 0;
+plot_2AFC_flag = 1;
 plot_weights_flag = 1;
 
 global MIN_INTENSITY
@@ -63,7 +63,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 0; %%720; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 100; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -103,7 +103,7 @@ machine_path = ...
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "ODD/input/imageNet/DoG/test/dog"];
+    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier2_vs_cat2/trial2"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
 %%    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
@@ -117,7 +117,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "ODD/input/imageNet/DoG/test/cat"];
+    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/cat2_vs_terrier2/trial2"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
 %%    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
@@ -491,17 +491,21 @@ if max_target_flag > min_target_flag
     twoAFC_correct = zeros(num_layers, size(twoAFC,4));
     twoAFC_errorbar = zeros(num_layers, size(twoAFC,4));
 
-    baseline_layer = 0;
+    baseline_layer = 3;
+    percent_change_flag = 1;
+    cum_change_flag = 1;
 
     twoAFC_list = [1];
     for i_2AFC_test = twoAFC_list %%1 : num_2AFC_tests
       
-      [twoAFC_hist, twoAFC_bins] = ...
+      [twoAFC_hist, twoAFC_bins, twoAFC_calc] = ...
 	  pvp_calc2AFCHist(twoAFC(:,:,twoAFC_trials,i_2AFC_test), ...
 			   read_activity, ...
 			   1, ...
 			   twoAFC_test_str{i_2AFC_test}, ...
-			   baseline_layer);
+			   baseline_layer, ...
+			   percent_change_flag, ...
+			   cum_change_flag);
       [fig_list_tmp] = ...
 	  pvp_plot2AFCHist(twoAFC_hist, ...
 			   twoAFC_bins, ...
@@ -551,23 +555,8 @@ if max_target_flag > min_target_flag
 	endfor
       endfor
       for layer = read_activity
-
-	twoAFC_tmp = squeeze( twoAFC(:, layer, :, i_2AFC_test) );
-	if (baseline_layer > 0) && (layer > baseline_layer)
-	  twoAFC_baseline = ...
-	      squeeze(twoAFC(:,baseline_layer,:,i_2AFC_test));
-	  twoAFC_tmp = twoAFC_baseline - twoAFC_tmp;
-	  %%twoAFC_tmp = ...
-	  %%    twoAFC_tmp ./ ...
-	  %%    (twoAFC_baseline + (twoAFC_baseline == 0));
-	elseif (baseline_layer < 0) && (layer > abs(baseline_layer))
-	  twoAFC_baseline = ...
-	      squeeze(twoAFC(:,abs(baseline_layer),:,i_2AFC_test));
-	  twoAFC_tmp = twoAFC_tmp - twoAFC_baseline;
-	  %%twoAFC_tmp = ...
-	  %%    twoAFC_tmp ./ ...
-	  %%    (twoAFC_baseline + (twoAFC_baseline == 0));
-	endif
+	twoAFC_tmp = ...
+	    squeeze(twoAFC_calc(:, layer, :, i_2AFC_test));
 	twoAFC_correct(layer, i_2AFC_test) = ...
 	    sum( squeeze(twoAFC_tmp(1, twoAFC_trials) >
 			 twoAFC_tmp(2, twoAFC_trials) ) ) / ...
@@ -588,7 +577,7 @@ if max_target_flag > min_target_flag
 	disp( ['twoAFC_AUC(', num2str(layer), ...
 			       ',', num2str(i_2AFC_test), ') = ', ...
 	       num2str(twoAFC_AUC(layer, 1))] );
-      endfor
+      endfor %% layer
       
     endfor % i_2AFC_test
     
