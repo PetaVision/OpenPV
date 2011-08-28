@@ -14,7 +14,8 @@ function [train_filenames, ...
 			      cross_category_flag, ...
 			      shuffle_flag, ...
 			      object_keyword, ...
-			      rand_state)
+			      rand_state, ...
+			      list_dir)
 
   %% makes list of paths to  imageNet image files for training and testing
   %% training files are drawn from images folder train_dir
@@ -26,12 +27,12 @@ function [train_filenames, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "dog";  %% could be a list?
+    object_name = "dog";  %%"cat"; %%  
   endif
-  if nargin < 3 || ~exist(num_train) || isempty(num_train)
+  if nargin < 3 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
   endif
-  if nargin < 4 || ~exist(num_test) || isempty(num_test)
+  if nargin < 4 || ~exist("num_test") || isempty(num_test)
     num_test = -1;  %% -1 use all images in test_dir not in train_dir
   endif
   if nargin < 5 || ~exist(train_dir) || isempty(train_dir)
@@ -45,20 +46,23 @@ function [train_filenames, ...
   %% cross_category_flag == 1, draw test images only from test folders that lack
   %% corresponding train folders--for testing generalization across
   %% imageNet sub categories
-  if nargin < 7 || ~exist(cross_category_flag) || isempty(cross_category_flag)
+  if nargin < 7 || ~exist("cross_category_flag") || isempty(cross_category_flag)
     cross_category_flag = 0;  %% 
   endif
-  if nargin < 8 || ~exist(shuffle_flag) || isempty(shuffle_flag)
+  if nargin < 8 || ~exist("shuffle_flag") || isempty(shuffle_flag)
     shuffle_flag = 1;  %% 
   endif
   if nargin < 9 || ~exist(object_keyword) || isempty(object_keyword)
     object_keyword = ["terrier"];  %% []; %% 
   endif
-  if nargin < 10 || ~exist(rand_state) || isempty(rand_state)
+  if nargin < 10 || ~exist("rand_state") || isempty(rand_state)
     rand_state = rand("state");
   endif
   rand("state", rand_state);
-  
+  if nargin < 11 || ~exist("list_dir") || isempty(list_dir)
+    list_dir = "list";  %% 
+  endif
+
  
   %%setenv('GNUTERM', 'x11');
 
@@ -67,12 +71,12 @@ function [train_filenames, ...
 
   train_filenames = {};
   test_filenames = {};
-  filenames_path = [imageNet_path, "list", filesep, object_name, filesep];
-  mkdir([imageNet_path, "list"]);
+  filenames_path = [imageNet_path, list_dir, filesep, object_name, filesep];
+  mkdir([imageNet_path, list_dir]);
+  mkdir(filenames_path);
   if ~isempty(object_keyword)
     filenames_path = [filenames_path, object_keyword, filesep];
   endif
-
   mkdir(filenames_path);
 
   %% path to generic image processing routins
@@ -179,7 +183,7 @@ function [train_filenames, ...
     write_train_ndx = 1:num_train;
   endif
 
-  num_fileOfFilenames_train = length(glob([filenames_path, "train_fileOfFilenames", "[0-9]*.txt"]));
+  num_fileOfFilenames_train = length(glob([filenames_path, "train_fileOfFilenames", "[0-9+].txt"]));
   fileOfFilenames_train = [filenames_path, "train_fileOfFilenames", num2str(num_fileOfFilenames_train+1), ".txt"];
   disp(["fileOfFilenames_train = ", fileOfFilenames_train]);
   fid_train = fopen(fileOfFilenames_train, "w", "native");
@@ -194,7 +198,7 @@ function [train_filenames, ...
     write_test_ndx = 1:num_test;
   endif
 
-  num_fileOfFilenames_test = length(glob([filenames_path, "test_fileOfFilenames", "[0-9]*.txt"]));
+  num_fileOfFilenames_test = length(glob([filenames_path, "test_fileOfFilenames", "[0-9+].txt"]));
   fileOfFilenames_test = [filenames_path, "test_fileOfFilenames", num2str(num_fileOfFilenames_test+1), ".txt"];
   disp(["fileOfFilenames_test = ", fileOfFilenames_test]);
   fid_test = fopen(fileOfFilenames_test, "w", "native");
@@ -203,7 +207,7 @@ function [train_filenames, ...
   endfor %%
   fclose(fid_test);
 
-  num_rand_state = length(glob([filenames_path, "rand_state", "[0-9]*.mat"]));
+  num_rand_state = length(glob([filenames_path, "rand_state", "[0-9+].mat"]));
   rand_state_filename = [filenames_path, "rand_state", num2str(num_rand_state+1), ".mat"];
   disp(["rand_state_filename = ", rand_state_filename]);
   save("-binary", rand_state_filename, "rand_state");
