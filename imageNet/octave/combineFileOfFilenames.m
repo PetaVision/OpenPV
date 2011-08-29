@@ -10,7 +10,13 @@ function [fileOfFilenames_combine, ...
 
   begin_time = time();
 
-  if nargin < 4 || ~exist("combine_dir") || isempty(combine_dir)
+  if nargin < 1 || ~exist("fileOfFilenames1") || isempty(fileOfFilenames1)
+    fileOfFilenames1 = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames3_1597.txt";  
+  endif
+  if nargin < 2 || ~exist("fileOfFilenames2") || isempty(fileOfFilenames2)
+    fileOfFilenames2 = "/Users/gkenyon/Pictures/imageNet/list/cat/train_fileOfFilenames3_1417.txt";  
+  endif
+  if nargin < 3 || ~exist("combine_dir") || isempty(combine_dir)
     combine_dir = "terrier_cat";  %% 0 == append, 1 == shuffle
   endif
   if nargin < 4 || ~exist("merge_method") || isempty(merge_method)
