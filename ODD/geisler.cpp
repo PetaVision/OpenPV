@@ -1,0 +1,861 @@
+/*
+ * ODD.cpp
+ *
+ */
+
+#include <stdlib.h>
+#include <time.h>
+
+#include <src/columns/HyPerCol.hpp>
+#include <src/connections/HyPerConn.hpp>
+#include <src/connections/KernelConn.hpp>
+#include <src/connections/CocircConn.hpp>
+#include <src/connections/ODDConn.hpp>
+#include <src/connections/AvgConn.hpp>
+#include <src/layers/Movie.hpp>
+#include <src/layers/Image.hpp>
+#include <src/layers/Retina.hpp>
+#include <src/layers/LIF.hpp>
+#include <src/layers/ANNLayer.hpp>
+#include <src/layers/ODDLayer.hpp>
+#include <src/io/ConnectionProbe.hpp>
+#include <src/io/GLDisplay.hpp>
+#include <src/io/PostConnProbe.hpp>
+#include <src/io/LinearActivityProbe.hpp>
+#include <src/io/PointProbe.hpp>
+#include <src/io/PointLIFProbe.hpp>
+#include <src/io/StatsProbe.hpp>
+
+//#include "../PetaVisionsrc/io/imageio.hpp"
+
+
+using namespace PV;
+
+int main(int argc, char* argv[]) {
+
+	//int iseed = time(NULL);
+	//srand ( iseed );
+
+	// create the managing hypercolumn
+	//
+	HyPerCol * hc = new HyPerCol("column", argc, argv);
+
+	// create the visualization display
+	//
+	//GLDisplay * display = new GLDisplay(&argc, argv, hc, 2, 2);
+
+#undef SPIKING
+#ifdef SPIKING  // load ODD kernels from pvp file
+
+	// create the image
+	//
+	//const char * amoeba_filename = "../../Documents/MATLAB/amoeba/128_png/2/t/tar_0041_a.png";
+	const char * amoeba_filename = "../../MATLAB/amoeba/128_png/4/t/tar_0005_a.png";
+	//display->setDelay(0);
+	//display->setImage(image);
+
+	// create the layers
+	//
+	HyPerLayer * image = new Image("Image", hc, amoeba_filename);
+	HyPerLayer * retina = new Retina("Retina", hc);
+	HyPerLayer * lgn = new LIF("LGN", hc);
+#define LGN_ONLY
+#ifndef LGN_ONLY
+	HyPerLayer * lgninhff = new LIF("LGNInhFF", hc);
+	HyPerLayer * lgninh = new LIF("LGNInh", hc);
+	HyPerLayer * l1 = new LIF("L1", hc);
+	HyPerLayer * l1inhff = new LIF("L1InhFF", hc);
+	HyPerLayer * l1inh = new LIF("L1Inh", hc);
+#endif
+
+	// create averaging layers
+//	HyPerLayer * l1avg = new LIF("L1Avg", hc);
+
+	//display->addLayer(l1);
+	//display->addLayer(l1inh);
+	//display->addLayer(l1avg);
+
+
+	// create the connections
+	//
+
+	HyPerConn * image_retina  =
+			new KernelConn("Image to Retina",   hc, image, retina, CHANNEL_EXC);
+//			new KernelConn("Image to Retina",   hc, image, retina, (ChannelType) 0);
+
+	// retinal connections
+	HyPerConn * r_lgn =
+		new KernelConn("Retina to LGN", hc, retina, lgn,
+			CHANNEL_EXC);
+#ifndef LGN_ONLY
+	HyPerConn * r_lgninhff =
+		new KernelConn("Retina to LGNInhFF", hc, retina, lgninhff,
+			CHANNEL_EXC);
+
+
+	// LGN connections
+//	HyPerConn * lgn_lgninhff =
+//		new KernelConn("LGN to LGNInhFF", 	hc, lgn, lgninhff,
+//			CHANNEL_EXC);
+	HyPerConn * lgn_lgninh =
+		new KernelConn("LGN to LGNInh", 	hc, lgn, lgninh,
+			CHANNEL_EXC);
+	HyPerConn * lgn_l1 =
+		new KernelConn("LGN to L1",     	hc, lgn,  l1,
+			CHANNEL_EXC);
+	HyPerConn * lgn_l1inhff =
+		new KernelConn("LGN to L1InhFF",    hc, lgn,  l1inhff,
+			CHANNEL_EXC);
+
+
+	// LGNInhFF connections
+	HyPerConn * lgninhff_lgn =
+		new KernelConn("LGNInhFF to LGN", 			hc, lgninhff, lgn,
+			CHANNEL_INH);
+//	HyPerConn * lgninhff_lgn_inhB =
+//		new KernelConn("LGNInhFF to LGN InhB", 		hc, lgninhff, lgn,
+//			CHANNEL_INHB);
+//	HyPerConn * lgninhff_lgninhff_exc =
+//		new KernelConn("LGNInhFF to LGNInhFF Exc", 	hc, lgninhff, lgninhff,
+//			CHANNEL_EXC);
+//	HyPerConn * lgninhff_lgninhff =
+//		new KernelConn("LGNInhFF to LGNInhFF", 		hc, lgninhff, lgninhff,
+//			CHANNEL_INH);
+//	HyPerConn * lgninhff_lgninhff_inhB =
+//		new KernelConn("LGNInhFF to LGNInhFF InhB", hc, lgninhff, lgninhff,
+//			CHANNEL_INHB);
+//	HyPerConn * lgninhff_lgninh =
+//		new KernelConn("LGNInhFF to LGNInh", 		hc, lgninhff, lgninh,
+//			CHANNEL_INH);
+//	HyPerConn * lgninhff_lgninh_inhB =
+//		new KernelConn("LGNInhFF to LGNInh InhB", 	hc, lgninhff, lgninh,
+//			CHANNEL_INHB);
+
+
+	// LGNInh connections
+	HyPerConn * lgninh_lgn =
+		new KernelConn("LGNInh to LGN", 		hc, lgninh, lgn,
+			CHANNEL_INH);
+//	HyPerConn * lgninh_lgninh_exc =
+//		new KernelConn("LGNInh to LGNInh Exc", 	hc, lgninh, lgninh,
+//			CHANNEL_EXC);
+//	HyPerConn * lgninh_lgninh =
+//		new KernelConn("LGNInh to LGNInh", 		hc, lgninh, lgninh,
+//			CHANNEL_INH);
+//
+
+	// L1 connections
+	const char * ODD_filename = "./input/128/test_target10K_target_G1/4fc/dirty.pvp";
+	const char * target_kernel_filename = "./input/128/amoeba10K_G1/w3_last.pvp";
+	const char * distractor_kernel_filename = "./input/128/distractor10K_G1/w3_last.pvp";
+	HyPerConn * l1_lgn =
+		new KernelConn("L1 to LGN",  	hc, l1,     lgn,
+			CHANNEL_EXC);
+	HyPerConn * l1_lgninh =
+		new KernelConn("L1 to LGNInh",  hc, l1,     lgninh,
+			CHANNEL_EXC);
+	HyPerConn * l1_l1 =
+		new KernelConn("L1 to L1",      hc, l1,     l1,
+			CHANNEL_EXC, ODD_filename);
+//	HyPerConn * l1_l1inhff =
+//		new CocircConn("L1 to L1InhFF", hc, l1,   	l1inhff,
+//			CHANNEL_EXC);
+	HyPerConn * l1_l1inh =
+		new KernelConn("L1 to L1Inh",   hc, l1,     l1inh,
+			CHANNEL_EXC, ODD_filename);
+
+
+	// L1 Inh FF connections
+	HyPerConn * l1inhff_l1 =
+		new CocircConn("L1InhFF to L1",   			hc, l1inhff,  l1,
+			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1_nonoriented =
+//		new CocircConn("L1InhFF to L1 NonOriented", hc, l1inhff,  l1,
+//			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1_inhB =
+//		new CocircConn("L1InhFF to L1 InhB",   		hc, l1inhff,  l1,
+//			CHANNEL_INHB);
+//	HyPerConn * l1inhff_l1inhff_exc =
+//		new CocircConn("L1InhFF to L1InhFF Exc",   	hc, l1inhff,  l1inhff,
+//			CHANNEL_EXC);
+//	HyPerConn * l1inhff_l1inhff =
+//		new CocircConn("L1InhFF to L1InhFF",   		hc, l1inhff,  l1inhff,
+//			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1inhff_inhB =
+//		new CocircConn("L1InhFF to L1InhFF InhB",   hc, l1inhff,  l1inhff,
+//			CHANNEL_INHB);
+//	HyPerConn * l1inhff_l1inh =
+//		new CocircConn("L1InhFF to L1Inh",  		hc, l1inhff,  l1inh,
+//			CHANNEL_INH);
+//	HyPerConn * l1inhff_l1inh_inhB =
+//		new CocircConn("L1InhFF to L1Inh InhB",   	hc, l1inhff,  l1inh,
+//			CHANNEL_INHB);
+
+
+	// L1 Inh connections
+	HyPerConn * l1inh_l1 =
+		new CocircConn("L1Inh to L1",   		hc, l1inh,  l1,
+			CHANNEL_INH);
+//	HyPerConn * l1inh_l1inhff =
+//		new CocircConn("L1Inh to L1InhFF",  	hc, l1inh,  l1inhff,
+//			CHANNEL_INH);
+//	HyPerConn * l1inh_l1inh_exc =
+//		new CocircConn("L1Inh to L1Inh Exc",   	hc, l1inh,  l1inh,
+//			CHANNEL_EXC);
+	HyPerConn * l1inh_l1inh_inh =
+		new CocircConn("L1Inh to L1Inh Inh",   	hc, l1inh,  l1inh,
+			CHANNEL_INH);
+#endif // LGN_ONLY
+
+	// create averaging connections
+	//
+//	HyPerConn * l1_l1avg   = new AvgConn("L1 to L1Avg", hc, l1, l1avg, CHANNEL_EXC, NULL);
+
+
+	// add probes
+
+	HyPerLayer * displayLayer = retina;
+
+	const int nyDisplay = displayLayer->clayer->loc.ny;
+
+#define DISPLAY2CONSOLE
+#ifdef DISPLAY2CONSOLE
+
+	LayerProbe * statsretina = new StatsProbe(BufActivity,     "Retina :");
+	LayerProbe * statslgn = new StatsProbe(BufActivity,        "LGN :");
+#ifndef LGN_ONLY
+	LayerProbe * statslgninhff = new StatsProbe(BufActivity,   "LGNInhFF :");
+	LayerProbe * statslgninh = new StatsProbe(BufActivity,     "LGNInh :");
+	LayerProbe * statsl1 = new StatsProbe(BufActivity,         "L1     :");
+	LayerProbe * statsl1inhff = new StatsProbe(BufActivity,    "L1InhFF:  ");
+	LayerProbe * statsl1inh = new StatsProbe(BufActivity,      "L1Inh:  ");
+#endif
+//	LayerProbe * statsl1avg = new StatsProbe(BufActivity,      "L1Avg  :");
+
+	retina->insertProbe(statsretina);
+	lgn->insertProbe(statslgn);
+#ifndef LGN_ONLY
+	lgninhff->insertProbe(statslgninhff);
+	lgninh->insertProbe(statslgninh);
+	l1->insertProbe(statsl1);
+	l1inhff->insertProbe(statsl1inhff);
+	l1inh->insertProbe(statsl1inh);
+#endif // LGN_ONLY
+//	l1avg->insertProbe(statsl1avg);
+
+#endif // DISPLAY2CONSOLE
+
+	int npad, nx, ny, nf;
+
+	npad = lgn->clayer->loc.nb;
+	nx = lgn->clayer->loc.nx;
+	ny = lgn->clayer->loc.ny;
+	nf = lgn->clayer->loc.nf;
+
+#define WRITE_VMEM
+#ifdef WRITE_VMEM
+	const char * Vmem_filename_LGNa1 = "Vmem_LGNa1.txt";
+	LayerProbe * Vmem_probe_LGNa1 =
+		new PointLIFProbe(Vmem_filename_LGNa1, hc, 64,64,0, "LGNA1:(64,64,0)");
+	lgn->insertProbe(Vmem_probe_LGNa1);
+
+/*
+	const char * Vmem_filename_LGNc1 = "Vmem_LGNc1.txt";
+	LayerProbe * Vmem_probe_LGNc1 =
+		new PointLIFProbe(Vmem_filename_LGNc1, hc, 64,64,0, "LGNC1:(61,58,0)");
+	lgn->insertProbe(Vmem_probe_LGNc1);
+*/
+
+#ifndef LGN_ONLY
+	const char * Vmem_filename_LGNInhFFa1 = "Vmem_LGNInhFFa1.txt";
+	LayerProbe * Vmem_probe_LGNInhFFa1 =
+		new PointLIFProbe(Vmem_filename_LGNInhFFa1, hc, 64,64,0, "LGNInhA1:(64,64,0)");
+	lgninhff->insertProbe(Vmem_probe_LGNInhFFa1);
+
+/*
+	const char * Vmem_filename_LGNInhFFc1 = "Vmem_LGNInhFFc1.txt";
+	LayerProbe * Vmem_probe_LGNInhFFc1 =
+		new PointLIFProbe(Vmem_filename_LGNInhFFc1, hc, 64,64,0, "LGNInhFFC1:(61,58,0)");
+	lgninhff->insertProbe(Vmem_probe_LGNInhFFc1);
+*/
+
+	const char * Vmem_filename_LGNInha1 = "Vmem_LGNInha1.txt";
+	LayerProbe * Vmem_probe_LGNInha1 =
+		new PointLIFProbe(Vmem_filename_LGNInha1, hc, 64,64,0, "LGNInhA1:(64,64,0)");
+	lgninh->insertProbe(Vmem_probe_LGNInha1);
+
+/*
+	const char * Vmem_filename_LGNInhc1 = "Vmem_LGNInhc1.txt";
+	LayerProbe * Vmem_probe_LGNInhc1 =
+		new PointLIFProbe(Vmem_filename_LGNInhc1, hc, 64,64,0, "LGNInhC1:(61,58,0)");
+	lgninh->insertProbe(Vmem_probe_LGNInhc1);
+*/
+
+	const char * Vmem_filename_V1a1 = "Vmem_V1a1.txt";
+	LayerProbe * Vmem_probe_V1a1 =
+		new PointLIFProbe(Vmem_filename_V1a1, hc, 64,64,0, "V1A1:(59,48,2)");
+	l1->insertProbe(Vmem_probe_V1a1);
+
+/*
+	const char * Vmem_filename_LIFc1 = "Vmem_V1c1.txt";
+	LayerProbe * Vmem_probe_LIFc1 =
+		new PointLIFProbe(Vmem_filename_LIFc1, hc, 64,64,0, "V1C1:(61,58,5)");
+	l1->insertProbe(Vmem_probe_LIFc1);
+*/
+
+	const char * Vmem_filename_V1InhFFa1 = "Vmem_V1InhFFa1.txt";
+	LayerProbe * Vmem_probe_V1InhFFa1 =
+		new PointLIFProbe(Vmem_filename_V1InhFFa1, hc, 64,64,0, "V1InhFFA1:(64,64,0)");
+	l1inhff->insertProbe(Vmem_probe_V1InhFFa1);
+
+/*
+	const char * Vmem_filename_LIFInhFFc1 = "Vmem_V1InhFFc1.txt";
+	LayerProbe * Vmem_probe_LIFInhFFc1 =
+		new PointLIFProbe(Vmem_filename_LIFInhFFc1, hc, 64,64,0, "V1InhFFC1:(61,58,5)");
+	l1inh->insertProbe(Vmem_probe_LIFInhFFc1);
+*/
+
+	const char * Vmem_filename_V1Inha1 = "Vmem_V1Inha1.txt";
+	LayerProbe * Vmem_probe_V1Inha1 =
+		new PointLIFProbe(Vmem_filename_V1Inha1, hc, 64,64,0, "V1InhA1:(64,64,1)");
+	l1inh->insertProbe(Vmem_probe_V1Inha1);
+
+/*
+	const char * Vmem_filename_LIFInhc1 = "Vmem_V1Inhc1.txt";
+	LayerProbe * Vmem_probe_LIFInhc1 =
+		new PointLIFProbe(Vmem_filename_LIFInhc1, hc, 64,64,0, "V1InhC1:(61,58,5)");
+	l1inh->insertProbe(Vmem_probe_LIFInhc1);
+*/
+#endif // LGN_ONLY
+#endif // WRITE_VMEM
+
+	if (0) { // ma
+		LinearActivityProbe * laProbes[nyDisplay]; // array of ny pointers to PV::LinearActivityProbe
+
+		for (int i = 0; i < nyDisplay; i++) {
+			laProbes[i] = new PV::LinearActivityProbe(hc, PV::DimX, i, 0);
+			retina->insertProbe(laProbes[i]);
+		}
+	}
+	// run the simulation
+	hc->initFinish();
+
+	// write text weights
+	const char * r_lgn_filename = "r_lgn_gauss.txt";
+	HyPerLayer * pre = r_lgn->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	r_lgn->writeTextWeights(r_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+#ifndef LGN_ONLY
+
+	const char * lgn_l1_filename = "lgn_l1_gauss.txt";
+	pre = lgn_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	lgn_l1->writeTextWeights(lgn_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * lgninh_lgn_filename = "lgninh_lgn_gauss.txt";
+	pre = lgninh_lgn->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	lgninh_lgn->writeTextWeights(lgninh_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+//	const char * lgninh_lgninh_exc_filename = "lgninh_lgninh_gap.txt";
+//	pre = lgninh_lgninh_exc->preSynapticLayer();
+//	npad = pre->clayer->loc.nb;
+//	nx = pre->clayer->loc.nx;
+//	ny = pre->clayer->loc.ny;
+//	nf = pre->clayer->loc.nf;
+//	lgninh_lgninh_exc->writeTextWeights(lgninh_lgninh_exc_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1_lgn_filename = "l1_lgn_gauss.txt";
+	pre = l1_lgn->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_lgn->writeTextWeights(l1_lgn_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1_lgninh_filename = "l1_lgninh_gauss.txt";
+	pre = l1_lgninh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_lgninh->writeTextWeights(l1_lgninh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1inhff_l1_filename = "l1inhff_l1_cocirc.txt";
+	pre = l1inhff_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1inhff_l1->writeTextWeights(l1inhff_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1_l1_filename = "l1_l1_ODD_exc.txt";
+	pre = l1_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_l1->writeTextWeights(l1_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1_l1inh_filename = "l1_l1inh_ODD_exc.txt";
+	pre = l1_l1inh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1_l1inh->writeTextWeights(l1_l1inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * l1inh_l1_filename = "l1inh_l1_ODD_inh.txt";
+	pre = l1inh_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	l1inh_l1->writeTextWeights(l1inh_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+#endif // LGN_ONLY
+
+#else  // learn ODD kernels
+
+#define TRAINING_TRIALS
+#ifdef TRAINING_TRIALS
+	//const char * fileOfFileNames = "./input/128/target10K_G1/fileNames.txt"; //
+	const char * fileOfFileNames = "./input/256/MNIST_unaliased/target10K_6/fileNames.txt"; //
+#else
+	const char * fileOfFileNames = "./input/256/bowtie/distractor_75/4fc/fileNames.txt"; //
+	//const char * fileOfFileNames = "./input/256/MNIST_unaliased/test10K_distractor_6/fileNames.txt"; //
+#endif
+	float display_period = 1.0;
+	Image * movie = new Movie("Movie", hc, fileOfFileNames, display_period);
+	const char * image_file =  "./output/trainImage.tiff";
+	movie->write(image_file);
+	HyPerLayer * retina = new Retina("Retina", hc);
+	LayerProbe * stats_retina = new StatsProbe(BufActivity,   "Retina :");
+	retina->insertProbe(stats_retina);
+	HyPerConn * image_retina  =
+		new KernelConn("Movie to Retina",   hc, movie, retina, CHANNEL_EXC);
+	HyPerLayer * l1 = new ANNLayer("L1", hc);
+	HyPerConn * retina_l1 =
+		new KernelConn("Retina to L1",   hc, retina,  l1,
+			CHANNEL_EXC);
+	HyPerConn * retina_l1_inh =
+		new KernelConn("Retina to L1 Inh",   hc, retina,  l1,
+			CHANNEL_INH);
+	LayerProbe * statsl1 = new StatsProbe(BufActivity,  "L1     :");
+	l1->insertProbe(statsl1);
+
+	// write text weights
+	int npad, nx, ny, nf;
+	const char * retina_l1_filename = "retina_l1_gauss.txt";
+	HyPerLayer * pre = retina_l1->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	retina_l1->writeTextWeights(retina_l1_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+	const char * retina_l1_inh_filename = "retina_l1_inh_gauss.txt";
+	pre = retina_l1_inh->preSynapticLayer();
+	npad = pre->clayer->loc.nb;
+	nx = pre->clayer->loc.nx;
+	ny = pre->clayer->loc.ny;
+	nf = pre->clayer->loc.nf;
+	retina_l1_inh->writeTextWeights(retina_l1_inh_filename, nf*(nx+npad)/2 + nf*(nx+2*npad)*(ny+2*npad)/2);
+
+
+
+#ifdef TRAINING_TRIALS
+
+#undef TRAINING_G2_TRIALS
+#ifdef TRAINING_G2_TRIALS
+
+	HyPerLayer * l1_ODD = new ODDLayer("L1 ODD", hc);
+	LayerProbe * statsl1_ODD = new StatsProbe(BufActivity,         "L1 ODD :");
+	l1_ODD->insertProbe(statsl1_ODD);
+
+	HyPerConn * l1_l1_ODD =
+		new CocircConn("L1 to L1 ODD",   hc, l1,  l1_ODD,
+			CHANNEL_EXC);
+
+	const char * ODD_filename_target = "./input/128/target10K_G1/w3_last.pvp";
+//	const char * ODD_filename_target = "./input/256/target40K_G1/w3_last.pvp";
+	HyPerConn * l1_l1_ODD_target =
+		new KernelConn("L1 to L1 ODD Target",   hc, l1,  l1_ODD,
+			CHANNEL_INH, ODD_filename_target);
+	const char * ODD_filename_distractor = "./input/128/distractor10K_G1/w3_last.pvp";
+//	const char * ODD_filename_distractor = "./input/256/distractor40K_G1/w3_last.pvp";
+	HyPerConn * l1_l1_ODD_distractor =
+		new KernelConn("L1 to L1 ODD Distractor", 	hc, l1,  l1_ODD,
+			CHANNEL_INH, ODD_filename_distractor);
+
+#undef TRAINING_G3_TRIALS
+#ifdef TRAINING_G3_TRIALS
+
+	HyPerLayer * l2_ODD = new ODDLayer("L2 ODD", hc);
+	LayerProbe * statsl2_ODD = new StatsProbe(BufActivity,         "L2 ODD :");
+	l2_ODD->insertProbe(statsl2_ODD);
+
+	HyPerConn * l1_ODD_l2_ODD =
+		new CocircConn("L1 ODD to L2 ODD",  hc, l1_ODD,  l2_ODD,
+			CHANNEL_EXC);
+
+	const char * ODD2_filename_target = "./input/256/amoeba10K_G2/w7_last.pvp";
+	HyPerConn * l1_ODD_l2_ODD_target =
+		new KernelConn("L1 ODD to L2 ODD Target",  hc, l1_ODD,   l2_ODD,
+			CHANNEL_INH, ODD_filename_target);
+	const char * ODD2_filename_distractor = "./input/256/distractor10K_G2/w7_last.pvp";
+	HyPerConn * l1_ODD_l2_ODD_distractor =
+		new KernelConn("L1 ODD to L2 ODD Distractor", hc, l1_ODD,  l2_ODD,
+			CHANNEL_INH, ODD2_filename_distractor);
+
+#undef TRAINING_G4_TRIALS
+#ifdef TRAINING_G4_TRIALS
+
+	HyPerLayer * l3_ODD = new ODDLayer("L3 ODD", hc);
+	LayerProbe * statsl3_ODD = new StatsProbe(BufActivity,  "L3 ODD :");
+	l3_ODD->insertProbe(statsl3_ODD);
+
+	HyPerConn * l2_ODD_l3_ODD =
+		new CocircConn("L2 ODD to L3 ODD",   hc, l2_ODD, l3_ODD,
+			CHANNEL_EXC);
+
+	const char * ODD3_filename_target = "./input/amoeba40K_G3/w10_last.pvp";
+	HyPerConn * l2_ODD_l3_ODD_target =
+		new KernelConn("L2 ODD to L3 ODD Target",  hc, l2_ODD, l3_ODD,
+			CHANNEL_INH, ODD3_filename_target);
+	const char * ODD3_filename_distractor = "./input/distractor40K_G3/w10_last.pvp";
+	HyPerConn * l2_ODD_l3_ODD_distractor =
+		new KernelConn("L2 ODD to L3 ODD Distractor", hc, l2_ODD,  l3_ODD,
+			CHANNEL_INH, ODD3_filename_distractor);
+
+	HyPerLayer * l4_ODD = new V1("L4 ODD", hc);
+	LayerProbe * statsl4_ODD = new StatsProbe(BufActivity,  "L4 ODD :");
+	l4_ODD->insertProbe(statsl4_ODD);
+
+	HyPerConn * l3_ODD_l4_ODD =
+		new CocircConn("L3 ODD to L4 ODD",  hc, l3_ODD,  l4_ODD,
+			CHANNEL_EXC);
+
+	HyPerConn * l4_ODD_l4_ODD =
+		new ODDConn("L4 ODD to L4 ODD",  hc, l4_ODD,  l4_ODD,
+			CHANNEL_EXC);
+
+#else  // !TRAINING_G4_TRIALS
+
+	HyPerLayer * l3_ODD = new V1("L3 ODD", hc);
+	LayerProbe * statsl3_ODD = new StatsProbe(BufActivity,  "L3 ODD :");
+	l3_ODD->insertProbe(statsl3_ODD);
+
+	HyPerConn * l2_ODD_l3_ODD =
+		new CocircConn("L2 ODD to L3 ODD",  hc, l2_ODD,  l3_ODD,
+			CHANNEL_EXC);
+
+	HyPerConn * l3_ODD_l3_ODD =
+		new ODDConn("L3 ODD to L3 ODD",   hc, l3_ODD,  l3_ODD,
+			CHANNEL_EXC);
+
+#endif // TRAINING_G4_TRIALS
+
+#else  // ~TRAINING_G3_TRIALS
+
+	HyPerLayer * l2_ODD = new V1("L2 ODD", hc);
+	LayerProbe * statsl2_ODD = new StatsProbe(BufActivity,  "L2 ODD :");
+	l2_ODD->insertProbe(statsl2_ODD);
+
+	HyPerConn * l1_ODD_l2_ODD =
+		new CocircConn("L1 ODD to L2 ODD",  hc, l1_ODD,  	l2_ODD,
+			CHANNEL_EXC);
+
+	HyPerConn * l2_ODD_l2_ODD =
+		new ODDConn("L2 ODD to L2 ODD",  hc, l2_ODD,     l2_ODD,
+			CHANNEL_EXC);
+
+#endif  // ~TRAINING_G3_TRIALS
+
+#else  // ~TRAINING_G2_TRIALS
+
+	HyPerConn * l1_l1 =
+		new ODDConn("L1 to L1",      hc, l1,     l1,
+			CHANNEL_EXC);
+
+#endif   // ~TRAINING_G2_TRIALS
+
+#else  // ~TRAINING_TRIALS
+
+	HyPerLayer * l1_ODD = new ODDLayer("L1 ODD", hc);
+	HyPerConn * l1_l1_ODD =
+		new CocircConn("L1 to L1 ODD",  hc, l1,  l1_ODD,
+			CHANNEL_EXC);
+//	const char * ODD_filename_target = "./input/256/MNIST/target10K_6/w3_last.pvp";
+//	const char * ODD_filename_target = "./input/256/animal/0001/train/w3_last.pvp";
+//	HyPerConn * l1_l1_ODD_target =
+//		new KernelConn("L1 to L1 ODD Target",  hc, l1,   l1_ODD,
+//			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l1_l1_bowtie_target =
+		new KernelConn("L1 to L1 Bowtie Target",  hc, l1,   l1_ODD,
+			CHANNEL_INH);
+//	const char * ODD_filename_distractor = "./input/256/MNIST/distractor10K_6/w3_last.pvp";
+//	const char * ODD_filename_distractor = "./input/256/noanimal/0001/train/w3_last.pvp";
+//	HyPerConn * l1_l1_ODD_distractor =
+//		new KernelConn("L1 to L1 ODD Distractor", 	hc, l1,  l1_ODD,
+//			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l1_l1_bowtie_distractor =
+		new KernelConn("L1 to L1 Bowtie Distractor", hc, l1,  l1_ODD,
+			CHANNEL_INH);
+	LayerProbe * statsl1_ODD = new StatsProbe(BufActivity,   "L1 ODD :");
+	l1_ODD->insertProbe(statsl1_ODD);
+
+	HyPerLayer * l2_ODD = new ODDLayer("L2 ODD", hc);
+	LayerProbe * statsl2_ODD = new StatsProbe(BufActivity,   "L2 ODD :");
+	l2_ODD->insertProbe(statsl2_ODD);
+
+	HyPerConn * l1_ODD_l2_ODD =
+		new CocircConn("L1 ODD to L2 ODD",  hc, l1_ODD, l2_ODD,
+			CHANNEL_EXC);
+//	const char * ODD2_filename_target = "./input/128/amoeba10K_G2/w7_last.pvp";
+//	const char * ODD2_filename_target = "./input/256/target40K_G2/w7_last.pvp";
+//	HyPerConn * l1_ODD_l2_ODD_target =
+//		new KernelConn("L1 ODD to L2 ODD Target",  hc, l1_ODD,  l2_ODD,
+//			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l1_ODD_l2_bowtie_target =
+		new KernelConn("L1 to L2 Bowtie Target", hc, l1_ODD, l2_ODD,
+			CHANNEL_INH);
+//	const char * ODD2_filename_distractor = "./input/128/distractor10K_G2/w7_last.pvp";
+//	const char * ODD2_filename_distractor = "./input/256/distractor40K_G2/w7_last.pvp";
+//	HyPerConn * l1_ODD_l2_ODD_distractor =
+//		new KernelConn("L1 ODD to L2 ODD Distractor", hc, l1_ODD,  l2_ODD,
+//			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l1_ODD_l2_bowtie_distractor =
+		new KernelConn("L1 to L2 Bowtie Distractor", hc, l1_ODD,  l2_ODD,
+				CHANNEL_INH);
+
+	HyPerLayer * l3_ODD = new ODDLayer("L3 ODD", hc);
+	LayerProbe * statsl3_ODD = new StatsProbe(BufActivity,  "L3 ODD :");
+	l3_ODD->insertProbe(statsl3_ODD);
+
+	HyPerConn * l2_ODD_l3_ODD =
+		new CocircConn("L2 ODD to L3 ODD",  hc, l2_ODD, l3_ODD,
+			CHANNEL_EXC);
+
+//	const char * ODD3_filename_target = "./input/256/amoeba20K_97x97_G3/w10_last.pvp";
+//	HyPerConn * l2_ODD_l3_ODD_target =
+//		new KernelConn("L2 ODD to L3 ODD Target",  hc, l2_ODD,  l3_ODD,
+//			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l2_ODD_l3_bowtie_target =
+		new KernelConn("L2 to L3 Bowtie Target",  hc, l2_ODD,  l3_ODD,
+			CHANNEL_INH);
+//	const char * ODD3_filename_distractor = "./input/256/distractor20K_97x97_G3/w10_last.pvp";
+//	HyPerConn * l2_ODD_l3_ODD_distractor =
+//		new KernelConn("L2 ODD to L3 ODD Distractor", 	hc, l2_ODD,     l3_ODD,
+//			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l2_ODD_l3_bowtie_distractor =
+		new KernelConn("L2 to L3 Bowtie Distractor", hc, l2_ODD,     l3_ODD,
+			CHANNEL_INH);
+
+#define G4_LAYER
+#ifdef G4_LAYER
+	HyPerLayer * l4_ODD = new ODDLayer("L4 ODD", hc);
+	LayerProbe * statsl4_ODD = new StatsProbe(BufActivity,         "L4 ODD :");
+	l4_ODD->insertProbe(statsl4_ODD);
+
+	HyPerConn * l3_ODD_l4_ODD =
+		new CocircConn("L3 ODD to L4 ODD",   hc, l3_ODD,  	l4_ODD,
+			CHANNEL_EXC);
+
+//	const char * ODD4_filename_target = "./input/256/amoeba40K_G4/w13_last.pvp";
+//	HyPerConn * l3_ODD_l4_ODD_target =
+//		new KernelConn("L3 ODD to L4 ODD Target", hc, l3_ODD, l4_ODD,
+//			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l3_ODD_l4_bowtie_target =
+		new KernelConn("L3 to L4 Bowtie Target", hc, l3_ODD, l4_ODD,
+			CHANNEL_INH);
+//	const char * ODD4_filename_distractor = "./input/256/distractor40K_G4/w13_last.pvp";
+//	HyPerConn * l3_ODD_l4_ODD_distractor =
+//		new KernelConn("L3 ODD to L4 ODD Distractor", hc, l3_ODD, l4_ODD,
+//			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l3_ODD_l4_bowtie_distractor =
+		new KernelConn("L3 to L4 Bowtie Distractor", hc, l3_ODD, l4_ODD,
+			CHANNEL_INH);
+
+#endif G4_LAYER
+
+#undef TOPDOWN_FLAG
+#ifdef TOPDOWN_FLAG
+	// top-down layers
+
+	// l1_topdown
+	HyPerLayer * l1_topdown = new ODDLayer("L1 TopDown", hc);
+	HyPerConn * l1_l1_topdown =  // delay += 3, bottom up
+		new CocircConn("L1 to L1 TopDown",  hc, l1,  l1_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l1_ODD_l1_topdown =  // delay += 2, lateral
+		new CocircConn("L1 ODD to L1 TopDown", hc, l1_ODD, l1_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l2_ODD_l1_topdown =  // delay += 1, top down
+		new CocircConn("L2 ODD to L1 TopDown", hc, l2_ODD,  l1_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l3_ODD_l1_topdown =  // delay += 0, top down
+		new CocircConn("L3 ODD to L1 TopDown", hc, l3_ODD,  l1_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l1_l1_topdown_target =  // delay += 3, bottom up
+		new KernelConn("L1 ODD to L1 TopDown Target", hc, l1, l1_topdown,
+			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l1_l1_topdown_distractor = // delay += 3, bottom up
+		new KernelConn("L1 ODD to L1 TopDown Distractor", hc, l1, l1_topdown,
+			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l1_ODD_l1_topdown_target =  // delay += 2, lateral
+		new KernelConn("L1 ODD to L1 TopDown Target", hc, l1_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l1_ODD_l1_topdown_distractor = // delay += 2 lateral
+		new KernelConn("L1 ODD to L1 TopDown Distractor", hc, l1_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l2_ODD_l1_topdown_target = // delay += 1, top down
+		new KernelConn("L2 ODD to L1 TopDown Target", hc, l2_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l2_ODD_l1_topdown_distractor =  // delay += 1, top down
+		new KernelConn("L2 ODD to L1 TopDown Distractor", hc, l2_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_distractor);
+	HyPerConn * l3_ODD_l1_topdown_target = // delay += 0, top down
+		new KernelConn("L3 ODD to L1 TopDown Target", hc, l3_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_target);
+	HyPerConn * l3_ODD_l1_topdown_distractor =  // delay += 0, top down
+		new KernelConn("L3 ODD to L1 TopDown Distractor", hc, l3_ODD, l1_topdown,
+			CHANNEL_INH, ODD_filename_distractor);
+	LayerProbe * statsl1_topdown = new StatsProbe(BufActivity, "L1 TopDown :");
+	l1_topdown->insertProbe(statsl1_topdown);
+
+	// l2_topdown
+	HyPerLayer * l2_topdown = new ODDLayer("L2 TopDown", hc);
+	HyPerConn * l1_topdown_l2_topdown =  // delay += 0, bottom up
+		new CocircConn("L1 TopDown to L2 TopDown",  hc, l1_topdown,  l2_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l2_ODD_l2_topdown =  // delay += 2, lateral
+		new CocircConn("L2 ODD to L2 TopDown", hc, l2_ODD, l2_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l3_ODD_l2_topdown =  // delay += 1, top down
+		new CocircConn("L3 ODD to L2 TopDown", hc, l3_ODD,  l2_topdown,
+			CHANNEL_EXC);
+#ifdef G4_LAYER
+	HyPerConn * l4_ODD_l2_topdown =  // delay += 0, top down
+		new CocircConn("L4 ODD to L2 TopDown", hc, l4_ODD,  l2_topdown,
+			CHANNEL_EXC);
+#endif
+	HyPerConn * l1_topdown_l2_topdown_target =  // delay += 0, bottom up
+		new KernelConn("L1 TopDown to L2 TopDown Target", hc, l1_topdown, l2_topdown,
+			CHANNEL_INH, ODD2_filename_target);
+	HyPerConn * l1_topdown_l2_topdown_distractor = // delay += 0, bottom up
+		new KernelConn("L1 TopDown to L2 TopDown Distractor", hc, l1_topdown, l2_topdown,
+			CHANNEL_INH, ODD2_filename_distractor);
+	HyPerConn * l2_ODD_l2_topdown_target =  // delay += 2, lateral
+		new KernelConn("L2 ODD to L2 TopDown Target", hc, l2_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_target);
+	HyPerConn * l2_ODD_l2_topdown_distractor = // delay += 2 lateral
+		new KernelConn("L2 ODD to L2 TopDown Distractor", hc, l2_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_distractor);
+	HyPerConn * l3_ODD_l2_topdown_target = // delay += 1, top down
+		new KernelConn("L3 ODD to L2 TopDown Target", hc, l3_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_target);
+	HyPerConn * l3_ODD_l2_topdown_distractor =  // delay += 1, top down
+		new KernelConn("L3 ODD to L2 TopDown Distractor", hc, l3_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_distractor);
+#ifdef G4_LAYER
+	HyPerConn * l4_ODD_l2_topdown_target = // delay += 0, top down
+		new KernelConn("L4 ODD to L2 TopDown Target", hc, l4_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_target);
+	HyPerConn * l4_ODD_l2_topdown_distractor =  // delay += 0, top down
+		new KernelConn("L4 ODD to L2 TopDown Distractor", hc, l4_ODD, l2_topdown,
+			CHANNEL_INH, ODD2_filename_distractor);
+#endif
+	LayerProbe * statsl2_topdown = new StatsProbe(BufActivity, "L2 TopDown :");
+	l2_topdown->insertProbe(statsl2_topdown);
+
+	// l3_topdown
+	HyPerLayer * l3_topdown = new ODDLayer("L3 TopDown", hc);
+	HyPerConn * l2_topdown_l3_topdown =  // delay += 0, bottom up
+		new CocircConn("L2 TopDown to L3 TopDown",  hc, l2_topdown,  l3_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l3_ODD_l3_topdown =  // delay += 2, lateral
+		new CocircConn("L3 ODD to L3 TopDown", hc, l3_ODD, l3_topdown,
+			CHANNEL_EXC);
+#ifdef G4_LAYER
+	HyPerConn * l4_ODD_l3_topdown =  // delay += 1, top down
+		new CocircConn("L4 ODD to L3 TopDown", hc, l4_ODD,  l3_topdown,
+			CHANNEL_EXC);
+#endif
+	HyPerConn * l2_topdown_l2_topdown_target =  // delay += 0, bottom up
+		new KernelConn("L2 TopDown to L3 TopDown Target", hc, l2_topdown, l3_topdown,
+			CHANNEL_INH, ODD3_filename_target);
+	HyPerConn * l2_topdown_l3_topdown_distractor = // delay += 0, bottom up
+		new KernelConn("L2 TopDown to L3 TopDown Distractor", hc, l2_topdown, l3_topdown,
+			CHANNEL_INH, ODD3_filename_distractor);
+	HyPerConn * l3_ODD_l3_topdown_target =  // delay += 2, lateral
+		new KernelConn("L3 ODD to L3 TopDown Target", hc, l3_ODD, l3_topdown,
+			CHANNEL_INH, ODD3_filename_target);
+	HyPerConn * l3_ODD_l3_topdown_distractor = // delay += 2 lateral
+		new KernelConn("L3 ODD to L3 TopDown Distractor", hc, l3_ODD, l3_topdown,
+			CHANNEL_INH, ODD3_filename_distractor);
+#ifdef G4_LAYER
+	HyPerConn * l4_ODD_l3_topdown_target = // delay += 1, top down
+		new KernelConn("L4 ODD to L3 TopDown Target", hc, l4_ODD, l3_topdown,
+			CHANNEL_INH, ODD3_filename_target);
+	HyPerConn * l4_ODD_l3_topdown_distractor =  // delay += 1, top down
+		new KernelConn("L4 ODD to L3 TopDown Distractor", hc, l4_ODD, l3_topdown,
+			CHANNEL_INH, ODD3_filename_distractor);
+#endif
+	LayerProbe * statsl3_topdown = new StatsProbe(BufActivity, "L3 TopDown :");
+	l3_topdown->insertProbe(statsl3_topdown);
+
+
+	// l4_topdown
+#ifdef G4_LAYER
+	HyPerLayer * l4_topdown = new ODDLayer("L4 TopDown", hc);
+	HyPerConn * l3_topdown_l4_topdown =  // delay += 0, bottom up
+		new CocircConn("L3 TopDown to L4 TopDown",  hc, l3_topdown,  l4_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l4_ODD_l4_topdown =  // delay += 2, lateral
+		new CocircConn("L4 ODD to L4 TopDown", hc, l4_ODD, l4_topdown,
+			CHANNEL_EXC);
+	HyPerConn * l3_topdown_l4_topdown_target =  // delay += 0, bottom up
+		new KernelConn("L3 TopDown to L4 TopDown Target", hc, l3_topdown, l4_topdown,
+			CHANNEL_INH, ODD4_filename_target);
+	HyPerConn * l3_topdown_l4_topdown_distractor = // delay += 0, bottom up
+		new KernelConn("L3 TopDown to L4 TopDown Distractor", hc, l3_topdown, l4_topdown,
+			CHANNEL_INH, ODD4_filename_distractor);
+	HyPerConn * l4_ODD_l4_topdown_target =  // delay += 2, lateral
+		new KernelConn("L4 ODD to L4 TopDown Target", hc, l4_ODD, l4_topdown,
+			CHANNEL_INH, ODD4_filename_target);
+	HyPerConn * l4_ODD_l4_topdown_distractor = // delay += 2 lateral
+		new KernelConn("L4 ODD to L4 TopDown Distractor", hc, l4_ODD, l4_topdown,
+			CHANNEL_INH, ODD4_filename_distractor);
+	LayerProbe * statsl4_topdown = new StatsProbe(BufActivity, "L4 TopDown :");
+	l4_topdown->insertProbe(statsl4_topdown);
+#endif
+
+
+#endif // TOPDOWN_FLAG
+
+
+#endif  // TRAINING_TRIALS
+
+
+
+#endif  // SPIKING
+
+	hc->run();
+
+	/* clean up (HyPerCol owns layers and connections, don't delete them) */
+	delete hc;
+
+
+	return 0;
+}
