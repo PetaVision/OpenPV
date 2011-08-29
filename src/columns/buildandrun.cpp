@@ -481,7 +481,7 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
       weightInitializer = new InitUniformRandomWeights();
    }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformGaussianRandomWeight"))) {
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaussianRandomWeight"))) {
       weightInitializer = new InitGaussianRandomWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
@@ -505,11 +505,22 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights();
    }
-   else { //default is also Gauss2D
-      fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
-      weightInitializer = new InitWeights();
+   else {
+      weightInitializer = NULL;
    }
 
+   return weightInitializer;
+}
+
+InitWeights * getDefaultInitWeightsMethod(const char * keyword) {
+   InitWeights * weightInitializer;
+   if( !strcmp(keyword, "IdentConn") ) {
+      weightInitializer = new InitIdentWeights();
+   }
+   else {
+      weightInitializer = new InitWeights();
+      fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
+   }
    return weightInitializer;
 }
 
@@ -539,6 +550,9 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    }
 
    weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+   if( weightInitializer == NULL ) {
+      weightInitializer = getDefaultInitWeightsMethod(classkeyword);
+   }
 
    bool keywordMatched = false;
    if( !strcmp(classkeyword, "HyPerConn") ) {

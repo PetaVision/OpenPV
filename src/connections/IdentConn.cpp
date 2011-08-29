@@ -6,6 +6,7 @@
  */
 
 #include "IdentConn.hpp"
+#include "InitIdentWeights.hpp"
 
 namespace PV {
 
@@ -15,29 +16,33 @@ IdentConn::IdentConn() {
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer) {
-    initialize_base();
-    initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
+   if( dynamic_cast<InitIdentWeights*>(weightInitializer) == NULL ) {
+      fprintf(stderr, "IdentConn \"%s\": Weight initialization method must be an InitIdentWeights object.  Exiting.\n", name);
+      exit(EXIT_FAILURE);
+   }
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
-    // no IdentConn-specific data members to initialize
-    return PV_SUCCESS;
+   // no IdentConn-specific data members to initialize
+   return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
 
 int IdentConn::setPatchSize(const char * filename) {
-    const PVLayerLoc * preLoc = pre->getLayerLoc();
-    const PVLayerLoc * postLoc = post->getLayerLoc();
-    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
-        fprintf( stderr,
-                 "IdentConn Error: %s and %s do not have the same dimensions\n",
-                 pre->getName(),post->getName() );
-        exit(1);
-    }
-    nxp = 1;
-    nyp = 1;
-    nfp = preLoc->nf;
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
+      fprintf( stderr,
+               "IdentConn Error: %s and %s do not have the same dimensions\n",
+               pre->getName(),post->getName() );
+      exit(1);
+   }
+   nxp = 1;
+   nyp = 1;
+   nfp = preLoc->nf;
 
-    return PV_SUCCESS;
+   return PV_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
 
 #ifdef OBSOLETE // This method has been moved to InitIdentWeights.  To initialize IdentConns set the param "weightInitType" to "InitIdentWeight" in the params file
