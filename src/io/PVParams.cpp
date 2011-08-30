@@ -486,13 +486,15 @@ int PVParams::stringPresent(const char * groupName, const char * paramStringName
  *  @groupName
  *  @paramStringName
  */
-const char * PVParams::stringValue(const char * groupName, const char * paramStringName) {
+const char * PVParams::stringValue(const char * groupName, const char * paramStringName, bool warnIfAbsent) {
    if( stringPresent(groupName, paramStringName) ) {
       ParameterGroup * g = group(groupName);
       return g->stringValue(paramStringName);
    }
    else {
-      printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
+      if( warnIfAbsent) {
+         printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
+      }
       return NULL;
    }
 }

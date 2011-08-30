@@ -460,13 +460,16 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
 
 
 /*
- * THis method parses the weightInitType parameter and creates an
+ * This method parses the weightInitType parameter and creates an
  * appropriate InitWeight object for the chosen weight initialization.
  *
  */
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       ChannelType channel) {
-   const char * weightInitTypeStr = hc->parameters()->stringValue(name, "weightInitType");
+
+   // Get weightInitType.  The HyPerConn subclass may have a natural weightInitType so don't issue a warning yet if weightInitType is missing.
+   // The warning is issued in getDefaultInitWeightsMethod().
+   const char * weightInitTypeStr = hc->parameters()->stringValue(name, "weightInitType",false);
    InitWeights *weightInitializer;
 
    if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {

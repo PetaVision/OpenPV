@@ -137,7 +137,7 @@ public:
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent=true);
    int   stringPresent(const char * groupName, const char * paramStringName);
-   const char * stringValue(const char * groupName, const char * paramStringName);
+   const char * stringValue(const char * groupName, const char * paramStringName, bool warnIfAbsent=true);
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
