@@ -1,5 +1,5 @@
 //
-// test_kernel.params
+// MPI_test.params
 //
 // created by garkenyon: August 4, 2011
 //
@@ -12,7 +12,7 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 4;  // num images plus (num layers + 1) * delay
+   numSteps = 100;  // num images plus (num layers + 1) * delay
    outputPath = "output/";
 };
 
@@ -400,53 +400,53 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-StatsProbe "Retina Stats File" = {
+MPITestProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
-StatsProbe "L0 Stats File" = {
+MPITestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
-StatsProbe "Lx1 Stats File" = {
+MPITestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
 };
-StatsProbe "Lx2 Stats File" = {
+MPITestProbe "Lx2 Stats File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
 };
-StatsProbe "Lx4 Stats File" = {
+MPITestProbe "Lx4 Stats File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
 };
-StatsProbe "Lx1_2 Stats File" = {
+MPITestProbe "Lx1_2 Stats File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
 };
-StatsProbe "Lx1_4 Stats File" = {
+MPITestProbe "Lx1_4 Stats File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-StatsProbe "Retina Stats Screen" = {
+MPITestProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
 };
-StatsProbe "L0 Stats Screen" = {
+MPITestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
-StatsProbe "Lx1 Stats Screen" = {
+MPITestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
 };
-StatsProbe "Lx2 Stats Screen" = {
+MPITestProbe "Lx2 Stats Screen" = {
     targetLayer = "Lx2";
 };
-StatsProbe "Lx4 Stats Screen" = {
+MPITestProbe "Lx4 Stats Screen" = {
     targetLayer = "Lx4";
 };
-StatsProbe "Lx1_2 Stats Screen" = {
+MPITestProbe "Lx1_2 Stats Screen" = {
     targetLayer = "Lx1_2";
 };
-StatsProbe "Lx1_4 Stats Screen" = {
+MPITestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
 };
