@@ -23,7 +23,7 @@ public:
    inline float getaspect()        {return aspect;}
    inline float getshift()        {return shift;}
    inline int getnumFlanks()        {return numFlanks;}
-   inline int getr2Max()        {return r2Max;}
+   inline double getr2Max()        {return r2Max;}
    inline float getsigma()        {return sigma;}
    inline float getSigma_cocirc()        {return sigma_cocirc;}
    inline float getSigma_kurve()        {return sigma_kurve;}
@@ -61,7 +61,7 @@ private:
    float aspect; // circular (not line oriented)
    float sigma;
    float rMax;
-   float r2Max;
+   double r2Max;
    float strength;
    int numFlanks;
    float shift;

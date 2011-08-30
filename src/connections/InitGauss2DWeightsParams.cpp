@@ -66,7 +66,8 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
       }
    }
 
-   r2Max = rMax * rMax;
+   double r2Maxd = (double) rMax;
+   r2Max = r2Maxd*r2Maxd;
 
 
 //calculate other values:

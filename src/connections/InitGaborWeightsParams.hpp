@@ -22,7 +22,7 @@ public:
    //get/set methods:
    inline float getaspect()        {return aspect;}
    inline float getshift()        {return shift;}
-   inline int getr2Max()        {return r2Max;}
+   inline double getr2Max()        {return r2Max;}
    inline float getsigma()        {return sigma;}
    inline float getlambda()        {return lambda;}
    inline float getphi()        {return phi;}
@@ -37,7 +37,7 @@ private:
    float aspect;
    float sigma;
    float rMax;
-   float r2Max;
+   double r2Max;
    float strength;
    int lambda;
    float shift;

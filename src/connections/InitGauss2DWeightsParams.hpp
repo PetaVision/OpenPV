@@ -26,7 +26,7 @@ public:
    inline float getshift()        {return shift;}
    inline int getnumFlanks()        {return numFlanks;}
    inline float getsigma()        {return sigma;}
-   inline int getr2Max()        {return r2Max;}
+   inline double getr2Max()        {return r2Max;}
 
 protected:
    virtual int initialize_base();
@@ -46,7 +46,7 @@ private:
    float bowtieAngle;  // bowtie angle
 
    //calculated values;
-   float r2Max;
+   double r2Max;
    bool self;
 
 };

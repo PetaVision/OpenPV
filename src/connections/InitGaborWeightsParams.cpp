@@ -58,7 +58,8 @@ int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
    lambda   = params->value(name, "lambda", lambda);
    strength = params->value(name, "strength", strength);
    phi = params->value(name, "phi", phi);
-   r2Max = rMax * rMax;
+   double rMaxd = (double) rMax;
+   r2Max = rMaxd * rMaxd;
 
    shift = params->value(name, "flankShift", shift);
    //rotate = params->value(name, "rotate", rotate);

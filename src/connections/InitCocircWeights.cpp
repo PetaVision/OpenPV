@@ -116,7 +116,7 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    const float shift = weightParamPtr->getshift();
    const float sigma = weightParamPtr->getsigma();
    const float sigma2 = 2 * sigma * sigma;
-   const float r2Max = weightParamPtr->getr2Max();
+   const double r2Max = weightParamPtr->getr2Max();
    const int numFlanks = weightParamPtr->getnumFlanks();
    float thetaPre = weightParamPtr->getthPre();
 

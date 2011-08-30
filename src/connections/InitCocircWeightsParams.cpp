@@ -71,7 +71,8 @@ int InitCocircWeightsParams::initialize(HyPerConn * parentConn) {
    sigma = params->value(name, "sigma", sigma);
    rMax = params->value(name, "rMax", rMax);
    strength = params->value(name, "strength", strength);
-   r2Max = rMax * rMax;
+   double rMaxd = (double) rMax;
+   r2Max = rMaxd * rMaxd;
 
    numFlanks = (int) params->value(name, "numFlanks", numFlanks);
    shift = params->value(name, "flankShift", shift);

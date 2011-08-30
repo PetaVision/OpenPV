@@ -64,7 +64,7 @@ int InitGaborWeights::gaborWeights(PVPatch * patch, InitGaborWeightsParams * wei
    int sx_tmp=weightParamPtr->getsx_tmp();
    int sy_tmp=weightParamPtr->getsy_tmp();
    int sf_tmp=weightParamPtr->getsf_tmp();
-   float r2Max=weightParamPtr->getr2Max();
+   double r2Max=weightParamPtr->getr2Max();
 
    pvdata_t * w_tmp = patch->data;
 
