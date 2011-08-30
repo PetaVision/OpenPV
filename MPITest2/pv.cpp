@@ -35,6 +35,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 		HyPerLayer * targetlayer;
 		const char * message;
 		const char * filename;
+		MPITestProbe * addedProbe;
 		if (!strcmp(kw, "MPITestProbe")) {
 			status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
 					&message, &filename);
@@ -43,8 +44,17 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 				continue;
 			}
 			PVBufType buf_type = BufV;
-			MPITestProbe * addedProbe = new MPITestProbe(filename, hc, buf_type,
-					message);
+	         if( filename ) {
+	            addedProbe =  new MPITestProbe(filename, hc, buf_type, message);
+	         }
+	         else {
+	            addedProbe =  new MPITestProbe(buf_type, message);
+	         }
+	         if( !addedProbe ) {
+	             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+	         }
+			assert(targetlayer);
+			if( addedProbe ) targetlayer->insertProbe(addedProbe);
 			checknewobject((void *) addedProbe, kw, name);
 		}
 	}
