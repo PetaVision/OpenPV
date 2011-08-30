@@ -173,7 +173,7 @@ KernelConn "Retina to L0" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 1;
     rMax  = infinity;
@@ -214,7 +214,7 @@ KernelConn "L0 to Lx1" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
@@ -253,7 +253,7 @@ KernelConn "L0 to Lx2" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 1; //2;
     sigma = infinity;
     rMax  = infinity;
@@ -292,7 +292,7 @@ KernelConn "L0 to Lx4" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
     sigma = infinity;
     rMax  = infinity;
@@ -331,7 +331,7 @@ KernelConn "L0 to Lx1_2" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 2;
     sigma = infinity;
     rMax  = infinity;
@@ -370,7 +370,7 @@ KernelConn "L0 to Lx1_4" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    gauss2DCalcWeights = 1;
+    weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
