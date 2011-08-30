@@ -20,15 +20,20 @@ LayerProbe::LayerProbe()
  */
 LayerProbe::LayerProbe(const char * filename, HyPerCol * hc)
 {
-   char * outputdir = hc->getOutputPath();
-   char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-   sprintf(path, "%s/%s", outputdir, filename);
-   fp = fopen(path, "w");
-   if( !fp ) {
-      fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
-      exit(EXIT_FAILURE);
+   if( filename != NULL ) {
+      char * outputdir = hc->getOutputPath();
+      char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
+      sprintf(path, "%s/%s", outputdir, filename);
+      fp = fopen(path, "w");
+      if( !fp ) {
+         fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
+         exit(EXIT_FAILURE);
+      }
+      free(path);
    }
-   free(path);
+   else {
+      fp = stdout;
+   }
 }
 
 LayerProbe::~LayerProbe()
