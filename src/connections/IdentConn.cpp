@@ -16,10 +16,6 @@ IdentConn::IdentConn() {
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer) {
-   if( dynamic_cast<InitIdentWeights*>(weightInitializer) == NULL ) {
-      fprintf(stderr, "IdentConn \"%s\": Weight initialization method must be an InitIdentWeights object.  Exiting.\n", name);
-      exit(EXIT_FAILURE);
-   }
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
@@ -28,6 +24,18 @@ int IdentConn::initialize_base() {
    // no IdentConn-specific data members to initialize
    return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
+
+int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit ) {
+   if( dynamic_cast<InitIdentWeights*>(weightInit) == NULL ) {
+      fprintf(stderr, "IdentConn \"%s\": Weight initialization method must be an InitIdentWeights object.  Exiting.\n", name);
+      exit(EXIT_FAILURE);
+   }
+   plasticityFlag = false;        // The four data members set here
+   symmetrizeWeightsFlag = false; // should not be used by IdentConn.
+   weightUpdateTime = -1;         // Give them safe values nonetheless
+   mpiReductionBuffer = NULL;     // as a precaution.
+   return HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+}
 
 int IdentConn::setPatchSize(const char * filename) {
    const PVLayerLoc * preLoc = pre->getLayerLoc();

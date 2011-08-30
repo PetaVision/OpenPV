@@ -22,7 +22,8 @@ public:
     IdentConn(const char * name, HyPerCol *hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer);
 
-   int initialize_base();
+   virtual int initialize_base();
+   virtual int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
    virtual int initNormalize();
 
