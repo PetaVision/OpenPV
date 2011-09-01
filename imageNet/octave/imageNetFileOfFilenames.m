@@ -7,15 +7,15 @@ function [train_filenames, ...
 	  rand_state] = ...
       imageNetFileOfFilenames(imageNet_path, ...
 			      object_name, ...
+			      object_keyword, ...
 			      num_train, ...
 			      num_test, ...
 			      train_dir, ...
 			      test_dir, ...
+			      list_dir, ...
 			      cross_category_flag, ...
 			      shuffle_flag, ...
-			      object_keyword, ...
-			      rand_state, ...
-			      list_dir)
+			      rand_state)
 
   %% makes list of paths to  imageNet image files for training and testing
   %% training files are drawn from images folder train_dir
@@ -29,39 +29,39 @@ function [train_filenames, ...
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
     object_name = "dog";  %%"cat"; %%  
   endif
-  if nargin < 3 || ~exist("num_train") || isempty(num_train)
+  if nargin < 3 || ~exist(object_keyword) || isempty(object_keyword)
+    object_keyword = ["terrier"];  %% []; %% 
+  endif
+  if nargin < 4 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
   endif
-  if nargin < 4 || ~exist("num_test") || isempty(num_test)
+  if nargin < 5 || ~exist("num_test") || isempty(num_test)
     num_test = -1;  %% -1 use all images in test_dir not in train_dir
   endif
-  if nargin < 5 || ~exist(train_dir) || isempty(train_dir)
+  if nargin < 6 || ~exist(train_dir) || isempty(train_dir)
     train_dir = "DoGMask";  %% 
   endif
-  if nargin < 6 || ~exist(test_dir) || isempty(test_dir)
+  if nargin < 7 || ~exist(test_dir) || isempty(test_dir)
     test_dir = "DoG";  %% 
+  endif
+  if nargin < 8 || ~exist("list_dir") || isempty(list_dir)
+    list_dir = "list";  %% 
   endif
   %% cross_category_flag == 0, only draw test images from test folders whose
   %% corresponding train folders contain at least abs(num_train) images
   %% cross_category_flag == 1, draw test images only from test folders that lack
   %% corresponding train folders--for testing generalization across
   %% imageNet sub categories
-  if nargin < 7 || ~exist("cross_category_flag") || isempty(cross_category_flag)
+  if nargin < 9 || ~exist("cross_category_flag") || isempty(cross_category_flag)
     cross_category_flag = 0;  %% 
   endif
-  if nargin < 8 || ~exist("shuffle_flag") || isempty(shuffle_flag)
+  if nargin < 10 || ~exist("shuffle_flag") || isempty(shuffle_flag)
     shuffle_flag = 1;  %% 
   endif
-  if nargin < 9 || ~exist(object_keyword) || isempty(object_keyword)
-    object_keyword = ["terrier"];  %% []; %% 
-  endif
-  if nargin < 10 || ~exist("rand_state") || isempty(rand_state)
+  if nargin < 11 || ~exist("rand_state") || isempty(rand_state)
     rand_state = rand("state");
   endif
   rand("state", rand_state);
-  if nargin < 11 || ~exist("list_dir") || isempty(list_dir)
-    list_dir = "list";  %% 
-  endif
 
  
   %%setenv('GNUTERM', 'x11');
