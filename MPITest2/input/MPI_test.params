@@ -12,7 +12,7 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 100;  // num images plus (num layers + 1) * delay
+   numSteps = 1000;  // num images plus (num layers + 1) * delay
    outputPath = "output/";
    filenamesContainLayerNames = false;
 };
@@ -401,11 +401,11 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-MPITestProbe "Retina Stats File" = {
+StatsProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
-MPITestProbe "L0 Stats File" = {
+StatsProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
@@ -430,10 +430,10 @@ MPITestProbe "Lx1_4 Stats File" = {
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-MPITestProbe "Retina Stats Screen" = {
+StatsProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
 };
-MPITestProbe "L0 Stats Screen" = {
+StatsProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
 MPITestProbe "Lx1 Stats Screen" = {

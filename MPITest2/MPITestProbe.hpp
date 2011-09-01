@@ -20,7 +20,6 @@ public:
    virtual int outputState(float time, HyPerLayer * l);
 
 protected:
-   double cumSum;
    double cumAvg;
 };
 

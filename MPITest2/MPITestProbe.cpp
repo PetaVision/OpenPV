@@ -6,10 +6,10 @@
  */
 
 #include "MPITestProbe.hpp"
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include "../PetaVision/src/include/pv_arch.h"
 #include "../PetaVision/src/layers/HyPerLayer.hpp"
-#include <float.h>      // FLT_MAX/MIN
 #include <string.h>
+#include <assert.h>
 
 namespace PV {
 
@@ -21,7 +21,6 @@ namespace PV {
 MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, PVBufType buf_type, const char * msg)
    : StatsProbe(filename, hc, buf_type, msg)
 {
-	cumSum = 0.0f;
 	cumAvg = 0.0f;
 }
 
@@ -32,7 +31,6 @@ MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, PVBufType buf_t
 MPITestProbe::MPITestProbe(PVBufType buf_type, const char * msg)
    : StatsProbe(buf_type, msg)
 {
-	cumSum = 0.0f;
 	cumAvg = 0.0f;
 }
 
@@ -41,16 +39,28 @@ MPITestProbe::MPITestProbe(PVBufType buf_type, const char * msg)
  * @time
  * @l
  */
-int MPITestProbe::outputState(float time, HyPerLayer * l)
-{
+int MPITestProbe::outputState(float time, HyPerLayer * l) {
 	int status = StatsProbe::outputState(time, l);
-	cumSum += sum;
+#ifdef PV_USE_MPI
+	InterColComm * icComm = l->getParent()->icCommunicator();
+	const int rcvProc = 0;
+	if( icComm->commRank() != rcvProc ) {
+		return status;
+	}
+#endif // PV_USE_MPI
 	cumAvg += avg;
-	fprintf(fp, "%s t==%9.3f cumSum==%f cumAvg==%f \n", msg, time,
-              (float) cumSum, (float) cumAvg);
+	double cum_time = time - 2.0f;
+	double tol = 0.01f;
+	fprintf(fp, "%s cum_time==%9.3f cumAvg==%f \n", msg, cum_time, (float) cumAvg);
 	fflush(fp);
+	if (time > 3.0f) {
+		assert((fMin > (1.0f - tol)) && (fMin < (1.0f + tol)));
+		assert((fMax > (1.0f - tol)) && (fMax < (1.0f + tol)));
+		assert((avg > (1.0f - tol)) && (avg < (1.0f + tol)));
+		assert((cumAvg > (cum_time - tol)) && (cumAvg < (cum_time + tol)));
+	}
 
-	return 0;
+	return status;
 }
 
 }
