@@ -44,7 +44,8 @@ MPITestProbe::MPITestProbe(PVBufType buf_type, const char * msg)
 int MPITestProbe::outputState(float time, HyPerLayer * l)
 {
 	int status = StatsProbe::outputState(time, l);
-
+	cumSum += sum;
+	cumAvg += avg;
 	fprintf(fp, "%s t==%9.3f cumSum==%f cumAvg==%f \n", msg, time,
               (float) cumSum, (float) cumAvg);
 	fflush(fp);
