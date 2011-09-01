@@ -369,9 +369,9 @@ PVParams::PVParams(const char * filename, int initialSize)
    int status = pv_parseParameters(this);
    fclose(yyin);
    if( status != 0) {
+      printf("pv_parseParameters failed: return value %d\n", status);
       exit(status);
    }
-   printf("pv_parseParameters status is %d\n", status);
 }
 
 /**
