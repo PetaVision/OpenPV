@@ -401,53 +401,53 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-StatsProbe "Retina Stats File" = {
+KernelTestProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
-StatsProbe "L0 Stats File" = {
+KernelTestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
-StatsProbe "Lx1 Stats File" = {
+KernelTestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
 };
-StatsProbe "Lx2 Stats File" = {
+KernelTestProbe "Lx2 Stats File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
 };
-StatsProbe "Lx4 Stats File" = {
+KernelTestProbe "Lx4 Stats File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
 };
-StatsProbe "Lx1_2 Stats File" = {
+KernelTestProbe "Lx1_2 Stats File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
 };
-StatsProbe "Lx1_4 Stats File" = {
+KernelTestProbe "Lx1_4 Stats File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-StatsProbe "Retina Stats Screen" = {
+KernelTestProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
 };
-StatsProbe "L0 Stats Screen" = {
+KernelTestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
-StatsProbe "Lx1 Stats Screen" = {
+KernelTestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
 };
-StatsProbe "Lx2 Stats Screen" = {
+KernelTestProbe "Lx2 Stats Screen" = {
     targetLayer = "Lx2";
 };
-StatsProbe "Lx4 Stats Screen" = {
+KernelTestProbe "Lx4 Stats Screen" = {
     targetLayer = "Lx4";
 };
-StatsProbe "Lx1_2 Stats Screen" = {
+KernelTestProbe "Lx1_2 Stats Screen" = {
     targetLayer = "Lx1_2";
 };
-StatsProbe "Lx1_4 Stats Screen" = {
+KernelTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
 };

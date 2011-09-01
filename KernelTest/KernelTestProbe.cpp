@@ -26,9 +26,11 @@ KernelTestProbe::KernelTestProbe(PVBufType buf_type, const char * msg)
 int KernelTestProbe::outputState(float time, HyPerLayer * l)
 {
 	int status = StatsProbe::outputState(time, l);
-	assert((fMin>0.99)&&(fMin<1.010));
-	assert((fMax>0.99)&&(fMax<1.010));
-	assert((avg>0.99)&&(avg<1.010));
+	if(time>2.0f){
+		assert((fMin>0.99)&&(fMin<1.010));
+		assert((fMax>0.99)&&(fMax<1.010));
+		assert((avg>0.99)&&(avg<1.010));
+	}
 
 	return status;
 }

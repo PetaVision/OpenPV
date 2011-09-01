@@ -37,7 +37,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 		const char * message;
 		const char * filename;
 		KernelTestProbe * addedProbe;
-		if (!strcmp(kw, "MPITestProbe")) {
+		if (!strcmp(kw, "KernelTestProbe")) {
 			status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
 					&message, &filename);
 			if (status != PV_SUCCESS) {
