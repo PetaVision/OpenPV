@@ -23,6 +23,9 @@ public:
 protected:
    PV::PVBufType type;
    char * msg;
+   double sum;
+   float fMin, fMax;
+   float avg;
 };
 
 }

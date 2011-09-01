@@ -22,6 +22,7 @@ StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, con
 {
    this->msg = strdup(msg);
    this->type = type;
+
 }
 
 /**
@@ -33,6 +34,10 @@ StatsProbe::StatsProbe(PVBufType type, const char * msg)
 {
    this->msg = strdup(msg);
    this->type = type;
+   fMin = FLT_MAX,
+   fMax = -FLT_MAX;
+   sum = 0.0f;
+   avg = 0.0f;
 }
 
 StatsProbe::~StatsProbe()
@@ -48,8 +53,10 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
 {
    int nk;
    const pvdata_t * buf;
-   float fMin = FLT_MAX, fMax = -FLT_MAX;
-   double sum = 0.0;
+   fMin = FLT_MAX,
+   fMax = -FLT_MAX;
+   sum = 0.0f;
+   avg = 0.0f;
 
    switch (type) {
    case BufV:
@@ -90,7 +97,7 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
    fMax = reducedmax;
    nk = l->getNumGlobalNeurons();
 #endif // PV_USE_MPI
-   pvdata_t avg = sum/nk;
+   avg = sum/nk;
    if (type == BufActivity) {
       float freq = 1000.0 * avg;
       fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, time,
