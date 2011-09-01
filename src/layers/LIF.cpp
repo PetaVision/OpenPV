@@ -126,8 +126,8 @@ LIF::~LIF()
  */
 int LIF::initialize(PVLayerType type, const char * kernel_name)
 {
+   int status = HyPerLayer::initialize(type);
    float time = 0.0f;
-   int status = CL_SUCCESS;
 
    const size_t numNeurons = getNumNeurons();
 
@@ -157,12 +157,6 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
    assert(Vth != NULL);
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest;
-   }
-
-   parent->addLayer(this);
-
-   if (parent->parameters()->value(name, "restart", 0) != 0) {
-      readState(&time);
    }
 
    // initialize OpenCL parameters
