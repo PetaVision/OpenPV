@@ -34,14 +34,15 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     	printf("new conn name %s\n", newName);
     	HyPerLayer * preLayer = tempConnPtr->getPre();
 		HyPerLayer * postLayer = tempConnPtr->getPost();
-		PVParams * params = hc->parameters();
+		// PVParams * params = hc->parameters();
 		ChannelType channelType = CHANNEL_INH;
 		//int channelNo = (int) params->value(tempConnPtr->getName(), "channelCode", -1);
+		HyPerConn * newConn;
 		if( !strcmp(grp->getGroupKeyword(), "HyPerConn") ) {
-			HyPerConn * newConn = new HyperConnDebugInitWeights(tempConnPtr->getName(), hc, preLayer, postLayer, channelType, tempConnPtr);
+			newConn = new HyperConnDebugInitWeights(tempConnPtr->getName(), hc, preLayer, postLayer, channelType, tempConnPtr);
 		}
 		else if( !strcmp(grp->getGroupKeyword(), "KernelConn") ) {
-			HyPerConn * newConn = new KernelConnDebugInitWeights(tempConnPtr->getName(), hc, preLayer, postLayer, channelType, tempConnPtr);
+			newConn = new KernelConnDebugInitWeights(tempConnPtr->getName(), hc, preLayer, postLayer, channelType, tempConnPtr);
 		}
 
     }
