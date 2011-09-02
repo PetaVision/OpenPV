@@ -14,8 +14,8 @@ namespace PV {
 
 class MPITestProbe: public PV::StatsProbe {
 public:
-   MPITestProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg);
-   MPITestProbe(PVBufType type, const char * msg);
+   MPITestProbe(const char * filename, HyPerCol * hc, const char * msg);
+   MPITestProbe(const char * msg);
 
    virtual int outputState(float time, HyPerLayer * l);
 

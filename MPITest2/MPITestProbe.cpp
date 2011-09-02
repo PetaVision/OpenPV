@@ -18,8 +18,8 @@ namespace PV {
  * @type
  * @msg
  */
-MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, PVBufType buf_type, const char * msg)
-   : StatsProbe(filename, hc, buf_type, msg)
+MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, const char * msg)
+   : StatsProbe(filename, hc, msg)
 {
 	cumAvg = 0.0f;
 }
@@ -28,8 +28,8 @@ MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, PVBufType buf_t
  * @type
  * @msg
  */
-MPITestProbe::MPITestProbe(PVBufType buf_type, const char * msg)
-   : StatsProbe(buf_type, msg)
+MPITestProbe::MPITestProbe(const char * msg)
+   : StatsProbe(msg)
 {
 	cumAvg = 0.0f;
 }
@@ -50,14 +50,14 @@ int MPITestProbe::outputState(float time, HyPerLayer * l) {
 #endif // PV_USE_MPI
 	cumAvg += avg;
 	double cum_time = time - 2.0f;
-	double tol = 0.01f;
+	double tol = 1e-5f;
 	fprintf(fp, "%s cum_time==%9.3f cumAvg==%f \n", msg, cum_time, (float) cumAvg);
 	fflush(fp);
 	if (time > 3.0f) {
 		assert((fMin > (1.0f - tol)) && (fMin < (1.0f + tol)));
 		assert((fMax > (1.0f - tol)) && (fMax < (1.0f + tol)));
 		assert((avg > (1.0f - tol)) && (avg < (1.0f + tol)));
-		assert((cumAvg > (cum_time - tol)) && (cumAvg < (cum_time + tol)));
+		assert((cumAvg > cum_time*(1 - tol)) && (cumAvg < cum_time*(1 + tol)));
 	}
 
 	return status;

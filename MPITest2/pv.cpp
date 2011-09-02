@@ -43,12 +43,11 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 				fprintf(stderr, "Skipping params group \"%s\"\n", name);
 				continue;
 			}
-			PVBufType buf_type = BufV;
 	         if( filename ) {
-	            addedProbe =  new MPITestProbe(filename, hc, buf_type, message);
+	            addedProbe =  new MPITestProbe(filename, hc, message);
 	         }
 	         else {
-	            addedProbe =  new MPITestProbe(buf_type, message);
+	            addedProbe =  new MPITestProbe(message);
 	         }
 	         if( !addedProbe ) {
 	             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
