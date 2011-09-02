@@ -46,7 +46,7 @@ function [tot_images, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist("object_name") || isempty(object_name)
-    object_name = "dog";  %% could be a list?
+    object_name = "car";  %% could be a list?
   endif
   if nargin < 3 || ~exist("mask_flag") || isempty(mask_flag)
     mask_flag = 1;  %% apply edge filtering to masked images 
@@ -76,7 +76,7 @@ function [tot_images, ...
     canny_struct.sigma_canny = 1;
   endif
   if nargin < 9 || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 4;  %% 
+    num_procs = 2;  %% 
   endif
   if nargin < 10 || ~exist("antimask_flag") || isempty(antimask_flag)
     antimask_flag = mask_flag;  %% apply edge filtering to unmasked portion of images 
@@ -119,7 +119,7 @@ function [tot_images, ...
     canny_dir = [imageNet_path, "canny", filesep, object_name, filesep];
     mkdir(canny_dir);
     if mask_flag 
-      canny_mask_dir = [imageNet_path, "canny_mask", filesep, object_name, filesep];
+      canny_mask_dir = [imageNet_path, "cannyMask", filesep, object_name, filesep];
       mkdir(canny_mask_dir);
       if antimask_flag
 	canny_antimask_dir = [imageNet_path, "cannyAntiMask", filesep, object_name, filesep];

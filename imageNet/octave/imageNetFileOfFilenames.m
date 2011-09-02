@@ -28,10 +28,10 @@ function [train_filenames, ...
     imageNet_path = "~/Pictures/imageNet/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "dog";  %%"cat"; %%  
+    object_name = "car";  %%"cat"; %%  
   endif
   if nargin < 3 || ~exist(object_keyword) || isempty(object_keyword)
-    object_keyword =  ["terrier"];  %%[]; %% 
+    object_keyword =  []; %% ["terrier"];  %%
   endif
   if nargin < 4 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
