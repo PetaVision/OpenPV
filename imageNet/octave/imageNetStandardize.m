@@ -37,6 +37,7 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
   end
   image_info.Height = size(original_image, 1);
   image_info.Width = size(original_image, 2);
+  image_info.NumChannels = size(original_image, 3);
 
   %% check if image unavaliable
   %% original_info = imfinfo(original_pathname);  %% imfinfo currently broken
@@ -47,7 +48,7 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
     return;
   endif
   %% ignore transparancy channel: 4th "color")
-  if size(original_image,3) == 4
+  if size(original_image,3) >= 3
     original_image = original_image(:,:,1:3);
   endif
   [pad_image] = ...

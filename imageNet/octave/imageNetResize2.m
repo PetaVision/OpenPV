@@ -34,7 +34,7 @@ function [tot_images ...
     image_resize = [256 360];
   endif
   if nargin < 3 || ~exist(object_list) || isempty(object_list)
-    object_list{1} = "dog"; 
+    object_list{1} = "car"; 
   endif
   if nargin < 4 || ~exist(image_type) || isempty(image_type)
     image_type = ".png";  %% 
@@ -43,7 +43,7 @@ function [tot_images ...
     grabcut_flag = 1;  %% uses openCV segmentation algorithm to focus bounding boxes
   endif
   if nargin < 6 || ~exist(num_procs) || isempty(num_procs)
-    num_procs = 4;  %% number of processors to use
+    num_procs = 1;  %% number of processors to use
   endif
   if nargin < 7 || ~exist(BB_only_flag) || isempty(BB_only_flag)
     BB_only_flag = 1;  %% (-)1 -> only process images with(without) bounding boxes
@@ -54,7 +54,7 @@ function [tot_images ...
   
   global VERBOSE_FLAG
   if ~exist("VERBOSE_FLAG") || isempty(VERBOSE_FLAG)
-    VERBOSE_FLAG = 0;
+    VERBOSE_FLAG = 1;
   endif
 
   global UNAVAILABLE_INFO
@@ -123,7 +123,7 @@ function [tot_images ...
     num_subdirs = length(subdir_pathnames);
     disp(["num_subdirs = ", num2str(num_subdirs)]);
     subdir_foldernames = cellfun(@strFolderFromPath, subdir_pathnames, "UniformOutput", false);
-    for i_subdir = 1 : num_subdirs %% 
+    for i_subdir = 3 : num_subdirs %% 
       disp(["i_subdir = ", num2str(i_subdir)]);
       disp(["subdir_pathname = ", subdir_pathnames{i_subdir}]);
       images_path = ...

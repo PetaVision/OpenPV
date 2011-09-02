@@ -8,7 +8,8 @@ function [mask_image, scale_x, scale_y] = ...
   global TMP_MASK_DIR
 
   mask_image = [];
-  BB_mask = zeros(size(original_image));
+  %%BB_mask = zeros(size(original_image));
+  BB_mask = [];
   scale_x = 1;
   scale_y = 1;
   
@@ -106,8 +107,9 @@ function [mask_image, scale_x, scale_y] = ...
       mask_pathname = strcat(MASKS_DIR, mask_filename);
       tmp_mask_pathname = [TMP_MASK_DIR, mask_filename];
       copyfile(original_pathname, tmp_original_pathname);
+      %% grabcut is typically in either /opt/local/bin or /usr/local/bin
       grabcut_cmd = ...
-	  sprintf("/usr/local/bin/grabcut %i %s %s %i %i %i %i", ...
+	  sprintf("../grabcut/grabcut %i %s %s %i %i %i %i", ...
 		  num_grabcut_iterations, ...
 		  tmp_original_pathname, ...
 		  tmp_mask_pathname, ...
@@ -116,16 +118,35 @@ function [mask_image, scale_x, scale_y] = ...
 	disp(["grabcut_cmd = ", grabcut_cmd]);
       endif
       system(grabcut_cmd);
-      BB_mask_tmp = imread(tmp_mask_pathname);
-      delete(tmp_mask_pathname);
-      delete(tmp_original_pathname);
-    else
+      if exist("tmp_mask_pathname", "file")
+	BB_mask_tmp = imread(tmp_mask_pathname);
+	delete(tmp_mask_pathname);
+	if isempty(BB_mask_tmp)	  
+	  BB_mask_tmp = zeros(size(original_image));
+	  BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
+	endif
+      else
+	BB_mask_tmp = zeros(size(original_image));
+	BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
+      endif
+      if exist("tmp_original_pathname", "file")
+	delete(tmp_original_pathname);
+      endif
+    else %% ~GRABCUT_FLAG
       BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
     endif
-    BB_mask = 255 * ( squeeze(sum(BB_mask_tmp(:,:,1:end),3)) > 0 | squeeze(sum(BB_mask(:,:,1:end),3)) > 0);
+    BB_mask_tmp = squeeze(sum(BB_mask_tmp(:,:,1:end),3));
+    if isempty(BB_mask)
+      BB_mask = 255 * (BB_mask_tmp > 0);
+    else
+    %%BB_mask = squeeze(sum(BB_mask(:,:,1:end),3));
+      BB_mask = 255 * ((BB_mask_tmp > 0) | (BB_mask > 0));
+    endif
   endfor  %% i_bndbox
   if num_BB > 0
-    mask_image = original_image .* repmat((BB_mask > 0), [1,1,size(original_image,3)]);
+    mask_image = ...
+	original_image .* ...
+	repmat((BB_mask > 0), [1,1,size(original_image,3)]);
     mask_image = uint8(mask_image);
     BB_mask = uint8(BB_mask);
   else
