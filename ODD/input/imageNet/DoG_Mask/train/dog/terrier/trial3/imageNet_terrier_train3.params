@@ -9,7 +9,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 1604;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_mask/train/dog/terrier/trial1/";
+   outputPath = "/Users/gkenyon/workspace-indigo/ODD/input/imageNet/DoG_mask/train/dog/terrier/trial2/";
 };
 
 //
@@ -19,7 +19,7 @@ HyPerCol "column" = {
 //tot_test_files = 8022
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames1.txt";
+    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames2.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -97,17 +97,13 @@ KernelConn "Movie to Retina" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = 1;
-      
-    strength = 4.0;  
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    weightInitType = "UniformWeight";
+    weightInit = 4;
+   
+    strength = 4.0;
+    normalize = 0.0;
     symmetrizeWeights = 0;
-
+   
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     weightUpdatePeriod = -1.0;

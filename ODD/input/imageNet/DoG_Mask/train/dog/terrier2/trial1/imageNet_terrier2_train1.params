@@ -193,7 +193,7 @@ KernelConn "Retina to L1" = {
 
 KernelConn "Retina to L1 Inh" = {
    preLayerName = "Retina";
-   postLayerName = "L1 Inh";
+   postLayerName = "L1";
    channelCode = 1;
    nxp = 7; 
    nyp = 7; 
