@@ -96,6 +96,7 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
             for(int k=0; k<n-1; k++) labels[k] = oldlabels[k];
             labels[n-1] = label;
             free(oldlabels);
+            break;
         }
     } while( didReadLabel != EOF );
     fclose(instream);
