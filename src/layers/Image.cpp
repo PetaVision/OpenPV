@@ -81,6 +81,13 @@ int Image::initializeImage(const char * filename)
    return status;
 }
 
+int Image::initializeV(bool restart_flag) {
+   // Image doesn't use the V buffer so free it and set the pointer to null.
+   free(clayer->V);
+   clayer->V = NULL;
+   return PV_SUCCESS;
+}
+
 #ifdef PV_USE_OPENCL
 // no need for threads for now for image
 //

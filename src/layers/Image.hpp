@@ -17,6 +17,7 @@ class Image : public HyPerLayer {
 
 protected:
    Image(const char * name, HyPerCol * hc);
+   virtual int initializeV(bool restart_flag);
 
 public:
    Image(const char * name, HyPerCol * hc, const char * filename);

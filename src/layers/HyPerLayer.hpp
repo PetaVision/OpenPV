@@ -32,6 +32,7 @@ protected:
    HyPerLayer(const char * name, HyPerCol * hc, int numChannels);
 
    virtual int initializeLayerId(int layerId);
+   virtual int initializeV(bool restart_flag);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(char * kernelName) = 0;

@@ -133,7 +133,7 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
 
 
    setParams(parent->parameters());
-   clayer->layerType = type;
+   // clayer->layerType = type; // done during call to HyPerLayer::initialize
 
    G_E = G_I = G_IB = NULL;
 

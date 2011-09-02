@@ -79,10 +79,10 @@ Retina::~Retina()
 
 int Retina::initialize(PVLayerType type)
 {
-   int status = 0;
+   int status = HyPerLayer::initialize(type);
    PVLayer * l = clayer;
 
-   clayer->layerType = type;
+   // clayer->layerType = type; // done during call to HyPerLayer::initialize
    setParams(parent->parameters());
 
    // the size of the Retina may have changed due to size of image
@@ -100,7 +100,7 @@ int Retina::initialize(PVLayerType type)
    // a random state variable is needed for every neuron/clthread
    rand_state = cl_random_init(l->numNeurons, seed);
 
-   status = parent->addLayer(this);
+   // status = parent->addLayer(this); // done during call to HyPerLayer::initializie
 
 #ifdef PV_USE_OPENCL
    CLDevice * device = parent->getCLDevice();
@@ -212,6 +212,13 @@ int Retina::initializeThreadKernels()
    return status;
 }
 #endif
+
+int Retina::initializeV(bool restart_flag) {
+   // Retina doesn't use the V buffer so free it and set the pointer to null.
+   free(clayer->V);
+   clayer->V = NULL;
+   return PV_SUCCESS;
+}
 
 int Retina::setParams(PVParams * p)
 {
@@ -451,26 +458,20 @@ int Retina::writeState(float time)
 
 int Retina::outputState(float time, bool last)
 {
+   if( spikingFlag ) updateActiveIndices();
+   return HyPerLayer::outputState(time, last);
+
+#ifdef OBSOLETE // Marked obsolete Aug. 31, 2011.
+       // writeActivity (called by HyPerLayer::outputState) now writes clayer->activity->data, not clayer->V
+       // so it's not necessary to copy A to V before calling
    int status = 0;
 
-// Commented out in May 2011.  All run-time params now are read in HyPerLayer
-// #define WRITE_NONSPIKING_ACTIVITY
-//#ifdef WRITE_NONSPIKING_ACTIVITY
-//   float defaultWriteNonspikingActivity = 1.0;
-//#else
-//   float defaultWriteNonspikingActivity = 0.0;
-//#endif
-//   PVParams * params = parent->parameters();
-//   int spikingFlag = (int) params->value(name, "spikingFlag", 1);
    if (spikingFlag != 0){
       updateActiveIndices();
       status = HyPerLayer::outputState(time, last);
       return status;
    }
 
-// Commented out in May 2011.  All run-time params now are read in HyPerLayer
-//   int writeNonspikingActivity = (int) params->value(name, "writeNonspikingActivity",
-//         defaultWriteNonspikingActivity);
    else if (writeNonspikingActivity != 0){
       float * Vtmp = this->getV();
       const PVLayerCube * activity_cube = this->getCLayer()->activity;
@@ -486,6 +487,7 @@ int Retina::outputState(float time, bool last)
       status = HyPerLayer::outputState(time, last);
    }
    return status;
+#endif // OBSOLETE
 }
 
 

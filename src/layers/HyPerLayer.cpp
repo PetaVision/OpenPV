@@ -72,12 +72,14 @@ int HyPerLayer::initialize(PVLayerType type)
    float time = 0.0f;
 
    // IMPORTANT:
-   //   - these two statements should be done in all derived classes
+   //   - all derived classes should make sure that HyPerLayer::initialize is called
    //
    clayer->layerType = type;
    parent->addLayer(this);
 
-   if (parent->parameters()->value(name, "restart", 0.0f) != 0.0f) {
+   bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
+   initializeV(restart_flag);
+   if( restart_flag ) {
       readState(&time);
    }
 
@@ -86,6 +88,7 @@ int HyPerLayer::initialize(PVLayerType type)
 
 int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannels)
 {
+   // This should have only what's absolutely essential to all HyPerLayers, since nothing in it can be overridden
    PVLayerLoc layerLoc;
 
    // name should be initialized first as other methods may use it
@@ -146,11 +149,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
-   float Vrest = params->value(name, "Vrest", V_REST);
-   for (int k = 0; k < this->getNumNeurons(); k++){
-      getV()[k] = Vrest;
-   }
-
+   // Initializing of V moved into HyPerLayer::initialize() by means of method initializeV(), where it can be overridden.
    clayer->layerType = TypeGeneric;
 
    // allocate storage for the input conductance arrays
@@ -198,6 +197,17 @@ int HyPerLayer::initializeLayerId(int layerId)
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
    return 0;
+}
+
+int HyPerLayer::initializeV(bool restart_flag) {
+   float Vrest = parent->parameters()->value(name, "Vrest", V_REST);
+   if( !restart_flag ) {
+      for (int k = 0; k < this->getNumNeurons(); k++){
+         getV()[k] = Vrest;
+      }
+   }
+   // If restart_flag is true, initialize() will set V by calling readState()
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
@@ -385,10 +395,12 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
          }
       }
    }
+#ifdef OBSOLETE  // Marked obsolete Aug 31, 2011.  Size of the buffer is nx*ny*nf whether buffer is extended or not.
    // If extended is true, there will be space at the end of the buffer.
    // Clear it so that the same output file is always produced from the
    // same value of data.
    while(ii<numItems) buf[ii++] = 0;
+#endif OBSOLETE
    return 0;
 }
 
@@ -680,9 +692,11 @@ int HyPerLayer::readState(float * time)
    PVLayerLoc * loc = & clayer->loc;
    Communicator * comm = parent->icCommunicator();
 
-   getOutputFilename(path, "V", "_last");
-   status = read(path, comm, &dtime, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
+   if( getV() != NULL ) {
+      getOutputFilename(path, "V", "_last");
+      status = read(path, comm, &dtime, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
+      assert(status == PV_SUCCESS);
+   }
 
    getOutputFilename(path, "labels", "");
    status = read(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
@@ -717,8 +731,10 @@ int HyPerLayer::writeState(float time, bool last)
 
    const char * last_str = (last) ? "_last" : "";
 
-   getOutputFilename(path, "V", last_str);
-   status |= write_pvdata(path, comm, time, clayer->V, loc, PV_FLOAT_TYPE, extended, contiguous);
+   if( getV() != NULL ) {
+      getOutputFilename(path, "V", last_str);
+      status |= write_pvdata(path, comm, time, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
+   }
 
    extended = true;
    getOutputFilename(path, "A", last_str);

@@ -44,7 +44,7 @@ public:
    virtual int writeState(float time);
 
 protected:
-
+   virtual int initializeV(bool restart_flag);
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
