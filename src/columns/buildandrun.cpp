@@ -970,15 +970,11 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
       errorFound = status!=PV_SUCCESS;
       if( !errorFound ) {
-         PVBufType buf_type = BufV;
-         if (targetlayer->getSpikingFlag()) {
-            buf_type = BufActivity;
-         }
          if( filename ) {
-            addedProbe = (LayerProbe *) new StatsProbe(filename, hc, buf_type, message);
+            addedProbe = (LayerProbe *) new StatsProbe(filename, hc, message);
          }
          else {
-            addedProbe = (LayerProbe *) new StatsProbe(buf_type, message);
+            addedProbe = (LayerProbe *) new StatsProbe(message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);

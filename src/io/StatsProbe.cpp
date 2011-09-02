@@ -14,15 +14,34 @@ namespace PV {
 
 /**
  * @filename
+ * @hc
+ * @msg
+ */
+StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, const char * msg)
+   : LayerProbe(filename, hc)
+{
+   initStatsProbe(BufActivity, msg);
+}
+
+/**
+ * @msg
+ */
+StatsProbe::StatsProbe(const char * msg)
+   : LayerProbe()
+{
+   initStatsProbe(BufActivity, msg);
+}
+
+/**
+ * @filename
+ * @hc
  * @type
  * @msg
  */
 StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg)
    : LayerProbe(filename, hc)
 {
-   this->msg = strdup(msg);
-   this->type = type;
-
+   initStatsProbe(type, msg);
 }
 
 /**
@@ -32,17 +51,22 @@ StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, con
 StatsProbe::StatsProbe(PVBufType type, const char * msg)
    : LayerProbe()
 {
-   this->msg = strdup(msg);
-   this->type = type;
-   fMin = FLT_MAX,
-   fMax = -FLT_MAX;
-   sum = 0.0f;
-   avg = 0.0f;
+   initStatsProbe(type, msg);
 }
 
 StatsProbe::~StatsProbe()
 {
    free(msg);
+}
+
+int StatsProbe::initStatsProbe(PVBufType type, const char * msg) {
+   this->msg = strdup(msg);
+   this->type = type;
+   fMin = FLT_MAX;
+   fMax = -FLT_MAX;
+   sum = 0.0f;
+   avg = 0.0f;
+   return PV_SUCCESS;
 }
 
 /**
@@ -51,6 +75,13 @@ StatsProbe::~StatsProbe()
  */
 int StatsProbe::outputState(float time, HyPerLayer * l)
 {
+#ifdef PV_USE_MPI
+   InterColComm * icComm = l->getParent()->icCommunicator();
+   MPI_Comm comm = icComm->communicator();
+   int rank = icComm->commRank();
+   const int rcvProc = 0;
+#endif // PV_USE_MPI
+
    int nk;
    const pvdata_t * buf;
    fMin = FLT_MAX,
@@ -58,47 +89,60 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
    sum = 0.0f;
    avg = 0.0f;
 
+   nk = l->getNumNeurons();
    switch (type) {
    case BufV:
-      nk  = l->clayer->numNeurons;
-      buf = l->clayer->V;
+      buf = l->getV();
+      if( buf == NULL ) {
+#ifdef PV_USE_MPI
+         if( rank != rcvProc ) return 0;
+#endif // PV_USE_MPI
+         fprintf(fp, "%sV buffer is NULL\n", msg);
+         return 0;
+      }
+      for( int k=0; k<nk; k++ ) {
+         pvdata_t a = buf[k];
+         sum += a;
+         if (a < fMin) fMin = a;
+         if (a > fMax) fMax = a;
+      }
       break;
    case BufActivity:
-      nk  = l->clayer->numExtended;
       buf = l->getLayerData();
+      assert(buf != NULL);
+      for( int k=0; k<nk; k++ ) {
+         const PVLayerLoc * loc = l->getLayerLoc();
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         pvdata_t a = buf[kex];
+         sum += a;
+         if( a < fMin ) fMin = a;
+         if( a > fMax ) fMax = a;
+      }
       break;
    default:
-      return 1;
-   }
-
-   for (int k = 0; k < nk; k++) {
-      pvdata_t a = buf[k];
-      sum += a;
-
-      if (a < fMin) fMin = a;
-      if (a > fMax) fMax = a;
+      assert(0);
+      break;
    }
 
 #ifdef PV_USE_MPI
-   InterColComm * icComm = l->getParent()->icCommunicator();
-   MPI_Comm comm = icComm->communicator();
    int ierr;
-   const int rcvProc = 0;
    double reducedsum;
    float reducedmin, reducedmax;
+   int totalNeurons;
    ierr = MPI_Reduce(&sum, &reducedsum, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
    ierr = MPI_Reduce(&fMin, &reducedmin, 1, MPI_FLOAT, MPI_MIN, rcvProc, comm);
    ierr = MPI_Reduce(&fMax, &reducedmax, 1, MPI_FLOAT, MPI_MAX, rcvProc, comm);
-   if( icComm->commRank() != rcvProc ) {
+   ierr = MPI_Reduce(&nk, &totalNeurons, 1, MPI_INT, MPI_SUM, rcvProc, comm);
+   if( rank != rcvProc ) {
       return 0;
    }
    sum = reducedsum;
    fMin = reducedmin;
    fMax = reducedmax;
-   nk = l->getNumGlobalNeurons();
+   nk = totalNeurons;
 #endif // PV_USE_MPI
    avg = sum/nk;
-   if (type == BufActivity) {
+   if ( type == BufActivity  && l->getSpikingFlag() ) {
       float freq = 1000.0 * avg;
       fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, time,
               nk, (float)sum, fMin, freq, fMax);

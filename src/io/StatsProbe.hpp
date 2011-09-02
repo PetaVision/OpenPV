@@ -14,6 +14,8 @@ namespace PV {
 
 class StatsProbe: public PV::LayerProbe {
 public:
+   StatsProbe(const char * filename, HyPerCol * hc, const char * msg);
+   StatsProbe(const char * msg);
    StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg);
    StatsProbe(PVBufType type, const char * msg);
    virtual ~StatsProbe();
@@ -21,6 +23,7 @@ public:
    virtual int outputState(float time, HyPerLayer * l);
 
 protected:
+   int initStatsProbe(PVBufType type, const char * msg);
    PV::PVBufType type;
    char * msg;
    double sum;
