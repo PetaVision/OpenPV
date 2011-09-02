@@ -14,8 +14,8 @@ namespace PV {
 
 class KernelTestProbe: public PV::StatsProbe {
 public:
-	KernelTestProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg);
-	KernelTestProbe(PVBufType type, const char * msg);
+	KernelTestProbe(const char * filename, HyPerCol * hc, const char * msg);
+	KernelTestProbe(const char * msg);
 
 	virtual int outputState(float time, HyPerLayer * l	);
 

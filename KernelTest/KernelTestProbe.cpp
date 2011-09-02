@@ -13,13 +13,13 @@
 
 namespace PV {
 
-KernelTestProbe::KernelTestProbe(const char * filename, HyPerCol * hc, PVBufType buf_type, const char * msg)
-: StatsProbe(filename, hc, buf_type, msg)
+KernelTestProbe::KernelTestProbe(const char * filename, HyPerCol * hc, const char * msg)
+: StatsProbe(filename, hc, msg)
 {
 }
 
-KernelTestProbe::KernelTestProbe(PVBufType buf_type, const char * msg)
-: StatsProbe(buf_type, msg)
+KernelTestProbe::KernelTestProbe(const char * msg)
+: StatsProbe(msg)
 {
 }
 
