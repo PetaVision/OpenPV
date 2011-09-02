@@ -649,6 +649,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
+#ifdef OBSOLETE // Marked obsolete Aug 31, 2011.  Border of extended region doesn't get written, so don't allocate space for it.
    const int nb = loc->nb;
 
    if (extended) {
@@ -657,6 +658,8 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
    else {
       numItems = nx * ny * nf;
    }
+#endif OBSOLETE
+   numItems = nx * ny * nf;
 
    const size_t localSize = numItems * pv_sizeof(datatype);
 
@@ -732,7 +735,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status;
-   bool extended = false; // V is a non-extended layer
+   bool extended = true; // activity is a non-extended layer
    bool contiguous = false; // TODO implement contiguous=true case
 
    // write header, but only at the beginning
@@ -754,7 +757,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
    }
 
-   return write_pvdata(fp, comm, time, l->V, &(l->loc), PV_FLOAT_TYPE,
+   return write_pvdata(fp, comm, time, l->activity->data, &(l->loc), PV_FLOAT_TYPE,
                        extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
 }
 
