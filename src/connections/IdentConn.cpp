@@ -33,7 +33,9 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
    plasticityFlag = false;        // The four data members set here
    symmetrizeWeightsFlag = false; // should not be used by IdentConn.
    weightUpdateTime = -1;         // Give them safe values nonetheless
+#ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;     // as a precaution.
+#endif PV_USE_MPI
    return HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
 }
 
