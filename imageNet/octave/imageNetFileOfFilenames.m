@@ -31,7 +31,7 @@ function [train_filenames, ...
     object_name = "dog";  %%"cat"; %%  
   endif
   if nargin < 3 || ~exist(object_keyword) || isempty(object_keyword)
-    object_keyword =  []; %% ["terrier"];  %%
+    object_keyword =  ["terrier"];  %%[]; %% 
   endif
   if nargin < 4 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir

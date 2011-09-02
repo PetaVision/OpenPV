@@ -18,7 +18,7 @@ function [fileOfFilenames_train, ...
   begin_time = time();
 
   if nargin < 1 || ~exist("fileOfFilenames_all") || isempty(fileOfFilenames_all)
-    fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/dog/train_fileOfFilenames1.txt";  
+    fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames1.txt";  
     %% fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/cat/train_fileOfFilenames3.txt";  
   endif
   if nargin < 2 || ~exist("num_train") || isempty(num_train)
