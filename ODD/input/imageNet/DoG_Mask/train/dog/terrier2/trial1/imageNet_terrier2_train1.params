@@ -19,7 +19,7 @@ HyPerCol "column" = {
 //tot_test_files = 8022
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/imageNet/list2/dog/terrier/train_fileOfFilenames1.txt";
+    imageListPath = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames1.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -136,17 +136,13 @@ KernelConn "Movie to Retina" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = 1;
-      
-    strength = 4.0;  
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    weightInitType = "UniformWeight";
+    weightInit = 4;
+   
+    strength = 4.0;
+    normalize = 0.0;
     symmetrizeWeights = 0;
-
+   
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     weightUpdatePeriod = -1.0;
@@ -197,7 +193,7 @@ KernelConn "Retina to L1" = {
 
 KernelConn "Retina to L1 Inh" = {
    preLayerName = "Retina";
-   postLayerName = "L1";
+   postLayerName = "L1 Inh";
    channelCode = 1;
    nxp = 7; 
    nyp = 7; 
@@ -249,6 +245,8 @@ IdentConn "L1 to L1 ODD" = {
     writeStep = -1;
     initFromLastFlag = 0;
     weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
     
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
@@ -325,6 +323,8 @@ IdentConn "L1 ODD to L2" = {
     writeStep = -1;
     initFromLastFlag = 0;
     weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
     
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
