@@ -735,7 +735,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
 int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status;
-   bool extended = true; // activity is a non-extended layer
+   bool extended = true; // activity is an extended layer
    bool contiguous = false; // TODO implement contiguous=true case
 
    // write header, but only at the beginning
