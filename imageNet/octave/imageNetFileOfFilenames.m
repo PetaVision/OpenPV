@@ -12,6 +12,7 @@ function [train_filenames, ...
 			      num_test, ...
 			      train_dir, ...
 			      test_dir, ...
+			      anti_dir, ...
 			      list_dir, ...
 			      cross_category_flag, ...
 			      shuffle_flag, ...
@@ -30,7 +31,7 @@ function [train_filenames, ...
     object_name = "dog";  %%"cat"; %%  
   endif
   if nargin < 3 || ~exist(object_keyword) || isempty(object_keyword)
-    object_keyword = ["terrier"];  %% []; %% 
+    object_keyword =  []; %% ["terrier"];  %%
   endif
   if nargin < 4 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
@@ -44,7 +45,10 @@ function [train_filenames, ...
   if nargin < 7 || ~exist(test_dir) || isempty(test_dir)
     test_dir = "DoG";  %% 
   endif
-  if nargin < 8 || ~exist("list_dir") || isempty(list_dir)
+  if nargin < 8 || ~exist(anti_dir) || isempty(anti_dir)
+    anti_dir = "DoGAntiMask";  %% 
+  endif
+  if nargin < 9 || ~exist("list_dir") || isempty(list_dir)
     list_dir = "list";  %% 
   endif
   %% cross_category_flag == 0, only draw test images from test folders whose
@@ -52,13 +56,13 @@ function [train_filenames, ...
   %% cross_category_flag == 1, draw test images only from test folders that lack
   %% corresponding train folders--for testing generalization across
   %% imageNet sub categories
-  if nargin < 9 || ~exist("cross_category_flag") || isempty(cross_category_flag)
+  if nargin < 10 || ~exist("cross_category_flag") || isempty(cross_category_flag)
     cross_category_flag = 0;  %% 
   endif
-  if nargin < 10 || ~exist("shuffle_flag") || isempty(shuffle_flag)
+  if nargin < 11 || ~exist("shuffle_flag") || isempty(shuffle_flag)
     shuffle_flag = 1;  %% 
   endif
-  if nargin < 11 || ~exist("rand_state") || isempty(rand_state)
+  if nargin < 12 || ~exist("rand_state") || isempty(rand_state)
     rand_state = rand("state");
   endif
   rand("state", rand_state);
@@ -71,6 +75,7 @@ function [train_filenames, ...
 
   train_filenames = {};
   test_filenames = {};
+  anti_filenames = {};
   filenames_path = [imageNet_path, list_dir, filesep, object_name, filesep];
   mkdir([imageNet_path, list_dir]);
   mkdir(filenames_path);
@@ -85,6 +90,7 @@ function [train_filenames, ...
 
   train_path = [imageNet_path, train_dir, filesep, object_name, filesep];
   test_path = [imageNet_path, test_dir, filesep, object_name, filesep];
+  anti_path = [imageNet_path, anti_dir, filesep, object_name, filesep];
 
   tot_train_images = 0;
   tot_test_images = 0;
@@ -157,6 +163,11 @@ function [train_filenames, ...
       continue;
     endif
     test_filenames = [test_filenames; unique_paths];
+
+    anti_subdir = [anti_path, subdir_folder, filesep];
+    anti_paths = strcat(repmat(anti_subdir, num_train_images, 1), train_names);
+    anti_filenames = [anti_filenames; anti_paths];
+
   endfor %% i_subdir
 
   tot_train_files = length(train_filenames);
@@ -206,6 +217,14 @@ function [train_filenames, ...
     fprintf(fid_test, "%s\n", test_filenames{write_test_ndx(i_file)});
   endfor %%
   fclose(fid_test);
+
+  fileOfFilenames_anti = [filenames_path, "anti_fileOfFilenames", num2str(num_fileOfFilenames_train+1), ".txt"];
+  disp(["fileOfFilenames_anti = ", fileOfFilenames_anti]);
+  fid_anti = fopen(fileOfFilenames_anti, "w", "native");
+  for i_file = 1 : num_train
+    fprintf(fid_anti, "%s\n", anti_filenames{write_train_ndx(i_file)});
+  endfor %%
+  fclose(fid_anti);
 
   num_rand_state = length(glob([filenames_path, "rand_state", "[0-9+].mat"]));
   rand_state_filename = [filenames_path, "rand_state", num2str(num_rand_state+1), ".mat"];

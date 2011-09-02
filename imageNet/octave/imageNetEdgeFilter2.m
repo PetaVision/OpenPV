@@ -6,11 +6,16 @@ function [tot_images, ...
 	  tot_canny, ...
 	  tot_canny_masks, ...
 	  tot_time] = ...
-      imageNetEdgeFilter2(imageNet_path, object_name, ...
-			  mask_flag, mask_only_flag, ...
-			  DoG_flag, DoG_struct, ...
-			  canny_flag, canny_struct, ...
-			  num_procs, antimask_flag)
+      imageNetEdgeFilter2(imageNet_path, ...
+			  object_name, ...
+			  mask_flag, ...
+			  mask_only_flag, ...
+			  DoG_flag, ...
+			  DoG_struct, ...
+			  canny_flag, ...
+			  canny_struct, ...
+			  num_procs, ...
+			  antimask_flag)
 
   %% perform edge filtering on standardized image net images, 
   %% mirror BCs used to pad images before edge extraction.
@@ -37,43 +42,43 @@ function [tot_images, ...
  
   begin_time = time();
 
-  if nargin < 1 || ~exist(imageNet_path) || isempty(imageNet_path)
+  if nargin < 1 || ~exist("imageNet_path") || isempty(imageNet_path)
     imageNet_path = "~/Pictures/imageNet/";
   endif
-  if nargin < 2 || ~exist(object_name) || isempty(object_name)
+  if nargin < 2 || ~exist("object_name") || isempty(object_name)
     object_name = "dog";  %% could be a list?
   endif
-  if nargin < 3 || ~exist(mask_flag) || isempty(mask_flag)
+  if nargin < 3 || ~exist("mask_flag") || isempty(mask_flag)
     mask_flag = 1;  %% apply edge filtering to masked images 
   endif
   %% mask_only_flag
   %% if set to 1, only process object subdirs with bounding box masks
   %% if set to -1, only process object subdirs without bounding box masks
   %% if set to 0, process all object subdirs
-  if nargin < 4 || ~exist(mask_only_flag) || isempty(mask_only_flag)
+  if nargin < 4 || ~exist("mask_only_flag") || isempty(mask_only_flag)
     mask_only_flag = mask_flag;  %% 
   endif
-  if nargin < 5 || ~exist(DoG_flag) || isempty(DoG_flag)
+  if nargin < 5 || ~exist("DoG_flag") || isempty(DoG_flag)
     DoG_flag = 1;  %% 
   endif
-  if nargin < 6 || ~exist(DoG_struct) || isempty(DoG_struct)
+  if nargin < 6 || ~exist("DoG_struct") || isempty(DoG_struct)
     DoG_struct = struct;  %% 
     DoG_struct.amp_center_DoG = 1;
     DoG_struct.sigma_center_DoG = 1;
     DoG_struct.amp_surround_DoG = 1;
     DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
   endif
-  if nargin < 7 || ~exist(canny_flag) || isempty(canny_flag)
+  if nargin < 7 || ~exist("canny_flag") || isempty(canny_flag)
     canny_flag = 1;  %% 
   endif
-  if nargin < 8 || ~exist(canny_struct) || isempty(canny_struct)
+  if nargin < 8 || ~exist("canny_struct") || isempty(canny_struct)
     canny_struct = struct;  %% 
     canny_struct.sigma_canny = 1;
   endif
-  if nargin < 9 || ~exist(num_procs) || isempty(num_procs)
+  if nargin < 9 || ~exist("num_procs") || isempty(num_procs)
     num_procs = 4;  %% 
   endif
-  if nargin < 10 || ~exist(antimask_flag) || isempty(antimask_flag)
+  if nargin < 10 || ~exist("antimask_flag") || isempty(antimask_flag)
     antimask_flag = mask_flag;  %% apply edge filtering to unmasked portion of images 
   endif
   
@@ -94,12 +99,10 @@ function [tot_images, ...
   addpath(img_proc_dir);
 
   standard_dir = [imageNet_path, "standard", filesep];
-  mask_flag = 1;
   if mask_flag 
     masks_dir = [imageNet_path, "masks", filesep];
     mkdir(masks_dir);
   endif %% mask_flag
-  DoG_flag = 1;
   if DoG_flag
     DoG_dir = [imageNet_path, "DoG", filesep, object_name, filesep];
     mkdir(DoG_dir);
@@ -112,7 +115,6 @@ function [tot_images, ...
       endif
     endif %% mask_flag
   endif %% DoG_flag
-  canny_flag = 0.0;
   if canny_flag
     canny_dir = [imageNet_path, "canny", filesep, object_name, filesep];
     mkdir(canny_dir);
@@ -194,7 +196,7 @@ function [tot_images, ...
 	if antimask_flag
 	  DoG_antimask_subdir = ...
 	      [DoG_antimask_dir, ...
-	       subdir_folder, filese];
+	       subdir_folder, filesep];
 	  mkdir(DoG_antimask_subdir);
 	endif
       endif  %% mask_flag
@@ -213,7 +215,7 @@ function [tot_images, ...
 	if antimask_flag
 	  canny_antimask_subdir = ...
 	      [canny_antimask_dir, ...
-	       subdir_folder, filese];
+	       subdir_folder, filesep];
 	  mkdir(canny_antimask_subdir);
 	endif
       endif  %% mask_flag
