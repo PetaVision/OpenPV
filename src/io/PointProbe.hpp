@@ -30,7 +30,7 @@ protected:
 
    bool sparseOutput;
 
-   int writeState(float time, HyPerLayer * l, int k, int kex);
+   virtual int writeState(float time, HyPerLayer * l, int k, int kex);
 };
 
 }
