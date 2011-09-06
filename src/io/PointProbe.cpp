@@ -102,7 +102,7 @@ int PointProbe::writeState(float time, HyPerLayer * l, int k, int kex) {
    }
    else if (activity[kex] != 0.0) {
       fprintf(fp, "%s t=%.1f", msg, time);
-      fprintf(fp, " V=%6.5f", V[k]);
+      fprintf(fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
       fprintf(fp, " a=%.5f", activity[kex]);
       fprintf(fp, "\n");
       fflush(fp);
