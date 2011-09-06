@@ -77,15 +77,15 @@ int InitTransposeWeights::transposeKernels(PVPatch * patch, InitTransposeWeights
    int yscalediff = pre->getYScale()-post->getYScale();
    // scalediff>0 means TransposeConn's post--that is, the originalConn's pre--has a higher neuron density
 
-   int numFBKernelPatches = thisConn->numDataPatches(0);
-   int numFFKernelPatches = originalConn->numDataPatches(0);
+   int numFBKernelPatches = thisConn->numDataPatches();
+   int numFFKernelPatches = originalConn->numDataPatches();
 
    if( xscalediff <= 0 && yscalediff <= 0) {
        int xscaleq = (int) powf(2,-xscalediff);
        int yscaleq = (int) powf(2,-yscalediff);
 
        for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
-           PVPatch * kpFB = thisConn->getKernelPatch(kernelnumberFB);
+           PVPatch * kpFB = thisConn->getKernelPatch(0, kernelnumberFB);
            int nfFB = kpFB->nf;
               assert(numFFKernelPatches == nfFB);
            int nxFB = kpFB->nx;
@@ -95,7 +95,7 @@ int InitTransposeWeights::transposeKernels(PVPatch * patch, InitTransposeWeights
                    for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                        int kIndexFB = kIndex(kxFB,kyFB,kfFB,nxFB,nyFB,nfFB);
                        int kernelnumberFF = kfFB;
-                       PVPatch * kpFF = originalConn->getKernelPatch(kernelnumberFF);
+                       PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
                           assert(numFBKernelPatches == kpFF->nf * xscaleq * yscaleq);
                        int kfFF = featureIndex(kernelnumberFB, xscaleq, yscaleq, originalConn->fPatchSize());
                        int kxFFoffset = kxPos(kernelnumberFB, xscaleq, yscaleq, originalConn->fPatchSize());
@@ -114,7 +114,7 @@ int InitTransposeWeights::transposeKernels(PVPatch * patch, InitTransposeWeights
        int xscaleq = (int) powf(2,xscalediff);
        int yscaleq = (int) powf(2,yscalediff);
        for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
-           PVPatch * kpFB = thisConn->getKernelPatch(kernelnumberFB);
+           PVPatch * kpFB = thisConn->getKernelPatch(0, kernelnumberFB);
            int nxFB = kpFB->nx;
            int nyFB = kpFB->ny;
            int nfFB = kpFB->nf;
@@ -124,7 +124,7 @@ int InitTransposeWeights::transposeKernels(PVPatch * patch, InitTransposeWeights
                    int precelloffsetx = kxFB % xscaleq;
                    for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                        int kernelnumberFF = (precelloffsety*xscaleq + precelloffsetx)*nfFB + kfFB;
-                       PVPatch * kpFF = originalConn->getKernelPatch(kernelnumberFF);
+                       PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
                        int kxFF = (nxPatch_tmp-kxFB-1)/xscaleq;
                        assert(kxFF >= 0 && kxFF < originalConn->xPatchSize());
                        int kyFF = (nyPatch_tmp-kyFB-1)/yscaleq;

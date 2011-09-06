@@ -40,7 +40,7 @@ InitWeightsParams * InitCocircWeights::createNewWeightParams(HyPerConn * calling
    return tempPtr;
 }
 
-int InitCocircWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitCocircWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitCocircWeightsParams *weightParamPtr = dynamic_cast<InitCocircWeightsParams*>(weightParams);

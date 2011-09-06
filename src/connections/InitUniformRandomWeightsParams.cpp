@@ -5,34 +5,34 @@
  *      Author: kpeterson
  */
 
-#include "InitUnivormRandomWeightsParams.hpp"
+#include "InitUniformRandomWeightsParams.hpp"
 
 namespace PV {
 
-InitUnivormRandomWeightsParams::InitUnivormRandomWeightsParams()
+InitUniformRandomWeightsParams::InitUniformRandomWeightsParams()
 {
    initialize_base();
 }
 
-InitUnivormRandomWeightsParams::InitUnivormRandomWeightsParams(HyPerConn * parentConn)
+InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(HyPerConn * parentConn)
                      : InitWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }
 
-InitUnivormRandomWeightsParams::~InitUnivormRandomWeightsParams()
+InitUniformRandomWeightsParams::~InitUniformRandomWeightsParams()
 {
    // TODO Auto-generated destructor stub
 }
 
-int InitUnivormRandomWeightsParams::initialize_base() {
+int InitUniformRandomWeightsParams::initialize_base() {
 
    wMin = 0;
    wMax = 1;
    return 1;
 }
 
-int InitUnivormRandomWeightsParams::initialize(HyPerConn * parentConn) {
+int InitUniformRandomWeightsParams::initialize(HyPerConn * parentConn) {
    InitWeightsParams::initialize(parentConn);
 
    PVParams * params = parent->parameters();

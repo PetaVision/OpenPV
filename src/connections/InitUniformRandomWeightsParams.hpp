@@ -12,11 +12,11 @@
 
 namespace PV {
 
-class InitUnivormRandomWeightsParams: public PV::InitWeightsParams {
+class InitUniformRandomWeightsParams: public PV::InitWeightsParams {
 public:
-   InitUnivormRandomWeightsParams();
-   InitUnivormRandomWeightsParams(HyPerConn * parentConn);
-   virtual ~InitUnivormRandomWeightsParams();
+   InitUniformRandomWeightsParams();
+   InitUniformRandomWeightsParams(HyPerConn * parentConn);
+   virtual ~InitUniformRandomWeightsParams();
 
    //get-set methods:
    inline float getWMin()        {return wMin;}

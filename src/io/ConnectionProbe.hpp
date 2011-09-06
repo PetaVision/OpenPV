@@ -14,10 +14,10 @@ namespace PV {
 
 class ConnectionProbe {
 public:
-   ConnectionProbe(int kPre);
-   ConnectionProbe(int kxPre, int kyPre, int kfPre);
-   ConnectionProbe(const char * filename, HyPerCol * hc, int kPre);
-   ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre);
+   ConnectionProbe(int kPre, int arbID=1);
+   ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID=1);
+   ConnectionProbe(const char * filename, HyPerCol * hc, int kPre, int arbID=1);
+   ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID=1);
    virtual ~ConnectionProbe();
 
    virtual int outputState(float time, HyPerConn * c);
@@ -34,6 +34,7 @@ protected:
    FILE * fp;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
+   int arborID;
    bool   outputIndices;
    bool   stdpVars;
 

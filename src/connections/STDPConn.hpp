@@ -34,7 +34,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int axonId);
    virtual int outputState(float time, bool last=false);
-   virtual int writeTextWeightsExtra(FILE * fd, int k);
+   virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID);
 
    virtual PVLayerCube * getPlasticityDecrement();
 
@@ -47,7 +47,7 @@ protected:
    int initPlasticityPatches();
 
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
-   PVPatch       ** pIncr;      // list of stdp patches Psij variable
+   PVPatch       *** pIncr;      // list of stdp patches Psij variable
 
    bool       stdpFlag;         // presence of spike timing dependent plasticity
 

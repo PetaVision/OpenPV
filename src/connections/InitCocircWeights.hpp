@@ -24,7 +24,7 @@ public:
 //         ChannelType channel);
    virtual ~InitCocircWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex,
+   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 

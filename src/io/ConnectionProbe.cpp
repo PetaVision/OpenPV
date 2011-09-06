@@ -19,7 +19,7 @@ namespace PV {
  *
  *
  */
-ConnectionProbe::ConnectionProbe(int kPre)
+ConnectionProbe::ConnectionProbe(int kPre, int arbID)
 {
    this->kxPre = 0;
    this->kyPre = 0;
@@ -28,9 +28,10 @@ ConnectionProbe::ConnectionProbe(int kPre)
    this->fp    = stdout;
    this->outputIndices = false;
    this->stdpVars = true;
+   this->arborID=arbID;
 }
 
-ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
+ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID)
 {
    this->kxPre = kxPre;
    this->kyPre = kyPre;
@@ -39,9 +40,10 @@ ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre)
    this->fp = stdout;
    this->outputIndices = false;
    this->stdpVars = true;
+   this->arborID=arbID;
 }
 
-ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre)
+ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre, int arbID)
 {
    char path[PV_PATH_MAX];
    sprintf(path, "%s/%s", hc->getOutputPath(), filename);
@@ -51,9 +53,10 @@ ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre)
    this->outputIndices = false;
 
    this->stdpVars = true;
+   this->arborID=arbID;
 }
 
-ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre)
+ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID)
 {
    const char * outputPath = hc->getOutputPath();
    size_t outputpathlen = strlen(outputPath);
@@ -78,6 +81,7 @@ ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre
 
    this->outputIndices = false;
    this->stdpVars = true;
+   this->arborID=arbID;
 }
 ConnectionProbe::~ConnectionProbe()
 {
@@ -113,8 +117,10 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    fprintf(fp, "w%d:      \n", kPre);
 
-   const int axonId = 0;
-   PVAxonalArbor * arbor = c->axonalArbor(kPre, axonId);
+   //const int axonId = 0;
+
+   //probe only outputs one arbor.  to read more arbors add more probes!
+   PVAxonalArbor * arbor = c->axonalArbor(kPre, arborID);
 
    PVPatch * P = arbor->plasticIncr;
    PVPatch * w = arbor->weights;

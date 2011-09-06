@@ -30,7 +30,7 @@ InitWeightsParams * InitRuleWeights::createNewWeightParams(HyPerConn * callingCo
    return tempPtr;
 }
 
-int InitRuleWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitRuleWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitRuleWeightsParams *weightParamPtr = dynamic_cast<InitRuleWeightsParams*>(weightParams);

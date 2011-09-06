@@ -33,7 +33,7 @@ public:
 #endif
    Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels);
    virtual ~Publisher();
-
+   int readData(int delay);
    int publish(HyPerLayer * pub,
                int neighbors[], int numNeighbors,
                int borders[], int numBorders, PVLayerCube * data);

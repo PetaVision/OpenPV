@@ -45,13 +45,26 @@ InitWeights::~InitWeights()
  * This method first calls XXX to create an unshrunk patch.  Then it calls calcWeights to initialize
  * the weights for that unshrunk patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
-PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int numPatches, const char * filename, HyPerConn * callingConn) {
+PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int arborId, int numPatches, const char * filename, HyPerConn * callingConn) {
 
    //parentConn = callingConn;
+   PVParams * inputParams = callingConn->getParent()->parameters();
+
+   int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    InitWeightsParams *weightParams = NULL;
 
-   if( filename != NULL ) {
+   if (initFromLastFlag) {
+      char nametmp[PV_PATH_MAX];
+
+      if(callingConn->numberOfAxonalArborLists()>1)
+         snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_a%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId(), arborId);
+      else
+         snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
+      readWeights(patches, numPatches, nametmp, callingConn);
+      //weightInitializer->initializeWeights(arbors[arborId], numPatches, nametmp, this);
+   }
+   else if( filename != NULL ) {
       //check status?
       readWeights(patches, numPatches, filename, callingConn);
    }
@@ -61,11 +74,13 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int numPatches, co
       for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
 
          int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
+         //int correctedPatchIndex = patchIndex;
          //create full sized patch:
          PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[patchIndex]);
+         if(wp_tmp==NULL) continue;
 
          //calc weights for patch:
-         int successFlag = calcWeights(wp_tmp, correctedPatchIndex, weightParams);
+         int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arborId, weightParams);
          if (successFlag != 1) {
             fprintf(stderr, "Failed to create weights! Exiting...");
             exit(1);
@@ -88,7 +103,7 @@ InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) 
    return tempPtr;
 }
 
-int InitWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
                                InitWeightsParams *weightParams) {
 
     InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);

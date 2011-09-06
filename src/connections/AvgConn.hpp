@@ -19,7 +19,7 @@ public:
            ChannelType channel, HyPerConn * delegate);
    virtual ~AvgConn();
 
-   virtual int createAxonalArbors();
+   virtual int createAxonalArbors(int arborId);
 
    virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
    virtual int write(const char * filename);
@@ -34,7 +34,7 @@ public:
 protected:
 
    int initialize();
-   virtual PVPatch ** initializeWeights(PVPatch ** patches,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors,
                                         int numPatches, const char * filename);
 
    PVLayerCube * avgActivity;

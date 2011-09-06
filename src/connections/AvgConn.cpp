@@ -43,23 +43,26 @@ int AvgConn::initialize()
    return 0;
 }
 
-PVPatch ** AvgConn::initializeWeights(PVPatch ** patches,
+PVPatch *** AvgConn::initializeWeights(PVPatch *** arbors,
                                       int numPatches, const char * filename)
 {
    // If I'm my own delegate, I need my own weights
    //
    if (delegate == this) {
-      return HyPerConn::initializeWeights(patches, numPatches, filename);
+      return HyPerConn::initializeWeights(arbors, numPatches, filename);
    }
 
    // otherwise using weights from delegate so can free weight memory
    //
-   if (patches != NULL) {
-      for (int k = 0; k < numPatches; k++) {
-         pvpatch_inplace_delete(patches[k]);
+   if (arbors != NULL) {
+      for(int n=0;n<numberOfAxonalArborLists(); n++) {
+         for (int k = 0; k < numPatches; k++) {
+            pvpatch_inplace_delete(arbors[n][k]);
+         }
+         free(arbors[n]);
       }
-      free(patches);
-      patches = NULL;
+      free(arbors);
+      arbors = NULL;
    }
 
    return NULL;
@@ -112,12 +115,12 @@ int AvgConn::deliver(Publisher * pub, PVLayerCube * cube, int neighbor)
    return 0;
 }
 
-int AvgConn::createAxonalArbors()
+int AvgConn::createAxonalArbors(int arborId)
 {
    // If I'm my own delegate, I need my own weights
    //
    if (delegate == this) {
-      return HyPerConn::createAxonalArbors();
+      return HyPerConn::createAxonalArbors(arborId);
    }
 
    // otherwise just use weights from the delegate
@@ -125,40 +128,41 @@ int AvgConn::createAxonalArbors()
    pvdata_t * phi_base = post->getChannel(channel);
    pvdata_t * del_phi_base = delegate->postSynapticLayer()->getChannel(channel);
 
-   const int numAxons = numAxonalArborLists;
+   //const int numAxons = numberOfAxonalArborLists();
 
-   for (int n = 0; n < numAxons; n++) {
-      int numArbors = numWeightPatches(n);
-      axonalArborList[n] = (PVAxonalArbor*) calloc(numArbors, sizeof(PVAxonalArbor));
-      assert(axonalArborList[n] != NULL);
-   }
+   //for (int n = 0; n < numAxons; n++) {
+   int numPatches = numWeightPatches();
+   //axonalArborList[arborId] = (PVAxonalArbor*) calloc(numPatches, sizeof(PVAxonalArbor));
+   setArbor((PVAxonalArbor*) calloc(numPatches, sizeof(PVAxonalArbor)), arborId);
+   //assert(axonalArborList[arborId] != NULL);
+   //}
 
-   for (int n = 0; n < numAxons; n++) {
-      int numArbors = numWeightPatches(n);
-      PVPatch * dataPatches = (PVPatch *) calloc(numArbors, sizeof(PVPatch));
-      assert(dataPatches != NULL);
+   //for (int n = 0; n < numAxons; n++) {
+   //int numPatches = numWeightPatches();
+   PVPatch * dataPatches = (PVPatch *) calloc(numPatches, sizeof(PVPatch));
+   assert(dataPatches != NULL);
 
-      for (int kex = 0; kex < numArbors; kex++) {
-         PVAxonalArbor * arbor = axonalArbor(kex, n);
+   for (int kex = 0; kex < numPatches; kex++) {
+      PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
-         PVAxonalArbor * del_arbor = delegate->axonalArbor(kex, LOCAL);
+      PVAxonalArbor * del_arbor = delegate->axonalArbor(kex, arborId);
 
-         dataPatches[kex] = *del_arbor->data;
-         arbor->data = &dataPatches[kex];
+      dataPatches[kex] = *del_arbor->data;
+      arbor->data = &dataPatches[kex];
 
-         // use same offsets as delegate
-         size_t offset = del_arbor->data->data - del_phi_base;
-         arbor->data->data = phi_base + offset;
-         arbor->offset = del_arbor->offset;
+      // use same offsets as delegate
+      size_t offset = del_arbor->data->data - del_phi_base;
+      arbor->data->data = phi_base + offset;
+      arbor->offset = del_arbor->offset;
 
-         // use weights of delegate
-         arbor->weights = del_arbor->weights;  // use weights of delegate
+      // use weights of delegate
+      arbor->weights = del_arbor->weights;  // use weights of delegate
 
-         // no STDP
-         arbor->plasticIncr = NULL;
+      // no STDP
+      arbor->plasticIncr = NULL;
 
-      } // loop over arbors (pre-synaptic neurons)
-   } // loop over axons
+   } // loop over arbors (pre-synaptic neurons)
+   //} // loop over axons
 
    return 0;
 }

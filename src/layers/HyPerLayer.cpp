@@ -234,6 +234,11 @@ const pvdata_t * HyPerLayer::getLayerData()
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
    return (pvdata_t *) store->buffer(LOCAL);
 }
+const pvdata_t * HyPerLayer::getLayerData(int delay)
+{
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return (pvdata_t *) store->buffer(LOCAL, delay);
+}
 
 
 // deprecated?
@@ -546,11 +551,11 @@ int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
+int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
    recvsyn_timer->start();
 
-   assert(neighbor >= 0);
+   assert(arborID >= 0);
    const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
@@ -566,7 +571,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int 
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
-      PVAxonalArbor * arbor = conn->axonalArbor(kPre, neighbor);
+      PVAxonalArbor * arbor = conn->axonalArbor(kPre, arborID);
       PVPatch * GSyn = arbor->data;
       PVPatch * weights = arbor->weights;
 

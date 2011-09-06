@@ -37,10 +37,10 @@ public:
     * This method is purposely not virtual!  Only calcweights will be virtual and can be over ridden by sub
     * initweights classes
     */
-   PVPatch ** initializeWeights(PVPatch ** patches, int numPatches, const char * filename, HyPerConn * callingConn);
+   PVPatch ** initializeWeights(PVPatch ** patches, int arborId, int numPatches, const char * filename, HyPerConn * callingConn);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, InitWeightsParams *weightParams);
+   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
    virtual int readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename, HyPerConn * callingConn);

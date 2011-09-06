@@ -19,7 +19,7 @@ public:
    virtual ~InitUniformWeightsParams();
 
    //get-set methods:
-   inline float getInitWeight()        {return iWeight;}
+   inline float getInitWeight()        {return initWeight;}
 
 protected:
    virtual int initialize_base();
@@ -27,7 +27,7 @@ protected:
 
 
 private:
-   float iWeight;
+   float initWeight;
 
 };
 

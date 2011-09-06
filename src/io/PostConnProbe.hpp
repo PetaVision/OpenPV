@@ -15,10 +15,10 @@ namespace PV {
 
 class PostConnProbe: public PV::ConnectionProbe {
 public:
-   PostConnProbe(int kPost);
-   PostConnProbe(int kxPost, int kyPost, int kfPost);
-   PostConnProbe(const char * filename, HyPerCol * hc, int kPost);
-   PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost);
+   PostConnProbe(int kPost, int arbID=1);
+   PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID=1);
+   PostConnProbe(const char * filename, HyPerCol * hc, int kPost, int arbID=1);
+   PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost, int arbID=1);
    virtual ~PostConnProbe();
 
    virtual int outputState(float time, HyPerConn * c);

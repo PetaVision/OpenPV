@@ -6,7 +6,7 @@
  */
 
 #include "InitUniformRandomWeights.hpp"
-#include "InitUnivormRandomWeightsParams.hpp"
+#include "InitUniformRandomWeightsParams.hpp"
 
 #include "../utils/pv_random.h"
 
@@ -38,13 +38,13 @@ int InitUniformRandomWeights::initialize_base() {
 //}
 
 InitWeightsParams * InitUniformRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
-   InitWeightsParams * tempPtr = new InitUnivormRandomWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
-   InitUnivormRandomWeightsParams *weightParamPtr = dynamic_cast<InitUnivormRandomWeightsParams*>(weightParams);
+   InitUniformRandomWeightsParams *weightParamPtr = dynamic_cast<InitUniformRandomWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");

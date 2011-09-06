@@ -20,8 +20,9 @@ CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
 }
 
 CloneKernelConn::~CloneKernelConn() {
-   for( int k=0; k<numAxonalArborLists; k++ ) {
-      axonalArborList[k] = NULL;
+   for( int k=0; k<numberOfAxonalArborLists(); k++ ) {
+      setArbor(NULL, k);
+      //axonalArborList[k] = NULL;
    }
 }
 
@@ -59,21 +60,25 @@ int CloneKernelConn::initNormalize() {
 }
 
 PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
-      int nxPatch, int nyPatch, int nfPatch) {
+      int nxPatch, int nyPatch, int nfPatch, int axonId) {
 
-   const int arbor = 0;
-   int numKernelPatches = numDataPatches(arbor);
-   assert( numKernelPatches == originalConn->numDataPatches(arbor) );
-   assert(kernelPatches == NULL);
-   kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   assert(kernelPatches != NULL);
+   //const int arbor = 0;
+   int numKernelPatches = numDataPatches();
+   assert( numKernelPatches == originalConn->numDataPatches() );
+   //assert(kernelPatches == NULL);
+   //kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   //assert(kernelPatches != NULL);
+   PVPatch** newKernelPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   assert(newKernelPatch != NULL);
+   setKernelPatches(newKernelPatch, axonId);
    for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
-      kernelPatches[kernelIndex] = originalConn->getKernelPatch(kernelIndex);
+      setKernelPatch(originalConn->getKernelPatch(axonId, kernelIndex), axonId, kernelIndex);
+      //kernelPatches[kernelIndex] = originalConn->getKernelPatch(kernelIndex);
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
       int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
-      patches[patchIndex]->data = kernelPatches[kernelIndex]->data;
+      patches[patchIndex]->data = getKernelPatch(axonId, kernelIndex)->data;
    }
    return patches;
 }
@@ -85,7 +90,8 @@ PVPatch ** CloneKernelConn::initializeWeights(PVPatch ** patches,
 }
 
 int CloneKernelConn::deleteWeights() {
-   free(kernelPatches);  // don't delete kernelPatches[k] as it belongs to originalConn
+   //free(kernelPatches);  // don't delete kernelPatches[k] as it belongs to originalConn
+   free(getAllKernelPatches());
    return HyPerConn::deleteWeights();
 }
 

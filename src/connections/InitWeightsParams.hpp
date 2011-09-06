@@ -61,7 +61,7 @@ protected:
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
 
    void getcheckdimensionsandstrides(PVPatch * patch);
-   int kernalIndexCalculations(PVPatch * patch, int patchIndex);
+   int kernelIndexCalculations(PVPatch * patch, int patchIndex);
    void calculateThetas(int kfPre_tmp, int patchIndex);
 
    //more get/set

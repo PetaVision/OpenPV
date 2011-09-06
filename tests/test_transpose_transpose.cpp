@@ -177,8 +177,8 @@ int testTransposeOfTransposeWeights(KernelConn * originalMap, TransposeConn * tr
 
 int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    int status = PV_SUCCESS;
-   int numWeightPatches = conn1->numWeightPatches(0);
-   if( numWeightPatches != conn2->numWeightPatches(0) ) {
+   int numWeightPatches = conn1->numWeightPatches();
+   if( numWeightPatches != conn2->numWeightPatches() ) {
        fprintf(stderr, "testEqualWeights:  numWeightPatches not equal.\n");
        return PV_FAILURE;
    }
@@ -224,10 +224,10 @@ int testDimensionsEqual(int index, int val1, int val2, const char * pName) {
 }
 
 int dumpWeights(KernelConn * kconn, FILE * stream) {
-   int numKernelPatches = kconn->numDataPatches(0);
+   int numKernelPatches = kconn->numDataPatches();
    fprintf(stream, "Dumping weights for connection %s\n", kconn->getName() );
    for(int kn = 0; kn < numKernelPatches; kn++) {
-       PVPatch * kp = kconn->getKernelPatch(kn);
+       PVPatch * kp = kconn->getKernelPatch(0, kn);
        int nx = kp->nx;
        int ny = kp->ny;
        int nf = kp->nf;

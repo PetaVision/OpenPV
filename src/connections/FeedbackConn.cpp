@@ -66,12 +66,12 @@ int FeedbackConn::setPatchSize(const char * filename) {
     return status;
 }  // end of FeedbackConn::setPatchSize(const char *)
 
-PVPatch ** FeedbackConn::initializeWeights(PVPatch ** patches, int numPatches,
+PVPatch *** FeedbackConn::initializeWeights(PVPatch *** arbors, int numPatches,
       const char * filename) {
-    if( filename ) return KernelConn::initializeWeights(patches, numPatches, filename);
+    if( filename ) return KernelConn::initializeWeights(arbors, numPatches, filename);
 
     transposeKernels();
-    return patches;
+    return arbors;
 }  // end of FeedbackConn::initializeWeights
 
 }  // end of namespace PV block

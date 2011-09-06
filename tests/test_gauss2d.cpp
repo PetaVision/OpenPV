@@ -61,10 +61,11 @@ int main(int argc, char * argv[])
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   assert(num_pre_extended == cHyPer->numWeightPatches(axonID));
+   assert(num_pre_extended == cHyPer->numWeightPatches());
 
    int status = 0;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
+     //printf("testing testing 1 2 3...\n");
      status = check_kernel_vs_hyper(cHyPer, cKernel, kPre, axonID);
      assert(status==0);
      status = check_kernel_vs_hyper(cHyPer1to2, cKernel1to2, kPre, axonID);
@@ -96,11 +97,16 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
       for (int k = 0; k < nk; k++) {
          test_cond = kernelWeights[k] - hyperWeights[k];
          if (fabs(test_cond) > 0.001f) {
+            printf("y %d\n", y);
+            printf("k %d\n", k);
+            printf("kernelweight %f\n", kernelWeights[k]);
+            printf("hyperWeights %f\n", hyperWeights[k]);
             const char * cHyper_filename = "gauss2d_hyper.txt";
             cHyPer->writeTextWeights(cHyper_filename, kPre);
             const char * cKernel_filename = "gauss2d_kernel.txt";
             cKernel->writeTextWeights(cKernel_filename, kPre);
-            exit(EXIT_FAILURE);
+            status=1;
+            //exit(EXIT_FAILURE);
          }
       }
       // advance pointers in y

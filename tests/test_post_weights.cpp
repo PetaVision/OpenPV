@@ -45,15 +45,15 @@ int main(int argc, char * argv[])
    status = set_weights_to_source_index(c2);
    status = set_weights_to_source_index(c3);
 
-   postWeights = c1->convertPreSynapticWeights(0.0f);
+   postWeights = c1->convertPreSynapticWeights(0.0f)[0];
    status = check_weights(c1, postWeights);
    if (status) return status;
 
-   postWeights = c2->convertPreSynapticWeights(0.0f);
+   postWeights = c2->convertPreSynapticWeights(0.0f)[0];
    status = check_weights(c2, postWeights);
    if (status) return status;
 
-   postWeights = c3->convertPreSynapticWeights(0.0f);
+   postWeights = c3->convertPreSynapticWeights(0.0f)[0];
    status = check_weights(c3, postWeights);
    if (status) return status;
 
@@ -165,7 +165,7 @@ static int set_weights_to_source_index(HyPerConn * c)
    const int nyPost = lPost->loc.ny;
    const int nfPost = lPost->loc.nf;
 
-   int numPatches = c->numWeightPatches(arbor);
+   int numPatches = c->numWeightPatches();
 
    // assume (or at least use) only one arbor (set of weight patches)
    // k index is in extended space

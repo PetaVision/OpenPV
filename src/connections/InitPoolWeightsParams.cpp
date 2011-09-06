@@ -45,7 +45,7 @@ void InitPoolWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
 
    this->getcheckdimensionsandstrides(patch);
 
-   const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
 
 
 

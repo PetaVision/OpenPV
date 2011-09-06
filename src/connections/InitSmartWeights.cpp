@@ -34,7 +34,7 @@ namespace PV {
 //      return PV_SUCCESS;
 //   }
 
-   int InitSmartWeights::calcWeights(PVPatch * patch, int patchIndex, InitWeightsParams *weightParams) {
+   int InitSmartWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams) {
       //smart weights doesn't have any params to load and is too simple to
       //actually need to save anything to work on...
       smartWeights(patch, patchIndex);

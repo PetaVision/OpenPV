@@ -29,7 +29,7 @@ InitWeightsParams * InitIdentWeights::createNewWeightParams(HyPerConn * callingC
    return tempPtr;
 }
 
-int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitIdentWeightsParams *weightParamPtr = dynamic_cast<InitIdentWeightsParams*>(weightParams);

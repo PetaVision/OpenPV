@@ -67,6 +67,7 @@ typedef struct PVAxonalArbor_ {
    PVPatch * weights;     // weights to apply to the data
    PVPatch * plasticIncr; // STDP P variable
    size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
+   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
 } PVAxonalArbor;
 
 typedef struct PVAxonalArborList_ {

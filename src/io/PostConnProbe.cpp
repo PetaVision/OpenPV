@@ -14,8 +14,8 @@ namespace PV {
 /**
  * @kPost
  */
-PostConnProbe::PostConnProbe(int kPost)
-   : ConnectionProbe(0)
+PostConnProbe::PostConnProbe(int kPost, int arbID)
+   : ConnectionProbe(0, arbID)
 {
    this->kxPost = 0;
    this->kyPost = 0;
@@ -29,8 +29,8 @@ PostConnProbe::PostConnProbe(int kPost)
  * @filename
  * @kPost
  */
-PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost)
-   : ConnectionProbe(filename, hc, 0)
+PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost, int arbID)
+   : ConnectionProbe(filename, hc, 0, arbID)
 {
    this->kxPost = 0;
    this->kyPost = 0;
@@ -41,8 +41,8 @@ PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost)
    this->wActiv = NULL;
 }
 
-PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
-   : ConnectionProbe(0)
+PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID)
+   : ConnectionProbe(0, arbID)
 {
    this->kxPost = kxPost;
    this->kyPost = kyPost;
@@ -53,8 +53,8 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost)
    this->wActiv = NULL;
 }
 
-PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost)
-   : ConnectionProbe(filename, hc, 0, 0, 0)
+PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost, int arbID)
+   : ConnectionProbe(filename, hc, 0, 0, 0, arbID)
 {
    this->kxPost = kxPost;
    this->kyPost = kyPost;
@@ -83,7 +83,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    bool changed;
    int k, kxPre, kyPre;
    PVPatch  * w;
-   PVPatch ** wPost = c->convertPreSynapticWeights(time);
+   PVPatch *** wPost = c->convertPreSynapticWeights(time);
 
    // TODO - WARNING: currently only works if nfPre==0
 
@@ -121,7 +121,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    const bool postFired = lPost->activity->data[kPostEx] > 0.0;
 
-   w = wPost[kPost];
+   w = wPost[arborID][kPost];
 
    const int nw = w->nx * w->ny * w->nf;
 

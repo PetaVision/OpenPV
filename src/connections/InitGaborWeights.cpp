@@ -29,7 +29,7 @@ InitWeightsParams * InitGaborWeights::createNewWeightParams(HyPerConn * callingC
    return tempPtr;
 }
 
-int InitGaborWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitGaborWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams*>(weightParams);

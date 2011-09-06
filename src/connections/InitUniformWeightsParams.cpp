@@ -27,7 +27,7 @@ InitUniformWeightsParams::~InitUniformWeightsParams()
 
 int InitUniformWeightsParams::initialize_base() {
 
-   iWeight = 0;
+   initWeight = 0;
    return 1;
 }
 
@@ -37,7 +37,7 @@ int InitUniformWeightsParams::initialize(HyPerConn * parentConn) {
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;
 
-   iWeight = params->value(getName(), "weightInit", iWeight);
+   initWeight = params->value(getName(), "weightInit", initWeight);
 
 
    return status;

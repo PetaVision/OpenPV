@@ -42,7 +42,7 @@ InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams(HyPerConn *
    return tempPtr;
 }
 
-int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex,
+int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
 
    InitGaussianRandomWeightsParams *weightParamPtr = dynamic_cast<InitGaussianRandomWeightsParams*>(weightParams);

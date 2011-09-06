@@ -69,14 +69,19 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     relaxation = params->value(name, "relaxation", 1.0f);
     nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
     KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+
+    //GenerativeConn has not been updated to support multiple arbors!
+    assert(numberOfAxonalArborLists()==1);
+
+
     patchindices = (int *) malloc( pre->getNumExtended()*sizeof(int) );
     if( patchindices==NULL ) {
        fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for patchindices\n",name);
        exit(EXIT_FAILURE);
     }
-    int axonID = 0; // For now, only one arbor.
+    //int axonID = 0; // For now, only one arbor.
     // if we add arbors, patchindices and dWPatches will need to take the arbor index as an argument
-    int numKernelPatches = numDataPatches(axonID);
+    int numKernelPatches = numDataPatches();
     dWPatches = (PVPatch **) malloc(numKernelPatches*sizeof(PVPatch *));
     if( patchindices==NULL ) {
        fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for dWPatches\n",name);
@@ -101,7 +106,7 @@ int GenerativeConn::calc_dW(int axonID) {
    int ny = preSynapticLayer()->getLayerLoc()->ny;
    int nf = preSynapticLayer()->getLayerLoc()->nf;
    int pad = preSynapticLayer()->getLayerLoc()->nb;
-   int numKernelIndices = numDataPatches(axonID);
+   int numKernelIndices = numDataPatches();
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = dWPatches[kernelindex]->nx * dWPatches[kernelindex]->ny * dWPatches[kernelindex]->nf;
       pvdata_t * dwpatchdata = dWPatches[kernelindex]->data;
@@ -139,7 +144,7 @@ int GenerativeConn::calc_dW(int axonID) {
 
 #ifdef PV_USE_MPI
 int GenerativeConn::reduceKernels(const int axonID) {
-   const int numPatches = numDataPatches(axonID);
+   const int numPatches = numDataPatches();
    int idx;
    // Add all the dWPatches from all the processors
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
@@ -200,9 +205,9 @@ int GenerativeConn::reduceKernels(const int axonID) {
 #endif // PV_USE_MPI
 
 int GenerativeConn::updateWeights(int axonID) {
-   const int numPatches = numDataPatches(axonID);
+   const int numPatches = numDataPatches();
    for( int k=0; k<numPatches; k++ ) {
-      PVPatch * w = kernelPatches[k];
+      PVPatch * w = getKernelPatch(axonID, k);
       pvdata_t * wdata = w->data;
       PVPatch * dw = dWPatches[k];
       const int sxp = w->sx;
@@ -244,13 +249,13 @@ int GenerativeConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches) {
+PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId) {
    int neuronsperpatch;
    switch( normalizeMethod ) {
    case 0:
       break;
    case 1:
-      patches = KernelConn::normalizeWeights(patches, numPatches);
+      patches = KernelConn::normalizeWeights(patches, numPatches, arborId);
       break;
    case 2:
       neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);

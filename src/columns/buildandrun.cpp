@@ -508,6 +508,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
       weightInitializer = new InitWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
+      weightInitializer = new InitSpreadOverArborsWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights();
    }
@@ -901,6 +904,9 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
    int status = PV_SUCCESS;
    if( !strcmp(classkeyword, "ConnectionProbe") ) {
       keywordMatched = true;
+
+      int arborID = params->value(name, "arborid");
+
       int indexmethod = params->present(name, "kPre");
       int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
       if( indexmethod && coordmethod ) {
@@ -913,13 +919,13 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
       }
       if( indexmethod ) {
          kPre = params->value(name, "kPre");
-         addedProbe = new ConnectionProbe(kPre);
+         addedProbe = new ConnectionProbe(kPre, arborID);
       }
       else if( coordmethod ) {
          kxPre = params->value(name, "kxPre");
          kyPre = params->value(name, "kyPre");
          kfPre = params->value(name, "kfPre");
-         addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre);
+         addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre, arborID);
       }
       else {
          assert(false);
@@ -983,6 +989,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
       errorFound = status!=PV_SUCCESS;
       if( !errorFound ) {
+         PVBufType buf_type = BufV;
+         if (targetlayer->getSpikingFlag()) {
+            buf_type = BufActivity;
+         }
          if( filename ) {
             addedProbe = (LayerProbe *) new StatsProbe(filename, hc, message);
          }

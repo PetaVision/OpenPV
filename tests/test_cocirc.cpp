@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   assert(num_pre_extended == cHyPer->numWeightPatches(axonID));
+   assert(num_pre_extended == cHyPer->numWeightPatches());
 
    int status = 0;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {

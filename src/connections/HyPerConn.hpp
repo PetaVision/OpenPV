@@ -34,18 +34,18 @@ class ConnectionProbe;
 /**
  * A PVConnection identifies a connection between two layers
  */
-typedef struct {
-   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
-// Commenting out unused parameters.  Is PVConnParams still necessary?
-//   int fixDelay; // fixed output delay. TODO: should be float
-//   int varDelayMin; // minimum variable conduction delay
-//   int varDelayMax; // maximum variable conduction delay
-//   int numDelay;
-//   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
-//   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
-//   float rmin; // minimum connection distance
-//   float rmax; // maximum connection distance
-} PVConnParams;
+//typedef struct {
+//   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
+//// Commenting out unused parameters.  Is PVConnParams still necessary?
+////   int fixDelay; // fixed output delay. TODO: should be float
+////   int varDelayMin; // minimum variable conduction delay
+////   int varDelayMax; // maximum variable conduction delay
+////   int numDelay;
+////   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
+////   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
+////   float rmin; // minimum connection distance
+////   float rmax; // maximum connection distance
+//} PVConnParams;
 
 class HyPerConn {
 
@@ -61,7 +61,7 @@ public:
              ChannelType channel, InitWeights *weightInit);
    virtual ~HyPerConn();
 
-   virtual int deliver(Publisher * pub, PVLayerCube * cube, int neighbor);
+   virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
 
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
@@ -69,29 +69,27 @@ public:
    virtual int calc_dW(int axonId);
    virtual int updateWeights(int axonId);
 
-   inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
-   virtual int numWeightPatches(int arbor);
-   virtual int numDataPatches(int arbor);
    virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(PVPatch ** patches, int numPatches,
-                            const char * filename, float time, bool last);
+                            const char * filename, float time, bool last, int arborId);
    virtual int writeTextWeights(const char * filename, int k);
-   virtual int writeTextWeightsExtra(FILE * fd, int k)  {return 0;}
+   virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID)  {return 0;}
 
    virtual int writePostSynapticWeights(float time, bool last=false);
+   virtual int writePostSynapticWeights(float time, bool last, int axonID);
 
    int readWeights(const char * filename);
+
+   virtual int correctPIndex(int patchIndex);
 
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                   const char * filename);
 #endif
-   virtual PVPatch * getWeights(int kPre, int arbor);
 
    virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
 
-   inline PVPatch ** weights(int neighbor)           {return wPatches[neighbor];}
 
    inline const char * getName()                     {return name;}
    inline HyPerCol * getParent()                     {return parent;}
@@ -99,7 +97,8 @@ public:
    inline HyPerLayer * getPost()                       {return post;}
    inline ChannelType getChannel()                 {return channel;}
    inline InitWeights * getWeightInitializer()    {return weightInitializer;}
-   inline int          getDelay()                    {return params->delay;}
+   //inline int          getDelay()                    {return params->delay;}
+   inline int getDelay(int axonId)     {assert(axonId<numAxonalArborLists); return axonalArbor(axonId,0)->delay;}
 
    virtual float minWeight()                         {return 0.0;}
    virtual float maxWeight()                         {return wMax;}
@@ -108,8 +107,16 @@ public:
    inline int yPatchSize()                           {return nyp;}
    inline int fPatchSize()                           {return nfp;}
 
-   inline PVAxonalArbor * axonalArbor(int kPre, int neighbor)
-      {return &axonalArborList[neighbor][kPre];}
+   //arbor and weight patch related get/set methods:
+   inline PVPatch ** weights(int arborId)           {return wPatches[arborId];}
+   inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
+   virtual PVPatch * getWeights(int kPre, int arbor);
+   inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
+      {return &axonalArborList[arborId][kPre];}
+   inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
+   virtual int numWeightPatches();
+   virtual int numDataPatches();
+   inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    HyPerLayer * preSynapticLayer()     {return pre;}
    HyPerLayer * postSynapticLayer()    {return post;}
@@ -117,14 +124,16 @@ public:
    int  getConnectionId()              {return connId;}
    void setConnectionId(int id)        {connId = id;}
 
-   int setParams(PVParams * params, PVConnParams * p);
+   int setParams(PVParams * params /*, PVConnParams * p*/);
 
-   PVPatch ** convertPreSynapticWeights(float time);
+   PVPatch *** convertPreSynapticWeights(float time);
 
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kxPre, int * kyPre);
    int postSynapticPatchHead(int kPre,
                              int * kxPostOut, int * kyPostOut, int * kfPostOut,
                              int * dxOut, int * dyOut, int * nxpOut, int * nypOut);
+
+
 
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
@@ -139,16 +148,13 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
    virtual int initNormalize();
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
+   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
          int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
 
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
-
-   virtual int correctPIndex(int patchIndex);
-
 
 protected:
    HyPerLayer     * pre;
@@ -158,9 +164,15 @@ protected:
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
    PVPatch       ** pIncr;      // list of stdp patches Psij variable
 #endif
-   PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
-   PVPatch       ** wPostPatches;  // post-synaptic linkage of weights
-   PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
+   //these were moved to private to ensure use of get/set methods and made in 3D pointers:
+   //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
+   //PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
+private:
+   PVPatch       *** wPatches; // list of weight patches, one set per neighbor
+   PVAxonalArbor ** axonalArborList; // list of axonal arbors for each neighbor
+   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
+protected:
+   PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
 
 #ifdef OBSOLETE_STDP
    bool     localWmaxFlag;  // presence of rate dependent wMax;
@@ -174,9 +186,8 @@ protected:
    int nxp, nyp, nfp;      // size of weight dimensions
 
    int numParams;
-   PVConnParams * params;
+   //PVConnParams * params;
 
-   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
 #ifdef OBSOLETE_STDP
    // STDP parameters for modifying weights
@@ -228,6 +239,7 @@ protected:
    int patchSizeFromFile(const char * filename);
 
    virtual int initialize_base();
+   virtual int createArbors();
    int constructWeights(const char * filename);
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          HyPerLayer * post, ChannelType channel, const char * filename);
@@ -238,7 +250,7 @@ protected:
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
-   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
@@ -250,11 +262,11 @@ protected:
    PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
 #endif
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch);
-   PVPatch ** createWeights(PVPatch ** patches);
+         int nyPatch, int nfPatch, int axonId);
+   PVPatch ** createWeights(PVPatch ** patches, int axonId);
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch);
-   PVPatch ** allocWeights(PVPatch ** patches);
+         int nyPatch, int nfPatch, int axonId);
+   //PVPatch ** allocWeights(PVPatch ** patches);
 
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
@@ -268,7 +280,7 @@ protected:
 
    virtual int deleteWeights();
 
-   virtual int createAxonalArbors();
+   virtual int createAxonalArbors(int arborId);
 
    // static member functions
 

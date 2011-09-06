@@ -236,13 +236,13 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = connection[ic];
-      int delay = conn->getDelay();
-      if (delay > 0) {
-         cube.data = recvBuffer(LOCAL, delay);
-      }
-      else {
-         cube.data = recvBuffer(LOCAL);
-      }
+//      int delay = conn->getDelay(0);
+//      if (delay > 0) {
+//         cube.data = recvBuffer(LOCAL, delay);
+//      }
+//      else {
+//         cube.data = recvBuffer(LOCAL);
+//      }
 #ifdef DEBUG_OUTPUT
       printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
       fflush(stdout);
@@ -250,6 +250,16 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       conn->deliver(this, &cube, LOCAL);
    }
 
+   return 0;
+}
+
+int Publisher::readData(int delay) {
+   if (delay > 0) {
+      cube.data = recvBuffer(LOCAL, delay);
+   }
+   else {
+      cube.data = recvBuffer(LOCAL);
+   }
    return 0;
 }
 

@@ -33,8 +33,10 @@ pvdata_t LayerFunction::evaluate(float time, HyPerLayer * l) {
    pvdata_t value = evaluateLocal(time, l);
 #ifdef PV_USE_MPI
    value = functionReduce(value, l);
-#endif
    return value;
+#else
+   return 0;
+#endif // PV_USE_MPI
 }
 
 #ifdef PV_USE_MPI

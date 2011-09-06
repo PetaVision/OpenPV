@@ -73,8 +73,8 @@ void InitWeightsParams::getcheckdimensionsandstrides(PVPatch * patch) {
    assert(sf_tmp == 1);
 }
 
-int InitWeightsParams::kernalIndexCalculations(PVPatch * patch, int patchIndex) {
-   //kernal index stuff:
+int InitWeightsParams::kernelIndexCalculations(PVPatch * patch, int patchIndex) {
+   //kernel index stuff:
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;

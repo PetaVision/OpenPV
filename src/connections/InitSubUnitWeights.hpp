@@ -21,7 +21,7 @@ public:
    InitSubUnitWeights();
    virtual ~InitSubUnitWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex,
+   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
    void calcOtherParams(PVPatch * patch, int patchIndex);

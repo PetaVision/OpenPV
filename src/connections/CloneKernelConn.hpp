@@ -33,7 +33,7 @@ public:
 
 protected:
    PVPatch ** allocWeights(PVPatch ** patches, int nPatches,
-         int nxPatch, int nyPatch, int nfPatch);
+         int nxPatch, int nyPatch, int nfPatch, int axonId);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
             const char * filename);
    int deleteWeights();

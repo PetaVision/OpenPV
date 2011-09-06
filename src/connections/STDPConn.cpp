@@ -54,16 +54,21 @@ int STDPConn::initPlasticityPatches()
 {
    if (!stdpFlag) return PV_SUCCESS;
 
-   const int arbor = 0;
-   const int numAxons = numAxonalArborLists;
+   //const int arbor = 0;
+   const int numAxons = numberOfAxonalArborLists();
 
-   pIncr = createWeights(NULL, numWeightPatches(arbor), nxp, nyp, nfp);
-   assert(pIncr != NULL);
+   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+//   pIncr = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+//   assert(pIncr != NULL);
    pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    assert(pDecr != NULL);
 
+   int numArbors = numWeightPatches();
    for (int n = 0; n < numAxons; n++) {
-      int numArbors = numWeightPatches(n);
+
+      pIncr[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      assert(pIncr[n] != NULL);
+
 
       // kex is in extended frame
       for (int kex = 0; kex < numArbors; kex++) {
@@ -74,7 +79,7 @@ int STDPConn::initPlasticityPatches()
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
-         arbor->plasticIncr = pIncr[kex];
+         arbor->plasticIncr = pIncr[n][kex];
          pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
 
       } // loop over arbors (pre-synaptic neurons)
@@ -86,10 +91,14 @@ int STDPConn::initPlasticityPatches()
 int STDPConn::deleteWeights()
 {
    if (stdpFlag) {
-      const int arbor = 0;
-      const int numPatches = numWeightPatches(arbor);
-      for (int k = 0; k < numPatches; k++) {
-         pvpatch_inplace_delete(pIncr[k]);
+      //const int arbor = 0;
+      const int numPatches = numWeightPatches();
+      const int numAxons = numberOfAxonalArborLists();
+      for (int n = 0; n < numAxons; n++) {
+         for (int k = 0; k < numPatches; k++) {
+            pvpatch_inplace_delete(pIncr[n][k]);
+         }
+         free(pIncr[n]);
       }
       free(pIncr);
       pvcube_delete(pDecr);
@@ -142,6 +151,7 @@ int STDPConn::updateState(float time, float dt)
 {
    update_timer->start();
 
+   int status=0;
    if (stdpFlag) {
       const float fac = ampLTD;
       const float decay = expf(-dt / tauLTD);
@@ -158,13 +168,16 @@ int STDPConn::updateState(float time, float dt)
          m[k] = decay * m[k] - fac * a[k];
       }
 
-      const int axonId = 0;       // assume only one for now
-      updateWeights(axonId);
+      //const int axonId = 0;       // assume only one for now
+      for(int axonId = 0; axonId<numberOfAxonalArborLists(); axonId++) {
+         status=updateWeights(axonId);
+      }
    }
    update_timer->stop();
 
-   const int axonId = 0;       // assume only one for now
-   return updateWeights(axonId);
+   //const int axonId = 0;       // assume only one for now
+   //return updateWeights(axonId);
+   return status;
 }
 
 /**
@@ -182,7 +195,7 @@ int STDPConn::updateWeights(int axonId)
    const float decayLTP = expf(-dt / tauLTP);
 
    const int numExtended = pre->getNumExtended();
-   assert(numExtended == numWeightPatches(axonId));
+   assert(numExtended == numWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData();
 
@@ -261,10 +274,10 @@ float STDPConn::maxWeight()
    return wMax;
 }
 
-int STDPConn::writeTextWeightsExtra(FILE * fd, int k)
+int STDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, pIncr[k]); // write the Ps variable
+      pv_text_write_patch(fd, pIncr[arborID][k]); // write the Ps variable
    }
    return 0;
 }

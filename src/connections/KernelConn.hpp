@@ -34,7 +34,7 @@ public:
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
 #endif // OBSOLETE
 
-   virtual int numDataPatches(int arbor);
+   virtual int numDataPatches();
 
    virtual float minWeight();
    virtual float maxWeight();
@@ -52,11 +52,15 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
 
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
-   virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches);
+   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
-   PVPatch * getKernelPatch(int kernelIndex)   {return kernelPatches[kernelIndex];}
+   PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
+   PVPatch ** getKernelPatches(int axonId)   {return kernelPatches[axonId];}
+   inline void setKernelPatches(PVPatch** newKernelPatch, int axonId) {kernelPatches[axonId]=newKernelPatch;}
+   inline void setKernelPatch(PVPatch* newKernelPatch, int axonId, int kernelIndex) {kernelPatches[axonId][kernelIndex]=newKernelPatch;}
    virtual int writeWeights(float time, bool last=false);
+   inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
 
    bool getPlasticityFlag() {return plasticityFlag;}
    float getWeightUpdatePeriod() {return weightUpdatePeriod;}
@@ -66,12 +70,19 @@ public:
    virtual int correctPIndex(int patchIndex);
 
 protected:
-   PVPatch ** kernelPatches;   // list of kernel patches
    bool plasticityFlag;
    float weightUpdatePeriod;
    float weightUpdateTime;
    float lastUpdateTime;
    bool symmetrizeWeightsFlag;
+
+private:
+   //made private to control use and now 3D to allow different Kernel patches
+   //for each axon:
+   PVPatch *** kernelPatches;   // list of kernel patches
+
+
+protected:
 #ifdef PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
 #endif // PV_USE_MPI
@@ -82,12 +93,13 @@ protected:
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
    virtual int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
+   virtual int createArbors();
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch);
+         int nyPatch, int nfPatch, int axonId);
    virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch);
+         int nyPatch, int nfPatch, int axonId);
    virtual int initializeUpdateTime(PVParams * params);
-   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int axonId);

@@ -63,7 +63,7 @@ public:
    HyPerCol * parent;
 
    virtual int triggerReceive(InterColComm * comm);
-   virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
+   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int updateState (float time, float dt);
    virtual int updateBorder(float time, float dt);
    virtual int publish(InterColComm * comm, float time);
@@ -139,6 +139,7 @@ public:
    // implementation of LayerDataInterface interface
    //
    const pvdata_t   * getLayerData();
+   const pvdata_t   * getLayerData(int delay);
    const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
    bool isExtended()                 { return true; }
 

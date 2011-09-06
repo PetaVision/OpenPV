@@ -35,17 +35,18 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
    virtual 	int writeWeights(float time, bool last);
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches);
+   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 protected:
-   PVPatch ** geislerPatches;   // list of kernels patches for accumulating pairwise stats
+   PVPatch *** geislerPatches;   // list of kernels patches for accumulating pairwise stats
    pvdata_t * avePostActivity;
    pvdata_t * avePreActivity;
    int numUpdates;
    virtual int deleteWeights();
    virtual int initialize_base();
+   virtual int createArbors();
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch);
+         int nyPatch, int nfPatch, int axonId);
 
 
 };

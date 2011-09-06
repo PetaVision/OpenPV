@@ -28,7 +28,7 @@ public:
 
 protected:
     int setPatchSize(const char * filename);
-    PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+    PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
           const char * filename);
 
     KernelConn * feedforwardConn; // same as TransposeConn's originalConn; kept for backward compatibility
