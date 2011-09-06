@@ -22,7 +22,7 @@ public:
    virtual int initialize_base();
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
          ChannelType channel, HyPerConn *copiedConn);
-   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
 
 

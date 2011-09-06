@@ -40,16 +40,15 @@ int KernelConnDebugInitWeights::initialize_base() {
 }
 
 
-PVPatch ** KernelConnDebugInitWeights::initializeWeights(PVPatch ** patches, int numPatches, const char * filename)
+PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int numPatches, const char * filename)
 {
    // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an InitWeightsMethod
    //       instantiation as an argument.  The routines called below would be put into derived classes
    //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
 
-   PVPatch ** kpatches = kernelPatches;
-   int arbor = 0;
-   int numKernelPatches = numDataPatches(arbor);
+   PVPatch ** kpatches = getKernelPatches(0);
+   int numKernelPatches = numDataPatches();
 
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
@@ -98,9 +97,9 @@ PVPatch ** KernelConnDebugInitWeights::initializeWeights(PVPatch ** patches, int
    bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
-      normalizeWeights(patches, numPatches);
+      normalizeWeights(kpatches, numPatches, 0);
    }
-   return patches;
+   return arbors;
 }
 
 PVPatch ** KernelConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches, int numPatches)

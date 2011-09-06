@@ -232,6 +232,7 @@ HyPerConn "Retina to L0" = {
    preLayerName = "Retina";
    postLayerName = "L0";
    weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -276,6 +277,7 @@ HyPerConn "Retina to L1" = {
    preLayerName = "Retina";
    postLayerName = "L1";
    weightInitType = "CoCircWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -285,6 +287,14 @@ HyPerConn "Retina to L1" = {
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   
+   noPre=1;
+   noPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
 
    aspect = 7;
    sigma = 7;
@@ -321,6 +331,7 @@ HyPerConn "Retina to L2" = {
    preLayerName = "Retina";
    postLayerName = "L2";
    weightInitType = "SmartWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -365,6 +376,7 @@ HyPerConn "Retina to L2" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
 //    weightInitType = "GaborWeight";
+//    numAxonalArbors=1;
 //    channelCode = 0;
 //    nxp = 9; 
 //    nyp = 9; 
@@ -415,6 +427,7 @@ HyPerConn "Retina to L2" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
 //    weightInitType = "GaborWeight";
+//    numAxonalArbors=1;
 //    channelCode = 0;
 //    nxp = 9; 
 //    nyp = 9; 
@@ -466,6 +479,7 @@ KernelConn "Retina to L5" = {
    preLayerName = "Retina";
    postLayerName = "L5";
    weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -510,6 +524,7 @@ KernelConn "Retina to L6" = {
    preLayerName = "Retina";
    postLayerName = "L6";
    weightInitType = "CoCircWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -519,6 +534,14 @@ KernelConn "Retina to L6" = {
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+
+   noPre=1;
+   noPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
 
    aspect = 7;
    sigma = 7;
@@ -555,6 +578,7 @@ KernelConn "Retina to L7" = {
    preLayerName = "Retina";
    postLayerName = "L7";
    weightInitType = "SmartWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -599,6 +623,7 @@ KernelConn "Retina to L8" = {
    preLayerName = "Retina";
    postLayerName = "L8";
    weightInitType = "GaborWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -649,6 +674,7 @@ KernelConn "Retina to L9" = {
    preLayerName = "Retina";
    postLayerName = "L9";
    weightInitType = "GaborWeight";
+   numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -699,31 +725,31 @@ StatsProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
-StatsProbe "L0 Stats File" = {
+InitWeightTestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
-StatsProbe "L1 Stats File" = {
+InitWeightTestProbe "L1 Stats File" = {
     targetLayer = "L1";
     probeOutputFile = "L1_Stats.txt";
 };
-StatsProbe "L2 Stats File" = {
+InitWeightTestProbe "L2 Stats File" = {
     targetLayer = "L2";
     probeOutputFile = "L2_Stats.txt";
 };
-// StatsProbe "L3 Stats File" = {
+// InitWeightTestProbe "L3 Stats File" = {
 //     targetLayer = "L3";
 //     probeOutputFile = "L3_Stats.txt";
 // };
-// StatsProbe "L4 Stats File" = {
+// InitWeightTestProbe "L4 Stats File" = {
 //     targetLayer = "L4";
 //     probeOutputFile = "L4_Stats.txt";
 // };
-StatsProbe "L5 Stats File" = {
+InitWeightTestProbe "L5 Stats File" = {
     targetLayer = "L5";
     probeOutputFile = "L5_Stats.txt";
 };
-StatsProbe "L6 Stats File" = {
+InitWeightTestProbe "L6 Stats File" = {
     targetLayer = "L6";
     probeOutputFile = "L6_Stats.txt";
 };
@@ -731,11 +757,11 @@ StatsProbe "L7 Stats File" = {
     targetLayer = "L7";
     probeOutputFile = "L7_Stats.txt";
 };
-StatsProbe "L8 Stats File" = {
+InitWeightTestProbe "L8 Stats File" = {
     targetLayer = "L8";
     probeOutputFile = "L8_Stats.txt";
 };
-StatsProbe "L9 Stats File" = {
+InitWeightTestProbe "L9 Stats File" = {
     targetLayer = "L9";
     probeOutputFile = "L9_Stats.txt";
 };
@@ -743,33 +769,33 @@ StatsProbe "L9 Stats File" = {
 StatsProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
 };
-StatsProbe "L0 Stats Screen" = {
+InitWeightTestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
-StatsProbe "L1 Stats Screen" = {
+InitWeightTestProbe "L1 Stats Screen" = {
     targetLayer = "L1";
 };
-StatsProbe "L2 Stats Screen" = {
+InitWeightTestProbe "L2 Stats Screen" = {
     targetLayer = "L2";
 };
-// StatsProbe "L3 Stats Screen" = {
+// InitWeightTestProbe "L3 Stats Screen" = {
 //     targetLayer = "L3";
 // };
-// StatsProbe "L4 Stats Screen" = {
+// InitWeightTestProbe "L4 Stats Screen" = {
 //     targetLayer = "L4";
 // };
-StatsProbe "L5 Stats Screen" = {
+InitWeightTestProbe "L5 Stats Screen" = {
     targetLayer = "L5";
 };
-StatsProbe "L6 Stats Screen" = {
+InitWeightTestProbe "L6 Stats Screen" = {
     targetLayer = "L6";
 };
 StatsProbe "L7 Stats Screen" = {
     targetLayer = "L7";
 };
-StatsProbe "L8 Stats Screen" = {
+InitWeightTestProbe "L8 Stats Screen" = {
     targetLayer = "L8";
 };
-StatsProbe "L9 Stats Screen" = {
+InitWeightTestProbe "L9 Stats Screen" = {
     targetLayer = "L9";
 };

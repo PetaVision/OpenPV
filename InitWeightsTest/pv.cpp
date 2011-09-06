@@ -6,6 +6,7 @@
 #include "../PetaVision/src/columns/buildandrun.hpp"
 #include "HyperConnDebugInitWeights.hpp"
 #include "KernelConnDebugInitWeights.hpp"
+#include "InitWeightTestProbe.hpp"
 
 int addcustom(HyPerCol * hc, int argc, char * argv[]);
 // addcustom is for adding objects not understood by build().
@@ -47,6 +48,37 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 
     }
 
+	PVParams * params = hc->parameters();
+	int status;
+	int numGroups = params->numberOfGroups();
+	for (int n = 0; n < numGroups; n++) {
+		const char * kw = params->groupKeywordFromIndex(n);
+		const char * name = params->groupNameFromIndex(n);
+		HyPerLayer * targetlayer;
+		const char * message;
+		const char * filename;
+		InitWeightTestProbe * addedProbe;
+		if (!strcmp(kw, "InitWeightTestProbe")) {
+			status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
+					&message, &filename);
+			if (status != PV_SUCCESS) {
+				fprintf(stderr, "Skipping params group \"%s\"\n", name);
+				continue;
+			}
+	         if( filename ) {
+	            addedProbe =  new InitWeightTestProbe(filename, hc, message);
+	         }
+	         else {
+	            addedProbe =  new InitWeightTestProbe(message);
+	         }
+	         if( !addedProbe ) {
+	             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+	         }
+			assert(targetlayer);
+			if( addedProbe ) targetlayer->insertProbe(addedProbe);
+			checknewobject((void *) addedProbe, kw, name);
+		}
+	}
 
     return PV_SUCCESS;
 }

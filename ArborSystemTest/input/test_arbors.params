@@ -1,0 +1,470 @@
+//
+// test_kernel.params
+//
+// created by garkenyon: August 4, 2011
+//
+
+//  - input parameters for test_kernel.cpp for system level testing of kernels
+//
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 4;  // num images plus (num layers + 1) * delay
+   outputPath = "output/";
+};
+
+//
+// layers
+//
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 1;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+};
+
+
+
+
+ANNLayer "L0" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+ANNLayer "Lx1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+ANNLayer "Lx2" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+ANNLayer "Lx4" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+
+ANNLayer "Lx1_2" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+
+ANNLayer "Lx1_4" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+//  connections: 
+
+KernelConn "Retina to L0" = {
+    preLayerName = "Retina";
+    postLayerName = "L0";
+    channelCode = 0;
+    numAxonalArbors = 4;
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 4;
+      
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+
+
+KernelConn "L0 to Lx1" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1";
+    channelCode = 0;
+    numAxonalArbors = 4;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    writeStep = -1;
+    initFromLastFlag = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = infinity;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 4;
+      
+    strength = 0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+KernelConn "L0 to Lx2" = {
+    preLayerName = "L0";
+    postLayerName = "Lx2";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    nxp = 10;
+    nyp = 10;
+    nfp = 8;
+    writeStep = -1;
+    initFromLastFlag = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1; //2;
+    sigma = infinity;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 8;
+      
+    strength = 2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+KernelConn "L0 to Lx4" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    nxp = 20;
+    nyp = 20;
+    nfp = 16;
+    writeStep = -1;
+    initFromLastFlag = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1; //4;
+    sigma = infinity;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 16;
+      
+    strength = 16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+KernelConn "L0 to Lx1_2" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1_2";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    nxp = 3;
+    nyp = 3;
+    nfp = 2;
+    writeStep = -1;
+    initFromLastFlag = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 2;
+    sigma = infinity;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 2;
+      
+    strength = 0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+KernelConn "L0 to Lx1_4" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1_4";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = infinity;
+    rMax  = infinity;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    bowtieFlag = 0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    no = 1;
+      
+    strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+
+ArborTestProbe "Retina Stats File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+};
+ArborTestProbe "L0 Stats File" = {
+    targetLayer = "L0";
+    probeOutputFile = "L0_Stats.txt";
+};
+ArborTestProbe "Lx1 Stats File" = {
+    targetLayer = "Lx1";
+    probeOutputFile = "Lx1_Stats.txt";
+};
+ArborTestProbe "Lx2 Stats File" = {
+    targetLayer = "Lx2";
+    probeOutputFile = "Lx2_Stats.txt";
+};
+ArborTestProbe "Lx4 Stats File" = {
+    targetLayer = "Lx4";
+    probeOutputFile = "Lx4_Stats.txt";
+};
+ArborTestProbe "Lx1_2 Stats File" = {
+    targetLayer = "Lx1_2";
+    probeOutputFile = "Lx1_2_Stats.txt";
+};
+ArborTestProbe "Lx1_4 Stats File" = {
+    targetLayer = "Lx1_4";
+    probeOutputFile = "Lx1_4_Stats.txt";
+};
+
+ArborTestProbe "Retina Stats Screen" = {
+    targetLayer = "Retina";
+};
+ArborTestProbe "L0 Stats Screen" = {
+    targetLayer = "L0";
+};
+ArborTestProbe "Lx1 Stats Screen" = {
+    targetLayer = "Lx1";
+};
+ArborTestProbe "Lx2 Stats Screen" = {
+    targetLayer = "Lx2";
+};
+ArborTestProbe "Lx4 Stats Screen" = {
+    targetLayer = "Lx4";
+};
+ArborTestProbe "Lx1_2 Stats Screen" = {
+    targetLayer = "Lx1_2";
+};
+ArborTestProbe "Lx1_4 Stats Screen" = {
+    targetLayer = "Lx1_4";
+};
