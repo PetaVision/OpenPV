@@ -27,7 +27,7 @@ int LogLatWTAProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
 #endif // PV_USE_MPI
-   int nk = l->getNumNeurons();
+   int nk = l->getNumGlobalNeurons();
    fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, time, nk, value);
 
    return PV_SUCCESS;

@@ -48,7 +48,7 @@ int LayerFunctionProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
 #endif // PV_USE_MPI
-   int printstatus = fprintf(fp, "%st = %6.3f numNeurons = %8d Value            = %f\n", msg, time, l->getNumNeurons(), value);
+   int printstatus = fprintf(fp, "%st = %6.3f numNeurons = %8d Value            = %f\n", msg, time, l->getNumGlobalNeurons(), value);
    return printstatus > 0 ? PV_SUCCESS : PV_FAILURE;
 }
 
