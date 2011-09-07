@@ -47,45 +47,46 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	unsigned int nf = this->clayer->loc.nf;
 	unsigned int nx = this->clayer->loc.nx;
 	unsigned int ny = this->clayer->loc.ny;
-	unsigned int nfExt = nf;
 	unsigned int nxExt = nx + marginRt + marginLt;
 	unsigned int nyExt = ny + marginUp + marginDn;
-	unsigned int syExt = nfExt * nxExt;
-	unsigned int sxExt = nfExt;
+	unsigned int syExt = nf * nxExt;
+	unsigned int sxExt = nf;
 	unsigned int * marginIndices = (unsigned int *) calloc(numMargin,
 			sizeof(int));
 	assert(marginIndices != NULL);
 	// get North margin indices
-	for (unsigned int kPreExt = 0; kPreExt < nfExt * nxExt * marginUp;
-			kPreExt++) {
+	for (unsigned int kPreExt = 0; kPreExt < nf * nxExt * marginUp; kPreExt++) {
 		marginIndices[kMargin++] = kPreExt;
-	}assert(kMargin == nfExt * nxExt * marginUp);
+	}
+	assert(kMargin == nf * nxExt * marginUp);
 	// get East margin indices
 	for (unsigned int ky = marginUp; ky < marginUp + ny; ky++) {
 		for (unsigned int kx = 0; kx < marginLt; kx++) {
 			for (unsigned int kf = 0; kf < nf; kf++) {
-				unsigned int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nfExt);
+				unsigned int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
 				marginIndices[kMargin++] = kPreExt;
 			}
 		}
-	}assert(kMargin == nfExt * nxExt * marginUp + nfExt * marginLt * ny);
+	}
+	assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny);
 	// get West margin indices
 	for (unsigned int ky = marginUp; ky < marginUp + ny; ky++) {
 		for (unsigned int kx = nx + marginLt; kx < nxExt; kx++) {
 			for (unsigned int kf = 0; kf < nf; kf++) {
-				unsigned int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nfExt);
+				unsigned int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
 				marginIndices[kMargin++] = kPreExt;
 			}
 		}
-	}assert(
-			kMargin == nfExt * nxExt * marginUp + nfExt * marginLt * ny + nfExt * marginUp * ny);
+	}
+	assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny + nf * marginUp * ny);
 	// get South margin indices
 	for (unsigned int kPreExt = kMargin; kPreExt < numMargin; kPreExt++) {
 		marginIndices[kMargin++] = kPreExt;
-	}assert(kMargin == numMargin);
+	}
+	assert(kMargin == numMargin);
 
-	// compute active indices in extended layer
-	// note: activeIndices currently only dimensioned to numNeurons and refer to global indices
+	// gather active indices in extended layer
+	// note: activeIndices currently only dimensioned to numNeurons and refers to global indices
 	// TODO: make activeIndices local and convert to global in writeActivitySparse sequence, dimension activeIndices to numExtended
 	// init activeIndicesExt to activeIndices and append indices of active neurons in margins to end of list
 	int numActiveExt = clayer->numActive;
@@ -111,70 +112,72 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	const int nyPostPatch = (int) (conn->yPatchSize() * powYScale);// TODO: store in HyPerConn::wPostPatches
 	const int nfPostPatch = nf;
 
+	// clique dimensions
 	// a new set of cliques is centered on each pre-synaptic cell with radius nzPostPatch/2
+	// TODO: precompute clique dimensions during initialize
 	int nyCliqueRadius = (int) (nyPostPatch/2);
 	int nxCliqueRadius = (int) (nxPostPatch/2);
 	unsigned int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nf;
-
-
-	// hard-code the following for now
-	unsigned int cliqueSize = 2;  // number of presynaptic cells in clique (traditional ANN uses 1)
-	int numCliques = conn->numDataPatches();
-	//unsigned int calc_kernels = conn->KernelConn::numDataPatches(neighbor) * pow(patchSize, cliqueSize-1);
-	//assert(num_kernels == calc_kernels);
+	unsigned int cliqueSize = 2;// number of presynaptic cells in clique (traditional ANN uses 1)
+	unsigned int num_kernels = conn->numDataPatches(neighbor);
+	unsigned int calc_kernels = conn->KernelConn::numDataPatches(neighbor) * pow(cliquePatchSize, cliqueSize-1);
+	assert(num_kernels == calc_kernels);
 
 	// loop over all products of cliqueSize active presynaptic cells
 	// outer loop is over presynaptic cells, each of which defines the center of a cliquePatch
 	// inner loop is over all combinations of clique cells within cliquePatch boundaries, which may be shrunken
-	unsigned int * patchActiveIndices = (unsigned int *) calloc(cliquePatchSize, sizeof(unsigned int));
-	for (int kPreNZ = 0; kPreNZ < numActiveExt; kPreNZ++) {
-		unsigned int kPreExt = activeExt[kPreNZ];
-
-		PVPatch * w_patch = conn->getWeights(kPreExt,neighbor);
+	unsigned int * cliqueActiveIndices = calloc(cliquePatchSize, sizeof(unsigned int));
+	for (int kPreActive = 0; kPreActive < numActiveExt; kPreActive++) {
+		unsigned int kPreExt = activeExt[kPreActive];
 
 		// get active presynaptic neuron indices in wPostPatch
-		unsigned int numPatchActive = 0;
-		int kxPreExt = kxPos(kPreExt, nxExt, nyExt, nfExt);
-		int kyPreExt = kyPos(kPreExt, nxExt, nyExt, nfExt);
-		int kfPreExt = featureIndex(kPreExt, nxExt, nyExt, nfExt);
+		unsigned int numActiveElements = 0;
+		int kxPreExt = kxPos(kPreExt, nxExt, nyExt, nf);
+		int kyPreExt = kyPos(kPreExt, nxExt, nyExt, nf);
+		int kfPreExt = featureIndex(kPreExt, nxExt, nyExt, nf);
 
-		// loop over all cells in clique centered on kPreExt
+		// get indices of active clique elements
 		for(int kyCliqueExt = kyPreExt - nyCliqueRadius; kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
 			for(int kxCliqueExt = kxPreExt - nxCliqueRadius; kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
 				for(int kfCliqueExt = 0; kfCliqueExt < nf; kfCliqueExt++) {
-					unsigned int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxExt, nyExt, nfExt);
-					if (aPre[kCliqueExt] == 0) continue;
-					patchActiveIndices[numPatchActive++] = kCliqueExt;
+					unsigned int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxExt, nyExt, nf);
+					if aPre[kCliqueExt] == 0) continue;
+					cliqueActiveIndices[numActiveElements++] = kCliqueExt;
 				}
 			}
 		}
 
-		unsigned int numActiveCliques = pow(numPatchActive, cliqueSize-1);
+		// loop over all active elements in clique centered on kPreExt
+		unsigned int numActiveCliques = pow(numActiveElements, cliqueSize-1);
 		for(unsigned int kClique = 0; kClique < numActiveCliques; kClique++) {
 
 			// decompose kClique to compute product of active clique elements
-			unsigned int kernel_index = 0;
+			unsigned int kernelNdx = 0;
 			pvdata_t cliqueProd = aPre[kPreExt];
 			unsigned int kResidue = kClique;
 			for(unsigned int iProd = 0; iProd < cliqueSize-1; iProd++) {
-				unsigned int kPatchActive = (unsigned int) (kResidue / numPatchActive);
-				unsigned int kCliqueExt = patchActiveIndices[kPatchActive];
+				unsigned int kPatchActive = (unsigned int) (kResidue / numActiveElements);
+				unsigned int kCliqueExt = cliqueActiveIndices[kPatchActive];
 				cliqueProd *= aPre[kCliqueExt];
-				kResidue = kResidue - kPatchActive * numPatchActive;
+				kResidue = kResidue - kPatchActive * numActiveElements;
 
-				// compute kernel_index for this clique elements
-				int kxCliqueExt = kxPos(kCliqueExt, nxExt, nyExt, nfExt);
-				int kyCliqueExt = kyPos(kCliqueExt, nxExt, nyExt, nfExt);
-				int kfCliqueExt = featureIndex(kCliqueExt, nxExt, nyExt, nfExt);
-				int kxPatch = kxCliqueExt - kxPreExt + (nxPostPatch/2);
-				int kyPatch = kyCliqueExt - kyPreExt + (nyPostPatch/2);
+				// compute kernel_index for this clique element
+				int kxCliqueExt = kxPos(kCliqueExt, nxExt, nyExt, nf);
+				int kyCliqueExt = kyPos(kCliqueExt, nxExt, nyExt, nf);
+				int kfClique = featureIndex(kCliqueExt, nxExt, nyExt, nf);
+				int kxPatch = kxCliqueExt - kxPreExt + nxCliqueRadius;
+				int kyPatch = kyCliqueExt - kyPreExt + nyCliqueRadius;
+				unsigned int kKernel = kIndex(kxPatch, kyPatch, kfClique, (2*nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nf);
+				kernelNdx += kKernel * pow(cliquePatchSize,iProd);
 			}
 
 			// get weight for this clique
+			PVPatch * w_patch = conn->getWeights(kPreExt,neighbor);
+
 
 		} // kClique
-	} // kPreNZ
-	delete(patchActiveIndices);
+	} // kPreActive
+	delete(cliqueActiveIndices);
 
 	for( int kPre=0; kPre < numExtended; kPre++) {
 		float a = activity->data[kPre];
