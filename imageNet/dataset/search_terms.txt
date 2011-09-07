@@ -1,0 +1,38 @@
+###############################
+##Image-Net Search Terms
+###############################
+##Darpa terms:
+#all#airplane
+#all#helicopter
+#all#motorcycle
+#all#canine
+#all#feline
+#all#motortruck
+#all#automobile
+#all#train
+#all#boat
+#all#bicycle
+#all#autobus
+#
+#
+#5000#bulldozer
+#5000#bowling ball
+#5000#bowling pin
+#5000#bonsai
+#5000#boom-box
+#5000#birdbath
+#5000#blimp
+#5000#centipede
+#5000#cereal box
+#5000#conch
+#5000#pool cue
+#5000#computer mouse
+#5000#compact disk
+#5000#camel
+#5000#cannon
+#5000#chimpanzee
+#5000#boxing glove
+#5000#calculator
+#5000#sparrow
+#5000#eagle
+#1000#salmon
