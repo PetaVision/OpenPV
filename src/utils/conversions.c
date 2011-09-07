@@ -94,8 +94,8 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
    if (log2ScalePre > log2ScalePost) {
       // post-synaptic layer has smaller size scale (is denser)
       int scaleFac = pow(2, log2ScalePre) / pow(2, log2ScalePost);
-      *distPost = 0.5;
-      *distPre = 0.5 / scaleFac;
+      *distPost = -0.5;
+      *distPre = -0.5 / scaleFac;
       kzPost = (int) ((kzPre + 0.5) * scaleFac) - 1;  // left neighbor, add 1 for right neighbor
    }
    else if (log2ScalePre < log2ScalePost) {
