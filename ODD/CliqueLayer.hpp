@@ -8,7 +8,7 @@
 #ifndef SIGMAPILAYER_H_
 #define SIGMAPILAYER_H_
 
-#include "ANNLayer.hpp"
+#include "../PetaVision/src/layers/ANNLayer.hpp"
 
 namespace PV {
 
