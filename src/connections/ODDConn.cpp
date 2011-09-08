@@ -67,14 +67,14 @@ int ODDConn::initialize_base()
    numUpdates = 0;
    avePreActivity = NULL;
    avePostActivity = NULL;
-   geislerPatches = NULL;
+   ODDPatches = NULL;
    return PV_SUCCESS; // return KernelConn::initialize_base();
 }
 
 int ODDConn::createArbors() {
    KernelConn::createArbors();
-   geislerPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   assert(geislerPatches!=NULL);
+   ODDPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+   assert(ODDPatches!=NULL);
    return PV_SUCCESS; //should we check if allocation was successful?
 }
 
@@ -90,14 +90,14 @@ PVPatch ** ODDConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
    avePreActivity = (pvdata_t *) calloc(sizeof(pvdata_t), num_geisler_patches);
    avePostActivity = (pvdata_t *) calloc(sizeof(pvdata_t), num_geisler_patches);
 
-   assert(geislerPatches[axonId] == NULL);
+   assert(ODDPatches[axonId] == NULL);
    PVPatch** newGeislerPatches = (PVPatch**) calloc(sizeof(PVPatch*), num_geisler_patches);
    assert(newGeislerPatches != NULL);
-   geislerPatches[axonId] = newGeislerPatches;
+   ODDPatches[axonId] = newGeislerPatches;
 
    for (int geislerIndex = 0; geislerIndex < num_geisler_patches; geislerIndex++) {
-      geislerPatches[axonId][geislerIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      assert(geislerPatches[axonId][geislerIndex] != NULL );
+      ODDPatches[axonId][geislerIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      assert(ODDPatches[axonId][geislerIndex] != NULL );
    }
 
    return patches;
@@ -109,11 +109,11 @@ int ODDConn::deleteWeights()
 
    for(int aid=0;aid<numberOfAxonalArborLists();aid++) {
       for (int k = 0; k < numDataPatches(); k++) {
-         pvpatch_inplace_delete(geislerPatches[aid][k]);
+         pvpatch_inplace_delete(ODDPatches[aid][k]);
       }
-      free(geislerPatches[aid]);
+      free(ODDPatches[aid]);
    }
-   free(geislerPatches);
+   free(ODDPatches);
    free(avePreActivity);
    free(avePostActivity);
 
@@ -163,7 +163,7 @@ int ODDConn::updateState(float time, float dt)
       int numWeights = nxp * nyp * nfp;
       for (int iKernel = 0; iKernel < num_kernels; iKernel++){
          pvdata_t * kernelWeights = getKernelPatch(arborID, iKernel)->data;
-         pvdata_t * geislerWeights = geislerPatches[arborID][iKernel]->data;
+         pvdata_t * geislerWeights = ODDPatches[arborID][iKernel]->data;
          for (int iWeight = 0; iWeight < numWeights; iWeight++){
             kernelWeights[iWeight] = geislerWeights[iWeight];
             geislerWeights[iWeight] = 0.0;
@@ -175,11 +175,11 @@ int ODDConn::updateState(float time, float dt)
       // normalize geislerPatches
       for (int iKernel = 0; iKernel < num_kernels; iKernel++){
          pvdata_t * kernelWeights = getKernelPatch(arborID, iKernel)->data;
-         pvdata_t * geislerWeights = geislerPatches[arborID][iKernel]->data;
+         pvdata_t * geislerWeights = ODDPatches[arborID][iKernel]->data;
          for (int iWeight = 0; iWeight < numWeights; iWeight++){
             geislerWeights[iWeight] /= nPost;
             geislerWeights[iWeight] += kernelWeights[iWeight];
-#ifdef APPLY_GEISLER_WEIGHTS
+#ifdef APPLY_ODD_WEIGHTS
             int kfPost = iWeight % num_kernels;
             kernelWeights[iWeight] /= numUpdates;
             pvdata_t kernelNorm =
@@ -190,7 +190,7 @@ int ODDConn::updateState(float time, float dt)
 #endif
          }
       }
-#ifdef APPLY_GEISLER_WEIGHTS
+#ifdef APPLY_ODD_WEIGHTS
       this->normalizeWeights(this->kernelPatches, this->numDataPatches(axonID), arborID);
 #endif
    }
@@ -232,7 +232,7 @@ int ODDConn::updateWeights(int axonID)
       int sy  = wPatch->sy;
 
       int kfPre = kPre % nKernels;
-      PVPatch * gPatch = geislerPatches[axonID][kfPre];
+      PVPatch * gPatch = ODDPatches[axonID][kfPre];
       PVPatch * kPatch = getKernelPatch(axonID, kfPre);
 
       pvdata_t * data_head = kPatch->data;
@@ -256,7 +256,7 @@ int ODDConn::updateWeights(int axonID)
 
 int ODDConn::writeWeights(float time, bool last)
 {
-#ifdef APPLY_GEISLER_WEIGHTS
+#ifdef APPLY_ODD_WEIGHTS
 	// do nothing, kernels are already up to date
 #else
 	// copy geislerPatches to kernelPatches
@@ -266,7 +266,7 @@ int ODDConn::writeWeights(float time, bool last)
       const int num_weights = nxp * nyp * nfp;
       for (int iKernel = 0; iKernel < num_kernels; iKernel++){
          pvdata_t * kernelWeights = getKernelPatch(arborId, iKernel)->data;
-         pvdata_t * ODDWeights = geislerPatches[arborId][iKernel]->data;
+         pvdata_t * ODDWeights = ODDPatches[arborId][iKernel]->data;
          for (int iWeight = 0; iWeight < num_weights; iWeight++){
             int kfPost = iWeight % num_kernels;
             pvdata_t kernelNorm =

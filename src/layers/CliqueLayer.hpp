@@ -1,12 +1,12 @@
 /*
- * SigmaPiLayer.h
+ * CliqueLayer.h
  *
  *  Created on: Sep 3, 2011
  *      Author: gkenyon
  */
 
-#ifndef SIGMAPILAYER_H_
-#define SIGMAPILAYER_H_
+#ifndef CLIQUELAYER_H_
+#define CLIQUELAYER_H_
 
 #include "../columns/HyPerCol.hpp"
 #include "../connections/HyPerConn.hpp"
@@ -17,12 +17,13 @@ namespace PV {
 
 class CliqueLayer: public PV::ANNLayer {
 public:
-
    CliqueLayer(const char* name, HyPerCol * hc);
    CliqueLayer(const char* name, HyPerCol * hc, PVLayerType type);
    virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
+   virtual int updateActiveIndices();
 };
 
 } /* namespace PV */
-#endif /* SIGMAPILAYER_H_ */
+
+#endif /* CLIQUELAYER_H_ */

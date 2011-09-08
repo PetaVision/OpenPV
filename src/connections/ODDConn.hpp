@@ -34,11 +34,11 @@ public:
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
-   virtual 	int writeWeights(float time, bool last);
+   virtual int writeWeights(float time, bool last);
    virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 protected:
-   PVPatch *** geislerPatches;   // list of kernels patches for accumulating pairwise stats
+   PVPatch *** ODDPatches;   // list of kernels patches for accumulating pairwise stats
    pvdata_t * avePostActivity;
    pvdata_t * avePreActivity;
    int numUpdates;
@@ -49,8 +49,8 @@ protected:
          int nyPatch, int nfPatch, int axonId);
 
 
-};
+};  // class ODDConn
 
-}
+} // namespace PV
 
 #endif /* GeislerConn_HPP_ */
