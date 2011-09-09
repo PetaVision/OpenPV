@@ -15,9 +15,9 @@
 #include <math.h>
 #include <string.h>     // memcpy
 
-static int pv_getopt_int(int argc, char * argv[], char * opt, int *   iVal);
-static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal);
-static int pv_getopt_unsigned_long(int argc, char * argv[], char * opt, unsigned long * ulVal);
+static int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
+static int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
+static int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * ulVal);
 
 void usage()
 {
@@ -68,12 +68,12 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
  * @opt
  * @iVal
  */
-static int pv_getopt_int(int argc, char * argv[], char * opt, int * iVal)
+static int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
-         *iVal = atoi(argv[i+1]);
+         if( iVal != NULL ) *iVal = atoi(argv[i+1]);
          return 0;
       }
    }
@@ -86,12 +86,12 @@ static int pv_getopt_int(int argc, char * argv[], char * opt, int * iVal)
  * @opt
  * @iVal
  */
-static int pv_getopt_unsigned_long(int argc, char * argv[], char * opt, unsigned long * iVal)
+static int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * iVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
-         *iVal = strtoul(argv[i+1], NULL, 0);
+         if( iVal != NULL ) *iVal = strtoul(argv[i+1], NULL, 0);
          return 0;
       }
    }
@@ -104,12 +104,12 @@ static int pv_getopt_unsigned_long(int argc, char * argv[], char * opt, unsigned
  * @opt
  * @sVal
  */
-static int pv_getopt_str(int argc, char * argv[], char * opt, char ** sVal)
+static int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
-         *sVal = strdup(argv[i+1]);
+         if( sVal != NULL ) *sVal = strdup(argv[i+1]);
          return 0;
       }
    }
@@ -460,14 +460,14 @@ int pv_dump(const char * output_path, const char * filename,
       params[1] = nx;
       params[2] = ny;
       params[3] = nf;
-      if ( fwrite(params, sizeof(int), nParams+1, fp) != nParams+1) status = -3;
+      if ( fwrite(params, sizeof(int), nParams+1, fp) != (size_t) nParams+1) status = -3;
       if (status != 0) {
          pv_log(stderr, "pv_dump: error writing params header\n");
       }
    }
 
    if (fp != NULL) {
-      if ( fwrite(I, sizeof(pvdata_t), nItems, fp) != nItems) status = -2;
+      if ( fwrite(I, sizeof(pvdata_t), nItems, fp) != (size_t) nItems) status = -2;
       fclose(fp);
    }
    else {
@@ -512,7 +512,7 @@ int pv_dump_sparse(const char * output_path, const char * filename,
       params[1] = ny;
       params[2] = nf;
       if ( fwrite(&nParams, sizeof(int), 1, fp) != 1) status = -3;
-      if ( fwrite(params, sizeof(int), nParams, fp) != nParams) status = -3;
+      if ( fwrite(params, sizeof(int), nParams, fp) != (size_t) nParams) status = -3;
       if (status != 0) {
          pv_log(stderr, "pv_dump_sparse: error writing params header\n");
       }
@@ -621,7 +621,7 @@ int pv_read_patch(FILE * fp, int nxp, int nyp, int nfp,
 
    // read the patch values which are padded to full size
    int nItems = nxp * nyp * nfp;
-   if ( fread(buf, sizeof(unsigned char), nItems, fp) != nItems ) return -2;
+   if ( fread(buf, sizeof(unsigned char), nItems, fp) != (size_t) nItems ) return -2;
 
    nItems = (int) nxny[0] * (int) nxny[1] * (int) nfp;
 
@@ -726,7 +726,7 @@ int pv_write_patches(const char * output_path, const char * filename, int append
       params[MIN_BIN_PARAMS + 0] = (int) minVal;
       params[MIN_BIN_PARAMS + 1] = (int) newMaxVal;
       params[MIN_BIN_PARAMS + 2] = numPatches;
-      if ( fwrite(params, sizeof(int), nParams, fp) != nParams ) status = -3;
+      if ( fwrite(params, sizeof(int), nParams, fp) != (size_t) nParams ) status = -3;
       if (status != 0) {
          pv_log(stderr, "pv_dump_patches: error writing params header\n");
          return status;
@@ -785,7 +785,7 @@ int pv_read_patches(FILE * fp, int nxp, int nyp, int nfp, float minVal, float ma
  */
 int pv_read_binary_params(FILE * fp, int numParams, int params[])
 {
-   if (numParams > NUM_BIN_PARAMS) {
+   if ((size_t) numParams > NUM_BIN_PARAMS) {
       numParams = NUM_BIN_PARAMS;
    }
    rewind(fp);
