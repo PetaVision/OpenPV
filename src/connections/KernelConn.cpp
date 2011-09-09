@@ -92,8 +92,10 @@ int KernelConn::createArbors() {
    HyPerConn::createArbors();
    kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
    assert(kernelPatches!=NULL);
+   dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+   assert(dKernelPatches!=NULL);
    for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++){
-      kernelPatches[arborId] = NULL;
+      dKernelPatches[arborId] = NULL;
    }
    return PV_SUCCESS; //should we check if allocation was successful?
 }
@@ -299,7 +301,8 @@ int KernelConn::reduceKernels(const int axonID) {
    // Copy this column's weights into mpiReductionBuffer
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = kernelPatches[axonID][k];
+      //PVPatch * p = kernelPatches[axonID][k];
+      PVPatch * p = dKernelPatches[axonID][k];
       const pvdata_t * data = p->data;
 
       const int sxp = p->sx;
@@ -331,7 +334,8 @@ int KernelConn::reduceKernels(const int axonID) {
    const int nProcs = nxProcs * nyProcs;
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = kernelPatches[axonID][k];
+      //PVPatch * p = kernelPatches[axonID][k];
+      PVPatch * p = dKernelPatches[axonID][k];
       pvdata_t * data = p->data;
 
       const int sxp = p->sx;
