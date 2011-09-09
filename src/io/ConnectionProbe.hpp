@@ -14,10 +14,10 @@ namespace PV {
 
 class ConnectionProbe {
 public:
-   ConnectionProbe(int kPre, int arbID=1);
-   ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID=1);
-   ConnectionProbe(const char * filename, HyPerCol * hc, int kPre, int arbID=1);
-   ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID=1);
+   ConnectionProbe(int kPre, int arbID=0);
+   ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID=0);
+   ConnectionProbe(const char * filename, HyPerCol * hc, int kPre, int arbID=0);
+   ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID=0);
    virtual ~ConnectionProbe();
 
    virtual int outputState(float time, HyPerConn * c);
