@@ -109,11 +109,9 @@ public:
 
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId)           {return wPatches[arborId];}
-   inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
    virtual PVPatch * getWeights(int kPre, int arbor);
    inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
       {return &axonalArborList[arborId][kPre];}
-   inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
@@ -282,6 +280,10 @@ protected:
 
    virtual int createAxonalArbors(int arborId);
 
+   // following is overridden by KernelConn to set kernelPatches
+   //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
+   virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
+   inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    // static member functions
 
 public:

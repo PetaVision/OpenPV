@@ -54,6 +54,7 @@ int KernelConn::initialize_base()
    kernelPatches = NULL;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
+   tmpPatch = NULL;
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
@@ -91,7 +92,19 @@ int KernelConn::createArbors() {
    HyPerConn::createArbors();
    kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
    assert(kernelPatches!=NULL);
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++){
+      kernelPatches[arborId] = NULL;
+   }
    return PV_SUCCESS; //should we check if allocation was successful?
+}
+
+int KernelConn::setWPatches(PVPatch ** patches, int arborId){
+   int status = HyPerConn::setWPatches(patches, arborId);
+   assert(status == 0);
+   assert(kernelPatches[arborId] == NULL);
+   kernelPatches[arborId] = tmpPatch;  // tmpPatch stores most recently allocated PVPatch**
+   tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
+   return PV_SUCCESS;
 }
 
 PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
@@ -100,21 +113,22 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
    //const int arbor = 0;
    int numKernelPatches = numDataPatches();
 
-   assert(kernelPatches[axonId] == NULL);
-   PVPatch** newKernelPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   assert(newKernelPatch != NULL);
-   setKernelPatches(newKernelPatch, axonId);
+   assert(tmpPatch == NULL);
+   tmpPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   assert(tmpPatch != NULL);
+   //setKernelPatches(newKernelPatch, axonId);
 
    for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
-      kernelPatches[axonId][kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      assert(kernelPatches[axonId][kernelIndex] != NULL );
+      //kernelPatches[axonId][kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      tmpPatch[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      assert(tmpPatch[kernelIndex] != NULL );
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
-      patches[patchIndex]->data = kernelPatches[axonId][kernelIndex]->data;
+      patches[patchIndex]->data = tmpPatch[kernelIndex]->data;
    }
    return patches;
 }

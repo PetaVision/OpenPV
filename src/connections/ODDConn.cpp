@@ -15,11 +15,13 @@
 
 namespace PV {
 
+/*
 ODDConn::ODDConn()
 {
-   printf("GeislerConn::GeislerConn: running default constructor\n");
+   printf("ODDConn::ODDConn: running default constructor\n");
    initialize_base();
 }
+*/
 
 ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
                          HyPerLayer * post, ChannelType channel)

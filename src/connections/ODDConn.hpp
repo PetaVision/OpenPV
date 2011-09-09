@@ -19,7 +19,7 @@ private:
 
 public:
 
-   ODDConn();
+   // ODDConn();  // default constructor not necessary?
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename);
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,

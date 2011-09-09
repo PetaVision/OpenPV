@@ -192,7 +192,7 @@ int HyPerConn::constructWeights(const char * filename)
    //allocate weightpatches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
       PVPatch **arborPatch = weights(arborId);
-      arborPatch =createWeights(arborPatch, arborId);
+      arborPatch = createWeights(arborPatch, arborId);
       setWPatches(arborPatch, arborId); //allocates memory for weights
       //wPatches[arborId] = createWeights(wPatches[arborId]); //allocates memory for weights
 

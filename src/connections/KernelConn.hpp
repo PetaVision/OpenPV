@@ -75,6 +75,8 @@ protected:
    float weightUpdateTime;
    float lastUpdateTime;
    bool symmetrizeWeightsFlag;
+   PVPatch ** tmpPatch;  // stores most recently allocated PVPatch **, set to NULL after assignment
+
 
 private:
    //made private to control use and now 3D to allow different Kernel patches
@@ -109,6 +111,7 @@ protected:
 #endif // PV_USE_MPI
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename);
+   virtual int setWPatches(PVPatch ** patches, int arborId);
 };
 
 }
