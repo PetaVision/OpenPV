@@ -53,7 +53,12 @@ int TrainingLayer::initialize(int numTrainingLabels, int * trainingLabels, float
 
 int TrainingLayer::initialize(const char * filename, float displayPeriod, float distToData) {
     int * trainingLabelsFromFile;
+    errno = 0;
     int numberOfTrainingLabels = readTrainingLabels( filename, &trainingLabelsFromFile ); // trainingLabelsFromFile allocated within this readTrainingLabels call
+    if( numberOfTrainingLabels <= 0) {
+       fprintf(stderr, "Training Layer \"%s\": No training labels.  Exiting\n", name);
+       exit( errno ? errno : EXIT_FAILURE );
+    }
     initialize( numberOfTrainingLabels, trainingLabelsFromFile, displayPeriod, distToData); // trainingLabels allocated within this initialize call
     free(trainingLabelsFromFile);
     return PV_SUCCESS;
