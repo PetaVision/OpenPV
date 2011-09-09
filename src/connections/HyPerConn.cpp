@@ -148,6 +148,7 @@ int HyPerConn::initialize_base()
 
    wPatches=NULL;
    axonalArborList=NULL;
+   pIncr = NULL;
 //   for (int i = 0; i < MAX_ARBOR_LIST; i++) {
 //      wPatches[i] = NULL;
 //      axonalArborList[i] = NULL;
@@ -161,8 +162,10 @@ int HyPerConn::createArbors() {
    PVParams * inputParams = parent->parameters();
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
+   assert(wPatches != NULL);
    axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
-   return PV_SUCCESS; //should we check if allocation was successful?
+   assert(axonalArborList != NULL);
+   return PV_SUCCESS;
 }
 
 
@@ -193,7 +196,8 @@ int HyPerConn::constructWeights(const char * filename)
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
       PVPatch **arborPatch = weights(arborId);
       arborPatch = createWeights(arborPatch, arborId);
-      setWPatches(arborPatch, arborId); //allocates memory for weights
+      assert(arborPatch != NULL);
+      setWPatches(arborPatch, arborId);
       //wPatches[arborId] = createWeights(wPatches[arborId]); //allocates memory for weights
 
    #ifdef OBSOLETE_STDP
@@ -202,13 +206,14 @@ int HyPerConn::constructWeights(const char * filename)
 
       // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
       //  weight patches may shrink
-      createAxonalArbors(arborId);
+      status |= createAxonalArbors(arborId);
       assert(weights(arborId) != NULL);
-   }
+   }  // arborId
 
    //initialize weights for patches:
-   initializeWeights(wPatches, numWeightPatches(), filename);
-
+   assert( initializeWeights(wPatches, numWeightPatches(), filename) != NULL);
+   status |= initPlasticityPatches();
+   assert(status == 0);
 
    return status;
 }
@@ -332,6 +337,46 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    return status;
 }
 
+int HyPerConn::initPlasticityPatches()
+{
+   if (!plasticityFlag) return PV_SUCCESS;
+
+   //const int arbor = 0;
+   const int numAxons = numberOfAxonalArborLists();
+
+   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+   assert(pIncr != NULL);
+
+   int numArbors = numWeightPatches();
+   for (int arborId = 0; arborId < numAxons; arborId++) {
+
+      //pIncr[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      //assert(pIncr[n] != NULL);
+      PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      assert(dWPatch != NULL);
+
+
+      // kex is in extended frame
+      for (int kex = 0; kex < numArbors; kex++) {
+         int kl, offset, nxPatch, nyPatch, dx, dy;
+         PVAxonalArbor * arbor = axonalArbor(kex, arborId);
+
+         calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
+
+         // adjust patch size (shrink) to fit within interior of post-synaptic layer
+         //
+         //arbor->plasticIncr = pIncr[n][kex];
+         arbor->plasticIncr = dWPatch[kex];
+         pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
+
+      } // loop over pre-synaptic neurons
+      setdWPatches(dWPatch, arborId);
+
+   } // loop over arbors
+
+   return PV_SUCCESS;
+}
+
 // set member variables specified by user
 int HyPerConn::setParams(PVParams * filep /*, PVConnParams * p*/)
 {
@@ -371,10 +416,10 @@ int HyPerConn::setParams(PVParams * filep /*, PVConnParams * p*/)
       tauLTD = filep->value(name, "tauLTD", tauLTD);
 #endif
 
-      wMax = filep->value(name, "strength", wMax, false);
-      // let wMax override strength if user provides it
+      plasticityFlag = filep->value(name, "plasticityFlag", plasticityFlag, false);
 
-      // moved to STDPConn (not used elsewhere in project)
+      // moved to STDPConn (not used elsewhere in project) !!! whoever keeps putting wMax back STOP!!!!
+      // let wMax override strength if user provides it
       //wMax = filep->value(name, "wMax", wMax);
       //wMin = filep->value(name, "wMin", wMin);
 
@@ -1287,7 +1332,7 @@ int HyPerConn::createAxonalArbors(int arborId)
 
       arbor->data = &dataPatches[kex];
       arbor->weights = getWeights(kex, arborId);
-      arbor->plasticIncr = NULL;   // will be set later by STDPConn if needed
+      arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
 
       arbor->delay=(int) inputParams->value(name, "delay", 0);
       // initialize the receiving (of spiking data) gSyn variable

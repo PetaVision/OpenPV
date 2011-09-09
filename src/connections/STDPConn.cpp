@@ -54,15 +54,19 @@ int STDPConn::initPlasticityPatches()
 {
    if (!stdpFlag) return PV_SUCCESS;
 
+   int status = HyPerConn::initPlasticityPatches();
+   assert(status == 0);
    //const int arbor = 0;
    const int numAxons = numberOfAxonalArborLists();
 
-   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
 //   pIncr = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-//   assert(pIncr != NULL);
    pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    assert(pDecr != NULL);
 
+   // moved to HyPerConn
+#ifdef OBSOLETE_STDP
+   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+   assert(pIncr != NULL);
    int numArbors = numWeightPatches();
    for (int n = 0; n < numAxons; n++) {
 
@@ -84,7 +88,7 @@ int STDPConn::initPlasticityPatches()
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
-
+#endif
    return PV_SUCCESS;
 }
 

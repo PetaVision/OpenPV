@@ -70,7 +70,7 @@ public:
    virtual int correctPIndex(int patchIndex);
 
 protected:
-   bool plasticityFlag;
+//   bool plasticityFlag;
    float weightUpdatePeriod;
    float weightUpdateTime;
    float lastUpdateTime;
@@ -85,6 +85,8 @@ private:
 
 
 protected:
+   PVPatch *** dKernelPatches;   // list of dKernel patches for storing changes in kernel strengths
+
 #ifdef PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
 #endif // PV_USE_MPI
@@ -112,6 +114,7 @@ protected:
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename);
    virtual int setWPatches(PVPatch ** patches, int arborId);
+   virtual int setdWPatches(PVPatch ** patches, int arborId);
 };
 
 }

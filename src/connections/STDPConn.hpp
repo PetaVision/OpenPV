@@ -44,10 +44,12 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename, bool stdpFlag, InitWeights *weightInit);
-   int initPlasticityPatches();
+   virtual int initPlasticityPatches();
 
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
+#ifdef OBSOLETE_STDP
    PVPatch       *** pIncr;      // list of stdp patches Psij variable
+#endif
 
    bool       stdpFlag;         // presence of spike timing dependent plasticity
 

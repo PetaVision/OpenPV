@@ -166,11 +166,12 @@ protected:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
    //PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 private:
-   PVPatch       *** wPatches; // list of weight patches, one set per neighbor
-   PVAxonalArbor ** axonalArborList; // list of axonal arbors for each neighbor
+   PVPatch       *** wPatches; // list of weight patches, one set per arbor
+   PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
+   PVPatch       *** pIncr;      // list of weight patches for storing changes to weights
 
 #ifdef OBSOLETE_STDP
    bool     localWmaxFlag;  // presence of rate dependent wMax;
@@ -214,6 +215,8 @@ protected:
 
    Timer * update_timer;
 
+   bool plasticityFlag;
+
    bool normalize_flag;
    float normalize_strength;
    float normalize_max;
@@ -245,6 +248,7 @@ protected:
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename,
                   InitWeights *weightInit);
+   virtual int initPlasticityPatches();
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
@@ -283,6 +287,7 @@ protected:
    // following is overridden by KernelConn to set kernelPatches
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
+   virtual int setdWPatches(PVPatch ** patches, int arborId) {pIncr[arborId]=patches; return 0;}
    inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    // static member functions
 

@@ -52,6 +52,7 @@ KernelConn::~KernelConn() {
 int KernelConn::initialize_base()
 {
    kernelPatches = NULL;
+   dKernelPatches = NULL;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
    tmpPatch = NULL;
@@ -71,7 +72,6 @@ int KernelConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, 
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
-   plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag);
    weightUpdateTime = initializeUpdateTime(params);
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
@@ -103,6 +103,15 @@ int KernelConn::setWPatches(PVPatch ** patches, int arborId){
    assert(status == 0);
    assert(kernelPatches[arborId] == NULL);
    kernelPatches[arborId] = tmpPatch;  // tmpPatch stores most recently allocated PVPatch**
+   tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
+   return PV_SUCCESS;
+}
+
+int KernelConn::setdWPatches(PVPatch ** patches, int arborId){
+   int status = HyPerConn::setdWPatches(patches, arborId);
+   assert(status == 0);
+   assert(dKernelPatches[arborId] == NULL);
+   dKernelPatches[arborId] = tmpPatch;  // tmpPatch stores most recently allocated PVPatch**
    tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
    return PV_SUCCESS;
 }
