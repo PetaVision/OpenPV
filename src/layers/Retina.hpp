@@ -46,8 +46,8 @@ public:
 protected:
    virtual int initializeV(bool restart_flag);
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
+   virtual int initializeThreadBuffers(const char * kernel_name);
+   virtual int initializeThreadKernels(const char * kernel_name);
 
    CLBuffer * clRand;
 #endif
