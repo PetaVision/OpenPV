@@ -369,7 +369,7 @@ int gatherImageFileGDAL(const char * filename,
 #ifdef PV_USE_MPI
       const int dest = 0;
 
-      MPI_Send(buf, nx*ny*numBands, MPI_BYTE, dest, tag, mpi_comm);
+      MPI_Send(buf, nxnynf, MPI_BYTE, dest, tag, mpi_comm);
       // for (int b = 0; b < numBands; b++) {
       //   MPI_Send(&buf[b*nxny], nxny, MPI_BYTE, dest, tag, mpi_comm);
       // }
@@ -435,6 +435,7 @@ int gatherImageFileGDAL(const char * filename,
                     comm->commRank(), src, nx, ny, nxny*numBands,
                     numTotal*comm->commSize());
 #endif
+            MPI_Recv(icBuf, nxnynf, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
             dataset->RasterIO(GF_Write, kx, ky, nx, ny, icBuf, nx, ny, GDT_Byte,
                               numBands, NULL, numBands, numBands*nx, 1);
             // for (int b = 0; b < numBands; b++) {
