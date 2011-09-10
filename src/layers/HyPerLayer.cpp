@@ -47,12 +47,24 @@ HyPerLayer::~HyPerLayer()
    free(name);
    freeChannels();
    
+#ifdef PV_USE_OPENCL
+   delete clV;
+   delete clActivity;
+   delete clPrevTime;
+#endif
+
    if (labels != NULL) free(labels);
    if (marginIndices != NULL) free(marginIndices);
 }
 
 void HyPerLayer::freeChannels()
 {
+#ifdef PV_USE_OPENCL
+   for (int m = 0; m < numChannels; m++) {
+      delete clGSyn[m];
+   }
+#endif
+
    if (numChannels > 0) {
       free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
       free(GSyn);     // this frees the array pointers to separate conductance channels
@@ -155,6 +167,7 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    // allocate storage for the input conductance arrays
    //
+   GSyn = NULL;
    if (numChannels > 0) {
       GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
       assert(GSyn != NULL);
@@ -165,10 +178,6 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
       for (int m = 1; m < numChannels; m++) {
          GSyn[m] = GSyn[0] + m * getNumNeurons();
       }
-   }
-   else {
-      numChannels = 0;
-      GSyn = NULL;
    }
 
    // labels are not extended
@@ -212,6 +221,47 @@ int HyPerLayer::initializeV(bool restart_flag) {
    // If restart_flag is true, initialize() will set V by calling readState()
    return PV_SUCCESS;
 }
+
+#ifdef PV_USE_OPENCL
+/**
+ * Initialize OpenCL buffers.  This must be called after PVLayer data have
+ * been allocated.
+ */
+int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
+{
+   int status = CL_SUCCESS;
+
+   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
+   const size_t size_ex = getNumExtended() * sizeof(pvdata_t);
+
+   CLDevice * device = parent->getCLDevice();
+
+   // these buffers are shared between host and device
+   //
+   clV        = device->createBuffer(CL_MEM_COPY_HOST_PTR, size,    clayer->V);
+   clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
+   clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
+
+   // create clParams in derived classes as it is class specific
+
+   clGSyn = NULL;
+   if (numChannels > 0) {
+      clGSyn = (CLBuffer **) malloc(numChannels*sizeof(CLBuffer *));
+      assert(clGSyn != NULL);
+
+      for (int m = 0; m < numChannels; m++) {
+         clGSyn[m] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, GSyn[m]);
+      }
+   }
+
+   return status;
+}
+
+int HyPerLayer::initializeThreadKernels(const char * kernel_name)
+{
+   // No kernels for base functionality for now
+}
+#endif
 
 int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
 {
@@ -468,6 +518,7 @@ int HyPerLayer::updateBorder(float time, float dt)
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_OPENCL
+#if PV_CL_EVENTS
    // wait for memory to be copied from device
    if (numWait > 0) {
       status |= clWaitForEvents(numWait, evList);
@@ -479,6 +530,7 @@ int HyPerLayer::updateBorder(float time, float dt)
 
    status |= clWaitForEvents(1, &evUpdate);
    clReleaseEvent(evUpdate);
+#endif
 #endif
 
    return status;
