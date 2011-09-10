@@ -76,8 +76,10 @@ protected:
    pvdata_t * G_IB;
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(char * kernelName);
-   virtual int initializeThreadKernels(char * kernelName);
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+
+   virtual int getNumCLEvents() {return NUM_LIF_EVENTS;}
 
    // OpenCL buffers
    //
@@ -86,7 +88,6 @@ protected:
    CLBuffer * clG_E;
    CLBuffer * clG_I;
    CLBuffer * clG_IB;
-   virtual int getNumCLEvents(){return NUM_LIF_EVENTS};
 #endif
 
 protected:
@@ -94,26 +95,15 @@ protected:
 
 private:
    int findPostSynaptic(int dim, int maxSize, int col,
-	// input: which layer, which neuron
-			HyPerLayer *lSource, float pos[],
+   // input: which layer, which neuron
+   HyPerLayer *lSource, float pos[],
 
-			// output: how many of our neurons are connected.
-			// an array with their indices.
-			// an array with their feature vectors.
-			int* nNeurons, int nConnectedNeurons[], float *vPos);
-
+   // output: how many of our neurons are connected.
+   // an array with their indices.
+   // an array with their feature vectors.
+   int* nNeurons, int nConnectedNeurons[], float *vPos);
 };
 
 } // namespace PV
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* LIF_HPP_ */
