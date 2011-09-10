@@ -496,6 +496,46 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, con
    return arbors;
 }
 
+#ifdef PV_USE_OPENCL
+/**
+ * Initialize OpenCL buffers.  This must be called after weights have
+ * been allocated.
+ */
+int HyPerConn::initializeThreadBuffers(const char * kernel_name)
+{
+   int status = CL_SUCCESS;
+
+//   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
+//   const size_t size_ex = getNumExtended() * sizeof(pvdata_t);
+
+   CLDevice * device = parent->getCLDevice();
+
+   // these buffers are shared between host and device
+   //
+
+   // TODO - create device buffers for weights
+
+   return status;
+}
+
+int HyPerConn::initializeThreadKernels(const char * kernel_name)
+{
+   char kernelPath[PV_PATH_MAX+128];
+   char kernelFlags[PV_PATH_MAX+128];
+
+   int status = CL_SUCCESS;
+   CLDevice * device = parent->getCLDevice();
+
+   sprintf(kernelPath, "%s/src/kernels/%s.cl", parent->getPath(), kernel_name);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
+
+   // create kernels
+   //
+
+   return status;
+}
+#endif
+
 int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
    // use default header checker
