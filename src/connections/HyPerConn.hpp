@@ -17,6 +17,11 @@
 #include "InitWeights.hpp"
 #include <stdlib.h>
 
+#ifdef PV_USE_OPENCL
+#include "../arch/opencl/CLKernel.hpp"
+#include "../arch/opencl/CLBuffer.hpp"
+#endif
+
 #define PROTECTED_NUMBER 13
 #define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
 
@@ -289,9 +294,25 @@ protected:
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
    virtual int setdWPatches(PVPatch ** patches, int arborId) {pIncr[arborId]=patches; return 0;}
    inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
-   // static member functions
+
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+
+   CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
+
+   // OpenCL buffers
+   //
+   CLBuffer * clGSyn;
+   CLBuffer * clActivity;
+   CLBuffer * clWeights;
+#endif
 
 public:
+
+   // static member functions
+   //
+
    static PVPatch ** createPatches(int numBundles, int nx, int ny, int nf)
    {
       PVPatch ** patches = (PVPatch**) malloc(numBundles*sizeof(PVPatch*));
