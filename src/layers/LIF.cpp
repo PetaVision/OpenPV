@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,7 +45,6 @@ void LIF_update_state(
     float * GSynInh,
     float * GSynInhB,
     float * activity);
-
 
 #ifdef __cplusplus
 }
@@ -86,7 +84,6 @@ LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels)
   // a function class but is asking for an init by the derived class
 }
 
-
 LIF::~LIF()
 {
    if (numChannels > 0) {
@@ -95,7 +92,6 @@ LIF::~LIF()
    }
    free(Vth);
    free(rand_state);
-
 
 #ifdef PV_USE_OPENCL
    free(evList);
@@ -107,11 +103,16 @@ LIF::~LIF()
    delete clG_E;
    delete clG_I;
    delete clG_IB;
-   delete clGSynE;
-   delete clGSynI;
-   delete clGSynIB;
    delete clActivity;
    delete clPrevTime;
+
+   for (int m = 0; m < numChannels; m++) {
+      delete clGSyn[m];
+   }
+   if (clGSyn != NULL) {
+      free(clGSyn);
+      clGSyn = NULL;
+   }
 #endif
 
 }
@@ -130,7 +131,6 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
    float time = 0.0f;
 
    const size_t numNeurons = getNumNeurons();
-
 
    setParams(parent->parameters());
    // clayer->layerType = type; // done during call to HyPerLayer::initialize
@@ -190,7 +190,7 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
  * Initialize OpenCL buffers.  This must be called after PVLayer data have
  * been allocated.
  */
-int LIF::initializeThreadBuffers(char * kernel_name)
+int LIF::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
@@ -204,25 +204,17 @@ int LIF::initializeThreadBuffers(char * kernel_name)
 
    // TODO - use constant memory
    clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(lParams), &lParams);
-   clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
 
-   clV    = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
+   clRand = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
    clVth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, Vth);
    clG_E  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_E);
    clG_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_I);
    clG_IB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_IB);
 
-   clGSynE  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
-   clGSynI  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
-   clGSynIB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INHB));
-
-   clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
-   clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
-
    return status;
 }
 
-int LIF::initializeThreadKernels(char * kernel_name)
+int LIF::initializeThreadKernels(const char * kernel_name)
 {
    char kernelPath[PV_PATH_MAX+128];
    char kernelFlags[PV_PATH_MAX+128];
@@ -255,9 +247,9 @@ int LIF::initializeThreadKernels(char * kernel_name)
    status |= krUpdate->setKernelArg(argid++, clG_E);
    status |= krUpdate->setKernelArg(argid++, clG_I);
    status |= krUpdate->setKernelArg(argid++, clG_IB);
-   status |= krUpdate->setKernelArg(argid++, clGSynE);
-   status |= krUpdate->setKernelArg(argid++, clGSynI);
-   status |= krUpdate->setKernelArg(argid++, clGSynIB);
+   for (int i = 0; i < getNumChannels(); i++) {
+      status |= krUpdate->setKernelArg(argid++, clGSyn[i]);
+   }
    status |= krUpdate->setKernelArg(argid++, clActivity);
    numKernelArgs = argid;
 
@@ -306,7 +298,6 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqE  > 1.0) lParams.noiseFreqE  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
-   
 
    return 0;
 }
@@ -317,20 +308,24 @@ int LIF::updateStateOpenCL(float time, float dt)
 
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
+#if PV_CL_EVENTS
    status |= clWaitForEvents(numWait, evList);
    for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
+#endif
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
 
+#if PV_CL_COPY_BUFFERS
    status |= clGSynE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_E]);
    status |= clGSynI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_I]);
    status |= clGSynIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_IB]);
    status |= clActivity ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
+#endif
 
    numWait += 4;
 #endif
@@ -345,10 +340,12 @@ int LIF::triggerReceive(InterColComm* comm)
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
+#if PV_CL_COPY_BUFFERS
    status |= clGSynE->copyToDevice(&evList[EV_LIF_GSYN_E]);
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_IB]);
    numWait += 3;
+#endif
 #endif
 
    return status;
@@ -361,8 +358,10 @@ int LIF::waitOnPublish(InterColComm* comm)
    // copy activity to device
    //
 #ifdef PV_USE_OPENCL
+#if PV_CL_COPY_BUFFERS
    status |= clActivity->copyToDevice(&evList[EV_LIF_ACTIVITY]);
    numWait += 1;
+#endif
 #endif
 
    return status;
@@ -456,7 +455,6 @@ int LIF::writeState(float time, bool last)
 
    getOutputFilename(path, "G_IB", last_str);
    status = write_pvdata(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
-
 
 #ifdef DEBUG_OUTPUT
    // print activity at center of image
