@@ -68,18 +68,17 @@ Retina::~Retina()
    free(rand_state);
 
 #ifdef PV_USE_OPENCL
+#if PV_CL_EVENTS
    free(evList);
-
-   delete clPhiE;
-   delete clPhiI;
-   delete clActivity;
-   delete clPrevTime;
+#endif
 #endif
 }
 
 int Retina::initialize(PVLayerType type)
 {
    int status = HyPerLayer::initialize(type);
+
+   const char * kernel_name;
    PVLayer * l = clayer;
 
    // clayer->layerType = type; // done during call to HyPerLayer::initialize
@@ -118,8 +117,15 @@ int Retina::initialize(PVLayerType type)
       nxl = 16; nyl = 8;
    }
 
-   initializeThreadBuffers();
-   initializeThreadKernels();
+   if (spikingFlag) {
+      kernel_name = "Retina_spiking_update_state";
+   }
+   else {
+      kernel_name = "Retina_nonspiking_update_state";
+   }
+
+   initializeThreadBuffers(kernel_name);
+   initializeThreadKernels(kernel_name);
 #endif
 
    return status;
@@ -130,44 +136,12 @@ int Retina::initialize(PVLayerType type)
  * Initialize OpenCL buffers.  This must be called after PVLayer data have
  * been allocated.
  */
-int Retina::initializeThreadBuffers()
+int Retina::initializeThreadBuffers(const char * kernel_name)
 {
-   int status = CL_SUCCESS;
-
-   const size_t size    = clayer->numNeurons  * sizeof(pvdata_t);
-   const size_t size_ex = clayer->numExtended * sizeof(pvdata_t);
-
-   CLDevice * device = parent->getCLDevice();
-
-   // these buffers are shared between host and device
-   //
-
-   clV = NULL;
-
-   // TODO - use constant memory
-   clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
-
-   clPhiE = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_EXC));
-   clPhiI = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_INH));
-
-   assert(numChannels < 3);
-   clPhiIB = NULL;
-
-   clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
-
-   if (spikingFlag) {
-      clRand     = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
-      clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
-   }
-   else {
-      clRand = NULL;
-      clPrevTime = NULL;
-   }
-
-   return status;
+   return CL_SUCCESS;
 }
 
-int Retina::initializeThreadKernels()
+int Retina::initializeThreadKernels(const char * kernel_name)
 {
    char kernelPath[256];
    char kernelFlags[256];
@@ -181,7 +155,7 @@ int Retina::initializeThreadKernels()
    // create kernels
    //
    if (spikingFlag) {
-      krUpdate = device->createKernel(kernelPath, "Retina_spiking_update_state", kernelFlags);
+      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
    }
    else {
       krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
@@ -202,8 +176,8 @@ int Retina::initializeThreadKernels()
       status |= krUpdate->setKernelArg(argid++, clRand);
    }
 
-   status |= krUpdate->setKernelArg(argid++, clPhiE);
-   status |= krUpdate->setKernelArg(argid++, clPhiI);
+   status |= krUpdate->setKernelArg(argid++, getCLChannel(CHANNEL_EXC));
+   status |= krUpdate->setKernelArg(argid++, getCLChannel(CHANNEL_INH));
    status |= krUpdate->setKernelArg(argid++, clActivity);
    if (spikingFlag) {
       status |= krUpdate->setKernelArg(argid++, clPrevTime);
@@ -268,22 +242,25 @@ int Retina::updateStateOpenCL(float time, float dt)
    int status = CL_SUCCESS;
 
 #ifdef PV_USE_OPENCL
+#if PV_CL_EVENTS
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
    for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
+#endif
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
 
+#if PV_CL_COPY_BUFFERS
    status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
    status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_I]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_R_ACTIVITY]);
-
    numWait += 3;
+#endif
 #endif
 
    return status;
@@ -296,9 +273,11 @@ int Retina::triggerReceive(InterColComm* comm)
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
+#if PV_CL_COPY_BUFFERS
    status |= clPhiE->copyToDevice(&evList[EV_R_PHI_E]);
    status |= clPhiI->copyToDevice(&evList[EV_R_PHI_I]);
    numWait += 2;
+#endif
 #endif
 
    return status;
@@ -311,7 +290,9 @@ int Retina::waitOnPublish(InterColComm* comm)
    // copy activity to device
    //
 #ifdef PV_USE_OPENCL
+#if PV_CL_COPY_BUFFERS
    status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
+#endif
    numWait += 1;
 #endif
 
