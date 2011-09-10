@@ -140,12 +140,16 @@ public:
    //
    const pvdata_t   * getLayerData();
    const pvdata_t   * getLayerData(int delay);
-   const PVLayerLoc * getLayerLoc()  { return &clayer->loc; }
+   const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
    virtual int label(int k);
+
+   virtual int * getMarginIndices();
+   virtual int getNumMargin();
+
 
 protected:
 
@@ -169,6 +173,9 @@ protected:
 
    bool spikingFlag;
    bool writeNonspikingActivity;
+
+   int * marginIndices;         // indices of neurons in margin
+   int numMargin;         // number of neurons in margin
 
    // OpenCL variables
    //

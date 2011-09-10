@@ -48,6 +48,7 @@ HyPerLayer::~HyPerLayer()
    freeChannels();
    
    if (labels != NULL) free(labels);
+   if (marginIndices != NULL) free(marginIndices);
 }
 
 void HyPerLayer::freeChannels()
@@ -173,6 +174,8 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
    // labels are not extended
    labels = (int *) calloc(getNumNeurons(), sizeof(int));
    assert(labels != NULL);
+
+   marginIndices = NULL; //getMarginIndices();  // only store if getMarginIndices() is called
 
    return 0;
 }
@@ -1018,6 +1021,67 @@ int HyPerLayer::label(int k)
 {
    if (labels == NULL) return 0;
    else                return labels[k];
+}
+
+int HyPerLayer::getNumMargin(){
+   if (marginIndices == NULL){
+      getMarginIndices();
+   }
+   return numMargin;
+}
+
+int * HyPerLayer::getMarginIndices(){
+   if (marginIndices == NULL){
+      int kMargin = 0;
+      const PVLayerLoc * layerLoc = getLayerLoc();
+      const int marginUp = layerLoc->halo.up;
+      const int marginDn = layerLoc->halo.dn;
+      const int marginLt = layerLoc->halo.lt;
+      const int marginRt = layerLoc->halo.rt;
+      numMargin = marginUp * marginDn * marginLt * marginRt;
+      assert(numMargin == getNumExtended() - getNumNeurons());
+      const int nf = layerLoc->nf;
+      const int nx = layerLoc->nx;
+      const int ny = layerLoc->ny;
+      int nxExt = nx + marginRt + marginLt;
+      int nyExt = ny + marginUp + marginDn;
+      //int syExt = nf * nxExt;
+      //int sxExt = nf;
+      int * marginIndices = (int *) calloc(numMargin,
+                      sizeof(int));
+      assert(marginIndices != NULL);
+      // get North margin indices
+      for (int kPreExt = 0; kPreExt < nf * nxExt * marginUp; kPreExt++) {
+              marginIndices[kMargin++] = kPreExt;
+      }
+      assert(kMargin == nf * nxExt * marginUp);
+      // get East margin indices
+      for (int ky = marginUp; ky < marginUp + ny; ky++) {
+              for (int kx = 0; kx < marginLt; kx++) {
+                      for (int kf = 0; kf < nf; kf++) {
+                              int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+                              marginIndices[kMargin++] = kPreExt;
+                      }
+              }
+      }
+      assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny);
+      // get West margin indices
+      for (int ky = marginUp; ky < marginUp + ny; ky++) {
+              for (int kx = nx + marginLt; kx < nxExt; kx++) {
+                      for (int kf = 0; kf < nf; kf++) {
+                              int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+                              marginIndices[kMargin++] = kPreExt;
+                      }
+              }
+      }
+      assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny + nf * marginUp * ny);
+      // get South margin indices
+      for (int kPreExt = kMargin; kPreExt < numMargin; kPreExt++) {
+              marginIndices[kMargin++] = kPreExt;
+      }
+      assert(kMargin == numMargin);
+   }
+   return marginIndices;
 }
 
 } // end of PV namespace

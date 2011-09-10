@@ -21,76 +21,37 @@ CliqueLayer::CliqueLayer(const char* name, HyPerCol * hc, PVLayerType type) :
 
 
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
-		int neighbor) {
+		int axonId) {
 	recvsyn_timer->start();
 
-	assert(neighbor == 0); // assume called only once
+	assert(axonId == 0); // assume called only once
 	//const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+	printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, axonId, numExtended, activity, this, conn);
 	fflush(stdout);
 #endif
 
-	// get margin indices (should compute these in HyPerLayer::initialize
-	//unsigned int kPreExt = 0;
-	int kMargin = 0;
-	int marginUp = this->clayer->loc.halo.up;
-	int marginDn = this->clayer->loc.halo.dn;
-	int marginLt = this->clayer->loc.halo.lt;
-	int marginRt = this->clayer->loc.halo.rt;
-	int numMargin = marginUp * marginDn * marginLt * marginRt;
-	assert(numMargin == this->getNumExtended() - this->getNumNeurons());
-	int nf = this->clayer->loc.nf;
-	int nx = this->clayer->loc.nx;
-	int ny = this->clayer->loc.ny;
-	int nxExt = nx + marginRt + marginLt;
-	int nyExt = ny + marginUp + marginDn;
-	//int syExt = nf * nxExt;
-	//int sxExt = nf;
-	int * marginIndices = (int *) calloc(numMargin,
-			sizeof(int));
-	assert(marginIndices != NULL);
-	// get North margin indices
-	for (int kPreExt = 0; kPreExt < nf * nxExt * marginUp; kPreExt++) {
-		marginIndices[kMargin++] = kPreExt;
-	}
-	assert(kMargin == nf * nxExt * marginUp);
-	// get East margin indices
-	for (int ky = marginUp; ky < marginUp + ny; ky++) {
-		for (int kx = 0; kx < marginLt; kx++) {
-			for (int kf = 0; kf < nf; kf++) {
-				int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-				marginIndices[kMargin++] = kPreExt;
-			}
-		}
-	}
-	assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny);
-	// get West margin indices
-	for (int ky = marginUp; ky < marginUp + ny; ky++) {
-		for (int kx = nx + marginLt; kx < nxExt; kx++) {
-			for (int kf = 0; kf < nf; kf++) {
-				int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-				marginIndices[kMargin++] = kPreExt;
-			}
-		}
-	}
-	assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny + nf * marginUp * ny);
-	// get South margin indices
-	for (int kPreExt = kMargin; kPreExt < numMargin; kPreExt++) {
-		marginIndices[kMargin++] = kPreExt;
-	}
-	assert(kMargin == numMargin);
+	// get margin indices of pre layer (whoops, not needed since have to recompute all active indices in extended layer on the fly)
+	//const int * marginIndices = conn->getPre()->getMarginIndices();
+	//int numMargin = conn->getPre()->getNumMargin();
+
+	const PVLayerLoc * preLoc = conn->getPre()->getLayerLoc();
+	const int nfPre = preLoc->nf;
+        const int nxPre = preLoc->nx;
+        const int nyPre = preLoc->ny;
+        const int nxPreExt = preLoc->nx + 2*preLoc->nb;
+        const int nyPreExt = preLoc->ny + 2*preLoc->nb;
 
 	// gather active indices in extended layer
-	// init activeIndicesExt to activeIndices and append indices of active neurons in margins to end of list
-	int numActiveExt = clayer->numActive;
-	unsigned int * activeExt = clayer->activeIndices;
+	// hard to pre-compute at HyPerLayer level because of variable delays
+	int numActiveExt = 0;
+	unsigned int * activeExt = (unsigned int *) calloc(conn->getPre()->getNumExtended(), sizeof(int));
+	assert(activeExt != NULL);
 	float * aPre = activity->data;
-	for (kMargin = 0; kMargin < numMargin; kMargin++) {
-		int kPreExt = marginIndices[kMargin];
+	for (int kPreExt = 0; kPreExt < conn->getPre()->getNumExtended(); kPreExt++) {
 		if (aPre[kPreExt] == 0)
 			continue;
 		activeExt[numActiveExt++] = kPreExt;
@@ -114,7 +75,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	// TODO: precompute clique dimensions during CliqueConn::initialize
 	int nyCliqueRadius = (int) (nyPostPatch/2);
 	int nxCliqueRadius = (int) (nxPostPatch/2);
-	int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nf;
+	int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nfPre;
 	int cliqueSize = 2;// number of presynaptic cells in clique (traditional ANN uses 1)
 	//int numKernels = conn->numDataPatches();  // per arbor?
 	int numCliques = pow(cliquePatchSize, cliqueSize-1);
@@ -131,13 +92,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 
                 // get indices of active elements in clique radius
 		int numActiveElements = 0;
-		int kxPreExt = kxPos(kPreExt, nxExt, nyExt, nf);
-		int kyPreExt = kyPos(kPreExt, nxExt, nyExt, nf);
-		//int kfPreExt = featureIndex(kPreExt, nxExt, nyExt, nf);
+		int kxPreExt = kxPos(kPreExt, nxPreExt, nyPreExt, nfPre);
+		int kyPreExt = kyPos(kPreExt, nxPreExt, nyPreExt, nfPre);
 		for(int kyCliqueExt = kyPreExt - nyCliqueRadius; kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
 			for(int kxCliqueExt = kxPreExt - nxCliqueRadius; kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
-				for(int kfCliqueExt = 0; kfCliqueExt < nf; kfCliqueExt++) {
-					int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxExt, nyExt, nf);
+				for(int kfCliqueExt = 0; kfCliqueExt < nfPre; kfCliqueExt++) {
+					int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxPreExt, nyPreExt, nfPre);
 					if (aPre[kCliqueExt] == 0) continue;
 					cliqueActiveIndices[numActiveElements++] = kCliqueExt;
 				}
@@ -159,12 +119,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 				kResidue = kResidue - kPatchActive * numActiveElements;
 
 				// compute arborIndex for this clique element
-				int kxCliqueExt = kxPos(kCliqueExt, nxExt, nyExt, nf);
-				int kyCliqueExt = kyPos(kCliqueExt, nxExt, nyExt, nf);
-				int kfClique = featureIndex(kCliqueExt, nxExt, nyExt, nf);
+				int kxCliqueExt = kxPos(kCliqueExt, nxPreExt, nyPreExt, nfPre);
+				int kyCliqueExt = kyPos(kCliqueExt, nxPreExt, nyPreExt, nfPre);
+				int kfClique = featureIndex(kCliqueExt, nxPreExt, nyPreExt, nfPre);
 				int kxPatch = kxCliqueExt - kxPreExt + nxCliqueRadius;
 				int kyPatch = kyCliqueExt - kyPreExt + nyCliqueRadius;
-				unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique, (2*nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nf);
+				unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique, (2*nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
 				arborNdx += kArbor * pow(cliquePatchSize,iProd);
 			}
 
@@ -182,15 +142,16 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	                int sywPatch = weights->sy;// stride in patch
 
 	                // TODO - unroll
-	                for (int y = 0; y < ny; y++) {
+	                for (int y = 0; y < nyPre; y++) {
 	                        pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
 	                }
 
 		} // kClique
 	} // kPreActive
-	delete(cliqueActiveIndices);
+	free(activeExt);
+        free(cliqueActiveIndices);
 	recvsyn_timer->stop();
-	return 0;
+	return PV_CONTINUE;
 }
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
