@@ -44,6 +44,8 @@ KernelConn::   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, Hy
 }
 
 KernelConn::~KernelConn() {
+   free(kernelPatches);
+   if (dKernelPatches != NULL) {free(dKernelPatches);};
 #ifdef PV_USE_MPI
    free(mpiReductionBuffer);
 #endif // PV_USE_MPI
@@ -262,10 +264,13 @@ int KernelConn::updateState(float time, float dt) {
          // TODO? error handling
    #endif // PV_USE_MPI
 
-         updateWeights(axonID);  // calculate new weights from changes
+         status |= updateWeights(axonID);  // calculate new weights from changes
+         if (status == PV_CONTINUE) continue;
+         assert(status == PV_SUCCESS);
          if( normalize_flag ) {
             PVPatch ** p = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
-            status = p==kernelPatches[axonID] ? PV_SUCCESS : PV_FAILURE;
+            status |= p==kernelPatches[axonID] ? PV_SUCCESS : PV_FAILURE;
+            assert(status == PV_SUCCESS);
          }
       }
       // TODO? error handling

@@ -873,7 +873,9 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 //      else {
 //         cube->data = pre->getLayerData();
 //      }
-      post->recvSynapticInput(this, cube, arborId);
+      int status = post->recvSynapticInput(this, cube, arborId);
+      if (status == PV_CONTINUE) continue;
+      assert(status == PV_SUCCESS);
    }
 #ifdef DEBUG_OUTPUT
    printf("[%d]: HyPerConn::delivered: \n", rank);
