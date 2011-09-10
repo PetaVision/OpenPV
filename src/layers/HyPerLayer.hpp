@@ -19,6 +19,8 @@
 #include "../utils/Timer.hpp"
 
 #ifdef PV_USE_OPENCL
+#define PV_CL_COPY_BUFFERS 0
+#define PV_CL_EVENTS 0
 #include "../arch/opencl/CLKernel.hpp"
 #endif
 
@@ -35,8 +37,8 @@ protected:
    virtual int initializeV(bool restart_flag);
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(char * kernelName) = 0;
-   virtual int initializeThreadKernels(char * kernelName) = 0;
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
 #endif
 
 private:
@@ -150,7 +152,6 @@ public:
    virtual int * getMarginIndices();
    virtual int getNumMargin();
 
-
 protected:
 
    void freeChannels();
@@ -174,30 +175,31 @@ protected:
    bool spikingFlag;
    bool writeNonspikingActivity;
 
-   int * marginIndices;         // indices of neurons in margin
+   int * marginIndices;   // indices of neurons in margin
    int numMargin;         // number of neurons in margin
 
    // OpenCL variables
    //
 #ifdef PV_USE_OPENCL
+   virtual int getNumKernelArgs() {return numKernelArgs;}
+   virtual int getNumCLEvents()   {return numEvents;}
+
+   CLBuffer * getCLChannel(ChannelType ch) {
+      return ch < this->numChannels ? clGSyn[ch] : NULL;
+   }
+
    CLKernel * krUpdate;        // CL kernel for update state call
 
    // OpenCL buffers
    //
    CLBuffer * clV;
-   CLBuffer * clVth;
-   CLBuffer * clPhiE;
-   CLBuffer * clPhiI;
-   CLBuffer * clPhiIB;
+   CLBuffer **clGSyn;         // of dynamic length numChannels
    CLBuffer * clActivity;
    CLBuffer * clPrevTime;
    CLBuffer * clParams;       // for transferring params to kernel
 
-
-   int numKernelArgs;             // number of events in event list
-   virtual int getNumKernelArgs(){return numKernelArgs};
+   int numKernelArgs;         // number of arguments in kernel call
    int numEvents;             // number of events in event list
-   virtual int getNumCLEvents(){return numEvents};
    int numWait;               // number of events to wait for
    cl_event * evList;         // event list
    cl_event   evUpdate;
