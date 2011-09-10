@@ -41,7 +41,9 @@ protected:
    // OpenCL buffers
    //
    CLBuffer * clG_Gap;
-   virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS};
+   CLBuffer * clGSynGap;
+
+   virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS;}
 #endif
 
 private:
