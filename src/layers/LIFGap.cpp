@@ -141,7 +141,6 @@ int LIFGap::initializeThreadKernels(char * kernel_name)
 
    numKernelArgs = argid;
 
-
    return status;
 }
 #endif
@@ -154,7 +153,9 @@ int LIFGap::updateStateOpenCL(float time, float dt)
 #ifdef PV_USE_OPENCL
    status = LIF::updateStateOpenCL(time, dt);
 
+#if PV_CL_COPY_BUFFERS
    status |= clGSynGap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+#endif
 
    numWait += 1;
 #endif
@@ -169,8 +170,10 @@ int LIFGap::triggerReceive(InterColComm* comm)
 
 #ifdef PV_USE_OPENCL
    // copy data to device
+#if PV_CL_COPY_BUFFERS
    status |= clGSynGap->copyToDevice(&evList[EV_LIF_GSYN_GAP]);
    numWait += 1;
+#endif
 #endif
 
    return status;
