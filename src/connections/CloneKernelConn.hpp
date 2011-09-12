@@ -36,6 +36,8 @@ protected:
          int nxPatch, int nyPatch, int nfPatch, int axonId);
    virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
             const char * filename);
+   virtual int setWPatches(PVPatch ** patches, int arborId);
+   virtual int setdWPatches(PVPatch ** patches, int arborId);
    int deleteWeights();
 
    KernelConn * originalConn;
