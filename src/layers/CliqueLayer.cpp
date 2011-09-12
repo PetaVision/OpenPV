@@ -41,8 +41,8 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 
 	const PVLayerLoc * preLoc = conn->getPre()->getLayerLoc();
 	const int nfPre = preLoc->nf;
-        const int nxPre = preLoc->nx;
-        const int nyPre = preLoc->ny;
+        //const int nxPre = preLoc->nx;
+        //const int nyPre = preLoc->ny;
         const int nxPreExt = preLoc->nx + 2*preLoc->nb;
         const int nyPreExt = preLoc->ny + 2*preLoc->nb;
 
