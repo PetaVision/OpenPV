@@ -78,7 +78,6 @@ int Retina::initialize(PVLayerType type)
 {
    int status = HyPerLayer::initialize(type);
 
-   const char * kernel_name;
    PVLayer * l = clayer;
 
    // clayer->layerType = type; // done during call to HyPerLayer::initialize
@@ -117,6 +116,7 @@ int Retina::initialize(PVLayerType type)
       nxl = 16; nyl = 8;
    }
 
+   const char * kernel_name;
    if (spikingFlag) {
       kernel_name = "Retina_spiking_update_state";
    }
