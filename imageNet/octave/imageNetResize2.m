@@ -28,13 +28,13 @@ function [tot_images ...
   %% uses parcellfun to execute in parallel
 
   if nargin < 1 || ~exist(imageNet_path) || isempty(imageNet_path)
-    imageNet_path = "~/Pictures/imageNet/";
+    imageNet_path = "/Users/dylanpaiton/Documents/Work/LANL/Image_Net/Database/";
   endif
   if nargin < 2 || ~exist(image_resize) || isempty(image_resize)
-    image_resize = [256 360];
+    image_resize = [0 0];
   endif
   if nargin < 3 || ~exist(object_list) || isempty(object_list)
-    object_list{1} = "car"; 
+    object_list{1} = "flag"; 
   endif
   if nargin < 4 || ~exist(image_type) || isempty(image_type)
     image_type = ".png";  %% 
@@ -43,7 +43,7 @@ function [tot_images ...
     grabcut_flag = 1;  %% uses openCV segmentation algorithm to focus bounding boxes
   endif
   if nargin < 6 || ~exist(num_procs) || isempty(num_procs)
-    num_procs = 1;  %% number of processors to use
+    num_procs = 2;  %% number of processors to use
   endif
   if nargin < 7 || ~exist(BB_only_flag) || isempty(BB_only_flag)
     BB_only_flag = 1;  %% (-)1 -> only process images with(without) bounding boxes
@@ -68,6 +68,10 @@ function [tot_images ...
   global IMAGE_RESIZE
   global IMAGE_TYPE
   global GRABCUT_FLAG
+  global RESIZE_FLAG
+
+  RESIZE_FLAG = prod (image_resize) > 0;
+
   IMAGE_RESIZE = image_resize;
   IMAGE_TYPE = image_type;
   GRABCUT_FLAG = grabcut_flag;
@@ -75,14 +79,17 @@ function [tot_images ...
   begin_time = time();
   more off
 
-  TMP_DIR = [imageNet_path, "tmp", filesep];
+  output_path = [imageNet_path, "imageNetMasks", filesep];
+  mkdir(output_path);
+
+  TMP_DIR = [output_path, "tmp", filesep];
   mkdir(TMP_DIR);
 
-  TMP_MASK_DIR = [imageNet_path, "tmpMask", filesep];
+  TMP_MASK_DIR = [output_path, "tmpMask", filesep];
   mkdir(TMP_MASK_DIR);
 
   matFiles_dir = ...
-      [imageNet_path, "matFiles", filesep];
+      [output_path, "matFiles", filesep];
   mkdir(matFiles_dir); 
 
   disp("");
@@ -93,15 +100,18 @@ function [tot_images ...
     object_name = object_list{i_object};
     disp(["object_name = ", object_name]);
     object_dir = ...
-	[ imageNet_path, "extract", filesep, object_name, filesep];
+	[ imageNet_path, "img", filesep, object_name, filesep];
     if ~exist(object_dir, "dir")
       error(["object_dir does not exist: ", object_dir]);
     endif
+
+    mkdir([ output_path, "standard" ]);
     standard_parent_dir = ...
-	[ imageNet_path, "standard", filesep, object_name, filesep ];
+	[ output_path, "standard", filesep, object_name, filesep ];
     mkdir(standard_parent_dir);
+    mkdir([ output_path, "masks" ]);
     masks_parent_dir = ...
-	[ imageNet_path, "masks", filesep, object_name, filesep ];
+	[ output_path, "masks", filesep, object_name, filesep ];
     mkdir(masks_parent_dir);
     tot_images = zeros(1,num_objects);
     tot_masks = zeros(1,num_objects);
@@ -123,7 +133,7 @@ function [tot_images ...
     num_subdirs = length(subdir_pathnames);
     disp(["num_subdirs = ", num2str(num_subdirs)]);
     subdir_foldernames = cellfun(@strFolderFromPath, subdir_pathnames, "UniformOutput", false);
-    for i_subdir = 3 : num_subdirs %% 
+    for i_subdir = 1 : num_subdirs %% 
       disp(["i_subdir = ", num2str(i_subdir)]);
       disp(["subdir_pathname = ", subdir_pathnames{i_subdir}]);
       images_path = ...
@@ -298,5 +308,8 @@ function [tot_images ...
   end_time = time();
   tot_time = end_time - begin_time;
   disp(["tot_time = ", num2str(tot_time)]);
+
+  rmdir(TMP_DIR);
+  rmdir(TMP_MASK_DIR);
 
 endfunction%% imageNetResize2

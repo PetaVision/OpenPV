@@ -31,7 +31,14 @@ sub getPath{
     use XML::XPath;
     use XML::XPath::XMLParser;
 
-    $TMP_DIR = "tmp";
+    $currDir = `pwd`;
+    chomp($currDir);
+    $currDir =~ s/\s/\\ /g;
+    $TMP_DIR = "$currDir/../tmp";
+    unless (-d $TMP_DIR) {
+        system("mkdir -p $TMP_DIR");
+    }
+
     $IMG_DIR = $_[0];
     $input = $_[1];
 

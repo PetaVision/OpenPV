@@ -5,7 +5,7 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
     VERBOSE_FLAG = 0;
   endif
   if VERBOSE_FLAG
-    disp(["original_name = ", original_pathname]);
+    disp([" original_name = ", original_pathname]);
   endif
 
   global UNAVAILABLE_INFO
@@ -14,6 +14,7 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
   global ANNOTATION_DIR
   global MASKS_DIR
   global IMAGE_RESIZE
+  global RESIZE_FLAG
   global IMAGE_TYPE
   global GRABCUT_FLAG
 
@@ -51,10 +52,16 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
   if size(original_image,3) >= 3
     original_image = original_image(:,:,1:3);
   endif
-  [pad_image] = ...
-      imageNetPad2(original_image, ...
-		  image_info, ...
-		  IMAGE_RESIZE);
+  
+  if RESIZE_FLAG
+      [pad_image] = ...
+          imageNetPad2(original_image, ...
+              image_info, ...
+              IMAGE_RESIZE);
+  else
+    pad_image = original_image;
+  endif
+
   if isempty(pad_image)
     disp(["failed imageNetStandardized::imageNetPad2: ", original_pathname]);
     return;
@@ -78,11 +85,17 @@ function [image_info] = imageNetStandardize(original_pathname, xml_pathname)
     if isempty(mask_image)
       return;
     endif
-    [pad_mask_image] = ...
-	imageNetPad2(mask_image, ...
-		    image_info, ...
-		    IMAGE_RESIZE);
-    if isempty(pad_image)
+
+    if RESIZE_FLAG
+        [pad_mask_image] = ...
+        imageNetPad2(mask_image, ...
+                image_info, ...
+                IMAGE_RESIZE);
+    else
+        pad_mask_image = mask_image;
+    endif
+
+    if isempty(pad_mask_image)
       disp(["failed imageNetStandardized::imageNetPad2: ", xml_pathname]);
       return;
     endif

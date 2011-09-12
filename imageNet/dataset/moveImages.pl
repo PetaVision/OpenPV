@@ -26,7 +26,7 @@
 ##      If not: prompt user to enter parents
 ##      *** I have the beginnings of this working, although it is not as clean as I would like
 ##
-##  I have not tested modes 2 and 3
+##  As of now, modes 2 and 3 do not work
 ##
 ############
 
@@ -54,14 +54,11 @@ $use_cache = "y";
 
 $currDir = `pwd`;
 chomp($currDir);
-$TMP_DIR="$currDir/tmp";
+$TMP_DIR = "$currDir/../tmp";
+$esccurrDir = quotemeta($currDir);
+$esccurrDir =~ s/\\\//\//g;
 
-unless (-d $TMP_DIR) {
-    system("mkdir -p $TMP_DIR");
-}
-unless (-d $root_dir) {
-    system("mkdir -p $root_dir");
-}
+$IMG_DIR = "$currDir/../../img";
 
 #If we are given $num, assume mode 2] or 3]. Else, assume mode 1]
 if ($num) {

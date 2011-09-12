@@ -9,7 +9,7 @@ function [unavailable_flag, unavailable_info] = imageNetUnavailableFLCKR2(image_
 
   if isempty(unavailable_info)
     unavailable_info = struct;
-    unavailable_info.Filename = "/Users/gkenyon/Pictures/imageNet/this_photo_is_currently_unavailable.GIF";
+    unavailable_info.Filename = "/Users/dylanpaiton/Documents/Work/LANL/Image_Net/Database/imageNet/octave/this_photo_is_currently_unavailable.GIF";
     unavailable_info.FileSize =  2900;
     unavailable_info.Height =  375;
     unavailable_info.Width =  500;

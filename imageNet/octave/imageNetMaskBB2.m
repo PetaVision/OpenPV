@@ -6,6 +6,29 @@ function [mask_image, scale_x, scale_y] = ...
   global MASKS_DIR
   global TMP_DIR
   global TMP_MASK_DIR
+  
+  if ~exist ("VERBOSE_FLAG") || isempty (VERBOSE_FLAG)
+    VERBOSE_FLAG = 0;
+  endif
+  
+  if ~exist ("GRABCUT_FLAG") || isempty (GRABCUT_FLAG)
+    GRABCUT_FLAG = 1;
+  endif
+
+  if ~exist ("MASKS_DIR") || isempty (MASKS_DIR)
+    MASKS_DIR = "/Users/dylanpaiton/Documents/Work/LANL/Image_Net/Database/img/masks/";
+    mkdir (MASKS_DIR);
+  endif
+
+  if ~exist ("TMP_DIR") || isempty (TMP_DIR)
+    TMP_DIR = "/Users/dylanpaiton/Documents/Work/LANL/tmp";
+    mkdir (TMP_DIR);
+  endif
+
+  if ~exist ("TMP_MASK_DIR") || isempty (TMP_MASK_DIR)
+    TMP_MASK_DIR = "/Users/dylanpaiton/Documents/Work/LANL/tmp_masks";
+    mkdir (TMP_MASK_DIR);
+  endif
 
   mask_image = [];
   %%BB_mask = zeros(size(original_image));
@@ -97,7 +120,18 @@ function [mask_image, scale_x, scale_y] = ...
     BB_ndx = num_BB;
     BB_list(BB_ndx,:) = [BB_xmin, BB_xmax, BB_ymin, BB_ymax];
 
-    if GRABCUT_FLAG
+    annotation_area = annotation_width * annotation_height;
+    BB_SIZE_FLAG = 0;
+    for i_BB = 1 : num_BB
+        BB_width = BB_list(i_BB,2) - BB_list(i_BB,1);
+        BB_height = BB_list(i_BB,4) - BB_list(i_BB,3);
+        BB_area = BB_width * BB_height;
+        if BB_area/annotation_area > 0.95
+            BB_SIZE_FLAG = 1;
+        endif
+    endfor
+
+    if GRABCUT_FLAG && ~BB_SIZE_FLAG
       num_grabcut_iterations = 4;
       original_filename = strFolderFromPath(original_pathname);
       tmp_original_pathname =  [TMP_DIR, original_filename];
@@ -115,31 +149,32 @@ function [mask_image, scale_x, scale_y] = ...
 		  tmp_mask_pathname, ...
 		  BB_xmin, BB_ymin, BB_xmax, BB_ymax);
       if VERBOSE_FLAG
-	disp(["grabcut_cmd = ", grabcut_cmd]);
+	    disp(["grabcut_cmd = ", grabcut_cmd]);
       endif
       system(grabcut_cmd);
-      if exist("tmp_mask_pathname", "file")
-	BB_mask_tmp = imread(tmp_mask_pathname);
-	delete(tmp_mask_pathname);
-	if isempty(BB_mask_tmp)	  
-	  BB_mask_tmp = zeros(size(original_image));
-	  BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
-	endif
+      if exist(tmp_mask_pathname, "file")
+	   BB_mask_tmp = imread(tmp_mask_pathname);
+	   delete(tmp_mask_pathname);
+	   if isempty(BB_mask_tmp)	  
+	     BB_mask_tmp = zeros(size(original_image));
+	     BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
+	   endif
       else
-	BB_mask_tmp = zeros(size(original_image));
-	BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
+	    BB_mask_tmp = zeros(size(original_image));
+	    BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
       endif
-      if exist("tmp_original_pathname", "file")
-	delete(tmp_original_pathname);
+      if exist(tmp_original_pathname, "file")
+	    delete(tmp_original_pathname);
       endif
     else %% ~GRABCUT_FLAG
-      BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
+	     BB_mask_tmp = zeros(size(original_image,1),size(original_image,2));
+         BB_mask_tmp(BB_ymin:BB_ymax, BB_xmin:BB_xmax,:) = 255;
     endif
     BB_mask_tmp = squeeze(sum(BB_mask_tmp(:,:,1:end),3));
     if isempty(BB_mask)
       BB_mask = 255 * (BB_mask_tmp > 0);
     else
-    %%BB_mask = squeeze(sum(BB_mask(:,:,1:end),3));
+      %%BB_mask = squeeze(sum(BB_mask(:,:,1:end),3));
       BB_mask = 255 * ((BB_mask_tmp > 0) | (BB_mask > 0));
     endif
   endfor  %% i_bndbox
@@ -149,8 +184,6 @@ function [mask_image, scale_x, scale_y] = ...
 	repmat((BB_mask > 0), [1,1,size(original_image,3)]);
     mask_image = uint8(mask_image);
     BB_mask = uint8(BB_mask);
-  else
-    return;
   endif
   
 endfunction %% imageNetMaskBB

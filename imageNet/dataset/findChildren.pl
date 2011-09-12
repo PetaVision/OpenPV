@@ -36,18 +36,18 @@ sub findChildren{
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
     $STRUCTURE_URL = "http://www.image-net.org/api/xml/structure_released.xml";
 
-    $ROOT_DIR = "..";
-    $TMP_DIR = "tmp";
-    $IMG_DIR = "$ROOT_DIR/images";
+    $currDir = `pwd`;
+    chomp($currDir);
+    $currDir =~ s/\s/\\ /g;
+    $TMP_DIR = "$currDir/../tmp";
+    unless (-d $TMP_DIR) {
+        system("mkdir -p $TMP_DIR");
+    }
 
     undef @CHILDREN;
 
     $input = $_[0];
     print "\nFinding \"$input\" in the Image-Net hierarchy...\n";
-
-    unless (-d $TMP_DIR) {
-        system("mkdir -p $TMP_DIR");
-    }
 
 #Download Image-Net structure if it does not already exist in the temp folder
     unless (-e "$TMP_DIR/structure.xml") {

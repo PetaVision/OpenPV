@@ -40,6 +40,13 @@
 
 ##Setting $use_proxy to 1 is required in order to download images from within LANL's yellow network.
 my $use_proxy = 0;
+
+$currDir = `pwd`;
+chomp($currDir);
+$TMP_DIR="$currDir/../tmp";
+$IMG_DIR="$currDir/../../img";
+
+
 if ($use_proxy) {
     $PROXY_URL="http://proxyout.lanl.gov:8080/";
 }
@@ -61,10 +68,6 @@ unless (scalar(@ARGV) == 1) {
     die "Usage: ./downloadImages.pl \"search_terms.txt\"\n";
 } 
 
-$currDir = `pwd`;
-chomp($currDir);
-$TMP_DIR="$currDir/tmp";
-$IMG_DIR="$currDir/../img";
 $WNID_URL =~ s/\[username\]/$USER_NAME/;
 $WNID_URL =~ s/\[accesskey\]/$ACCESS_KEY/;
 

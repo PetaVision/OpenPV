@@ -46,10 +46,10 @@ sub countImages {
 
     $currDir = `pwd`;
     chomp($currDir);
-    $TMP_DIR = "$currDir/tmp";
+    $TMP_DIR = "$currDir/../tmp";
     $esccurrDir = quotemeta($currDir);
     $esccurrDir =~ s/\\\//\//g;
-    $IMG_DIR = "$currDir/../img";
+    $IMG_DIR = "$currDir/../../img";
 
 
     if ($cat =~ /rt/) {
