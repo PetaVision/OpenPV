@@ -83,7 +83,7 @@ PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
    return patches;
 }
 
-PVPatch ** CloneKernelConn::initializeWeights(PVPatch ** patches,
+PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches,
       int numPatches, const char * filename) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.

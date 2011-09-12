@@ -34,7 +34,7 @@ public:
 protected:
    PVPatch ** allocWeights(PVPatch ** patches, int nPatches,
          int nxPatch, int nyPatch, int nfPatch, int axonId);
-   virtual PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** patches, int numPatches,
             const char * filename);
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
