@@ -105,6 +105,7 @@ protected:
    virtual int initializeUpdateTime(PVParams * params);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
+   virtual int calc_dW(int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int axonId);
    virtual float computeNewWeightUpdateTime(float time, float currentUpdateTime);

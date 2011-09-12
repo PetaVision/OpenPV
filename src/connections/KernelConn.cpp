@@ -246,6 +246,25 @@ float KernelConn::maxWeight()
    return max_weight;
 }
 
+int KernelConn::calc_dW(int axonId){
+   // zero dWeightPatches
+   for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
+      for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
+         PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         int syPatch = dKernelPatch->sy;
+         int nkPatch = dKernelPatch->nf * dKernelPatch->nx;
+         float * dWeights = dKernelPatch->data;
+         for(int kyPatch = 0; kyPatch < dKernelPatch->ny; kyPatch++){
+            for(int kPatch = 0; kPatch < nkPatch; kPatch++){
+               dWeights[kPatch] = 0.0f;
+            }
+            dWeights += syPatch;
+         }
+      }
+   }
+   return PV_CONTINUE;
+}
+
 int KernelConn::updateState(float time, float dt) {
    update_timer->start();
    int status = PV_SUCCESS;
@@ -254,35 +273,60 @@ int KernelConn::updateState(float time, float dt) {
    }
    if( time >= weightUpdateTime) {
       computeNewWeightUpdateTime(time, weightUpdateTime);
-      //const int axonID = 0;    // assume only one for now
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = calc_dW(axonID);  // calculate changes in weights
-         // TODO error handling
-
-   #ifdef PV_USE_MPI
-         status = reduceKernels(axonID);  // combine partial changes in each column
-         // TODO? error handling
-   #endif // PV_USE_MPI
-
-         status |= updateWeights(axonID);  // calculate new weights from changes
-         if (status == PV_CONTINUE) continue;
+         if (status == PV_CONTINUE) {continue;}
          assert(status == PV_SUCCESS);
-         if( normalize_flag ) {
-            PVPatch ** p = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
-            status |= p==kernelPatches[axonID] ? PV_SUCCESS : PV_FAILURE;
-            assert(status == PV_SUCCESS);
-         }
       }
-      // TODO? error handling
-   }
 
-   update_timer->stop();
-   return status;
-}
+#ifdef PV_USE_MPI
+      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+         status = reduceKernels(axonID);  // combine partial changes in each column
+         if (status == PV_CONTINUE) {continue;}
+         assert(status == PV_SUCCESS);
+      }
+#endif // PV_USE_MPI
+
+      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+         status = updateWeights(axonID);  // calculate new weights from changes
+         if (status == PV_CONTINUE) {continue;}
+         assert(status == PV_SUCCESS);
+      }
+      if( normalize_flag ) {
+         for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+            PVPatch ** p = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
+            //status = p==kernelPatches[axonID] ? PV_SUCCESS : PV_FAILURE;
+            //assert(status == PV_SUCCESS);
+            assert(p != NULL);
+         }
+      }  // normalize_flag
+   } // time > weightUpdateTime
+
+update_timer->stop();
+return status;
+} // updateState
 
 int KernelConn::updateWeights(int axonId){
    lastUpdateTime = parent->simulationTime();
-   return 0;
+   // add dKernelPatches to KernelPatches
+   for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
+      for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
+         PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
+         PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         int syPatch = kernelPatch->sy;
+         int nkPatch = kernelPatch->nf * kernelPatch->nx;
+         float * weights = kernelPatch->data;
+         float * dWeights = dKernelPatch->data;
+         for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
+            for(int kPatch = 0; kPatch < nkPatch; kPatch++){
+               weights[kPatch] += dWeights[kPatch];
+            }
+            weights += syPatch;
+            dWeights += syPatch;
+         }
+      }
+   }
+   return PV_CONTINUE;
 }
 
 float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime) {

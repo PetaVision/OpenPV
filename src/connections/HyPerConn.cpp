@@ -1022,7 +1022,7 @@ int HyPerConn::updateState(float time, float dt)
 }
 
 int HyPerConn::calc_dW(int axonId) {
-   return 0;
+   return PV_SUCCESS;
 }
 
 //
