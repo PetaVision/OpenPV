@@ -15,8 +15,8 @@
 
 using namespace PV;
 
-int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **)) {
-   HyPerCol * hc = build(argc, argv);
+int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+   HyPerCol * hc = build(argc, argv, customgroups);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
@@ -45,7 +45,7 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
    return status;
 }
 
-HyPerCol * build(int argc, char * argv[]) {
+HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *)) {
    HyPerCol * hc = new HyPerCol("column", argc, argv);
    if( hc == NULL ) {
       fprintf(stderr, "Unable to create HyPerCol\n");
@@ -90,9 +90,6 @@ HyPerCol * build(int argc, char * argv[]) {
                "ConvolveConn",
                "KernelConn",
                  "CloneKernelConn",
-#ifdef OBSOLETE
-                 "CocircConn",
-#endif
                  "GaborConn",
                  "IdentConn",
                  "GenerativeConn",
@@ -180,6 +177,7 @@ HyPerCol * build(int argc, char * argv[]) {
    for( int k=0; k<numGroups; k++ ) {
       const char * kw = params->groupKeywordFromIndex(k);
       const char * name = params->groupNameFromIndex(k);
+      bool didAddObject = false;
 
       int matchedkeyword = -1;
       for( j=0; j<numclasskeywords; j++ ) {
@@ -189,12 +187,9 @@ HyPerCol * build(int argc, char * argv[]) {
          }
       }
       if( matchedkeyword < 0 ) {
-         fprintf(stderr, "Parameter group \"%s\": skipping unrecognized class word \"%s\"\n", name, kw);
-         continue;
+         void * addedCustomObject = customgroups(kw, name, hc);
+         didAddObject = addedCustomObject != NULL;
       }
-
-      bool didAddObject = false;
-
       if( j > first_hypercol_index && j < last_hypercol_index ) {
          addedHyPerCol = addHyPerColToColumn(kw, name, hc);
          didAddObject = addedHyPerCol != NULL;
@@ -220,8 +215,6 @@ HyPerCol * build(int argc, char * argv[]) {
          didAddObject = addedLayerProbe != NULL;
       }
       else {
-         fprintf(stderr, "Parameter group \"%s\" class keyword \"%s\" cannot be categorized\n", name, kw);
-         didAddObject = false;
       }
 
       if( !didAddObject ) {
