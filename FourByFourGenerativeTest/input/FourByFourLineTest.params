@@ -291,7 +291,8 @@ GenerativeConn "AnaRetina to Layer A" = {
     
     nxp = 1;           
     nyp = 1;           
-    nfp = 8;           
+    nfp = 8;  
+    numAxonalArbors = 1;         
 
     writeStep = -1;   
     writeCompressedWeights = false;
@@ -408,7 +409,8 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     
     nxp = 1;           
     nyp = 1;           
-    nfp = 2;           
+    nfp = 2;
+    numAxonalArbors = 1;       
 
     writeStep = -1;   
     writeCompressedWeights = false;
