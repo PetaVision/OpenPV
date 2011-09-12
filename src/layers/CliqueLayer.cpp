@@ -34,7 +34,8 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	fflush(stdout);
 #endif
 
-	// get margin indices of pre layer (whoops, not needed since have to recompute all active indices in extended layer on the fly)
+	// get margin indices of pre layer
+	// (whoops, not needed since we probably have to recompute all active indices in extended layer on the fly due to variable delays)
 	//const int * marginIndices = conn->getPre()->getMarginIndices();
 	//int numMargin = conn->getPre()->getNumMargin();
 
@@ -137,12 +138,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	                //         - assumes patch stride sf is 1
 
 	                int nkPost = GSyn->nf * GSyn->nx;
-	                //int nyPost = GSyn->ny;
+	                int nyPost = GSyn->ny;
 	                int syPost = GSyn->sy;// stride in layer
 	                int sywPatch = weights->sy;// stride in patch
 
 	                // TODO - unroll
-	                for (int y = 0; y < nyPre; y++) {
+	                for (int y = 0; y < nyPost; y++) {
 	                        pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
 	                }
 
