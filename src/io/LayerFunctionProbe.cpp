@@ -30,7 +30,7 @@ LayerFunctionProbe::LayerFunctionProbe(const char * filename, HyPerCol * hc, con
 }  // end LayerFunctionProbe::LayerFunctionProbe(const char *, const char *, LayerFunction *)
 
 int LayerFunctionProbe::initialize(LayerFunction * F) {
-   int status = setFunction(F);
+   int status = F==NULL ? PV_SUCCESS : setFunction(F);
    return status;
 }
 
