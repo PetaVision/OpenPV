@@ -24,7 +24,7 @@ public:
    virtual int calc_dW(int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 }; // class CliqueConn
 

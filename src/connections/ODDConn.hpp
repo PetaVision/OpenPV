@@ -35,7 +35,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
    virtual int writeWeights(float time, bool last);
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 protected:
    PVPatch *** ODDPatches;   // list of kernels patches for accumulating pairwise stats

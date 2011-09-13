@@ -41,7 +41,7 @@ public:
    virtual int calc_dW(int axonID);
    virtual int updateWeights(int axonID);
    virtual int initNormalize();
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 
 protected:

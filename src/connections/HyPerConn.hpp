@@ -151,7 +151,8 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
    virtual int initNormalize();
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   int sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
+   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
          int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);

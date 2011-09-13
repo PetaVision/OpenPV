@@ -249,13 +249,14 @@ int GenerativeConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId) {
+int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId) {
+   int status = PV_SUCCESS;
    int neuronsperpatch;
    switch( normalizeMethod ) {
    case 0:
       break;
    case 1:
-      patches = KernelConn::normalizeWeights(patches, numPatches, arborId);
+      status = KernelConn::normalizeWeights(patches, numPatches, arborId);
       break;
    case 2:
       neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);
@@ -288,7 +289,7 @@ PVPatch ** GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, 
       assert(false); // This possibility was eliminated in initNormalize().
       break;
    }
-   return patches;
+   return status;
 }  // end of GenerativeConn::normalizeWeights
 
 }  // end of namespace PV block

@@ -157,8 +157,8 @@ int CliqueConn::updateWeights(int arborId){
 
 }; // updateWeights
 
-PVPatch ** CliqueConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId){
-   return PV_SUCCESS;};
+int CliqueConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId){
+   return PV_CONTINUE;};
 
 } /* namespace PV */
 

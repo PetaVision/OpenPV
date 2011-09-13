@@ -52,8 +52,8 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
 
-   virtual PVPatch ** normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
-   virtual PVPatch ** symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
    PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
    PVPatch ** getKernelPatches(int axonId)   {return kernelPatches[axonId];}

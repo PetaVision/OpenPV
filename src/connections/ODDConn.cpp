@@ -289,7 +289,7 @@ int ODDConn::writeWeights(float time, bool last)
 
 
 
-PVPatch ** ODDConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int ODDConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
    //int axonID = 0;
    int num_kernels = this->numDataPatches();

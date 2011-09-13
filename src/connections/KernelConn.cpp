@@ -294,10 +294,9 @@ int KernelConn::updateState(float time, float dt) {
       }
       if( normalize_flag ) {
          for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-            PVPatch ** p = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
-            //status = p==kernelPatches[axonID] ? PV_SUCCESS : PV_FAILURE;
-            //assert(status == PV_SUCCESS);
-            assert(p != NULL);
+            status = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
+            if (status == PV_CONTINUE) {continue;}
+            assert(status == PV_SUCCESS);
          }
       }  // normalize_flag
    } // time > weightUpdateTime
@@ -438,19 +437,23 @@ int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPo
 }
 #endif
 
-PVPatch ** KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
    //const int arbor = 0;
+   int status = PV_SUCCESS;
    const int num_kernels = numDataPatches();
-   HyPerConn::normalizeWeights(kernelPatches[arborId], num_kernels, arborId);
+   status = HyPerConn::normalizeWeights(kernelPatches[arborId], num_kernels, arborId);
+   assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
    if ( symmetrizeWeightsFlag ){
-      symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
+      status = symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
+      assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
    }
-   return patches;
+   return status;
 }
 
-PVPatch ** KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
+   int status = PV_SUCCESS;
    printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    assert(pre->clayer->loc.nf==post->clayer->loc.nf);
    PVPatch ** symPatches;
@@ -522,7 +525,7 @@ PVPatch ** KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int
    } // iKernel
    free(symPatches);
    printf("Exiting KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
-   return patches;
+   return status;
 }
 
 int KernelConn::writeWeights(float time, bool last)

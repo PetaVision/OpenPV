@@ -2411,8 +2411,36 @@ int HyPerConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int HyPerConn::sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal)
 {
+   assert(wp != NULL);
+   pvdata_t * w = wp->data;
+   assert(w != NULL);
+   const int nx = wp->nx;
+   const int ny = wp->ny;
+   const int nf = wp->nf;
+   const int sy = wp->sy;
+   *num_weights = nx * ny * nf;
+   float sum_tmp = 0;
+   float sum2_tmp = 0;
+   pvdata_t max_tmp = -FLT_MAX;
+   for (int ky = 0; ky < ny; ky++) {
+      for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
+         sum_tmp += w[iWeight];
+         sum2_tmp += w[iWeight] * w[iWeight];
+         max_tmp = ( max_tmp > w[iWeight] ) ? max_tmp : w[iWeight];
+      }
+      w += sy;
+   }
+   *sum = sum_tmp;
+   *sum2 = sum2_tmp;
+   *maxVal = max_tmp;
+   return PV_SUCCESS;
+}
+
+int HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+{
+   int status = PV_SUCCESS;
    this->wMax = 1.0;
    float maxVal = -FLT_MAX;
    for (int k = 0; k < numPatches; k++) {
@@ -2460,7 +2488,7 @@ PVPatch ** HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int a
          w += sy;
       }
    }
-   return patches;
+   return status;
 }
 
 int HyPerConn::calcPatchSize(int axon_index, int kex,
