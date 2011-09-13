@@ -186,7 +186,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
             break;
          }
       }
-      if( matchedkeyword < 0 ) {
+      if( matchedkeyword < 0 && customgroups != NULL ) {
          void * addedCustomObject = customgroups(kw, name, hc);
          didAddObject = addedCustomObject != NULL;
       }
