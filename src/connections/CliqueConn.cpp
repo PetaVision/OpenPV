@@ -149,7 +149,7 @@ int CliqueConn::calc_dW(int arborId){
     free(cliqueActiveIndices);
     return PV_CONTINUE;
 
-  };  // calc_dW
+};  // calc_dW
 
 int CliqueConn::updateWeights(int arborId){
    int status = KernelConn::updateWeights(arborId);
@@ -158,10 +158,15 @@ int CliqueConn::updateWeights(int arborId){
 
 }; // updateWeights
 
+
+/*
 int CliqueConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId){
    return PV_CONTINUE;};
+*/
 
-} /* namespace PV */
+
+} //  namespace PV
+
 
 int pvpatch_update_clique(int nk, float* RESTRICT dW, float aPre, float* RESTRICT aPost)
 {
