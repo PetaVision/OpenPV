@@ -214,14 +214,14 @@ int KernelConn::numDataPatches()
    return numKernelPatches;
 }
 
-float KernelConn::minWeight()
+float KernelConn::minWeight(int arborId)
 {
    //const int axonID = 0;
    const int numKernels = numDataPatches();
    const int numWeights = nxp * nyp * nfp;
    float min_weight = FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = kernelPatches[0][iKernel]->data;
+      pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
                : kernelWeights[iWeight];
@@ -230,14 +230,14 @@ float KernelConn::minWeight()
    return min_weight;
 }
 
-float KernelConn::maxWeight()
+float KernelConn::maxWeight(int arborId)
 {
    //const int axonID = 0;
    const int numKernels = numDataPatches();
    const int numWeights = nxp * nyp * nfp;
    float max_weight = -FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = kernelPatches[0][iKernel]->data;
+      pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
                : kernelWeights[iWeight];
@@ -439,15 +439,34 @@ int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPo
 
 int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
-   //const int arbor = 0;
    int status = PV_SUCCESS;
    const int num_kernels = numDataPatches();
-   status = HyPerConn::normalizeWeights(kernelPatches[arborId], num_kernels, arborId);
-   assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
-   if ( symmetrizeWeightsFlag ){
-      status = symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
+   if (this->numberOfAxonalArborLists() == 1) {
+      status = HyPerConn::normalizeWeights(kernelPatches[arborId], num_kernels, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
-   }
+      if ( symmetrizeWeightsFlag ){
+         status = symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
+         assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
+      }
+   } // numberOfAxonalArborLists() == 1
+   else {
+      for (int kPatch = 0; kPatch < numPatches; kPatch++) {
+         float sumAll = 0.0f;
+         float sum2All = 0.0f;
+         float maxAll = 0.0f;
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            float sum, sum2, maxVal;
+            status = sumWeights(kernelPatches[kArbor][kPatch], &sum, &sum2, &maxVal);
+            sumAll += sum;
+            sum2All += sum2;
+            maxAll = maxVal > maxAll ? maxVal : maxAll;
+         } // kArbor
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            status = scaleWeights(kernelPatches[kArbor][kPatch], sumAll, sum2All, maxAll);
+         } // kArbor
+      } // kPatch < numPatches
+      status = PV_CONTINUE;
+   } // numberOfAxonalArborLists() != 1
    return status;
 }
 

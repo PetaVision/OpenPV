@@ -262,12 +262,12 @@ int STDPConn::outputState(float time, bool last)
    if (last) {
       convertPreSynapticWeights(time);
       status = writePostSynapticWeights(time, last);
-      assert(status == 0);
+      assert(status == PV_SUCCESS);
    }
    else if ( (time >= writeTime) && (writeStep >= 0) ) {
       convertPreSynapticWeights(time);
       status = writePostSynapticWeights(time, last);
-      assert(status == 0);
+      assert(status == PV_SUCCESS);
    }
 
    return status;

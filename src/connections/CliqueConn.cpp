@@ -153,6 +153,7 @@ int CliqueConn::calc_dW(int arborId){
 
 int CliqueConn::updateWeights(int arborId){
    int status = KernelConn::updateWeights(arborId);
+   assert((status == PV_SUCCESS) || (status == PV_CONTINUE));
    return PV_CONTINUE;
 
 }; // updateWeights

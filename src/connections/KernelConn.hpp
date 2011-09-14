@@ -36,8 +36,8 @@ public:
 
    virtual int numDataPatches();
 
-   virtual float minWeight();
-   virtual float maxWeight();
+   virtual float minWeight(int axonId = 0);
+   virtual float maxWeight(int axonId = 0);
 
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type

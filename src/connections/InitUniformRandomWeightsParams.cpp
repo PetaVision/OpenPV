@@ -38,8 +38,9 @@ int InitUniformRandomWeightsParams::initialize(HyPerConn * parentConn) {
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;
 
-   wMin = (float) parentConn->minWeight();
-   wMax = (float) parentConn->maxWeight();
+   // minWeight and maxWeight require arborId, use default values instead if wMinInit, wMaxInit not provided by user
+   //wMin = (float) parentConn->minWeight();
+   //wMax = (float) parentConn->maxWeight();
    wMin = params->value(getName(), "wMinInit", wMin);
    wMax = params->value(getName(), "wMaxInit", wMax);
 

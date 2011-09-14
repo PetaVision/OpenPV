@@ -479,7 +479,8 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, con
 //         weightInitializer->initializeWeights(arbors[arborId], numPatches, nametmp, this);
 //      }
 //      else {
-         weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
+      weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
+   } // arborId
 
          //call to original for comparing result with my new one:
          //initializeDefaultWeights(patches, numPatches);
@@ -488,11 +489,13 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, con
 //      }
 
       // bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
-      initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
-      if (normalize_flag) {
-         normalizeWeights(arbors[arborId], numPatches, arborId);
-      }
-   }
+   initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
+   if (normalize_flag) {
+      for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
+         int status = normalizeWeights(arbors[arborId], numPatches, arborId);
+         if (status == PV_CONTINUE) continue;
+      } // arborId
+   } // normalize_flag
    return arbors;
 }
 
@@ -798,8 +801,8 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    if (patches == NULL) return 0;
 
-   const float minVal = minWeight();
-   const float maxVal = maxWeight();
+   const float minVal = minWeight(arborId);
+   const float maxVal = maxWeight(arborId);
 
    const PVLayerLoc * loc = pre->getLayerLoc();
 
@@ -1703,8 +1706,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last) {
    for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
       writePostSynapticWeights(time, last, axonID);
    }
-
-   return 0;
+   return PV_SUCCESS;
 }
 
 int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
@@ -1715,8 +1717,8 @@ int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
    const PVLayer * lPre  = pre->getCLayer();
    const PVLayer * lPost = post->getCLayer();
 
-   const float minVal = minWeight();
-   const float maxVal = maxWeight();
+   const float minVal = minWeight(axonID);
+   const float maxVal = maxWeight(axonID);
 
    const int numPostPatches = lPost->numNeurons;
 
@@ -2411,7 +2413,7 @@ int HyPerConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal)
+int HyPerConn::sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal)
 {
    assert(wp != NULL);
    pvdata_t * w = wp->data;
@@ -2420,7 +2422,6 @@ int HyPerConn::sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdat
    const int ny = wp->ny;
    const int nf = wp->nf;
    const int sy = wp->sy;
-   *num_weights = nx * ny * nf;
    float sum_tmp = 0;
    float sum2_tmp = 0;
    pvdata_t max_tmp = -FLT_MAX;
@@ -2436,60 +2437,60 @@ int HyPerConn::sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdat
    *sum2 = sum2_tmp;
    *maxVal = max_tmp;
    return PV_SUCCESS;
-}
+} // sumWeights
+
+int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
+{
+   assert(wp != NULL);
+   int num_weights = wp->nx * wp->ny * wp->nf;
+   float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
+   float zero_offset = 0.0f;
+   if (normalize_zero_offset == 1.0f){
+      // set sum to zero and normalize std of weights to sigma
+      zero_offset = sum / num_weights;
+      sum = 0.0f;
+      maxVal -= zero_offset;
+   }
+   float scale_factor = 1.0f;
+   if (normalize_max == 1.0f) {
+      // set maximum weight to normalize_strength
+      scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
+   }
+    else if (sum != 0.0f) {
+      scale_factor = normalize_strength / sum;
+   }
+    else if (sum == 0.0f && sigma2 > 0.0f) {
+      scale_factor = normalize_strength / sqrtf(sigma2);
+   }
+   pvdata_t * w = wp->data;
+   assert(w != NULL);
+   for (int ky = 0; ky < wp->ny; ky++) {
+      for(int iWeight = 0; iWeight < wp->nf * wp->nx; iWeight++ ){
+         w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
+         w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
+      }
+      w += wp->sy;
+   }
+   return PV_SUCCESS;
+} // scaleWeights
 
 int HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
-   this->wMax = 1.0;
    float maxVal = -FLT_MAX;
+   float maxAll = -FLT_MAX;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
-      pvdata_t * w = wp->data;
-      const int nx = wp->nx;
-      const int ny = wp->ny;
-      const int nf = wp->nf;
-      const int sy = wp->sy;
-      const int num_weights = nx * ny * nf;
       float sum = 0;
       float sum2 = 0;
-      maxVal = -FLT_MAX;
-      for (int ky = 0; ky < ny; ky++) {
-         for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
-            sum += w[iWeight];
-            sum2 += w[iWeight] * w[iWeight];
-            maxVal = ( maxVal > w[iWeight] ) ? maxVal : w[iWeight];
-         }
-         w += sy;
-      }
-      float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
-      float zero_offset = 0.0f;
-      if (normalize_zero_offset == 1.0f){
-         zero_offset = sum / num_weights;
-         sum = 0.0f;
-         maxVal -= zero_offset;
-      }
-      float scale_factor = 1.0f;
-      if (normalize_max == 1.0f) {
-         scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
-      }
-       else if (sum != 0.0f) {
-         scale_factor = normalize_strength / sum;
-      }
-       else if (sum == 0.0f && sigma2 > 0.0f) {
-         scale_factor = normalize_strength / sqrtf(sigma2);
-      }
-      w = wp->data;
-      for (int ky = 0; ky < ny; ky++) {
-         for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
-            w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
-            w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
-         }
-         w += sy;
-      }
-   }
+      status = sumWeights(wp, &sum, &sum2, &maxVal);
+      status = scaleWeights(wp, sum, sum2, maxVal);
+      maxAll = maxVal > maxAll ? maxVal : maxAll;
+   } // k < numPatches
+   this->wMax = this->wMax > this->maxWeight(arborId) ? this->wMax : this->maxWeight(arborId);
    return status;
-}
+} // normalizeWeights
+
 
 int HyPerConn::calcPatchSize(int axon_index, int kex,
                              int * kl_out, int * offset_out,

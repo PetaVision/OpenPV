@@ -71,16 +71,17 @@ public:
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
-   virtual int calc_dW(int axonId);
-   virtual int updateWeights(int axonId);
+   virtual int calc_dW(int axonId = 0);
+   virtual int updateWeights(int axonId = 0);
 
    virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last, int arborId);
    virtual int writeTextWeights(const char * filename, int k);
-   virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID)  {return 0;}
+   virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID)
+                                                    {return PV_SUCCESS;}
 
-   virtual int writePostSynapticWeights(float time, bool last=false);
+   virtual int writePostSynapticWeights(float time, bool last);
    virtual int writePostSynapticWeights(float time, bool last, int axonID);
 
    int readWeights(const char * filename);
@@ -93,39 +94,39 @@ public:
                                   const char * filename);
 #endif
 
-   virtual PVLayerCube * getPlasticityDecrement()               {return NULL;}
+   virtual PVLayerCube * getPlasticityDecrement()    {return NULL;}
 
 
    inline const char * getName()                     {return name;}
    inline HyPerCol * getParent()                     {return parent;}
-   inline HyPerLayer * getPre()                        {return pre;}
-   inline HyPerLayer * getPost()                       {return post;}
-   inline ChannelType getChannel()                 {return channel;}
-   inline InitWeights * getWeightInitializer()    {return weightInitializer;}
+   inline HyPerLayer * getPre()                      {return pre;}
+   inline HyPerLayer * getPost()                     {return post;}
+   inline ChannelType getChannel()                   {return channel;}
+   inline InitWeights * getWeightInitializer()       {return weightInitializer;}
    //inline int          getDelay()                    {return params->delay;}
-   inline int getDelay(int axonId)     {assert(axonId<numAxonalArborLists); return axonalArbor(axonId,0)->delay;}
+   inline int getDelay(int axonId = 0)               {assert(axonId<numAxonalArborLists); return axonalArbor(axonId,0)->delay;}
 
-   virtual float minWeight()                         {return 0.0;}
-   virtual float maxWeight()                         {return wMax;}
+   virtual float minWeight(int arborId = 0)          {return 0.0;}
+   virtual float maxWeight(int arborId = 0)          {return wMax;}
 
    inline int xPatchSize()                           {return nxp;}
    inline int yPatchSize()                           {return nyp;}
    inline int fPatchSize()                           {return nfp;}
 
    //arbor and weight patch related get/set methods:
-   inline PVPatch ** weights(int arborId)           {return wPatches[arborId];}
-   virtual PVPatch * getWeights(int kPre, int arbor);
+   inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
+   virtual PVPatch * getWeights(int kPre, int arborId);
    inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
-      {return &axonalArborList[arborId][kPre];}
+                                                     {return &axonalArborList[arborId][kPre];}
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
-   HyPerLayer * preSynapticLayer()     {return pre;}
-   HyPerLayer * postSynapticLayer()    {return post;}
+   HyPerLayer * preSynapticLayer()                   {return pre;}
+   HyPerLayer * postSynapticLayer()                  {return post;}
 
-   int  getConnectionId()              {return connId;}
-   void setConnectionId(int id)        {connId = id;}
+   int  getConnectionId()                            {return connId;}
+   void setConnectionId(int id)                      {connId = id;}
 
    int setParams(PVParams * params /*, PVConnParams * p*/);
 
@@ -151,7 +152,8 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
    virtual int initNormalize();
-   int sumWeights(PVPatch * wp, int * num_weights, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
+   int sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
+   int scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
