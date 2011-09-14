@@ -50,13 +50,16 @@ int GapLayer::setActivity() {
 
    // extended activity may not be current but this is alright since only local activity is used
    // !!! will break (non-deterministic) if layers are updated simultaneously--fix is to use datastore
+   const PVLayerLoc * loc = sourceLayer->getLayerLoc();
    if (sourceLayer->getSpikingFlag()) { // probably not needed since numActive will be zero for non-spiking
-      pvdata_t * sourceActivity = sourceLayer->getCLayer()->activity->data;
+      //pvdata_t * sourceActivity = sourceLayer->getCLayer()->activity->data;
       pvdata_t * localActivity = getCLayer()->activity->data;
       unsigned int * activeNdx = sourceLayer->getCLayer()->activeIndices;
       for (unsigned int kActive = 0; kActive < sourceLayer->getCLayer()->numActive; kActive++) {
-         int kex = activeNdx[kActive];
-         localActivity[kex] += 50 * sourceActivity[kex]; // add 50 mV spike to local membrane potential
+         int kGlobalRestricted = activeNdx[kActive];
+         int kLocalRestricted = localIndexFromGlobal(kGlobalRestricted, *loc);
+         int kLocalExtended = kIndexExtended( kLocalRestricted, loc->nx, loc->ny, loc->nf, loc->nb);
+         localActivity[kLocalExtended] += 50; // add 50 mV spike to local membrane potential
       }
    }
    return PV_SUCCESS;
