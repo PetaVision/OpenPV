@@ -15,7 +15,7 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
     resize_weights_flag = 1;
   endif
 
-  kernel_filename = [spiking_path, filename, '.pvp'];
+  kernel_filename = [SPIKE_PATH, filename, '.pvp'];
 
   max_weight = -100000;
   min_weight = 100000;
