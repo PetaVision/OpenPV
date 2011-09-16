@@ -98,21 +98,10 @@ LIF::~LIF()
 
    delete clParams;
    delete clRand;
-   delete clV;
    delete clVth;
    delete clG_E;
    delete clG_I;
    delete clG_IB;
-   delete clActivity;
-   delete clPrevTime;
-
-   for (int m = 0; m < numChannels; m++) {
-      delete clGSyn[m];
-   }
-   if (clGSyn != NULL) {
-      free(clGSyn);
-      clGSyn = NULL;
-   }
 #endif
 
 }
@@ -195,7 +184,6 @@ int LIF::initializeThreadBuffers(const char * kernel_name)
    int status = CL_SUCCESS;
 
    const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
-   const size_t size_ex = getNumExtended() * sizeof(pvdata_t);
 
    CLDevice * device = parent->getCLDevice();
 
