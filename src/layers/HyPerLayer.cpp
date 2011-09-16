@@ -9,6 +9,7 @@
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
 #include "../columns/HyPerCol.hpp"
+#include "../connections/HyPerConn.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
@@ -648,7 +649,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
-         pvpatch_accumulate(nk, GSyn->data + y*sy, a, weights->data + y*syw);
+         (conn->accumulateFunctionPointer)(nk, GSyn->data + y*sy, a, weights->data + y*syw);
 //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }

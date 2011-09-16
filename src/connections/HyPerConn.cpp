@@ -7,6 +7,7 @@
 
 #include "HyPerConn.hpp"
 #include "../layers/LIF.hpp"
+#include "../layers/PVLayer.c"
 #include "../include/default_params.h"
 #include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
@@ -295,9 +296,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->name = strdup(name);
    assert(this->name != NULL);
 
+   PVParams * inputParams = parent->parameters();
    //if a weightinitializer hasn't been created already, use the default--> either 2D Gauss or read from file
    if(weightInit==NULL) {
-      PVParams * inputParams = parent->parameters();
       bool randomFlag = inputParams->value(name, "randomFlag", 0.0f, false) != 0;
       bool smartWeights = inputParams->value(name, "smartWeights",0.0f, false) != 0;
       bool cocircWeights = inputParams->value(name, "cocircWeights",0.0f, false) != 0;
@@ -334,6 +335,8 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       this->weightInitializer = weightInit;
    }
 
+   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
+   accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
 
    this->connId = parent->addConnection(this);
 
@@ -342,7 +345,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    status = setParams(hc->parameters() /*, &defaultConnParams*/);
    constructWeights(filename);
-
 
    return status;
 }

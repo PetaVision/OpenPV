@@ -8,6 +8,7 @@
 #include "PVLayer.h"
 #include "../io/io.h"
 #include "../include/default_params.h"
+#include "../utils/pv_random.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -233,6 +234,18 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
    return err;
 }
 #endif
+
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+{
+   int k;
+   long along = (long) (a*pv_random_max());
+   int err = 0;
+   for (k = 0; k < nk; k++) {
+      v[k] = v[k] + (pv_random()<along)*w[k];
+   }
+   return err;
+}
+
 
 ///////////////////////////////////////////////////////
 // pvcube interface implementation

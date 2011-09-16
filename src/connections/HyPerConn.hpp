@@ -88,6 +88,10 @@ public:
 
    virtual int correctPIndex(int patchIndex);
 
+   bool stochasticReleaseFlag;
+   int (*accumulateFunctionPointer)(int nk, float* RESTRICT v, float a, float* RESTRICT w);
+   // TODO make a get-method to return this.
+
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
