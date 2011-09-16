@@ -306,9 +306,9 @@ protected:
 
    // OpenCL buffers
    //
-   CLBuffer * clGSyn;
-   CLBuffer * clActivity;
-   CLBuffer * clWeights;
+   CLBuffer *  clGSyn;
+   CLBuffer *  clActivity;
+   CLBuffer ** clWeights;
 #endif
 
 public:
