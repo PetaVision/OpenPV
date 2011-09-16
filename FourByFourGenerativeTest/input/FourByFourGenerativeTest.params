@@ -1,4 +1,4 @@
-// params-fourbyfourmodel2.txt
+// FourByFourGenerativeTest.params
 //     input parameters file for training generative model with pooling
 //     and log lateral competition, on world of four horizontal and four
 //     vertical lines.  This uses (b-Ba)^2 instead of b^2(b-Ba)^2 in the
@@ -16,7 +16,7 @@ HyPerCol "column" = {
     filenamesContainLayerNames = true;    
 };
 
-// 13 layers:
+// 10 layers:
 //  0 Slideshow
 //  1 Retina
 //  2 AnaRetina
@@ -230,9 +230,9 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 };
 
 
-// 16 connections:
+// 18 connections:
 //
-//  0  Slideshow to Retina                                   KernelConn        +
+//  0  Slideshow to Retina                                   IdentConn         +
 //  1  Retina to AnaRetina                                   IdentConn         +
 //  2  AnaRetina to Layer A                                  GenerativeConn    + (weights A)
 //  3  Layer A to AnaRetina Feedback                         FeedbackConn      - (weights A^T)
@@ -250,10 +250,10 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 // 13  Layer B to Flat AnaLayer A                            CloneKernelConn   - (weights B^T)
 //
 // 14  Layer B to CataLayer B                                IdentConn         +
-// 14  CataLayer B to Layer B                                IdentConn         -
+// 15  CataLayer B to Layer B                                IdentConn         -
 //
-// 15  Layer A to Energy AnaLayer A                          IdentConn         +
-// 16  Flat AnaLayer A to Energy AnaLayer A                  IdentConn         -
+// 16  Layer A to Energy AnaLayer A                          IdentConn         +
+// 17  Flat AnaLayer A to Energy AnaLayer A                  IdentConn         -
 
 IdentConn "Slideshow to Retina" = {
     preLayerName = "Slideshow";

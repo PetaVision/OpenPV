@@ -17,7 +17,7 @@ int main(int argc, char * argv[]) {
       cl_args = (char **) malloc(num_cl_args*sizeof(char *));
       cl_args[0] = argv[0];
       cl_args[1] = strdup("-p");
-      cl_args[2] = strdup("input/FourByFourLineTest.params");
+      cl_args[2] = strdup("input/FourByFourGenerativeTest.params");
       for( int k=1; k<argc; k++) {
          cl_args[k+2] = strdup(argv[k]);
       }
