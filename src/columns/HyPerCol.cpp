@@ -22,6 +22,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <float.h>
+
+#define PV_MAX_NUMSTEPS (pow(2,FLT_MANT_DIG))
 
 namespace PV {
 
@@ -155,6 +158,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          printf("Number of steps specified neither in the command line nor the params file.\n"
                 "Number of steps set to default %d\n",NUMSTEPS);
       }
+   }
+   if( (double) numSteps > PV_MAX_NUMSTEPS ) {
+      fprintf(stderr, "The number of time steps %d is greater than %ld, the maximum allowed by floating point precision\n", numSteps, (long int) PV_MAX_NUMSTEPS);
+      exit(EXIT_FAILURE);
    }
 
    // set output path from params file if it wasn't set on the command line
