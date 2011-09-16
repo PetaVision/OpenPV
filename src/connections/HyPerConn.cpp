@@ -81,6 +81,16 @@ HyPerConn::~HyPerConn()
 
    free(name);
 
+#ifdef PV_USE_OPENCL
+   if (clWeights != NULL) {
+      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+         delete clWeights[arbor];
+      }
+      free(clWeights);
+      clWeights = NULL;
+   }
+#endif
+
    // assert(params != NULL); // freeing a null pointer is not an error
    //free(params);
 
@@ -508,15 +518,22 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
-//   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
-//   const size_t size_ex = getNumExtended() * sizeof(pvdata_t);
+   const size_t size = numWeightPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
 
    CLDevice * device = parent->getCLDevice();
 
-   // these buffers are shared between host and device
-   //
+   clWeights = NULL;
+   if (numAxonalArborLists > 0) {
+      clWeights = (CLBuffer **) malloc(numAxonalArborLists*sizeof(CLBuffer *));
+      assert(clWeights != NULL);
+   }
 
-   // TODO - create device buffers for weights
+   // create device buffers for weights
+   //
+   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+      pvdata_t * wBuf = getWeights(0, arbor)->data;
+      clWeights[arbor] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, wBuf);
+   }
 
    return status;
 }
