@@ -51,6 +51,14 @@ HyPerLayer::~HyPerLayer()
    delete clV;
    delete clActivity;
    delete clPrevTime;
+
+   if (clGSyn != NULL) {
+      for (int m = 0; m < numChannels; m++) {
+         delete clGSyn[m];
+      }
+      free(clGSyn);
+      clGSyn = NULL;
+   }
 #endif
 
    if (labels != NULL) free(labels);
@@ -242,7 +250,7 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
-   // create clParams in derived classes as it is class specific
+   // defer creation of clParams to derived classes (as it is class specific)
 
    clGSyn = NULL;
    if (numChannels > 0) {
