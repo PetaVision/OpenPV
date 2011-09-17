@@ -14,6 +14,10 @@
 #include "../arch/opencl/pv_uint4.h"
 #include "Image.hpp"
 
+#ifdef PV_USE_OPENCL
+#include "../arch/opencl/CLBuffer.hpp"
+#endif
+
 #define NUM_RETINA_CHANNELS 2
 #define NUM_RETINA_EVENTS   3
 #define EV_R_PHI_E    0

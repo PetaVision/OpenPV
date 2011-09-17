@@ -176,8 +176,8 @@ int Retina::initializeThreadKernels(const char * kernel_name)
       status |= krUpdate->setKernelArg(argid++, clRand);
    }
 
-   status |= krUpdate->setKernelArg(argid++, getCLChannel(CHANNEL_EXC));
-   status |= krUpdate->setKernelArg(argid++, getCLChannel(CHANNEL_INH));
+   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
    status |= krUpdate->setKernelArg(argid++, clActivity);
    if (spikingFlag) {
       status |= krUpdate->setKernelArg(argid++, clPrevTime);
