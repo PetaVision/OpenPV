@@ -67,6 +67,9 @@ public:
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
+#ifdef PV_USE_OPENCL
+   virtual int deliverOpenCL(Publisher * pub);
+#endif
 
    virtual int insertProbe(ConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
@@ -307,6 +310,7 @@ protected:
    virtual int initializeThreadKernels(const char * kernelName);
 
    CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
+   cl_event   evRecvSyn;
 
    // OpenCL buffers
    //

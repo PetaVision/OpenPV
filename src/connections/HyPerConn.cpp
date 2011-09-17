@@ -554,6 +554,25 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    // create kernels
    //
 
+   krRecvSyn = device->createKernel(kernelPath, kernel_name, kernelFlags);
+
+   // run args: nxp, nyp, activity (pre), activity offset (pre), G (post), W
+
+   int argid = 0;
+
+//   PVLayerLoc * preLoc = pre->getLayerLoc();
+//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
+//   status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
+//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
+//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nb);
+
+   status |= krRecvSyn->setKernelArg(argid++, nxp);
+   status |= krRecvSyn->setKernelArg(argid++, nyp);
+   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
+   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
+   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer(getChannel()));
+   status |= krRecvSyn->setKernelArg(argid++, clWeights[0]);
+
    return status;
 }
 #endif
@@ -918,6 +937,34 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
+// NOTE: this should be temporary until delivery interface is straightened out
+//
+#ifdef PV_USE_OPENCL
+int HyPerConn::deliverOpenCL(Publisher * pub)
+{
+   int status = PV_SUCCESS;
+
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const size_t nxex = preLoc->nx + 2*preLoc->nb;
+   const size_t nyex = preLoc->ny + 2*preLoc->nb;
+   const size_t nxl = 16;
+   const size_t nyl = 8;
+
+   // for all numextended in pre
+
+   // run args: nxp, nyp, activity (pre), activity offset (pre), G (post), W
+   //
+   for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
+      size_t activityOffset = pre->getLayerDataStoreOffset(arbor);
+      status |= krRecvSyn->setKernelArg(3, activityOffset);
+      status |= krRecvSyn->setKernelArg(5, clWeights[arbor]);
+      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSyn);
+   }
+
+   return status;
+}
+#endif
+
 int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 {
 #ifdef DEBUG_OUTPUT
@@ -926,19 +973,15 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    printf("[%d]: HyPerConn::deliver: neighbor=%d cube=%p post=%p this=%p\n", rank, neighbor, cube, post, this);
    fflush(stdout);
 #endif
+
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       int delay = getDelay(arborId);
       pub->readData(delay);
-//      if (delay > 0) {
-//         cube->data = pre->getLayerData(delay);
-//      }
-//      else {
-//         cube->data = pre->getLayerData();
-//      }
       int status = post->recvSynapticInput(this, cube, arborId);
       if (status == PV_CONTINUE) continue;
       assert(status == PV_SUCCESS);
    }
+
 #ifdef DEBUG_OUTPUT
    printf("[%d]: HyPerConn::delivered: \n", rank);
    fflush(stdout);
