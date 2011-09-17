@@ -23,7 +23,7 @@ public:
    virtual ~LayerDataInterface();
 
    virtual const PVLayerLoc * getLayerLoc() = 0;
-   virtual const pvdata_t * getLayerData() = 0;
+   virtual const pvdata_t   * getLayerData(int delay=0) = 0;
    virtual bool  isExtended() = 0;
    virtual int   gatherToInteriorBuffer(unsigned char * buf) = 0;
 };
