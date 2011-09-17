@@ -1,5 +1,8 @@
 function [] = commands2(image_size)
 
+  addpath("/Users/gkenyon/workspace-indigo/PetaVision/mlab/imgProc/");
+  setenv('GNUTERM', 'x11');
+
   if nargin < 1
     image_size =  [256 256]; %[128 128]; %
   endif
@@ -19,8 +22,8 @@ function [] = commands2(image_size)
   endif
 
   %% sets number of fourier components
-				%fourC = [2 4 6 8];
-  fourC = [4];
+  fourC = [2 4 6 8];
+  %%fourC = [4];
   global nz_image
   nz_image = zeros(3, numT);
   nz_image_cell = cell(length(fourC), 1);
@@ -30,7 +33,7 @@ function [] = commands2(image_size)
 
   global machine_path
   %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
-  machine_path = '/Users/gkenyon/MATLAB/figures/amoeba/';
+  machine_path = '/Users/gkenyon/Pictures/amoeba/';
   if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
@@ -39,7 +42,7 @@ function [] = commands2(image_size)
   endif
 
   global amoeba_file_path
-  amoeba_file_path =  [ machine_path, num2str(image_dim(1)), '_png/']
+  amoeba_file_path =  [ machine_path, num2str(image_dim(1)), "/"] %%, '_png/']
   if ~exist( 'amoeba_file_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', amoeba_file_path ); 
     if SUCCESS ~= 1

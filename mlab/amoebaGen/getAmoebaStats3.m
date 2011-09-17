@@ -18,9 +18,9 @@ amoeba_struct.num_distractors = 2; %with amoeba targets
 amoeba_struct.segments_per_distractor =  2^(-3); % 2^(-2); % %as fraction
 				% of num_segments, 2nd value used in psychophysics
 amoeba_struct.target_outer_max = 0.5;%max/min outer radius of target annulus, units of image rect
-amoeba_struct.target_outer_min = 0.75; % 0.5 value in Geisler paper
+amoeba_struct.target_outer_min = 0.5; % 0.5 value in ODD PLoS Comp Bio paper
 amoeba_struct.target_inner_max = 0.5;%max/min inner radius in units of outer radius
-amoeba_struct.target_inner_min = 0.75; % 0.5 value in Geisler paper
+amoeba_struct.target_inner_min = 0.5; % 0.5 value in ODD PLoS Comp Bio paper
 amoeba_struct.num_phi = 1024;
 amoeba_struct.num_fourier = nfourier; %min(3,amoeba_struct.num_phi);
 amoeba_struct.min_gap = 16; % 32; % 
