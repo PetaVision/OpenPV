@@ -10,9 +10,12 @@
 #define LIF_HPP_
 
 #include "HyPerLayer.hpp"
-#include "../arch/opencl/CLKernel.hpp"
-#include "../arch/opencl/pv_uint4.h"
 #include "../kernels/LIF_params.h"
+#include "../arch/opencl/pv_uint4.h"
+
+#ifdef PV_USE_OPENCL
+#include "../arch/opencl/CLBuffer.hpp"
+#endif
 
 #define NUM_LIF_EVENTS   4
 #define EV_LIF_GSYN_E     0
