@@ -21,6 +21,7 @@ public:
    int setKernelArg(unsigned int arg_index, size_t arg_size, const void * arg_value);
 
    int setKernelArg(int argid, int arg)         {return setKernelArg(argid, sizeof(int), &arg);}
+   int setKernelArg(int argid, size_t arg)      {return setKernelArg(argid, sizeof(size_t), &arg);}
    int setKernelArg(int argid, float arg)       {return setKernelArg(argid, sizeof(float), &arg);}
    int setKernelArg(int argid, CLBuffer * buf);
    int setLocalArg(int argid, size_t size);
