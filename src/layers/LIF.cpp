@@ -117,7 +117,6 @@ LIF::~LIF()
 int LIF::initialize(PVLayerType type, const char * kernel_name)
 {
    int status = HyPerLayer::initialize(type);
-   float time = 0.0f;
 
    const size_t numNeurons = getNumNeurons();
 
