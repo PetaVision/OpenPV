@@ -80,7 +80,7 @@ public:
    int deliver(HyPerCol * hc, int pubId);
    int wait(int pubId);
 
-   int increaseTimeLevel(int pubId)       {return publishers[pubId]->increaseTimeLevel();}
+   int increaseTimeLevel(int pubId)        {return publishers[pubId]->increaseTimeLevel();}
 
    DataStore * publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
 

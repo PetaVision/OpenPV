@@ -233,6 +233,9 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    // This method now assumes that wait has already been called
    // and that the data have all arrived from remote neighbors.
    //
+#ifdef PV_USE_OPENCL
+   // TODO - send border data to device
+#endif
 
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = connection[ic];
@@ -247,7 +250,11 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
       fflush(stdout);
 #endif
+#ifdef PV_USE_OPENCL
+      conn->deliverOpenCL(this);
+#else
       conn->deliver(this, &cube, LOCAL);
+#endif
    }
 
    return 0;
