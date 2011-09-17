@@ -62,7 +62,7 @@ public:
    char * getPath()                       {return path;}
    char * getOutputPath()                 {return outputPath;}
 
-   CLDevice   * getCLDevice()             {return clDevice;}
+   CLDevice * getCLDevice()               {return clDevice;}
 
    InterColComm * icCommunicator()        {return icComm;}
 
