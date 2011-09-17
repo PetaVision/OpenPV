@@ -269,6 +269,7 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
 int HyPerLayer::initializeThreadKernels(const char * kernel_name)
 {
    // No kernels for base functionality for now
+   return PV_SUCCESS;
 }
 #endif
 
@@ -291,16 +292,25 @@ int HyPerLayer::initFinish()
  * Returns the activity data for the layer.  This data is in the
  * extended space (with margins).
  */
-const pvdata_t * HyPerLayer::getLayerData()
-{
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   return (pvdata_t *) store->buffer(LOCAL);
-}
 const pvdata_t * HyPerLayer::getLayerData(int delay)
 {
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
    return (pvdata_t *) store->buffer(LOCAL, delay);
 }
+
+#ifdef PV_USE_OPENCL
+size_t HyPerLayer::getLayerDataStoreOffset(int delay)
+{
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return store->bufferOffset(LOCAL, delay);
+}
+
+CLBuffer * HyPerLayer::getLayerDataStoreCLBuffer()
+{
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return store->getCLBuffer();
+}
+#endif
 
 
 // deprecated?
@@ -644,7 +654,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
       int nk  = GSyn->nf * GSyn->nx;
       int ny  = GSyn->ny;
-      int sy  = GSyn->sy;        // stride in layer
+      int sy  = GSyn->sy;       // stride in layer
       int syw = weights->sy;    // stride in patch
 
       // TODO - unroll
