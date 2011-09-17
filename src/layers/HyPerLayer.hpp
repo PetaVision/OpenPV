@@ -140,8 +140,7 @@ public:
 
    // implementation of LayerDataInterface interface
    //
-   const pvdata_t   * getLayerData();
-   const pvdata_t   * getLayerData(int delay);
+   const pvdata_t   * getLayerData(int delay=0);
    const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
@@ -181,12 +180,18 @@ protected:
    // OpenCL variables
    //
 #ifdef PV_USE_OPENCL
+public:
    virtual int getNumKernelArgs() {return numKernelArgs;}
    virtual int getNumCLEvents()   {return numEvents;}
 
-   CLBuffer * getCLChannel(ChannelType ch) {
+   CLBuffer * getChannelCLBuffer(ChannelType ch) {
       return ch < this->numChannels ? clGSyn[ch] : NULL;
    }
+
+   CLBuffer * getLayerDataStoreCLBuffer();
+   size_t     getLayerDataStoreOffset(int delay=0);
+
+protected:
 
    CLKernel * krUpdate;        // CL kernel for update state call
 
