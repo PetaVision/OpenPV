@@ -2,7 +2,7 @@
  * LayerDataInterface.cpp
  *
  *  Created on: Jan 16, 2010
- *      Author: rasmussn
+ *      Author: Craig Rasmussen
  */
 
 #include "LayerDataInterface.hpp"
