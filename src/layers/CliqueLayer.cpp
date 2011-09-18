@@ -152,7 +152,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 	free(activeExt);
         free(cliqueActiveIndices);
 	recvsyn_timer->stop();
-	return PV_CONTINUE;
+	return PV_BREAK;
 }
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE

@@ -170,8 +170,8 @@ int HyPerConn::initialize_base()
 }
 
 int HyPerConn::createArbors() {
-   PVParams * inputParams = parent->parameters();
-   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
+//   PVParams * inputParams = parent->parameters();
+//   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
    assert(wPatches != NULL);
    axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
@@ -335,7 +335,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       this->weightInitializer = weightInit;
    }
 
-   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
+   status = setParams(hc->parameters() /*, &defaultConnParams*/);
+
+//   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
 
    this->connId = parent->addConnection(this);
@@ -343,7 +345,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    writeTime = parent->simulationTime();
    writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
 
-   status = setParams(hc->parameters() /*, &defaultConnParams*/);
    constructWeights(filename);
 
    return status;
@@ -390,7 +391,7 @@ int HyPerConn::initPlasticityPatches()
 }
 
 // set member variables specified by user
-int HyPerConn::setParams(PVParams * filep /*, PVConnParams * p*/)
+int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 {
    const char * name = getName();
 
@@ -420,15 +421,17 @@ int HyPerConn::setParams(PVParams * filep /*, PVConnParams * p*/)
    // now set params that are not in the params struct (instance variables)
 
 #ifdef OBSOLETE_STDP
-   stdpFlag = (bool) filep->value(name, "stdpFlag", (float) stdpFlag);
+   stdpFlag = (bool) inputParams->value(name, "stdpFlag", (float) stdpFlag);
    if (stdpFlag) {
-      ampLTP = filep->value(name, "ampLTP", ampLTP);
-      ampLTD = filep->value(name, "ampLTD", ampLTD);
-      tauLTP = filep->value(name, "tauLTP", tauLTP);
-      tauLTD = filep->value(name, "tauLTD", tauLTD);
+      ampLTP = inputParams->value(name, "ampLTP", ampLTP);
+      ampLTD = inputParams->value(name, "ampLTD", ampLTD);
+      tauLTP = inputParams->value(name, "tauLTP", tauLTP);
+      tauLTD = inputParams->value(name, "tauLTD", tauLTD);
 #endif
 
-      plasticityFlag = filep->value(name, "plasticityFlag", plasticityFlag, false);
+      numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
+      plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, false);
+      stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
 
       // moved to STDPConn (not used elsewhere in project) !!! whoever keeps putting wMax back STOP!!!!
       // let wMax override strength if user provides it
@@ -436,14 +439,14 @@ int HyPerConn::setParams(PVParams * filep /*, PVConnParams * p*/)
       //wMin = filep->value(name, "wMin", wMin);
 
 #ifdef OBSOLETE_STDP
-      dWMax = filep->value(name, "dWMax", dWMax);
+      dWMax = inputParams->value(name, "dWMax", dWMax);
 
       // set params for rate dependent Wmax
-      localWmaxFlag = (bool) filep->value(name, "localWmaxFlag", (float) localWmaxFlag);
+      localWmaxFlag = (bool) inputParams->value(name, "localWmaxFlag", (float) localWmaxFlag);
    }
 #endif
 
-   writeCompressedWeights = filep->value(name, "writeCompressedWeights", true);
+   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
 
    return 0;
 }
@@ -505,7 +508,7 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, con
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
          int status = normalizeWeights(arbors[arborId], numPatches, arborId);
-         if (status == PV_CONTINUE) continue;
+         if (status == PV_BREAK) break;
       } // arborId
    } // normalize_flag
    return arbors;
@@ -978,7 +981,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
       int delay = getDelay(arborId);
       pub->readData(delay);
       int status = post->recvSynapticInput(this, cube, arborId);
-      if (status == PV_CONTINUE) continue;
+      if (status == PV_BREAK) break;
       assert(status == PV_SUCCESS);
    }
 

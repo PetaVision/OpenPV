@@ -22,6 +22,7 @@
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
 #include "../layers/ODDLayer.hpp"
+#include "../layers/CliqueLayer.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"
@@ -48,6 +49,7 @@
 #endif
 #include "../connections/GaborConn.hpp"
 #include "../connections/ODDConn.hpp"
+#include "../connections/CliqueConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/FeedbackConn.hpp"

@@ -69,6 +69,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GenerativeLayer",
                    "LogLatWTAGenLayer",
                  "ODDLayer",
+                 "CliqueLayer",
                  "PoolingANNLayer",
                  "PtwiseProductLayer",
                  "TrainingLayer",
@@ -95,6 +96,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GenerativeConn",
                    "PoolingGenConn",
                  "ODDConn",
+                 "CliqueConn",
                  "GapConn",
                  "TransposeConn",
                    "FeedbackConn",
@@ -257,6 +259,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ODDLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name);
+   }
+   if( !strcmp(classkeyword, "CliqueLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name);
    }
    if( !strcmp(classkeyword, "GenerativeLayer") ) {
@@ -629,6 +636,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new ODDConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new CliqueConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name);
    }

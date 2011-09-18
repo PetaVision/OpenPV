@@ -29,7 +29,7 @@ int CliqueConn::updateState(float time, float dt){
 int CliqueConn::calc_dW(int arborId){
    // zero dWeightPatches
     int status = KernelConn::calc_dW(arborId);
-    assert((status == PV_SUCCESS) || (status == PV_CONTINUE));
+    assert((status == PV_SUCCESS) || (status == PV_BREAK));
 
     const PVLayerLoc * preLoc = this->getPre()->getLayerLoc();
     const int nfPre = preLoc->nf;
@@ -72,7 +72,7 @@ int CliqueConn::calc_dW(int arborId){
     int nyCliqueRadius = (int) (nyPostPatch/2);
     int nxCliqueRadius = (int) (nxPostPatch/2);
     int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nfPre;
-    int cliqueSize = 2;// number of presynaptic cells in clique (traditional ANN uses 1)
+    int cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
     //int numKernels = conn->numDataPatches();  // per arbor?
     int numCliques = pow(cliquePatchSize, cliqueSize-1);
     assert(numCliques == this->numberOfAxonalArborLists());
@@ -147,14 +147,14 @@ int CliqueConn::calc_dW(int arborId){
     } // kPreActive
     free(activeExt);
     free(cliqueActiveIndices);
-    return PV_CONTINUE;
+    return PV_BREAK;
 
 };  // calc_dW
 
 int CliqueConn::updateWeights(int arborId){
    int status = KernelConn::updateWeights(arborId);
-   assert((status == PV_SUCCESS) || (status == PV_CONTINUE));
-   return PV_CONTINUE;
+   assert((status == PV_SUCCESS) || (status == PV_BREAK));
+   return PV_BREAK;
 
 }; // updateWeights
 

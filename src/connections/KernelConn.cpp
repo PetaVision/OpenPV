@@ -262,7 +262,7 @@ int KernelConn::calc_dW(int axonId){
          }
       }
    }
-   return PV_CONTINUE;
+   return PV_BREAK;
 }
 
 int KernelConn::updateState(float time, float dt) {
@@ -275,34 +275,34 @@ int KernelConn::updateState(float time, float dt) {
       computeNewWeightUpdateTime(time, weightUpdateTime);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = calc_dW(axonID);  // calculate changes in weights
-         if (status == PV_CONTINUE) {continue;}
+         if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
 
 #ifdef PV_USE_MPI
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = reduceKernels(axonID);  // combine partial changes in each column
-         if (status == PV_CONTINUE) {continue;}
+         if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
 #endif // PV_USE_MPI
 
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = updateWeights(axonID);  // calculate new weights from changes
-         if (status == PV_CONTINUE) {continue;}
+         if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
       if( normalize_flag ) {
          for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
             status = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
-            if (status == PV_CONTINUE) {continue;}
+            if (status == PV_BREAK) {break;}
             assert(status == PV_SUCCESS);
          }
       }  // normalize_flag
    } // time > weightUpdateTime
 
 update_timer->stop();
-return status;
+return PV_SUCCESS;
 } // updateState
 
 int KernelConn::updateWeights(int axonId){
@@ -325,7 +325,7 @@ int KernelConn::updateWeights(int axonId){
          }
       }
    }
-   return PV_CONTINUE;
+   return PV_BREAK;
 }
 
 float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime) {
@@ -443,10 +443,10 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
    const int num_kernels = numDataPatches();
    if (this->numberOfAxonalArborLists() == 1) {
       status = HyPerConn::normalizeWeights(kernelPatches[arborId], num_kernels, arborId);
-      assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       if ( symmetrizeWeightsFlag ){
          status = symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
-         assert( (status == PV_SUCCESS) || (status == PV_CONTINUE) );
+         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       }
    } // numberOfAxonalArborLists() == 1
    else {
@@ -465,7 +465,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
             status = scaleWeights(kernelPatches[kArbor][kPatch], sumAll, sum2All, maxAll);
          } // kArbor
       } // kPatch < numPatches
-      status = PV_CONTINUE;
+      status = PV_BREAK;
    } // numberOfAxonalArborLists() != 1
    return status;
 }
