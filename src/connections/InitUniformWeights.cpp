@@ -42,7 +42,7 @@ int InitUniformWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
 
 
    uniformWeights(patch, iWeight);
-   return 1;
+   return PV_SUCCESS; // return 1;
 }
 
 /**

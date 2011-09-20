@@ -38,7 +38,7 @@ namespace PV {
       //smart weights doesn't have any params to load and is too simple to
       //actually need to save anything to work on...
       smartWeights(patch, patchIndex);
-      return 1;
+      return PV_SUCCESS; // return 1;
    }
 
    InitWeightsParams * InitSmartWeights::createNewWeightParams(HyPerConn * callingConn) {

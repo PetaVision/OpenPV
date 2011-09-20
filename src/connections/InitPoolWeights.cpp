@@ -45,7 +45,7 @@ int InitPoolWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
    poolWeights(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 

@@ -82,7 +82,7 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int arborId, int n
          //calc weights for patch:
          int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arborId, weightParams);
          if (successFlag != PV_SUCCESS) {
-            fprintf(stderr, "Failed to create weights! Exiting...");
+            fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
             exit(PV_FAILURE);
          }
 

@@ -45,7 +45,7 @@ int InitGaborWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
    gaborWeights(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 

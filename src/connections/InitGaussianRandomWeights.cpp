@@ -56,7 +56,7 @@ int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int 
    const float wGaussStdev = weightParamPtr->getStDev();
 
    gaussianWeights(patch, wGaussMean, wGaussStdev);
-   return 1;
+   return PV_SUCCESS; // return 1;
 }
 
 /**

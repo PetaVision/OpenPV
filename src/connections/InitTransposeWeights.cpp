@@ -56,7 +56,7 @@ int InitTransposeWeights::calcWeights(PVPatch * patch, int patchIndex,
 
    transposeKernels(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 

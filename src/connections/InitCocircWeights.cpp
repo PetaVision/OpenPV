@@ -56,7 +56,7 @@ int InitCocircWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
    cocircCalcWeights(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS;
 
 }
 

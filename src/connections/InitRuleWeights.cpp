@@ -46,7 +46,7 @@ int InitRuleWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
    ruleWeights(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 

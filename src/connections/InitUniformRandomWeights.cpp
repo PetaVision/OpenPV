@@ -56,7 +56,7 @@ int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int a
 
 
    uniformWeights(patch, wMinInit, wMaxInit);
-   return 1;
+   return PV_SUCCESS; // return 1;
 }
 
 /**

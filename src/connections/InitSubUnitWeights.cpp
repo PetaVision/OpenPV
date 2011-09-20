@@ -45,7 +45,7 @@ int InitSubUnitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
 
    subUnitWeights(patch, weightParamPtr);
 
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 
