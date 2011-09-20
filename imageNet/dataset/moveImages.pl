@@ -60,6 +60,9 @@ $IMG_DIR="$currDir/../../archivedImages";
 unless (-d $TMP_DIR) {
     system("mkdir -p $TMP_DIR");
 }
+unless (-d $root_dir) {
+    system("mkdir -p $rot_dir");
+}
 
 $esccurrDir = quotemeta($currDir);
 $esccurrDir =~ s/\\\//\//g;
