@@ -91,6 +91,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "ConvolveConn",
                "KernelConn",
                  "CloneKernelConn",
+                 "NoSelfKernelConn",
                  "GaborConn",
                  "IdentConn",
                  "GenerativeConn",
@@ -630,6 +631,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    }
    }
 #endif
+   if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name);
+   }
    if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);

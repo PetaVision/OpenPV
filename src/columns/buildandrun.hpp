@@ -43,6 +43,7 @@
 #include "../connections/ConvolveConn.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"
+#include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/GapConn.hpp"
 #ifdef OBSOLETE
 #include "../connections/CocircConn.hpp"

@@ -46,7 +46,7 @@ int IdentConn::setPatchSize(const char * filename) {
       fprintf( stderr,
                "IdentConn Error: %s and %s do not have the same dimensions\n",
                pre->getName(),post->getName() );
-      exit(1);
+      exit(PV_SUCCESS);
    }
    nxp = 1;
    nyp = 1;

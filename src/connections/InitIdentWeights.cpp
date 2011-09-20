@@ -37,7 +37,7 @@ int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
    if(weightParamPtr==NULL) {
       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      exit(PV_FAILURE); // return 1;
    }
 
 
@@ -56,7 +56,7 @@ int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
         kp->data[l] = l==k;
    }
    //}
-   return 1;
+   return PV_SUCCESS; // return 1;
 
 }
 } /* namespace PV */

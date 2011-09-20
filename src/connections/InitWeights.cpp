@@ -81,9 +81,9 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int arborId, int n
 
          //calc weights for patch:
          int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arborId, weightParams);
-         if (successFlag != 1) {
+         if (successFlag != PV_SUCCESS) {
             fprintf(stderr, "Failed to create weights! Exiting...");
-            exit(1);
+            exit(PV_FAILURE);
          }
 
          //copy back to unshrunk patch:
@@ -110,7 +110,7 @@ int InitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 
     if(weightParamPtr==NULL) {
        fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-       exit(1);
+       exit(PV_FAILURE);
     }
 
 
@@ -120,12 +120,12 @@ int InitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
     gauss2DCalcWeights(patch, weightParamPtr);
 
 
-    return 1;
+    return PV_SUCCESS;
 }
 
 int InitWeights::initialize_base() {
 
-   return 1;
+   return PV_SUCCESS;
 }
 
 //int InitWeights::initialize(const char * name, HyPerCol * hc,

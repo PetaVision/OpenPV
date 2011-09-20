@@ -431,7 +431,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 
       numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
       plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, false);
-      stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
+      stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
       // moved to STDPConn (not used elsewhere in project) !!! whoever keeps putting wMax back STOP!!!!
       // let wMax override strength if user provides it
