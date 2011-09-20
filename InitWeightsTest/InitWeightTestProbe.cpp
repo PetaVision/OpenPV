@@ -35,9 +35,9 @@ int InitWeightTestProbe::outputState(float time, HyPerLayer * l)
    }
 #endif // PV_USE_MPI
 	if(time>2.0f){
-		assert((fMin>-0.999)&&(fMin<0.001));
-		assert((fMax>-0.999)&&(fMax<0.001));
-		assert((avg>-0.999)&&(avg<0.001));
+		assert((fMin>-0.001)&&(fMin<0.001));
+		assert((fMax>-0.001)&&(fMax<0.001));
+		assert((avg>-0.001)&&(avg<0.001));
 	}
 
 	return status;
