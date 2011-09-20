@@ -54,10 +54,14 @@ public:
    static unsigned char * convertToGrayScale(unsigned char * buf, int nx, int ny, int numBands);
 
    int  convolve(int width);
-   void setTau(float t)                { tau = t; }
+   // void setTau(float t)                { tau = t; }
 
    int copyFromInteriorBuffer(unsigned char * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
+
+   const char * getFilename() { return filename; }
+   int getOffsetX() { return offsetX; }
+   int getOffsetY() { return offsetY; }
 
 protected:
 
@@ -85,7 +89,7 @@ protected:
    float lastPhase;
    float lastUpdateTime; // time of last image update
 
-   float tau;
+   // float tau;  // tau is not used by image or any subclasses
 };
 
 }
