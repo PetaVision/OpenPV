@@ -31,20 +31,20 @@ if ($ARGV[0] && $ARGV[1]) {
 
 sub extractAnnotations {
     use File::Glob ':nocase';
-    my $destDir = $_[0];
-    my $category = $_[1];
 
-    print "\nExtracting annotations...\n";
-
-    $currDir = `pwd`;
+    my $currDir = `pwd`;
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
-    $TMP_DIR = "$currDir/../tmp";
+    my $TMP_DIR = "$currDir/../tmp";
+    my $IMG_DIR="$currDir/../../Archived\ Images";
+
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
     }
 
-    chomp($category);
+    print "\nExtracting annotations...\n";
+    my $destDir = $_[0];
+    my $category = $_[1];
     $category =~ s/\s/\\ /g;
     chomp($category);
     @dir = glob "$currDir/../img/*/$category";

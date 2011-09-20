@@ -37,20 +37,26 @@
 
 sub countImages {
 
-    $num_cats = $_[0];
-    $cat = $_[1];
+    my $num_cats = $_[0];
+    my $cat = $_[1];
 
     undef @OUT;
     
     print "\nCounting images of $cat...\n";
 
-    $currDir = `pwd`;
+    my $currDir = `pwd`;
     chomp($currDir);
-    $TMP_DIR = "$currDir/../tmp";
-    $esccurrDir = quotemeta($currDir);
-    $esccurrDir =~ s/\\\//\//g;
-    $IMG_DIR = "$currDir/../../img";
+    my $TMP_DIR = "$currDir/../tmp";
+    my $IMG_DIR="$currDir/../../Archived\ Images";
 
+    unless (-d $TMP_DIR) {
+        system("mkdir -p $TMP_DIR");
+    }
+
+    my $esccurrDir = quotemeta($currDir);
+    $esccurrDir =~ s/\\\//\//g;
+
+    my $all = "";
 
     if ($cat =~ /rt/) {
         $all = "y";

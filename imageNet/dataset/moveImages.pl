@@ -55,10 +55,14 @@ $use_cache = "y";
 $currDir = `pwd`;
 chomp($currDir);
 $TMP_DIR = "$currDir/../tmp";
+$IMG_DIR="$currDir/../../Archived\ Images";
+
+unless (-d $TMP_DIR) {
+    system("mkdir -p $TMP_DIR");
+}
+
 $esccurrDir = quotemeta($currDir);
 $esccurrDir =~ s/\\\//\//g;
-
-$IMG_DIR = "$currDir/../../img";
 
 #If we are given $num, assume mode 2] or 3]. Else, assume mode 1]
 if ($num) {

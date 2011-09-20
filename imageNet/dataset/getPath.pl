@@ -31,16 +31,17 @@ sub getPath{
     use XML::XPath;
     use XML::XPath::XMLParser;
 
-    $currDir = `pwd`;
+    my $currDir = `pwd`;
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
-    $TMP_DIR = "$currDir/../tmp";
+    my $TMP_DIR = "$currDir/../tmp";
+
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
     }
 
-    $IMG_DIR = $_[0];
-    $input = $_[1];
+    my $IMG_DIR = $_[0];
+    my $input = $_[1];
 
     print "\nFinding the path to \"$input\" in the $IMG_DIR/ folder...\n";
 

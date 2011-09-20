@@ -40,6 +40,7 @@ sub findChildren{
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
     $TMP_DIR = "$currDir/../tmp";
+
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
     }

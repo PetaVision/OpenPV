@@ -31,23 +31,23 @@
 
 sub extractImages {
     use File::Glob ':nocase';
-    my $destDir = $_[0];
-    my $category = $_[1];
 
-    print "\nExtracting images...\n";
-
-    $currDir = `pwd`;
+    my $currDir = `pwd`;
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
-    $TMP_DIR = "$currDir/../tmp";
+    my $TMP_DIR = "$currDir/../tmp";
+    my $IMG_DIR="$currDir/../../Archived\ Images";
+
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
     }
 
-    chomp($category);
+    print "\nExtracting images...\n";
+    my $destDir = $_[0];
+    my $category = $_[1];
     $category =~ s/\s/\\ /g;
     chomp($category);
-    @dir = glob "$currDir/../img/*/$category";
+    my @dir = glob "$IMG_DIR/*/$category";
     print "\nCategory:\t\"$category\"\nCurrent Path:\t@dir[0]\nDestination:\t$destDir/images\n";
     $destDir =~ s/\s/\\ /g;
 
@@ -55,8 +55,8 @@ sub extractImages {
         system("mkdir -p $destDir/images");
     }
 
-    $nocat = 0;
-    $dir = @dir[0];
+    my $nocat = 0;
+    my $dir = @dir[0];
     if (-d "$dir") {
         $dir =~ s/\s/\\ /g;
         $IMG_DIR = $dir;
