@@ -28,16 +28,21 @@ int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int a
    assert(this->getPre()->getCLayer()->loc.nf == this->getPost()->getCLayer()->loc.nf);
    int num_kernels = this->numDataPatches();
 
-   for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-      PVPatch * wp = getKernelPatch(arborId, kPatch);
-      pvdata_t * w = wp->data;
-      int kfSelf = kPatch;
-      int kxSelf = (nxp / 2);
-      int kySelf = (nyp / 2);
-      int kSelf = kIndex(kxSelf, kySelf, kfSelf, nxp, nyp, nfp);
-      w[kSelf] = 0.0f;
-   }
-   return KernelConn::normalizeWeights(patches, numPatches, arborId);
+   // because the default return value/behavior of KernelConn::normalizeWeights is PV_BREAK,
+   // safest approach here is to zero self-interactions for all arbors
+   assert(arborId == 0);  // necessary?  could execute this routine numAxonArbors times without apparent harm
+   for (int axonIndex = 0; axonIndex < this->numberOfAxonalArborLists(); axonIndex++) {
+      for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
+         PVPatch * wp = getKernelPatch(axonIndex, kPatch);
+         pvdata_t * w = wp->data;
+         int kfSelf = kPatch;
+         int kxSelf = (nxp / 2);
+         int kySelf = (nyp / 2);
+         int kSelf = kIndex(kxSelf, kySelf, kfSelf, nxp, nyp, nfp);
+         w[kSelf] = 0.0f;
+      } // kPatch
+   }  // axonIndex
+   return KernelConn::normalizeWeights(patches, numPatches, arborId);  // parent class should return PV_BREAK
 }
 
 
