@@ -37,13 +37,12 @@
 
 sub countImages {
 
-    my $num_cats = $_[0];
-    my $cat = $_[1];
+    my $cat = $_[0];
+    my $num_cats = $_[1];
+    chomp($cat);
 
     undef @OUT;
     
-    print "\nCounting images of $cat...\n";
-
     my $currDir = `pwd`;
     chomp($currDir);
     my $TMP_DIR = "$currDir/../tmp";
@@ -53,41 +52,42 @@ sub countImages {
         system("mkdir -p $TMP_DIR");
     }
 
-    my $esccurrDir = quotemeta($currDir);
-    $esccurrDir =~ s/\\\//\//g;
-
     my $all = "";
 
     if ($cat =~ /rt/) {
         $all = "y";
     } else {
-        chomp($cat);
         $all = "n";
 #Category ($cat) must match a folder in the ./$IMG_DIR directory.
-        if (-e "$currDir/../img/$cat") {
+        if (-e "$IMG_DIR/$cat") {
             $IMG_DIR .= "/$cat";
         } else {
-            die "\nInvalid category. $cat does not exist in $currDir/../img/\n";
+            die "\nInvalid category. \"$cat\" does not exist in \"$IMG_DIR\"\n";
         }
     }
+
     print "Counting images in $IMG_DIR...\n";
+
     @OUT = &doCount($IMG_DIR, $TMP_DIR, $all);
+
     print "Returning sorted categories.\n";
     return @OUT;
 }
 
 sub doCount {
-    $IMG_DIR = $_[0];
-    $TMP_DIR = $_[1];
-    $all = $_[2];
-    ($totcount_cat, $count, $catcount, $totcount) = 0;
+    my $IMG_DIR = $_[0];
+    my $TMP_DIR = $_[1];
+    my $all = $_[2];
+    my ($totcount_cat, $count, $catcount, $totcount) = 0;
     undef @SORT_NAMES;
 
+    my $escIMG_DIR = $IMG_DIR;
+    $escIMG_DIR =~ s/\s/\\ /g;
+
 #Count the images using glob to get to the directory and tar -t to get the image list
-    foreach $dir (glob "$IMG_DIR/*") {
+    foreach $dir (glob "$escIMG_DIR/*") {
         print "\n$dir\n";
         $escdir = quotemeta($dir);
-        $escimgdir = quotemeta($IMG_DIR);
 
         if ($all =~ /y/) {
             foreach $sub_dir (glob "$escdir/*") {
@@ -114,6 +114,7 @@ sub doCount {
             die "\n\nERROR: $all is not 'y' or 'n'\n\n";
         }
 
+        $escimgdir = quotemeta($IMG_DIR);
         $dir =~ s/\\ / /g;
         $dir =~ s/$escimgdir\///;
         $dir =~ s/\/[n\d]+//;
@@ -142,20 +143,20 @@ sub doCount {
         system("mkdir -p $TMP_DIR");
     }
 	open(CACHE_WRITE,">","$TMP_DIR/cache.cch") or die "\n\nFAILED to open the cache file\n$!\n\n";
-	foreach $count (@SORT_NAMES) {
-		print CACHE_WRITE "$count\n";
+	foreach my $item (@SORT_NAMES) {
+		print CACHE_WRITE "$item\n";
 	}
 	close CACHE_WRITE;
 
     print "Final image count is $totcount\nFinal category count is $catcount\n";
     print "Most populated category is $SORT_NAMES[0] with $maxcatcount images.\n";
 
-    if (scalar(@SORT_NAMES) >= $num_cats) {
-        $tmp = scalar(@SORT_NAMES);
-        for($i=0; $i<($tmp-$num_cats); $i+=1) {
+    if (scalar(@SORT_NAMES) > $num_cats) {
+        for($i=0; $i<(scalar(@SORT_NAMES)-$num_cats); $i+=1) {
             $pop = pop(@SORT_NAMES);
         }
     }
+
     return @SORT_NAMES;
 }
 1;

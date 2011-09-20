@@ -49,7 +49,8 @@ if ($ARGV[2]) {
 	$num = $ARGV[2];
 }
 
-#countImages has a caching option, so that you dont have to recount all images. Set this to use cache.
+#countImages has a caching option, so that you dont have to recount all images.
+#Set this variable to "y" to use cache.
 $use_cache = "y";
 
 $currDir = `pwd`;
@@ -61,7 +62,7 @@ unless (-d $TMP_DIR) {
     system("mkdir -p $TMP_DIR");
 }
 unless (-d $root_dir) {
-    system("mkdir -p $rot_dir");
+    system("mkdir -p $root_dir");
 }
 
 $esccurrDir = quotemeta($currDir);
@@ -69,7 +70,7 @@ $esccurrDir =~ s/\\\//\//g;
 
 #If we are given $num, assume mode 2] or 3]. Else, assume mode 1]
 if ($num) {
-    print "\n\nMoving top $num sub-categories in $category to the $root_dir directory...\n";
+    print "\n\nMoving top $num sub-categories in \"$category\" to the \"$root_dir\" directory...\n";
 
     if ($use_cache =~ /y/) {
         unless (-e "$TMP_DIR/cache.cch") {
@@ -85,31 +86,41 @@ if ($num) {
         close(CACHE_READ);
 
 #Grab top $num categories
-        if (scalar(@CACHE_READ) >= $num) {
+        if (scalar(@CACHE_READ) > $num) {
             for($i=0; $i<(scalar(@CACHE_READ)-$num); $i+=1) {
                 $pop = pop(@CACHE_READ);
             }
             @CATEGORIES = @CACHE_READ
         } else {
             print "Cache file contains less than $num categories; proceeding without cache.\n";
-            @CATEGORIES = countImages($num, $category);
+            @CATEGORIES = countImages($category, $num);
         }
     } elsif ($use_cache =~ /n/) {
 #if not using cache, count all categories
-        @CATEGORIES = countImages($num, $category);
+        @CATEGORIES = countImages($category, $num);
     } else {
         die "\n\nERROR: Invalid input for 'use_cache'. Please enter 'y' or 'n'\n\n";
     }
 
-    system("mkdir -p $root_dir");
-
-    foreach $cat (@CATEGORIES) {
-        doMove($cat);
+    my $escIMG_DIR = quotemeta($IMG_DIR);
+    foreach my $category (@CATEGORIES) {
+        chomp($category);
+        print "\n\n=====================\nMoving images from \"$category\" and its children to the \"$root_dir\" folder...";
+        foreach $subcat (glob "$escIMG_DIR/$category/*") {
+            $subcat =~ s/$IMG_DIR\/$category\///;
+            @CHILDREN = findChildren($subcat);
+            foreach my $child (@CHILDREN) {
+                chomp($child);
+                print "\n\n=====================\nMoving \"$child\" images...\n";
+                doMove($child);
+            }
+        }
     }
 } else {
     print "\n\nMoving images from \"$category\" and its children to the \"$root_dir\" folder...\n";
     @CHILDREN = findChildren($category);
     foreach my $child (@CHILDREN) {
+        chomp($child);
         print "\n\n=====================\nMoving \"$child\" images...\n";
         doMove($child);
     }
@@ -129,12 +140,9 @@ sub doMove {
     $cat = $PARENTS[0];
     system("cp $TMP_DIR/folderStructure.xml $root_dir/folderStructure.xml");
     $dest_dir = getPath($root_dir,$cat);
-    $dest_dir =~ s/\s/\\ /g;
-    system("mkdir -p $dest_dir");
-    $dest_dir =~ s/\\ / /g;
     $result = extractImages($dest_dir, $cat);
-    if ($result == 0) {
-        die;
-    }
+    #if ($result == 0) {
+    #    die;
+    #}
 }
 1;

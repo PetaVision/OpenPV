@@ -30,8 +30,6 @@
 #}
 
 sub extractImages {
-    use File::Glob ':nocase';
-
     my $currDir = `pwd`;
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
@@ -45,15 +43,11 @@ sub extractImages {
     print "\nExtracting images...\n";
     my $destDir = $_[0];
     my $category = $_[1];
-    $category =~ s/\s/\\ /g;
     chomp($category);
+    $category =~ s/\s/\\ /g;
     my @dir = glob "$IMG_DIR/*/$category";
     print "\nCategory:\t\"$category\"\nCurrent Path:\t@dir[0]\nDestination:\t$destDir/images\n";
     $destDir =~ s/\s/\\ /g;
-
-    unless (-e "$destDir/images") {
-        system("mkdir -p $destDir/images");
-    }
 
     my $nocat = 0;
     my $dir = @dir[0];
@@ -61,11 +55,14 @@ sub extractImages {
         $dir =~ s/\s/\\ /g;
         $IMG_DIR = $dir;
     } else {
-        print "\n\nWARNING: Category \"$category\" not found in $currDir/../img/!\nCouldn't find $dir\nNot extracting files.\n\n";
+        print "\n\nWARNING: Category \"$category\" not found in $IMG_DIR!\nNot extracting files.\n\n";
         $nocat = 1;
     }
 
     unless ($nocat) {
+        unless (-e "$destDir/images") {
+            system("mkdir -p $destDir/images");
+        }
         foreach $file (glob "$IMG_DIR/*.tar") {
             $tarfile = $file;
             $tarfile =~ s/\s/\\ /g;
