@@ -44,7 +44,7 @@ my $use_proxy = 0;
 $currDir = `pwd`;
 chomp($currDir);
 $TMP_DIR="$currDir/../tmp";
-$IMG_DIR="$currDir/../../Archived\ Images";
+$IMG_DIR="$currDir/../../archivedImages";
 
 
 if ($use_proxy) {

@@ -47,7 +47,7 @@ sub countImages {
     my $currDir = `pwd`;
     chomp($currDir);
     my $TMP_DIR = "$currDir/../tmp";
-    my $IMG_DIR="$currDir/../../Archived\ Images";
+    my $IMG_DIR="$currDir/../../archivedImages";
 
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");

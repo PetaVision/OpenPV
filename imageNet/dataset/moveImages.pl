@@ -55,7 +55,7 @@ $use_cache = "y";
 $currDir = `pwd`;
 chomp($currDir);
 $TMP_DIR = "$currDir/../tmp";
-$IMG_DIR="$currDir/../../Archived\ Images";
+$IMG_DIR="$currDir/../../archivedImages";
 
 unless (-d $TMP_DIR) {
     system("mkdir -p $TMP_DIR");

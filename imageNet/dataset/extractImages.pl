@@ -36,7 +36,7 @@ sub extractImages {
     chomp($currDir);
     $currDir =~ s/\s/\\ /g;
     my $TMP_DIR = "$currDir/../tmp";
-    my $IMG_DIR="$currDir/../../Archived\ Images";
+    my $IMG_DIR="$currDir/../../archivedImages";
 
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
