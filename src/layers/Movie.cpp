@@ -24,14 +24,14 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames)
     initializeMovie(name, hc, fileOfFileNames, DISPLAY_PERIOD);
 }
 
-Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod)
+Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod)
      : Image(name, hc)
 {
-   initializeMovie(name, hc, fileOfFileNames, displayPeriod);
+   initializeMovie(name, hc, fileOfFileNames, defaultDisplayPeriod);
 }
 
 
-int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod) {
+int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
 
    PVLayerLoc * loc = &clayer->loc;
 
@@ -68,10 +68,10 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
 
    //
    PVParams * params = hc->parameters();
-   this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
+   this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
-   // offsetX = (int) params->value(name,"offsetX", 0); // offsetX,offsetY moved to Image
+   // offsetX = (int) params->value(name,"offsetX", 0); // reading offsetX,offsetY moved to Image
    // offsetY = (int) params->value(name,"offsetY", 0);
 
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
@@ -116,7 +116,7 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    // exchange border information
    exchange();
 
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 Movie::~Movie()
@@ -161,7 +161,7 @@ int Movie::updateState(float time, float dt)
 /**
  * - update the image buffers
  * - If the time is a multiple of biasChangetime then the position of the bias (biasX, biasY) changes.
- * - with probability persistenceProb the offset position (offsetX, offsetY) remains uncganhed.
+ * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
  * - otherwise, with probability (1-persistenceProb) the offset position performs a random walk
  * around the bias position (biasX, biasY).
  * - return true if buffers have changed
