@@ -63,7 +63,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 100; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 0; %% 1000; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -103,7 +103,8 @@ machine_path = ...
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier2_vs_cat2/trial2"];
+    [machine_path "Clique/input/amoeba/test"];
+%%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
 %%    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
@@ -117,7 +118,8 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/cat2_vs_terrier2/trial2"];
+    [machine_path "Clique/input/noamoeba/test"];
+%%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
 %%    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
@@ -127,7 +129,7 @@ else
   distractor_path = [];
 endif
 if ~isempty(distractor_path)
-  distractor_path = [distractor_path, G_STR, '/'];
+  distractor_path = [distractor_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
     distractor_path = [distractor_path, FC_STR, '/'];
   endif
@@ -253,6 +255,7 @@ for j_trial = first_trial : skip_trial : last_trial
       %% Read spike events
       hist_bins_tmp = ...
           hist_activity_bins{layer};
+      %%keyboard;
       [act_time(layer, j_trial),...
        activity{target_flag}, ...
        hist_activity_tmp, ...
@@ -491,9 +494,9 @@ if max_target_flag > min_target_flag
     twoAFC_correct = zeros(num_layers, size(twoAFC,4));
     twoAFC_errorbar = zeros(num_layers, size(twoAFC,4));
 
-    baseline_layer = 3;
-    percent_change_flag = 1;
-    cum_change_flag = 1;
+    baseline_layer = 3; %% 0;
+    percent_change_flag = 1; %%0;
+    cum_change_flag = 1; %%0;
 
     twoAFC_list = [1];
     for i_2AFC_test = twoAFC_list %%1 : num_2AFC_tests
@@ -615,9 +618,9 @@ else
 endif
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-weight_invert(6) = -1;
-weight_invert(9) = -1;
-weight_invert(12) = -1;
+weight_invert(6) = 1; %%-1;
+weight_invert(9) = 1; %%-1;
+weight_invert(12) = 1; %%-1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -641,7 +644,7 @@ for i_conn = plot_weights
     if NXP <= 1 || NYP <= 1
       continue;
     endif
-    num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+    num_patches = NFP; %%pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
     for i_patch = 1:num_patches
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
@@ -658,12 +661,13 @@ for i_conn = plot_weights
     disp('calculating geisler kernels');
     pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
     pvp_conn_header_tmp = pvp_conn_header{i_conn};
-    num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+    num_patches = NFP; %%pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
     nxp{i_conn} = nxp{i_conn-2};
     nyp{i_conn} = nyp{i_conn-2};
     for i_patch = 1:num_patches
       weights{i_conn}{i_patch} = ...
-	  weights{i_conn-2}{i_patch} + weights{i_conn-1}{i_patch};
+	  log2((weights{i_conn-2}{i_patch}+(weights{i_conn-2}{i_patch}==0)) ./ ...
+	       (weights{i_conn-1}{i_patch}+(weights{i_conn-1}{i_patch}==0)));
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
