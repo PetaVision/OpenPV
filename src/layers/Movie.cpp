@@ -30,11 +30,16 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
    initializeMovie(name, hc, fileOfFileNames, defaultDisplayPeriod);
 }
 
-
+//
+/*
+ * Notes:
+ * - offsetX and offsetY are initialized by Image(name,hc)
+ * - writeImages is initialized by Image(name,hc)
+ */
 int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
 
    PVLayerLoc * loc = &clayer->loc;
-
+   movieOutputPath = NULL;
 
    fp = fopen(fileOfFileNames, "r");
    if( fp == NULL ) {
@@ -91,13 +96,6 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    if( randomMovie ) {
       randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
    }
-   if(writePosition){
-      assert(jitterFlag);
-      fp_pos = fopen("input/image-pos.txt","a");
-      assert(fp_pos != NULL);
-      fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
-            hc->simulationTime(),offsetX,offsetY);
-   }
 
    if(randomMovie){
       // random number generator already initialized by HyPerCol
@@ -106,6 +104,36 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
       randomFrame();
    }else{
       read(filename, offsetX, offsetY);
+   }
+
+   // set output path for movie frames
+   if(writeImages){
+      if ( params->stringPresent(name, "movieOutputPath") ) {
+         movieOutputPath = strdup(params->stringValue(name, "movieOutputPath"));
+         assert(movieOutputPath != NULL);
+      }
+      else {
+         movieOutputPath = strdup( hc->getOutputPath());
+         assert(movieOutputPath != NULL);
+         printf("Movie output path is not specified in params file.\n"
+               "Movie output path set to default \"%s\"\n",movieOutputPath);
+      }
+   }
+
+   if(writePosition){
+      assert(jitterFlag);
+      char file_name[PV_PATH_MAX];
+      if (movieOutputPath != NULL){
+         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
+      }
+      else{
+         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
+      }
+      printf("write position to %s\n",file_name);
+      fp_pos = fopen(file_name,"a");
+      assert(fp_pos != NULL);
+      fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
+            hc->simulationTime(),offsetX,offsetY);
    }
 
    // grayScale call moved to Image::read, called immediately above
@@ -160,11 +188,19 @@ int Movie::updateState(float time, float dt)
 
 /**
  * - update the image buffers
+<<<<<<< .mine
+ * - If the time is a multiple of biasChangeTime then the position of the bias (biasX, biasY) changes.
+ * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
+=======
  * - If the time is a multiple of biasChangetime then the position of the bias (biasX, biasY) changes.
  * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
+>>>>>>> .r4226
  * - otherwise, with probability (1-persistenceProb) the offset position performs a random walk
  * around the bias position (biasX, biasY).
  * - return true if buffers have changed
+ * - read() is an Image method which copies from the movie frame at (offsetX, offsetY) an image patch
+ * of size (nx,ny,nf). How are multiple image (color) channels used?
+ * information into the data buffer. Remember that data = clayer->activity->data;
  */
 bool Movie::updateImage(float time, float dt)
 {
@@ -231,7 +267,7 @@ int Movie::outputState(float time, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), time);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.tif", movieOutputPath, time);
       write(basicFilename);
    }
 
