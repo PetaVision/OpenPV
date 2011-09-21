@@ -20,9 +20,14 @@ int start = 0;
 Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    Image(name, hc)
 {
-   // CER-new
-   fp = fopen("bar-pos.txt", "w");
+   initializePatterns(name, hc, type);
+}
 
+int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType type)
+{
+   // CER-new
+
+   patternsOutputPath = NULL;
    this->type = type;
 
    // set default params
@@ -31,38 +36,40 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    this->position = this->prefPosition;
    this->lastPosition = this->prefPosition;
 
-   // set bars orientation to default values
-   //this->orientation = vertical;
-   //this->lastOrientation = orientation;
-   const char * allowedPatternModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-         "HORIZONTAL",
-         "VERTICAL",
-         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-   };
-   //if the orientation isn't set, use vertical as the default...
-   const char * patternModeStr = hc->parameters()->stringValue(name, "orientation");
-   if( ! patternModeStr ) {
-      this->orientation = vertical;
-      this->lastOrientation = orientation;
-   }
-   else {
-      PatternMode patternMode;
-      int patternModeMatch = false;
-      for( int i=0; strcmp(allowedPatternModes[i],"_End_allowedPatternTypes"); i++ ) {
-         const char * thispatternmode = allowedPatternModes[i];
-         if( !strcmp(patternModeStr, thispatternmode) ) {
-            patternMode = (PatternMode) i;
-            patternModeMatch = true;
-            break;
-         }
-      }
-      if( patternModeMatch ) {
-         this->orientation = patternMode;
-         this->lastOrientation = patternMode;
-      }
-      else { //if the set orientation isn't recognized, use vertical as default
+   if (this->type == BARS){
+
+      // set orientation mode
+      const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+            "HORIZONTAL",
+            "VERTICAL",
+            "MIXED",
+            "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+      };
+      //if the orientation isn't set, use vertical as the default...
+      const char * orientationModeStr = hc->parameters()->stringValue(name, "orientation");
+      if( ! orientationModeStr ) {
          this->orientation = vertical;
          this->lastOrientation = orientation;
+      }
+      else {
+         OrientationMode orientationMode;
+         int orientationModeMatch = false;
+         for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
+            const char * thisorientationmode = allowedOrientationModes[i];
+            if( !strcmp(orientationModeStr, thisorientationmode) ) {
+               orientationMode = (OrientationMode) i;
+               orientationModeMatch = true;
+               break;
+            }
+         }
+         if( orientationModeMatch ) {
+            this->orientation = orientationMode;
+            this->lastOrientation = orientationMode;
+         }
+         else { //if the set orientation isn't recognized, use vertical as default
+            this->orientation = vertical;
+            this->lastOrientation = orientation;
+         }
       }
    }
 
@@ -113,18 +120,44 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
 
-
    movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
-
-
 
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
+   // set output path for movie frames
+   if(writeImages){
+      if ( params->stringPresent(name, "patternsOutputPath") ) {
+         patternsOutputPath = strdup(params->stringValue(name, "patternsOutputPath"));
+         assert(patternsOutputPath != NULL);
+      }
+      else {
+         patternsOutputPath = strdup( hc->getOutputPath());
+         assert(patternsOutputPath != NULL);
+         printf("Movie output path is not specified in params file.\n"
+               "Movie output path set to default \"%s\"\n",patternsOutputPath);
+      }
+   }
+
+   writePosition     = (int) params->value(name,"writePosition", 0);
+   if(writePosition){
+      char file_name[PV_PATH_MAX];
+      if (patternsOutputPath != NULL){
+         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
+      }
+      else{
+         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
+      }
+      printf("write position to %s\n",file_name);
+      fp = fopen(file_name,"a");
+      assert(fp != NULL);
+   }
 
    initPattern(PATTERNS_MAXVAL);
 
    // make sure initialization is finished
    updateState(0.0, 0.0);
+
+   return EXIT_SUCCESS;
 }
 
 Patterns::~Patterns()
@@ -135,8 +168,10 @@ Patterns::~Patterns()
 
 int Patterns::tag()
 {
-   if (orientation == vertical) return position;
-   else                         return 10*position;
+   if (orientation == vertical)
+      return position;
+   else
+      return 10*position;
 }
 
 int Patterns::initPattern(float val)
@@ -182,24 +217,25 @@ int Patterns::initPattern(float val)
       position = x0 + y0*nx;
       return 0;
    }
+   else {
+      // type is bars
 
-   // type is bars
-
-   if (orientation == vertical) { // vertical bars
-      width = maxWidth;
-      for (int iy = 0; iy < ny; iy++) {
-         for (int ix = 0; ix < nx; ix++) {
-            int m = (ix + position) % (2*width);
-            data[ix * sx + iy * sy] = (m < width) ? val : 0;
+      if (orientation == vertical) { // vertical bars
+         width = maxWidth;
+         for (int iy = 0; iy < ny; iy++) {
+            for (int ix = 0; ix < nx; ix++) {
+               int m = (ix + position) % (2*width);
+               data[ix * sx + iy * sy] = (m < width) ? val : 0;
+            }
          }
       }
-   }
-   else { // horizontal bars
-      height = maxHeight;
-      for (int iy = 0; iy < ny; iy++) {
-         int m = (iy + position) % (2*height);
-         for (int ix = 0; ix < nx; ix++) {
-            data[ix * sx + iy * sy] = (m < height) ? val : 0;
+      else { // horizontal bars
+         height = maxHeight;
+         for (int iy = 0; iy < ny; iy++) {
+            int m = (iy + position) % (2*height);
+            for (int ix = 0; ix < nx; ix++) {
+               data[ix * sx + iy * sy] = (m < height) ? val : 0;
+            }
          }
       }
    }
@@ -255,10 +291,15 @@ int Patterns::updateState(float time, float dt)
       changed = 1;
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
-         snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", time);
+         if (type == BARS)
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.tif", patternsOutputPath, time);
+         else if (type == RECTANGLES){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.tif", patternsOutputPath, time);
+         }
          write(basicfilename);
       }
    }
+
    update_timer->stop();
 
    return changed;
@@ -299,26 +340,26 @@ int Patterns::calcPosition(int pos, int step)
    switch (movementType) {
    case RANDOMWALK:
       if (p < 0.5){
-         pos = (pos+1) % step;
+         pos = (pos+movementSpeed) % step;
       } else {
-         pos = (pos-1+step) % step;
+         pos = (pos-movementSpeed) % step;
       }
       break;
    case MOVEFORWARD:
-     pos = (pos+movementSpeed) % step;
-     break;
+      pos = (pos+movementSpeed) % step;
+      break;
    case MOVEBACKWARD:
       pos = (pos-movementSpeed) % step;
-     break;
+      break;
    case RANDOMJUMP:
       pos = int(p * step) % step;
       break;
    default: //in case of any problems with setting the movementType var, just use the
-            //random walk as default
+      //random walk as default
       if (p < 0.5){
-         pos = (pos+1) % step;
+         pos = (pos+movementSpeed) % step;
       } else {
-         pos = (pos-1+step) % step;
+         pos = (pos-movementSpeed) % step;
       }
       break;
    }
