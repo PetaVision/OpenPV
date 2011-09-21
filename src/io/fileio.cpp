@@ -708,17 +708,18 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
       int src = -1;
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
-            if (++src == 0) continue;
+            if (++src == 0) continue;  // rank 0 already written
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: write: receiving from %d nx==%d ny==%d numItems==%d\n",
                     comm->commRank(), src, nx, ny, numItems);
 #endif
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
-            const int numParams = NUM_PAR_BYTE_PARAMS;
-            const int headerSize = numParams * sizeof(int);
-            long offset = headerSize + src * localSize;
-            fseek(fp, offset, SEEK_SET);
+            //const int numParams = NUM_PAR_BYTE_PARAMS;
+            // !!! do not overwrite previous time steps !!!
+            //const int headerSize = numParams * sizeof(int);
+            //long offset = headerSize + src * localSize;
+            //fseek(fp, offset, SEEK_SET);
             numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
             fflush(fp); // for debugging
             assert(numWrite == localSize);
