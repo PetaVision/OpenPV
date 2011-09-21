@@ -51,7 +51,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   NFP = pvp_header(pvp_index.WGT_NFP);
   weight_min = pvp_header(pvp_index.WGT_MIN);
   weight_max = pvp_header(pvp_index.WGT_MAX);
-  num_patches = pvp_header(pvp_index.WGT_NUMPATCHES);
+  num_patches = NFP; %%pvp_header(pvp_index.WGT_NUMPATCHES);
   
 				%  if ( weight_max < -1 ) && ( weight_min == 0 )
 				%    weight_max = - 1 / weight_max;
