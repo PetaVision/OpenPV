@@ -60,6 +60,7 @@ private:
    float randomMovieProb;
 
    char inputfile[PV_PATH_MAX];  // current input file name
+   char * movieOutputPath;  // path to output file directory for movie frames
 
    FILE * fp;
    FILE * fp_pos;
