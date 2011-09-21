@@ -17,9 +17,10 @@ enum PatternType {
   RECTANGLES  = 1,
 };
 
-enum PatternMode {
+enum OrientationMode {
    vertical = 0,
    horizontal = 1,
+   mixed = 2,
 };
 
 enum MovementType {
@@ -47,17 +48,19 @@ public:
 
 protected:
 
+   int initializePatterns(const char * name, HyPerCol * hc, PatternType type);
    int initPattern(float val);
    int calcPosition(int pos, int step);
 
    PatternType type;
-   PatternMode orientation;
-   PatternMode lastOrientation;
+   OrientationMode orientation;
+   OrientationMode lastOrientation;
    MovementType movementType; //save the type of movement
                               //(random walk, horizontal or vertical drift
                               //or random jumping)
 
    int writeImages;
+   int writePosition;     // If using jitter, write positions to input/image-pos.txt
    int position;
    int lastPosition;
    int prefPosition;
@@ -68,6 +71,8 @@ protected:
 
    int minWidth, maxWidth;
    int minHeight, maxHeight;
+   char * patternsOutputPath;  // path to output file directory for patterns
+
 };
 
 }
