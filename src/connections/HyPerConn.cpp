@@ -7,7 +7,7 @@
 
 #include "HyPerConn.hpp"
 #include "../layers/LIF.hpp"
-#include "../layers/PVLayer.c"
+#include "../layers/PVLayer.h"
 #include "../include/default_params.h"
 #include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
