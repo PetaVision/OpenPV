@@ -135,7 +135,7 @@ public:
    int  getConnectionId()                            {return connId;}
    void setConnectionId(int id)                      {connId = id;}
 
-   int setParams(PVParams * params /*, PVConnParams * p*/);
+   virtual int setParams(PVParams * params /*, PVConnParams * p*/);
 
    PVPatch *** convertPreSynapticWeights(float time);
 
