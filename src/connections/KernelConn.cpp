@@ -147,8 +147,10 @@ PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatc
 }
 
 int KernelConn::initializeUpdateTime(PVParams * params) {
-   float defaultUpdatePeriod = 1.f;
-   weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
+   if( plasticityFlag ) {
+      float defaultUpdatePeriod = 1.f;
+      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
+   }
    return PV_SUCCESS;
 }
 
@@ -329,6 +331,7 @@ int KernelConn::updateWeights(int axonId){
 }
 
 float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime) {
+   // Is only called by KernelConn::updateState if plasticityFlag is true
    weightUpdateTime += weightUpdatePeriod;
    return weightUpdateTime;
 }
