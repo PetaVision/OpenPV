@@ -22,7 +22,7 @@ public:
    virtual pvdata_t evaluateLocal(float time, HyPerLayer * l) {return 0;}
 #ifdef PV_USE_MPI
    virtual pvdata_t functionReduce(pvdata_t localValue, HyPerLayer * l);
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
 
    char * getName() {return name;}
    void setName(const char * name);
