@@ -234,8 +234,8 @@ protected:
 
    bool normalize_flag;
    float normalize_strength;
-   float normalize_max;
-   float normalize_zero_offset;
+   bool normalize_max;
+   bool normalize_zero_offset;
    float normalize_cutoff;
 
    //This object handles calculating weights.  All the initialize weights methods for all connection classes

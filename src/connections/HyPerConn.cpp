@@ -2471,8 +2471,8 @@ int HyPerConn::initNormalize() {
    normalize_flag = params->value(name, "normalize", normalize_flag);
    if( normalize_flag ) {
       normalize_strength = params->value(name, "strength", 1.0f);
-      normalize_max = params->value(name, "normalize_max", 0.0f);
-      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f);
+      normalize_max = params->value(name, "normalize_max", 0.0f) != 0;
+      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f) != 0;
       normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * normalize_strength;
    }
    return PV_SUCCESS;
@@ -2510,14 +2510,14 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
    int num_weights = wp->nx * wp->ny * wp->nf;
    float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
    float zero_offset = 0.0f;
-   if (normalize_zero_offset == 1.0f){
+   if (normalize_zero_offset){
       // set sum to zero and normalize std of weights to sigma
       zero_offset = sum / num_weights;
       sum = 0.0f;
       maxVal -= zero_offset;
    }
    float scale_factor = 1.0f;
-   if (normalize_max == 1.0f) {
+   if (normalize_max) {
       // set maximum weight to normalize_strength
       scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
    }
