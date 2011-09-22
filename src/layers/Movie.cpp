@@ -187,12 +187,16 @@ int Movie::updateState(float time, float dt)
 }
 
 /**
- * - update the image buffers
+ * - Update the image buffers
  * - If the time is a multiple of biasChangetime then the position of the bias (biasX, biasY) changes.
- * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
- * - otherwise, with probability (1-persistenceProb) the offset position performs a random walk
- * around the bias position (biasX, biasY).
- * - return true if buffers have changed
+ * - With probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
+ * - Otherwise, with probability (1-persistenceProb) the offset position performs a random walk
+ *   around the bias position (biasX, biasY).
+ *
+ * - If the time is a multiple of displayPeriod then load the next image.
+ * - If nf=1 then the image is converted to grayscale during the call to read(filename, offsetX, offsetY).
+ *   If nf>1 then the image is loaded with color information preserved.
+ * - Return true if buffers have changed
  */
 bool Movie::updateImage(float time, float dt)
 {
