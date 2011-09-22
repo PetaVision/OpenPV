@@ -11,7 +11,7 @@
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
 #include "../src/connections/KernelConn.hpp"
-#include "../src/connections/CocircConn.hpp"
+// #include "../src/connections/CocircConn.hpp" // Cocirc now implemented in KernelConn using initWeights
 #include "../src/io/io.h"
 #include <assert.h>
 
