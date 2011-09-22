@@ -108,7 +108,7 @@ function [spike_array] = ...
   endif
   spike_array = sparse(spike_step, spike_id, 1, total_steps, N, total_spikes);
   spike_array = spones(spike_array);
-
+endfunction %% readSparseSpikes
 
 
 
