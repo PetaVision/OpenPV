@@ -45,10 +45,10 @@
 #include "../connections/KernelConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/GapConn.hpp"
-#ifdef OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Sept 22, 2011.  These classes are replaced by using InitWeights subclasses and setting params in a KernelConn
 #include "../connections/CocircConn.hpp"
-#endif
 #include "../connections/GaborConn.hpp"
+#endif // OBSOLETE
 #include "../connections/ODDConn.hpp"
 #include "../connections/CliqueConn.hpp"
 #include "../connections/GapConn.hpp"
@@ -58,10 +58,14 @@
 #include "../connections/IdentConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/TransposeConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Sept 22, 2011.  These classes were replaced by using InitWeights subclasses and setting params in a KernelConn
 #include "../connections/PoolConn.hpp"
 #include "../connections/RuleConn.hpp"
+#endif // OBSOLETE
 #include "../connections/STDPConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Sept 22, 2011.  These classes were replaced by using the InitWeights subclasses and setting params in a KernelConn
 #include "../connections/SubunitConn.hpp"
+#endif // OBSOLETE
 
 #include "../connections/InitWeights.hpp"
 #include "../connections/InitCocircWeights.hpp"
