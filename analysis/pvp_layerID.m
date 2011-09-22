@@ -5,7 +5,7 @@ global N_LAYERS
 global SPIKING_FLAG
 global TRAINING_FLAG
 global TOPDOWN_FLAG
-global G4_FLAG
+global G4_FLAG G6_FLAG
 i_layer = 0;
 
 if ( SPIKING_FLAG == 1 )
@@ -70,28 +70,44 @@ else  % NON_SPIKING
     layerID = [layerID, cell(1, 2)];
         
     i_layer = i_layer + 1;
-    layerIndex.l1_geisler = i_layer;
-    layerID{ 1, i_layer } =  'L1G';
+    layerIndex.l1_ODD = i_layer;
+    layerID{ 1, i_layer } =  'L1ODD';
         
     i_layer = i_layer + 1;
-    layerIndex.l2_geisler = i_layer;
-    layerID{ 1, i_layer } =  'L2G';
+    layerIndex.l2_ODD = i_layer;
+    layerID{ 1, i_layer } =  'L2ODD';
         
     N_LAYERS = N_LAYERS + 1;
     layerID = [layerID, cell(1, 1)];
             
     i_layer = i_layer + 1;
-    layerIndex.l3_geisler = i_layer;
-    layerID{ 1, i_layer } =  'L3G';
+    layerIndex.l3_ODD = i_layer;
+    layerID{ 1, i_layer } =  'L3ODD';
             
     if G4_FLAG 
-    N_LAYERS = N_LAYERS + 1;
-    layerID = [layerID, cell(1, 1)];
+      N_LAYERS = N_LAYERS + 1;
+      layerID = [layerID, cell(1, 1)];
             
-    i_layer = i_layer + 1;
-    layerIndex.l4_geisler = i_layer;
-    layerID{ 1, i_layer } =  'L4G';
-    end%%if
+      i_layer = i_layer + 1;
+      layerIndex.l4_ODD = i_layer;
+      layerID{ 1, i_layer } =  'L4ODD';
+      if G6_FLAG 
+	N_LAYERS = N_LAYERS + 1;
+	layerID = [layerID, cell(1, 1)];
+            
+	i_layer = i_layer + 1;
+	layerIndex.l5_ODD = i_layer;
+	layerID{ 1, i_layer } =  'L5ODD';
+ 
+	N_LAYERS = N_LAYERS + 1;
+	layerID = [layerID, cell(1, 1)];
+            
+	i_layer = i_layer + 1;
+	layerIndex.l6_ODD = i_layer;
+	layerID{ 1, i_layer } =  'L5ODD';
+      endif
+    endif
+
 
     if TOPDOWN_FLAG
       

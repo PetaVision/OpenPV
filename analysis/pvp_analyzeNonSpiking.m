@@ -40,8 +40,9 @@ TOPDOWN_FLAG = 0;
 global TRAINING_FLAG
 TRAINING_FLAG = -1;
 
-global G4_FLAG
+global G4_FLAG G6_FLAG
 G4_FLAG = 1;
+G6_FLAG = 1;
 
 global DIRTY_FLAG
 DIRTY_FLAG = 1;
@@ -63,7 +64,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 0; %% 1000; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 1000; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -658,6 +659,8 @@ for i_conn = plot_weights
       continue;
     endif
   elseif i_conn == N_CONNECTIONS + 1
+    w_max_target = max(weights{i_conn-2}{i_patch}(:));
+    w_max_distractor = max(weights{i_conn-1}{i_patch}(:));
     disp('calculating geisler kernels');
     pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
     pvp_conn_header_tmp = pvp_conn_header{i_conn};
@@ -666,8 +669,11 @@ for i_conn = plot_weights
     nyp{i_conn} = nyp{i_conn-2};
     for i_patch = 1:num_patches
       weights{i_conn}{i_patch} = ...
-	  log2((weights{i_conn-2}{i_patch}+(weights{i_conn-2}{i_patch}==0)) ./ ...
-	       (weights{i_conn-1}{i_patch}+(weights{i_conn-1}{i_patch}==0)));
+	  2*(weights{i_conn-2}{i_patch} - weights{i_conn-1}{i_patch}) ./ ...
+	  (weights{i_conn-1}{i_patch} + ...
+	   ((weights{i_conn-2}{i_patch} + (weights{i_conn-2}{i_patch}==0) * w_max_distractor) ./ ...
+	    w_max_target) .* ...
+	   (weights{i_conn-1}{i_patch}==0));
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
       weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
       weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
