@@ -1214,9 +1214,6 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       int params[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
-#ifdef PV_USE_MPI
-      const int headerSize = numParams * sizeof(int);
-#endif // PV_USE_MPI
 
       FILE * fp = pvp_open_write_file(filename, comm, append);
 
@@ -1262,8 +1259,9 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 #endif
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
-            long offset = headerSize + src * localSize;
-            fseek(fp, offset, SEEK_SET);
+            // const int headerSize = numParams * sizeof(int);
+            // long offset = headerSize + src * localSize;
+            // fseek(fp, offset, SEEK_SET);
             if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
          }
       }
