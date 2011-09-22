@@ -188,19 +188,11 @@ int Movie::updateState(float time, float dt)
 
 /**
  * - update the image buffers
-<<<<<<< .mine
- * - If the time is a multiple of biasChangeTime then the position of the bias (biasX, biasY) changes.
- * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
-=======
  * - If the time is a multiple of biasChangetime then the position of the bias (biasX, biasY) changes.
  * - with probability persistenceProb the offset position (offsetX, offsetY) remains unchanged.
->>>>>>> .r4226
  * - otherwise, with probability (1-persistenceProb) the offset position performs a random walk
  * around the bias position (biasX, biasY).
  * - return true if buffers have changed
- * - read() is an Image method which copies from the movie frame at (offsetX, offsetY) an image patch
- * of size (nx,ny,nf). How are multiple image (color) channels used?
- * information into the data buffer. Remember that data = clayer->activity->data;
  */
 bool Movie::updateImage(float time, float dt)
 {
