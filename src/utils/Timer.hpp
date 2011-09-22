@@ -18,6 +18,7 @@ namespace PV {
    class Timer {
    public:
       Timer();
+      virtual ~Timer();
       void reset();
 
       virtual double start();

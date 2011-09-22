@@ -65,6 +65,10 @@ Timer::Timer()
    reset();
 }
 
+Timer::~Timer()
+{
+}
+
 void Timer::reset()
 {
    time_start   = get_cpu_time();
