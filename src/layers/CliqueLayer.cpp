@@ -179,7 +179,7 @@ int CliqueLayer::updateState(float time, float dt) {
       pvdata_t distractor_input = gSynInhB[k];
       if (distractor_input > 0.0f){
          if (target_input > 0.0f){
-            V[k] = bottomUp_input * (offset + gain * log2f(target_input / distractor_input));
+            V[k] = bottomUp_input * (offset + gain * ((target_input - distractor_input) / distractor_input));
          }
          else{
             V[k] = 0.0f;
