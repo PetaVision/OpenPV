@@ -228,6 +228,8 @@ protected:
    bool writeCompressedWeights; // true=write weights with 8-bit precision;
                                 // false=write weights with float precision
 
+   int fileType;                // type ID for file written by PV::writeWeights
+
    Timer * update_timer;
 
    bool plasticityFlag;

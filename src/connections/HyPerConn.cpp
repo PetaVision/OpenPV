@@ -156,6 +156,7 @@ int HyPerConn::initialize_base()
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
    this->writeCompressedWeights = true;
+   this->fileType = PVP_WGT_FILE_TYPE;
 
    wPatches=NULL;
    axonalArborList=NULL;
@@ -807,12 +808,11 @@ PVPatch ** HyPerConn::initializeCocircWeights(PVPatch ** patches, int numPatches
    return patches;
 }
 
-
 PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char * filename)
 {
    double time;
    int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
-                                &time, pre->getLayerLoc(), true);
+                                &time, pre->getLayerLoc(), true, fileType);
 
    if (status != 0) {
       fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
@@ -822,6 +822,7 @@ PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char
    return patches;
 }
 #endif
+
 
 int HyPerConn::writeWeights(float time, bool last)
 {
@@ -871,7 +872,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    status = PV::writeWeights(path, comm, (double) time, append,
                              loc, nxp, nyp, nfp, minVal, maxVal,
-                             patches, numPatches, writeCompressedWeights);
+                             patches, numPatches, writeCompressedWeights, fileType);
    assert(status == 0);
 
 #ifdef DEBUG_WEIGHTS
@@ -1810,7 +1811,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
 
    status = PV::writeWeights(path, comm, (double) time, append,
                              loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
-                             wPostPatches[axonID], numPostPatches,writeCompressedWeights);
+                             wPostPatches[axonID], numPostPatches, writeCompressedWeights, PVP_WGT_FILE_TYPE);
    assert(status == 0);
 
    return 0;

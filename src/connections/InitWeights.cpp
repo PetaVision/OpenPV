@@ -152,7 +152,7 @@ int InitWeights::readWeights(PVPatch ** patches, int numPatches, const char * fi
    int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
                                 &time, pre->getLayerLoc(), true);
 
-   if (status != 0) {
+   if (status != PV_SUCCESS) {
       fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
       exit(1);
    }

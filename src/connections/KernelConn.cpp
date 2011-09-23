@@ -154,10 +154,6 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
-/*TODO  createWeights currently breaks in this subclass if called more than once,
- * fix interface by adding extra dataPatches argument to overloaded method
- * so asserts are unnecessary
- */
 PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
@@ -553,6 +549,7 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
 int KernelConn::writeWeights(float time, bool last)
 {
    //const int arbor = 0;
+   this->fileType = KERNEL_FILE_TYPE;
    const int numPatches = numDataPatches();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       if(HyPerConn::writeWeights(kernelPatches[arborId], numPatches, NULL, time, last, arborId))
