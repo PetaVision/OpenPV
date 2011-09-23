@@ -979,7 +979,10 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
                 Communicator * comm, double * time, const PVLayerLoc * loc, bool extended)
 {
    int status = PV_SUCCESS;
-   int filetype, datatype;
+   // fileType added as input argument
+   // int filetype, datatype;
+   int header_data_type;
+   int header_file_type;
 
    int numParams = NUM_WGT_PARAMS;
    int params[NUM_WGT_PARAMS];
@@ -995,7 +998,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // read file header (uses MPI to broadcast the results)
    //
-   status = pvp_read_header(filename, comm, time, &filetype, &datatype, params, &numParams);
+   status = pvp_read_header(filename, comm, time, &header_file_type, &header_data_type, params, &numParams);
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_head, numParams==%d\n",
               comm->commRank(), numParams);
@@ -1033,10 +1036,10 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // make sure file is consistent with expectations
    //
-   status = ( datatype != PV_BYTE_TYPE && datatype != PV_FLOAT_TYPE );
+   status = ( header_data_type != PV_BYTE_TYPE && header_data_type != PV_FLOAT_TYPE );
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, datatype==%d\n",
-              comm->commRank(), datatype);
+              comm->commRank(), header_data_type);
       return status;
    }
    status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
@@ -1055,14 +1058,14 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    }
 
    const int numPatchItems = nxp * nyp * nfp;
-   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
+   const size_t patchSize = pv_sizeof_patch(numPatchItems, header_data_type);
    const size_t localSize = numPatches * patchSize;
 
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    assert(cbuf != NULL);
 
 #ifdef PV_USE_MPI
-   const int tag = PVP_WGT_FILE_TYPE;
+   const int tag = header_file_type; // PVP_WGT_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
@@ -1132,7 +1135,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    // set the contents of the weights patches from the unsigned character buffer, cbuf
    //
-   bool compress = datatype == PV_BYTE_TYPE;
+   bool compress = header_data_type == PV_BYTE_TYPE;
    status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
    if (status != PV_SUCCESS) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
@@ -1156,7 +1159,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
  */
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch ** patches, int numPatches, bool compress) // compress has default of true
+                 PVPatch ** patches, int numPatches, bool compress, int file_type) // compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
@@ -1173,6 +1176,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
 // TODO - do I need to check this??
    //   assert(numPatches == nx*ny*nf);
+
 
    const int numPatchItems = nxp * nyp * nfp;
    const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
@@ -1193,7 +1197,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
    pvp_copy_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
 
 #ifdef PV_USE_MPI
-   const int tag = PVP_WGT_FILE_TYPE;
+   const int tag = file_type; // PVP_WGT_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
@@ -1222,7 +1226,8 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
          return -1;
       }
 
-      status = pvp_write_header(fp, comm, time, loc, PVP_WGT_FILE_TYPE,
+      // use file_type passed as argument to enable different behavior
+      status = pvp_write_header(fp, comm, time, loc, file_type,
                                 datatype, patchSize, extended, contiguous, numParams, localSize);
       if (status != 0) return status;
 
