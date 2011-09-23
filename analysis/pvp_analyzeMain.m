@@ -43,23 +43,17 @@ SPIKING_FLAG = 1;
 machine_path = '/home/garkenyon/';
 %%machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
-workspace_path = [machine_path, 'workspace/'];
-project_path = [workspace_path, 'geisler2.1/'];
+workspace_path = [machine_path, 'workspace-indigo/'];
+project_path = [workspace_path, 'Clique/'];
 
 global OUTPUT_PATH SPIKE_PATH
-SPIKE_PATH = [project_path, 'output/'];
-OUTPUT_PATH = [project_path, 'input/amoeba/spiking/'];
+SPIKE_PATH = [project_path, 'input/V1/amoeba/'];
+OUTPUT_PATH = [project_path, 'input/V1/amoeba/'];
 
 %%image_path = [matlab_path, 'amoebaX2/256_png/4/'];
-image_path = [matlab_path, 'amoeba_test/256_png/4/'];
-image_filename = [image_path 't/tar_0049_a.png'];
-target_filename{1} = [image_path 'a/tar_0049_a.png'];
-
-main_file = [project_path, 'geisler.cpp'];
-copyfile(main_file, [OUTPUT_PATH, 'geisler.cpp.save'] );
-
-params_file = [project_path, 'input/params.geisler'];
-copyfile(params_file, OUTPUT_PATH);
+image_path = [matlab_path, 'figures/amoeba/256_png/4/'];
+image_filename = [image_path 't/tar_0025_a.png'];
+target_filename{1} = [image_path 'a/tar_0025_a.png'];
 
 global pvp_order
 pvp_order = 1;
@@ -194,7 +188,7 @@ num_eigen = 3;
 xcorr_struct.num_eigen = num_eigen;
 xcorr_struct.calc_power_mask = 1;
 xcorr_struct.num_sig = 4;  %% ? throws memory allocation error
-calc_eigen = 0;
+calc_eigen = 1;
 xcorr_struct.calc_eigen = calc_eigen;
 
 xcorr_eigenvector = cell( num_layers, num_modes, num_eigen);
@@ -203,7 +197,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 1;
+num_epochs = 5;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);

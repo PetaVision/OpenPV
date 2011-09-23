@@ -45,7 +45,7 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
   NUM_WGT_PARAMS = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
   num_params = NUM_WGT_PARAMS;
   int32_size = 4;  %sizeof(int)
-  PVP_WGT_FILE_TYPE  = 3;
+  PVP_WGT_FILE_TYPE  = 5;  %% KERNEL_FILE_TYPE
   NX_PROCS = 1;
   NY_PROCS = 1;
   NX = NCOLS / NX_PROCS;
@@ -53,8 +53,13 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
   NF = NFEATURES;
   NUM_RECORDS = NFEATURES;
   RECORD_SIZE = prod(weights_size);
-  DATA_SIZE = 1;  % char
-  DATA_TYPE = 1; % char
+  if COMPRESSED_FLAG
+    DATA_SIZE = 1;  % char
+    DATA_TYPE = 1; % char
+  else
+    DATA_SIZE = 4;  % float
+    DATA_TYPE = 3; % float
+  endif
   NX_GLOBAL = NCOLS;
   NY_GLOBAL = NROWS;
   KX0 = 0;

@@ -42,7 +42,7 @@ TRAINING_FLAG = -1;
 
 global G4_FLAG G6_FLAG
 G4_FLAG = 1;
-G6_FLAG = 1;
+G6_FLAG = 0;
 
 global DIRTY_FLAG
 DIRTY_FLAG = 1;
@@ -64,7 +64,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 1000; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 0; %% 1000; %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -98,8 +98,7 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/Users/gkenyon/workspace-indigo/';
-%%    '/Users/gkenyon/workspace/';
+    '/home/garkenyon/workspace-indigo/';
 
 global target_path
 target_path = [];
@@ -619,7 +618,7 @@ else
 endif
 weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
 weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-weight_invert(6) = 1; %%-1;
+weight_invert(6) = 1; %% deprecated, CliqueConn uses only positive weights
 weight_invert(9) = 1; %%-1;
 weight_invert(12) = 1; %%-1;
 pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
@@ -659,8 +658,8 @@ for i_conn = plot_weights
       continue;
     endif
   elseif i_conn == N_CONNECTIONS + 1
-    w_max_target = max(weights{i_conn-2}{i_patch}(:));
-    w_max_distractor = max(weights{i_conn-1}{i_patch}(:));
+    w_max_target = max(weight_invert(i_conn-2)*weights{i_conn-2}{i_patch}(:));
+    w_max_distractor = max(weight_invert(i_conn-1)*weights{i_conn-1}{i_patch}(:));
     disp('calculating geisler kernels');
     pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
     pvp_conn_header_tmp = pvp_conn_header{i_conn};
@@ -669,9 +668,11 @@ for i_conn = plot_weights
     nyp{i_conn} = nyp{i_conn-2};
     for i_patch = 1:num_patches
       weights{i_conn}{i_patch} = ...
-	  2*(weights{i_conn-2}{i_patch} - weights{i_conn-1}{i_patch}) ./ ...
+	  2*(weight_invert(i_conn-2)*weights{i_conn-2}{i_patch} - ...
+	     weight_invert(i_conn-1)*weights{i_conn-1}{i_patch}) ./ ...
 	  (weights{i_conn-1}{i_patch} + ...
-	   ((weights{i_conn-2}{i_patch} + (weights{i_conn-2}{i_patch}==0) * w_max_distractor) ./ ...
+	   ((weights{i_conn-2}{i_patch} + (weights{i_conn-2}{i_patch}==0) * ...
+	     w_max_distractor) ./ ...
 	    w_max_target) .* ...
 	   (weights{i_conn-1}{i_patch}==0));
       weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
@@ -683,6 +684,7 @@ for i_conn = plot_weights
     disp( ['weight_max = ', num2str(weight_max)] );
     disp( ['weight_ave = ', num2str(weight_ave)] );
     if write_pvp_kernel_flag
+      %%keyboard;
       NCOLS = pvp_conn_header_tmp(pvp_index.NX);
       NROWS = pvp_conn_header_tmp(pvp_index.NY);
       NFEATURES = pvp_conn_header_tmp(pvp_index.NF);
