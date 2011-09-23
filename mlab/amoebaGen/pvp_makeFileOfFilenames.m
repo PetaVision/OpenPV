@@ -1,12 +1,12 @@
 function filenames_cell = pvp_makeFileOfFilenames()
 
   image_dir_base = ...
-          "~/MATLAB/figures/amoeba/64_png/4/";       
+          "~/MATLAB/figures/amoeba/256_png/4/";       
 %%    "~/Pictures/Textured_Dog_Cat_Spherical_T1/";       
   image_dir = ...
       [ image_dir_base ];
 %%      [ image_dir_base, "Cat/"]; 
-  image_subdir_name = "t"; %% "DoG";
+  image_subdir_name = "d"; %% "DoG";
   image_subdir = [image_dir, image_subdir_name, "/"];
   image_path = ...
       [image_subdir, "*.png"];
