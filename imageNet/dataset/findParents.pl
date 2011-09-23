@@ -70,7 +70,11 @@ sub findParents {
         $wnid = 1;
     } else {
         print "\nFinding the parents of synset \"$input\" in the Image-Net hierarchy...\n";
-        $path = "//synset[\@words='${input}']";
+        if ($input =~ /'/) {
+            $path = "//synset[\@words="${input}"]";
+        } else {
+            $path = "//synset[\@words='${input}']";
+        }
         $wnid = 0;
     }
 

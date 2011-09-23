@@ -58,7 +58,13 @@ sub getPath{
 
     $xp = XML::XPath->new(filename => $file);
 
-    my $path = "//synset[contains(\@words,'${input}')]";
+    my $path = '';
+
+    if ($input =~ /'/) {
+        $path = "//synset[\@words,"${input}"]";
+    } else {
+        $path = "//synset[\@words,'${input}']";
+    }
 
     $nodeset = $xp->find($path);
     $initial = 1;

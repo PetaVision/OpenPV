@@ -62,7 +62,12 @@ sub findChildren{
 
 
 #Find input node, and all children using descendant-or-self
-    $path = "//synset[\@words='${input}']/descendant-or-self::node()";
+    if ($path =~ /'/) {
+        $path = "//synset[\@words="${input}"]/descendant-or-self::node()";
+    } else {
+        $path = "//synset[\@words='${input}']/descendant-or-self::node()";
+    }
+
     if ($xp->exists($path)) {
         print "The synset \"$input\" exists in the XML file. Searching for children...\n";
         
