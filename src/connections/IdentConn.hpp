@@ -24,6 +24,7 @@ public:
 
    virtual int initialize_base();
    virtual int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
+   virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
    virtual int initNormalize();
 

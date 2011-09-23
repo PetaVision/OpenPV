@@ -183,10 +183,10 @@ protected:
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
    PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
-   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
    PVPatch       *** pIncr;      // list of weight patches for storing changes to weights
+   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
 #ifdef OBSOLETE_STDP
    bool     localWmaxFlag;  // presence of rate dependent wMax;

@@ -30,13 +30,20 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
       fprintf(stderr, "IdentConn \"%s\": Weight initialization method must be an InitIdentWeights object.  Exiting.\n", name);
       exit(EXIT_FAILURE);
    }
-   plasticityFlag = false;        // The four data members set here
-   symmetrizeWeightsFlag = false; // should not be used by IdentConn.
-   weightUpdateTime = -1;         // Give them safe values nonetheless
+   symmetrizeWeightsFlag = false; // The data members set here should not be used by IdentConn.
+   weightUpdateTime = -1;         // Give them safe values nonetheless, as a precaution.
 #ifdef PV_USE_MPI
-   mpiReductionBuffer = NULL;     // as a precaution.
+   mpiReductionBuffer = NULL;
 #endif PV_USE_MPI
    return HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+}
+
+int IdentConn::setParams(PVParams * inputParams) {
+   numAxonalArborLists=1;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   writeCompressedWeights = true;
+   return PV_SUCCESS;
 }
 
 int IdentConn::setPatchSize(const char * filename) {
