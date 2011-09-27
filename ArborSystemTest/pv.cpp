@@ -5,6 +5,7 @@
 
 #include "../PetaVision/src/columns/buildandrun.hpp"
 #include "ArborTestProbe.hpp"
+#include "ArborTestForOnesProbe.hpp"
 
 #define MAIN_USES_ADDCUSTOM
 
@@ -36,6 +37,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 		const char * message;
 		const char * filename;
 		ArborTestProbe * addedProbe;
+		ArborTestForOnesProbe * addedOnesProbe;
 		if (!strcmp(kw, "ArborTestProbe")) {
 			status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
 					&message, &filename);
@@ -55,6 +57,26 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 			assert(targetlayer);
 			if( addedProbe ) targetlayer->insertProbe(addedProbe);
 			checknewobject((void *) addedProbe, kw, name);
+		}
+		else if (!strcmp(kw, "ArborTestForOnesProbe")) {
+			status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
+					&message, &filename);
+			if (status != PV_SUCCESS) {
+				fprintf(stderr, "Skipping params group \"%s\"\n", name);
+				continue;
+			}
+	         if( filename ) {
+	        	 addedOnesProbe =  new ArborTestForOnesProbe(filename, hc, message);
+	         }
+	         else {
+	        	 addedOnesProbe =  new ArborTestForOnesProbe(message);
+	         }
+	         if( !addedOnesProbe ) {
+	             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+	         }
+			assert(targetlayer);
+			if( addedOnesProbe ) targetlayer->insertProbe(addedOnesProbe);
+			checknewobject((void *) addedOnesProbe, kw, name);
 		}
 	}
 	return PV_SUCCESS;

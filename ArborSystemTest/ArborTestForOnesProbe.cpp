@@ -1,11 +1,11 @@
 /*
- * ArborTestProbe.cpp
+ * ArborTestForOnesProbe.cpp
  *
  *  Created on: Sep 6, 2011
  *      Author: kpeterson
  */
 
-#include "ArborTestProbe.hpp"
+#include "ArborTestForOnesProbe.hpp"
 #include "../PetaVision/src/include/pv_arch.h"
 #include "../PetaVision/src/layers/HyPerLayer.hpp"
 #include <string.h>
@@ -13,18 +13,18 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char * filename, HyPerCol * hc, const char * msg)
+ArborTestForOnesProbe::ArborTestForOnesProbe(const char * filename, HyPerCol * hc, const char * msg)
 : StatsProbe(filename, hc, msg)
 {
 }
 
-ArborTestProbe::ArborTestProbe(const char * msg)
+ArborTestForOnesProbe::ArborTestForOnesProbe(const char * msg)
 : StatsProbe(msg)
 {
 }
 
 
-int ArborTestProbe::outputState(float time, HyPerLayer * l)
+int ArborTestForOnesProbe::outputState(float time, HyPerLayer * l)
 {
 	int status = StatsProbe::outputState(time, l);
 #ifdef PV_USE_MPI
@@ -34,19 +34,10 @@ int ArborTestProbe::outputState(float time, HyPerLayer * l)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(time==3.0f){
-		assert((avg>0.24)&&(avg<0.29));
-	}
-	else if(time==4.0f){
-		assert((avg>0.4)&&(avg<0.61));
-	}
-	else if(time==5.0f){
-		assert((avg>0.74)&&(avg<0.761));
-	}
-	else if(time>5.0f){
-		assert((fMin>0.97)&&(fMin<1.070));
-		assert((fMax>0.97)&&(fMax<1.070));
-		assert((avg>0.97)&&(avg<1.070));
+	if(time>1.0f){
+		assert((fMin>0.99)&&(fMin<1.01));
+		assert((fMax>0.99)&&(fMax<1.01));
+		assert((avg>0.99)&&(avg<1.01));
 	}
 
 	return status;

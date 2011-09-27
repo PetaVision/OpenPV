@@ -418,11 +418,11 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-ArborTestProbe "Retina Stats File" = {
+ArborTestForOnesProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
-ArborTestProbe "L0 Stats File" = {
+ArborTestForOnesProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
@@ -447,10 +447,10 @@ ArborTestProbe "Lx1_4 Stats File" = {
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-ArborTestProbe "Retina Stats Screen" = {
+ArborTestForOnesProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
 };
-ArborTestProbe "L0 Stats Screen" = {
+ArborTestForOnesProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
 ArborTestProbe "Lx1 Stats Screen" = {
@@ -469,20 +469,20 @@ ArborTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
 };
 
-PointProbe "Lx1 Stats Screen a" = {
-    targetLayer = "Lx1";
-    xLoc=16;
-    yLoc=16;
-    fLoc=1;
-    //probeOutputFile = "Retina_b_Stats.txt";
-};
-PointProbe "Lx1 Stats Screen b" = {
-    targetLayer = "Lx1";
-    xLoc=4;
-    yLoc=8;
-    fLoc=2;
-    //probeOutputFile = "Retina_b_Stats.txt";
-};
+//PointProbe "Lx1 Stats Screen a" = {
+//    targetLayer = "Lx1";
+//    xLoc=16;
+//    yLoc=16;
+//    fLoc=1;
+//    //probeOutputFile = "Retina_b_Stats.txt";
+//};
+//PointProbe "Lx1 Stats Screen b" = {
+//    targetLayer = "Lx1";
+//    xLoc=4;
+//    yLoc=8;
+//    fLoc=2;
+//    //probeOutputFile = "Retina_b_Stats.txt";
+//};
 //PointProbe "Lx1 Stats Screen c" = {
 //    targetLayer = "Lx1";
 //    xLoc=16;
