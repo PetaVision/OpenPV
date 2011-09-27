@@ -65,7 +65,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_HyPerCols_",
            "_Start_HyPerLayers_",
              "HyPerLayer",
-               "ANNLayer",
+             "ANNLayer",
+             "ANNSquaredLayer",
                  "GenerativeLayer",
                    "LogLatWTAGenLayer",
                  "ODDLayer",
@@ -257,6 +258,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
+   if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNSquaredLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   }
    if( !strcmp(classkeyword, "ODDLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
@@ -418,6 +424,7 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
    const char * allowedPatternTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
          "BARS",
          "RECTANGLES",
+         "SINEWAVE",
          "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
    };
    const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");
@@ -511,6 +518,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
       weightInitializer = new InitSpreadOverArborsWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss3DWeight"))) {
+      weightInitializer = new Init3DGaussWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights();

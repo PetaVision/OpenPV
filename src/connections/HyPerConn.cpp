@@ -166,6 +166,7 @@ int HyPerConn::initialize_base()
 //      axonalArborList[i] = NULL;
 //   }
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
+   this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
 
    return PV_SUCCESS;
 }
@@ -226,9 +227,92 @@ int HyPerConn::constructWeights(const char * filename)
    assert( initializeWeights(wPatches, numWeightPatches(), filename) != NULL);
    status |= initPlasticityPatches();
    assert(status == 0);
+   initShrinkPatches(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
+   if (shrinkPatches_flag) {
 
+      for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
+         shrinkPatches(arborId);
+      }
+   }
    return status;
 }
+
+int HyPerConn::shrinkPatches(int arborId) {
+   int numPatches = numWeightPatches();
+   for (int kex = 0; kex < numPatches; kex++) {
+      PVAxonalArbor * arbor = axonalArbor(kex, arborId);
+
+      shrinkPatch(arbor);
+   } // loop over arbors (pre-synaptic neurons)
+
+   return 0;
+}
+
+int HyPerConn::shrinkPatch(PVAxonalArbor * arbor) {
+   //int kl, offset, nxPatch, nyPatch, dx, dy;
+   //calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
+
+
+   PVPatch *weights = arbor->weights;
+   pvdata_t * w = weights->data;
+
+   int nxp = weights->nx;
+   int nyp = weights->ny;
+   int nfp = weights->nf;
+
+   int sxp = weights->sx;
+   int syp = weights->sy;
+   int sfp = weights->sf;
+
+   int maxnx = -999999;
+   int minnx = 999999;
+   int maxny = -999999;
+   int minny = 999999;
+
+   bool nonZeroWeightFound = false;
+   // loop over all post-synaptic cells in patch
+   for (int y = 0; y < nyp; y++) {
+      for (int x = 0; x < nxp; x++) {
+         for (int f = 0; f < nfp; f++) {
+            if(w[x * sxp + y * syp + f * sfp] != 0) {
+               nonZeroWeightFound=true;
+               //pvdata_t weight = w[x * sxp + y * syp + f * sfp];
+               maxnx = maxnx < x ? x : maxnx;
+               minnx = minnx > x ? x : minnx;
+               maxny = maxny < y ? y : maxny;
+               minny = minny > y ? y : minny;
+            }
+         }
+      }
+   }
+
+   if(nonZeroWeightFound) {
+      int nxNew = maxnx - minnx;
+      int nyNew = maxny - minny;
+      int dxNew = minnx;
+      int dyNew = minny;
+
+      // adjust patch size (shrink) to fit within interior of post-synaptic layer
+      //
+      pvpatch_adjust(arbor->weights, nxNew, nyNew, dxNew, dyNew);
+
+      // adjust patch size (shrink) for the data to fit within interior of post-synaptic layer
+      //
+      pvpatch_adjust(arbor->data, nxNew, nyNew, dxNew, dyNew);
+
+      //need to do something with offset!
+      //arbor->offset = offset;
+   }
+   return 0;
+}
+
+
+int HyPerConn::initShrinkPatches() {
+   PVParams * params = parent->parameters();
+   shrinkPatches_flag = params->value(name, "shrinkPatches", shrinkPatches_flag);
+   return PV_SUCCESS;
+}
+
 
 #ifdef OBSOLETE_STDP
 /*
@@ -939,6 +1023,14 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    }
 
    return 0;
+}
+
+void HyPerConn::setDelay(int axonId, int delay) {
+   assert(axonId<numAxonalArborLists);
+   int numPatches = numWeightPatches();
+   for(int pID=0;pID<numPatches; pID++) {
+      axonalArbor(pID, axonId)->delay = delay;
+   }
 }
 
 // NOTE: this should be temporary until delivery interface is straightened out

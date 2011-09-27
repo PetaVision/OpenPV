@@ -15,11 +15,12 @@ namespace PV {
 enum PatternType {
   BARS  = 0,
   RECTANGLES  = 1,
+  SINEWAVE  = 2,
 };
 
 enum OrientationMode {
-   vertical = 0,
-   horizontal = 1,
+   horizontal = 0,
+   vertical = 1,
    mixed = 2,
 };
 
@@ -50,7 +51,7 @@ protected:
 
    int initializePatterns(const char * name, HyPerCol * hc, PatternType type);
    int initPattern(float val);
-   int calcPosition(int pos, int step);
+   float calcPosition(float pos, int step);
 
    PatternType type;
    OrientationMode orientation;
@@ -61,12 +62,12 @@ protected:
 
    int writeImages;
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
-   int position;
+   float position;
    int lastPosition;
    int prefPosition;
    float pSwitch;
    float pMove;
-   int movementSpeed; //save a movement speed in pixels/time step
+   float movementSpeed; //save a movement speed in pixels/time step
 
 
    int minWidth, maxWidth;

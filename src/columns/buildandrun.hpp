@@ -37,6 +37,7 @@
 #include "../layers/LIFGap.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
+#include "../layers/ANNSquaredLayer.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #include "../connections/AvgConn.hpp"
@@ -79,6 +80,7 @@
 #include "../connections/InitIdentWeights.hpp"
 #include "../connections/InitUniformWeights.hpp"
 #include "../connections/InitSpreadOverArborsWeights.hpp"
+#include "../connections/Init3DGaussWeights.hpp"
 
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"

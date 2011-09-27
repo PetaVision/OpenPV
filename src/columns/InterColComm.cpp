@@ -177,6 +177,7 @@ int Publisher::publish(HyPerLayer* pub,
    //
    memcpy(recvBuf, sendBuf, dataSize);
 
+
 #ifdef PV_USE_MPI
    int icRank = comm->commRank();
    MPI_Comm mpiComm = comm->communicator();
@@ -185,16 +186,20 @@ int Publisher::publish(HyPerLayer* pub,
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
-      recvBuf = cube->data + Communicator::recvOffset(n, &cube->loc);
+      recvBuf = recvBuffer(LOCAL) + Communicator::recvOffset(n, &cube->loc);
       sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+
+
 #ifdef DEBUG_OUTPUT
       size_t recvOff = Communicator::recvOffset(n, &cube->loc);
-      size_t sendOff = Communicator::recvOffset(n, &cube->loc);
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", comm->commRank(), neighbors[n], n, recvOff, sendOff, sendBuf[0]); fflush(stdout);
+      size_t sendOff = Communicator::sendOffset(n, &cube->loc);
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
 #endif
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
                 &requests[nreq++]);
-      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
+      int status = MPI_Ssend( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
+      assert(status==0);
+
    }
    assert(nreq == comm->numberOfNeighbors() - 1);
 

@@ -36,40 +36,38 @@ int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType t
    this->position = this->prefPosition;
    this->lastPosition = this->prefPosition;
 
-   if (this->type == BARS){
 
-      // set orientation mode
-      const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-            "HORIZONTAL",
-            "VERTICAL",
-            "MIXED",
-            "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-      };
-      //if the orientation isn't set, use vertical as the default...
-      const char * orientationModeStr = hc->parameters()->stringValue(name, "orientation");
-      if( ! orientationModeStr ) {
+   // set orientation mode
+   const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "HORIZONTAL",
+         "VERTICAL",
+         "MIXED",
+         "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   //if the orientation isn't set, use vertical as the default...
+   const char * orientationModeStr = hc->parameters()->stringValue(name, "orientation");
+   if( ! orientationModeStr ) {
+      this->orientation = vertical;
+      this->lastOrientation = orientation;
+   }
+   else {
+      OrientationMode orientationMode;
+      int orientationModeMatch = false;
+      for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
+         const char * thisorientationmode = allowedOrientationModes[i];
+         if( !strcmp(orientationModeStr, thisorientationmode) ) {
+            orientationMode = (OrientationMode) i;
+            orientationModeMatch = true;
+            break;
+         }
+      }
+      if( orientationModeMatch ) {
+         this->orientation = orientationMode;
+         this->lastOrientation = orientationMode;
+      }
+      else { //if the set orientation isn't recognized, use vertical as default
          this->orientation = vertical;
          this->lastOrientation = orientation;
-      }
-      else {
-         OrientationMode orientationMode;
-         int orientationModeMatch = false;
-         for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
-            const char * thisorientationmode = allowedOrientationModes[i];
-            if( !strcmp(orientationModeStr, thisorientationmode) ) {
-               orientationMode = (OrientationMode) i;
-               orientationModeMatch = true;
-               break;
-            }
-         }
-         if( orientationModeMatch ) {
-            this->orientation = orientationMode;
-            this->lastOrientation = orientationMode;
-         }
-         else { //if the set orientation isn't recognized, use vertical as default
-            this->orientation = vertical;
-            this->lastOrientation = orientation;
-         }
       }
    }
 
@@ -142,10 +140,15 @@ int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType t
    if(writePosition){
       char file_name[PV_PATH_MAX];
       if (patternsOutputPath != NULL){
-         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
+         //I don't know why someone was saving the return value, but it was
+         //generating a compiler warning because it was unused.  Did someone
+         //want to use this for something?
+         snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
+         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       }
       else{
-         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
+         snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
+         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
       }
       printf("write position to %s\n",file_name);
       fp = fopen(file_name,"a");
@@ -183,8 +186,11 @@ int Patterns::initPattern(float val)
 
    const int nx = loc->nx + 2 * loc->nb;
    const int ny = loc->ny + 2 * loc->nb;
+   const int nb = loc->nb;
    const int sx = 1;
    const int sy = sx * nx;
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
 
    // reset data buffer
    const int nk = nx * ny;
@@ -217,27 +223,68 @@ int Patterns::initPattern(float val)
       position = x0 + y0*nx;
       return 0;
    }
-   else {
-      // type is bars
+   else if (type == BARS) { // type is bars
+
 
       if (orientation == vertical) { // vertical bars
          width = maxWidth;
          for (int iy = 0; iy < ny; iy++) {
             for (int ix = 0; ix < nx; ix++) {
-               int m = (ix + position) % (2*width);
-               data[ix * sx + iy * sy] = (m < width) ? val : 0;
+               //int m = (ix + int(position)) % (2*width);
+               float m = ix + position - (floor((ix + position) / (2*width))) * (2*width); //calculate position including fraction
+               //float m = (ix + position);
+               if((int(m)==width)||(int(m)==0)) data[ix * sx + iy * sy] = (m-int(m))*val;
+               else if(m<width) data[ix * sx + iy * sy] = val;
+               //else if(int(m)==width) data[ix * sx + iy * sy] = (1-(m-int(m)))*val;
+               //else if(int(m)==width+1) data[ix * sx + iy * sy] = (m-int(m))*val;
+               else data[ix * sx + iy * sy] = 0;
+               //data[ix * sx + iy * sy] = (m < width) ? val : 0;
             }
          }
       }
       else { // horizontal bars
          height = maxHeight;
          for (int iy = 0; iy < ny; iy++) {
-            int m = (iy + position) % (2*height);
+            //int m = (iy + position) % (2*height);
+            float m = iy + position - (floor((iy + position) / (2*height))) * (2*height); //calculate position including fraction
             for (int ix = 0; ix < nx; ix++) {
-               data[ix * sx + iy * sy] = (m < height) ? val : 0;
+               if((int(m)==height)||(int(m)==0)) data[ix * sx + iy * sy] = (m-int(m))*val;
+               else if(m<height) data[ix * sx + iy * sy] = val;
+               //else if(int(m)==height+1) data[ix * sx + iy * sy] = (1-(m-int(m)))*val;
+               else data[ix * sx + iy * sy] = 0;
+               //data[ix * sx + iy * sy] = (m < height) ? val : 0;
             }
          }
       }
+
+      return 0;
+   }
+
+   else if (type == SINEWAVE) {
+      if (orientation == vertical) { // vertical bars
+         width = maxWidth;
+         for (int iy = 0; iy < ny; iy++) {
+            for (int ix = 0; ix < nx; ix++) {
+               int glx = ix+kx0-nb;
+               float m = glx + position; //calculate position including fraction
+
+               //sin of 2*pi*m/wavelength, where wavelength=2*width:
+               data[ix * sx + iy * sy] = sinf(PI*m/width);
+            }
+         }
+      }
+      else { // horizontal bars
+         height = maxHeight;
+         for (int iy = 0; iy < ny; iy++) {
+            int gly = iy+ky0-nb;
+            float m = gly + position; //calculate position including fraction
+            for (int ix = 0; ix < nx; ix++) {
+               //float value=sinf(2*PI*m/height);
+               data[ix * sx + iy * sy] = sinf(PI*m/height);
+            }
+         }
+      }
+      return 0;
    }
 
    return 0;
@@ -246,8 +293,7 @@ int Patterns::initPattern(float val)
 /**
  * update the image buffers
  */
-int Patterns::updateState(float time, float dt)
-{
+int Patterns::updateState(float time, float dt) {
    update_timer->start();
 
    int size = 0;
@@ -296,6 +342,9 @@ int Patterns::updateState(float time, float dt)
          else if (type == RECTANGLES){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.tif", patternsOutputPath, time);
          }
+         else if (type == SINEWAVE){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.tif", patternsOutputPath, time);
+         }
          write(basicfilename);
       }
    }
@@ -309,7 +358,7 @@ int Patterns::updateState(float time, float dt)
  *
  *  Return an integer between 0 and (step-1)
  */
-int Patterns::calcPosition(int pos, int step)
+float Patterns::calcPosition(float pos, int step)
 {
    // float dp = 1.0 / step;
    double p = pv_random_prob();
@@ -340,26 +389,32 @@ int Patterns::calcPosition(int pos, int step)
    switch (movementType) {
    case RANDOMWALK:
       if (p < 0.5){
-         pos = (pos+movementSpeed) % step;
+         //pos = (int(pos)+1) % step;
+         pos = ((int)(pos+movementSpeed)) % step;
       } else {
-         pos = (pos-movementSpeed) % step;
+         //pos = (int(pos)-1+step) % step;
+         pos = ((int)(pos-movementSpeed)) % step;
       }
       break;
    case MOVEFORWARD:
-      pos = (pos+movementSpeed) % step;
-      break;
+     pos = (pos+movementSpeed) ;
+     if(pos>step) {pos -= step;}
+     break;
    case MOVEBACKWARD:
-      pos = (pos-movementSpeed) % step;
-      break;
+      pos = (pos-movementSpeed) ;
+      if(pos<0) {pos += step;}
+     break;
    case RANDOMJUMP:
       pos = int(p * step) % step;
       break;
    default: //in case of any problems with setting the movementType var, just use the
       //random walk as default
       if (p < 0.5){
-         pos = (pos+movementSpeed) % step;
+         //pos = (int(pos)+1) % step;
+         pos = ((int)(pos+movementSpeed)) % step;
       } else {
-         pos = (pos-movementSpeed) % step;
+         //pos = (int(pos)-1+step) % step;
+         pos = ((int)(pos-movementSpeed)) % step;
       }
       break;
    }

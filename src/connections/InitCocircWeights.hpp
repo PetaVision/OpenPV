@@ -15,7 +15,7 @@
 namespace PV {
 
 class InitWeightsParams;
-class InitCocircWeights;
+class InitCocircWeightsParams;
 
 class InitCocircWeights: public PV::InitWeights {
 public:

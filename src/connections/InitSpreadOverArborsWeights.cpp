@@ -43,6 +43,7 @@ int InitSpreadOverArborsWeights::calcWeights(PVPatch * patch, int patchIndex, in
 
 
    spreadOverArborsWeights(patch, arborId, weightParamPtr);
+   weightParamPtr->getParentConn()->setDelay(arborId, arborId);
    return PV_SUCCESS; // return 1;
 }
 

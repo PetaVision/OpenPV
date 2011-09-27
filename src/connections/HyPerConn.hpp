@@ -111,7 +111,9 @@ public:
    inline ChannelType getChannel()                   {return channel;}
    inline InitWeights * getWeightInitializer()       {return weightInitializer;}
    //inline int          getDelay()                    {return params->delay;}
-   inline int getDelay(int axonId = 0)               {assert(axonId<numAxonalArborLists); return axonalArbor(axonId,0)->delay;}
+   //inline int getDelay(int axonId)     {assert(axonId<numAxonalArborLists); return axonalArbor(0, axonId)->delay;}
+   void setDelay(int axonId, int delay);
+   inline int getDelay(int axonId = 0)               {assert(axonId<numAxonalArborLists); return axonalArbor(0,axonId)->delay;}
 
    virtual float minWeight(int arborId = 0)          {return 0.0;}
    virtual float maxWeight(int arborId = 0)          {return wMax;}
@@ -158,6 +160,13 @@ public:
          float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif
+
+   virtual int initShrinkPatches();
+
+   virtual int shrinkPatches(int arborId);
+   int shrinkPatch(PVAxonalArbor * arbor);
+   bool shrinkPatches_flag;
+
    virtual int initNormalize();
    int sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
    int scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);

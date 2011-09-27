@@ -124,10 +124,15 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
       assert(jitterFlag);
       char file_name[PV_PATH_MAX];
       if (movieOutputPath != NULL){
-         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
+         //I don't know why someone was saving the return value, but it was
+         //generating a compiler warning because it was unused.  Did someone
+         //want to use this for something?
+         snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
+         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
       }
       else{
-         int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
+         snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
+         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
       }
       printf("write position to %s\n",file_name);
       fp_pos = fopen(file_name,"a");

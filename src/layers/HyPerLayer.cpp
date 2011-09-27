@@ -635,19 +635,21 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
    fflush(stdout);
 #endif
 
+
    for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre];
-
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
       PVAxonalArbor * arbor = conn->axonalArbor(kPre, arborID);
       PVPatch * GSyn = arbor->data;
       PVPatch * weights = arbor->weights;
+
 
       // WARNING - assumes weight and GSyn patches from task same size
       //         - assumes patch stride sf is 1
@@ -691,6 +693,7 @@ int HyPerLayer::publish(InterColComm* comm, float time)
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }
    }
+
    comm->publish(this, clayer->activity);
    return 0;
 }
@@ -699,7 +702,8 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
    // wait for MPI border transfers to complete
    //
-   return comm->wait(getLayerId());
+   int status = comm->wait(getLayerId());
+   return status;
 }
 //
 /* Inserts a new probe into an array of LayerProbes.

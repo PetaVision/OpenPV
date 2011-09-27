@@ -62,6 +62,8 @@ public:
    virtual int writeWeights(float time, bool last=false);
    inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
 
+   virtual int shrinkPatches(int arborId);
+
    bool getPlasticityFlag() {return plasticityFlag;}
    float getWeightUpdatePeriod() {return weightUpdatePeriod;}
    float getWeightUpdateTime() {return weightUpdateTime;}

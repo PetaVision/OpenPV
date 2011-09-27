@@ -57,7 +57,7 @@ int STDPConn::initPlasticityPatches()
    int status = HyPerConn::initPlasticityPatches();
    assert(status == 0);
    //const int arbor = 0;
-   const int numAxons = numberOfAxonalArborLists();
+   //const int numAxons = numberOfAxonalArborLists();
 
 //   pIncr = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
    pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());

@@ -154,6 +154,22 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
+int KernelConn::shrinkPatches(int arborId) {
+   int numPatches = numDataPatches();
+   for (int kex = 0; kex < numPatches; kex++) {
+      PVAxonalArbor * arbor = axonalArbor(kernelIndexToPatchIndex(kex), arborId);
+
+      HyPerConn::shrinkPatch(arbor);
+   } // loop over arbors (pre-synaptic neurons)
+
+   return 0;
+}
+
+
+/*TODO  createWeights currently breaks in this subclass if called more than once,
+ * fix interface by adding extra dataPatches argument to overloaded method
+ * so asserts are unnecessary
+ */
 PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
