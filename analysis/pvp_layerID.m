@@ -71,18 +71,18 @@ else  % NON_SPIKING
         
     i_layer = i_layer + 1;
     layerIndex.l1_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L1ODD';
+    layerID{ 1, i_layer } =  'L1_ODD';
         
     i_layer = i_layer + 1;
     layerIndex.l2_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L2ODD';
+    layerID{ 1, i_layer } =  'L2_ODD';
         
     N_LAYERS = N_LAYERS + 1;
     layerID = [layerID, cell(1, 1)];
             
     i_layer = i_layer + 1;
     layerIndex.l3_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L3ODD';
+    layerID{ 1, i_layer } =  'L3_ODD';
             
     if G4_FLAG 
       N_LAYERS = N_LAYERS + 1;
@@ -90,21 +90,21 @@ else  % NON_SPIKING
             
       i_layer = i_layer + 1;
       layerIndex.l4_ODD = i_layer;
-      layerID{ 1, i_layer } =  'L4ODD';
+      layerID{ 1, i_layer } =  'L4_ODD';
       if G6_FLAG 
 	N_LAYERS = N_LAYERS + 1;
 	layerID = [layerID, cell(1, 1)];
             
 	i_layer = i_layer + 1;
 	layerIndex.l5_ODD = i_layer;
-	layerID{ 1, i_layer } =  'L5ODD';
+	layerID{ 1, i_layer } =  'L5_ODD';
  
 	N_LAYERS = N_LAYERS + 1;
 	layerID = [layerID, cell(1, 1)];
             
 	i_layer = i_layer + 1;
 	layerIndex.l6_ODD = i_layer;
-	layerID{ 1, i_layer } =  'L5ODD';
+	layerID{ 1, i_layer } =  'L6_ODD';
       endif
     endif
 
