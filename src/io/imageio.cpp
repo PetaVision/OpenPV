@@ -589,29 +589,28 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-
-   // assert(numBands <= maxBands);
+   int numTotal; // will be nx*ny*bandsInFile;
 
 #ifdef PV_USE_MPI
-   // const int nxny = nx * ny;
-   const int numTotal = nx * ny * numBands;
+   const MPI_Comm mpi_comm = comm->communicator();
 #endif
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
-
       const int src = 0;
       const int tag = 13;
-      const MPI_Comm mpi_comm = comm->communicator();
 
-      MPI_Recv(buf, numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-      // for (int b = 0; b < numBands; b++) {
-      //    MPI_Recv(&buf[b*nxny], numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-      // }
+      MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, numTotal);
-#endif
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
+#endif // DEBUG_OUTPUT
+      MPI_Recv(buf, numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+#ifdef DEBUG_OUTPUT
+      int nf=numTotal/(nx*ny);
+      assert( nf*nx*ny == numTotal );
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
+              comm->commRank(), nx, ny, nf, numTotal);
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
    }
    else {
@@ -622,6 +621,13 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
       const int bandsInFile = dataset->GetRasterCount();
+      numTotal = nx * ny * bandsInFile;
+#ifdef PV_USE_MPI
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
+#endif // DEBUG_OUTPUT
+      MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
+#endif // PV_USE_MPI
 
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;
@@ -636,39 +642,27 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          return -1;
       }
 
-      // GDALRasterBand * band[maxBands];
-
       assert(numBands == 1 || numBands == bandsInFile);
-
-      // for (int b = 0; b < numBands; b++) {
-      //    band[b] = dataset->GetRasterBand(b+1);
-      // }
 
 #ifdef PV_USE_MPI
       int dest = -1;
       const int tag = 13;
-      const MPI_Comm mpi_comm = comm->communicator();
 
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
             if (++dest == 0) continue;
             int kx = nx * px;
             int ky = ny * py;
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: scatter: sending to %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), dest, nx, ny, nx*ny,
-                    nx*ny*comm->commSize());
-#endif
             dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
                               nx, ny, GDT_Byte, bandsInFile, NULL,
                               bandsInFile, bandsInFile*nx, 1);
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+                    " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
+                    comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
+                    nx*ny*comm->commSize());
+#endif // DEBUG_OUTPUT
             MPI_Send(buf, numTotal, MPI_BYTE, dest, tag, mpi_comm);
-            // for (int b = 0; b < numBands; b++) {
-            //    band[b]->RasterIO(GF_Read, kx, ky, nx, ny,
-            //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-            //    MPI_Send(&buf[b*nxny], nx*ny, MPI_BYTE, dest, tag, mpi_comm);
-            // }
          }
       }
 #endif // PV_USE_MPI
@@ -676,10 +670,6 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       // get local image portion
       dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
                         GDT_Byte, bandsInFile, NULL, bandsInFile, bandsInFile*nx, 1);
-      // for (int b = 0; b < numBands; b++) {
-      //    band[b]->RasterIO(GF_Read, xOffset, yOffset, nx, ny,
-      //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-      // }
       GDALClose(dataset);
    }
 #else
