@@ -166,6 +166,7 @@ int HyPerConn::initialize_base()
 //      axonalArborList[i] = NULL;
 //   }
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
+   this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
 
    return PV_SUCCESS;
