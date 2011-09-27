@@ -229,6 +229,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Sept 27, 2011.  These functions have been superseded and no other functions call them.
 /**
  * copy local portion of globalBuf to localBuf
  * @l
@@ -677,7 +678,7 @@ int pv_read_patch_old(FILE * fp, float nf, float minVal, float maxVal, PVPatch *
 
    return nItems;
 }
-#endif
+#endif // DONT_COMPILE
 
 /**
  * @filename
@@ -777,6 +778,7 @@ int pv_read_patches(FILE * fp, int nxp, int nyp, int nfp, float minVal, float ma
 
    return status;
 }
+#endif // OBSOLETE
 
 /**
  * @fp
@@ -834,6 +836,7 @@ int pv_close_binary(FILE * fp)
    return fclose(fp);
 }
 
+#ifdef OBSOLETE // Marked Obsolete Sept. 27, 2011.  These functions have been superseded and no other functions call them.
 /**
  * Read a PV binary record.  This is a three dimensional array [ny][nx][nf].
  * @fp a FILE pointer to the file
@@ -981,6 +984,7 @@ int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
 
    return 0;
 }
+#endif // OBSOLETE
 
 /**
  * @fd
