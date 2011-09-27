@@ -197,7 +197,7 @@ int Publisher::publish(HyPerLayer* pub,
 #endif
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
                 &requests[nreq++]);
-      int status = MPI_Ssend( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
+      int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
       assert(status==0);
 
    }
