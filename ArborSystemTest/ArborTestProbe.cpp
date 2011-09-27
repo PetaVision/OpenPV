@@ -34,7 +34,7 @@ int ArborTestProbe::outputState(float time, HyPerLayer * l)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(time>2.0f){
+	if(time>5.0f){
 		assert((fMin>0.97)&&(fMin<1.070));
 		assert((fMax>0.97)&&(fMax<1.070));
 		assert((avg>0.97)&&(avg<1.070));
