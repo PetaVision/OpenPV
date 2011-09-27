@@ -80,6 +80,7 @@ protected:
 
 private:
 
+   int mpi_initialized_on_entry;
    int icRank;
    int icSize;
    int worldRank;

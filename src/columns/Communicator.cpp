@@ -95,7 +95,13 @@ Communicator::~Communicator()
 int Communicator::commInit(int* argc, char*** argv)
 {
 #ifdef PV_USE_MPI
-   MPI_Init(argc, argv);
+   // If MPI wasn't initialized, initialize it.
+   // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
+   // This way, you can do several simulations sequentially by initializing MPI before creating
+   // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
+   // can run the second simulation, etc.
+   MPI_Initialized(&mpi_initialized_on_entry);
+   if( !mpi_initialized_on_entry ) MPI_Init(argc, argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 #else // PV_USE_MPI
@@ -113,7 +119,7 @@ int Communicator::commInit(int* argc, char*** argv)
 int Communicator::commFinalize()
 {
 #ifdef PV_USE_MPI
-   MPI_Finalize();
+   if( !mpi_initialized_on_entry ) MPI_Finalize();
 #endif // PV_USE_MPI
    return 0;
 }
