@@ -51,7 +51,8 @@ function [pvp_header, pvp_index] = pvp_readHeader(filename)
   %disp(['PVP_WGT_FILE_TYPE = ', num2str(PVP_WGT_FILE_TYPE)]);
   if ( ( file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE ) && ...
   	 ( file_type ~= PVP_ACT_FILE_TYPE ) && ...
-  	 ( file_type ~= PVP_WGT_FILE_TYPE ) )
+  	 ( file_type ~= PVP_WGT_FILE_TYPE ) && ...
+  	 ( file_type ~= PVP_KERNEL_FILE_TYPE ) )
     error(['file_type = ', num2str(file_type), ' ~= PVP_NONSPIKING_ACT_FILE_TYPE in pvp file: ', filename]);
     return;
   endif
