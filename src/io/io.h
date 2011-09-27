@@ -40,7 +40,8 @@
 #define PVP_NONSPIKING_ACT_FILE_TYPE  4
 // deprecated
 #define PV_WEIGHTS_FILE_TYPE 3
-#define KERNEL_FILE_TYPE     5 //PVP_WGT_FILE_TYPE // 6996 // kludge for the moment...need to add filetype to write weights call
+// end deprecated
+#define PVP_KERNEL_FILE_TYPE 5
 
 #define INDEX_HEADER_SIZE  0
 #define INDEX_NUM_PARAMS   1

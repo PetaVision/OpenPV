@@ -228,7 +228,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
 
    if (loc->nx       != params[INDEX_NX])        {status = -1; tmp_status = INDEX_NX;}
    if (tmp_status == INDEX_NX) {
-      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nx = %d != params[%d]==%d ", loc->nx, INDEX_NX, params[INDEX_NX]);
          fprintf(stderr, "\n");
       }
@@ -238,7 +238,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
    if (loc->ny       != params[INDEX_NY])        {status = -1; tmp_status = INDEX_NY;}
    if (tmp_status == INDEX_NY) {
-      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
          fprintf(stderr, "\n");
       }
@@ -253,7 +253,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = -1; tmp_status = INDEX_NX_GLOBAL;}
    if (tmp_status == INDEX_NX_GLOBAL) {
-      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nxGlobal = %d != params[%d]==%d ", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
          fprintf(stderr, "\n");
       }
@@ -263,7 +263,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
    if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = -1; tmp_status = INDEX_NY_GLOBAL;}
    if (tmp_status == INDEX_NY_GLOBAL) {
-      if (params[INDEX_FILE_TYPE] != KERNEL_FILE_TYPE){
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
          fprintf(stderr, "\n");
       }

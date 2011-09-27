@@ -565,7 +565,7 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
 int KernelConn::writeWeights(float time, bool last)
 {
    //const int arbor = 0;
-   this->fileType = KERNEL_FILE_TYPE;
+   this->fileType = PVP_KERNEL_FILE_TYPE;
    const int numPatches = numDataPatches();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       if(HyPerConn::writeWeights(kernelPatches[arborId], numPatches, NULL, time, last, arborId))
