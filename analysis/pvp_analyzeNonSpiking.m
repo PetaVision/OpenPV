@@ -233,8 +233,8 @@ for j_trial = first_trial : skip_trial : last_trial
     endif % layer < 3
     if layer <= 3
       layer_label = 'L';
-    elseif layer <= ( 6 + G4_FLAG )
-      layer_label = 'G';
+    elseif layer <= ( 6 + G4_FLAG + 2 * G6_FLAG)
+      layer_label = 'ODD_';
     else
       layer_label = 'T';
     endif % layer < 3
