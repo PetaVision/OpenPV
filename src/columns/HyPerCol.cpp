@@ -106,6 +106,8 @@ int HyPerCol::initFinish(void)
 #define NUMSTEPS 1
 int HyPerCol::initialize(const char * name, int argc, char ** argv)
 {
+   icComm = new InterColComm(&argc, &argv);
+
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
 
@@ -194,7 +196,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          exit(EXIT_FAILURE);
       }
    }
-   else { // outputPath exist; now check if it's a directory.
+   else { // outputPath exists; now check if it's a directory.
       if( !(opstat.st_mode && S_IFDIR) ) {
          fprintf(stderr, "Output path \"%s\" exists but is not a directory\n", outputPath);
          exit(EXIT_FAILURE);
@@ -203,8 +205,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 
    // run only on CPU for now
    initializeThreads(opencl_device);
-
-   icComm = new InterColComm(&argc, &argv);
 
    // set random seed if it wasn't set in the command line
    if( !random_seed ) {
