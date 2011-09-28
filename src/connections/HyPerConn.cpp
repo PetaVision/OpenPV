@@ -228,7 +228,7 @@ int HyPerConn::constructWeights(const char * filename)
    assert( initializeWeights(wPatches, numWeightPatches(), filename) != NULL);
    status |= initPlasticityPatches();
    assert(status == 0);
-   initShrinkPatches(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
+   initShrinkPatches(); // Sets shrinkPatches; derived-class methods that override initShrinkPatches must also set shrinkPatches
    if (shrinkPatches_flag) {
 
       for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
