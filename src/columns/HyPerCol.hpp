@@ -116,10 +116,8 @@ private:
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
 
    int numSteps;
-   // int maxLayers;
    int layerArraySize;
    int numLayers;
-   // int maxConnections;
    int connectionArraySize;
    int numConnections;
 
