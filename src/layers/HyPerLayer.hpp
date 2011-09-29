@@ -20,7 +20,7 @@
 
 #ifdef PV_USE_OPENCL
 #define PV_CL_COPY_BUFFERS 0
-#define PV_CL_EVENTS 0
+#define PV_CL_EVENTS 1
 #include "../arch/opencl/CLKernel.hpp"
 #endif
 
