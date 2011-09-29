@@ -42,7 +42,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
       assert(status == EXIT_SUCCESS);
    }
 
-   publishers[pubId] = new Publisher(pubId, this, numItems, pub->clayer->loc, numLevels);
+   publishers[pubId] = new Publisher(pubId, pub->parent, numItems, pub->clayer->loc, numLevels);
    numPublishers += 1;
 
    return pubId;
@@ -107,27 +107,12 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
 
-#ifdef OBSOLETE
-// deprecated constructor that separates borders from the layer data structure
-Publisher::Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels)
-{
-   size_t maxSize = (size1 > size2) ? size1 : size2;
-   this->pubId = pubId;
-   this->comm  = NULL;
-   this->numSubscribers = 0;
-   this->store = new DataStore(numType1+numType2, maxSize, numLevels);
-   for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
-      this->connection[i] = NULL;
-   }
-}
-#endif
-
-Publisher::Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels)
+Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels)
 {
    size_t dataSize  = numItems * sizeof(float);
 
    this->pubId = pubId;
-   this->comm  = comm;
+   this->comm  = hc->icCommunicator();
    this->numSubscribers = 0;
 
    cube.data = NULL;
@@ -139,7 +124,7 @@ Publisher::Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc lo
    cube.size = dataSize + sizeof(PVLayerCube);
 
    const int numBuffers = 1;
-   this->store = new DataStore(numBuffers, dataSize, numLevels);
+   store = new DataStore(hc, numBuffers, dataSize, numLevels);
 
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 

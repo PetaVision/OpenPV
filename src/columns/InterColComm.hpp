@@ -27,11 +27,7 @@ class HyPerConn;
 class Publisher {
 
 public:
-#ifdef OBSOLETE
-   // deprecated constructor that separates borders from the layer data structure
-   Publisher(int pubId, int numType1, size_t size1, int numType2, size_t size2, int numLevels);
-#endif
-   Publisher(int pubId, Communicator * comm, int numItems, PVLayerLoc loc, int numLevels);
+   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels);
    virtual ~Publisher();
    int readData(int delay);
    int publish(HyPerLayer * pub,
