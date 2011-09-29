@@ -49,6 +49,7 @@ HyPerLayer::~HyPerLayer()
    freeChannels();
    
 #ifdef PV_USE_OPENCL
+   delete krUpdate;
    delete clV;
    delete clActivity;
    delete clPrevTime;
@@ -247,11 +248,15 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
 
    // these buffers are shared between host and device
    //
-   clV        = device->createBuffer(CL_MEM_COPY_HOST_PTR, size,    clayer->V);
+   clV = NULL;
+   if (clayer->V != NULL) {
+      clV = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
+   }
    clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
    // defer creation of clParams to derived classes (as it is class specific)
+   clParams = NULL;
 
    clGSyn = NULL;
    if (numChannels > 0) {
@@ -302,7 +307,10 @@ const pvdata_t * HyPerLayer::getLayerData(int delay)
 size_t HyPerLayer::getLayerDataStoreOffset(int delay)
 {
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   return store->bufferOffset(LOCAL, delay);
+   size_t offset  = store->bufferOffset(LOCAL, delay);
+   // (Rasmussen) still sorting this out
+   // size_t offset2 = (store->bufferOffset(0, 0) - store->bufferOffset(LOCAL, delay));
+   return offset;
 }
 
 CLBuffer * HyPerLayer::getLayerDataStoreCLBuffer()
@@ -537,7 +545,6 @@ int HyPerLayer::updateBorder(float time, float dt)
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_OPENCL
-#if PV_CL_EVENTS
    // wait for memory to be copied from device
    if (numWait > 0) {
       status |= clWaitForEvents(numWait, evList);
@@ -549,7 +556,6 @@ int HyPerLayer::updateBorder(float time, float dt)
 
    status |= clWaitForEvents(1, &evUpdate);
    clReleaseEvent(evUpdate);
-#endif
 #endif
 
    return status;
