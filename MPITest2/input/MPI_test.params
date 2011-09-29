@@ -21,6 +21,7 @@ HyPerCol "column" = {
 // layers
 //
 
+
 MPITestLayer "L0" = {
     restart = 0;
     nxScale = 1;
@@ -337,46 +338,46 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-StatsProbe "L0 Stats File" = {
+StatsProbe "L0_Stats_File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
 };
-MPITestProbe "Lx1 Stats File" = {
+MPITestProbe "Lx1_Stats_File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
 };
-MPITestProbe "Lx2 Stats File" = {
+MPITestProbe "Lx2_Stats_File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
 };
-MPITestProbe "Lx4 Stats File" = {
+MPITestProbe "Lx4_Stats_File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
 };
-MPITestProbe "Lx1_2 Stats File" = {
+MPITestProbe "Lx1_2_Stats_File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
 };
-MPITestProbe "Lx1_4 Stats File" = {
+MPITestProbe "Lx1_4_Stats_File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-StatsProbe "L0 Stats Screen" = {
+StatsProbe "L0_Stats_Screen" = {
     targetLayer = "L0";
 };
-MPITestProbe "Lx1 Stats Screen" = {
+MPITestProbe "Lx1_Stats_Screen" = {
     targetLayer = "Lx1";
 };
-MPITestProbe "Lx2 Stats Screen" = {
+MPITestProbe "Lx2_Stats_Screen" = {
     targetLayer = "Lx2";
 };
-MPITestProbe "Lx4 Stats Screen" = {
+MPITestProbe "Lx4_Stats_Screen" = {
     targetLayer = "Lx4";
 };
-MPITestProbe "Lx1_2 Stats Screen" = {
+MPITestProbe "Lx1_2_Stats_Screen" = {
     targetLayer = "Lx1_2";
 };
-MPITestProbe "Lx1_4 Stats Screen" = {
+MPITestProbe "Lx1_4_Stats_Screen" = {
     targetLayer = "Lx1_4";
 };

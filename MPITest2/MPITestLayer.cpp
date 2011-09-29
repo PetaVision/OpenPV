@@ -49,11 +49,11 @@ int MPITestLayer::setActivitytoGlobalPos(){
 
 
 int MPITestLayer::initialize(){
-	int status = ANNLayer::initialize();
+	//int status = ANNLayer::initialize();  // parent class inialize already called in constructor (!!!violation of PV convention)
 	setVtoGlobalPos();
 	setActivitytoGlobalPos();
 
-	return status;
+	return PV_SUCCESS;
 }
 
 int MPITestLayer::updateState(float time, float dt)
@@ -69,7 +69,10 @@ int MPITestLayer::updateState(float time, float dt)
 int MPITestLayer::publish(InterColComm* comm, float time)
 {
 	setActivitytoGlobalPos();
-	return HyPerLayer::publish(comm, time);
+	int status = comm->publish(this, clayer->activity);
+	return status;
+
+	//return HyPerLayer::publish(comm, time);
 }
 
 
