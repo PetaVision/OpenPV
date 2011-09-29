@@ -68,9 +68,7 @@ Retina::~Retina()
    free(rand_state);
 
 #ifdef PV_USE_OPENCL
-#if PV_CL_EVENTS
    free(evList);
-#endif
 #endif
 }
 
@@ -138,7 +136,14 @@ int Retina::initialize(PVLayerType type)
  */
 int Retina::initializeThreadBuffers(const char * kernel_name)
 {
-   return CL_SUCCESS;
+   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
+
+   CLDevice * device = parent->getCLDevice();
+
+   clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
+   clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
+
+   return status;
 }
 
 int Retina::initializeThreadKernels(const char * kernel_name)
@@ -149,8 +154,9 @@ int Retina::initializeThreadKernels(const char * kernel_name)
    int status = CL_SUCCESS;
    CLDevice * device = parent->getCLDevice();
 
-   sprintf(kernelPath,  "%s/src/kernels/Retina_update_state.cl", parent->getPath());
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
+   const char * pvRelPath = "../PetaVision";
+   sprintf(kernelPath,  "%s/%s/src/kernels/Retina_update_state.cl", parent->getPath(), pvRelPath);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
 
    // create kernels
    //
@@ -242,18 +248,17 @@ int Retina::updateStateOpenCL(float time, float dt)
    int status = CL_SUCCESS;
 
 #ifdef PV_USE_OPENCL
-#if PV_CL_EVENTS
    // wait for memory to be copied to device
    status |= clWaitForEvents(numWait, evList);
    for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
-#endif
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
+   krUpdate->finish();
 
 #if PV_CL_COPY_BUFFERS
    status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
