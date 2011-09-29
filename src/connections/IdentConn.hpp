@@ -27,6 +27,7 @@ public:
    virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
    virtual int initNormalize();
+   virtual int initShrinkPatches();
 
 protected:
     int setPatchSize(const char * filename);

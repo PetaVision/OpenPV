@@ -82,4 +82,9 @@ int IdentConn::initNormalize() {
    return PV_SUCCESS;
 }
 
+int IdentConn::initShrinkPatches() {
+   shrinkPatches_flag = false;
+   return PV_SUCCESS;
+}
+
 }  // end of namespace PV block
