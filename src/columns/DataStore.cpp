@@ -20,7 +20,7 @@ namespace PV
  * @bufSize
  * @numLevels
  */
-DataStore::DataStore(int numBuffers, size_t bufSize, int numLevels)
+DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels)
 {
    this->curLevel = numLevels - 1;  // start at bottom, work up
    this->bufSize = bufSize;
@@ -28,6 +28,10 @@ DataStore::DataStore(int numBuffers, size_t bufSize, int numLevels)
    this->numBuffers = numBuffers;
    this->recvBuffers = (char*) calloc(numBuffers * numLevels * bufSize, sizeof(char));
    assert(this->recvBuffers != NULL);
+
+#ifdef PV_USE_OPENCL
+   initializeThreadBuffers(hc);
+#endif
 }
 
 DataStore::~DataStore()

@@ -23,7 +23,7 @@ class HyPerCol;
 class DataStore
 {
 public:
-   DataStore(int numBuffers, size_t size, int numLevels);
+   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels);
    virtual ~DataStore();
 
    size_t size()         {return bufSize;}
