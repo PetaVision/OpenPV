@@ -83,6 +83,8 @@ HyPerConn::~HyPerConn()
    free(name);
 
 #ifdef PV_USE_OPENCL
+   delete krRecvSyn;
+
    if (clWeights != NULL) {
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          delete clWeights[arbor];
@@ -355,12 +357,10 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    return initialize(name, hc, pre, post, channel, filename, NULL);
 }
 
-
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
 {
    int status = PV_SUCCESS;
-
 
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
@@ -432,6 +432,11 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
 
    constructWeights(filename);
+
+#ifdef PV_USE_OPENCL
+   initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
+   initializeThreadKernels("HyPerLayer_recv_synaptic_input");
+#endif
 
    return status;
 }
@@ -637,30 +642,42 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    int status = CL_SUCCESS;
    CLDevice * device = parent->getCLDevice();
 
-   sprintf(kernelPath, "%s/src/kernels/%s.cl", parent->getPath(), kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
+   const char * pvRelPath = "../PetaVision";
+   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
 
    // create kernels
    //
 
    krRecvSyn = device->createKernel(kernelPath, kernel_name, kernelFlags);
 
-   // run args: nxp, nyp, activity (pre), activity offset (pre), G (post), W
+   const PVLayerLoc * preLoc  = pre-> getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    int argid = 0;
 
-//   PVLayerLoc * preLoc = pre->getLayerLoc();
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nb);
+   status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
+   status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
+   status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
+   status |= krRecvSyn->setKernelArg(argid++, preLoc->nb);
 
    status |= krRecvSyn->setKernelArg(argid++, nxp);
    status |= krRecvSyn->setKernelArg(argid++, nyp);
-   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
+   status |= krRecvSyn->setKernelArg(argid++, nfp);
+
+   float xScale = (float)postLoc->nx/(float)preLoc->nx;
+   float yScale = (float)postLoc->ny/(float)preLoc->ny;
+   status |= krRecvSyn->setKernelArg(argid++, xScale);
+   status |= krRecvSyn->setKernelArg(argid++, yScale);
+
+   clArgIdOffset = argid;  // offset into activity buffer (with delay)
    status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
-   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer(getChannel()));
+   // activity buffer from DataStore
+   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
+   clArgIdWeights = argid; // weights
    status |= krRecvSyn->setKernelArg(argid++, clWeights[0]);
+   // update variable, GSyn
+   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer(getChannel()));
 
    return status;
 }
@@ -1049,14 +1066,16 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 
    // for all numextended in pre
 
-   // run args: nxp, nyp, activity (pre), activity offset (pre), G (post), W
-   //
    for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
       size_t activityOffset = pre->getLayerDataStoreOffset(arbor);
-      status |= krRecvSyn->setKernelArg(3, activityOffset);
-      status |= krRecvSyn->setKernelArg(5, clWeights[arbor]);
+      status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset);
+      status |= krRecvSyn->setKernelArg(clArgIdWeights, clWeights[arbor]);
       status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSyn);
    }
+
+   // TODO - use events properly
+   status |= clWaitForEvents(1, &evRecvSyn);
+   clReleaseEvent(evRecvSyn);
 
    return status;
 }

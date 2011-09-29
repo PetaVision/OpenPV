@@ -328,6 +328,12 @@ protected:
    CLBuffer *  clGSyn;
    CLBuffer *  clActivity;
    CLBuffer ** clWeights;
+
+   // ids of OpenCL arguments that change
+   //
+   int clArgIdOffset;
+   int clArgIdWeights;
+
 #endif
 
 public:
