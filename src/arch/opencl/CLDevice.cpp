@@ -253,6 +253,9 @@ CLDevice::print_error_code(int code)
       case CL_INVALID_COMMAND_QUEUE:
          sprintf(msg, "%s (%d)", "CL_INVALID_COMMAND_QUEUE", code);
          break;
+      case CL_INVALID_EVENT:
+         sprintf(msg, "%s (%d)", "CL_INVALID_EVENT", code);
+         break;
       case CL_BUILD_PROGRAM_FAILURE:
          sprintf(msg, "%s (%d)", "CL_BUILD_PROGRAM_FAILURE", code);
          break;
@@ -261,6 +264,9 @@ CLDevice::print_error_code(int code)
          break;
       case CL_INVALID_KERNEL_ARGS:
          sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_ARGS", code);
+         break;
+      case CL_INVALID_KERNEL_NAME:
+         sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_NAME", code);
          break;
       case CL_INVALID_VALUE:
          sprintf(msg, "%s (%d)", "CL_INVALID_VALUE", code);
