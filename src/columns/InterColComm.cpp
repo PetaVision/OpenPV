@@ -190,7 +190,7 @@ int Publisher::publish(HyPerLayer* pub,
 
 #endif // PV_USE_MPI
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 /**

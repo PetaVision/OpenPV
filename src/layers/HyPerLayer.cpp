@@ -98,7 +98,10 @@ int HyPerLayer::initialize(PVLayerType type)
    //   - all derived classes should make sure that HyPerLayer::initialize is called
    //
    clayer->layerType = type;
-   parent->addLayer(this);
+
+   // layerId stored as clayer->layerId
+   int layerID = parent->addLayer(this);
+   assert(layerID == clayer->layerId);
 
    bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
    initializeV(restart_flag);
@@ -537,7 +540,7 @@ int HyPerLayer::updateState(float time, float dt)
    resetGSynBuffers();
    updateActiveIndices();
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::updateBorder(float time, float dt)
@@ -700,8 +703,8 @@ int HyPerLayer::publish(InterColComm* comm, float time)
       }
    }
 
-   comm->publish(this, clayer->activity);
-   return 0;
+   int status = comm->publish(this, clayer->activity);
+   return status;
 }
 
 int HyPerLayer::waitOnPublish(InterColComm* comm)

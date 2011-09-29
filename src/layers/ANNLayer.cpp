@@ -21,7 +21,8 @@ ANNLayer::ANNLayer(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_
 ANNLayer::~ANNLayer() {}
 
 int ANNLayer::initialize() {
-   HyPerLayer::initialize(TypeNonspiking);
+   int status = HyPerLayer::initialize(TypeNonspiking);
+   assert(status == PV_SUCCESS);
    PVParams * params = parent->parameters();
 
    // moved to a separate routine so that derived classes that don't use

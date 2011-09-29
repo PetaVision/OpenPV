@@ -16,7 +16,7 @@ class ANNLayer : public HyPerLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc, int numChannels);
    ANNLayer(const char* name, HyPerCol * hc);
-   ~ANNLayer();
+   virtual ~ANNLayer();
    virtual int updateV();
    virtual int applyVMax();
    virtual int applyVThresh();
