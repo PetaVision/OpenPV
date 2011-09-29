@@ -56,12 +56,13 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
        char buffer[8192];
 
        printf("Error: Failed to build program executable!\n");
+       CLDevice::print_error_code(status);
        status = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
        if (status != CL_SUCCESS) {
           printf("CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
+          CLDevice::print_error_code(status);
        }
        printf("%s\n", buffer);
-       CLDevice::print_error_code(status);
        exit(status);
    }
 
@@ -77,6 +78,10 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 
 #endif // PV_USE_OPENCL
 
+}
+
+CLKernel::~CLKernel()
+{
 }
 
 int CLKernel::run(size_t global_work_size, size_t local_work_size,
@@ -182,9 +187,9 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       tau_id += 1000;
       TAU_STOP("CLKernel::run::CPU");
 #endif
-      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START,
+      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_START,
                                        sizeof(start), &start, &param_size);
-      status = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,
+      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_END,
                                        sizeof(end), &end, &param_size);
       if (status == 0) {
          elapsed = (end - start) / 1000;  // microseconds

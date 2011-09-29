@@ -17,6 +17,7 @@ class CLKernel {
 public:
    CLKernel(cl_context context, cl_command_queue commands, cl_device_id device,
             const char * filename, const char * name, const char * options);
+   virtual ~CLKernel();
 
    int setKernelArg(unsigned int arg_index, size_t arg_size, const void * arg_value);
 
