@@ -21,39 +21,14 @@ HyPerCol "column" = {
 // layers
 //
 
-Retina "Retina" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 1;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 1.0;
-    invert = 0;
-    poissonEdgeProb = 1;
-    poissonBlankProb = 1;
-    burstFreq = 1;
-    burstDuration = 1000;
-
-    beginStim = 1;
-    endStim = 1000;
-};
-
-
-
-
-ANNLayer "L0" = {
+MPITestLayer "L0" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
     marginWidth = 4;
     writeStep = 1.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
@@ -72,7 +47,7 @@ ANNLayer "Lx1" = {
     nf = 4;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
@@ -91,7 +66,7 @@ ANNLayer "Lx2" = {
     nf = 8;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
@@ -163,45 +138,6 @@ ANNLayer "Lx1_4" = {
 
 
 //  connections: 
-
-KernelConn "Retina to L0" = {
-    preLayerName = "Retina";
-    postLayerName = "L0";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 4;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
-      
-    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
-
-    delay = 0;     
-};
-
 
 
 
@@ -401,10 +337,6 @@ KernelConn "L0 to Lx1_4" = {
 
 
 
-StatsProbe "Retina Stats File" = {
-    targetLayer = "Retina";
-    probeOutputFile = "Retina_Stats.txt";
-};
 StatsProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
@@ -430,9 +362,6 @@ MPITestProbe "Lx1_4 Stats File" = {
     probeOutputFile = "Lx1_4_Stats.txt";
 };
 
-StatsProbe "Retina Stats Screen" = {
-    targetLayer = "Retina";
-};
 StatsProbe "L0 Stats Screen" = {
     targetLayer = "L0";
 };
