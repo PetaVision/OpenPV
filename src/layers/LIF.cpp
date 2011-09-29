@@ -94,6 +94,8 @@ LIF::~LIF()
    free(rand_state);
 
 #ifdef PV_USE_OPENCL
+   delete krUpdate;
+
    free(evList);
 
    delete clParams;
@@ -168,6 +170,9 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
    numKernelArgs = 0;
    initializeThreadBuffers(kernel_name);
    initializeThreadKernels(kernel_name);
+
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   store->initializeThreadBuffers(parent);
 #endif
 
    return status;
@@ -180,7 +185,7 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
  */
 int LIF::initializeThreadBuffers(const char * kernel_name)
 {
-   int status = CL_SUCCESS;
+   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
 
    const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
 
@@ -209,8 +214,9 @@ int LIF::initializeThreadKernels(const char * kernel_name)
    int status = CL_SUCCESS;
    CLDevice * device = parent->getCLDevice();
 
-   sprintf(kernelPath, "%s/src/kernels/%s.cl", parent->getPath(), kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/src/kernels/", parent->getPath());
+   const char * pvRelPath = "../PetaVision";
+   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
 
    // create kernels
    //
@@ -295,13 +301,13 @@ int LIF::updateStateOpenCL(float time, float dt)
 
 #ifdef PV_USE_OPENCL
    // wait for memory to be copied to device
-#if PV_CL_EVENTS
-   status |= clWaitForEvents(numWait, evList);
+   if (numWait > 0) {
+       status |= clWaitForEvents(numWait, evList);
+   }
    for (int i = 0; i < numWait; i++) {
       clReleaseEvent(evList[i]);
    }
    numWait = 0;
-#endif
 
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
@@ -312,9 +318,8 @@ int LIF::updateStateOpenCL(float time, float dt)
    status |= clGSynI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_I]);
    status |= clGSynIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_IB]);
    status |= clActivity ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
-#endif
-
    numWait += 4;
+#endif
 #endif
 
    return status;
