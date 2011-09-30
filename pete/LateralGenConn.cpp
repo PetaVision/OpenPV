@@ -48,7 +48,7 @@ int LateralGenConn::initialize(const char * name, HyPerCol * hc,
                  pre->getName(),post->getName() );
         exit(1);
     }
-    GenerativeConn::initialize(name, hc, pre, post, channel, filename);
+    GenerativeConn::initialize(name, hc, pre, post, channel, filename, NULL);
 	int prePad = pre->getLayerLoc()->nb;
 	int xPatchHead = zPatchHead(0, nxp, 0, 0);
 	int yPatchHead = zPatchHead(0, nyp, 0, 0);
@@ -93,7 +93,7 @@ int LateralGenConn::updateWeights(int axonID) {
                 for( int u=0; u<nxp; u++) {
                 	if( u != v ) {
                         for( int p=0; p<nfp; p++ ) {
-                            pvdata_t * kpdata = getKernelPatch(p)->data;
+                            pvdata_t * kpdata = getKernelPatch(0,p)->data;
                             int kIndex1 = kIndex(xRestr - (u + xPatchHead) + prePad, yRestr - (v + yPatchHead) + prePad, p, nxExt, nyExt, nfPre);
                             assert(kIndex1 >= 0 && kIndex1 < pre->getNumExtended());
                             int kIndex2 = kIndex(xRestr - (v + yPatchHead) + prePad, yRestr - (u + xPatchHead) + prePad, p, nxExt, nyExt, nfPre);
@@ -120,9 +120,9 @@ PVPatch ** LateralGenConn::initializeWeights(PVPatch ** patches, int numPatches,
     int xc = - zPatchHead(0, nxp, 0, 0); // zPatchHead(0,nxp,0,0) is the index of the leftmost
     int yc = - zPatchHead(0, nyp, 0, 0); // pixel in the patch; its negative is the index of the center
 
-    int numKernels = numDataPatches(0);
+    int numKernels = numDataPatches();
     for( int k=0; k < numKernels; k++ ) {
-        PVPatch * kp = getKernelPatch(k);
+        PVPatch * kp = getKernelPatch(0,k);
         int idx = kIndex(xc, yc, k, nxp, nyp, nfp);
         kp->data[idx] = 1;
     }

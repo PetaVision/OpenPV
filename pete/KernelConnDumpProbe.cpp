@@ -58,13 +58,13 @@ int KernelConnDumpProbe::outputState(float time, HyPerConn * c) {
 	int nfp = c->fPatchSize();
 	int nxp = c->xPatchSize();
 	int nyp = c->yPatchSize();
-    int numPatches = c->numDataPatches(0);
+    int numPatches = c->numDataPatches();
     if( textNotBinaryFlag ) {
         fprintf(fp, "time = %f\n", time);
         fprintf(fp, "nfp=%d, nxp=%d, nyp=%d, numPatches=%d\n",nfp,nxp,nyp,numPatches);
         for( int k=0; k<numPatches; k++) {
             fprintf(fp, "Patch %d\n", k);
-            PVPatch * patch = ((KernelConn *) c)->getKernelPatch(k);
+            PVPatch * patch = ((KernelConn *) c)->getKernelPatch(0,k);
             for( int y=0; y<nyp; y++ ) {
                 for( int x=0; x<nxp; x++ ) {
                     fprintf(fp, "    x=%d, y=%d\n",x,y);
@@ -84,7 +84,7 @@ int KernelConnDumpProbe::outputState(float time, HyPerConn * c) {
         fwrite(&nyp,sizeof(nyp), (size_t) 1, fp);
         fwrite(&numPatches,sizeof(numPatches), (size_t) 1, fp);
         for( int k=0; k<numPatches; k++) {
-        	PVPatch * patch = ((KernelConn *) c)->getKernelPatch(k);
+        	PVPatch * patch = ((KernelConn *) c)->getKernelPatch(0,k);
             fwrite(patch->data, sizeof(pvdata_t), (size_t) (nfp*nxp*nyp), fp);
         }
     }
