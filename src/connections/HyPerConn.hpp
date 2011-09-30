@@ -35,6 +35,7 @@ class InitGaussianRandomWeights;
 class InitSmartWeights;
 class InitCocircWeights;
 class ConnectionProbe;
+class PVParams;
 
 /**
  * A PVConnection identifies a connection between two layers

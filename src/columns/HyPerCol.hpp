@@ -25,6 +25,7 @@ class HyPerLayer;
 class InterColComm;
 class HyPerConn;
 class ColProbe;
+class PVParams;
 
 class HyPerCol {
 

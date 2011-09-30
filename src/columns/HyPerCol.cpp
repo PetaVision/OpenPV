@@ -146,7 +146,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    path = getcwd(path, PV_PATH_MAX);
 
    int groupArraySize = 2*(layerArraySize + connectionArraySize);
-   params = new PVParams(param_file, groupArraySize);  // PVParams::addGroup can resize if initialGroups is exceeded
+   params = new PVParams(param_file, groupArraySize, this);  // PVParams::addGroup can resize if initialGroups is exceeded
    free(param_file);
    param_file = NULL;
 

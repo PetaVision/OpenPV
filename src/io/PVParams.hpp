@@ -9,6 +9,7 @@
 #define PVPARAMS_HPP_
 
 #include "../include/pv_common.h"
+#include "../columns/HyPerCol.hpp"
 
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group
@@ -129,8 +130,8 @@ private:
 
 class PVParams {
 public:
-   PVParams(int initialSize);
-   PVParams(const char * filename, int initialSize);
+   PVParams(int initialSize, HyPerCol * hc); // TODO Should be const HyPerCol, but we need hc->icComm() and icComm() isn't constant
+   PVParams(const char * filename, int initialSize, HyPerCol * hc);
    virtual ~PVParams();
 
    int   present(const char * groupName, const char * paramName);
@@ -159,8 +160,10 @@ private:
    ParameterStringStack * stringStack;
    FilenameStack * fnstack; // Deprecate?
    bool debugParsing;
+   HyPerCol * parentHyPerCol; // TODO Should be const; see comment on prototype for constructor
+   int rank;
 
-   int initialize(int initialSize);
+   int initialize(int initialSize, HyPerCol * hc);
    void addGroup(char * keyword, char * name);
 };
 

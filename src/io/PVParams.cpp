@@ -323,11 +323,11 @@ FilenameDef * FilenameStack::getFilenameDefByKey(const char * searchKey) {
 }
 
 int FilenameStack::push(FilenameDef * newfilenamedef) {
-   if( count >= maxCount ) return EXIT_FAILURE;
+   if( count >= maxCount ) return PV_FAILURE;
    else {
       filenamedefs[count] = newfilenamedef;
       count++;
-      return EXIT_SUCCESS;
+      return PV_SUCCESS;
    }
 }
 
@@ -342,34 +342,27 @@ FilenameDef * FilenameStack::pop() {
  * @filename
  * @initialSize
  */
-PVParams::PVParams(const char * filename, int initialSize)
+PVParams::PVParams(const char * filename, int initialSize, HyPerCol * hc)
 {
    const char * altfile = INPUT_PATH "inparams.txt";
 
-   initialize(initialSize);  // initialize defines all the member variables set in the commented-out section
-//   this->numGroups = 0;
-//   groupArraySize = initialSize;
-//
-//   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
-//   stack = new ParameterStack(MAX_PARAMS);
-//   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
-//   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+   initialize(initialSize, hc);
 
    if (filename == NULL) {
-      printf("PVParams::PVParams: trying to open alternate input file %s\n", altfile);
+      printf("PVParams::PVParams: rank %d process trying to open alternate input file %s\n", rank, altfile);
       fflush(stdout);
       filename = altfile;
    }
 
    yyin = fopen(filename, "r");
    if (yyin == NULL) {
-      fprintf(stderr, "PVParams::PVParams: FAILED to open file %s\n", filename);
-      exit(1);
+      fprintf(stderr, "PVParams::PVParams: rank %d process FAILED to open file %s\n", rank, filename);
+      exit(EXIT_FAILURE);
    }
    int status = pv_parseParameters(this);
    fclose(yyin);
    if( status != 0) {
-      printf("pv_parseParameters failed: return value %d\n", status);
+      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, status);
       exit(status);
    }
 }
@@ -377,16 +370,9 @@ PVParams::PVParams(const char * filename, int initialSize)
 /**
  * @initialSize
  */
-PVParams::PVParams(int initialSize)
+PVParams::PVParams(int initialSize, HyPerCol * hc)
 {
-   initialize(initialSize);  // initialize defines all the member variables set in the commented-out section
-//   this->numGroups = 0;
-//   groupArraySize = initialSize;
-//
-//   groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
-//   stack = new ParameterStack(MAX_PARAMS);
-//   stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
-//   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+   initialize(initialSize, hc);
 }
 
 PVParams::~PVParams()
@@ -400,9 +386,16 @@ PVParams::~PVParams()
 /*
  * @initialSize
  */
-int PVParams::initialize(int initialSize) {
+int PVParams::initialize(int initialSize, HyPerCol * hc) {
    this->numGroups = 0;
    groupArraySize = initialSize;
+   parentHyPerCol = hc;
+#ifdef PV_USE_MPI
+   InterColComm * icComm = hc->icCommunicator();
+   rank = icComm->commRank();
+#else
+   rank = 0;
+#endif // PV_USE_MPI
 
    groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
@@ -425,9 +418,11 @@ int PVParams::present(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
-              groupName);
-      exit(1);
+      if( rank == 0 ) {
+         fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
+                 groupName);
+      }
+      exit(EXIT_FAILURE);
    }
 
    return g->present(paramName);
@@ -441,9 +436,11 @@ float PVParams::value(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
-              groupName);
-      exit(1);
+      if( rank == 0 ) {
+         fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+                 groupName);
+      }
+      exit(EXIT_FAILURE);
    }
 
    return g->value(paramName);
@@ -460,7 +457,7 @@ float PVParams::value(const char * groupName, const char * paramName, float init
       return value(groupName, paramName);
    }
    else {
-      if( warnIfAbsent ) {
+      if( warnIfAbsent && rank == 0 ) {
           printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
       }
       return initialValue;
@@ -474,9 +471,11 @@ float PVParams::value(const char * groupName, const char * paramName, float init
 int PVParams::stringPresent(const char * groupName, const char * paramStringName) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
-              groupName);
-      exit(1);
+      if( rank == 0 ) {
+         fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+                 groupName);
+      }
+      exit(EXIT_FAILURE);
    }
 
    return g->stringPresent(paramStringName);
@@ -492,7 +491,7 @@ const char * PVParams::stringValue(const char * groupName, const char * paramStr
       return g->stringValue(paramStringName);
    }
    else {
-      if( warnIfAbsent) {
+      if( warnIfAbsent && rank == 0 ) {
          printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
@@ -566,12 +565,14 @@ void PVParams::action_pvparams_directive(char * id, double val)
 {
    if( !strcmp(id,"debugParsing") ) {
       debugParsing = (val != 0);
-      printf("debugParsing turned ");
-      if(debugParsing) {
-         printf("on.\n");
-      }
-      else {
-         printf("off.\n");
+      if( rank == 0 ) {
+         printf("debugParsing turned ");
+         if(debugParsing) {
+            printf("on.\n");
+         }
+         else {
+            printf("off.\n");
+         }
       }
    }
 }
@@ -586,8 +587,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
    int len = strlen(++name);
    name[len-1] = '\0';
 
-   if(debugParsing) {
-      fflush(stdout);
+   if(debugParsing && rank==0 ) {
       printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
       fflush(stdout);
    }
@@ -602,7 +602,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
  */
 void PVParams::action_parameter_def(char * id, double val)
 {
-   if(debugParsing) {
+   if(debugParsing && rank == 0) {
       fflush(stdout);
       printf("action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
@@ -612,7 +612,7 @@ void PVParams::action_parameter_def(char * id, double val)
 }
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
-   if(debugParsing) {
+   if( debugParsing && rank == 0 ) {
       fflush(stdout);
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
@@ -624,7 +624,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
 // Deprecate action_filename_def?
 void PVParams::action_filename_def(char * id, char * path)
 {
-   if(debugParsing) {
+   if( debugParsing && rank == 0 ) {
       fflush(stdout);
       printf("action_filename_def: %s = %s\n", id, path);
       fflush(stdout);
@@ -645,7 +645,9 @@ void PVParams::action_filename_def(char * id, char * path)
 
    FilenameDef * fndef = new FilenameDef(label, filenameptr);
    int status = fnstack->push(fndef);
-   if( status != EXIT_SUCCESS) fprintf(stderr, "No room for %s:%s\n", label, path);
+   if( status != PV_SUCCESS) {
+      fprintf(stderr, "Rank %d process: No room for %s:%s\n", rank, label, path);
+   }
 }  // close PVParams::action_filename_def block
 
 }  // close namespace PV block
