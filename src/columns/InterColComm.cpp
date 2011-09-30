@@ -103,7 +103,7 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
 {
 #ifdef DEBUG_OUTPUT
    printf("[%d]: InterColComm::deliver: pubId=%d\n", commRank(), pubId);  fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
 
@@ -179,7 +179,7 @@ int Publisher::publish(HyPerLayer* pub,
       size_t recvOff = Communicator::recvOffset(n, &cube->loc);
       size_t sendOff = Communicator::sendOffset(n, &cube->loc);
       fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
-#endif
+#endif //DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
                 &requests[nreq++]);
       int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
@@ -205,7 +205,7 @@ int Publisher::wait(int numRemote)
 #ifdef PV_USE_MPI
 # ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote); fflush(stdout);
-# endif
+# endif // DEBUG_OUTPUT
 
    MPI_Waitall(numRemote, requests, MPI_STATUSES_IGNORE);
 #endif // PV_USE_MPI
@@ -225,7 +225,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
    //
 #ifdef PV_USE_OPENCL
    // TODO - send border data to device
-#endif
+#endif // PV_USE_OPENCL
 
    for (int ic = 0; ic < numSubscribers; ic++) {
       HyPerConn* conn = connection[ic];
@@ -239,12 +239,12 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 #ifdef DEBUG_OUTPUT
       printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
       fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
 #ifdef PV_USE_OPENCL
       conn->deliverOpenCL(this);
 #else
       conn->deliver(this, &cube, LOCAL);
-#endif
+#endif // PV_USE_OPENCL
    }
 
    return 0;

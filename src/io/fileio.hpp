@@ -13,7 +13,7 @@
 #  include <mpi.h>
 #else
 #  include "../include/mpi_stubs.h"
-#endif
+#endif // PV_USE_MPI
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
 

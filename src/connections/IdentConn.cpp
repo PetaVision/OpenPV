@@ -75,7 +75,7 @@ PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
     }
     return patches;
 }  // end of IdentConn::initializeWeights(PVPatch **, int, const char *)
-#endif
+#endif // OBSOLETE
 
 int IdentConn::initNormalize() {
    normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights

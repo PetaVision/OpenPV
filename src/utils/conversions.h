@@ -19,7 +19,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif // __cplusplus
 
    int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost, float * distPre,
       float * distPost);
@@ -396,7 +396,7 @@ static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
    return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
 #else
    return kl;
-#endif
+#endif // PV_USE_MPI
 }
 
 
@@ -411,7 +411,7 @@ static inline int localIndexFromGlobal(int kGlobal, PVLayerLoc loc)
    return kIndex(kxLocal, kyLocal, kf, loc.nx, loc.ny, loc.nf);
 #else
    return kGlobal;
-#endif
+#endif // PV_USE_MPI
 }
 
 /**
@@ -478,6 +478,6 @@ static inline float gaussianWeight(float x0, float x, float sigma, float max)
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 #endif /* CONVERSIONS_H_ */

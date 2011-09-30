@@ -371,14 +371,14 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
            comm->commRank(), *numParams);
-#endif
+#endif // DEBUG_OUTPUT
 
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
            comm->commRank(), *numParams);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
    *filetype = params[INDEX_FILE_TYPE];
@@ -511,7 +511,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: read: received from 0, nx==%d ny==%d numItems==%d\n",
               comm->commRank(), loc->nx, loc->ny, numItems);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
    }
    else {
@@ -546,7 +546,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
       loc->ky0      = params[INDEX_KY0];
       loc->nPad     = params[INDEX_NB];
       loc->nBands   = params[INDEX_NF];
-#endif
+#endif // OBSOLETE
 
       *time = timeFromParams(&params[INDEX_TIME]);
 
@@ -565,7 +565,7 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
                     comm->commRank(), dest, loc->nx, loc->ny, numItems);
-#endif
+#endif // DEBUG_OUTPUT
             long offset = headerSize + dest * localSize;
             fseek(fp, offset, SEEK_SET);
             numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
@@ -693,7 +693,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: write_pvdata: sent to 0, nx==%d ny==%d numItems==%d\n",
               comm->commRank(), nx, ny, numItems);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
    }
@@ -712,7 +712,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: write: receiving from %d nx==%d ny==%d numItems==%d\n",
                     comm->commRank(), src, nx, ny, numItems);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             //const int numParams = NUM_PAR_BYTE_PARAMS;
@@ -786,7 +786,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       fprintf(stderr, "[%2d]: writeActivity: sent to %d, numNeurons==%d\n",
               comm->commRank(), dest, numNeurons);
       fflush(stderr);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
       // leaving not root-process section
@@ -834,7 +834,7 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
             fprintf(stderr, "[%2d]: writeActivity: receiving from %d numNeurons==%d\n",
                     comm->commRank(), p, numNeurons);
             fflush(stderr);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(VmemVals, numNeurons, MPI_FLOAT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
 // (CER) I think this is wrong as it doesn't have header size and if you want to read
 // more than once it is really wrong.  It shouldn't be needed because writes are ordered.
@@ -876,7 +876,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       fprintf(stderr, "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
               comm->commRank(), dest, localActive);
       fflush(stderr);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
       // leaving not root-process section
@@ -956,7 +956,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
             fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d numActive==%d\n",
                     comm->commRank(), p, numActive[p]);
             fflush(stderr);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(indices, numActive[p], MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
             status = (fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] );
             if (status != 0) {
@@ -1078,12 +1078,12 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: readWeights: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
               comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
-#endif
+#endif // DEBUG_OUTPUT
       MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: readWeights: recv from %d completed\n",
               comm->commRank(), src);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
    }
@@ -1104,7 +1104,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: readWeights: sending to %d nxProcs==%d nyProcs==%d localSize==%ld\n",
                     comm->commRank(), dest, nxProcs, nyProcs, localSize);
-#endif
+#endif // DEBUG_OUTPUT
             long offset = headerSize + dest * localSize;
             fseek(fp, offset, SEEK_SET);
             if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
@@ -1113,7 +1113,7 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: readWeights: sending to %d completed\n",
                     comm->commRank(), dest);
-#endif
+#endif // DEBUG_OUTPUT
          }
       }
 #endif // PV_USE_MPI
@@ -1209,7 +1209,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
               comm->commRank(), nxBlocks, nyBlocks, numPatches);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
    }
@@ -1261,7 +1261,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: writeWeights: receiving from %d nxProcs==%d nyProcs==%d localSize==%ld\n",
                     comm->commRank(), src, nxProcs, nyProcs, localSize);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             // const int headerSize = numParams * sizeof(int);

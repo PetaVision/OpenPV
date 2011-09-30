@@ -21,7 +21,7 @@
 
 #ifdef _MSC_VER
 #define inline _inline
-#endif
+#endif // _MSC_VER
 
 #include "LIF2.h"
 
@@ -83,12 +83,12 @@ static inline int update_f(PVLayer * l, int start)
          k_global = globalIndexFromLocal(k, l->loc, nf);
 #else
          k_global = k;
-#endif
+#endif // PV_USE_MPI
          l->activeIndices[numActive++] = k_global;
       }
    }
    l->numActive = numActive;
-#endif
+#endif // OBSOLETE
 
    return 0;
 }
@@ -108,7 +108,7 @@ int add_noise(PVLayer * l, float dt)
       if (pv_random_prob() < dt * params->noiseFreqI)  l->phi[PHI_INH][i]  += params->noiseAmpI  * pv_random_prob();
       if (pv_random_prob() < dt * params->noiseFreqIB) l->phi[PHI_INHB][i] += params->noiseAmpIB * pv_random_prob();
    }
-#endif
+#endif // OBSOLETE
    return 0;
 }
 
@@ -133,7 +133,7 @@ int LIF2_update_explicit_euler(PVLayer * l, float dt)
             l->G_IB[i] * (l->V[i] - params->VinhB) );
    }
    return LIF2_update_finish(l, dt);
-#endif
+#endif // OBSOLETE
    return 0;
 }
 
@@ -166,7 +166,7 @@ int LIF2_update_implicit_euler(PVLayer * l, float dt)
       ( 1 + (dt / params->tau ) * ( 1 + l->G_E[i] + l->G_I[i] + l->G_IB[i] ) );
    }
    return LIF2_update_finish(l, dt);
-#endif
+#endif // OBSOLETE
    return 0;
 }
 
@@ -216,7 +216,7 @@ int LIF2_update_exact_linear(PVLayer * l, float dt)
    }
 
    return LIF2_update_finish(l, dt);
-#endif
+#endif // OBSOLETE
    return 0;
 }
 
@@ -298,7 +298,7 @@ void print_stats(PVLayer * l)
             VthMax, VthAve / l->numNeurons, VthMin);
       pv_log(stdout, msg);
    }
-#endif
+#endif // OBSOLETE
 
 } //  layer_stats
 
@@ -323,7 +323,7 @@ int LIF2_update_finish(PVLayer * l, float dt)
    }
 
    return update_f(l, start); // resets V if f == 1
-#endif
+#endif // OBSOLETE
    return 0;
 }
 
@@ -364,6 +364,6 @@ int LIF2_init(PVLayer * l)
       l->activity->data[kex] = 0.0;
 
    }
-#endif
+#endif // OBSOLETE
    return 0;
 }

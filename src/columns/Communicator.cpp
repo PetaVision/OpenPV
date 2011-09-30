@@ -52,7 +52,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
-#endif
+#endif // DEBUG_OUTPUT
 
    // some ranks are excluded if they don't fit in the processor quilt
    if (worldRank < commSize) {
@@ -111,7 +111,7 @@ int Communicator::commInit(int* argc, char*** argv)
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
-#endif
+#endif // DEBUG_OUTPUT
 
    return 0;
 }
@@ -148,12 +148,12 @@ int Communicator::neighborInit()
 #ifdef DEBUG_OUTPUT
          fprintf(stderr, "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
                 icRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
-#endif
+#endif // DEBUG_OUTPUT
       } else {
          borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
          fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
-#endif
+#endif // DEBUG_OUTPUT
       }
    }
    assert(this->numNeighbors == num_neighbors);
@@ -588,7 +588,7 @@ int Communicator::exchange(pvdata_t * data,
       pvdata_t * sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
                 &requests[nreq++]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
@@ -598,7 +598,7 @@ int Communicator::exchange(pvdata_t * data,
    int count = numberOfNeighbors() - 1;
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
 #endif // PV_USE_MPI

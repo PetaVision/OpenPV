@@ -124,7 +124,7 @@ static int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal
     fprintf(paramfile, "%f %% %s\n", which, #which)
 #define LOGSPARM(paramfile, which) \
     fprintf(paramfile, #which "=%s\n", which)
-#endif
+#endif // OBSOLETE
 
 
 #define TIFF_FILE_TYPE    1
@@ -222,7 +222,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
       else {
 #ifdef DEBUG_OUTPUT
          printf("[ ]: readFile: Successfully read %d items from %s\n", nItems, filename);  fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
       }
    }
 
@@ -330,7 +330,7 @@ int gatherWriteFile(const char* filename, PVLayer* l, float* ibuf, MPI_Comm comm
 
 #ifdef DEBUG_OUTPUT
    printf("[%d]: gatherWriteFile: nTotal=%d nLocal=%d\n", commRank, nTotal, nLocal);  fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
 
    kbuf = (float*) malloc(2 * commSize * sizeof(float));
    tbuf = (float*) malloc(nTotal * sizeof(float));
@@ -409,7 +409,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    char txt[128];
 #ifdef _MSC_VER
    FILE * f;
-#endif
+#endif // _MSC_VER
 
    for (n = 0; n < nItems; n++) {
       tot += buf[n];
@@ -427,7 +427,7 @@ int printStats(pvdata_t * buf, int nItems, char * msg)
    fclose(f);
 #else
    printf("%s", txt);  fflush(stdout);
-#endif
+#endif // _MSC_VER
 
    return 0;
 }

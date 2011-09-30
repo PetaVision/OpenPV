@@ -14,7 +14,7 @@
 #  include <mpi.h>
 #else
 #  include "../include/mpi_stubs.h"
-#endif
+#endif // PV_USE_MPI
 
 #define MIN_BIN_PARAMS  6
 #define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
@@ -75,7 +75,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif // __cplusplus
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 #ifdef OBSOLETE // Marked obsolete Sept 27, 2011.  These functions have been superseded and no other functions call them.
@@ -108,6 +108,6 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 #endif /* IO_H_ */

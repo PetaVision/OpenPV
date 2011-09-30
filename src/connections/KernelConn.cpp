@@ -450,7 +450,7 @@ int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPo
          sigma_kurve, sigma_chord, delta_theta_max, cocirc_self, delta_radius_curvature,
          numFlanks, shift, aspect, rotate, sigma, r2Max, strength);
 }
-#endif
+#endif // OBSOLETE
 
 int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {

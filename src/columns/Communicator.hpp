@@ -13,7 +13,7 @@
 #  include <mpi.h>
 #else
 #  include "../include/mpi_stubs.h"
-#endif
+#endif // PV_USE_MPI
 
 // number in communicating neighborhood
 #define NUM_NEIGHBORHOOD 9

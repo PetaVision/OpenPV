@@ -87,7 +87,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    const int nyProcs = comm->numCommRows();
    fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
-#endif
+#endif // DEBUG_OUTPUT
 
    if (comm->commRank() == 0) {
       int numParams, params[NUM_PAR_BYTE_PARAMS];
@@ -126,7 +126,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    // TODO - IMPORTANT - WHICH OF THESE IS CORRECT
    //MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
    MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
-#endif
+#endif // PV_USE_MPI
 
    copyFromLocBuffer(locBuf, loc);
 
@@ -157,7 +157,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
-#endif
+#endif // DEBUG_OUTPUT
 
    if (comm->commRank() == 0) {
       GDALAllRegister();
@@ -189,7 +189,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 #ifdef PV_USE_MPI
    // broadcast location information
    MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
-#endif
+#endif // PV_USE_MPI
 
    copyFromLocBuffer(locBuf, loc);
 
@@ -270,7 +270,7 @@ int gatherImageFilePVP(const char * filename,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
               comm->commRank(), nx, ny, nx*ny);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
    }
    else {
@@ -319,7 +319,7 @@ int gatherImageFilePVP(const char * filename,
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d ny==%d nf==%d, numItems==%d\n",
                     comm->commRank(), src, nx, ny, numBands, numItems);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(icBuf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             long offset = headerSize + src * recordSize;
@@ -376,7 +376,7 @@ int gatherImageFileGDAL(const char * filename,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, numBands, nxnynf);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
    }
    else {
@@ -399,7 +399,7 @@ int gatherImageFileGDAL(const char * filename,
       else {
 #ifdef DEBUG_OUTPUT
           fprintf(stderr, "[%2d]: gather: opened file %s\n", comm->commRank(), filename);
-#endif
+#endif // DEBUG_OUTPUT
       }
 
       // GDALRasterBand * band[maxBands];
@@ -434,7 +434,7 @@ int gatherImageFileGDAL(const char * filename,
                     " ySize==%d size==%d total==%d\n",
                     comm->commRank(), src, nx, ny, nxny*numBands,
                     numTotal*comm->commSize());
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(icBuf, nxnynf, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
             dataset->RasterIO(GF_Write, kx, ky, nx, ny, icBuf, nx, ny, GDT_Byte,
                               numBands, NULL, numBands, numBands*nx, 1);
@@ -495,7 +495,7 @@ int scatterImageFilePVP(const char * filename,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d nf==%d numItems==%d\n",
               comm->commRank(), nx, ny, numBands, numItems);
-#endif
+#endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
    }
    else {
@@ -551,7 +551,7 @@ int scatterImageFilePVP(const char * filename,
                     " ySize==%d size==%d total==%d\n",
                     comm->commRank(), dest, nx, ny, nx*ny,
                     nx*ny*comm->commSize());
-#endif
+#endif // DEBUG_OUTPUT
             long offset = headerSize + dest * recordSize;
             fseek(fp, offset, SEEK_SET);
             numRead = fread(buf, sizeof(unsigned char), numItems, fp);
@@ -593,7 +593,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
 #ifdef PV_USE_MPI
    const MPI_Comm mpi_comm = comm->communicator();
-#endif
+#endif // PV_USE_MPI
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -734,7 +734,7 @@ int scatterImageBlocks(const char* filename,
          }
       }
    }
-#endif
+#endif // UNIMPLEMENTED
 
    return status;
 }
@@ -785,7 +785,7 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sending to %d nx==%d ny==%d\n",
               comm->commRank(), dest, nx, ny);
-#endif
+#endif // DEBUG_OUTPUT
       // everyone sends to root process
       //
       MPI_Send(srcBuf, nxny, MPI_BYTE, dest, tag, mpi_comm);
@@ -804,7 +804,7 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
             fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d"
                     " ny==%d kxg0==%d kyg0==%d size==%d\n",
                     comm->commRank(), src, nx, ny, kxg0, kyg0, nxny);
-#endif
+#endif // DEBUG_OUTPUT
             MPI_Recv(tmp, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
             // copy tmp buffer from remote src into proper location in global dst
@@ -821,7 +821,7 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
       free(tmp);
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: finished\n", comm->commRank());
-#endif
+#endif // DEBUG_OUTPUT
    }
 #endif // PV_USE_MPI
 
