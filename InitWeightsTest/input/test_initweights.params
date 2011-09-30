@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false; // Set this to true to see details of how PVParams is parsing the params file
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -238,7 +240,9 @@ HyPerConn "Retina to L0" = {
    nyp = 9; 
    nfp = 8;
    
-   stdpFlag   = 0;
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -283,7 +287,9 @@ HyPerConn "Retina to L1" = {
    nyp = 9; 
    nfp = 8;
    
-   stdpFlag   = 0;
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -337,7 +343,9 @@ HyPerConn "Retina to L2" = {
    nyp = 9; 
    nfp = 4;
    
-   stdpFlag   = 0;
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -382,7 +390,9 @@ HyPerConn "Retina to L2" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stdpFlag   = 0;
+//    stochasticReleaseFlag = false;
+//    shrinkPatches = false;
+// 
 //    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
@@ -433,7 +443,9 @@ HyPerConn "Retina to L2" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stdpFlag   = 0;
+//    stochasticReleaseFlag = false;
+//    shrinkPatches = false;
+//    
 //    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
@@ -485,7 +497,9 @@ KernelConn "Retina to L5" = {
    nyp = 9; 
    nfp = 8;
    
-   stdpFlag   = 0;
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -529,8 +543,10 @@ KernelConn "Retina to L6" = {
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
+  
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
    
-   stdpFlag   = 0;
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -583,8 +599,10 @@ KernelConn "Retina to L7" = {
    nxp = 9; 
    nyp = 9; 
    nfp = 4;
+
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
    
-   stdpFlag   = 0;
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -628,8 +646,10 @@ KernelConn "Retina to L8" = {
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
+
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
    
-   stdpFlag   = 0;
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -679,8 +699,10 @@ KernelConn "Retina to L9" = {
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
+
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
    
-   stdpFlag   = 0;
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
