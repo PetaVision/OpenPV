@@ -30,8 +30,8 @@ void LayerFunction::setName(const char * name) {
 }
 
 pvdata_t LayerFunction::evaluate(float time, HyPerLayer * l) {
-   pvdata_t value = evaluateLocal(time, l);
 #ifdef PV_USE_MPI
+   pvdata_t value = evaluateLocal(time, l);
    value = functionReduce(value, l);
    return value;
 #else
