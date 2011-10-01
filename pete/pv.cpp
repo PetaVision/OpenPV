@@ -76,7 +76,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
          ChannelProbe * channelProbe = new ChannelProbe(filename, hc, channelCode);
          assert(targetlayer);
          if( channelProbe ) targetlayer->insertProbe(channelProbe);
-         checknewobject((void *) channelProbe, keyword, name);
+         checknewobject((void *) channelProbe, keyword, name, hc);
          return (void *) channelProbe;
       }
    }
