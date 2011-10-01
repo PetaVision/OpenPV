@@ -18,21 +18,22 @@ int main(int argc, char * argv[]) {
 int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 
     int numOfConns=hc->numberOfConnections();
-
+    int rank=hc->icCommunicator()->commRank();
     for(int i=0; i<numOfConns;i++){
     	HyPerConn *tempConnPtr = hc->getConnection(i);
-    	printf("connection %s\n", tempConnPtr->getName());
     	const char * weightInitTypeStr = hc->parameters()->stringValue(tempConnPtr->getName(), "weightInitType");
-    	printf("weightInitType %s\n", weightInitTypeStr);
-
     	ParameterGroup *grp =hc->parameters()->group(tempConnPtr->getName());
 
-    	printf("keyword %s\n", grp->getGroupKeyword());
+    	if( rank==0 ) {
+    		printf("connection %s\n", tempConnPtr->getName());
+    		printf("weightInitType %s\n", weightInitTypeStr);
+    		printf("keyword %s\n", grp->getGroupKeyword());
+    		char newName[100];
+    		strncpy(newName, tempConnPtr->getName(), 94);
+    		strncat(newName, "_copy", 5);
+    		printf("new conn name %s\n", newName);
+    	}
 
-		char newName[100];
-		strncpy(newName, tempConnPtr->getName(), 94);
-		strncat(newName, "_copy", 5);
-    	printf("new conn name %s\n", newName);
     	HyPerLayer * preLayer = tempConnPtr->getPre();
 		HyPerLayer * postLayer = tempConnPtr->getPost();
 		// PVParams * params = hc->parameters();
@@ -76,7 +77,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 	         }
 			assert(targetlayer);
 			if( addedProbe ) targetlayer->insertProbe(addedProbe);
-			checknewobject((void *) addedProbe, kw, name);
+			checknewobject((void *) addedProbe, kw, name, hc);
 		}
 	}
 

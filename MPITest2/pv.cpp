@@ -67,7 +67,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    const char * filename;
    if( !strcmp(keyword, "MPITestLayer") ) {
 	   HyPerLayer * addedLayer = (HyPerLayer *) new MPITestLayer(name, hc);
-      int status = checknewobject((void *) addedLayer, keyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+      int status = checknewobject((void *) addedLayer, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
       assert(status == PV_SUCCESS);
       addedGroup = (void *) addedLayer;
    }

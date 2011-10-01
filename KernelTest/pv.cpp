@@ -55,7 +55,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 	         }
 			assert(targetlayer);
 			if( addedProbe ) targetlayer->insertProbe(addedProbe);
-			checknewobject((void *) addedProbe, kw, name);
+			checknewobject((void *) addedProbe, kw, name, hc);
 		}
 	}
 	return PV_SUCCESS;
