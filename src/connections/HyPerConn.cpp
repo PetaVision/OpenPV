@@ -361,6 +361,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
 {
    int status = PV_SUCCESS;
+   int rank = hc->icCommunicator()->commRank();
 
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
@@ -412,9 +413,11 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          //inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
          //initializeDefaultWeights(patches, numPatches);
       }
-      fprintf(stderr, "Connection \"%s: This method of initializing weights has been deprecated.\n"
-                      "  Please pass an InitWeights object to the constructor.\n"
-                      "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
+      if( rank == 0 ) {
+         fprintf(stderr, "Connection \"%s: This method of initializing weights has been deprecated.\n"
+                         "  Please pass an InitWeights object to the constructor.\n"
+                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
+      }
 
    }
    else {
