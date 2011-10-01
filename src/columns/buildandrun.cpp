@@ -221,7 +221,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       else {
       }
 
-      if( !didAddObject ) {
+      if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
          fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
       }
    }
@@ -256,102 +256,102 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNSquaredLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ODDLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "CliqueLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "GenerativeLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new GenerativeLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LogLatWTAGenLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PoolingANNLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new PoolingANNLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PtwiseProductLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new PtwiseProductLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "TrainingLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addTrainingLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "HMaxSimple") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Image") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addImage(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "CreateMovies") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CreateMovies(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "ImageCreator") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ImageCreator(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Movie") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addMovie(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Patterns") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addPatterns(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LIF") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LIF(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LIFGap") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LIFGap(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "GapLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addGapLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Retina(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
@@ -585,7 +585,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
 
          addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
       keywordMatched = true;
@@ -597,7 +597,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
@@ -607,7 +607,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
 
          addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
       keywordMatched = true;
@@ -616,7 +616,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( auxConn && preLayer && postLayer ) {
          addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn)  );
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
 #ifdef OBSOLETE
    /*
@@ -629,7 +629,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = (HyPerConn * ) new CocircConn(name, hc, preLayer, postLayer, channelType, fileName);
       }
-      checknewobject((void *) addedConn, classkeyword, name);
+      checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
       keywordMatched = true;
@@ -637,7 +637,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          addedConn = (HyPerConn * ) new GaborConn(name, hc, preLayer, postLayer, channelType);
       }
-      checknewobject((void *) addedConn, classkeyword, name);
+      checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    }
 #endif
@@ -648,7 +648,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
@@ -657,7 +657,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new ODDConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
       keywordMatched = true;
@@ -666,7 +666,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new CliqueConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       // Filename is ignored
@@ -676,7 +676,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          //InitIdentWeights *identWeightInitializer = new InitIdentWeights();
          addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
       keywordMatched = true;
@@ -685,7 +685,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
       keywordMatched = true;
@@ -694,7 +694,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
       keywordMatched = true;
@@ -703,7 +703,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( auxConn && preLayer && postLayer ) {
          addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn) );
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
       keywordMatched = true;
@@ -711,7 +711,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( auxConn ) {
          addedConn = (HyPerConn *) new FeedbackConn(name, hc, channelType, dynamic_cast<KernelConn *>(auxConn) );
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
 #ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
@@ -740,7 +740,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
        fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
        addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag, weightInitializer);
      }
-     status = checknewobject((void *) addedConn, classkeyword, name);
+     status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "GapConn") ) {
       keywordMatched = true;
@@ -749,7 +749,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new GapConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name);
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
 #ifdef OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
@@ -959,7 +959,7 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
       else {
          assert(false);
       }
-      status = checknewobject((void *) addedProbe, classkeyword, name);
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
    if( !keywordMatched ) { // The reason this is a separate if statement and not an else statement attached to if( !strcmp... )
                      // is that if subclasses are added, addConnectionProbeToColumn() should be extended along the lines
@@ -1108,17 +1108,18 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    }
    assert(targetlayer);
    if( addedProbe ) targetlayer->insertProbe(addedProbe);
-   checknewobject((void *) addedProbe, classkeyword, name);
+   checknewobject((void *) addedProbe, classkeyword, name, hc);
    return addedProbe;
 }
 
 #define LAYERPROBEMSGLENGTH 32
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, const char ** messagePtr, const char ** filenamePtr) {
    PVParams * params = hc->parameters();
+   int rank = hc->icCommunicator()->commRank();
    const char * message;
    const char * filename;
    *targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
-   if( ! *targetLayerPtr ) {
+   if( *targetLayerPtr==NULL && rank==0 ) {
       fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
       return PV_FAILURE;
    }
@@ -1129,7 +1130,7 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
       messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
       char * newmessage = (char *) malloc(LAYERPROBEMSGLENGTH+1);
       if( ! newmessage ) {
-         fprintf(stderr, "Group \"%s\": Unable to allocate memory for message\n", name);
+         fprintf(stderr, "Group \"%s\": Rank %d process unable to allocate memory for message\n", name, rank);
          return PV_FAILURE;
       }
       for( size_t c=0; c<messagelen; c++ ) {
@@ -1142,7 +1143,9 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
       newmessage[LAYERPROBEMSGLENGTH] = '\0';
       message = newmessage;
       newmessage = NULL;
-      printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
+      if( rank == 0 ) {
+         printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
+      }
    }
    *messagePtr = message;
    filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
@@ -1173,13 +1176,21 @@ int decodeChannel(int channel, ChannelType * channelType) {
    return status;
 }
 
-int checknewobject(void * object, const char * kw, const char * name) {
+int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
+   int rank;
+   if( hc != NULL ) {
+      rank = hc->icCommunicator()->commRank();
+   }
+   else {
+      fprintf(stderr, "Warning: checknewobject() now takes a 4th argument of type <HyPerCol *>.\n");
+      rank = 0;
+   }
    if( object == NULL ) {
-      fprintf(stderr, "Group \"%s\": Unable to add object of class %s\n", name, kw);
+      fprintf(stderr, "Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
       return PV_FAILURE;
    }
    else {
-      printf("Added %s \"%s\"\n", kw, name);
+      if( rank==0 ) printf("Added %s \"%s\"\n", kw, name);
       return PV_SUCCESS;
    }
 }

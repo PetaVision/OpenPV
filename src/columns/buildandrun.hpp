@@ -124,6 +124,6 @@ HyPerConn * getConnFromName(const char * layerName, HyPerCol * hc);
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, const char ** message, const char ** filename);
 int decodeChannel(int channel, ChannelType * channelType);
-int checknewobject(void * object, const char * kw, const char * name);
+int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc=NULL); /* Defaulting to NULL is temporary */
 
 #endif /* BUILDANDRUN_HPP_ */
