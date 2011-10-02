@@ -15,9 +15,9 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInitializer) {
+        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL, (InitWeights*)weightInitializer);
+   initialize(name, hc, pre, post, channel, NULL);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
@@ -25,9 +25,10 @@ int IdentConn::initialize_base() {
    return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
 
-int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit ) {
-   if( dynamic_cast<InitIdentWeights*>(weightInit) == NULL ) {
-      fprintf(stderr, "IdentConn \"%s\": Weight initialization method must be an InitIdentWeights object.  Exiting.\n", name);
+int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename ) {
+   InitIdentWeights * weightInit = new InitIdentWeights;
+   if( weightInit == NULL ) {
+      fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, hc->icCommunicator()->commRank());
       exit(EXIT_FAILURE);
    }
    symmetrizeWeightsFlag = false; // The data members set here should not be used by IdentConn.
@@ -35,7 +36,9 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif PV_USE_MPI
-   return HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   delete weightInit;
+   return status;
 }
 
 int IdentConn::setParams(PVParams * inputParams) {
