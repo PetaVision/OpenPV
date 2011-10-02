@@ -18,7 +18,7 @@ function [fileOfFilenames_train, ...
   begin_time = time();
 
   if nargin < 1 || ~exist("fileOfFilenames_all") || isempty(fileOfFilenames_all)
-    fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/dog/terrier/train_fileOfFilenames1.txt";  
+    fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/dog/poodle/train_fileOfFilenames3.txt";  
     %% fileOfFilenames_all = "/Users/gkenyon/Pictures/imageNet/list/cat/train_fileOfFilenames3.txt";  
   endif
   if nargin < 2 || ~exist("num_train") || isempty(num_train)
@@ -41,10 +41,10 @@ function [fileOfFilenames_train, ...
     rand("state", rand_state);
   endif
   if nargin < 6 || ~exist("train_dir") || isempty(train_dir)
-    train_dir = "DoGMask";
+    train_dir = "DoGMask"; %%"masks"; %% 
   endif
   if nargin < 7 || ~exist("anti_dir") || isempty(anti_dir)
-    anti_dir = "DoGAntiMask";
+    anti_dir = "DoGAntiMask"; %% []; %% 
   endif
 
  
@@ -131,19 +131,21 @@ function [fileOfFilenames_train, ...
   endfor %%
   fclose(fid_test);
 
-  fileOfFilenames_anti = ...
-      [sample_path, ...
-       "anti_fileOfFilenames", ...
-       num2str(num_fileOfFilenames_train+1), "_", num2str(num_train),".txt"];
-  disp(["fileOfFilenames_anti = ", fileOfFilenames_anti]);
-  fid_anti = fopen(fileOfFilenames_anti, "w", "native");
-  for i_train = 1 : num_train
-    i_image = write_ndx(i_train);
-    write_pathname = all_pathnames{i_image};
-    anti_pathname = strSwap(write_pathname, train_dir, anti_dir);
-    fprintf(fid_anti, "%s\n", anti_pathname);
-  endfor %%
-  fclose(fid_anti);
+  if ~isempty(anti_dir)
+    fileOfFilenames_anti = ...
+	[sample_path, ...
+	 "anti_fileOfFilenames", ...
+	 num2str(num_fileOfFilenames_train+1), "_", num2str(num_train),".txt"];
+    disp(["fileOfFilenames_anti = ", fileOfFilenames_anti]);
+    fid_anti = fopen(fileOfFilenames_anti, "w", "native");
+    for i_train = 1 : num_train
+      i_image = write_ndx(i_train);
+      write_pathname = all_pathnames{i_image};
+      anti_pathname = strSwap(write_pathname, train_dir, anti_dir);
+      fprintf(fid_anti, "%s\n", anti_pathname);
+    endfor %%
+    fclose(fid_anti);
+  endif
 
   if sample_method == 1
     num_rand_state = length(glob([sample_path, "rand_state_sample", "[0-9+].mat"]));
