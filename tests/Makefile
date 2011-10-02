@@ -317,7 +317,7 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_post_weights ..."
 	@if ./test_post_weights -p input/params.test; then echo "test_post_weights passed."; else echo "test_post_weights failed."; fi
 	@echo "Running test_gauss2d ..."
-	@if ./test_gauss2d -p input/params.test; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
+	@if ./test_gauss2d; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
 	@echo "Running test_cocirc ..."
 	@if ./test_cocirc -p input/params.test; then echo "test_cocirc passed."; else echo "test_cocirc failed."; fi
 #	@echo "Running test_pos ..."
@@ -333,7 +333,7 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_sign ..."
 	@if ./test_sign; then echo "test_sign passed."; else echo "test_sign failed."; fi
 	@echo "Running test_mirror_BCs ..."
-	@if ./test_mirror_BCs -p $(INPARAMS); then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
+	@if ./test_mirror_BCs; then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
 	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity failed"; fi
 #	@echo "Running test_constant_input with 1 node ..."
