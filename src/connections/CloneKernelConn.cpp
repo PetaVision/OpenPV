@@ -35,7 +35,11 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
       KernelConn * originalConn) {
    this->originalConn = originalConn;
-   return HyPerConn::initialize(name, hc, pre, post, channel, NULL);
+   InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
+   assert(weightInit != NULL);
+   int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   delete weightInit;
+   return status;
 }
 
 int CloneKernelConn::setPatchSize(const char * filename) {
@@ -93,6 +97,19 @@ int CloneKernelConn::setWPatches(PVPatch ** patches, int arborId) {
 }
 int CloneKernelConn::setdWPatches(PVPatch ** patches, int arborId) {
    return HyPerConn::setWPatches(patches, arborId);
+}
+
+int CloneKernelConn::initShrinkPatches() {
+   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
+   return PV_SUCCESS;
+}
+
+int CloneKernelConn::setParams(PVParams * params) {
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
+   stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", 0.0f, true);
+   writeCompressedWeights = params->value(name, "writeCompressedWeights", 0.0f, true);
+   return PV_SUCCESS;
 }
 
 int CloneKernelConn::deleteWeights() {

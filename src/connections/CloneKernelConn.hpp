@@ -9,6 +9,7 @@
 #define CLONEKERNELCONN_HPP_
 
 #include "KernelConn.hpp"
+#include "InitCloneKernelWeights.hpp"
 
 namespace PV {
 
@@ -26,10 +27,15 @@ public:
       KernelConn * originalConn);
 
    virtual int setPatchSize(const char * filename);
-   // filename should always be null, but this prototype is needed because
-   // the inherited method is called by the base class's initialize.
+   // For CloneKernelConn, filename should always be null, but this prototype is
+   // needed because the method is called by the base class's initialize, which
+   // uses a filename.
+
+   virtual int initShrinkPatches();
 
    virtual int initNormalize();
+
+   virtual int setParams(PVParams * params);
 
 protected:
    PVPatch ** allocWeights(PVPatch ** patches, int nPatches,

@@ -535,7 +535,10 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
 InitWeights * getDefaultInitWeightsMethod(const char * keyword) {
    InitWeights * weightInitializer;
    if( !strcmp(keyword, "IdentConn") ) {
-      weightInitializer = new InitIdentWeights();
+      weightInitializer = NULL; // new InitIdentWeights(); will be called in IdentConn::initialize
+   }
+   else if( !strcmp(keyword, "CloneKernelConn") ) {
+      weightInitializer = NULL; // new InitCloneKernelWeights(); will be called in CloneKernelConn::initialize
    }
    else {
       weightInitializer = new InitWeights();
@@ -620,7 +623,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    }
 #ifdef OBSOLETE
    /*
-    * CocircConn was made obselete
+    * CocircConn was made obsolete
     */
     if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
       keywordMatched = true;
@@ -640,7 +643,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    }
-#endif
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -673,8 +676,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         //InitIdentWeights *identWeightInitializer = new InitIdentWeights();
-         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -769,6 +771,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       exit(EXIT_FAILURE);
    }
    delete weightInitializer;
+   weightInitializer = NULL;
    return addedConn;
 }
 
