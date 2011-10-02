@@ -380,23 +380,6 @@ HyPerConn "test_cocirc cocircconn 2 to 1" = {
 
 
 //
-// This section defines parameters for test_mirror_BCs
-//
-
-HyPerCol "test_mirror_BCs column" = {
-   nx = 8;
-   ny = 8;
-};
-
-HyPerLayer "test_mirror_BCs layer" = {
-   nxScale = 1;
-   nyScale = 1;
-   nf = 2;
-   marginWidth = 4;
-};
-
-
-//
 // This section defines parameters for test_border_activity
 //
 

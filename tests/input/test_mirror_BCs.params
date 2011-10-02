@@ -1,0 +1,26 @@
+// test_mirror_BCs.params
+// This file defines parameters for test_mirror_BCs
+//
+
+debugParsing = false;
+
+HyPerCol "test_mirror_BCs column" = {
+   nx = 8;
+   ny = 8;
+   outputPath = "output/";
+   numSteps = 1;
+   filenamesContainLayerNames = false;
+};
+
+HyPerLayer "test_mirror_BCs layer" = {
+   restart = false;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 2;
+   marginWidth = 4;
+   writeStep = -1;
+   spikingFlag = false;
+   writeNonspikingActivity = false;
+   mirrorBCflag = false; // will test by calling mirrorToInteriorBorder explicity
+   Vrest = -70;
+};
