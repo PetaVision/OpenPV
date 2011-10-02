@@ -166,7 +166,7 @@ public:
 
    virtual int shrinkPatches(int arborId);
    int shrinkPatch(PVAxonalArbor * arbor);
-   bool shrinkPatches_flag;
+   bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
    virtual int initNormalize();
    int sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
@@ -249,6 +249,7 @@ protected:
    bool normalize_max;
    bool normalize_zero_offset;
    float normalize_cutoff;
+   bool shrinkPatches_flag;
 
    //This object handles calculating weights.  All the initialize weights methods for all connection classes
    //are being moved into subclasses of this object.  The default root InitWeights class will create
@@ -269,18 +270,21 @@ protected:
    virtual int initialize_base();
    virtual int createArbors();
    int constructWeights(const char * filename);
+#ifdef OBSOLETE // Marked obsolete Oct 1, 2011.  Made redundant by adding default value to weightInit argument of other initialize method
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          HyPerLayer * post, ChannelType channel, const char * filename);
+#endif // OBSOLETE
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename,
-                  InitWeights *weightInit);
+                  InitWeights *weightInit=NULL);
    virtual int initPlasticityPatches();
 #ifdef OBSOLETE_STDP
    int initializeSTDP();
 #endif
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
+   virtual InitWeights * handleMissingInitWeights(PVParams * params);
 #ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
                 //use the param "weightInitType" to choose an initialization type
    // PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);

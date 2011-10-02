@@ -350,18 +350,19 @@ int HyPerConn::initializeSTDP()
    }
    return 0;
 }
-#endif
+#endif // OBSOLETE_STDP
 
+#ifdef OBSOLETE // marked Obsolete Oct 1, 2011.  We can use a default argument for weightInit instead of defining an extra form of the method
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename) {
    return initialize(name, hc, pre, post, channel, filename, NULL);
 }
+#endif // OBSOLETE
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
 {
    int status = PV_SUCCESS;
-   int rank = hc->icCommunicator()->commRank();
 
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
@@ -384,45 +385,14 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    assert(this->name != NULL);
 
    PVParams * inputParams = parent->parameters();
-   //if a weightinitializer hasn't been created already, use the default--> either 2D Gauss or read from file
+   //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
    if(weightInit==NULL) {
-      bool randomFlag = inputParams->value(name, "randomFlag", 0.0f, false) != 0;
-      bool smartWeights = inputParams->value(name, "smartWeights",0.0f, false) != 0;
-      bool cocircWeights = inputParams->value(name, "cocircWeights",0.0f, false) != 0;
-      bool uniform_weights = inputParams->value(name, "uniformWeights", 1.0f, false) != 0;
-      bool gaussian_weights = inputParams->value(name, "gaussianWeights", 0.0f, false) != 0;
-
-      if ((randomFlag)&&(uniform_weights)) { // if (randomFlag != 0 || randomSeed != 0) {
-         this->weightInitializer = new InitUniformRandomWeights();
-         //initializeRandomWeights(patches, numPatches);
-      }
-      else if ((randomFlag)&&(gaussian_weights)) { // if (randomFlag != 0 || randomSeed != 0) {
-         this->weightInitializer = new InitGaussianRandomWeights();
-         //initializeRandomWeights(patches, numPatches);
-      }
-      else if (smartWeights) {
-         this->weightInitializer = new InitSmartWeights();
-         //initializeSmartWeights(patches, numPatches);
-      }
-      else if (cocircWeights) {
-         this->weightInitializer = new InitCocircWeights();
-         //initializeCocircWeights(patches, numPatches);
-      }
-      else {
-         this->weightInitializer = new InitWeights();
-         //inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
-         //initializeDefaultWeights(patches, numPatches);
-      }
-      if( rank == 0 ) {
-         fprintf(stderr, "Connection \"%s: This method of initializing weights has been deprecated.\n"
-                         "  Please pass an InitWeights object to the constructor.\n"
-                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
-      }
-
+      this->weightInitializer = handleMissingInitWeights(inputParams);
    }
    else {
       this->weightInitializer = weightInit;
    }
+   assert(this->weightInitializer != NULL);
 
    status = setParams(hc->parameters() /*, &defaultConnParams*/);
 
@@ -606,6 +576,65 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, con
       } // arborId
    } // normalize_flag
    return arbors;
+}
+
+InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
+   int rank = parent->icCommunicator()->commRank();
+   bool randomFlag = params->value(name, "randomFlag", 0.0f, false) != 0;
+   bool smartWeights = params->value(name, "smartWeights",0.0f, false) != 0;
+   bool cocircWeights = params->value(name, "cocircWeights",0.0f, false) != 0;
+
+   if( rank == 0 ) {
+      bool using_legacy_flags = randomFlag || smartWeights || cocircWeights;
+      if( using_legacy_flags ) {
+         fprintf(stderr, "Connection \"%s\": This method of initializing weights has been deprecated.\n"
+                         "  Please pass an InitWeights object to the constructor.\n"
+                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
+      }
+      else {
+         fprintf(stderr, "Connection \"%s\": Please pass an InitWeights object to the constructor.\n"
+                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
+
+      }
+   }
+
+   if( randomFlag ) {
+      if( rank==0 && (smartWeights || cocircWeights) ) {
+         fprintf(stderr, "Connection \"%s\": Conflict in specifying initial weights.  randomFlag will be used\n", name);
+      }
+      bool uniform_weights = params->value(name, "uniformWeights", 1.0f, false) != 0;
+      bool gaussian_weights = params->value(name, "gaussianWeights", 0.0f, false) != 0;
+      if( uniform_weights ) {
+         if( gaussian_weights ) {
+            if( rank==0 ) {
+               fprintf(stderr, "Connection \"%s\": Conflict in specifying distribution for random weights.  uniformWeights will be used\n", name);
+            }
+         }
+         return new InitUniformRandomWeights();
+      }
+      else if( gaussian_weights ) {
+         return new InitGaussianRandomWeights();
+      }
+      else {
+         if( rank==0 ) {
+            fprintf(stderr, "Connection \"%s\": No distribution for random weights specified.  gaussianWeights will be used.\n", name);
+         }
+         return new InitGaussianRandomWeights();
+      }
+   }
+   else if (smartWeights) {
+      if( rank==0 && (cocircWeights) ) {
+         fprintf(stderr, "Connection \"%s\": Conflict in specifying initial weights.  smartWeights will be used\n", name);
+      }
+      return new InitSmartWeights();
+   }
+   else if (cocircWeights) {
+      return new InitCocircWeights();
+   }
+   else {
+      return new InitWeights();
+   }
+   return NULL;
 }
 
 #ifdef PV_USE_OPENCL
@@ -2669,6 +2698,7 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
       maxAll = maxVal > maxAll ? maxVal : maxAll;
    } // k < numPatches
    this->wMax = this->wMax > this->maxWeight(arborId) ? this->wMax : this->maxWeight(arborId);
+   // What is the line above supposed to do?  Right now it looks this->wMax gets set to the value it already had.  --pete
    return status;
 } // normalizeWeights
 
