@@ -11,14 +11,21 @@
 
 namespace PV {
 
-CliqueLayer::CliqueLayer(const char* name, HyPerCol * hc) :
-		      ANNLayer(name, hc) {
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
+   initialize();
 }
 
-CliqueLayer::CliqueLayer(const char* name, HyPerCol * hc, PVLayerType type) :
-		      ANNLayer(name, hc) {
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
+   initialize();
 }
 
+// parent class initialize already called in constructor
+int CliqueLayer::initialize() {
+   PVParams * params = parent->parameters();
+   Voffset = params->value(name, "Voffset", 0.0f, true);
+   Vgain = params->value(name, "Vgain", 2.0f, true);
+   return PV_SUCCESS; //ANNLayer::initialize();
+}
 
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
       int axonId) {
@@ -165,8 +172,10 @@ int CliqueLayer::updateState(float time, float dt) {
    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
    pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
-   float offset = 0.0f; //VThresh;
-   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
+//   float offset = 0.0f; //VThresh;
+//   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
+   assert(Voffset == 0.0);
+   assert(Vgain = 16.0);
 
    // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < clayer->numNeurons; k++) {
@@ -179,7 +188,7 @@ int CliqueLayer::updateState(float time, float dt) {
       pvdata_t distractor_input = gSynInhB[k];
       if (distractor_input > 0.0f){
          if (target_input > 0.0f){
-            V[k] = bottomUp_input * (offset + gain * ((target_input - distractor_input) / distractor_input));
+            V[k] = bottomUp_input * (Voffset + Vgain * ((target_input - distractor_input) / distractor_input));
          }
          else{
             V[k] = 0.0f;

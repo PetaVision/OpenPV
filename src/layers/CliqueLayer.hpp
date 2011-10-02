@@ -17,11 +17,15 @@ namespace PV {
 
 class CliqueLayer: public PV::ANNLayer {
 public:
-   CliqueLayer(const char* name, HyPerCol * hc);
-   CliqueLayer(const char* name, HyPerCol * hc, PVLayerType type);
+   CliqueLayer(const char * name, HyPerCol * hc, int numChannels);
+   CliqueLayer(const char * name, HyPerCol * hc);
    virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
    virtual int updateActiveIndices();
+protected:
+   int initialize();
+   pvdata_t Vgain;
+   pvdata_t Voffset;
 };
 
 } /* namespace PV */
