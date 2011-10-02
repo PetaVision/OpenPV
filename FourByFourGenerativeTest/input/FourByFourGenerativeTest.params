@@ -307,6 +307,8 @@ GenerativeConn "AnaRetina to Layer A" = {
     
     plasticityFlag = true;
     symmetrizeWeights = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 
     weightUpdatePeriod = 20;
     relaxation = 2E-1; 
@@ -424,6 +426,8 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     
     plasticityFlag = true;
     symmetrizeWeights = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 
     weightUpdatePeriod = 20;
     relaxation = 1E-1;
@@ -444,7 +448,9 @@ CloneKernelConn "Layer A to CataLayer B" = {
     writeStep = -1;   
     writeCompressedWeights = false;
 
-    delay = 0;         
+    delay = 0;
+    
+    stochasticReleaseFlag = false;
 };
 
 TransposeConn "CataLayer B to Layer A" = {
@@ -473,6 +479,8 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     writeCompressedWeights = false;
     
     delay = 0;
+    
+    stochasticReleaseFlag = false;
 };
 
 IdentConn "Layer B to CataLayer B" = {

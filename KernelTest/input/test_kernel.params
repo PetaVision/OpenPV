@@ -171,6 +171,7 @@ KernelConn "Retina to L0" = {
     nxp = 1;
     nyp = 1;
     nfp = 4;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -199,7 +200,10 @@ KernelConn "Retina to L0" = {
     plasticityFlag = 0;
     weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 
@@ -212,6 +216,7 @@ KernelConn "L0 to Lx1" = {
     nxp = 5;
     nyp = 5;
     nfp = 4;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -241,6 +246,9 @@ KernelConn "L0 to Lx1" = {
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 
@@ -251,6 +259,7 @@ KernelConn "L0 to Lx2" = {
     nxp = 10;
     nyp = 10;
     nfp = 8;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -280,6 +289,9 @@ KernelConn "L0 to Lx2" = {
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 
@@ -290,6 +302,7 @@ KernelConn "L0 to Lx4" = {
     nxp = 20;
     nyp = 20;
     nfp = 16;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -319,6 +332,9 @@ KernelConn "L0 to Lx4" = {
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 
@@ -329,6 +345,7 @@ KernelConn "L0 to Lx1_2" = {
     nxp = 3;
     nyp = 3;
     nfp = 2;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -358,6 +375,9 @@ KernelConn "L0 to Lx1_2" = {
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 
@@ -368,6 +388,7 @@ KernelConn "L0 to Lx1_4" = {
     nxp = 1;
     nyp = 1;
     nfp = 1;
+    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
@@ -397,6 +418,9 @@ KernelConn "L0 to Lx1_4" = {
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 

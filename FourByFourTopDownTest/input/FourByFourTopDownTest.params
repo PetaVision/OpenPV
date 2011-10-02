@@ -1,10 +1,10 @@
 // FourByFourTopDownTest.params
-//     input parameters file testing top-down reconstruction
-//     from weights created by the FourByFourGenerativeTest
-//     The top of the hierarchy is first vertical, and then
-//     horizontal.  The bottom of the hierarchy should converge
-//     to one of the vertical lines, not a superposition,
-//     and then one of the horizontal lines.
+//     input parameters file testing top-down reconstruction from
+//     weights created by the FourByFourGenerativeTest.
+//     The top of the hierarchy is first a vertical line, and then
+//     a horizontal line.  The bottom of the hierarchy should converge
+//     to one of the vertical lines, not a superposition, and then
+//     to one of the horizontal lines.
 
 debugParsing = false;
 
@@ -304,8 +304,14 @@ KernelConn "AnaRetina to Layer A" = {
     delay = 0;         
     
     initFromLastFlag = false;
+    weightInitType = "FileWeight";
     initWeightsFile = "input/weightsA.pvp";
     normalize = false;
+    
+    plasticityFlag = false;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 FeedbackConn "Layer A to AnaRetina Feedback" = {
@@ -409,10 +415,15 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
 
     delay = 0;         
     
+    initFromLastFlag = false;
+    weightInitType = "FileWeight";
     initWeightsFile = "input/weightsB.pvp";   
     normalize = false;     
+    
     plasticityFlag = false;
     symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
 };
 
 CloneKernelConn "Layer A to CataLayer B" = {
@@ -426,7 +437,9 @@ CloneKernelConn "Layer A to CataLayer B" = {
     writeStep = -1;   
     writeCompressedWeights = false;
 
-    delay = 0;         
+    delay = 0;
+
+    stochasticReleaseFlag = false;
 };
 
 TransposeConn "CataLayer B to Layer A" = {
@@ -455,6 +468,8 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     writeCompressedWeights = false;
     
     delay = 0;
+
+    stochasticReleaseFlag = false;
 };
 
 IdentConn "Layer B to CataLayer B" = {
