@@ -46,7 +46,6 @@ public:
 
 protected:
    float relaxation;
-   PVPatch ** dWPatches;
    int * patchindices; // An array whose length is the number of extended neurons in the presynaptic layer
    bool nonnegConstraintFlag;
    int normalizeMethod;

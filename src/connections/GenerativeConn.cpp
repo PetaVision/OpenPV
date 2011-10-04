@@ -47,7 +47,6 @@ int GenerativeConn::initialize_base() {
    weightUpdatePeriod = 1;   // Default value; override in params
 
    relaxation = 1.0;
-   dWPatches = NULL;
    nonnegConstraintFlag = false;
    normalizeMethod = 0;
    return PV_SUCCESS;
@@ -72,28 +71,17 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 
     //GenerativeConn has not been updated to support multiple arbors!
     assert(numberOfAxonalArborLists()==1);
-
+    // For now, only one arbor.
+    // If we add arbors, patchindices will need to take the arbor index as an argument
 
     patchindices = (int *) malloc( pre->getNumExtended()*sizeof(int) );
     if( patchindices==NULL ) {
        fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for patchindices\n",name);
        exit(EXIT_FAILURE);
     }
-    //int axonID = 0; // For now, only one arbor.
-    // if we add arbors, patchindices and dWPatches will need to take the arbor index as an argument
-    int numKernelPatches = numDataPatches();
-    dWPatches = (PVPatch **) malloc(numKernelPatches*sizeof(PVPatch *));
-    if( patchindices==NULL ) {
-       fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for dWPatches\n",name);
-       exit(EXIT_FAILURE);
-    }
     for( int kex=0; kex<pre->getNumExtended(); kex++ ) {
        patchindices[kex] = this->patchIndexToKernelIndex(kex);
     }
-    for( int kernelindex=0; kernelindex<numKernelPatches; kernelindex++ ) {
-       dWPatches[kernelindex] = pvpatch_inplace_new(nxp,nyp,nfp);
-    }
-    // Initializing dWPatch goes here
     return PV_SUCCESS;
 }
 
@@ -101,36 +89,39 @@ int GenerativeConn::calc_dW(int axonID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // (in theory) independent of the number of processors.
-   int nPre = preSynapticLayer()->getNumNeurons();
-   int nx = preSynapticLayer()->getLayerLoc()->nx;
-   int ny = preSynapticLayer()->getLayerLoc()->ny;
-   int nf = preSynapticLayer()->getLayerLoc()->nf;
-   int pad = preSynapticLayer()->getLayerLoc()->nb;
+   int nExt = preSynapticLayer()->getNumExtended();
+//   int nx = preSynapticLayer()->getLayerLoc()->nx;
+//   int ny = preSynapticLayer()->getLayerLoc()->ny;
+//   int nf = preSynapticLayer()->getLayerLoc()->nf;
+//   int pad = preSynapticLayer()->getLayerLoc()->nb;
    int numKernelIndices = numDataPatches();
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dWPatches[kernelindex]->nx * dWPatches[kernelindex]->ny * dWPatches[kernelindex]->nf;
-      pvdata_t * dwpatchdata = dWPatches[kernelindex]->data;
+      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
+      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] = 0.0;
       }
    }
-   for(int kPre=0; kPre<nPre;kPre++) {
-      int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
-      int kernelindex = patchindices[kExt];
-      PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
+   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonID));
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonID));
+
+   for(int kExt=0; kExt<nExt;kExt++) {
+      // int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
+      PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
       size_t offset = arbor->offset;
-      pvdata_t preact = preSynapticLayer()->getCLayer()->activity->data[kExt];
+      pvdata_t preact = preactbuf[kExt];
       int nyp = arbor->weights->ny;
       int nk = arbor->weights->nx * arbor->weights->nf;
-      pvdata_t * postactRef = &(postSynapticLayer()->getCLayer()->activity->data[offset]);
+      const pvdata_t * postactRef = &postactbuf[offset];
       int sya = arbor->data->sy;
-      pvdata_t * dwpatch = dWPatches[kernelindex]->data;
-      int syw = dWPatches[kernelindex]->sy;
+      PVPatch * dwpatch = arbor->plasticIncr;
+      pvdata_t * dwdata = dwpatch->data;
+      int syw = dwpatch->sy;
+      int lineoffsetw = 0;
+      int lineoffseta = 0;
       for( int y=0; y<nyp; y++ ) {
-         int lineoffsetw = 0;
-         int lineoffseta = 0;
          for( int k=0; k<nk; k++ ) {
-            dwpatch[lineoffsetw + k] += preact*postactRef[lineoffseta + k];
+            dwdata[lineoffsetw + k] += preact*postactRef[lineoffseta + k];
          }
          lineoffsetw += syw;
          lineoffseta += sya;
@@ -146,14 +137,14 @@ int GenerativeConn::calc_dW(int axonID) {
 int GenerativeConn::reduceKernels(const int axonID) {
    const int numPatches = numDataPatches();
    int idx;
-   // Add all the dWPatches from all the processors
+   // Add all the dKernelPatches from all the processors
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
 
    // Copy this column's dW into mpiReductionBuffer
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = dWPatches[k];
+      PVPatch * p = dKernelPatches[0][k];
       const pvdata_t * data = p->data;
 
       const int sxp = p->sx;
@@ -183,7 +174,7 @@ int GenerativeConn::reduceKernels(const int axonID) {
    // of all the changes from each presynaptic neuron pointing to that W-patch.
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = dWPatches[k];
+      PVPatch * p = dKernelPatches[0][k];
       pvdata_t * data = p->data;
 
       const int sxp = p->sx;
@@ -209,7 +200,8 @@ int GenerativeConn::updateWeights(int axonID) {
    for( int k=0; k<numPatches; k++ ) {
       PVPatch * w = getKernelPatch(axonID, k);
       pvdata_t * wdata = w->data;
-      PVPatch * dw = dWPatches[k];
+      PVPatch * dw = dKernelPatches[0][k];
+      pvdata_t * dwdata = dw->data;
       const int sxp = w->sx;
       const int syp = w->sy;
       const int sfp = w->sf;
@@ -217,7 +209,7 @@ int GenerativeConn::updateWeights(int axonID) {
          for( int x = 0; x < w->nx; x++ ) {
             for( int f = 0; f < w->nf; f++ ) {
                int idx = f*sfp + x*sxp + y*syp;
-               wdata[idx] += relaxation*dw->data[idx];
+               wdata[idx] += relaxation*dwdata[idx];
                if( nonnegConstraintFlag && wdata[idx] < 0) wdata[idx] = 0;
             }
          }
