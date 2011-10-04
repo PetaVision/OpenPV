@@ -6,10 +6,16 @@ function [image_DoG, zero_DoG] = ...
 	  sigma_surround)
 
   DEBUG_FLAG = 0;
+  ABSOLUTE_SCALE_FLAG = 1;
   
   image_size = size(image_original);
-  max_original = double( max(image_original(:)) );
-  min_original = double( min(image_original(:)) );
+  if ABSOLUTE_SCALE_FLAG == 1
+    max_original = 255;
+    min_original = 0;
+  else
+    max_original = double( max(image_original(:)) );
+    min_original = double( min(image_original(:)) );
+  endif
   
   radius_center = ceil(3.0 * sigma_center);
   gauss_center = -radius_center : radius_center;
