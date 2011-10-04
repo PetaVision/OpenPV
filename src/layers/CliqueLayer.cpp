@@ -12,11 +12,11 @@
 namespace PV {
 
 CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
-   initialize();
+   CliqueLayer::initialize();
 }
 
 CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
-   initialize();
+   CliqueLayer::initialize();
 }
 
 // parent class initialize already called in constructor
@@ -174,8 +174,8 @@ int CliqueLayer::updateState(float time, float dt) {
    pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
 //   float offset = 0.0f; //VThresh;
 //   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
-   assert(Voffset == 0.0);
-   assert(Vgain = 16.0);
+//   assert(this->Vgain == 16.0f);
+//   assert(this->Voffset == 0.0f);
 
    // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < clayer->numNeurons; k++) {
@@ -188,18 +188,18 @@ int CliqueLayer::updateState(float time, float dt) {
       pvdata_t distractor_input = gSynInhB[k];
       if (distractor_input > 0.0f){
          if (target_input > 0.0f){
-            V[k] = bottomUp_input * (Voffset + Vgain * ((target_input - distractor_input) / distractor_input));
+            V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / distractor_input));
          }
          else{
             V[k] = 0.0f;
          }
       }
-      else{
+      else{  // distractor_input <= 0
          if (target_input > 0.0f){
             V[k] = 1.0f;
          }
          else{
-            V[k] = bottomUp_input;
+            V[k] = 0.0f; //bottomUp_input;  // not sure what to do here, no support + or -
          }
       }
    } // k
