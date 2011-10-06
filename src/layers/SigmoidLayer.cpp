@@ -30,6 +30,13 @@ int SigmoidLayer::initialize(LIF * originalLayer)
 
    V0 = parent->parameters()->value(name, "Vrest", V_REST);
    Vth = parent->parameters()->value(name,"VthRest",VTH_REST);
+   InverseFlag = parent->parameters()->value(name,"InverseFlag",INVERSEFLAG);
+   SigmoidFlag = parent->parameters()->value(name,"SigmoidFlag",SIGMOIDFLAG);
+   SigmoidAlpha = parent->parameters()->value(name,"SigmoidAlpha",SIGMOIDALPHA);
+
+
+   if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set");
+   if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set");
 
    this->spikingFlag = false;
    sourceLayer = originalLayer;
@@ -64,21 +71,33 @@ int SigmoidLayer::setActivity() {
    }
    pvdata_t sig_scale = 1.0f;
    if ( Vth > V0 ){
-      sig_scale = 1 / (Vth - V0);
+      if(SigmoidFlag){
+      sig_scale = -0.5f * log(1.0f/SigmoidAlpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
+      }
+      else{
+      sig_scale = 0.5/(Vth-V0);        // threshold in the middle
+      }
    }
    for( int k=0; k<getNumNeurons(); k++ ) {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
-      if (V[k] > Vth){
-         activity[kex] = 1.0f;
-      }
-      else if (V[k] < V0){
-         activity[kex] = 0.0f;
+
+      if(!SigmoidFlag) {
+         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
+            activity[kex] = 1.0f;
+         }
+         else if (V[k] < V0){
+            activity[kex] = 0.0f;
+         }
+         else{
+            activity[kex] = (V[k] - V0) * sig_scale;
+         }
       }
       else{
-         activity[kex] = (V[k] - V0) * sig_scale;
+         activity[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
       }
+
+      if (InverseFlag) activity[kex] = 1.0f - activity[kex];
    }
-   fprintf(stdout,"This is SigmoidLayer %s with rest potential %f and threshold %f \n",this->getName(),V0,Vth);
 
    return PV_SUCCESS;
 
