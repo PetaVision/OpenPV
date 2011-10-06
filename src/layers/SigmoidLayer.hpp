@@ -29,6 +29,9 @@ public:
 private:
    float V0;
    float Vth;
+   bool  InverseFlag;
+   bool  SigmoidFlag;
+   float SigmoidAlpha;
 };
 
 }
