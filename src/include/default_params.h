@@ -46,6 +46,10 @@
 // estimate of maximum activity in a local layer
 #define EST_MAX_ACTIVITY 256
 
+// Sigmoid layer inverse output flag
+#define INVERSEFLAG 0
+#define SIGMOIDFLAG 1
+#define SIGMOIDALPHA 0.1
 // weight parameters
 #define WEIGHT_DEAD_VALUE  0.0
 #define WEIGHT_MIN_VALUE   0.001
