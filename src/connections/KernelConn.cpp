@@ -276,6 +276,8 @@ int KernelConn::calc_dW(int axonId){
          }
       }
    }
+   // Generally, divide dWeights by (number of *non*-extended neurons divided by number of kernels)
+   // This isn't done here because the dWeights is set to zero in this method.
    return PV_BREAK;
 }
 
