@@ -13,6 +13,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 1000;  // num images plus (num layers + 1) * delay
+   progressStep = 200;
    outputPath = "output/";
    filenamesContainLayerNames = false;
 };
