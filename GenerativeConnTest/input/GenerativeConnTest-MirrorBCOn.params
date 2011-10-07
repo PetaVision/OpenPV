@@ -1,0 +1,627 @@
+// GenerativeConnTest-MirrorBCOff.params
+//     A params file for use with GenerativeConnTest.cpp
+//     The layers that are presynaptic for GenerativeConn have MirrorBCflag turned on.
+//     The resulting weights should be all ones.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 16;
+    ny = 16;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 5;
+    progressStep = 1000;
+    outputPath = "output-MirrorBCOn/";
+    filenamesContainLayerNames = true;
+};
+
+Movie "8x8 Images" = {
+    imageListPath = "./input/image08x08sequence.txt";
+
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = false;
+
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Movie "16x16 Images" = {
+    imageListPath = "./input/image16x16sequence.txt";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = false;
+
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Movie "32x32 Images" = {
+    imageListPath = "./input/image32x32sequence.txt";
+
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = false;
+
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "pre 16x16 singleband" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = -1;
+    mirrorBCflag = true;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "pre 16x16 multiband" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    marginWidth = 4;
+    writeStep = -1;
+    mirrorBCflag = true;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 8x8 singleband" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 8x8 multiband" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 4;
+    marginWidth = 2;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 16x16 singleband" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 16x16 multiband" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    marginWidth = 2;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 32x32 singleband" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "post 32x32 multiband" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 4;
+    marginWidth = 2;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 1.0;
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+IdentConn "16x16 Images to pre 16x16 singleband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "16x16 Images to pre 16x16 multiband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+    weightInitType = "Gauss2DWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 3;
+    numAxonalArbors = 1;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    aspect = 1;
+    sigma = 1;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1;
+    numFlanks = 1;
+    rotate = false;
+    bowtieFlag = false;
+    normalize = false;
+    strength = 1.0;
+    rMax = 2;
+    flankShift = 0;
+    shrinkPatches = false;
+};
+
+IdentConn "8x8 Images to post 8x8 singleband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "8x8 Images to post 8x8 multiband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+    weightInitType = "Gauss2DWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    numAxonalArbors = 1;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    aspect = 1;
+    sigma = 1;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1;
+    numFlanks = 1;
+    rotate = false;
+    bowtieFlag = false;
+    normalize = false;
+    strength = 1.0;
+    rMax = 2;
+    flankShift = 0;
+    shrinkPatches = false;
+};
+
+IdentConn "16x16 Images to post 16x16 singleband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "16x16 Images to post 16x16 multiband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+    weightInitType = "Gauss2DWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    numAxonalArbors = 1;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    aspect = 1;
+    sigma = 1;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1;
+    numFlanks = 1;
+    rotate = false;
+    bowtieFlag = false;
+    normalize = false;
+    strength = 1.0;
+    rMax = 2;
+    flankShift = 0;
+    shrinkPatches = false;
+};
+
+IdentConn "32x32 Images to post 32x32 singleband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "32x32 Images to post 32x32 multiband" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+    weightInitType = "Gauss2DWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    numAxonalArbors = 1;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    aspect = 1;
+    sigma = 1;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1;
+    numFlanks = 1;
+    rotate = false;
+    bowtieFlag = false;
+    normalize = false;
+    strength = 1.0;
+    rMax = 2;
+    flankShift = 0;
+    shrinkPatches = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 16x16 singleband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 16x16 multiband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 16x16 singleband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 16x16 multiband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 8x8 singleband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 8x8 multiband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 8x8 singleband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 8x8 multiband" = {
+    channelCode = 2;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 32x32 singleband" = {
+    channelCode = 2;
+    nxp = 10;
+    nyp = 10;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 singleband to post 32x32 multiband" = {
+    channelCode = 2;
+    nxp = 10;
+    nyp = 10;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 32x32 singleband" = {
+    channelCode = 2;
+    nxp = 10;
+    nyp = 10;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};
+
+GenerativeConn "pre 16x16 multiband to post 32x32 multiband" = {
+    channelCode = 2;
+    nxp = 10;
+    nyp = 10;
+    nfp = 4;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    writeCompressedWeights = false;
+    delay = 0;
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    weightUpdatePeriod = 1;
+    relaxation = 1.0;
+    nonnegConstraintFlag = false;
+    normalize = false;
+};

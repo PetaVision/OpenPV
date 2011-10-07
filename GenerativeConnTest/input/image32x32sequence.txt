@@ -1,0 +1,5 @@
+input/zeros32x32.png
+input/ones32x32.png
+input/zeros32x32.png
+input/zeros32x32.png
+input/zeros32x32.png
