@@ -80,7 +80,9 @@ protected:
 
 private:
 
+#ifdef PV_USE_MPI
    int mpi_initialized_on_entry;
+#endif // PV_USE_MPI
    int icRank;
    int icSize;
    int worldRank;
