@@ -2839,7 +2839,7 @@ int HyPerConn::setPatchSize(const char * filename)
    nyp = (int) inputParams->value(name, "nyp", post->getCLayer()->loc.ny);
    nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->loc.nf);
    if( nfp != post->getCLayer()->loc.nf ) {
-      fprintf( stderr, "Params file specifies %d features for connection %s,\n", nfp, name );
+      fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
       fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->loc.nf, post->getName() );
       exit(PV_FAILURE);
