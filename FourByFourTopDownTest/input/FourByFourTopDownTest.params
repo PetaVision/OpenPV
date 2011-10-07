@@ -14,6 +14,7 @@ HyPerCol "column" = {
     dt = 1;
     randomSeed = 1;
     numSteps = 10001;
+    progressStep = 10000;
     outputPath = "./output/";
     filenamesContainLayerNames = true;
 };
