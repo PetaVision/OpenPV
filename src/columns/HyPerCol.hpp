@@ -127,6 +127,7 @@ private:
 
    float simTime;          // current time in milliseconds
    float deltaTime;        // time step interval
+   int progressStep;       // How many timesteps between outputting progress
 
    CLDevice * clDevice;    // object for running kernels on OpenCL device
 

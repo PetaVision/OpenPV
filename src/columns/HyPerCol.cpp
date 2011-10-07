@@ -166,6 +166,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       exit(EXIT_FAILURE);
    }
 
+   // set how often advanceTime() prints a message indicating progress
+   progressStep = params->value(name, "progressStep", 2000, true);
+
    // set output path from params file if it wasn't set on the command line
    if (outputPath == NULL ) {
       if( params->stringPresent(name, "outputPath") ) {
@@ -417,7 +420,7 @@ float HyPerCol::advanceTime(float sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
    int nstep = (int) (sim_time/getDeltaTime());
-   if (nstep%2000 == 0 && columnId() == 0) {
+   if (nstep%progressStep == 0 && columnId() == 0) {
       printf("   [%d]: time==%f\n", columnId(), sim_time);
    }
 #endif
