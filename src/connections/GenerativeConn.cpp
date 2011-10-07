@@ -90,10 +90,6 @@ int GenerativeConn::calc_dW(int axonID) {
    // That takes place in reduceKernels, so that the output is
    // (in theory) independent of the number of processors.
    int nExt = preSynapticLayer()->getNumExtended();
-//   int nx = preSynapticLayer()->getLayerLoc()->nx;
-//   int ny = preSynapticLayer()->getLayerLoc()->ny;
-//   int nf = preSynapticLayer()->getLayerLoc()->nf;
-//   int pad = preSynapticLayer()->getLayerLoc()->nb;
    int numKernelIndices = numDataPatches();
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
@@ -106,20 +102,19 @@ int GenerativeConn::calc_dW(int axonID) {
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonID));
 
    for(int kExt=0; kExt<nExt;kExt++) {
-      // int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
       PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
       size_t offset = arbor->offset;
       pvdata_t preact = preactbuf[kExt];
-      int nyp = arbor->weights->ny;
+      int ny = arbor->weights->ny;
       int nk = arbor->weights->nx * arbor->weights->nf;
       const pvdata_t * postactRef = &postactbuf[offset];
-      int sya = arbor->data->sy;
+      int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb)); // arbor->data->sy;
       PVPatch * dwpatch = arbor->plasticIncr;
       pvdata_t * dwdata = dwpatch->data;
       int syw = dwpatch->sy;
       int lineoffsetw = 0;
       int lineoffseta = 0;
-      for( int y=0; y<nyp; y++ ) {
+      for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
             dwdata[lineoffsetw + k] += preact*postactRef[lineoffseta + k];
          }
@@ -127,73 +122,23 @@ int GenerativeConn::calc_dW(int axonID) {
          lineoffseta += sya;
       }
    }
+
+   // Divide by (numNeurons/numKernels)
+   int divisor = pre->getNumNeurons()/numKernelIndices;
+   assert( divisor*numKernelIndices == pre->getNumNeurons() );
+   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
+      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
+      for( int n=0; n<numpatchitems; n++ ) {
+         dwpatchdata[n] /= divisor;
+      }
+   }
+
    // normalizeWeights now called in KernelConn::updateState // normalizeWeights( kernelPatches, numDataPatches(0) );
    lastUpdateTime = parent->simulationTime();
 
    return PV_SUCCESS;
 }  // end of GenerativeConn::calc_dW(int);
-
-#ifdef PV_USE_MPI
-int GenerativeConn::reduceKernels(const int axonID) {
-   const int numPatches = numDataPatches();
-   int idx;
-   // Add all the dKernelPatches from all the processors
-   const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
-   const size_t localSize = numPatches * patchSize;
-
-   // Copy this column's dW into mpiReductionBuffer
-   idx = 0;
-   for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = dKernelPatches[0][k];
-      const pvdata_t * data = p->data;
-
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
-
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
-               mpiReductionBuffer[idx] = data[x*sxp + y*syp + f*sfp];
-               idx++;
-            }
-         }
-      }
-   }
-
-   // MPI_Allreduce combines all processor's buffers and puts the common result
-   // into each processor's buffer.
-   Communicator * comm = parent->icCommunicator();
-   const MPI_Comm mpi_comm = comm->communicator();
-   int ierr;
-   ierr = MPI_Allreduce(MPI_IN_PLACE, mpiReductionBuffer, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
-   // TODO error handling
-
-   // mpiReductionBuffer now holds the sum over all processes.
-   // Don't average; if this were a one-processor task the change to one patch in W would be the sum
-   // of all the changes from each presynaptic neuron pointing to that W-patch.
-   idx = 0;
-   for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = dKernelPatches[0][k];
-      pvdata_t * data = p->data;
-
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
-
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
-               data[x*sxp + y*syp + f*sfp] = mpiReductionBuffer[idx];
-               idx++;
-            }
-         }
-      }
-   }
-
-   return PV_SUCCESS;
-}  // end of GenerativeConn::reduceKernels(int)
-#endif // PV_USE_MPI
 
 int GenerativeConn::updateWeights(int axonID) {
    const int numPatches = numDataPatches();

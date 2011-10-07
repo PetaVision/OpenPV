@@ -50,9 +50,6 @@ protected:
    bool nonnegConstraintFlag;
    int normalizeMethod;
    float normalizeConstant;
-#ifdef PV_USE_MPI
-   virtual int reduceKernels(int axonID);
-#endif // PV_USE_MPI
 };
 
 }  // end of block for namespace PV
