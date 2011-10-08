@@ -172,15 +172,10 @@ int CliqueLayer::updateState(float time, float dt) {
    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
    pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
-<<<<<<< .mine
-   float offset = 0.0f; //VThresh;
-   float gain = 1.75f;  // 1 -> log base 2, 2 -> log base sqrt(2)
-=======
 //   float offset = 0.0f; //VThresh;
 //   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
 //   assert(this->Vgain == 16.0f);
 //   assert(this->Voffset == 0.0f);
->>>>>>> .r4350
 
    // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < clayer->numNeurons; k++) {
