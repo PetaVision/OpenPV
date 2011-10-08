@@ -223,7 +223,7 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
 }
 
 /**
- * calculate gaussian weights to segment lines
+ * calculate gaussian weights between oriented line segments
  */
 int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * weightParamPtr) {
 

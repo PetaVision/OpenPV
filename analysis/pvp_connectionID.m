@@ -8,22 +8,22 @@ function [connID, connIndex] = pvp_connectionID()
 
   if ( SPIKING_FLAG == 1 )
     
-  N_CONNECTIONS = 14;
+  N_CONNECTIONS = 16;
   connID = cell(1,N_CONNECTIONS);
 
 
 				% retinal connections
   ij_conn = ij_conn + 1;
   connIndex.r_lgn = ij_conn;
-  connID{ 1, ij_conn } =  'image to retina';
+  connID{ 1, ij_conn } =  'imagetoRetina';
 
   ij_conn = ij_conn + 1;
   connIndex.r_lgn = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to LGN';
+  connID{ 1, ij_conn } =  'RetinatoLGN';
 
   ij_conn = ij_conn + 1;
   connIndex.r_lgninhff = ij_conn;
-  connID{ 1, ij_conn } =  'Retina to LGNInhFF';
+  connID{ 1, ij_conn } =  'RetinatoLGNInhFF';
 
 				% LGN connections
   %ij_conn = ij_conn + 1;
@@ -32,20 +32,20 @@ function [connID, connIndex] = pvp_connectionID()
 
   ij_conn = ij_conn + 1;
   connIndex.lgn_lgninh = ij_conn;
-  connID{ 1, ij_conn } =  'LGN to LGNInh';
+  connID{ 1, ij_conn } =  'LGNtoLGNInh';
 
   ij_conn = ij_conn + 1;
   connIndex.lgn_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'LGN to L1';
+  connID{ 1, ij_conn } =  'LGNtoL1';
 
   ij_conn = ij_conn + 1;
   connIndex.lgn_l1inhff = ij_conn;
-  connID{ 1, ij_conn } =  'LGN to L1InhFF';
+  connID{ 1, ij_conn } =  'LGNtoL1InhFF';
 
 				% LGNInhFF connections
   ij_conn = ij_conn + 1;
   connIndex.lgninhff_lgn = ij_conn;
-  connID{ 1, ij_conn } =  'LGNInhFF to LGN';
+  connID{ 1, ij_conn } =  'LGNInhFFtoLGN';
 
   %ij_conn = ij_conn + 1;
   %connIndex.lgninhff_lgn_inhB = ij_conn;
@@ -88,25 +88,33 @@ function [connID, connIndex] = pvp_connectionID()
 				% V1 connections
   ij_conn = ij_conn + 1;
   connIndex.l1_lgn = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to LGN';
+  connID{ 1, ij_conn } =  'L1toLGN';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_lgninh = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to LGN Inh';
+  connID{ 1, ij_conn } =  'L toLGNInh';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1';
+  connID{ 1, ij_conn } =  'L1toL1';
+
+  ij_conn = ij_conn + 1;
+  connIndex.l1_l1 = ij_conn;
+  connID{ 1, ij_conn } =  'L1toL1InhFF';
 
   ij_conn = ij_conn + 1;
   connIndex.l1_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'L1 to L1 Inh';
+  connID{ 1, ij_conn } =  'L1toL1InhLateral';
+
+  ij_conn = ij_conn + 1;
+  connIndex.l1_l1inh = ij_conn;
+  connID{ 1, ij_conn } =  'L1toL1Inh';
 
 
 				% V1 Inh FF connections
   ij_conn = ij_conn + 1;
   connIndex.l1inhff_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'L1InhFF to L1';
+  connID{ 1, ij_conn } =  'L1InhFFtoL1';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inhff_l1_inhB = ij_conn;
@@ -126,7 +134,7 @@ function [connID, connIndex] = pvp_connectionID()
 
   ij_conn = ij_conn + 1;
   connIndex.l1inhff_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'L1InhFF to L1Inh';
+  connID{ 1, ij_conn } =  'L1InhFFtoL1Inh';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inhff_l1ih_inhB = ij_conn;
@@ -136,21 +144,25 @@ function [connID, connIndex] = pvp_connectionID()
 				% V1 Inh connections
   ij_conn = ij_conn + 1;
   connIndex.l1inh_l1 = ij_conn;
-  connID{ 1, ij_conn } =  'L1Inh to L1';
+  connID{ 1, ij_conn } =  'L1InhtoL1';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inh_l1inhff = ij_conn;
   %connID{ 1, ij_conn } =  'L1Inh to L1Inh FF';
 
+  %ij_conn = ij_conn + 1;
+  %connIndex.l1inh_l1inh = ij_conn;
+  %connID{ 1, ij_conn } =  'L1Inh to L1Inh';
+
   ij_conn = ij_conn + 1;
   connIndex.l1inh_l1inh = ij_conn;
-  connID{ 1, ij_conn } =  'L1Inh to L1Inh';
+  connID{ 1, ij_conn } =  'L1InhtoL1InhGap';
 
   %ij_conn = ij_conn + 1;
   %connIndex.l1inh_l1inh_exc = ij_conn;
   %connID{ 1, ij_conn } =  'L1Inh to L1Inh Exc';
 
-  N_CONNECTIONS = 16;
+  N_CONNECTIONS = ij_conn;
 
 
 else % NON_SPIKING

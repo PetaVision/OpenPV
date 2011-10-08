@@ -114,6 +114,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_LayerProbes_",
              "LayerProbe",
                "PointProbe",
+                  "PointLIFProbe",
                "StatsProbe",
                "LayerFunctionProbe",
                  "L2NormProbe",
@@ -999,7 +1000,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          xLoc = params->value(name, "xLoc", -1);
          yLoc = params->value(name, "yLoc", -1);
          fLoc = params->value(name, "fLoc", -1);
-         if( xLoc < 0 || yLoc < 0 || fLoc < 0) {
+         if( xLoc <= -1 || yLoc <= -1 || fLoc <= -1) {
             fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
             errorFound = true;
          }
@@ -1010,6 +1011,31 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
          else {
             addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+             errorFound = true;
+         }
+      }
+   }
+   if( !strcmp(classkeyword, "PointLIFProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         xLoc = params->value(name, "xLoc", -1);
+         yLoc = params->value(name, "yLoc", -1);
+         fLoc = params->value(name, "fLoc", -1);
+         if( xLoc <= -1 || yLoc <= -1 || fLoc <= -1) {
+            fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
+            errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new PointLIFProbe(filename, hc, xLoc, yLoc, fLoc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new PointLIFProbe(xLoc, yLoc, fLoc, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);

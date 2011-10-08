@@ -32,7 +32,7 @@ int InitGauss2DWeightsParams::initialize_base() {
    sigma = 0.8;
    rMax = 1.4;
    strength = 1.0;
-   setDeltaThetaMax(2.0f * PI);  // max orientation in units of PI
+   setDeltaThetaMax(2.0f * PI);  // max difference in orientation in units of PI
    setThetaMax(1.0); // max orientation in units of PI
    numFlanks = 1;
    shift = 0.0f;

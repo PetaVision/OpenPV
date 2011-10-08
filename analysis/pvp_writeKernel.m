@@ -15,8 +15,6 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
     resize_weights_flag = 1;
   endif
 
-  kernel_filename = [SPIKE_PATH, filename, '.pvp'];
-
   max_weight = -100000;
   min_weight = 100000;
   for i_feature = 1 : NFEATURES
@@ -46,8 +44,8 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
   num_params = NUM_WGT_PARAMS;
   int32_size = 4;  %sizeof(int)
   PVP_WGT_FILE_TYPE  = 5;  %% KERNEL_FILE_TYPE
-  NX_PROCS = 1;
-  NY_PROCS = 1;
+  NX_PROCS = 2;
+  NY_PROCS = 2;
   NX = NCOLS / NX_PROCS;
   NY = NROWS / NY_PROCS;
   NF = NFEATURES;
@@ -92,6 +90,9 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
     WGT_NYP = length( row_index_first : row_index_last );
   endif
 
+
+  kernel_filename = ...
+      [SPIKE_PATH, filename, "_", num2str(NX_PROCS), "x", num2str(NY_PROCS), '.pvp'];
 
   disp(['WGT_NXP = ', num2str(WGT_NXP)]);
   disp(['WGT_NYP = ', num2str(WGT_NYP)]);
@@ -138,7 +139,10 @@ function pvp_writeKernel(weights, weights_size, filename, resize_weights)
 	      floor( (2^8) * ( weights_tmp - min_weight ) / ...
 		    ( (max_weight - min_weight) + ( (max_weight - min_weight) == 0 ) ) );
 	else
-	  weights_tmp = weights{i_feature};
+	  weights_tmp = weights{i_feature} .* ...
+	      ( weights{i_feature} >= min_weight ) + ...
+	      min_weight .* ...
+	      ( weights{i_feature} < min_weight );
 	endif
 	weights_tmp = ...
 	    reshape( weights_tmp(:), weights_size );

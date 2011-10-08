@@ -85,6 +85,7 @@
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
+#include "../io/PointLIFProbe.hpp"
 #include "../io/StatsProbe.hpp"
 #include "../io/L2NormProbe.hpp"
 #include "../io/SparsityTermProbe.hpp"

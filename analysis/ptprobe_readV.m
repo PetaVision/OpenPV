@@ -37,29 +37,65 @@ vmem_V = zeros(vmem_steps, 1);
 vmem_Vth = zeros(vmem_steps, 1);
 vmem_a = zeros(vmem_steps, 1);
 
+%%keyboard;
 for i_step = 1:begin_step-1
-    vmem_name = fscanf(fid, '%s', 1);
-    vmem_time_tmp = fscanf(fid, ' t=%f', 1);
-    vmem_time_tmp = fscanf(fid, ' k=%i', 1);
-    vmem_G_E_tmp = fscanf(fid, ' G_E=%f', 1);
-    vmem_G_I_tmp = fscanf(fid, ' G_I=%f', 1);
-    vmem_G_IB_tmp = fscanf(fid, ' G_IB=%f', 1);
-    vmem_V_tmp = fscanf(fid, ' V=%f', 1);
-    vmem_Vth_tmp = fscanf(fid, ' Vth=%f', 1);
-    vmem_R_tmp = fscanf(fid, ' R= %f', 1);
-    vmem_a_tmp = fscanf(fid, ' a=%f\n', 1);
+  vmem_str = fgets(fid);
+%%    vmem_name = fscanf(fid, "[\0,0-9,a-z,A-Z, ]*:]", 1);
+%%    vmem_time_tmp = fscanf(fid, " t=%f", 1);
+%%    vmem_time_tmp = fscanf(fid, " k=%i", 1);
+%%    vmem_G_E_tmp = fscanf(fid, " G_E=%f", 1);
+%%    vmem_G_I_tmp = fscanf(fid, " G_I=%f", 1);
+%%    vmem_G_IB_tmp = fscanf(fid, " G_IB=%f", 1);
+%%    vmem_V_tmp = fscanf(fid, " V=%f", 1);
+%%    vmem_Vth_tmp = fscanf(fid, " Vth=%f", 1);
+%%    vmem_R_tmp = fscanf(fid, " R= %f", 1);
+%%    vmem_a_tmp = fscanf(fid, " a=%f\n", 1);
 end
+%%keyboard;
 for i_step = 1:vmem_steps 
-    vmem_name = fscanf(fid, '%s', 1);
-    vmem_time(i_step) = fscanf(fid, ' t=%f', 1);
-    vmem_time_tmp = fscanf(fid, ' k=%i', 1);
-    vmem_G_E(i_step) = fscanf(fid, ' G_E=%f', 1);
-    vmem_G_I(i_step) = fscanf(fid, ' G_I=%f', 1);
-    vmem_G_IB(i_step) = fscanf(fid, ' G_IB=%f', 1);
-    vmem_V(i_step) = fscanf(fid, ' V=%f', 1);
-    vmem_Vth(i_step) = fscanf(fid, ' Vth=%f', 1);
-    vmem_R_tmp = fscanf(fid, ' R= %f', 1);
-    vmem_a(i_step) = fscanf(fid, ' a=%f\n', 1);
+  vmem_str = fgets(fid);
+
+  time_start_ndx = strfind(vmem_str, "t=");
+  time_start_ndx = time_start_ndx(1) + 2;
+  time_end_ndx = strfind(vmem_str, "k=");
+  time_end_ndx = time_end_ndx(1) - 1;
+  vmem_time(i_step) = str2num(vmem_str(time_start_ndx:time_end_ndx));
+
+  G_E_start_ndx = strfind(vmem_str, "G_E=");
+  G_E_start_ndx = G_E_start_ndx(1) + 4;
+  G_E_end_ndx = strfind(vmem_str, "G_I=");
+  G_E_end_ndx = G_E_end_ndx(1) - 1;
+  vmem_G_E(i_step) = str2num(vmem_str(G_E_start_ndx:G_E_end_ndx));
+
+  G_I_start_ndx = strfind(vmem_str, "G_I=");
+  G_I_start_ndx = G_I_start_ndx(1) + 4;
+  G_I_end_ndx = strfind(vmem_str, "G_IB=");
+  G_I_end_ndx = G_I_end_ndx(1) - 1;
+  vmem_G_I(i_step) = str2num(vmem_str(G_I_start_ndx:G_I_end_ndx));
+
+  G_IB_start_ndx = strfind(vmem_str, "G_IB=");
+  G_IB_start_ndx = G_IB_start_ndx(1) + 5;
+  G_IB_end_ndx = strfind(vmem_str, "V=");
+  G_IB_end_ndx = G_IB_end_ndx(1) - 1;
+  vmem_G_IB(i_step) = str2num(vmem_str(G_IB_start_ndx:G_IB_end_ndx));
+
+  V_start_ndx = strfind(vmem_str, "V=");
+  V_start_ndx = V_start_ndx(1) + 2;
+  V_end_ndx = strfind(vmem_str, "Vth=");
+  V_end_ndx = V_end_ndx(1) - 1;
+  vmem_V(i_step) = str2num(vmem_str(V_start_ndx:V_end_ndx));
+
+  Vth_start_ndx = strfind(vmem_str, "Vth=");
+  Vth_start_ndx = Vth_start_ndx(1) + 4;
+  Vth_end_ndx = strfind(vmem_str, "a=");
+  Vth_end_ndx = Vth_end_ndx(1) - 1;
+  vmem_Vth(i_step) = str2num(vmem_str(Vth_start_ndx:Vth_end_ndx));
+
+  a_start_ndx = strfind(vmem_str, "a=");
+  a_start_ndx = a_start_ndx(1) + 2;
+  a_end_ndx = strfind(vmem_str, "\n");
+  %%a_end_ndx = a_end_ndx(1) - 1;
+  vmem_a(i_step) = str2num(vmem_str(a_start_ndx:a_end_ndx));
 end
 fclose(fid);
 

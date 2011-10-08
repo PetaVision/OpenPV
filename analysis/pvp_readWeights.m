@@ -51,7 +51,10 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   NFP = pvp_header(pvp_index.WGT_NFP);
   weight_min = pvp_header(pvp_index.WGT_MIN);
   weight_max = pvp_header(pvp_index.WGT_MAX);
-  num_patches = NFP; %%pvp_header(pvp_index.WGT_NUMPATCHES);
+  num_patches = pvp_header(pvp_index.WGT_NUMPATCHES);
+  NX_PROCS = pvp_header(pvp_index.NX_PROCS);
+  NY_PROCS = pvp_header(pvp_index.NY_PROCS);
+  num_patches = num_patches / (NX_PROCS * NY_PROCS);
   
 				%  if ( weight_max < -1 ) && ( weight_min == 0 )
 				%    weight_max = - 1 / weight_max;
@@ -77,6 +80,13 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
     Return;
   endif
   
+  data_size = pvp_header(pvp_index.DATA_SIZE);
+  if data_size > 1
+    COMPRESSED_FLAG = 0;
+  elseif data_size == 1
+    COMPRESSED_FLAG = 1;
+  endif
+
   nxp = repmat(NXP, num_patches,1);
   nyp = repmat(NYP, num_patches,1);
   weights = cell(num_patches,1);

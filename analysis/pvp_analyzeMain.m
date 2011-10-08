@@ -14,7 +14,7 @@ start_timer = time;
 				% endif %%
 
 global NUM_PROCS 
-NUM_PROCS = 6;    
+NUM_PROCS = 8;    
 
 global parallel_flag  
 parallel_flag = 1;
@@ -60,7 +60,7 @@ pvp_order = 1;
 
 %% set duration of simulation, if known (determined automatically otherwise)
 BEGIN_TIME = 200.0;  % (msec) start analysis here, used to exclude start up artifacts
-END_TIME = 1200.0;
+END_TIME = 24000.0;
 
 %% stim begin/end times (msec) relative to begining/end of each epoch
 STIM_BEGIN_TIME = 0.0;  % relative to begining of epoch, must be > 0
@@ -926,7 +926,7 @@ for layer = read_spikes;
 	real( fft( squeeze( mass_xcorr{i_mode, layer} * ...
 			   ( ( 1000 / DELTA_T )^2 / num_epochs ) ) ) );
     fft_xcorr_tmp = ...
-	fft_xcorr_tmp / ( fft_xcorr_tmp(1) + fft_xcorr_tmp(1) > 0 );
+	fft_xcorr_tmp / ( fft_xcorr_tmp(1) + (fft_xcorr_tmp(1) > 0) );
     lh_fft_xcorr = plot(xcorr_freqs(2:min_ndx),...
 			abs( fft_xcorr_tmp(2:min_ndx) ), '-b');
     set(lh_fft_xcorr, 'LineWidth', 2);
@@ -1038,6 +1038,45 @@ total_eigen_timer = stop_eigen_timer - start_eigen_timer;
 disp(["total_eigen_timer = ", num2str(total_eigen_timer)]);
 
 
+%% plot psth's of all layers together
+plot_rates = length(read_spikes) > 1;
+if plot_rates
+  plot_title = ['PSTH target pixels'];
+  fig_tmp = ...
+      figure('Name',plot_title);
+  fig_list = [fig_list; fig_tmp];
+  hold on
+  co = get(gca,'ColorOrder');
+  lh = zeros(num_layers,1);
+  for layer = read_spikes
+    time_bins = 1: epoch_struct.epoch_bins(layer);
+    lh(layer) = plot((time_bins)*BIN_STEP_SIZE, ...
+		     psth_target{layer,i_target}(time_bins) / ...
+		     num_epochs, '-r');
+    set(lh(layer),'Color',co(1+mod(layer,size(co,1)),:));
+    set(lh(layer),'LineWidth',2);
+  endfor %%
+  legend_str = ...
+      {'retina  '; ...
+       'LGN     '; ...
+       'LGNInhFF'; ...
+       'LGNInh  '; ...
+       'L1      '; ...
+       'L1InhFF '; ...
+       'L1Inh   '};
+				%    if uimatlab
+				%        leg_h = legend(lh(1:num_layers), legend_str);
+				%    elseif uioctave
+  legend(legend_str);
+				%    endif %%
+  fig_list = [fig_list; fig_tmp];
+endif %%
+
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+close all;
+fig_list = [];
+
+
 %%read membrane potentials from point probes
 if plot_vmem
   disp('plot_vmem')
@@ -1046,9 +1085,9 @@ if plot_vmem
   vmem_file_list = {'LGN_Vmem.txt', ...
 		    'LGNInhFF_Vmem.txt', ...
 		    'LGNInh_Vmem.txt', ...
-		    'V1_Vmem.txt', ...
-		    'V1InhFF_Vmem.txt', ...
-		    'V1Inh_Vmem.txt'};
+		    'L1_Vmem.txt', ...
+		    'L1InhFF_Vmem.txt', ...
+		    'L1Inh_Vmem.txt'};
 				%  vmem_layers = [2,3,4,5];
   num_vmem_files = size(vmem_file_list,2);
   vmem_time = cell(num_vmem_files, 1);
@@ -1061,10 +1100,10 @@ if plot_vmem
   AX_vmem = cell(num_vmem_files, 1);
   H1_vmem = cell(num_vmem_files, 1);
   H2_vmem = cell(num_vmem_files, 1);
-  vmem_skip = 2;
+  vmem_skip = 1;
   layer = read_spikes( find(read_spikes, 1) );
   BEGIN_TIME = epoch_struct.begin_time(ceil(num_epochs/2),layer);
-  END_TIME = epoch_struct.end_time(ceil(num_epochs/2),layer); %%BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
+  END_TIME = BEGIN_TIME + 500; %%epoch_struct.end_time(ceil(num_epochs/2),layer); %%BEGIN_TIME + 200; %epoch_struct.end_time(num_epochs,layer);
   for i_vmem = 1 : vmem_skip : num_vmem_files
     [vmem_time{i_vmem}, ...
      vmem_G_E{i_vmem}, ...
@@ -1108,50 +1147,14 @@ close all;
 fig_list = [];
 
 
-%% plot psth's of all layers together
-plot_rates = length(read_spikes) > 1;
-if plot_rates
-  plot_title = ['PSTH target pixels'];
-  fig_tmp = ...
-      figure('Name',plot_title);
-  fig_list = [fig_list; fig_tmp];
-  hold on
-  co = get(gca,'ColorOrder');
-  lh = zeros(num_layers,1);
-  for layer = read_spikes
-    time_bins = 1: epoch_struct.epoch_bins(layer);
-    lh(layer) = plot((time_bins)*BIN_STEP_SIZE, ...
-		     psth_target{layer,i_target}(time_bins) / ...
-		     num_epochs, '-r');
-    set(lh(layer),'Color',co(1+mod(layer,size(co,1)),:));
-    set(lh(layer),'LineWidth',2);
-  endfor %%
-  legend_str = ...
-      {'retina  '; ...
-       'LGN     '; ...
-       'LGNInhFF'; ...
-       'LGNInh  '; ...
-       'V1      '; ...
-       'V1InhFF '; ...
-       'V1Inh   '};
-				%    if uimatlab
-				%        leg_h = legend(lh(1:num_layers), legend_str);
-				%    elseif uioctave
-  legend(legend_str);
-				%    endif %%
-  fig_list = [fig_list; fig_tmp];
-endif %%
-
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
-
 
 stop_timer = time;
 total_timer = stop_timer - start_timer;
 disp(["total_timer = ", num2str(total_timer)]);
 
 %% plot connections
+global COMPRESSED_FLAG
+COMPRESSED_FLAG = 1;
 global N_CONNECTIONS
 global NXP NYP NFP
 [connID, connIndex] = pvp_connectionID();
@@ -1170,7 +1173,16 @@ for i_conn = plot_weights
   pvp_header_tmp = pvp_header{i_conn};
   num_patches = pvp_header_tmp(pvp_index.WGT_NUMPATCHES);
   NFP = pvp_header_tmp(pvp_index.WGT_NFP);
+  NX_PROCS = pvp_header_tmp(pvp_index.NX_PROCS);
+  NY_PROCS = pvp_header_tmp(pvp_index.NY_PROCS);
+  num_patches = num_patches / (NX_PROCS * NY_PROCS);
   skip_patches = 1; %num_patches;
+  data_size = pvp_header_tmp(pvp_index.DATA_SIZE);
+  if data_size > 1
+    COMPRESSED_FLAG = 0;
+  elseif data_size == 1
+    COMPRESSED_FLAG = 1;
+  endif
   for i_patch = 1 : skip_patches : num_patches
     NXP = nxp{i_conn}(i_patch);
     NYP = nyp{i_conn}(i_patch);
@@ -1184,6 +1196,9 @@ for i_conn = plot_weights
            ')'];
     size_recon = ...
         [1, NFP, NXP, NYP];
+    if prod(size_recon) == 1
+      continue;
+    endif
     fig_tmp = ...
         pvp_reconstruct(weights{i_conn}{i_patch}, ...
 			plot_title, ...
