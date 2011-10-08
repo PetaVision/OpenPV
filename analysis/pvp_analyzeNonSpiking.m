@@ -64,7 +64,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 11;
-num_trials = 0; %%1000; %% cannot exceed ~1024 for 256x256 image because
+num_trials = 100; %% 0; %%  %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -98,12 +98,12 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/home/garkenyon/workspace-indigo/';
+    '/Users/gkenyon/workspace-indigo/';
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "Clique/input/amoeba/test"];
+    [machine_path "Clique2/input/Car/canny/test"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
@@ -118,7 +118,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "Clique/input/noamoeba/test"];
+    [machine_path "Clique2/input/NotCar/canny/test"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
@@ -266,6 +266,13 @@ for j_trial = first_trial : skip_trial : last_trial
       disp([ layerID{layer}, ...
 	    ': ave_activity(', num2str(layer), ',', num2str(j_trial), ') = ', ...
 	    num2str(ave_activity(target_flag, layer, j_trial) ) ]);
+
+      hist_activity(target_flag, :, layer) = ...
+          hist_activity(target_flag, :, layer) + ...
+          hist_activity_tmp;
+      
+      hist_activity_cell{target_flag, layer} = hist_activity_tmp;
+      
       if isempty(activity{target_flag}) || ~any(activity{target_flag})
         continue;
       endif
@@ -307,12 +314,6 @@ for j_trial = first_trial : skip_trial : last_trial
 	      num2str(snz_activity(target_flag, layer, j_trial))]);
       endif
 
-      hist_activity(target_flag, :, layer) = ...
-          hist_activity(target_flag, :, layer) + ...
-          hist_activity_tmp;
-      
-      hist_activity_cell{target_flag, layer} = hist_activity_tmp;
-      
       write_activity_flag = 0;
       zip_activity_flag = 1;
       if write_activity_flag == 1
