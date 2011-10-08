@@ -79,20 +79,12 @@ int main(int argc, char * argv[]) {
    else {
       status = runGenerativeConnTest(argc, argv);
    }
+   MPI_Finalize();
    return status;
 }
 
 int runGenerativeConnTest(int argc, char * argv[]) {
-   char * paramsfilename;
-   int filenamestatus = pv_getopt_str(argc, argv, "-p", &paramsfilename);
-   assert(filenamestatus == 0 && paramsfilename != NULL);
    int status = buildandrun(argc, argv, NULL, &dumpweights);
-   if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s failed with return code.\n", paramsfilename);
-   }
-   else {
-      printf("%s succeeded.\n", paramsfilename);
-   }
    return status;
 }
 
@@ -109,6 +101,15 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    }
    if( existsgenconn && status != PV_SUCCESS ) {
       for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
+   }
+   int rank = hc->icCommunicator()->commRank();
+   char * paramsfilename;
+   pv_getopt_str(argc, argv, "-p", &paramsfilename);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "Rank %d: %s failed with return code.\n", rank, paramsfilename);
+   }
+   else {
+      printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
    return status;
 }
