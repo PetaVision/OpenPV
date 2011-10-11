@@ -4,8 +4,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;
-   ny = 256;
+   nx = 1920;
+   ny = 1080;
    dt = 1.;                  // according GK
    randomSeed = 1020304050.0; // remove when running for real
 };
@@ -36,44 +36,43 @@ HyPerCol "column" = {
 //  offsetY = 0;
 //};
 
-//Image "Image" = {
-//    imagePath = "./input/Obama_256.png";
-//    imagePath = "./input/000396_256.png";
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 1;
-//    marginWidth = 0;
-//    writeStep = 0;
-//    mirrorBCflag = 0;
-//    spikingFlag = 0;
-//    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+Image "Image" = {
+    imagePath = "./input/000396.png";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
 
-//    writeImages = 0;
-//};
-
-Patterns "Image" = {      // 0          // animation with horizontal and vertical lines
-   patternType  = "RECTANGLES";         // "RECTANGLES" or "BARS"
-   width        = 25.6;                 // width of the vertical bar
-   height       = 25.6;                 // width of the horizontal bar 
-   prefPosition = 10;                  // does not work !
-   marginWidth  = 0;                  // ?
-   pMove        = 0.0;                // every 16 ms ????
-   pSwitch      = 0.0;             // switch between horizontal and vertical
-   pMove        = 0.2;                // every 16 ms ????
-   pSwitch      = 0.0025;             // switch between horizontal and vertical
-   writeImages  = 0;                  // write out image file when changes
-   
-   restart      = 0.0;                // ?
-   Vrest        = -55.0;              // ?
-   mirrorBCflag = 1.0;                // ?
-   writeStep    = 1000;                // ?
-   nf           = 1.0;                // ?
-   nyScale      = 1.0;                // ?
-   nxScale      = 1.0;                // ?
-   writeNonspikingActivity = 1.0;      // 
-   
+    writeImages = 0;
 };
+
+//Patterns "Image" = {      // 0          // animation with horizontal and vertical lines
+//   patternType  = "RECTANGLES";         // "RECTANGLES" or "BARS"
+//   width        = 25.6;                 // width of the vertical bar
+//   height       = 25.6;                 // width of the horizontal bar 
+//   prefPosition = 10;                  // does not work !
+//   marginWidth  = 0;                  // ?
+//   pMove        = 0.0;                // every 16 ms ????
+//   pSwitch      = 0.0;             // switch between horizontal and vertical
+//   pMove        = 0.2;                // every 16 ms ????
+//   pSwitch      = 0.0025;             // switch between horizontal and vertical
+//   writeImages  = 0;                  // write out image file when changes
+//   
+//   restart      = 0.0;                // ?
+//   Vrest        = -55.0;              // ?
+//   mirrorBCflag = 1.0;                // ?
+//   writeStep    = -1;                // ?
+//   nf           = 1.0;                // ?
+//  nyScale      = 1.0;                // ?
+//   nxScale      = 1.0;                // ?
+//   writeNonspikingActivity = 1.0;      // 
+   
+//};
 
 LIF "Cone" = {       // 1 //
 
@@ -94,7 +93,7 @@ LIF "Cone" = {       // 1 //
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 2.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 0.0;     // mirroring boundary conditions
 	Vrest            = -55.;    // adjusted as per discussion with Garrett
 	restart          = 0.0;     // non
@@ -127,7 +126,17 @@ LIF "Cone" = {       // 1 //
 //	no               = 0.0;     // probably a HyPercon thing
 };
 
-SigmoidLayer "ConeSigmoid" ={   // 2
+SigmoidLayer "ConeSigmoidON" ={   // 2
+	nxScale          = 1.;
+	nyScale          = 1.;
+	marginWidth      = 2.0;     // for MPI running
+    originalLayerName="Cone";
+	Vrest            = -55.0;   //
+	VthRest          = -47.5;   // was -40. before moving the threshold in the middle                  
+    mirrorBCflag = 0.0; 
+	};
+
+SigmoidLayer "ConeSigmoidOFF" ={   // 2
 	nxScale          = 1.;
 	nyScale          = 1.;
 	marginWidth      = 2.0;     // for MPI running
@@ -135,8 +144,9 @@ SigmoidLayer "ConeSigmoid" ={   // 2
 	Vrest            = -55.0;   //
 	VthRest          = -47.5;   // was -40. before moving the threshold in the middle                  
     mirrorBCflag = 0.0;                // 
-    //InverseFlag  = 1.; 
+    InverseFlag  = 1.; 
 	};
+
 // ---------------------------------------------------------------- ON LAYER
 LIF "BipolarON" = {	           // 3
     nxScale          = 1.;
@@ -144,7 +154,7 @@ LIF "BipolarON" = {	           // 3
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 4.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    //
 	restart          = 0.0;     // non
@@ -208,7 +218,7 @@ LIFGap "Horizontal" = {             //5
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 1.0;     // for MPI running
 	writeStep        = 1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+	mirrorBCflag     = -1.0;     // mirroring boundary conditions
 	Vrest            = -55.0;    // adjusted for gap of 0.025
 	restart          = 0.0;     // non
 	Vexc             = 0.0;     // reversal potential 
@@ -317,7 +327,7 @@ LIFGap "AmacrineON" = {             // 10
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // the whole idea 
 	marginWidth      = 2.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    // same as Ganglion
 	restart          = 0.0;     // non
@@ -367,7 +377,7 @@ LIF     "SynchronicityON" = {                // 8
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // the whole idea 
 	marginWidth      = 4.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    //
 	restart          = 0.0;     // non
@@ -424,7 +434,7 @@ Retina "RetinaON" = {      // 12
    poissonEdgeProb = 1.0;
    Vrest = -70.0;
    mirrorBCflag = 1.0;
-   writeStep = 0.5;
+   writeStep = -1.0;
    nf = 1.0;
 };
 
@@ -434,7 +444,7 @@ LIF "BipolarOFF" = {	           // 3
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 4.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    //
 	restart          = 0.0;     // non
@@ -533,7 +543,7 @@ LIFGap "AmacrineOFF" = {             // 10
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // the whole idea 
 	marginWidth      = 2.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    // same as Ganglion
 	restart          = 0.0;     // non
@@ -583,7 +593,7 @@ LIF     "SynchronicityOFF" = {                // 8
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // the whole idea 
 	marginWidth      = 4.0;     // for MPI running
-	writeStep        = 1.0;
+	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
 	Vrest            = -70.;    //
 	restart          = 0.0;     // non
@@ -640,7 +650,7 @@ Retina "RetinaOFF" = {      // 12
    poissonEdgeProb = 1.0;
    Vrest = -70.0;
    mirrorBCflag = 1.0;
-   writeStep = 0.5;
+   writeStep = -1.0;
    nf = 1.0;
 };
 
@@ -705,11 +715,11 @@ KernelConn "Image to Cone" = {
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
-KernelConn "ConeSigmoid to BipolarON" = {        // 1
-    preLayerName = "ConeSigmoid";
+KernelConn "ConeSigmoidON to BipolarON" = {        // 1
+    preLayerName = "ConeSigmoidON";
     postLayerName = "BipolarON";
     weightInitType = "Gauss2DWeight";
 
@@ -742,10 +752,10 @@ KernelConn "ConeSigmoid to BipolarON" = {        // 1
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -.1;  // do not write these out
 };
 
-KernelConn "ConeSigmoid to Horizontal" = {        // 2
+KernelConn "ConeSigmoidON to Horizontal" = {        // 2
   
 //Case 3: nxScalePost < nxScalePre.
 //(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
@@ -755,7 +765,7 @@ KernelConn "ConeSigmoid to Horizontal" = {        // 2
 //marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
 //(since nxScalePre will be a positive multiple of nxScalePost,
 //1/nxScaleRatio is a positive integer).
-    preLayerName = "ConeSigmoid";
+    preLayerName = "ConeSigmoidON";
     postLayerName = "Horizontal";
     weightInitType = "Gauss2DWeight";
     channelCode = 0;                  // forward
@@ -784,7 +794,7 @@ KernelConn "ConeSigmoid to Horizontal" = {        // 2
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 GapConn "HoriGap to Horizontal" = {        // 3  gap junction, watch the strength
@@ -818,7 +828,7 @@ GapConn "HoriGap to Horizontal" = {        // 3  gap junction, watch the strengt
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 KernelConn "HoriSigmoid to Cone" = {        // 4
@@ -860,7 +870,7 @@ KernelConn "HoriSigmoid to Cone" = {        // 4
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 KernelConn "BipolarSigmoidON to GanglionON" = {        // 5  sigmoid, need linear output ?
@@ -896,7 +906,7 @@ KernelConn "BipolarSigmoidON to GanglionON" = {        // 5  sigmoid, need linea
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 
@@ -931,7 +941,7 @@ KernelConn "BipolarSigmoidON to AmacrineON" = {        // 6 NOT CONNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 
@@ -966,7 +976,7 @@ GapConn "GangliGapON to AmacrineON" = {        // 7  gap junction
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 GapConn "AmaGapON to GanglionON" = {        // 8   gap junction
@@ -1000,7 +1010,7 @@ GapConn "AmaGapON to GanglionON" = {        // 8   gap junction
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 GapConn "AmaGapON to AmacrineON" = {        // 9  gap junction, watch the strength
@@ -1034,7 +1044,7 @@ GapConn "AmaGapON to AmacrineON" = {        // 9  gap junction, watch the streng
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 KernelConn "AmacrineON to GanglionON" = {        // 10 NOT CONNECTED
@@ -1068,7 +1078,7 @@ KernelConn "AmacrineON to GanglionON" = {        // 10 NOT CONNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // 
+	writeStep             = -1.0;  // 
 };
 
 
@@ -1103,7 +1113,7 @@ KernelConn "GanglionON to SynchronicityON" = {        // 10 NOT CONNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // 
+	writeStep             = -1.0;  // 
 };
 
 KernelConn "Image to RetinaON" = {
@@ -1121,7 +1131,7 @@ KernelConn "Image to RetinaON" = {
    rMax =  4; 
    strength = 1;//7;
    
-   writeStep = 0.5;
+   writeStep = -1.0;
    symmetrizeWeights = 0.0;
    normalize_cutoff = 0.0;
    normalize_zero_offset = 0.0;
@@ -1156,8 +1166,8 @@ KernelConn "Image to RetinaON" = {
    delay = 0.0;
 };
 
-KernelConn "ConeSigmoid to BipolarOFF" = {        // 1
-    preLayerName = "ConeSigmoid";
+KernelConn "ConeSigmoidOFF to BipolarOFF" = {        // 1
+    preLayerName = "ConeSigmoidOFF";
     postLayerName = "BipolarOFF";
     weightInitType = "Gauss2DWeight";
     channelCode   = 0;                  // forward
@@ -1187,7 +1197,7 @@ KernelConn "ConeSigmoid to BipolarOFF" = {        // 1
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 
@@ -1224,7 +1234,7 @@ KernelConn "BipolarSigmoidOFF to GanglionOFF" = {        // 5  sigmoid, need lin
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 
@@ -1259,7 +1269,7 @@ KernelConn "BipolarSigmoidOFF to AmacrineOFF" = {        // 6 NOT COFFNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 
@@ -1294,7 +1304,7 @@ GapConn "GangliGapOFF to AmacrineOFF" = {        // 7  gap junction
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 GapConn "AmaGapOFF to GanglionOFF" = {        // 8   gap junction
@@ -1328,7 +1338,7 @@ GapConn "AmaGapOFF to GanglionOFF" = {        // 8   gap junction
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 GapConn "AmaGapOFF to AmacrineOFF" = {        // 9  gap junction, watch the strength
@@ -1362,7 +1372,7 @@ GapConn "AmaGapOFF to AmacrineOFF" = {        // 9  gap junction, watch the stre
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // do not write these out
+	writeStep             = -1.0;  // do not write these out
 };
 
 KernelConn "AmacrineOFF to GanglionOFF" = {        // 10 NOT COFFNECTED
@@ -1396,7 +1406,7 @@ KernelConn "AmacrineOFF to GanglionOFF" = {        // 10 NOT COFFNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // 
+	writeStep             = -1.0;  // 
 };
 
 
@@ -1431,7 +1441,7 @@ KernelConn "GanglionOFF to SynchronicityOFF" = {        // 10 NOT COFFNECTED
 	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
 	normalize_zero_offset = 0.0;  //
 	normalize_cutoff      = 0.0;  //
-	writeStep             = 1000;  // 
+	writeStep             = -1.0;  // 
 };
 
 KernelConn "Image to RetinaOFF" = {
@@ -1449,7 +1459,7 @@ KernelConn "Image to RetinaOFF" = {
    rMax =  4; 
    strength = 1;//7;
    
-   writeStep = 0.5;
+   writeStep = -1.0;
    symmetrizeWeights = 0.0;
    normalize_cutoff = 0.0;
    normalize_zero_offset = 0.0;
