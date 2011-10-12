@@ -403,19 +403,19 @@ int LIF::readState(float * time)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "Vth", "_last");
-   status = read(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    getOutputFilename(path, "G_E", "_last");
-   status = read(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    getOutputFilename(path, "G_I", "_last");
-   status = read(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    getOutputFilename(path, "G_IB", "_last");
-   status = read(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    *time = (float) dtime;

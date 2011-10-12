@@ -225,7 +225,7 @@ int LIFGap::readState(float * time)
    Communicator * comm = parent->icCommunicator();
 
    getOutputFilename(path, "G_Gap", "_last");
-   status = read(path, comm, &dtime, G_Gap, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, G_Gap, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    return status;

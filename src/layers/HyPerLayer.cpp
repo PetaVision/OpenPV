@@ -786,12 +786,12 @@ int HyPerLayer::readState(float * time)
 
    if( getV() != NULL ) {
       getOutputFilename(path, "V", "_last");
-      status = read(path, comm, &dtime, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
+      status = read_pvdata(path, comm, &dtime, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
       assert(status == PV_SUCCESS);
    }
 
    getOutputFilename(path, "labels", "");
-   status = read(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS || status == PV_ERR_FILE_NOT_FOUND);  // not required to exist
    if (status == PV_ERR_FILE_NOT_FOUND) {
       if (labels != NULL) free(labels);
@@ -804,7 +804,7 @@ int HyPerLayer::readState(float * time)
    extended = true;
    pvdata_t * A = clayer->activity->data;
    getOutputFilename(path, "A", "_last");
-   status = read(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
+   status = read_pvdata(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
    assert(status == PV_SUCCESS);
 
    return status;

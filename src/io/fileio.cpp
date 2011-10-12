@@ -457,7 +457,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    return status;
 }
 
-int read(const char * filename, Communicator * comm, double * time, void * data,
+int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = PV_SUCCESS;
@@ -501,11 +501,20 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
    const int tag = PVP_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
+   int fileexists;
 
    if (icRank > 0) {
 
 #ifdef PV_USE_MPI
       const int src = 0;
+      MPI_Bcast(&fileexists, 1, MPI_INT, src, mpi_comm);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: read: received from 0, filename \"%s\"",filename);
+      if( fileexists ) fprintf(stderr, "exists\n");
+      else fprintf(stderr, "does not exist\n");
+#endif // DEBUG_OUTPUT
+      if( !fileexists ) return PV_ERR_FILE_NOT_FOUND;
+
       MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
@@ -519,7 +528,16 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
       int numParams, numRead, type, nxIn, nyIn, nfIn;
 
       FILE * fp = pv_open_binary(filename, &numParams, &type, &nxIn, &nyIn, &nfIn);
-      if (fp == NULL) return PV_ERR_FILE_NOT_FOUND;
+      fileexists = fp != NULL;
+#ifdef PV_USE_MPI
+      MPI_Bcast(&fileexists, 1, MPI_INT, 0, mpi_comm);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: read: broadcasting from 0, filename \"%s\"",filename);
+      if( fileexists ) fprintf(stderr, "exists\n");
+      else fprintf(stderr, "does not exist\n");
+#endif // DEBUG_OUTPUT
+#endif // PV_USE_MPI
+      if (!fileexists) return PV_ERR_FILE_NOT_FOUND;
       
       assert(numParams == NUM_PAR_BYTE_PARAMS);
       assert(type      == PVP_FILE_TYPE);
@@ -536,17 +554,6 @@ int read(const char * filename, Communicator * comm, double * time, void * data,
       const int dataType = params[INDEX_DATA_TYPE];
       const int nxBlocks = params[INDEX_NX_PROCS];
       const int nyBlocks = params[INDEX_NY_PROCS];
-
-#ifdef OBSOLETE // 3/10/2011
-      loc->nx       = params[INDEX_NX];
-      loc->ny       = params[INDEX_NY];
-      loc->nxGlobal = params[INDEX_NX_GLOBAL];
-      loc->nyGlobal = params[INDEX_NY_GLOBAL];
-      loc->kx0      = params[INDEX_KX0];
-      loc->ky0      = params[INDEX_KY0];
-      loc->nPad     = params[INDEX_NB];
-      loc->nBands   = params[INDEX_NF];
-#endif // OBSOLETE
 
       *time = timeFromParams(&params[INDEX_TIME]);
 
