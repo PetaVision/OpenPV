@@ -392,7 +392,8 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
                      int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
 {
    int status = PV_SUCCESS;
-   int nxBlocks, nyBlocks, numItems;
+   int nxBlocks, nyBlocks;
+//   int numItems;
    int params[NUM_BIN_PARAMS];
 
    if (comm->commRank() != 0) return status;
@@ -402,17 +403,19 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
 
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-   const int nb = loc->nb;
+//   const int nx = loc->nx;
+//   const int ny = loc->ny;
+//   const int nf = loc->nf;
+//   const int nb = loc->nb;
 
+#ifdef OBSOLETE // Marked Obsolete Oct 12, 2010.  None of the quantities in the header depend on the extended flag.
    if (extended) {
       numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
    }
    else {
       numItems = nx * ny * nf;
    }
+#endif // OBSOLETE
 
    if (contiguous) {
       nxBlocks = 1;
@@ -476,12 +479,14 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
 
    const int icRank = comm->commRank();
 
-   if (extended) {
-      numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
-   }
-   else {
-      numItems = loc->nx * loc->ny * loc->nf;
-   }
+// Only the interior, non-restricted part of the buffer gets written, even if the buffer is extended.
+//    if (extended) {
+//       numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
+//    }
+//    else {
+//       numItems = loc->nx * loc->ny * loc->nf;
+//    }
+   numItems = loc->nx * loc->ny * loc->nf;
 
    const size_t localSize = numItems * pv_sizeof(datatype);
 
@@ -587,21 +592,20 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
       numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
       assert(numRead == (int) localSize);
 
-      // copy from buffer communication buffer
-      //
-      if (datatype == PV_FLOAT_TYPE) {
-         float * fbuf = (float *) cbuf;
-         status = HyPerLayer::copyFromBuffer(fbuf, (float*) data, loc, extended, scale);
-      }
-      else if (datatype == PV_INT_TYPE) {
-         int * fbuf = (int *) cbuf;
-         status = HyPerLayer::copyFromBuffer(fbuf, (int*) data, loc, extended, 1);
-      }
-
-      free(cbuf);
       status = pvp_close_file(fp, comm);
    }
 
+   // copy from buffer communication buffer
+   //
+   if (datatype == PV_FLOAT_TYPE) {
+      float * fbuf = (float *) cbuf;
+      status = HyPerLayer::copyFromBuffer(fbuf, (float*) data, loc, extended, scale);
+   }
+   else if (datatype == PV_INT_TYPE) {
+      int * fbuf = (int *) cbuf;
+      status = HyPerLayer::copyFromBuffer(fbuf, (int*) data, loc, extended, 1);
+   }
+   free(cbuf);
    return status;
 }
 
@@ -612,13 +616,14 @@ int write_pvdata(const char * filename, Communicator * comm, double time, const 
    FILE * fp = NULL;
 
    if (comm->commRank() == 0) {
-      int numItems;
-      if (extended) {
-         numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
-      }
-      else {
-         numItems = loc->nx * loc->ny * loc->nf;
-      }
+      // int numItems;
+      // if (extended) {
+      //    numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
+      // }
+      // else {
+      //    numItems = loc->nx * loc->ny * loc->nf;
+      // }
+      int numItems = loc->nx * loc->ny * loc->nf;
       const size_t localSize = numItems * pv_sizeof(datatype);
 
       const bool append = false;
