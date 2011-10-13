@@ -804,30 +804,32 @@ int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayer
       // Check to see if the string " to " appears exactly once in name
       // If so, use part preceding " to " as pre-layer, and part after " to " as post.
       const char * locto = strstr(name, separator);
-      const char * nextto = strstr(locto+1, separator);
-      if( locto != NULL && nextto == NULL ) {
-         char * layerNames = (char *) malloc(strlen(name) + 1);
-         assert(layerNames);
-         strcpy(layerNames, name);
-         char * preLayerName = layerNames;
-         size_t preLen = locto - name;
-         preLayerName[preLen] = '\0';
-         char * postLayerName = layerNames + preLen + strlen(separator);
-         *preLayerPtr = getLayerFromName(preLayerName, hc);
-         if( *preLayerPtr == NULL ) {
-            fprintf(stderr, "Group \"%s\": Unable to get presynaptic layer \"%s\".\n", name, preLayerName);
+      if( locto != NULL ) {
+         const char * nextto = strstr(locto+1, separator);
+         if( nextto == NULL ) {
+            char * layerNames = (char *) malloc(strlen(name) + 1);
+            assert(layerNames);
+            strcpy(layerNames, name);
+            char * preLayerName = layerNames;
+            size_t preLen = locto - name;
+            preLayerName[preLen] = '\0';
+            char * postLayerName = layerNames + preLen + strlen(separator);
+            *preLayerPtr = getLayerFromName(preLayerName, hc);
+            if( *preLayerPtr == NULL ) {
+               fprintf(stderr, "Group \"%s\": Unable to get presynaptic layer \"%s\".\n", name, preLayerName);
+            }
+            *postLayerPtr = getLayerFromName(postLayerName, hc);
+            if( *postLayerPtr == NULL ) {
+               fprintf(stderr, "Group \"%s\": Unable to get postsynaptic layer \"%s\".\n", name, postLayerName);
+            }
+            free(layerNames);
          }
-         *postLayerPtr = getLayerFromName(postLayerName, hc);
-         if( *postLayerPtr == NULL ) {
-            fprintf(stderr, "Group \"%s\": Unable to get postsynaptic layer \"%s\".\n", name, postLayerName);
-         }
-         free(layerNames);
       }
    }
-   if( *preLayerPtr == NULL && *postLayerPtr != NULL ) {
+   if( *preLayerPtr == NULL ) {
       fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
    }
-   if( *preLayerPtr != NULL && *postLayerPtr == NULL ) {
+   if( *postLayerPtr == NULL ) {
       fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
    }
    return *preLayerPtr != NULL && *postLayerPtr != NULL ? PV_SUCCESS : PV_FAILURE;
