@@ -1,0 +1,104 @@
+// LayerRestartTest-Write.params
+//    A params file to be used by LayerRestartTest.cpp, along with
+//    LayerRestartTest-Read.params and LayerRestartTest-Check.params
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 1;
+    progressStep = 1;
+    outputPath = "output/";
+    filenamesContainLayerNames = true;    
+};
+
+// 4 layers:
+//  0 Image
+//  1 Copy
+//  2 Random Image
+//  3 Comparison
+
+Image "Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/F_N160050.jpg";
+    nf = 3;
+    marginWidth = 0;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "Copy" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+Image "Random Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/randomimage.png";
+    nf = 3;
+    marginWidth = 0;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "Comparison" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+IdentConn "Image to Copy" = {
+    channelCode = 0;   
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;         
+};
+
+IdentConn "Random Image to Comparison" = {
+    channelCode = 0;   
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;         
+};

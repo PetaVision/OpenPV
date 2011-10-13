@@ -1,0 +1,95 @@
+// LayerRestartTest-Write.params
+//    A params file to be used by LayerRestartTest.cpp, along with
+//    LayerRestartTest-Check.params and LayerRestartTest-Write.params
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 3;
+    progressStep = 3;
+    outputPath = "output/";
+    filenamesContainLayerNames = true;    
+};
+
+// 2 layers:
+//  0 Image
+//  1 Copy
+
+Image "Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/F_N160050.jpg";
+    nf = 3;
+    marginWidth = 0;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "Copy" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "Comparison" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+IdentConn "Image to Comparison" = {
+    channelCode = 0;   
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;         
+};
+
+IdentConn "Maintain Copy" = {
+    preLayerName = "Copy";
+    postLayerName = "Copy";
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Copy to Comparison" = {
+    channelCode = 1;   
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;         
+};
