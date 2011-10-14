@@ -526,6 +526,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
       } // kPatch < numPatches
+
       status = checkNormalizeArbor(patches, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       status = PV_BREAK;
@@ -594,7 +595,7 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
    } // iKernel
    const int num_weights = nfp * nxp * nyp;
    for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      PVPatch * kerWp = kernelPatches[0][iKernel];
+      PVPatch * kerWp = kernelPatches[arborId][iKernel];
       pvdata_t * kerW = kerWp->data;
       PVPatch * symWp = symPatches[iKernel];
       pvdata_t * symW = symWp->data;
