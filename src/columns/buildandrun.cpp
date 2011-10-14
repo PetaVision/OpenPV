@@ -99,6 +99,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                    "PoolingGenConn",
                  "ODDConn",
                  "CliqueConn",
+                 "CliqueApplyConn",
                  "GapConn",
                  "TransposeConn",
                    "FeedbackConn",
@@ -669,6 +670,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new CliqueConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "CliqueApplyConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new CliqueApplyConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
