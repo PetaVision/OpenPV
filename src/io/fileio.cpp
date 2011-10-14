@@ -226,67 +226,77 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    int nxProcs = comm->numCommColumns();
    int nyProcs = comm->numCommRows();
 
-   if (loc->nx       != params[INDEX_NX])        {status = -1; tmp_status = INDEX_NX;}
+   if (loc->nx       != params[INDEX_NX])        {status = PV_FAILURE; tmp_status = INDEX_NX;}
    if (tmp_status == INDEX_NX) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nx = %d != params[%d]==%d ", loc->nx, INDEX_NX, params[INDEX_NX]);
          fprintf(stderr, "\n");
       }
       else {
-         status = 0; // kernels can be used regardless of layer size
+         status = PV_SUCCESS; // kernels can be used regardless of layer size
       }
    }
-   if (loc->ny       != params[INDEX_NY])        {status = -1; tmp_status = INDEX_NY;}
+   if (loc->ny       != params[INDEX_NY])        {status = PV_FAILURE; tmp_status = INDEX_NY;}
    if (tmp_status == INDEX_NY) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
          fprintf(stderr, "\n");
       }
       else {
-         status = 0; // kernels can be used regardless of layer size
+         status = PV_SUCCESS; // kernels can be used regardless of layer size
       }
    }
-   if (loc->nf != params[INDEX_NF]) {status = -1; tmp_status = INDEX_NF;}
+   if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    if (tmp_status == INDEX_NF) {
          fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
          fprintf(stderr, "\n");
    }
-   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = -1; tmp_status = INDEX_NX_GLOBAL;}
+   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NX_GLOBAL;}
    if (tmp_status == INDEX_NX_GLOBAL) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nxGlobal = %d != params[%d]==%d ", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
          fprintf(stderr, "\n");
       }
       else {
-         status = 0; // kernels can be used regardless of layer size
+         status = PV_SUCCESS; // kernels can be used regardless of layer size
       }
    }
-   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = -1; tmp_status = INDEX_NY_GLOBAL;}
+   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NY_GLOBAL;}
    if (tmp_status == INDEX_NY_GLOBAL) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
          fprintf(stderr, "\n");
       }
       else {
-         status = 0; // kernels can be used regardless of layer size
+         status = PV_SUCCESS; // kernels can be used regardless of layer size
       }
    }
-   if (nxProcs != params[INDEX_NX_PROCS]) {status = -1; tmp_status = INDEX_NX_PROCS;}
+   if (nxProcs != params[INDEX_NX_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NX_PROCS;}
    if (tmp_status == INDEX_NX_PROCS) {
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nxProcs = %d != params[%d]==%d ", nxProcs, INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = PV_SUCCESS; // kernels can be used regardless of num procs
+      }
    }
-   if (nyProcs != params[INDEX_NY_PROCS]) {status = -1; tmp_status = INDEX_NY_PROCS;}
+   if (nyProcs != params[INDEX_NY_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NY_PROCS;}
    if (tmp_status == INDEX_NY_PROCS) {
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nyProcs = %d != params[%d]==%d ", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = PV_SUCCESS; // kernels can be used regardless of num procs
+      }
    }
-   if (loc->nb != params[INDEX_NB]) {status = -1; tmp_status = INDEX_NB;}
+   if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
    if (tmp_status == INDEX_NB) {
          fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
       fprintf(stderr, "\n");
    }
-   if (loc->nf != params[INDEX_NF]) {status = -1; tmp_status = INDEX_NF;}
+   if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    if (tmp_status == INDEX_NF) {
          fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
       fprintf(stderr, "\n");
@@ -305,7 +315,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
 
    return status;
-}
+} // pvp_check_file_header
 
 static
 int pvp_read_header(FILE * fp, double * time, int * filetype,
@@ -1054,20 +1064,28 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
               comm->commRank(), header_data_type);
       return status;
    }
-   status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
-   if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
-            "nxFileBlocks==%d, nyFileBlocks==%d\n, nxBlocks==%d, nyBlocks==%d\n",
-              comm->commRank(), nxFileBlocks, nyFileBlocks, nxBlocks, nyBlocks);
-      return status;
+   if (header_file_type != PVP_KERNEL_FILE_TYPE){
+      status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
+      if (status != 0) {
+         fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
+               "nxFileBlocks==%d, nyFileBlocks==%d\n, nxBlocks==%d, nyBlocks==%d\n",
+               comm->commRank(), nxFileBlocks, nyFileBlocks, nxBlocks, nyBlocks);
+         return status;
+      }
    }
-   status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
+   if (header_file_type != PVP_KERNEL_FILE_TYPE){
+      status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
+   }
+   else{  // backward compatibility
+      status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]) && (numPatches*nxFileBlocks*nyFileBlocks != wgtParams[INDEX_WGT_NUMPATCHES]));
+   }
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
             "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
             comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
       return status;
    }
+
 
    const int numPatchItems = nxp * nyp * nfp;
    const size_t patchSize = pv_sizeof_patch(numPatchItems, header_data_type);
@@ -1108,28 +1126,6 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
          return -1;
       }
 
-#ifdef PV_USE_MPI
-      int dest = -1;
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++dest == 0) continue;
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: sending to %d nxProcs==%d nyProcs==%d localSize==%ld\n",
-                    comm->commRank(), dest, nxProcs, nyProcs, localSize);
-#endif // DEBUG_OUTPUT
-            long offset = headerSize + dest * localSize;
-            fseek(fp, offset, SEEK_SET);
-            if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
-
-            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: sending to %d completed\n",
-                    comm->commRank(), dest);
-#endif // DEBUG_OUTPUT
-         }
-      }
-#endif // PV_USE_MPI
-
       // read local portion
       // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
       //
@@ -1139,11 +1135,34 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       if  (status != 0) {
          fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
                  comm->commRank(), offset);
-         return status;
       }
 
+#ifdef PV_USE_MPI
+      int dest = -1;
+      for (int py = 0; py < nyProcs; py++) {
+         for (int px = 0; px < nxProcs; px++) {
+            if (++dest == 0) continue;
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: sending to %d nxProcs==%d nyProcs==%d localSize==%ld\n",
+                    comm->commRank(), dest, nxProcs, nyProcs, localSize);
+#endif // DEBUG_OUTPUT
+            if (header_file_type != PVP_KERNEL_FILE_TYPE){
+               long offset = headerSize + dest * localSize;
+               fseek(fp, offset, SEEK_SET);
+               if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
+            }
+            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: sending to %d completed\n",
+                    comm->commRank(), dest);
+#endif // DEBUG_OUTPUT
+         }
+      }
+#endif // PV_USE_MPI
+
+
       status = pvp_close_file(fp, comm);
-   }
+   }  // if rank == 0
 
    // set the contents of the weights patches from the unsigned character buffer, cbuf
    //
@@ -1217,7 +1236,9 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
 #ifdef PV_USE_MPI
       const int dest = 0;
-      MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+      if (file_type != PVP_KERNEL_FILE_TYPE){
+         MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+      }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
               comm->commRank(), nxBlocks, nyBlocks, numPatches);
@@ -1254,7 +1275,11 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       fptr  = (float *) &params[INDEX_WGT_MAX];
       *fptr = maxVal;
 
+
       params[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
+      if (file_type == PVP_KERNEL_FILE_TYPE){
+         params[INDEX_WGT_NUMPATCHES] = numPatches;
+      }
 
       numParams = NUM_WGT_EXTRA_PARAMS;
       if ( fwrite(params, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
@@ -1264,6 +1289,13 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
       //
       size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
       if ( numfwritten != 1 ) return -1;
+
+      if (file_type == PVP_KERNEL_FILE_TYPE){
+         free(cbuf);
+         status = pvp_close_file(fp, comm);
+         return status;
+      }
+
 
 #ifdef PV_USE_MPI
       int src = -1;
@@ -1286,7 +1318,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
       free(cbuf);
       status = pvp_close_file(fp, comm);
-   }
+   } // rank == 0
 
    return status;
 }

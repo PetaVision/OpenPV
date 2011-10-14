@@ -171,7 +171,7 @@ int CliqueLayer::updateState(float time, float dt) {
    pvdata_t * V = clayer->V;
    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
-   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
+//   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
 //   float offset = 0.0f; //VThresh;
 //   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
 //   assert(this->Vgain == 16.0f);
@@ -184,11 +184,14 @@ int CliqueLayer::updateState(float time, float dt) {
       if (bottomUp_input <= 0.0f) {
          continue;
       }
-      pvdata_t target_input = gSynInh[k];
-      pvdata_t distractor_input = gSynInhB[k];
+      pvdata_t lateral_input = gSynInh[k];
+      V[k] = bottomUp_input * (this->Voffset + this->Vgain * lateral_input);
+      //      pvdata_t target_input = gSynInh[k];
+      //      pvdata_t distractor_input = gSynInhB[k];
+/*
       if (distractor_input > 0.0f){
          if (target_input > 0.0f){
-            V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / distractor_input));
+            V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / (target_input + distractor_input)));
          }
          else{
             V[k] = 0.0f;
@@ -202,6 +205,7 @@ int CliqueLayer::updateState(float time, float dt) {
             V[k] = 0.0f; //bottomUp_input;  // not sure what to do here, no support + or -
          }
       }
+*/
    } // k
 
    resetGSynBuffers();
