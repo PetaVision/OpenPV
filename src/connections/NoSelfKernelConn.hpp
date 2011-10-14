@@ -14,12 +14,10 @@ namespace PV {
 
 class NoSelfKernelConn: public PV::KernelConn {
 public:
-   NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               ChannelType channel, const char * filename);
+   NoSelfKernelConn();
    NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename, InitWeights *weightInit);
-   NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               ChannelType channel);
+   int zeroSelfWeights(PVPatch ** patches, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 };
 

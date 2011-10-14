@@ -9,18 +9,13 @@
 
 namespace PV {
 
+NoSelfKernelConn::NoSelfKernelConn(): KernelConn(){};
 NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename) : KernelConn(name, hc, pre, post,
-                  channel, filename){};
-NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename, InitWeights *weightInit) : KernelConn(name, hc, pre, post,
-                  channel, filename, weightInit){};
-NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel) : KernelConn(name, hc, pre, post,
-                  channel){};
+            ChannelType channel, const char * filename, InitWeights *weightInit) : KernelConn(){
+   KernelConn::initialize(name, hc, pre, post,channel, filename, weightInit);
+};
 
-int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
-{
+int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int arborId){
    //int axonID = 0;
    // self-interactions only defined for layers of same size
    assert(this->getPre()->getCLayer()->loc.nx == this->getPost()->getCLayer()->loc.nx);
@@ -42,6 +37,13 @@ int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int a
          w[kSelf] = 0.0f;
       } // kPatch
    }  // axonIndex
+   return PV_BREAK;
+}
+
+int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+{
+   int status = zeroSelfWeights(patches, numPatches, arborId);
+   assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    return KernelConn::normalizeWeights(patches, numPatches, arborId);  // parent class should return PV_BREAK
 }
 

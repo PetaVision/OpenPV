@@ -170,6 +170,11 @@ int HyPerConn::initialize_base()
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
+   this->normalize_arbors_individually = true;
+   this->normalize_max = false;
+   this->normalize_max = false;
+   this->normalize_zero_offset = false;
+   this->normalize_cutoff = 0.0f;
 
    return PV_SUCCESS;
 }
@@ -394,7 +399,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    }
    assert(this->weightInitializer != NULL);
 
-   status = setParams(hc->parameters() /*, &defaultConnParams*/);
+   status = setParams(inputParams /*, &defaultConnParams*/);
 
 //   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
@@ -493,7 +498,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
       tauLTD = inputParams->value(name, "tauLTD", tauLTD);
 #endif
 
-      numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
+      numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
       plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true);
       stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
@@ -2616,14 +2621,17 @@ int HyPerConn::initNormalize() {
    normalize_flag = params->value(name, "normalize", normalize_flag);
    if( normalize_flag ) {
       normalize_strength = params->value(name, "strength", 1.0f);
-      normalize_max = params->value(name, "normalize_max", 0.0f) != 0;
-      normalize_zero_offset = params->value(name, "normalize_zero_offset", 0.0f) != 0;
-      normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f) * normalize_strength;
+      normalize_max = params->value(name, "normalize_max", normalize_max) != 0.0f;
+      normalize_zero_offset = params->value(name, "normalize_zero_offset", normalize_zero_offset) != 0.0f;
+      normalize_cutoff = params->value(name, "normalize_cutoff", normalize_cutoff) * normalize_strength;
+      if (this->numberOfAxonalArborLists() > 1) {
+         normalize_arbors_individually = params->value(name, "normalize_arbors_individually", normalize_arbors_individually) != 0.0f;
+      }
    }
    return PV_SUCCESS;
 }
 
-int HyPerConn::sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal)
+int HyPerConn::sumWeights(PVPatch * wp, double * sum, double * sum2, pvdata_t * maxVal)
 {
    assert(wp != NULL);
    pvdata_t * w = wp->data;
@@ -2632,8 +2640,8 @@ int HyPerConn::sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_
    const int ny = wp->ny;
    const int nf = wp->nf;
    const int sy = wp->sy;
-   float sum_tmp = 0;
-   float sum2_tmp = 0;
+   double sum_tmp = 0;
+   double sum2_tmp = 0;
    pvdata_t max_tmp = -FLT_MAX;
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
@@ -2653,6 +2661,9 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
 {
    assert(wp != NULL);
    int num_weights = wp->nx * wp->ny * wp->nf;
+   if (!this->normalize_arbors_individually){
+      num_weights *= numberOfAxonalArborLists(); // assumes all arbors shrunken equally at this point (shrink patches should occur after normalize)
+   }
    float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
    float zero_offset = 0.0f;
    if (normalize_zero_offset){
@@ -2666,10 +2677,10 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
       // set maximum weight to normalize_strength
       scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
    }
-    else if (sum != 0.0f) {
+   else if (sum != 0.0f) {
       scale_factor = normalize_strength / sum;
    }
-    else if (sum == 0.0f && sigma2 > 0.0f) {
+   else if (sum == 0.0f && sigma2 > 0.0f) {
       scale_factor = normalize_strength / sqrtf(sigma2);
    }
    pvdata_t * w = wp->data;
@@ -2681,25 +2692,67 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
       }
       w += wp->sy;
    }
+   maxVal = ( maxVal - zero_offset ) * scale_factor;
+   maxVal = ( fabs(maxVal) > fabs(normalize_cutoff) ) ? maxVal : 0.0f;
+   this->wMax = maxVal > this->wMax ? maxVal : this->wMax;
    return PV_SUCCESS;
 } // scaleWeights
+
+// only checks for certain combinations of normalize parameter settings
+int HyPerConn::checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal)
+{
+   float tol = 0.01f;
+   assert(wp != NULL);
+   if (normalize_zero_offset && (normalize_cutoff == 0.0f)){  // condition may be violated is normalize_cutoff != 0.0f
+      // set sum to zero and normalize std of weights to sigma
+      assert((sum > -tol) && (sum < tol));
+      assert((sqrtf(sigma2) > (1-tol)*normalize_strength) && (sqrtf(sigma2) < (1+tol)*normalize_strength));
+   }
+   else if (normalize_max) {
+      // set maximum weight to normalize_strength
+      assert((maxVal > (1-tol)*normalize_strength) && ((maxVal < (1+tol)*normalize_strength)));
+    }
+   else if (normalize_cutoff == 0.0f){  // condition may be violated is normalize_cutoff != 0.0f
+      assert((sum > (1-tol)*normalize_strength) && ((sum < (1+tol)*normalize_strength)));
+   }
+   return PV_SUCCESS;
+
+} // checkNormalizeWeights
+
+int HyPerConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId)
+{
+   int status = PV_SUCCESS;
+   for (int k = 0; k < numPatches; k++) {
+      PVPatch * wp = patches[k];
+      double sum = 0;
+      double sum2 = 0;
+      float maxVal = -FLT_MAX;
+      status = sumWeights(wp, &sum, &sum2, &maxVal);
+      int num_weights = wp->nx * wp->ny * wp->nf;
+      float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
+      status = checkNormalizeWeights(wp, sum, sigma2, maxVal);
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+   }
+   return PV_SUCCESS;
+} // checkNormalizeArbor
 
 int HyPerConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
-   float maxVal = -FLT_MAX;
-   float maxAll = -FLT_MAX;
+   this->wMax = -FLT_MAX;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
-      float sum = 0;
-      float sum2 = 0;
+      float maxVal = -FLT_MAX;
+      double sum = 0;
+      double sum2 = 0;
       status = sumWeights(wp, &sum, &sum2, &maxVal);
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       status = scaleWeights(wp, sum, sum2, maxVal);
-      maxAll = maxVal > maxAll ? maxVal : maxAll;
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    } // k < numPatches
-   this->wMax = this->wMax > this->maxWeight(arborId) ? this->wMax : this->maxWeight(arborId);
-   // What is the line above supposed to do?  Right now it looks this->wMax gets set to the value it already had.  --pete
-   return status;
+   status = HyPerConn::checkNormalizeArbor(patches, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false
+   assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+   return PV_SUCCESS;
 } // normalizeWeights
 
 
@@ -2872,14 +2925,24 @@ int HyPerConn::patchSizeFromFile(const char * filename) {
 
    Communicator * comm = parent->icCommunicator();
 
-   status = pvp_read_header(filename, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
-   if (status < 0) return status;
+   char nametmp[PV_PATH_MAX];
+   for (int arborId = 0; arborId < this->numberOfAxonalArborLists(); arborId++){
+      if(this->numberOfAxonalArborLists()>1){  // assume filename is a base name that requires addition of "_a*" to specify arborId
+         snprintf(nametmp, PV_PATH_MAX-1, "%s_a%1.1d_last.pvp", filename, arborId);
+      }
+      else{
+         snprintf(nametmp, PV_PATH_MAX-1, "%s", filename);
+      }
 
-   status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
-   if (status < 0) return status;
+      status = pvp_read_header(nametmp, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
+      if (status < 0) return status;
 
-   // reconcile differences with inputParams
-   status = checkWeightsHeader(filename, wgtParams);
+      status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
+      if (status < 0) return status;
+
+      // reconcile differences with inputParams
+      status = checkWeightsHeader(nametmp, wgtParams);
+   }
    return status;
 }
 

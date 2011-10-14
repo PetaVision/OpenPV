@@ -169,8 +169,10 @@ public:
    bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
    virtual int initNormalize();
-   int sumWeights(PVPatch * wp, pvdata_t * sum, pvdata_t * sum2, pvdata_t * maxVal);
+   int sumWeights(PVPatch * wp, double * sum, double * sum2, pvdata_t * maxVal);
    int scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
+   virtual int checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal);
+   virtual int checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
@@ -246,6 +248,7 @@ protected:
 
    bool normalize_flag;
    float normalize_strength;
+   bool normalize_arbors_individually;  // if true, each arbor is normalized individually, otherwise, arbors normalized together
    bool normalize_max;
    bool normalize_zero_offset;
    float normalize_cutoff;
@@ -267,7 +270,7 @@ protected:
 
    int patchSizeFromFile(const char * filename);
 
-   virtual int initialize_base();
+   int initialize_base();
    virtual int createArbors();
    int constructWeights(const char * filename);
 #ifdef OBSOLETE // Marked obsolete Oct 1, 2011.  Made redundant by adding default value to weightInit argument of other initialize method

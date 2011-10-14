@@ -52,6 +52,7 @@ public:
          float aspect, float rotate, float sigma, float r2Max, float strength);
 #endif // OBSOLETE
 
+   virtual int checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
    virtual int symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
@@ -94,11 +95,11 @@ protected:
 #endif // PV_USE_MPI
 
    virtual int deleteWeights();
-   virtual int initialize_base();
-   virtual int initialize(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename);
-   virtual int initialize(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
+   int initialize_base();
+   int initialize(const char * name, HyPerCol * hc,
+                  HyPerLayer * pre, HyPerLayer * post,
+                  ChannelType channel, const char * filename,
+                  InitWeights *weightInit=NULL);
    virtual int createArbors();
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);

@@ -57,16 +57,26 @@ PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int arborId, int n
    if (initFromLastFlag) {
       char nametmp[PV_PATH_MAX];
 
-      if(callingConn->numberOfAxonalArborLists()>1)
+      if(callingConn->numberOfAxonalArborLists()>1){
          snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_a%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId(), arborId);
-      else
+      }
+      else{
          snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
+      }
       readWeights(patches, numPatches, nametmp, callingConn);
       //weightInitializer->initializeWeights(arbors[arborId], numPatches, nametmp, this);
    }
    else if( filename != NULL ) {
-      //check status?
-      readWeights(patches, numPatches, filename, callingConn);
+      //!!!TODO!!! check status
+      // !!!TODO!!! since each arbor is written to it's own file, need to add method for automatically generating filename for each arbor from base name
+      char nametmp[PV_PATH_MAX];
+      if(callingConn->numberOfAxonalArborLists()>1){  // assume filename is a base name that requires addition of "_a*" to specify arbor
+         snprintf(nametmp, PV_PATH_MAX-1, "%s_a%1.1d_last.pvp", filename, arborId);
+         readWeights(patches, numPatches, nametmp, callingConn);
+      }
+      else{
+         readWeights(patches, numPatches, filename, callingConn);
+      }
    }
    else {
       weightParams = createNewWeightParams(callingConn);
@@ -157,7 +167,7 @@ int InitWeights::readWeights(PVPatch ** patches, int numPatches, const char * fi
       exit(1);
    }
 
-   return 1;
+   return PV_SUCCESS;
 }
 
 /*
