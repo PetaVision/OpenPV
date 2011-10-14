@@ -490,16 +490,20 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
 {
    int status = PV_SUCCESS;
    const int num_kernels = numDataPatches();
+
+   // symmetrize before normalization
+   if ( symmetrizeWeightsFlag ){
+      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+         status = symmetrizeWeights(kernelPatches[kArbor], num_kernels, kArbor);
+         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+      }
+   }
+
+   // normalize after symmetrization
    if (this->normalize_arbors_individually) {
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
          status = HyPerConn::normalizeWeights(kernelPatches[kArbor], num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-      }
-      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         if ( symmetrizeWeightsFlag ){
-            status = symmetrizeWeights(kernelPatches[arborId], num_kernels, arborId);
-            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-         }
       }
       status = PV_BREAK;
    }
@@ -523,12 +527,6 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
          }
          status = checkNormalizeArbor(patches, numPatches, arborId);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-            if ( symmetrizeWeightsFlag ){
-               status = symmetrizeWeights(kernelPatches[kArbor], num_kernels, kArbor);
-               assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-            }
-         } // kArbor
       } // kPatch < numPatches
       status = PV_BREAK;
    } // numberOfAxonalArborLists() != 1

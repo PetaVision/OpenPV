@@ -71,7 +71,7 @@ int scaleCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, doubl
    assert(nx == distractorWpatch->nx);
    assert(ny == distractorWpatch->ny);
    assert(nf == distractorWpatch->nf);
-   pvdata_t shift_val = (sum_denom != 0.0f) ? ((1.0f/2.0f) * sum_weights / sum_denom) : 0.0f;
+   pvdata_t shift_val = 0; //(sum_denom != 0.0f) ? ((1.0f/2.0f) * sum_weights / sum_denom) : 0.0f;
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
          pvdata_t denom_tmp = targetWeights[iWeight] + distractorWeights[iWeight];
@@ -104,23 +104,23 @@ int CliqueApplyConn::normalizeWeights(PVPatch ** patches, int numPatches, int ar
    }
    double sum_weights = 0.0f;
    double sum_denom = 0.0f;
-   float tol = 0.001;
+   float tol = 0.0f; //0.001;
    int loop_count = 0;
-   int max_loop_count = 10;
+   int max_loop_count = 1;
    for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
       PVPatch * targetWpatch = this->getKernelPatch(0,kPatch);
       PVPatch * distractorWpatch = this->getKernelPatch(1,kPatch);
       status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       loop_count = 0;
-      while((fabs(sum_weights) > tol) && (loop_count < max_loop_count)){
+      while((fabs(sum_denom) > tol) && (loop_count < max_loop_count)){
          status = scaleCliqueWeights(targetWpatch, distractorWpatch, sum_denom, sum_weights);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          loop_count++;
        } // while
-      if (loop_count >= max_loop_count) { // aroborId == 0 -> target kernel, aroborId == 1 -> distractor kernel
+      if (loop_count > max_loop_count) { // aroborId == 0 -> target kernel, aroborId == 1 -> distractor kernel
          fprintf(stderr, "CliqueApplyConn::%s::normalizeWeights, loop_count = %d >= max_loop_count = %d", this->name, loop_count, max_loop_count);
          fprintf(stderr, "\n");
          return PV_FAILURE;
