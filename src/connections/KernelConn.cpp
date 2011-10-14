@@ -478,8 +478,13 @@ int KernelConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbo
       int num_weights = nxp * nyp * nfp * numberOfAxonalArborLists();
       float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = checkNormalizeWeights(kernelPatches[kArbor][kPatch], sumAll, sigma2, maxAll);
-         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+         if( sumAll != 0 || sigma2 != 0 ) {
+            status = checkNormalizeWeights(kernelPatches[kArbor][kPatch], sumAll, sigma2, maxAll);
+            assert(status == PV_SUCCESS );
+         }
+         else {
+            fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n", name, kArbor, kPatch);
+         }
       }
    }
    return PV_BREAK;

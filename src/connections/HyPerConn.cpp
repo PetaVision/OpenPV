@@ -2701,6 +2701,7 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
 // only checks for certain combinations of normalize parameter settings
 int HyPerConn::checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal)
 {
+   assert( sum != 0 || sigma2 != 0 ); // Calling routine should make sure this condition is met.
    float tol = 0.01f;
    assert(wp != NULL);
    if (normalize_zero_offset && (normalize_cutoff == 0.0f)){  // condition may be violated is normalize_cutoff != 0.0f
@@ -2733,8 +2734,13 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbor
       status = sumWeights(wp, &sum, &sum2, &maxVal);
       int num_weights = wp->nx * wp->ny * wp->nf;
       float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
-      status = checkNormalizeWeights(wp, sum, sigma2, maxVal);
-      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+      if( sum != 0 || sigma2 != 0 ) {
+         status = checkNormalizeWeights(wp, sum, sigma2, maxVal);
+         assert( status == PV_SUCCESS );
+      }
+      else {
+         fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, patch %d has all zero weights.\n", name, arborId, k);
+      }
    }
    return PV_SUCCESS;
 } // checkNormalizeArbor
