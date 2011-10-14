@@ -1,4 +1,4 @@
-function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
+function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn, j_arbor)
   
   global SPIKE_PATH 
   global N NROWS NCOLS % for the current layer
@@ -20,7 +20,11 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   
 				% PetaVision always names spike files aN.pvp, where
 				% N == layer index (starting at 0)
-  filename = ['w', num2str(i_conn-1),'_last.pvp'];
+  if j_arbor == 0
+    filename = ['w', num2str(i_conn-1),'_last.pvp'];
+  else
+    filename = ['w', num2str(i_conn-1),'_a', num2str(j_arbor-1), '_last.pvp'];
+  endif    
   filename = [SPIKE_PATH, filename];
   
   fprintf(["read connection weights from %s\n"],filename);
@@ -54,7 +58,7 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn)
   num_patches = pvp_header(pvp_index.WGT_NUMPATCHES);
   NX_PROCS = pvp_header(pvp_index.NX_PROCS);
   NY_PROCS = pvp_header(pvp_index.NY_PROCS);
-  num_patches = num_patches / (NX_PROCS * NY_PROCS);
+  num_patches = num_patches; %% / (NX_PROCS * NY_PROCS);  %% latest PV fileio writes mpi independent kernels
   
 				%  if ( weight_max < -1 ) && ( weight_min == 0 )
 				%    weight_max = - 1 / weight_max;
