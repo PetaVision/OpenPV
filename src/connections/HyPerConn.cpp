@@ -2724,6 +2724,9 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbor
    int status = PV_SUCCESS;
    for (int k = 0; k < numPatches; k++) {
       PVPatch * wp = patches[k];
+      if( wp->nx < nxp || wp->ny < nyp ) {
+         continue;  // Normalization of shrunken patches used unshrunken part, which is no longer available
+      }
       double sum = 0;
       double sum2 = 0;
       float maxVal = -FLT_MAX;

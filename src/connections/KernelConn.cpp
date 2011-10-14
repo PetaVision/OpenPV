@@ -525,9 +525,9 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
             status = scaleWeights(kernelPatches[kArbor][kPatch], sumAll, sum2All, maxAll);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
-         status = checkNormalizeArbor(patches, numPatches, arborId);
-         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       } // kPatch < numPatches
+      status = checkNormalizeArbor(patches, numPatches, arborId);
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       status = PV_BREAK;
    } // numberOfAxonalArborLists() != 1
    return status;
