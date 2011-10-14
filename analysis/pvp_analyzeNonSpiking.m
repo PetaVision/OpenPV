@@ -63,8 +63,8 @@ global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 11;
-num_trials = 100; %% 0; %%  %% cannot exceed ~1024 for 256x256 image because
+num_single_trials = 51;
+num_trials = 1000; %%  %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -103,7 +103,7 @@ machine_path = ...
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "Clique2/input/Car/canny/test"];
+    [machine_path "Clique2/input/amoeba/test"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
@@ -118,7 +118,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "Clique2/input/NotCar/canny/test"];
+    [machine_path "Clique2/input/noamoeba/test"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
@@ -605,158 +605,164 @@ endif
 
 %% plot connections
 if plot_weights_flag == 1
-global N_CONNECTIONS
-global NXP NYP NFP
-[connID, connIndex] = pvp_connectionID();
-if TRAINING_FLAG > 0
-  plot_weights = []; %N_CONNECTIONS;
-else
-  if max_target_flag > min_target_flag
-    plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+  global N_CONNECTIONS
+  global NXP NYP NFP
+  global NUM_ARBORS
+  NUM_ARBORS = 2;
+  [connID, connIndex, num_arbors] = pvp_connectionID();
+  if TRAINING_FLAG > 0
+    plot_weights = []; %N_CONNECTIONS;
   else
-    plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    if max_target_flag > min_target_flag
+      plot_weights = ( N_CONNECTIONS ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    else
+      plot_weights = ( N_CONNECTIONS ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+    endif
   endif
-endif
-weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-weight_invert(6) = 1; %% deprecated, CliqueConn uses only positive weights
-weight_invert(9) = 1; %%-1;
-weight_invert(12) = 1; %%-1;
-pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-FLAT_ARCH_FLAG = 0;
-write_pvp_kernel_flag = 1;
-write_mat_kernel_flag = 1;
-weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), 1);
-for i_conn = plot_weights
-  weight_type{i_conn} = kernel_str;
-  weight_min = 10000000.;
-  weight_max = -10000000.;
-  weight_ave = 0;
-  if i_conn < N_CONNECTIONS+1
-    [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, ...
-     pvp_conn_header{i_conn}, pvp_index ] ...
-	= pvp_readWeights(i_conn);
-    pvp_conn_header_tmp = pvp_conn_header{i_conn};
-    NXP = pvp_conn_header_tmp(pvp_index.WGT_NXP);
-    NYP = pvp_conn_header_tmp(pvp_index.WGT_NYP);
-    NFP = pvp_conn_header_tmp(pvp_index.WGT_NFP);
-    if NXP <= 1 || NYP <= 1
-      continue;
-    endif
-    num_patches = NFP; %%pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
-    for i_patch = 1:num_patches
-      weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
-      weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
-      weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    endfor
-    weight_ave = weight_ave / num_patches;
-    disp( ['weight_min = ', num2str(weight_min)] );
-    disp( ['weight_max = ', num2str(weight_max)] );
-    disp( ['weight_ave = ', num2str(weight_ave)] );
-    if ~TRAINING_FLAG
-      continue;
-    endif
-  elseif i_conn == N_CONNECTIONS + 1
-    w_max_target = max(weight_invert(i_conn-2)*weights{i_conn-2}{i_patch}(:));
-    w_max_distractor = max(weight_invert(i_conn-1)*weights{i_conn-1}{i_patch}(:));
-    disp('calculating geisler kernels');
-    pvp_conn_header{i_conn} = pvp_conn_header{i_conn-2};
-    pvp_conn_header_tmp = pvp_conn_header{i_conn};
-    num_patches = NFP; %%pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
-    nxp{i_conn} = nxp{i_conn-2};
-    nyp{i_conn} = nyp{i_conn-2};
-    for i_patch = 1:num_patches
-      weights{i_conn}{i_patch} = ...
-	  2*(weight_invert(i_conn-2)*weights{i_conn-2}{i_patch} - ...
-	     weight_invert(i_conn-1)*weights{i_conn-1}{i_patch}) ./ ...
-	  (weights{i_conn-1}{i_patch} + ...
-	   ((weights{i_conn-2}{i_patch} + (weights{i_conn-2}{i_patch}==0) * ...
-	     w_max_distractor) ./ ...
-	    w_max_target) .* ...
-	   (weights{i_conn-1}{i_patch}==0));
-      weight_min = min( min(weights{i_conn}{i_patch}(:)), weight_min );
-      weight_max = max( max(weights{i_conn}{i_patch}(:)), weight_max );
-      weight_ave = weight_ave + mean(weights{i_conn}{i_patch}(:));
-    endfor
-    weight_ave = weight_ave / num_patches;
-    disp( ['weight_min = ', num2str(weight_min)] );
-    disp( ['weight_max = ', num2str(weight_max)] );
-    disp( ['weight_ave = ', num2str(weight_ave)] );
-    if write_pvp_kernel_flag
-      %%keyboard;
-      NCOLS = pvp_conn_header_tmp(pvp_index.NX);
-      NROWS = pvp_conn_header_tmp(pvp_index.NY);
-      NFEATURES = pvp_conn_header_tmp(pvp_index.NF);
-      N = NROWS * NCOLS * NFEATURES;
-      weights_size = [ NFP, NXP, NYP];
-      pvp_writeKernel( weights{i_conn}, weights_size, kernel_str );
-    endif % write_pvp_kernel_flag
-  else
-    continue;
-  endif  % i_conn < N_CONNECTIONS + 1
-  if write_mat_kernel_flag
-    mat_weights = weights{i_conn};
-    mat_weights_filename = ...
-	[kernel_str, num2str(expNum), '_', num2str(i_conn), '.mat']
-    mat_weights_filename = [twoAFC_path, mat_weights_filename]
-    %%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
-    save('-mat', mat_weights_filename, 'mat_weights');
-  endif % write_mat_kernel_flag
-  NK = 1;
-  NO = floor( NFEATURES / NK );
-  skip_patches = 1; %%num_patches;
-  for i_patch = 1 : skip_patches : num_patches
-    NCOLS = nxp{i_conn}(i_patch);
-    NROWS = nyp{i_conn}(i_patch);
-    N = NROWS * NCOLS * NFEATURES;
-    patch_size = [1 NFEATURES  NCOLS NROWS];
-    NO = NFP;
-    plot_name = ...
-	[connID{i_conn}, '(', ...
-			   int2str(i_conn), ',', ...
-			   int2str(i_patch), ')' ];
-    pixels_per_cell = 5;
-    [fig_tmp, recon_colormap] = ...
-	pvp_reconstruct(weights{i_conn}{i_patch}*weight_invert(i_conn), ...
-			plot_name, ...
-			[], patch_size, [], ...
-			pixels_per_cell);
-    fig_list = [fig_list; fig_tmp];
-    plot_recon_subsection = 0;
-    plot_recon_subsection
-    if plot_recon_subsection
-      weights_sub = ...
-	  weights{i_conn}{i_patch}*weight_invert(i_conn);
-      weights_sub = ...
-	  reshape(weights_sub, patch_size);
-      sub_size = floor( NROWS / 8 );
-      row_start = 1 + sub_size;
-      row_end = row_start + sub_size - 1;
-      col_start = 1 + sub_size;
-      col_end = col_start + sub_size - 1;
-      weights_sub = ...
-	  weights_sub(1,:, col_start:col_end, row_start:row_end);
-      patch_size_sub = [1 NFEATURES  sub_size sub_size];
-      plot_name_sub = ...
-	[connID{i_conn}, '(', ...
-			   int2str(i_conn), ',', ...
-			   int2str(i_patch), ')', ...
-	 " insert"];
-      pixels_per_cell_sub = 5*sub_size;
-      [fig_sub, recon_colormap] = ...
-	  pvp_reconstruct(weights_sub(:), ...
-			  plot_name_sub, ...
-			  [], patch_size_sub, [], ...
-			  pixels_per_cell_sub);
-      fig_list = [fig_list; fig_sub];      
-    endif
-  endfor % i_patch
-endfor % i_conn
-FLAT_ARCHITECTURE = 0;
+  weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  weight_invert(5,2) = -1; %% 
+  weight_invert(7,2) = -1; %%-1;
+  weight_invert(9,2) = -1; %%-1;
+  pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  FLAT_ARCH_FLAG = 0;
+  write_pvp_kernel_flag = 1;
+  write_mat_kernel_flag = 1;
+  weight_type = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  for i_conn = plot_weights
+    for i_arbor = 1 : num_arbors(i_conn)
+      if num_arbors(i_conn) == 1;
+	j_arbor = 0;
+      else
+	j_arbor = i_arbor;
+      endif
+      weight_type{i_conn, i_arbor} = kernel_str;
+      weight_min = 10000000.;
+      weight_max = -10000000.;
+      weight_ave = 0;
+      if i_conn < N_CONNECTIONS+1
+	[weights{i_conn, i_arbor}, nxp{i_conn, i_arbor}, nyp{i_conn, i_arbor}, ...
+	 pvp_conn_header{i_conn, i_arbor}, pvp_index ] ...
+	    = pvp_readWeights(i_conn, j_arbor);
+	pvp_conn_header_tmp = pvp_conn_header{i_conn, i_arbor};
+	NXP = pvp_conn_header_tmp(pvp_index.WGT_NXP);
+	NYP = pvp_conn_header_tmp(pvp_index.WGT_NYP);
+	NFP = pvp_conn_header_tmp(pvp_index.WGT_NFP);
+	if NXP <= 1 || NYP <= 1
+	  continue;
+	endif
+	num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+	for i_patch = 1:num_patches
+	  weight_min = min( min(weights{i_conn,i_arbor}{i_patch}(:)), weight_min );
+	  weight_max = max( max(weights{i_conn,i_arbor}{i_patch}(:)), weight_max );
+	  weight_ave = weight_ave + mean(weights{i_conn, i_arbor}{i_patch}(:));
+	endfor
+	weight_ave = weight_ave / num_patches;
+	disp( ['weight_min = ', num2str(weight_min)] );
+	disp( ['weight_max = ', num2str(weight_max)] );
+	disp( ['weight_ave = ', num2str(weight_ave)] );
+	if ~TRAINING_FLAG
+	  continue;
+	endif
+      elseif i_conn == N_CONNECTIONS + 1
+	w_max_target = max(weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch}(:));
+	w_max_distractor = max(weight_invert(i_conn-1,2)*weights{i_conn-1,2}{i_patch}(:));
+	disp('calculating geisler kernels');
+	pvp_conn_header{i_conn} = pvp_conn_header{i_conn-1,1};
+	pvp_conn_header_tmp = pvp_conn_header{i_conn,1};
+	num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+	nxp{i_conn} = nxp{i_conn-1,1};
+	nyp{i_conn} = nyp{i_conn-1,1};
+	for i_patch = 1:num_patches
+	  weights{i_conn,i_arbor}{i_patch} = ...
+	      (weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch} - ...
+	       weight_invert(i_conn-1,2)*weights{i_conn-1,2}{i_patch});
+	  weight_min = min( min(weights{i_conn,1}{i_patch}(:)), weight_min );
+	  weight_max = max( max(weights{i_conn,1}{i_patch}(:)), weight_max );
+	  weight_ave = weight_ave + mean(weights{i_conn,1}{i_patch}(:));
+	endfor
+	weight_ave = weight_ave / num_patches;
+	disp( ['weight_min = ', num2str(weight_min)] );
+	disp( ['weight_max = ', num2str(weight_max)] );
+	disp( ['weight_ave = ', num2str(weight_ave)] );
+	if write_pvp_kernel_flag
+	  %%keyboard;
+	  NCOLS = pvp_conn_header_tmp(pvp_index.NX);
+	  NROWS = pvp_conn_header_tmp(pvp_index.NY);
+	  NFEATURES = pvp_conn_header_tmp(pvp_index.NF);
+	  N = NROWS * NCOLS * NFEATURES;
+	  weights_size = [ NFP, NXP, NYP];
+	  pvp_writeKernel( weights{i_conn,i_arbor}, weights_size, kernel_str );
+	endif % write_pvp_kernel_flag
+      else
+	continue;
+      endif  % i_conn < N_CONNECTIONS + 1
+      if write_mat_kernel_flag
+	mat_weights = weights{i_conn,i_arbor};
+	mat_weights_filename = ...
+	    [kernel_str, num2str(expNum), '_', num2str(i_conn), '_a', num2str(i_arbor), '.mat']
+	mat_weights_filename = [twoAFC_path, mat_weights_filename]
+	%%save("-z", "-mat", geisler_weights_filename, "geisler_weights");
+	save('-mat', mat_weights_filename, 'mat_weights');
+      endif % write_mat_kernel_flag
+      NK = 1;
+      NO = floor( NFEATURES / NK );
+      skip_patches = 1; %%num_patches;
+      for i_patch = 1 : skip_patches : num_patches
+	NCOLS = nxp{i_conn, i_arbor}(i_patch);
+	NROWS = nyp{i_conn, i_arbor}(i_patch);
+	N = NROWS * NCOLS * NFEATURES;
+	patch_size = [1 NFEATURES  NCOLS NROWS];
+	NO = NFP;
+	plot_name = ...
+	    [connID{i_conn}, '(', ...
+			       int2str(i_conn), ',', ...
+			       int2str(i_arbor), ',', ...
+			       int2str(i_patch), ')' ];
+	pixels_per_cell = 5;
+	[fig_tmp, recon_colormap] = ...
+	    pvp_reconstruct(weights{i_conn,i_arbor}{i_patch}*weight_invert(i_conn,i_arbor), ...
+			    plot_name, ...
+			    [], patch_size, [], ...
+			    pixels_per_cell);
+	fig_list = [fig_list; fig_tmp];
+	plot_recon_subsection = 0;
+	plot_recon_subsection
+	if plot_recon_subsection
+	  weights_sub = ...
+	      weights{i_conn,i_arbor}{i_patch}*weight_invert(i_conn,i_arbor);
+	  weights_sub = ...
+	      reshape(weights_sub, patch_size);
+	  sub_size = floor( NROWS / 8 );
+	  row_start = 1 + sub_size;
+	  row_end = row_start + sub_size - 1;
+	  col_start = 1 + sub_size;
+	  col_end = col_start + sub_size - 1;
+	  weights_sub = ...
+	      weights_sub(1,:, col_start:col_end, row_start:row_end);
+	  patch_size_sub = [1 NFEATURES  sub_size sub_size];
+	  plot_name_sub = ...
+	      [connID{i_conn}, '(', ...
+				 int2str(i_conn), ',', ...
+				 int2str(i_arbor), ',', ...
+				 int2str(i_patch), ')', ...
+	       " insert"];
+	  pixels_per_cell_sub = 5*sub_size;
+	  [fig_sub, recon_colormap] = ...
+	      pvp_reconstruct(weights_sub(:), ...
+			      plot_name_sub, ...
+			      [], patch_size_sub, [], ...
+			      pixels_per_cell_sub);
+	  fig_list = [fig_list; fig_sub];      
+	endif
+      endfor %% i_patch
+    endfor %% i_arbor
+  endfor %% i_conn
+  FLAT_ARCHITECTURE = 0;
 
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endif
