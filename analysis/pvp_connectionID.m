@@ -1,10 +1,11 @@
 function [connID, connIndex, num_arbors] = pvp_connectionID()
 
-  connIndex = struct;
-  ij_conn = 0;
   global N_CONNECTIONS
   global SPIKING_FLAG
   global TRAINING_FLAG
+  global NUM_ARBORS
+  connIndex = struct;
+  ij_conn = 0;
 
   if ( SPIKING_FLAG == 1 )
     
