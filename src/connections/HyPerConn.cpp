@@ -92,7 +92,7 @@ HyPerConn::~HyPerConn()
       free(clWeights);
       clWeights = NULL;
    }
-#endif
+#endif // PV_USE_OPENCL
 
    // assert(params != NULL); // freeing a null pointer is not an error
    //free(params);
@@ -141,18 +141,6 @@ int HyPerConn::initialize_base()
 
    this->update_timer = new Timer();
 
-#ifdef OBSOLETE_STDP
-   // STDP parameters for modifying weights
-   this->pIncr = NULL;
-   this->pDecr = NULL;
-   this->ampLTP = 1.0;
-   this->ampLTD = 1.1;
-   this->tauLTP = 20;
-   this->tauLTD = 20;
-   this->dWMax = 0.1;
-   this->stdpFlag = false;
-   this->localWmaxFlag = false;
-#endif
    this->wMin = 0.0;
    this->wMax = 1.0;
    this->wPostTime = -1.0;
@@ -220,10 +208,6 @@ int HyPerConn::constructWeights(const char * filename)
       assert(arborPatch != NULL);
       setWPatches(arborPatch, arborId);
       //wPatches[arborId] = createWeights(wPatches[arborId]); //allocates memory for weights
-
-   #ifdef OBSOLETE_STDP
-      initializeSTDP();
-   #endif
 
       // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
       //  weight patches may shrink
@@ -321,42 +305,6 @@ int HyPerConn::initShrinkPatches() {
    return PV_SUCCESS;
 }
 
-
-#ifdef OBSOLETE_STDP
-/*
- * Using a dynamic_cast operator to convert (downcast) a pointer to a base class (HyPerLayer)
- * to a pointer to a derived class (LIF). This way I do not need to define a virtual
- * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
- * .
- */
-int HyPerConn::initializeSTDP()
-{
-   int arbor = 0;
-   if (stdpFlag) {
-      int numPatches = numWeightPatches(arbor);
-      pIncr = createWeights(NULL, numPatches, nxp, nyp, nfp);
-      assert(pIncr != NULL);
-      pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-      assert(pDecr != NULL);
-      
-      if(localWmaxFlag){
-         LIF * LIF_layer = dynamic_cast<LIF *>(post);
-         assert(LIF_layer != NULL);
-         Wmax = LIF_layer->getWmax();
-         assert(Wmax != NULL);
-      } else {
-         Wmax = NULL;
-      }
-   }
-   else {
-      pIncr = NULL;
-      pDecr = NULL;
-      Wmax  = NULL;
-   }
-   return 0;
-}
-#endif // OBSOLETE_STDP
-
 #ifdef OBSOLETE // marked Obsolete Oct 1, 2011.  We can use a default argument for weightInit instead of defining an extra form of the method
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename) {
@@ -414,7 +362,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #ifdef PV_USE_OPENCL
    initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
    initializeThreadKernels("HyPerLayer_recv_synaptic_input");
-#endif
+#endif // PV_USE_OPENCL
 
    return status;
 }
@@ -464,56 +412,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 {
    const char * name = getName();
 
-//   params = (PVConnParams *) malloc(sizeof(*p));
-//   assert(params != NULL);
-//   memcpy(params, p, sizeof(*p));
-//
-//   numParams = sizeof(*p) / sizeof(float);
-//   assert(numParams == 1); // catch changes in structure
-//
-//   params->delay    = (int) filep->value(name, "delay", params->delay);
-//   //params->fixDelay = (int) filep->value(name, "fixDelay", params->fixDelay);
-//
-//   //params->vel      = filep->value(name, "vel", params->vel);
-//   //params->rmin     = filep->value(name, "rmin", params->rmin);
-//   //params->rmax     = filep->value(name, "rmax", params->rmax);
-//
-//   //params->varDelayMin = (int) filep->value(name, "varDelayMin", params->varDelayMin);
-//   //params->varDelayMax = (int) filep->value(name, "varDelayMax", params->varDelayMax);
-//   //params->numDelay    = (int) filep->value(name, "numDelay"   , params->numDelay);
-//   //params->isGraded    = (int) filep->value(name, "isGraded"   , params->isGraded);
-//
-//   assert(params->delay < MAX_F_DELAY);
-   //params->numDelay = params->varDelayMax - params->varDelayMin + 1;
-
-   //
-   // now set params that are not in the params struct (instance variables)
-
-#ifdef OBSOLETE_STDP
-   stdpFlag = (bool) inputParams->value(name, "stdpFlag", (float) stdpFlag);
-   if (stdpFlag) {
-      ampLTP = inputParams->value(name, "ampLTP", ampLTP);
-      ampLTD = inputParams->value(name, "ampLTD", ampLTD);
-      tauLTP = inputParams->value(name, "tauLTP", tauLTP);
-      tauLTD = inputParams->value(name, "tauLTD", tauLTD);
-#endif
-
-      numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
-      plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true);
-      stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
-
-      // moved to STDPConn (not used elsewhere in project) !!! whoever keeps putting wMax back STOP!!!!
-      // let wMax override strength if user provides it
-      //wMax = filep->value(name, "wMax", wMax);
-      //wMin = filep->value(name, "wMin", wMin);
-
-#ifdef OBSOLETE_STDP
-      dWMax = inputParams->value(name, "dWMax", dWMax);
-
-      // set params for rate dependent Wmax
-      localWmaxFlag = (bool) inputParams->value(name, "localWmaxFlag", (float) localWmaxFlag);
-   }
-#endif
+   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
+   plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true);
+   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
 
@@ -523,56 +424,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, const char * filename)
 {
-   // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an InitWeightsMethod
-   //       instantiation as an argument.  The routines called below would be put into derived classes
-   //       of InitWeightsMethod.
-//   PVParams * inputParams = parent->parameters();
-//
-//   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-//   int randomFlag = inputParams->value(getName(), "randomFlag", 0.0f, false) != 0;
-//   int smartWeights = inputParams->value(getName(), "smartWeights",0.0f, false) != 0;
-//   int cocircWeights = inputParams->value(getName(), "cocircWeights",0.0f, false) != 0;
-
-//   if( filename != NULL ) {
-//      //readWeights(patches, numPatches, filename);
-//   }
-//   else if (initFromLastFlag) {
-//      char name[PV_PATH_MAX];
-//      snprintf(name, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
-//      //readWeights(patches, numPatches, name);
-//   }
-//   else if (randomFlag) { // if (randomFlag != 0 || randomSeed != 0) {
-//       initializeRandomWeights(patches, numPatches);
-//   }
-//   else if (smartWeights) {
-//       initializeSmartWeights(patches, numPatches);
-//   }
-//   else if (cocircWeights) {
-//       initializeCocircWeights(patches, numPatches);
-//   }
-//   else {
-//      inputParams->value(getName(), "gauss2DCalcWeights", 1.0f, true); // generate message if no method was set in params.
-//      initializeDefaultWeights(patches, numPatches);
-//   }
-
    for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
-
-//      if (initFromLastFlag) {
-//         char nametmp[PV_PATH_MAX];
-//         snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", parent->getOutputPath(), getConnectionId());
-//         weightInitializer->initializeWeights(arbors[arborId], numPatches, nametmp, this);
-//      }
-//      else {
       weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
-   } // arborId
-
-         //call to original for comparing result with my new one:
-         //initializeDefaultWeights(patches, numPatches);
-         //initializeCocircWeights(patches, numPatches);
-         //initializeSmartWeights(patches, numPatches);
-//      }
-
-      // bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
+   }
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
@@ -718,7 +572,7 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
 
    return status;
 }
-#endif
+#endif // PV_USE_OPENCL
 
 int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
@@ -758,210 +612,6 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 int HyPerConn::correctPIndex(int patchIndex) {
    return patchIndex;
 }
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-/*!
- * NOTES:
- *    - numPatches also counts the neurons in the boundary layer. It gives the size
- *    of the extended neuron space.
- *
- */
-// PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches,
-//      int seed)
-PVPatch ** HyPerConn::initializeRandomWeights(PVPatch ** patches, int numPatches)
-{
-   PVParams * inputParams = parent->parameters();
-
-   float uniform_weights = inputParams->value(getName(), "uniformWeights", 1.0f, false);
-   float gaussian_weights = inputParams->value(getName(), "gaussianWeights", 0.0f, false);
-
-   if (uniform_weights && gaussian_weights) {
-      fprintf(stderr,"multiple random weights distributions defined:  Exiting\n");
-      exit(PV_FAILURE);
-   }
-
-   if( !(uniform_weights || gaussian_weights) ) {
-      fprintf(stderr,"When randomFlag is set, either uniformWeights or gaussianWeights must be specified.  Exiting\n");
-      exit(PV_FAILURE);
-   }
-
-   if(uniform_weights) {
-      inputParams->value(getName(), "uniformWeights", uniform_weights, true); // generate warning if uniformWeights set by default
-   }
-
-   if (uniform_weights) {
-      float wMinInit = inputParams->value(getName(), "wMinInit", (float) wMin);
-      float wMaxInit = inputParams->value(getName(), "wMaxInit", (float) wMax);
-
-      for (int k = 0; k < numPatches; k++) {
-         uniformWeights(patches[k], wMinInit, wMaxInit);
-         // uniformWeights(patches[k], wMinInit, wMaxInit, &seed); // MA
-      }
-   }
-   else if (gaussian_weights) {
-         float wGaussMean = inputParams->value(getName(), "wGaussMean", 0.5f);
-         float wGaussStdev = inputParams->value(getName(), "wGaussStdev", 0.1f);
-         // int seed = (int) inputParams->value(getName(), "randomSeed", 0);
-         // randomSeed now part of HyPerCol
-         for (int k = 0; k < numPatches; k++) {
-            gaussianWeights(patches[k], wGaussMean, wGaussStdev);
-            // gaussianWeights(patches[k], wGaussMean, wGaussStdev, &seed); // MA (seed not used)
-         }
-      }
-   else{
-      // fprintf(stderr,"no random weights distribution was defined: exit\n");
-      // exit(-1);
-      assert(0); // Because of the checking done before this if-statement, it should be impossible to reach here.
-   }
-   return patches;
-}
-
-/*!
- * NOTES:
- *    - numPatches also counts the neurons in the boundary layer. It gives the size
- *    of the extended neuron space.
- *
- */
-PVPatch ** HyPerConn::initializeSmartWeights(PVPatch ** patches, int numPatches)
-{
-
-   for (int k = 0; k < numPatches; k++) {
-      smartWeights(patches[k], k); // MA
-   }
-   return patches;
-}
-
-
-PVPatch ** HyPerConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)
-{
-   return initializeGaussian2DWeights(patches, numPatches);
-}
-
-PVPatch ** HyPerConn::initializeGaussian2DWeights(PVPatch ** patches, int numPatches)
-{
-   PVParams * params = parent->parameters();
-
-   // default values (chosen for center on cell of one pixel)
-   int noPost = nfp;
-   float aspect = 1.0; // circular (not line oriented)
-   float sigma = 0.8;
-   float rMax = 1.4;
-   float strength = 1.0;
-   float deltaThetaMax = 2.0f * PI;  // max difference in orientation between pre and post
-   float thetaMax = 1.0;  // max orientation in units of PI
-   int numFlanks = 1;
-   float shift = 0.0f;
-   float rotate = 0.0f;   // rotate so that axis isn't aligned
-   float bowtieFlag = 0.0f;  // flag for setting bowtie angle
-   float bowtieAngle = PI * 2.0f;  // bowtie angle
-
-   aspect   = params->value(name, "aspect", aspect);
-   sigma    = params->value(name, "sigma", sigma);
-   rMax     = params->value(name, "rMax", rMax);
-   strength = params->value(name, "strength", strength);
-   if (nfp > 1) {
-      noPost = (int) params->value(post->getName(), "no", nfp);
-      deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
-      thetaMax = params->value(name, "thetaMax", thetaMax);
-      numFlanks = (int) params->value(name, "numFlanks", (float) numFlanks);
-      shift = params->value(name, "flankShift", shift);
-      rotate = params->value(name, "rotate", rotate);
-      bowtieFlag = params->value(name, "bowtieFlag", bowtieFlag);
-      if (bowtieFlag == 1.0f) {
-         bowtieAngle = params->value(name, "bowtieAngle", bowtieAngle);
-      }
-   }
-
-   float r2Max = rMax * rMax;
-
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
-   }
-
-   return patches;
-}
-
-PVPatch ** HyPerConn::initializeCocircWeights(PVPatch ** patches, int numPatches)
-{
-   PVParams * params = parent->parameters();
-   float aspect = 1.0; // circular (not line oriented)
-   float sigma = 0.8;
-   float rMax = 1.4;
-   float strength = 1.0;
-
-   aspect = params->value(name, "aspect", aspect);
-   sigma = params->value(name, "sigma", sigma);
-   rMax = params->value(name, "rMax", rMax);
-   strength = params->value(name, "strength", strength);
-
-   float r2Max = rMax * rMax;
-
-   int numFlanks = 1;
-   float shift = 0.0f;
-   float rotate = 0.0f; // rotate so that axis isn't aligned
-
-   numFlanks = (int) params->value(name, "numFlanks", numFlanks);
-   shift = params->value(name, "flankShift", shift);
-   rotate = params->value(name, "rotate", rotate);
-
-   int noPre = pre->getLayerLoc()->nf;
-   noPre = (int) params->value(name, "noPre", noPre);
-   assert(noPre > 0);
-   assert(noPre <= pre->getLayerLoc()->nf);
-
-   int noPost = post->getLayerLoc()->nf;
-   noPost = (int) params->value(name, "noPost", noPost);
-   assert(noPost > 0);
-   assert(noPost <= post->getLayerLoc()->nf);
-
-   float sigma_cocirc = PI / 2.0;
-   sigma_cocirc = params->value(name, "sigmaCocirc", sigma_cocirc);
-
-   float sigma_kurve = 1.0; // fraction of delta_radius_curvature
-   sigma_kurve = params->value(name, "sigmaKurve", sigma_kurve);
-
-   // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   float sigma_chord = 0.5;
-   sigma_chord = params->value(name, "sigmaChord", sigma_chord);
-
-   float delta_theta_max = PI / 2.0;
-   delta_theta_max = params->value(name, "deltaThetaMax", delta_theta_max);
-
-   float cocirc_self = (pre != post);
-   cocirc_self = params->value(name, "cocircSelf", cocirc_self);
-
-   // from pv_common.h
-   // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   float delta_radius_curvature = 1.0; // 1 = minimum radius of curvature
-   delta_radius_curvature = params->value(name, "deltaRadiusCurvature",
-         delta_radius_curvature);
-
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      cocircCalcWeights(patches[patchIndex], patchIndex, noPre, noPost, sigma_cocirc,
-            sigma_kurve, sigma_chord, delta_theta_max, cocirc_self,
-            delta_radius_curvature, numFlanks, shift, aspect, rotate, sigma, r2Max,
-            strength);
-   }
-
-   return patches;
-}
-
-PVPatch ** HyPerConn::readWeights(PVPatch ** patches, int numPatches, const char * filename)
-{
-   double time;
-   int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
-                                &time, pre->getLayerLoc(), true, fileType);
-
-   if (status != 0) {
-      fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
-      exit(1);
-   }
-
-   return patches;
-}
-#endif
-
 
 int HyPerConn::writeWeights(float time, bool last)
 {
@@ -1028,7 +678,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
    int arbor = 0;
    pv_tiff_write_patch(fd, patches);
    fclose(fd);
-#endif
+#endif // DEBUG_WEIGHTS
 
    return status;
 }
@@ -1116,7 +766,7 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 
    return status;
 }
-#endif
+#endif // PV_USE_OPENCL
 
 int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 {
@@ -1125,7 +775,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    printf("[%d]: HyPerConn::deliver: neighbor=%d cube=%p post=%p this=%p\n", rank, neighbor, cube, post, this);
    fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
 
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       int delay = getDelay(arborId);
@@ -1138,7 +788,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 #ifdef DEBUG_OUTPUT
    printf("[%d]: HyPerConn::delivered: \n", rank);
    fflush(stdout);
-#endif
+#endif // DEBUG_OUTPUT
    return 0;
 }
 
@@ -1170,29 +820,12 @@ int HyPerConn::outputState(float time, bool last)
    if (last) {
       status = writeWeights(time, last);
       assert(status == 0);
-
-#ifdef OBSOLETE_STDP
-      if (stdpFlag) {
-         convertPreSynapticWeights(time);
-         status = writePostSynapticWeights(time, last);
-         assert(status == 0);
-      }
-#endif
-
    }
    else if ( (time >= writeTime) && (writeStep >= 0) ) {
       writeTime += writeStep;
 
       status = writeWeights(time, last);
       assert(status == 0);
-
-#ifdef OBSOLETE_STDP
-      if ( stdpFlag ) {
-         convertPreSynapticWeights(time);
-         status = writePostSynapticWeights(time, last);
-         assert(status == 0);
-      }
-#endif
 
       // append to output file after original open
       ioAppend = true;
@@ -1204,29 +837,6 @@ int HyPerConn::outputState(float time, bool last)
 int HyPerConn::updateState(float time, float dt)
 {
    update_timer->start();
-
-#ifdef OBSOLETE_STDP
-
-   if (stdpFlag) {
-      const float fac = ampLTD;
-      const float decay = expf(-dt / tauLTD);
-
-      //
-      // both pDecr and activity are extended regions (plus margins)
-      // to make processing them together simpler
-
-      const int nk = pDecr->numItems;
-      const float * a = post->getLayerData();
-      float * m = pDecr->data; // decrement (minus) variable
-
-      for (int k = 0; k < nk; k++) {
-         m[k] = decay * m[k] - fac * a[k];
-      }
-
-      const int axonId = 0;       // assume only one for now
-      updateWeights(axonId);
-   }
-#endif
 
    int status;
    //const int axonId = 0;       // assume only one for now
@@ -1249,89 +859,6 @@ int HyPerConn::calc_dW(int axonId) {
  */
 int HyPerConn::updateWeights(int axonId)
 {
-#ifdef OBSOLETE_STDP
-   // Steps:
-   // 1. Update pDecr (assume already done as it should only be done once)
-   // 2. update Psij (pIncr) for each synapse
-   // 3. update wij
-
-   const float dt = parent->getDeltaTime();
-   const float decayLTP = expf(-dt / tauLTP);
-
-   const int numExtended = pre->getNumExtended();
-   assert(numExtended == numWeightPatches(axonId));
-
-   const pvdata_t * preLayerData = pre->getLayerData();
-
-   // this stride is in extended space for post-synaptic activity and
-   // STDP decrement variable
-   const int postStrideY = post->getLayerLoc()->nf
-                         * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
-
-   for (int kPre = 0; kPre < numExtended; kPre++) {
-      PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
-
-      const float preActivity = preLayerData[kPre];
-
-      PVPatch * pIncr   = arbor->plasticIncr;
-      PVPatch * w       = arbor->weights;
-      size_t postOffset = arbor->offset;
-
-      const float * postActivity = &post->getLayerData()[postOffset];
-      const float * M = &pDecr->data[postOffset];  // STDP decrement variable
-      float * P = pIncr->data;                     // STDP increment variable
-      float * W = w->data;
-
-      int nk  = pIncr->nf * pIncr->nx; // one line in x at a time
-      int ny  = pIncr->ny;
-      int sy  = pIncr->sy;
-
-      // TODO - unroll
-
-      // update Psij (pIncr variable)
-      // we are processing patches, one line in y at a time
-      for (int y = 0; y < ny; y++) {
-         pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
-      }
-
-      if (localWmaxFlag) {
-         // update weights with local post-synaptic Wmax values
-         // Wmax lives in the restricted space - it is controlled
-         // by average rate in the post synaptic layer
-         float * Wmax_pointer = &Wmax[postOffset];
-         for (int y = 0; y < ny; y++) {
-            // TODO
-            pvpatch_update_weights_localWMax(nk,W,M,P,preActivity,postActivity,dWMax,wMin,Wmax_pointer);
-            //
-            // advance pointers in y
-            W += sy;
-            P += sy;
-
-            //
-            // postActivity, M are extended post-layer variables
-            //
-            postActivity += postStrideY;
-            M            += postStrideY;
-            Wmax_pointer += postStrideY;
-         }
-      } else {
-         // update weights
-         for (int y = 0; y < ny; y++) {
-            pvpatch_update_weights(nk, W, M, P, preActivity, postActivity, dWMax, wMin, wMax);
-            //
-            // advance pointers in y
-            W += sy;
-            P += sy;
-            //
-            // postActivity and M are extended layer
-            postActivity += postStrideY;
-            M += postStrideY;
-         }
-
-      }
-   }
-#endif
-
    return 0;
 }
 
@@ -1356,17 +883,6 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    // a separate arbor/patch of weights for every neuron
    return wPatches[arbor][k];
 }
-
-#ifdef OBSOLETE_STDP
-PVPatch * HyPerConn::getPlasticityIncrement(int k, int arbor)
-{
-   // a separate arbor/patch of plasticity for every neuron
-   if (stdpFlag) {
-      return pIncr[k];
-   }
-   return NULL;
-}
-#endif
 
 PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
@@ -1427,18 +943,6 @@ int HyPerConn::deleteWeights()
       free(wPostPatches);
    }
 
-#ifdef OBSOLETE_STDP
-   if (stdpFlag) {
-      const int arbor = 0;
-      int numPatches = numWeightPatches(arbor);
-      for (int k = 0; k < numPatches; k++) {
-         pvpatch_inplace_delete(pIncr[k]);
-      }
-      free(pIncr);
-      pvcube_delete(pDecr);
-   }
-#endif
-
    return 0;
 }
 
@@ -1464,33 +968,6 @@ int HyPerConn::deleteWeights()
 int HyPerConn::createAxonalArbors(int arborId)
 {
    PVParams * inputParams = parent->parameters();
-#ifdef OBSOLETE
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
-
-   const int prePad  = lPre->loc.nb;
-   const int postPad = lPost->loc.nb;
-
-   const int nxPre  = lPre->loc.nx;
-   const int nyPre  = lPre->loc.ny;
-   const int kx0Pre = lPre->loc.kx0;
-   const int ky0Pre = lPre->loc.ky0;
-   const int nfPre  = lPre->loc.nf;
-
-   const int nxexPre = nxPre + 2 * prePad;
-   const int nyexPre = nyPre + 2 * prePad;
-
-   const int nxPost  = lPost->loc.nx;
-   const int nyPost  = lPost->loc.ny;
-   const int kx0Post = lPost->loc.kx0;
-   const int ky0Post = lPost->loc.ky0;
-   const int nfPost  = lPost->loc.nf;
-
-   const int nxexPost = nxPost + 2 * postPad;
-   const int nyexPost = nyPost + 2 * postPad;
-
-#endif
-   //const int numAxons = numAxonalArborLists;
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
@@ -1498,7 +975,7 @@ int HyPerConn::createAxonalArbors(int arborId)
    const int psx = nfp;
    const int psy = psx * post->getLayerLoc()->nx;
 
-   // activity and STDP M variable are extended into margins
+   // activity is extended into margins
    //
    //for (int n = 0; n < numAxons; n++) {
    int numPatches = numWeightPatches();
@@ -1517,77 +994,7 @@ int HyPerConn::createAxonalArbors(int arborId)
       PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
       // kex is in extended frame, this makes transformations more difficult
-
-#ifdef OBSOLETE
-      // local indices in extended frame
-      int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
-      int kyPre = kyPos(kex, nxexPre, nyexPre, nfPre);
-
-      // convert to global non-extended frame
-      kxPre += kx0Pre - prePad;
-      kyPre += ky0Pre - prePad;
-
-      // global non-extended post-synaptic frame
-      int kxPost = zPatchHead( kxPre, nxp, pre->getXScale(), post->getXScale() );
-      int kyPost = zPatchHead( kyPre, nyp, pre->getYScale(), post->getYScale() );
-
-      // TODO - can get nf from weight patch but what about kf0?
-      // weight patch is actually a pencil and so kfPost is always 0?
-      int kfPost = 0;
-
-      // convert to local non-extended post-synaptic frame
-      kxPost = kxPost - kx0Post;
-      kyPost = kyPost - ky0Post;
-
-      // adjust location so patch is in bounds
-      int dx = 0;
-      int dy = 0;
-      int nxPatch = nxp;
-      int nyPatch = nyp;
-
-      if (kxPost < 0) {
-         nxPatch -= -kxPost;
-         kxPost = 0;
-         if (nxPatch < 0) nxPatch = 0;
-         dx = nxp - nxPatch;
-      }
-      else if (kxPost + nxp > nxPost) {
-         nxPatch -= kxPost + nxp - nxPost;
-         if (nxPatch <= 0) {
-            nxPatch = 0;
-            kxPost  = nxPost - 1;
-         }
-      }
-
-      if (kyPost < 0) {
-         nyPatch -= -kyPost;
-         kyPost = 0;
-         if (nyPatch < 0) nyPatch = 0;
-         dy = nyp - nyPatch;
-      }
-      else if (kyPost + nyp > nyPost) {
-         nyPatch -= kyPost + nyp - nyPost;
-         if (nyPatch <= 0) {
-            nyPatch = 0;
-            kyPost  = nyPost - 1;
-         }
-      }
-
-      // if out of bounds in x (y), also out in y (x)
-      if (nxPatch == 0 || nyPatch == 0) {
-         dx = 0;
-         dy = 0;
-         nxPatch = 0;
-         nyPatch = 0;
-      }
-
-      // local non-extended index but shifted to be in bounds
-      int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
-      assert(kl >= 0);
-      assert(kl < lPost->numNeurons);
-#else
       int kl, offset, nxPatch, nyPatch, dx, dy;
-#endif
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
       arbor->data = &dataPatches[kex];
@@ -1599,16 +1006,6 @@ int HyPerConn::createAxonalArbors(int arborId)
       pvdata_t * gSyn = post->getChannel(channel) + kl;
       pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
-#ifdef OBSOLETE
-      // get offset in extended frame for post-synaptic M STDP variable
-      //
-      kxPost += postPad;
-      kyPost += postPad;
-
-      kl = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
-      assert(kl >= 0);
-      assert(kl < lPost->numExtended);
-#endif
       arbor->offset = offset;
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
@@ -1966,656 +1363,6 @@ int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
    return 0;
 }
 
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-/**
- * generate random weights for a patch from a uniform distribution
- * NOTES:
- *    - the pointer w already points to the patch head in the data structure
- *    - it only sets the weights to "real" neurons, not to neurons in the boundary
- *    layer. For example, if x are boundary neurons and o are real neurons,
- *    x x x x
- *    x o o o
- *    x o o o
- *    x o o o
- *
- *    for a 4x4 connection it sets the weights to the o neurons only.
- *    .
- */
-int HyPerConn::uniformWeights(PVPatch * wp, float minwgt, float maxwgt)
-      // changed variable names to avoid confusion with data members this->wMin and this->wMax
-{
-   pvdata_t * w = wp->data;
-
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
-   const int nfp = wp->nf;
-
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
-
-   double p;
-   if( maxwgt <= minwgt ) {
-      if( maxwgt < minwgt ) {
-         fprintf(stderr, "Warning: uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n", maxwgt, minwgt);
-         maxwgt = minwgt;
-      }
-      p = 0;
-   }
-   else {
-       p = (maxwgt - minwgt) / pv_random_max();
-   }
-
-   // loop over all post-synaptic cells in patch
-   for (int y = 0; y < nyp; y++) {
-      for (int x = 0; x < nxp; x++) {
-         for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
-         }
-      }
-   }
-
-   return PV_SUCCESS;
-}
-
-
-/**
- * generate random weights for a patch from a gaussian distribution
- * NOTES:
- *    - the pointer w already points to the patch head in the data structure
- *    - it only sets the weights to "real" neurons, not to neurons in the boundary
- *    layer. For example, if x are boundary neurons and o are real neurons,
- *    x x x x
- *    x o o o
- *    x o o o
- *    x o o o
- *
- *    for a 4x4 connection it sets the weights to the o neurons only.
- *    .
- */
-// int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
-int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev)
-{
-   pvdata_t * w = wp->data;
-
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
-   const int nfp = wp->nf;
-
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
-
-   // loop over all post-synaptic cells in patch
-   for (int y = 0; y < nyp; y++) {
-      for (int x = 0; x < nxp; x++) {
-         for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = box_muller(mean,stdev);
-         }
-      }
-   }
-
-   return 0;
-}
-
-int HyPerConn::smartWeights(PVPatch * wp, int k)
-{
-   pvdata_t * w = wp->data;
-
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
-   const int nfp = wp->nf;
-
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
-
-   // loop over all post-synaptic cells in patch
-   for (int y = 0; y < nyp; y++) {
-      for (int x = 0; x < nxp; x++) {
-         for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = k;
-         }
-      }
-   }
-
-   return 0;
-}
-
-/**
- * calculate gaussian weights to segment lines
- */
-int HyPerConn::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
-      float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
-      float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
-{
-//   const PVLayer * lPre = pre->clayer;
-//   const PVLayer * lPost = post->clayer;
-
-   bool self = (pre != post);
-
-   // get dimensions of (potentially shrunken patch)
-   const int nxPatch = wp->nx;
-   const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
-   if (nxPatch * nyPatch * nfPatch == 0) {
-      return 0; // reduced patch size is zero
-   }
-
-   pvdata_t * w = wp->data;
-
-   // get strides of (potentially shrunken) patch
-   const int sx = wp->sx;
-   assert(sx == nfPatch);
-   const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sf = wp->sf;
-   assert(sf == 1);
-
-   // make full sized temporary patch, positioned around center of unit cell
-   PVPatch * wp_tmp;
-   wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t * w_tmp = wp_tmp->data;
-
-   // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = wp_tmp->nx;
-   const int nyPatch_tmp = wp_tmp->ny;
-   const int nfPatch_tmp = wp_tmp->nf;
-   int kxKernelIndex;
-   int kyKernelIndex;
-   int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
-
-   const int kxPre_tmp = kxKernelIndex;
-   const int kyPre_tmp = kyKernelIndex;
-   const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp = wp_tmp->sx;
-   assert(sx_tmp == wp_tmp->nf);
-   const int sy_tmp = wp_tmp->sy;
-   assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
-   const int sf_tmp = wp_tmp->sf;
-   assert(sf_tmp == 1);
-
-   // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic cell)
-   float xDistNNPreUnits;
-   float xDistNNPostUnits;
-   dist2NearestCell(kxPre_tmp, pre->getXScale(), post->getXScale(),
-         &xDistNNPreUnits, &xDistNNPostUnits);
-   float yDistNNPreUnits;
-   float yDistNNPostUnits;
-   dist2NearestCell(kyPre_tmp, pre->getYScale(), post->getYScale(),
-         &yDistNNPreUnits, &yDistNNPostUnits);
-
-   // get indices of nearest neighbor
-   int kxNN;
-   int kyNN;
-   kxNN = nearby_neighbor( kxPre_tmp, pre->getXScale(), post->getXScale());
-   kyNN = nearby_neighbor( kyPre_tmp, pre->getYScale(), post->getYScale());
-
-   // get indices of patch head
-   int kxHead;
-   int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
-
-   // get distance to patch head (measured relative to pre-synaptic cell)
-   float xDistHeadPostUnits;
-   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
-   float yDistHeadPostUnits;
-   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
-   float xRelativeScale = xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits
-         / xDistNNPostUnits;
-   float xDistHeadPreUnits;
-   xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
-   float yRelativeScale = yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits
-         / yDistNNPostUnits;
-   float yDistHeadPreUnits;
-   yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
-
-
-   // sigma is in units of pre-synaptic layer
-   const float dxPost = xRelativeScale; //powf(2, (float) post->getXScale());
-   const float dyPost = yRelativeScale; //powf(2, (float) post->getYScale());
-
-
-   // TODO - the following assumes that if aspect > 1, # orientations = # features
-   //   int noPost = no;
-   // number of orientations only used if aspect != 1
-   const int noPost = post->getLayerLoc()->nf;
-   const float dthPost = PI*thetaMax / (float) noPost;
-   const float th0Post = rotate * dthPost / 2.0f;
-   const int noPre = pre->getLayerLoc()->nf;
-   const float dthPre = PI*thetaMax / (float) noPre;
-   const float th0Pre = rotate * dthPre / 2.0f;
-   const int fPre = kPre % pre->getLayerLoc()->nf;
-   assert(fPre == kfPre_tmp);
-   const int iThPre = kPre % noPre;
-   const float thPre = th0Pre + iThPre * dthPre;
-
-   // loop over all post-synaptic cells in temporary patch
-   for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
-      int oPost = fPost % noPost;
-      float thPost = th0Post + oPost * dthPost;
-      if (noPost == 1 && noPre > 1) {
-         thPost = thPre;
-      }
-      //TODO: add additional weight factor for difference between thPre and thPost
-      if (fabs(thPre - thPost) > deltaThetaMax) {
-         continue;
-      }
-      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = (yDistHeadPreUnits + jPost * dyPost);
-         for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = (xDistHeadPreUnits + iPost * dxPost);
-            bool sameLoc = ((fPre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
-            if ((sameLoc) && (!self)) {
-               continue;
-            }
-
-            // rotate the reference frame by th (change sign of thPost?)
-            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
-            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
-//            float xp = xDelta * cosf(thPost) - yDelta * sinf(thPost);
-//            float yp = xDelta * sinf(thPost) + yDelta * cosf(thPost);
-
-            if (bowtieFlag == 1.0f){
-               float offaxis_angle = atan2(yp, xp);
-               if ( ((offaxis_angle > bowtieAngle) && (offaxis_angle < (PI - bowtieAngle))) ||
-                     ((offaxis_angle < -bowtieAngle) && (offaxis_angle > (-PI + bowtieAngle))) ){
-                  continue;
-               }
-            }
-
-            // include shift to flanks
-            float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
-            w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] = 0;
-            if (d2 <= r2Max) {
-               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
-                     / (2.0f * sigma * sigma));
-            }
-            if (numFlanks > 1) {
-               // shift in opposite direction
-               d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
-               if (d2 <= r2Max) {
-                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
-                        / (2.0f * sigma * sigma));
-               }
-            }
-         }
-      }
-   }
-
-   // copy weights from full sized temporary patch to (possibly shrunken) patch
-   w = wp->data;
-   pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset = w - data_head;
-   w_tmp = &wp_tmp->data[data_offset];
-   int nk = nxPatch * nfPatch;
-   for (int ky = 0; ky < nyPatch; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         w[iWeight] = w_tmp[iWeight];
-      }
-      w += sy;
-      w_tmp += sy_tmp;
-   }
-
-   free(wp_tmp);
-   return 0;
-}
-
-int HyPerConn::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
-      float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
-      float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
-      float aspect, float rotate, float sigma, float r2Max, float strength)
-{
-   pvdata_t * w = wp->data;
-
-   const float min_weight = 0.0f; // read in as param
-   const float sigma2 = 2 * sigma * sigma;
-   const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
-
-   const int nxPatch = (int) wp->nx;
-   const int nyPatch = (int) wp->ny;
-   const int nfPatch = (int) wp->nf;
-   if (nxPatch * nyPatch * nfPatch == 0) {
-      return 0; // reduced patch size is zero
-   }
-
-   // get strides of (potentially shrunken) patch
-   const int sx = (int) wp->sx;
-   assert(sx == nfPatch);
-   const int sy = (int) wp->sy; // no assert here because patch may be shrunken
-   const int sf = (int) wp->sf;
-   assert(sf == 1);
-
-   // make full sized temporary patch, positioned around center of unit cell
-   PVPatch * wp_tmp;
-   wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t * w_tmp = wp_tmp->data;
-
-   // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = wp_tmp->nx;
-   const int nyPatch_tmp = wp_tmp->ny;
-   const int nfPatch_tmp = wp_tmp->nf;
-   int kxKernelIndex;
-   int kyKerneIndex;
-   int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
-
-   const int kxPre_tmp = kxKernelIndex;
-   const int kyPre_tmp = kyKerneIndex;
-   //   const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp = wp_tmp->sx;
-   assert(sx_tmp == wp_tmp->nf);
-   const int sy_tmp = wp_tmp->sy;
-   assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
-   const int sf_tmp = wp_tmp->sf;
-   assert(sf_tmp == 1);
-
-   // get distances to nearest neighbor in post synaptic layer
-   float xDistNNPreUnits;
-   float xDistNNPostUnits;
-   dist2NearestCell(kxPre_tmp, pre->getXScale(), post->getXScale(), &xDistNNPreUnits,
-         &xDistNNPostUnits);
-   float yDistNNPreUnits;
-   float yDistNNPostUnits;
-   dist2NearestCell(kyPre_tmp, pre->getYScale(), post->getYScale(), &yDistNNPreUnits,
-         &yDistNNPostUnits);
-
-   // get indices of nearest neighbor
-   int kxNN;
-   int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, pre->getXScale(), post->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, pre->getYScale(), post->getYScale());
-
-   // get indices of patch head
-   int kxHead;
-   int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
-
-   // get distance to patch head
-   float xDistHeadPostUnits;
-   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
-   float yDistHeadPostUnits;
-   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
-   float xRelativeScale = xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits
-         / xDistNNPostUnits;
-   float xDistHeadPreUnits;
-   xDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
-   float yRelativeScale = yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits
-         / yDistNNPostUnits;
-   float yDistHeadPreUnits;
-   yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
-
-   // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, post->getXScale());
-   const float dyPost = powf(2, post->getYScale());
-
-   //const int kfPre = kPre % pre->clayer->loc.nf;
-   const int kfPre = featureIndex(kPre, pre->getLayerLoc()->nx, pre->getLayerLoc()->ny,
-         pre->getLayerLoc()->nf);
-
-   bool POS_KURVE_FLAG = false; //  handle pos and neg curvature separately
-   bool SADDLE_FLAG  = false; // handle saddle points separately
-   const int nKurvePre = pre->getLayerLoc()->nf / noPre;
-   const int nKurvePost = post->getLayerLoc()->nf / noPost;
-   const float dThPre = PI / noPre;
-   const float dThPost = PI / noPost;
-   const float th0Pre = rotate * dThPre / 2.0;
-   const float th0Post = rotate * dThPost / 2.0;
-   const int iThPre = kfPre / nKurvePre;
-   const float thetaPre = th0Pre + iThPre * dThPre;
-
-   int iKvPre = kfPre % nKurvePre;
-   bool iPosKurvePre = false;
-   bool iSaddlePre = false;
-   float radKurvPre = delta_radius_curvature + iKvPre * delta_radius_curvature;
-   float kurvePre = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
-   int iKvPreAdj = iKvPre;
-   if (POS_KURVE_FLAG) {
-      assert(nKurvePre >= 2);
-      iPosKurvePre = iKvPre >= (int) (nKurvePre / 2);
-      if (SADDLE_FLAG) {
-         assert(nKurvePre >= 4);
-         iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
-         iKvPreAdj = ((iKvPre % (nKurvePre / 2)) / 2);}
-      else { // SADDLE_FLAG
-         iKvPreAdj = (iKvPre % (nKurvePre/2));}
-   } // POS_KURVE_FLAG
-   radKurvPre = delta_radius_curvature + iKvPreAdj * delta_radius_curvature;
-   kurvePre = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
-   float sigma_kurve_pre = sigma_kurve * radKurvPre;
-   float sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
-   sigma_chord *= PI * radKurvPre;
-   float sigma_chord2 = 2.0 * sigma_chord * sigma_chord;
-
-   // loop over all post synaptic neurons in patch
-   for (int kfPost = 0; kfPost < nfPatch_tmp; kfPost++) {
-      int iThPost = kfPost / nKurvePost;
-      float thetaPost = th0Post + iThPost * dThPost;
-
-      int iKvPost = kfPost % nKurvePost;
-      bool iPosKurvePost = false;
-      bool iSaddlePost = false;
-      float radKurvPost = delta_radius_curvature + iKvPost * delta_radius_curvature;
-      float kurvePost = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
-      int iKvPostAdj = iKvPost;
-      if (POS_KURVE_FLAG) {
-         assert(nKurvePost >= 2);
-         iPosKurvePost = iKvPost >= (int) (nKurvePost / 2);
-         if (SADDLE_FLAG) {
-            assert(nKurvePost >= 4);
-            iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
-            iKvPostAdj = ((iKvPost % (nKurvePost / 2)) / 2);
-         }
-         else { // SADDLE_FLAG
-            iKvPostAdj = (iKvPost % (nKurvePost / 2));
-         }
-      } // POS_KURVE_FLAG
-      radKurvPost = delta_radius_curvature + iKvPostAdj * delta_radius_curvature;
-      kurvePost = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
-      float sigma_kurve_post = sigma_kurve * radKurvPost;
-      float sigma_kurve_post2 = 2 * sigma_kurve_post * sigma_kurve_post;
-
-      float deltaTheta = fabsf(thetaPre - thetaPost);
-      deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
-      if (deltaTheta > delta_theta_max) {
-         continue;
-      }
-
-      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = (yDistHeadPreUnits + jPost * dyPost);
-         for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = (xDistHeadPreUnits + iPost * dxPost);
-
-            float gDist = 0.0;
-            float gChord = 1.0;
-            float gCocirc = 1.0;
-            float gKurvePre = 1.0;
-            float gKurvePost = 1.0;
-
-            // rotate the reference frame by th
-            float dxP = +xDelta * cosf(thetaPre) + yDelta * sinf(thetaPre);
-            float dyP = -xDelta * sinf(thetaPre) + yDelta * cosf(thetaPre);
-
-            // include shift to flanks
-            float dyP_shift = dyP - shift;
-            float dyP_shift2 = dyP + shift;
-            float d2 = dxP * dxP + aspect * dyP * aspect * dyP;
-            float d2_shift = dxP * dxP + (aspect * (dyP_shift) * aspect * (dyP_shift));
-            float d2_shift2 = dxP * dxP + (aspect * (dyP_shift2) * aspect * (dyP_shift2));
-            if (d2_shift <= r2Max) {
-               gDist += expf(-d2_shift / sigma2);
-            }
-            if (numFlanks > 1) {
-               // include shift in opposite direction
-               if (d2_shift2 <= r2Max) {
-                  gDist += expf(-d2_shift2 / sigma2);
-               }
-            }
-            if (gDist == 0.0) continue;
-            if (d2 == 0) {
-               bool sameLoc = (kfPre == kfPost);
-               if ((!sameLoc) || (cocirc_self)) {
-                  gCocirc = sigma_cocirc > 0 ? expf(-deltaTheta * deltaTheta
-                        / sigma_cocirc2) : expf(-deltaTheta * deltaTheta / sigma_cocirc2)
-                        - 1.0;
-                  if ((nKurvePre > 1) && (nKurvePost > 1)) {
-                     gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
-                           / 2 * (sigma_kurve_pre * sigma_kurve_pre + sigma_kurve_post
-                           * sigma_kurve_post));
-                  }
-               }
-               else { // sameLoc && !cocircSelf
-                  gCocirc = 0.0;
-                  continue;
-               }
-            }
-            else { // d2 > 0
-
-               float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
-               atanx2_shift += 2. * PI;
-               atanx2_shift = fmodf(atanx2_shift, PI);
-               atanx2_shift = fabsf(atanx2_shift - thetaPost);
-               float chi_shift = atanx2_shift; //fabsf(atanx2_shift - thetaPost); // radians
-               if (chi_shift >= PI / 2.0) {
-                  chi_shift = PI - chi_shift;
-               }
-               if (noPre > 1 && noPost > 1) {
-                  gCocirc = sigma_cocirc2 > 0 ? expf(-chi_shift * chi_shift
-                        / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
-                        - 1.0;
-               }
-
-               // compute curvature of cocircular contour
-               float cocircKurve_shift = d2_shift > 0 ? fabsf(2 * dyP_shift) / d2_shift
-                     : 0.0f;
-               if (POS_KURVE_FLAG) {
-                  if (SADDLE_FLAG) {
-                     if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift < 0)) {
-                        continue;
-                     }
-                     if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift > 0)) {
-                        continue;
-                     }
-                     if ((iPosKurvePre) && (iSaddlePre)
-                           && (((dyP_shift > 0) && (dxP < 0)) || ((dyP_shift > 0) && (dxP
-                                 < 0)))) {
-                        continue;
-                     }
-                     if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift > 0)
-                           && (dxP > 0)) || ((dyP_shift < 0) && (dxP < 0)))) {
-                        continue;
-                     }
-                  }
-                  else { //SADDLE_FLAG
-                     if ((iPosKurvePre) && (dyP_shift < 0)) {
-                        continue;
-                     }
-                     if (!(iPosKurvePre) && (dyP_shift > 0)) {
-                        continue;
-                     }
-                  }
-               } // POS_KURVE_FLAG
-               gKurvePre = (nKurvePre > 1) ? expf(-powf((cocircKurve_shift - fabsf(
-                     kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
-               gKurvePost
-                     = ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? expf(
-                           -powf((cocircKurve_shift - fabsf(kurvePost)), 2)
-                                 / sigma_kurve_post2)
-                           : 1.0;
-
-               // compute distance along contour
-               float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
-                     / cocircKurve_shift : sqrt(d2_shift);
-               gChord = (nKurvePre > 1) ? expf(-powf(d_chord_shift, 2) / sigma_chord2)
-                     : 1.0;
-
-               if (numFlanks > 1) {
-                  float atanx2_shift2 = thetaPre + 2. * atan2f(dyP_shift2, dxP); // preferred angle (rad)
-                  atanx2_shift2 += 2. * PI;
-                  atanx2_shift2 = fmodf(atanx2_shift2, PI);
-                  atanx2_shift2 = fabsf(atanx2_shift2 - thetaPost);
-                  float chi_shift2 = atanx2_shift2; //fabsf(atanx2_shift2 - thetaPost); // radians
-                  if (chi_shift2 >= PI / 2.0) {
-                     chi_shift2 = PI - chi_shift2;
-                  }
-                  if (noPre > 1 && noPost > 1) {
-                     gCocirc += sigma_cocirc2 > 0 ? expf(-chi_shift2 * chi_shift2
-                           / sigma_cocirc2) : expf(-chi_shift2 * chi_shift2
-                           / sigma_cocirc2) - 1.0;
-                  }
-
-                  float cocircKurve_shift2 = d2_shift2 > 0 ? fabsf(2 * dyP_shift2)
-                        / d2_shift2 : 0.0f;
-                  if (POS_KURVE_FLAG) {
-                     if (SADDLE_FLAG) {
-                        if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 < 0)) {
-                           continue;
-                        }
-                        if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift2 > 0)) {
-                           continue;
-                        }
-                        if ((iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP
-                              < 0)) || ((dyP_shift2 > 0) && (dxP < 0)))) {
-                           continue;
-                        }
-                        if (!(iPosKurvePre) && (iSaddlePre) && (((dyP_shift2 > 0) && (dxP
-                              > 0)) || ((dyP_shift2 < 0) && (dxP < 0)))) {
-                           continue;
-                        }
-                     }
-                     else { //SADDLE_FLAG
-                        if ((iPosKurvePre) && (dyP_shift2 < 0)) {
-                           continue;
-                        }
-                        if (!(iPosKurvePre) && (dyP_shift2 > 0)) {
-                           continue;
-                        }
-                     } // SADDLE_FLAG
-                  } // POS_KURVE_FLAG
-                  gKurvePre += (nKurvePre > 1) ? expf(-powf((cocircKurve_shift2 - fabsf(
-                        kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
-                  gKurvePost += ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2
-                        > 0)) ? expf(-powf((cocircKurve_shift2 - fabsf(kurvePost)), 2)
-                        / sigma_kurve_post2) : 1.0;
-
-                  float d_chord_shift2 = cocircKurve_shift2 != 0.0f ? atanx2_shift2
-                        / cocircKurve_shift2 : sqrt(d2_shift2);
-                  gChord += (nKurvePre > 1) ? expf(-powf(d_chord_shift2, 2) / sigma_chord2)
-                        : 1.0;
-
-               }
-            }
-            float weight_tmp = gDist * gKurvePre * gKurvePost * gCocirc;
-            if (weight_tmp < min_weight) continue;
-            w_tmp[iPost * sx_tmp + jPost * sy_tmp + kfPost * sf_tmp] = weight_tmp;
-
-         }
-      }
-   }
-
-   // copy weights from full sized temporary patch to (possibly shrunken) patch
-   w = wp->data;
-   pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset = w - data_head;
-   w_tmp = &wp_tmp->data[data_offset];
-   int nk = nxPatch * nfPatch;
-   for (int ky = 0; ky < nyPatch; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         w[iWeight] = w_tmp[iWeight];
-      }
-      w += sy;
-      w_tmp += sy_tmp;
-   }
-
-   free(wp_tmp);
-   return 0;
-
-}
-#endif
-
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
    normalize_flag = params->value(name, "normalize", normalize_flag);
@@ -2795,16 +1542,6 @@ int HyPerConn::calcPatchSize(int axon_index, int kex,
 
    const int nxexPost = nxPost + 2 * postPad;
    const int nyexPost = nyPost + 2 * postPad;
-
-#ifdef OBSOLETE // Marked obsolete Jul 25, 2011.  These variables are no longer used in this function.
-   const int numAxons = numAxonalArborLists;
-
-   // these strides are for post-synaptic phi variable, a non-extended layer variable
-   //
-   const int psf = 1;
-   const int psx = nfp;
-   const int psy = psx * nxPost;
-#endif
 
    // local indices in extended frame
    int kxPre = kxPos(kex, nxexPre, nyexPre, nfPre);
@@ -3102,6 +1839,5 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
    }
    return kernelIndex;
 }
-
 
 } // namespace PV

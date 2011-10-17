@@ -38,20 +38,8 @@ class ConnectionProbe;
 class PVParams;
 
 /**
- * A PVConnection identifies a connection between two layers
+ * A HyPerConn identifies a connection between two layers
  */
-//typedef struct {
-//   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
-//// Commenting out unused parameters.  Is PVConnParams still necessary?
-////   int fixDelay; // fixed output delay. TODO: should be float
-////   int varDelayMin; // minimum variable conduction delay
-////   int varDelayMax; // maximum variable conduction delay
-////   int numDelay;
-////   int isGraded; //==1, release is stochastic with prob = (activity <= 1), default is 0 (no graded release)
-////   float vel;  // conduction velocity in position units (pixels) per time step--added by GTK
-////   float rmin; // minimum connection distance
-////   float rmax; // maximum connection distance
-//} PVConnParams;
 
 class HyPerConn {
 
@@ -95,12 +83,6 @@ public:
    bool stochasticReleaseFlag;
    int (*accumulateFunctionPointer)(int nk, float* RESTRICT v, float a, float* RESTRICT w);
    // TODO make a get-method to return this.
-
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
-                                  const char * filename);
-#endif
 
    virtual PVLayerCube * getPlasticityDecrement()    {return NULL;}
 
@@ -149,19 +131,6 @@ public:
 
 
 
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-   virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
-                             int numFlanks, float shift, float rotate, float aspect, float sigma,
-                             float r2Max, float strength, float deltaThetaMax, float thetaMax,
-                             float bowtieFlag, float bowtieAngle);
-
-   virtual int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
-         float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
-         float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
-         float aspect, float rotate, float sigma, float r2Max, float strength);
-#endif
-
    virtual int initShrinkPatches();
 
    virtual int shrinkPatches(int arborId);
@@ -185,10 +154,6 @@ protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
    HyPerCol       * parent;
-#ifdef OBSOLETE_STDP
-   PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
-   PVPatch       ** pIncr;      // list of stdp patches Psij variable
-#endif
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
    //PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
@@ -200,11 +165,6 @@ protected:
    PVPatch       *** pIncr;      // list of weight patches for storing changes to weights
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
-#ifdef OBSOLETE_STDP
-   bool     localWmaxFlag;  // presence of rate dependent wMax;
-   pvdata_t * Wmax;   // adaptive upper STDP weight boundary
-#endif
-
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    int connId;             // connection id
 
@@ -214,24 +174,11 @@ protected:
    int numParams;
    //PVConnParams * params;
 
-
-#ifdef OBSOLETE_STDP
-   // STDP parameters for modifying weights
-   float ampLTP; // long term potentiation amplitude
-   float ampLTD; // long term depression amplitude
-   float tauLTP;
-   float tauLTD;
-   float dWMax;
-#endif
    float wMax;
    float wMin;
 
    int numProbes;
    ConnectionProbe ** probes; // probes used to output data
-
-#ifdef OBSOLETE_STDP
-   bool stdpFlag;               // presence of spike timing dependent plasticity
-#endif
    bool ioAppend;               // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
    float writeTime;             // time of next output
@@ -282,21 +229,9 @@ protected:
                   ChannelType channel, const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int initPlasticityPatches();
-#ifdef OBSOLETE_STDP
-   int initializeSTDP();
-#endif
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
    virtual InitWeights * handleMissingInitWeights(PVParams * params);
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-   // PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches, int seed);
-   PVPatch ** initializeRandomWeights(PVPatch ** patches, int numPatches);
-   PVPatch ** initializeSmartWeights(PVPatch ** patches, int numPatches);
-   virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
-   PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, int numPatches);
-   PVPatch ** initializeCocircWeights(PVPatch ** patches, int numPatches);
-#endif
    virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    PVPatch ** createWeights(PVPatch ** patches, int axonId);
@@ -304,13 +239,6 @@ protected:
          int nyPatch, int nfPatch, int axonId);
    //PVPatch ** allocWeights(PVPatch ** patches);
 
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-   int uniformWeights(PVPatch * wp, float minwgt, float maxwgt);
-   int gaussianWeights(PVPatch * wp, float mean, float stdev);
-
-   int smartWeights(PVPatch * wp, int k);
-#endif
    virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 
