@@ -17,10 +17,10 @@ function [train_filenames, ...
   begin_time = time();
 
   if nargin < 1 || ~exist(imageNet_path) || isempty(imageNet_path)
-    chip_path = "~/Pictures/HeliChips/";
+    chip_path = "~/Pictures/HellChips/";
   endif
   if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name =  "Helicopter"; %% "Container"; "Boat"; %% "Plane"; %% "Cyclist"; %% "Person"; %% "Car";  %% 
+    object_name = "Person"; %% "Cyclist"; %% "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% "Car";  %%  
   endif
   if nargin < 3 || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir

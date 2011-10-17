@@ -45,10 +45,10 @@ function [tot_chips, ...
   begin_time = time();
 
   if nargin < 1 || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "~/Pictures/HeliChips2/";
+    chip_path = "~/Pictures/HellChips/";
   endif
   if nargin < 2 || ~exist("object_name") || isempty(object_name)
-    object_name =  "Car";  %%  "Helicopter"; %% "Container"; "Boat"; %% "Plane"; %% "Cyclist"; %% "Person"; %%  
+    object_name =  "Person"; %% "Cyclist"; %%  "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% "Car";  %%  
   endif
   if nargin < 3 || ~exist("DoG_flag") || isempty(DoG_flag)
     DoG_flag = 1;  %% 
@@ -284,11 +284,16 @@ function [tot_chips, ...
 	"tot_time"); 
 
    list_filename = [list_dir, "cropped_list.txt"];
-   fid = fopen(list_filename);
-   for i_crop = 1 : tot_cropped
-     fputs(fid, cropped_list{i_crop});
-   endfor
-   fclose(fid);
+   [fid, msg_error] = fopen(list_filename, "w");
+   if fid == -1
+     disp(msg_error);
+     disp(["list_filename = ", list_filename]);
+   else
+     for i_crop = 1 : tot_cropped
+       fputs(fid, cropped_list{i_crop});
+     endfor
+     fclose(fid);
+   endif
   
   end_time = time();
   tot_time = end_time - begin_time;
