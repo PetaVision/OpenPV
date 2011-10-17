@@ -9,7 +9,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 1009;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/test";
+   outputPath = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/test";
 };
 
 //
@@ -17,7 +17,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/amoeba/256/amoeba1x1000_fileNames.txt";
+    imageListPath = "/home/garkenyon/MATLAB/figures/amoeba/256_png/amoeba1K_4FC_fileNames_test.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -321,7 +321,7 @@ CliqueApplyConn "L1 to L1 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/w3";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/w3";
    
    strength = 1.0;
    normalize = 1.0;
@@ -379,7 +379,7 @@ CliqueApplyConn "L1 to L2 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/w3";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/w3";
 
    strength = 1.0;
    normalize = 1.0;
@@ -437,7 +437,7 @@ CliqueApplyConn "L2 to L3 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/w3";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/w3";
 
    strength = 1.0;
    normalize = 1.0;
@@ -495,7 +495,7 @@ CliqueApplyConn "L3 to L4 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/w3";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/w3";
 
    strength = 1.0;
    normalize = 1.0;
