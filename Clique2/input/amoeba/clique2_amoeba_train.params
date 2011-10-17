@@ -9,7 +9,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 36006;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/";
+   outputPath = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/";
 };
 
 //
@@ -17,7 +17,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/amoeba/256/amoeba4x9000_fileNames.txt";
+    imageListPath = "/home/garkenyon/MATLAB/figures/amoeba/256_png/amoeba4x9K_fileNames_train.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
