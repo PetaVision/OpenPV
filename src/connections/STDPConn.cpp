@@ -215,7 +215,7 @@ int STDPConn::updateWeights(int axonId)
 
       PVPatch * pIncr   = arbor->plasticIncr;
       PVPatch * w       = arbor->weights;
-      size_t postOffset = arbor->offset;
+      size_t postOffset = getGSynOffset(kPre, axonId);
 
       const float * postActivity = &post->getLayerData()[postOffset];
       const float * M = &pDecr->data[postOffset];  // STDP decrement variable

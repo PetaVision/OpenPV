@@ -93,8 +93,6 @@ public:
    inline HyPerLayer * getPost()                     {return post;}
    inline ChannelType getChannel()                   {return channel;}
    inline InitWeights * getWeightInitializer()       {return weightInitializer;}
-   //inline int          getDelay()                    {return params->delay;}
-   //inline int getDelay(int axonId)     {assert(axonId<numAxonalArborLists); return axonalArbor(0, axonId)->delay;}
    void setDelay(int axonId, int delay);
    inline int getDelay(int axonId = 0)               {assert(axonId<numAxonalArborLists); return axonalArbor(0,axonId)->delay;}
 
@@ -113,6 +111,10 @@ public:
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
+
+   inline pvdata_t * get_dWData(int kPre, int arborId) {PVPatch * dW = axonalArbor(kPre,arborId)->plasticIncr; assert(dW); return dW->data;}
+   inline size_t getGSynOffset(int kPre, int arborId) {return axonalArbor(kPre,arborId)->offset;} // will create a new member variable gSynOffset and remove arbor
+   int getAPostOffset(int kPre, int arborId);
 
    HyPerLayer * preSynapticLayer()                   {return pre;}
    HyPerLayer * postSynapticLayer()                  {return post;}

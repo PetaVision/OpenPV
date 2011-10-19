@@ -884,6 +884,11 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
+int HyPerConn::getAPostOffset(int kPre, int arborId) {
+   const PVLayerLoc * loc = post->getLayerLoc();
+   return kIndexExtended(getGSynOffset(kPre, arborId), loc->nx, loc->ny, loc->nf, loc->nb); // Is this still correct for shrunken patches?
+}
+
 PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
