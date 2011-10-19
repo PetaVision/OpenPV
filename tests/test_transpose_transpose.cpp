@@ -179,15 +179,15 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    int status = PV_SUCCESS;
    int numWeightPatches = conn1->numWeightPatches();
    if( numWeightPatches != conn2->numWeightPatches() ) {
-       fprintf(stderr, "testEqualWeights:  numWeightPatches not equal.\n");
-       return PV_FAILURE;
+      fprintf(stderr, "testEqualWeights:  numWeightPatches not equal.\n");
+      return PV_FAILURE;
    }
 
    for( int patchindex = 0; patchindex < numWeightPatches; patchindex++ ) {
-       int status1 = testPatchesEqual( conn1->axonalArbor(patchindex, LOCAL)->weights, conn2->axonalArbor(patchindex, LOCAL)->weights, patchindex);
-       if( status != PV_SUCCESS || status1 != PV_SUCCESS ) {
-           status = status1;
-       }
+      int status1 = testPatchesEqual( conn1->getWeights(patchindex, LOCAL), conn2->getWeights(patchindex, LOCAL), patchindex);
+      if( status != PV_SUCCESS || status1 != PV_SUCCESS ) {
+         status = status1;
+      }
    }
    return status;
 }
@@ -206,11 +206,11 @@ int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index) {
    int status = PV_SUCCESS;
    int n = nx*ny*nf;
    for(int k=0; k<n; k++) {
-       if( fabs(patch1->data[k] - patch2->data[k]) > 10*FLT_EPSILON ) {
-           fprintf(stderr, "testWeightsEqual: index into layer = %d, index into patch = %d,\n", index, k);
-           fprintf(stderr, "    (%f versus %f).\n",patch1->data[k],patch2->data[k]);
-           status = PV_FAILURE;
-       }
+      if( fabs(patch1->data[k] - patch2->data[k]) > 10*FLT_EPSILON ) {
+         fprintf(stderr, "testWeightsEqual: index into layer = %d, index into patch = %d,\n", index, k);
+         fprintf(stderr, "    (%f versus %f).\n",patch1->data[k],patch2->data[k]);
+         status = PV_FAILURE;
+      }
    }
    return status;
 }
@@ -227,17 +227,17 @@ int dumpWeights(KernelConn * kconn, FILE * stream) {
    int numKernelPatches = kconn->numDataPatches();
    fprintf(stream, "Dumping weights for connection %s\n", kconn->getName() );
    for(int kn = 0; kn < numKernelPatches; kn++) {
-       PVPatch * kp = kconn->getKernelPatch(0, kn);
-       int nx = kp->nx;
-       int ny = kp->ny;
-       int nf = kp->nf;
-       fprintf(stream, "Kernel Patch %d: nx=%d, ny=%d, nf=%d\n",
-               kn, nx, ny, nf);
-       for(int k=0; k<nx*ny*nf; k++) {
-           fprintf(stream, "    Index %4d, x=%3d, y=%3d, f=%3d: Value %g\n", k,
-                   kxPos(k, nx, ny, nf), kyPos(k, nx, ny, nf),
-                   featureIndex(k, nx, ny, nf), kp->data[k]);
-       }
+      PVPatch * kp = kconn->getKernelPatch(0, kn);
+      int nx = kp->nx;
+      int ny = kp->ny;
+      int nf = kp->nf;
+      fprintf(stream, "Kernel Patch %d: nx=%d, ny=%d, nf=%d\n",
+              kn, nx, ny, nf);
+      for(int k=0; k<nx*ny*nf; k++) {
+          fprintf(stream, "    Index %4d, x=%3d, y=%3d, f=%3d: Value %g\n", k,
+                  kxPos(k, nx, ny, nf), kyPos(k, nx, ny, nf),
+                  featureIndex(k, nx, ny, nf), kp->data[k]);
+      }
    }
    return PV_SUCCESS;
 }
