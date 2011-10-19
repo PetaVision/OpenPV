@@ -79,6 +79,7 @@ HyPerCol::~HyPerCol()
    free(name);
    free(path);
    free(outputPath);
+   free(outputNamesOfLayersAndConns);
 }
 
 int HyPerCol::initFinish(void)
@@ -250,6 +251,19 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 
    filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", false);
 
+   const char * lcfilename = params->stringValue(name, "outputNamesOfLayersAndConns", false);
+   if( lcfilename != NULL && icComm->commRank() == 0) {
+      outputNamesOfLayersAndConns = (char *) malloc( (strlen(outputPath)+strlen(lcfilename)+2)*sizeof(char) );
+      if( !outputNamesOfLayersAndConns ) {
+         fprintf(stderr, "HyPerCol \"%s\": Unable to allocate memory for outputNamesOfLayersAndConns.  Exiting.\n", name);
+         exit(EXIT_FAILURE);
+      }
+      sprintf(outputNamesOfLayersAndConns, "%s/%s", outputPath, lcfilename);
+   }
+   else {
+      outputNamesOfLayersAndConns = NULL;
+   }
+
    return PV_SUCCESS;
 }
 
@@ -306,6 +320,15 @@ int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
 int HyPerCol::addLayer(HyPerLayer * l)
 {
    assert(numLayers <= layerArraySize);
+
+   // Check for duplicate layer names (currently breaks InitWeightsTest, so commented out)
+   // for(int k=0; k<numLayers; k++) {
+   //    if( !strcmp(l->getName(), layers[k]->getName())) {
+   //       fprintf(stderr, "Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, l->getName());
+   //       exit(EXIT_FAILURE);
+   //    }
+   // }
+
    if( numLayers ==  layerArraySize ) {
       layerArraySize += RESIZE_ARRAY_INCR;
       HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
@@ -326,6 +349,13 @@ int HyPerCol::addConnection(HyPerConn * conn)
    int connId = numConnections;
 
    assert(numConnections <= connectionArraySize);
+   // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
+   // for(int k=0; k<numConnections; k++) {
+   //    if( !strcmp(conn->getName(), connections[k]->getName())) {
+   //       fprintf(stderr, "Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
+   //       exit(EXIT_FAILURE);
+   //    }
+   // }
    if( numConnections == connectionArraySize ) {
       connectionArraySize += RESIZE_ARRAY_INCR;
       HyPerConn ** newConnections = (HyPerConn **) malloc( connectionArraySize * sizeof(HyPerConn *) );
@@ -350,6 +380,29 @@ int HyPerCol::run(int nTimeSteps)
    if( checkMarginWidths() != PV_SUCCESS ) {
       fprintf(stderr, "Margin width failure; unable to continue.\n");
       return PV_MARGINWIDTH_FAILURE;
+   }
+
+   if( outputNamesOfLayersAndConns ) {
+      assert( icComm->commRank() == 0 );
+      printf("Dumping layer and connection names to \"%s\"\n", outputNamesOfLayersAndConns);
+      FILE * fpOutputNames = fopen(outputNamesOfLayersAndConns,"w");
+      if( fpOutputNames == NULL ) {
+         fprintf(stderr, "HyPerCol \"%s\" unable to open \"%s\" for writing: error %d.  Exiting.\n", name, outputNamesOfLayersAndConns, errno);
+         exit(errno);
+      }
+      fprintf(fpOutputNames, "Layers and Connections in HyPerCol \"%s\"\n\n", name);
+      for( int k=0; k<numLayers; k++ ) {
+         fprintf(fpOutputNames, "    Layer % 4d: %s\n", k, layers[k]->getName());
+      }
+      fprintf(fpOutputNames, "\n");
+      for( int k=0; k<numConnections; k++ ) {
+         fprintf(fpOutputNames, "    Conn. % 4d: %s\n", k, connections[k]->getName());
+      }
+      int fcloseStatus = fclose(fpOutputNames);
+      if( fcloseStatus != 0 ) {
+         fprintf(stderr, "Warning: Attempting to close output file \"%s\" generated an error.\n", outputNamesOfLayersAndConns);
+      }
+      fpOutputNames = NULL;
    }
 
    int step = 0;

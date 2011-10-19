@@ -137,6 +137,7 @@ private:
    char * name;
    char * path;
    char * outputPath;     // path to output file directory
+   char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
    char * image_file;
    PVLayerLoc imageLoc;
 
