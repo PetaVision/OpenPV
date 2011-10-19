@@ -40,7 +40,9 @@
 #include "../layers/ANNSquaredLayer.hpp"
 
 #include "../connections/HyPerConn.hpp"
+#ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
 #include "../connections/AvgConn.hpp"
+#endif // OBSOLETE
 #include "../connections/ConvolveConn.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"

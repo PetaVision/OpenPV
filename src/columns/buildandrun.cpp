@@ -88,8 +88,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
-               "AvgConn",
-               "ConvolveConn",
+#ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
+             "AvgConn",
+#endif // OBSOLETE
+             "ConvolveConn",
                "KernelConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
@@ -592,10 +594,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
    if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
       keywordMatched = true;
       fprintf(stderr, "Connection \"%s\": AvgConn not implemented (I don't know what delegate does).\n", name);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
