@@ -13,7 +13,7 @@
 #ifdef PV_USE_OPENCL
 #ifdef __APPLE__
 #  include <OpenCL/opencl.h>
-#  include <opencl.h>
+//#  include <opencl.h>
 #else
 #  include <CL/opencl.h>
 #endif

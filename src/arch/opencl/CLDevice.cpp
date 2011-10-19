@@ -109,11 +109,12 @@ int CLDevice::initialize(int device)
 
    // turn on profiling for this command queue
    //
-   status = clSetCommandQueueProperty(commands, CL_QUEUE_PROFILING_ENABLE, CL_TRUE, NULL);
-   if (status != CL_SUCCESS) {
-      print_error_code(status);
-      exit(status);
-   }
+//   status = clSetCommandQueueProperty(commands, CL_QUEUE_PROFILING_ENABLE, CL_TRUE, NULL);
+//   if (status != CL_SUCCESS) {
+//      print_error_code(status);
+//      exit(status);
+//   }
+   status = 0;
 #endif // PV_USE_OPENCL
 
    return status;

@@ -95,7 +95,8 @@ void glutCreateWindow(const char * str) { }
 void glutKeyboardFunc(void (*func)(unsigned char a, int x, int y)) { }
 void glutDisplayFunc(void (*func)(void)) { }
 
-#ifndef PV_USE_OPENCL  /* some GL files included from OpenCL */
+// #ifndef PV_USE_OPENCL  /* some GL files included from OpenCL */
+// It appears that these functions are not in OpenCL anymore.
 
 void glBegin(int a) { }
 void glBindTexture(int a, int b) { }
@@ -120,7 +121,7 @@ void glRotatef(int a, int b, int c, int d) { }
 void glScalef(int a, int b, int c) { }
 void glTranslatef(int a, int b, int c) { }
 
-#endif /* PV_USE_OPENCL */
+// #endif /* PV_USE_OPENCL */
 
 void gluPerspective(int a, float b, int c, int d) { }
 
