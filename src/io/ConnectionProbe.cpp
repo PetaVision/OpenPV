@@ -124,7 +124,7 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
    PVPatch * P = arbor->plasticIncr;
    PVPatch * w = arbor->weights;
-   int kPost = arbor->offset;
+   int kPost = c->getGSynOffset(kPre, arborID);
 
    if (stdpVars) {
       STDPConn * stdp_conn = dynamic_cast<STDPConn *>(c);

@@ -94,7 +94,7 @@ public:
    inline ChannelType getChannel()                   {return channel;}
    inline InitWeights * getWeightInitializer()       {return weightInitializer;}
    void setDelay(int axonId, int delay);
-   inline int getDelay(int axonId = 0)               {assert(axonId<numAxonalArborLists); return axonalArbor(0,axonId)->delay;}
+   inline int getDelay(int arborId = 0)               {assert(arborId>=0 && arborId<numAxonalArborLists); return delays[arborId];}
 
    virtual float minWeight(int arborId = 0)          {return 0.0;}
    virtual float maxWeight(int arborId = 0)          {return wMax;}
@@ -113,7 +113,7 @@ public:
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    inline pvdata_t * get_dWData(int kPre, int arborId) {PVPatch * dW = axonalArbor(kPre,arborId)->plasticIncr; assert(dW); return dW->data;}
-   inline size_t getGSynOffset(int kPre, int arborId) {return axonalArbor(kPre,arborId)->offset;} // will create a new member variable gSynOffset and remove arbor
+   inline size_t getGSynOffset(int kPre, int arborId) {return gSynOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
    int getAPostOffset(int kPre, int arborId);
 
    HyPerLayer * preSynapticLayer()                   {return pre;}
@@ -136,7 +136,7 @@ public:
    virtual int initShrinkPatches();
 
    virtual int shrinkPatches(int arborId);
-   int shrinkPatch(PVAxonalArbor * arbor);
+   int shrinkPatch(int kExt, int arborId);
    bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
    virtual int initNormalize();
@@ -162,6 +162,8 @@ protected:
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
    PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
+   size_t        ** gSynOffset; // gSynOffset[arborId][kExt] is the index of the start of a patch into a non-extended postsynaptic layer
+   int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
    PVPatch       *** pIncr;      // list of weight patches for storing changes to weights

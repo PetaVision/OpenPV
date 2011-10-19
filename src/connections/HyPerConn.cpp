@@ -109,6 +109,8 @@ HyPerConn::~HyPerConn()
          free(axonalArborList[l]);
       }
    }
+   free(*gSynOffset); // All gSynOffset[k]'s were allocated together in a single malloc call.
+   free(gSynOffset);
 
    // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
@@ -151,10 +153,8 @@ int HyPerConn::initialize_base()
    wPatches=NULL;
    axonalArborList=NULL;
    pIncr = NULL;
-//   for (int i = 0; i < MAX_ARBOR_LIST; i++) {
-//      wPatches[i] = NULL;
-//      axonalArborList[i] = NULL;
-//   }
+   gSynOffset = NULL;
+
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
@@ -174,6 +174,24 @@ int HyPerConn::createArbors() {
    assert(wPatches != NULL);
    axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
    assert(axonalArborList != NULL);
+   gSynOffset = (size_t **) malloc(numAxonalArborLists*sizeof(size_t *));
+   if( gSynOffset == NULL ) {
+      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
+      exit(EXIT_FAILURE);
+   }
+   size_t * gSynOffsetBuffer = (size_t *) malloc(numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(size_t));
+   if( gSynOffsetBuffer == NULL ) {
+      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
+      exit(EXIT_FAILURE);
+   }
+   delays = (int *) malloc(numAxonalArborLists*sizeof(int));
+   if( delays == NULL ) {
+      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
+      exit(EXIT_FAILURE);
+   }
+   for( int k=0; k<numAxonalArborLists; k++ ) {
+      gSynOffset[k] = gSynOffsetBuffer + k*preSynapticLayer()->getNumExtended();
+   }
    return PV_SUCCESS;
 }
 
@@ -232,18 +250,17 @@ int HyPerConn::constructWeights(const char * filename)
 int HyPerConn::shrinkPatches(int arborId) {
    int numPatches = numWeightPatches();
    for (int kex = 0; kex < numPatches; kex++) {
-      PVAxonalArbor * arbor = axonalArbor(kex, arborId);
-
-      shrinkPatch(arbor);
-   } // loop over arbors (pre-synaptic neurons)
+      shrinkPatch(kex, arborId /* arbor */ );
+   } // loop over pre-synaptic neurons
 
    return 0;
 }
 
-int HyPerConn::shrinkPatch(PVAxonalArbor * arbor) {
+int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
    //int kl, offset, nxPatch, nyPatch, dx, dy;
    //calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
+   PVAxonalArbor * arbor = axonalArbor(kExt, arborId);
 
    PVPatch *weights = arbor->weights;
    pvdata_t * w = weights->data;
@@ -371,7 +388,6 @@ int HyPerConn::initPlasticityPatches()
 {
    if (!plasticityFlag) return PV_SUCCESS;
 
-   //const int arbor = 0;
    const int numAxons = numberOfAxonalArborLists();
 
    pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
@@ -730,12 +746,13 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
-void HyPerConn::setDelay(int axonId, int delay) {
-   assert(axonId<numAxonalArborLists);
-   int numPatches = numWeightPatches();
-   for(int pID=0;pID<numPatches; pID++) {
-      axonalArbor(pID, axonId)->delay = delay;
-   }
+void HyPerConn::setDelay(int arborId, int delay) {
+   assert(arborId>=0 && arborId<numAxonalArborLists);
+   delays[arborId] = delay;
+//   int numPatches = numWeightPatches();
+//    for(int pID=0;pID<numPatches; pID++) {
+//       axonalArbor(pID, arborId)->delay = delay;
+//    }
 }
 
 // NOTE: this should be temporary until delivery interface is straightened out
@@ -1006,12 +1023,13 @@ int HyPerConn::createAxonalArbors(int arborId)
       arbor->weights = getWeights(kex, arborId);
       arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
 
-      arbor->delay=(int) inputParams->value(name, "delay", 0);
+      // arbor->delay=(int) inputParams->value(name, "delay", 0);
       // initialize the receiving (of spiking data) gSyn variable
       pvdata_t * gSyn = post->getChannel(channel) + kl;
       pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
-      arbor->offset = offset;
+      // arbor->offset = offset;
+      gSynOffset[arborId][kex] = offset;
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
@@ -1019,6 +1037,7 @@ int HyPerConn::createAxonalArbors(int arborId)
 
    } // loop over arbors (pre-synaptic neurons)
    //} // loop over neighbors
+   delays[arborId] = (int) inputParams->value(name, "delay", 0);
 
    return 0;
 }

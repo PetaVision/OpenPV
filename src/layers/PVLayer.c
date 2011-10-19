@@ -189,7 +189,7 @@ PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
    int sx = nf;
    int sy = sx * nx;
 
-   size_t dataSize = nx * ny * nf * sizeof(float);
+   size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
    PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
    assert(p != NULL);
 

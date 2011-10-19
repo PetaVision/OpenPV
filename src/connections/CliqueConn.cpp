@@ -38,8 +38,9 @@ int CliqueConn::calc_dW(int arborId){
     const int nxPreExt = preLoc->nx + 2*preLoc->nb;
     const int nyPreExt = preLoc->ny + 2*preLoc->nb;
 
-    // assume each synaptic connection with the same arborId has the same delay
-    int delay = this->axonalArbor(0, arborId)->delay;
+    int delay = getDelay(arborId);
+//     // assume each synaptic connection with the same arborId has the same delay
+//     int delay = this->axonalArbor(0, arborId)->delay;
 
     // gather active indices in extended layer
     // hard to pre-compute at HyPerLayer level because of variable delays

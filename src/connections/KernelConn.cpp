@@ -161,14 +161,11 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
 int KernelConn::shrinkPatches(int arborId) {
    int numPatches = numDataPatches();
    for (int kex = 0; kex < numPatches; kex++) {
-      PVAxonalArbor * arbor = axonalArbor(kernelIndexToPatchIndex(kex), arborId);
-
-      HyPerConn::shrinkPatch(arbor);
-   } // loop over arbors (pre-synaptic neurons)
+      HyPerConn::shrinkPatch(kernelIndexToPatchIndex(kex), arborId);
+   } // loop over pre-synaptic neurons
 
    return 0;
 }
-
 
 /*TODO  createWeights currently breaks in this subclass if called more than once,
  * fix interface by adding extra dataPatches argument to overloaded method
@@ -334,8 +331,8 @@ int KernelConn::updateWeights(int axonId){
          PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
          int syPatch = kernelPatch->sy;
          int nkPatch = kernelPatch->nf * kernelPatch->nx;
-         float * weights = kernelPatch->data;
-         float * dWeights = dKernelPatch->data;
+         pvdata_t * weights = kernelPatch->data;
+         pvdata_t * dWeights = dKernelPatch->data;
          for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                weights[kPatch] += dWeights[kPatch];
