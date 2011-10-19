@@ -62,18 +62,25 @@ typedef struct PVLayerCube_ {
    PVLayerLoc loc;       // location of cube in global layer
 } PVLayerCube;
 
+// PVAxonalArbor is being deprecated.
+// Use getWeights(k,arbor) instead of axonalArbor(k,arbor)->weights
+// Use getGSynOffset(k,arbor) instead of axonalArbor(k,arbor)->offset
+// Use getDelay(arbor) instead of axonalArbor(k,arbor)->delay
 typedef struct PVAxonalArbor_ {
    PVPatch * data;        // data for task to work on (e.g., GSyn data)
    PVPatch * weights;     // weights to apply to the data
    PVPatch * plasticIncr; // STDP P variable
-   size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
-   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + varible delay for valid connection)
+//    size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
+//    int delay; // current output delay in the associated f ring buffer (should equal fixed delay + variable delay for valid connection)
 } PVAxonalArbor;
 
+#ifdef OBSOLETE // Marked obsolete Oct 19, 2011.  Use HyPerConn's numAxonalArborLists and axonalArborList
+                // member variables.  But note also that PVAxonalArbor is being deprecated (see above).
 typedef struct PVAxonalArborList_ {
    unsigned int     numArbors;
    PVAxonalArbor ** arbors;
 } PVAxonalArborList;
+#endif
 
 /*
  * function declarations and inline definitions
