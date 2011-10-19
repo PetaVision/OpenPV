@@ -107,13 +107,16 @@ public:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
    virtual PVPatch * getWeights(int kPre, int arborId);
    inline PVPatch * getPlasticIncr(int kPre, int arborId) {return pIncr[arborId][kPre];}
-   inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
-                                                     {return &axonalArborList[arborId][kPre];}
+   inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
+   inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
+   // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
+   //                                                  {return &axonalArborList[arborId][kPre];}
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    inline pvdata_t * get_dWData(int kPre, int arborId) {return pIncr[arborId][kPre]->data;}
+   inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
    inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
 
    HyPerLayer * preSynapticLayer()                   {return pre;}
@@ -161,9 +164,12 @@ protected:
    //PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
-   PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
-   size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into a extended postsynaptic layer
+   // PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
+   pvdata_t      *** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
+   size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
+   PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
+   PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
    PVPatch       *** pIncr;      // list of weight patches for storing changes to weights
@@ -223,6 +229,7 @@ protected:
 
    int initialize_base();
    virtual int createArbors();
+   void createArborsOutOfMemory();
    int constructWeights(const char * filename);
 #ifdef OBSOLETE // Marked obsolete Oct 1, 2011.  Made redundant by adding default value to weightInit argument of other initialize method
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -254,8 +261,9 @@ protected:
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
    virtual int setdWPatches(PVPatch ** patches, int arborId) {pIncr[arborId]=patches; return 0;}
-   inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
+   // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
 
+   void connOutOfMemory(const char * funcname);
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);

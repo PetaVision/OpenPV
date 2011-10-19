@@ -20,10 +20,9 @@ CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
 }
 
 CloneKernelConn::~CloneKernelConn() {
-   for( int k=0; k<numberOfAxonalArborLists(); k++ ) {
-      setArbor(NULL, k);
-      //axonalArborList[k] = NULL;
-   }
+//   for( int k=0; k<numberOfAxonalArborLists(); k++ ) {
+//      setArbor(NULL, k);
+//   }
 }
 
 int CloneKernelConn::initialize_base() {

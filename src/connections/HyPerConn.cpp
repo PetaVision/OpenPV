@@ -101,14 +101,16 @@ HyPerConn::~HyPerConn()
 
    // free the task information
 
-   for (int l = 0; l < numAxonalArborLists; l++) {
-      if ( axonalArborList[l] ) {
-         free(axonalArbor(0, l)->data);
-         // axonalArbor(0,l) frees all data patches for arbor l because all
-         // axonalArbor patches for that l were created in a single calloc().
-         free(axonalArborList[l]);
-      }
-   }
+//   for (int l = 0; l < numAxonalArborLists; l++) {
+//      if ( axonalArborList[l] ) {
+//         free(axonalArbor(0, l)->data);
+//         // axonalArbor(0,l) frees all data patches for arbor l because all
+//         // axonalArbor patches for that l were created in a single calloc().
+//         free(axonalArborList[l]);
+//      }
+//   }
+   free(*gSynPatchStart); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+   free(gSynPatchStart);
    free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
    free(aPostOffset);
 
@@ -151,7 +153,7 @@ int HyPerConn::initialize_base()
    this->fileType = PVP_WGT_FILE_TYPE;
 
    wPatches=NULL;
-   axonalArborList=NULL;
+   // axonalArborList=NULL;
    pIncr = NULL;
    aPostOffset = NULL;
 
@@ -168,31 +170,49 @@ int HyPerConn::initialize_base()
 }
 
 int HyPerConn::createArbors() {
-//   PVParams * inputParams = parent->parameters();
-//   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1);
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
-   assert(wPatches != NULL);
-   axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
-   assert(axonalArborList != NULL);
+   if( wPatches == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
+   // axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
+   // assert(axonalArborList != NULL);
+   gSynPatchStart = (pvdata_t ***) malloc( numAxonalArborLists*sizeof(pvdata_t **) );
+   if( gSynPatchStart == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
+   pvdata_t ** gSynPatchStartBuffer = (pvdata_t **) malloc( numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(pvdata_t *));
+   if( gSynPatchStartBuffer == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
+   for( int k=0; k<numAxonalArborLists; k++ ) {
+      gSynPatchStart[k] = gSynPatchStartBuffer + k*preSynapticLayer()->getNumExtended();
+   }
    aPostOffset = (size_t **) malloc(numAxonalArborLists*sizeof(size_t *));
    if( aPostOffset == NULL ) {
-      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
-      exit(EXIT_FAILURE);
+      createArborsOutOfMemory();
+      assert(false);
    }
    size_t * aPostOffsetBuffer = (size_t *) malloc(numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(size_t));
    if( aPostOffsetBuffer == NULL ) {
-      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
-      exit(EXIT_FAILURE);
-   }
-   delays = (int *) malloc(numAxonalArborLists*sizeof(int));
-   if( delays == NULL ) {
-      fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
-      exit(EXIT_FAILURE);
+      createArborsOutOfMemory();
+      assert(false);
    }
    for( int k=0; k<numAxonalArborLists; k++ ) {
       aPostOffset[k] = aPostOffsetBuffer + k*preSynapticLayer()->getNumExtended();
    }
+   delays = (int *) malloc(numAxonalArborLists*sizeof(int));
+   if( delays == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
    return PV_SUCCESS;
+}
+
+void HyPerConn::createArborsOutOfMemory() {
+   connOutOfMemory("HyPerConn::createArbors()");
 }
 
 
@@ -260,7 +280,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
    //int kl, offset, nxPatch, nyPatch, dx, dy;
    //calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
-   PVAxonalArbor * arbor = axonalArbor(kExt, arborId);
+   // PVAxonalArbor * arbor = axonalArbor(kExt, arborId);
 
    PVPatch *weights = getWeights(kExt,arborId);
    pvdata_t * w = weights->data;
@@ -307,10 +327,9 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
       // adjust patch size (shrink) for the data to fit within interior of post-synaptic layer
       //
-      pvpatch_adjust(arbor->data, nxNew, nyNew, dxNew, dyNew);
-
-      //need to do something with offset!
-      //arbor->offset = offset;
+      // pvpatch_adjust(arbor->data, nxNew, nyNew, dxNew, dyNew);
+      gSynPatchStart[arborId][kExt] += dxNew*getPostNonextStrides()->sx + dyNew*getPostNonextStrides()->sy;
+      aPostOffset[arborId][kExt] += dxNew*getPostExtStrides()->sx + dyNew*getPostExtStrides()->sy; // Someone who uses these routines, please check that this is correct.
    }
    return 0;
 }
@@ -405,7 +424,6 @@ int HyPerConn::initPlasticityPatches()
       // kex is in extended frame
       for (int kex = 0; kex < numArbors; kex++) {
          int kl, offset, nxPatch, nyPatch, dx, dy;
-         // PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
          calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
@@ -988,18 +1006,24 @@ int HyPerConn::createAxonalArbors(int arborId)
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
-   const int psf = 1;
-   const int psx = nfp;
-   const int psy = psx * post->getLayerLoc()->nx;
+   // const int psf = 1;
+   // const int psx = nfp;
+   // const int psy = psx * post->getLayerLoc()->nx;
+   postNonextStrides.sf = 1;
+   postNonextStrides.sx = nfp;
+   postNonextStrides.sy = nfp * post->getLayerLoc()->nx;
+   postExtStrides.sf = 1;
+   postExtStrides.sx = nfp;
+   postExtStrides.sy = nfp * (post->getLayerLoc()->nx+2*post->getLayerLoc()->nb);
 
    // activity is extended into margins
    //
    //for (int n = 0; n < numAxons; n++) {
    int numPatches = numWeightPatches();
-   PVAxonalArbor* newArbor = (PVAxonalArbor*) calloc(numPatches, sizeof(PVAxonalArbor));
-   assert(newArbor != NULL);
-   setArbor(newArbor, arborId);
-   assert(axonalArborList[arborId] != NULL);
+   // PVAxonalArbor* newArbor = (PVAxonalArbor*) calloc(numPatches, sizeof(PVAxonalArbor));
+   // assert(newArbor != NULL);
+   // setArbor(newArbor, arborId);
+   // assert(axonalArborList[arborId] != NULL);
    //}
 
    //for (int n = 0; n < numAxons; n++) {
@@ -1008,19 +1032,20 @@ int HyPerConn::createAxonalArbors(int arborId)
    assert(dataPatches != NULL);
 
    for (int kex = 0; kex < numPatches; kex++) {
-      PVAxonalArbor * arbor = axonalArbor(kex, arborId);
+      // PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
       // kex is in extended frame, this makes transformations more difficult
       int kl, offset, nxPatch, nyPatch, dx, dy;
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
-      arbor->data = &dataPatches[kex];
+      // arbor->data = &dataPatches[kex];
       // arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
 
       // arbor->delay=(int) inputParams->value(name, "delay", 0);
       // initialize the receiving (of spiking data) gSyn variable
       pvdata_t * gSyn = post->getChannel(channel) + kl;
-      pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
+      gSynPatchStart[arborId][kex] = gSyn;
+      // pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
       // arbor->offset = offset;
       aPostOffset[arborId][kex] = offset;
@@ -1856,6 +1881,11 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
       *kfKernelIndex = kfPre;
    }
    return kernelIndex;
+}
+
+void HyPerConn::connOutOfMemory(const char * funcname) {
+   fprintf(stderr, "Out of memory error in %s for connection \"%s\"\n", funcname, name);
+   exit(EXIT_FAILURE);
 }
 
 } // namespace PV

@@ -137,21 +137,22 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
          }
 
          // receive weights input from clique (mostly copied from superclass method)
-         PVAxonalArbor * arbor = conn->axonalArbor(kPreExt, arborNdx);
-         PVPatch * GSyn = arbor->data;
+         // PVAxonalArbor * arbor = conn->axonalArbor(kPreExt, arborNdx);
+         // PVPatch * GSyn = arbor->data;
          PVPatch * weights = conn->getWeights(kPreExt, arborNdx);
 
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 
-         int nkPost = GSyn->nf * GSyn->nx;
-         int nyPost = GSyn->ny;
-         int syPost = GSyn->sy;// stride in layer
+         int nkPost = weights->nf * weights->nx;
+         int nyPost = weights->ny;
+         int syPost = conn->getPostNonextStrides()->sy;// stride in layer
          int sywPatch = weights->sy;// stride in patch
 
          // TODO - unroll
          for (int y = 0; y < nyPost; y++) {
-            pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
+            // pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
+            pvpatch_accumulate(nkPost, conn->getGSynPatchStart(kPreExt, arborNdx) + y*syPost, cliqueProd, weights->data + y*sywPatch);
          }
 
       } // kClique

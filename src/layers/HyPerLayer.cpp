@@ -655,21 +655,19 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
-      PVAxonalArbor * arbor = conn->axonalArbor(kPre, arborID);
-      PVPatch * GSyn = arbor->data;
       PVPatch * weights = conn->getWeights(kPre, arborID);
 
       // WARNING - assumes weight and GSyn patches from task same size
       //         - assumes patch stride sf is 1
 
-      int nk  = GSyn->nf * GSyn->nx;
-      int ny  = GSyn->ny;
-      int sy  = GSyn->sy;       // stride in layer
+      int nk  = weights->nf * weights->nx;
+      int ny  = weights->ny;
+      int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int syw = weights->sy;    // stride in patch
-
+      pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
-         (conn->accumulateFunctionPointer)(nk, GSyn->data + y*sy, a, weights->data + y*syw);
+         (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, weights->data + y*syw);
 //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }
