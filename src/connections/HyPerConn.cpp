@@ -179,8 +179,8 @@ int HyPerConn::createArbors() {
       fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
       exit(EXIT_FAILURE);
    }
-   size_t * gSynOffsetBuffer = (size_t *) malloc(numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(size_t));
-   if( gSynOffsetBuffer == NULL ) {
+   size_t * aPostOffsetBuffer = (size_t *) malloc(numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(size_t));
+   if( aPostOffsetBuffer == NULL ) {
       fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
       exit(EXIT_FAILURE);
    }
@@ -190,7 +190,7 @@ int HyPerConn::createArbors() {
       exit(EXIT_FAILURE);
    }
    for( int k=0; k<numAxonalArborLists; k++ ) {
-      aPostOffset[k] = gSynOffsetBuffer + k*preSynapticLayer()->getNumExtended();
+      aPostOffset[k] = aPostOffsetBuffer + k*preSynapticLayer()->getNumExtended();
    }
    return PV_SUCCESS;
 }
