@@ -214,7 +214,7 @@ int STDPConn::updateWeights(int axonId)
       const float preActivity = preLayerData[kPre];
 
       PVPatch * pIncr   = arbor->plasticIncr;
-      PVPatch * w       = arbor->weights;
+      PVPatch * w       = getWeights(kPre, axonId);
       size_t postOffset = getGSynOffset(kPre, axonId);
 
       const float * postActivity = &post->getLayerData()[postOffset];

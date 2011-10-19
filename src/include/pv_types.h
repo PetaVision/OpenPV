@@ -68,7 +68,7 @@ typedef struct PVLayerCube_ {
 // Use getDelay(arbor) instead of axonalArbor(k,arbor)->delay
 typedef struct PVAxonalArbor_ {
    PVPatch * data;        // data for task to work on (e.g., GSyn data)
-   PVPatch * weights;     // weights to apply to the data
+//   PVPatch * weights;     // weights to apply to the data
    PVPatch * plasticIncr; // STDP P variable
 //    size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
 //    int delay; // current output delay in the associated f ring buffer (should equal fixed delay + variable delay for valid connection)

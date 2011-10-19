@@ -225,7 +225,7 @@ int ODDConn::updateWeights(int axonID)
       float aPre = preLayerData[kPre];
       if (aPre <= aPreThresh) continue;
 
-      PVPatch * wPatch = arbor->weights;
+      PVPatch * wPatch = getWeights(kPre,axonID);
       size_t postOffset = getGSynOffset(kPre, axonID);
       const pvdata_t * aPost = &post->getLayerData()[postOffset];
 

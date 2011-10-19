@@ -262,7 +262,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
    PVAxonalArbor * arbor = axonalArbor(kExt, arborId);
 
-   PVPatch *weights = arbor->weights;
+   PVPatch *weights = getWeights(kExt,arborId);
    pvdata_t * w = weights->data;
 
    int nxp = weights->nx;
@@ -303,7 +303,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
-      pvpatch_adjust(arbor->weights, nxNew, nyNew, dxNew, dyNew);
+      pvpatch_adjust(weights, nxNew, nyNew, dxNew, dyNew);
 
       // adjust patch size (shrink) for the data to fit within interior of post-synaptic layer
       //
@@ -1020,7 +1020,6 @@ int HyPerConn::createAxonalArbors(int arborId)
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
       arbor->data = &dataPatches[kex];
-      arbor->weights = getWeights(kex, arborId);
       arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
 
       // arbor->delay=(int) inputParams->value(name, "delay", 0);
@@ -1033,7 +1032,7 @@ int HyPerConn::createAxonalArbors(int arborId)
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
-      pvpatch_adjust(arbor->weights, nxPatch, nyPatch, dx, dy);
+      pvpatch_adjust(getWeights(kex,arborId), nxPatch, nyPatch, dx, dy);
 
    } // loop over arbors (pre-synaptic neurons)
    //} // loop over neighbors
