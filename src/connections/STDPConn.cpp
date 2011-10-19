@@ -215,7 +215,7 @@ int STDPConn::updateWeights(int axonId)
 
       // PVPatch * pIncrPatch   = pIncr[axonId][kPre];
       PVPatch * w       = getWeights(kPre, axonId);
-      size_t postOffset = getGSynOffset(kPre, axonId);
+      size_t postOffset = getAPostOffset(kPre, axonId);
 
       const pvdata_t * postActivity = &post->getLayerData()[postOffset];
       const pvdata_t * M = &pDecr->data[postOffset];  // STDP decrement variable

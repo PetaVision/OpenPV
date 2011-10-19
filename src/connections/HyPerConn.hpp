@@ -114,8 +114,7 @@ public:
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    inline pvdata_t * get_dWData(int kPre, int arborId) {return pIncr[arborId][kPre]->data;}
-   inline size_t getGSynOffset(int kPre, int arborId) {return gSynOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
-   int getAPostOffset(int kPre, int arborId);
+   inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
 
    HyPerLayer * preSynapticLayer()                   {return pre;}
    HyPerLayer * postSynapticLayer()                  {return post;}
@@ -163,7 +162,7 @@ protected:
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
    PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
-   size_t        ** gSynOffset; // gSynOffset[arborId][kExt] is the index of the start of a patch into a non-extended postsynaptic layer
+   size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into a extended postsynaptic layer
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights

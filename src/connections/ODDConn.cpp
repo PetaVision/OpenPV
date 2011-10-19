@@ -226,7 +226,7 @@ int ODDConn::updateWeights(int axonID)
       if (aPre <= aPreThresh) continue;
 
       PVPatch * wPatch = getWeights(kPre,axonID);
-      size_t postOffset = getGSynOffset(kPre, axonID);
+      size_t postOffset = getAPostOffset(kPre, axonID);
       const pvdata_t * aPost = &post->getLayerData()[postOffset];
 
       int nk  = wPatch->nf * wPatch->nx; // one line in x at a time

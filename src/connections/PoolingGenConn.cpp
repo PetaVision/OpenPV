@@ -100,7 +100,7 @@ int PoolingGenConn::updateWeights(int axonID) {
         int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
 
         PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
-        size_t offset = getGSynOffset(kPre, axonID);
+        size_t offset = getAPostOffset(kPre, axonID);
         pvdata_t preact = preSynapticLayer()->getCLayer()->activity->data[kExt];
         pvdata_t preact2 = getPre2()->getCLayer()->activity->data[kExt];
         PVPatch * weights = getWeights(kPre,axonID);

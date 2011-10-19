@@ -109,8 +109,8 @@ HyPerConn::~HyPerConn()
          free(axonalArborList[l]);
       }
    }
-   free(*gSynOffset); // All gSynOffset[k]'s were allocated together in a single malloc call.
-   free(gSynOffset);
+   free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
+   free(aPostOffset);
 
    // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
@@ -153,7 +153,7 @@ int HyPerConn::initialize_base()
    wPatches=NULL;
    axonalArborList=NULL;
    pIncr = NULL;
-   gSynOffset = NULL;
+   aPostOffset = NULL;
 
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
@@ -174,8 +174,8 @@ int HyPerConn::createArbors() {
    assert(wPatches != NULL);
    axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
    assert(axonalArborList != NULL);
-   gSynOffset = (size_t **) malloc(numAxonalArborLists*sizeof(size_t *));
-   if( gSynOffset == NULL ) {
+   aPostOffset = (size_t **) malloc(numAxonalArborLists*sizeof(size_t *));
+   if( aPostOffset == NULL ) {
       fprintf(stderr, "Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
       exit(EXIT_FAILURE);
    }
@@ -190,7 +190,7 @@ int HyPerConn::createArbors() {
       exit(EXIT_FAILURE);
    }
    for( int k=0; k<numAxonalArborLists; k++ ) {
-      gSynOffset[k] = gSynOffsetBuffer + k*preSynapticLayer()->getNumExtended();
+      aPostOffset[k] = gSynOffsetBuffer + k*preSynapticLayer()->getNumExtended();
    }
    return PV_SUCCESS;
 }
@@ -901,11 +901,6 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
-int HyPerConn::getAPostOffset(int kPre, int arborId) {
-   const PVLayerLoc * loc = post->getLayerLoc();
-   return kIndexExtended(getGSynOffset(kPre, arborId), loc->nx, loc->ny, loc->nf, loc->nb); // Is this still correct for shrunken patches?
-}
-
 PVPatch ** HyPerConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
@@ -1028,7 +1023,7 @@ int HyPerConn::createAxonalArbors(int arborId)
       pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
       // arbor->offset = offset;
-      gSynOffset[arborId][kex] = offset;
+      aPostOffset[arborId][kex] = offset;
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //

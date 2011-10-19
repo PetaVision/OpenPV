@@ -104,7 +104,7 @@ int GenerativeConn::calc_dW(int axonID) {
    for(int kExt=0; kExt<nExt;kExt++) {
       // PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
       PVPatch * weights = getWeights(kExt,axonID);
-      size_t offset = getGSynOffset(kExt, axonID);
+      size_t offset = getAPostOffset(kExt, axonID);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * weights->nf;
