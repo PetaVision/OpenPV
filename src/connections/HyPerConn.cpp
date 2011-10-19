@@ -396,27 +396,27 @@ int HyPerConn::initPlasticityPatches()
    int numArbors = numWeightPatches();
    for (int arborId = 0; arborId < numAxons; arborId++) {
 
-      //pIncr[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-      //assert(pIncr[n] != NULL);
-      PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-      assert(dWPatch != NULL);
+      pIncr[arborId] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      assert(pIncr[arborId] != NULL);
+      // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      // assert(dWPatch != NULL);
 
 
       // kex is in extended frame
       for (int kex = 0; kex < numArbors; kex++) {
          int kl, offset, nxPatch, nyPatch, dx, dy;
-         PVAxonalArbor * arbor = axonalArbor(kex, arborId);
+         // PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
          calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
          //arbor->plasticIncr = pIncr[n][kex];
-         arbor->plasticIncr = dWPatch[kex];
-         pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
+         //arbor->plasticIncr = pIncr[arborId][kex];
+         pvpatch_adjust(pIncr[arborId][kex], nxPatch, nyPatch, dx, dy);
 
       } // loop over pre-synaptic neurons
-      setdWPatches(dWPatch, arborId);
+      setdWPatches(pIncr[arborId], arborId);
 
    } // loop over arbors
 
@@ -1020,7 +1020,7 @@ int HyPerConn::createAxonalArbors(int arborId)
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
       arbor->data = &dataPatches[kex];
-      arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
+      // arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
 
       // arbor->delay=(int) inputParams->value(name, "delay", 0);
       // initialize the receiving (of spiking data) gSyn variable

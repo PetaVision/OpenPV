@@ -99,7 +99,7 @@ ConnectionProbe::~ConnectionProbe()
  */
 int ConnectionProbe::outputState(float time, HyPerConn * c)
 {
-   float * M = NULL;
+   pvdata_t * M = NULL;
    int kPre = this->kPre;
 
    const PVLayerLoc * lPreLoc = c->preSynapticLayer()->getLayerLoc();
@@ -120,10 +120,10 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    //const int axonId = 0;
 
    //probe only outputs one arbor.  to read more arbors add more probes!
-   PVAxonalArbor * arbor = c->axonalArbor(kPre, arborID);
+   // PVAxonalArbor * arbor = c->axonalArbor(kPre, arborID);
 
-   PVPatch * P = arbor->plasticIncr;
-   PVPatch * w = arbor->weights;
+   PVPatch * P = c->getPlasticIncr(kPre,arborID);
+   PVPatch * w = c->getWeights(kPre, arborID);
    int kPost = c->getGSynOffset(kPre, arborID);
 
    if (stdpVars) {

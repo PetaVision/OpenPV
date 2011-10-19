@@ -220,7 +220,7 @@ int ODDConn::updateWeights(int axonID)
    int nKernels = numDataPatches();
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
-      PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
+      // PVAxonalArbor * arbor = axonalArbor(kPre, axonID);
 
       float aPre = preLayerData[kPre];
       if (aPre <= aPreThresh) continue;

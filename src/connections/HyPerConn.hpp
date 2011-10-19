@@ -106,13 +106,14 @@ public:
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
    virtual PVPatch * getWeights(int kPre, int arborId);
+   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return pIncr[arborId][kPre];}
    inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
                                                      {return &axonalArborList[arborId][kPre];}
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
-   inline pvdata_t * get_dWData(int kPre, int arborId) {PVPatch * dW = axonalArbor(kPre,arborId)->plasticIncr; assert(dW); return dW->data;}
+   inline pvdata_t * get_dWData(int kPre, int arborId) {return pIncr[arborId][kPre]->data;}
    inline size_t getGSynOffset(int kPre, int arborId) {return gSynOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
    int getAPostOffset(int kPre, int arborId);
 

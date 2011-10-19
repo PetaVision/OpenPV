@@ -657,8 +657,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
       PVAxonalArbor * arbor = conn->axonalArbor(kPre, arborID);
       PVPatch * GSyn = arbor->data;
-      PVPatch * weights = arbor->weights;
-
+      PVPatch * weights = conn->getWeights(kPre, arborID);
 
       // WARNING - assumes weight and GSyn patches from task same size
       //         - assumes patch stride sf is 1

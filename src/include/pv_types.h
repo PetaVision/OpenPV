@@ -64,14 +64,16 @@ typedef struct PVLayerCube_ {
 
 // PVAxonalArbor is being deprecated.
 // Use getWeights(k,arbor) instead of axonalArbor(k,arbor)->weights
+// Use getPlasticIncrement(k,arbor) instead of axonalArbor(k,arbor)->plasticIncr
+// Use get_dWData(k,arbor) instead of axonalArbor(k,arbor)->plasticIncr->data
 // Use getGSynOffset(k,arbor) instead of axonalArbor(k,arbor)->offset
 // Use getDelay(arbor) instead of axonalArbor(k,arbor)->delay
 typedef struct PVAxonalArbor_ {
    PVPatch * data;        // data for task to work on (e.g., GSyn data)
 //   PVPatch * weights;     // weights to apply to the data
-   PVPatch * plasticIncr; // STDP P variable
-//    size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
-//    int delay; // current output delay in the associated f ring buffer (should equal fixed delay + variable delay for valid connection)
+//   PVPatch * plasticIncr; // STDP P variable
+//   size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
+//   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + variable delay for valid connection)
 } PVAxonalArbor;
 
 #ifdef OBSOLETE // Marked obsolete Oct 19, 2011.  Use HyPerConn's numAxonalArborLists and axonalArborList

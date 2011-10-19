@@ -126,8 +126,8 @@ int CliqueConn::calc_dW(int arborId){
                     } // iProd
 
                     // receive weights input from clique (mostly copied from superclass method)
-                    PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
-                    PVPatch * dWPatch = arbor->plasticIncr;
+                    // PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
+                    PVPatch * dWPatch = pIncr[arborNdx][kPreExt]; // arbor->plasticIncr;
                     size_t postOffset = getGSynOffset(kPreExt, arborNdx);
                     const float * aPost = &post->getLayerData()[postOffset];
                     int syPostExt = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb);

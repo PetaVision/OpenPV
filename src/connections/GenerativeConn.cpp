@@ -102,7 +102,7 @@ int GenerativeConn::calc_dW(int axonID) {
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonID));
 
    for(int kExt=0; kExt<nExt;kExt++) {
-      PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
+      // PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
       PVPatch * weights = getWeights(kExt,axonID);
       size_t offset = getGSynOffset(kExt, axonID);
       pvdata_t preact = preactbuf[kExt];
@@ -110,9 +110,8 @@ int GenerativeConn::calc_dW(int axonID) {
       int nk = weights->nx * weights->nf;
       const pvdata_t * postactRef = &postactbuf[offset];
       int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb)); // arbor->data->sy;
-      PVPatch * dwpatch = arbor->plasticIncr;
-      pvdata_t * dwdata = dwpatch->data;
-      int syw = dwpatch->sy;
+      pvdata_t * dwdata = get_dWData(kExt, axonID);
+      int syw = getWeights(kExt, axonID)->sy;
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {

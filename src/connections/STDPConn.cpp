@@ -77,14 +77,14 @@ int STDPConn::initPlasticityPatches()
       // kex is in extended frame
       for (int kex = 0; kex < numArbors; kex++) {
          int kl, offset, nxPatch, nyPatch, dx, dy;
-         PVAxonalArbor * arbor = axonalArbor(kex, n);
+         // PVAxonalArbor * arbor = axonalArbor(kex, n);
 
          calcPatchSize(n, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
-         arbor->plasticIncr = pIncr[n][kex];
-         pvpatch_adjust(arbor->plasticIncr, nxPatch, nyPatch, dx, dy);
+         // arbor->plasticIncr = pIncr[n][kex];
+         pvpatch_adjust(pIncr[n][kex], nxPatch, nyPatch, dx, dy);
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
@@ -209,22 +209,22 @@ int STDPConn::updateWeights(int axonId)
                          * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
-      PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
+      // PVAxonalArbor * arbor = axonalArbor(kPre, axonId);
 
-      const float preActivity = preLayerData[kPre];
+      const pvdata_t preActivity = preLayerData[kPre];
 
-      PVPatch * pIncr   = arbor->plasticIncr;
+      // PVPatch * pIncrPatch   = pIncr[axonId][kPre];
       PVPatch * w       = getWeights(kPre, axonId);
       size_t postOffset = getGSynOffset(kPre, axonId);
 
-      const float * postActivity = &post->getLayerData()[postOffset];
-      const float * M = &pDecr->data[postOffset];  // STDP decrement variable
-      float * P = pIncr->data;                     // STDP increment variable
-      float * W = w->data;
+      const pvdata_t * postActivity = &post->getLayerData()[postOffset];
+      const pvdata_t * M = &pDecr->data[postOffset];  // STDP decrement variable
+      pvdata_t * P = get_dWData(kPre, axonId);        // STDP increment variable
+      pvdata_t * W = w->data;
 
-      int nk  = pIncr->nf * pIncr->nx; // one line in x at a time
-      int ny  = pIncr->ny;
-      int sy  = pIncr->sy;
+      int nk  = w->nf * w->nx; // one line in x at a time
+      int ny  = w->ny;
+      int sy  = w->sy;
 
       // TODO - unroll
 
