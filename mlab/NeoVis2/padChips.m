@@ -36,19 +36,29 @@ function [tot_chips, ...
   global image_margin
   global pad_size
   global cropped_dir
+  global rejected_dir
+  global border_artifact_thresh
+  global image_size_thresh
 
   global VERBOSE_FLAG
   if ~exist("VERBOSE_FLAG") || isempty(VERBOSE_FLAG)
-    VERBOSE_FLAG, ...
+    VERBOSE_FLAG = 0;
   endif
  
   begin_time = time();
 
   if nargin < 1 || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "~/Pictures/HellChips/";
+    chip_path = "~/Pictures/Tower/neovision-chips-tower/"; %% "~/Pictures/HellChips/";
   endif
   if nargin < 2 || ~exist("object_name") || isempty(object_name)
-    object_name =  "Person"; %% "Cyclist"; %%  "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% "Car";  %%  
+    object_name = "distractor"; 
+%% "Person"; 
+%% "Cyclist"; 
+%% "Plane"; 
+%% "Boat"; 
+%% "Container"; 
+%% "Helicopter"; 
+%% "Car"; %%  
   endif
   if nargin < 3 || ~exist("DoG_flag") || isempty(DoG_flag)
     DoG_flag = 1;  %% 
@@ -61,7 +71,7 @@ function [tot_chips, ...
     DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
   endif
   if nargin < 5 || ~exist("canny_flag") || isempty(canny_flag)
-    canny_flag = 1;  %% 
+    canny_flag = 0;  %% 
   endif
   if nargin < 6 || ~exist("canny_struct") || isempty(canny_struct)
     canny_struct = struct;  %% 
@@ -79,7 +89,8 @@ function [tot_chips, ...
   local_dir = pwd;
 
   tot_chips = 0;
-  tot_targets = 0;
+  tot_unread = 0;
+  tot_rejected = 0;
   tot_DoG = 0;
   tot_canny = 0;
   tot_mean = 0;
@@ -93,8 +104,11 @@ function [tot_chips, ...
   std_original_size = zeros(1,3);
   std_cropped_size = zeros(1,2);
   tot_cropped = 0;
+  tot_rejected = 0;
   cropped_list = {};
   
+  border_artifact_thresh = 3.0; %% 1.25; %% use 1.25 for DARPA HeliChips
+  image_size_thresh = 1000; %% in bytes
 
   %% path to generic image processing routines
   img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
@@ -118,6 +132,11 @@ function [tot_chips, ...
   mkdir(cropped_path);
   cropped_dir = [cropped_path, object_name, filesep];
   mkdir(cropped_dir);
+
+  rejected_path = [chip_path, "rejected", filesep];
+  mkdir(rejected_path);
+  rejected_dir = [rejected_path, object_name, filesep];
+  mkdir(rejected_dir);
 
   log_path = [chip_path, "log", filesep];
   mkdir(log_path);
@@ -156,10 +175,9 @@ function [tot_chips, ...
   num_chips = size(target_pathnames,1);
   disp(['num_chips = ', num2str(num_chips)]);
 
-  tot_chips = tot_chips + num_chips;
-  mean_hist = zeros(1, tot_chips);
-  std_hist = zeros(1, tot_chips);
-  std_mean_hist = zeros(1, tot_chips);
+  mean_hist = zeros(1, num_chips);
+  std_hist = zeros(1, num_chips);
+  std_mean_hist = zeros(1, num_chips);
     
   if num_procs > 1
     [status_info] = ...
@@ -170,7 +188,11 @@ function [tot_chips, ...
   endif
 
   for i_chip = 1 : num_chips
-      tot_targets = tot_targets + status_info{i_chip}.target_flag;
+      tot_unread = tot_unread + status_info{i_chip}.unread_flag;
+      tot_rejected = tot_rejected + status_info{i_chip}.rejected_flag;
+      if status_info{i_chip}.rejected_flag
+	continue;
+      endif
       tot_DoG = tot_DoG + status_info{i_chip}.DoG_flag;
       tot_canny = tot_canny + status_info{i_chip}.canny_flag;
       tot_mean = tot_mean + status_info{i_chip}.mean;
@@ -178,6 +200,7 @@ function [tot_chips, ...
       mean_hist(i_chip) = status_info{i_chip}.mean;
       std_hist(i_chip) = status_info{i_chip}.std;
       std_mean_hist(i_chip) = std_hist(i_chip) / (mean_hist(i_chip) + (mean_hist(i_chip)==0));
+      %% cropped images
       tot_border_artifact_top = tot_border_artifact_top + status_info{i_chip}.num_border_artifact_top;
       tot_border_artifact_bottom = tot_border_artifact_bottom + status_info{i_chip}.num_border_artifact_bottom;
       tot_border_artifact_left = tot_border_artifact_left + status_info{i_chip}.num_border_artifact_left;
@@ -191,6 +214,8 @@ function [tot_chips, ...
 	cropped_list{tot_cropped} = status_info{i_chip}.chipname;
       endif
    endfor %% i_chip
+
+   tot_chips = num_chips - tot_rejected;
 
    fig_list = [];
    num_hist_bins = 20;
@@ -257,6 +282,10 @@ function [tot_chips, ...
  
    disp(["tot_chips = ", ...
 	 num2str(tot_chips)]);
+   disp(["tot_unread = ", ...
+	 num2str(tot_unread)]);
+   disp(["tot_rejected = ", ...
+	 num2str(tot_rejected)]);
    disp(["tot_DoG = ", ...
 	 num2str(tot_DoG)]);
    disp(["tot_canny = ", ...
@@ -267,6 +296,8 @@ function [tot_chips, ...
    log_filename = [log_dir, "log.txt"];
    save("-ascii", ...
 	log_filename, ...
+	"tot_unread", ...
+	"tot_rejected", ...
 	"tot_chips", ...
 	"tot_DoG", ...
 	"tot_canny", ...

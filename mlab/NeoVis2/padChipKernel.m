@@ -9,13 +9,21 @@ function [status_info] = padChipKernel(target_pathname)
   global image_margin
   global pad_size
   global cropped_dir
+  global rejected_dir
+  global border_artifact_thresh
+  global image_size_thresh
 
   global VERBOSE_FLAG
 
   status_info = struct;
-  status_info.target_flag = 0;
+  status_info.unread_flag = 1;
   status_info.DoG_flag = 0;
   status_info.canny_flag = 0;
+  status_info.num_border_artifact_top = 0;
+  status_info.num_border_artifact_bottom = 0;
+  status_info.num_border_artifact_left = 0;
+  status_info.num_border_artifact_right = 0;
+  status_info.rejected_flag = 1;
 
   if VERBOSE_FLAG
     disp(["target_pathname = ", target_pathname]);
@@ -30,18 +38,31 @@ function [status_info] = padChipKernel(target_pathname)
     disp([" failed: imageNetEdgeExtract::imread: ", target_pathname]);
     return;
   end
-  status_info.target_flag = 1;
+  status_info.unread_flag = 0;
   image_gray = col2gray(image_color);
   %%keyboard;
-
+  
   status_info.mean = mean(image_gray(:));
   status_info.std = std(image_gray(:));
-
   status_info.original_size = size(image_color);  
 
+  [file_info, err_status, err_msg] = stat(target_pathname);
+  if file_info.size < image_size_thresh
+    rejected_pathname = [rejected_dir, status_info.chipname];
+    imwrite(image_color, rejected_pathname);
+    status_info.rejected_flag = 1;
+    return;
+  endif
+
+  if status_info.original_size(1) <= image_margin || status_info.original_size(2) <= image_margin
+    rejected_pathname = [rejected_dir, status_info.chipname];
+    imwrite(image_color, rejected_pathname);
+    status_info.rejected_flag = 1;
+    return;
+  endif
+  status_info.rejected_flag = 0;
+
   %% crop artifacts arising from image borders
-  border_artifact_thresh = 1.25;
-  status_info.num_border_artifact_top = 0;
   while (mean(squeeze(image_gray(2,:))) - mean(squeeze(image_gray(1,:)))) / ...
 	(status_info.std + (status_info.std==0)) > ...
 	border_artifact_thresh
@@ -49,7 +70,6 @@ function [status_info] = padChipKernel(target_pathname)
     image_gray = image_gray(2:end,:);
     image_color = image_color(2:end,:,:);
   endwhile
-  status_info.num_border_artifact_bottom = 0;
   while (mean(squeeze(image_gray(end-1,:))) - mean(squeeze(image_gray(end,:)))) / ...
 	(status_info.std + (status_info.std==0)) > ...
 	border_artifact_thresh
@@ -57,7 +77,6 @@ function [status_info] = padChipKernel(target_pathname)
     image_gray = image_gray(1:end-1,:);
     image_color = image_gray(1:end-1,:,:);
   endwhile
-  status_info.num_border_artifact_left = 0;
   while (mean(squeeze(image_gray(:,2))) - mean(squeeze(image_gray(:,1)))) / ...
 	(status_info.std + (status_info.std==0)) > ...
 	border_artifact_thresh
@@ -65,7 +84,6 @@ function [status_info] = padChipKernel(target_pathname)
     image_gray = image_gray(:,2:end);
     image_color = image_color(:,2:end,:);
   endwhile
-  status_info.num_border_artifact_right = 0;
   while (mean(squeeze(image_gray(:, end-1))) - mean(squeeze(image_gray(:,end)))) / ...
 	(status_info.std + (status_info.std==0)) > ...
 	border_artifact_thresh
