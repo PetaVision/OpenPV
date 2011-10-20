@@ -403,9 +403,9 @@ static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
 static inline int localIndexFromGlobal(int kGlobal, PVLayerLoc loc)
 {
 #ifdef PV_USE_MPI
-   int kxGlobal = kxPos(kGlobal, loc.nxGlobal, loc.nxGlobal, loc.nf);
-   int kyGlobal = kyPos(kGlobal, loc.nxGlobal, loc.nxGlobal, loc.nf);
-   int kf = featureIndex(kGlobal, loc.nxGlobal, loc.nxGlobal, loc.nf);
+   int kxGlobal = kxPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
+   int kyGlobal = kyPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
+   int kf = featureIndex(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
    int kxLocal = kxGlobal - loc.kx0;
    int kyLocal = kyGlobal - loc.ky0;
    return kIndex(kxLocal, kyLocal, kf, loc.nx, loc.ny, loc.nf);
