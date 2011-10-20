@@ -471,7 +471,7 @@ KernelConn "LGN to S1" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 4.0;  
+   strength = 32.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -511,7 +511,7 @@ KernelConn "LGN to S1Inh" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 1.0;  
+   strength = 32.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
