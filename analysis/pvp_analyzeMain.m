@@ -44,7 +44,7 @@ machine_path = '/home/garkenyon/';
 %%machine_path = '/Users/gkenyon/';
 matlab_path = [machine_path, 'MATLAB/'];
 workspace_path = [machine_path, 'workspace-indigo/'];
-project_path = [workspace_path, 'Clique/'];
+project_path = [workspace_path, 'Clique2/'];
 
 global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'input/V1/amoeba/'];
@@ -90,7 +90,7 @@ plot_reconstruct = read_spikes; %uimatlab;
 plot_raster = read_spikes; %[layerIndex.l1];%read_spikes; %uimatlab;
 plot_reconstruct_target = [];%read_spikes; %[layerIndex.l1];
 plot_vmem = 1;
-plot_autocorr = read_spikes;% [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh];
+plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh]; %%read_spikes;% 
 plot_xcorr = plot_autocorr;
 
 
@@ -498,10 +498,10 @@ for layer = read_spikes;
   set(lh, 'LineWidth', 2);
   set(lh, 'Color', my_gray);
   
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor % layer
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 
 %% reconstruct image segments from layer activity
@@ -591,10 +591,10 @@ for layer = read_spikes;
     endfor %% % i_rank
   endif %%  ~isempty(target_struct.clutter)
 
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% layer
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 
 %% calc target and clutter xcorr
@@ -702,6 +702,10 @@ for layer = read_spikes;
     set(lh_target2clutter, 'LineWidth', 2);
     axis tight
   endfor %% % i_target
+
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
 
@@ -732,6 +736,10 @@ for layer = read_spikes;
 		   ( 1000 / DELTA_T )^2 / num_epochs ), '-b');
   set(lh_clutter, 'LineWidth', 2);
   axis tight
+
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
 
@@ -773,6 +781,10 @@ for layer = read_spikes;
     set(lh_target2clutter, 'LineWidth', 2);
   endfor %% % i_target
   axis tight
+
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
 
@@ -804,11 +816,12 @@ for layer = read_spikes;
   set(lh_clutter, 'LineWidth', 2);
   axis tight
   figure(fig_tmp);
+
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 stop_xcorr_timer = time;
 total_xcorr_timer = stop_xcorr_timer - start_xcorr_timer;
@@ -904,6 +917,10 @@ for layer = read_spikes;
 	 ( 1000 / DELTA_T )^2 / num_epochs, '-k');
 
   endfor %% % i_mode
+
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
 
@@ -959,10 +976,10 @@ for layer = read_spikes;
 	 ( 1000 / DELTA_T )^2 / num_epochs, '-k');
     
   endfor %% % i_mode
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 stop_sparsecorr_timer = time;
 total_sparsecorr_timer = stop_sparsecorr_timer - start_sparsecorr_timer;
@@ -1027,11 +1044,11 @@ for layer = read_spikes;
       fig_list = [fig_list; fig_tmp];
     endfor %% % i_vec
   endfor %% % i_mode
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endfor %% % layer
 
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 stop_eigen_timer = time;
 total_eigen_timer = stop_eigen_timer - start_eigen_timer;
@@ -1070,11 +1087,11 @@ if plot_rates
   legend(legend_str);
 				%    endif %%
   fig_list = [fig_list; fig_tmp];
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  close all;
+  fig_list = [];
 endif %%
 
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
-fig_list = [];
 
 
 %%read membrane potentials from point probes
@@ -1152,22 +1169,29 @@ stop_timer = time;
 total_timer = stop_timer - start_timer;
 disp(["total_timer = ", num2str(total_timer)]);
 
+
+
+
 %% plot connections
 global COMPRESSED_FLAG
 COMPRESSED_FLAG = 1;
 global N_CONNECTIONS
 global NXP NYP NFP
-[connID, connIndex] = pvp_connectionID();
-N_CONNECTIONS = 16;
+global NUM_ARBORS
+NUM_ARBORS = 1; %% spiking connectins don't use arbors
+[connID, connIndex, num_arbors] = pvp_connectionID();
+%%[connID, connIndex] = pvp_connectionID();
+%%N_CONNECTIONS = 16;
 plot_weights = 1:N_CONNECTIONS;
 weights = cell(N_CONNECTIONS, 1);
 pvp_header = cell(N_CONNECTIONS, 1);
 nxp = cell(N_CONNECTIONS, 1);
 nyp = cell(N_CONNECTIONS, 1);
 nfp = cell(N_CONNECTIONS, 1);
+j_arbor = 0;
 for i_conn = plot_weights
   [weights{i_conn}, nxp{i_conn}, nyp{i_conn}, pvp_header{i_conn}, pvp_index ] ...
-      = pvp_readWeights(i_conn);
+      = pvp_readWeights(i_conn,j_arbor);
   NK = 1;
   NO = floor( NFEATURES / NK );
   pvp_header_tmp = pvp_header{i_conn};
@@ -1175,7 +1199,7 @@ for i_conn = plot_weights
   NFP = pvp_header_tmp(pvp_index.WGT_NFP);
   NX_PROCS = pvp_header_tmp(pvp_index.NX_PROCS);
   NY_PROCS = pvp_header_tmp(pvp_index.NY_PROCS);
-  num_patches = num_patches / (NX_PROCS * NY_PROCS);
+  num_patches = num_patches; %% / (NX_PROCS * NY_PROCS);
   skip_patches = 1; %num_patches;
   data_size = pvp_header_tmp(pvp_index.DATA_SIZE);
   if data_size > 1
