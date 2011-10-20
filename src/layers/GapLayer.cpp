@@ -28,6 +28,10 @@ int GapLayer::initialize(LIFGap * originalLayer)
    sourceLayer = originalLayer;
    free(clayer->V);
    clayer->V = sourceLayer->getV();
+
+   HyPerLayer::setActivity(); // this copies the potential into the activity buffer for t=0
+
+
    return status_init;
 }
 
