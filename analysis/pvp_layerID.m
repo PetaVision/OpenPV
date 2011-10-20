@@ -10,7 +10,7 @@ i_layer = 0;
 
 if ( SPIKING_FLAG == 1 )
     
-    N_LAYERS = 8;
+    N_LAYERS = 11;
     layerID = cell(1, N_LAYERS);
     
     i_layer = i_layer + 1;
@@ -35,19 +35,29 @@ if ( SPIKING_FLAG == 1 )
     
     i_layer = i_layer + 1;
     layerIndex.l1 = i_layer;
-    layerID{ 1, i_layer } =  'L1';
+    layerID{ 1, i_layer } =  'S1';
     
     i_layer = i_layer + 1;
-    layerIndex.l1inhff = i_layer;
-    layerID{ 1, i_layer } =  'L1InhFF';
+    layerIndex.s1inh = i_layer;
+    layerID{ 1, i_layer } =  'S1Inh';
     
     i_layer = i_layer + 1;
-    layerIndex.l1inh = i_layer;
-    layerID{ 1, i_layer } =  'L1Inh';
+    layerIndex.s1inhgap = i_layer;
+    layerID{ 1, i_layer } =  'S1InhGap';
+    
+    i_layer = i_layer + 1;
+    layerIndex.c1 = i_layer;
+    layerID{ 1, i_layer } =  'C1';
+    
+    i_layer = i_layer + 1;
+    layerIndex.c1inh = i_layer;
+    layerID{ 1, i_layer } =  'C1Inh';
 
     i_layer = i_layer + 1;
-    layerIndex.l1inh = i_layer;
-    layerID{ 1, i_layer } =  'L1InhGap';
+    layerIndex.c1inhgap = i_layer;
+    layerID{ 1, i_layer } =  'C1InhGap';
+    N_LAYERS = i_layer;
+
     
 else  % NON_SPIKING
     
