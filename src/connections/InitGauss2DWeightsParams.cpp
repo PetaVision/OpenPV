@@ -28,12 +28,13 @@ int InitGauss2DWeightsParams::initialize_base() {
 
    // default values (chosen for center on cell of one pixel)
    //int noPost = parentConn->fPatchSize();
-   aspect = 1.0; // circular (not line oriented)
-   sigma = 0.8;
-   rMax = 1.4;
-   strength = 1.0;
+   aspect = 1.0f; // circular (not line oriented)
+   sigma = 0.8f;
+   rMax = 1.4f;
+   rMin = 0.0f;
+   strength = 1.0f;
    setDeltaThetaMax(2.0f * PI);  // max difference in orientation in units of PI
-   setThetaMax(1.0); // max orientation in units of PI
+   setThetaMax(1.0f); // max orientation in units of PI
    numFlanks = 1;
    shift = 0.0f;
    setRotate(0.0f);  // rotate so that axis isn't aligned
@@ -52,6 +53,7 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    aspect   = params->value(getName(), "aspect", aspect);
    sigma    = params->value(getName(), "sigma", sigma);
    rMax     = params->value(getName(), "rMax", rMax);
+   rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
    if (parentConn->fPatchSize() > 1) {
       //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
@@ -68,6 +70,8 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
 
    double r2Maxd = (double) rMax;
    r2Max = r2Maxd*r2Maxd;
+   double r2Mind = (double) rMin;
+   r2Min = r2Mind*r2Mind;
 
 
 //calculate other values:

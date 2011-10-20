@@ -251,6 +251,7 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
    int sy_tmp=weightParamPtr->getsy_tmp();
    int sf_tmp=weightParamPtr->getsf_tmp();
    double r2Max=weightParamPtr->getr2Max();
+   double r2Min=weightParamPtr->getr2Min();
 
    pvdata_t * w_tmp = patch->data;
 
@@ -279,13 +280,13 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             w_tmp[index] = 0;
-            if (d2 <= r2Max) {
+            if ((d2 <= r2Max) && (d2 >= r2Min)) {
                w_tmp[index] += expf(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
-               if (d2 <= r2Max) {
+               if ((d2 <= r2Max) && (d2 >= r2Min)) {
                   w_tmp[index] += expf(-d2 / (2.0f * sigma * sigma));
                }
             }

@@ -27,6 +27,7 @@ public:
    inline int getnumFlanks()        {return numFlanks;}
    inline float getsigma()        {return sigma;}
    inline double getr2Max()        {return r2Max;}
+   inline double getr2Min()        {return r2Min;}
 
 protected:
    virtual int initialize_base();
@@ -39,6 +40,7 @@ private:
    float aspect; // circular (not line oriented)
    float sigma;
    float rMax;
+   float rMin;  // minimum radius for any connection
    float strength;
    int numFlanks;
    float shift;
@@ -47,6 +49,7 @@ private:
 
    //calculated values;
    double r2Max;
+   double r2Min;
    bool self;
 
 };
