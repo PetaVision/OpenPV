@@ -29,7 +29,7 @@
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "../include/mpi_stubs.h"
+#  include "../PetaVision/src/include/mpi_stubs.h"
 #endif // PV_USE_MPI
 
 int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]);

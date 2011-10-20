@@ -40,7 +40,7 @@
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "../include/mpi_stubs.h"
+#  include "../PetaVision/src/include/mpi_stubs.h"
 #endif // PV_USE_MPI
 
 int runGenerativeConnTest(int argc, char * argv[]);
@@ -79,7 +79,9 @@ int main(int argc, char * argv[]) {
    else {
       status = runGenerativeConnTest(argc, argv);
    }
+#ifdef PV_USE_MPI
    MPI_Finalize();
+#endif PV_USE_MPI
    return status;
 }
 
