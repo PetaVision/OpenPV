@@ -147,7 +147,37 @@ LIF "LGNInh" = {
 };
 
 
-LIFGap "S1" = {
+LIF "S1" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+};
+
+
+LIFGap "S1Inh" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1; 
@@ -218,35 +248,6 @@ LIF "C1" = {
    	noiseAmpIB = 0.0;  
 };
 
-
-LIF "C1Inh" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1; 
-    nf = 8;
-    marginWidth = 4;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = true;  
-   
-   	Vrest = -70.0;
-   	Vexc = 0.0;
-   	Vinh = -75.0;
-   	VinhB = -90.0;
-   	tau = 20.0;
-   	tauE = 1.0;
-   	tauI = 3.0;
-   	tauIB = 5.0;
-   	VthRest = -55.0;
-   	tauVth = 5.0;
-   	deltaVth = 5.0;
-   	noiseFreqE = 250.0;
-   	noiseFreqI = 250.0;
-   	noiseFreqIB = 250.0;
-   	noiseAmpE = 0.5;
-   	noiseAmpI= 0.5;  
-   	noiseAmpIB = 0.0;  
-};
 
 
 LIFGap "C1Inh" = {
@@ -361,7 +362,7 @@ KernelConn "Retina to LGN" = {
    aspect = 1;
    sigma = 1;
    rMax  = 1; 
-   strength = 3;  
+   strength = 4;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -394,7 +395,7 @@ KernelConn "Retina to LGNInhFF" = {
    aspect = 1;
    sigma = 7;
    rMax  = 7; 
-   strength = 8;  
+   strength = 12;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -431,7 +432,7 @@ KernelConn "LGN to LGNInh" = {
    sigma = 3; //7;
    rMax  = 3; //7;
  
-   strength = 4;  
+   strength = 8;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -470,7 +471,7 @@ KernelConn "LGN to S1" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 64.0;  
+   strength = 4.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -510,7 +511,7 @@ KernelConn "LGN to S1Inh" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 64.0;  
+   strength = 1.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -546,7 +547,7 @@ KernelConn "LGNInhFF to LGN" = {
    aspect = 1;
    sigma = 5;
    rMax  = 7;
-   strength = 12; 
+   strength = 1; 
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -584,7 +585,7 @@ KernelConn "LGNInh to LGN" = {
    aspect = 1;
    sigma = 7;
    rMax  = 7;
-   strength = 12.0; 
+   strength = 1.0; 
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -627,7 +628,7 @@ KernelConn "S1 to C1" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 4.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -666,7 +667,7 @@ KernelConn "S1 to C1Inh" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 4.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -710,7 +711,7 @@ KernelConn "S1Inh to S1" = {
    deltaThetaMax =  0.52360; //PI / 6;
    numFlanks = 2;
    flankShift = 1.4;
-   strength = 2.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -751,7 +752,7 @@ GapConn "S1Inh to S1Inh Gap" = {
    cocircSelf = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 0.125;
+   strength = 0.25;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -835,7 +836,7 @@ KernelConn "C1 to LGNInh" = {
    flankShift = 0;
    rotate = 1;
    no = 8;
-   strength = 4.0;  
+   strength = 1.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -866,7 +867,7 @@ KernelConn "C1 to C1 Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 30; //24.0;
+   strength = 1; //24.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -897,7 +898,7 @@ KernelConn "C1 to C1Inh Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 48.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -940,7 +941,7 @@ KernelConn "C1Inh to C1" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 12.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -980,7 +981,7 @@ KernelConn "C1Inh to C1Inh" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 6.0;
+   strength = 1.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -1021,7 +1022,7 @@ GapConn "C1Inh to C1Inh Gap" = {
    cocircSelf = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 0.125;
+   strength = 0.25;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
