@@ -471,7 +471,7 @@ KernelConn "LGN to S1" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 32.0;  
+   strength = 48.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -511,7 +511,7 @@ KernelConn "LGN to S1Inh" = {
    flankShift = 0;
    rotate = 1;
    no = 8;       
-   strength = 32.0;  
+   strength = 48.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -628,7 +628,7 @@ KernelConn "S1 to C1" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 1.0;
+   strength = 6.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -667,7 +667,7 @@ KernelConn "S1 to C1Inh" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 1.0;
+   strength = 6.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -711,7 +711,7 @@ KernelConn "S1Inh to S1" = {
    deltaThetaMax =  0.52360; //PI / 6;
    numFlanks = 2;
    flankShift = 1.4;
-   strength = 1.0;
+   strength = 4.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -836,7 +836,7 @@ KernelConn "C1 to LGNInh" = {
    flankShift = 0;
    rotate = 1;
    no = 8;
-   strength = 1.0;  
+   strength = 4.0;  
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -867,7 +867,7 @@ KernelConn "C1 to C1 Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 1; //24.0;
+   strength = 16; //24.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -898,7 +898,7 @@ KernelConn "C1 to C1Inh Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 1.0;
+   strength = 16.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -941,7 +941,7 @@ KernelConn "C1Inh to C1" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 1.0;
+   strength = 4.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -981,7 +981,7 @@ KernelConn "C1Inh to C1Inh" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 1.0;
+   strength = 4.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
