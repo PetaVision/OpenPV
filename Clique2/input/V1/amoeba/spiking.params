@@ -1115,15 +1115,24 @@ PointLIFProbe "S1 Vmem" = {
 
 PointLIFProbe "S1Inh Vmem" = {
     targetLayer = "S1Inh";
-    probeOutputFile = "S1InhFF_Vmem.txt";
+    probeOutputFile = "S1Inh_Vmem.txt";
 	xLoc = 132;
 	yLoc = 87;
 	fLoc = 5;
 };
 
+PointLIFProbe "C1 Vmem" = {
+    targetLayer = "C1";
+    probeOutputFile = "C1_Vmem.txt";
+	xLoc = 132;
+	yLoc = 87;
+	fLoc = 5;
+};
+
+
 PointLIFProbe "C1Inh Vmem" = {
     targetLayer = "C1Inh";
-    probeOutputFile = "S1Inh_Vmem.txt";
+    probeOutputFile = "C1Inh_Vmem.txt";
 	xLoc = 132;
 	yLoc = 87;
 	fLoc = 5;
