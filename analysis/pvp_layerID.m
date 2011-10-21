@@ -34,7 +34,7 @@ if ( SPIKING_FLAG == 1 )
     layerID{ 1, i_layer } =  'LGNInh';
     
     i_layer = i_layer + 1;
-    layerIndex.l1 = i_layer;
+    layerIndex.s1 = i_layer;
     layerID{ 1, i_layer } =  'S1';
     
     i_layer = i_layer + 1;

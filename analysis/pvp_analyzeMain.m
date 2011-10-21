@@ -89,8 +89,8 @@ read_spikes = 2:N_LAYERS;  %[layerIndex.l1, layerIndex.l1inh];% list of spiking 
 plot_reconstruct = read_spikes; %uimatlab;
 plot_raster = read_spikes; %[layerIndex.l1];%read_spikes; %uimatlab;
 plot_reconstruct_target = [];%read_spikes; %[layerIndex.l1];
-plot_vmem = 1;
-plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.l1, layerIndex.l1inh]; %%read_spikes;% 
+plot_vmem = 0;
+plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.s1, layerIndex.c1, layerIndex.c1inh]; %%read_spikes;% 
 plot_xcorr = plot_autocorr;
 
 
@@ -1231,9 +1231,10 @@ for i_conn = plot_weights
 			1);
     fig_list = [fig_list; fig_tmp];
   endfor %% % i_patch
+  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  fig_list = [];
+  close all;
 endfor %% % i_conn
 
 
-pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
-close all;
 
