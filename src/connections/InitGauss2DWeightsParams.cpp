@@ -55,8 +55,9 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    rMax     = params->value(getName(), "rMax", rMax);
    rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
-   if (parentConn->fPatchSize() > 1) {
-      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
+   // old if condition failed to account for connections between oriented to non-oriented cells
+//   if (parentConn->fPatchSize() > 1) {
+   if (aspect != 1.0) {      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
       setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
       setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
       numFlanks = (int) params->value(getName(), "numFlanks", (float) numFlanks);
