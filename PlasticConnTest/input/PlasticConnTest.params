@@ -1,0 +1,94 @@
+//
+// MPI_test.params
+//
+// created by garkenyon: August 4, 2011
+//
+
+//  - input parameters for test_kernel.cpp for system level testing of kernels
+//
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 10;
+   progressStep = 10;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+};
+
+//
+// layers
+//
+
+PlasticConnTestLayer "pre" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1;
+    mirrorBCflag = false;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+PlasticConnTestLayer "post" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = false;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+//  connections: 
+
+
+
+PlasticTestConn "pre to post" = {
+    channelCode = 0;
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeights";
+
+    writeCompressedWeights = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+PlasticConnTestProbe "probe" = {
+    targetConnection = "pre to post";
+    probeOutputFile = "PreToPostProbe.txt";
+    kernelIndex = 0;
+    arborId = 0;
+    outputWeights = true;
+    outputPlasticIncr = false;
+    outputPatchIndices = false;
+};
