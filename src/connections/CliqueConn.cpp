@@ -26,11 +26,7 @@ int CliqueConn::updateState(float time, float dt){
    return PV_SUCCESS;
 };
 
-int CliqueConn::calc_dW(int arborId){
-   // zero dWeightPatches
-    int status = KernelConn::calc_dW(arborId);
-    assert((status == PV_SUCCESS) || (status == PV_BREAK));
-
+int CliqueConn::update_dW(int arborId){
     const PVLayerLoc * preLoc = this->getPre()->getLayerLoc();
     const int nfPre = preLoc->nf;
     //const int nxPre = preLoc->nx;

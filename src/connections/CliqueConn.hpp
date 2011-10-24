@@ -21,7 +21,7 @@ public:
                ChannelType channel, const char * filename, InitWeights *weightInit);
    CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel);
-   virtual int calc_dW(int axonId);
+   virtual int update_dW(int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
    //virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);

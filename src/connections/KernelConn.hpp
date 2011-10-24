@@ -62,6 +62,7 @@ public:
    inline void setKernelPatch(PVPatch* newKernelPatch, int axonId, int kernelIndex) {kernelPatches[axonId][kernelIndex]=newKernelPatch;}
    virtual int writeWeights(float time, bool last=false);
    inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
+   inline const pvdata_t * get_dKernelData(int axonId, int kernelIndex) {if( dKernelPatches && axonId>=0 && axonId<numAxonalArborLists && kernelIndex>=0 && kernelIndex<numDataPatches()) { return dKernelPatches[axonId][kernelIndex]->data;} else return NULL;}
 
    virtual int shrinkPatches(int arborId);
 
@@ -108,7 +109,13 @@ protected:
    virtual int initializeUpdateTime(PVParams * params);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
+
    virtual int calc_dW(int axonId);
+   virtual int clear_dW(int axonId);
+   virtual int update_dW(int axonId);
+   virtual int defaultUpdate_dW(int axonId);
+   virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int axonId);
    virtual float computeNewWeightUpdateTime(float time, float currentUpdateTime);

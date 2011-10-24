@@ -38,13 +38,14 @@ public:
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
 #endif // OBSOLETE
    inline float getRelaxation() { return relaxation; }
-   virtual int calc_dW(int axonID);
    virtual int updateWeights(int axonID);
    virtual int initNormalize();
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
 
 protected:
+   virtual int update_dW(int axonID);
+
    float relaxation;
    int * patchindices; // An array whose length is the number of extended neurons in the presynaptic layer
    bool nonnegConstraintFlag;

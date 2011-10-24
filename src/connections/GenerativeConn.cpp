@@ -85,59 +85,8 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
     return PV_SUCCESS;
 }
 
-int GenerativeConn::calc_dW(int axonID) {
-   // compute dW but don't add them to the weights yet.
-   // That takes place in reduceKernels, so that the output is
-   // (in theory) independent of the number of processors.
-   int nExt = preSynapticLayer()->getNumExtended();
-   int numKernelIndices = numDataPatches();
-   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
-      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
-      for( int n=0; n<numpatchitems; n++ ) {
-         dwpatchdata[n] = 0.0;
-      }
-   }
-   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonID));
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonID));
-
-   for(int kExt=0; kExt<nExt;kExt++) {
-      // PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
-      PVPatch * weights = getWeights(kExt,axonID);
-      size_t offset = getAPostOffset(kExt, axonID);
-      pvdata_t preact = preactbuf[kExt];
-      int ny = weights->ny;
-      int nk = weights->nx * weights->nf;
-      const pvdata_t * postactRef = &postactbuf[offset];
-      int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb)); // arbor->data->sy;
-      pvdata_t * dwdata = get_dWData(kExt, axonID);
-      int syw = getWeights(kExt, axonID)->sy;
-      int lineoffsetw = 0;
-      int lineoffseta = 0;
-      for( int y=0; y<ny; y++ ) {
-         for( int k=0; k<nk; k++ ) {
-            dwdata[lineoffsetw + k] += preact*postactRef[lineoffseta + k];
-         }
-         lineoffsetw += syw;
-         lineoffseta += sya;
-      }
-   }
-
-   // Divide by (numNeurons/numKernels)
-   int divisor = pre->getNumNeurons()/numKernelIndices;
-   assert( divisor*numKernelIndices == pre->getNumNeurons() );
-   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
-      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
-      for( int n=0; n<numpatchitems; n++ ) {
-         dwpatchdata[n] /= divisor;
-      }
-   }
-
-   // normalizeWeights now called in KernelConn::updateState // normalizeWeights( kernelPatches, numDataPatches(0) );
-   lastUpdateTime = parent->simulationTime();
-
-   return PV_SUCCESS;
+int GenerativeConn::update_dW(int axonID) {
+   return defaultUpdate_dW(axonID);
 }  // end of GenerativeConn::calc_dW(int);
 
 int GenerativeConn::updateWeights(int axonID) {

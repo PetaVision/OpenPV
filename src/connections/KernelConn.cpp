@@ -35,7 +35,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 #endif // OBSOLETE
 
-KernelConn::   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       ChannelType channel, const char * filename, InitWeights *weightInit) : HyPerConn()
 {
    KernelConn::initialize_base();
@@ -262,10 +262,17 @@ float KernelConn::maxWeight(int arborId)
 }
 
 int KernelConn::calc_dW(int axonId){
+   clear_dW(axonId);
+   update_dW(axonId);
+   return PV_BREAK;
+}
+
+int KernelConn::clear_dW(int axonId) {
    // zero dWeightPatches
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
          PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy); // eventually dKernelPatches->data will be split out and the other fields will be replaced by references to kernelPatches[kAxon][kKernel]
          int syPatch = dKernelPatch->sy;
          int nkPatch = dKernelPatch->nf * dKernelPatch->nx;
          float * dWeights = dKernelPatch->data;
@@ -277,9 +284,62 @@ int KernelConn::calc_dW(int axonId){
          }
       }
    }
-   // Generally, divide dWeights by (number of *non*-extended neurons divided by number of kernels)
-   // This isn't done here because the dWeights is set to zero in this method.
-   return PV_BREAK;
+   return PV_SUCCESS;
+}
+int KernelConn::update_dW(int axonId) {
+   // Typically override this method with a call to defaultUpdate_dW(axonId)
+   return PV_SUCCESS;
+}
+
+int KernelConn::defaultUpdate_dW(int axonId) {
+   // compute dW but don't add them to the weights yet.
+   // That takes place in reduceKernels, so that the output is
+   // independent of the number of processors.
+   int nExt = preSynapticLayer()->getNumExtended();
+   int numKernelIndices = numDataPatches();
+   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonId));
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonId));
+
+   for(int kExt=0; kExt<nExt;kExt++) {
+      // PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
+      PVPatch * weights = getWeights(kExt,axonId);
+      size_t offset = getAPostOffset(kExt, axonId);
+      pvdata_t preact = preactbuf[kExt];
+      int ny = weights->ny;
+      int nk = weights->nx * weights->nf;
+      const pvdata_t * postactRef = &postactbuf[offset];
+      int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+      pvdata_t * dwdata = get_dWData(kExt, axonId);
+      int syw = getWeights(kExt, axonId)->sy;
+      int lineoffsetw = 0;
+      int lineoffseta = 0;
+      for( int y=0; y<ny; y++ ) {
+         for( int k=0; k<nk; k++ ) {
+            dwdata[lineoffsetw + k] += updateRule_dW(preact, postactRef[lineoffseta+k]);
+         }
+         lineoffsetw += syw;
+         lineoffseta += sya;
+      }
+   }
+
+   // Divide by (numNeurons/numKernels)
+   int divisor = pre->getNumNeurons()/numKernelIndices;
+   assert( divisor*numKernelIndices == pre->getNumNeurons() );
+   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
+      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
+      for( int n=0; n<numpatchitems; n++ ) {
+         dwpatchdata[n] /= divisor;
+      }
+   }
+
+   lastUpdateTime = parent->simulationTime();
+
+   return PV_SUCCESS;
+}
+
+pvdata_t KernelConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
+   return pre*post;
 }
 
 int KernelConn::updateState(float time, float dt) {
