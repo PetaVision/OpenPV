@@ -8,11 +8,14 @@
 #ifndef CONNECTIONPROBE_HPP_
 #define CONNECTIONPROBE_HPP_
 
+#include "BaseConnectionProbe.hpp"
 #include "../connections/HyPerConn.hpp"
+
+enum ConnectionProbeIndexMethod { INDEX_METHOD, COORDINATE_METHOD };
 
 namespace PV {
 
-class ConnectionProbe {
+class ConnectionProbe : public BaseConnectionProbe {
 public:
    ConnectionProbe(int kPre, int arbID=0);
    ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID=0);
@@ -31,7 +34,13 @@ public:
    void setStdpVars(bool flag)   {stdpVars = flag;}
 
 protected:
-   FILE * fp;
+   int initialize(const char * filename, HyPerCol * hc, ConnectionProbeIndexMethod method, int kPre, int kxPre, int kyPre, int kfPre, int arbID);
+
+private:
+   int initialize_base();
+
+protected:
+   ConnectionProbeIndexMethod probeIndexMethod;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
    int arborID;

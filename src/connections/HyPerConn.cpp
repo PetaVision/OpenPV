@@ -827,10 +827,10 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    return 0;
 }
 
-int HyPerConn::insertProbe(ConnectionProbe * p)
+int HyPerConn::insertProbe(BaseConnectionProbe * p)
 {
-   ConnectionProbe ** tmp;
-   tmp = (ConnectionProbe **) malloc((numProbes + 1) * sizeof(ConnectionProbe *));
+   BaseConnectionProbe ** tmp;
+   tmp = (BaseConnectionProbe **) malloc((numProbes + 1) * sizeof(BaseConnectionProbe *));
    assert(tmp != NULL);
 
    for (int i = 0; i < numProbes; i++) {

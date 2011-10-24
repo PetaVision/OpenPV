@@ -12,6 +12,7 @@
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
+#include "../io/BaseConnectionProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../utils/Timer.hpp"
 #include "InitWeights.hpp"
@@ -34,7 +35,7 @@ class InitUniformRandomWeights;
 class InitGaussianRandomWeights;
 class InitSmartWeights;
 class InitCocircWeights;
-class ConnectionProbe;
+class BaseConnectionProbe;
 class PVParams;
 
 /**
@@ -60,10 +61,9 @@ public:
    virtual int deliverOpenCL(Publisher * pub);
 #endif
 
-   virtual int insertProbe(ConnectionProbe * p);
+   virtual int insertProbe(BaseConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
-   virtual int calc_dW(int axonId = 0);
    virtual int updateWeights(int axonId = 0);
 
    virtual int writeWeights(float time, bool last=false);
@@ -106,7 +106,7 @@ public:
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
    virtual PVPatch * getWeights(int kPre, int arborId);
-   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return pIncr[arborId][kPre];}
+   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? pIncr[arborId][kPre] : NULL;}
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
    // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
@@ -188,7 +188,7 @@ protected:
    float wMin;
 
    int numProbes;
-   ConnectionProbe ** probes; // probes used to output data
+   BaseConnectionProbe ** probes; // probes used to output data
    bool ioAppend;               // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
    float writeTime;             // time of next output
@@ -262,6 +262,7 @@ protected:
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
    virtual int setdWPatches(PVPatch ** patches, int arborId) {pIncr[arborId]=patches; return 0;}
    // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
+   virtual int calc_dW(int axonId = 0);
 
    void connOutOfMemory(const char * funcname);
 #ifdef PV_USE_OPENCL

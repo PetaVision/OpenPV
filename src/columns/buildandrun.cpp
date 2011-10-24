@@ -57,6 +57,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    HyPerLayer * addedHyPerLayer;
    ColProbe * addedColProbe;
    LayerProbe * addedLayerProbe;
+   BaseConnectionProbe * addedBaseConnectionProbe;
    ConnectionProbe * addedConnectionProbe;
 
    const char * allowedkeywordarray[] = { // indentation indicates derived class hierarchy
@@ -124,6 +125,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "SparsityTermProbe",
                  "LogLatWTAProbe",
            "_Stop_LayerProbes_",
+           "_Start_BaseConnectionProbes_",
+             "KernelProbe",
+           "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
              "ConnectionProbe",
            "_Stop_ConnectionProbes_",
@@ -137,6 +141,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    int last_hyperconn_index = -1;
    int first_colprobe_index = -1;
    int last_colprobe_index = -1;
+   int first_baseconnectionprobe_index = -1;
+   int last_baseconnectionprobe_index = -1;
    int first_connectionprobe_index = -1;
    int last_connectionprobe_index = -1;
    int first_layerprobe_index = -1;
@@ -153,6 +159,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
        if( !strcmp(kw,"_Stop_HyPerConns_") ) { last_hyperconn_index = j; continue;}
        if( !strcmp(kw,"_Start_ColProbes_") ) { first_colprobe_index = j; continue;}
        if( !strcmp(kw,"_Stop_ColProbes_") ) { last_colprobe_index = j; continue;}
+       if( !strcmp(kw,"_Start_BaseConnectionProbes_") ) { first_baseconnectionprobe_index = j; continue;}
+       if( !strcmp(kw,"_Stop_BaseConnectionProbes_") ) { last_baseconnectionprobe_index = j; continue;}
        if( !strcmp(kw,"_Start_ConnectionProbes_") ) { first_connectionprobe_index = j; continue;}
        if( !strcmp(kw,"_Stop_ConnectionProbes_") ) { last_connectionprobe_index = j; continue;}
        if( !strcmp(kw,"_Start_LayerProbes_") ) { first_layerprobe_index = j; continue;}
@@ -213,6 +221,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       else if( j > first_colprobe_index && j < last_colprobe_index ) {
          addedColProbe = addColProbeToColumn(kw, name, hc);
          didAddObject = addedColProbe != NULL;
+      }
+      else if( j > first_baseconnectionprobe_index && j < last_baseconnectionprobe_index ) {
+         addedBaseConnectionProbe = addBaseConnectionProbeToColumn(kw, name, hc);
+         didAddObject = addedBaseConnectionProbe != NULL;
       }
       else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
          addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
@@ -886,6 +898,7 @@ HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, con
 
 // make a method in HyPerCol?
 HyPerConn * getConnFromName(const char * connName, HyPerCol * hc) {
+   if( connName == NULL ) return NULL;
    int n = hc->numberOfConnections();
    for( int i=0; i<n; i++ ) {
       HyPerConn * curConn = hc->getConnection(i);
@@ -945,11 +958,45 @@ void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeywor
    }
 }
 
+BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+   BaseConnectionProbe * addedProbe;
+   PVParams * params = hc->parameters();
+   HyPerConn * targetConn = NULL;
+   bool keywordMatched = false;
+   int status = PV_SUCCESS;
+   if( !strcmp(classkeyword, "KernelProbe") ) {
+      keywordMatched = true;
+      int kernelIndex = params->value(name, "kernelIndex", 0);
+      int arborId = params->value(name, "arborId", 0);
+      targetConn = getConnFromName(params->stringValue(name, "targetConnection"), hc);
+      if( targetConn ) {
+         const char * filename = params->stringValue(name, "probeOutputFile");
+         addedProbe = new KernelProbe(name, filename, hc, kernelIndex, arborId);
+         status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+      }
+      else {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         status = PV_FAILURE;
+      }
+   }
+   assert(keywordMatched);
+   if( status == PV_SUCCESS ) {
+      assert(targetConn != NULL);
+      assert(addedProbe);
+      targetConn->insertProbe(addedProbe);
+   }
+   if( status != PV_SUCCESS ) {
+      exit(EXIT_FAILURE);
+   }
+   return addedProbe;
+}
+
+// ConnectionProbe will soon be deprecated in favor of PatchProbe, which is a derived class of BaseConnectionProbe
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    ConnectionProbe * addedProbe;
    PVParams * params = hc->parameters();
    int kPre, kxPre, kyPre, kfPre;
-   bool keywordMatched = true;
+   bool keywordMatched = false;
    int status = PV_SUCCESS;
    if( !strcmp(classkeyword, "ConnectionProbe") ) {
       keywordMatched = true;

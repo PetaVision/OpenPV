@@ -21,73 +21,53 @@ namespace PV {
  */
 ConnectionProbe::ConnectionProbe(int kPre, int arbID)
 {
-   this->kxPre = 0;
-   this->kyPre = 0;
-   this->kfPre = 0;
-   this->kPre  = kPre;
-   this->fp    = stdout;
-   this->outputIndices = false;
-   this->stdpVars = true;
-   this->arborID=arbID;
+   initialize_base();
+   initialize(NULL, NULL, INDEX_METHOD, kPre, INT_MIN, INT_MIN, INT_MIN, arbID);
 }
 
 ConnectionProbe::ConnectionProbe(int kxPre, int kyPre, int kfPre, int arbID)
 {
-   this->kxPre = kxPre;
-   this->kyPre = kyPre;
-   this->kfPre = kfPre;
-   this->kPre = -1;
-   this->fp = stdout;
-   this->outputIndices = false;
-   this->stdpVars = true;
-   this->arborID=arbID;
+   initialize_base();
+   initialize(NULL, NULL, COORDINATE_METHOD, INT_MIN, kxPre, kyPre, kfPre, arbID);
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kPre, int arbID)
 {
-   char path[PV_PATH_MAX];
-   sprintf(path, "%s/%s", hc->getOutputPath(), filename);
-
-   this->kPre = kPre;
-   this->fp = fopen(path, "w");
-   this->outputIndices = false;
-
-   this->stdpVars = true;
-   this->arborID=arbID;
+   initialize_base();
+   initialize(filename, hc, INDEX_METHOD, kPre, INT_MIN, INT_MIN, INT_MIN, arbID);
 }
 
 ConnectionProbe::ConnectionProbe(const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID)
 {
-   const char * outputPath = hc->getOutputPath();
-   size_t outputpathlen = strlen(outputPath);
-   size_t filenamelen = strlen(filename);
-   size_t pathlen = outputpathlen + filenamelen;
-   if( pathlen >= PV_PATH_MAX || pathlen < outputpathlen || pathlen < filenamelen || pathlen + 2 <= pathlen) {
-      fprintf(stderr, "ConnectionProbe: path to output file too long.  Exiting.\n");
-      exit(EXIT_FAILURE);
-   }
-   char * path = (char *) malloc((pathlen+2)*sizeof(char));
-   sprintf(path, "%s/%s", outputPath, filename);
-   this->fp   = fopen(path, "w");
-   if( !this->fp ) {
-      fprintf(stderr, "ConnectionProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
-      exit(EXIT_FAILURE);
-   }
-
-   this->kxPre = kxPre;
-   this->kyPre = kyPre;
-   this->kfPre = kfPre;
-   this->kPre  = -1;
-
-   this->outputIndices = false;
-   this->stdpVars = true;
-   this->arborID=arbID;
+   initialize_base();
+   initialize(filename, hc, COORDINATE_METHOD, INT_MIN, kxPre, kyPre, kfPre, arbID);
 }
+
 ConnectionProbe::~ConnectionProbe()
 {
    if (fp != NULL && fp != stdout) {
       fclose(fp);
    }
+}
+
+int ConnectionProbe::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int ConnectionProbe::initialize(const char * filename, HyPerCol * hc, ConnectionProbeIndexMethod method, int kPre, int kxPre, int kyPre, int kfPre, int arbID) {
+   probeIndexMethod = method;
+   if( method == INDEX_METHOD ) {
+      this->kPre = kPre;
+   }
+   else if( method == COORDINATE_METHOD ) {
+      this->kxPre = kxPre;
+      this->kyPre = kyPre;
+      this->kfPre = kfPre;
+   }
+   this->outputIndices = false;
+   this->stdpVars = true;
+   this->arborID=arbID;
+   return BaseConnectionProbe::initialize(NULL, filename, hc);
 }
 
 /**

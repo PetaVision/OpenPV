@@ -84,7 +84,8 @@
 #include "../connections/InitUniformWeights.hpp"
 #include "../connections/InitSpreadOverArborsWeights.hpp"
 #include "../connections/Init3DGaussWeights.hpp"
-
+#include "../io/BaseConnectionProbe.hpp"
+#include "../io/KernelProbe.hpp"
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
@@ -118,6 +119,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
 PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
+BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
 int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayer);
