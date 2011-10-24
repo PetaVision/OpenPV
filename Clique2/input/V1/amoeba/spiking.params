@@ -393,7 +393,7 @@ KernelConn "Retina to LGNInhFF" = {
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 7;
+   sigma = 3.5;
    rMax  = 7; 
    strength = 12;  
    
@@ -420,8 +420,8 @@ KernelConn "LGN to LGNInh" = {
    preLayerName = "LGN";
    postLayerName = "LGNInh";
    channelCode = 0;
-   nxp = 7; 
-   nyp = 7; 
+   nxp = 3; 
+   nyp = 3; 
    nfp = 1;
    numAxonalArbors = 1;   
    initFromLastFlag = 0;  
@@ -429,10 +429,10 @@ KernelConn "LGN to LGNInh" = {
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 3; //7;
+   sigma = 1; //7;
    rMax  = 3; //7;
  
-   strength = 8;  
+   strength = 4;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -545,9 +545,9 @@ KernelConn "LGNInhFF to LGN" = {
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 5;
+   sigma = 3.5;
    rMax  = 7;
-   strength = 1; 
+   strength = 6; 
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -583,9 +583,9 @@ KernelConn "LGNInh to LGN" = {
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 7;
+   sigma = 3.5;
    rMax  = 7;
-   strength = 1.0; 
+   strength = 12.0; 
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -867,7 +867,7 @@ KernelConn "C1 to C1 Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 16; //24.0;
+   strength = 48; //24.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -898,7 +898,7 @@ KernelConn "C1 to C1Inh Lateral" = {
 
    weightInitType = "FileWeight";
    initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/amoebaOnly/test/dirty_2x2.pvp";
-   strength = 16.0;
+   strength = 48.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -918,6 +918,7 @@ KernelConn "C1 to C1Inh Lateral" = {
 
 
 // C1 Inh connections
+
 
 // 16   "C1Inh to C1"
 KernelConn "C1Inh to C1" = {
@@ -941,7 +942,7 @@ KernelConn "C1Inh to C1" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 4.0;
+   strength = 8.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -954,7 +955,7 @@ KernelConn "C1Inh to C1" = {
    stochasticReleaseFlag = 0;
    weightUpdatePeriod = 1.0;
 
-   delay = 1.0;
+   delay = 0.0;
 };
 
 
@@ -981,7 +982,7 @@ KernelConn "C1Inh to C1Inh" = {
    flankShift = 0;
    rotate = 1;
    deltaThetaMax =  0.52360; //PI / 6;
-   strength = 4.0;
+   strength = 8.0;
    
    normalize = 1.0;
    normalize_zero_offset = 0.0;
@@ -994,7 +995,7 @@ KernelConn "C1Inh to C1Inh" = {
    stochasticReleaseFlag = 0;
    weightUpdatePeriod = 1.0;
 
-   delay = 1.0;
+   delay = 0.0;
 };
 
 
