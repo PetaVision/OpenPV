@@ -118,6 +118,7 @@ public:
    int getNumNeurons()               {return clayer->numNeurons;}
    int getNumExtended()              {return clayer->numExtended;}
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
+   int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+2*loc->nb)*(loc->nyGlobal+2*loc->nb)*loc->nf;}
 
    int  getLayerId()                 {return clayer->layerId;}
    PVLayerType getLayerType()        {return clayer->layerType;}
