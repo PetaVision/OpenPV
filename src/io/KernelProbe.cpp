@@ -42,8 +42,6 @@ int KernelProbe::outputState(float time, HyPerConn * c) {
    InterColComm * icComm = c->getParent()->icCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
-#else
-   const int rank = 0;
 #endif // PV_USE_MPI
    KernelConn * kconn = dynamic_cast<KernelConn *>(c);
    if( kconn == NULL ) {

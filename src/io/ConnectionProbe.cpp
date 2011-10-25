@@ -7,6 +7,7 @@
 
 #include "ConnectionProbe.hpp"
 #include "../connections/STDPConn.hpp"
+#include <limits.h>
 #include <assert.h>
 
 namespace PV {

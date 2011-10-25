@@ -6,7 +6,7 @@
  */
 
 #include "PatchProbe.hpp"
-#include "../connections/STDPConn.hpp"
+#include <limits.h>
 #include <assert.h>
 
 namespace PV {
@@ -148,10 +148,12 @@ int PatchProbe::outputState(float time, HyPerConn * c)
    int kyPreLocal = kyPre - loc->ky0;
    int nxLocal = loc->nx;
    int nyLocal = loc->ny;
-   int inbounds = kxPreLocal < -nb || kxPreLocal > loc->nx+nb || kyPreLocal < -nb || kyPreLocal > loc->ny+nb;
    int kLocal = kIndex(kxPreLocal+nb,kyPreLocal+nb,kfPre,nxLocal+2*nb,nyLocal+2*nb,nf);
    assert(kLocal >=0 && kLocal < c->preSynapticLayer()->getNumExtended());
 
+#ifdef PV_USE_MPI
+   int inbounds = kxPreLocal < -nb || kxPreLocal > loc->nx+nb || kyPreLocal < -nb || kyPreLocal > loc->ny+nb;
+#endif PV_USE_MPI
    if( rank > 0 ) {
 #ifdef PV_USE_MPI
       MPI_Send(&inbounds, 1, MPI_INT, 0, basetag+rank, mpi_comm);
