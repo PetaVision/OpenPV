@@ -103,7 +103,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       if( targetConn ) {
          const char * filename = params->stringValue(name, "probeOutputFile");
          addedProbe = new PlasticConnTestProbe(name, filename, hc, kernelIndex, arborID);
-         checknewobject((void *) addedProbe, keyword, name, hc);
+         if( checknewobject((void *) addedProbe, keyword, name, hc) == PV_SUCCESS ) {
+            targetConn->insertProbe(addedProbe);
+         }
       }
       else {
          fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);

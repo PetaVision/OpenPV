@@ -12,8 +12,8 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 10;
-   progressStep = 10;
+   numSteps = 100;
+   progressStep = 100;
    outputPath = "output/";
    filenamesContainLayerNames = false;
 };
@@ -71,11 +71,14 @@ PlasticTestConn "pre to post" = {
     writeStep = 1;
     initFromLastFlag = 0;
     
-    weightInitType = "UniformWeights";
+    weightInitType = "UniformWeight";
+    weightInit = 0.0;
 
     writeCompressedWeights = false;
     plasticityFlag = true;
     weightUpdatePeriod = 1.0;
+    symmetrizeWeights = false;
+    normalize = false;
 
     delay = 0;     
 
@@ -83,12 +86,13 @@ PlasticTestConn "pre to post" = {
     shrinkPatches = false;
 };
 
+// PlasticConnTestProbe "probe"
 PlasticConnTestProbe "probe" = {
     targetConnection = "pre to post";
     probeOutputFile = "PreToPostProbe.txt";
     kernelIndex = 0;
     arborId = 0;
     outputWeights = true;
-    outputPlasticIncr = false;
+    outputPlasticIncr = true;
     outputPatchIndices = false;
 };
