@@ -33,7 +33,7 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   
 
   if nargin < 1 || ~exist("CSV_path") || isempty(CSV_path)
-    CSV_path = [machine_path, "Pictures", filesep, "Tower", filesep, ...
+    CSV_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, "Tower", filesep, ...
 		"neovision-data-formative-tower", filesep]; %% 
   endif
   if nargin < 2 || ~exist("clip_name") || isempty(clip_name)
@@ -57,23 +57,36 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     pvp_layer = 5;  %% 
   endif
   if nargin < 8 || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 1;  %% 
+    num_procs = 4;  %% 
   endif
 
   setenv('GNUTERM', 'x11');
   image_type = ".png";
 
-  annotated_dir = [CSV_path, clip_name, filesep];
+  %% path to generic image processing routines
+  img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
+  addpath(img_proc_dir);
+
+  %% path to string manipulation kernels for use with parcellfun
+  str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
+  addpath(str_kernel_dir);
+
+  annotated_path = [CSV_path, "annotated", filesep]; 
+  mkdir(annotated_path);
+  annotated_clip_dir = [annotated_path, clip_name, filesep];
+  mkdir(annotated_clip_dir);
+  annotated_dir = [annotated_clip_dir, target_name, filesep];
+  mkdir(annotated_dir);
 
   %% get frame IDs 
-  clip_dir = [CSV_path, clip_name, filesep];
+  clip_dir = [CSV_path, "clips", filesep, clip_name, filesep];
   if ~exist(clip_dir, "dir")
     error(["~exist(clip_dir):", clip_dir]);
   endif
   frameIDs_path = ...
       [clip_dir, '*', image_type];
-  frame_IDs = glob(frameIDs_path);
-  num_frames = size(frame_IDs,1);
+  frame_pathnames_all = glob(frameIDs_path);
+  num_frames = size(frame_pathnames_all,1);
   disp(['num_frames = ', num2str(num_frames)]);
 
   %% read pvp activity into cell array
@@ -106,38 +119,39 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     pvp_offset_tmp = pvp_offset(i_frame);
     disp(["i_frame = ", num2str(i_frame)]);
     disp(["pvp_time = ", num2str(pvp_time(i_frame))]);
-    disp(["frame_ID = ", frame_IDs{i_frame}]);
+    disp(["frame_ID = ", frame_pathnames_all{i_frame}]);
     disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
   endfor
   fclose(pvp_fid);
 
   tot_frames = length(pvp_activity);
   pvp_time_cell = cell(tot_frames, 1);
-  frame_IDs_cell = cell(tot_frames, 1);
+  frame_pathnames = cell(tot_frames, 1);
   %%pvp_activity_tmp = cell(tot_frames, 1);
   for i_frame = 1 : tot_frames
-    frame_IDs_cell{i_frame} = frame_IDs{i_frame};
+    frame_pathnames{i_frame} = frame_pathnames_all{i_frame};
     pvp_time_cell{i_frame} = pvp_time(i_frame);
     %%pvp_activity_tmp{i_frame} = pvp_activity{i_frame};
   endfor
 
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel, ...
-			    frame_IDs_cell, pvp_time_cell, pvp_activity, "UniformOutput", false);
+			    frame_pathnames, pvp_time_cell, pvp_activity, "UniformOutput", false);
   else
     CSV_struct = cellfun(@pvp_makeCSVFileKernel, ...
-			 frame_IDs_cell, pvp_time_cell, pvp_activity, "UniformOutput", false);
+			 frame_pathnames, pvp_time_cell, pvp_activity, "UniformOutput", false);
   endif
 
   for i_frame = 1 : tot_frames
-    disp(["frame_ID = ", CSV_struct{i_frame}.frame_ID]);
+    disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
     disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
     disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity), "\n"]);    
   endfor
 
-  skip_plot = 21;
-  for i_frame = 1 : skip_plot : tot_frames
-    imagesc(CSV_struct{i_frame}.pvp_image); 
+  for i_frame = 1 : tot_frames
+    pvp_image_pathname = [annotated_dir, CSV_struct{i_frame}.frame_filename]
+    imwrite(CSV_struct{i_frame}.pvp_image, pvp_image_pathname);
+    %% imagesc(CSV_struct{i_frame}.pvp_image); 
   endfor
 
   
