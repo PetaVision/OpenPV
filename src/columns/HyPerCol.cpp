@@ -183,27 +183,30 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
                 "Output path set to default \"%s\"\n",OUTPUT_PATH);
       }
    }
-   // see if outputPath exists, and try to create it if it doesn't.
-   struct stat opstat;
-   int outputpathstatus = stat(outputPath, &opstat);
-   if( outputpathstatus ) {
-      if( errno == 2 /* No such file or directory */) {
-         fprintf(stderr, "Output path \"%s\" does not exist; attempting to create\n", outputPath);
-         outputpathstatus = mkdir(outputPath, 0700);
-         if( outputpathstatus ) {
-            fprintf(stderr, "Output path could not be created: error %d\n", errno);
+   // see if outputPath exists, and try to create it if it doesn't.  Since only rank 0 process should be reading and writing, only rank 0 process checks
+   int rank = icComm->commRank();
+   if( rank == 0 ) {
+      struct stat opstat;
+      int outputpathstatus = stat(outputPath, &opstat);
+      if( outputpathstatus ) {
+         if( errno == 2 /* No such file or directory */) {
+            fprintf(stderr, "Output path \"%s\" does not exist; attempting to create\n", outputPath);
+            outputpathstatus = mkdir(outputPath, 0700);
+            if( outputpathstatus ) {
+               fprintf(stderr, "Output path could not be created: error %d\n", errno);
+               exit(EXIT_FAILURE);
+            }
+         }
+         else {
+            fprintf(stderr, "Checking status of output path \"%s\" gave error %d\n", outputPath, errno);
             exit(EXIT_FAILURE);
          }
       }
-      else {
-         fprintf(stderr, "Checking status of output path \"%s\" gave error %d\n", outputPath, errno);
-         exit(EXIT_FAILURE);
-      }
-   }
-   else { // outputPath exists; now check if it's a directory.
-      if( !(opstat.st_mode && S_IFDIR) ) {
-         fprintf(stderr, "Output path \"%s\" exists but is not a directory\n", outputPath);
-         exit(EXIT_FAILURE);
+      else { // outputPath exists; now check if it's a directory.
+         if( !(opstat.st_mode && S_IFDIR) ) {
+            fprintf(stderr, "Output path \"%s\" exists but is not a directory\n", outputPath);
+            exit(EXIT_FAILURE);
+         }
       }
    }
 
