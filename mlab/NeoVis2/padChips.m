@@ -48,10 +48,10 @@ function [tot_chips, ...
   begin_time = time();
 
   if nargin < 1 || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "~/Pictures/Tower/neovision-chips-tower/"; %% "~/Pictures/HellChips/";
+    chip_path = ["~/Pictures/Tower/neovision-data-formative-tower", filesep]; %% "~/Pictures/Tower/neovision-chips-tower/"; %% "~/Pictures/HellChips/";
   endif
   if nargin < 2 || ~exist("object_name") || isempty(object_name)
-    object_name = "distractor"; 
+    object_name = "050"; %% "distractor"; 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 
@@ -78,10 +78,10 @@ function [tot_chips, ...
     canny_struct.sigma_canny = 1;
   endif
   if nargin < 7 || ~exist("pad_size") || isempty(pad_size)
-    pad_size = [256 256];  %% 
+    pad_size = [1088 1920]; %% [256 256];  %% 
   endif
   if nargin < 8 || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 6;  %% 
+    num_procs = 4;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -119,11 +119,16 @@ function [tot_chips, ...
   addpath(str_kernel_dir);
 
   chip_dir = [chip_path, "chips", filesep];
+  target_dir = ...
+      [chip_dir, object_name, filesep];  %%
+  if ~exist(chip_dir, "dir")
+    chip_dir = chip_path;
+    target_dir = ...
+	[chip_dir, object_name, filesep];  
+  endif
   if ~exist(chip_dir, "dir")
     error(["~exist(chip_dir): ", chip_dir]);
   endif
-  target_dir = ...
-      [chip_dir, object_name, filesep];  %%
   if ~exist(target_dir, "dir")
     error(["~exist(target_dir): ", target_dir]);
   endif
