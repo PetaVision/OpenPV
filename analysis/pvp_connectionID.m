@@ -169,7 +169,7 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     connID{ 1, ij_conn } =  'L4ToL4Vertical';
     
     ij_conn = ij_conn + 1;
-    connIndex.l3_l3_lateral = ij_conn;
+    connIndex.l4_l4_lateral = ij_conn;
     connID{ 1, ij_conn } =  'L4ToL4Lateral';
     
     
@@ -179,6 +179,7 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     num_arbors(connIndex.l1_l1_lateral) = 2;
     num_arbors(connIndex.l2_l2_lateral) = 2;
     num_arbors(connIndex.l3_l3_lateral) = 2;
+    num_arbors(connIndex.l4_l4_lateral) = 2;
     
     if TRAINING_FLAG == -1
       

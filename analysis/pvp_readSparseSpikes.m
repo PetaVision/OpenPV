@@ -36,8 +36,6 @@ function [spike_array] = ...
     return;
   endif
 
-				%spike_array = ...
-				%    sparse([], [], [], num_sparse_steps, N, total_spikes);
   spike_id = zeros(total_spikes,1);
   spike_step = zeros(total_spikes,1);
   spike_count = 0;

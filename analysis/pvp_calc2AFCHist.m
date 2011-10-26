@@ -47,8 +47,8 @@ function [twoAFC_hist, twoAFC_bins, twoAFC_calc] = ...
 	      squeeze(twoAFC(:,layer_ndx(i_layer-1),:,target_ID));
 	else
 	  twoAFC_baseline = ...
-	      squeeze(twoAFC(:,baseline_layer,:,target_ID));
-	endif %% sum_change_flag
+	      squeeze(twoAFC(:,abs(baseline_layer),:,target_ID));
+	endif %% cum_change_flag
 	if baseline_layer > 0
 	  twoAFC_diff = twoAFC_tmp - twoAFC_baseline;
 	else
@@ -66,7 +66,7 @@ function [twoAFC_hist, twoAFC_bins, twoAFC_calc] = ...
 	    twoAFC_calc(:, layer, :, target_ID) = ...
 		twoAFC_percent;
 	  endif %% cum_change_flag
-	else
+	else %% percent_change_flag
 	  if cum_change_flag 
 	    twoAFC_calc(:, layer, :, target_ID) = ...
 		squeeze(twoAFC_calc(:, layer_ndx(i_layer-1), :, target_ID)) + ...
@@ -101,3 +101,5 @@ function [twoAFC_hist, twoAFC_bins, twoAFC_calc] = ...
     endfor  % target_ID
   endfor  % layer
   
+
+endfunction  %% pvp_calc2AFCHist
