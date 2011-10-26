@@ -496,7 +496,8 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
 
    // Get weightInitType.  The HyPerConn subclass may have a natural weightInitType so don't issue a warning yet if weightInitType is missing.
    // The warning is issued in getDefaultInitWeightsMethod().
-   const char * weightInitTypeStr = hc->parameters()->stringValue(name, "weightInitType",false);
+   PVParams * params = hc->parameters();
+   const char * weightInitTypeStr = params->stringValue(name, "weightInitType",false);
    InitWeights *weightInitializer;
 
    if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
@@ -539,6 +540,14 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
       weightInitializer = new Init3DGaussWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
+      if( params->stringPresent(name, "initWeightsFile") == 0 ) {
+#ifdef PV_USE_MPI
+         fprintf(stderr, "Error (process %d): connection \"%s\": weightInitType \"FileWeight\" requires parameter \"initWeightsFile\".  Exiting.\n", hc->icCommunicator()->commRank(), name);
+#else
+         fprintf(stderr, "Error: connection \"%s\": weightInitType \"FileWeight\" requires parameter \"initWeightsFile\".  Exiting.\n", name);
+#endif // PV_USE_MPI
+         exit(EXIT_FAILURE);
+      }
       weightInitializer = new InitWeights();
    }
    else {
