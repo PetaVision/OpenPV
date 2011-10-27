@@ -24,11 +24,13 @@ public:
    virtual ~Parameter();
 
    const char * name()      { return paramName; }
-   double value()           { return paramValue; }
+   double value()           { hasBeenReadFlag = true; return paramValue; }
+   bool hasBeenRead()       { return hasBeenReadFlag; }
 
 private:
    char * paramName;
    double paramValue;
+   bool   hasBeenReadFlag;
 };
 
 class ParameterString {
@@ -37,11 +39,13 @@ public:
    virtual ~ParameterString();
 
    const char * getName()      { return paramName; }
-   const char * getValue()           { return paramValue; }
+   const char * getValue()     { hasBeenReadFlag = true; return paramValue; }
+   bool hasBeenRead()          { return hasBeenReadFlag; }
 
 private:
    char * paramName;
    char * paramValue;
+   bool   hasBeenReadFlag;
 };
 
 class ParameterStack {
@@ -79,7 +83,7 @@ private:
 
 class ParameterGroup {
 public:
-   ParameterGroup(char * name, ParameterStack * stack);
+   ParameterGroup(char * name, ParameterStack * stack, int rank=0);
    virtual ~ParameterGroup();
 
    const char * name()   { return groupName; }
@@ -90,14 +94,17 @@ public:
    float value  (const char * name);
    int   stringPresent(const char * stringName);
    const char * stringValue(const char * stringName);
+   int warnUnread();
 
 private:
    char * groupName;
    char * groupKeyword;
    ParameterStack * stack;
    ParameterStringStack * stringStack;
+   int processRank;
 };
 
+// FilenameDef and FilenameStack deprecated Oct 27, 2011
 class FilenameDef {
 public:
    FilenameDef(char * newKey, char * newValue);
@@ -111,6 +118,7 @@ private:
    char * value;
 };
 
+// FilenameDef and FilenameStack deprecated Oct 27, 2011
 class FilenameStack {
 public:
    FilenameStack(unsigned int maxCount);
@@ -143,12 +151,13 @@ public:
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
    const char * getFilename(const char * id);
+   int warnUnread();
 
    void action_pvparams_directive(char * id, double val);
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
    void action_parameter_string_def(const char * id, const char * stringval);
-   void action_filename_def(char * id, char * path); // Deprecate?
+   void action_filename_def(char * id, char * path); // Deprecated Oct 27, 2011
    int numberOfGroups() {return numGroups;}
 
 private:
@@ -158,13 +167,14 @@ private:
    ParameterGroup ** groups;
    ParameterStack * stack;
    ParameterStringStack * stringStack;
-   FilenameStack * fnstack; // Deprecate?
+   FilenameStack * fnstack; // Deprecated Oct 27, 2011
    bool debugParsing;
    HyPerCol * parentHyPerCol; // TODO Should be const; see comment on prototype for constructor
    int rank;
 
    int initialize(int initialSize, HyPerCol * hc);
    void addGroup(char * keyword, char * name);
+   int checkDuplicates(const char * paramName);
 };
 
 }

@@ -385,6 +385,8 @@ int HyPerCol::run(int nTimeSteps)
       return PV_MARGINWIDTH_FAILURE;
    }
 
+   parameters()->warnUnread();
+
    if( outputNamesOfLayersAndConns ) {
       assert( icComm->commRank() == 0 );
       printf("Dumping layer and connection names to \"%s\"\n", outputNamesOfLayersAndConns);

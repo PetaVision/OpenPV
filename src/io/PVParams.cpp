@@ -51,6 +51,7 @@ Parameter::Parameter(char * name, double value)
 {
    paramName  = name;
    paramValue = value;
+   hasBeenReadFlag = false;
 }
 
 Parameter::~Parameter()
@@ -176,12 +177,13 @@ const char * ParameterStringStack::lookup(const char * targetname)
  * @name
  * @stack
  */
-ParameterGroup::ParameterGroup(char * name, ParameterStack * stack)
+ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
 {
    this->groupName = name;
    this->groupKeyword = NULL;
    this->stack     = stack;
    this->stringStack = NULL;
+   this->processRank = rank;
 }
 
 ParameterGroup::~ParameterGroup()
@@ -274,6 +276,27 @@ const char * ParameterGroup::stringValue(const char * stringName ) {
    return NULL;
 }
 
+int ParameterGroup::warnUnread() {
+   int status = PV_SUCCESS;
+   int count = stack->size();
+   for( int i=0; i<count; i++ ) {
+      Parameter * p = stack->peek(i);
+      if( !p->hasBeenRead() ) {
+         if( processRank==0 ) fprintf(stderr,"Parameter group \"%s\": parameter \"%s\" has not been read.\n", name(), p->name());
+         status = PV_FAILURE;
+      }
+   }
+   count = stringStack->size();
+   for( int i=0; i<count; i++ ) {
+      ParameterString * pstr = stringStack->peek(i);
+      if( !pstr->hasBeenRead() ) {
+         if( processRank==0 ) fprintf(stderr,"Parameter group \"%s\": string parameter \"%s\" has not been read.\n", name(), pstr->getName());
+         status = PV_FAILURE;
+      }
+   }
+   return status;
+}
+
 FilenameDef::FilenameDef(char * newKey, char * newValue) {
    size_t keylen, valuelen;
 
@@ -311,11 +334,15 @@ FilenameStack::~FilenameStack() {
 }
 
 FilenameDef * FilenameStack::getFilenameDef(unsigned int index) {
+   fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
+                   "(getFilenameDef called with index=%d)\n",index);
    if( index >= count) return NULL;
    return filenamedefs[index];
 }
 
 FilenameDef * FilenameStack::getFilenameDefByKey(const char * searchKey) {
+   fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
+                   "(getFilenameDefByKey called with searchKey=%s)\n",searchKey);
    for( unsigned int n = 0; n < count; n++) {
       if( !strcmp( searchKey, filenamedefs[n]->getKey() ) ) return filenamedefs[n];
    }
@@ -536,6 +563,15 @@ const char * PVParams::getFilename(const char * id)
 void PVParams::addGroup(char * keyword, char * name)
 {
    assert(numGroups <= groupArraySize);
+
+   // Verify that the new group's name is not an existing group's name
+   for( int k=0; k<numGroups; k++ ) {
+      if( !strcmp(name, groups[k]->name())) {
+         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", rank, name);
+         exit(EXIT_FAILURE);
+      }
+   }
+
    if( numGroups == groupArraySize ) {
       groupArraySize += RESIZE_ARRAY_INCR;
       ParameterGroup ** newGroups = (ParameterGroup **) malloc( groupArraySize * sizeof(ParameterGroup *) );
@@ -547,7 +583,7 @@ void PVParams::addGroup(char * keyword, char * name)
       groups = newGroups;
    }
 
-   groups[numGroups] = new ParameterGroup(name, stack);
+   groups[numGroups] = new ParameterGroup(name, stack, rank);
    groups[numGroups]->setGroupKeyword(keyword);
    groups[numGroups]->setStringStack(stringStack);
 
@@ -556,6 +592,16 @@ void PVParams::addGroup(char * keyword, char * name)
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
 
    numGroups++;
+}
+
+int PVParams::warnUnread() {
+   int status = PV_SUCCESS;
+   for( int i=0; i<numberOfGroups(); i++) {
+      if( groups[i]->warnUnread() == PV_FAILURE) {
+         status = PV_FAILURE;
+      }
+   }
+   return status;
 }
 
 /**
@@ -607,6 +653,7 @@ void PVParams::action_parameter_def(char * id, double val)
       printf("action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
    }
+   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
    Parameter * p = new Parameter(id, val);
    stack->push(p);
 }
@@ -617,13 +664,45 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
+   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
    ParameterString * pstr = new ParameterString(id, stringval);
    stringStack->push(pstr);
 }
 
-// Deprecate action_filename_def?
+int PVParams::checkDuplicates(const char * paramName) {
+   int status = PV_SUCCESS;
+   for( int k=0; k<stack->size(); k++ ) {
+      if( !strcmp(paramName, stack->peek(k)->name() ) ) {
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name\n", rank, paramName);
+         status = PV_FAILURE;
+         break;
+      }
+   }
+   for( int k=0; k<stringStack->size(); k++ ) {
+      if( !strcmp(paramName, stringStack->peek(k)->getName() ) ) {
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", rank, paramName);
+         status = PV_FAILURE;
+         break;
+      }
+   }
+   if( status != PV_SUCCESS ) {
+      if( numberOfGroups() == 0 ) {
+         fprintf(stderr, "Rank %d process: this is the first parameter group being parsed\n", rank);
+      }
+      else {
+         fprintf(stderr, "Rank %d process: last parameter group successfully added was \"%s\"\n", rank, groups[numberOfGroups()-1]->name());
+      }
+   }
+   return status;
+}
+
+// action_filename_def deprecated on Oct 27, 2011
 void PVParams::action_filename_def(char * id, char * path)
 {
+   if( rank == 0 ) {
+      fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
+                      "(action_filename_def called with id=%s, path=%s)\n",id,path);
+   }
    if( debugParsing && rank == 0 ) {
       fflush(stdout);
       printf("action_filename_def: %s = %s\n", id, path);
