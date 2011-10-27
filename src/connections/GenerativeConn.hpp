@@ -16,23 +16,23 @@ class GenerativeConn : public KernelConn {
 public:
    GenerativeConn();
    GenerativeConn(const char * name, HyPerCol * hc,
-       HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel);
    GenerativeConn(const char * name, HyPerCol * hc,
-       HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInit);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, InitWeights *weightInit);
    GenerativeConn(const char * name, HyPerCol * hc,
-       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-           const char * filename);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+         const char * filename);
    GenerativeConn(const char * name, HyPerCol * hc,
-       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-           const char * filename, InitWeights *weightInit);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+         const char * filename, InitWeights *weightInit);
 
    int initialize_base();
-//    int initialize(const char * name, HyPerCol * hc,
-//            HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-//            const char * filename=NULL);
+   //    int initialize(const char * name, HyPerCol * hc,
+   //            HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+   //            const char * filename=NULL);
    int initialize(const char * name, HyPerCol * hc,
-           HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-           const char * filename, InitWeights *weightInit);
+         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+         const char * filename, InitWeights *weightInit);
 #ifdef OBSOLETE
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel);

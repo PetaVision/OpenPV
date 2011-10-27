@@ -10,37 +10,37 @@
 namespace PV {
 
 GenerativeConn::GenerativeConn() {
-    initialize_base();
+   initialize_base();
 }  // end of GenerativeConn::GenerativeConn()
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-       initialize_base();
-       initialize(name, hc, pre, post, channel, NULL, NULL);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL, NULL);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, int)
+//   HyPerLayer *, HyPerLayer *, int)
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-        InitWeights *weightInit) {
-       initialize_base();
-       initialize(name, hc, pre, post, channel, NULL, weightInit);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      InitWeights *weightInit) {
+   initialize_base();
+   initialize(name, hc, pre, post, channel, NULL, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, int)
+//   HyPerLayer *, HyPerLayer *, int)
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-        const char * filename) {
-       initialize_base();
-       initialize(name, hc, pre, post, channel, filename, NULL);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      const char * filename) {
+   initialize_base();
+   initialize(name, hc, pre, post, channel, filename, NULL);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, int, const char *)
+//   HyPerLayer *, HyPerLayer *, int, const char *)
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-        const char * filename, InitWeights *weightInit) {
-       initialize_base();
-       initialize(name, hc, pre, post, channel, filename, weightInit);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      const char * filename, InitWeights *weightInit) {
+   initialize_base();
+   initialize(name, hc, pre, post, channel, filename, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, int, const char *)
+//   HyPerLayer *, HyPerLayer *, int, const char *)
 
 int GenerativeConn::initialize_base() {
    plasticityFlag = true; // Default value; override in params
@@ -62,27 +62,27 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 #endif // OBSOLETE
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-        const char * filename, InitWeights *weightInit) {
-    PVParams * params = hc->parameters();
-    relaxation = params->value(name, "relaxation", 1.0f);
-    nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
-    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      const char * filename, InitWeights *weightInit) {
+   PVParams * params = hc->parameters();
+   relaxation = params->value(name, "relaxation", 1.0f);
+   nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
+   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
-    //GenerativeConn has not been updated to support multiple arbors!
-    assert(numberOfAxonalArborLists()==1);
-    // For now, only one arbor.
-    // If we add arbors, patchindices will need to take the arbor index as an argument
+   //GenerativeConn has not been updated to support multiple arbors!
+   assert(numberOfAxonalArborLists()==1);
+   // For now, only one arbor.
+   // If we add arbors, patchindices will need to take the arbor index as an argument
 
-    patchindices = (int *) malloc( pre->getNumExtended()*sizeof(int) );
-    if( patchindices==NULL ) {
-       fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for patchindices\n",name);
-       exit(EXIT_FAILURE);
-    }
-    for( int kex=0; kex<pre->getNumExtended(); kex++ ) {
-       patchindices[kex] = this->patchIndexToKernelIndex(kex);
-    }
-    return PV_SUCCESS;
+   patchindices = (int *) malloc( pre->getNumExtended()*sizeof(int) );
+   if( patchindices==NULL ) {
+      fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for patchindices\n",name);
+      exit(EXIT_FAILURE);
+   }
+   for( int kex=0; kex<pre->getNumExtended(); kex++ ) {
+      patchindices[kex] = this->patchIndexToKernelIndex(kex);
+   }
+   return PV_SUCCESS;
 }
 
 int GenerativeConn::update_dW(int axonID) {
