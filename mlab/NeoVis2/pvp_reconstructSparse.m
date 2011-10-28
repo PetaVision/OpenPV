@@ -1,5 +1,5 @@
 
-function [pvp_image, pvp_num_active] = ...
+function [pvp_image] = ...
       pvp_reconstructSparse(frame_pathname, pvp_time, pvp_activity)
   
   global NFEATURES NCOLS NROWS N
@@ -13,8 +13,8 @@ function [pvp_image, pvp_num_active] = ...
   %%figure; imagesc(pvp_image); colormap(gray);
   pvp_image = repmat(pvp_image, [1, 1, 3]);
   pvp_active_ndx = find(pvp_activity);
-  pvp_active_ndx = pvp_active_ndx + 1;
   pvp_num_active = length(pvp_active_ndx);
+  pvp_active_ndx = pvp_active_ndx + 1;
   [pvp_active_features, pvp_active_cols, pvp_active_rows] = ...
       ind2sub([NFEATURES NCOLS NROWS], pvp_active_ndx);
   dilate_size = 1;

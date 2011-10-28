@@ -1,6 +1,8 @@
-function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_activity)
+function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_activity, true_CSV_struct)
 
   global NFEATURES NCOLS NROWS N
+  global pvp_patch_size
+
   CSV_struct = struct;
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
   CSV_struct.pvp_time = pvp_time;
@@ -8,10 +10,24 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   CSV_struct.sum_activity = sum(pvp_activity(:));
   
   %%full_activity = full(pvp_activity);
-  [pvp_image, pvp_num_active] = ...
-      pvp_reconstructSparse(frame_pathname, pvp_time, pvp_activity);
+  [pvp_image] = ...
+      pvp_reconstructSparse(frame_pathname, ...
+			    pvp_time, ...
+			    pvp_activity);
   CSV_struct.pvp_image = pvp_image;
-  CSV_struct.pvp_num_active = pvp_num_active;
+  CSV_struct.num_active = nnz(pvp_activity);
+
+  
+  [pvp_num_active_BB_mask, ...
+   pvp_num_active_BB_notmask, ...
+   pvp_num_BB_mask, ...
+   pvp_num_BB_notmask] = ...
+      pvp_numActiveInBoundingBox(pvp_activity, ...
+				 true_CSV_struct);
+  CSV_struct.num_active_BB_mask = pvp_num_active_BB_mask;
+  CSV_struct.num_active_BB_notmask = pvp_num_active_BB_notmask;
+  CSV_struct.num_BB_mask = pvp_num_BB_mask;
+  CSV_struct.num_BB_notmask = pvp_num_BB_notmask;
 
   pvp_size = size(pvp_image);
 

@@ -13,24 +13,8 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   
   begin_time = time();
 
-  object_list = cell(12,1);
-  object_list{1} = "Boat"; 
-  object_list{2} = "Bus"; 
-  object_list{3} = "Car"; 
-  object_list{4} = "Container"; 
-  object_list{5} = "Cyclist"; 
-  object_list{6} = "Helicopter"; 
-  object_list{7} = "Person"; 
-  object_list{8} = "Plane"; 
-  object_list{9} = "Tractor-Trailer"; 
-  object_list{10} = "Truck"; 
-  object_list{11} = "distractor";  %% non-DARPA object
-  object_list{12} = "target"; %% any DARPA object
-
   machine_path = ...
       [filesep, "Users", filesep, "gkenyon", filesep];
-
-  
 
   if nargin < 1 || ~exist("CSV_path") || isempty(CSV_path)
     CSV_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, "Tower", filesep, ...
@@ -59,6 +43,30 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   if nargin < 8 || ~exist("num_procs") || isempty(num_procs)
     num_procs = 4;  %% 
   endif
+
+  object_list = cell(12,1);
+  object_list{1} = "Boat"; 
+  object_list{2} = "Bus"; 
+  object_list{3} = "Car"; 
+  object_list{4} = "Container"; 
+  object_list{5} = "Cyclist"; 
+  object_list{6} = "Helicopter"; 
+  object_list{7} = "Person"; 
+  object_list{8} = "Plane"; 
+  object_list{9} = "Tractor-Trailer"; 
+  object_list{10} = "Truck"; 
+  object_list{11} = "distractor";  %% non-DARPA object
+  object_list{12} = "target"; %% any DARPA object
+
+  
+  global mean_chip_size std_chip_size
+  mean_chip_size = [64 64];
+  std_chip_size = [32 32];
+  if strcmp(ObjectType, object_list{5})
+    mean_chip_size = [7.97122713e+01 8.26809535e+01];
+    std_chip_size = [2.06768486e+01 1.44549873e+01];
+  endif
+
 
   setenv('GNUTERM', 'x11');
   image_type = ".png";
@@ -212,8 +220,9 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     true_CSV_struct_tmp.BoundingBox_Y4 = str2num(BoundingBox_Y4);
     num_BBs = length(true_CSV_struct{i_frame});
     true_CSV_struct{i_frame}{num_BBs + 1} = true_CSV_struct_tmp;
- endfor
+  endfor
 
+  disp("");
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel, ...
 			    frame_pathnames, pvp_time_cell, pvp_activity, true_CSV_struct, ...
@@ -224,6 +233,8 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
 			 "UniformOutput", false);
   endif
 
+  disp("");
+
   for i_frame = 1 : tot_frames
     CSV_struct{i_frame}.Frame = i_frame-1;
     CSV_struct{i_frame}.ObjectType = ObjectType;
@@ -232,7 +243,13 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     CSV_struct{i_frame}.Version = 1.4;
     disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
     disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
-    disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity), "\n"]);    
+    disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
+    disp(["num_active = ", num2str(CSV_struct{i_frame}.num_active)]);
+    disp(["num_active_BB_mask = ", num2str(CSV_struct{i_frame}.num_active_BB_mask)]);
+    disp(["num_active_BB_notmask = ", num2str(CSV_struct{i_frame}.num_active_BB_notmask)]);
+    disp(["num_BB_mask = ", num2str(CSV_struct{i_frame}.num_BB_mask)]);
+    disp(["num_BB_notmask = ", num2str(CSV_struct{i_frame}.num_BB_notmask)]);
+    disp("");
   endfor
 
   for i_frame = 1 : tot_frames
