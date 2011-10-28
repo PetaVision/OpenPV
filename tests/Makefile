@@ -315,11 +315,11 @@ runtests: make-in-subdirs $(TESTS)
 	@echo "Running test_patch_head ..."
 	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
 	@echo "Running test_post_weights ..."
-	@if ./test_post_weights -p input/params.test; then echo "test_post_weights passed."; else echo "test_post_weights failed."; fi
+	@if ./test_post_weights -p input/test_post_weights.params; then echo "test_post_weights passed."; else echo "test_post_weights failed."; fi
 	@echo "Running test_gauss2d ..."
 	@if ./test_gauss2d; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
 	@echo "Running test_cocirc ..."
-	@if ./test_cocirc -p input/params.test; then echo "test_cocirc passed."; else echo "test_cocirc failed."; fi
+	@if ./test_cocirc -p input/test_cocirc.params; then echo "test_cocirc passed."; else echo "test_cocirc failed."; fi
 #	@echo "Running test_pos ..."
 #	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos failed."; fi
 	@echo "Running test_delta_pos ..."
@@ -340,12 +340,6 @@ runtests: make-in-subdirs $(TESTS)
 #	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 #	@echo "Running test_borders ..."
 #	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
-#	@echo "Running test_marginwidth_one_to_one ..."
-#	@if ./test_marginwidth_one_to_one -p $(INPARAMS); then echo "test_marginwidth_one_to_one passed."; else echo "test_marginwidth_one_to_one failed"; fi
-#	@echo "Running test_marginwidth_many_to_one ..."
-#	@if ./test_marginwidth_many_to_one -p $(INPARAMS); then echo "test_marginwidth_many_to_one passed."; else echo "test_marginwidth_many_to_one failed"; fi
-#	@echo "Running test_marginwidth_one_to_many ..."
-#	@if ./test_marginwidth_one_to_many -p $(INPARAMS); then echo "test_marginwidth_one_to_many passed."; else echo "test_marginwidth_one_to_many failed"; fi
 #	@echo "Running test_transpose_transpose ..."
 #	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
 	@echo "Running test_marginwidth_toosmall_one_to_one ..."
