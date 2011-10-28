@@ -9,6 +9,7 @@ for i_fig = 1 : num_figs
   end
   axis normal
   fig_filename = get(fig_hndl, 'Name');
+  fig_filename(fig_filename==" ")="";
   fig_filename = [fig_path, fig_filename, '.', fig_suffix];
   if exist(fig_filename, 'file')
     delete(fig_filename);

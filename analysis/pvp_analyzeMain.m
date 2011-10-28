@@ -50,6 +50,10 @@ global OUTPUT_PATH SPIKE_PATH
 SPIKE_PATH = [project_path, 'input/V1/amoeba/'];
 OUTPUT_PATH = [project_path, 'input/V1/amoeba/'];
 
+global MOVIE_PATH
+MOVIE_PATH = [OUTPUT_PATH, "Movie"];
+mkdir(MOVIE_PATH);
+
 %%image_path = [matlab_path, 'amoebaX2/256_png/4/'];
 image_path = [matlab_path, 'figures/amoeba/256_png/4/'];
 image_filename = [image_path 't/tar_0025_a.png'];
@@ -83,14 +87,15 @@ STIM_END_BIN = -floor( STIM_END_STEP / BIN_STEP_SIZE );
 global N_LAYERS
 [layerID, layerIndex] = pvp_layerID();
 num_layers = N_LAYERS;
-read_spikes = 2:N_LAYERS;  %[layerIndex.l1, layerIndex.l1inh];% list of spiking layers whose spike train are to be analyzed
+read_spikes = [2:7,9:10];  %[layerIndex.l1, layerIndex.l1inh];% list of spiking layers whose spike train are to be analyzed
 
 %% plot flags
-plot_reconstruct = read_spikes; %uimatlab;
-plot_raster = read_spikes; %[layerIndex.l1];%read_spikes; %uimatlab;
-plot_reconstruct_target = [];%read_spikes; %[layerIndex.l1];
-plot_vmem = 0;
-plot_autocorr = [layerIndex.lgn, layerIndex.lgninh, layerIndex.s1, layerIndex.c1, layerIndex.c1inh]; %%read_spikes;% 
+plot_reconstruct = read_spikes; 
+plot_raster = read_spikes; 
+plot_movie = read_spikes; 
+plot_reconstruct_target = [];
+plot_vmem = 1;
+plot_autocorr = [layerIndex.retina, layerIndex.lgn, layerIndex.lgninh, layerIndex.s1, layerIndex.c1, layerIndex.c1inh]; %%read_spikes;% 
 plot_xcorr = plot_autocorr;
 
 
@@ -171,8 +176,8 @@ layer_struct.size_layer = cell(num_layers,1);
 				% data structures for correlation analysis
 				%stft_array = cell( num_layers, 1);
 xcorr_struct = struct;
-xcorr_struct.min_freq = 30;
-xcorr_struct.max_freq = 60;
+xcorr_struct.min_freq = 25;
+xcorr_struct.max_freq = 75;
 xcorr_struct.size_border_mask = 4;
 max_lag = 128/DELTA_T; 
 xcorr_struct.max_lag = max_lag; 
@@ -411,9 +416,9 @@ for layer = read_spikes;
 endfor %% layer
 
 
-%% init raster
+%% make raster plots
 for layer = read_spikes;
-  plot_raster2 = ismember( layer, plot_raster );
+  plot_raster2 = ismember(layer, plot_raster);
   raster_epoch = []; %[epoch_struct.num_epochs];
   if ismember( layer, plot_raster )
     fig_list = pvp_plotRaster(layer, ...
@@ -423,6 +428,26 @@ for layer = read_spikes;
 			      raster_epoch, ...
 			      fig_list);
   endif %% plot_raster
+endfor %%layer
+pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+close all;
+fig_list = [];
+
+
+
+%% make spike movie
+for layer = read_spikes;
+  plot_movie2 = ismember(layer, plot_movie);
+  movie_epoch = [2]; 
+  if ismember( layer, plot_movie )
+    fig_list = ...
+	pvp_plotMovie(layer, ...
+		      epoch_struct, ...
+		      layer_struct, ...
+		      target_struct, ...
+		      movie_epoch, ...
+		      MOVIE_PATH);
+  endif %% plot_movie
 endfor %%layer
 pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
 close all;
@@ -1078,9 +1103,10 @@ if plot_rates
        'LGN     '; ...
        'LGNInhFF'; ...
        'LGNInh  '; ...
-       'L1      '; ...
-       'L1InhFF '; ...
-       'L1Inh   '};
+       'S1      '; ...
+       'S1Inh '; ...
+       'C1      '; ...
+       'C1Inh   '};
 				%    if uimatlab
 				%        leg_h = legend(lh(1:num_layers), legend_str);
 				%    elseif uioctave
@@ -1102,9 +1128,10 @@ if plot_vmem
   vmem_file_list = {'LGN_Vmem.txt', ...
 		    'LGNInhFF_Vmem.txt', ...
 		    'LGNInh_Vmem.txt', ...
-		    'L1_Vmem.txt', ...
-		    'L1InhFF_Vmem.txt', ...
-		    'L1Inh_Vmem.txt'};
+		    'S1_Vmem.txt', ...
+		    'S1Inh_Vmem.txt', ...
+		    'C1_Vmem.txt', ...
+		    'C1Inh_Vmem.txt'};
 				%  vmem_layers = [2,3,4,5];
   num_vmem_files = size(vmem_file_list,2);
   vmem_time = cell(num_vmem_files, 1);
