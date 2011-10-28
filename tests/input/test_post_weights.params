@@ -1,0 +1,39 @@
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "test_post_weights L1" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 1;
+};
+
+HyPerLayer "test_post_weights L2" = {
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2;  // works for scale of 2 and npatch of 8
+};
+
+HyPerLayer "test_post_weights L3" = {
+   nxScale = 2;
+   nyScale = 2;
+   marginWidth = 4;
+};
+
+HyPerConn "test_post_weights L1 to L1" = {
+   nxp = 3;
+   nyp = 3;
+};
+
+// patch size should be odd number times scale factor
+HyPerConn "test_post_weights L2 to L3" = {
+   nxp = 10; //6; //8;
+   nyp = 10; //6; //8;
+};
+
+// patch size should be odd number 
+HyPerConn "test_post_weights L3 to L2" = {
+   nxp = 5; // 1/2 of forward weight patch
+   nyp = 5;
+};
