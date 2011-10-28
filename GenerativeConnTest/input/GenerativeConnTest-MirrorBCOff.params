@@ -239,15 +239,10 @@ KernelConn "16x16 Images to pre 16x16 multiband" = {
     writeCompressedWeights = false;
     aspect = 1;
     sigma = 1;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1;
-    numFlanks = 1;
-    rotate = false;
-    bowtieFlag = false;
     normalize = false;
     strength = 1.0;
     rMax = 2;
-    flankShift = 0;
+    rMin = 0;
     shrinkPatches = false;
 };
 
@@ -272,15 +267,10 @@ KernelConn "8x8 Images to post 8x8 multiband" = {
     writeCompressedWeights = false;
     aspect = 1;
     sigma = 1;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1;
-    numFlanks = 1;
-    rotate = false;
-    bowtieFlag = false;
     normalize = false;
     strength = 1.0;
     rMax = 2;
-    flankShift = 0;
+    rMin = 0;
     shrinkPatches = false;
 };
 
@@ -305,15 +295,10 @@ KernelConn "16x16 Images to post 16x16 multiband" = {
     writeCompressedWeights = false;
     aspect = 1;
     sigma = 1;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1;
-    numFlanks = 1;
-    rotate = false;
-    bowtieFlag = false;
     normalize = false;
     strength = 1.0;
     rMax = 2;
-    flankShift = 0;
+    rMin = 0;
     shrinkPatches = false;
 };
 
@@ -338,15 +323,10 @@ KernelConn "32x32 Images to post 32x32 multiband" = {
     writeCompressedWeights = false;
     aspect = 1;
     sigma = 1;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1;
-    numFlanks = 1;
-    rotate = false;
-    bowtieFlag = false;
     normalize = false;
     strength = 1.0;
     rMax = 2;
-    flankShift = 0;
+    rMin = 0;
     shrinkPatches = false;
 };
 
