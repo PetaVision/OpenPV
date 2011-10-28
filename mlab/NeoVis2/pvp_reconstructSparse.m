@@ -1,11 +1,11 @@
 
 function [pvp_image, pvp_num_active] = ...
-      pvp_reconstructSparse(frame_ID, pvp_time, pvp_activity)
+      pvp_reconstructSparse(frame_pathname, pvp_time, pvp_activity)
   
   global NFEATURES NCOLS NROWS N
   %%keyboard;
 
-  pvp_image = imread(frame_ID);
+  pvp_image = imread(frame_pathname);
   pvp_image = rgb2gray(pvp_image);
   if any( size(pvp_image) ~= [NROWS, NCOLS] );
     pvp_image = imresize(pvp_image, [NROWS, NCOLS]);
@@ -17,7 +17,20 @@ function [pvp_image, pvp_num_active] = ...
   pvp_num_active = length(pvp_active_ndx);
   [pvp_active_features, pvp_active_cols, pvp_active_rows] = ...
       ind2sub([NFEATURES NCOLS NROWS], pvp_active_ndx);
+  dilate_size = 1;
   for i_active = 1 : pvp_num_active
     pvp_image(pvp_active_rows(i_active), pvp_active_cols(i_active), 1) = uint8(255);
+    %% add dilation
+    for i_dilate_row = pvp_active_rows(i_active)-dilate_size: pvp_active_rows(i_active)+dilate_size
+      if i_dilate_row < 1 || i_dilate_row > size(pvp_image, 1)
+	continue;
+      endif
+      for i_dilate_col = pvp_active_cols(i_active)-dilate_size: pvp_active_cols(i_active)+dilate_size
+	if i_dilate_col < 1 || i_dilate_col > size(pvp_image, 2)
+	  continue;
+	endif
+	pvp_image(i_dilate_row, i_dilate_col, 1) = uint8(255);
+      endfor
+    endfor
   endfor
 
