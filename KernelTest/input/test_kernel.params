@@ -13,7 +13,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 4;  // num images plus (num layers + 1) * delay
-   progressSteps = 5;
+   progressStep = 5;
    outputPath = "output/";
    filenamesContainLayerNames = false;
 };
@@ -33,8 +33,6 @@ Retina "Retina" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 1.0;
-    invert = 0;
     poissonEdgeProb = 1;
     poissonBlankProb = 1;
     burstFreq = 1;
@@ -180,13 +178,8 @@ KernelConn "Retina to L0" = {
     aspect = 1;
     sigma = 1;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
+    rMin = 0;
+    // no = 4;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -195,11 +188,8 @@ KernelConn "Retina to L0" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;
 
@@ -225,13 +215,8 @@ KernelConn "L0 to Lx1" = {
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
+    rMin = 0;
+    // no = 4;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -240,11 +225,8 @@ KernelConn "L0 to Lx1" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
@@ -268,13 +250,14 @@ KernelConn "L0 to Lx2" = {
     aspect = 1; //2;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 8;
+    rMin = 0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 8;
       
     strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -283,11 +266,8 @@ KernelConn "L0 to Lx2" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
@@ -311,13 +291,14 @@ KernelConn "L0 to Lx4" = {
     aspect = 1; //4;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 16;
+    rMin = 0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 16;
       
     strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -326,11 +307,8 @@ KernelConn "L0 to Lx4" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
@@ -354,13 +332,14 @@ KernelConn "L0 to Lx1_2" = {
     aspect = 2;
     sigma = infinity;
     rMax  = infinity;
+    rMin = 0;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     bowtieFlag = 0;
     numFlanks = 1;
     flankShift = 0;
     rotate = 1;
-    no = 2;
+    // no = 2;
       
     strength = 0.125; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -369,11 +348,8 @@ KernelConn "L0 to Lx1_2" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
@@ -397,13 +373,14 @@ KernelConn "L0 to Lx1_4" = {
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 1;
+    rMin = 0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 1;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -412,11 +389,8 @@ KernelConn "L0 to Lx1_4" = {
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
