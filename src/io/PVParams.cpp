@@ -368,42 +368,30 @@ FilenameDef * FilenameStack::pop() {
 /**
  * @filename
  * @initialSize
+ * @hc
  */
 PVParams::PVParams(const char * filename, int initialSize, HyPerCol * hc)
 {
-   const char * altfile = INPUT_PATH "inparams.txt";
 
    initialize(initialSize, hc);
-
-   if (filename == NULL) {
-      printf("PVParams::PVParams: rank %d process trying to open alternate input file %s\n", rank, altfile);
-      fflush(stdout);
-      filename = altfile;
-   }
-
-   yyin = fopen(filename, "r");
-   if (yyin == NULL) {
-      fprintf(stderr, "PVParams::PVParams: rank %d process FAILED to open file %s\n", rank, filename);
-      exit(EXIT_FAILURE);
-   }
-   int status = pv_parseParameters(this);
-   fclose(yyin);
-   if( status != 0) {
-      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, status);
-      exit(status);
-   }
+   parsefile(filename);
 }
 
-/**
+/*
  * @initialSize
+ * @hc
  */
 PVParams::PVParams(int initialSize, HyPerCol * hc)
 {
    initialize(initialSize, hc);
+   parsefile(NULL);
 }
 
 PVParams::~PVParams()
 {
+   for( int i=0; i<numGroups; i++) {
+      delete groups[i];
+   }
    free(groups);
    delete stack;
    delete stringStack;
@@ -435,6 +423,28 @@ int PVParams::initialize(int initialSize, HyPerCol * hc) {
 #endif//DEBUG_PARSING
 
    return ( groups && stack && stringStack && fnstack ) ? PV_SUCCESS : PV_FAILURE;
+}
+
+int PVParams::parsefile(const char * filename) {
+   if (filename == NULL) {
+      const char * altfile = INPUT_PATH "inparams.txt";
+      printf("PVParams::PVParams: rank %d process opening alternate input file \"%s\"\n", rank, altfile);
+      fflush(stdout);
+      filename = altfile;
+   }
+
+   yyin = fopen(filename, "r");
+   if (yyin == NULL) {
+      fprintf(stderr, "PVParams::PVParams: rank %d process FAILED to open file %s.  Error code %d\n", rank, filename, errno);
+      exit(errno);
+   }
+
+   parseStatus = pv_parseParameters(this);
+   fclose(yyin);
+   if( parseStatus != 0 ) {
+      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, parseStatus);
+   }
+   return PV_SUCCESS;
 }
 
 /**

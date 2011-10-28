@@ -142,6 +142,7 @@ public:
    PVParams(const char * filename, int initialSize, HyPerCol * hc);
    virtual ~PVParams();
 
+   bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent=true);
@@ -161,6 +162,7 @@ public:
    int numberOfGroups() {return numGroups;}
 
 private:
+   int parseStatus;
    int numGroups;
    int groupArraySize;
    // int maxGroups;
@@ -173,6 +175,7 @@ private:
    int rank;
 
    int initialize(int initialSize, HyPerCol * hc);
+   int parsefile(const char * filename);
    void addGroup(char * keyword, char * name);
    int checkDuplicates(const char * paramName);
 };
