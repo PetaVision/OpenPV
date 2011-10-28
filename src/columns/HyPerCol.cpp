@@ -151,6 +151,21 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    free(param_file);
    param_file = NULL;
 
+#ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
+   int parsedStatus;
+   int rootproc = 0;
+   int thisrank = icCommunicator()->commRank();
+   if( thisrank == rootproc ) {
+      parsedStatus = params->getParseStatus();
+   }
+   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->communicator());
+#else
+   int parsedStatus = params->getParseStatus();
+#endif
+   if( parsedStatus != 0 ) {
+      exit(parsedStatus);
+   }
+
    // set number of steps from params file if it wasn't set on the command line
    if( !numSteps ) {
       if( params->present(name, "numSteps") ) {
