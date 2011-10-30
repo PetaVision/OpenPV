@@ -1,0 +1,548 @@
+//
+// clique_train.params
+//  - input parameters for learning clique kernels
+//
+
+HyPerCol "column" = {
+   nx = 256;   // until we get going with images
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 1009;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/gkenyon/workspace-indigo/Clique2/input/Tower/Cyclist/DoG/test";
+};
+
+//
+// layers
+//
+
+Movie "Image" = {
+	imageListPath = "/Users/gkenyon/Pictures/Tower/neovision-chips-tower/list/Cyclist/test_fileOfFilenames1_1000.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+    writeImages = 0;
+    Vrest = 0.0;
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+};
+
+
+
+ANNLayer "L1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+};
+
+
+CliqueLayer "L1 Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 0.0150;
+    Voffset = 0.0;
+};
+
+
+CliqueLayer "L2 Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 0.0150;
+    Voffset = 0.0;
+};
+
+
+CliqueLayer "L3 Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 0.0150;
+    Voffset = 0.0;
+};
+
+
+CliqueLayer "L4 Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 0.0150;
+    Voffset = 0.0;
+};
+
+
+
+
+
+//  connections: 
+
+KernelConn "Movie to Retina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 4.0;
+   
+    strength = 1.0;
+    normalize = 0.0;
+    symmetrizeWeights = 0;
+   
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+// Retina connections
+
+KernelConn "Retina to L1" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+   no = 8;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+    
+   delay = 0;
+};
+
+
+
+KernelConn "Retina to L1 Inh" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.41;
+   rotate = 1;
+   no = 8;
+       
+   strength = 25.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+
+
+
+// Clique connections
+
+
+// L1 Clique
+
+IdentConn "L1 to L1 Clique Vertical" = {
+    preLayerName = "L1";
+    postLayerName = "L1 Clique";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;
+};
+
+
+
+CliqueApplyConn "L1 to L1 Clique Lateral" = {
+   preLayerName = "L1";
+   postLayerName = "L1 Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 2;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/Tower/Cyclist/DoG/w3";
+   
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   normalize_arbors_individually = true;
+   symmetrizeWeights = 0;
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0; 
+};
+
+
+
+// L2 Clique
+
+IdentConn "L1 to L2 Clique Vertical" = {
+    preLayerName = "L1 Clique";
+    postLayerName = "L2 Clique";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;
+};
+
+
+
+CliqueApplyConn "L1 to L2 Clique Lateral" = {
+   preLayerName = "L1 Clique";
+   postLayerName = "L2 Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 2;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/Tower/Cyclist/DoG/w3";
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   normalize_arbors_individually = true;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+
+// L3 Clique
+
+IdentConn "L2 to L3 Clique Vertical" = {
+    preLayerName = "L2 Clique";
+    postLayerName = "L3 Clique";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;
+};
+
+
+
+CliqueApplyConn "L2 to L3 Clique Lateral" = {
+   preLayerName = "L2 Clique";
+   postLayerName = "L3 Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 2;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/Tower/Cyclist/DoG/w3";
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   normalize_arbors_individually = true;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+
+// L4 Clique
+
+IdentConn "L3 to L4 Clique Vertical" = {
+    preLayerName = "L3 Clique";
+    postLayerName = "L4 Clique";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+    symmetrizeWeights = 0;
+    normalize = 0.0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;
+};
+
+
+
+CliqueApplyConn "L3 to L4 Clique Lateral" = {
+   preLayerName = "L3 Clique";
+   postLayerName = "L4 Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 2;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/Tower/Cyclist/DoG/w3";
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   normalize_arbors_individually = true;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+
+
+StatsProbe "Retina Stats" = {
+    targetLayer = "Retina";
+//    probeOutputFile = "Retina_Stats.txt";
+};
+
+StatsProbe "L1 Stats" = {
+    targetLayer = "L1";
+//    probeOutputFile = "L1_Stats.txt";
+};
+
+StatsProbe "L1 Clique Stats" = {
+    targetLayer = "L1 Clique";
+//    probeOutputFile = "L1_Clique_Stats.txt";
+};
+
+StatsProbe "L2 Clique Stats" = {
+    targetLayer = "L2 Clique";
+//    probeOutputFile = "L2_Clique_Stats.txt";
+};
+
+StatsProbe "L3 Clique Stats" = {
+    targetLayer = "L3 Clique";
+//    probeOutputFile = "L3_Clique_Stats.txt";
+};
+
+StatsProbe "L4 Clique Stats" = {
+    targetLayer = "L4 Clique";
+//    probeOutputFile = "L4_Clique_Stats.txt";
+};
+
