@@ -57,6 +57,7 @@ function [fig_h] = ...
 		  spike_row_ndx, ...
 		  spike_col_ndx);
       spike_image(spike2D_ndx) = 255;
+      spike_image = flipud(spike_image);
       imwrite(uint8(spike_image), [MOVIE_PATH, filesep, plot_title, ".png"]);
       ave_image = ave_image + spike_image;
     endfor  %% i_step
@@ -70,7 +71,10 @@ function [fig_h] = ...
     plot_title(plot_title==" ") = "";
     fig_h = figure("Name", plot_title);
     axis([1 layer_struct.num_rows(layer) 1 layer_struct.num_cols(layer) ]);
-    axis normal
+    axis "tight";
+    axis "image";
+    axis "ij"
+    %%axis normal
     imagesc(ave_image);
     box off
     axis off
