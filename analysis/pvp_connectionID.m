@@ -9,7 +9,7 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
 
   if ( SPIKING_FLAG == 1 )
     
-    N_CONNECTIONS = 19;
+    N_CONNECTIONS = 22;
     connID = cell(1,N_CONNECTIONS);
 
 
@@ -56,6 +56,14 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
 
     %% S1 connections
     ij_conn = ij_conn + 1;
+    connIndex.s1_s1 = ij_conn;
+    connID{ 1, ij_conn } =  'S1toS1';
+
+    ij_conn = ij_conn + 1;
+    connIndex.s1_s1inh = ij_conn;
+    connID{ 1, ij_conn } =  'S1toS1Inh';
+
+    ij_conn = ij_conn + 1;
     connIndex.s1_c1 = ij_conn;
     connID{ 1, ij_conn } =  'S1toC1';
 
@@ -64,10 +72,14 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     connID{ 1, ij_conn } =  'S1toC1Inh';
 
 
-    %% S1 Inh FF connections
+    %% S1 Inh connections
     ij_conn = ij_conn + 1;
     connIndex.s1inh_s1 = ij_conn;
     connID{ 1, ij_conn } =  'S1InhtoS1';
+
+    ij_conn = ij_conn + 1;
+    connIndex.s1inh_s1inh = ij_conn;
+    connID{ 1, ij_conn } =  'S1InhtoS1Inh';
 
     ij_conn = ij_conn + 1;
     connIndex.s1inh_s1inh_gap = ij_conn;
