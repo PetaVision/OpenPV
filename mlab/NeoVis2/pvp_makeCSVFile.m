@@ -1,13 +1,18 @@
 
-function [num_frames] = pvp_makeCSVFile(CSV_path, ...
-					clip_name, ...
-					ObjectType, ...
-					chip_path, ...
-					patch_size, ...
-					pvp_path, ...
-					pvp_layer, ...
-					training_flag, ...
-					num_procs)
+function [tot_frames, ...
+	  tot_time, ...
+	  CSV_struct] = ...
+      pvp_makeCSVFile(CSV_path, ...
+		      clip_name, ...
+		      pvp_frame_offset, ...
+		      pvp_frame_skip, ...
+		      ObjectType, ...
+		      chip_path, ...
+		      patch_size, ...
+		      pvp_path, ...
+		      pvp_layer, ...
+		      training_flag, ...
+		      num_procs)
   %% takes PetaVision non-spiking activity files generated in response to
   %% a video clip and produces a CSV file indicating locations of
   %% specified object
@@ -17,21 +22,35 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   machine_path = ...
       [filesep, "Users", filesep, "gkenyon", filesep];
 
-  if nargin < 1 || ~exist("CSV_path") || isempty(CSV_path)
+  num_input_args = 0;
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("CSV_path") || isempty(CSV_path)
     CSV_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, "Tower", filesep, ...
 		"neovision-data-formative-tower", filesep]; %% 
   endif
-  if nargin < 2 || ~exist("clip_name") || isempty(clip_name)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
     clip_name = "050";
   endif
-  if nargin < 3 || ~exist("ObjectType") || isempty(ObjectType)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
+    pvp_frame_skip = 1;
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
+    pvp_frame_offset = 1;
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("ObjectType") || isempty(ObjectType)
     ObjectType = "Cyclist";
   endif
-  if nargin < 4 || ~exist("chip_path") || isempty(chip_path)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("chip_path") || isempty(chip_path)
     chip_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, "Tower", filesep, ...
 		 "neovision-chips-tower", filesep]; %% 
   endif
-  if nargin < 5 || ~exist("patch_size") || isempty(patch_size)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
     chip_log_dir = [chip_path, "log", filesep, ObjectType, filesep];
     chip_log_pathname = [chip_log_dir, "log.txt"];
     if exist(chip_log_pathname, "file")
@@ -78,19 +97,23 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
       patch_size = [128, 128];
     endif %% exist(chip_log_pathname)
   endif
-  if nargin < 6 || ~exist("pvp_path") || isempty(pvp_path)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
     pvp_path = [machine_path, "workspace-indigo", filesep, "Clique2", ...
 		filesep, "input", filesep, "Tower", filesep, clip_name, filesep, ...
-		ObjectType, filesep, "DoG", filesep];
+		ObjectType, "2", filesep, "DoG", filesep];
   endif
-  if nargin < 7 || ~exist("pvp_layer") || isempty(pvp_layer)
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_layer") || isempty(pvp_layer)
     pvp_layer = 5;  %% 
   endif
-  if nargin < 8 || ~exist("pvp_training_flag") || isempty(pvp_training_flag)
-    training_flag = 1;
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_training_flag") || isempty(pvp_training_flag)
+    training_flag = 0;
   endif
-  if nargin < 9 || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 1;  %% 
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
+    num_procs = 4;  %% 
   endif
 
   global pvp_patch_size
@@ -113,7 +136,7 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   object_list{11} = "distractor";  %% non-DARPA object
   object_list{12} = "target"; %% any DARPA object  
 
-  setenv('GNUTERM', 'x11');
+  %%setenv('GNUTERM', 'x11');
   image_type = ".png";
 
   %% path to generic image processing routines
@@ -124,13 +147,7 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
-  annotated_path = [CSV_path, "annotated", filesep]; 
-  mkdir(annotated_path);
-  annotated_clip_dir = [annotated_path, clip_name, filesep];
-  mkdir(annotated_clip_dir);
-  annotated_dir = [annotated_clip_dir, ObjectType, filesep];
-  mkdir(annotated_dir);
-
+  global ODD_dir
   ODD_path = [CSV_path, "ODD", filesep]; 
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
@@ -156,7 +173,7 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     BB_stats_struct.pvp_std_BB_density = str2num(fgets(BB_stats_fid));
     fclose(BB_stats_fid);
     pvp_density_thresh = ...
-	(BB_stats_struct.pvp_min_BB_density(1) + BB_stats_struct.pvp_max_BB_density(2)) / 2;
+	(BB_stats_struct.pvp_min_BB_density(1)); %% + BB_stats_struct.pvp_max_BB_density(2)) / 2;
   else
     pvp_density_thresh = -1.0;  %% flag to use ave density across image
   endif
@@ -185,7 +202,10 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
       [clip_dir, '*', image_type];
   frame_pathnames_all = glob(frameIDs_path);
   num_frames = size(frame_pathnames_all,1);
-  disp(['num_frames = ', num2str(num_frames)]);
+  disp(["num_frames = ", num2str(num_frames)]);
+
+  tot_frames = length(pvp_frame_offset : pvp_frame_skip : num_frames);
+  disp(["tot_frames = ", num2str(tot_frames)]);
 
   %% read pvp activity into cell array
   [pvp_fid, ...
@@ -200,35 +220,34 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   NFEATURES = pvp_header(pvp_index.NF);
   N = NFEATURES * NCOLS * NROWS;
   
-  pvp_time = zeros(num_frames, 1);
-  pvp_offset = zeros(num_frames, 1);
+  pvp_time = zeros(tot_frames, 1);
+  pvp_offset = zeros(tot_frames, 1);
+  pvp_time = cell(tot_frames, 1);
+  pvp_activity = cell(tot_frames, 1);
+  frame_pathnames = cell(tot_frames, 1);
   
   pvp_offset_tmp = 0;
-  for i_frame = 1 : num_frames
-    pvp_frame = i_frame + pvp_layer - 2;
-    [pvp_time(i_frame),...
-     pvp_activity_tmp, ...
+  i_frame = 0;
+  for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
+    i_frame = i_frame + 1;
+    pvp_frame = j_frame + pvp_layer - 2;
+    [pvp_time{i_frame},...
+     pvp_activity{i_frame}, ...
      pvp_offset(i_frame)] = ...
 	pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
     if pvp_offset(i_frame) == -1
       break;
     endif
-    pvp_activity{i_frame,1} = pvp_activity_tmp;
     pvp_offset_tmp = pvp_offset(i_frame);
+    frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
     disp(["i_frame = ", num2str(i_frame)]);
-    disp(["pvp_time = ", num2str(pvp_time(i_frame))]);
-    disp(["frame_ID = ", frame_pathnames_all{i_frame}]);
+    disp(["pvp_time = ", num2str(pvp_time{i_frame})]);
+    disp(["frame_ID = ", frame_pathnames{i_frame}]);
     disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
   endfor
   fclose(pvp_fid);
-
-  tot_frames = length(pvp_activity);
-  pvp_time_cell = cell(tot_frames, 1);
-  frame_pathnames = cell(tot_frames, 1);
-  for i_frame = 1 : tot_frames
-    frame_pathnames{i_frame} = frame_pathnames_all{i_frame};
-    pvp_time_cell{i_frame} = pvp_time(i_frame);
-  endfor
+  nnz_frames = i_frame-1;
+  disp(["nnz_frames = ", num2str(nnz_frames)]);
 
   %% struct for storing rank order of comma separators between fields
   true_CSV_struct = cell(tot_frames, 1);
@@ -256,13 +275,13 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
       true_CSV_struct_tmp.ObjectType = CSV_ObjectType;
       Frame_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.Frame(1));
       Frame_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.Frame(2))-1;
-      Frame = true_CSV_list{i_CSV}(Frame_ndx(1):Frame_ndx(2));
-      i_frame = str2num(Frame) + 1;
-      if i_frame > tot_frames
+      true_Frame = true_CSV_list{i_CSV}(Frame_ndx(1):Frame_ndx(2));
+      i_frame = str2num(true_Frame) + 1;
+      if i_frame > nnz_frames
 	break;
       endif
       true_CSV_struct_tmp = struct;
-      true_CSV_struct_tmp.Frame = Frame;
+      true_CSV_struct_tmp.Frame = true_Frame;
       BoundingBox_X1_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X1(1))+1;
       BoundingBox_X1_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X1(2))-1;
       BoundingBox_X1 = true_CSV_list{i_CSV}(BoundingBox_X1_ndx(1):BoundingBox_X1_ndx(2));
@@ -303,23 +322,23 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   disp("");
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel, ...
-			    frame_pathnames, pvp_time_cell, pvp_activity, true_CSV_struct, ...
+			    frame_pathnames, pvp_time, pvp_activity, true_CSV_struct, ...
 			    "UniformOutput", false);
   else
     CSV_struct = cellfun(@pvp_makeCSVFileKernel, ...
-			 frame_pathnames, pvp_time_cell, pvp_activity, true_CSV_struct, ...
+			 frame_pathnames, pvp_time, pvp_activity, true_CSV_struct, ...
 			 "UniformOutput", false);
   endif
 
   disp("");
-  
+
   pvp_results_path = [CSV_path, "results", filesep];
   mkdir(pvp_results_path);
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);
-  pvp_results_filename = ["Tower_", clip_name, "_000", ".csv"];
+  pvp_results_filename = ["Tower_", clip_name, "_000", "_PetaVision_", ObjectType, ".csv"];
   pvp_results_pathname = [pvp_results_dir, pvp_results_filename];
-  pvp_results_fid = fopen(pvp_results_pathname, "r");
+  pvp_results_fid = fopen(pvp_results_pathname, "w");
   fputs(pvp_results_fid, true_CSV_header);
   CSV_ObjectType = ObjectType;
   CSV_Occlusion = 0; %% false
@@ -330,8 +349,8 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   pvp_tot_miss = 0;
   pvp_miss_density = [];
   pvp_hit_density = [];
-  for i_frame = 1 : tot_frames
-    CSV_struct{i_frame}.Frame = i_frame-1;
+  for i_frame = 1 : nnz_frames
+    CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
     disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
     disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
     disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
@@ -342,7 +361,7 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
       disp(["num_BB_mask = ", num2str(CSV_struct{i_frame}.num_BB_mask)]);
       disp(["num_BB_notmask = ", num2str(CSV_struct{i_frame}.num_BB_notmask)]);
     endif
-    pvp_num_hits = length(CSV_struct{i_frame}.hist_list);
+    pvp_num_hits = length(CSV_struct{i_frame}.hit_list);
     pvp_tot_hits = pvp_tot_hits + pvp_num_hits;
     pvp_num_miss = numel(CSV_struct{i_frame}.miss_list) - pvp_num_hits;
     pvp_miss_density = [pvp_miss_density; CSV_struct{i_frame}.miss_list(:)];
@@ -365,12 +384,14 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
       csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.Confidence)];
       csv_str = [csv_str, ",", num2str(CSV_SiteInfo)];
       csv_str = [csv_str, ",", num2str(CSV_Version)];
+      csv_str = [csv_str, "\n"];
       fputs(pvp_results_fid, csv_str);
     endfor
     disp("");
   endfor
   fclose(pvp_results_fid);
 
+  %%keyboard;
   pvp_num_hit_and_miss_bins = 100;
   pvp_min_hit_density = min(pvp_hit_density);
   pvp_max_hit_density = max(pvp_hit_density);
@@ -388,20 +409,6 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
   disp(["std_hit_density = ", num2str(pvp_std_hit_density)]);
   disp(["ave_miss_density = ", num2str(pvp_ave_miss_density)]);
   disp(["std_miss_density = ", num2str(pvp_std_miss_density)]);
-  [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
-      hist([pvp_miss_density; pvp_hit_density]);
-  pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
-  pvp_miss_hist = hist(pvp_miss_density, pvp_hit_and_miss_bins);
-  pvp_hit_and_miss_hist_fig = figure;
-  pvp_hit_bh = bar(pvp_hit_and_miss_bins, pvp_hit_hist, 0.8);
-  hold on;
-  set( pvp_hit_bh, 'EdgeColor', [1 0 0] );
-  set( pvp_hit_bh, 'FaceColor', [1 0 0] );
-  pvp_hit_bh = bar(pvp_BB_hist_and_miss_bins, pvp_miss_hist, 0.6);
-  set( pvp_hit_bh, 'EdgeColor', [0 0 1] );
-  set( pvp_hit_bh, 'FaceColor', [0 0 1] );
-  pvp_hit_and_miss_hist_pathname = [ROC_dir, "hit_and_miss_hist.png"];
-  print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname, "-dpng");
   pvp_hit_and_miss_stats_pathname = [ROC_dir, "hit_and_miss_stats.txt"];
   save("-ascii", ...
        pvp_hit_and_miss_stats_pathname, ...
@@ -413,14 +420,33 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
        "pvp_max_miss_density", ...
        "pvp_ave_miss_density", ...
        "pvp_std_miss_density");
+  [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
+      hist([pvp_miss_density; pvp_hit_density], pvp_num_hit_and_miss_bins);
+  pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
+  pvp_miss_hist = hist(pvp_miss_density, pvp_hit_and_miss_bins);
+  pvp_hit_and_miss_hist_fig = figure;
+  pvp_hit_and_miss_bh = ...
+      bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
+	  pvp_hit_hist(2:pvp_num_hit_and_miss_bins), 0.8);
+  set( pvp_hit_and_miss_bh, 'EdgeColor', [1 0 0] );
+  set( pvp_hit_and_miss_bh, 'FaceColor', [1 0 0] );
+  hold on;
+  pvp_hit_and_miss_bh = ...
+      bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
+	  pvp_miss_hist(2:pvp_num_hit_and_miss_bins), 0.6);
+  set( pvp_hit_and_miss_bh, 'EdgeColor', [0 0 1] );
+  set( pvp_hit_and_miss_bh, 'FaceColor', [0 0 1] );
+  pvp_hit_and_miss_hist_pathname = [ROC_dir, "hit_and_miss_hist.png"];
+  print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname);
   disp("");
+  %%close all;
   
   
   
   if pvp_training_flag == 1
-    pvp_BB_density = zeros(tot_frames, 2);
+    pvp_BB_density = zeros(nnz_frames, 2);
     pvp_num_BB_hist_bins = 100;
-    for i_frame = 1 : tot_frames
+    for i_frame = 1 : nnz_frames
       pvp_BB_density(i_frame, 1) = ...
 	  CSV_struct{i_frame}.num_active_BB_mask / ...
 	  (CSV_struct{i_frame}.num_BB_mask + (CSV_struct{i_frame}.num_BB_mask == 0));
@@ -470,13 +496,11 @@ function [num_frames] = pvp_makeCSVFile(CSV_path, ...
     disp("");
   endif
   
-  for i_frame = 1 : 0 %% tot_frames
-    pvp_image_pathname = [ODD_dir, CSV_struct{i_frame}.frame_filename]
-    imwrite(CSV_struct{i_frame}.pvp_image, pvp_image_pathname);
-    %% imagesc(CSV_struct{i_frame}.pvp_image); 
-  endfor
 
-  
+  end_time = time();
+  tot_time = end_time - begin_time;
+  disp(["tot_time = ", num2str(tot_time)]);
+
   
 
 endfunction %% pvp_makeCSVFile

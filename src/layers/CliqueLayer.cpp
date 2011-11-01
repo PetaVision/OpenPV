@@ -226,7 +226,7 @@ int CliqueLayer::updateActiveIndices(){
    for (int k = 0; k < getNumNeurons(); k++) {
       const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
       if (activity[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = k; //globalIndexFromLocal(k, loc);
+         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
       }
    }
    clayer->numActive = numActive;
