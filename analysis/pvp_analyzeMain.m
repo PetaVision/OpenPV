@@ -202,7 +202,7 @@ power_array = cell( num_layers, num_modes);
 
 				% data structures for epochs
 epoch_struct = struct;
-num_epochs = 5;
+num_epochs = 10;
 epoch_struct.num_epochs = num_epochs;
 epoch_struct.sum_total_time = zeros(1, num_layers);
 epoch_struct.sum_total_steps = zeros(1, num_layers);
