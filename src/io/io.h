@@ -38,9 +38,7 @@
 #define PVP_ACT_FILE_TYPE  2
 #define PVP_WGT_FILE_TYPE  3
 #define PVP_NONSPIKING_ACT_FILE_TYPE  4
-// deprecated
-#define PV_WEIGHTS_FILE_TYPE 3
-// end deprecated
+// #define PV_WEIGHTS_FILE_TYPE 3 // Use PVP_WGT_FILE_TYPE instead
 #define PVP_KERNEL_FILE_TYPE 5
 
 #define INDEX_HEADER_SIZE  0

@@ -720,7 +720,7 @@ int pv_write_patches(const char * output_path, const char * filename, int append
       assert(nParams == MIN_BIN_PARAMS + 3);
       params[INDEX_HEADER_SIZE] = nParams * sizeof(int);
       params[INDEX_NUM_PARAMS]  = nParams;
-      params[INDEX_FILE_TYPE]   = PV_WEIGHTS_FILE_TYPE;
+      params[INDEX_FILE_TYPE]   = PVP_WGT_FILE_TYPE;
       params[INDEX_NX] = nxp;
       params[INDEX_NY] = nyp;
       params[INDEX_NF] = nfp;
