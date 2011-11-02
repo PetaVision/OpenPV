@@ -172,6 +172,9 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
       writeNonspikingActivity = (bool) params->value(name,
          "writeNonspikingActivity", defaultWriteNonspikingActivity);
 
+   writeActivityCalls = 0;
+   writeActivitySparseCalls = 0;
+
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
@@ -286,7 +289,8 @@ int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
    clayer->columnId = parent->columnId();
    initializeLayerId(layerId);
 
-   comm->addPublisher(this, clayer->activity->numItems, MAX_F_DELAY);
+   // addPublisher call has been moved to start of HyPerCol::run(int), so that connections can adjust numDelayLevels as necessary.
+   // comm->addPublisher(this, clayer->activity->numItems, clayer->numDelayLevels);
 
    return 0;
 }
@@ -295,6 +299,18 @@ int HyPerLayer::initFinish()
 {
    return 0;
 }
+
+/*
+ * Call this routine to increase the number of levels in the data store ring buffer.
+ * Calls to this routine after the data store has been initialized will have no effect.
+ * The routine returns the new value of clayer->numDelayLevels
+ */
+int HyPerLayer::increaseDelayLevels(int neededDelay) {
+   if( clayer->numDelayLevels < neededDelay+1 ) clayer->numDelayLevels = neededDelay+1;
+   if( clayer->numDelayLevels > MAX_F_DELAY ) clayer->numDelayLevels = MAX_F_DELAY;
+   return clayer->numDelayLevels;
+}
+
 
 /**
  * Returns the activity data for the layer.  This data is in the
@@ -769,6 +785,83 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
    return buf;
 }
 
+int HyPerLayer::checkpointRead() {
+   return PV_SUCCESS;
+}
+
+int HyPerLayer::checkpointWrite() {
+   // Writes checkpoint files for V, A, GSyn(?) and datastore to files in working directory
+   // (HyPerCol::checkpointWrite() calls chdir before and after calling this routine)
+   InterColComm * icComm = parent->icCommunicator();
+   char * filename = NULL;
+   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   assert(filename != NULL);
+   sprintf(filename, "%s_A.pvp", name);
+   writeBufferFile(filename, icComm, (double) parent->simulationTime(), clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
+   // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
+   if( getV() != NULL ) {
+      sprintf(filename, "%s_V.pvp", name);
+      writeBufferFile(filename, icComm, (double) parent->simulationTime(), getV(), 1, /*extended*/false, /*contiguous*/false);
+   }
+   sprintf(filename, "%s_Delays.pvp", name);
+   pvdata_t * datastore = (pvdata_t *) icComm->publisherStore(getLayerId())->buffer(0,0);
+   writeBufferFile(filename, icComm, (double) parent->simulationTime(), datastore, clayer->numDelayLevels, /*extended*/true, /*contiguous*/false);
+   if( getNumChannels() > 0 ) {
+      sprintf(filename, "%s_GSyn.pvp", name);
+      writeBufferFile(filename, icComm, (double) parent->simulationTime(), GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
+      // assumes GSyn[0], GSyn[1],... are sequential in memory
+   }
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+   FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
+   assert( writeFile != NULL || comm->commRank() != 0 );
+   int status = writeBuffer(writeFile, comm, time, buffer, numbands, extended, contiguous);
+   pvp_close_file(writeFile, comm);
+   writeFile = NULL;
+   return status;
+}
+
+int HyPerLayer::writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+   assert(contiguous == false); // TODO contiguous == true case
+
+   // write header, but only at the beginning
+#ifdef PV_USE_MPI
+   int rank = comm->commRank();
+#else // PV_USE_MPI
+   int rank = 0;
+#endif // PV_USE_MPI
+   if( rank == 0 ) {
+      long fpos = ftell(fp);
+      if (fpos == 0L) {
+         int numParams = NUM_BIN_PARAMS;
+         int status = pvp_write_header(fp, comm, time, getLayerLoc(), PVP_NONSPIKING_ACT_FILE_TYPE,
+                                       PV_FLOAT_TYPE, numbands, extended, contiguous, numParams, (size_t) getNumNeurons());
+         if (status != PV_SUCCESS) return status;
+      }
+      // write time and V-buffer
+      //
+   }
+
+   int buffersize;
+   if( extended ) {
+      buffersize = (getLayerLoc()->nx+2*getLayerLoc()->nb)*(getLayerLoc()->ny+2*getLayerLoc()->nb)*getLayerLoc()->nf;
+   }
+   else {
+      buffersize = getLayerLoc()->nx*getLayerLoc()->ny*getLayerLoc()->nf;
+   }
+   int status = PV_SUCCESS;
+   for( int i=0; i<numbands; i++ ) {
+      if ( rank==0 && fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
+      int status1 =  write_pvdata(fp, comm, time, buffer+i*buffersize, getLayerLoc(), PV_FLOAT_TYPE,
+                                  extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
+      status = status1 != PV_SUCCESS ? status1 : status;
+   }
+   return status;
+}
+
 int HyPerLayer::readState(float * time)
 {
    double dtime;
@@ -848,7 +941,9 @@ int HyPerLayer::writeActivitySparse(float time)
 //   }
 //   clayer->numActive = numActive;
 
-   return PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   incrementNBands(&writeActivitySparseCalls);
+   return status;
 }
 
 // write non-spiking activity
@@ -858,7 +953,25 @@ int HyPerLayer::writeActivity(float time)
    //
    clayer->numActive = 0;
 
-   return PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   incrementNBands(&writeActivityCalls);
+   return status;
+}
+
+int HyPerLayer::incrementNBands(int * numCalls) {
+   ++*numCalls;
+   int status;
+   if( parent->icCommunicator()->commRank() == 0 ) {
+      long int fpos = ftell(clayer->activeFP);
+      fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
+      int intswritten = fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
+      fseek(clayer->activeFP, fpos, SEEK_SET);
+      status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
+   }
+   else {
+      status = PV_SUCCESS;
+   }
+   return status;
 }
 
 /* copy src PVLayerCube to dest PVLayerCube */

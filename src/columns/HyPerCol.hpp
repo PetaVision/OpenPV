@@ -16,6 +16,7 @@
 #include "../utils/Timer.hpp"
 #include "../io/ColProbe.hpp"
 #include <time.h>
+#include <sys/stat.h>
 
 #include "../arch/opencl/CLDevice.hpp"
 
@@ -46,7 +47,9 @@ public:
    int   exitRunLoop(bool exitOnFinish);
 
    int loadState();
+#ifdef OBSOLETE // Marked obsolete Nov 1, 2011.  Nobody calls this routine and it will be supplanted with checkpointWrite()
    int writeState();
+#endif
 
    int columnId();
 
@@ -113,10 +116,17 @@ public:
 
 private:
    int initialize(const char * name, int argc, char ** argv);
+   int ensureDirExists(const char * dirname);
+   int checkDirExists(const char * dirname, struct stat * pathstat);
+   int initPublishers();
+   bool advanceCPWriteTime();
+   int checkpointRead();
+   int checkpointWrite();
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
 
    int numSteps;
+   int currentStep;
    int layerArraySize;
    int numLayers;
    int connectionArraySize;
@@ -124,6 +134,16 @@ private:
 
    bool warmStart;
    bool isInitialized;     // true when all initialization has been completed
+   bool checkpointReadFlag;    // whether to load from a checkpoint directory
+   bool checkpointWriteFlag;   // whether to write from a checkpoint directory
+   char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
+   int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
+   char * checkpointWriteDir; // name of the directory to write checkpoints to
+   int cpWriteStepInterval;
+   int nextCPWriteStep;
+   float cpWriteTimeInterval;
+   float nextCPWriteTime;
+   int cpWriteDirIndex;
 
    float simTime;          // current time in milliseconds
    float deltaTime;        // time step interval

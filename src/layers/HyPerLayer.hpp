@@ -35,6 +35,9 @@ protected:
 
    virtual int initializeLayerId(int layerId);
    virtual int initializeV(bool restart_flag);
+   int writeBufferFile(const char * filename, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   int writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   int incrementNBands(int * numCalls);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -86,6 +89,9 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
+   virtual int checkpointRead();
+   virtual int checkpointWrite();
+
    virtual int readState (float * time);
    virtual int writeState(float time, bool last=false);
    virtual int outputState(float time, bool last=false);
@@ -123,6 +129,7 @@ public:
    int  getLayerId()                 {return clayer->layerId;}
    PVLayerType getLayerType()        {return clayer->layerType;}
    void setLayerId(int id)           {clayer->layerId = id;}
+   int increaseDelayLevels(int neededDelay);
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
@@ -174,6 +181,8 @@ protected:
 
    bool spikingFlag;
    bool writeNonspikingActivity;
+   int writeActivityCalls;      // Number of calls to writeActivity (written to nbands in the header of the a%d.pvp file)
+   int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the header of the a%d.pvp file)
 
    int * marginIndices;   // indices of neurons in margin
    int numMargin;         // number of neurons in margin

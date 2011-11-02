@@ -299,7 +299,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_KX0]         = loc->kx0;
       params[INDEX_KY0]         = loc->ky0;
       params[INDEX_NB]          = loc->nb;
-      params[INDEX_NBANDS]      = loc->nf;
+      params[INDEX_NBANDS]      = 1;
 
       int numWrite = fwrite(params, sizeof(int), numParams, fp);
       assert(numWrite == numParams);

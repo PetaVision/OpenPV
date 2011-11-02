@@ -399,7 +399,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 }
 
 int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
-                     int datatype, int subRecordSize, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
+                     int datatype, int numbands, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
@@ -444,8 +444,8 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    params[INDEX_HEADER_SIZE] = headerSize;
    params[INDEX_NUM_PARAMS]  = numParams;
    params[INDEX_FILE_TYPE]   = filetype;
-   params[INDEX_NX]          = loc->nx;
-   params[INDEX_NY]          = loc->ny;
+   params[INDEX_NX]          = contiguous ? loc->nxGlobal : loc->nx;
+   params[INDEX_NY]          = contiguous ? loc->nyGlobal : loc->ny;
    params[INDEX_NF]          = loc->nf;
    params[INDEX_NUM_RECORDS] = nxBlocks * nyBlocks;  // one record could be one node or all nodes
    params[INDEX_RECORD_SIZE] = localSize;
@@ -458,7 +458,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
    params[INDEX_NB]          = loc->nb;
-   params[INDEX_NBANDS]          = loc->nf;
+   params[INDEX_NBANDS]      = numbands;
 
    timeToParams(time, &params[INDEX_TIME]);
 
@@ -641,7 +641,7 @@ int write_pvdata(const char * filename, Communicator * comm, double time, const 
 
       const int numParams = NUM_PAR_BYTE_PARAMS;
       status = pvp_write_header(fp, comm, time, loc, PVP_FILE_TYPE, datatype,
-                                pv_sizeof(datatype), extended, contiguous, numParams, localSize);
+                                1, extended, contiguous, numParams, localSize);
       if (status != PV_SUCCESS) return status;
    }
    status |= write_pvdata(fp, comm, time, data, loc, datatype, extended, contiguous, PVP_FILE_TYPE);
@@ -772,8 +772,11 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                   PV_FLOAT_TYPE, sizeof(int), extended, contiguous, numParams, (size_t) l->numNeurons);
+                                   PV_FLOAT_TYPE, 1, extended, contiguous, numParams, (size_t) l->numNeurons);
          if (status != PV_SUCCESS) return status;
+      }
+      else {
+         // TODO increment NBANDS element of header
       }
       // write time and V-buffer
       //
@@ -939,12 +942,15 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_ACT_FILE_TYPE,
-                                   datatype, sizeof(int), extended, contiguous, numParams, (size_t) localActive);
+                                   datatype, 1, extended, contiguous, numParams, (size_t) localActive);
          if (status != 0) {
             fprintf(stderr, "[%2d]: writeActivitySparse: failed in pvp_write_header, numParams==%d, localActive==%d\n",
                     comm->commRank(), numParams, localActive);
             return status;
          }
+      }
+      else {
+         // TODO increment NBANDS element of header
       }
 
       // write time, total active count, and local activity
@@ -1261,7 +1267,7 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
       // use file_type passed as argument to enable different behavior
       status = pvp_write_header(fp, comm, time, loc, file_type,
-                                datatype, patchSize, extended, contiguous, numParams, localSize);
+                                datatype, 1, extended, contiguous, numParams, localSize);
       if (status != 0) return status;
 
       // write extra weight parameters

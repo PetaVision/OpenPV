@@ -21,10 +21,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <float.h>
 
 #define PV_MAX_NUMSTEPS (pow(2,FLT_MANT_DIG))
+#define HYPERCOL_DIRINDEX_MAX 999999
 
 namespace PV {
 
@@ -108,7 +108,7 @@ int HyPerCol::initFinish(void)
 int HyPerCol::initialize(const char * name, int argc, char ** argv)
 {
    icComm = new InterColComm(&argc, &argv);
-
+   int rank = icComm->commRank();
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
 
@@ -118,6 +118,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    char * param_file;
    char * working_dir;
    simTime = 0;
+   currentStep = 0;
    numLayers = 0;
    numConnections = 0;
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
@@ -154,8 +155,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
    int parsedStatus;
    int rootproc = 0;
-   int thisrank = icCommunicator()->commRank();
-   if( thisrank == rootproc ) {
+   if( rank == rootproc ) {
       parsedStatus = params->getParseStatus();
    }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->communicator());
@@ -198,32 +198,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
                 "Output path set to default \"%s\"\n",OUTPUT_PATH);
       }
    }
-   // see if outputPath exists, and try to create it if it doesn't.  Since only rank 0 process should be reading and writing, only rank 0 process checks
-   int rank = icComm->commRank();
-   if( rank == 0 ) {
-      struct stat opstat;
-      int outputpathstatus = stat(outputPath, &opstat);
-      if( outputpathstatus ) {
-         if( errno == 2 /* No such file or directory */) {
-            fprintf(stderr, "Output path \"%s\" does not exist; attempting to create\n", outputPath);
-            outputpathstatus = mkdir(outputPath, 0700);
-            if( outputpathstatus ) {
-               fprintf(stderr, "Output path could not be created: error %d\n", errno);
-               exit(EXIT_FAILURE);
-            }
-         }
-         else {
-            fprintf(stderr, "Checking status of output path \"%s\" gave error %d\n", outputPath, errno);
-            exit(EXIT_FAILURE);
-         }
-      }
-      else { // outputPath exists; now check if it's a directory.
-         if( !(opstat.st_mode && S_IFDIR) ) {
-            fprintf(stderr, "Output path \"%s\" exists but is not a directory\n", outputPath);
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
+   ensureDirExists(outputPath);
 
    // run only on CPU for now
    initializeThreads(opencl_device);
@@ -260,7 +235,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    }
 
    deltaTime = DELTA_T;
-   if (params->present(name, "dt")) deltaTime = params->value(name, "dt");
+   deltaTime = params->value(name, "dt", deltaTime, true);
 
    runDelegate = NULL;
 
@@ -270,7 +245,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", false);
 
    const char * lcfilename = params->stringValue(name, "outputNamesOfLayersAndConns", false);
-   if( lcfilename != NULL && icComm->commRank() == 0) {
+   if( lcfilename != NULL && rank==0 ) {
       outputNamesOfLayersAndConns = (char *) malloc( (strlen(outputPath)+strlen(lcfilename)+2)*sizeof(char) );
       if( !outputNamesOfLayersAndConns ) {
          fprintf(stderr, "HyPerCol \"%s\": Unable to allocate memory for outputNamesOfLayersAndConns.  Exiting.\n", name);
@@ -282,6 +257,137 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       outputNamesOfLayersAndConns = NULL;
    }
 
+   checkpointReadFlag = params->value(name, "checkpointRead", false) != 0;
+   if(checkpointReadFlag) {
+      const char * cpreaddir = params->stringValue(name, "checkpointReadDir", true);
+      if( cpreaddir != NULL ) {
+         checkpointReadDir = strdup(cpreaddir);
+      }
+      else {
+         if( rank == 0 ) {
+            fprintf(stderr, "Column \"%s\": if checkpointRead is set, the string checkpointReadDir must be defined.  Exiting.\n", name);
+         }
+         exit(EXIT_FAILURE);
+      }
+      struct stat checkpointReadDirStat;
+      int dirExistStatus = checkDirExists(checkpointReadDir, &checkpointReadDirStat);
+      if( dirExistStatus != 0 ) {
+         if( rank == 0 ) {
+            fprintf(stderr, "Column \"%s\": unable to read checkpointReadDir \"%s\".  Error %d\n", name, checkpointReadDir, dirExistStatus);
+         }
+         exit(EXIT_FAILURE);
+      }
+      cpReadDirIndex = (int) params->value(name, "checkpointReadDirIndex", -1, true);
+      if( cpReadDirIndex < 0 || cpReadDirIndex > HYPERCOL_DIRINDEX_MAX ) {
+         if( rank == 0 ) {
+            fflush(stdout);
+            fprintf(stderr, "Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", name, HYPERCOL_DIRINDEX_MAX);
+         }
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   checkpointWriteFlag = params->value(name, "checkpointWrite", false) != 0;
+   if(checkpointWriteFlag) {
+      const char * cpwritedir = params->stringValue(name, "checkpointWriteDir", true);
+      if( cpwritedir != NULL ) {
+         checkpointWriteDir = strdup(cpwritedir);
+      }
+      else {
+         if( rank == 0 ) {
+            fprintf(stderr, "Column \"%s\": if checkpointWrite is set, the string checkpointWriteDir must be defined.  Exiting.\n", name);
+         }
+         exit(EXIT_FAILURE);
+      }
+      ensureDirExists(checkpointWriteDir);
+      bool usingWriteStep = params->present(name, "checkpointWriteStepInterval");
+      bool usingWriteTime = params->present(name, "checkpointWriteTimeInterval");
+      if( usingWriteStep && usingWriteTime ) {
+         if( rank == 0 ) {
+            fflush(stdout);
+            fprintf(stderr,"If checkpointWrite is set, one of checkpointWriteStepInterval or checkpointWriteTimeInterval must be positive.\n");
+         }
+         exit(EXIT_FAILURE);
+      }
+      if( usingWriteStep && usingWriteTime ) {
+         if( rank == 0 ) {
+            fflush(stdout);
+            fprintf(stderr,"If checkpointWrite is set, only one of checkpointWriteStepInterval or checkpointWriteTimeInterval can be positive.\n");
+         }
+         exit(EXIT_FAILURE);
+      }
+      if( usingWriteStep ) {
+         cpWriteStepInterval = (int) params->value(name, "checkpointWriteStepInterval");
+         cpWriteTimeInterval = -1;
+      }
+      if( usingWriteTime ) {
+         cpWriteTimeInterval = params->value(name, "checkpointWriteTimeInterval");
+         cpWriteStepInterval = -1;
+      }
+      nextCPWriteStep = 0;
+      nextCPWriteTime = 0;
+      cpWriteDirIndex = 0;
+   }
+
+   return PV_SUCCESS;
+}
+
+int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
+   // check if the given directory name exists for the rank zero process
+   // the return value is zero if a successful stat(2) call and the error
+   // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
+   // The rank zero process is the only one that calls stat(); it then Bcasts the
+   // result to the rest of the processes.
+   assert(pathstat);
+
+   int rank = icComm->commRank();
+   int status;
+   int errorcode;
+   if( rank == 0 ) {
+      status = stat(dirname, pathstat);
+      if( status ) errorcode = errno;
+   }
+   MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->communicator());
+   if( status ) {
+      MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->communicator());
+   }
+   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->communicator());
+   return status ? errorcode : 0;
+}
+
+int HyPerCol::ensureDirExists(const char * dirname) {
+   // see if path exists, and try to create it if it doesn't.
+   // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
+   int rank = icComm->commRank();
+   struct stat pathstat;
+   int resultcode = checkDirExists(dirname, &pathstat);
+   if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
+      if( !(pathstat.st_mode && S_IFDIR ) ) {
+         if( rank == 0 ) {
+            fflush(stdout);
+            fprintf(stderr, "Path \"%s\" exists but is not a directory\n", dirname);
+         }
+         exit(EXIT_FAILURE);
+      }
+   }
+   else if( resultcode == ENOENT /* No such file or directory */ ) {
+      if( rank == 0 ) {
+         printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
+         int mkdirstatus = mkdir(dirname, 0700);
+         if( mkdirstatus ) {
+            fflush(stdout);
+            fprintf(stderr, "Directory \"%s\" could not be created: error %d\n", dirname, errno);
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+   else {
+      if( rank == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Checking status of directory \"%s\" gave error %d\n", dirname, resultcode);
+      }
+      exit(EXIT_FAILURE);
+   }
    return PV_SUCCESS;
 }
 
@@ -386,7 +492,8 @@ int HyPerCol::addConnection(HyPerConn * conn)
    }
 
    // numConnections is the ID of this connection
-   icComm->subscribe(conn);
+   // subscribe call moved to HyPerCol::initPublishers, since it needs to be after the publishers are initialized.
+   // icComm->subscribe(conn);
 
    connections[numConnections++] = conn;
 
@@ -433,6 +540,8 @@ int HyPerCol::run(int nTimeSteps)
       initFinish();
    }
 
+   initPublishers(); // create the publishers and their data stores
+
    numSteps = nTimeSteps;
 
 #ifdef DEBUG_OUTPUT
@@ -440,6 +549,10 @@ int HyPerCol::run(int nTimeSteps)
       printf("[0]: HyPerCol: running...\n");  fflush(stdout);
    }
 #endif
+
+   if( checkpointReadFlag ) {
+      checkpointRead();
+   }  // checkpointRead() needs to be called before publish since it saves the restricted part of activity
 
    // publish initial conditions
    //
@@ -465,6 +578,10 @@ int HyPerCol::run(int nTimeSteps)
    // time loop
    //
    while (simTime < stopTime) {
+      if( checkpointWriteFlag && advanceCPWriteTime() ) {
+         checkpointWrite();
+         cpWriteDirIndex++;
+      }
       simTime = advanceTime(simTime);
       step += 1;
 
@@ -489,18 +606,30 @@ int HyPerCol::run(int nTimeSteps)
    return PV_SUCCESS;
 }
 
+int HyPerCol::initPublishers() {
+   for( int l=0; l<numLayers; l++ ) {
+      PVLayer * clayer = layers[l]->getCLayer();
+      icComm->addPublisher(layers[l], clayer->activity->numItems, clayer->numDelayLevels);
+   }
+   for( int c=0; c<numConnections; c++ ) {
+      icComm->subscribe(connections[c]);
+   }
+
+   return PV_SUCCESS;
+}
+
 float HyPerCol::advanceTime(float sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
-   int nstep = (int) (sim_time/getDeltaTime());
-   if (nstep%progressStep == 0 && columnId() == 0) {
+   currentStep = (int) (sim_time/getDeltaTime());
+   if (currentStep%progressStep == 0 && columnId() == 0) {
       printf("   [%d]: time==%f\n", columnId(), sim_time);
    }
 #endif
 
    runTimer->start();
 
-   // At this point all activity from the previous time step have
+   // At this point all activity from the previous time step has
    // been delivered to the data store.
    //
 
@@ -575,6 +704,90 @@ float HyPerCol::advanceTime(float sim_time)
    return simTime;
 }
 
+bool HyPerCol::advanceCPWriteTime() {
+   // returns true if nextCPWrite{Step,Time} has been advanced
+   bool advanceCPTime;
+   if( cpWriteStepInterval>0 ) {
+      assert(cpWriteTimeInterval<0.0f);
+      advanceCPTime = currentStep >= nextCPWriteStep;
+      if( advanceCPTime ) {
+         nextCPWriteStep += cpWriteStepInterval;
+      }
+   }
+   else if( cpWriteTimeInterval>0.0f ) {
+      assert(cpWriteStepInterval<=0);
+      advanceCPTime = simTime >= nextCPWriteTime;
+      if( advanceCPTime ) {
+         nextCPWriteTime += cpWriteTimeInterval;
+      }
+   }
+   else {
+      assert( false ); // routine should only be called if one of cpWrite{Step,Time}Interval is positive
+      advanceCPTime = false;
+   }
+   return advanceCPTime;
+}
+
+int HyPerCol::checkpointRead() {
+   assert(cpReadDirIndex >= 0 );
+   if( cpReadDirIndex >= HYPERCOL_DIRINDEX_MAX+1 ) {
+      if( icComm->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Column \"%s\": cpReadDirIndex exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+      }
+      exit(EXIT_FAILURE);
+   }
+   char * cpDir = (char *) malloc( (strlen(checkpointReadDir)+11+10)*sizeof(char) );
+   if( cpDir == NULL ) {
+      if( icComm->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Column \"%s\": checkpointRead unable to allocate memory.  Exiting.\n", name);
+      }
+      exit(EXIT_FAILURE);
+   }
+   sprintf(cpDir, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
+   chdir(cpDir);
+   for( int l=0; l<numLayers; l++ ) {
+      layers[l]->checkpointRead();
+   }
+   for( int c=0; c<numConnections; c++ ) {
+      connections[c]->checkpointRead();
+   }
+   chdir(path);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::checkpointWrite() {
+   fprintf(stderr, "Rank %d in checkpointWrite. simTime = %f\n", icComm->commRank(), simTime);
+   assert(cpWriteDirIndex >= 0 );
+   if( cpWriteDirIndex >= HYPERCOL_DIRINDEX_MAX+1 ) {
+      if( icComm->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Column \"%s\": cpWriteDirIndex exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+      }
+      exit(EXIT_FAILURE);
+   }
+   char * cpDir = (char *) malloc( (strlen(checkpointWriteDir)+11+10)*sizeof(char) );
+   if( cpDir == NULL ) {
+      if( icComm->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Column \"%s\": checkpointWrite unable to allocate memory.  Exiting.\n", name);
+      }
+      exit(EXIT_FAILURE);
+   }
+   sprintf(cpDir, "%s/Checkpoint%d", checkpointWriteDir, cpWriteDirIndex);
+   ensureDirExists(cpDir);
+   chdir(cpDir);
+   for( int l=0; l<numLayers; l++ ) {
+      layers[l]->checkpointWrite();
+   }
+   for( int c=0; c<numConnections; c++ ) {
+      connections[c]->checkpointWrite();
+   }
+   chdir(path);
+   return PV_SUCCESS;
+}
+
 int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
    int status = 0;
@@ -616,6 +829,7 @@ int HyPerCol::loadState()
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete Nov 1, 2011.  Nobody calls this routine and it will be supplanted by checkpointWrite()
 int HyPerCol::writeState()
 {
    for (int l = 0; l < numLayers; l++) {
@@ -623,6 +837,8 @@ int HyPerCol::writeState()
    }
    return 0;
 }
+#endif // OBSOLETE
+
 
 int HyPerCol::insertProbe(ColProbe * p)
 {

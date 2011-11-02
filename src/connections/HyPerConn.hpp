@@ -61,6 +61,9 @@ public:
    virtual int deliverOpenCL(Publisher * pub);
 #endif
 
+   virtual int checkpointRead();
+   virtual int checkpointWrite();
+
    virtual int insertProbe(BaseConnectionProbe * p);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);

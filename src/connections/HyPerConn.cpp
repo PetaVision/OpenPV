@@ -395,6 +395,21 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    constructWeights(filename);
 
+   // Find maximum delay over all the arbors and send it to the presynaptic layer
+   int maxdelay = 0;
+   for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
+      int curdelay = this->getDelay(arborId);
+      if( maxdelay < curdelay ) maxdelay = curdelay;
+   }
+   int allowedDelay = pre->increaseDelayLevels(maxdelay);
+   if( allowedDelay < maxdelay ) {
+      if( parent->icCommunicator()->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", name, maxdelay, allowedDelay);
+      }
+      exit(EXIT_FAILURE);
+   }
+
 #ifdef PV_USE_OPENCL
    initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
    initializeThreadKernels("HyPerLayer_recv_synaptic_input");
@@ -825,6 +840,14 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    fflush(stdout);
 #endif // DEBUG_OUTPUT
    return 0;
+}
+
+int HyPerConn::checkpointRead() {
+   return PV_SUCCESS;
+}
+
+int HyPerConn::checkpointWrite() {
+   return PV_SUCCESS;
 }
 
 int HyPerConn::insertProbe(BaseConnectionProbe * p)

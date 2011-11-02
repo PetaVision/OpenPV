@@ -19,6 +19,8 @@
 
 namespace PV {
 
+size_t pv_sizeof(int datatype);
+
 FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
 
 int pvp_close_file(FILE * fp, Communicator * comm);
@@ -26,7 +28,7 @@ int pvp_close_file(FILE * fp, Communicator * comm);
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams);
 int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc,
-                     int filetype, int datatype, int subRecordSize,
+                     int filetype, int datatype, int numbands,
                      bool extended, bool contiguous, unsigned int numParams, size_t localSize);
 
 int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,

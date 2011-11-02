@@ -48,8 +48,8 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numCha
 
    l->columnId = 0;
 
-   l->layerId = -1; // the hypercolumn will set this
-   l->numDelayLevels = MAX_F_DELAY;
+   l->layerId = -1; // the HyPerCol will set this
+   l->numDelayLevels = 1; // HyPerConns will increase this as necessary by calling pre-synaptic layer's increaseDelayLevels
 
    l->loc = loc;
    l->numNeurons  = numNeurons;
@@ -72,57 +72,19 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numCha
    l->activity = pvcube_new(&l->loc, numExtended);
    l->prevActivity = (float *) calloc(numExtended, sizeof(float));
 
-#ifdef OBSOLETE
-   l->numPhis = numChannels;
-
-   // make a G (variable conductance) for each phi
-   l->G   = (pvdata_t **) malloc(sizeof(pvdata_t *) * MAX_CHANNELS);
-   l->phi = (pvdata_t **) malloc(sizeof(pvdata_t *) * MAX_CHANNELS);
-
-   assert(l->G   != NULL);
-   assert(l->phi != NULL);
-
-   for (m = 1; m < NUM_CHANNELS; m++) {
-      l->G[m]   = NULL;
-      l->phi[m] = NULL;
-   }
-
-   if (l->numPhis > 0) {
-      l->G[0]   = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-      l->phi[0] = (pvdata_t *) calloc(numNeurons*l->numPhis, sizeof(pvdata_t));
-
-      assert(l->G[0]   != NULL);
-      assert(l->phi[0] != NULL);
-
-      for (m = 1; m < l->numPhis; m++) {
-         l->G[m]   = l->G[0]   + m * numNeurons;
-         l->phi[m] = l->phi[0] + m * numNeurons;
-      }
-
-      l->G_E  = l->G[PHI_EXC];
-      l->G_I  = l->G[PHI_INH];
-      l->G_IB = l->G[PHI_INHB];
-   }
-#endif
-
    l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(l->V != NULL);
 
    l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
    assert(l->activeIndices != NULL);
 
-   // initialize allocated memory
+   // initialize prevActivity (other buffers allocated in HyPerLayer::initialize_base() )
    //
    for (k = 0; k < numExtended; k++) {
       l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
    }
 
-   // l->V[k] is initialized in initialize_base()
-   // for (k = 0; k < numNeurons; k++){
-   //    l->V[k] = V_REST;
-   // }
-
-   return 0;
+   return PV_SUCCESS;
 }
 
 int pvlayer_finalize(PVLayer * l)
