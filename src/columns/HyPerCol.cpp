@@ -300,9 +300,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
          exit(EXIT_FAILURE);
       }
       ensureDirExists(checkpointWriteDir);
-      bool usingWriteStep = params->present(name, "checkpointWriteStepInterval");
-      bool usingWriteTime = params->present(name, "checkpointWriteTimeInterval");
-      if( usingWriteStep && usingWriteTime ) {
+      bool usingWriteStep = params->present(name, "checkpointWriteStepInterval") && params->value(name, "checkpointWriteStepInterval")>0;
+      bool usingWriteTime = params->present(name, "checkpointWriteTimeInterval") && params->value(name, "checkpointWriteTimeInterval")>0;
+      if( !usingWriteStep && !usingWriteTime ) {
          if( rank == 0 ) {
             fflush(stdout);
             fprintf(stderr,"If checkpointWrite is set, one of checkpointWriteStepInterval or checkpointWriteTimeInterval must be positive.\n");
