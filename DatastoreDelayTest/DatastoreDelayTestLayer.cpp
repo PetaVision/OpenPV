@@ -34,7 +34,9 @@ int DatastoreDelayTestLayer::updateV() {
       for( int y=ny-1; y>0; y-- ) {
          for( int x=0; x<nx; x++ ) {
             for( int f=0; f<nf; f++ ) {
-               getV()[kIndex(x,y,f,nx,ny,nf)] = getV()[kIndex(x,y-1,f,nx,ny,nf)];
+               pvdata_t * V = &getV()[kIndex(x,y,f,nx,ny,nf)];
+               (*V)--;
+               if( *V == 0 ) *V = period;
             }
          }
       }
@@ -54,15 +56,11 @@ int DatastoreDelayTestLayer::updateV() {
          }
          exit(EXIT_FAILURE);
       }
+      int base = loc->ky0;
       for( int x=0; x<nx; x++ ) {
          for( int f=0; f<nf; f++ ) {
-            for( int baserow=0; baserow<period; baserow++ ) {
-               pvdata_t r = baserow+1;
-               getV()[kIndex(x,baserow,f,nx,ny,nf)] = r;
-            }
-            for( int row=period; row<ny; row++ ) {
-               int baserow=row % period;
-               getV()[kIndex(x,row,f,nx,ny,nf)] = getV()[kIndex(x,baserow,f,nx,ny,nf)];
+            for( int row=0; row<ny; row++ ) {
+               getV()[kIndex(x,row,f,nx,ny,nf)] = (base+row) % period + 1;
             }
          }
       }
