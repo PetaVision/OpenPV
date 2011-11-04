@@ -35,9 +35,10 @@ protected:
 
    virtual int initializeLayerId(int layerId);
    virtual int initializeV(bool restart_flag);
-   int writeBufferFile(const char * filename, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
-   int writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int incrementNBands(int * numCalls);
+   int writeDataStore(const char * filename, InterColComm * comm, double dtime);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

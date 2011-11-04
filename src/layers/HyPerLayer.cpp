@@ -793,19 +793,29 @@ int HyPerLayer::checkpointWrite() {
    // Writes checkpoint files for V, A, GSyn(?) and datastore to files in working directory
    // (HyPerCol::checkpointWrite() calls chdir before and after calling this routine)
    InterColComm * icComm = parent->icCommunicator();
+   double timed = (double) parent->simulationTime();
    char * filename = NULL;
    filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
    assert(filename != NULL);
    sprintf(filename, "%s_A.pvp", name);
-   writeBufferFile(filename, icComm, (double) parent->simulationTime(), clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
+   writeBufferFile(filename, icComm, timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       sprintf(filename, "%s_V.pvp", name);
-      writeBufferFile(filename, icComm, (double) parent->simulationTime(), getV(), 1, /*extended*/false, /*contiguous*/false);
+      writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false);
    }
    sprintf(filename, "%s_Delays.pvp", name);
-   pvdata_t * datastore = (pvdata_t *) icComm->publisherStore(getLayerId())->buffer(0,0);
-   writeBufferFile(filename, icComm, (double) parent->simulationTime(), datastore, clayer->numDelayLevels, /*extended*/true, /*contiguous*/false);
+   writeDataStore(filename, icComm, timed);
+
+
+//   getLayerData();
+//   int numLevels = clayer->numDelayLevels;
+//   int curLevel = icComm->publisherStore(getLayerId())->levelIndex(0);
+//   int baseLevel = (curLevel+1)%clayer->numDelayLevels;
+//   pvdata_t * datastore = (pvdata_t *) icComm->publisherStore(getLayerId())->buffer(0,numLevels-curLevel);
+//   writeBufferFile(filename, icComm, (double) parent->simulationTime(), datastore, clayer->numDelayLevels, baseLevel, /*extended*/true, /*contiguous*/false);
+
+
    if( getNumChannels() > 0 ) {
       sprintf(filename, "%s_GSyn.pvp", name);
       writeBufferFile(filename, icComm, (double) parent->simulationTime(), GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
@@ -815,16 +825,16 @@ int HyPerLayer::checkpointWrite() {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
    FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( writeFile != NULL || comm->commRank() != 0 );
-   int status = writeBuffer(writeFile, comm, time, buffer, numbands, extended, contiguous);
+   int status = writeBuffer(writeFile, comm, timed, buffer, numbands, extended, contiguous);
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
 }
 
-int HyPerLayer::writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
    assert(contiguous == false); // TODO contiguous == true case
 
    // write header, but only at the beginning
@@ -836,13 +846,10 @@ int HyPerLayer::writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_
    if( rank == 0 ) {
       long fpos = ftell(fp);
       if (fpos == 0L) {
-         int numParams = NUM_BIN_PARAMS;
-         int status = pvp_write_header(fp, comm, time, getLayerLoc(), PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, numbands, extended, contiguous, numParams, (size_t) getNumNeurons());
+         int status = pvp_write_header(fp, comm, timed, getLayerLoc(), PVP_NONSPIKING_ACT_FILE_TYPE,
+                                       PV_FLOAT_TYPE, numbands, extended, contiguous, NUM_BIN_PARAMS, (size_t) getNumNeurons());
          if (status != PV_SUCCESS) return status;
       }
-      // write time and V-buffer
-      //
    }
 
    int buffersize;
@@ -853,12 +860,42 @@ int HyPerLayer::writeBuffer(FILE * fp, Communicator * comm, double time, pvdata_
       buffersize = getLayerLoc()->nx*getLayerLoc()->ny*getLayerLoc()->nf;
    }
    int status = PV_SUCCESS;
-   for( int i=0; i<numbands; i++ ) {
-      if ( rank==0 && fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
-      int status1 =  write_pvdata(fp, comm, time, buffer+i*buffersize, getLayerLoc(), PV_FLOAT_TYPE,
+   for( int band=0; band<numbands; band++ ) {
+      if ( rank==0 && fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
+      int status1 =  write_pvdata(fp, comm, timed, buffer+band*buffersize, getLayerLoc(), PV_FLOAT_TYPE,
                                   extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
       status = status1 != PV_SUCCESS ? status1 : status;
    }
+   return status;
+}
+
+int HyPerLayer::writeDataStore(const char * filename, InterColComm * comm, double timed) {
+   bool extended = true;
+   bool contiguous = false;
+   int filetype = PVP_NONSPIKING_ACT_FILE_TYPE;
+   int datatype = PV_FLOAT_TYPE;
+   FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
+   assert( writeFile != NULL || comm->commRank() != 0 );
+   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
+   int status = PV_SUCCESS;
+   int status1;
+   status1 = pvp_write_header(writeFile, comm, timed, getLayerLoc(), filetype, datatype,
+                              datastore->numberOfLevels(), extended, contiguous,
+                              NUM_BIN_PARAMS, (size_t) getNumNeurons());
+   if( status1 != PV_SUCCESS ) status = PV_FAILURE;
+   for( int level=0; level<clayer->numDelayLevels; level++ ) {
+      double leveltime = timed-level*parent->getDeltaTime();
+      if ( comm->commRank()==0 ) {
+         status1 = fwrite(&leveltime, sizeof(double), 1, writeFile) != 1;
+         if( status1 != PV_SUCCESS ) status = PV_FAILURE;
+      }
+      status1 = write_pvdata(writeFile, comm, leveltime, (pvdata_t *) datastore->buffer(0, level),
+                             getLayerLoc(), datatype, extended, contiguous, filetype);
+      if( status1 != PV_SUCCESS ) status = PV_FAILURE;
+   }
+   pvp_close_file(writeFile, comm);
+   writeFile = NULL;
+
    return status;
 }
 
