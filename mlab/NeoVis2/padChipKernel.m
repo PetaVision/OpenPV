@@ -99,6 +99,7 @@ function [status_info] = padChipKernel(target_pathname)
 
   extended_image_gray = addMirrorBC(image_gray, image_margin);
 
+  %%keyboard;
   if DoG_flag 
     [extended_image_DoG, DoG_gray_val] = ...
 	DoG(extended_image_gray, ...

@@ -47,11 +47,14 @@ function [tot_chips, ...
  
   begin_time = time();
 
-  if nargin < 1 || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["~/Pictures/Tower/neovision-data-formative-tower", filesep]; %% "~/Pictures/Tower/neovision-chips-tower/"; %% "~/Pictures/HellChips/";
+  num_argin = 0
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
+    chip_path = ["/mnt/data1/repo/neovision-data-formative-heli/Heli-PNG-Formative", filesep];
   endif
-  if nargin < 2 || ~exist("object_name") || isempty(object_name)
-    object_name = "050"; %% "distractor"; 
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("object_name") || isempty(object_name)
+    object_name = "distractor"; %% "Car"; %%"050"; %% 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 
@@ -60,28 +63,38 @@ function [tot_chips, ...
 %% "Helicopter"; 
 %% "Car"; %%  
   endif
-  if nargin < 3 || ~exist("DoG_flag") || isempty(DoG_flag)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
+    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/";  %% 
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("DoG_flag") || isempty(DoG_flag)
     DoG_flag = 1;  %% 
   endif
-  if nargin < 4 || ~exist("DoG_struct") || isempty(DoG_struct)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("DoG_struct") || isempty(DoG_struct)
     DoG_struct = struct;  %% 
     DoG_struct.amp_center_DoG = 1;
     DoG_struct.sigma_center_DoG = 1;
     DoG_struct.amp_surround_DoG = 1;
     DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
   endif
-  if nargin < 5 || ~exist("canny_flag") || isempty(canny_flag)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("canny_flag") || isempty(canny_flag)
     canny_flag = 0;  %% 
   endif
-  if nargin < 6 || ~exist("canny_struct") || isempty(canny_struct)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("canny_struct") || isempty(canny_struct)
     canny_struct = struct;  %% 
     canny_struct.sigma_canny = 1;
   endif
-  if nargin < 7 || ~exist("pad_size") || isempty(pad_size)
-    pad_size = [1088 1920]; %% [256 256];  %% 
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pad_size") || isempty(pad_size)
+    pad_size = [256 256];  %% [1088 1920]; %%  
   endif
-  if nargin < 8 || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 4;  %% 
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("num_procs") || isempty(num_procs)
+    num_procs = 16;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -107,7 +120,7 @@ function [tot_chips, ...
   tot_rejected = 0;
   cropped_list = {};
   
-  border_artifact_thresh = 3.0; %% 1.25; %% use 1.25 for DARPA HeliChips
+  border_artifact_thresh = 1.25; %% use 1.25 for DARPA HeliChips
   image_size_thresh = 1000; %% in bytes
 
   %% path to generic image processing routines
@@ -118,7 +131,7 @@ function [tot_chips, ...
   str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
-  chip_dir = [chip_path, "chips", filesep];
+  chip_dir = [chip_path]; %%, "chips", filesep];
   target_dir = ...
       [chip_dir, object_name, filesep];  %%
   if ~exist(chip_dir, "dir")
@@ -133,39 +146,39 @@ function [tot_chips, ...
     error(["~exist(target_dir): ", target_dir]);
   endif
 
-  cropped_path = [chip_path, "cropped", filesep];
+  cropped_path = [PetaVision_path, "cropped", filesep];
   mkdir(cropped_path);
   cropped_dir = [cropped_path, object_name, filesep];
   mkdir(cropped_dir);
 
-  rejected_path = [chip_path, "rejected", filesep];
+  rejected_path = [PetaVision_path, "rejected", filesep];
   mkdir(rejected_path);
   rejected_dir = [rejected_path, object_name, filesep];
   mkdir(rejected_dir);
 
-  log_path = [chip_path, "log", filesep];
+  log_path = [PetaVision_path, "log", filesep];
   mkdir(log_path);
   log_dir = [log_path, object_name, filesep];
   mkdir(log_dir);
 
-  list_path = [chip_path, "list", filesep];
+  list_path = [PetaVision_path, "list", filesep];
   mkdir(list_path);
   list_dir = [list_path, object_name, filesep];
   mkdir(list_dir);
 
   if DoG_flag
-    DoG_folder = [chip_path, "DoG", filesep];
+    DoG_folder = [PetaVision_path, "DoG", filesep];
     mkdir(DoG_folder);
     DoG_dir = [DoG_folder, object_name, filesep];
     mkdir(DoG_dir);
   endif %% DoG_flag
   if canny_flag
-    canny_folder = [chip_path, "canny", filesep];
+    canny_folder = [PetaVision_path, "canny", filesep];
     mkdir(canny_folder);
     canny_dir = [canny_folder, object_name, filesep];
     mkdir(canny_dir);
   endif %% canny_flag
-  hist_folder = [chip_path, "hist", filesep];
+  hist_folder = [PetaVision_path, "hist", filesep];
   mkdir(hist_folder);
   hist_path = [hist_folder, object_name, filesep];
   mkdir(hist_path);
