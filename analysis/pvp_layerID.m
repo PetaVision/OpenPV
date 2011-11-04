@@ -58,6 +58,19 @@ if ( SPIKING_FLAG == 1 )
     layerID{ 1, i_layer } =  'C1InhGap';
     N_LAYERS = i_layer;
 
+    i_layer = i_layer + 1;
+    layerIndex.h1 = i_layer;
+    layerID{ 1, i_layer } =  'H1';
+    
+    i_layer = i_layer + 1;
+    layerIndex.h1inh = i_layer;
+    layerID{ 1, i_layer } =  'H1Inh';
+
+    i_layer = i_layer + 1;
+    layerIndex.h1inhgap = i_layer;
+    layerID{ 1, i_layer } =  'H1InhGap';
+    N_LAYERS = i_layer;
+
     
 else  % NON_SPIKING
     

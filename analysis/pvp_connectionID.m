@@ -88,20 +88,20 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
 
     %% C1 connections
     ij_conn = ij_conn + 1;
-    connIndex.c1_lgn = ij_conn;
-    connID{ 1, ij_conn } =  'C1toLGN';
-
-    ij_conn = ij_conn + 1;
-    connIndex.c1_lgninh = ij_conn;
-    connID{ 1, ij_conn } =  'C1toLGNInh';
-
-    ij_conn = ij_conn + 1;
     connIndex.c1_c1 = ij_conn;
     connID{ 1, ij_conn } =  'C1toC1Lateral';
 
     ij_conn = ij_conn + 1;
     connIndex.c1_c1inh = ij_conn;
     connID{ 1, ij_conn } =  'C1toC1InhLateral';
+
+    ij_conn = ij_conn + 1;
+    connIndex.c1_h1 = ij_conn;
+    connID{ 1, ij_conn } =  'C1toH1';
+
+    ij_conn = ij_conn + 1;
+    connIndex.c1_h1inh = ij_conn;
+    connID{ 1, ij_conn } =  'C1toH1Inh';
 
 
 
@@ -117,6 +117,38 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     ij_conn = ij_conn + 1;
     connIndex.c1inh_c1inh_gap = ij_conn;
     connID{ 1, ij_conn } =  'C1InhtoC1InhGap';
+
+
+    %% H1 connections
+    ij_conn = ij_conn + 1;
+    connIndex.h1_lgn = ij_conn;
+    connID{ 1, ij_conn } =  'H1toLGN';
+
+    ij_conn = ij_conn + 1;
+    connIndex.h1_lgninh = ij_conn;
+    connID{ 1, ij_conn } =  'H1toLGNInh';
+
+    ij_conn = ij_conn + 1;
+    connIndex.h1_h1 = ij_conn;
+    connID{ 1, ij_conn } =  'H1toH1Lateral';
+
+    ij_conn = ij_conn + 1;
+    connIndex.h1_h1inh = ij_conn;
+    connID{ 1, ij_conn } =  'H1toH1InhLateral';
+
+    %% H1 Inh connections
+    ij_conn = ij_conn + 1;
+    connIndex.h1inh_h1 = ij_conn;
+    connID{ 1, ij_conn } =  'H1InhtoH1';
+
+    ij_conn = ij_conn + 1;
+    connIndex.h1inh_h1inh = ij_conn;
+    connID{ 1, ij_conn } =  'H1InhtoH1Inh';
+
+    ij_conn = ij_conn + 1;
+    connIndex.h1inh_h1inh_gap = ij_conn;
+    connID{ 1, ij_conn } =  'H1InhtoH1InhGap';
+
 
 
     N_CONNECTIONS = ij_conn;
