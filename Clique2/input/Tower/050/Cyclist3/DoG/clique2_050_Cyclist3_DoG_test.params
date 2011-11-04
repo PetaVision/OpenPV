@@ -129,7 +129,7 @@ CliqueLayer "L3 Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
+    spikingFlag = 1;
     writeNonspikingActivity = 1;
 
     Vrest = 0.0;
@@ -150,7 +150,7 @@ CliqueLayer "L4 Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
+    spikingFlag = 1;
     writeNonspikingActivity = 1;
 
     Vrest = 0.0;
