@@ -29,7 +29,6 @@ int DatastoreDelayTestLayer::updateV() {
    int nf = loc->nf;
    if( inited ) {
       // Rotate values by one row.
-      // This is not MPI-ically correct!
       // Move everything down one row; clobbering row 0 in the process
       for( int y=ny-1; y>0; y-- ) {
          for( int x=0; x<nx; x++ ) {
@@ -41,7 +40,7 @@ int DatastoreDelayTestLayer::updateV() {
          }
       }
       // Finally, copy period-th row to zero-th row
-      for( int x=0; x<loc->ny; x++ ) {
+      for( int x=0; x<loc->nx; x++ ) {
          for( int f=0; f<loc->nf; f++ ) {
             getV()[kIndex(x,0,f,nx,ny,nf)] = getV()[kIndex(x,period,f,nx,ny,nf)];
          }
