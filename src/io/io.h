@@ -34,10 +34,10 @@
 #define PV_INT_TYPE        2
 #define PV_FLOAT_TYPE      3
 
-#define PVP_FILE_TYPE      1
-#define PVP_ACT_FILE_TYPE  2
-#define PVP_WGT_FILE_TYPE  3
-#define PVP_NONSPIKING_ACT_FILE_TYPE  4
+#define PVP_FILE_TYPE      1 // File type of the *_V_last.pvp and *_A_last.pvp files
+#define PVP_ACT_FILE_TYPE  2 // File type of the a%d.pvp and checkpoint files for spiking layers
+#define PVP_WGT_FILE_TYPE  3 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for non-KernelConn connections
+#define PVP_NONSPIKING_ACT_FILE_TYPE  4 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for KernelConns
 // #define PV_WEIGHTS_FILE_TYPE 3 // Use PVP_WGT_FILE_TYPE instead
 #define PVP_KERNEL_FILE_TYPE 5
 
@@ -74,6 +74,10 @@
 extern "C"
 {
 #endif // __cplusplus
+
+int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
+int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
+int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * ulVal);
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 #ifdef OBSOLETE // Marked obsolete Sept 27, 2011.  These functions have been superseded and no other functions call them.

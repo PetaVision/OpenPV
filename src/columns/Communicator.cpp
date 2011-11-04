@@ -10,6 +10,7 @@
 
 #include "Communicator.hpp"
 #include "../utils/conversions.h"
+#include "../io/io.h"
 
 namespace PV {
 
@@ -21,19 +22,40 @@ Communicator::Communicator(int* argc, char*** argv)
 
    sprintf(commName, "[%2d]: ", icRank);
 
-   r = sqrtf(worldSize);
-   numRows = (int) r;
-   numCols = (int) worldSize / numRows;
+   bool rowsDefined = pv_getopt_int(*argc,  *argv, "-rows", &numRows)==0;
+   bool colsDefined = pv_getopt_int(*argc, *argv, "-columns", &numCols)==0;
+
+   if( rowsDefined && !colsDefined ) {
+      numCols = (int) worldSize / numRows;
+   }
+   if( !rowsDefined && colsDefined ) {
+      numRows = (int) worldSize / numCols;
+   }
+   if( !rowsDefined  && !colsDefined ) {
+      r = sqrtf(worldSize);
+      numRows = (int) r;
+      numCols = (int) worldSize / numRows;
+   }
 
    int commSize = numRows * numCols;
 
 #ifdef PV_USE_MPI
    int exclsize = worldSize - commSize;
 
-   if (exclsize == 0) {
+   if( exclsize < 0 ) {
+      fprintf(stderr, "Error: %d rows and %d columns specified but only %d processes are available.\n", numRows, numCols, worldSize);
+      exit(EXIT_FAILURE);
+   }
+   else if (exclsize == 0) {
       MPI_Comm_dup(MPI_COMM_WORLD, &icComm);
    }
    else {
+      fprintf(stderr, "Error: %d rows and %d columns specified but %d processes available.  Excess processes not yet supported.  Exiting.\n", numRows, numCols, worldSize);
+      exit(EXIT_FAILURE);
+// Currently, excess processes cause problems because all processes, whether in the icComm group or not, call all the MPI commands.
+// The excluded processes should be prevented from calling commands in the communicator.  It isn't desirable to have the excess
+// processes simply exit, because there may be additional HyPerColumn simulations to run.
+/*
       MPI_Group worldGroup, newGroup;
       MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
 
@@ -47,6 +69,7 @@ Communicator::Communicator(int* argc, char*** argv)
       MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
 
       delete ranks;
+ */
    }
 #endif // PV_USE_MPI
 

@@ -259,16 +259,10 @@ test_marginwidth_toolarge_one_to_many: $(BUILDDIR)/test_marginwidth_toolarge_one
 test_marginwidth_correctsize_one_to_many: $(BUILDDIR)/test_marginwidth_correctsize_one_to_many.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
-#test_marginwidth_one_to_one: $(BUILDDIR)/test_marginwidth_one_to_one.o $(PVLIB)
-#	$(CPP) -o $@ $< $(LIBS)
-
-#test_marginwidth_many_to_one: $(BUILDDIR)/test_marginwidth_many_to_one.o $(PVLIB)
-#	$(CPP) -o $@ $< $(LIBS)
-
-#test_marginwidth_one_to_many: $(BUILDDIR)/test_marginwidth_one_to_many.o $(PVLIB)
-#	$(CPP) -o $@ $< $(LIBS)
-
 test_transpose_transpose: $(BUILDDIR)/test_transpose_transpose.o $(PVLIB)
+	$(CPP) -o $@ $< $(LIBS)
+
+test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 runMPItests: make-in-subdirs $(MPI_TESTS)

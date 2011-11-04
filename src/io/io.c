@@ -15,10 +15,6 @@
 #include <math.h>
 #include <string.h>     // memcpy
 
-static int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
-static int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
-static int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * ulVal);
-
 void usage()
 {
    printf("\nUsage:\n");
@@ -68,7 +64,7 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
  * @opt
  * @iVal
  */
-static int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
+int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
@@ -86,7 +82,7 @@ static int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
  * @opt
  * @iVal
  */
-static int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * iVal)
+int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * iVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
@@ -104,7 +100,7 @@ static int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, un
  * @opt
  * @sVal
  */
-static int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
+int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
