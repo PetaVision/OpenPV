@@ -1,0 +1,34 @@
+// Params file for test_mpi_specifyrowscolumns
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 60; // The test will split into 2x3 and 3x2 subcolumns,
+    ny = 60; // so nx and ny must be divisible by 6.
+    dt = 1;
+    numSteps = 1;
+    progressStep = 1;
+    randomSeed = 1;
+    outputPath = "./output/";
+    filenamesContainLayerNames = false;
+    checkpointRead = false;
+    checkpointWrite = false;
+};
+
+ANNLayer "layer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
