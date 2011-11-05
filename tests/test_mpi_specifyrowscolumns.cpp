@@ -31,12 +31,13 @@ int main(int argc, char * argv[]) {
 #else
    int numProcs = 1;
 #endif // PV_USE_MPI
-   if( numProcs < 6) {
-      fprintf(stderr, "%s: this test can only be used under MPI with at least six processes.\n", argv[0]);
+   if( numProcs != 6) {
+      fprintf(stderr, "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
+      // TODO Greater than six should be permissible, with the excess over 6 being idle
       exit(EXIT_FAILURE);
    }
 
-#define REQUIRE_RETURN // #define if the program should wait for carriage return before proceeding
+#undef REQUIRE_RETURN // #define if the program should wait for carriage return before proceeding
 #ifdef REQUIRE_RETURN
    int charhit;
    fflush(stdout);
@@ -62,17 +63,13 @@ int main(int argc, char * argv[]) {
    cl_args[4] = strdup("2");
    cl_args[5] = strdup("-columns");
    cl_args[6] = strdup("3");
-   PV::HyPerCol * hc = new PV::HyPerCol("column", TEST_MPI_SPECIFYROWCOLUMNS_ARGC, cl_args);
-   PV::ANNLayer * layer = new PV::ANNLayer("layer", hc);
-   PV::PVParams * params = hc->parameters();
-   status = verifyLoc(hc, 2, 3);
-   delete hc;
+   buildandverify(TEST_MPI_SPECIFYROWCOLUMNS_ARGC, cl_args);
 
    free(cl_args[4]);
    cl_args[4] = strdup("3");
    free(cl_args[6]);
    cl_args[6] = strdup("2");
-
+   buildandverify(TEST_MPI_SPECIFYROWCOLUMNS_ARGC, cl_args);
 
    for( int arg=1; arg<TEST_MPI_SPECIFYROWCOLUMNS_ARGC; arg++ ) {
       free(cl_args[arg]);
@@ -121,6 +118,7 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
 
    PVLayerLoc mpiLoc;
    if( rank == 0 ) {
+      printf("Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
       if( testpassed ) {
          printf("Rank 0 passed.\n");
       }

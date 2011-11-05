@@ -128,7 +128,7 @@ TESTS = test_kg \
 
 CL_TESTS = test_cl_random test_cl_lif test_cl_all
 
-MPI_TESTS = #test_read_header test_image_io test_weights_io test_constant_input
+MPI_TESTS = test_mpi_specifyrowscolumns #test_read_header test_image_io test_weights_io test_constant_input
 
 DEPRECATED_TESTS = test_decode_msg \
                    test_layer_direct     # fixme
@@ -267,34 +267,37 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
-	@echo "Running test_read_header with 1 node ..."
-	@./test_read_header -n 1 -p $(INPARAMS)
-	@echo "Running test_read_header with 2 nodes ..."
-	@mpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
-	@echo "Running test_read_header with 4 nodes ..."
-	@mpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
-	@rm -rf output/*.pvp
-	@rm -rf output/*.tif
-	@echo "Running test_image_io with 1 node ..."
-	@./test_image_io -n 1 -p $(INPARAMS)
-	@echo "Running test_image_io with 2 nodes ..."
-	@mpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
-	@echo "Running test_image_io with 4 nodes ..."
-	@mpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
+	@echo "Running test_mpi_header with 6 nodes ..."
+	@mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params
+	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg failed."; fi
+#	@echo "Running test_read_header with 1 node ..."
+#	@./test_read_header -n 1 -p $(INPARAMS)
+#	@echo "Running test_read_header with 2 nodes ..."
+#	@mpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
+#	@echo "Running test_read_header with 4 nodes ..."
+#	@mpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
+#	@rm -rf output/*.pvp
+#	@rm -rf output/*.tif
+#	@echo "Running test_image_io with 1 node ..."
+#	@./test_image_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_image_io with 2 nodes ..."
+#	@mpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_image_io with 4 nodes ..."
+#	@mpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_image_io with 6 nodes ..."
 #	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
-	@echo "Running test_weights_io with 1 node ..."
-	@./test_weights_io -n 1 -p $(INPARAMS)
-	@echo "Running test_weights_io with 2 nodes ..."
-	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
-	@echo "Running test_weights_io with 4 nodes ..."
-	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_weights_io with 1 node ..."
+#	@./test_weights_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_weights_io with 2 nodes ..."
+#	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
+#	@echo "Running test_weights_io with 4 nodes ..."
+#	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_weights_io with 6 nodes ..."
 #	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
-	@echo "Running test_constant_input with 2 nodes ..."
-	@mpirun -np 2 test_constant_input -p $(INPARAMS)
-	@echo "Running test_constant_input with 4 nodes ..."
-	@mpirun -np 4 test_constant_input -p $(INPARAMS)
+#	@echo "Running test_constant_input with 2 nodes ..."
+#	@mpirun -np 2 test_constant_input -p $(INPARAMS)
+#	@echo "Running test_constant_input with 4 nodes ..."
+#	@mpirun -np 4 test_constant_input -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
