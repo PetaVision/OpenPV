@@ -6,16 +6,14 @@ function [hit_list, miss_list] = pvp_testPatches(pvp_activity)
 
   %%keyboard;
   hist_list = cell(1);
-  miss_list = [];
-  if nnz(pvp_activity) == 0
-    return;
-  endif
-  
   num_hits = 0;
   num_patch_rows = ceil(2 * NROWS / pvp_patch_size(1)) - 1;
   num_patch_cols = ceil(2 * NCOLS / pvp_patch_size(2)) - 1;
   miss_list = zeros(num_patch_rows, num_patch_cols);
-
+  if nnz(pvp_activity) == 0
+    return;
+  endif
+  
   if pvp_density_thresh < 0
     pvp_density_thresh = nnz(pvp_activity) / N;
   endif

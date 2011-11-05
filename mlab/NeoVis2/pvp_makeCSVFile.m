@@ -12,6 +12,7 @@ function [tot_frames, ...
 		      chip_path, ...
 		      patch_size, ...
 		      pvp_path, ...
+		      num_ODD_kernels, ...
 		      pvp_layer, ...
 		      training_flag, ...
 		      num_procs)
@@ -67,24 +68,6 @@ function [tot_frames, ...
     chip_log_pathname = [chip_log_dir, "log.txt"];
     if exist(chip_log_pathname, "file")
       chip_log_struct = struct;
-      chip_log_fieldnames = ...
-	  { ...
-	   "tot_unread", ...
-	   "tot_rejected", ...
-	   "tot_chips", ...
-	   "tot_DoG", ...
-	   "tot_canny", ...
-	   "tot_cropped", ...
-	   "tot_mean", ...
-	   "tot_std", ...
-	   "tot_border_artifact_top", ...
-	   "tot_border_artifact_bottom", ...
-	   "tot_border_artifact_left", ...
-	   "tot_border_artifact_right", ...
-	   "ave_original_size", ...
-	   "ave_cropped_size", ...
-	   "std_original_size", ...
-	   "std_cropped_size" };
       chip_log_fid = fopen(chip_log_pathname, "r");
       chip_log_struct.tot_unread = str2num(fgets(chip_log_fid));
       chip_log_struct.tot_rejected = str2num(fgets(chip_log_fid));
@@ -113,15 +96,18 @@ function [tot_frames, ...
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
     pvp_path = [machine_path, "workspace-indigo", filesep, "Clique2", ...
 		filesep, "input", filesep, "Tower", filesep, clip_name, filesep, ...
-		ObjectType, "2", filesep, "DoG", filesep];
+		ObjectType, "3", filesep, "DoG", filesep];
   endif
   num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
+    num_ODD_kernels = 3;  %% 
+  endif
   if nargin < num_input_args || ~exist("pvp_layer") || isempty(pvp_layer)
-    pvp_layer = 5;  %% 
+    pvp_layer = 3;  %% 
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_training_flag") || isempty(pvp_training_flag)
-    training_flag = 1;
+    training_flag = 0;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
@@ -159,13 +145,15 @@ function [tot_frames, ...
   str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
   
-  global ODD_dir
+  global ODD_subdir
   ODD_path = [CSV_path, "ODD", filesep]; 
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
   mkdir(ODD_clip_dir);
   ODD_dir = [ODD_clip_dir, ObjectType, filesep];
   mkdir(ODD_dir);
+  ODD_subdir = [ODD_dir, num2str(pvp_layer, "%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+  mkdir(ODD_subdir);
   
   ROC_path = [CSV_path, "ROC", filesep]; 
   mkdir(ROC_path);
@@ -173,10 +161,31 @@ function [tot_frames, ...
   mkdir(ROC_clip_dir);
   ROC_dir = [ROC_clip_dir, ObjectType, filesep];
   mkdir(ROC_dir);
+  ROC_subdir = [ROC_dir, num2str(pvp_layer, "%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+  mkdir(ROC_subdir);
   
   global pvp_density_thresh
-  BB_stats_pathname = [ROC_dir, "BB_stats.txt"];
-  if exist(BB_stats_pathname, "file")
+  hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
+  BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
+  if ~pvp_training_flag && exist(hit_and_miss_stats_pathname, "file")
+    hit_and_miss_stats_struct = struct;
+    hit_and_miss_stats_fid = fopen(hit_and_miss_stats_pathname, "r");
+    hit_and_miss_stats_struct.pvp_tot_hits = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_tot_miss = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_min_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_max_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_ave_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_std_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_median_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_min_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_max_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_ave_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_std_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+    hit_and_miss_stats_struct.pvp_median_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+    fclose(hit_and_miss_stats_fid);
+    pvp_density_thresh = ...
+	(hit_and_miss_stats_struct.pvp_ave_hit_density); 
+  elseif ~pvp_training_flag && exist(BB_stats_pathname, "file")
     BB_stats_struct = struct;
     BB_stats_fid = fopen(BB_stats_pathname, "r");
     BB_stats_struct.pvp_min_BB_density = str2num(fgets(BB_stats_fid));
@@ -242,6 +251,7 @@ function [tot_frames, ...
   pvp_activity = cell(tot_frames, 1);
   frame_pathnames = cell(tot_frames, 1);
   
+  %%keyboard;
   pvp_offset_tmp = 0;
   i_frame = 0;
   for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
@@ -264,6 +274,10 @@ function [tot_frames, ...
   fclose(pvp_fid);
   nnz_frames = i_frame-1;
   disp(["nnz_frames = ", num2str(nnz_frames)]);
+
+  if num_procs > nnz_frames
+    num_procs = nnz_frames;
+  endif
   
   %% struct for storing rank order of comma separators between fields
   true_CSV_struct = cell(tot_frames, 1);
@@ -352,6 +366,9 @@ function [tot_frames, ...
   mkdir(pvp_results_path);
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);
+  pvp_results_subdir = ...
+      [pvp_results_dir, num2str(pvp_layer,"%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+  mkdir(pvp_results_subdir);
   frames_per_CSV_file = 150;
   num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);
   CSV_ObjectType = ObjectType;
@@ -365,9 +382,9 @@ function [tot_frames, ...
   pvp_hit_density = [];
   for i_CSV_file = 1 : num_CSV_files
     pvp_results_filename = ...
-	[NEOVISION_DATASET_ID, "_", clip_name, num2st(i_CSV_file-1, "%3.3i"),...
+	[NEOVISION_DATASET_ID, "_", clip_name, num2str(i_CSV_file-1, "%3.3i"),...
 	 "_PetaVision_", ObjectType, ".csv"];
-    pvp_results_pathname = [pvp_results_dir, pvp_results_filename];
+    pvp_results_pathname = [pvp_results_subdir, pvp_results_filename];
     pvp_results_fid = fopen(pvp_results_pathname, "w");
     fputs(pvp_results_fid, true_CSV_header);
     start_frame = 1 + frames_per_CSV_file * (i_CSV_file - 1);
@@ -416,45 +433,35 @@ function [tot_frames, ...
   endfor %% i_CSV_file
   fclose(pvp_results_fid);
   
+  if pvp_tot_hits == 0
+    return;
+  endif
+
   %%keyboard;
-  disp(["tot_hits = ", num2str(pvp_tot_hits)]);
-  disp(["tot_miss = ", num2str(pvp_tot_miss)]);
+  disp(["pvp_tot_hits = ", num2str(pvp_tot_hits)]);
+  disp(["pvp_tot_miss = ", num2str(pvp_tot_miss)]);
   pvp_num_hit_and_miss_bins = 100;
   pvp_min_hit_density = min(pvp_hit_density);
   pvp_max_hit_density = max(pvp_hit_density);
   pvp_min_miss_density = min(pvp_miss_density);
   pvp_max_miss_density = max(pvp_miss_density);
-  disp(["min_hit_density = ", num2str(pvp_min_hit_density)]);
-  disp(["max_hit_density = ", num2str(pvp_max_hit_density)]);
-  disp(["min_miss_density = ", num2str(pvp_min_miss_density)]);
-  disp(["max_miss_density = ", num2str(pvp_max_miss_density)]);
+  disp(["pvp_min_hit_density = ", num2str(pvp_min_hit_density)]);
+  disp(["pvp_max_hit_density = ", num2str(pvp_max_hit_density)]);
+  disp(["pvp_min_miss_density = ", num2str(pvp_min_miss_density)]);
+  disp(["pvp_max_miss_density = ", num2str(pvp_max_miss_density)]);
   pvp_ave_hit_density = sum(pvp_hit_density) / pvp_tot_hits;
   pvp_std_hit_density = sqrt(sum(pvp_hit_density.^2) / pvp_tot_hits);
   pvp_median_hit_density = median(pvp_hit_density);
+  disp(["pvp_ave_hit_density = ", num2str(pvp_ave_hit_density)]);
+  disp(["pvp_std_hit_density = ", num2str(pvp_std_hit_density)]);
+  disp(["pvp_median_hit_density = ", num2str(pvp_median_hit_density)]);
   pvp_ave_miss_density = sum(pvp_miss_density) / pvp_tot_miss;
   pvp_std_miss_density = sqrt(sum(pvp_miss_density.^2) / pvp_tot_miss);
   pvp_median_miss_density = median(pvp_miss_density);
-  disp(["ave_hit_density = ", num2str(pvp_ave_hit_density)]);
-  disp(["std_hit_density = ", num2str(pvp_std_hit_density)]);
-  disp(["median_hit_density = ", num2str(pvp_median_hit_density)]);
-  disp(["ave_miss_density = ", num2str(pvp_ave_miss_density)]);
-  disp(["std_miss_density = ", num2str(pvp_std_miss_density)]);
-  disp(["median_miss_density = ", num2str(pvp_median_miss_density)]);
-  pvp_hit_and_miss_stats_pathname = [ROC_dir, "hit_and_miss_stats.txt"];
-  save("-ascii", ...
-       pvp_hit_and_miss_stats_pathname, ...
-       "pvp_tot_hits", ...
-       "pvp_tot_miss", ...
-       "pvp_min_hit_density", ...
-       "pvp_max_hit_density", ...
-       "pvp_ave_hit_density", ...
-       "pvp_std_hit_density", ...
-       "pvp_median_hit_density", ...
-       "pvp_min_miss_density", ...
-       "pvp_max_miss_density", ...
-       "pvp_ave_miss_density", ...
-       "pvp_std_miss_density", ...
-       "pvp_median_miss_density");
+  disp(["pvp_ave_miss_density = ", num2str(pvp_ave_miss_density)]);
+  disp(["pvp_std_miss_density = ", num2str(pvp_std_miss_density)]);
+  disp(["pvp_median_miss_density = ", num2str(pvp_median_miss_density)]);
+  pvp_hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
   [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
       hist([pvp_miss_density; pvp_hit_density], pvp_num_hit_and_miss_bins);
   pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
@@ -471,8 +478,24 @@ function [tot_frames, ...
 	  pvp_miss_hist(2:pvp_num_hit_and_miss_bins), 0.6);
   set( pvp_hit_and_miss_bh, 'EdgeColor', [0 0 1] );
   set( pvp_hit_and_miss_bh, 'FaceColor', [0 0 1] );
-  pvp_hit_and_miss_hist_pathname = [ROC_dir, "hit_and_miss_hist.png"];
-  print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname);
+  pvp_hit_and_miss_hist_pathname = [ROC_subdir, "hit_and_miss_hist.png"];
+  if pvp_training_flag
+    save("-ascii", ...
+	 pvp_hit_and_miss_stats_pathname, ...
+	 "pvp_tot_hits", ...
+	 "pvp_tot_miss", ...
+	 "pvp_min_hit_density", ...
+	 "pvp_max_hit_density", ...
+	 "pvp_ave_hit_density", ...
+	 "pvp_std_hit_density", ...
+	 "pvp_median_hit_density", ...
+	 "pvp_min_miss_density", ...
+	 "pvp_max_miss_density", ...
+	 "pvp_ave_miss_density", ...
+	 "pvp_std_miss_density", ...
+	 "pvp_median_miss_density");
+    print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname);
+  endif
   disp("");
   %%close all;
   
@@ -521,9 +544,9 @@ function [tot_frames, ...
     pvp_bh = bar(pvp_BB_hist_centers, pvp_BB_hist(:,2), 0.6);
     set( pvp_bh, 'EdgeColor', [0 0 1] );
     set( pvp_bh, 'FaceColor', [0 0 1] );
-    pvp_BB_hist_pathname = [ROC_dir, "BB_hist.png"];
+    pvp_BB_hist_pathname = [ROC_subdir, "BB_hist.png"];
     print(pvp_BB_hist_fig, pvp_BB_hist_pathname, "-dpng");
-    pvp_BB_stats_pathname = [ROC_dir, "BB_stats.txt"];
+    pvp_BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
     save("-ascii", ...
 	 pvp_BB_stats_pathname, ...
 	 "pvp_min_BB_density", ...
