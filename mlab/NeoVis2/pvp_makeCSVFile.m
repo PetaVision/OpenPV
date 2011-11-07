@@ -4,12 +4,12 @@ function [tot_frames, ...
 	  CSV_struct] = ...
       pvp_makeCSVFile(NEOVISION_DATASET_ID, ...
 		      NEOVISION_DISTRIBUTION_ID, ...
-		      CSV_path, ...
+		      repo_path, ...
 		      neovision_dataset_ID, ...
 		      pvp_frame_offset, ...
 		      pvp_frame_skip, ...
 		      ObjectType, ...
-		      chip_path, ...
+		      clip_path, ...
 		      patch_size, ...
 		      pvp_path, ...
 		      num_ODD_kernels, ...
@@ -20,27 +20,31 @@ function [tot_frames, ...
   %% a video clip and produces a CSV file indicating locations of
   %% specified object
   %%keyboard;
+  more off
   begin_time = time();
   
-  machine_path = ...
-      [filesep, "Users", filesep, "gkenyon", filesep];
+  home_path = ...
+      [filesep, "home", filesep, "garkenyon", filesep];
+     %% [filesep, "Users", filesep, "gkenyon", filesep, "NeoVision", filesep]; %%
   
   num_input_args = 0;
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DATASET_ID") || isempty(NEOVISION_DATASET_ID)
-    NEOVISION_DATASET_ID = "Tower";
+    NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %% "Tail"; %% 
   endif
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
-    NEOVISION_DISTRIBUTION_ID = "Formative";
+    NEOVISION_DISTRIBUTION_ID = "Formative"; %% "Training"; %%  
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("CSV_path") || isempty(CSV_path)
-    CSV_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, NEOVISION_DATASET_ID, filesep, ...
-		"neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, filesep]; %% 
+  if nargin < num_input_args || ~exist("repo_path") || isempty(repo_path)
+    repo_path = [filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
   endif
+  program_path = [repo_path, ...
+		 "neovision-programs-petavision", filesep, ...
+		 NEOVISION_DATASET_ID, filesep]; %% 		  
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
     clip_name = "050";
@@ -55,55 +59,60 @@ function [tot_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("ObjectType") || isempty(ObjectType)
-    ObjectType = "Cyclist";
+    ObjectType = "Car"; %% "Cyclist";
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("chip_path") || isempty(chip_path)
-    chip_path = [machine_path, "Pictures", filesep, "NeoVision", filesep, NEOVISION_DATASET_ID, filesep, ...
-		 "neovision-chips-", neovision_dataset_id, filesep]; %% 
+  if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
+    clip_path = [program_path, filesep, ...
+		 "DoG", filesep, ...
+		 clip_name, filesep]; %% 
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
-    chip_log_dir = [chip_path, "log", filesep, ObjectType, filesep];
-    chip_log_pathname = [chip_log_dir, "log.txt"];
-    if exist(chip_log_pathname, "file")
-      chip_log_struct = struct;
-      chip_log_fid = fopen(chip_log_pathname, "r");
-      chip_log_struct.tot_unread = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_rejected = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_chips = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_DoG = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_canny = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_cropped = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_mean = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_std = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_border_artifact_top = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_border_artifact_bottom = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_border_artifact_left = str2num(fgets(chip_log_fid));
-      chip_log_struct.tot_border_artifact_right = str2num(fgets(chip_log_fid));
-      chip_log_struct.ave_original_size = str2num(fgets(chip_log_fid));
-      chip_log_struct.ave_cropped_size = str2num(fgets(chip_log_fid));
-      chip_log_struct.std_original_size = str2num(fgets(chip_log_fid));
-      chip_log_struct.std_cropped_size = str2num(fgets(chip_log_fid));
-      fclose(chip_log_fid);
+    clip_log_dir = [program_path, "log", filesep, ObjectType, filesep];
+    clip_log_pathname = [clip_log_dir, "log.txt"];
+    if exist(clip_log_pathname, "file")
+      clip_log_struct = struct;
+      clip_log_fid = fopen(clip_log_pathname, "r");
+      clip_log_struct.tot_unread = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_rejected = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_clips = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_DoG = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_canny = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_cropped = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_mean = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_std = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_border_artifact_top = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_border_artifact_bottom = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_border_artifact_left = str2num(fgets(clip_log_fid));
+      clip_log_struct.tot_border_artifact_right = str2num(fgets(clip_log_fid));
+      clip_log_struct.ave_original_size = str2num(fgets(clip_log_fid));
+      clip_log_struct.ave_cropped_size = str2num(fgets(clip_log_fid));
+      clip_log_struct.std_original_size = str2num(fgets(clip_log_fid));
+      clip_log_struct.std_cropped_size = str2num(fgets(clip_log_fid));
+      fclose(clip_log_fid);
       patch_size = ...
-	  fix(chip_log_struct.ave_original_size + chip_log_struct.std_original_size);
+	  fix(clip_log_struct.ave_original_size + clip_log_struct.std_original_size);
     else
       patch_size = [128, 128];
-    endif %% exist(chip_log_pathname)
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
-    pvp_path = [machine_path, "workspace-indigo", filesep, "Clique2", ...
-		filesep, "input", filesep, "Tower", filesep, clip_name, filesep, ...
-		ObjectType, "3", filesep, "DoG", filesep];
+    endif %% exist(clip_log_pathname)
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
     num_ODD_kernels = 3;  %% 
   endif
   if nargin < num_input_args || ~exist("pvp_layer") || isempty(pvp_layer)
-    pvp_layer = 3;  %% 
+    pvp_layer = 7;  %% 
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
+    pvp_path = ["~/workspace-indigo", filesep, ...
+		"Clique2", filesep, ...
+		"input", filesep, ...
+		NEOVISION_DATASET_ID, filesep, ...
+		clip_name, filesep, ...
+		ObjectType, num2str(num_ODD_kernels), ...
+		filesep, "DoG", filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_training_flag") || isempty(pvp_training_flag)
@@ -111,9 +120,12 @@ function [tot_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 8;  %% 
+    num_procs = 16;  %% 
   endif
   
+  global VERBOSE_FLAG
+  VERBOSE_FLAG = 1;
+
   global pvp_patch_size
   pvp_patch_size = patch_size;
   
@@ -146,7 +158,7 @@ function [tot_frames, ...
   addpath(str_kernel_dir);
   
   global ODD_subdir
-  ODD_path = [CSV_path, "ODD", filesep]; 
+  ODD_path = [program_path, "ODD", filesep]; 
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
   mkdir(ODD_clip_dir);
@@ -155,7 +167,7 @@ function [tot_frames, ...
   ODD_subdir = [ODD_dir, num2str(pvp_layer, "%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
   mkdir(ODD_subdir);
   
-  ROC_path = [CSV_path, "ROC", filesep]; 
+  ROC_path = [program_path, "ROC", filesep]; 
   mkdir(ROC_path);
   ROC_clip_dir = [ROC_path, clip_name, filesep];
   mkdir(ROC_clip_dir);
@@ -204,9 +216,15 @@ function [tot_frames, ...
   disp(["pvp_density_thresh = ", num2str(pvp_density_thresh)]);
   
   
-  true_path = [CSV_path, "CSV", filesep];
+  true_CSV_path = ...
+      [repo_path, ...
+       "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
+       filesep, "CSV", filesep];
   true_CSV_filename = [clip_name, ".csv"];
-  true_CSV_pathname = [true_path, true_CSV_filename];
+  true_CSV_pathname = [true_CSV_path, true_CSV_filename];
+  if ~exist(true_CSV_pathname, "file")
+    error(["~exist: true_CSV_pathname = ", true_CSV_pathname]);
+  endif
   true_CSV_fid = fopen(true_CSV_pathname, "r");
   true_CSV_header = fgets(true_CSV_fid);
   true_CSV_list = cell(1);
@@ -219,7 +237,7 @@ function [tot_frames, ...
   num_true_CSV = i_CSV;
   
   %% get frame IDs 
-  clip_dir = [CSV_path, "clips", filesep, clip_name, filesep];
+  clip_dir = clip_path; %% 
   if ~exist(clip_dir, "dir")
     error(["~exist(clip_dir):", clip_dir]);
   endif
@@ -256,7 +274,7 @@ function [tot_frames, ...
   i_frame = 0;
   for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
     i_frame = i_frame + 1;
-    pvp_frame = j_frame + pvp_layer - 2;
+    pvp_frame = j_frame + pvp_layer - 1;
     [pvp_time{i_frame},...
      pvp_activity{i_frame}, ...
      pvp_offset(i_frame)] = ...
@@ -350,6 +368,7 @@ function [tot_frames, ...
   endif %% pvp_training_flag
   
   disp("");
+  %%keyboard;
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel, ...
 			    frame_pathnames, pvp_time, pvp_activity, true_CSV_struct, ...
@@ -362,7 +381,7 @@ function [tot_frames, ...
   
   disp("");
 
-  pvp_results_path = [CSV_path, "results", filesep];
+  pvp_results_path = [program_path, "results", filesep];
   mkdir(pvp_results_path);
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);

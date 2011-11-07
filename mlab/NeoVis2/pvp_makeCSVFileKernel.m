@@ -6,12 +6,11 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   global pvp_training_flag
   global ODD_subdir
 
-  CSV_struct = [];
+  CSV_struct = struct;
   if isempty(pvp_activity)
     return;
   endif
 
-  CSV_struct = struct;
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
   CSV_struct.pvp_time = pvp_time;
   CSV_struct.num_active = nnz(pvp_activity);
@@ -19,7 +18,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   CSV_struct.sum_activity = sum(pvp_activity(:));
   
   global pvp_test_patches
-  pvp_test_patches = 0;
+  pvp_test_patches = 1;
   if pvp_test_patches == 1
     [hit_list, miss_list] = pvp_testPatches(pvp_activity);
   else 
@@ -42,12 +41,13 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
     CSV_struct.num_BB_notmask = pvp_num_BB_notmask;
   endif
 
+  %%keyboard;
   global pvp_reconstruct_sparse
   pvp_reconstruct_sparse = 1;
   global pvp_overlay_original
   pvp_overlay_original = 1;
   global pvp_draw_BB
-  pvp_draw_BB = 0;
+  pvp_draw_BB = 1;
   if pvp_reconstruct_sparse
     [pvp_image] = ...
 	pvp_reconstructSparse(frame_pathname, ...

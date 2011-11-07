@@ -18,33 +18,43 @@ function [train_filenames, ...
 
   begin_time = time();
 
-  if nargin < 1 || ~exist(imageNet_path) || isempty(imageNet_path)
-    chip_path = ["~/Pictures/Tower/neovision-chips-tower/", filesep]; %% ["~/Pictures/Tower/neovision-data-formative-tower", filesep]; %% "~/Pictures/HellChips/";
+  num_argin = 0;
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist(imageNet_path) || isempty(imageNet_path)
+    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli", filesep]; 
   endif
-  if nargin < 2 || ~exist(object_name) || isempty(object_name)
-    object_name = "distractor"; %% "Cyclist"; %%  "050"; %% Person"; %% "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% "Car";  %%  
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist(object_name) || isempty(object_name)
+    object_name =  "050"; %% "Car";  "distractor"; %% %% "Cyclist"; %%   Person"; %% "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% 
   endif
-  if nargin < 3 || ~exist("num_train") || isempty(num_train)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("num_train") || isempty(num_train)
     num_train = -1;  %% -1 use all images in train_dir
   endif
-  if nargin < 4 || ~exist("skip_train_images") || isempty(skip_train_images)
-    skip_train_images = 12; %% 4; %% 1;  
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("skip_train_images") || isempty(skip_train_images)
+    skip_train_images = 1; %% 4; %% 1;  
   endif
-  if nargin < 4 || ~exist("begin_train_images") || isempty(begin_train_images)
-    begin_train_images = 2; %% 1;  
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("begin_train_images") || isempty(begin_train_images)
+    begin_train_images = 1; %% 1;  
   endif
-  if nargin < 5 || ~exist(train_dir) || isempty(train_dir)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist(train_dir) || isempty(train_dir)
     train_dir = "DoG";  %%  
   endif
-  if nargin < 6 || ~exist("list_dir") || isempty(list_dir)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
     list_dir = "list";  %% 
   endif
   %% 0 -> FIFO ordering, %%
   %% 1 -> random sampling, 
-  if nargin < 7 || ~exist("shuffle_flag") || isempty(shuffle_flag)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("shuffle_flag") || isempty(shuffle_flag)
     shuffle_flag = 0; %% 1;  
   endif
-  if nargin < 8 || ~exist("rand_state") || isempty(rand_state)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("rand_state") || isempty(rand_state)
     rand_state = rand("state");
   endif
   rand("state", rand_state);

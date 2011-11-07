@@ -3,6 +3,8 @@ function [pvp_time,...
 	  pvp_offset] = ...
       pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset)
 
+  global VERBOSE_FLAG
+
   NCOLS = pvp_header(pvp_index.NX_GLOBAL);  
   NROWS = pvp_header(pvp_index.NY_GLOBAL);
   NFEATURES = pvp_header(pvp_index.NF);
@@ -30,10 +32,16 @@ function [pvp_time,...
     if feof(pvp_fid) 
       break;
     endif
+    if VERBOSE_FLAG
+      disp(["pvp_time = ", num2str(pvp_time)]);
+    endif
     if count == 0
       error(["count == 0: ", "pvp_time = ", num2st(pvp_time)]);
     endif
     [num_spikes, count] = fread(pvp_fid, 1, "int32");
+    if VERBOSE_FLAG
+      disp(["num_spikes = ", num2str(num_spikes)]);
+    endif
     if count == 0
       error(["count == 0: ", "num_spikes = ", num2st(num_spikes)]);
     endif

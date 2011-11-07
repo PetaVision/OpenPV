@@ -3,12 +3,13 @@ function [pvp_image] = ...
       pvp_reconstructSparse(frame_pathname, pvp_time, pvp_activity)
   
   global NFEATURES NCOLS NROWS N
+  
   %%keyboard;
-
   global pvp_overlay_original
   if pvp_overlay_original
     pvp_image = imread(frame_pathname);
-    pvp_image = rgb2gray(pvp_image);
+    %%pvp_image = uint8(pvp_image);
+    pvp_image = max(pvp_image, 3); %% rgb2gray(pvp_image);
     if any( size(pvp_image) ~= [NROWS, NCOLS] );
       pvp_image = imresize(pvp_image, [NROWS, NCOLS]);
     endif

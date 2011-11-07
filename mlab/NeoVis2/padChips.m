@@ -16,6 +16,7 @@ function [tot_chips, ...
 	  tot_time] = ...
       padChips(chip_path, ...
 	       object_name, ...
+	       PetaVision_path, ...
 	       DoG_flag, ...
 	       DoG_struct, ...
 	       canny_flag, ...
@@ -50,11 +51,12 @@ function [tot_chips, ...
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["/mnt/data1/repo/neovision-data-formative-heli/Heli-PNG-Formative", filesep];
+    chip_path = ...
+	["/mnt/data1/repo/neovision-data-training-tailwind/TAILWIND_FOUO-PNG-Training/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "distractor"; %% "Car"; %%"050"; %% 
+    object_name =  "Car"; %%"050"; %%"distractor"; %% 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 
@@ -65,7 +67,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
-    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/";  %% 
+    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Tail/";  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_flag") || isempty(DoG_flag)
@@ -90,11 +92,11 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pad_size") || isempty(pad_size)
-    pad_size = [256 256];  %% [1088 1920]; %%  
+    pad_size = [256 256];  %%[1088 1920]; %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 16;  %% 
+    num_procs = 1;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -120,8 +122,8 @@ function [tot_chips, ...
   tot_rejected = 0;
   cropped_list = {};
   
-  border_artifact_thresh = 1.25; %% use 1.25 for DARPA HeliChips
-  image_size_thresh = 1000; %% in bytes
+  border_artifact_thresh = 100000.0;  %% 1.25; %% use 1.25 for DARPA HeliChips
+  image_size_thresh = 1000000.0; %% 1000; %% in bytes
 
   %% path to generic image processing routines
   img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
