@@ -21,7 +21,7 @@ int dumpLoc(const PVLayerLoc * loc, int rank);
 using namespace PV;
 
 int main(int argc, char * argv[]) {
-   int status;
+   int status = PV_SUCCESS;
 #ifdef PV_USE_MPI
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
@@ -76,7 +76,7 @@ int main(int argc, char * argv[]) {
    }
 #ifdef PV_USE_MPI
    if( !mpi_initialized_on_entry ) MPI_Finalize();
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    return status;
 }
 
