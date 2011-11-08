@@ -8,9 +8,10 @@ INPARAMS = input/params.test
 
 # flags
 #
-dbg  := 0
-mpi  := 1
-gdal := 1
+dbg    := 0
+mpi    := 1
+gdal   := 1
+opencl := 1
 
 # detect OS                                                                               
 OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
@@ -89,7 +90,9 @@ ifneq ($(DARWIN),)
    LIBS := $(LIBPV) -framework OpenCL
 else
    LIBS := $(LIBPV) -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
-   LIBS += -lOpenCL
+   ifeq ($(opencl),1)
+      LIBS += -lOpenCL
+   endif
 endif
 ifeq ($(gdal),1)
    LIBS += -L$(GDALDIR)/lib -lgdal
@@ -267,7 +270,7 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
-	@echo "Running test_mpi_header with 6 nodes ..."
+	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
 	@mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params
 	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg failed."; fi
 #	@echo "Running test_read_header with 1 node ..."
