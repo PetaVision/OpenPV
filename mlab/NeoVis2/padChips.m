@@ -46,13 +46,14 @@ function [tot_chips, ...
     VERBOSE_FLAG = 0;
   endif
  
+  more off;
   begin_time = time();
 
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
     chip_path = ...
-	["/mnt/data1/repo/neovision-data-training-tailwind/TAILWIND_FOUO-PNG-Training/"]; 
+	["/mnt/data1/repo/neovision-chips-tailwind/TAILWIND_FOUO-PNG-Training/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
@@ -96,7 +97,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 1;  %% 
+    num_procs = 16;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -122,9 +123,6 @@ function [tot_chips, ...
   tot_rejected = 0;
   cropped_list = {};
   
-  border_artifact_thresh = 100000.0;  %% 1.25; %% use 1.25 for DARPA HeliChips
-  image_size_thresh = 1000000.0; %% 1000; %% in bytes
-
   %% path to generic image processing routines
   img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
@@ -188,6 +186,8 @@ function [tot_chips, ...
   image_type = ".png";
   image_margin = 8;
 
+  border_artifact_thresh = 100000.0;  %% 1.25; %% use 1.25 for DARPA HeliChips
+  image_size_thresh = image_margin; %% 1000; %% in bytes
 
   target_path = ...
       [target_dir, '*', image_type];
@@ -199,6 +199,7 @@ function [tot_chips, ...
   std_hist = zeros(1, num_chips);
   std_mean_hist = zeros(1, num_chips);
     
+  %%keyboard;
   if num_procs > 1
     [status_info] = ...
 	parcellfun(num_procs, @padChipKernel, target_pathnames, "UniformOutput", false);
@@ -351,4 +352,4 @@ function [tot_chips, ...
   disp(["tot_time = ", num2str(tot_time)]);
 
 
-endfunction %% imageNetEdgeFilter
+endfunction %% padChips
