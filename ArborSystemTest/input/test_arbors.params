@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -15,6 +17,9 @@ HyPerCol "column" = {
    numSteps = 10;  // num images plus (num layers + 1) * delay
    progressStep = 10;
    outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
 };
 
 //
@@ -32,8 +37,7 @@ Retina "Retina" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 1.0;
-    invert = 0;
+    // Vrest = 1.0;
     poissonEdgeProb = 1;
     poissonBlankProb = 1;
     burstFreq = 1;
@@ -178,29 +182,33 @@ KernelConn "Retina to L0" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
+    // aspect = 1;
+    // sigma = 1;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 4;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -222,29 +230,33 @@ KernelConn "L0 to Lx1" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 1;
-    sigma = infinity;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
+    // aspect = 1;
+    // sigma = infinity;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 4;
       
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -264,29 +276,33 @@ KernelConn "L0 to Lx2" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 1; //2;
-    sigma = infinity;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 8;
+    // aspect = 1; //2;
+    // sigma = infinity;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 8;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -306,29 +322,33 @@ KernelConn "L0 to Lx4" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 1; //4;
-    sigma = infinity;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 16;
+    // aspect = 1; //4;
+    // sigma = infinity;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 16;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -348,29 +368,33 @@ KernelConn "L0 to Lx1_2" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 2;
-    sigma = infinity;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 2;
+    // aspect = 2;
+    // sigma = infinity;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 2;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -390,29 +414,33 @@ KernelConn "L0 to Lx1_4" = {
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    aspect = 1;
-    sigma = infinity;
-    rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 1;
+    // aspect = 1;
+    // sigma = infinity;
+    // rMax  = infinity;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    // no = 1;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
-    wMax = 1.0;
-    wMin = 0;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    weightUpdatePeriod = -1.0;
+    // weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
