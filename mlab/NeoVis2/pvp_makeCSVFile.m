@@ -1,5 +1,7 @@
 
-function [tot_frames, ...
+function [num_frames, ...
+	  tot_frames, ...
+	  nnz_frames, ...
 	  tot_time, ...
 	  CSV_struct] = ...
       pvp_makeCSVFile(NEOVISION_DATASET_ID, ...
@@ -115,12 +117,12 @@ function [tot_frames, ...
 		filesep, "DoG", filesep];
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_training_flag") || isempty(pvp_training_flag)
+  if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
     training_flag = 0;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 16;  %% 
+    num_procs = 1;  %% 
   endif
   
   global VERBOSE_FLAG
@@ -132,21 +134,7 @@ function [tot_frames, ...
   global pvp_training_flag
   pvp_training_flag = training_flag;
   
-  object_list = cell(12,1);
-  object_list{1} = "Boat"; 
-  object_list{2} = "Bus"; 
-  object_list{3} = "Car"; 
-  object_list{4} = "Container"; 
-  object_list{5} = "Cyclist"; 
-  object_list{6} = "Helicopter"; 
-  object_list{7} = "Person"; 
-  object_list{8} = "Plane"; 
-  object_list{9} = "Tractor-Trailer"; 
-  object_list{10} = "Truck"; 
-  object_list{11} = "distractor";  %% non-DARPA object
-  object_list{12} = "target"; %% any DARPA object  
-  
-  %%setenv('GNUTERM', 'x11');
+   %%setenv('GNUTERM', 'x11');
   image_type = ".png";
   
   %% path to generic image processing routines
@@ -281,6 +269,7 @@ function [tot_frames, ...
 	pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
     if pvp_offset(i_frame) == -1
       break;
+      i_frame = i_frame - 1;
     endif
     pvp_offset_tmp = pvp_offset(i_frame);
     frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
@@ -290,8 +279,11 @@ function [tot_frames, ...
     disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
   endfor
   fclose(pvp_fid);
-  nnz_frames = i_frame-1;
+  nnz_frames = i_frame;
   disp(["nnz_frames = ", num2str(nnz_frames)]);
+  if nnz_frames <= 0
+    return;
+  endif
 
   if num_procs > nnz_frames
     num_procs = nnz_frames;
@@ -410,7 +402,7 @@ function [tot_frames, ...
     stop_frame = frames_per_CSV_file * i_CSV_file;
     stop_frame = min(stop_frame, nnz_frames);
     for i_frame = start_frame : stop_frame
-      CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
+      %%CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
       disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    

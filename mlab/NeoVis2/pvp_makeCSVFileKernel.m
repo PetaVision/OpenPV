@@ -12,6 +12,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   endif
 
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
+  CSV_struct.Frame = str2num(CSV_struct.frame_filename);
   CSV_struct.pvp_time = pvp_time;
   CSV_struct.num_active = nnz(pvp_activity);
   CSV_struct.mean_activity = mean(pvp_activity(:));
