@@ -29,7 +29,7 @@
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.1783611735" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug"/>
 							<tool command="mpic++" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.1421437000" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
 								<option id="macosx.cpp.link.option.paths.152539932" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/Users/gkenyon/workspace-indigo/PetaVision/lib"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/lib}&quot;"/>
 									<listOptionValue builtIn="false" value="/opt/local/lib/"/>
 								</option>
 								<option id="macosx.cpp.link.option.libs.1581678594" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
