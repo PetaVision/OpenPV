@@ -63,3 +63,5 @@ It should be possible to run and debug from within the Eclipse environment the s
 7. The projects' .cproject files on the repository now have optimization set to most and debugging set to none, for both C and C++.  To change these, go to Properties, open the triangle by C/C++ Build, and select Settings.  There are separate Optimization and Debugging panes under both "GCC C++ Compiler" and "GCC C Compiler" in the main part of the properties window.
 
 Please take care when committing, not to commit the .cproject and .project files or the .settings directory.
+
+8. To read *.cl files in the C editor, go to Window menu -> Preferences, open C/C++ and select File Types.  Click New... and enter Pattern: "*.cl" (no quotes) and Type: C Source File.
