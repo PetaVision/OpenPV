@@ -1,6 +1,6 @@
 debugParsing = false;
 
-HyPerCol "test_marginwidth_one_to_one column" = {
+HyPerCol "column" = {
    nx = 64;
    ny = 64;
    numSteps = 1;

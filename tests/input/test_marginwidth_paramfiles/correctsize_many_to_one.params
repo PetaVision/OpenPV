@@ -1,6 +1,6 @@
 debugParsing = false;
 
-HyPerCol "test_marginwidth_one_to_one column" = {
+HyPerCol "column" = {
    nx = 64;
    ny = 64;
    numSteps = 1;
@@ -16,14 +16,14 @@ Retina "presynaptic layer" = {
 };
 
 ANNLayer "postsynaptic layer" = {
-   nxScale = 1;
-   nyScale = 1;
+   nxScale = 0.25;
+   nyScale = 0.25;
    nf = 1;
    marginWidth = 0;
 };
 
 KernelConn "pre to post connection" = {
-   nxp = 7;
-   nyp = 7;
+   nxp = 3;
+   nyp = 3;
    nfp = 1;
 };

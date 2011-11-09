@@ -116,18 +116,7 @@ TESTS = test_kg \
         test_gauss2d test_cocirc \
         test_mirror_BCs \
         test_border_activity \
-        test_marginwidth_toosmall_many_to_one \
-        test_marginwidth_toolarge_many_to_one \
-        test_marginwidth_correctsize_many_to_one \
-        test_marginwidth_toosmall_one_to_one \
-        test_marginwidth_toolarge_one_to_one \
-        test_marginwidth_correctsize_one_to_one \
-        test_marginwidth_toosmall_one_to_many \
-        test_marginwidth_toolarge_one_to_many \
-        test_marginwidth_correctsize_one_to_many \
-        test_transpose_transpose
-#        test_marginwidth_one_to_one test_marginwidth_many_to_one \
-#        test_marginwidth_one_to_many
+        test_marginwidth \
 
 CL_TESTS = test_cl_random test_cl_lif test_cl_all
 
@@ -235,34 +224,7 @@ test_delta: $(BUILDDIR)/test_delta.o $(PVLIB)
 test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 	$(CC) -o $@ $<
 
-test_marginwidth_toosmall_many_to_one: $(BUILDDIR)/test_marginwidth_toosmall_many_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_toolarge_many_to_one: $(BUILDDIR)/test_marginwidth_toolarge_many_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_correctsize_many_to_one: $(BUILDDIR)/test_marginwidth_correctsize_many_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_toosmall_one_to_one: $(BUILDDIR)/test_marginwidth_toosmall_one_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_toolarge_one_to_one: $(BUILDDIR)/test_marginwidth_toolarge_one_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_correctsize_one_to_one: $(BUILDDIR)/test_marginwidth_correctsize_one_to_one.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_toosmall_one_to_many: $(BUILDDIR)/test_marginwidth_toosmall_one_to_many.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_toolarge_one_to_many: $(BUILDDIR)/test_marginwidth_toolarge_one_to_many.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_marginwidth_correctsize_one_to_many: $(BUILDDIR)/test_marginwidth_correctsize_one_to_many.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_transpose_transpose: $(BUILDDIR)/test_transpose_transpose.o $(PVLIB)
+test_marginwidth: $(BUILDDIR)/test_marginwidth.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
@@ -342,24 +304,8 @@ runtests: make-in-subdirs $(TESTS)
 #	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
 #	@echo "Running test_transpose_transpose ..."
 #	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
-	@echo "Running test_marginwidth_toosmall_one_to_one ..."
-	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
-	@echo "Running test_marginwidth_toolarge_one_to_one ..."
-	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
-	@echo "Running test_marginwidth_correctsize_one_to_one ..."
-	@if ./test_marginwidth_toosmall_one_to_one; then echo "test_marginwidth_toosmall_one_to_one passed."; else echo "test_marginwidth_toosmall_one_to_one failed"; fi 
-	@echo "Running test_marginwidth_toosmall_many_to_one ..."
-	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
-	@echo "Running test_marginwidth_toolarge_many_to_one ..."
-	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
-	@echo "Running test_marginwidth_correctsize_many_to_one ..."
-	@if ./test_marginwidth_toosmall_many_to_one; then echo "test_marginwidth_toosmall_many_to_one passed."; else echo "test_marginwidth_toosmall_many_to_one failed"; fi 
-	@echo "Running test_marginwidth_toosmall_one_to_many ..."
-	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
-	@echo "Running test_marginwidth_toolarge_one_to_many ..."
-	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
-	@echo "Running test_marginwidth_correctsize_one_to_many ..."
-	@if ./test_marginwidth_toosmall_one_to_many; then echo "test_marginwidth_toosmall_one_to_many passed."; else echo "test_marginwidth_toosmall_one_to_many failed"; fi 
+	@echo "Running test_marginwidth ..."
+	@if ./test_marginwidth; then echo "test_marginwidth passed."; else echo "test_marginwidth failed"; fi 
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
