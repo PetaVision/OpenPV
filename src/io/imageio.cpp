@@ -188,7 +188,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
 #ifdef PV_USE_MPI
    // broadcast location information
-   MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
+   MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
 #endif // PV_USE_MPI
 
    copyFromLocBuffer(locBuf, loc);
