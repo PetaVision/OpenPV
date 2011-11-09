@@ -272,12 +272,12 @@ int Movie::outputState(float time, bool last)
       write(basicFilename);
    }
 
+   int status = PV_SUCCESS;
    if (randomMovie != 0) {
-      int status;
       status = writeActivitySparse(time);
    }
 
-   return 0;
+   return status;
 }
 
 int Movie::copyReducedImagePortion()
@@ -491,8 +491,8 @@ int Movie::resetPositionInBounds()
 
    // could still be out of bounds
    //
-   offsetX = (offsetX < 0 || imageLoc.nx < offsetX + loc->nx) ? offsetX = 0 : offsetX;
-   offsetY = (offsetY < 0 || imageLoc.ny < offsetY + loc->ny) ? offsetY = 0 : offsetY;
+   offsetX = (offsetX < 0 || imageLoc.nx < offsetX + loc->nx) ? 0 : offsetX;
+   offsetY = (offsetY < 0 || imageLoc.ny < offsetY + loc->ny) ? 0 : offsetY;
 
    return 0;
 }
