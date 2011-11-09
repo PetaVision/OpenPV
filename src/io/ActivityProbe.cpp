@@ -46,7 +46,7 @@ int ActivityProbe::outputState(float time, HyPerLayer * l)
       status = pv_tiff_write_frame(outfp, data, &l->clayer->loc, outBuf, &outFrame);
    }
 
-   return 0;
+   return status;
 }
 
 } // namespace PV
