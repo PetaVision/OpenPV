@@ -680,7 +680,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
    else {
       numItems = nx * ny * nf;
    }
-#endif OBSOLETE
+#endif // OBSOLETE
    numItems = nx * ny * nf;
 
    const size_t localSize = numItems * pv_sizeof(datatype);
