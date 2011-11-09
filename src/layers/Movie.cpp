@@ -273,7 +273,7 @@ int Movie::outputState(float time, bool last)
    }
 
    if (randomMovie != 0) {
-      int status = 0;
+      int status;
       status = writeActivitySparse(time);
    }
 

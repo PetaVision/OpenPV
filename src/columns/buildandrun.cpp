@@ -937,7 +937,7 @@ ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, 
 }
 
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName, HyPerCol * hc) {
-   ColProbe * addedProbe;
+   ColProbe * addedProbe = NULL;
    bool keywordMatched = false;
    const char * fileName = getStringValueFromParameterGroup(probeName, hc->parameters(), "probeOutputFile", false);
    if( !strcmp(classkeyword, "ColProbe") ) {
