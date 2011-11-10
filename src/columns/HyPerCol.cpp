@@ -887,7 +887,14 @@ int HyPerCol::checkMarginWidths() {
 
       int yScalePre = pre->getYScale();
       int yScalePost = post->getYScale();
-      status2 = zCheckMarginWidth(conn, "y", conn->yPatchSize(), yScalePre, yScalePost, status);
+      status2 = zCheckMarginWidth(conn, "y", conn->yPatchSize(), yScalePre, yScalePost, status1);
+      status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
+               PV_SUCCESS : PV_MARGINWIDTH_FAILURE;
+   }
+   for( int l=0; l < numLayers; l++ ) {
+      HyPerLayer * layer = layers[l];
+      status1 = lCheckMarginWidth(layer, "x", layer->getLayerLoc()->nx, layer->getLayerLoc()->nxGlobal, status);
+      status2 = lCheckMarginWidth(layer, "y", layer->getLayerLoc()->ny, layer->getLayerLoc()->nyGlobal, status1);
       status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
                PV_SUCCESS : PV_MARGINWIDTH_FAILURE;
    }
@@ -921,5 +928,22 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSiz
    else status = PV_SUCCESS;
    return status;
 }
+
+int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus) {
+   int status;
+   int nb = layer->getLayerLoc()->nb;
+   if( layerSize < nb) {
+      if( prevStatus == PV_SUCCESS ) {
+         fprintf(stderr, "Margin width error.\n");
+      }
+      fprintf(stderr, "Layer \"%s\", dimension %s:\n", layer->getName(), dim);
+      fprintf(stderr, "    Pre-synaptic margin width %d, overall layer size %d, layer size per process %d\n", nb, layerSize, layerGlobalSize);
+      fprintf(stderr, "    Use either fewer processes in dimension %s, or a margin size <= %d.\n", dim, layerSize);
+      status = PV_MARGINWIDTH_FAILURE;
+   }
+   else status = PV_SUCCESS;
+   return status;
+}
+
 
 } // PV namespace

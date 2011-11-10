@@ -62,7 +62,7 @@ int main(int argc, char * argv[]) {
    cl_args[2] = strdup("input/test_marginwidth_paramfiles/toolarge_one_to_many.params");
    status = runonecolumn(ARGC, cl_args, correctvalue) != correctvalue ? PV_MARGINWIDTH_FAILURE : status;
 
-   correctvalue = PV_MARGINWIDTH_FAILURE; // The next three tests should trigger marginwidth errors.
+   correctvalue = PV_MARGINWIDTH_FAILURE; // The next three tests return marginwidth errors.
 
    free(cl_args[2]);
    cl_args[2] = strdup("input/test_marginwidth_paramfiles/toosmall_one_to_one.params");
@@ -76,11 +76,17 @@ int main(int argc, char * argv[]) {
    cl_args[2] = strdup("input/test_marginwidth_paramfiles/toosmall_one_to_many.params");
    status = runonecolumn(ARGC, cl_args, correctvalue) != PV_MARGINWIDTH_FAILURE ? PV_MARGINWIDTH_FAILURE : status;
 
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/test_marginwidth_paramfiles/margin_larger_than_layer.params");
+   status = runonecolumn(ARGC, cl_args, correctvalue) != PV_MARGINWIDTH_FAILURE ? PV_MARGINWIDTH_FAILURE : status;
 
    for( int k=0; k<ARGC; k++ )
    {
       free(cl_args[k]);
    }
+#ifdef PV_USE_MPI
+   MPI_Finalize();
+#endif PV_USE_MPI
    return status;
 }
 

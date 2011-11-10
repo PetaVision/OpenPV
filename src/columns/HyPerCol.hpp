@@ -124,6 +124,7 @@ private:
    int checkpointWrite();
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
+   int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
 
    int numSteps;
    int currentStep;
