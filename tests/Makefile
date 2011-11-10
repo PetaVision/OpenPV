@@ -234,7 +234,6 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
 	@mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params
-	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg failed."; fi
 #	@echo "Running test_read_header with 1 node ..."
 #	@./test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 2 nodes ..."
