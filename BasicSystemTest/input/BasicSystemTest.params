@@ -1,0 +1,93 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for a simple simulation: two layers, one connection.
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 10;
+   progressStep = 10;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+};
+
+//
+// layers
+//
+
+Image "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/sampleimage.png";
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "output" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+KernelConn "input to output" = {
+    preLayerName = "input";
+    postLayerName = "output";
+    channelCode = 0;
+    nxp = 7;
+    nyp = 7;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 3;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    // no = 4;
+      
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
