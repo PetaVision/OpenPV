@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) {
    // If mpi has already been initialized when a new HyPerCol is created,
    // the HyPerCol won't call MPI_Finalize when it is deleted.
    // That way we can run several marginwidth tests in the same job.
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
 
    int status = PV_SUCCESS;
    int correctvalue = PV_SUCCESS;
@@ -86,7 +86,7 @@ int main(int argc, char * argv[]) {
    }
 #ifdef PV_USE_MPI
    MPI_Finalize();
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    return status;
 }
 
