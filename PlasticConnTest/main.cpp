@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
        cl_args = (char **) malloc(num_cl_args*sizeof(char *));
        cl_args[0] = argv[0];
        cl_args[1] = strdup("-p");
-       cl_args[2] = strdup("input/MPI_test.params");
+       cl_args[2] = strdup("input/PlasticConnTest.params");
        for( int k=1; k<argc; k++) {
           cl_args[k+2] = strdup(argv[k]);
        }
