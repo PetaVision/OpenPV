@@ -1,23 +1,34 @@
 
-function [DoG_dir, ...
+function [pvp_DoG_dir, ...
 	  canny_dir, ...
 	  num_frames, ...
 	  tot_frames, ...
 	  tot_DoG, ...
 	  tot_canny, ...
 	  tot_time] = ...
-      pvp_edgeFilterFrames(clip_path, ...
-	       clip_name, ...
-	       program_path, ...
-	       DoG_flag, ...
-	       DoG_struct, ...
-	       canny_flag, ...
-	       canny_struct, ...
-	       num_procs)
+  pvp_edgeFilterFrames(NEOVISION_DATASET_ID, ...
+		       NEOVISION_DISTRIBUTION_ID, ...
+		       pvp_repo_path, ...
+		       pvp_clip_path, ...
+		       pvp_clip_name, ...
+		       pvp_program_path, ...
+		       pvp_DoG_flag, ...
+		       pvp_DoG_struct, ...
+		       canny_flag, ...
+		       canny_struct, ...
+		       pvp_num_procs)
   
   %% perform edge filtering on DARPA NeoVis2 video clips, 
   %% mirror BCs used to pad individual frames before edge extraction.
   %% resize image frames if pad_size ~= image_size
+
+  global pvp_DoG_flag
+  global canny_flag
+  global pvp_pvp_DoG_dir
+  global pvp_DoG_struct
+  global canny_dir
+  global canny_struct
+  global pvp_image_margin
 
   global pvp_home_path
   global pvp_mlab_path
@@ -40,29 +51,44 @@ function [DoG_dir, ...
 
   num_input_args = 0
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
-    clip_path = ...
-	["/mnt/data1/repo/neovision-training-tailwind/TAILWIND_FOUO-PNG-Training/"]; 
+  if nargin < num_input_args || ~exist("NEOVISION_DATASET_ID") || isempty(NEOVISION_DATASET_ID)
+    NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %% "Tail"; %% 
+  endif
+  neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
+    NEOVISION_DISTRIBUTION_ID = "Formative"; %% "Training"; %%  "Challenge"; %%
+  endif
+  neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_repo_path") || isempty(pvp_repo_path)
+    pvp_repo_path = [filesep, "mnt", filesep, "datasets", filesep, "NeoVision2", filesep, "repo", filesep];
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name =  "050"; %%
+  if nargin < num_input_args || ~exist("pvp_clip_path") || isempty(pvp_clip_path)
+    pvp_clip_path = ...
+	[pvp_repo_path, "neovision-data", neovision_distribution_id, "-", neovision_dataset_id, filesep]; 
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("program_path") || isempty(program_path)
-    program_path = "/mnt/data1/repo/neovision-programs-petavision/Tail/";  %% 
+  if nargin < num_input_args || ~exist("pvp_clip_name") || isempty(pvp_clip_name)
+    pvp_clip_name =  "050"; %%
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("DoG_flag") || isempty(DoG_flag)
-    DoG_flag = 1;  %% 
+  if nargin < num_input_args || ~exist("pvp_program_path") || isempty(pvp_program_path)
+    pvp_program_path = ...
+	[pvp_repo_path, "neovision-programs-", neovision_distribution_id, "-", neovision_dataset_id, filesep]; 
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("DoG_struct") || isempty(DoG_struct)
-    DoG_struct = struct;  %% 
-    DoG_struct.amp_center_DoG = 1;
-    DoG_struct.sigma_center_DoG = 1;
-    DoG_struct.amp_surround_DoG = 1;
-    DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
+  if nargin < num_input_args || ~exist("pvp_DoG_flag") || isempty(pvp_DoG_flag)
+    pvp_DoG_flag = 1;  %% 
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_DoG_struct") || isempty(pvp_DoG_struct)
+    pvp_DoG_struct = struct;  %% 
+    pvp_DoG_struct.amp_center_DoG = 1;
+    pvp_DoG_struct.sigma_center_DoG = 1;
+    pvp_DoG_struct.amp_surround_DoG = 1;
+    pvp_DoG_struct.sigma_surround_DoG = 2 * pvp_DoG_struct.sigma_center_DoG;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("canny_flag") || isempty(canny_flag)
@@ -74,8 +100,8 @@ function [DoG_dir, ...
     canny_struct.sigma_canny = 1;
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 16;  %% 
+  if nargin < num_input_args || ~exist("pvp_num_procs") || isempty(pvp_num_procs)
+    pvp_num_procs = 16;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -99,40 +125,40 @@ function [DoG_dir, ...
     error(["~exist(clip_dir): ", clip_dir]);
   endif
   frame_dir = ...
-      [clip_dir, clip_name, filesep];  %%
+      [clip_dir, pvp_clip_name, filesep];  %%
   if ~exist(frame_dir, "dir")
     error(["~exist(frame_dir): ", frame_dir]);
   endif
 
-  log_path = [program_path, "log", filesep];
+  log_path = [pvp_program_path, "log", filesep];
   mkdir(log_path);
-  log_dir = [log_path, clip_name, filesep];
+  log_dir = [log_path, pvp_clip_name, filesep];
   mkdir(log_dir);
 
-  list_path = [program_path, "list", filesep];
+  list_path = [pvp_program_path, "list", filesep];
   mkdir(list_path);
-  list_dir = [list_path, clip_name, filesep];
+  list_dir = [list_path, pvp_clip_name, filesep];
   mkdir(list_dir);
 
-  if DoG_flag
-    DoG_folder = [program_path, "DoG", filesep];
+  if pvp_DoG_flag
+    DoG_folder = [pvp_program_path, "DoG", filesep];
     mkdir(DoG_folder);
-    DoG_dir = [DoG_folder, clip_name, filesep];
-    mkdir(DoG_dir);
+    pvp_DoG_dir = [DoG_folder, pvp_clip_name, filesep];
+    mkdir(pvp_DoG_dir);
   else
-    DoG_dir = [];
-  endif %% DoG_flag
+    pvp_DoG_dir = [];
+  endif %% pvp_DoG_flag
   if canny_flag
-    canny_folder = [program_path, "canny", filesep];
+    canny_folder = [pvp_program_path, "canny", filesep];
     mkdir(canny_folder);
-    canny_dir = [canny_folder, clip_name, filesep];
+    canny_dir = [canny_folder, pvp_clip_name, filesep];
     mkdir(canny_dir);
   else
     canny_dir = [];
   endif %% canny_flag
 
   image_type = ".png";
-  image_margin = 8;
+  pvp_image_margin = 8;
 
   frame_path = ...
       [frame_dir, '*', image_type];
@@ -141,9 +167,9 @@ function [DoG_dir, ...
   disp(['num_frames = ', num2str(num_frames)]);
     
   %%keyboard;
-  if num_procs > 1
+  if pvp_num_procs > 1
     [status_info] = ...
-	parcellfun(num_procs, @pvp_edgeFilterFramesKernel, frame_pathnames, "UniformOutput", false);
+	parcellfun(pvp_num_procs, @pvp_edgeFilterFramesKernel, frame_pathnames, "UniformOutput", false);
   else
     [status_info] = ...
 	cellfun(@pvp_edgeFilterFramesKernel, frame_pathnames, "UniformOutput", false);
@@ -157,7 +183,7 @@ function [DoG_dir, ...
     if status_info{i_frame}.rejected_flag
       continue;
     endif
-    tot_DoG = tot_DoG + status_info{i_frame}.DoG_flag;
+    tot_DoG = tot_DoG + status_info{i_frame}.pvp_DoG_flag;
     tot_canny = tot_canny + status_info{i_frame}.canny_flag;
     tot_mean = tot_mean + status_info{i_frame}.mean;
     tot_std = tot_std + status_info{i_frame}.std;
