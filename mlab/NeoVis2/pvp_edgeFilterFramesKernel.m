@@ -1,11 +1,11 @@
 function [pvp_status_info] = pvp_edgeFilterFramesKernel(frame_pathname)
 
   global pvp_DoG_flag
-  global canny_flag
+  global pvp_canny_flag
   global pvp_DoG_dir
-  global DoG_struct
-  global canny_dir
-  global canny_struct
+  global pvp_DoG_struct
+  global pvp_canny_dir
+  global pvp_canny_struct
   global pvp_image_margin
 
   global VERBOSE_FLAG
@@ -40,10 +40,10 @@ function [pvp_status_info] = pvp_edgeFilterFramesKernel(frame_pathname)
   if pvp_DoG_flag 
     [extended_image_DoG, DoG_gray_val] = ...
 	DoG(extended_image_gray, ...
-	    DoG_struct.amp_center_DoG, ...
-	    DoG_struct.sigma_center_DoG, ...
-	    DoG_struct.amp_surround_DoG, ...
-	    DoG_struct.sigma_surround_DoG);
+	    pvp_DoG_struct.amp_center_DoG, ...
+	    pvp_DoG_struct.sigma_center_DoG, ...
+	    pvp_DoG_struct.amp_surround_DoG, ...
+	    pvp_DoG_struct.sigma_surround_DoG);
     image_DoG = ...
 	extended_image_DoG(pvp_image_margin+1:size(extended_image_DoG,1)-pvp_image_margin, ...
 			   pvp_image_margin+1:size(extended_image_DoG,2)-pvp_image_margin);
@@ -58,15 +58,15 @@ function [pvp_status_info] = pvp_edgeFilterFramesKernel(frame_pathname)
     pvp_status_info.pvp_DoG_flag = 1;
   endif %% pvp_DoG_flag
       
-  if canny_flag
+  if pvp_canny_flag
     canny_gray_val = 0;
     [extended_image_canny, image_orient] = ...
-	canny(extended_image_gray, canny_struct.sigma_canny);
+	canny(extended_image_gray, pvp_canny_struct.sigma_canny);
     image_canny = ...
 	extended_image_canny(pvp_image_margin+1:size(extended_image_canny,1)-pvp_image_margin, ...
 			     pvp_image_margin+1:size(extended_image_canny,2)-pvp_image_margin);    
     canny_pathname = ...
-	[canny_dir, frame_filename];
+	[pvp_canny_dir, frame_filename];
     try
       imwrite(uint8(image_canny), canny_pathname);
     catch

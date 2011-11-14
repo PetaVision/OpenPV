@@ -6,28 +6,25 @@ function [pvp_DoG_dir, ...
 	  tot_DoG, ...
 	  tot_canny, ...
 	  tot_time] = ...
-  pvp_edgeFilterFrames(NEOVISION_DATASET_ID, ...
-		       NEOVISION_DISTRIBUTION_ID, ...
-		       pvp_repo_path, ...
-		       pvp_clip_path, ...
-		       pvp_clip_name, ...
-		       pvp_program_path, ...
-		       pvp_DoG_flag, ...
-		       pvp_DoG_struct, ...
-		       canny_flag, ...
-		       canny_struct, ...
-		       pvp_num_procs)
+      pvp_edgeFilterFrames(NEOVISION_DATASET_ID, ...
+			   NEOVISION_DISTRIBUTION_ID, ...
+			   pvp_repo_path, ...
+			   pvp_edge_type, ...
+			   pvp_clip_path, ...
+			   pvp_clip_name, ...
+			   pvp_program_path, ...
+			   pvp_num_procs)
   
   %% perform edge filtering on DARPA NeoVis2 video clips, 
   %% mirror BCs used to pad individual frames before edge extraction.
   %% resize image frames if pad_size ~= image_size
 
   global pvp_DoG_flag
-  global canny_flag
-  global pvp_pvp_DoG_dir
+  global pvp_canny_flag
+  global pvp_DoG_dir
   global pvp_DoG_struct
-  global canny_dir
-  global canny_struct
+  global pvp_canny_dir
+  global pvp_canny_struct
   global pvp_image_margin
 
   global pvp_home_path
@@ -45,66 +42,49 @@ function [pvp_DoG_dir, ...
   if ~exist("PVP_VERBOSE_FLAG") || isempty(PVP_VERBOSE_FLAG)
     PVP_VERBOSE_FLAG = 0;
   endif
- 
+  
   more off;
   begin_time = time();
 
-  num_input_args = 0
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("NEOVISION_DATASET_ID") || isempty(NEOVISION_DATASET_ID)
+  num_argin = 0
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("NEOVISION_DATASET_ID") || isempty(NEOVISION_DATASET_ID)
     NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %% "Tail"; %% 
   endif
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
     NEOVISION_DISTRIBUTION_ID = "Formative"; %% "Training"; %%  "Challenge"; %%
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_repo_path") || isempty(pvp_repo_path)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pvp_repo_path") || isempty(pvp_repo_path)
     pvp_repo_path = [filesep, "mnt", filesep, "datasets", filesep, "NeoVision2", filesep, "repo", filesep];
   endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_clip_path") || isempty(pvp_clip_path)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist(pvp_edge_type) || isempty(pvp_edge_type)
+    pvp_edge_type = "DoG";  %%  
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pvp_clip_path") || isempty(pvp_clip_path)
     pvp_clip_path = ...
 	[pvp_repo_path, "neovision-data", neovision_distribution_id, "-", neovision_dataset_id, filesep]; 
   endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_clip_name") || isempty(pvp_clip_name)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pvp_clip_name") || isempty(pvp_clip_name)
     pvp_clip_name =  "050"; %%
   endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_program_path") || isempty(pvp_program_path)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pvp_program_path") || isempty(pvp_program_path)
     pvp_program_path = ...
-	[pvp_repo_path, "neovision-programs-", neovision_distribution_id, "-", neovision_dataset_id, filesep]; 
+	[pvp_repo_path, "neovision-programs-petavision", filesep]; 
   endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_DoG_flag") || isempty(pvp_DoG_flag)
-    pvp_DoG_flag = 1;  %% 
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_DoG_struct") || isempty(pvp_DoG_struct)
-    pvp_DoG_struct = struct;  %% 
-    pvp_DoG_struct.amp_center_DoG = 1;
-    pvp_DoG_struct.sigma_center_DoG = 1;
-    pvp_DoG_struct.amp_surround_DoG = 1;
-    pvp_DoG_struct.sigma_surround_DoG = 2 * pvp_DoG_struct.sigma_center_DoG;
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("canny_flag") || isempty(canny_flag)
-    canny_flag = 0;  %% 
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("canny_struct") || isempty(canny_struct)
-    canny_struct = struct;  %% 
-    canny_struct.sigma_canny = 1;
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_num_procs") || isempty(pvp_num_procs)
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("pvp_num_procs") || isempty(pvp_num_procs)
     pvp_num_procs = 16;  %% 
   endif
   
-  setenv('GNUTERM', 'x11');
+  %%setenv('GNUTERM', 'x11');
 
   local_dir = pwd;
 
@@ -114,58 +94,61 @@ function [pvp_DoG_dir, ...
   tot_canny = -1;
   
   %% path to generic image processing routins
-  img_proc_dir = [pvp_mlab_path, filesep, "imgProc", filesep];
-  addpath(img_proc_dir);
+  imgProc_path = [pvp_mlab_path, "imgProc", filesep];
+  if isempty(strfind(path, imgProc_path))
+    addpath(imgProc_path);
+  endif
   
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = [pvp_mlab_path, filesep, "stringKernels", filesep];
-  addpath(str_kernel_dir);
+  strKernels_path = [pvp_mlab_path, "stringKernels", filesep];
+  if isempty(strfind(path, strKernels_path))
+    addpath(strKernels_path);
+  endif
 
-  if ~exist(clip_dir, "dir")
-    error(["~exist(clip_dir): ", clip_dir]);
+  if ~exist(pvp_clip_path, "dir")
+    error(["~exist(pvp_clip_path): ", pvp_clip_path]);
   endif
   frame_dir = ...
-      [clip_dir, pvp_clip_name, filesep];  %%
+      [pvp_clip_path, pvp_clip_name, filesep];  %%
   if ~exist(frame_dir, "dir")
     error(["~exist(frame_dir): ", frame_dir]);
   endif
 
-  log_path = [pvp_program_path, "log", filesep];
-  mkdir(log_path);
-  log_dir = [log_path, pvp_clip_name, filesep];
+  log_dir = ...
+      [pvp_program_path, ...
+       NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
+       pvp_clip_name, filesep, pvp_edge_type, filesep, ...
+       "log", filesep];
   mkdir(log_dir);
 
-  list_path = [pvp_program_path, "list", filesep];
-  mkdir(list_path);
-  list_dir = [list_path, pvp_clip_name, filesep];
-  mkdir(list_dir);
-
   if pvp_DoG_flag
-    DoG_folder = [pvp_program_path, "DoG", filesep];
-    mkdir(DoG_folder);
-    pvp_DoG_dir = [DoG_folder, pvp_clip_name, filesep];
+    pvp_DoG_dir = ...
+	[pvp_program_path, ...
+	 NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
+	 pvp_clip_name, filesep, ...
+	 "DoG", filesep];
     mkdir(pvp_DoG_dir);
   else
     pvp_DoG_dir = [];
   endif %% pvp_DoG_flag
-  if canny_flag
-    canny_folder = [pvp_program_path, "canny", filesep];
-    mkdir(canny_folder);
-    canny_dir = [canny_folder, pvp_clip_name, filesep];
-    mkdir(canny_dir);
-  else
-    canny_dir = [];
-  endif %% canny_flag
 
-  image_type = ".png";
-  pvp_image_margin = 8;
+  if pvp_canny_flag
+    canny_dir = ...
+	[pvp_program_path, ...
+	 NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
+	 pvp_clip_name, filesep, ...
+	 "canny", filesep];
+    mkdir(pvp_canny_dir);
+  else
+    pvp_canny_dir = [];
+  endif %% pvp_canny_flag
 
   frame_path = ...
-      [frame_dir, '*', image_type];
+      [frame_dir, '*', pvp_image_type];
   frame_pathnames = glob(frame_path);
   num_frames = size(frame_pathnames,1);
   disp(['num_frames = ', num2str(num_frames)]);
-    
+  
   %%keyboard;
   if pvp_num_procs > 1
     [status_info] = ...
@@ -191,7 +174,7 @@ function [pvp_DoG_dir, ...
 
   tot_frames = num_frames - tot_rejected;
 
-   
+  
   ave_mean = tot_mean / tot_frames;
   disp(["ave_mean = ", ...
 	num2str(ave_mean)]);
