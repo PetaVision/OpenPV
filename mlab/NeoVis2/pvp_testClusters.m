@@ -4,7 +4,7 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
   global pvp_patch_size
   global pvp_density_thresh 
 
-  hist_list = cell(1);
+  hit_list = cell(1);
   num_hits = 0;
   num_patch_rows = ceil(2 * NROWS / pvp_patch_size(1)) - 1;
   num_patch_cols = ceil(2 * NCOLS / pvp_patch_size(2)) - 1;
@@ -23,7 +23,7 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
    [pvp_activity1D(:,2),pvp_activity1D(:,1)]=find(pvp_activity2D);
    [class_vector,type_vector] = dbscan(pvp_activity1D,10,[]);
       
-   max_class_vector = max(class_vector)
+   max_class_vector = max(class_vector);
    pvp_centroids = zeros(max_class_vector,3);  %% x,y and count
 
    for i=1:nactive  % loop over all points and get the cluster centroids
@@ -37,7 +37,7 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
    pvp_centroids(:,1)=pvp_centroids(:,1)./pvp_centroids(:,3); % get mean
    pvp_centroids(:,2)=pvp_centroids(:,2)./pvp_centroids(:,3);
    pvp_centroids(:,3)=pvp_centroids(:,3)/max(pvp_centroids(:,3)); %normalize
-   pvp_centroids
+   %%pvp_centroids;
  
    for num_hits=1:max_class_vector
      

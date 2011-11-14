@@ -12,7 +12,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   endif
 
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
-  CSV_struct.Frame = str2num(CSV_struct.frame_filename);
+  CSV_struct.Frame = CSV_struct.frame_filename(1:strfind(CSV_struct.frame_filename, ".png")-1);
   CSV_struct.pvp_time = pvp_time;
   CSV_struct.num_active = nnz(pvp_activity);
   CSV_struct.mean_activity = mean(pvp_activity(:));
@@ -21,7 +21,8 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   global pvp_test_patches
   pvp_test_patches = 1;
   if pvp_test_patches == 1
-    [hit_list, miss_list] = pvp_testPatches(pvp_activity);
+%%    [hit_list, miss_list] = pvp_testPatches(pvp_activity);
+    [hit_list, miss_list] = pvp_testClusters(pvp_activity);
   else 
     [hit_list, miss_list] = pvp_testPatches([]);
   endif

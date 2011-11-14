@@ -37,7 +37,7 @@ function [num_frames, ...
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
-    NEOVISION_DISTRIBUTION_ID = "Formative"; %% "Training"; %%  
+    NEOVISION_DISTRIBUTION_ID = "Training"; %% "Formative"; %% "Training"; %%  
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
   num_input_args = num_input_args + 1;
@@ -49,11 +49,11 @@ function [num_frames, ...
 		 NEOVISION_DATASET_ID, filesep]; %% 		  
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "050";
+    clip_name = "045";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
-    pvp_frame_skip = 1;
+    pvp_frame_skip = 32;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
@@ -66,7 +66,7 @@ function [num_frames, ...
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
     clip_path = [program_path, filesep, ...
-		 "DoG", filesep, ...
+		 "canny", filesep, ...
 		 clip_name, filesep]; %% 
   endif
   num_input_args = num_input_args + 1;
@@ -114,7 +114,7 @@ function [num_frames, ...
 		NEOVISION_DATASET_ID, filesep, ...
 		clip_name, filesep, ...
 		ObjectType, num2str(num_ODD_kernels), ...
-		filesep, "DoG", filesep];
+		filesep, "canny", filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -122,7 +122,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 1;  %% 
+  num_procs = 24;  %% 
   endif
   
   global VERBOSE_FLAG
@@ -421,7 +421,7 @@ function [num_frames, ...
       for i_hit = 1 : pvp_num_hits
 	pvp_hit_density = [pvp_hit_density; CSV_struct{i_frame}.hit_list{i_hit}.hit_density];
 	csv_str = [];
-	csv_str = num2str(CSV_struct{i_frame}.Frame);
+	csv_str = CSV_struct{i_frame}.Frame;
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_X1)];
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_Y1)];
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_X2)];
