@@ -52,9 +52,9 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
       cluster_col_max = max(cluster_col_max,1);  % resize to frame
       cluster_col_max = min(cluster_col_max,NCOLS);
       cluster_row_min = max(cluster_row_min,1);  % resize to frame
-      cluster_row_min = min(cluster_row_min,NCOLS);
+      cluster_row_min = min(cluster_row_min,NROWS);
       cluster_row_max = max(cluster_row_max,1);  % resize to frame
-      cluster_row_max = min(cluster_row_max,NCOLS);
+      cluster_row_max = min(cluster_row_max,NROWS);
      
    
 	hit_list{num_hits} = struct;
@@ -67,7 +67,7 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
 	hit_list{num_hits}.patch_Y3 = 1; % cluster_row_max;
 	hit_list{num_hits}.patch_X4 = 1; % cluster_col_min;
 	hit_list{num_hits}.patch_Y4 = 1; % cluster_row_max;
-	hit_list{num_hits}.Confidence = 1.0;
+	hit_list{num_hits}.Confidence = pvp_centroids(num_hits,3);
 	hit_list{num_hits}.BoundingBox_X1 = cluster_col_min;
 	hit_list{num_hits}.BoundingBox_Y1 = cluster_row_min;
 	hit_list{num_hits}.BoundingBox_X2 = cluster_col_max;

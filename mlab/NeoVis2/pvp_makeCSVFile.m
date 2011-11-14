@@ -53,7 +53,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
-    pvp_frame_skip = 32;
+    pvp_frame_skip = 1;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
@@ -473,6 +473,8 @@ function [num_frames, ...
   disp(["pvp_std_miss_density = ", num2str(pvp_std_miss_density)]);
   disp(["pvp_median_miss_density = ", num2str(pvp_median_miss_density)]);
   pvp_hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
+hist_plot = 0;
+if hist_plot
   [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
       hist([pvp_miss_density; pvp_hit_density], pvp_num_hit_and_miss_bins);
   pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
@@ -489,6 +491,7 @@ function [num_frames, ...
 	  pvp_miss_hist(2:pvp_num_hit_and_miss_bins), 0.6);
   set( pvp_hit_and_miss_bh, 'EdgeColor', [0 0 1] );
   set( pvp_hit_and_miss_bh, 'FaceColor', [0 0 1] );
+endif
   pvp_hit_and_miss_hist_pathname = [ROC_subdir, "hit_and_miss_hist.png"];
   if pvp_training_flag
     save("-ascii", ...
