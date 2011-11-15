@@ -56,7 +56,7 @@ function [pvp_time,...
     return;
   endif
   pvp_offset = ftell(pvp_fid);
-  pvp_activity = sparse(spike_id, 1, 1, N, 1, num_spikes);
+  pvp_activity = sparse(spike_id+1, 1, 1, N, 1, num_spikes);
 
 endfunction %% readSparseSpikes
 
