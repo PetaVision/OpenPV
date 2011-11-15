@@ -52,12 +52,11 @@ function [tot_chips, ...
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ...
-	["/mnt/data1/repo/neovision-chips-tailwind/TAILWIND_FOUO-PNG-Training/"]; 
+    chip_path = ["/mnt/data1/repo/neovision-data-challenge-heli/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name =  "Car"; %%"050"; %%"distractor"; %% 
+  object_name = "026"; %% "Plane"; %% "distractor"; %% "Car"; %% 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 
@@ -68,7 +67,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
-    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Tail/";  %% 
+    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/";  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_flag") || isempty(DoG_flag)
@@ -84,7 +83,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("canny_flag") || isempty(canny_flag)
-    canny_flag = 0;  %% 
+    canny_flag = 1;  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("canny_struct") || isempty(canny_struct)
@@ -93,11 +92,11 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pad_size") || isempty(pad_size)
-    pad_size = [256 256];  %%[1088 1920]; %%  
+    pad_size = [1080 1920]; %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_procs") || isempty(num_procs)
-    num_procs = 16;  %% 
+    num_procs = 24;  %% 
   endif
   
   setenv('GNUTERM', 'x11');
@@ -186,7 +185,7 @@ function [tot_chips, ...
   image_type = ".png";
   image_margin = 8;
 
-  border_artifact_thresh = 100000.0;  %% 1.25; %% use 1.25 for DARPA HeliChips
+  border_artifact_thresh =1000000; %% 1.25; %% use 1.25 for DARPA HeliChips
   image_size_thresh = image_margin; %% 1000; %% in bytes
 
   target_path = ...
@@ -238,6 +237,8 @@ function [tot_chips, ...
 
    tot_chips = num_chips - tot_rejected;
 
+plot_hist = 0;
+if plot_hist
    fig_list = [];
    num_hist_bins = 20;
 
@@ -270,7 +271,8 @@ function [tot_chips, ...
    fig_list = [fig_list, fh];
    bar(hist_std_mean_bins, hist_std_mean_count);
    print(fh, fig_path, "-dpng");
-   
+ endif
+  
    ave_mean = tot_mean / tot_chips;
    disp(["ave_mean = ", ...
 	 num2str(ave_mean)]);

@@ -3,6 +3,7 @@ function [pvp_image] = pvp_drawBoundingBox(pvp_image, hit_list)
   num_hits = length(hit_list);
   for i_hit = 1 : num_hits
 
+   if isempty(hit_list{i_hit}) continue; endif
     %% draw patch boundaries in green
    draw_patch = 0;
    if draw_patch

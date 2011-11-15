@@ -12,9 +12,9 @@ function [num_frames, ...
 		      pvp_frame_skip, ...
 		      ObjectType, ...
 		      clip_path, ...
+		      num_ODD_kernels, ...
 		      patch_size, ...
 		      pvp_path, ...
-		      num_ODD_kernels, ...
 		      pvp_layer, ...
 		      training_flag, ...
 		      num_procs)
@@ -37,7 +37,7 @@ function [num_frames, ...
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
-    NEOVISION_DISTRIBUTION_ID = "Training"; %% "Formative"; %% "Training"; %%  
+    NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Formative"; %% "Training"; %%  
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
   num_input_args = num_input_args + 1;
@@ -46,10 +46,11 @@ function [num_frames, ...
   endif
   program_path = [repo_path, ...
 		 "neovision-programs-petavision", filesep, ...
-		 NEOVISION_DATASET_ID, filesep]; %% 		  
+		  NEOVISION_DATASET_ID, filesep, ...
+		  NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "045";
+    clip_name = "026";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
@@ -65,13 +66,17 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
-    clip_path = [program_path, filesep, ...
+    clip_path = [program_path, ...
 		 "canny", filesep, ...
 		 clip_name, filesep]; %% 
   endif
   num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
+    num_ODD_kernels = 3;  %% 
+  endif
+  num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
-    clip_log_dir = [program_path, "log", filesep, ObjectType, filesep];
+  clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, NEOVISION_DATASET_ID, filesep, "Training", filesep, "log", filesep, ObjectType, filesep];
     clip_log_pathname = [clip_log_dir, "log.txt"];
     if exist(clip_log_pathname, "file")
       clip_log_struct = struct;
@@ -98,23 +103,14 @@ function [num_frames, ...
     else
       patch_size = [128, 128];
     endif %% exist(clip_log_pathname)
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
-    num_ODD_kernels = 3;  %% 
+    disp(["patch_size = ", num2str(patch_size)]);
   endif
   if nargin < num_input_args || ~exist("pvp_layer") || isempty(pvp_layer)
     pvp_layer = 7;  %% 
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
-    pvp_path = ["~/workspace-indigo", filesep, ...
-		"Clique2", filesep, ...
-		"input", filesep, ...
-		NEOVISION_DATASET_ID, filesep, ...
-		clip_name, filesep, ...
-		ObjectType, num2str(num_ODD_kernels), ...
-		filesep, "canny", filesep];
+    pvp_path = [program_path, "activity", filesep, clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny", filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -150,20 +146,20 @@ function [num_frames, ...
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
   mkdir(ODD_clip_dir);
-  ODD_dir = [ODD_clip_dir, ObjectType, filesep];
+  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, num2str(pvp_layer, "%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+  ODD_subdir = [ODD_dir, "canny", filesep];
   mkdir(ODD_subdir);
   
   ROC_path = [program_path, "ROC", filesep]; 
   mkdir(ROC_path);
   ROC_clip_dir = [ROC_path, clip_name, filesep];
   mkdir(ROC_clip_dir);
-  ROC_dir = [ROC_clip_dir, ObjectType, filesep];
+  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, num2str(pvp_layer, "%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+  ROC_subdir = [ROC_dir, "canny", filesep];
   mkdir(ROC_subdir);
-  
+
   global pvp_density_thresh
   hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
   BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
@@ -203,7 +199,9 @@ function [num_frames, ...
   endif
   disp(["pvp_density_thresh = ", num2str(pvp_density_thresh)]);
   
-  
+
+  i_CSV = 0;
+if ~strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")  
   true_CSV_path = ...
       [repo_path, ...
        "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
@@ -216,12 +214,14 @@ function [num_frames, ...
   true_CSV_fid = fopen(true_CSV_pathname, "r");
   true_CSV_header = fgets(true_CSV_fid);
   true_CSV_list = cell(1);
-  i_CSV = 0;
   while ~feof(true_CSV_fid)
     i_CSV = i_CSV + 1;
     true_CSV_list{i_CSV} = fgets(true_CSV_fid);
   endwhile
   fclose(true_CSV_fid);
+  else
+    true_CSV_header = "Frame,BoundingBox_X1,BoundingBox_Y1,BoundingBox_X2,BoundingBox_Y2,BoundingBox_X3,BoundingBox_Y3,BoundingBox_X4,BoundingBox_Y4,ObjectType,Occlusion,Ambiguous,Confidence,SiteInfo,Version";
+endif
   num_true_CSV = i_CSV;
   
   %% get frame IDs 
@@ -377,8 +377,11 @@ function [num_frames, ...
   mkdir(pvp_results_path);
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);
+  pvp_results_subdir0 = ...
+      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
+  mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-      [pvp_results_dir, num2str(pvp_layer,"%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
+    [pvp_results_subdir0, "canny", filesep];
   mkdir(pvp_results_subdir);
   frames_per_CSV_file = 150000;
   num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);
@@ -404,6 +407,7 @@ function [num_frames, ...
     for i_frame = start_frame : stop_frame
       %%CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
       %%CSV_struct{i_frame}.Frame = i_frame - 1;
+      if isempty(CSV_struct{i_frame}) continue; endif
       disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
@@ -420,6 +424,7 @@ function [num_frames, ...
       pvp_miss_density = [pvp_miss_density; CSV_struct{i_frame}.miss_list(:)];
       pvp_tot_miss = pvp_tot_miss + pvp_num_miss;
       for i_hit = 1 : pvp_num_hits
+        if isempty(CSV_struct{i_frame}.hit_list{i_hit}) continue; endif
 	pvp_hit_density = [pvp_hit_density; CSV_struct{i_frame}.hit_list{i_hit}.hit_density];
 	csv_str = [];
         csv_str = num2str(i_frame - 1); %%CSV_struct{i_frame}.Frame;

@@ -21,11 +21,11 @@ function [train_filenames, ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist(imageNet_path) || isempty(imageNet_path)
-    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli", filesep]; 
+    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge", filesep]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist(object_name) || isempty(object_name)
-    object_name =  "050"; %% "Car";  "distractor"; %% %% "Cyclist"; %%   Person"; %% "Plane"; %% "Boat"; %% "Container"; %% "Helicopter"; %% 
+    object_name = "026"; %% "distractor"; %% "Car"; %% "Plane"; %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
@@ -41,11 +41,11 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist(train_dir) || isempty(train_dir)
-    train_dir = "DoG";  %%  
+    train_dir = "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
-    list_dir = "list";  %% 
+  list_dir = ["list_", train_dir];  %% 
   endif
   %% 0 -> FIFO ordering, %%
   %% 1 -> random sampling, 
@@ -115,8 +115,13 @@ function [train_filenames, ...
     num_train = tot_train_images;
   endif
 
-  num_fileOfFilenames_train = length(glob([filenames_path, "train_fileOfFilenames", "[0-9+].txt"]));
-  fileOfFilenames_train = [filenames_path, "train_fileOfFilenames", num2str(num_fileOfFilenames_train+1), ".txt"];
+  noclobber_flag = 0;
+  if noclobber_flag
+     num_fileOfFilenames_train = length(glob([filenames_path, "train_fileOfFilenames", "[0-9+].txt"]));
+     fileOfFilenames_train = [filenames_path, "train_fileOfFilenames", num2str(num_fileOfFilenames_train+1), ".txt"];
+  else
+     fileOfFilenames_train = [filenames_path, "train_fileOfFilenames", ".txt"];
+  endif
   disp(["fileOfFilenames_train = ", fileOfFilenames_train]);
   fid_train = fopen(fileOfFilenames_train, "w", "native");
   for i_file = 1 : num_train
