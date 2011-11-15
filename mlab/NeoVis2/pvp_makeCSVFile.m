@@ -220,7 +220,7 @@ if ~strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")
   endwhile
   fclose(true_CSV_fid);
   else
-    true_CSV_header = "Frame,BoundingBox_X1,BoundingBox_Y1,BoundingBox_X2,BoundingBox_Y2,BoundingBox_X3,BoundingBox_Y3,BoundingBox_X4,BoundingBox_Y4,ObjectType,Occlusion,Ambiguous,Confidence,SiteInfo,Version";
+    true_CSV_header = "Frame,BoundingBox_X1,BoundingBox_Y1,BoundingBox_X2,BoundingBox_Y2,BoundingBox_X3,BoundingBox_Y3,BoundingBox_X4,BoundingBox_Y4,ObjectType,Occlusion,Ambiguous,Confidence,SiteInfo,Version\n";
 endif
   num_true_CSV = i_CSV;
   
@@ -396,8 +396,8 @@ endif
   pvp_hit_density = [];
   for i_CSV_file = 1 : num_CSV_files
     pvp_results_filename = ...
-	[NEOVISION_DATASET_ID, "_", clip_name, "_", num2str(i_CSV_file-1, "%3.3i"),...
-	 "_PetaVision_", ObjectType, ".csv"];
+	[NEOVISION_DATASET_ID, "_", clip_name,...
+	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1, "%3.3i"), ".csv"];
     pvp_results_pathname = [pvp_results_subdir, pvp_results_filename];
     pvp_results_fid = fopen(pvp_results_pathname, "w");
     fputs(pvp_results_fid, true_CSV_header);
