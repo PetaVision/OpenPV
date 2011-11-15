@@ -380,7 +380,7 @@ function [num_frames, ...
   pvp_results_subdir = ...
       [pvp_results_dir, num2str(pvp_layer,"%3.3i"), "_", num2str(num_ODD_kernels, "%2.2i"), filesep];
   mkdir(pvp_results_subdir);
-  frames_per_CSV_file = 150;
+  frames_per_CSV_file = 150000;
   num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);
   CSV_ObjectType = ObjectType;
   CSV_Occlusion = 0; %% false
@@ -403,6 +403,7 @@ function [num_frames, ...
     stop_frame = min(stop_frame, nnz_frames);
     for i_frame = start_frame : stop_frame
       %%CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
+      %%CSV_struct{i_frame}.Frame = i_frame - 1;
       disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
@@ -421,7 +422,7 @@ function [num_frames, ...
       for i_hit = 1 : pvp_num_hits
 	pvp_hit_density = [pvp_hit_density; CSV_struct{i_frame}.hit_list{i_hit}.hit_density];
 	csv_str = [];
-	csv_str = CSV_struct{i_frame}.Frame;
+        csv_str = num2str(i_frame - 1); %%CSV_struct{i_frame}.Frame;
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_X1)];
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_Y1)];
 	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.hit_list{i_hit}.BoundingBox_X2)];
