@@ -1,4 +1,11 @@
-object_name = {"031"; "032"; "033"; "034"; "035"; "036"; "037"; "038"; "039"; "040"; "041"; "042"; "043"; "044"; "045"; "046"; "047"; "048"; "049"; "050"};
+%%object_name = {"031"; "032"; "033"; "034"; "035"; "036"; "037"; "038"; "039"; "040"; "041"; "042"; "043"; "044"; "045"; "046"; "047"; "048"; "049"; "050"};
+
+object_name = cell(length(26:50),1);
+for i_object = 1 : (length(object_name)-1)
+		 object_name{i_object} = num2str(i_object+25, "%3.3i");		 
+endfor
+object_name{length(object_name)} = num2str(length(object_name)+25, "%3.3i");		 
+
 for i_object = 1 : 0 %%length(object_name)
 padChips([], ...
 	 object_name{i_object}, ...
@@ -22,3 +29,24 @@ for i_object = 1 : length(object_name)
 				     [], ...
 				     []);
 endfor
+
+for i_object = 1 : 0%% length(object_name)
+		 %%mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep])
+%%mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Car3", filesep])
+mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Car3", filesep, "canny2", filesep])
+
+endfor
+
+		 for i_object = 1 : 0%% length(object_name)
+				  %%mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep])
+%%mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep, "Car3", filesep])
+mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep, "Car3", filesep, "canny2", filesep])
+
+endfor
+
+
+ for i_object = 1 : length(object_name)
+  base_dir = ["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Car3", filesep];
+base_name = ["Heli_", object_name{i_object}, "_Car3_"]; 
+copyfile([base_dir, "canny", filesep, base_name, "canny", ".params"], [base_dir, "canny2", filesep, base_name, "canny2", ".params"])
+ endfor
