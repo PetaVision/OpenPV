@@ -1132,6 +1132,17 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
          return -1;
       }
 
+      if( header_file_type == PVP_KERNEL_FILE_TYPE ) {
+         // For kernels, need to read cbuf once, and it will be the same for all processes
+         long offset = headerSize + 0 * localSize;
+         fseek(fp, offset, SEEK_SET);
+         status = ( fread(cbuf, localSize, 1, fp) != 1 );
+         if  (status != 0) {
+            fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
+                    comm->commRank(), offset);
+         }
+      }
+
 #ifdef PV_USE_MPI
       int dest = -1;
       for (int py = 0; py < nyProcs; py++) {
@@ -1155,15 +1166,17 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
       }
 #endif // PV_USE_MPI
 
-      // read local portion
-      // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
-      //
-      long offset = headerSize + 0 * localSize;
-      fseek(fp, offset, SEEK_SET);
-      status = ( fread(cbuf, localSize, 1, fp) != 1 );
-      if  (status != 0) {
-         fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
-                 comm->commRank(), offset);
+      if( header_file_type != PVP_KERNEL_FILE_TYPE ) {
+         // read local portion
+         // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
+         //
+         long offset = headerSize + 0 * localSize;
+         fseek(fp, offset, SEEK_SET);
+         status = ( fread(cbuf, localSize, 1, fp) != 1 );
+         if  (status != 0) {
+            fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
+                  comm->commRank(), offset);
+         }
       }
 
       status = pvp_close_file(fp, comm);
