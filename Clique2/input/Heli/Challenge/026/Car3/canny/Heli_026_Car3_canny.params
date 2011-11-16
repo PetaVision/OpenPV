@@ -43,7 +43,7 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 0;
@@ -67,7 +67,7 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -86,7 +86,7 @@ CliqueLayer "L1 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -96,7 +96,7 @@ CliqueLayer "L1 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.1250;
+    Vgain = 0.031250;
     Voffset = 0.0;
 };
 
@@ -107,7 +107,7 @@ CliqueLayer "L2 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -117,7 +117,7 @@ CliqueLayer "L2 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.125;
+    Vgain = 0.0625;
     Voffset = 0.0;
 };
 
@@ -127,7 +127,7 @@ CliqueLayer "L3 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -137,7 +137,7 @@ CliqueLayer "L3 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.125; 
+    Vgain = 0.0625; 
     Voffset = 0.0;
 };
 
@@ -157,7 +157,7 @@ CliqueLayer "L4 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.125; 
+    Vgain = 0.0625; 
     Voffset = 0.0;
 };
 
