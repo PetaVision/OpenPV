@@ -56,7 +56,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-  object_name = "026"; %% "Plane"; %% "distractor"; %% "Car"; %% 
+  object_name = "040"; %% "Plane"; %% "distractor"; %% "Car"; %% 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 

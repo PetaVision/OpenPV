@@ -7,15 +7,15 @@ function [num_frames, ...
       pvp_makeCSVFile(NEOVISION_DATASET_ID, ...
 		      NEOVISION_DISTRIBUTION_ID, ...
 		      repo_path, ...
-		      neovision_dataset_ID, ...
-		      pvp_frame_offset, ...
-		      pvp_frame_skip, ...
 		      ObjectType, ...
+		      clip_name, ...
+		      pvp_frame_skip, ...
+		      pvp_frame_offset, ...
 		      clip_path, ...
 		      num_ODD_kernels, ...
 		      patch_size, ...
-		      pvp_path, ...
 		      pvp_layer, ...
+		      pvp_path, ...
 		      training_flag, ...
 		      num_procs)
   %% takes PetaVision non-spiking activity files generated in response to
@@ -37,7 +37,7 @@ function [num_frames, ...
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
-    NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Formative"; %% "Training"; %%  
+    NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Training"; %% "Formative"; %%   
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
   num_input_args = num_input_args + 1;
@@ -49,20 +49,20 @@ function [num_frames, ...
 		  NEOVISION_DATASET_ID, filesep, ...
 		  NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
   num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("ObjectType") || isempty(ObjectType)
+    ObjectType = "Car"; %% "Cyclist";
+  endif
+  num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "026";
+    clip_name = "039";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
     pvp_frame_skip = 1;
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
+  if nargin < num_input_args || ~exist("pvp_frame_offset") || isempty(pvp_frame_offset)
     pvp_frame_offset = 1;
-  endif
-  num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("ObjectType") || isempty(ObjectType)
-    ObjectType = "Car"; %% "Cyclist";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
@@ -76,7 +76,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
-  clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, NEOVISION_DATASET_ID, filesep, "Training", filesep, "log", filesep, ObjectType, filesep];
+    clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, NEOVISION_DATASET_ID, filesep, "Training", filesep, "log", filesep, ObjectType, filesep];
     clip_log_pathname = [clip_log_dir, "log.txt"];
     if exist(clip_log_pathname, "file")
       clip_log_struct = struct;
@@ -118,7 +118,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_procs") || isempty(num_procs)
-  num_procs = 24;  %% 
+    num_procs = 24;  %% 
   endif
   
   global VERBOSE_FLAG
@@ -419,6 +419,7 @@ endif
 	disp(["num_BB_notmask = ", num2str(CSV_struct{i_frame}.num_BB_notmask)]);
       endif
       pvp_num_hits = length(CSV_struct{i_frame}.hit_list);
+      if isempty(CSV_struct{i_frame}.hit_list) continue; endif
       pvp_tot_hits = pvp_tot_hits + pvp_num_hits;
       pvp_num_miss = numel(CSV_struct{i_frame}.miss_list) - pvp_num_hits;
       pvp_miss_density = [pvp_miss_density; CSV_struct{i_frame}.miss_list(:)];
@@ -458,20 +459,26 @@ endif
   disp(["pvp_tot_hits = ", num2str(pvp_tot_hits)]);
   disp(["pvp_tot_miss = ", num2str(pvp_tot_miss)]);
   pvp_num_hit_and_miss_bins = 100;
+  if isempty(pvp_hit_density)
+    return;
+  endif
   pvp_min_hit_density = min(pvp_hit_density);
   pvp_max_hit_density = max(pvp_hit_density);
-  pvp_min_miss_density = min(pvp_miss_density);
-  pvp_max_miss_density = max(pvp_miss_density);
   disp(["pvp_min_hit_density = ", num2str(pvp_min_hit_density)]);
   disp(["pvp_max_hit_density = ", num2str(pvp_max_hit_density)]);
-  disp(["pvp_min_miss_density = ", num2str(pvp_min_miss_density)]);
-  disp(["pvp_max_miss_density = ", num2str(pvp_max_miss_density)]);
   pvp_ave_hit_density = sum(pvp_hit_density) / pvp_tot_hits;
   pvp_std_hit_density = sqrt(sum(pvp_hit_density.^2) / pvp_tot_hits);
   pvp_median_hit_density = median(pvp_hit_density);
   disp(["pvp_ave_hit_density = ", num2str(pvp_ave_hit_density)]);
   disp(["pvp_std_hit_density = ", num2str(pvp_std_hit_density)]);
   disp(["pvp_median_hit_density = ", num2str(pvp_median_hit_density)]);
+  if isempty(pvp_miss_density)
+    return;
+  endif
+  pvp_min_miss_density = min(pvp_miss_density);
+  pvp_max_miss_density = max(pvp_miss_density);
+  disp(["pvp_min_miss_density = ", num2str(pvp_min_miss_density)]);
+  disp(["pvp_max_miss_density = ", num2str(pvp_max_miss_density)]);
   pvp_ave_miss_density = sum(pvp_miss_density) / pvp_tot_miss;
   pvp_std_miss_density = sqrt(sum(pvp_miss_density.^2) / pvp_tot_miss);
   pvp_median_miss_density = median(pvp_miss_density);

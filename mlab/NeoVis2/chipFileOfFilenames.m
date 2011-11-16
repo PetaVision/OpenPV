@@ -20,12 +20,13 @@ function [train_filenames, ...
 
   num_argin = 0;
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist(imageNet_path) || isempty(imageNet_path)
-    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge", filesep]; 
+  if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
+    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Training", filesep]; 
+%%    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge", filesep]; 
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist(object_name) || isempty(object_name)
-    object_name = "026"; %% "distractor"; %% "Car"; %% "Plane"; %%  
+  if nargin < num_argin || ~exist("object_name") || isempty(object_name)
+    object_name =  "distractor"; %% "Car"; %% "030"; %%  "Plane"; %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
@@ -40,12 +41,12 @@ function [train_filenames, ...
     begin_train_images = 1; %% 1;  
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist(train_dir) || isempty(train_dir)
+  if nargin < num_argin || ~exist("train_dir") || isempty(train_dir)
     train_dir = "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
-  list_dir = ["list_", train_dir];  %% 
+    list_dir = ["list_", train_dir, num2str(2)];  %% 
   endif
   %% 0 -> FIFO ordering, %%
   %% 1 -> random sampling, 
