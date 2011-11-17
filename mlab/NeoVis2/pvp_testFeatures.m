@@ -72,7 +72,7 @@ function [hit_list, miss_list] = pvp_testFeatures(pvp_activity) % gjk 11/15/11
 
    for i_num_hits=1:max_class_vector
 
-     if (feature_scores(i_num_hits) > 0.1) &&       (feature_scores(i_num_hits) < 0.75) && 	   (pvp_centroids(i_num_hits,3) > 0.1)  % threshold for feature distribution
+     if (feature_scores(i_num_hits) > 0.1) &&       (feature_scores(i_num_hits) < 1.1) && 	   (pvp_centroids(i_num_hits,3) > 0.0)  % threshold for feature distribution
      
                  
       cluster_col_min = fix(pvp_centroids(i_num_hits,1)-pvp_patch_size(2)/2); 
