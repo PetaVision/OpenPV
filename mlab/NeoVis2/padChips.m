@@ -52,11 +52,11 @@ function [tot_chips, ...
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["/mnt/data1/repo/neovision-data-challenge-heli/"]; 
+    chip_path = ["/mnt/data1/repo/neovision-data-training-heli/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-  object_name = "040"; %% "Plane"; %% "distractor"; %% "Car"; %% 
+  object_name = "051"; %% "Plane"; %% "distractor"; %% "Car"; %% 
 %% "Person"; 
 %% "Cyclist"; 
 %% "Plane"; 
@@ -67,11 +67,11 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
-    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/";  %% 
+    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/";  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_flag") || isempty(DoG_flag)
-    DoG_flag = 1;  %% 
+    DoG_flag = 0;  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_struct") || isempty(DoG_struct)

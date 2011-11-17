@@ -54,7 +54,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "039";
+    clip_name = "026";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
@@ -148,7 +148,7 @@ function [num_frames, ...
   mkdir(ODD_clip_dir);
   ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, "canny", filesep];
+  ODD_subdir = [ODD_dir, "canny2", filesep];
   mkdir(ODD_subdir);
   
   ROC_path = [program_path, "ROC", filesep]; 
@@ -157,7 +157,7 @@ function [num_frames, ...
   mkdir(ROC_clip_dir);
   ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, "canny", filesep];
+  ROC_subdir = [ROC_dir, "canny2", filesep];
   mkdir(ROC_subdir);
 
   global pvp_density_thresh
@@ -381,7 +381,7 @@ endif
       [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-    [pvp_results_subdir0, "canny", filesep];
+    [pvp_results_subdir0, "canny2", filesep];
   mkdir(pvp_results_subdir);
   frames_per_CSV_file = 150000;
   num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);

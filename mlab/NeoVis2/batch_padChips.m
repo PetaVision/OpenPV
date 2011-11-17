@@ -1,10 +1,11 @@
 %%object_name = {"031"; "032"; "033"; "034"; "035"; "036"; "037"; "038"; "039"; "040"; "041"; "042"; "043"; "044"; "045"; "046"; "047"; "048"; "049"; "050"};
 
-object_name = cell(length(26:50),1);
-for i_object = 1 : (length(object_name)-1)
-		 object_name{i_object} = num2str(i_object+25, "%3.3i");		 
-endfor
-object_name{length(object_name)} = num2str(length(object_name)+25, "%3.3i");		 
+object_ids = [26:50]; %% [7:17,21:22,30:31]; %%                                                                                                                  object_name = cell(length(object_ids),1);                                                                                                                       
+for i_object = 1 : (length(object_name)-1)                                                                                                                      
+                 object_name{i_object} = num2str(object_ids(i_object), "%3.3i");                                                                                
+endfor                                                                                                                                                          
+object_name{length(object_name)} = num2str(object_ids(length(object_name)), "%3.3i");                                                                           
+
 
 for i_object = 1 : 0 %%length(object_name)
 padChips([], ...

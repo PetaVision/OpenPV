@@ -1,7 +1,14 @@
 %object_name = {"031"; "032"; "033"; "034"; "035"; "036"; "037"; "038"; "039"; "040"; "041"; "042"; "043"; "044"; "045"; "046"; "047"; "048"; "049"; "050"};
-object_name = num2str(25:50, "%3.3i");
+
+object_ids = [26:50]; %% [7:17,21:22,30:31]; %%                                                                                                                  object_name = cell(length(object_ids),1);                                                                                                                       
+for i_object = 1 : (length(object_name)-1)                                                                                                                      
+                 object_name{i_object} = num2str(object_ids(i_object), "%3.3i");                                                                                
+endfor                                                                                                                                                          
+object_name{length(object_name)} = num2str(object_ids(length(object_name)), "%3.3i");                                                                           
+
+
 for i_object = 1 : length(object_name)
-display(object_name{i_object});
+disp(object_name{i_object});
 pvp_makeCSVFile([], ...
 		[], ...
 		[], ...
@@ -17,10 +24,14 @@ pvp_makeCSVFile([], ...
 		[], ...
 		[]);
 csv_file = ...
-  ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/results/", object_name{i_object}, "/Car3/canny/", "Heli_", object_name{i_object}, "_PetaVision_", "Car", "_000", ".txt"];
+  ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/results/", object_name{i_object}, "/Car3/canny/", "Heli_", object_name{i_object}, "_PetaVision_", "Car", "_000", ".csv"]
+
 csv_repo = ...
-  ["/mnt/data1/repo/neovision-results-challenge-heli/", object_name{i_object}, filesep];
-copyfile(csv_file, csv_repo);
+  ["/mnt/data1/repo/neovision-results-challenge-heli/", object_name{i_object}, filesep]
+mkdir(csv_repo);
+
+copyfile(csv_file, csv_repo)
+
 endfor
 
 
