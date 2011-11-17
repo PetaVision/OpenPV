@@ -8,13 +8,14 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
 
   CSV_struct = struct;
   if isempty(pvp_activity)
+    CSV_struct.num_active = 0;
     return;
   endif
+  CSV_struct.num_active = nnz(pvp_activity);
 
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
   CSV_struct.Frame = CSV_struct.frame_filename(1:strfind(CSV_struct.frame_filename, ".png")-1);
   CSV_struct.pvp_time = pvp_time;
-  CSV_struct.num_active = nnz(pvp_activity);
   CSV_struct.mean_activity = mean(pvp_activity(:));
   CSV_struct.sum_activity = sum(pvp_activity(:));
   

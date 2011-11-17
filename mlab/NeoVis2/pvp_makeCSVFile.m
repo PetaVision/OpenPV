@@ -148,7 +148,7 @@ function [num_frames, ...
   mkdir(ODD_clip_dir);
   ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, "canny2", filesep];
+  ODD_subdir = [ODD_dir, "canny", filesep];
   mkdir(ODD_subdir);
   
   ROC_path = [program_path, "ROC", filesep]; 
@@ -157,7 +157,7 @@ function [num_frames, ...
   mkdir(ROC_clip_dir);
   ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, "canny2", filesep];
+  ROC_subdir = [ROC_dir, "canny", filesep];
   mkdir(ROC_subdir);
 
   global pvp_density_thresh
@@ -381,7 +381,7 @@ endif
       [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-    [pvp_results_subdir0, "canny2", filesep];
+    [pvp_results_subdir0, "canny", filesep];
   mkdir(pvp_results_subdir);
   frames_per_CSV_file = 150000;
   num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);
@@ -408,6 +408,7 @@ endif
       %%CSV_struct{i_frame}.Frame = pvp_frame_offset + pvp_frame_skip*(i_frame-1) - 1;
       %%CSV_struct{i_frame}.Frame = i_frame - 1;
       if isempty(CSV_struct{i_frame}) continue; endif
+      if CSV_struct{i_frame}.num_active == 0 continue; endif;
       disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
