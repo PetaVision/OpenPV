@@ -21,7 +21,7 @@ function [hit_list, miss_list] = pvp_testClusters(pvp_activity) % gjk 11/11/11
 
    pvp_activity1D= zeros(nactive,2);
    [pvp_activity1D(:,2),pvp_activity1D(:,1)]=find(pvp_activity2D);
-   [class_vector,type_vector] = dbscan(pvp_activity1D,10,[]);
+   [class_vector,type_vector] = dbscan(pvp_activity1D,10,100);
       
    max_class_vector = max(class_vector);
    if max_class_vector < 1 return; endif

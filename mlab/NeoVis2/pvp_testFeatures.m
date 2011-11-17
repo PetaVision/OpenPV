@@ -35,7 +35,7 @@ function [hit_list, miss_list] = pvp_testFeatures(pvp_activity) % gjk 11/15/11
     if class_vector(i) > 0
      pvp_centroids(class_vector(i),1)=pvp_centroids(class_vector(i),1)+pvp_activity1D(i,1);  %% add x
      pvp_centroids(class_vector(i),2)=pvp_centroids(class_vector(i),2)+pvp_activity1D(i,2);  %% add y
-     pvp_centroids(class_vector(i),3)=pvp_centroids(class_vector(i),3)+1; \
+     pvp_centroids(class_vector(i),3)=pvp_centroids(class_vector(i),3)+1; 
 	 %% increment for later mean
      pvp_features(class_vector(i),1)=pvp_features(class_vector(i),1)+pvp_activity3D(pvp_activity1D(i,2),pvp_activity1D(i,1),1);
      pvp_features(class_vector(i),2)=pvp_features(class_vector(i),2)+pvp_activity3D(pvp_activity1D(i,2),pvp_activity1D(i,1),2);
@@ -72,7 +72,7 @@ function [hit_list, miss_list] = pvp_testFeatures(pvp_activity) % gjk 11/15/11
 
    for i_num_hits=1:max_class_vector
 
-     if (feature_scores(i_num_hits) > 0.1) &&       (feature_scores(i_num_hits) < 1.1) && 	   (pvp_centroids(i_num_hits,3) > 0.0)  % threshold for feature distribution
+     %%if (feature_scores(i_num_hits) > 0.0) &&       (feature_scores(i_num_hits) < 1.1) && 	   (pvp_centroids(i_num_hits,3) > 0.0)  % threshold for feature distribution
      
                  
       cluster_col_min = fix(pvp_centroids(i_num_hits,1)-pvp_patch_size(2)/2); 
@@ -110,7 +110,7 @@ function [hit_list, miss_list] = pvp_testFeatures(pvp_activity) % gjk 11/15/11
 	hit_list{num_hits}.BoundingBox_Y3 = cluster_row_max;
 	hit_list{num_hits}.BoundingBox_X4 = cluster_col_min;
 	hit_list{num_hits}.BoundingBox_Y4 = cluster_row_max;
-        endif % of feature threshold
+        %%endif % of feature threshold
       % TODO miss list
     endfor% max_class_vector loop that contains all the clusters
     
