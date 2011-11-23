@@ -82,7 +82,7 @@ function [pvp_num_active_BB_mask, ...
 
   endfor
   for i_BB = 1 : num_BBs
-    pvp_hit_list{i_BB}.Confidence = pvp_hit_list{i_BB}.Confidence / max_confidence;
+	       pvp_hit_list{i_BB}.Confidence = pvp_hit_list{i_BB}.Confidence / (max_confidence +(max_confidence==0));
   endfor
   pvp_num_active_BB_mask = nnz(pvp_activity2D .* (BB_mask==1));
   pvp_num_active_BB_notmask = nnz(pvp_activity2D .* (BB_mask==0));

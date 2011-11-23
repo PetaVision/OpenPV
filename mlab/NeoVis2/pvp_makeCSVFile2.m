@@ -110,7 +110,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
-    pvp_path = [program_path, "activity", filesep, clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny", filesep];
+    pvp_path = [program_path, "activity", filesep, clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny2", filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -148,7 +148,7 @@ function [num_frames, ...
   mkdir(ODD_clip_dir);
   ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, "canny", filesep];
+  ODD_subdir = [ODD_dir, "canny2", filesep];
   mkdir(ODD_subdir);
   
   ROC_path = [program_path, "ROC", filesep]; 
@@ -157,7 +157,7 @@ function [num_frames, ...
   mkdir(ROC_clip_dir);
   ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, "canny", filesep];
+  ROC_subdir = [ROC_dir, "canny2", filesep];
   mkdir(ROC_subdir);
 
   pvp_results_path = [program_path, "results", filesep];
@@ -168,7 +168,7 @@ function [num_frames, ...
       [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-    [pvp_results_subdir0, "canny", filesep];
+    [pvp_results_subdir0, "canny2", filesep];
   mkdir(pvp_results_subdir);
 
   global pvp_density_thresh
@@ -415,7 +415,7 @@ function [num_frames, ...
   for i_CSV_file = 1 : num_CSV_files
     pvp_results_filename = ...
 	[NEOVISION_DATASET_ID, "_", clip_name,...
-	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+1, "%3.3i"), ".csv"];
+	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+2, "%3.3i"), ".csv"];
     pvp_results_pathname = [pvp_results_subdir, pvp_results_filename];
     pvp_results_fid = fopen(pvp_results_pathname, "w");
     fputs(pvp_results_fid, true_CSV_header);
