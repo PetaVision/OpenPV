@@ -53,10 +53,10 @@ Retina "Retina" = {
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
     burstFreq = 1;
-    burstDuration = 655;
+    burstDuration = 648;
 
     beginStim = 1;
-    endStim = 655;
+    endStim = 648;
 };
 
 
@@ -67,7 +67,7 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -86,7 +86,7 @@ CliqueLayer "L1 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -107,7 +107,7 @@ CliqueLayer "L2 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
