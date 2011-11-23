@@ -41,7 +41,7 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    PVLayerLoc * loc = &clayer->loc;
    movieOutputPath = NULL;
 
-   if( getParent()->icCommunicator()->commRank==0 ) {
+   if( getParent()->icCommunicator()->commRank()==0 ) {
       fp = fopen(fileOfFileNames, "r");
       if( fp == NULL ) {
          fprintf(stderr, "Unable to open %s\n", fileOfFileNames);
