@@ -41,11 +41,13 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    PVLayerLoc * loc = &clayer->loc;
    movieOutputPath = NULL;
 
-   fp = fopen(fileOfFileNames, "r");
-   if( fp == NULL ) {
-      fprintf(stderr, "Unable to open %s\n", fileOfFileNames);
-      fprintf(stderr, "Error code %d\n", errno);
-      exit(EXIT_FAILURE);
+   if( getParent()->icCommunicator()->commRank==0 ) {
+      fp = fopen(fileOfFileNames, "r");
+      if( fp == NULL ) {
+         fprintf(stderr, "Unable to open %s\n", fileOfFileNames);
+         fprintf(stderr, "Error code %d\n", errno);
+         exit(EXIT_FAILURE);
+      }
    }
 
    filename = strdup(getNextFileName());
@@ -322,31 +324,34 @@ int Movie::randomFrame()
 
 const char * Movie::getNextFileName()
 {
-   int c;
-   size_t len = PV_PATH_MAX;
    char * path;
+   InterColComm * icComm = getParent()->icCommunicator();
+   if( icComm->commRank()==0 ) {
+      int c;
+      size_t len = PV_PATH_MAX;
 
-   // if at end of file (EOF), rewind
+      // if at end of file (EOF), rewind
 
-   if ((c = fgetc(fp)) == EOF) {
-      rewind(fp);
-   }
-   else {
-      ungetc(c, fp);
-   }
+      if ((c = fgetc(fp)) == EOF) {
+         rewind(fp);
+      }
+      else {
+         ungetc(c, fp);
+      }
 
-   path = fgets(this->inputfile, len, fp);
+      path = fgets(this->inputfile, len, fp);
 
-   if (path != NULL) {
-      path[PV_PATH_MAX-1] = '\0';
-      len = strlen(path);
-      if (len > 1) {
-         if (path[len-1] == '\n') {
-             path[len-1] = '\0';
+      if (path != NULL) {
+         path[PV_PATH_MAX-1] = '\0';
+         len = strlen(path);
+         if (len > 1) {
+            if (path[len-1] == '\n') {
+               path[len-1] = '\0';
+            }
          }
       }
    }
-
+   MPI_Bcast(inputfile, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
    return path;
 }
 
