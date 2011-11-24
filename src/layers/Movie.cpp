@@ -324,7 +324,6 @@ int Movie::randomFrame()
 
 const char * Movie::getNextFileName()
 {
-   char * path;
    InterColComm * icComm = getParent()->icCommunicator();
    if( icComm->commRank()==0 ) {
       int c;
@@ -339,7 +338,7 @@ const char * Movie::getNextFileName()
          ungetc(c, fp);
       }
 
-      path = fgets(this->inputfile, len, fp);
+      char * path = fgets(inputfile, len, fp);
 
       if (path != NULL) {
          path[PV_PATH_MAX-1] = '\0';
@@ -352,7 +351,7 @@ const char * Movie::getNextFileName()
       }
    }
    MPI_Bcast(inputfile, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
-   return path;
+   return inputfile;
 }
 
 
