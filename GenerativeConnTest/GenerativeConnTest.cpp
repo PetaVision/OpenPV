@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
    int num_cl_args;
    char ** cl_args;
@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
    }
 #ifdef PV_USE_MPI
    MPI_Finalize();
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    return status;
 }
 
