@@ -160,12 +160,12 @@ Movie::~Movie()
       delete imageData;
       imageData = NULL;
    }
-   if (fp != NULL && fp != stdout) {
+   if (getParent()->icCommunicator()->commRank()==0 && fp != NULL && fp != stdout) {
       fclose(fp);
    }
 
    if(writePosition){
-      if (fp_pos != NULL && fp_pos != stdout) {
+      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos != stdout) {
             fclose(fp_pos);
          }
    }
