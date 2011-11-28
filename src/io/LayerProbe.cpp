@@ -20,7 +20,7 @@ LayerProbe::LayerProbe()
  */
 LayerProbe::LayerProbe(const char * filename, HyPerCol * hc)
 {
-   if( filename != NULL ) {
+   if( hc->icCommunicator()->commRank()==0 && filename != NULL ) {
       char * outputdir = hc->getOutputPath();
       char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
       sprintf(path, "%s/%s", outputdir, filename);
