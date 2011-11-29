@@ -785,7 +785,129 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
    return buf;
 }
 
-int HyPerLayer::checkpointRead() {
+int HyPerLayer::checkpointRead(float * timef) {
+   char * filename = NULL;
+   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   InterColComm * icComm = parent->icCommunicator();
+   double timed;
+   assert(filename != NULL);
+   sprintf(filename, "%s_A.pvp", name);
+   readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
+   *timef = (float) timed;
+   // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
+   if( getV() != NULL ) {
+      sprintf(filename, "%s_V.pvp", name);
+      readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false);
+      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning: %s_V.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+      }
+   }
+   sprintf(filename, "%s_Delays.pvp", name);
+   readDataStoreFromFile(filename, icComm, &timed);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s_Delays.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+   }
+
+   if( getNumChannels() > 0 ) {
+      sprintf(filename, "%s_GSyn.pvp", name);
+      readBufferFile(filename, icComm, &timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
+      // assumes GSyn[0], GSyn[1],... are sequential in memory
+      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning: %s_V.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+      }
+   }
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+   int status;
+   int params[NUM_BIN_PARAMS];
+   readHeader(filename, comm, timed, params);
+   int buffersize;
+   if(extended) {
+      buffersize = (getLayerLoc()->nx+2*getLayerLoc()->nb)*(getLayerLoc()->ny+2*getLayerLoc()->nb)*getLayerLoc()->nf;
+   }
+   else {
+      buffersize = getLayerLoc()->nx*getLayerLoc()->ny*getLayerLoc()->nf;
+   }
+   for( int band=0; band<numbands; band++ ) {
+      int status1;
+      status1 = readNonspikingActFile(filename, comm, timed, buffer+band*buffersize,
+                            band, getLayerLoc(), params[INDEX_DATA_TYPE], extended, contiguous);
+      if( status1 != PV_SUCCESS ) {
+         status = PV_FAILURE;
+      }
+   }
+
+   return status;
+}
+
+int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
+   assert(timeptr != NULL);
+   int params[NUM_BIN_PARAMS];
+   readHeader(filename, comm, timeptr, params);
+   assert(params[INDEX_NBANDS] == comm->publisherStore(getCLayer()->layerId)->numberOfLevels());
+   assert(params[INDEX_NBANDS] == getCLayer()->numDelayLevels);
+
+   bool contiguous;
+   if( params[INDEX_NUM_RECORDS] == comm->numCommColumns()*comm->numCommRows() ) {
+      contiguous = false;
+   }
+   else if( params[INDEX_NUM_RECORDS] == 1 ) {
+      contiguous = true;
+   }
+   else assert(false);
+   if( contiguous ) {
+      assert(params[INDEX_NX] == getLayerLoc()->nxGlobal);
+      assert(params[INDEX_NY] == getLayerLoc()->nyGlobal);
+      assert(params[INDEX_RECORD_SIZE] == getNumGlobalNeurons());
+      assert(params[INDEX_NX_PROCS] == 1);
+      assert(params[INDEX_NY_PROCS] == 1);
+   }
+   else {
+      assert(params[INDEX_NUM_RECORDS] == comm->numCommColumns()*comm->numCommRows());
+      assert(params[INDEX_NX] == getLayerLoc()->nx);
+      assert(params[INDEX_NY] == getLayerLoc()->ny);
+      assert(params[INDEX_RECORD_SIZE] == getNumNeurons());
+      assert(params[INDEX_NX_PROCS] == comm->numCommColumns());
+      assert(params[INDEX_NY_PROCS] == comm->numCommRows());
+   }
+   assert(contiguous==false); // TODO contiguous==true case
+
+   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
+   bool extended = true;
+   int status = PV_SUCCESS;
+   for( int level=0; level<getCLayer()->numDelayLevels; level++ ) {
+      pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, level);
+      double dummytime;
+      int status1;
+      status1 = readNonspikingActFile(filename, comm, &dummytime, buffer, level,
+                     getLayerLoc(), params[INDEX_DATA_TYPE], extended, contiguous);
+      if( status1 != PV_SUCCESS ) status = PV_FAILURE;
+      status1 = comm->exchangeBorders(getCLayer()->layerId, getLayerLoc(), level);
+   }
+   assert( status == PV_SUCCESS);
+   return status;
+}
+
+int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params) {
+   int filetype, datatype;
+   int numParams = NUM_BIN_PARAMS;
+   pvp_read_header(filename, comm, timed,
+                       &filetype, &datatype, params, &numParams);
+
+   // Sanity checks
+   assert(numParams == NUM_BIN_PARAMS);
+   assert(params[INDEX_HEADER_SIZE] == NUM_BIN_PARAMS*sizeof(pvdata_t));
+   assert(params[INDEX_NUM_PARAMS] == NUM_BIN_PARAMS);
+   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE); // TODO allow params[INDEX_FILE_TYPE] == PVP_ACT_FILE_TYPE
+   assert(params[INDEX_NF] == getLayerLoc()->nf);
+   assert(params[INDEX_DATA_SIZE] == sizeof(pvdata_t));
+   assert(params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE);
+   assert(params[INDEX_KX0] == 0);
+   assert(params[INDEX_KY0] == 0);
+   assert(params[INDEX_NB] == getLayerLoc()->nb);
    return PV_SUCCESS;
 }
 
@@ -805,20 +927,11 @@ int HyPerLayer::checkpointWrite() {
       writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false);
    }
    sprintf(filename, "%s_Delays.pvp", name);
-   writeDataStore(filename, icComm, timed);
-
-
-//   getLayerData();
-//   int numLevels = clayer->numDelayLevels;
-//   int curLevel = icComm->publisherStore(getLayerId())->levelIndex(0);
-//   int baseLevel = (curLevel+1)%clayer->numDelayLevels;
-//   pvdata_t * datastore = (pvdata_t *) icComm->publisherStore(getLayerId())->buffer(0,numLevels-curLevel);
-//   writeBufferFile(filename, icComm, (double) parent->simulationTime(), datastore, clayer->numDelayLevels, baseLevel, /*extended*/true, /*contiguous*/false);
-
+   writeDataStoreToFile(filename, icComm, timed);
 
    if( getNumChannels() > 0 ) {
       sprintf(filename, "%s_GSyn.pvp", name);
-      writeBufferFile(filename, icComm, (double) parent->simulationTime(), GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
+      writeBufferFile(filename, icComm, timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
       // assumes GSyn[0], GSyn[1],... are sequential in memory
    }
    free(filename);
@@ -869,7 +982,7 @@ int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata
    return status;
 }
 
-int HyPerLayer::writeDataStore(const char * filename, InterColComm * comm, double timed) {
+int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
    bool extended = true;
    bool contiguous = false;
    int filetype = PVP_NONSPIKING_ACT_FILE_TYPE;

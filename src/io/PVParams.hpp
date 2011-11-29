@@ -26,6 +26,7 @@ public:
    const char * name()      { return paramName; }
    double value()           { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()       { return hasBeenReadFlag; }
+   int outputParam(FILE * fp, int indentation);
 
 private:
    char * paramName;
@@ -41,6 +42,7 @@ public:
    const char * getName()      { return paramName; }
    const char * getValue()     { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()          { return hasBeenReadFlag; }
+   int outputString(FILE * fp, int indentation);
 
 private:
    char * paramName;
@@ -57,6 +59,7 @@ public:
    Parameter * pop();
    Parameter * peek(int index)   { return parameters[index]; }
    int size()                    { return count; }
+   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -74,6 +77,7 @@ public:
    ParameterString * peek(int index)    { return index>=0 && index<count ? parameterStrings[index] : NULL; }
    int size()                           { return count; }
    const char * lookup(const char * targetname);
+   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -95,6 +99,7 @@ public:
    int   stringPresent(const char * stringName);
    const char * stringValue(const char * stringName);
    int warnUnread();
+   int outputGroup(FILE * fp);
 
 private:
    char * groupName;
@@ -153,6 +158,7 @@ public:
    const char * groupKeywordFromIndex(int index);
    const char * getFilename(const char * id);
    int warnUnread();
+   int outputParams(FILE *);
 
    void action_pvparams_directive(char * id, double val);
    void action_parameter_group(char * keyword, char * name);

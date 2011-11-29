@@ -26,8 +26,6 @@ class InitGauss2DWeightsParams;
 class InitWeights {
 public:
    InitWeights();
-//   InitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel);
    virtual ~InitWeights();
 
    /*
@@ -37,13 +35,13 @@ public:
     * This method is purposely not virtual!  Only calcweights will be virtual and can be over ridden by sub
     * initweights classes
     */
-   PVPatch ** initializeWeights(PVPatch ** patches, int arborId, int numPatches, const char * filename, HyPerConn * callingConn);
+   PVPatch *** initializeWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
    virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
-   virtual int readWeights(PVPatch ** patches, int numPatches,
-                                     const char * filename, HyPerConn * callingConn);
+   virtual int readWeights(PVPatch *** patches, int numPatches,
+                           const char * filename, HyPerConn * callingConn, float * time=NULL);
 
    //get-set methods:
 //   inline const char * getName()                     {return name;}

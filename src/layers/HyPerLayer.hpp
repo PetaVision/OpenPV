@@ -35,10 +35,13 @@ protected:
 
    virtual int initializeLayerId(int layerId);
    virtual int initializeV(bool restart_flag);
+   int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
+   int readHeader(const char * filename, InterColComm * comm, double * timed, int * params);
    int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int incrementNBands(int * numCalls);
-   int writeDataStore(const char * filename, InterColComm * comm, double dtime);
+   int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -90,7 +93,7 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
-   virtual int checkpointRead();
+   virtual int checkpointRead(float * timef);
    virtual int checkpointWrite();
 
    virtual int readState (float * time);

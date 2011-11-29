@@ -200,6 +200,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    }
    ensureDirExists(outputPath);
 
+   const char * printParamsFilename = params->stringValue(name, "printParamsFilename", false);
+   if( printParamsFilename != NULL ) {
+      outputParams(printParamsFilename);
+   }
+
    // run only on CPU for now
    initializeThreads(opencl_device);
 
@@ -551,6 +556,7 @@ int HyPerCol::run(int nTimeSteps)
 #endif
 
    if( checkpointReadFlag ) {
+      cpWriteDirIndex = cpReadDirIndex+1;
       checkpointRead();
    }  // checkpointRead() needs to be called before publish since it saves the restricted part of activity
 
@@ -747,11 +753,29 @@ int HyPerCol::checkpointRead() {
    }
    sprintf(cpDir, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
    chdir(cpDir);
+   size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
+   unsigned char * buf = (unsigned char *) malloc(bufsize);
+   assert(buf);
+   if( icCommunicator()->commRank()==0 ) {
+      FILE * timestampfile = fopen("timeinfo.bin","r");
+      assert(timestampfile);
+      fread(buf,1,bufsize,timestampfile);
+   }
+   MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
+   float * fbuf = (float *) (buf);
+   int * ibuf = (int *) (buf+2*sizeof(float));
+   simTime = fbuf[0];
+   nextCPWriteTime = fbuf[1];
+   currentStep = ibuf[0];
+   nextCPWriteStep = ibuf[1];
+   float checkTime;
    for( int l=0; l<numLayers; l++ ) {
-      layers[l]->checkpointRead();
+      layers[l]->checkpointRead(&checkTime);
+      assert(checkTime==simTime);
    }
    for( int c=0; c<numConnections; c++ ) {
-      connections[c]->checkpointRead();
+      connections[c]->checkpointRead(&checkTime);
+      assert(checkTime==simTime);
    }
    chdir(path);
    return PV_SUCCESS;
@@ -784,8 +808,55 @@ int HyPerCol::checkpointWrite() {
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointWrite();
    }
+   if( icCommunicator()->commRank()==0 ) {
+      FILE * timestampfile = fopen("timeinfo.bin","w");
+      size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
+      unsigned char * buf = (unsigned char *) malloc(bufsize);
+      assert(buf && timestampfile);
+      int * ibuf;
+      float * fbuf;
+      fbuf = (float *) (buf);
+      fbuf[0] = simTime;
+      fbuf[1] = nextCPWriteTime;
+      ibuf = (int *) (buf+2*sizeof(float));
+      ibuf[0] = currentStep;
+      ibuf[1] = nextCPWriteStep;
+      fwrite(buf,1,bufsize,timestampfile);
+      free(buf);
+      fclose(timestampfile);
+   }
    chdir(path);
    return PV_SUCCESS;
+}
+
+int HyPerCol::outputParams(const char * filename) {
+   int status = PV_SUCCESS;
+#ifdef PV_USE_MPI
+   int rank=icComm->commRank();
+#else
+   int rank=0;
+#endif
+   if( rank==0 && filename != NULL && filename[0] != '\0' ) {
+      char printParamsPath[PV_PATH_MAX];
+      int len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
+      if( len < PV_PATH_MAX ) {
+         FILE * fp = fopen(printParamsPath, "w");
+         if( fp != NULL ) {
+            status = params->outputParams(fp);
+            if( status != PV_SUCCESS ) {
+               fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", filename);
+            }
+         }
+         else {
+            status = errno;
+            fprintf(stderr, "outputParams: Unable to open \"%s\" for writing.  Error %d\n", filename, errno);
+         }
+      }
+      else {
+         fprintf(stderr, "outputParams: outputPath + printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
+      }
+   }
+   return status;
 }
 
 int HyPerCol::exitRunLoop(bool exitOnFinish)

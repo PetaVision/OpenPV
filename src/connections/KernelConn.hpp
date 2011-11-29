@@ -61,6 +61,8 @@ public:
    inline void setKernelPatches(PVPatch** newKernelPatch, int axonId) {kernelPatches[axonId]=newKernelPatch;}
    inline void setKernelPatch(PVPatch* newKernelPatch, int axonId, int kernelIndex) {kernelPatches[axonId][kernelIndex]=newKernelPatch;}
    virtual int writeWeights(float time, bool last=false);
+   virtual int writeWeights(const char * filename);
+   // virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
    inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
    inline const pvdata_t * get_dKernelData(int axonId, int kernelIndex) {if( dKernelPatches && axonId>=0 && axonId<numAxonalArborLists && kernelIndex>=0 && kernelIndex<numDataPatches()) { return dKernelPatches[axonId][kernelIndex]->data;} else return NULL;}
 
@@ -72,6 +74,9 @@ public:
    float getLastUpdateTime() {return lastUpdateTime;}
 
    virtual int correctPIndex(int patchIndex);
+
+   virtual int checkpointWrite();
+   virtual int checkpointRead(float *timef);
 
 protected:
 //   bool plasticityFlag;

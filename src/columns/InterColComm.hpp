@@ -30,11 +30,11 @@ public:
    Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels);
    virtual ~Publisher();
    int readData(int delay);
-   int publish(HyPerLayer * pub,
-               int neighbors[], int numNeighbors,
-               int borders[], int numBorders, PVLayerCube * data);
+   int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
+               int borders[], int numBorders, PVLayerCube * data, int delay=0);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int numNeighbors, int numBorders);
+   int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait(int numRemote);
 
    static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
@@ -74,6 +74,7 @@ public:
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int pubId);
+   int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
    int wait(int pubId);
 
    int increaseTimeLevel(int pubId)        {return publishers[pubId]->increaseTimeLevel();}

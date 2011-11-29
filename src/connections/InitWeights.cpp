@@ -26,86 +26,55 @@ InitWeights::InitWeights()
    initialize_base();
 }
 
-//InitWeights::InitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//      ChannelType channel)
-//{
-//   initialize_base();
-//   initialize(name, hc, pre, post, channel);
-//}
-
 InitWeights::~InitWeights()
 {
    // TODO Auto-generated destructor stub
 }
 
-
 /*This method does the three steps involved in initializing weights.  Subclasses shouldn't touch this method.
  * Subclasses should only generate their own versions of calcWeights to do their own type of weight initialization.
  *
- * This method first calls XXX to create an unshrunk patch.  Then it calls calcWeights to initialize
- * the weights for that unshrunk patch.  Finally it copies the weights back to the original, possibly shrunk patch.
+ * This method first calls XXX to create an unshrunken patch.  Then it calls calcWeights to initialize
+ * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
-PVPatch ** InitWeights::initializeWeights(PVPatch ** patches, int arborId, int numPatches, const char * filename, HyPerConn * callingConn) {
-
-   //parentConn = callingConn;
+PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
-
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
-
    InitWeightsParams *weightParams = NULL;
-
-   if (initFromLastFlag) {
+   int numArbors = callingConn->numberOfAxonalArborLists();
+   if( initFromLastFlag ) {
       char nametmp[PV_PATH_MAX];
-
-      if(callingConn->numberOfAxonalArborLists()>1){
-         snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_a%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId(), arborId);
-      }
-      else{
-         snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
-      }
+      snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
       readWeights(patches, numPatches, nametmp, callingConn);
-      //weightInitializer->initializeWeights(arbors[arborId], numPatches, nametmp, this);
    }
    else if( filename != NULL ) {
-      //!!!TODO!!! check status
-      // !!!TODO!!! since each arbor is written to it's own file, need to add method for automatically generating filename for each arbor from base name
-      char nametmp[PV_PATH_MAX];
-      if(callingConn->numberOfAxonalArborLists()>1){  // assume filename is a base name that requires addition of "_a*" to specify arbor
-         snprintf(nametmp, PV_PATH_MAX-1, "%s_a%1.1d_last.pvp", filename, arborId);
-         readWeights(patches, numPatches, nametmp, callingConn);
-      }
-      else{
-         readWeights(patches, numPatches, filename, callingConn);
-      }
+      readWeights(patches, numPatches, filename, callingConn, timef);
    }
    else {
       weightParams = createNewWeightParams(callingConn);
-      //allocate unshrunk patch method
-      for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+      for( int arbor=0; arbor<numArbors; arbor++ ) {
+         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
 
-         int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
-         //int correctedPatchIndex = patchIndex;
-         //create full sized patch:
-         PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[patchIndex]);
-         if(wp_tmp==NULL) continue;
+            int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
+            //int correctedPatchIndex = patchIndex;
+            //create full sized patch:
+            PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[arbor][patchIndex]);
+            if(wp_tmp==NULL) continue;
 
-         //calc weights for patch:
-         int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arborId, weightParams);
-         if (successFlag != PV_SUCCESS) {
-            fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
-            exit(PV_FAILURE);
+            //calc weights for patch:
+            int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arbor, weightParams);
+            if (successFlag != PV_SUCCESS) {
+               fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
+               exit(PV_FAILURE);
+            }
+
+            //copy back to unshrunk patch:
+            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
          }
-
-         //copy back to unshrunk patch:
-         copyToOriginalPatch(patches[patchIndex], wp_tmp);
-
       }
-
       delete(weightParams);
    }
-
    return patches;
-
 }
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {
@@ -138,37 +107,70 @@ int InitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-//int InitWeights::initialize(const char * name, HyPerCol * hc,
-//               HyPerLayer * pre, HyPerLayer * post,
-//               ChannelType channel) {
-//   int status = PV_SUCCESS;
-//
-//   this->parent = hc;
-//   this->pre = pre;
-//   this->post = post;
-//   this->channel = channel;
-//
-//   this->name = strdup(name);
-//
-//   return status;
-//
-//}
-//
-int InitWeights::readWeights(PVPatch ** patches, int numPatches, const char * filename, HyPerConn * callingConn)
-{
-   HyPerCol *parent = callingConn->getParent();
-   HyPerLayer *pre = callingConn->getPre();
-   double time;
-   int status = PV::readWeights(patches, numPatches, filename, parent->icCommunicator(),
-                                &time, pre->getLayerLoc(), true);
+int InitWeights::readWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * conn, float * timef/*default=NULL*/) {
+   InterColComm *icComm = conn->getParent()->icCommunicator();
+   int numArbors = conn->numberOfAxonalArborLists();
+   const PVLayerLoc *preLoc = conn->preSynapticLayer()->getLayerLoc();
+   double timed;
+   bool useListOfArborFiles = numArbors>1 &&
+                              conn->getParent()->parameters()->value(conn->getName(), "useListOfArborFiles", false)!=0;
+   if( useListOfArborFiles ) {
+      int arbor=0;
+      FILE * arborfp = pvp_open_read_file(filename, icComm);
 
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
-      exit(1);
+      int rootproc = 0;
+      char arborfilename[PV_PATH_MAX];
+      while( arbor < conn->numberOfAxonalArborLists() ) {
+         if( icComm->commRank() == rootproc ) {
+            char * fgetsstatus = fgets(arborfilename, PV_PATH_MAX, arborfp);
+            if( fgetsstatus == NULL ) {
+               bool endoffile = feof(arborfp)!=0;
+               if( endoffile ) {
+                  fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d arbors were read.  Exiting.\n", filename, numArbors);
+                  exit(EXIT_FAILURE);
+               }
+               else {
+                  int error = ferror(arborfp);
+                  assert(error);
+                  fprintf(stderr, "File of arbor files: error %d while reading.  Exiting.\n", error);
+                  exit(error);
+               }
+            }
+            else {
+               // Remove linefeed from end of string
+               arborfilename[PV_PATH_MAX-1] = '\0';
+               int len = strlen(arborfilename);
+               if (len > 1) {
+                  if (arborfilename[len-1] == '\n') {
+                     arborfilename[len-1] = '\0';
+                  }
+               }
+            }
+         }
+         int filetype, datatype;
+         int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
+         int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
+         pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
+         int thisfilearbors = params[INDEX_NBANDS];
+         int status = PV::readWeights(&patches[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
+         if (status != PV_SUCCESS) {
+            fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
+            exit(EXIT_FAILURE);
+         }
+         arbor += thisfilearbors;
+      }
    }
-
+   else {
+      int status = PV::readWeights(patches, numArbors, numPatches, filename, icComm, &timed, preLoc);
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
+         exit(EXIT_FAILURE);
+      }
+      if( timef != NULL ) *timef = (float) timed;
+   }
    return PV_SUCCESS;
 }
+
 
 /*
  * Create a full sized patch for a potentially shrunken patch. This full sized patch will be used for initializing weights and will later be copied back to

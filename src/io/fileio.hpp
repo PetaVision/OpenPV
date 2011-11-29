@@ -21,6 +21,8 @@ namespace PV {
 
 size_t pv_sizeof(int datatype);
 
+FILE * pvp_open_read_file(const char * filename, Communicator * comm);
+
 FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
 
 int pvp_close_file(FILE * fp, Communicator * comm);
@@ -31,6 +33,8 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
                      int filetype, int datatype, int numbands,
                      bool extended, bool contiguous, unsigned int numParams, size_t localSize);
 
+int readNonspikingActFile(const char * filename, Communicator * comm, double * time, void * data,
+         int level, const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 
@@ -44,8 +48,12 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l);
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l);
 
-int readWeights(PVPatch ** patches, int numPatches, const char * filename,
-                Communicator * comm, double * time, const PVLayerLoc * loc, bool extended);
+int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char * filename,
+                Communicator * comm, double * timed, const PVLayerLoc * loc);
+
+int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
+                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+                 PVPatch *** patches, int numPatches, int numArbors, bool compress=true, int file_type=PVP_WGT_FILE_TYPE);
 
 int writeWeights(const char * filename, Communicator * comm, double time, bool append,
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,

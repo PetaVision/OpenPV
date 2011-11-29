@@ -150,7 +150,7 @@ int HyPerConn::initialize_base()
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
    this->writeCompressedWeights = true;
-   this->fileType = PVP_WGT_FILE_TYPE;
+   this->fileType = PVP_WGT_FILE_TYPE; // Subclass's initialize_base() gets called after HyPerConn's initialize_base(), so this can be changed in subclasses.
 
    wPatches=NULL;
    // axonalArborList=NULL;
@@ -473,9 +473,10 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, int numPatches, const char * filename)
 {
-   for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
-      weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
-   }
+   weightInitializer->initializeWeights(arbors, numPatches, filename, this);
+   // for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
+   //    weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
+   // }
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
@@ -640,19 +641,19 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 
    if (nxp != nxpFile) {
       fprintf(stderr,
-              "ignoring nxp = %i in HyPerCol %s, using nxp = %i in binary file %s\n",
+              "ignoring nxp = %i in HyPerConn %s, using nxp = %i in binary file %s\n",
               nxp, name, nxpFile, filename);
       nxp = nxpFile;
    }
    if (nyp != nypFile) {
       fprintf(stderr,
-              "ignoring nyp = %i in HyPerCol %s, using nyp = %i in binary file %s\n",
+              "ignoring nyp = %i in HyPerConn %s, using nyp = %i in binary file %s\n",
               nyp, name, nypFile, filename);
       nyp = nypFile;
    }
    if (nfp != nfpFile) {
       fprintf(stderr,
-              "ignoring nfp = %i in HyPerCol %s, using nfp = %i in binary file %s\n",
+              "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
               nfp, name, nfpFile, filename);
       nfp = nfpFile;
    }
@@ -664,6 +665,17 @@ int HyPerConn::correctPIndex(int patchIndex) {
 
 int HyPerConn::writeWeights(float time, bool last)
 {
+   const int numPatches = numWeightPatches();
+   return writeWeights(wPatches, numPatches, NULL, time, last);
+}
+
+int HyPerConn::writeWeights(const char * filename) {
+   return writeWeights(wPatches, numWeightPatches(), filename, parent->simulationTime(), true);
+}
+
+#ifdef OBSOLETE_NBANDSFORARBORS
+int HyPerConn::writeWeights(float time, bool last)
+{
    //const int arbor = 0;
    const int numPatches = numWeightPatches();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
@@ -672,7 +684,50 @@ int HyPerConn::writeWeights(float time, bool last)
    }
    return 0;
 }
+#endif OBSOLETE_NBANDSFORARBORS
 
+int HyPerConn::writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last) {
+   int status = PV_SUCCESS;
+   char path[PV_PATH_MAX];
+
+   if (patches == NULL) return PV_SUCCESS;
+
+   float minVal = FLT_MAX;
+   float maxVal = -FLT_MAX;
+   for(int arbor=0; arbor<this->numberOfAxonalArborLists(); arbor++) {
+      float minVal1 = minWeight(arbor);
+      if( minVal1 < minVal ) minVal = minVal1;
+      float maxVal1 = maxWeight(arbor);
+      if( maxVal1 > maxVal ) maxVal = maxVal1;
+   }
+
+   const PVLayerLoc * loc = pre->getLayerLoc();
+
+   if (filename == NULL) {
+      if (last) {
+         snprintf(path, PV_PATH_MAX-1, "%s/w%d_last.pvp", parent->getOutputPath(), getConnectionId());
+      }
+      else {
+         snprintf(path, PV_PATH_MAX - 1, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
+      }
+   }
+   else {
+      snprintf(path, PV_PATH_MAX-1, "%s", filename);
+   }
+
+   Communicator * comm = parent->icCommunicator();
+
+   bool append = last ? false : ioAppend;
+
+   status = PV::writeWeights(path, comm, (double) timef, append,
+                             loc, nxp, nyp, nfp, minVal, maxVal,
+                             patches, numPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
+   assert(status == 0);
+
+   return status;
+}
+
+#ifdef OBSOLETE_NBANDSFORARBORS
 int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last, int arborId)
 {
@@ -731,6 +786,7 @@ int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
 
    return status;
 }
+#endif // OBSOLETE_NBANDSFORARBORS
 
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
@@ -842,12 +898,32 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    return 0;
 }
 
-int HyPerConn::checkpointRead() {
+int HyPerConn::checkpointRead(float * timef) {
+   char * filename = checkpointFilename();
+   InitWeights * weightsInitObject = new InitWeights();
+   weightsInitObject->initializeWeights(wPatches, numDataPatches(), filename, this, timef);
+   free(filename);
    return PV_SUCCESS;
 }
 
 int HyPerConn::checkpointWrite() {
-   return PV_SUCCESS;
+   char * filename = checkpointFilename();
+   int status = writeWeights(wPatches, numWeightPatches(), filename, parent->simulationTime(), true);
+   free(filename);
+   return status;
+}
+
+char * HyPerConn::checkpointFilename() {
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // routine that calls checkpointFilename should free filename when done
+   if( filename != NULL ) {
+      sprintf(filename, "%s_W.pvp", name);
+   }
+   else {
+         fprintf(stderr, "Connection \"%s\", Rank %d process: unable to allocate memory for checkpointFilename.  Exiting.\n", name, parent->icCommunicator()->commRank());
+         abort();
+   }
+   return filename;
 }
 
 int HyPerConn::insertProbe(BaseConnectionProbe * p)
@@ -1382,6 +1458,56 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
    return status;
 }
 
+int HyPerConn::writePostSynapticWeights(float timef, bool last) {
+   int status = PV_SUCCESS;
+   char path[PV_PATH_MAX];
+
+   const PVLayer * lPre  = pre->getCLayer();
+   const PVLayer * lPost = post->getCLayer();
+
+   float minVal = FLT_MAX;
+   float maxVal = -FLT_MAX;
+   for(int arbor=0; arbor<this->numberOfAxonalArborLists(); arbor++) {
+      float minVal1 = minWeight(arbor);
+      if( minVal1 < minVal ) minVal = minVal1;
+      float maxVal1 = maxWeight(arbor);
+      if( maxVal1 > maxVal ) maxVal = maxVal1;
+   }
+
+   const int numPostPatches = lPost->numNeurons;
+
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
+   const float powXScale = powf(2, (float) xScale);
+   const float powYScale = powf(2, (float) yScale);
+
+   const int nxPostPatch = (int) (nxp * powXScale);
+   const int nyPostPatch = (int) (nyp * powYScale);
+   const int nfPostPatch = lPre->loc.nf;
+
+   const char * last_str = (last) ? "_last" : "";
+   snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
+
+   const PVLayerLoc * loc  = post->getLayerLoc();
+   Communicator * comm = parent->icCommunicator();
+
+   bool append = (last) ? false : ioAppend;
+
+   status = PV::writeWeights(path, comm, (double) timef, append,
+                             loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
+                             wPostPatches, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, PVP_WGT_FILE_TYPE);
+   if(status != PV_SUCCESS) {
+      if( parent->icCommunicator()->commRank() != 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
+      }
+      abort();
+   }
+
+   return PV_SUCCESS;
+}
+
+#ifdef OBSOLETE_NBANDSFORARBORS
 int HyPerConn::writePostSynapticWeights(float time, bool last) {
    for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
       writePostSynapticWeights(time, last, axonID);
@@ -1430,6 +1556,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
 
    return 0;
 }
+#endif // OBSOLETE_NBANDSFORARBORS
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
@@ -1721,7 +1848,11 @@ int HyPerConn::setPatchSize(const char * filename)
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
    if( status != PV_SUCCESS) return status;
 
-   status = filename ? patchSizeFromFile(filename) : PV_SUCCESS;
+   status = PV_SUCCESS;
+   if( filename != NULL ) {
+      bool useListOfArborFiles = inputParams->value(name, "useListOfArborFiles", false)!=0;
+      if( !useListOfArborFiles ) status = patchSizeFromFile(filename);
+   }
 
    return status;
 }
@@ -1741,12 +1872,7 @@ int HyPerConn::patchSizeFromFile(const char * filename) {
 
    char nametmp[PV_PATH_MAX];
    for (int arborId = 0; arborId < this->numberOfAxonalArborLists(); arborId++){
-      if(this->numberOfAxonalArborLists()>1){  // assume filename is a base name that requires addition of "_a*" to specify arborId
-         snprintf(nametmp, PV_PATH_MAX-1, "%s_a%1.1d_last.pvp", filename, arborId);
-      }
-      else{
-         snprintf(nametmp, PV_PATH_MAX-1, "%s", filename);
-      }
+      snprintf(nametmp, PV_PATH_MAX-1, "%s", filename);
 
       status = pvp_read_header(nametmp, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
       if (status < 0) return status;

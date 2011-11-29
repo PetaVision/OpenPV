@@ -441,13 +441,26 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    // make sure we don't blow out size of int for record size
    // assert(globalSize < 0xffffffff); // should have checked this before calling pvp_write_header().
 
+   int numRecords;
+   switch(filetype) {
+   case PVP_WGT_FILE_TYPE:
+      numRecords = numbands * nxBlocks * nyBlocks; // Each process writes a record for each arbor
+      break;
+   case PVP_KERNEL_FILE_TYPE:
+      numRecords = numbands; // Each arbor writes its own record; all processes have the same weights
+      break;
+   default:
+      numRecords = nxBlocks * nyBlocks; // For activity files, each process writes its own record
+      break;
+   }
+
    params[INDEX_HEADER_SIZE] = headerSize;
    params[INDEX_NUM_PARAMS]  = numParams;
    params[INDEX_FILE_TYPE]   = filetype;
    params[INDEX_NX]          = contiguous ? loc->nxGlobal : loc->nx;
    params[INDEX_NY]          = contiguous ? loc->nyGlobal : loc->ny;
    params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = nxBlocks * nyBlocks;  // one record could be one node or all nodes
+   params[INDEX_NUM_RECORDS] = numRecords;
    params[INDEX_RECORD_SIZE] = localSize;
    params[INDEX_DATA_SIZE]   = pv_sizeof(datatype);
    params[INDEX_DATA_TYPE]   = datatype;
@@ -490,12 +503,6 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
    const int icRank = comm->commRank();
 
 // Only the interior, non-restricted part of the buffer gets written, even if the buffer is extended.
-//    if (extended) {
-//       numItems = (loc->nx + 2*loc->nb) * (loc->ny + 2*loc->nb) * loc->nf;
-//    }
-//    else {
-//       numItems = loc->nx * loc->ny * loc->nf;
-//    }
    numItems = loc->nx * loc->ny * loc->nf;
 
    const size_t localSize = numItems * pv_sizeof(datatype);
@@ -614,6 +621,155 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
    else if (datatype == PV_INT_TYPE) {
       int * fbuf = (int *) cbuf;
       status = HyPerLayer::copyFromBuffer(fbuf, (int*) data, loc, extended, 1);
+   }
+   free(cbuf);
+   return status;
+}
+
+int readNonspikingActFile(const char * filename, Communicator * comm, double * time, void * data,
+         int level, const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
+{
+   int status = PV_SUCCESS;
+   int nxBlocks, nyBlocks, numItems;
+
+   // TODO - everything isn't implemented yet so make sure we are using it correctly
+   assert(contiguous == false);
+   assert(datatype == PV_FLOAT_TYPE || datatype == PV_INT_TYPE);
+   assert(sizeof(float) == sizeof(int));
+
+   // scale factor for floating point conversion
+   float scale = 1.0f;
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int icRank = comm->commRank();
+
+// Only the interior, non-restricted part of the buffer gets written, even if the buffer is extended.
+   numItems = loc->nx * loc->ny * loc->nf;
+
+   const size_t localSize = numItems*pv_sizeof(datatype);
+   // mult by pv_sizof is peculiar to PVP_NONSPIKING_ACT_FILE_TYPE and should probably be changed
+   // addition of sizeof(double) handles the timestamp
+
+   const size_t mpiBufferSize = sizeof(int) + sizeof(double) + localSize;
+   // mpiBufferSize consists of:
+   // one integer to transmit information on whether the file could be opened (PV_SUCCESS or PV_FAILURE)
+   // one double-precision float for the time
+   // loc->nx*loc->ny*loc->nf objects of type datatype for the layer values
+
+   if (contiguous) {
+      nxBlocks = 1;
+      nyBlocks = 1;
+   }
+   else {
+      nxBlocks = nxProcs;
+      nyBlocks = nyProcs;
+   }
+
+   unsigned char * cbuf = (unsigned char *) malloc(mpiBufferSize);
+   assert(cbuf != NULL);
+
+#ifdef PV_USE_MPI
+   const int tag = PVP_FILE_TYPE;
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
+
+   if (icRank > 0) {
+
+#ifdef PV_USE_MPI
+      const int src = 0;
+      MPI_Recv(cbuf, mpiBufferSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: read: received from 0, nx==%d ny==%d numItems==%d\n",
+              comm->commRank(), loc->nx, loc->ny, numItems);
+#endif // DEBUG_OUTPUT
+#endif // PV_USE_MPI
+   }
+   else {
+      int params[NUM_PAR_BYTE_PARAMS];
+      int numParams, numRead, type, nxIn, nyIn, nfIn;
+
+      FILE * fp = pv_open_binary(filename, &numParams, &type, &nxIn, &nyIn, &nfIn);
+      status = fp != NULL ? PV_SUCCESS : PV_FAILURE;
+      *((int *) cbuf) = status;
+#ifdef PV_USE_MPI
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: read: broadcasting from 0, filename \"%s\"",filename);
+      if( fileexists ) fprintf(stderr, "exists\n");
+      else fprintf(stderr, "does not exist\n");
+#endif // DEBUG_OUTPUT
+#endif // PV_USE_MPI
+
+      assert(numParams == NUM_PAR_BYTE_PARAMS);
+      assert(type      == PVP_NONSPIKING_ACT_FILE_TYPE);
+
+      assert( pv_read_binary_params(fp, numParams, params) == numParams);
+
+      const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
+      const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
+      assert(numItems >= 0 && recordSize == (size_t) numItems);
+
+      const int numRecords = params[INDEX_NUM_RECORDS];
+      const int dataSize = params[INDEX_DATA_SIZE];
+      const int dataType = params[INDEX_DATA_TYPE];
+      const int nxBlocks = params[INDEX_NX_PROCS];
+      const int nyBlocks = params[INDEX_NY_PROCS];
+
+      assert(dataSize == (int) pv_sizeof(datatype));
+      assert(dataType == PV_FLOAT_TYPE || dataType == PV_INT_TYPE);
+      assert(nxBlocks == comm->numCommColumns());
+      assert(nyBlocks == comm->numCommRows());
+      assert(numRecords == comm->commSize());
+
+      // Position at start of specified level
+      long startoflevel = headerSize + level*(nxProcs*nyProcs*localSize+sizeof(double));
+      fseek(fp, startoflevel, SEEK_SET);
+      // Read time into cbuf where it can be Bcast to all processes.
+      numRead = fread(cbuf+sizeof(int), sizeof(double), 1, fp);
+      assert(numRead == 1);
+
+      #ifdef PV_USE_MPI
+      int dest = -1;
+      for (int py = 0; py < nyProcs; py++) {
+         for (int px = 0; px < nxProcs; px++) {
+            if (++dest == 0) continue;
+
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
+                    comm->commRank(), dest, loc->nx, loc->ny, numItems);
+#endif // DEBUG_OUTPUT
+            long offset = startoflevel + sizeof(double) + dest * localSize;
+            fseek(fp, offset, SEEK_SET);
+            numRead = fread(cbuf+sizeof(int)+sizeof(double), localSize, 1, fp);
+            assert(numRead == 1);
+            MPI_Send(cbuf, mpiBufferSize, MPI_BYTE, dest, tag, mpi_comm);
+         }
+      }
+
+      // get local image portion
+      fseek(fp, startoflevel, SEEK_SET);
+      numRead = fread(cbuf+sizeof(int), sizeof(unsigned char), localSize+sizeof(double), fp);
+      assert(numRead == (int) (localSize+sizeof(double)));
+#endif // PV_USE_MPI
+
+      pvp_close_file(fp, comm);
+   }
+
+   // copy from buffer communication buffer
+   //
+   status = *((int *) cbuf);
+   if( status == PV_SUCCESS ) {
+      if (datatype == PV_FLOAT_TYPE) {
+         float * fbuf = (float *) (cbuf+sizeof(int)+sizeof(double));
+         status = HyPerLayer::copyFromBuffer(fbuf, (float*) data, loc, extended, scale);
+      }
+      else if (datatype == PV_INT_TYPE) {
+         int * fbuf = (int *) (cbuf+sizeof(int)+sizeof(double));
+         status = HyPerLayer::copyFromBuffer(fbuf, (int*) data, loc, extended, 1);
+      }
+      *time = *((double *) (cbuf+sizeof(int)));
    }
    free(cbuf);
    return status;
@@ -772,12 +928,11 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                   PV_FLOAT_TYPE, 1, extended, contiguous, numParams, (size_t) l->numNeurons);
+                                   PV_FLOAT_TYPE, 1/*numbands*/, extended, contiguous, numParams, (size_t) l->numNeurons);
          if (status != PV_SUCCESS) return status;
       }
-      else {
-         // TODO increment NBANDS element of header
-      }
+      // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value of numbands in the header.
+
       // write time and V-buffer
       //
       if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
@@ -949,9 +1104,6 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
             return status;
          }
       }
-      else {
-         // TODO increment NBANDS element of header
-      }
 
       // write time, total active count, and local activity
       //
@@ -1003,12 +1155,8 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
    return status;
 }
 
-int readWeights(PVPatch ** patches, int numPatches, const char * filename,
-                Communicator * comm, double * time, const PVLayerLoc * loc, bool extended)
-{
+int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc) {
    int status = PV_SUCCESS;
-   // fileType added as input argument
-   // int filetype, datatype;
    int header_data_type;
    int header_file_type;
 
@@ -1024,10 +1172,8 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
 
    const int icRank = comm->commRank();
 
-   // read file header (uses MPI to broadcast the results)
-   //
-   status = pvp_read_header(filename, comm, time, &header_file_type, &header_data_type, params, &numParams);
-   if (status != 0) {
+   status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
+   if( status != PV_SUCCESS ) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_head, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
@@ -1101,101 +1247,237 @@ int readWeights(PVPatch ** patches, int numPatches, const char * filename,
    assert(cbuf != NULL);
 
 #ifdef PV_USE_MPI
-   const int tag = header_file_type; // PVP_WGT_FILE_TYPE;
+   const int tag = header_file_type;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
    // read weights and send using MPI
-   //
-   if (icRank > 0) {
-
-#ifdef PV_USE_MPI
-      const int src = 0;
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: readWeights: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
-              comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
-#endif // DEBUG_OUTPUT
-      MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: readWeights: recv from %d completed\n",
-              comm->commRank(), src);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-
+   if( params[INDEX_NBANDS] > numArbors ) {
+      fprintf(stderr, "PV::readWeights: file \"%s\" has %d arbors, but readWeights was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
+      return -1;
    }
-   else {
-      FILE * fp = pvp_open_read_file(filename, comm);
-      const int headerSize = numParams * sizeof(int);
-
-      if (fp == NULL) {
-         fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
-         return -1;
-      }
-
-      if( header_file_type == PVP_KERNEL_FILE_TYPE ) {
-         // For kernels, need to read cbuf once, and it will be the same for all processes
-         long offset = headerSize + 0 * localSize;
-         fseek(fp, offset, SEEK_SET);
-         status = ( fread(cbuf, localSize, 1, fp) != 1 );
-         if  (status != 0) {
-            fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
-                    comm->commRank(), offset);
-         }
-      }
+   FILE * fp = pvp_open_read_file(filename, comm);
+   for(int arborId=0; arborId<params[INDEX_NBANDS]; arborId++) {
+      if (icRank > 0) {
 
 #ifdef PV_USE_MPI
-      int dest = -1;
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++dest == 0) continue;
+         const int src = 0;
+
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: sending to %d nxProcs==%d nyProcs==%d localSize==%ld\n",
-                    comm->commRank(), dest, nxProcs, nyProcs, localSize);
+         fprintf(stderr, "[%2d]: readWeights: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+                 comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
 #endif // DEBUG_OUTPUT
-            if (header_file_type != PVP_KERNEL_FILE_TYPE){
-               long offset = headerSize + dest * localSize;
-               fseek(fp, offset, SEEK_SET);
-               if ( fread(cbuf, localSize, 1, fp) != 1 ) return -1;
-            }
-            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+         MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: sending to %d completed\n",
-                    comm->commRank(), dest);
+         fprintf(stderr, "[%2d]: readWeights: recv from %d completed\n",
+                 comm->commRank(), src);
 #endif // DEBUG_OUTPUT
-         }
-      }
 #endif // PV_USE_MPI
 
-      if( header_file_type != PVP_KERNEL_FILE_TYPE ) {
+      }
+      else {
+         const int headerSize = numParams * sizeof(int);
+
+         if (fp == NULL) {
+            fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
+            return -1;
+         }
+
+         long arborStart;
+#ifdef PV_USE_MPI
+         int dest = -1;
+         if( header_file_type == PVP_KERNEL_FILE_TYPE ) {
+            arborStart = headerSize + localSize*arborId;
+            long offset = arborStart;
+            fseek(fp, offset, SEEK_SET);
+            int numRead = fread(cbuf, localSize, 1, fp);
+            if( numRead != 1 ) return -1;
+            for( int py=0; py<nyProcs; py++ ) {
+               for( int px=0; px<nxProcs; px++ ) {
+                  if( ++dest == 0 ) continue;
+                  MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+               }
+            }
+         }
+         else {
+            arborStart = headerSize + localSize*nxBlocks*nyBlocks*arborId;
+            for( int py=0; py<nyProcs; py++ ) {
+               for( int px=0; px<nxProcs; px++ ) {
+                  if( ++dest == 0 ) continue;
+                  long offset = arborStart + dest*localSize;
+                  fseek(fp, offset, SEEK_SET);
+                  int numRead = fread(cbuf, localSize, 1, fp);
+                  if( numRead != 1 ) return -1;
+                  MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+               }
+            }
+         }
+#endif // PV_USE_MPI
+
          // read local portion
          // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
          //
-         long offset = headerSize + 0 * localSize;
-         fseek(fp, offset, SEEK_SET);
-         status = ( fread(cbuf, localSize, 1, fp) != 1 );
-         if  (status != 0) {
-            fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
-                  comm->commRank(), offset);
+#ifdef PV_USE_MPI
+         bool readLocalPortion = header_file_type != PVP_KERNEL_FILE_TYPE;
+#else
+         bool readLocalPortion = true;
+#endif // PV_USE_MPI
+         if( readLocalPortion ) {
+            long offset = arborStart + 0*localSize;
+            fseek(fp, offset, SEEK_SET);
+            int numRead = fread(cbuf, localSize, 1, fp);
+            if  (numRead != 1) {
+               fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
+                     comm->commRank(), offset);
+            }
          }
+      }  // if rank == 0
+
+      // set the contents of the weights patches from the unsigned character buffer, cbuf
+      //
+      bool compress = header_data_type == PV_BYTE_TYPE;
+      status = pvp_set_patches(cbuf, patches[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
+                 comm->commRank(), numPatches);
       }
-
-      status = pvp_close_file(fp, comm);
-   }  // if rank == 0
-
-   // set the contents of the weights patches from the unsigned character buffer, cbuf
-   //
-   bool compress = header_data_type == PV_BYTE_TYPE;
-   status = pvp_set_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
-              comm->commRank(), numPatches);
-   }
-
-   free(cbuf);
-
+   } // loop over arborId
+   status = pvp_close_file(fp, comm)==PV_SUCCESS ? status : PV_FAILURE;
    return status;
 }
 
+int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
+                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+                 PVPatch *** patches, int numPatches, int numArbors, bool compress, int file_type)
+// compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
+{
+   int status = PV_SUCCESS;
+   int nxBlocks, nyBlocks;
+
+   bool extended = true;
+   bool contiguous = false;   // TODO implement contiguous = false case
+
+   int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int icRank = comm->commRank();
+
+   const int numPatchItems = nxp * nyp * nfp;
+   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
+   const size_t localSize = numPatches * patchSize;
+
+   if (contiguous) {
+      nxBlocks = 1;
+      nyBlocks = 1;
+   }
+   else {
+      nxBlocks = nxProcs;
+      nyBlocks = nyProcs;
+   }
+
+   unsigned char * cbuf = (unsigned char *) malloc(localSize);
+   if(cbuf == NULL) {
+      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory\n", icRank);
+      abort();
+   }
+
+
+#ifdef PV_USE_MPI
+   const int tag = file_type; // PVP_WGT_FILE_TYPE;
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
+   if( icRank > 0 ) {
+#ifdef PV_USE_MPI
+      if( file_type != PVP_KERNEL_FILE_TYPE ) {
+         const int dest = 0;
+         for( int arbor=0; arbor<numArbors; arbor++ ) {
+            pvp_copy_patches(cbuf, patches[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+                    comm->commRank(), nxBlocks, nyBlocks, numPatches);
+#endif // DEBUG_OUTPUT
+         }
+      }
+#endif // PV_USE_MPI
+   } // icRank > 0
+   else /* icRank==0 */ {
+      float * fptr;
+      int wgtExtraParams[NUM_WGT_EXTRA_PARAMS];
+
+      int numParams = NUM_WGT_PARAMS;
+
+      FILE * fp = pvp_open_write_file(filename, comm, append);
+
+      if (fp == NULL) {
+         fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
+         return -1;
+      }
+
+      // use file_type passed as argument to enable different behavior
+      status = pvp_write_header(fp, comm, timed, loc, file_type,
+                                datatype, numArbors, extended, contiguous, numParams, localSize);
+
+      // write extra weight parameters
+      //
+      wgtExtraParams[INDEX_WGT_NXP] = nxp;
+      wgtExtraParams[INDEX_WGT_NYP] = nyp;
+      wgtExtraParams[INDEX_WGT_NFP] = nfp;
+
+      fptr  = (float *) &wgtExtraParams[INDEX_WGT_MIN];
+      *fptr = minVal;
+      fptr  = (float *) &wgtExtraParams[INDEX_WGT_MAX];
+      *fptr = maxVal;
+
+      if (file_type == PVP_KERNEL_FILE_TYPE){
+         wgtExtraParams[INDEX_WGT_NUMPATCHES] = numPatches; // KernelConn has same weights in all processes
+      }
+      else {
+         wgtExtraParams[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
+      }
+
+      numParams = NUM_WGT_EXTRA_PARAMS;
+      if ( fwrite(wgtExtraParams, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
+
+      for( int arbor=0; arbor<numArbors; arbor++ ) {
+         // write local portion
+         // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
+         pvp_copy_patches(cbuf, patches[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+         size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
+         if ( numfwritten != 1 ) return -1;
+
+         if (file_type == PVP_KERNEL_FILE_TYPE) continue;
+
+         // gather portions from other processes
+#ifdef PV_USE_MPI
+         int src = -1;
+         for (int py = 0; py < nyProcs; py++) {
+            for (int px = 0; px < nxProcs; px++) {
+               if (++src == 0) continue;
+#ifdef DEBUG_OUTPUT
+               fprintf(stderr, "[%2d]: writeWeights: receiving from %d nxProcs==%d nyProcs==%d localSize==%ld\n",
+                     comm->commRank(), src, nxProcs, nyProcs, localSize);
+#endif // DEBUG_OUTPUT
+               MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+
+               // const int headerSize = numParams * sizeof(int);
+               // long offset = headerSize + src * localSize;
+               // fseek(fp, offset, SEEK_SET);
+               if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
+            }
+         }
+#endif // PV_USE_MPI
+      } // end loop over arbors
+      free(cbuf);
+      pvp_close_file(fp, comm);
+   } // icRank == 0
+
+   return PV_SUCCESS; // TODO error handling
+}  // end writeWeights (all arbors)
+
+#ifdef OBSOLETE_NBANDSFORARBORS
 /*!
  *
  * numPatches is NX x NY x NF in extended space
@@ -1314,7 +1596,6 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
          return status;
       }
 
-
 #ifdef PV_USE_MPI
       int src = -1;
       for (int py = 0; py < nyProcs; py++) {
@@ -1340,5 +1621,6 @@ int writeWeights(const char * filename, Communicator * comm, double time, bool a
 
    return status;
 }
+#endif // OBSOLETE_NBANDSFORARBORS
 
 } // namespace PV

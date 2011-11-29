@@ -61,7 +61,7 @@ public:
    virtual int deliverOpenCL(Publisher * pub);
 #endif
 
-   virtual int checkpointRead();
+   virtual int checkpointRead(float *timef);
    virtual int checkpointWrite();
 
    virtual int insertProbe(BaseConnectionProbe * p);
@@ -70,14 +70,20 @@ public:
    virtual int updateWeights(int axonId = 0);
 
    virtual int writeWeights(float time, bool last=false);
+   virtual int writeWeights(const char * filename);
+   virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
+#ifdef OBSOLETE_NBANDSFORARBORS
    virtual int writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last, int arborId);
+#endif // OBSOLETE_NBANDSFORARBORS
    virtual int writeTextWeights(const char * filename, int k);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID)
                                                     {return PV_SUCCESS;}
 
    virtual int writePostSynapticWeights(float time, bool last);
+#ifdef OBSOLETE_NBANDSFORARBORS
    virtual int writePostSynapticWeights(float time, bool last, int axonID);
+#endif // OBSOLETE_NBANDSFORARBORS
 
    int readWeights(const char * filename);
 
@@ -259,6 +265,8 @@ protected:
    virtual int deleteWeights();
 
    virtual int createAxonalArbors(int arborId);
+
+   char * checkpointFilename();
 
    // following is overridden by KernelConn to set kernelPatches
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}

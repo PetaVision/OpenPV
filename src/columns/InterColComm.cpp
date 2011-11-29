@@ -87,6 +87,11 @@ int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
    return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
 }
 
+int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*default=0*/) {
+   int status = publishers[pubId]->exchangeBorders(neighbors, numNeighbors, loc, delay);
+   return status;
+}
+
 /**
  * wait until all outstanding published messages have arrived
  */
@@ -144,7 +149,7 @@ Publisher::~Publisher()
 int Publisher::publish(HyPerLayer* pub,
                        int neighbors[], int numNeighbors,
                        int borders[], int numBorders,
-                       PVLayerCube* cube)
+                       PVLayerCube* cube, int delay/*default=0*/)
 {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
@@ -162,6 +167,13 @@ int Publisher::publish(HyPerLayer* pub,
    //
    memcpy(recvBuf, sendBuf, dataSize);
 
+   exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+
+   return PV_SUCCESS;
+}
+
+int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay/*default 0*/) {
+   int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
    int icRank = comm->commRank();
@@ -171,14 +183,15 @@ int Publisher::publish(HyPerLayer* pub,
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
-      recvBuf = recvBuffer(LOCAL) + Communicator::recvOffset(n, &cube->loc);
-      sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+      pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + Communicator::recvOffset(n, loc);
+      // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+      pvdata_t * sendBuf = recvBuffer(LOCAL, delay) + Communicator::sendOffset(n, loc);
 
 
 #ifdef DEBUG_OUTPUT
       size_t recvOff = Communicator::recvOffset(n, &cube->loc);
       size_t sendOff = Communicator::sendOffset(n, &cube->loc);
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
 #endif //DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
                 &requests[nreq++]);
@@ -187,10 +200,9 @@ int Publisher::publish(HyPerLayer* pub,
 
    }
    assert(nreq == comm->numberOfNeighbors() - 1);
-
 #endif // PV_USE_MPI
 
-   return PV_SUCCESS;
+   return status;
 }
 
 /**

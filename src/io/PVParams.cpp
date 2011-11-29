@@ -59,6 +59,18 @@ Parameter::~Parameter()
    free(paramName);
 }
 
+int Parameter::outputParam(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i-- ) fputc(' ', fp);
+   fprintf(fp, "%s : %.17e", paramName, paramValue);
+   if( paramValue == 1 ) fprintf(fp, " (true)");
+   else if( paramValue == 1 ) fprintf(fp, " (false)");
+   else if( paramValue == FLT_MAX ) fprintf(fp, " (infinity)");
+   else if( paramValue == -FLT_MAX ) fprintf(fp, " (-infinity)");
+   fprintf(fp, "\n");
+   return status;
+}
+
 /**
  * @name
  * @value
@@ -78,6 +90,13 @@ ParameterString::~ParameterString()
 {
    free(paramName);
    free(paramValue);
+}
+
+int ParameterString::outputString(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i--) fputc(' ', fp);
+   fprintf(fp, "%s : \"%s\"\n", paramName, paramValue);
+   return status;
 }
 
 /**
@@ -112,6 +131,18 @@ Parameter * ParameterStack::pop()
 {
    assert(count > 0);
    return parameters[count--];
+}
+
+int ParameterStack::outputStack(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i-- ) {
+      fputc(' ', fp);
+   }
+   fprintf(fp, "// numerical parameters\n");
+   for( int s=0; s<count; s++ ) {
+      if( parameters[s]->outputParam(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
+   }
+   return status;
 }
 
 /*
@@ -171,6 +202,18 @@ const char * ParameterStringStack::lookup(const char * targetname)
       }
    }
    return result;
+}
+
+int ParameterStringStack::outputStack(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i-- ) {
+      fputc(' ', fp);
+   }
+   fprintf(fp, "// string parameters\n");
+   for( int s=0; s<count; s++ ) {
+      if( parameterStrings[s]->outputString(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
+   }
+   return status;
 }
 
 /**
@@ -294,6 +337,15 @@ int ParameterGroup::warnUnread() {
          status = PV_FAILURE;
       }
    }
+   return status;
+}
+
+int ParameterGroup::outputGroup(FILE * fp) {
+   int status = PV_SUCCESS;
+   fprintf(fp, "%s \"%s\":\n", groupKeyword, groupName);
+   int indentation = 4;
+   if( stack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
+   if( stringStack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
    return status;
 }
 
@@ -610,6 +662,14 @@ int PVParams::warnUnread() {
       if( groups[i]->warnUnread() == PV_FAILURE) {
          status = PV_FAILURE;
       }
+   }
+   return status;
+}
+
+int PVParams::outputParams(FILE * fp) {
+   int status = PV_SUCCESS;
+   for( int g=0; g<numGroups; g++ ) {
+      if( groups[g]->outputGroup(fp)!=PV_SUCCESS ) status = PV_FAILURE;
    }
    return status;
 }

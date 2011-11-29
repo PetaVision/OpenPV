@@ -55,6 +55,7 @@ int KernelConn::initialize_base()
 {
    kernelPatches = NULL;
    dKernelPatches = NULL;
+   fileType = PVP_KERNEL_FILE_TYPE;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
    tmpPatch = NULL;
@@ -62,14 +63,10 @@ int KernelConn::initialize_base()
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
-   return PV_SUCCESS; // return HyPerConn::initialize_base();
+   return PV_SUCCESS;
    // KernelConn constructor calls HyPerConn::HyPerConn(), which
    // calls HyPerConn::initialize_base().
 }
-//int KernelConn::initialize(const char * name, HyPerCol * hc,
-//         HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
-//   return KernelConn::initialize(name, hc, pre, post, channel, filename, NULL);
-//}
 
 int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
@@ -673,6 +670,16 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
    return status;
 }
 
+int KernelConn::writeWeights(float timef, bool last) {
+   const int numPatches = numDataPatches();
+   return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, timef, last);
+}
+
+int KernelConn::writeWeights(const char * filename) {
+   return HyPerConn::writeWeights(kernelPatches, numDataPatches(), filename, parent->simulationTime(), true);
+}
+
+#ifdef OBSOLETE_NBANDSFORARBORS
 int KernelConn::writeWeights(float time, bool last)
 {
    //const int arbor = 0;
@@ -683,6 +690,23 @@ int KernelConn::writeWeights(float time, bool last)
          return 1;
    }
    return 0;
+}
+#endif // OBSOLETE_NBANDSFORARBORS
+
+int KernelConn::checkpointRead(float * timef) {
+   char * filename = checkpointFilename();
+   InitWeights * weightsInitObject = new InitWeights();
+   weightsInitObject->initializeWeights(kernelPatches, numDataPatches(), filename, this, timef);
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int KernelConn::checkpointWrite() {
+   char * filename;
+   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   assert(filename != NULL);
+   sprintf(filename, "%s_W.pvp", name);
+   return HyPerConn::writeWeights(kernelPatches, numDataPatches(), filename, parent->simulationTime(), true);
 }
 
 } // namespace PV
