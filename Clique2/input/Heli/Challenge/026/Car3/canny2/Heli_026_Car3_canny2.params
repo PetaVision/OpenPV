@@ -321,7 +321,8 @@ CliqueApplyConn "L1 to L1 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car/canny/w3";
+   useListOfArborFiles = true;
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car/canny/w_Heli_Car_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -379,7 +380,8 @@ CliqueApplyConn "L1 to L2 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car2/canny2/w6";
+   useListOfArborFiles = true;
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car2/canny2/w_Heli_Car2_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -435,7 +437,8 @@ CliqueApplyConn "L2 to L3 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny2/w8";
+   useListOfArborFiles = true;
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny2/w_Heli_Car3_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -491,7 +494,8 @@ CliqueApplyConn "L3 to L4 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny2/w8";
+   useListOfArborFiles = true;
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny2/w_Heli_Car3_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
