@@ -1,0 +1,262 @@
+//
+// CheckpointSystemTest2.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for testing checkpointing.
+//  CheckpointParameters1.params runs a simulation for 10 timesteps, checkpointing every 5 timesteps.
+//  CheckpointParameters2.params runs a simulation for 5 timesteps starting with the previous checkpoint after 5 timesteps.
+//  The result of the two simulations should be the same.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 8;   
+   ny = 8;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 50;
+   progressStep = 10;
+   outputPath = "output2/";
+   outputNamesOfLayersAndConns = "Names.txt";
+   filenamesContainLayerNames = true;
+   checkpointRead = true;
+   checkpointReadDir = "checkpoints1";
+   checkpointReadDirIndex = 3;
+   checkpointWrite = true;
+   checkpointWriteDir = "checkpoints2";
+   checkpointWriteStepInterval = 1;
+   printParamsFilename = "params.txt";
+};
+
+//
+// layers
+//
+
+CPTestInputLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 2;
+    writeStep = 1.0;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    Vrest = 0;
+    VMax = infinity;
+    VMin = -infinity;
+    VThresh = -infinity;
+};
+
+ANNLayer "output no delay" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output with delay" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output arbor" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output from full hyperconn" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+VaryingKernelConn "conn no delay" = {
+    preLayerName = "input";
+    postLayerName = "output no delay";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 2;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = false;
+    rotate = false;
+    bowtieFlag = false;
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = false;
+    symmetrizeWeights = false;
+
+    writeCompressedWeights = false;
+    // plasticityFlag = true;
+    weightUpdatePeriod = 1;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+VaryingKernelConn "conn with delay" = {
+    preLayerName = "input";
+    postLayerName = "output with delay";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 2;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0;
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = false;
+    rotate = false;
+    bowtieFlag = false;
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = false;
+    symmetrizeWeights = false;
+
+    writeCompressedWeights = false;
+    // plasticityFlag = true;
+    weightUpdatePeriod = 1;
+
+    delay = 2;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+KernelConn "input to output arbor" = {
+    preLayerName = "input";
+    postLayerName = "output arbor";
+    channelCode = 0;
+    numAxonalArbors = 4;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+    
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+      
+    normalize = true;
+    strength = 9.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    normalize_arbors_individually = false;
+    symmetrizeWeights = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    writeCompressedWeights = false;
+    plasticityFlag = 0;
+
+    delay = 0;     
+};
+
+VaryingHyPerConn "full hyperconn" = {
+    preLayerName = "input";
+    postLayerName = "output from full hyperconn";
+    channelCode = 0;
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+        
+    weightInitType = "SmartWeight";
+
+    normalize = false;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    writeCompressedWeights = false;
+
+    delay = 0;     
+};
+
+IdentConn "selfconnection for output with delay" = {
+    preLayerName = "output with delay";
+    postLayerName = "output with delay";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
