@@ -1,0 +1,162 @@
+//
+// ReadArborFileTest.params
+//
+// created by peteschultz: Nov 29, 2011
+//
+
+//  Test the useListOfArborFiles functionality of FileWeight
+//
+
+HyPerCol "column" = {
+   nx = 16;   
+   ny = 16;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 5;
+   progressStep = 5;
+   outputPath = "output/";
+   outputNamesOfLayersAndConns = "Names.txt";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+};
+
+//
+// layers
+//
+Image "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/singledot.png";
+    nf = 1;
+    marginWidth = 1;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "output1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "comparison" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+KernelConn "all arbors at once" = {
+    preLayerName = "input";
+    postLayerName = "output1";
+    channelCode = 0;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    numAxonalArbors = 5;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/concat.pvp";
+    useListOfArborFiles = false;
+      
+    normalize = false;
+    symmetrizeWeights = false;
+
+    writeCompressedWeights = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+KernelConn "arbors split into files" = {
+    preLayerName = "input";
+    postLayerName = "output2";
+    channelCode = 0;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    numAxonalArbors = 5;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/ArborFiles.txt";
+    useListOfArborFiles = true;
+      
+    normalize = false;
+    symmetrizeWeights = false;
+
+    writeCompressedWeights = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+IdentConn "output1 to comparison" = {
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "output2 to comparison" = {
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
