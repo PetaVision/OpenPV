@@ -130,7 +130,7 @@ fi
 cd $wd
 
 testname=MPITest2
-arglist="-p input/MPI_test.params"
+arglist="-p input/MPI_test.params -n 100"
 cd "$testname"
 if Debug/$testname $arglist 1>/dev/null 2>/dev/null
 then
