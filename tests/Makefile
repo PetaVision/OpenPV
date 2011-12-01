@@ -233,7 +233,7 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
-	@mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params
+	@if mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns failed."; fi
 #	@echo "Running test_read_header with 1 node ..."
 #	@./test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 2 nodes ..."
