@@ -58,7 +58,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 37 "params.y"
+#line 142 "params.y"
 {char * sval; double dval; }
 /* Line 1529 of yacc.c.  */
 #line 65 "param_parser.hpp"

@@ -23,7 +23,7 @@
  * @action_handler
  */
 extern FILE* yyin;
-int pv_parseParameters(PV::PVParams* action_handler);
+int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, size_t len);
 
 #ifdef HAS_MAIN
 #define INITIALNUMGROUPS 20   // maximum number of groups
@@ -478,6 +478,7 @@ int PVParams::initialize(int initialSize, HyPerCol * hc) {
 }
 
 int PVParams::parsefile(const char * filename) {
+/*
    if (filename == NULL) {
       const char * altfile = INPUT_PATH "inparams.txt";
       printf("PVParams::PVParams: rank %d process opening alternate input file \"%s\"\n", rank, altfile);
@@ -490,9 +491,59 @@ int PVParams::parsefile(const char * filename) {
       fprintf(stderr, "PVParams::PVParams: rank %d process FAILED to open file %s.  Error code %d\n", rank, filename, errno);
       exit(errno);
    }
+ */
+   int rootproc = 0;
+   InterColComm * icComm = parentHyPerCol->icCommunicator();
+   char * paramBuffer;
+   size_t bufferlen;
+   if( icComm->commRank() == rootproc ) {
+      if( filename == NULL ) {
+         const char * altfile = INPUT_PATH "inparams.txt";
+         printf("PVParams::parsefile: opening alternate input file \"%s\"\n", altfile);
+         fflush(stdout);
+         filename = altfile;
+      }
+      FILE * paramfp = fopen(filename, "r");
+      if( paramfp == NULL ) {
+         fprintf(stderr, "PVParams::parsefile: ERROR opening file \"%s\".  Error code %d\n", filename, errno);
+         exit(errno);
+      }
+      if( fseek(paramfp, 0, SEEK_END) != 0 ) {
+         fprintf(stderr, "PVParams::parsefile: ERROR seeking end of file \"%s\".  Error code %d\n", filename, errno);
+         exit(errno);
+      }
+      bufferlen = (size_t) ftell(paramfp);
+      paramBuffer = (char *) malloc(bufferlen);
+      if( paramBuffer == NULL ) {
+         fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
+         abort();
+      }
+      fseek(paramfp, 0L, SEEK_SET);
+      if( fread(paramBuffer,1, (unsigned long int) bufferlen, paramfp) != bufferlen) {
+         fprintf(stderr, "PVParams::parsefile: ERROR reading params file \"%s\"", filename);
+         abort();
+      }
+      fclose(paramfp);
+      int sz = icComm->commSize();
+      for( int i=0; i<sz; i++ ) {
+         if( i==rootproc ) continue;
+         MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, icComm->communicator());
+      }
 
-   parseStatus = pv_parseParameters(this);
-   fclose(yyin);
+   }
+   else { // rank != rootproc
+      MPI_Status mpi_status;
+      MPI_Probe(rootproc, 31, icComm->communicator(), &mpi_status);
+      bufferlen = (size_t) mpi_status._count;
+      paramBuffer = (char *) malloc(bufferlen);
+      if( paramBuffer == NULL ) {
+         fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", icComm->commRank());
+         abort();
+      }
+      MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, icComm->communicator(), MPI_STATUS_IGNORE);
+   }
+
+   parseStatus = pv_parseParameters(this, paramBuffer, bufferlen);
    if( parseStatus != 0 ) {
       fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, parseStatus);
    }
