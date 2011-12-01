@@ -47,6 +47,10 @@ int main(int argc, char * argv[]) {
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
 #endif // PV_USE_MPI
+
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
    int num_cl_args;
    char ** cl_args;
    num_cl_args = argc + 2;
@@ -71,15 +75,33 @@ int main(int argc, char * argv[]) {
    free(cl_args[1]); cl_args[1] = NULL;
    free(cl_args[2]); cl_args[2] = NULL;
    free(cl_args); cl_args = NULL;
+
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+   rank = 0;
+#endif // PV_USE_MPI
+   if( rank == 0 ) {
+	   int otherprocstatus = status;
+	   int commsize;
+	   MPI_Comm_size(MPI_COMM_WORLD, &commsize);
+	   for(int r=0; r<commsize; r++) {
+		   if( r!= 0) MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		   if( otherprocstatus == PV_SUCCESS ) {
+			   printf("%s: rank %d process succeeded.\n", argv[0], r);
+		   }
+		   else {
+			   fprintf(stderr, "%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);
+			   status = PV_FAILURE;
+		   }
+	   }
+   }
+   else {
+	   MPI_Send(&status, 1, MPI_INT, 0, 59, MPI_COMM_WORLD);
+   }
 #ifdef PV_USE_MPI
    if( !mpi_initialized_on_entry ) MPI_Finalize();
 #endif // PV_USE_MPI
-   if( status == PV_SUCCESS ) {
-      printf("%s succeeded.\n", argv[0]);
-   }
-   else {
-      fprintf(stderr, "%s failed with return code %d\n", argv[0], status);
-   }
    return status;
 }
 
