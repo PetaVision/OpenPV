@@ -165,4 +165,5 @@ cd "$wd"
 
 cd "PetaVision/tests"
 make runtests 2>/dev/null | egrep 'passed|failed'
+make runMPItests 2>/dev/null | egrep 'passed|failed'
 cd $wd
