@@ -72,7 +72,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp( keyword, "MPITestProbe") ) {
-	   MPITestProbe * addedProbe;
+	  MPITestProbe * addedProbe = NULL;
       int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
       if( status == PV_SUCCESS ) {
          addedProbe = new MPITestProbe(filename, hc, msg);
