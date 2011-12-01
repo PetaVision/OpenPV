@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    int num_cl_args;
    char ** cl_args;
    num_cl_args = argc + 2;
@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
    free(cl_args); cl_args = NULL;
 #ifdef PV_USE_MPI
    if( !mpi_initialized_on_entry ) MPI_Finalize();
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    if( status == PV_SUCCESS ) {
       printf("%s succeeded.\n", argv[0]);
    }
