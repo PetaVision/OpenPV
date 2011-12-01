@@ -16,6 +16,8 @@ HyPerCol "column" = {
    progressStep = 200;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
 };
 
 //
