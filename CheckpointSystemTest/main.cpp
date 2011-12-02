@@ -23,8 +23,6 @@ int main(int argc, char * argv[]) {
    MPI_Init(&argc, &argv);
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#else
-   int rank = 0;
 #endif // PV_USE_MPI
 
 #undef REQUIRE_RETURN
@@ -150,6 +148,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          return EXIT_FAILURE;
       }
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+#endif // PV_USE_MPI
    return status;
 }
