@@ -730,7 +730,7 @@ int readNonspikingActFile(const char * filename, Communicator * comm, double * t
       numRead = fread(cbuf+sizeof(int), sizeof(double), 1, fp);
       assert(numRead == 1);
 
-      #ifdef PV_USE_MPI
+#ifdef PV_USE_MPI
       int dest = -1;
       for (int py = 0; py < nyProcs; py++) {
          for (int px = 0; px < nxProcs; px++) {
@@ -747,12 +747,12 @@ int readNonspikingActFile(const char * filename, Communicator * comm, double * t
             MPI_Send(cbuf, mpiBufferSize, MPI_BYTE, dest, tag, mpi_comm);
          }
       }
+#endif // PV_USE_MPI
 
       // get local image portion
       fseek(fp, startoflevel, SEEK_SET);
       numRead = fread(cbuf+sizeof(int), sizeof(unsigned char), localSize+sizeof(double), fp);
       assert(numRead == (int) (localSize+sizeof(double)));
-#endif // PV_USE_MPI
 
       pvp_close_file(fp, comm);
    }
