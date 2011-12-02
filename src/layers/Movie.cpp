@@ -350,7 +350,9 @@ const char * Movie::getNextFileName()
          }
       }
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(inputfile, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
+#endif // PV_USE_MPI
    return inputfile;
 }
 

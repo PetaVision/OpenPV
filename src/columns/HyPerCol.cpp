@@ -352,11 +352,13 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
       status = stat(dirname, pathstat);
       if( status ) errorcode = errno;
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->communicator());
    if( status ) {
       MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->communicator());
    }
    MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->communicator());
+#endif // PV_USE_MPI
    return status ? errorcode : 0;
 }
 
@@ -761,7 +763,9 @@ int HyPerCol::checkpointRead() {
       assert(timestampfile);
       fread(buf,1,bufsize,timestampfile);
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
+#endif // PV_USE_MPI
    float * fbuf = (float *) (buf);
    int * ibuf = (int *) (buf+2*sizeof(float));
    simTime = fbuf[0];

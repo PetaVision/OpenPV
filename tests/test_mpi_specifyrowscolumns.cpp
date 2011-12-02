@@ -12,7 +12,9 @@
 #include "../src/layers/ANNLayer.hpp"
 #include "../src/io/io.h"
 #include <assert.h>
+#ifdef PV_USE_MPI
 #include <mpi.h>
+#endif // PV_USE_MPI
 
 int buildandverify(int argc, char * argv[]);
 int verifyLoc(PV::HyPerCol * loc, int rows, int columns);
@@ -128,6 +130,8 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
          fprintf(stderr, "Rank 0 FAILED\n");
          status = PV_FAILURE;
       }
+#ifdef PV_USE_MPI
+      // Receive each process's testpassed value and output it.
       for( int src=1; src<hc->icCommunicator()->commSize(); src++) {
          int remotepassed;
          MPI_Recv(&remotepassed, 1, MPI_INT, src, 10, hc->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
@@ -142,13 +146,17 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
             status = PV_FAILURE;
          }
       }
+#endif // PV_USE_MPI
    }
    else {
+#ifdef PV_USE_MPI
+      // Send each process's testpassed value to root process.
       MPI_Send(&testpassed, 1, MPI_INT, 0, 10, hc->icCommunicator()->communicator());
       if( !testpassed ) {
          memcpy(&mpiLoc, loc, sizeof(PVLayerLoc));
          MPI_Send(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->icCommunicator()->communicator());
       }
+#endif // PV_USE_MPI
    }
    assert(status == PV_SUCCESS);
    return status;

@@ -1286,21 +1286,25 @@ int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char *
          long arborStart;
 #ifdef PV_USE_MPI
          int dest = -1;
+#endif // PV_USE_MPI
          if( header_file_type == PVP_KERNEL_FILE_TYPE ) {
             arborStart = headerSize + localSize*arborId;
             long offset = arborStart;
             fseek(fp, offset, SEEK_SET);
             int numRead = fread(cbuf, localSize, 1, fp);
             if( numRead != 1 ) return -1;
+#ifdef PV_USE_MPI
             for( int py=0; py<nyProcs; py++ ) {
                for( int px=0; px<nxProcs; px++ ) {
                   if( ++dest == 0 ) continue;
                   MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
                }
             }
+#endif // PV_USE_MPI
          }
          else {
             arborStart = headerSize + localSize*nxBlocks*nyBlocks*arborId;
+#ifdef PV_USE_MPI
             for( int py=0; py<nyProcs; py++ ) {
                for( int px=0; px<nxProcs; px++ ) {
                   if( ++dest == 0 ) continue;
@@ -1311,8 +1315,8 @@ int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char *
                   MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
                }
             }
-         }
 #endif // PV_USE_MPI
+         }
 
          // read local portion
          // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer

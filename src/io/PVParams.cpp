@@ -524,14 +524,16 @@ int PVParams::parsefile(const char * filename) {
          abort();
       }
       fclose(paramfp);
+#ifdef PV_USE_MPI
       int sz = icComm->commSize();
       for( int i=0; i<sz; i++ ) {
          if( i==rootproc ) continue;
          MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, icComm->communicator());
       }
-
+#endif // PV_USE_MPI
    }
    else { // rank != rootproc
+#ifdef PV_USE_MPI
       MPI_Status mpi_status;
       MPI_Probe(rootproc, 31, icComm->communicator(), &mpi_status);
       bufferlen = (size_t) mpi_status._count;
@@ -541,6 +543,7 @@ int PVParams::parsefile(const char * filename) {
          abort();
       }
       MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, icComm->communicator(), MPI_STATUS_IGNORE);
+#endif // PV_USE_MPI
    }
 
    parseStatus = pv_parseParameters(this, paramBuffer, bufferlen);
