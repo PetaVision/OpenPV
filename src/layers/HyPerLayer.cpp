@@ -788,6 +788,7 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
 int HyPerLayer::checkpointRead(float * timef) {
    char * filename = NULL;
    filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _Delays.pvp) plus the null terminator
    InterColComm * icComm = parent->icCommunicator();
    double timed;
    assert(filename != NULL);
@@ -799,13 +800,13 @@ int HyPerLayer::checkpointRead(float * timef) {
       sprintf(filename, "%s_V.pvp", name);
       readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false);
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s_V.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
    }
    sprintf(filename, "%s_Delays.pvp", name);
    readDataStoreFromFile(filename, icComm, &timed);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s_Delays.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    if( getNumChannels() > 0 ) {
@@ -813,7 +814,7 @@ int HyPerLayer::checkpointRead(float * timef) {
       readBufferFile(filename, icComm, &timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
       // assumes GSyn[0], GSyn[1],... are sequential in memory
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s_V.pvp and %s_A.pvp have different timestamps: %f versus %f\n", name, name, (float) timed, *timef);
+         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
    }
    free(filename);
@@ -918,6 +919,7 @@ int HyPerLayer::checkpointWrite() {
    double timed = (double) parent->simulationTime();
    char * filename = NULL;
    filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _Delays.pvp) plus the null terminator
    assert(filename != NULL);
    sprintf(filename, "%s_A.pvp", name);
    writeBufferFile(filename, icComm, timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);

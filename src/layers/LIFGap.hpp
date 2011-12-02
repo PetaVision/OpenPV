@@ -26,6 +26,10 @@ public:
    int virtual updateStateOpenCL(float time, float dt);
    int virtual triggerReceive(InterColComm* comm);
    int virtual updateState(float time, float dt);
+
+   virtual int checkpointRead(float * timef);
+   virtual int checkpointWrite();
+
    int virtual readState(float * time);
    int virtual writeState(float time, bool last);
 

@@ -295,6 +295,53 @@ int LIF::setParams(PVParams * p)
    return 0;
 }
 
+int LIF::checkpointRead(float * timef) {
+   HyPerLayer::checkpointRead(timef);
+   InterColComm * icComm = parent->icCommunicator();
+   double timed;
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   assert(filename != NULL);
+
+   sprintf(filename, "%s_G_E.pvp", name);
+   readBufferFile(filename, icComm, &timed, G_E, 1, /*extended*/false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   sprintf(filename, "%s_G_I.pvp", name);
+   readBufferFile(filename, icComm, &timed, G_I, 1, /*extended*/false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   sprintf(filename, "%s_G_IB.pvp", name);
+   readBufferFile(filename, icComm, &timed, G_IB, 1, /*extended*/false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int LIF::checkpointWrite() {
+   HyPerLayer::checkpointWrite();
+   InterColComm * icComm = parent->icCommunicator();
+   double timed = (double) parent->simulationTime();
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   assert(filename != NULL);
+   sprintf(filename, "%s_G_E.pvp", name);
+   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/true, /*contiguous*/false); // TODO contiguous=true
+   sprintf(filename, "%s_G_I.pvp", name);
+   writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/true, /*contiguous*/false); // TODO contiguous=true
+   sprintf(filename, "%s_G_IB.pvp", name);
+   writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/true, /*contiguous*/false); // TODO contiguous=true
+   free(filename);
+   return PV_SUCCESS;
+}
+
 int LIF::updateStateOpenCL(float time, float dt)
 {
    int status = CL_SUCCESS;

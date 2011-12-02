@@ -145,6 +145,36 @@ int LIFGap::initializeThreadKernels(char * kernel_name)
 }
 #endif
 
+int LIFGap::checkpointRead(float * timef) {
+   LIF::checkpointRead(timef);
+   InterColComm * icComm = parent->icCommunicator();
+   double timed;
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   assert(filename != NULL);
+
+   sprintf(filename, "%s_G_IB.pvp", name);
+   readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int LIFGap::checkpointWrite() {
+   LIF::checkpointWrite();
+   InterColComm * icComm = parent->icCommunicator();
+   double timed = (double) parent->simulationTime();
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   assert(filename != NULL);
+   sprintf(filename, "%s_G_Gap.pvp", name);
+   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/true, /*contiguous*/false); // TODO contiguous=true
+   free(filename);
+   return PV_SUCCESS;
+}
 
 int LIFGap::updateStateOpenCL(float time, float dt)
 {
