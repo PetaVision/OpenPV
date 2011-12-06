@@ -9,15 +9,19 @@
 
 namespace PV {
 
-// This constructor allows derived classes to set an arbitrary number of channels
-ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
-   //initialize();
-   // TODO Auto-generated constructor stub
-
+ANNSquaredLayer::ANNSquaredLayer() {
+   initialize_base();
 }
 
-ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
-   //initialize();
+// This constructor allows derived classes to set an arbitrary number of channels
+ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc, int numChannels) {
+   initialize_base();
+   initialize(name, hc, numChannels);
+}
+
+ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
 
 ANNSquaredLayer::~ANNSquaredLayer()
@@ -25,8 +29,12 @@ ANNSquaredLayer::~ANNSquaredLayer()
    // TODO Auto-generated destructor stub
 }
 
-int ANNSquaredLayer::initialize() {
-   return ANNLayer::initialize();
+int ANNSquaredLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc, int numChannels/*Default=MAX_CHANNELS*/) {
+   return ANNLayer::initialize(name, hc, numChannels);
 }
 
 int ANNSquaredLayer::updateV() {

@@ -36,7 +36,6 @@ public:
    Retina(const char * name, HyPerCol * hc);
    virtual ~Retina();
 
-   int initialize(PVLayerType type);
    int setParams(PVParams * p);
 
    virtual int triggerReceive(InterColComm* comm);
@@ -48,6 +47,8 @@ public:
    virtual int writeState(float time);
 
 protected:
+   Retina();
+   int initialize(const char * name, HyPerCol * hc, PVLayerType type);
    virtual int initializeV(bool restart_flag);
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernel_name);
@@ -61,6 +62,8 @@ protected:
    uint4 * rand_state;      // state for random numbers
 
 private:
+
+   int initialize_base();
 
    // For input from a given source input layer, determine which
    // cells in this layer will respond to the input activity.

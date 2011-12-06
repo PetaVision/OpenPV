@@ -22,116 +22,52 @@ namespace PV {
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
 // derived classes.  It should NOT call any virtual methods
-HyPerLayer::HyPerLayer(const char* name, HyPerCol * hc, int numChannels)
-{
-   initialize_base(name, hc, numChannels);
+HyPerLayer::HyPerLayer() {
+   initialize_base();
 }
 
-HyPerLayer::~HyPerLayer()
-{
-   if (parent->columnId() == 0) {
-      printf("%32s: total time in %6s %10s: ", name, "layer", "recvsyn");
-      recvsyn_timer->elapsed_time();
-      printf("%32s: total time in %6s %10s: ", name, "layer", "update ");
-      update_timer->elapsed_time();
-      fflush(stdout);
-   }
-   delete recvsyn_timer;
-   delete update_timer;
-
-   if (clayer != NULL) {
-      // pvlayer_finalize will free clayer
-      pvlayer_finalize(clayer);
-      clayer = NULL;
-   }
-   
-   free(name);
-   freeChannels();
-   
-#ifdef PV_USE_OPENCL
-   delete krUpdate;
-   delete clV;
-   delete clActivity;
-   delete clPrevTime;
-
-   if (clGSyn != NULL) {
-      for (int m = 0; m < numChannels; m++) {
-         delete clGSyn[m];
-      }
-      free(clGSyn);
-      clGSyn = NULL;
-   }
-#endif
-
-   if (labels != NULL) free(labels);
-   if (marginIndices != NULL) free(marginIndices);
-}
-
-void HyPerLayer::freeChannels()
-{
-#ifdef PV_USE_OPENCL
-   for (int m = 0; m < numChannels; m++) {
-      delete clGSyn[m];
-   }
-#endif
-
-   if (numChannels > 0) {
-      free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
-      free(GSyn);     // this frees the array pointers to separate conductance channels
-      GSyn = NULL;
-      numChannels = 0;
-   }
-}
-
-/**
- * Primary method for derived layer initialization.  This should be called
- * after initialize_base has been called.
- * WARNING, should only called by derived class
- * (initialize is not called by base HyPerLayer, which is an abstract class).
- */
-int HyPerLayer::initialize(PVLayerType type)
-{
-   int status = PV_SUCCESS;
-   float time = 0.0f;
-
-   // IMPORTANT:
-   //   - all derived classes should make sure that HyPerLayer::initialize is called
-   //
-   clayer->layerType = type;
-
-   // layerId stored as clayer->layerId
-   int layerID = parent->addLayer(this);
-   assert(layerID == clayer->layerId);
-
-   bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
-   initializeV(restart_flag);
-   if( restart_flag ) {
-      readState(&time);
-   }
-
-   return status;
-}
-
-int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannels)
-{
-   // This should have only what's absolutely essential to all HyPerLayers, since nothing in it can be overridden
-   PVLayerLoc layerLoc;
-
-   // name should be initialized first as other methods may use it
-   this->name = strdup(name);
-   setParent(hc);
-
+///////
+// initialize_base should be called only by constructors.  It should not
+// call any virtual methods, because polymorphism is not available when
+// a base class constructor is inherited from a derived class constructor.
+// In general, initialize_base should be used only to initialize member variables
+// to safe values.
+int HyPerLayer::initialize_base() {
+   this->name = NULL;
    this->probes = NULL;
-   this->ioAppend = 0;
    this->numProbes = 0;
-
-   this->numChannels = numChannels;
-
+   this->ioAppend = 0;
+   this->numChannels = 0;
+   this->clayer = NULL;
+   this->GSyn = NULL;
+   this->labels = NULL;
+   this->marginIndices = NULL;
+   this->numMargin = 0;
 #ifdef PV_USE_OPENCL
-   this->numEvents = 0;  // reset by derived classes
-   this->numWait   = 0;
+   this->clV = NULL;
+   this->clGSyn = NULL;
+   this->clActivity = NULL;
+   this->clPrevTime = NULL;
+   this->clParams = NULL;
    this->numKernelArgs = 0;
-#endif
+   this->numEvents = 0;
+   this->numWait = 0;
+   this->evList = NULL;
+#endif // PV_USE_OPENCL
+   this->update_timer = NULL;
+   this->recvsyn_timer = NULL;
+   return PV_SUCCESS;
+}
+
+///////
+// Classes derived from HyPerLayer should call HyPerLayer::initialize themselves
+// to take advantage of virtual methods.  Note that the HyPerLayer constructor
+// does not call initialize.  This way, HyPerLayer::initialize can call virtual
+// methods and the derived class's method will be the one that gets called.
+int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
+   this->name = strdup(name);
+   setParent(hc); // Could this line and the parent->addLayer line be combined in a HyPerLayer method?
+   this->numChannels = numChannels;
 
    this->update_timer  = new Timer();
    this->recvsyn_timer = new Timer();
@@ -148,8 +84,6 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    const int numFeatures = (int) params->value(name, "nf", 1);
    const int margin      = (int) params->value(name, "marginWidth", 0);
-
-   hc->setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
 
    float xScalef = -log2f( (float) nxScale);
    float yScalef = -log2f( (float) nyScale);
@@ -177,9 +111,13 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
 
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
+   PVLayerLoc layerLoc;
+   hc->setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
-   // Initializing of V moved into HyPerLayer::initialize() by means of method initializeV(), where it can be overridden.
    clayer->layerType = TypeGeneric;
+   // layerId stored as clayer->layerId
+   int layerID = parent->addLayer(this); // Could this line and the setParent line be combined in a HyPerLayer method?
+   assert(layerID == clayer->layerId);
 
    // allocate storage for the input conductance arrays
    //
@@ -196,13 +134,77 @@ int HyPerLayer::initialize_base(const char * name, HyPerCol * hc, int numChannel
       }
    }
 
+   bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
+   initializeV(restart_flag);
+   float timef;
+   if( restart_flag ) {
+      readState(&timef);
+   }
+
    // labels are not extended
    labels = (int *) calloc(getNumNeurons(), sizeof(int));
    assert(labels != NULL);
+   return PV_SUCCESS;
+}
 
-   marginIndices = NULL; //getMarginIndices();  // only store if getMarginIndices() is called
+HyPerLayer::~HyPerLayer()
+{
+   if (parent->columnId() == 0) {
+      printf("%32s: total time in %6s %10s: ", name, "layer", "recvsyn");
+      recvsyn_timer->elapsed_time();
+      printf("%32s: total time in %6s %10s: ", name, "layer", "update ");
+      update_timer->elapsed_time();
+      fflush(stdout);
+   }
+   delete recvsyn_timer; recvsyn_timer = NULL;
+   delete update_timer; update_timer = NULL;
 
-   return 0;
+   if (clayer != NULL) {
+      // pvlayer_finalize will free clayer
+      pvlayer_finalize(clayer);
+      clayer = NULL;
+   }
+   
+   free(name); name = NULL;
+   freeChannels();
+   
+#ifdef PV_USE_OPENCL
+   delete krUpdate;
+   delete clV;
+   delete clActivity;
+   delete clPrevTime;
+
+   if (clGSyn != NULL) {
+      for (int m = 0; m < numChannels; m++) {
+         delete clGSyn[m];
+      }
+      free(clGSyn);
+      clGSyn = NULL;
+   }
+
+   free(evList);
+   evList = NULL;
+
+#endif
+
+   free(labels); labels = NULL;
+   free(marginIndices); marginIndices = NULL;
+}
+
+void HyPerLayer::freeChannels()
+{
+#ifdef PV_USE_OPENCL
+   for (int m = 0; m < numChannels; m++) {
+      delete clGSyn[m];
+   }
+#endif
+
+   if (numChannels > 0) {
+      free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
+      free(GSyn);     // this frees the array pointers to separate conductance channels
+      GSyn = NULL;
+      numChannels = 0;
+   }
 }
 
 #ifdef PV_USE_OPENCL

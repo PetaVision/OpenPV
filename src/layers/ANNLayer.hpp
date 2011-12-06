@@ -14,8 +14,7 @@ namespace PV {
 
 class ANNLayer : public HyPerLayer {
 public:
-   ANNLayer(const char* name, HyPerCol * hc, int numChannels);
-   ANNLayer(const char* name, HyPerCol * hc);
+   ANNLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual ~ANNLayer();
    virtual int updateV();
    virtual int applyVMax();
@@ -24,11 +23,15 @@ public:
    pvdata_t getVMax()           { return VMax; }
    pvdata_t getVMin()           { return VMin; }
 protected:
-   int initialize();
+   ANNLayer();
+   int initialize(const char * name, HyPerCol * hc, int numChannels);
    virtual int readVThreshParams(PVParams * params);
    pvdata_t VMax;
    pvdata_t VThresh;
    pvdata_t VMin;
+
+private:
+   int initialize_base();
 }; // end of class ANNLayer
 
 }  // end namespace PV

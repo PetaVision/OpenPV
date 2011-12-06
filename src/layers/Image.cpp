@@ -13,49 +13,47 @@
 
 namespace PV {
 
-Image::Image(const char * name, HyPerCol * hc)
-     : HyPerLayer(name, hc, 0)
-{
-   initialize(TypeImage);
-   initializeImage(NULL);
+Image::Image() {
+   initialize_base();
 }
 
-Image::Image(const char * name, HyPerCol * hc, const char * filename)
-     : HyPerLayer(name, hc, 0)
-{
-   initialize(TypeImage);
-   initializeImage(filename);
+Image::Image(const char * name, HyPerCol * hc, const char * filename) {
+   initialize_base();
+   initialize(name, hc, filename);
 }
 
-Image::~Image()
-{
-   if (filename != NULL) free(filename);
+Image::~Image() {
+   free(filename);
+   filename = NULL;
 }
 
-/**
- * data lives in an extended frame of size
- * (nx+2*nPad)*(ny+2*nPad)*nBands
- */
-int Image::initializeImage(const char * filename)
-{
-   int status = 0;
+int Image::initialize_base() {
+   mpi_datatypes = NULL;
+   data = NULL;
+   filename = NULL;
+   imageData = NULL;
+   return PV_SUCCESS;
+}
+
+int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
+   HyPerLayer::initialize(name, hc, 0);
+   int status = PV_SUCCESS;
+
    PVParams * params = parent->parameters();
-   this->writeImages  = params->value(name, "writeImages", 0) != 0;
-   // this->useGrayScale = params->value(name,"useGrayScale",1) != 0;
-   // toGrayScale() will be called if params database nf=1 and image file's nf>1
+   this->writeImages = params->value(name, "writeImages", 0) != 0;
    this->offsetX      = (int) params->value(name,"offsetX", 0);
    this->offsetY      = (int) params->value(name,"offsetY", 0);
 
-
-   if (filename != NULL) {
+   if(filename != NULL ) {
       this->filename = strdup(filename);
-      assert(this->filename != NULL);
+      assert( this->filename != NULL );
       status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    }
    else {
       this->filename = NULL;
       this->imageLoc = * getLayerLoc();
    }
+
    this->lastUpdateTime = 0.0;
 
 // TODO - must make image conform to layer size
@@ -66,14 +64,8 @@ int Image::initializeImage(const char * filename)
    mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    if (filename != NULL) {
-      read(filename, offsetX, offsetY);
+      readImage(filename, offsetX, offsetY);
    }
-
-   // grayScale call moved to Image::read(), which is called immediately above.
-   // (if filename=NULL, there's nothing to convert to grayscale anyway)
-   // if (useGrayScale) {
-   //    toGrayScale();
-   // }
 
    // exchange border information
    exchange();
@@ -103,16 +95,6 @@ int Image::initializeThreadKernels()
    return CL_SUCCESS;
 }
 #endif
-
-pvdata_t * Image::getImageBuffer()
-{
-   return data;
-}
-
-PVLayerLoc Image::getImageLoc()
-{
-   return imageLoc;
-}
 
 /**
  * return some useful information about the image
@@ -162,12 +144,12 @@ int Image::clearImage()
    return 0;
 }
 
-int Image::read(const char * filename)
+int Image::readImage(const char * filename)
 {
-   return read(filename, 0, 0);
+   return readImage(filename, 0, 0);
 }
 
-int Image::read(const char * filename, int offsetX, int offsetY)
+int Image::readImage(const char * filename, int offsetX, int offsetY)
 {
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;

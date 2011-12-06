@@ -23,13 +23,13 @@ public:
    GenerativeLayer(const char * name, HyPerCol * hc);
 //   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
    ~GenerativeLayer();
-   int initialize_base();
-   int initialize();
 
    pvdata_t getRelaxation() {return relaxation;}
    pvdata_t getActivityThreshold() { return activityThreshold; }
 
 protected:
+   GenerativeLayer();
+   int initialize(const char * name, HyPerCol * hc);
    virtual int updateV();
    virtual int setActivity();
    virtual int updateSparsityTermDerivative();
@@ -40,6 +40,8 @@ protected:
    pvdata_t persistence;  // "stickiness" of the rate of change of weights
    pvdata_t * dAold;  // buffer holding past rate of change of weights
    pvdata_t * sparsitytermderivative;  // buffer holding derivative of sparsity function
+private:
+   int initialize_base();
 };
 
 }  // end namespace PV block

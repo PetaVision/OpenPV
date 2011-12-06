@@ -32,7 +32,12 @@ public:
 
    int resetPositionInBounds();
 
+protected:
+   Movie();
+   int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
+
 private:
+   int initialize_base();
    int initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
    int copyReducedImagePortion();
    const char * getNextFileName();

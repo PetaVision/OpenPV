@@ -15,11 +15,21 @@
 
 namespace PV {
 
+GenerativeLayer::GenerativeLayer() {
+   initialize_base();
+}
+
+GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+}
+
+/*
 GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, 3) {
    initialize_base();
    initialize();
 }  // end of GenerativeLayer::GenerativeLayer(const char *, HyperCol *)
-
+ */
 // No point to this constructor since PVLayerType doesn't get used
 // GenerativeLayer::GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type) : ANNLayer(name, hc){
 //     initialize();
@@ -36,7 +46,8 @@ int GenerativeLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int GenerativeLayer::initialize() {
+int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
+   ANNLayer::initialize(name, hc, MAX_CHANNELS);
    PVParams * params = parent->parameters();
    relaxation = params->value(name, "relaxation", 1.0);
    activityThreshold = params->value(name, "activityThreshold", 0);

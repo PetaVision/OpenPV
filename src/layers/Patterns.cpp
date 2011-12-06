@@ -17,17 +17,23 @@ namespace PV {
 FILE * fp;
 int start = 0;
 
-Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
-   Image(name, hc)
-{
-   initializePatterns(name, hc, type);
+Patterns::Patterns() {
+   initialize_base();
 }
 
-int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType type)
-{
-   // CER-new
+Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
+   initialize_base();
+   initialize(name, hc, type);
+}
 
+int Patterns::initialize_base() {
    patternsOutputPath = NULL;
+
+   return PV_SUCCESS;
+}
+
+int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
+   Image::initialize(name, hc, NULL);
    this->type = type;
 
    // set default params
@@ -139,18 +145,14 @@ int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType t
    writePosition     = (int) params->value(name,"writePosition", 0);
    if(writePosition){
       char file_name[PV_PATH_MAX];
-      if (patternsOutputPath != NULL){
-         //I don't know why someone was saving the return value, but it was
-         //generating a compiler warning because it was unused.  Did someone
-         //want to use this for something?
-         snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
-         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
-      }
-      else{
-         snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
-         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", hc->getOutputPath());
-      }
+
+      //Return value of snprintf commented out because it was generating an
+      //unused-variable compiler warning.
+      //
+      snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
+      //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       printf("write position to %s\n",file_name);
+      // TODO In MPI, fp should only be opened and written to by root process
       fp = fopen(file_name,"a");
       assert(fp != NULL);
    }
@@ -160,7 +162,7 @@ int Patterns::initializePatterns(const char * name, HyPerCol * hc, PatternType t
    // make sure initialization is finished
    updateState(0.0, 0.0);
 
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 Patterns::~Patterns()

@@ -20,30 +20,30 @@ namespace PV {
 class TrainingLayer : public ANNLayer {
 
 public:
-	TrainingLayer(const char * name, HyPerCol * hc, int numTrainingLabels, int * trainingLabels, float displayPeriod, float delay );
-	TrainingLayer(const char * name, HyPerCol * hc, const char * filename, float displayPeriod, float distToData );
-	TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
-	virtual ~TrainingLayer();
-    int initialize(int numTrainingLabels, int * trainingLabels, float displayPeriod, float distToData);
-    int initialize(const char * filename, float displayPeriod, float distToData);
-    int initialize(const char * filename, PVParams * params);
-    int readTrainingLabels(const char * filename, int ** trainingLabels);
+   TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
+   virtual ~TrainingLayer();
+   int readTrainingLabels(const char * filename, int ** trainingLabels);
 
-    virtual int updateState(float time, float dt);
-    virtual int updateV();
+   virtual int updateState(float time, float dt);
+   virtual int updateV();
 
 protected:
-    int numTrainingLabels;
-    int * trainingLabels;
-    int curTrainingLabelIndex;
-    float displayPeriod;
-    float distToData;
-    int nextLabelTime;
+   TrainingLayer();
+   int initialize(const char * name, HyPerCol * hc, const char * filename);
+   int numTrainingLabels;
+   int * trainingLabels;
+   int curTrainingLabelIndex;
+   float displayPeriod;
+   float distToData;
+   int nextLabelTime;
 
-    int setLabeledNeuronToValue(pvdata_t val);
-    int setLabeledNeuron() {return setLabeledNeuronToValue(1.0f);}
-    int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
-    void sendBadNeuronMessage();
+   int setLabeledNeuronToValue(pvdata_t val);
+   int setLabeledNeuron() {return setLabeledNeuronToValue(1.0f);}
+   int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
+   void sendBadNeuronMessage();
+
+private:
+   int initialize_base();
 }; // end class TrainingLayer
 
 }  // end namespace PV block

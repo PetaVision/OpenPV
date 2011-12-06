@@ -10,9 +10,9 @@
 
 namespace PV {
 
-Example::Example(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 1)
+Example::Example(const char * name, HyPerCol * hc)
 {
-   initialize(TypeGeneric);
+   initialize(name, hc, 1);
 }
 
 #ifdef PV_USE_OPENCL

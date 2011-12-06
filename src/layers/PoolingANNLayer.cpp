@@ -18,24 +18,34 @@
 
 namespace PV {
 
-PoolingANNLayer::PoolingANNLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, 2) {
-    initialize();
-}  // end of PoolingANNLayer::PoolingANNLayer(const char *, HyPerCol *)
+PoolingANNLayer::PoolingANNLayer() {
+   initialize_base();
+}
 
-int PoolingANNLayer::initialize() {
-    PVParams * params = parent->parameters();
-    setBias((pvdata_t) params->value(name, "bias", 0.0));
-    return PV_SUCCESS;
+PoolingANNLayer::PoolingANNLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+}
+
+int PoolingANNLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int PoolingANNLayer::initialize(const char * name, HyPerCol * hc) {
+   ANNLayer::initialize(name, hc, 2);
+   PVParams * params = parent->parameters();
+   setBias((pvdata_t) params->value(name, "bias", 0.0));
+   return PV_SUCCESS;
 }  // end of PoolingANNLayer::initialize()
 
 int PoolingANNLayer::updateV() {
-    pvdata_t * V = getV();
-    pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
-    pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
-    for( int k=0; k<getNumNeurons(); k++ ) {
-       V[k] = GSynExc[k]*GSynInh[k]*(getBiasa()*GSynExc[k]+getBiasb()*GSynInh[k]);
-    }
-    return PV_SUCCESS;
+   pvdata_t * V = getV();
+   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      V[k] = GSynExc[k]*GSynInh[k]*(getBiasa()*GSynExc[k]+getBiasb()*GSynInh[k]);
+   }
+   return PV_SUCCESS;
 }  // end of PoolingANNLayer::updateV()
 
 }  // end of namespace PV block

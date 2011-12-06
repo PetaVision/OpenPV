@@ -9,24 +9,26 @@
 
 namespace PV {
 
-// This constructor allows derived classes to set an arbitrary number of channels
-ANNLayer::ANNLayer(const char * name, HyPerCol * hc, int numChannels) : HyPerLayer(name, hc, numChannels) {
-   initialize();
+ANNLayer::ANNLayer() {
+   initialize_base();
 }
 
-ANNLayer::ANNLayer(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, MAX_CHANNELS) {
-   initialize();
+ANNLayer::ANNLayer(const char * name, HyPerCol * hc, int numChannels) {
+   initialize_base();
+   initialize(name, hc, numChannels);
 }  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
 
 ANNLayer::~ANNLayer() {}
 
-int ANNLayer::initialize() {
-   int status = HyPerLayer::initialize(TypeNonspiking);
+int ANNLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int ANNLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
+   int status = HyPerLayer::initialize(name, hc, numChannels);
    assert(status == PV_SUCCESS);
    PVParams * params = parent->parameters();
 
-   // moved to a separate routine so that derived classes that don't use
-   // VThresh, VMax, VMin don't have to read them.
    return readVThreshParams(params);
 }
 

@@ -53,39 +53,28 @@ void LIF_update_state(
 namespace PV
 {
 
-#ifdef OBSOLETE
-LIFParams LIFDefaultParams =
-{
-    V_REST, V_EXC, V_INH, V_INHB,            // V (mV)
-    TAU_VMEM, TAU_EXC, TAU_INH, TAU_INHB,
-    VTH_REST,  TAU_VTH, DELTA_VTH,	     // tau (ms)
-    250, 0*NOISE_AMP*( 1.0/TAU_EXC ) * ( ( TAU_INH * (V_REST-V_INH) + TAU_INHB * (V_REST-V_INHB) ) / (V_EXC-V_REST) ),
-    250, 0*NOISE_AMP*1.0,
-    250, 0*NOISE_AMP*1.0                       // noise (G)
-};
-#endif
-
-LIF::LIF(const char* name, HyPerCol * hc)
-  : HyPerLayer(name, hc, MAX_CHANNELS)
-{
-   initialize(TypeLIFSimple, "LIF_update_state");
+LIF::LIF() {
+   initialize_base();
+   // this is the constructor to be used by derived classes, it does not produce
+   // a function class but is asking for an init by the derived class
 }
 
-LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type)
-  : HyPerLayer(name, hc, MAX_CHANNELS)
-{
-   initialize(type, "LIF_update_state");
+LIF::LIF(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc, TypeLIFSimple, MAX_CHANNELS, "LIF_update_state");
 }
 
-LIF::LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels)
-  : HyPerLayer(name, hc, num_channels)
-{
-  // this is the constructor to be used by derived classes, it does not produce
-  // a function class but is asking for an init by the derived class
+LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type) {
+   initialize_base();
+   initialize(name, hc, type, MAX_CHANNELS, "LIF_update_state");
 }
 
-LIF::~LIF()
-{
+LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type, int num_channels) {
+   initialize_base();
+   initialize(name, hc, type, numChannels, "LIF_update_state");
+}
+
+LIF::~LIF() {
    if (numChannels > 0) {
       // conductances allocated contiguously so this frees all
       free(G_E);
@@ -108,6 +97,23 @@ LIF::~LIF()
 
 }
 
+int LIF::initialize_base() {
+   rand_state = NULL;
+   Vth = NULL;
+   G_E = NULL;
+   G_I = NULL;
+   G_IB = NULL;
+
+#ifdef PV_USE_OPEN_CL
+   clRand = NULL;
+   clVth = NULL;
+   clG_E = NULL;
+   clG_I = NULL;
+   clG_IB = NULL;
+#endif // PV_USE_OPEN_CL
+
+   return PV_SUCCESS;
+}
 
 // Initialize this class
 /*
@@ -116,14 +122,12 @@ LIF::~LIF()
  * from the params file.
  *
  */
-int LIF::initialize(PVLayerType type, const char * kernel_name)
-{
-   int status = HyPerLayer::initialize(type);
-
+int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
+   HyPerLayer::initialize(name, hc, num_channels);
+   clayer->layerType = type;
    const size_t numNeurons = getNumNeurons();
 
    setParams(parent->parameters());
-   // clayer->layerType = type; // done during call to HyPerLayer::initialize
 
    G_E = G_I = G_IB = NULL;
 
@@ -175,7 +179,7 @@ int LIF::initialize(PVLayerType type, const char * kernel_name)
    store->initializeThreadBuffers(parent);
 #endif
 
-   return status;
+   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_OPENCL

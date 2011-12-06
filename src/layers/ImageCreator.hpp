@@ -23,7 +23,7 @@ const unsigned int TIF = 4;
 class Point2D {
 public:
    Point2D(const unsigned int x, const unsigned int y):
-             posx(x), posy(y) { };
+      posx(x), posy(y) { };
 
    unsigned int getX() { return posx; };
    unsigned int getY() { return posy; };
@@ -35,69 +35,74 @@ private:
 class ImageCreator : public Image {
 
 public:
-    ImageCreator(const char * name, HyPerCol * hc);
-    virtual ~ImageCreator();
+   ImageCreator(const char * name, HyPerCol * hc);
+   virtual ~ImageCreator();
 
-    int initialize();
+   int initialize();
 
-    int clearImage();
-	int fillImage(pvdata_t val);
-	virtual bool updateImage(float time, float dt);
+   int clearImage();
+   int fillImage(pvdata_t val);
+   virtual bool updateImage(float time, float dt);
 
-	int createRandomImage();
-	int drawMultipleRandomShapes(int n_images);
-	int createMultipleImages();
+   int createRandomImage();
+   int drawMultipleRandomShapes(int n_images);
+   int createMultipleImages();
 
-	int drawLine(Point2D pt1, Point2D pt2);
+   int drawLine(Point2D pt1, Point2D pt2);
 
-	int drawLine(Point2D origin,
-			unsigned int length, float theta);
+   int drawLine(Point2D origin,
+         unsigned int length, float theta);
 
-	int drawSquare(Point2D origin,
-			unsigned int length, unsigned int theta);
+   int drawSquare(Point2D origin,
+         unsigned int length, unsigned int theta);
 
-	int drawSquare(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
+   int drawSquare(Point2D pt1, Point2D pt2,
+         Point2D pt3, Point2D pt4);
 
-	int drawRectangle(Point2D origin,
-			unsigned int lengtha, unsigned int lengthb,
-			unsigned int theta);
+   int drawRectangle(Point2D origin,
+         unsigned int lengtha, unsigned int lengthb,
+         unsigned int theta);
 
-	int drawRectangle(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
+   int drawRectangle(Point2D pt1, Point2D pt2,
+         Point2D pt3, Point2D pt4);
 
-	int drawQuadrilateral(Point2D pt1, Point2D pt2,
-			Point2D pt3, Point2D pt4);
+   int drawQuadrilateral(Point2D pt1, Point2D pt2,
+         Point2D pt3, Point2D pt4);
 
-	int copyImage(pvdata_t *targetbuf);
+   int copyImage(pvdata_t *targetbuf);
 
-	void testImage();
+   void testImage();
 
-	void mark(unsigned int i, unsigned int j, int value);
-	void mark(unsigned int i, int value);
-	unsigned char getmark(unsigned int i, unsigned int j);
+   void mark(unsigned int i, unsigned int j, int value);
+   void mark(unsigned int i, int value);
+   unsigned char getmark(unsigned int i, unsigned int j);
 
-	virtual int writeImageToFile(const float time,
-			                     const unsigned char options);
+   virtual int writeImageToFile(const float time,
+         const unsigned char options);
 
-	void setModified(bool val) { modified = val; };
-	bool ifModified() { return modified; };
+   void setModified(bool val) { modified = val; };
+   bool ifModified() { return modified; };
+
+protected:
+   ImageCreator();
+   int initialize(const char * name, HyPerCol * hc);
 
 private:
-	HyPerCol * hc;
-	bool modified;
+   HyPerCol * hc;
+   bool modified;
 
-	unsigned char * drawBuffer;
+   unsigned char * drawBuffer;
 
-	int writeImageToTxt(const char *filename);
-	int writeImageToBin(const char *filename);
-	int           drawBresenhamLine(int x0, int y0, int x1, int y1);
-	void          swap(int &a, int &b);
-	inline double deg2rad(int angleInDegrees);
-	inline int    approx(double n);
-	int           threewaytoss(double probStay,
-			                   double probBack,
-			                   double probForward);
+   int initialize_base();
+   int writeImageToTxt(const char *filename);
+   int writeImageToBin(const char *filename);
+   int           drawBresenhamLine(int x0, int y0, int x1, int y1);
+   void          swap(int &a, int &b);
+   inline double deg2rad(int angleInDegrees);
+   inline int    approx(double n);
+   int           threewaytoss(double probStay,
+         double probBack,
+         double probForward);
 };
 
 }

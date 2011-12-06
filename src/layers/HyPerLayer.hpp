@@ -31,7 +31,8 @@ class HyPerLayer : public LayerDataInterface {
 protected:
 
    // only subclasses can be constructed directly
-   HyPerLayer(const char * name, HyPerCol * hc, int numChannels);
+   HyPerLayer();
+   int initialize(const char * name, HyPerCol * hc, int numChannels);
 
    virtual int initializeLayerId(int layerId);
    virtual int initializeV(bool restart_flag);
@@ -49,7 +50,7 @@ protected:
 #endif
 
 private:
-   int initialize_base(const char * name, HyPerCol * hc, int numChannels);
+   int initialize_base();
 
 public:
 
@@ -86,7 +87,6 @@ public:
 
    virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
 
-   int initialize(PVLayerType type);
    int initFinish();
 
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);

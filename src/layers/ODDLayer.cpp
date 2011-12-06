@@ -11,14 +11,29 @@
 
 namespace PV {
 
-ODDLayer::ODDLayer(const char* name, HyPerCol * hc)
-  : ANNLayer(name, hc)
-{
+ODDLayer::ODDLayer() {
+   initialize_base();
 }
 
-ODDLayer::ODDLayer(const char* name, HyPerCol * hc, PVLayerType type)
-  : ANNLayer(name, hc)
-{
+ODDLayer::ODDLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+}
+
+ODDLayer::ODDLayer(const char * name, HyPerCol * hc, PVLayerType type) {
+   initialize_base();
+   initialize(name, hc);
+}
+
+ODDLayer::~ODDLayer() {
+}
+
+int ODDLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int ODDLayer::initialize(const char * name, HyPerCol * hc) {
+   return ANNLayer::initialize(name, hc, MAX_CHANNELS);
 }
 
 int ODDLayer::updateState(float time, float dt)

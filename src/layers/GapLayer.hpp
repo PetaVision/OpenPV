@@ -19,13 +19,20 @@ class GapLayer: public HyPerLayer {
 public:
    GapLayer(const char * name, HyPerCol * hc, LIFGap * clone);
    virtual ~GapLayer();
-   int initialize(LIFGap * clone);
-      // use LIFGap as source layer instead (LIFGap updates gap juctions more accurately)
 
    virtual int updateV();
 
-virtual int setActivity();
+   virtual int setActivity();
    LIFGap * sourceLayer;
+
+protected:
+   GapLayer();
+   int initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer);
+      // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
+
+private:
+   int initialize_base();
+
 };
 
 }

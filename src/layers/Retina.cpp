@@ -54,27 +54,39 @@ void Retina_nonspiking_update_state (
 
 namespace PV {
 
-Retina::Retina(const char * name, HyPerCol * hc)
-  : HyPerLayer(name, hc, NUM_RETINA_CHANNELS)
-{
-#ifdef OBSOLETE
-   this->img = new Image("Image", hc, hc->inputFile());
-#endif
-   initialize(TypeRetina);
+Retina::Retina() {
+   initialize_base();
+   // Default constructor to be called by derived classes.
+   // It doesn't call Retina::initialize; instead, the derived class
+   // should explicitly call Retina::initialize in its own initialization,
+   // the way that Retina::initialize itself calls HyPerLayer::initialization.
+   // This way, virtual methods called by initialize will be overridden
+   // as expected.
+}
+
+Retina::Retina(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc, TypeRetina);
 }
 
 Retina::~Retina()
 {
    free(rand_state);
 
-#ifdef PV_USE_OPENCL
-   free(evList);
-#endif
+// Moved to HyPerLayer since evList is a HyPerLayer member variable
+// #ifdef PV_USE_OPENCL
+//    free(evList);
+// #endif
 }
 
-int Retina::initialize(PVLayerType type)
-{
-   int status = HyPerLayer::initialize(type);
+int Retina::initialize_base() {
+   rand_state = NULL;
+   return PV_SUCCESS;
+}
+
+int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
+   int status = HyPerLayer::initialize(name, hc, NUM_RETINA_CHANNELS);
+   clayer->layerType = type;
 
    PVLayer * l = clayer;
 

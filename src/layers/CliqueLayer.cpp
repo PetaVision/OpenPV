@@ -11,6 +11,21 @@
 
 namespace PV {
 
+CliqueLayer::CliqueLayer() {
+   initialize_base();
+}
+
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) {
+   initialize_base();
+   initialize(name, hc, numChannels);
+}
+
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc, MAX_CHANNELS);
+}
+
+/*
 CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
    CliqueLayer::initialize();
 }
@@ -18,13 +33,21 @@ CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : AN
 CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
    CliqueLayer::initialize();
 }
+ */
 
-// parent class initialize already called in constructor
-int CliqueLayer::initialize() {
+CliqueLayer::~CliqueLayer() {
+}
+
+int CliqueLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
+   ANNLayer::initialize(name, hc, numChannels);
    PVParams * params = parent->parameters();
    Voffset = params->value(name, "Voffset", 0.0f, true);
    Vgain = params->value(name, "Vgain", 2.0f, true);
-   return PV_SUCCESS; //ANNLayer::initialize();
+   return PV_SUCCESS;
 }
 
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,

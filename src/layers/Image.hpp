@@ -16,14 +16,13 @@ namespace PV {
 class Image : public HyPerLayer {
 
 protected:
-   Image(const char * name, HyPerCol * hc);
+   Image();
+   int initialize(const char * name, HyPerCol * hc, const char * filename);
    virtual int initializeV(bool restart_flag);
 
 public:
    Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
-
-   virtual int initializeImage(const char * filename);
 
    // primary layer interface
    //
@@ -39,13 +38,13 @@ public:
 
    float lastUpdate()  { return lastUpdateTime; }
 
-   virtual pvdata_t * getImageBuffer();
-   virtual PVLayerLoc getImageLoc();
+   virtual pvdata_t * getImageBuffer() { return data; }
+   virtual PVLayerLoc getImageLoc() {return imageLoc; }
 
    virtual int tag();
 
-   int read(const char * filename);
-   int read(const char * filename, int offsetX, int offsetY);
+   int readImage(const char * filename);
+   int readImage(const char * filename, int offsetX, int offsetY);
    int write(const char * filename);
 
    int exchange();
@@ -62,6 +61,9 @@ public:
    const char * getFilename() { return filename; }
    int getOffsetX() { return offsetX; }
    int getOffsetY() { return offsetY; }
+
+private:
+   int initialize_base();
 
 protected:
 

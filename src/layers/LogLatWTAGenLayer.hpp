@@ -17,14 +17,17 @@ namespace PV {
 
 class LogLatWTAGenLayer : public GenerativeLayer {
 public:
-    LogLatWTAGenLayer(const char * name, HyPerCol * hc);
-    ~LogLatWTAGenLayer();
+   LogLatWTAGenLayer(const char * name, HyPerCol * hc);
+   ~LogLatWTAGenLayer();
 
 protected:
-    int initialize();
-    int updateSparsityTermDerivative();
-    virtual pvdata_t latWTAterm(pvdata_t * V, int nf);
-    pvdata_t sparsitytermcoeff;
+   LogLatWTAGenLayer();
+   int initialize(const char * name, HyPerCol * hc);
+   int updateSparsityTermDerivative();
+   virtual pvdata_t latWTAterm(pvdata_t * V, int nf);
+   pvdata_t sparsitytermcoeff;
+private:
+   int initialize_base();
 };
 
 }  // end namespace PV block

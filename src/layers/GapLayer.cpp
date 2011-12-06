@@ -10,10 +10,12 @@
 
 // GapLayer can be used to implement gap junctions
 namespace PV {
-GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) :
-   HyPerLayer(name, hc, MAX_CHANNELS)
-{
-   initialize(originalLayer);
+GapLayer::GapLayer() {
+   initialize_base();
+}
+
+GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) {
+   initialize(name, hc, originalLayer);
 }
 
 GapLayer::~GapLayer()
@@ -21,9 +23,15 @@ GapLayer::~GapLayer()
     clayer->V = NULL;
 }
 
-int GapLayer::initialize(LIFGap * originalLayer)
+int GapLayer::initialize_base() {
+   sourceLayer = NULL;
+   return PV_SUCCESS;
+}
+
+int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer)
 {
-   int status_init = HyPerLayer::initialize(TypeNonspiking);
+   int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
+   this->clayer->layerType = TypeNonspiking;
    this->spikingFlag = false;
    sourceLayer = originalLayer;
    free(clayer->V);
@@ -35,7 +43,7 @@ int GapLayer::initialize(LIFGap * originalLayer)
    return status_init;
 }
 
-// use LIFGap as source layer instead (LIFGap updates gap juctions more accurately)
+// use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
 int GapLayer::updateV() {
 #ifdef OBSOLETE
    pvdata_t * V = getV();

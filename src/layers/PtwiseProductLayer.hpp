@@ -19,9 +19,16 @@ namespace PV {
 
 class PtwiseProductLayer : public ANNLayer {
 public:
-	PtwiseProductLayer(const char * name, HyPerCol * hc);
+   PtwiseProductLayer(const char * name, HyPerCol * hc);
+   virtual ~PtwiseProductLayer();
+   virtual int updateV();
 
-	virtual int updateV();
+protected:
+   PtwiseProductLayer();
+   int initialize(const char * name, HyPerCol * hc);
+
+private:
+   int initialize_base();
 };  // end class PtwiseProductLayer
 
 }  // end namespace PV

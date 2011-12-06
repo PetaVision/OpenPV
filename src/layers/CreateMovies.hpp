@@ -13,31 +13,31 @@
 
 typedef struct CreateMovies_Params_ {
 
-	// base parameter for images
-	int nx;  //width
-	int ny;  //height
-	pvdata_t foregroundval;
-	pvdata_t backgroundval;
-	bool isgray;
+   // base parameter for images
+   int nx;  //width
+   int ny;  //height
+   pvdata_t foregroundval;
+   pvdata_t backgroundval;
+   bool isgray;
 
-	//transformation parameter
-	float rotateangle;//unit: degree
-	int centerx;//unit: pixel
-	int centery;//unit: pixel
+   //transformation parameter
+   float rotateangle;//unit: degree
+   int centerx;//unit: pixel
+   int centery;//unit: pixel
 
-	//image patterns
-	int period;//unit: pixel
-	int linewidth; //unit: pixel, for isgray = 0;
+   //image patterns
+   int period;//unit: pixel
+   int linewidth; //unit: pixel, for isgray = 0;
 
-	//moving velocity
-	int vx;//unit: pixel
-	int vy;//unit: pixel
-	float vr;//unit: degree
+   //moving velocity
+   int vx;//unit: pixel
+   int vy;//unit: pixel
+   float vr;//unit: degree
 
-	//moving patterns
-	int isshiftx;
-	int isshifty;
-	int isrotate;
+   //moving patterns
+   int isshiftx;
+   int isshifty;
+   int isrotate;
 
 }CreateMovies_Params;
 
@@ -46,27 +46,33 @@ namespace PV {
 
 class CreateMovies: public PV::Image {
 public:
-	CreateMovies(const char * name, HyPerCol * hc);
-	virtual ~CreateMovies();
-	virtual int initialize_Movies(HyPerCol * hc);
-	virtual int setParams(PVParams * params, CreateMovies_Params * p);
+   CreateMovies(const char * name, HyPerCol * hc);
+   virtual ~CreateMovies();
+   virtual int setParams(PVParams * params, CreateMovies_Params * p);
 
-	virtual int Rotate(const float DAngle, const int centerx = 0, const int centery = 0);
-	virtual int Shift(const int Dx,const int Dy = 0)  {return Transform(0,Dx,Dy);}
-	virtual int Transform(const float DAngle,const int Dx=0,const int Dy=0);
+   virtual int Rotate(const float DAngle, const int centerx = 0, const int centery = 0);
+   virtual int Shift(const int Dx,const int Dy = 0)  {return Transform(0,Dx,Dy);}
+   virtual int Transform(const float DAngle,const int Dx=0,const int Dy=0);
 
-	float getLastDisplayTime(){return lastDisplayTime;}
-	float getNextDisplayTime(){return nextDisplayTime;}
+   float getLastDisplayTime(){return lastDisplayTime;}
+   float getNextDisplayTime(){return nextDisplayTime;}
 
-	virtual bool updateImage(float time, float dt);
-	virtual bool CreateImages();
+   virtual bool updateImage(float time, float dt);
+   virtual bool CreateImages();
 
 protected:
-	float displayPeriod;     // length of time a frame is displayed
-	float lastDisplayTime;   //
-	float nextDisplayTime;   // time of next frame
-	CreateMovies_Params * CMParams;
-	int flagx, flagy, flagr;
+   CreateMovies();
+   int initialize(const char * name, HyPerCol * hc);
+
+private:
+   int initialize_base();
+
+protected:
+   float displayPeriod;     // length of time a frame is displayed
+   float lastDisplayTime;   //
+   float nextDisplayTime;   // time of next frame
+   CreateMovies_Params * CMParams;
+   int flagx, flagy, flagr;
 };
 
 }//namespace PV

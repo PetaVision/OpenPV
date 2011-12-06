@@ -97,9 +97,11 @@ protected:
 #endif
 
 protected:
-   virtual int initialize(PVLayerType type, const char * kernel_name);
+   LIF();
+   int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
 
 private:
+   int initialize_base();
    int findPostSynaptic(int dim, int maxSize, int col,
    // input: which layer, which neuron
    HyPerLayer *lSource, float pos[],

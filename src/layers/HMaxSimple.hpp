@@ -16,7 +16,7 @@ class HMaxSimple: public PV::HyPerLayer {
 public:
    HMaxSimple(const char * name, HyPerCol * hc);
 
-   ~HMaxSimple();
+   virtual ~HMaxSimple();
 
    virtual int recvSynapticInput(HyPerConn* conn, PVLayerCube* activity, int neighbor);
    virtual int updateState(float time, float dt);
@@ -24,6 +24,14 @@ public:
    virtual int initFinish(int colId, int colRow, int colCol);
 
    virtual int outputState(float time, bool last=false);
+
+protected:
+   HMaxSimple();
+   int initialize(const char * name, HyPerCol * hc);
+
+private:
+   int initialize_base();
+
 };
 
 }

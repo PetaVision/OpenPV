@@ -22,7 +22,11 @@ public:
    virtual int squareV();
 
 protected:
-   int initialize();
+   ANNSquaredLayer();
+   int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+
+private:
+   int initialize_base();
 
 };
 

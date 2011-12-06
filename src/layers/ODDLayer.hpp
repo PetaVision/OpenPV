@@ -16,9 +16,15 @@ class ODDLayer: public PV::ANNLayer {
 public:
    ODDLayer(const char* name, HyPerCol * hc);
    ODDLayer(const char* name, HyPerCol * hc, PVLayerType type);
+   virtual ~ODDLayer();
    virtual int updateState(float time, float dt);
 
+protected:
+   ODDLayer();
+   int initialize(const char * name, HyPerCol * hc);
+
 private:
+   int initialize_base();
 };
 
 }

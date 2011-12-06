@@ -13,10 +13,13 @@
 
 // CloneLayer can be used to implement Sigmoid junctions
 namespace PV {
-SigmoidLayer::SigmoidLayer(const char * name, HyPerCol * hc, LIF * originalLayer) :
-   HyPerLayer(name, hc, MAX_CHANNELS)
-{
-   initialize(originalLayer);
+SigmoidLayer::SigmoidLayer() {
+   initialize_base();
+}
+
+SigmoidLayer::SigmoidLayer(const char * name, HyPerCol * hc, LIF * originalLayer) {
+   initialize_base();
+   initialize(name, hc, originalLayer);
 }
 
 SigmoidLayer::~SigmoidLayer()
@@ -24,9 +27,13 @@ SigmoidLayer::~SigmoidLayer()
     clayer->V = NULL;
 }
 
-int SigmoidLayer::initialize(LIF * originalLayer)
-{
-   int status_init = HyPerLayer::initialize(TypeNonspiking);
+int SigmoidLayer::initialize_base() {
+   sourceLayer = NULL;
+   return PV_SUCCESS;
+}
+
+int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
+   int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
 
    V0 = parent->parameters()->value(name, "Vrest", V_REST);
    Vth = parent->parameters()->value(name,"VthRest",VTH_REST);
@@ -39,7 +46,7 @@ int SigmoidLayer::initialize(LIF * originalLayer)
    if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set");
 
    this->spikingFlag = false;
-   sourceLayer = originalLayer;
+   sourceLayer = clone;
    free(clayer->V);
    clayer->V = sourceLayer->getV();
 

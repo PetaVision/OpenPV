@@ -10,13 +10,24 @@
 
 namespace PV {
 
-HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) : HyPerLayer(name, hc, 1)
-{
-   initialize(TypeGeneric);
+HMaxSimple::HMaxSimple() {
+   initialize_base();
+}
+
+HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) {
+   initialize(name, hc);
 }
 
 HMaxSimple::~HMaxSimple(){
 
+}
+
+int HMaxSimple::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int HMaxSimple::initialize(const char * name, HyPerCol * hc) {
+   return HyPerLayer::initialize(name, hc, 1);
 }
 
 int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)

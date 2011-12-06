@@ -18,35 +18,40 @@
 
 namespace PV {
 
-Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames)
-     : Image(name, hc)
-{
-    initializeMovie(name, hc, fileOfFileNames, DISPLAY_PERIOD);
+Movie::Movie() {
+   initialize_base();
 }
 
-Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod)
-     : Image(name, hc)
-{
-   initializeMovie(name, hc, fileOfFileNames, defaultDisplayPeriod);
+Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames) {
+   initialize_base();
+   initialize(name, hc, fileOfFileNames, DISPLAY_PERIOD);
+}
+
+Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+   initialize_base();
+   initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
+}
+
+int Movie::initialize_base() {
+   movieOutputPath = NULL;
+   return PV_SUCCESS;
 }
 
 //
 /*
  * Notes:
- * - offsetX and offsetY are initialized by Image(name,hc)
- * - writeImages is initialized by Image(name,hc)
+ * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
-int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+   Image::initialize(name, hc, NULL);
 
    PVLayerLoc * loc = &clayer->loc;
-   movieOutputPath = NULL;
 
    if( getParent()->icCommunicator()->commRank()==0 ) {
       fp = fopen(fileOfFileNames, "r");
       if( fp == NULL ) {
-         fprintf(stderr, "Unable to open %s\n", fileOfFileNames);
-         fprintf(stderr, "Error code %d\n", errno);
-         exit(EXIT_FAILURE);
+         fprintf(stderr, "Movie::initialize: Error code %d opening %s\n", errno, fileOfFileNames);
+         abort();
       }
    }
 
@@ -57,34 +62,20 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      exit(EXIT_FAILURE);
+      abort();
    }
 
    // create mpi_datatypes for border transfer
    mpi_datatypes = Communicator::newDatatypes(loc);
 
-//   int N = imageLoc.nx * imageLoc.ny * imageLoc.nBands;
-//   imageData = new float [N];
-//   for (int i = 0; i < N; ++i) {
-//      imageData[i] = 0;
-//   }
-   imageData = NULL;
-
-   // Image::read takes care of grayscale, so loc->nf should be left alone.
-   // loc->nf = imageLoc.nf;
-
-   //
    PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
-   // offsetX = (int) params->value(name,"offsetX", 0); // reading offsetX,offsetY moved to Image
-   // offsetY = (int) params->value(name,"offsetY", 0);
-
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 
-   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
    writePosition = 0;
+   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
    if( jitterFlag ) {
       stepSize          = (int) params->value(name, "stepSize", 0);
       persistenceProb   = params->value(name,"persistenceProb", 1.0);
@@ -97,15 +88,11 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    randomMovie       = (int) params->value(name,"randomMovie",0);
    if( randomMovie ) {
       randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
-   }
 
-   if(randomMovie){
-      // random number generator already initialized by HyPerCol
-      //unsigned long seed = (unsigned long) time ((time_t *) NULL);
-      //pv_srandom(seed); // initialize seed
+      // random number generator initialized by HyPerCol::initialize
       randomFrame();
    }else{
-      read(filename, offsetX, offsetY);
+      readImage(filename, offsetX, offsetY);
    }
 
    // set output path for movie frames
@@ -125,28 +112,19 @@ int Movie::initializeMovie(const char * name, HyPerCol * hc, const char * fileOf
    if(writePosition){
       assert(jitterFlag);
       char file_name[PV_PATH_MAX];
-      if (movieOutputPath != NULL){
-         //I don't know why someone was saving the return value, but it was
-         //generating a compiler warning because it was unused.  Did someone
-         //want to use this for something?
-         snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
-         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
-      }
-      else{
-         snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
-         //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", hc->getOutputPath());
-      }
+
+      //Return value of snprintf commented out because it was generating an
+      //unused-variable compiler warning.
+      //
+      //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
+      snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
       printf("write position to %s\n",file_name);
+      // TODO In MPI, fp_pos should only be opened and written to by root process
       fp_pos = fopen(file_name,"a");
       assert(fp_pos != NULL);
       fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
             hc->simulationTime(),offsetX,offsetY);
    }
-
-   // grayScale call moved to Image::read, called immediately above
-   // if (loc->nf > 1) {
-   //    toGrayScale();
-   // }
 
    // exchange border information
    exchange();
@@ -251,7 +229,7 @@ bool Movie::updateImage(float time, float dt)
       } // jitterFlag
 
       if( needNewImage ){
-         read(filename, offsetX, offsetY);
+         readImage(filename, offsetX, offsetY);
       }
    } // randomMovie
 

@@ -35,6 +35,9 @@ public:
 
 protected:
 
+   LIFGap();
+   int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
+
    pvdata_t * G_Gap;
    pvdata_t sumGap;
 
@@ -51,7 +54,7 @@ protected:
 #endif
 
 private:
-   virtual int initialize(PVLayerType type, const char * kernelName);
+   int initialize_base();
 
 };
 

@@ -18,81 +18,91 @@
 
 #define DEBUG_OUTPUTIMAGES
 #ifdef DEBUG_OUTPUTIMAGES
-	int numFrame = 0;
-	int MaxNumberFrames = 20;
+int numFrame = 0;
+int MaxNumberFrames = 20;
 #endif
 
 
 CreateMovies_Params DefaultCMParams={
-	32,//nx
-	32,//ny
-	255,//foregroundval
-	0,//backgroudval
-	1,//isgray
-	0,//rotateangle
-	0,//centerx
-	0,//centery
-	8,//period
-	3,//linewidth
-	2,//vx
-	2,//vy
-	5,//vr
-	-1,//isshiftx
-	0,//isshifty
-	0,//isrotate
+      32,//nx
+      32,//ny
+      255,//foregroundval
+      0,//backgroudval
+      1,//isgray
+      0,//rotateangle
+      0,//centerx
+      0,//centery
+      8,//period
+      3,//linewidth
+      2,//vx
+      2,//vy
+      5,//vr
+      -1,//isshiftx
+      0,//isshifty
+      0,//isrotate
 };
 
 namespace PV {
 
-CreateMovies::CreateMovies(const char * name, HyPerCol * hc)
-	:Image(name, hc)
-{
-	initialize_Movies(hc);
+CreateMovies::CreateMovies() {
+   initialize_base();
+}
+
+CreateMovies::CreateMovies(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+   // initialize_Movies(hc);
 }
 
 CreateMovies::~CreateMovies() {
-	if (CMParams != NULL) free(CMParams);
+   free(CMParams);
 }
 
-int CreateMovies::initialize_Movies(HyPerCol * hc){
+int CreateMovies::initialize_base() {
+   CMParams = NULL;
+   return PV_SUCCESS;
+}
 
-	CMParams = NULL;
-	PVParams * pvparams = hc->parameters();
-	displayPeriod = pvparams->value(name, "displayPeriod", 20.0);
-	lastDisplayTime = hc->simulationTime();
-	nextDisplayTime = hc->simulationTime() + displayPeriod;
+int CreateMovies::initialize(const char * name, HyPerCol * hc) {
+   Image::initialize(name, hc, NULL);
 
-	flagx = 1;
-	flagy = 1;
-	flagr = 1;
+   PVParams * pvparams = hc->parameters();
+   setParams(pvparams, &DefaultCMParams);
+   displayPeriod = pvparams->value(name, "displayPeriod", 20.0);
+   lastDisplayTime = hc->simulationTime();
+   nextDisplayTime = hc->simulationTime() + displayPeriod;
 
-	setParams(pvparams, &DefaultCMParams);
-	CreateMovies_Params * cp = (CreateMovies_Params *) CMParams;
+   flagx = 1;
+   flagy = 1;
+   flagr = 1;
 
-	PVLayerLoc * loc = & clayer->loc;
-	loc->nx = cp->nx;
-	loc->ny = cp->ny;
-	loc->nf = 1;
-	loc->nb = pvparams->value(name, "marginWidth", 0);
-	loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
+   setParams(pvparams, &DefaultCMParams);
+   CreateMovies_Params * cp = (CreateMovies_Params *) CMParams;
 
-	if (data != NULL) free(data);
-	size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
-	                    * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
-	data = (pvdata_t *) malloc(dn);
-	assert(data != NULL);
-	memset((pvdata_t *)data, cp->backgroundval, dn);
-	Transform(0, 0, 0);
+   PVLayerLoc * loc = & clayer->loc;
+   loc->nx = cp->nx;
+   loc->ny = cp->ny;
+   loc->nf = 1;
+   loc->nb = pvparams->value(name, "marginWidth", 0);
+   loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
+
+   free(data);
+   size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+                                  * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
+   data = (pvdata_t *) malloc(dn);
+   assert(data != NULL);
+   memset((pvdata_t *)data, cp->backgroundval, dn);
+   Transform(0, 0, 0);
 
 #ifdef DEBUG_OUTPUTIMAGES
-	int T = hc->simulationTime() ;
-	char title[1000];
-	::sprintf(title,"output/images/%05d.tif",T);
-	write(title);
+   int T = hc->simulationTime() ;
+   char title[1000];
+   ::sprintf(title,"output/images/%05d.tif",T);
+   write(title);
 #endif
-	return 0;
-}
 
+   return PV_SUCCESS;
+}
 
 int CreateMovies::setParams(PVParams * params, CreateMovies_Params * p)
 {
@@ -150,7 +160,7 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
    pvdata_t backgroundval = param->backgroundval;
 
    size_t dn=loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
-                     * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
+                           * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
    if (data == NULL){
       data = (pvdata_t *) malloc(dn);
    }
@@ -210,31 +220,31 @@ int CreateMovies::Transform(const float DAngle,const int Dx,const int Dy)
 bool CreateMovies::updateImage(float time, float dt){
 
 
-	if(time - lastDisplayTime < dt/2) {
-		return true;
-	}
+   if(time - lastDisplayTime < dt/2) {
+      return true;
+   }
 
-	if (time < nextDisplayTime) {
-		      return false;
-	}
+   if (time < nextDisplayTime) {
+      return false;
+   }
 
-	lastDisplayTime = time;
+   lastDisplayTime = time;
 
-	nextDisplayTime += displayPeriod;
+   nextDisplayTime += displayPeriod;
 
-	CreateImages();
+   CreateImages();
 
 #ifdef DEBUG_OUTPUTIMAGES
-	if (numFrame < MaxNumberFrames){
-		int T = nextDisplayTime - displayPeriod;
-		char title[1000];
-		::sprintf(title,"output/images/%05d.tif",T);
-		write(title);
-		numFrame++;
-	}
+   if (numFrame < MaxNumberFrames){
+      int T = nextDisplayTime - displayPeriod;
+      char title[1000];
+      ::sprintf(title,"output/images/%05d.tif",T);
+      write(title);
+      numFrame++;
+   }
 #endif
 
-	return true;
+   return true;
 }
 
 
@@ -251,78 +261,78 @@ bool CreateMovies::CreateImages(){
    // Create different pattern image sequences
    while(1){
 
-   if (isshiftx != 0 && flagx != 0){
-        if (isshiftx<0)
-                Transform(0,CMParams->vx,0);
-        else{
-             flag = flagx % (isshiftx+1);
-             if (flag != 0){
-                     Transform(0,CMParams->vx,0);
-                     flagy = 0;
-                     flagr = 0;
-                     flagx++;
-                     break;
-             }
-             else{
-                     flagx = 0;
-                     flagy = 1;
-                     flagr = 1;
-                     continue;
-             }
+      if (isshiftx != 0 && flagx != 0){
+         if (isshiftx<0)
+            Transform(0,CMParams->vx,0);
+         else{
+            flag = flagx % (isshiftx+1);
+            if (flag != 0){
+               Transform(0,CMParams->vx,0);
+               flagy = 0;
+               flagr = 0;
+               flagx++;
+               break;
+            }
+            else{
+               flagx = 0;
+               flagy = 1;
+               flagr = 1;
+               continue;
+            }
 
-        }
-        break;
-   }
+         }
+         break;
+      }
 
-   if (isshifty != 0 && flagy != 0){
-        if (isshifty<0)
-                Transform(0,0,CMParams->vy);
-        else{
-                flag = flagy % (isshifty+1);
-                if (flag != 0){
-                        Transform(0,0,CMParams->vy);
-                        flagx = 0;
-                        flagr = 0;
-                        flagy++;
-                        break;
-                }
-                else{
-                        flagx = 1;
-                        flagy = 0;
-                        flagr = 1;
-                        continue;
-                }
+      if (isshifty != 0 && flagy != 0){
+         if (isshifty<0)
+            Transform(0,0,CMParams->vy);
+         else{
+            flag = flagy % (isshifty+1);
+            if (flag != 0){
+               Transform(0,0,CMParams->vy);
+               flagx = 0;
+               flagr = 0;
+               flagy++;
+               break;
+            }
+            else{
+               flagx = 1;
+               flagy = 0;
+               flagr = 1;
+               continue;
+            }
 
-        }
-        break;
-   }
+         }
+         break;
+      }
 
-   if (isrotate != 0 && flagr != 0){
-        if (isrotate<0)
-                Transform(CMParams->vr,0,0);
-        else{
-                flag = flagr % (isrotate+1);
-                if (flag != 0){
-                        Transform(CMParams->vr,0,0);
-                        flagx = 0;
-                        flagy = 0;
-                        flagr++;
-                        break;
-                }
-                else{
-                        flagx = 1;
-                        flagy = 1;
-                        flagr = 0;
-                        continue;
-                }
+      if (isrotate != 0 && flagr != 0){
+         if (isrotate<0)
+            Transform(CMParams->vr,0,0);
+         else{
+            flag = flagr % (isrotate+1);
+            if (flag != 0){
+               Transform(CMParams->vr,0,0);
+               flagx = 0;
+               flagy = 0;
+               flagr++;
+               break;
+            }
+            else{
+               flagx = 1;
+               flagy = 1;
+               flagr = 0;
+               continue;
+            }
 
-        }
-        break;
-   }
+         }
+         break;
+      }
 
-   break;
+      break;
    }//while
-   return true;
+      return true;
 }
 
 }//namespace PV

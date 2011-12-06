@@ -9,14 +9,23 @@
 
 namespace PV {
 
-LogLatWTAGenLayer::LogLatWTAGenLayer(const char * name, HyPerCol * hc) :
-      GenerativeLayer(name, hc) {
-   initialize();
+LogLatWTAGenLayer::LogLatWTAGenLayer() {
+   initialize_base();
+}
+
+LogLatWTAGenLayer::LogLatWTAGenLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 LogLatWTAGenLayer::~LogLatWTAGenLayer() {}
 
-int LogLatWTAGenLayer::initialize() {
+int LogLatWTAGenLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int LogLatWTAGenLayer::initialize(const char * name, HyPerCol * hc) {
+   GenerativeLayer::initialize(name, hc);
    sparsitytermcoeff = (pvdata_t) parent->parameters()->value(getName(),"sparsityTermCoefficient",1.0f);
    return PV_SUCCESS;
 }

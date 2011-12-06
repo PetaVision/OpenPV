@@ -21,12 +21,15 @@ class SigmoidLayer: public HyPerLayer {
 public:
    SigmoidLayer(const char * name, HyPerCol * hc, LIF * clone);
    virtual ~SigmoidLayer();
-   int initialize(LIF * clone);
    virtual int updateV();
    virtual int setActivity();
    virtual int resetGSynBuffers();
    LIF * sourceLayer;
+protected:
+   SigmoidLayer();
+   int initialize(const char * name, HyPerCol * hc, LIF * clone);
 private:
+   int initialize_base();
    float V0;
    float Vth;
    bool  InverseFlag;

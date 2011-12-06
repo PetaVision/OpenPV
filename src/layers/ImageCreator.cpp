@@ -15,6 +15,10 @@
 #include "ImageCreator.hpp"
 
 namespace PV {
+ImageCreator::ImageCreator() {
+   initialize_base();
+}
+
 /** Constructor for ImageCreator class.
  * initialize_data() allocates memory for data;
  * data lives in an extended frame of size
@@ -23,35 +27,34 @@ namespace PV {
  *  drawBuffer lives in a restricted frame
  * of size nx*ny*nBands
  */
-ImageCreator::ImageCreator(const char * name, HyPerCol * hc) : Image(name, hc)
-{
-   this->hc = hc;
-   initialize();
-#ifdef OBSOLETE
-   updateImage(0.0, 0.0);
-#endif
+ImageCreator::ImageCreator(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
-ImageCreator::~ImageCreator()
-{
+ImageCreator::~ImageCreator() {
    free(drawBuffer);
 }
 
-/**
- *
- * drawBuffer lives in a restricted frame
- * of size nx*ny*nBands
- */
-int ImageCreator::initialize()
-{
+int ImageCreator::initialize_base() {
+   hc = NULL;
+   drawBuffer = NULL;
+
+   return PV_SUCCESS;
+}
+
+int ImageCreator::initialize(const char * name, HyPerCol * hc) {
+   Image::initialize(name, hc, NULL);
+   this->hc = hc;
    const PVLayerLoc * loc = getLayerLoc();
    const int numItems = loc->nx * loc->ny * loc->nf;
 
    drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
    assert(drawBuffer != 0);
 
-   return 0;
+   return PV_SUCCESS;
 }
+
 
 /**
  * Description: Updates the image drawBuffer. Can be called for

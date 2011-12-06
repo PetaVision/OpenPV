@@ -59,18 +59,18 @@ void LIFGap_update_state(
 
 namespace PV {
 
-LIFGap::LIFGap(const char* name, HyPerCol * hc)
-  : LIF(name, hc, TypeLIFGap, MAX_CHANNELS+1)
-{
-   const char * kernel_name = "LIFGap_update_state";
-   LIFGap::initialize(TypeLIFGap, kernel_name );
+LIFGap::LIFGap() {
+   initialize_base();
 }
 
-LIFGap::LIFGap(const char* name, HyPerCol * hc, PVLayerType type)
-  : LIF(name, hc, type, MAX_CHANNELS+1)
-{
-   const char * kernel_name = "LIFGap_update_state";
-   LIFGap::initialize(type, kernel_name);
+LIFGap::LIFGap(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc, TypeLIFGap, MAX_CHANNELS+1, "LIFGap_update_state");
+}
+
+LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
+   initialize_base();
+   initialize(name, hc, type, MAX_CHANNELS+1, "LIFGap_update_state");
 }
 
 LIFGap::~LIFGap()
@@ -84,16 +84,23 @@ LIFGap::~LIFGap()
 
 }
 
+int LIFGap::initialize_base() {
+   G_Gap = NULL;
+
+#ifdef PV_USE_OPENCL
+   clG_Gap = NULL;
+   clGSynGap = NULL;
+#endif
+
+   return PV_SUCCESS;
+}
 
 // Initialize this class
 /*
  *
  */
-int LIFGap::initialize(PVLayerType type, const char * kernel_name)
-{
-   int status = CL_SUCCESS;
-
-   status = LIF::initialize(type, kernel_name);
+int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
+   int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
 
    const size_t num_neurons = getNumNeurons();
    this->G_Gap  = G_E + 3*num_neurons;
@@ -101,6 +108,7 @@ int LIFGap::initialize(PVLayerType type, const char * kernel_name)
 
    return status;
 }
+
 
 #ifdef PV_USE_OPENCL
 /**

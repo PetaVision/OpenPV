@@ -14,8 +14,25 @@
 
 namespace PV {
 
-PtwiseProductLayer::PtwiseProductLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, 2) {
+PtwiseProductLayer::PtwiseProductLayer() {
+   initialize_base();
+}
+
+PtwiseProductLayer::PtwiseProductLayer(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }  // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
+
+PtwiseProductLayer::~PtwiseProductLayer() {
+}
+
+int PtwiseProductLayer::initialize_base() {
+   return PV_SUCCESS;
+}
+
+int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
+   return ANNLayer::initialize(name, hc, 2);
+}
 
 int PtwiseProductLayer::updateV() {
     pvdata_t * V = getV();

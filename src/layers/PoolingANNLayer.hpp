@@ -23,19 +23,22 @@ namespace PV {
 
 class PoolingANNLayer : public ANNLayer {
 public:
-	PoolingANNLayer(const char * name, HyPerCol * hc);
-	int initialize();
+   PoolingANNLayer(const char * name, HyPerCol * hc);
+   int initialize();
 
-	pvdata_t getBiasa() { return biasa;}
-	pvdata_t getBiasb() { return biasb;}
-	void setBias(pvdata_t bias) { biasa=0.5*(1+bias); biasb=0.5*(1-bias); return;}
+   pvdata_t getBiasa() { return biasa;}
+   pvdata_t getBiasb() { return biasb;}
+   void setBias(pvdata_t bias) { biasa=0.5*(1+bias); biasb=0.5*(1-bias); return;}
 
 protected:
-    int updateV();
+   PoolingANNLayer();
+   int initialize(const char * name, HyPerCol * hc);
+   int updateV();
 
 private:
-    pvdata_t biasa;
-    pvdata_t biasb;
+   int initialize_base();
+   pvdata_t biasa;
+   pvdata_t biasb;
 };
 
 }  // end namespace PV block
