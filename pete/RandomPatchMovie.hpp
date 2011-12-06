@@ -29,8 +29,8 @@ public:
    virtual int getRandomFileIndex();
 
 protected:
-   int initialize_base();
-   int initializeRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
+   RandomPatchMovie();
+   int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
    int readOffsets(PVParams * params);
    int retrieveRandomPatch();
    virtual bool updateImage(float time, float dt);
@@ -42,6 +42,9 @@ protected:
    int * imageFilenameIndices;
    char * listOfImageFiles;
    int fileIndex;
+
+private:
+   int initialize_base();
 }; // end class RandomPatchMovie
 
 }  // end namespace PV

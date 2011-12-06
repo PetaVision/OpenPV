@@ -12,10 +12,14 @@
 #include "ShadowRandomPatchMovie.hpp"
 
 namespace PV {
-ShadowRandomPatchMovie::ShadowRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod)
-      : RandomPatchMovie(name, hc) {
+
+ShadowRandomPatchMovie::ShadowRandomPatchMovie() {
    initialize_base();
-   initializeShadowRandomPatchMovie(name, hc, fileOfFileNames, defaultDisplayPeriod);
+}
+
+ShadowRandomPatchMovie::ShadowRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+   initialize_base();
+   initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
 }
 
 ShadowRandomPatchMovie::~ShadowRandomPatchMovie() {
@@ -26,8 +30,9 @@ int ShadowRandomPatchMovie::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ShadowRandomPatchMovie::initializeShadowRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+int ShadowRandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
    assert( this->shadowedRandomPatchMovie == NULL );
+   int status = RandomPatchMovie::initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
    const char * shadowedName = hc->parameters()->stringValue(name, "shadowedRandomPatchMovie", true);
    if( shadowedName == NULL ) {
       fprintf(stderr,"ShadowRandomPatchMovie \"%s\": the string parameter shadowedRandomPatchMovie must be set.  Exiting\n", name);
@@ -39,7 +44,6 @@ int ShadowRandomPatchMovie::initializeShadowRandomPatchMovie(const char * name, 
       fprintf(stderr, "ShadowRandomPatchMovie \"%s\": shadowed layer \"%s\" must be a RandomPatchMovie\n", name, shadowedName);
       exit(EXIT_FAILURE);
    }
-   int status = RandomPatchMovie::initializeRandomPatchMovie(name, hc, fileOfFileNames, defaultDisplayPeriod);
    return status;
 }
 

@@ -21,9 +21,12 @@ public:
    virtual int getRandomFileIndex();
 
 protected:
-   int initialize_base();
-   int initializeShadowRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
+   ShadowRandomPatchMovie();
+   int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
    RandomPatchMovie * shadowedRandomPatchMovie;
+
+private:
+   int initialize_base();
 };
 
 }  // end namespace PV
