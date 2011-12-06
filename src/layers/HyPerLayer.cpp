@@ -3,6 +3,50 @@
  *
  *  Created on: Jul 29, 2008
  *
+ *  The top of the hierarchy for layer classes.
+ *
+ *  To make it easy to subclass from classes in the HyPerLayer hierarchy,
+ *  please follow the guidelines below when adding subclasses to the HyPerLayer hierarchy:
+ *
+ *  For a class named DerivedLayer that is derived from a class named BaseLayer,
+ *  the .hpp file should have
+namespace PV {
+class DerivedLayer : public BaseLayer {
+public:
+  DerivedLayer(arguments); // The constructor called by
+  // other methods
+protected:
+  DerivedLayer();
+  int initialize(arguments);
+  // other methods and member variables
+private:
+  int initialize_base();
+  // other methods and member variables
+};
+}
+ *
+ * The .cpp file should have
+namespace PV {
+DerivedLayer::DerivedLayer() {
+  initialize_base();
+  // initialize(arguments) should *not* be called by the protected constructor.
+}
+DerivedLayer::DerivedLayer(arguments, generally includes the layer's name and the parent HyPerCol) {
+  initialize_base();
+  initialize(arguments);
+}
+DerivedLayer::initialize_base() {
+  // the most basic initializations.  Don't call any virtual methods,
+  // or methods that call virtual methods, etc. from initialize_base();
+}
+DerivedLayer::initialize(arguments) {
+  // DerivedLayer-specific initializations that need to precede BaseClass initialization, if any
+  BaseClass::initialize(BaseClass initialization arguments);
+  // DerivedLayer-specific initializations
+}
+
+  // other DerivedLayer methods
+}
  */
 
 #include "HyPerLayer.hpp"
