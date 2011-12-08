@@ -142,17 +142,17 @@ int InitMTWeights::calculate2ndVector(float p1x, float p1y, float p1t, float &p2
 }
 
 float InitMTWeights::calcDist(float v1x, float v1y, float v1t, float mtx, float mty, float mtt) {
-   float x=v1x*mtx;
-   float y=v1y*mty;
-   float t=v1t*mtt;
-   float tot=x+y+t;
-   float mtxx=mtx*mtx;
-   float mtyy=mty*mty;
-   float mttt=mtt*mtt;
-   float tot2=mtxx+mtyy+mttt;
-   float den=sqrt(tot2);
-   float ans=tot/den;
-   float ans2=fabs(ans);
+//   float x=v1x*mtx;
+//   float y=v1y*mty;
+//   float t=v1t*mtt;
+//   float tot=x+y+t;
+//   float mtxx=mtx*mtx;
+//   float mtyy=mty*mty;
+//   float mttt=mtt*mtt;
+//   float tot2=mtxx+mtyy+mttt;
+//   float den=sqrt(tot2);
+//   float ans=tot/den;
+//   float ans2=fabs(ans);
 
    return fabs((v1x*mtx + v1y*mty + v1t*mtt)/sqrt(mtx*mtx + mty*mty + mtt*mtt));
 }
