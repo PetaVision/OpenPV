@@ -8,14 +8,14 @@
 #ifndef INITIDENTWEIGHTS_HPP_
 #define INITIDENTWEIGHTS_HPP_
 
-#include "InitWeights.hpp"
+#include "InitOneToOneWeights.hpp"
 
 namespace PV {
 
 class InitWeightsParams;
 class InitIdentWeightsParams;
 
-class InitIdentWeights: public PV::InitWeights {
+class InitIdentWeights: public PV::InitOneToOneWeights {
 public:
    InitIdentWeights();
    virtual ~InitIdentWeights();

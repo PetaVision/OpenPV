@@ -384,6 +384,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    assert(this->weightInitializer != NULL);
 
    status = setParams(inputParams /*, &defaultConnParams*/);
+   defaultDelay = (int) inputParams->value(name, "delay", 0);
 
 //   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
@@ -466,6 +467,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
+
 
    return 0;
 }
@@ -1103,7 +1105,7 @@ int HyPerConn::deleteWeights()
  */
 int HyPerConn::createAxonalArbors(int arborId)
 {
-   PVParams * inputParams = parent->parameters();
+   //PVParams * inputParams = parent->parameters();
 
    // these strides are for post-synaptic phi variable, a non-extended layer variable
    //
@@ -1157,7 +1159,8 @@ int HyPerConn::createAxonalArbors(int arborId)
 
    } // loop over arbors (pre-synaptic neurons)
    //} // loop over neighbors
-   delays[arborId] = (int) inputParams->value(name, "delay", 0);
+   //delays[arborId] = (int) inputParams->value(name, "delay", 0);
+   delays[arborId] = defaultDelay;
 
    return 0;
 }

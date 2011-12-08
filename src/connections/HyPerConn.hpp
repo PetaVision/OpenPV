@@ -179,6 +179,9 @@ private:
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
+
+   int defaultDelay; //added to save params file defined delay...
+
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
    PVPatch       *** pIncr;      // list of weight patches for storing changes to weights

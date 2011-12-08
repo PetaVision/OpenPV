@@ -33,6 +33,8 @@ public:
    inline ChannelType getChannel()                 {return channel;}
 
    //virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual float calcDthPre();
+   virtual float calcTh0Pre(float dthPre);
    float calcThPost(int fPost);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);

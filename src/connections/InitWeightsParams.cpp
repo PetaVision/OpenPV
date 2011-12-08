@@ -130,12 +130,19 @@ void InitWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
    dthPost = PI*thetaMax / (float) noPost;
    th0Post = rotate * dthPost / 2.0f;
    noPre = pre->getLayerLoc()->nf;
-   const float dthPre = PI*thetaMax / (float) noPre;
-   const float th0Pre = rotate * dthPre / 2.0f;
+   const float dthPre = calcDthPre();
+   const float th0Pre = calcTh0Pre(dthPre);
    fPre = patchIndex % pre->getLayerLoc()->nf;
    assert(fPre == kfPre_tmp);
    const int iThPre = patchIndex % noPre;
    thPre = th0Pre + iThPre * dthPre;
+}
+
+float InitWeightsParams::calcDthPre() {
+   return PI*thetaMax / (float) noPre;
+}
+float InitWeightsParams::calcTh0Pre(float dthPre) {
+   return rotate * dthPre / 2.0f;
 }
 
 float InitWeightsParams::calcThPost(int fPost) {

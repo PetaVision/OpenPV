@@ -63,7 +63,8 @@ int Init3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
    shiftT = params->value(getName(), "shiftT", shiftT);
    float flowSpeed = params->value(getName(), "flowSpeed", 1.0f); //pixels per time step
 
-   thetaXT = -atanf(flowSpeed);
+   thetaXT = atanf(flowSpeed);
+   setRotate(params->value(getName(), "rotate", getRotate()));
 
    numFlanks = (int) params->value(getName(), "numFlanks", (float) numFlanks);
    shift = params->value(getName(), "flankShift", shift);
@@ -72,7 +73,7 @@ int Init3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
       //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
       setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
       setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
-      setRotate(params->value(getName(), "rotate", getRotate()));
+
       bowtieFlag = (bool)params->value(getName(), "bowtieFlag", bowtieFlag);
       if (bowtieFlag == 1.0f) {
          bowtieAngle = params->value(getName(), "bowtieAngle", bowtieAngle);

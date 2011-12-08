@@ -16,6 +16,8 @@ enum PatternType {
   BARS  = 0,
   RECTANGLES  = 1,
   SINEWAVE  = 2,
+  COSWAVE  = 3,
+  IMPULSE  = 4,
 };
 
 enum OrientationMode {
@@ -75,7 +77,11 @@ protected:
    int minHeight, maxHeight;
    char * patternsOutputPath;  // path to output file directory for patterns
 
+
 private:
+   float rotation;
+
+   int initPatternCntr;
    int initialize_base();
 };
 

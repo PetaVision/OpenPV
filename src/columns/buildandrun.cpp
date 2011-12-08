@@ -441,6 +441,8 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
          "BARS",
          "RECTANGLES",
          "SINEWAVE",
+         "COSWAVE",
+         "IMPULSE",
          "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
    };
    const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");
@@ -530,6 +532,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "IdentWeight"))) {
       weightInitializer = new InitIdentWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeights"))) {
+      weightInitializer = new InitOneToOneWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
       weightInitializer = new InitWeights();
    }
@@ -538,6 +543,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLaye
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss3DWeight"))) {
       weightInitializer = new Init3DGaussWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "MTWeight"))) {
+      weightInitializer = new InitMTWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       if( params->stringPresent(name, "initWeightsFile") == 0 ) {

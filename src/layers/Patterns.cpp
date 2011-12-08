@@ -194,6 +194,9 @@ int Patterns::initPattern(float val)
    const int kx0 = loc->kx0;
    const int ky0 = loc->ky0;
 
+   const int nxgl = loc->nxGlobal;
+   const int nygl = loc->nyGlobal;
+
    // reset data buffer
    const int nk = nx * ny;
    for (int k = 0; k < nk; k++) {
@@ -261,14 +264,42 @@ int Patterns::initPattern(float val)
 
       return 0;
    }
+   else if (type == COSWAVE) {
+      if (orientation == vertical) { // vertical bars
+         width = maxWidth;
+         for (int iy = 0; iy < ny; iy++) {
+            for (int ix = 0; ix < nx; ix++) {
+               int glx = ix+kx0-nb;
+               int gly = iy+ky0-nb;
+               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
 
+               //sin of 2*pi*m/wavelength, where wavelength=2*width:
+               data[ix * sx + iy * sy] = cosf(PI*m/width);
+            }
+         }
+      }
+      else { // horizontal bars
+         height = maxHeight;
+         for (int iy = 0; iy < ny; iy++) {
+            int gly = iy+ky0-nb;
+            for (int ix = 0; ix < nx; ix++) {
+               int glx = ix+kx0-nb;
+               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
+               //float value=sinf(2*PI*m/height);
+               data[ix * sx + iy * sy] = cosf(PI*m/height);
+            }
+         }
+      }
+      return 0;
+   }
    else if (type == SINEWAVE) {
       if (orientation == vertical) { // vertical bars
          width = maxWidth;
          for (int iy = 0; iy < ny; iy++) {
             for (int ix = 0; ix < nx; ix++) {
                int glx = ix+kx0-nb;
-               float m = glx + position; //calculate position including fraction
+               int gly = iy+ky0-nb;
+               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
 
                //sin of 2*pi*m/wavelength, where wavelength=2*width:
                data[ix * sx + iy * sy] = sinf(PI*m/width);
@@ -279,13 +310,30 @@ int Patterns::initPattern(float val)
          height = maxHeight;
          for (int iy = 0; iy < ny; iy++) {
             int gly = iy+ky0-nb;
-            float m = gly + position; //calculate position including fraction
+            //float m = gly + position; //calculate position including fraction
             for (int ix = 0; ix < nx; ix++) {
+               int glx = ix+kx0-nb;
+               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
                //float value=sinf(2*PI*m/height);
                data[ix * sx + iy * sy] = sinf(PI*m/height);
             }
          }
       }
+      return 0;
+   }
+   else if (type == IMPULSE) {
+      for (int iy = 0; iy < ny; iy++) {
+         for (int ix = 0; ix < nx; ix++) {
+            int glx = ix+kx0-nb;
+            int gly = iy+ky0-nb;
+
+            if((glx==nxgl/2)&&(gly==nygl/2)&&(initPatternCntr==5))
+               data[ix * sx + iy * sy] = 50000.0f;
+            else
+               data[ix * sx + iy * sy] = 0;
+         }
+      }
+      initPatternCntr++;
       return 0;
    }
 
@@ -347,6 +395,12 @@ int Patterns::updateState(float time, float dt) {
          else if (type == SINEWAVE){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.tif", patternsOutputPath, time);
          }
+         else if (type == COSWAVE){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.tif", patternsOutputPath, time);
+         }
+         else if (type == IMPULSE){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, time);
+         }
          write(basicfilename);
       }
    }
@@ -401,10 +455,12 @@ float Patterns::calcPosition(float pos, int step)
    case MOVEFORWARD:
      pos = (pos+movementSpeed) ;
      if(pos>step) {pos -= step;}
-     break;
+     if(pos<0) {pos += step;}
+    break;
    case MOVEBACKWARD:
       pos = (pos-movementSpeed) ;
       if(pos<0) {pos += step;}
+      if(pos>step) {pos -= step;}
      break;
    case RANDOMJUMP:
       pos = int(p * step) % step;
