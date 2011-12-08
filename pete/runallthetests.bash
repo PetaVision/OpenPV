@@ -35,7 +35,7 @@ then
    }
 elif test "$mpistring" = "PV_USE_MPI is not set"
 then
-    echo "PetaVision compiled with PV_USE_MPI undefined"
+    echo "PetaVision compiled with PV_USE_MPI turned off"
     usempi=0
     function mpirunandecho() {
         false
