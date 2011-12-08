@@ -29,7 +29,7 @@ KernelConnDebugInitWeights::~KernelConnDebugInitWeights()
 
 int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       ChannelType channel, HyPerConn *copiedConn) {
-        KernelConn::initialize(name, hc, pre, post, channel, NULL, NULL);
+        KernelConn::initialize(name, hc, pre, post, channel, NULL, new InitWeights());
    otherConn=copiedConn;
    return PV_SUCCESS;
 }
