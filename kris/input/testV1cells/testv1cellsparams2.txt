@@ -1,0 +1,3641 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 30;
+    outputPath = "output/3DGauss/";
+}; 
+
+Patterns "Patterns_3pi4" = {
+   //marginWidth = 2;
+   width = 5;
+   height = 5;
+   patternType = "SINEWAVE";
+   orientation = "VERTICAL";
+   movementType = "MOVEFORWARD";
+   //movementSpeed = -1;
+   movementSpeed = -1.414213562373095;
+   marginWidth = 0;
+
+	//rotation = -2.356194490192345;
+	rotation = 0.785398163397448;
+	//rotation = 0;
+
+	nxScale = 1;
+	nyScale = 1;
+	nf = 1;
+	writeStep = 1.0; 
+	mirrorBCflag = 0;
+	spikingFlag =  false; // (no quotes) is translated to 0
+	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   writeStep = 1;
+};
+
+Patterns "Patterns_pi4" = {
+   //marginWidth = 2;
+   width = 5;
+   height = 5;
+   patternType = "SINEWAVE";
+   orientation = "VERTICAL";
+   movementType = "MOVEFORWARD";
+   //movementSpeed = -1;
+   movementSpeed = -1.414213562373095;
+   marginWidth = 0;
+
+	//rotation = 2.356194490192345;
+	rotation = -0.785398163397448;
+	//rotation = 0;
+
+	nxScale = 1;
+	nyScale = 1;
+	nf = 1;
+	writeStep = 1.0; 
+	mirrorBCflag = 0;
+	spikingFlag =  false; // (no quotes) is translated to 0
+	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   writeStep = 1;
+};
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 24;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+//Image connections
+IdentConn "Patterns_3pi4 to Retina" = {
+    preLayerName = "Patterns_3pi4";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+IdentConn "Patterns_pi4 to Retina" = {
+    preLayerName = "Patterns_pi4";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+
+ANNSquaredLayer "V1SimpleA1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA1 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA1";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0041841;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA1 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA1";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.00209205;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA1 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA1";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.00209205;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB1 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB1";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0023763;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB1 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB1";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.00118815;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 2.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB1 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB1";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0023763;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB1 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB1";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 10;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.00118815;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -2.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA1 to V1Complex1" = {
+    preLayerName = "V1SimpleA1";
+    postLayerName = "V1Complex1";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB1 to V1Complex1" = {
+    preLayerName = "V1SimpleB1";
+    postLayerName = "V1Complex1";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNSquaredLayer "V1SimpleA2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA2 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA2";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.0026141;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA2 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.00130705;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA2 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.00130705;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB2 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB2";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.0013787;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB2 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB2";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.00068935;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 2.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB2 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.0013787;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB2 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -0.5;
+       
+   strength = 0.00068935;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -2.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA2 to V1Complex2" = {
+    preLayerName = "V1SimpleA2";
+    postLayerName = "V1Complex2";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB2 to V1Complex2" = {
+    preLayerName = "V1SimpleB2";
+    postLayerName = "V1Complex2";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNSquaredLayer "V1SimpleA3" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA3 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA3";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.0026141;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA3 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA3";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.00130705;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA3 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA3";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.00130705;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB3" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB3 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB3";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.0013787;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB3 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB3";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.00068935;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 2.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB3 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB3";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.0013787;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB3 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB3";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 35; 
+   nyp = 35; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 1;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -1.41421356237309;
+   
+   dT = 1;
+   shiftT = -10.5;
+   numAxonalArbors = 12;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1.5;
+       
+   strength = 0.00068935;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -2.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex3" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA3 to V1Complex3" = {
+    preLayerName = "V1SimpleA3";
+    postLayerName = "V1Complex3";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB3 to V1Complex3" = {
+    preLayerName = "V1SimpleB3";
+    postLayerName = "V1Complex3";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNSquaredLayer "V1SimpleA13" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA13 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA13";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0036528;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA13 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA13";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA13 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA13";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB13" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB13 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB13";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB13 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB13";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB13 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB13";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB13 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB13";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -1;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex13" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA13 to V1Complex13" = {
+    preLayerName = "V1SimpleA13";
+    postLayerName = "V1Complex13";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB13 to V1Complex13" = {
+    preLayerName = "V1SimpleB13";
+    postLayerName = "V1Complex13";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNSquaredLayer "V1SimpleA14" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA14 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA14";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0036528;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA14 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA14";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA14 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA14";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB14" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB14 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB14";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB14 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB14";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB14 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB14";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB14 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB14";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = -2;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex14" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA14 to V1Complex14" = {
+    preLayerName = "V1SimpleA14";
+    postLayerName = "V1Complex14";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB14 to V1Complex14" = {
+    preLayerName = "V1SimpleB14";
+    postLayerName = "V1Complex14";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNSquaredLayer "V1SimpleA16" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleA16 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA16";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0036528;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA16 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA16";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleA16 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleA16";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0018264;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+ANNSquaredLayer "V1SimpleB16" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "Retina to V1SimpleB16 A" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB16";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB16 B" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB16";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB16 C" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB16";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0020694;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0.75;
+   delay = 0;
+
+};
+KernelConn "Retina to V1SimpleB16 D" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SimpleB16";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 13.3333333333333;
+   taspect = 0.5;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = -2;
+   
+   dT = 1;
+   shiftT = 0;
+   numAxonalArbors = 15;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+   rotate = 0;
+       
+   strength = 0.0010347;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.5;
+   delay = 0;
+
+};
+ANNLayer "V1Complex16" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1SimpleA16 to V1Complex16" = {
+    preLayerName = "V1SimpleA16";
+    postLayerName = "V1Complex16";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1SimpleB16 to V1Complex16" = {
+    preLayerName = "V1SimpleB16";
+    postLayerName = "V1Complex16";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNLayer "MTLayerN" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+IdentConn "V1Complex1 to MTLayerN" = {
+    preLayerName = "V1Complex1";
+    postLayerName = "MTLayerN";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1Complex2 to MTLayerN" = {
+    preLayerName = "V1Complex2";
+    postLayerName = "MTLayerN";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1Complex3 to MTLayerN" = {
+    preLayerName = "V1Complex3";
+    postLayerName = "MTLayerN";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+KernelConn "V1Complex13 to MTLayerN" = {
+   preLayerName = "V1Complex13";
+   postLayerName = "MTLayerN";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.707106781186547;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+KernelConn "V1Complex14 to MTLayerN" = {
+   preLayerName = "V1Complex14";
+   postLayerName = "MTLayerN";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.707106781186547;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+KernelConn "V1Complex16 to MTLayerN" = {
+   preLayerName = "V1Complex16";
+   postLayerName = "MTLayerN";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.707106781186547;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+ANNLayer "MTLayerNE" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "V1Complex1 to MTLayerNE" = {
+   preLayerName = "V1Complex1";
+   postLayerName = "MTLayerNE";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.408248290463863;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+IdentConn "V1Complex2 to MTLayerNE" = {
+    preLayerName = "V1Complex2";
+    postLayerName = "MTLayerNE";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+KernelConn "V1Complex3 to MTLayerNE" = {
+   preLayerName = "V1Complex3";
+   postLayerName = "MTLayerNE";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.816496580927726;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+IdentConn "V1Complex13 to MTLayerNE" = {
+    preLayerName = "V1Complex13";
+    postLayerName = "MTLayerNE";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+KernelConn "V1Complex14 to MTLayerNE" = {
+   preLayerName = "V1Complex14";
+   postLayerName = "MTLayerNE";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 1.63299316185545;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+IdentConn "V1Complex16 to MTLayerNE" = {
+    preLayerName = "V1Complex16";
+    postLayerName = "MTLayerNE";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+ANNLayer "MTLayerNW" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+KernelConn "V1Complex1 to MTLayerNW" = {
+   preLayerName = "V1Complex1";
+   postLayerName = "MTLayerNW";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.408248290463863;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+KernelConn "V1Complex2 to MTLayerNW" = {
+   preLayerName = "V1Complex2";
+   postLayerName = "MTLayerNW";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 0.816496580927726;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};
+IdentConn "V1Complex3 to MTLayerNW" = {
+    preLayerName = "V1Complex3";
+    postLayerName = "MTLayerNW";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1Complex13 to MTLayerNW" = {
+    preLayerName = "V1Complex13";
+    postLayerName = "MTLayerNW";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+IdentConn "V1Complex14 to MTLayerNW" = {
+    preLayerName = "V1Complex14";
+    postLayerName = "MTLayerNW";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = -1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    stochasticReleaseFlag=0;
+    
+    numAxonalArbors = 1;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+KernelConn "V1Complex16 to MTLayerNW" = {
+   preLayerName = "V1Complex16";
+   postLayerName = "MTLayerNW";
+   channelCode = 1;
+   weightInitType = "OneToOneWeights";
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+
+   weightInit = 1.63299316185545;
+       
+   strength = 0;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   delay = 0;
+
+};

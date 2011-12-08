@@ -1,0 +1,1127 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 50;
+    outputPath = "output/krisplay/";
+};
+
+Patterns "Patterns" = {
+   //marginWidth = 2;
+   width = 4;
+   height = 4;
+   patternType = "BARS";
+   orientation = "HORIZONTAL";
+   movementType = "MOVEBACKWARD";
+   movementSpeed = 1;
+   marginWidth = 1;
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   writeStep = 1;
+};
+
+Image "Image" = {
+    imagePath = "/Users/krispeterson/Documents/workspace/kris/input/1stvertlinedetectorplay/halfblacknwhite.png";
+    //imagePath = "./input/genericprogramexample/image.png";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    writeImages = 0;
+};
+
+//bar watching retina
+ANNLayer "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    writeStep = 0;
+    mirrorBCflag = 1;
+    spikingFlag = false;  // false (no quotes) is translated to 0
+    writeNonspikingActivity = 1;
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 400000;
+    
+};
+
+Retina "RetinaON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 22;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+
+Retina "RetinaOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+
+ANNLayer "L1ON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    //no = 8;
+    marginWidth = 7;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "L1OFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "V1SIMPLE" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+// Image connections
+IdentConn "Patterns to Retina" = {
+    preLayerName = "Patterns";
+    postLayerName = "Retina";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+KernelConn "ImagetoRetinaONCenter" = {
+   preLayerName = "Patterns";
+   postLayerName = "RetinaON";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   
+   strength =  10.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+KernelConn "ImagetoRetinaONSurround" = {
+   preLayerName = "Patterns";
+   postLayerName = "RetinaON";
+   channelCode = 1;
+   nxp = 3; 
+   nyp = 3; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 100;
+   
+   strength =  10.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "ImagetoRetinaOFFCenter" = {
+   preLayerName = "Patterns";
+   postLayerName = "RetinaOFF";
+   channelCode = 1;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   
+   strength =  10.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+KernelConn "ImagetoRetinaOFFSurround" = {
+   preLayerName = "Patterns";
+   postLayerName = "RetinaOFF";
+   channelCode = 0;
+   nxp = 3; 
+   nyp = 3; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1000;
+   
+   strength =  10.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+// Retina connections
+
+KernelConn "RetinaON to L1ON" = {
+   preLayerName = "RetinaON";
+   postLayerName = "L1ON";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+    
+   delay = 0;
+};
+
+
+
+KernelConn "RetinaON to L1ON Inh" = {
+   preLayerName = "RetinaON";
+   postLayerName = "L1ON";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.41;
+   rotate = 1;
+       
+   strength = 50.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   wMax = 50.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+
+KernelConn "RetinaOFF to L1OFF" = {
+   preLayerName = "RetinaOFF";
+   postLayerName = "L1OFF";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+    
+   delay = 0;
+};
+
+
+
+KernelConn "RetinaOFF to L1OFF Inh" = {
+   preLayerName = "RetinaOFF";
+   postLayerName = "L1OFF";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.41;
+   rotate = 1;
+       
+   strength = 50.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   
+   wMax = 50.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+
+   delay = 0;
+};
+
+KernelConn "RetinaON to V1SIMPLE 0 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 5 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 5;
+   delay = 5;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 10 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 10;
+   delay = 10;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 15 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 15;
+   delay = 15;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 20 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 20;
+   delay = 20;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE top Inh 0 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 1.41;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE top Inh 5 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 6.41;
+   delay = 5;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE top Inh 10 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 11.41;
+   delay = 10;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE top Inh 15 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 16.41;
+   delay = 15;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE top Inh 20 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 21.41;
+   delay = 20;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE bottom Inh 0 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = -1.41;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE bottom Inh 5 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 3.59;
+   delay = 5;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE bottom Inh 10 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 8.59;
+   delay = 10;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE bottom Inh 15 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 13.59;
+   delay = 15;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE bottom Inh 20 " = {
+   preLayerName = "RetinaON";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   nxp = 45; 
+   nyp = 45; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   
+   rotate = 0;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25.0;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 18.59;
+   delay = 20;
+
+};
+
+
+
+
+

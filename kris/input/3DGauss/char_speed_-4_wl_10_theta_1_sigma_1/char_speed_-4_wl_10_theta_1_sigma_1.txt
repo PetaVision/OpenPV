@@ -1,0 +1,203 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 30;
+    outputPath = "output/3DGauss/char_speed_-4_wl_10_theta_1_sigma_1";
+};
+
+Patterns "Patterns" = {
+   //marginWidth = 2;
+   width = 10;
+   height = 10;
+   patternType = "BARS";
+   orientation = "HORIZONTAL";
+   movementType = "MOVEFORWARD";
+   movementSpeed = -4;
+   marginWidth = 1;
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   writeStep = 1;
+};
+
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 14;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+
+
+
+
+
+ANNLayer "V1SIMPLE" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+// Image connections
+IdentConn "Patterns to Retina" = {
+    preLayerName = "Patterns";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 7;
+   taspect = 1.75;
+   sigma = 7;
+   rMax  = 10;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -4.5;
+   numAxonalArbors = 10;
+   
+   rotate = 0;
+       
+   strength = 25;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE  Inh " = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 7;
+   taspect = 1.75;
+   sigma = 7;
+   rMax  = 10;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -4.5;
+   numAxonalArbors = 10;
+   
+   rotate = 0;
+       
+   strength = 25;  
+   normalize = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 2;
+   delay = 0;
+
+};
+// 
+
