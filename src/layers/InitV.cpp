@@ -53,7 +53,7 @@ int InitV::initialize(HyPerCol * hc, const char * groupName) {
    }
    else if( !strcmp(initVType, "GaussianRandomV") ) {
       meanV = params->value(groupName, "meanV", 0.0f);
-      sigmaV = params->value(groupName, "sigmaV", minV+1.0f);
+      sigmaV = params->value(groupName, "sigmaV", 1.0f);
       initVTypeCode = GaussianRandomV;
    }
    else if( !strcmp(initVType, "InitVFromFile") ) {
