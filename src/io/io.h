@@ -35,11 +35,10 @@
 #define PV_FLOAT_TYPE      3
 
 #define PVP_FILE_TYPE      1 // File type of the *_V_last.pvp and *_A_last.pvp files
-#define PVP_ACT_FILE_TYPE  2 // File type of the a%d.pvp and checkpoint files for spiking layers
+#define PVP_ACT_FILE_TYPE  2 // File type of the a%d.pvp for spiking layers
 #define PVP_WGT_FILE_TYPE  3 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for non-KernelConn connections
-#define PVP_NONSPIKING_ACT_FILE_TYPE  4 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for KernelConns
-// #define PV_WEIGHTS_FILE_TYPE 3 // Use PVP_WGT_FILE_TYPE instead
-#define PVP_KERNEL_FILE_TYPE 5
+#define PVP_NONSPIKING_ACT_FILE_TYPE  4 // File type of the a%d.pvp files for spiking layers and checkpoint files for all layers
+#define PVP_KERNEL_FILE_TYPE 5 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for KernelConns
 
 #define INDEX_HEADER_SIZE  0
 #define INDEX_NUM_PARAMS   1
