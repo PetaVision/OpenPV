@@ -54,6 +54,7 @@ DerivedLayer::initialize(arguments) {
 #include "../include/default_params.h"
 #include "../columns/HyPerCol.hpp"
 #include "../connections/HyPerConn.hpp"
+#include "InitV.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
@@ -179,10 +180,12 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    }
 
    bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
-   initializeV(restart_flag);
-   float timef;
    if( restart_flag ) {
+      float timef;
       readState(&timef);
+   }
+   else {
+      initializeV();
    }
 
    // labels are not extended
@@ -273,15 +276,13 @@ int HyPerLayer::initializeLayerId(int layerId)
    return 0;
 }
 
-int HyPerLayer::initializeV(bool restart_flag) {
-   float Vrest = parent->parameters()->value(name, "Vrest", V_REST);
-   if( !restart_flag ) {
-      for (int k = 0; k < this->getNumNeurons(); k++){
-         getV()[k] = Vrest;
-      }
-   }
-   // If restart_flag is true, initialize() will set V by calling readState()
-   return PV_SUCCESS;
+int HyPerLayer::initializeV() {
+   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeV should only be called if restart is false
+   InitV * initVObject = new InitV(parent, name);
+   assert(initVObject);
+   int status = initVObject->calcV(this);
+   delete initVObject;
+   return status;
 }
 
 #ifdef PV_USE_OPENCL

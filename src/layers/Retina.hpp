@@ -49,7 +49,7 @@ public:
 protected:
    Retina();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type);
-   virtual int initializeV(bool restart_flag);
+   virtual int initializeV();
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);

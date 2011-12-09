@@ -13,6 +13,7 @@
 
 #undef DEBUG_OUTPUT
 
+// Are copy{To,From}LocBuffer necessary?  Can't we MPI_Bcast loc with count sizeof(locSize) and type MPI_CHAR?
 static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
 {
    buf[0] = loc->nx;
@@ -76,8 +77,8 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    int locBuf[locSize];
    int status = 0;
 
-   // LayerLoc should contain 8 ints
-   assert(locSize == 8);
+   // LayerLoc should contain 12 ints
+   assert(locSize == 12);
 
    const int icCol = comm->commColumn();
    const int icRow = comm->commRow();
@@ -123,8 +124,6 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
 
 #ifdef PV_USE_MPI
    // broadcast location information
-   // TODO - IMPORTANT - WHICH OF THESE IS CORRECT
-   //MPI_Bcast(locBuf, 1+locSize, MPI_INT, 0, comm->communicator());
    MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
 #endif // PV_USE_MPI
 

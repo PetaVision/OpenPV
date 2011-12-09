@@ -73,7 +73,8 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    return status;
 }
 
-int Image::initializeV(bool restart_flag) {
+int Image::initializeV() {
+   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeV should only be called if restart is false
    // Image doesn't use the V buffer so free it and set the pointer to null.
    free(clayer->V);
    clayer->V = NULL;

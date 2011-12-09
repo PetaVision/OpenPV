@@ -71,6 +71,8 @@ DerivedLayer::initialize(arguments) {
 
 namespace PV {
 
+class InitV;
+
 class HyPerLayer : public LayerDataInterface {
 
 protected:
@@ -80,7 +82,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, int numChannels);
 
    virtual int initializeLayerId(int layerId);
-   virtual int initializeV(bool restart_flag);
+   virtual int initializeV();
    int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int readHeader(const char * filename, InterColComm * comm, double * timed, int * params);

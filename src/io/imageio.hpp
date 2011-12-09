@@ -11,6 +11,7 @@
 #include "../columns/Communicator.hpp"
 #include "../include/pv_types.h"
 
+int getFileType(const char * filename);
 int getImageInfo(    const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
 int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
 int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
