@@ -49,10 +49,11 @@ int GenerativeLayer::initialize_base() {
 int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
    ANNLayer::initialize(name, hc, MAX_CHANNELS);
    PVParams * params = parent->parameters();
-   relaxation = params->value(name, "relaxation", 1.0);
-   activityThreshold = params->value(name, "activityThreshold", 0);
-   auxChannelCoeff = params->value(name, "auxChannelCoeff", 0);
-   persistence = params->value(name, "persistence", 0);
+   relaxation = params->value(name, "relaxation", 1.0f);
+   activityThreshold = params->value(name, "activityThreshold", 0.0f);
+   auxChannelCoeff = params->value(name, "auxChannelCoeff", 0.0f);
+   sparsityTermCoeff = params->value(name, "sparsityTermCoeff", 1.0f);
+   persistence = params->value(name, "persistence", 0.0f);
    dAold = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t *));
    if( dAold == NULL ) {
       fprintf(stderr, "Layer \"%s\": Unable to allocate memory for dAold\n", getName());
@@ -73,7 +74,7 @@ int GenerativeLayer::updateV() {
    pvdata_t * GSynAux = this->getChannel(CHANNEL_INHB);
    updateSparsityTermDerivative();
    for( int k=0; k<getNumNeurons(); k++ ) {
-      pvdata_t dAnew = GSynExc[k] - GSynInh[k] + auxChannelCoeff*GSynAux[k] - sparsitytermderivative[k];
+      pvdata_t dAnew = GSynExc[k] - GSynInh[k] + auxChannelCoeff*GSynAux[k] - sparsityTermCoeff*sparsitytermderivative[k];
       dAnew = persistence*dAold[k] + (1-persistence)*dAnew;
       V[k] += relaxation*dAnew;
       dAold[k] = dAnew;
