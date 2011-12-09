@@ -86,8 +86,8 @@ if isempty(errorstring)
                     for x=1:hdr.nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
                         r = r+1;
-                        for band=1:hdr.nf
-                            Z(xidx,yidx,band) = reshape(Y(band:hdr.nf:hdr.nx*hdr.ny*hdr.nf,r),hdr.nx,hdr.ny);
+                        for feature=1:hdr.nf
+                            Z(xidx,yidx,feature) = reshape(Y(feature:hdr.nf:hdr.nx*hdr.ny*hdr.nf,r),hdr.nx,hdr.ny);
                         end
                     end
                 end
