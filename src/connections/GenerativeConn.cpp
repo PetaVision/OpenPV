@@ -152,8 +152,9 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arb
             pvdata_t d = patches[k]->data[n];
             s += d*d;
          }
+         s = sqrt(s);
          for( int k=0; k<numPatches; k++ ) {
-            patches[k]->data[n] *= normalizeConstant/sqrt(s);
+            patches[k]->data[n] *= normalizeConstant/s;
          }
       }
       break;
@@ -166,8 +167,9 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arb
             pvdata_t d = curpatch->data[n];
             s += d*d;
          }
+         s = sqrt(s);
          for( int n=0; n<neuronsperpatch; n++ ) {
-            curpatch->data[n] *= normalizeConstant/sqrt(s);
+            curpatch->data[n] *= normalizeConstant/s;
          }
       }
       break;
