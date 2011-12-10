@@ -5,19 +5,20 @@ function [num_frames, ...
 	  tot_time, ...
 	  CSV_struct] = ...
       pvp_makeCSVFile2(NEOVISION_DATASET_ID, ...
-		      NEOVISION_DISTRIBUTION_ID, ...
-		      repo_path, ...
-		      ObjectType, ...
-		      clip_name, ...
-		      pvp_frame_skip, ...
-		      pvp_frame_offset, ...
-		      clip_path, ...
-		      num_ODD_kernels, ...
-		      patch_size, ...
-		      pvp_layer, ...
-		      pvp_path, ...
-		      training_flag, ...
-		      num_procs)
+		       NEOVISION_DISTRIBUTION_ID, ...
+		       repo_path, ...
+		       ObjectType, ...
+		       pvp_edge_filter, ...
+		       clip_name, ...
+		       pvp_frame_skip, ...
+		       pvp_frame_offset, ...
+		       clip_path, ...
+		       num_ODD_kernels, ...
+		       patch_size, ...
+		       pvp_layer, ...
+		       pvp_path, ...
+		       training_flag, ...
+		       num_procs)
   %% takes PetaVision non-spiking activity files generated in response to
   %% a video clip and produces a CSV file indicating locations of
   %% specified object
@@ -53,6 +54,10 @@ function [num_frames, ...
     ObjectType = "Car"; %% "Cyclist"; %%  
   endif
   num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist(pvp_edge_filter) || isempty(pvp_edge_filter)
+    pvp_edge_filter = "canny";
+  endif
+  num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
     clip_name = "027";
   endif
@@ -67,7 +72,7 @@ function [num_frames, ...
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
     clip_path = [program_path, ...
-		 "canny", filesep, ...
+		 pvp_edge_filter, filesep, ...
 		 clip_name, filesep]; %% 
   endif
   num_input_args = num_input_args + 1;
@@ -76,7 +81,9 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
-    clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, NEOVISION_DATASET_ID, filesep, "Training", filesep, "log", filesep, ObjectType, filesep];
+    clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, ...
+		    NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
+		    "log", filesep, ObjectType, filesep];
     clip_log_pathname = [clip_log_dir, "log.txt"];
     if exist(clip_log_pathname, "file")
       clip_log_struct = struct;
@@ -110,7 +117,8 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
-    pvp_path = [program_path, "activity", filesep, clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny2", filesep];
+    pvp_path = [program_path, "activity", filesep, ...
+		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny2", filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -129,7 +137,10 @@ function [num_frames, ...
   
   global pvp_training_flag
   pvp_training_flag = training_flag;
-  
+
+  global pvp_use_PANN_boundingBoxes
+  pvp_use_PANN_boundingBoxes = 0;
+ 
    %%setenv('GNUTERM', 'x11');
   image_type = ".png";
   
@@ -148,7 +159,7 @@ function [num_frames, ...
   mkdir(ODD_clip_dir);
   ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, "canny2", filesep];
+  ODD_subdir = [ODD_dir, pvp_edge_filter, filesep];
   mkdir(ODD_subdir);
   
   ROC_path = [program_path, "ROC", filesep]; 
@@ -157,7 +168,7 @@ function [num_frames, ...
   mkdir(ROC_clip_dir);
   ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, "canny2", filesep];
+  ROC_subdir = [ROC_dir, pvp_edge_filter, filesep];
   mkdir(ROC_subdir);
 
   pvp_results_path = [program_path, "results", filesep];
@@ -168,8 +179,23 @@ function [num_frames, ...
       [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-    [pvp_results_subdir0, "canny2", filesep];
+    [pvp_results_subdir0, pvp_edge_filter, filesep];
   mkdir(pvp_results_subdir);
+
+  global target_bootstrap_dir
+  target_bootstrap_dir = ...
+      [program_path, filesep, ...
+       pvp_edge_filter, filesep, ...
+       ObjectType, "_bootstrap", filesep];
+  mkdir(target_bootstrap_dir);
+  
+  global distractor_bootstrap_dir
+  distractor_bootstrap_dir = ...
+      [program_path, filesep, ...
+       pvp_edge_filter, filesep, ...
+       "distractor", "_bootstrap", filesep];
+  mkdir(distractor_bootstrap_dir);
+  
 
   global pvp_density_thresh
   hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
@@ -213,27 +239,27 @@ function [num_frames, ...
   %%keyboard;
   i_CSV = 0;
   if ~strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")  
-  true_CSV_path = ...
-      [repo_path, ...
-       "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
-       filesep, "CSV", filesep];
-  true_CSV_filename = [clip_name, ".csv"];
-  true_CSV_pathname = [true_CSV_path, true_CSV_filename];
-  if ~exist(true_CSV_pathname, "file")
-    error(["~exist: true_CSV_pathname = ", true_CSV_pathname]);
-  endif
-  true_CSV_fid = fopen(true_CSV_pathname, "r");
-  true_CSV_header = fgets(true_CSV_fid);
-  true_CSV_list = cell(1);
-  while ~feof(true_CSV_fid)
-    i_CSV = i_CSV + 1;
-    true_CSV_list{i_CSV} = fgets(true_CSV_fid);
-  endwhile
-  fclose(true_CSV_fid);
+    true_CSV_path = ...
+	[repo_path, ...
+	 "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
+	 filesep, "CSV", filesep];
+    true_CSV_filename = [clip_name, ".csv"];
+    true_CSV_pathname = [true_CSV_path, true_CSV_filename];
+    if ~exist(true_CSV_pathname, "file")
+      error(["~exist: true_CSV_pathname = ", true_CSV_pathname]);
+    endif
+    true_CSV_fid = fopen(true_CSV_pathname, "r");
+    true_CSV_header = fgets(true_CSV_fid);
+    true_CSV_list = cell(1);
+    while ~feof(true_CSV_fid)
+      i_CSV = i_CSV + 1;
+      true_CSV_list{i_CSV} = fgets(true_CSV_fid);
+    endwhile
+    fclose(true_CSV_fid);
   elseif strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")
     true_CSV_path = ...
-       [repo_path, ...
-		 "neovision-results-", neovision_distribution_id, "-", neovision_dataset_id, filesep, clip_name, filesep];
+	[repo_path, ...
+	 "neovision-results-", neovision_distribution_id, "-", neovision_dataset_id, filesep, clip_name, filesep];
     true_CSV_filename = [NEOVISION_DATASET_ID, "_", clip_name, "_PANN_998_Objects.csv"];
     true_CSV_pathname = [true_CSV_path, true_CSV_filename];
     if ~exist(true_CSV_pathname, "file")
@@ -440,9 +466,6 @@ function [num_frames, ...
       pvp_num_hits = length(CSV_struct{i_frame}.hit_list);
       if isempty(CSV_struct{i_frame}.hit_list) continue; endif
       pvp_tot_hits = pvp_tot_hits + pvp_num_hits;
-      pvp_num_miss = numel(CSV_struct{i_frame}.miss_list) - pvp_num_hits;
-      pvp_miss_density = [pvp_miss_density; CSV_struct{i_frame}.miss_list(:)];
-      pvp_tot_miss = pvp_tot_miss + pvp_num_miss;
       for i_hit = 1 : pvp_num_hits
         if isempty(CSV_struct{i_frame}.hit_list{i_hit}) continue; endif
 	pvp_hit_density = [pvp_hit_density; CSV_struct{i_frame}.hit_list{i_hit}.hit_density];
@@ -465,6 +488,32 @@ function [num_frames, ...
 	csv_str = [csv_str, "\n"];
 	fputs(pvp_results_fid, csv_str);
       endfor %% i_hit
+      %% repeat above for miss_list
+      pvp_num_miss = length(CSV_struct{i_frame}.miss_list);
+      if isempty(CSV_struct{i_frame}.miss_list) continue; endif
+      pvp_tot_miss = pvp_tot_miss + pvp_num_miss;
+      for i_miss = 1 : pvp_num_miss
+        if isempty(CSV_struct{i_frame}.miss_list{i_miss}) continue; endif
+	pvp_miss_density = [pvp_miss_density; CSV_struct{i_frame}.miss_list{i_miss}.hit_density];
+	csv_str = [];
+        csv_str = num2str(i_frame - 1); %%CSV_struct{i_frame}.Frame;
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_X1)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_Y1)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_X2)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_Y2)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_X3)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_Y3)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_X4)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.BoundingBox_Y4)];
+	csv_str = [csv_str, ",", CSV_ObjectType];
+	csv_str = [csv_str, ",", num2str(CSV_Occlusion)];
+	csv_str = [csv_str, ",", num2str(CSV_Ambiguous)];
+	csv_str = [csv_str, ",", num2str(CSV_struct{i_frame}.miss_list{i_miss}.Confidence)];
+	csv_str = [csv_str, ",", num2str(CSV_SiteInfo)];
+	csv_str = [csv_str, ",", num2str(CSV_Version)];
+	csv_str = [csv_str, "\n"];
+	fputs(pvp_results_fid, csv_str);
+      endfor %% i_miss
       disp("");
     endfor %% i_frame
   endfor %% i_CSV_file
@@ -491,7 +540,7 @@ function [num_frames, ...
   disp(["pvp_ave_hit_density = ", num2str(pvp_ave_hit_density)]);
   disp(["pvp_std_hit_density = ", num2str(pvp_std_hit_density)]);
   disp(["pvp_median_hit_density = ", num2str(pvp_median_hit_density)]);
-  if 1 %% isempty(pvp_miss_density)
+  if isempty(pvp_miss_density)
     return;
   endif
   pvp_min_miss_density = min(pvp_miss_density);

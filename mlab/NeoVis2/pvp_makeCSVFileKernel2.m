@@ -5,6 +5,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
   global pvp_density_thresh
   global pvp_training_flag
   global ODD_subdir
+  global bootstrap_subdir
 
   CSV_struct = struct;
   if isempty(pvp_activity)
@@ -19,25 +20,27 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
   CSV_struct.mean_activity = mean(pvp_activity(:));
   CSV_struct.sum_activity = sum(pvp_activity(:));
   
-  global pvp_test_patches
-  pvp_test_patches = 0;
-  if pvp_test_patches == 1
-%%    [hit_list, miss_list] = pvp_testPatches(pvp_activity);
-%%    [hit_list, miss_list] = pvp_testClusters(pvp_activity);
-    [hit_list, miss_list] = pvp_testFeatures(pvp_activity);  
-  elseif ~pvp_test_patches
+  if pvp_training_flag == 0  %% no ground truth provided
+    [hit_list] = pvp_dbscan(pvp_activity);  
+    miss_list = [];
+  elseif 
     [pvp_num_active_BB_mask, ...
      pvp_num_active_BB_notmask, ...
      pvp_num_BB_mask, ...
      pvp_num_BB_notmask, ...
      hit_list, ...
-     miss_list] = ...
+     miss_list,
+     pvp_max_confidence] = ...
 	pvp_numActiveInBoundingBox2(pvp_activity, ...
-				   true_CSV_struct);
+				    true_CSV_struct);
     CSV_struct.num_active_BB_mask = pvp_num_active_BB_mask;
     CSV_struct.num_active_BB_notmask = pvp_num_active_BB_notmask;
     CSV_struct.num_BB_mask = pvp_num_BB_mask;
     CSV_struct.num_BB_notmask = pvp_num_BB_notmask;
+    CSV_struct.max_confidence = pvp_max_confidence;
+    
+    [num_target_chips, num_distractor_chips] = ...
+	pvp_bootstrapChips(frame_pathname, hit_list, miss_list);
   endif
 
   CSV_struct.hit_list = hit_list;
