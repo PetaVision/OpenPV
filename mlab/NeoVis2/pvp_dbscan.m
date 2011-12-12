@@ -4,7 +4,7 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
   global pvp_patch_size
   global pvp_density_thresh 
 
-  hit_list = cell(1);
+  hit_list = []; %% cell(1);
   num_hits = 0;
   num_patch_rows = ceil(2 * NROWS / pvp_patch_size(1)) - 1;
   num_patch_cols = ceil(2 * NCOLS / pvp_patch_size(2)) - 1;
@@ -16,18 +16,23 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
 
   pvp_activity3D = reshape(full(pvp_activity), [NFEATURES NCOLS NROWS]);
   pvp_activity3D = permute(pvp_activity3D, [3,2,1]);
-  size(pvp_activity3D)
+  %%size(pvp_activity3D);
   pvp_activity2D = squeeze(sum(pvp_activity3D, 3));
   num_active = nnz(pvp_activity2D);
+  disp(["num_active = ", num2str(num_active)]);
 
   pvp_activity1D= zeros(num_active,2);
   [pvp_activity1D(:,2),pvp_activity1D(:,1)]=find(pvp_activity2D);
 
-  cluster_radius = max(pvp_patch_size) / 2;
-  min_cluster_count = fix(cluster_radius.^2 * 4 * num_active / numel(pvp_activity));
+  %% maximum distance between points in same cluster
+  cluster_radius = max(pvp_patch_size) / 4;
+  disp(["cluster_radius = ", num2str(cluster_radius)]);
+  min_cluster_count = ceil(cluster_radius.^2 * 4 * num_active / numel(pvp_activity));
+  disp(["min_cluster_count = ", num2str(min_cluster_count)]);
   [class_vector,type_vector] = dbscan(pvp_activity1D, min_cluster_count, cluster_radius);
   
   max_class_vector = max(class_vector);
+  disp(["max_class_vector = ", num2str(max_class_vector)]);
   if max_class_vector < 1 return; endif
   pvp_class_count = zeros(max_class_vector,1);
   pvp_class_mean = zeros(max_class_vector,2);  %% 
@@ -47,9 +52,10 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
       pvp_class_min(class_vector(i),2) = min(pvp_class_min(class_vector(i),2), pvp_activity1D(i,2)); 
       pvp_class_max(class_vector(i),2) = max(pvp_class_max(class_vector(i),2), pvp_activity1D(i,2)); 
       pvp_features(class_vector(i),:) = ...
-	  pvp_features(class_vector(i),:) + squeeze(pvp_activity3D(pvp_activity1D(i,2),pvp_activity1D(i,1),:));
+	  pvp_features(class_vector(i),:) + squeeze(pvp_activity3D(pvp_activity1D(i,2),pvp_activity1D(i,1),:))';
     endif
   endfor 
+  disp([repmat("class_count = ", max_class_vector, 1), num2str(pvp_class_count(:))]);
 
   pvp_class_mean(:,1) = ...
       pvp_class_mean(:,1) ./ ...
@@ -58,9 +64,10 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
       pvp_class_mean(:,2) ...
       ./ (pvp_class_count(:,1) + (pvp_class_count(:,1)==0));
 
-  feature_averages = mean(pvp_features,2); %% average over 8 kernel orientations for each class
-  feature_scores = std(pvp_features,2) ./ (feature_averages + (feature_averages==0));
-  %% zero means all in one feature, one means more evenly distributed.
+  feature_std = std(repmat(1:NFEATURES, max_class_vector, 1) .* pvp_features, 1, 2)./(sum(pvp_features,2)); %% weigthed average over orientations for each class
+  feature_scores = 2 * feature_std(:) / NFEATURES;
+  disp([repmat("feature_scores = ", max_class_vector, 1), num2str(feature_scores(:))]);
+  %% zero means all in one feature, greater than one means more evenly distributed.
 
   pvp_class_confidence = ...
       pvp_class_count(:,1) / ...
@@ -89,7 +96,11 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
     patch_x_min = pvp_class_min(i_hit,1);
     patch_x_max = pvp_class_max(i_hit,1);
     patch_y_min = pvp_class_min(i_hit,2);
-    patch_y_max = pvp_class_min(i_hit,2);
+    patch_y_max = pvp_class_max(i_hit,2);
+    disp(["patch_x_min = ", num2str(patch_x_min)]);
+    disp(["patch_y_min = ", num2str(patch_y_min)]);
+    disp(["patch_x_max = ", num2str(patch_x_max)]);
+    disp(["patch_y_max = ", num2str(patch_y_max)]);
     
     num_hits = num_hits + 1;
     
