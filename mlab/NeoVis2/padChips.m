@@ -15,13 +15,13 @@ function [tot_chips, ...
 	  std_cropped_size, ...
 	  tot_time] = ...
       padChips(chip_path, ...
-	       object_name, ...
+	       object_name_param, ...
 	       PetaVision_path, ...
-	       DoG_flag, ...
-	       DoG_struct, ...
-	       canny_flag, ...
-	       canny_struct, ...
-	       pad_size, ...
+	       DoG_flag_param, ...
+	       DoG_struct_param, ...
+	       canny_flag_param, ...
+	       canny_struct_param, ...
+	       pad_size_param, ...
 	       num_procs)
   
   %% perform edge filtering on DARPA NeoVis2 target chips, 
@@ -49,50 +49,75 @@ function [tot_chips, ...
   more off;
   begin_time = time();
 
+  %%keyboard;
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
     chip_path = ["/mnt/data1/repo/neovision-data-training-heli/"]; 
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-  object_name = "051"; %% "Plane"; %% "distractor"; %% "Car"; %% 
-%% "Person"; 
-%% "Cyclist"; 
-%% "Plane"; 
-%% "Boat"; 
-%% "Container"; 
-%% "Helicopter"; 
-%% "Car"; %%  
+  if nargin < num_argin || ~exist("object_name_param") || isempty(object_name_param)
+    if isempty(object_name)
+      object_name = "051"; %% "Plane"; %% "distractor"; %% "Car"; %% 
+    endif
+  else
+    object_name = object_name_param;  
+    %% "Person"; 
+    %% "Cyclist"; 
+    %% "Plane"; 
+    %% "Boat"; 
+    %% "Container"; 
+    %% "Helicopter"; 
+    %% "Car"; %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
     PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/";  %% 
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("DoG_flag") || isempty(DoG_flag)
-    DoG_flag = 0;  %% 
+  if nargin < num_argin || ~exist("DoG_flag_param") || isempty(DoG_flag_param)
+    if isempty(DoG_flag)
+      DoG_flag = 1;  %% 
+    endif
+  else
+    DoG_flag = DoG_flag_param;
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("DoG_struct") || isempty(DoG_struct)
-    DoG_struct = struct;  %% 
-    DoG_struct.amp_center_DoG = 1;
-    DoG_struct.sigma_center_DoG = 1;
-    DoG_struct.amp_surround_DoG = 1;
-    DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
+  if nargin < num_argin || ~exist("DoG_struct_param") || isempty(DoG_struct_param)
+    if isempty(DoG_struct)
+      DoG_struct = struct;  %% 
+      DoG_struct.amp_center_DoG = 1;
+      DoG_struct.sigma_center_DoG = 1;
+      DoG_struct.amp_surround_DoG = 1;
+      DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
+    endif
+  else
+    DoG_struct = DoG_struct_param;
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("canny_flag") || isempty(canny_flag)
-    canny_flag = 1;  %% 
+  if nargin < num_argin || ~exist("canny_flag_param") || isempty(canny_flag_param)
+    if isempty(canny_flag)
+      canny_flag = 1;  %% 
+    endif
+  else
+    canny_flag = canny_flag_param;
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("canny_struct") || isempty(canny_struct)
-    canny_struct = struct;  %% 
-    canny_struct.sigma_canny = 1;
+  if nargin < num_argin || ~exist("canny_struct_param") || isempty(canny_struct_param)
+    if isempty(canny_struct)
+      canny_struct = struct;  %% 
+      canny_struct.sigma_canny = 1;
+    endif
+  else
+    canny_struct = canny_struct_param;
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("pad_size") || isempty(pad_size)
-    pad_size = [1080 1920]; %% 
+  if nargin < num_argin || ~exist("pad_size_param") || isempty(pad_size_param)
+    if isempty(pad_size)
+      pad_size = [256 256]; %% [1080 1920]; %% 
+    endif
+  else
+    pad_size = pad_size_param;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_procs") || isempty(num_procs)
