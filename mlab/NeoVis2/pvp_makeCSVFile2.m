@@ -28,7 +28,7 @@ function [num_frames, ...
   
   home_path = ...
       [filesep, "home", filesep, "garkenyon", filesep];
-     %% [filesep, "Users", filesep, "gkenyon", filesep, "NeoVision", filesep]; %%
+  %% [filesep, "Users", filesep, "gkenyon", filesep, "NeoVision", filesep]; %%
   
   num_input_args = 0;
   num_input_args = num_input_args + 1;
@@ -46,7 +46,7 @@ function [num_frames, ...
     repo_path = [filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
   endif
   program_path = [repo_path, ...
-		 "neovision-programs-petavision", filesep, ...
+		  "neovision-programs-petavision", filesep, ...
 		  NEOVISION_DATASET_ID, filesep, ...
 		  NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
   num_input_args = num_input_args + 1;
@@ -118,7 +118,7 @@ function [num_frames, ...
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
     pvp_path = [program_path, "activity", filesep, ...
-		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, "canny2", filesep];
+		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, pvp_edge_filter, filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -139,9 +139,11 @@ function [num_frames, ...
   pvp_training_flag = training_flag;
 
   global pvp_use_PANN_boundingBoxes
-  pvp_use_PANN_boundingBoxes = 0;
- 
-   %%setenv('GNUTERM', 'x11');
+  if isempty(pvp_use_PANN_boundingBoxes)
+    pvp_use_PANN_boundingBoxes = 0;
+  endif
+  
+  %%setenv('GNUTERM', 'x11');
   image_type = ".png";
   
   %% path to generic image processing routines
@@ -179,7 +181,7 @@ function [num_frames, ...
       [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
-    [pvp_results_subdir0, pvp_edge_filter, filesep];
+      [pvp_results_subdir0, pvp_edge_filter, filesep];
   mkdir(pvp_results_subdir);
 
   global target_bootstrap_dir
@@ -344,7 +346,8 @@ function [num_frames, ...
   endif
   
   %% struct for storing rank order of comma separators between fields
-  true_CSV_struct = cell(tot_frames, 1);
+  truth_CSV_struct = cell(tot_frames, 1);
+  other_CSV_struct = cell(tot_frames, 1);
   if pvp_training_flag
     true_CSV_comma_rank = struct;
     true_CSV_comma_rank.Frame = [1, 2];
@@ -357,16 +360,14 @@ function [num_frames, ...
     true_CSV_comma_rank.BoundingBox_X4 = [8, 9];
     true_CSV_comma_rank.BoundingBox_Y4 = [9, 10];
     true_CSV_comma_rank.ObjectType = [10, 11];
-    
+    num_truth_BBs = 0;
+    num_other_BBs = 0;
     for i_CSV = 1 : num_true_CSV
       true_CSV_comma_ndx = [1, strfind(true_CSV_list{i_CSV}, ",")];
       ObjectType_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.ObjectType(1))+1;
       ObjectType_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.ObjectType(2))-1;
       CSV_ObjectType = true_CSV_list{i_CSV}(ObjectType_ndx(1):ObjectType_ndx(2));
-      if ~strcmp(CSV_ObjectType, ObjectType)
-	continue;
-      endif
-      true_CSV_struct_tmp.ObjectType = CSV_ObjectType;
+      truth_CSV_struct_tmp.ObjectType = CSV_ObjectType;
       Frame_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.Frame(1));
       Frame_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.Frame(2))-1;
       true_Frame = true_CSV_list{i_CSV}(Frame_ndx(1):Frame_ndx(2));
@@ -374,42 +375,47 @@ function [num_frames, ...
       if i_frame > nnz_frames
 	break;
       endif
-      true_CSV_struct_tmp = struct;
-      true_CSV_struct_tmp.Frame = true_Frame;
+      truth_CSV_struct_tmp = struct;
+      truth_CSV_struct_tmp.Frame = true_Frame;
       BoundingBox_X1_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X1(1))+1;
       BoundingBox_X1_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X1(2))-1;
       BoundingBox_X1 = true_CSV_list{i_CSV}(BoundingBox_X1_ndx(1):BoundingBox_X1_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_X1 = str2num(BoundingBox_X1);
+      truth_CSV_struct_tmp.BoundingBox_X1 = str2num(BoundingBox_X1);
       BoundingBox_Y1_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y1(1))+1;
       BoundingBox_Y1_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y1(2))-1;
       BoundingBox_Y1 = true_CSV_list{i_CSV}(BoundingBox_Y1_ndx(1):BoundingBox_Y1_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_Y1 = str2num(BoundingBox_Y1);
+      truth_CSV_struct_tmp.BoundingBox_Y1 = str2num(BoundingBox_Y1);
       BoundingBox_X2_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X2(1))+1;
       BoundingBox_X2_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X2(2))-1;
       BoundingBox_X2 = true_CSV_list{i_CSV}(BoundingBox_X2_ndx(1):BoundingBox_X2_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_X2 = str2num(BoundingBox_X2);
+      truth_CSV_struct_tmp.BoundingBox_X2 = str2num(BoundingBox_X2);
       BoundingBox_Y2_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y2(1))+1;
       BoundingBox_Y2_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y2(2))-1;
       BoundingBox_Y2 = true_CSV_list{i_CSV}(BoundingBox_Y2_ndx(1):BoundingBox_Y2_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_Y2 = str2num(BoundingBox_Y2);
+      truth_CSV_struct_tmp.BoundingBox_Y2 = str2num(BoundingBox_Y2);
       BoundingBox_X3_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X3(1))+1;
       BoundingBox_X3_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X3(2))-1;
       BoundingBox_X3 = true_CSV_list{i_CSV}(BoundingBox_X3_ndx(1):BoundingBox_X3_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_X3 = str2num(BoundingBox_X3);
+      truth_CSV_struct_tmp.BoundingBox_X3 = str2num(BoundingBox_X3);
       BoundingBox_Y3_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y3(1))+1;
       BoundingBox_Y3_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y3(2))-1;
       BoundingBox_Y3 = true_CSV_list{i_CSV}(BoundingBox_Y3_ndx(1):BoundingBox_Y3_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_Y3 = str2num(BoundingBox_Y3);
+      truth_CSV_struct_tmp.BoundingBox_Y3 = str2num(BoundingBox_Y3);
       BoundingBox_X4_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X4(1))+1;
       BoundingBox_X4_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_X4(2))-1;
       BoundingBox_X4 = true_CSV_list{i_CSV}(BoundingBox_X4_ndx(1):BoundingBox_X4_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_X4 = str2num(BoundingBox_X4);
+      truth_CSV_struct_tmp.BoundingBox_X4 = str2num(BoundingBox_X4);
       BoundingBox_Y4_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y4(1))+1;
       BoundingBox_Y4_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y4(2))-1;
       BoundingBox_Y4 = true_CSV_list{i_CSV}(BoundingBox_Y4_ndx(1):BoundingBox_Y4_ndx(2));
-      true_CSV_struct_tmp.BoundingBox_Y4 = str2num(BoundingBox_Y4);
-      num_BBs = length(true_CSV_struct{i_frame});
-      true_CSV_struct{i_frame}{num_BBs + 1} = true_CSV_struct_tmp;
+      truth_CSV_struct_tmp.BoundingBox_Y4 = str2num(BoundingBox_Y4);
+      if ~strcmp(CSV_ObjectType, ObjectType)
+	other_CSV_struct{i_frame}{num_other_BBs + 1} = truth_CSV_struct_tmp;
+	num_other_BBs = length(other_CSV_struct{i_frame});
+	continue;
+      endif
+      num_truth_BBs = length(truth_CSV_struct{i_frame});
+      truth_CSV_struct{i_frame}{num_truth_BBs + 1} = truth_CSV_struct_tmp;
     endfor
   endif %% pvp_training_flag
   
@@ -417,18 +423,20 @@ function [num_frames, ...
   %%keyboard;
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel2, ...
-			    frame_pathnames, pvp_time, pvp_activity, true_CSV_struct, ...
+			    frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, ...
 			    "UniformOutput", false);
   else
     CSV_struct = cellfun(@pvp_makeCSVFileKernel2, ...
-			 frame_pathnames, pvp_time, pvp_activity, true_CSV_struct, ...
+			 frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, ...
 			 "UniformOutput", false);
   endif
   
   disp("");
 
   frames_per_CSV_file = 150000;
-  num_CSV_files = ceil(nnz_frames / frames_per_CSV_file);
+  num_CSV_files = length(CSV_struct);
+  disp(["num_CSV_files = ", num2str(num_CSV_files)]);
+  num_CSV_files_tmp = ceil(num_CSV_files / frames_per_CSV_file);
   CSV_ObjectType = ObjectType;
   CSV_Occlusion = 0; %% false
   CSV_Ambiguous = 0; %% false
@@ -438,7 +446,8 @@ function [num_frames, ...
   pvp_tot_miss = 0;
   pvp_miss_density = [];
   pvp_hit_density = [];
-  for i_CSV_file = 1 : num_CSV_files
+  disp(fieldnames(CSV_struct{1}));
+  for i_CSV_file = 1 : num_CSV_files_tmp
     pvp_results_filename = ...
 	[NEOVISION_DATASET_ID, "_", clip_name,...
 	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+2, "%3.3i"), ".csv"];
@@ -453,6 +462,7 @@ function [num_frames, ...
       %%CSV_struct{i_frame}.Frame = i_frame - 1;
       if isempty(CSV_struct{i_frame}) continue; endif
       if CSV_struct{i_frame}.num_active == 0 continue; endif;
+      disp(["i_frame = ", num2str(i_frame)]);
       disp(["frame_ID = ", CSV_struct{i_frame}.frame_filename]);
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
@@ -554,26 +564,27 @@ function [num_frames, ...
   disp(["pvp_std_miss_density = ", num2str(pvp_std_miss_density)]);
   disp(["pvp_median_miss_density = ", num2str(pvp_median_miss_density)]);
   pvp_hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
-hist_plot = 0;
-if hist_plot
-  [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
-      hist([pvp_miss_density; pvp_hit_density], pvp_num_hit_and_miss_bins);
-  pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
-  pvp_miss_hist = hist(pvp_miss_density, pvp_hit_and_miss_bins);
-  pvp_hit_and_miss_hist_fig = figure;
-  pvp_hit_and_miss_bh = ...
-      bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
-	  pvp_hit_hist(2:pvp_num_hit_and_miss_bins), 0.8);
-  set( pvp_hit_and_miss_bh, 'EdgeColor', [1 0 0] );
-  set( pvp_hit_and_miss_bh, 'FaceColor', [1 0 0] );
-  hold on;
-  pvp_hit_and_miss_bh = ...
-      bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
-	  pvp_miss_hist(2:pvp_num_hit_and_miss_bins), 0.6);
-  set( pvp_hit_and_miss_bh, 'EdgeColor', [0 0 1] );
-  set( pvp_hit_and_miss_bh, 'FaceColor', [0 0 1] );
-endif
-  pvp_hit_and_miss_hist_pathname = [ROC_subdir, "hit_and_miss_hist.png"];
+  hist_plot = 0;
+  if hist_plot
+    pvp_hit_and_miss_hist_pathname = [ROC_subdir, "hit_and_miss_hist.png"];
+    [pvp_hit_and_miss_hist, pvp_hit_and_miss_bins] = ...
+	hist([pvp_miss_density; pvp_hit_density], pvp_num_hit_and_miss_bins);
+    pvp_hit_hist = hist(pvp_hit_density, pvp_hit_and_miss_bins);
+    pvp_miss_hist = hist(pvp_miss_density, pvp_hit_and_miss_bins);
+    pvp_hit_and_miss_hist_fig = figure;
+    pvp_hit_and_miss_bh = ...
+	bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
+	    pvp_hit_hist(2:pvp_num_hit_and_miss_bins), 0.8);
+    set( pvp_hit_and_miss_bh, 'EdgeColor', [1 0 0] );
+    set( pvp_hit_and_miss_bh, 'FaceColor', [1 0 0] );
+    hold on;
+    pvp_hit_and_miss_bh = ...
+	bar(pvp_hit_and_miss_bins(2:pvp_num_hit_and_miss_bins), ...
+	    pvp_miss_hist(2:pvp_num_hit_and_miss_bins), 0.6);
+    set( pvp_hit_and_miss_bh, 'EdgeColor', [0 0 1] );
+    set( pvp_hit_and_miss_bh, 'FaceColor', [0 0 1] );
+    print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname);
+  endif
   if pvp_training_flag
     save("-ascii", ...
 	 pvp_hit_and_miss_stats_pathname, ...
@@ -589,7 +600,6 @@ endif
 	 "pvp_ave_miss_density", ...
 	 "pvp_std_miss_density", ...
 	 "pvp_median_miss_density");
-    print(pvp_hit_and_miss_hist_fig, pvp_hit_and_miss_hist_pathname);
   endif
   disp("");
   %%close all;

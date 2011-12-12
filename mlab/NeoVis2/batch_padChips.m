@@ -1,13 +1,27 @@
 
-object_ids = [26:50];
+object_ids = [1:50];
 object_name = cell(length(object_ids),1);
 for i_object = 1 : length(object_name)
 		 object_name{i_object} = num2str(object_ids(i_object), "%3.3i");		 
 endfor
-object_name = cell(1);
-object_name{1} = "Car";
+%%object_name = cell(1);
+%%object_name{1} = "distractor"; %% "Car";
 
-chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"; %%  "/mnt/data1/repo/neovision-data-challenge-heli/"
+global DoG_flag
+global canny_flag
+global DoG_dir
+global DoG_struct
+global canny_dir
+global canny_struct
+global image_margin
+global pad_size
+global cropped_dir
+global rejected_dir
+global border_artifact_thresh
+global image_size_thresh
+global VERBOSE_FLAG
+
+chip_path =  "/mnt/data1/repo/neovision-data-training-heli/"; %% "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"; %% 
 petavision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/"; %% Challenge/;
 DoG_flag = 1;
 DoG_struct = struct;  %% 
@@ -18,9 +32,11 @@ DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
 canny_flag = 1;
 canny_struct = struct;  %% 
 canny_struct.sigma_canny = 1;
-pad_size = [256 256]; %% [1080 1920];
+pad_size = [1080 1920]; %%[256 256]; %% 
 num_procs = 24;
+%%keyboard;
 for i_object = 1 : length(object_name)
+  disp(["object_name = ", object_name{i_object}]);
   [tot_chips, ...
    tot_DoG, ...
    tot_canny, ...

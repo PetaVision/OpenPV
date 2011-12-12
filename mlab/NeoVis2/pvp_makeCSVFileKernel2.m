@@ -1,11 +1,10 @@
-function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_activity, true_CSV_struct)
+function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct)
 
   global NFEATURES NCOLS NROWS N
   global pvp_patch_size
   global pvp_density_thresh
   global pvp_training_flag
   global ODD_subdir
-  global bootstrap_subdir
 
   CSV_struct = struct;
   if isempty(pvp_activity)
@@ -16,23 +15,26 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
 
   CSV_struct.frame_filename = strFolderFromPath(frame_pathname);
   CSV_struct.Frame = CSV_struct.frame_filename(1:strfind(CSV_struct.frame_filename, ".png")-1);
+  disp(["Frame = ", CSV_struct.Frame]);
   CSV_struct.pvp_time = pvp_time;
   CSV_struct.mean_activity = mean(pvp_activity(:));
   CSV_struct.sum_activity = sum(pvp_activity(:));
   
+  %%keyboard;
   if pvp_training_flag == 0  %% no ground truth provided
     [hit_list] = pvp_dbscan(pvp_activity);  
     miss_list = [];
-  elseif 
+  else
     [pvp_num_active_BB_mask, ...
      pvp_num_active_BB_notmask, ...
      pvp_num_BB_mask, ...
      pvp_num_BB_notmask, ...
      hit_list, ...
-     miss_list,
+     miss_list, ...
      pvp_max_confidence] = ...
 	pvp_numActiveInBoundingBox2(pvp_activity, ...
-				    true_CSV_struct);
+				    truth_CSV_struct, ...
+				    other_CSV_struct);
     CSV_struct.num_active_BB_mask = pvp_num_active_BB_mask;
     CSV_struct.num_active_BB_notmask = pvp_num_active_BB_notmask;
     CSV_struct.num_BB_mask = pvp_num_BB_mask;
