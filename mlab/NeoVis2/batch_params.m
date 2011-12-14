@@ -1,5 +1,5 @@
 
-clip_ids = [2:3]; %% [7:17,21:22,30:31];
+clip_ids = [2:50]; %% [7:17,21:22,30:31];
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
@@ -13,7 +13,7 @@ global pvp_workspace_path
 global pvp_mlab_path
 global pvp_clique_path
 pvp_home_path = ...
-    [filesep, "Users", filesep, "gkenyon", filesep];
+    [filesep, "home", filesep, "garkenyon", filesep];
 pvp_workspace_path = ...
     [pvp_home_path, "workspace-indigo", filesep];
 pvp_mlab_path = ...
@@ -26,7 +26,7 @@ neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %%
 NEOVISION_DISTRIBUTION_ID = "Training";
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
 pvp_repo_path = ...
-    [pvp_home_path, "NeoVision2", filesep];
+    [filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
 pvp_program_path = ...
     [pvp_repo_path, "neovision-programs-petavision", filesep, ...
      NEOVISION_DATASET_ID, filesep, ...
@@ -49,7 +49,17 @@ pvp_list_path = ...
 for i_clip = 1 : length(clip_name)
   disp(clip_name{i_clip});
 
-%% make params dirs
+%% make activity dirs
+  pvp_activity_path = ...
+      [pvp_program_path, ...
+       "activity", filesep];
+  mkdir([pvp_activity_path, clip_name{i_clip}, filesep])
+  mkdir([pvp_activity_path, clip_name{i_clip}, filesep, ...
+	 pvp_object_type, num2str(pvp_num_ODD_kernels), filesep])
+  mkdir([pvp_activity_path, clip_name{i_clip}, filesep, ...
+	 pvp_object_type, num2str(pvp_num_ODD_kernels), filesep, pvp_edge_type, filesep])
+
+%% make params dirs  
   mkdir([pvp_input_path, clip_name{i_clip}, filesep])
   mkdir([pvp_input_path, clip_name{i_clip}, filesep, ...
 	 pvp_object_type, num2str(pvp_num_ODD_kernels), filesep])
