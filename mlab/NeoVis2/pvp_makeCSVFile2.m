@@ -15,6 +15,7 @@ function [num_frames, ...
 		       clip_path, ...
 		       num_ODD_kernels, ...
 		       patch_size, ...
+		       std_patch_size, ...
 		       pvp_layer, ...
 		       pvp_path, ...
 		       training_flag, ...
@@ -79,38 +80,50 @@ function [num_frames, ...
   if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
     num_ODD_kernels = 3;  %% 
   endif
+  clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, ...
+		  NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
+		  "log", filesep, ObjectType, filesep];
+  clip_log_pathname = [clip_log_dir, "log.txt"];
+  clip_log_struct = struct;
+  if exist(clip_log_pathname, "file")
+    clip_log_fid = fopen(clip_log_pathname, "r");
+    clip_log_struct.tot_unread = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_rejected = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_clips = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_DoG = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_canny = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_cropped = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_mean = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_std = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_border_artifact_top = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_border_artifact_bottom = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_border_artifact_left = str2num(fgets(clip_log_fid));
+    clip_log_struct.tot_border_artifact_right = str2num(fgets(clip_log_fid));
+    clip_log_struct.ave_original_size = str2num(fgets(clip_log_fid));
+    clip_log_struct.ave_cropped_size = str2num(fgets(clip_log_fid));
+    clip_log_struct.std_original_size = str2num(fgets(clip_log_fid));
+    clip_log_struct.std_cropped_size = str2num(fgets(clip_log_fid));
+    clip_log_struct.max_cropped_size = str2num(fgets(clip_log_fid));
+    clip_log_struct.min_cropped_size = str2num(fgets(clip_log_fid));
+    fclose(clip_log_fid);
+    default_patch_size = clip_log_struct.ave_cropped_size;
+    default_std_size = clip_log_struct.std_cropped_size;
+    default_max_size = clip_log_struct.max_cropped_size;
+    default_min_size = clip_log_struct.min_cropped_size;
+  else
+    default_patch_size = [64, 64];
+    default_std_size = [0, 0];
+    default_max_size = default_patch_size;
+    default_min_size = default_patch_size;
+  endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
-    clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, ...
-		    NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
-		    "log", filesep, ObjectType, filesep];
-    clip_log_pathname = [clip_log_dir, "log.txt"];
-    if exist(clip_log_pathname, "file")
-      clip_log_struct = struct;
-      clip_log_fid = fopen(clip_log_pathname, "r");
-      clip_log_struct.tot_unread = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_rejected = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_clips = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_DoG = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_canny = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_cropped = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_mean = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_std = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_border_artifact_top = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_border_artifact_bottom = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_border_artifact_left = str2num(fgets(clip_log_fid));
-      clip_log_struct.tot_border_artifact_right = str2num(fgets(clip_log_fid));
-      clip_log_struct.ave_original_size = str2num(fgets(clip_log_fid));
-      clip_log_struct.ave_cropped_size = str2num(fgets(clip_log_fid));
-      clip_log_struct.std_original_size = str2num(fgets(clip_log_fid));
-      clip_log_struct.std_cropped_size = str2num(fgets(clip_log_fid));
-      fclose(clip_log_fid);
-      patch_size = ...
-	  fix(clip_log_struct.ave_original_size); %% + clip_log_struct.std_original_size);
-    else
-      patch_size = [64, 64]; %%[128, 128];
-    endif %% exist(clip_log_pathname)
+    patch_size = default_patch_size;
     disp(["patch_size = ", num2str(patch_size)]);
+  endif
+  if nargin < num_input_args || ~exist("patch_size") || isempty(patch_size)
+    std_patch_size = default_std_size;
+    disp(["std_patch_size = ", num2str(std_patch_size)]);
   endif
   if nargin < num_input_args || ~exist("pvp_layer") || isempty(pvp_layer)
     pvp_layer = 7;  %% 
@@ -134,6 +147,15 @@ function [num_frames, ...
 
   global pvp_patch_size
   pvp_patch_size = patch_size;
+
+  global pvp_std_patch_size
+  pvp_std_patch_size = std_patch_size;
+  
+  global pvp_max_patch_size
+  pvp_max_patch_size = max_patch_size;
+  
+  global pvp_min_patch_size
+  pvp_min_patch_size = min_patch_size;
   
   global pvp_training_flag
   pvp_training_flag = training_flag;

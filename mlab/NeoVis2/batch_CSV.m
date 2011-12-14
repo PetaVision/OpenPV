@@ -40,13 +40,22 @@ if exist(clip_log_pathname, "file")
   clip_log_struct.ave_cropped_size = str2num(fgets(clip_log_fid));
   clip_log_struct.std_original_size = str2num(fgets(clip_log_fid));
   clip_log_struct.std_cropped_size = str2num(fgets(clip_log_fid));
+  clip_log_struct.max_cropped_size = str2num(fgets(clip_log_fid));
+  clip_log_struct.min_cropped_size = str2num(fgets(clip_log_fid));
   fclose(clip_log_fid);
   patch_size = ...
-      fix(clip_log_struct.ave_original_size); %% + clip_log_struct.std_original_size);
+      fix(clip_log_struct.ave_cropped_size); %% + clip_log_struct.std_original_size);
+  std_patch_size = clip_log_struct.std_cropped_size;
+  max_patch_size = clip_log_struct.max_cropped_size;
+  min_patch_size = clip_log_struct.min_croped_size;
 else
   patch_size = [64, 64]; %%[128, 128];
+  std_patch_size = [0, 0];
+  max_patch_size = patch_size;
+  min_patch_size = patch_size;
 endif %% exist(clip_log_pathname)
 disp(["patch_size = ", num2str(patch_size)]);
+disp(["std_patch_size = ", num2str(std_patch_size)]);
 pvp_layer = 7;  %% 
 training_flag = 1;
 num_procs = 24;  %% 
@@ -76,6 +85,7 @@ for i_clip = 1 : length(clip_name)
 		       clip_path, ...
 		       num_ODD_kernels, ...
 		       patch_size, ...
+		       std_patch_size, ...
 		       pvp_layer, ...
 		       pvp_path, ...
 		       training_flag, ...

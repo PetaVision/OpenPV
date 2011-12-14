@@ -2,6 +2,7 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
 
   global NFEATURES NCOLS NROWS N
   global pvp_patch_size
+  global pvp_std_patch_size
   global pvp_density_thresh 
 
   hit_list = []; %% cell(1);
@@ -25,7 +26,10 @@ function [hit_list] = pvp_dbscan(pvp_activity) % gjk 11/15/11 %% revised: gtk 12
   [pvp_activity1D(:,2),pvp_activity1D(:,1)]=find(pvp_activity2D);
 
   %% maximum distance between points in same cluster
-  cluster_radius = max(pvp_patch_size) / 4;
+  cluster_radius = min(pvp_patch_size - pvp_std_patch_size) / 2;
+  if cluster_radius < min(pvp_patch_size)/4
+    cluster_radius = min(pvp_patch_size)/4;
+  endif
   disp(["cluster_radius = ", num2str(cluster_radius)]);
   min_cluster_count = ceil(cluster_radius.^2 * 4 * num_active / numel(pvp_activity));
   disp(["min_cluster_count = ", num2str(min_cluster_count)]);
