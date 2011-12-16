@@ -55,14 +55,14 @@ function [tot_chips, ...
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["/NeoVision2/neovision-data-training-heli/"]; 
+    chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"
+%%    chip_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/canny/";
+%%    chip_path = ["/NeoVision2/neovision-data-training-heli/"]; 
 %%    chip_path = ["/mnt/data1/repo/neovision-data-training-heli/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name_param") || isempty(object_name_param)
-    if isempty(object_name)
-      object_name = "051"; %% "Plane"; %% "distractor"; %% "Car"; %% 
-    endif
+      object_name = "distractor"; %% "Car"; %%  "distractor_bootstrap"; %%   "051"; %% "Plane"; %%  
   else
     object_name = object_name_param;  
     %% "Person"; 
@@ -73,6 +73,7 @@ function [tot_chips, ...
     %% "Helicopter"; 
     %% "Car"; %%  
   endif
+  disp(["object_name = ", object_name]);
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
     PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/";  %% 
@@ -117,7 +118,7 @@ function [tot_chips, ...
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pad_size_param") || isempty(pad_size_param)
     if isempty(pad_size)
-      pad_size = [256 256]; %% [1080 1920]; %% 
+      pad_size = [720 720]; %% [256 256]; %% [1080 1920]; %% 
     endif
   else
     pad_size = pad_size_param;
@@ -142,9 +143,9 @@ function [tot_chips, ...
   tot_border_artifact_bottom = 0;
   tot_border_artifact_left = 0;
   tot_border_artifact_right = 0;
-  ave_original_size = zeros(1,3);
+  ave_original_size = zeros(1,2);
   ave_cropped_size = zeros(1,2);
-  std_original_size = zeros(1,3);
+  std_original_size = zeros(1,2);
   std_cropped_size = zeros(1,2);
   max_cropped_size = zeros(1,2);
   min_cropped_size = pad_size;
@@ -255,9 +256,9 @@ function [tot_chips, ...
       tot_border_artifact_bottom = tot_border_artifact_bottom + status_info{i_chip}.num_border_artifact_bottom;
       tot_border_artifact_left = tot_border_artifact_left + status_info{i_chip}.num_border_artifact_left;
       tot_border_artifact_right = tot_border_artifact_right + status_info{i_chip}.num_border_artifact_right;
-      ave_original_size = ave_original_size + status_info{i_chip}.original_size;
+      ave_original_size = ave_original_size + status_info{i_chip}.original_size(1:2);
       ave_cropped_size = ave_cropped_size + status_info{i_chip}.cropped_size;
-      std_original_size = std_original_size + (status_info{i_chip}.original_size).^2;
+      std_original_size = std_original_size + (status_info{i_chip}.original_size(1:2)).^2;
       std_cropped_size = std_cropped_size + (status_info{i_chip}.cropped_size).^2;
       if any(status_info{i_chip}.cropped_size ~= status_info{i_chip}.original_size(1:2))
 	tot_cropped = tot_cropped + 1;

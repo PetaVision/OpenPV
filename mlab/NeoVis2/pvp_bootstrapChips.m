@@ -4,6 +4,8 @@ function [num_target_chips, num_distractor_chips] = ...
   global target_bootstrap_dir
   global distractor_bootstrap_dir
   global pvp_max_patch_size
+  global pvp_min_patch_size
+  global NFEATURES NCOLS NROWS N
 
   num_target_chips = 0;
 
@@ -34,24 +36,34 @@ function [num_target_chips, num_distractor_chips] = ...
       x_BB_max = miss_list{i_miss_BB}.patch_X2;
       y_BB_min = miss_list{i_miss_BB}.patch_Y1;
       y_BB_max = miss_list{i_miss_BB}.patch_Y3;
-      chip_width = x_BB_max2 - x_BB_min2 + 1;
-      chip_height = y_BB_max2 - y_BB_min2 + 1;
-      chip_size = [chip_height, chip_width];
+      chip_width = x_BB_max - x_BB_min + 1;
+      chip_height = y_BB_max - y_BB_min + 1;
+      chip_size = ceil([chip_height, chip_width]);
+      if any(chip_size <= pvp_min_patch_size)
+	continue;
+      endif
       pvp_image = imread(frame_pathname);
       num_subchips = ceil(chip_size ./ pvp_max_patch_size);
       for i_subchip_row = 1 : num_subchips(1)
-	x_BB_min2 = x_BB_min + (j_subchip_col - 1 ) * chip_size(2) / num_subchips(2);
-	x_BB_max2 = x_BB_min + ((j_subchip_col) * chip_size(2) / num_subchips(2)) - 1;
+	y_BB_min2 = ceil(y_BB_min + (i_subchip_row - 1 ) * chip_size(1) / num_subchips(1));
+	y_BB_min2 = max(1, y_BB_min2);
+	y_BB_max2 = floor(y_BB_min + ((i_subchip_row) * chip_size(1) / num_subchips(1)) - 1);
+	y_BB_max2 = min(NROWS, y_BB_max2);
 	for j_subchip_col = 1 : num_subchips(2)
-	  y_BB_min2 = y_BB_min + (i_subchip_row - 1 ) * chip_size(1) / num_subchips(1);
-	  y_BB_max2 = y_BB_min + ((i_subchip_row) * chip_size(1) / num_subchips(1)) - 1;
+	  x_BB_min2 = ceil(x_BB_min + (j_subchip_col - 1 ) * chip_size(2) / num_subchips(2));
+	  x_BB_min2 = max(1, x_BB_min2);
+	  x_BB_max2 = floor(x_BB_min + ((j_subchip_col) * chip_size(2) / num_subchips(2)) - 1);
+	  x_BB_max2 = min(NCOLS, x_BB_max2);
 	  miss_chip = pvp_image(y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2);
+	  miss_chip_pathname = strExtractPath(frame_pathname);
+	  miss_chip_parent = strFolderFromPath(miss_chip_pathname);
+	  miss_chip_parent_root = miss_chip_parent(1:(length(miss_chip_parent)-1));
 	  miss_chip_imagename = strFolderFromPath(frame_pathname);
 	  miss_chip_rootname = strRemoveExtension(miss_chip_imagename);
 	  chip_id = i_miss_BB + ...
 	      (i_subchip_row - 1) * num_miss_BB + ...
 	      (j_subchip_col - 1) * num_subchips(1) * num_miss_BB;
-	  miss_chip_title = [miss_chip_rootname, "_", num2str(i_miss_BB, "%3.3d"), ".png"];
+	  miss_chip_title = [miss_chip_parent_root, "_", miss_chip_rootname, "_", num2str(chip_id, "%3.3d"), ".png"];
 	  miss_chip_pathname = [distractor_bootstrap_dir, miss_chip_title];
 	  imwrite(miss_chip, miss_chip_pathname);
 	  num_distractor_chips = num_distractor_chips + 1;
