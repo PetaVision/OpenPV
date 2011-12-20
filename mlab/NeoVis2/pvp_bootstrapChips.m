@@ -7,8 +7,6 @@ function [num_target_chips, num_distractor_chips] = ...
   global pvp_min_patch_size
   global NFEATURES NCOLS NROWS N
 
-  num_target_chips = 0;
-
   %% path to generic image processing routines
   img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
@@ -71,6 +69,40 @@ function [num_target_chips, num_distractor_chips] = ...
       endfor %% i_subchip_row
     endfor  %% i_BB
   endif  %% num_miss_BB > 0
+
+  num_hit_BB = length(hit_list);
+  num_target_chips = 0;
+  if num_hit_BB > 0
+    ave_hit_confidence = 0;
+    std_hit_confidence = 0;
+    for i_hit_BB = 1 : num_hit_BB
+      ave_hit_confidence = ave_hit_confidence + hit_list{i_hit_BB}.Confidence;
+      std_hit_confidence = std_hit_confidence + hit_list{i_hit_BB}.Confidence.^2;
+    endfor
+    ave_hit_confidence = ave_hit_confidence / num_hit_BB;
+    std_hit_confidence = sqrt((std_hit_confidence / num_hit_BB) - (ave_hit_confidence.^2));
+    for i_hit_BB = 1 : num_hit_BB
+      if hit_list{i_hit_BB}.Confidence > 0 %% ave_hit_confidence
+	continue;
+      endif
+      x_BB_min = hit_list{i_hit_BB}.BoundingBox_X1;
+      x_BB_max = hit_list{i_hit_BB}.BoundingBox_X2;
+      y_BB_min = hit_list{i_hit_BB}.BoundingBox_Y1;
+      y_BB_max = hit_list{i_hit_BB}.BoundingBox_Y3;
+      pvp_image = imread(frame_pathname);
+      hit_chip = pvp_image(y_BB_min:y_BB_max, x_BB_min:x_BB_max);
+      hit_chip_pathname = strExtractPath(frame_pathname);
+      hit_chip_parent = strFolderFromPath(hit_chip_pathname);
+      hit_chip_parent_root = hit_chip_parent(1:(length(hit_chip_parent)-1));
+      hit_chip_imagename = strFolderFromPath(frame_pathname);
+      hit_chip_rootname = strRemoveExtension(hit_chip_imagename);
+      chip_id = i_hit_BB;
+      hit_chip_title = [hit_chip_parent_root, "_", hit_chip_rootname, "_", num2str(chip_id, "%3.3d"), ".png"];
+      hit_chip_pathname = [target_bootstrap_dir, hit_chip_title];
+      imwrite(hit_chip, hit_chip_pathname);
+      num_distractor_chips = num_target_chips + 1;
+    endfor  %% i_BB
+  endif  %% num_hit_BB > 0
 
 endfunction %% pvp_bootstrapChips  
 

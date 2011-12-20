@@ -14,6 +14,7 @@ function [num_frames, ...
 		       pvp_frame_offset, ...
 		       clip_path, ...
 		       num_ODD_kernels, ...
+		       pvp_bootstrap_str, ...
 		       patch_size, ...
 		       std_patch_size, ...
 		       max_patch_size, ...
@@ -82,6 +83,10 @@ function [num_frames, ...
   if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
     num_ODD_kernels = 3;  %% 
   endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_bootstrap_str") || isempty(pvp_bootstrap_str)
+    pvp_bootstrap_str = "_bootstrap";  %% 
+  endif
   clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, ...
 		  NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
 		  "log", filesep, ObjectType, filesep];
@@ -141,7 +146,7 @@ function [num_frames, ...
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
     pvp_path = [program_path, "activity", filesep, ...
-		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), filesep, pvp_edge_filter, filesep];
+		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep, pvp_edge_filter, filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -191,7 +196,7 @@ function [num_frames, ...
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
   mkdir(ODD_clip_dir);
-  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
+  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
   mkdir(ODD_dir);
   ODD_subdir = [ODD_dir, pvp_edge_filter, filesep];
   mkdir(ODD_subdir);
@@ -200,7 +205,7 @@ function [num_frames, ...
   mkdir(ROC_path);
   ROC_clip_dir = [ROC_path, clip_name, filesep];
   mkdir(ROC_clip_dir);
-  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), filesep];
+  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
   mkdir(ROC_dir);
   ROC_subdir = [ROC_dir, pvp_edge_filter, filesep];
   mkdir(ROC_subdir);
@@ -210,7 +215,7 @@ function [num_frames, ...
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);
   pvp_results_subdir0 = ...
-      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), filesep];
+      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
       [pvp_results_subdir0, pvp_edge_filter, filesep];
@@ -218,14 +223,12 @@ function [num_frames, ...
 
   global target_bootstrap_dir
   target_bootstrap_dir = ...
-      [program_path, filesep, ...
-       pvp_edge_filter, filesep, ...
-       ObjectType, "_bootstrap", filesep];
+      [repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, ObjectType, pvp_bootstrap_str, num2str(2), filesep];
   mkdir(target_bootstrap_dir);
   
   global distractor_bootstrap_dir
   distractor_bootstrap_dir = ...
-      "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/distractor_bootstrap/";
+      [repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, "distractor", pvp_bootstrap_str, num2str(2), filesep];
   mkdir(distractor_bootstrap_dir);
   
 
@@ -377,6 +380,7 @@ function [num_frames, ...
   
   %% struct for storing rank order of comma separators between fields
   truth_CSV_struct = cell(tot_frames, 1);
+  DCR_CSV_struct = cell(tot_frames, 1);
   other_CSV_struct = cell(tot_frames, 1);
   if pvp_training_flag
     true_CSV_comma_rank = struct;
@@ -439,13 +443,16 @@ function [num_frames, ...
       BoundingBox_Y4_ndx(2) = true_CSV_comma_ndx(true_CSV_comma_rank.BoundingBox_Y4(2))-1;
       BoundingBox_Y4 = true_CSV_list{i_CSV}(BoundingBox_Y4_ndx(1):BoundingBox_Y4_ndx(2));
       truth_CSV_struct_tmp.BoundingBox_Y4 = str2num(BoundingBox_Y4);
-      if ~strcmp(CSV_ObjectType, ObjectType)
+      if strcmp(CSV_ObjectType, ObjectType)
+	truth_CSV_struct{i_frame}{num_truth_BBs + 1} = truth_CSV_struct_tmp;
+	num_truth_BBs = length(truth_CSV_struct{i_frame});
+      elseif strcmp(CSV_ObjectType, "DCR")
+	DCR_CSV_struct{i_frame}{num_DRC_BBs + 1} = truth_CSV_struct_tmp;
+	num_DCR_BBs = length(DCR_CSV_struct{i_frame});
+      else
 	other_CSV_struct{i_frame}{num_other_BBs + 1} = truth_CSV_struct_tmp;
 	num_other_BBs = length(other_CSV_struct{i_frame});
-	continue;
       endif
-      num_truth_BBs = length(truth_CSV_struct{i_frame});
-      truth_CSV_struct{i_frame}{num_truth_BBs + 1} = truth_CSV_struct_tmp;
     endfor
   endif %% pvp_training_flag
   
@@ -453,11 +460,11 @@ function [num_frames, ...
   %%keyboard;
   if num_procs > 1
     CSV_struct = parcellfun(num_procs, @pvp_makeCSVFileKernel2, ...
-			    frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, ...
+			    frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, DCR_CSV_struct, ...
 			    "UniformOutput", false);
   else
     CSV_struct = cellfun(@pvp_makeCSVFileKernel2, ...
-			 frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, ...
+			 frame_pathnames, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, DCR_CSV_struct, ...
 			 "UniformOutput", false);
   endif
   
@@ -481,8 +488,8 @@ function [num_frames, ...
   endif
   for i_CSV_file = 1 : num_CSV_files_tmp
     pvp_results_filename = ...
-	[NEOVISION_DATASET_ID, "_", clip_name,...
-	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+2, "%3.3i"), ".csv"];
+	[NEOVISION_DATASET_ID, "_", NEOVISION_DISTRIBUTION_ID, "_", clip_name,...
+	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+3, "%3.3i"), ".csv"];
     pvp_results_pathname = [pvp_results_subdir, pvp_results_filename];
     pvp_results_fid = fopen(pvp_results_pathname, "w");
     fputs(pvp_results_fid, true_CSV_header);

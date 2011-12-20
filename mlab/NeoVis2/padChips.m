@@ -62,7 +62,7 @@ function [tot_chips, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name_param") || isempty(object_name_param)
-      object_name = "distractor"; %% "Car"; %%  "distractor_bootstrap"; %%   "051"; %% "Plane"; %%  
+      object_name = "distractor_bootstrap2"; %% "Car_bootstrap2"; %% "distractor"; %% "Car"; %%    "051"; %% "Plane"; %%  
   else
     object_name = object_name_param;  
     %% "Person"; 

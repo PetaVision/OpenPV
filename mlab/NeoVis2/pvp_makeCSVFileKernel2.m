@@ -1,4 +1,4 @@
-function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct)
+function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_activity, truth_CSV_struct, other_CSV_struct, DCR_CSV_struct)
 
   global NFEATURES NCOLS NROWS N
   global pvp_patch_size
@@ -34,7 +34,8 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
      pvp_max_confidence] = ...
 	pvp_numActiveInBoundingBox2(pvp_activity, ...
 				    truth_CSV_struct, ...
-				    other_CSV_struct);
+				    other_CSV_struct, ...
+				    DCR_CSV_struct);
     CSV_struct.num_active_BB_mask = pvp_num_active_BB_mask;
     CSV_struct.num_active_BB_notmask = pvp_num_active_BB_notmask;
     CSV_struct.num_BB_mask = pvp_num_BB_mask;
