@@ -26,7 +26,7 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "distractor_bootstrap2"; %% "Car_bootstrap2"; %% "Car"; %% "distractor"; %%   "051"; %%   "030"; %%  "Plane"; %%  
+    object_name = "Car_bootstrap0"; %% "distractor_bootstrap0"; %%  "Car"; %% "distractor"; %%   "051"; %%   "030"; %%  "Plane"; %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)

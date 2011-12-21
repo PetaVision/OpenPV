@@ -25,7 +25,7 @@ function [pvp_num_active_BB_mask, ...
   num_truth_BBs = length(truth_CSV_struct);
   num_other_BBs = length(other_CSV_struct);
   num_DCR_BBs = length(DCR_CSV_struct);
-  if num_truth_BBs == 0 && num_other_BBs == 0
+  if num_truth_BBs == 0 && num_DCR_BBs == 0 && num_other_BBs == 0
     return;
   endif
   pvp_hit_list = cell(num_truth_BBs,1);
@@ -36,6 +36,12 @@ function [pvp_num_active_BB_mask, ...
   pvp_activity2D = squeeze(sum(pvp_activity3D, 1))';
   pvp_max_confidence = 0;
   for i_BB = 1 : num_truth_BBs
+    if isempty(truth_CSV_struct)
+      break;
+    endif
+    if isempty(truth_CSV_struct{i_BB})
+      continue;
+    endif
     x_BB_min = min([truth_CSV_struct{i_BB}.BoundingBox_X1; ...
 		   truth_CSV_struct{i_BB}.BoundingBox_X2; ...
 		   truth_CSV_struct{i_BB}.BoundingBox_X3; ...
@@ -106,6 +112,9 @@ function [pvp_num_active_BB_mask, ...
 
   endfor %% i_BB
   for i_BB = 1 : num_truth_BBs
+    if isempty(pvp_hit_list{i_BB})
+      continue;
+    endif
     pvp_hit_list{i_BB}.Confidence = ...
 	pvp_hit_list{i_BB}.Confidence / (pvp_max_confidence +(pvp_max_confidence==0));
   endfor
@@ -113,6 +122,9 @@ function [pvp_num_active_BB_mask, ...
   pvp_num_BB_mask = nnz(BB_mask);
 
   for i_BB = 1 : num_DCR_BBs
+    if isempty(DCR_CSV_struct{i_BB})
+      continue;
+    endif
     x_BB_min = min([DCR_CSV_struct{i_BB}.BoundingBox_X1; ...
 		   DCR_CSV_struct{i_BB}.BoundingBox_X2; ...
 		   DCR_CSV_struct{i_BB}.BoundingBox_X3; ...

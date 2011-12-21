@@ -1,4 +1,4 @@
-
+%
 function [num_frames, ...
 	  tot_frames, ...
 	  nnz_frames, ...
@@ -15,6 +15,7 @@ function [num_frames, ...
 		       clip_path, ...
 		       num_ODD_kernels, ...
 		       pvp_bootstrap_str, ...
+		       pvp_bootstrap_level_str, ...
 		       patch_size, ...
 		       std_patch_size, ...
 		       max_patch_size, ...
@@ -84,8 +85,12 @@ function [num_frames, ...
     num_ODD_kernels = 3;  %% 
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_bootstrap_str") || isempty(pvp_bootstrap_str)
-    pvp_bootstrap_str = "_bootstrap";  %% 
+  if nargin < num_input_args || ~exist("pvp_bootstrap_str") 
+    pvp_bootstrap_str = ""; %% "_bootstrap";  %% 
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_bootstrap_level_str") 
+    pvp_bootstrap_level_str = ""; %% "1";  %% 
   endif
   clip_log_dir = [repo_path, "neovision-programs-petavision", filesep, ...
 		  NEOVISION_DATASET_ID, filesep, NEOVISION_DISTRIBUTION_ID, filesep, ...
@@ -146,7 +151,7 @@ function [num_frames, ...
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
     pvp_path = [program_path, "activity", filesep, ...
-		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep, pvp_edge_filter, filesep];
+		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep, pvp_edge_filter, filesep];
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("training_flag") || isempty(training_flag)
@@ -196,7 +201,7 @@ function [num_frames, ...
   mkdir(ODD_path);
   ODD_clip_dir = [ODD_path, clip_name, filesep];
   mkdir(ODD_clip_dir);
-  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
+  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
   mkdir(ODD_dir);
   ODD_subdir = [ODD_dir, pvp_edge_filter, filesep];
   mkdir(ODD_subdir);
@@ -205,7 +210,7 @@ function [num_frames, ...
   mkdir(ROC_path);
   ROC_clip_dir = [ROC_path, clip_name, filesep];
   mkdir(ROC_clip_dir);
-  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
+  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
   mkdir(ROC_dir);
   ROC_subdir = [ROC_dir, pvp_edge_filter, filesep];
   mkdir(ROC_subdir);
@@ -215,20 +220,26 @@ function [num_frames, ...
   pvp_results_dir = [pvp_results_path, clip_name, filesep];
   mkdir(pvp_results_dir);
   pvp_results_subdir0 = ...
-      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep];
+      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
   mkdir(pvp_results_subdir0);
   pvp_results_subdir = ...
       [pvp_results_subdir0, pvp_edge_filter, filesep];
   mkdir(pvp_results_subdir);
 
   global target_bootstrap_dir
-  target_bootstrap_dir = ...
-      [repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, ObjectType, pvp_bootstrap_str, num2str(2), filesep];
-  mkdir(target_bootstrap_dir);
-  
   global distractor_bootstrap_dir
-  distractor_bootstrap_dir = ...
-      [repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, "distractor", pvp_bootstrap_str, num2str(2), filesep];
+  if isempty(pvp_bootstrap_str)
+    target_bootstrap_dir = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, ObjectType, "_bootstrap0", filesep];
+    distractor_bootstrap_dir = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, "distractor", "_bootstrap0", filesep];
+  else
+    target_bootstrap_dir = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+    distractor_bootstrap_dir = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+  endif
+  mkdir(target_bootstrap_dir);
   mkdir(distractor_bootstrap_dir);
   
 
@@ -396,6 +407,7 @@ function [num_frames, ...
     true_CSV_comma_rank.ObjectType = [10, 11];
     num_truth_BBs = 0;
     num_other_BBs = 0;
+    num_DCR_BBs = 0;
     for i_CSV = 1 : num_true_CSV
       true_CSV_comma_ndx = [1, strfind(true_CSV_list{i_CSV}, ",")];
       ObjectType_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.ObjectType(1))+1;
@@ -447,7 +459,7 @@ function [num_frames, ...
 	truth_CSV_struct{i_frame}{num_truth_BBs + 1} = truth_CSV_struct_tmp;
 	num_truth_BBs = length(truth_CSV_struct{i_frame});
       elseif strcmp(CSV_ObjectType, "DCR")
-	DCR_CSV_struct{i_frame}{num_DRC_BBs + 1} = truth_CSV_struct_tmp;
+	DCR_CSV_struct{i_frame}{num_DCR_BBs + 1} = truth_CSV_struct_tmp;
 	num_DCR_BBs = length(DCR_CSV_struct{i_frame});
       else
 	other_CSV_struct{i_frame}{num_other_BBs + 1} = truth_CSV_struct_tmp;
@@ -487,9 +499,14 @@ function [num_frames, ...
     disp(fieldnames(CSV_struct{1}));
   endif
   for i_CSV_file = 1 : num_CSV_files_tmp
+    if isempty(pvp_bootstrap_level_str)
+      csv_id = i_CSV_file + 1;
+    else
+      csv_id = i_CSV_file + 1 + str2num(pvp_bootstrap_level_str);
+    endif
     pvp_results_filename = ...
 	[NEOVISION_DATASET_ID, "_", NEOVISION_DISTRIBUTION_ID, "_", clip_name,...
-	 "_PetaVision_", ObjectType, "_", num2str(i_CSV_file-1+3, "%3.3i"), ".csv"];
+	 "_PetaVision_", ObjectType, "_", num2str(csv_id, "%3.3i"), ".csv"];
     pvp_results_pathname = [pvp_results_subdir, pvp_results_filename];
     pvp_results_fid = fopen(pvp_results_pathname, "w");
     fputs(pvp_results_fid, true_CSV_header);

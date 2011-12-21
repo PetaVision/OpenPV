@@ -76,12 +76,18 @@ function [num_target_chips, num_distractor_chips] = ...
     ave_hit_confidence = 0;
     std_hit_confidence = 0;
     for i_hit_BB = 1 : num_hit_BB
+      if isempty(hit_list{i_hit_BB})
+	continue;
+      endif
       ave_hit_confidence = ave_hit_confidence + hit_list{i_hit_BB}.Confidence;
       std_hit_confidence = std_hit_confidence + hit_list{i_hit_BB}.Confidence.^2;
     endfor
     ave_hit_confidence = ave_hit_confidence / num_hit_BB;
     std_hit_confidence = sqrt((std_hit_confidence / num_hit_BB) - (ave_hit_confidence.^2));
     for i_hit_BB = 1 : num_hit_BB
+      if isempty(hit_list{i_hit_BB})
+	continue;
+      endif
       if hit_list{i_hit_BB}.Confidence > 0 %% ave_hit_confidence
 	continue;
       endif
