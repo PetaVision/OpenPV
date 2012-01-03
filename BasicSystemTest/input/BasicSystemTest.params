@@ -9,6 +9,8 @@
 //  basic functionality
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -18,6 +20,8 @@ HyPerCol "column" = {
    progressStep = 10;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
 };
 
 //
@@ -51,7 +55,7 @@ ANNLayer "output" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -70,6 +74,12 @@ KernelConn "input to output" = {
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = false;
+    bowtieFlag = false;
     aspect = 3;
     sigma = 1;
     rMax  = infinity;
