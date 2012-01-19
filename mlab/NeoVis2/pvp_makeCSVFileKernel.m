@@ -23,8 +23,8 @@ function [CSV_struct] = pvp_makeCSVFileKernel(frame_pathname, pvp_time, pvp_acti
   pvp_test_patches = 1;
   if pvp_test_patches == 1
 %%    [hit_list, miss_list] = pvp_testPatches(pvp_activity);
-    [hit_list, miss_list] = pvp_testClusters(pvp_activity);
-%%    [hit_list, miss_list] = pvp_testFeatures(pvp_activity);
+%%    [hit_list, miss_list] = pvp_testClusters(pvp_activity);
+    [hit_list, miss_list] = pvp_testFeatures(pvp_activity);
   else 
     [hit_list, miss_list] = pvp_testPatches([]);
   endif

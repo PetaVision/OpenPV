@@ -55,14 +55,15 @@ function [tot_chips, ...
   num_argin = 0
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"
+    chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Formative/"
+%%    chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"
 %%    chip_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/canny/";
 %%    chip_path = ["/NeoVision2/neovision-data-training-heli/"]; 
 %%    chip_path = ["/mnt/data1/repo/neovision-data-training-heli/"]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name_param") || isempty(object_name_param)
-      object_name = "Car_bootstrap0"; %% "distractor_bootstrap0"; %%  "distractor"; %% "Car"; %%    "051"; %% "Plane"; %%  
+      object_name = "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor_bootstrap1"; %%  "distractor"; %%     "051"; %%   
   else
     object_name = object_name_param;  
     %% "Person"; 
@@ -76,7 +77,7 @@ function [tot_chips, ...
   disp(["object_name = ", object_name]);
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
-    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/";  %% 
+    PetaVision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Formative/";  %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_flag_param") || isempty(DoG_flag_param)
@@ -217,7 +218,7 @@ function [tot_chips, ...
   image_margin = 8;
 
   border_artifact_thresh =1000000; %% 1.25; %% use 1.25 for DARPA HeliChips
-  image_size_thresh = image_margin; %% 1000; %% in bytes
+  image_size_thresh = 1000; %% in bytes
 
   target_path = ...
       [target_dir, '*', image_type];

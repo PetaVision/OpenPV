@@ -21,12 +21,12 @@ function [train_filenames, ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Training", filesep]; 
+    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Formative", filesep]; 
 %%    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge", filesep]; 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "Car_bootstrap0"; %% "distractor_bootstrap0"; %%  "Car"; %% "distractor"; %%   "051"; %%   "030"; %%  "Plane"; %%  
+    object_name = "Car"; %% "Plane"; %% "distractor_bootstrap1"; %% "Car_bootstrap1"; %%  "distractor"; %%   "051"; %%   "030"; %%    
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)

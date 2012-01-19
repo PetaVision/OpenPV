@@ -1,11 +1,11 @@
 
-object_ids = [1:50];
+object_ids = [1:25];
 object_name = cell(length(object_ids),1);
 for i_object = 1 : length(object_name)
-		 object_name{i_object} = num2str(object_ids(i_object), "%3.3i");		 
+  object_name{i_object} = num2str(object_ids(i_object), "%3.3i");   
 endfor
-%%object_name = cell(1);
-%%object_name{1} = "distractor"; %% "Car";
+object_name = cell(1);
+object_name{1} = "Plane"; %% "distractor"; %% "Car";
 
 global DoG_flag
 global canny_flag
@@ -21,8 +21,8 @@ global border_artifact_thresh
 global image_size_thresh
 global VERBOSE_FLAG
 
-chip_path =  "/mnt/data1/repo/neovision-data-training-heli/"; %% "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Training/"; %% 
-petavision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/"; %% Challenge/;
+chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Formative/"; %%  "/mnt/data1/repo/neovision-data-formative-heli/"; %% 
+petavision_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Formative/"; %% Challenge/;
 DoG_flag = 1;
 DoG_struct = struct;  %% 
 DoG_struct.amp_center_DoG = 1;
@@ -32,11 +32,12 @@ DoG_struct.sigma_surround_DoG = 2 * DoG_struct.sigma_center_DoG;
 canny_flag = 1;
 canny_struct = struct;  %% 
 canny_struct.sigma_canny = 1;
-pad_size = [1080 1920]; %%[256 256]; %% 
+pad_size = [720 720]; %% [1080 1920]; %% 
 num_procs = 24;
 %%keyboard;
 for i_object = 1 : length(object_name)
   disp(["object_name = ", object_name{i_object}]);
+
   [tot_chips, ...
    tot_DoG, ...
    tot_canny, ...
@@ -51,6 +52,8 @@ for i_object = 1 : length(object_name)
    ave_cropped_size, ...
    std_original_size, ...
    std_cropped_size, ...
+   max_cropped_size, ...
+   min_cropped_size, ...
    tot_time] = ...
       padChips(chip_path, ...
 	       object_name{i_object}, ...
@@ -60,7 +63,8 @@ for i_object = 1 : length(object_name)
 	       canny_flag, ...
 	       canny_struct, ...
 	       pad_size, ...
-	       num_procs)
+	       num_procs);
+
 endfor
 
 num_train = -1;
@@ -104,17 +108,17 @@ endfor
 
 %% make activity dirs
 for i_object = 1 : 0 %% length(object_name)
-  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Formative/activity/", object_name{i_object}, filesep])
-  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Formative/activity/", object_name{i_object}, filesep, "Car3", filesep])
-  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Formative/activity/", object_name{i_object}, filesep, "Car3", filesep, "canny", filesep])
+  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep])
+  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep, "Plane3", filesep])
+  mkdir(["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/", object_name{i_object}, filesep, "Plane3", filesep, "canny2", filesep])
   
 endfor
 
 %% make params dirs
 for i_object = 1 : 0%% length(object_name)
   mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep])
-  mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Car3", filesep])
-  mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Car3", filesep, "canny2", filesep])
+  mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Plane3", filesep])
+  mkdir(["~/workspace-indigo/Clique2/input/Heli/Challenge/", object_name{i_object}, filesep, "Plane3", filesep, "canny2", filesep])
 endfor
 
 
