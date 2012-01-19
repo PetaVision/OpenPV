@@ -82,6 +82,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, int numChannels);
 
    virtual int initializeLayerId(int layerId);
+   virtual int allocateBuffers();
    virtual int initializeV();
    int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);

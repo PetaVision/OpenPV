@@ -37,6 +37,7 @@ protected:
 
    LIFGap();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
+   virtual int allocateBuffers();
 
    pvdata_t * G_Gap;
    pvdata_t sumGap;

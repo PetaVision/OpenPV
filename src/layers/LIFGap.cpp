@@ -102,10 +102,11 @@ int LIFGap::initialize_base() {
 int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
 
+#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize, called by LIF::initialize
    const size_t num_neurons = getNumNeurons();
    this->G_Gap  = G_E + 3*num_neurons;
    this->sumGap = 0.0f;
-
+#endif // OBSOLETE
    return status;
 }
 
@@ -152,6 +153,16 @@ int LIFGap::initializeThreadKernels(char * kernel_name)
    return status;
 }
 #endif
+
+int LIFGap::allocateBuffers() {
+   int status = LIF::allocateBuffers();
+   if( status == PV_SUCCESS ) {
+      const size_t num_neurons = getNumNeurons();
+      this->G_Gap  = G_E + 3*num_neurons;
+      this->sumGap = 0.0f;
+   }
+   return status;
+}
 
 int LIFGap::checkpointRead(float * timef) {
    LIF::checkpointRead(timef);

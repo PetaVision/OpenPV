@@ -166,18 +166,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    // allocate storage for the input conductance arrays
    //
-   GSyn = NULL;
-   if (numChannels > 0) {
-      GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
-      assert(GSyn != NULL);
-
-      GSyn[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
-      assert(GSyn[0] != NULL);
-
-      for (int m = 1; m < numChannels; m++) {
-         GSyn[m] = GSyn[0] + m * getNumNeurons();
-      }
-   }
+   int status = allocateBuffers();
+   assert(status == PV_SUCCESS);
 
    bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
@@ -274,6 +264,32 @@ int HyPerLayer::initializeLayerId(int layerId)
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
    return 0;
+}
+
+int HyPerLayer::allocateBuffers() {
+   // allocate memory for the input conductance arrays.
+   // virtual so that subclasses can initialize additional buffers if needed.
+   // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
+   int status = PV_SUCCESS;
+   GSyn = NULL;
+   if (numChannels > 0) {
+      GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
+      if(GSyn == NULL) {
+         status = PV_FAILURE;
+         return status;
+      }
+
+      GSyn[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
+      if(GSyn[0] == NULL) {
+         status = PV_FAILURE;
+         return status;
+      }
+
+      for (int m = 1; m < numChannels; m++) {
+         GSyn[m] = GSyn[0] + m * getNumNeurons();
+      }
+   }
+   return status;
 }
 
 int HyPerLayer::initializeV() {

@@ -129,6 +129,7 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
 
    setParams(parent->parameters());
 
+#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize
    G_E = G_I = G_IB = NULL;
 
    if (numChannels > 0) {
@@ -138,6 +139,7 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
       G_I  = G_E + 1*numNeurons;
       G_IB = G_E + 2*numNeurons;
    }
+#endif // OBSOLETE
 
    // random seed should be different for different layers
    unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
@@ -145,6 +147,7 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
    // a random state variable is needed for every neuron/clthread
    rand_state = cl_random_init(numNeurons, seed);
 
+#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize
    // initialize layer data
    //
    Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
@@ -152,6 +155,7 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest;
    }
+#endif // OBSOLETE
 
    // initialize OpenCL parameters
    //
@@ -297,6 +301,25 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
 
    return 0;
+}
+
+int LIF::allocateBuffers() {
+   const size_t numNeurons = getNumNeurons();
+   G_E = G_I = G_IB = NULL;
+
+   if (numChannels > 0) {
+      G_E = (pvdata_t *) calloc(numNeurons*numChannels, sizeof(pvdata_t));
+      assert(G_E != NULL);
+
+      G_I  = G_E + 1*numNeurons;
+      G_IB = G_E + 2*numNeurons;
+   }
+   Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(Vth != NULL);
+   for (size_t k = 0; k < numNeurons; k++){
+      Vth[k] = lParams.VthRest;
+   }
+   return HyPerLayer::allocateBuffers();
 }
 
 int LIF::checkpointRead(float * timef) {
