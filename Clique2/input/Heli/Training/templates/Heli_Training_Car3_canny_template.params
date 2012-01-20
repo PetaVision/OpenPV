@@ -157,7 +157,7 @@ CliqueLayer "L4 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    $$$__VgainL4Clique_$$$
+    $$$_VgainL4Clique_$$$
     Voffset = 0.0;
 };
 
@@ -322,7 +322,7 @@ CliqueApplyConn "L1 to L1 Clique Lateral" = {
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
    useListOfArborFiles = true;
-   $$$_initWeightsFileL1toL1Clique_$$$
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/arbors/Heli_Training_Car_canny_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -381,7 +381,7 @@ CliqueApplyConn "L1 to L2 Clique Lateral" = {
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
    useListOfArborFiles = true;
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/Car2/canny/w_Heli_Car2_arbor.txt";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/arbors/Heli_Training_Car2_canny_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -438,7 +438,7 @@ CliqueApplyConn "L2 to L3 Clique Lateral" = {
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
    useListOfArborFiles = true;
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/Car3/canny/w_Heli_Car3_arbor.txt";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/arbors/Heli_Training_Car3_canny_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
@@ -495,7 +495,7 @@ CliqueApplyConn "L3 to L4 Clique Lateral" = {
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
    useListOfArborFiles = true;
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/Car3/canny/w_Heli_Car3_arbor.txt";
+   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Training/arbors/Heli_Training_Car3_canny_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
