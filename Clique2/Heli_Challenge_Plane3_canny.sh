@@ -1,0 +1,57 @@
+
+
+
+#time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/026/Plane3/canny2/Heli_Challenge_026_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/027/Plane3/canny2/Heli_Challenge_027_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/028/Plane3/canny2/Heli_Challenge_028_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/029/Plane3/canny2/Heli_Challenge_029_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/030/Plane3/canny2/Heli_Challenge_030_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/031/Plane3/canny2/Heli_Challenge_031_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/032/Plane3/canny2/Heli_Challenge_032_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/033/Plane3/canny2/Heli_Challenge_033_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/034/Plane3/canny2/Heli_Challenge_034_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/035/Plane3/canny2/Heli_Challenge_035_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/036/Plane3/canny2/Heli_Challenge_036_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/037/Plane3/canny2/Heli_Challenge_037_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/038/Plane3/canny2/Heli_Challenge_038_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/039/Plane3/canny2/Heli_Challenge_039_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/040/Plane3/canny2/Heli_Challenge_040_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/041/Plane3/canny2/Heli_Challenge_041_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/042/Plane3/canny2/Heli_Challenge_042_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/043/Plane3/canny2/Heli_Challenge_043_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/044/Plane3/canny2/Heli_Challenge_044_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/045/Plane3/canny2/Heli_Challenge_045_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/046/Plane3/canny2/Heli_Challenge_046_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/047/Plane3/canny2/Heli_Challenge_047_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/048/Plane3/canny2/Heli_Challenge_048_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/049/Plane3/canny2/Heli_Challenge_049_Plane3_canny2.params;
+time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/050/Plane3/canny2/Heli_Challenge_050_Plane3_canny2.params;
+
+
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/026/Plane3/canny22/Heli_026_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/027/Plane3/canny22/Heli_027_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/028/Plane3/canny22/Heli_028_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/029/Plane3/canny22/Heli_029_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/030/Plane3/canny22/Heli_030_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/031/Plane3/canny22/Heli_031_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/032/Plane3/canny22/Heli_032_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/033/Plane3/canny22/Heli_033_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/034/Plane3/canny22/Heli_034_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/035/Plane3/canny22/Heli_035_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/036/Plane3/canny22/Heli_036_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/037/Plane3/canny22/Heli_037_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/038/Plane3/canny22/Heli_038_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/039/Plane3/canny22/Heli_039_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/040/Plane3/canny22/Heli_040_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/041/Plane3/canny22/Heli_041_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/042/Plane3/canny22/Heli_042_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/043/Plane3/canny22/Heli_043_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/044/Plane3/canny22/Heli_044_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/045/Plane3/canny22/Heli_045_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/046/Plane3/canny22/Heli_046_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/047/Plane3/canny22/Heli_047_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/048/Plane3/canny22/Heli_048_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/049/Plane3/canny22/Heli_049_Plane3_canny22.params;
+#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/050/Plane3/canny22/Heli_050_Plane3_canny22.params;
+
+
