@@ -128,6 +128,9 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
    const size_t numNeurons = getNumNeurons();
 
    setParams(parent->parameters());
+   for (size_t k = 0; k < numNeurons; k++){
+      Vth[k] = lParams.VthRest; // lParams.VthRest is set in setParams
+   }
 
 #ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize
    G_E = G_I = G_IB = NULL;
@@ -316,9 +319,6 @@ int LIF::allocateBuffers() {
    }
    Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vth != NULL);
-   for (size_t k = 0; k < numNeurons; k++){
-      Vth[k] = lParams.VthRest;
-   }
    return HyPerLayer::allocateBuffers();
 }
 
