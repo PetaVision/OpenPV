@@ -35,8 +35,8 @@ int InitV::initialize(HyPerCol * hc, const char * groupName) {
    const char * initVType = params->stringValue(groupName, "InitVType", true);
    if( initVType == NULL ) {
       initVTypeCode = ConstantV;
-      printerr("Using InitVType = \"ConstantV\" with value Vrest\n", groupName);
-      constantValue = params->value(groupName, "Vrest", V_REST);
+      constantValue = params->value(groupName, "valueV", V_REST);
+      printerr("Using InitVType = \"ConstantV\" with valueV = %f\n", groupName, constantValue);
    }
    else if( !strcmp(initVType, "ConstantV") ) {
       initVTypeCode = ConstantV;
