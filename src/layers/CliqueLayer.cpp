@@ -11,38 +11,44 @@
 
 namespace PV {
 
-CliqueLayer::CliqueLayer() {
+CliqueLayer::CliqueLayer()
+{
    initialize_base();
 }
 
-CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) {
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels)
+{
    initialize_base();
    initialize(name, hc, numChannels);
 }
 
-CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) {
+CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc)
+{
    initialize_base();
    initialize(name, hc, MAX_CHANNELS);
 }
 
 /*
-CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
-   CliqueLayer::initialize();
-}
+ CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
+ CliqueLayer::initialize();
+ }
 
-CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
-   CliqueLayer::initialize();
-}
+ CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
+ CliqueLayer::initialize();
+ }
  */
 
-CliqueLayer::~CliqueLayer() {
+CliqueLayer::~CliqueLayer()
+{
 }
 
-int CliqueLayer::initialize_base() {
+int CliqueLayer::initialize_base()
+{
    return PV_SUCCESS;
 }
 
-int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
+int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+{
    ANNLayer::initialize(name, hc, numChannels);
    PVParams * params = parent->parameters();
    Voffset = params->value(name, "Voffset", 0.0f, true);
@@ -50,11 +56,12 @@ int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    return PV_SUCCESS;
 }
 
-int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
-      int axonId) {
+int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int axonId)
+{
    recvsyn_timer->start();
 
-   assert(axonId == 0); // assume called only once
+   assert(axonId == 0);
+   // assume called only once
    //const int numExtended = activity->numItems;
 
 #ifdef DEBUG_OUTPUT
@@ -73,18 +80,18 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
    const int nfPre = preLoc->nf;
    //const int nxPre = preLoc->nx;
    //const int nyPre = preLoc->ny;
-   const int nxPreExt = preLoc->nx + 2*preLoc->nb;
-   const int nyPreExt = preLoc->ny + 2*preLoc->nb;
+   const int nxPreExt = preLoc->nx + 2 * preLoc->nb;
+   const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
 
    // gather active indices in extended layer
    // hard to pre-compute at HyPerLayer level because of variable delays
    int numActiveExt = 0;
-   unsigned int * activeExt = (unsigned int *) calloc(conn->getPre()->getNumExtended(), sizeof(int));
+   unsigned int * activeExt = (unsigned int *) calloc(conn->getPre()->getNumExtended(),
+         sizeof(int));
    assert(activeExt != NULL);
    float * aPre = activity->data;
    for (int kPreExt = 0; kPreExt < conn->getPre()->getNumExtended(); kPreExt++) {
-      if (aPre[kPreExt] == 0)
-         continue;
+      if (aPre[kPreExt] == 0) continue;
       activeExt[numActiveExt++] = kPreExt;
    }
 
@@ -94,22 +101,22 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
    //const PVLayer * lPre = clayer;
    const float xScaleDiff = conn->getPost()->getXScale() - getXScale();
    const float yScaleDiff = conn->getPost()->getYScale() - getYScale();
-   const float powXScale = powf(2.0f, (float) xScaleDiff);
-   const float powYScale = powf(2.0f, (float) yScaleDiff);
+   const float powXScale = pow(2.0f, (float) xScaleDiff);
+   const float powYScale = pow(2.0f, (float) yScaleDiff);
    //const int prePad = lPre->loc.nb;
    const int nxPostPatch = (int) (conn->xPatchSize() * powXScale); // TODO: store in HyPerConn::wPostPatches
-   const int nyPostPatch = (int) (conn->yPatchSize() * powYScale);// TODO: store in HyPerConn::wPostPatches
+   const int nyPostPatch = (int) (conn->yPatchSize() * powYScale); // TODO: store in HyPerConn::wPostPatches
    //const int nfPostPatch = nf;
 
    // clique dimensions
    // a new set of cliques is centered on each pre-synaptic cell with radius nzPostPatch/2
    // TODO: precompute clique dimensions during CliqueConn::initialize
-   int nyCliqueRadius = (int) (nyPostPatch/2);
-   int nxCliqueRadius = (int) (nxPostPatch/2);
-   int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nfPre;
-   int cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
+   int nyCliqueRadius = (int) (nyPostPatch / 2);
+   int nxCliqueRadius = (int) (nxPostPatch / 2);
+   int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
+   int cliqueSize = 2; // number of presynaptic cells in clique (traditional ANN uses 1)
    //int numKernels = conn->numDataPatches();  // per arbor?
-   int numCliques = pow(cliquePatchSize, cliqueSize-1);
+   int numCliques = pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == conn->numberOfAxonalArborLists());
 
    // loop over all products of cliqueSize active presynaptic cells
@@ -125,29 +132,48 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
       int numActiveElements = 0;
       int kxPreExt = kxPos(kPreExt, nxPreExt, nyPreExt, nfPre);
       int kyPreExt = kyPos(kPreExt, nxPreExt, nyPreExt, nfPre);
-      for(int kyCliqueExt = kyPreExt - nyCliqueRadius; kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
-         for(int kxCliqueExt = kxPreExt - nxCliqueRadius; kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
-            for(int kfCliqueExt = 0; kfCliqueExt < nfPre; kfCliqueExt++) {
-               int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxPreExt, nyPreExt, nfPre);
-               if (aPre[kCliqueExt] == 0) continue;
-               cliqueActiveIndices[numActiveElements++] = kCliqueExt;
+      if (cliqueSize > 1) {
+         for (int kyCliqueExt = kyPreExt - nyCliqueRadius;
+               kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
+            for (int kxCliqueExt = kxPreExt - nxCliqueRadius;
+                  kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
+               for (int kfCliqueExt = 0; kfCliqueExt < nfPre; kfCliqueExt++) {
+                  int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxPreExt,
+                        nyPreExt, nfPre);
+                  if ((aPre[kCliqueExt] == 0) || (kCliqueExt == kPreExt)) continue;
+                  cliqueActiveIndices[numActiveElements++] = kCliqueExt;
+               }
             }
          }
+      } // cliqueSize > 1
+      else {
+         cliqueActiveIndices[numActiveElements++] = kPreExt; // ensure at least 1 active index
       }
 
-      // loop over all active elements in clique radius
-      int numActiveCliques = pow(numActiveElements, cliqueSize-1);
-      for(int kClique = 0; kClique < numActiveCliques; kClique++) {
+      // loop over all active combinations of size=cliqueSize-1 in clique radius
+      int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
+      for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          // decompose kClique to compute product of active clique elements
          int arborNdx = 0;
          pvdata_t cliqueProd = aPre[kPreExt];
          int kResidue = kClique;
-         for(int iProd = 0; iProd < cliqueSize-1; iProd++) {
-            int kPatchActive = (unsigned int) (kResidue / numActiveElements);
+         int maxIndex = -1;
+         for (int iProd = 0; iProd < cliqueSize - 1; iProd++) {
+            int kPatchActive = (unsigned int) (kResidue
+                  / pow(numActiveElements, cliqueSize - 1 - iProd - 1));
+
+            // only apply each permutation of clique elements once, no element can contribute more than once
+            if (kPatchActive <= maxIndex) {
+               break;
+            }
+            else {
+               maxIndex = kPatchActive;
+            }
             int kCliqueExt = cliqueActiveIndices[kPatchActive];
             cliqueProd *= aPre[kCliqueExt];
-            kResidue = kResidue - kPatchActive * numActiveElements;
+            kResidue = kResidue
+                  - kPatchActive * pow(numActiveElements, cliqueSize - 1 - iProd - 1);
 
             // compute arborIndex for this clique element
             int kxCliqueExt = kxPos(kCliqueExt, nxPreExt, nyPreExt, nfPre);
@@ -155,8 +181,9 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
             int kfClique = featureIndex(kCliqueExt, nxPreExt, nyPreExt, nfPre);
             int kxPatch = kxCliqueExt - kxPreExt + nxCliqueRadius;
             int kyPatch = kyCliqueExt - kyPreExt + nyCliqueRadius;
-            unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique, (2*nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
-            arborNdx += kArbor * pow(cliquePatchSize,iProd);
+            unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique,
+                  (2 * nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
+            arborNdx += kArbor * pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
          }
 
          // receive weights input from clique (mostly copied from superclass method)
@@ -169,13 +196,15 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 
          int nkPost = weights->nf * weights->nx;
          int nyPost = weights->ny;
-         int syPost = conn->getPostNonextStrides()->sy;// stride in layer
-         int sywPatch = weights->sy;// stride in patch
+         int syPost = conn->getPostNonextStrides()->sy; // stride in layer
+         int sywPatch = weights->sy; // stride in patch
 
          // TODO - unroll
          for (int y = 0; y < nyPost; y++) {
             // pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
-            pvpatch_accumulate(nkPost, conn->getGSynPatchStart(kPreExt, arborNdx) + y*syPost, cliqueProd, weights->data + y*sywPatch);
+            pvpatch_accumulate(nkPost,
+                  conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost, cliqueProd,
+                  weights->data + y * sywPatch);
          }
 
       } // kClique
@@ -188,18 +217,19 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity,
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
 // the following is copied directly from ODDLayer::updateState()
-int CliqueLayer::updateState(float time, float dt) {
+int CliqueLayer::updateState(float time, float dt)
+{
 
    pv_debug_info("[%d]: CliqueLayer::updateState:", clayer->columnId);
 
    pvdata_t * V = clayer->V;
    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
-//   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
-//   float offset = 0.0f; //VThresh;
-//   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
-//   assert(this->Vgain == 16.0f);
-//   assert(this->Voffset == 0.0f);
+   //   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
+   //   float offset = 0.0f; //VThresh;
+   //   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
+   //   assert(this->Vgain == 16.0f);
+   //   assert(this->Voffset == 0.0f);
 
    // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < clayer->numNeurons; k++) {
@@ -212,24 +242,24 @@ int CliqueLayer::updateState(float time, float dt) {
       V[k] = bottomUp_input * (this->Voffset + this->Vgain * lateral_input);
       //      pvdata_t target_input = gSynInh[k];
       //      pvdata_t distractor_input = gSynInhB[k];
-/*
-      if (distractor_input > 0.0f){
-         if (target_input > 0.0f){
-            V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / (target_input + distractor_input)));
-         }
-         else{
-            V[k] = 0.0f;
-         }
-      }
-      else{  // distractor_input <= 0
-         if (target_input > 0.0f){
-            V[k] = 1.0f;
-         }
-         else{
-            V[k] = 0.0f; //bottomUp_input;  // not sure what to do here, no support + or -
-         }
-      }
-*/
+      /*
+       if (distractor_input > 0.0f){
+       if (target_input > 0.0f){
+       V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / (target_input + distractor_input)));
+       }
+       else{
+       V[k] = 0.0f;
+       }
+       }
+       else{  // distractor_input <= 0
+       if (target_input > 0.0f){
+       V[k] = 1.0f;
+       }
+       else{
+       V[k] = 0.0f; //bottomUp_input;  // not sure what to do here, no support + or -
+       }
+       }
+       */
    } // k
 
    resetGSynBuffers();
@@ -241,7 +271,8 @@ int CliqueLayer::updateState(float time, float dt) {
    return 0;
 }
 
-int CliqueLayer::updateActiveIndices(){
+int CliqueLayer::updateActiveIndices()
+{
    int numActive = 0;
    PVLayerLoc & loc = clayer->loc;
    pvdata_t * activity = clayer->activity->data;
@@ -257,5 +288,4 @@ int CliqueLayer::updateActiveIndices(){
 }
 
 } /* namespace PV */
-
 
