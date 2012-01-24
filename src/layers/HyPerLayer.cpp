@@ -130,11 +130,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    const int numFeatures = (int) params->value(name, "nf", 1);
    const int margin      = (int) params->value(name, "marginWidth", 0);
 
-   float xScalef = -log2f( (float) nxScale);
-   float yScalef = -log2f( (float) nyScale);
+   float xScalef = -log2( (float) nxScale);
+   float yScalef = -log2( (float) nyScale);
 
-   int xScale = (int) nearbyintf(xScalef);
-   int yScale = (int) nearbyintf(yScalef);
+   int xScale = (int) nearbyint(xScalef);
+   int yScale = (int) nearbyint(yScalef);
 
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
