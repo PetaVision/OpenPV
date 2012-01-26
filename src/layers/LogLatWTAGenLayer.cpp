@@ -24,12 +24,6 @@ int LogLatWTAGenLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LogLatWTAGenLayer::initialize(const char * name, HyPerCol * hc) {
-   GenerativeLayer::initialize(name, hc);
-   sparsitytermcoeff = (pvdata_t) parent->parameters()->value(getName(),"sparsityTermCoefficient",1.0f);
-   return PV_SUCCESS;
-}
-
 int LogLatWTAGenLayer::updateSparsityTermDerivative() {
    pvdata_t * V = getV();
    int nf = getLayerLoc()->nf;
@@ -41,7 +35,7 @@ int LogLatWTAGenLayer::updateSparsityTermDerivative() {
       }
       pvdata_t latWTAexpr = latWTAterm(V+k,nf); // a'*Lslash*a
       for( int f=0; f<nf; f++ ) {
-         sparsitytermderivative[k+f] = 2*sparsitytermcoeff*(sumacrossfeatures-V[k+f])/(1+latWTAexpr);
+         sparsitytermderivative[k+f] = 2*(sumacrossfeatures-V[k+f])/(1+latWTAexpr);
       }
    }
    return PV_SUCCESS;

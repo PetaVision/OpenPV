@@ -52,7 +52,7 @@ int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
    relaxation = params->value(name, "relaxation", 1.0f);
    activityThreshold = params->value(name, "activityThreshold", 0.0f);
    auxChannelCoeff = params->value(name, "auxChannelCoeff", 0.0f);
-   sparsityTermCoeff = params->value(name, "sparsityTermCoeff", 1.0f);
+   sparsityTermCoeff = params->value(name, "sparsityTermCoefficient", 1.0f);
    persistence = params->value(name, "persistence", 0.0f);
    dAold = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t *));
    if( dAold == NULL ) {

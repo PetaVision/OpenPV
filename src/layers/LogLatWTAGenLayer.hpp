@@ -22,10 +22,8 @@ public:
 
 protected:
    LogLatWTAGenLayer();
-   int initialize(const char * name, HyPerCol * hc);
    int updateSparsityTermDerivative();
    virtual pvdata_t latWTAterm(pvdata_t * V, int nf);
-   pvdata_t sparsitytermcoeff;
 private:
    int initialize_base();
 };
