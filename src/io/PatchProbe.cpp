@@ -153,7 +153,7 @@ int PatchProbe::outputState(float time, HyPerConn * c)
 
 #ifdef PV_USE_MPI
    int inbounds = kxPreLocal < -nb || kxPreLocal > loc->nx+nb || kyPreLocal < -nb || kyPreLocal > loc->ny+nb;
-#endif PV_USE_MPI
+#endif //PV_USE_MPI
    if( rank > 0 ) {
 #ifdef PV_USE_MPI
       MPI_Send(&inbounds, 1, MPI_INT, 0, basetag+rank, mpi_comm);
