@@ -55,6 +55,7 @@
 #include "../connections/ODDConn.hpp"
 #include "../connections/CliqueConn.hpp"
 #include "../connections/CliqueApplyConn.hpp"
+#include "../connections/SiblingConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/FeedbackConn.hpp"

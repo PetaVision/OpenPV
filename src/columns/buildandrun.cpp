@@ -594,6 +594,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    const char * fileName;
    HyPerLayer * preLayer, * postLayer;
    HyPerConn * auxConn;
+   SiblingConn * sibling_conn;
    PVParams * params = hc->parameters();
    InitWeights *weightInitializer;
 
@@ -703,6 +704,22 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new CliqueConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "SiblingConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      HyPerConn * temp_conn = getConnFromParameterGroup(name, hc, "siblingConnName");
+      if (temp_conn != NULL){
+         sibling_conn = dynamic_cast<SiblingConn *>(temp_conn);
+      }
+      else{
+         sibling_conn = NULL;
+      }
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new SiblingConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer, sibling_conn);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
