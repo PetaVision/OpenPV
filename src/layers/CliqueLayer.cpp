@@ -114,7 +114,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
    int nyCliqueRadius = (int) (nyPostPatch / 2);
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
-   int cliqueSize = 2; // number of presynaptic cells in clique (traditional ANN uses 1)
+   int cliqueSize = 1; // number of presynaptic cells in clique (traditional ANN uses 1)
    //int numKernels = conn->numDataPatches();  // per arbor?
    int numCliques = pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == conn->numberOfAxonalArborLists());
