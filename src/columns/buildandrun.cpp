@@ -100,6 +100,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "ODDConn",
                  "CliqueConn",
                  "CliqueApplyConn",
+                 "SiblingConn",
                  "GapConn",
                  "TransposeConn",
                    "FeedbackConn",
