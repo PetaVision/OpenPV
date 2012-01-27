@@ -89,9 +89,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
-#ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
-             "AvgConn",
-#endif // OBSOLETE
              "ConvolveConn",
                "KernelConn",
                  "CloneKernelConn",
@@ -594,7 +591,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    const char * fileName;
    HyPerLayer * preLayer, * postLayer;
    HyPerConn * auxConn;
-   SiblingConn * sibling_conn;
    PVParams * params = hc->parameters();
    InitWeights *weightInitializer;
 
@@ -624,12 +620,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
-   if( !keywordMatched && !strcmp(classkeyword, "AvgConn") ) {
-      keywordMatched = true;
-      fprintf(stderr, "Connection \"%s\": AvgConn not implemented (I don't know what delegate does).\n", name);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -657,29 +647,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE
-   /*
-    * CocircConn was made obsolete
-    */
-    if( !keywordMatched && !strcmp(classkeyword, "CocircConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn * ) new CocircConn(name, hc, preLayer, postLayer, channelType, fileName);
-      }
-      checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "GaborConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new GaborConn(name, hc, preLayer, postLayer, channelType);
-      }
-      checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -711,6 +678,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       HyPerConn * temp_conn = getConnFromParameterGroup(name, hc, "siblingConnName");
+      SiblingConn * sibling_conn;
       if (temp_conn != NULL){
          sibling_conn = dynamic_cast<SiblingConn *>(temp_conn);
       }
@@ -776,25 +744,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE
-   if( !keywordMatched && !strcmp(classkeyword, "PoolConn") ) {
-      // filename is ignored as PoolConn doesn't have a constructor that takes a filename
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new PoolConn(name, hc, preLayer, postLayer, channelType);
-      }
-      checknewobject((void *) addedConn, classkeyword, name);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "RuleConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new RuleConn(name, hc, preLayer, postLayer, channelType);
-      }
-      checknewobject((void *) addedConn, classkeyword, name);
-   }
-#endif
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -814,16 +763,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE
-   if( !keywordMatched && !strcmp(classkeyword, "SubunitConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new SubunitConn(name, hc, preLayer, postLayer, channelType);
-      }
-      checknewobject((void *) addedConn, classkeyword, name);
-   }
-#endif
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
       status = PV_FAILURE;
