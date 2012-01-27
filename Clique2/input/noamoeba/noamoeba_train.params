@@ -9,7 +9,11 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 36006;  // num images plus (num layers + 1) * delay
-   outputPath = "/home/garkenyon/workspace-indigo/Clique2/input/noamoeba/";
+   outputPath = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/";
+   progressStep = 2000;
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
 };
 
 //
@@ -17,7 +21,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/home/garkenyon/Pictures/amoeba/256/noamoeba4x9000_fileNames.txt";
+    imageListPath = "/Users/gkenyon/Pictures/amoeba/256/noamoeba4x9000_fileNames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -28,7 +32,6 @@ Movie "Image" = {
     spikingFlag = 0;
     writeNonspikingActivity = 0;
     writeImages = 0;
-    Vrest = 0.0;
     displayPeriod = 1;
     jitterFlag = 0;
     randomMovie = 0;
@@ -48,15 +51,15 @@ Retina "Retina" = {
     spikingFlag = 0;
     writeNonspikingActivity = 0;
 
-    Vrest = 0.0;
-    invert = 0;
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
     burstFreq = 1;
-    burstDuration = 36000;
+    burstDuration = 1;
 
     beginStim = 1;
     endStim = 36000;
+    InitVType = "ConstantV";
+    valueV = 0;
 };
 
 
@@ -72,11 +75,11 @@ ANNLayer "L1" = {
     spikingFlag = 0;
     writeNonspikingActivity = 0;
 
-    Vrest = 0.0;
-
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
 };
 
 
@@ -89,24 +92,9 @@ IdentConn "Movie to Retina" = {
     preLayerName = "Image";
     postLayerName = "Retina";
     channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
-    
     weightInitType = "IdentWeight";
-    weightInit = 1;
-   
-    strength = 1.0;
-    normalize = 0.0;
-    symmetrizeWeights = 0;
-   
-    writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    stochasticReleaseFlag = false;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 };
@@ -129,13 +117,13 @@ KernelConn "Retina to L1" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 1;
    flankShift = 0;
    rotate = 1;
-   no = 8;
        
    strength = 25.0;  
    normalize = 1.0;
@@ -144,10 +132,10 @@ KernelConn "Retina to L1" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
 
+   shrinkPatches = false;
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
     
    delay = 0;
 };
@@ -169,13 +157,13 @@ KernelConn "Retina to L1 Inh" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
    flankShift = 1.41;
    rotate = 1;
-   no = 8;
        
    strength = 50.0;  
    normalize = 1.0;
@@ -184,10 +172,10 @@ KernelConn "Retina to L1 Inh" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    
+   shrinkPatches = false;
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
 
    delay = 0;
 };
@@ -222,6 +210,7 @@ CliqueConn "L1 to L1" = {
    symmetrizeWeights = 0;
    
    plasticityFlag = 1;
+   shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
