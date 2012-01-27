@@ -16,11 +16,7 @@ class CliqueConn: public KernelConn {
 public:
 
    CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               ChannelType channel, const char * filename);
-   CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename, InitWeights *weightInit);
-   CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               ChannelType channel);
    virtual int update_dW(int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);

@@ -272,8 +272,8 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
             if(weightParamPtr->isSameLocOrSelf(xDelta, yDelta, fPost)) continue;
 
             // rotate the reference frame by th (change sign of thPost?)
-            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
-            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
+            float xp = +xDelta * cos(thPost) + yDelta * sin(thPost);
+            float yp = -xDelta * sin(thPost) + yDelta * cos(thPost);
 
             if(weightParamPtr->checkBowtieAngle(yp, xp)) continue;
 
@@ -283,13 +283,13 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             w_tmp[index] = 0;
             if ((d2 <= r2Max) && (d2 >= r2Min)) {
-               w_tmp[index] += expf(-d2 / (2.0f * sigma * sigma));
+               w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if ((d2 <= r2Max) && (d2 >= r2Min)) {
-                  w_tmp[index] += expf(-d2 / (2.0f * sigma * sigma));
+                  w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
                }
             }
          }

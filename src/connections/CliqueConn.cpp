@@ -11,32 +11,20 @@ int pvpatch_update_clique(int nk, float* RESTRICT v, float a, float* RESTRICT w)
 namespace PV {
 
 CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) :
-      KernelConn(name, hc, pre, post, channel, filename)
-{
-}
-;
-CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
       InitWeights *weightInit) :
-      KernelConn(name, hc, pre, post, channel, filename, weightInit)
+      KernelConn()
 {
-}
-;
-CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel) :
-      KernelConn(name, hc, pre, post, channel)
-{
-}
-;
+   KernelConn::initialize_base();
+   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+};
 
 int CliqueConn::updateState(float time, float dt)
 {
    int status = KernelConn::updateState(time, dt);
    assert(status == PV_SUCCESS);
    return PV_SUCCESS;
-}
-;
+};
 
 int CliqueConn::update_dW(int arborId)
 {
@@ -82,7 +70,7 @@ int CliqueConn::update_dW(int arborId)
    int nyCliqueRadius = (int) (nyPostPatch / 2);
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
-   int cliqueSize = 2; // number of presynaptic cells in clique (traditional ANN uses 1)
+   int cliqueSize = 1; // number of presynaptic cells in clique (traditional ANN uses 1)
    //int numKernels = conn->numDataPatches();  // per arbor?
    int numCliques = pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == this->numberOfAxonalArborLists());

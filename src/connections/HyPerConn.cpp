@@ -1177,8 +1177,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
-   const float powXScale = powf(2.0f, (float) xScale);
-   const float powYScale = powf(2.0f, (float) yScale);
+   const double powXScale = pow(2.0f, (double) xScale);
+   const double powYScale = pow(2.0f, (double) yScale);
 
 // fixed?
    // TODO - fix this
@@ -1324,8 +1324,8 @@ int HyPerConn::preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int * kx
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
-   const float powXScale = powf(2, (float) xScale);
-   const float powYScale = powf(2, (float) yScale);
+   const double powXScale = pow(2, (double) xScale);
+   const double powYScale = pow(2, (double) yScale);
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
@@ -1481,8 +1481,8 @@ int HyPerConn::writePostSynapticWeights(float timef, bool last) {
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
-   const float powXScale = powf(2, (float) xScale);
-   const float powYScale = powf(2, (float) yScale);
+   const double powXScale = pow(2, (double) xScale);
+   const double powYScale = pow(2, (double) yScale);
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
@@ -1626,7 +1626,7 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
       scale_factor = normalize_strength / sum;
    }
    else if (sum == 0.0f && sigma2 > 0.0f) {
-      scale_factor = normalize_strength / sqrtf(sigma2);
+      scale_factor = normalize_strength / sqrt(sigma2);
    }
    pvdata_t * w = wp->data;
    assert(w != NULL);
@@ -1652,7 +1652,7 @@ int HyPerConn::checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, floa
    if (normalize_zero_offset && (normalize_cutoff == 0.0f)){  // condition may be violated is normalize_cutoff != 0.0f
       // set sum to zero and normalize std of weights to sigma
       assert((sum > -tol) && (sum < tol));
-      assert((sqrtf(sigma2) > (1-tol)*normalize_strength) && (sqrtf(sigma2) < (1+tol)*normalize_strength));
+      assert((sqrt(sigma2) > (1-tol)*normalize_strength) && (sqrt(sigma2) < (1+tol)*normalize_strength));
    }
    else if (normalize_max) {
       // set maximum weight to normalize_strength
@@ -1895,7 +1895,7 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
 
    if( scaleDiff > 0) {
       // complain if patchSize is not an odd number times 2^xScaleDiff
-      int scaleFactor = (int) powf(2, (float) scaleDiff);
+      int scaleFactor = (int) pow(2, (double) scaleDiff);
       int shouldbeodd = patchSize/scaleFactor;
       goodsize = shouldbeodd > 0 && shouldbeodd % 2 == 1 && patchSize == shouldbeodd*scaleFactor;
    }
@@ -1911,7 +1911,7 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
               dim,patchSize,dim,pow(2,-scalePre));
       fprintf(stderr, "and postsynaptic n%cScale %f.\n",dim,pow(2,-scalePost));
       if( scaleDiff > 0) {
-         int scaleFactor = (int) powf(2, (float) scaleDiff);
+         int scaleFactor = (int) pow(2, (float) scaleDiff);
          fprintf(stderr, "(postsynaptic scale) = %d * (postsynaptic scale);\n", scaleFactor);
          fprintf(stderr, "therefore compatible sizes are %d times an odd number.\n", scaleFactor);
       }

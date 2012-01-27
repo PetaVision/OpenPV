@@ -158,7 +158,7 @@ int STDPConn::updateState(float time, float dt)
    int status=0;
    if (stdpFlag) {
       const float fac = ampLTD;
-      const float decay = expf(-dt / tauLTD);
+      const float decay = exp(-dt / tauLTD);
 
       //
       // both pDecr and activity are extended regions (plus margins)
@@ -196,7 +196,7 @@ int STDPConn::updateWeights(int axonId)
    // 3. update wij
 
    const float dt = parent->getDeltaTime();
-   const float decayLTP = expf(-dt / tauLTP);
+   const float decayLTP = exp(-dt / tauLTP);
 
    const int numExtended = pre->getNumExtended();
    assert(numExtended == numWeightPatches());

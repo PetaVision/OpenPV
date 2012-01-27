@@ -72,19 +72,19 @@ int TransposeConn::setPatchSize(const char * filename) {
 
     nxp = originalConn->xPatchSize();
     if(xscaleDiff > 0 ) {
-        nxp *= (int) powf( 2, xscaleDiff );
+        nxp *= (int) pow( 2, xscaleDiff );
     }
     else if(xscaleDiff < 0) {
-        nxp /= (int) powf(2,-xscaleDiff);
-        assert(originalConn->xPatchSize()==nxp*powf( 2, (float) (-xscaleDiff) ));
+        nxp /= (int) pow(2,-xscaleDiff);
+        assert(originalConn->xPatchSize()==nxp*pow( 2, (float) (-xscaleDiff) ));
     }
     nyp = originalConn->yPatchSize();
     if(yscaleDiff > 0 ) {
-        nyp *= (int) powf( 2, (float) yscaleDiff );
+        nyp *= (int) pow( 2, (float) yscaleDiff );
     }
     else if(yscaleDiff < 0) {
-        nyp /= (int) powf(2,-yscaleDiff);
-        assert(originalConn->yPatchSize()==nyp*powf( 2, (float) (-yscaleDiff) ));
+        nyp /= (int) pow(2,-yscaleDiff);
+        assert(originalConn->yPatchSize()==nyp*pow( 2, (float) (-yscaleDiff) ));
     }
     nfp = post->getLayerLoc()->nf;
 
@@ -124,8 +124,8 @@ int TransposeConn::transposeKernels() {
     int numFFKernelPatches = originalConn->numDataPatches();
 
     if( xscalediff <= 0 && yscalediff <= 0) {
-        int xscaleq = (int) powf(2,-xscalediff);
-        int yscaleq = (int) powf(2,-yscalediff);
+        int xscaleq = (int) pow(2,-xscalediff);
+        int yscaleq = (int) pow(2,-yscalediff);
 
         for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
             PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
@@ -154,8 +154,8 @@ int TransposeConn::transposeKernels() {
         }
     }
     else if( xscalediff > 0 && yscalediff > 0) {
-        int xscaleq = (int) powf(2,xscalediff);
-        int yscaleq = (int) powf(2,yscalediff);
+        int xscaleq = (int) pow(2,xscalediff);
+        int yscaleq = (int) pow(2,yscalediff);
         for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
             PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
             int nxFB = kpFB->nx;
