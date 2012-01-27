@@ -4,12 +4,12 @@
 //
 
 HyPerCol "column" = {
-   nx = 128; // 256;   // until we get going with images
-   ny = 128; // 256;
+   nx = 256;   // until we get going with images
+   ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 36006;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/gkenyon/workspace-indigo/Clique/input/amoeba/3way/";
+   outputPath = "/home/garkenyon/workspace-indigo/Clique2/input/amoeba/3way/";
 };
 
 //
@@ -17,7 +17,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/Users/gkenyon/Pictures/amoeba/256/amoeba4x9000_fileNames.txt";
+    imageListPath = "/home/garkenyon/Pictures/amoeba/256/amoeba4x9000_fileNames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -32,8 +32,8 @@ Movie "Image" = {
     displayPeriod = 1;
     jitterFlag = 0;
     randomMovie = 0;
-    offsetX = 64;
-    offsetY = 64;
+    offsetX = 0; // 64;
+    offsetY = 0; // 64;
 };
 
 
@@ -65,7 +65,7 @@ ANNLayer "L1" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 4;
+    nf = 8; // 4;
     marginWidth = 32;
     writeStep = -1.0;
     mirrorBCflag = 1;
@@ -120,7 +120,7 @@ KernelConn "Retina to L1" = {
    channelCode = 0;
    nxp = 7; 
    nyp = 7; 
-   nfp = 4;
+   nfp = 8; // 4;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -135,7 +135,7 @@ KernelConn "Retina to L1" = {
    numFlanks = 1;
    flankShift = 0;
    rotate = 1;
-   no = 4;
+   no = 8; // 4;
        
    strength = 25.0;  
    normalize = 1.0;
@@ -160,7 +160,7 @@ KernelConn "Retina to L1 Inh" = {
    channelCode = 1;
    nxp = 7; 
    nyp = 7; 
-   nfp = 4;
+   nfp = 8; // 4;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -175,7 +175,7 @@ KernelConn "Retina to L1 Inh" = {
    numFlanks = 2;
    flankShift = 1.41;
    rotate = 1;
-   no = 4;
+   no = 8; // 4;
        
    strength = 50.0;  
    normalize = 1.0;
@@ -203,14 +203,14 @@ CliqueConn "L1 to L1" = {
    preLayerName = "L1";
    postLayerName = "L1";
    channelCode = 2;
-   nxp = 11; // 65;
-   nyp = 11; // 65;
-   nfp = 4;
+   nxp = 65; //17; // 
+   nyp = 65; //17; // 
+   nfp = 8; // 4;
 //    int nyCliqueRadius = (int) (nyPostPatch/2);
 //    int nxCliqueRadius = (int) (nxPostPatch/2);
 //    int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nfPre;
-//    int cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
+//    int cliqueSize = 2;// number of presynaptic cells in clique (traditional ANN uses 1)
+   numAxonalArbors = 1; // 1156; // pow(cliquePatchSize, cliqueSize-1),
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
