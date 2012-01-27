@@ -12,8 +12,7 @@ namespace PV {
 
 CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
-      InitWeights *weightInit) :
-      KernelConn()
+      InitWeights *weightInit)
 {
    KernelConn::initialize_base();
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);

@@ -10,7 +10,7 @@
 namespace PV {
 
 CliqueApplyConn::CliqueApplyConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename, InitWeights *weightInit) : NoSelfKernelConn(){
+            ChannelType channel, const char * filename, InitWeights *weightInit) {
 
    CliqueApplyConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 }

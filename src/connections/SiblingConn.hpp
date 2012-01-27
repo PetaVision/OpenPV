@@ -18,6 +18,7 @@ public:
               ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL, SiblingConn *sibing_conn = NULL);
    virtual int initNormalize();
    bool getIsNormalized();
+   void setSiblingConn(SiblingConn *sibling_conn);
 
 protected:
    int initialize_base(){return PV_SUCCESS;};

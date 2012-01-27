@@ -1659,7 +1659,7 @@ int HyPerConn::checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, floa
       assert((maxVal > (1-tol)*normalize_strength) && ((maxVal < (1+tol)*normalize_strength)));
     }
    else if (normalize_cutoff == 0.0f){  // condition may be violated is normalize_cutoff != 0.0f
-      assert((sum > (1-tol)*normalize_strength) && ((sum < (1+tol)*normalize_strength)));
+      assert((sum > (1-sign(normalize_strength)*tol)*normalize_strength) && ((sum < (1+sign(normalize_strength)*tol)*normalize_strength)));
    }
    return PV_SUCCESS;
 

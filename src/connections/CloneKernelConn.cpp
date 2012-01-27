@@ -8,7 +8,7 @@
 
 namespace PV {
 
-CloneKernelConn::CloneKernelConn() {
+CloneKernelConn::CloneKernelConn(){
    initialize_base();
 }
 
@@ -19,11 +19,6 @@ CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
    initialize(name, hc, pre, post, channel, originalConn);
 }
 
-CloneKernelConn::~CloneKernelConn() {
-//   for( int k=0; k<numberOfAxonalArborLists(); k++ ) {
-//      setArbor(NULL, k);
-//   }
-}
 
 int CloneKernelConn::initialize_base() {
    originalConn = NULL;

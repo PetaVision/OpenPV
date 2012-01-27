@@ -15,6 +15,7 @@ namespace PV {
 class NoSelfKernelConn: public PV::KernelConn {
 public:
    NoSelfKernelConn();
+
    NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename, InitWeights *weightInit);
    int zeroSelfWeights(PVPatch ** patches, int numPatches, int arborId);

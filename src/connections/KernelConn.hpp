@@ -26,31 +26,10 @@ public:
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL);
-#ifdef OBSOLETE // marked obsolete Jul 25, 2011.  This case covered since other constructor's filename argumernt now has a default of null
-   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              ChannelType channel);
-#endif // OBSOLETE
-#ifdef OBSOLETE // marked obsolete Jul 25, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
-   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
-#endif // OBSOLETE
-
    virtual int numDataPatches();
 
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
-
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-   virtual int gauss2DCalcWeights(PVPatch * wp, int kPre, int noPost,
-         int numFlanks, float shift, float rotate, float aspect, float sigma,
-         float r2Max, float strength, float deltaThetaMax, float thetaMax,
-         float bowtieFlag, float bowtieAngle);
-
-   virtual int cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
-         float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
-         float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
-         float aspect, float rotate, float sigma, float r2Max, float strength);
-#endif // OBSOLETE
 
    virtual int checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);

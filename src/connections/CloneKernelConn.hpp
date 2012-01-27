@@ -20,7 +20,7 @@ public:
    CloneKernelConn(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
       KernelConn * originalConn);
-   virtual ~CloneKernelConn();
+   //virtual ~CloneKernelConn();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,

@@ -9,9 +9,12 @@
 
 namespace PV {
 
-NoSelfKernelConn::NoSelfKernelConn(): KernelConn(){};
+NoSelfKernelConn::NoSelfKernelConn()
+{
+}
+
 NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            ChannelType channel, const char * filename, InitWeights *weightInit) : KernelConn(){
+            ChannelType channel, const char * filename, InitWeights *weightInit) {
    KernelConn::initialize(name, hc, pre, post,channel, filename, weightInit);
 };
 

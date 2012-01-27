@@ -17,23 +17,6 @@ KernelConn::KernelConn()
    initialize_base();
 }
 
-#ifdef OBSOLETE // marked obsolete Jul 22, 2011.  Other constructor has been given filename with a default of NULL
-KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel) : HyPerConn()
-{
-   KernelConn::initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
-}
-#endif // OBSOLETE
-
-#ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
-KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post) : HyPerConn()
-{
-   KernelConn::initialize_base();
-   initialize(name, hc, pre, post, CHANNEL_EXC, NULL); // use default channel
-}
-#endif // OBSOLETE
 
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       ChannelType channel, const char * filename, InitWeights *weightInit) : HyPerConn()
@@ -484,33 +467,6 @@ int KernelConn::correctPIndex(int patchIndex) {
    return kernelIndexToPatchIndex(patchIndex);
 }
 
-#ifdef OBSOLETE //The following methods have been added to the new InitWeights classes.  Please
-                //use the param "weightInitType" to choose an initialization type
-int KernelConn::gauss2DCalcWeights(PVPatch * wp, int kKernel, int no, int numFlanks,
-                                   float shift, float rotate, float aspect, float sigma,
-                                   float r2Max, float strength,
-                                   float deltaThetaMax, float thetaMax, float bowtieFlag,
-                                   float bowtieAngle)
-{
-   int kPatch;
-   kPatch = kernelIndexToPatchIndex(kKernel);
-   return HyPerConn::gauss2DCalcWeights(wp, kPatch, no, numFlanks,
-                                        shift, rotate, aspect, sigma, r2Max, strength,
-                                        deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
-}
-
-int KernelConn::cocircCalcWeights(PVPatch * wp, int kKernel, int noPre, int noPost,
-      float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
-      float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
-      float aspect, float rotate, float sigma, float r2Max, float strength)
-{
-   int kPatch;
-   kPatch = kernelIndexToPatchIndex(kKernel);
-   return HyPerConn::cocircCalcWeights(wp, kPatch, noPre, noPost, sigma_cocirc,
-         sigma_kurve, sigma_chord, delta_theta_max, cocirc_self, delta_radius_curvature,
-         numFlanks, shift, aspect, rotate, sigma, r2Max, strength);
-}
-#endif // OBSOLETE
 
 int KernelConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId)
 {
