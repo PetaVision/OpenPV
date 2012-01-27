@@ -233,12 +233,21 @@ CliqueConn "L1 to L1" = {
 
 StatsProbe "Retina Stats" = {
     targetLayer = "Retina";
-//    probeOutputFile = "Retina_Stats.txt";
 };
 
 StatsProbe "L1 Stats" = {
     targetLayer = "L1";
-//    probeOutputFile = "L1_Stats.txt";
+};
+
+
+StatsProbe "Retina Stats File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+};
+
+StatsProbe "L1 Stats File" = {
+    targetLayer = "L1";
+    probeOutputFile = "L1_Stats.txt";
 };
 
 
