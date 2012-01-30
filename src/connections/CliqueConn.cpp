@@ -14,9 +14,24 @@ CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
       InitWeights *weightInit)
 {
-   KernelConn::initialize_base();
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   CliqueConn::initialize_base();
+   CliqueConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 };
+
+int CliqueConn::initialize_base(){
+   cliqueSize = 1;
+   KernelConn::initialize_base();
+   return PV_SUCCESS;
+}
+
+int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
+      HyPerLayer * post, ChannelType channel, const char * filename,
+      InitWeights *weightInit){
+   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   PVParams * params = parent->parameters();
+   cliqueSize = params->value(name, "cliqueSize", 1, true);
+   return PV_SUCCESS;
+}
 
 int CliqueConn::updateState(float time, float dt)
 {
@@ -33,6 +48,9 @@ int CliqueConn::update_dW(int arborId)
    //const int nyPre = preLoc->ny;
    const int nxPreExt = preLoc->nx + 2 * preLoc->nb;
    const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
+
+   int syPostExt = post->getLayerLoc()->nf
+         * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb); // compute just once
 
    int delay = getDelay(arborId);
    //     // assume each synaptic connection with the same arborId has the same delay
@@ -69,7 +87,6 @@ int CliqueConn::update_dW(int arborId)
    int nyCliqueRadius = (int) (nyPostPatch / 2);
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
-   int cliqueSize = 1; // number of presynaptic cells in clique (traditional ANN uses 1)
    //int numKernels = conn->numDataPatches();  // per arbor?
    int numCliques = pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == this->numberOfAxonalArborLists());
@@ -84,14 +101,17 @@ int CliqueConn::update_dW(int arborId)
       int kPreExt = activeExt[kPreActive];
 
       // get indices of active elements in clique radius
+      // watch out for shrunken patches!
       int numActiveElements = 0;
       int kxPreExt = kxPos(kPreExt, nxPreExt, nyPreExt, nfPre);
       int kyPreExt = kyPos(kPreExt, nxPreExt, nyPreExt, nfPre);
       if (cliqueSize > 1) {
-         for (int kyCliqueExt = kyPreExt - nyCliqueRadius;
-               kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
-            for (int kxCliqueExt = kxPreExt - nxCliqueRadius;
-                  kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
+         for (int kyCliqueExt = ((kyPreExt - nyCliqueRadius) > 0 ? (kyPreExt - nyCliqueRadius) : 0);
+               kyCliqueExt < ((kyPreExt + nyCliqueRadius) <= nyPreExt ? (kyPreExt + nyCliqueRadius) : nyPreExt); kyCliqueExt++) {
+            //if (kyCliqueExt < 0 || kyCliqueExt > nyPreExt) continue;
+            for (int kxCliqueExt = ((kxPreExt - nxCliqueRadius) > 0 ? (kxPreExt - nxCliqueRadius) : 0);
+                  kxCliqueExt < ((kxPreExt + nxCliqueRadius) <= nxPreExt ? (kxPreExt + nxCliqueRadius) : nxPreExt); kxCliqueExt++) {
+               //if (kyCliqueExt < 0 || kyCliqueExt > nxPreExt) continue;
                for (int kfCliqueExt = 0; kfCliqueExt < nfPre; kfCliqueExt++) {
                   int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxPreExt,
                         nyPreExt, nfPre);
@@ -102,8 +122,9 @@ int CliqueConn::update_dW(int arborId)
          }
       } // cliqueSize > 1
       else {
-         cliqueActiveIndices[numActiveElements++] = kPreExt; // ensure at least 1 active index
+         cliqueActiveIndices[numActiveElements++] = kPreExt; // each cell is its own clique if cliqueSize == 1
       }
+      if (numActiveElements < (cliqueSize-1)) continue;
 
       // loop over all active combinations of size=cliqueSize-1 in clique radius
       int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
@@ -139,15 +160,17 @@ int CliqueConn::update_dW(int arborId)
             unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique,
                   (2 * nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
             arborNdx += kArbor * pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
-         }
+            if ((arborNdx < 0) || (arborNdx >= numCliques)){
+                  assert((arborNdx >= 0) && (arborNdx < numCliques));
+            }
+
+         } // iProd
 
          // receive weights input from clique (mostly copied from superclass method)
          // PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
          PVPatch * dWPatch = pIncr[arborNdx][kPreExt]; // arbor->plasticIncr;
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
-         int syPostExt = post->getLayerLoc()->nf
-               * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
 
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
@@ -164,9 +187,9 @@ int CliqueConn::update_dW(int arborId)
                }
 
             } // kClique
-               } // kPreActive
-   free(activeExt);
+   } // kPreActive
    free(cliqueActiveIndices);
+   free(activeExt);
    return PV_BREAK;
 
 }

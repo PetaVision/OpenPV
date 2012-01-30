@@ -28,15 +28,6 @@ CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc)
    initialize(name, hc, MAX_CHANNELS);
 }
 
-/*
- CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
- CliqueLayer::initialize();
- }
-
- CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc, MAX_CHANNELS) {
- CliqueLayer::initialize();
- }
- */
 
 CliqueLayer::~CliqueLayer()
 {
@@ -53,6 +44,7 @@ int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
    PVParams * params = parent->parameters();
    Voffset = params->value(name, "Voffset", 0.0f, true);
    Vgain = params->value(name, "Vgain", 2.0f, true);
+   cliqueSize = params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
 }
 
@@ -82,6 +74,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
    //const int nyPre = preLoc->ny;
    const int nxPreExt = preLoc->nx + 2 * preLoc->nb;
    const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
+   int syPost = conn->getPostNonextStrides()->sy; // stride in layer
 
    // gather active indices in extended layer
    // hard to pre-compute at HyPerLayer level because of variable delays
@@ -114,7 +107,6 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
    int nyCliqueRadius = (int) (nyPostPatch / 2);
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
-   int cliqueSize = 1; // number of presynaptic cells in clique (traditional ANN uses 1)
    //int numKernels = conn->numDataPatches();  // per arbor?
    int numCliques = pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == conn->numberOfAxonalArborLists());
@@ -129,14 +121,17 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
       int kPreExt = activeExt[kPreActive];
 
       // get indices of active elements in clique radius
+      // watch out for shrunken patches!
       int numActiveElements = 0;
       int kxPreExt = kxPos(kPreExt, nxPreExt, nyPreExt, nfPre);
       int kyPreExt = kyPos(kPreExt, nxPreExt, nyPreExt, nfPre);
       if (cliqueSize > 1) {
-         for (int kyCliqueExt = kyPreExt - nyCliqueRadius;
-               kyCliqueExt < kyPreExt + nyCliqueRadius; kyCliqueExt++) {
-            for (int kxCliqueExt = kxPreExt - nxCliqueRadius;
-                  kxCliqueExt < kxPreExt + nxCliqueRadius; kxCliqueExt++) {
+         for (int kyCliqueExt = ((kyPreExt - nyCliqueRadius) > 0 ? (kyPreExt - nyCliqueRadius) : 0);
+               kyCliqueExt < ((kyPreExt + nyCliqueRadius) <= nyPreExt ? (kyPreExt + nyCliqueRadius) : nyPreExt); kyCliqueExt++) {
+            //if (kyCliqueExt < 0 || kyCliqueExt > nyPreExt) continue;
+            for (int kxCliqueExt = ((kxPreExt - nxCliqueRadius) > 0 ? (kxPreExt - nxCliqueRadius) : 0);
+                  kxCliqueExt < ((kxPreExt + nxCliqueRadius) <= nxPreExt ? (kxPreExt + nxCliqueRadius) : nxPreExt); kxCliqueExt++) {
+               //if (kyCliqueExt < 0 || kyCliqueExt > nxPreExt) continue;
                for (int kfCliqueExt = 0; kfCliqueExt < nfPre; kfCliqueExt++) {
                   int kCliqueExt = kIndex(kxCliqueExt, kyCliqueExt, kfCliqueExt, nxPreExt,
                         nyPreExt, nfPre);
@@ -147,8 +142,9 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
          }
       } // cliqueSize > 1
       else {
-         cliqueActiveIndices[numActiveElements++] = kPreExt; // ensure at least 1 active index
+         cliqueActiveIndices[numActiveElements++] = kPreExt; // each cell is its own clique if cliqueSize == 1
       }
+      if (numActiveElements < (cliqueSize-1)) continue;
 
       // loop over all active combinations of size=cliqueSize-1 in clique radius
       int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
@@ -184,6 +180,9 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
             unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique,
                   (2 * nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
             arborNdx += kArbor * pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
+            if ((arborNdx < 0) || (arborNdx >= numCliques)){
+                  assert((arborNdx >= 0) && (arborNdx < numCliques));
+            }
          }
 
          // receive weights input from clique (mostly copied from superclass method)
@@ -196,7 +195,6 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
 
          int nkPost = weights->nf * weights->nx;
          int nyPost = weights->ny;
-         int syPost = conn->getPostNonextStrides()->sy; // stride in layer
          int sywPatch = weights->sy; // stride in patch
 
          // TODO - unroll
@@ -225,11 +223,7 @@ int CliqueLayer::updateState(float time, float dt)
    pvdata_t * V = clayer->V;
    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
-   //   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
-   //   float offset = 0.0f; //VThresh;
-   //   float gain = 2.0f;  // 1 -> log base 2, 2 -> log base sqrt(2)
-   //   assert(this->Vgain == 16.0f);
-   //   assert(this->Voffset == 0.0f);
+   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
 
    // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < clayer->numNeurons; k++) {
@@ -238,28 +232,12 @@ int CliqueLayer::updateState(float time, float dt)
       if (bottomUp_input <= 0.0f) {
          continue;
       }
-      pvdata_t lateral_input = gSynInh[k];
-      V[k] = bottomUp_input * (this->Voffset + this->Vgain * lateral_input);
-      //      pvdata_t target_input = gSynInh[k];
-      //      pvdata_t distractor_input = gSynInhB[k];
-      /*
-       if (distractor_input > 0.0f){
-       if (target_input > 0.0f){
-       V[k] = bottomUp_input * (this->Voffset + this->Vgain * ((target_input - distractor_input) / (target_input + distractor_input)));
-       }
-       else{
-       V[k] = 0.0f;
-       }
-       }
-       else{  // distractor_input <= 0
-       if (target_input > 0.0f){
-       V[k] = 1.0f;
-       }
-       else{
-       V[k] = 0.0f; //bottomUp_input;  // not sure what to do here, no support + or -
-       }
-       }
-       */
+      pvdata_t lateral_exc = gSynInh[k];
+      pvdata_t lateral_inh = gSynInhB[k];
+      //pvdata_t lateral_denom = ((lateral_exc + fabs(lateral_inh)) > 0.0f) ? (lateral_exc + fabs(lateral_inh)) : 1.0f;
+
+      //V[k] = bottomUp_input * (this->Voffset + this->Vgain * (lateral_exc - lateral_inh));
+      V[k] = bottomUp_input * (this->Voffset + this->Vgain * (lateral_exc - fabs(lateral_inh))); // / lateral_denom);
    } // k
 
    resetGSynBuffers();

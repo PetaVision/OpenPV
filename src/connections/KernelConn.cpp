@@ -552,7 +552,8 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
 int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
-   printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
+   if (arborId == 0)
+      printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    assert(pre->clayer->loc.nf==post->clayer->loc.nf);
    PVPatch ** symPatches;
    symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);

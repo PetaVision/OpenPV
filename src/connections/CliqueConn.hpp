@@ -22,6 +22,15 @@ public:
    virtual int updateWeights(int arbor);
    //virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 
+protected:
+   int cliqueSize; // number of presynaptic cells in clique (traditional ANN uses 1)
+   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
+         HyPerLayer * post, ChannelType channel, const char * filename,
+         InitWeights *weightInit);
+
+private:
+   int initialize_base();
+
 }; // class CliqueConn
 
 } /* namespace PV */
