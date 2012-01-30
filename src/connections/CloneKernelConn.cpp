@@ -19,7 +19,6 @@ CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
    initialize(name, hc, pre, post, channel, originalConn);
 }
 
-
 int CloneKernelConn::initialize_base() {
    originalConn = NULL;
    return PV_SUCCESS;
@@ -103,6 +102,11 @@ int CloneKernelConn::setParams(PVParams * params) {
    plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
    stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", 0.0f, true);
    writeCompressedWeights = params->value(name, "writeCompressedWeights", 0.0f, true);
+   return PV_SUCCESS;
+}
+
+int CloneKernelConn::updateState(float time, float dt) {
+   lastUpdateTime = originalConn->getLastUpdateTime();
    return PV_SUCCESS;
 }
 

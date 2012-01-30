@@ -37,6 +37,8 @@ public:
 
    virtual int setParams(PVParams * params);
 
+   virtual int updateState(float time, float dt);
+
 protected:
    PVPatch ** allocWeights(PVPatch ** patches, int nPatches,
          int nxPatch, int nyPatch, int nfPatch, int axonId);
