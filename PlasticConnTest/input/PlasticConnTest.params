@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -16,6 +18,8 @@ HyPerCol "column" = {
    progressStep = 100;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   checkpointWrite = false;
+   checkpointRead = false;
 };
 
 //
@@ -33,7 +37,8 @@ PlasticConnTestLayer "pre" = {
     spikingFlag = false;
     writeNonspikingActivity = true;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
@@ -52,7 +57,8 @@ PlasticConnTestLayer "post" = {
     spikingFlag = false;
     writeNonspikingActivity = true;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
