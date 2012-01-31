@@ -538,7 +538,6 @@ int HyPerCol::run(int nTimeSteps)
       fpOutputNames = NULL;
    }
 
-   int step = 0;
    float stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
 
@@ -579,17 +578,18 @@ int HyPerCol::run(int nTimeSteps)
    }
 
 #ifdef TIMER_ON
-      start_clock();
+   start_clock();
 #endif
    // time loop
    //
+   int step = 0;
    while (simTime < stopTime) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
          checkpointWrite();
       }
       simTime = advanceTime(simTime);
-      step += 1;
 
+      step += 1;
 #ifdef TIMER_ON
       if (step == 10) start_clock();
 #endif
@@ -605,7 +605,7 @@ int HyPerCol::run(int nTimeSteps)
    exitRunLoop(exitOnFinish);
 
 #ifdef TIMER_ON
-      stop_clock();
+   stop_clock();
 #endif
 
    return PV_SUCCESS;
