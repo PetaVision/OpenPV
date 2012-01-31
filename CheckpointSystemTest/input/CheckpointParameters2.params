@@ -24,10 +24,10 @@ HyPerCol "column" = {
    filenamesContainLayerNames = true;
    checkpointRead = true;
    checkpointReadDir = "checkpoints1";
-   checkpointReadDirIndex = 3;
+   checkpointReadDirIndex = 12;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints2";
-   checkpointWriteStepInterval = 1;
+   checkpointWriteStepInterval = 4;
    printParamsFilename = "params.txt";
 };
 

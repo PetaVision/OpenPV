@@ -5,8 +5,8 @@
 //
 
 //  A params file for testing checkpointing.
-//  CheckpointParameters1.params runs a simulation for 50 timesteps, checkpointing every 5 timesteps.
-//  CheckpointParameters2.params runs a simulation starting with the checkpoint3 from the previous run.
+//  CheckpointParameters1.params runs a simulation for 10 timesteps, checkpointing every 5 timesteps.
+//  CheckpointParameters2.params runs a simulation for 5 timesteps starting with the previous checkpoint after 5 timesteps.
 //  The result of the two simulations should be the same.
 //
 
@@ -25,7 +25,7 @@ HyPerCol "column" = {
    checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints1";
-   checkpointWriteStepInterval = 1;
+   checkpointWriteStepInterval = 4;
    printParamsFilename = "params.txt";
 };
 
