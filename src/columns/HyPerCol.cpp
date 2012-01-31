@@ -331,7 +331,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       }
       nextCPWriteStep = 0;
       nextCPWriteTime = 0;
-      cpWriteDirIndex = 0;
    }
 
    return PV_SUCCESS;
@@ -558,7 +557,6 @@ int HyPerCol::run(int nTimeSteps)
 #endif
 
    if( checkpointReadFlag ) {
-      cpWriteDirIndex = cpReadDirIndex+1;
       checkpointRead();
    }  // checkpointRead() needs to be called before publish since it saves the restricted part of activity
 
@@ -588,7 +586,6 @@ int HyPerCol::run(int nTimeSteps)
    while (simTime < stopTime) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
          checkpointWrite();
-         cpWriteDirIndex++;
       }
       simTime = advanceTime(simTime);
       step += 1;
@@ -629,7 +626,6 @@ int HyPerCol::initPublishers() {
 float HyPerCol::advanceTime(float sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
-   currentStep = (int) (sim_time/getDeltaTime());
    if (currentStep%progressStep == 0 && columnId() == 0) {
       printf("   [%d]: time==%f\n", columnId(), sim_time);
    }
@@ -644,8 +640,8 @@ float HyPerCol::advanceTime(float sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->updateState(sim_time, deltaTime);
       connections[c]->outputState(sim_time);
+      connections[c]->updateState(sim_time, deltaTime);
    }
 
    for (int l = 0; l < numLayers; l++) {
@@ -661,8 +657,8 @@ float HyPerCol::advanceTime(float sim_time)
    // calls and before any of the updateState calls.
    // This is because triggerReceive updates the GSyn
    // buffers but updateState clears them.
-   // However, this means that V and A is one step behind
-   // probes of GSyn.
+   // However, this means that probes of V and A are
+   // one step behind probes of GSyn.
    for (int l = 0; l < numLayers; l++) {
       layers[l]->outputState(sim_time);
    }
@@ -704,6 +700,7 @@ float HyPerCol::advanceTime(float sim_time)
                                // but doesn't effect runTimer
 
    simTime = sim_time + deltaTime;
+   currentStep++;
 
    runTimer->stop();
 
@@ -723,7 +720,7 @@ bool HyPerCol::advanceCPWriteTime() {
       }
    }
    else if( cpWriteTimeInterval>0.0f ) {
-      assert(cpWriteStepInterval<=0);
+      assert(cpWriteStepInterval<0);
       advanceCPTime = simTime >= nextCPWriteTime;
       if( advanceCPTime ) {
          nextCPWriteTime += cpWriteTimeInterval;
@@ -787,11 +784,10 @@ int HyPerCol::checkpointRead() {
 
 int HyPerCol::checkpointWrite() {
    fprintf(stderr, "Rank %d in checkpointWrite. simTime = %f\n", icComm->commRank(), simTime);
-   assert(cpWriteDirIndex >= 0 );
-   if( cpWriteDirIndex >= HYPERCOL_DIRINDEX_MAX+1 ) {
+   if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
       if( icComm->commRank() == 0 ) {
          fflush(stdout);
-         fprintf(stderr, "Column \"%s\": cpWriteDirIndex exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+         fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
       }
       exit(EXIT_FAILURE);
    }
@@ -803,7 +799,7 @@ int HyPerCol::checkpointWrite() {
       }
       exit(EXIT_FAILURE);
    }
-   sprintf(cpDir, "%s/Checkpoint%d", checkpointWriteDir, cpWriteDirIndex);
+   sprintf(cpDir, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
    ensureDirExists(cpDir);
    chdir(cpDir);
    for( int l=0; l<numLayers; l++ ) {
@@ -870,6 +866,10 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    // output final state of layers and connections
    //
    bool last = true;
+
+   if( checkpointWriteFlag ) {
+      checkpointWrite();
+   }
 
    for (int l = 0; l < numLayers; l++) {
       layers[l]->writeState(simTime, last);

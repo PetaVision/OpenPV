@@ -145,7 +145,6 @@ private:
    int nextCPWriteStep;
    float cpWriteTimeInterval;
    float nextCPWriteTime;
-   int cpWriteDirIndex;
 
    float simTime;          // current time in milliseconds
    float deltaTime;        // time step interval
