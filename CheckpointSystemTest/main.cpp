@@ -120,7 +120,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int rank = hc->icCommunicator()->commRank();
    int rootproc = 0;
    if( rank == rootproc ) {
-      int index = hc->parameters()->value("column", "checkpointReadDirIndex");
+      int index = hc->parameters()->value("column", "numSteps");
       const char * cpdir1 = hc->parameters()->stringValue("column", "checkpointReadDir");
       const char * cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
       if(cpdir1 == NULL || cpdir2 == NULL) {
@@ -130,13 +130,13 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       char * shellcommand;
       char c;
       const char * fmtstr = "diff -r -q %s/Checkpoint%d %s/Checkpoint%d";
-      int len = snprintf(&c, 1, fmtstr, cpdir1, index+1, cpdir2, index+1);
+      int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
       shellcommand = (char *) malloc(len+1);
       if( shellcommand == NULL) {
          fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
          exit(EXIT_FAILURE);
       }
-      assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index+1, cpdir2, index+1) == len );
+      assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index, cpdir2, index) == len );
       status = system(shellcommand);
       if( status != 0 ) {
          fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
