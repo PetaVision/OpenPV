@@ -13,6 +13,8 @@ HyPerCol "column" = {
     progressStep = 1;
     outputPath = "output/";
     filenamesContainLayerNames = true;    
+    checkpointRead = false;
+    checkpointWrite = false;
 };
 
 // 4 layers:
