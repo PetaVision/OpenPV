@@ -872,6 +872,7 @@ int HyPerLayer::checkpointRead(float * timef) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
+#ifdef OBSOLETE // Marked obsolete Jan 31, 2012.  When checkpointWrite is called, GSyn is blank.  Since GSyn is calculated by triggerReceive, it doesn't need to be saved.
    if( getNumChannels() > 0 ) {
       sprintf(filename, "%s_GSyn.pvp", name);
       readBufferFile(filename, icComm, &timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
@@ -880,6 +881,7 @@ int HyPerLayer::checkpointRead(float * timef) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
    }
+#endif // OBSOLETE
    free(filename);
    return PV_SUCCESS;
 }
@@ -994,11 +996,13 @@ int HyPerLayer::checkpointWrite() {
    sprintf(filename, "%s_Delays.pvp", name);
    writeDataStoreToFile(filename, icComm, timed);
 
+#ifdef OBSOLETE // Marked obsolete Jan 31, 2012.  When checkpointWrite is called, GSyn is blank.  Since GSyn is calculated by triggerReceive, it doesn't need to be saved.
    if( getNumChannels() > 0 ) {
       sprintf(filename, "%s_GSyn.pvp", name);
       writeBufferFile(filename, icComm, timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
       // assumes GSyn[0], GSyn[1],... are sequential in memory
    }
+#endif // OBSOLETE
    free(filename);
    return PV_SUCCESS;
 }
