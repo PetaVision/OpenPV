@@ -24,7 +24,7 @@
 #include <float.h>
 
 #define PV_MAX_NUMSTEPS (pow(2,FLT_MANT_DIG))
-#define HYPERCOL_DIRINDEX_MAX 999999
+#define HYPERCOL_DIRINDEX_MAX 99999999
 
 namespace PV {
 
@@ -734,15 +734,8 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead() {
-   assert(cpReadDirIndex >= 0 );
-   if( cpReadDirIndex >= HYPERCOL_DIRINDEX_MAX+1 ) {
-      if( icComm->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Column \"%s\": cpReadDirIndex exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-      }
-      exit(EXIT_FAILURE);
-   }
-   char * cpDir = (char *) malloc( (strlen(checkpointReadDir)+11+10)*sizeof(char) );
+   assert(cpReadDirIndex >= 0  && cpReadDirIndex < HYPERCOL_DIRINDEX_MAX+1 );
+   char * cpDir = (char *) malloc( (strlen(checkpointReadDir)+11+12)*sizeof(char) );
    if( cpDir == NULL ) {
       if( icComm->commRank() == 0 ) {
          fflush(stdout);
@@ -791,7 +784,7 @@ int HyPerCol::checkpointWrite() {
       }
       exit(EXIT_FAILURE);
    }
-   char * cpDir = (char *) malloc( (strlen(checkpointWriteDir)+11+10)*sizeof(char) );
+   char * cpDir = (char *) malloc( (strlen(checkpointWriteDir)+11+12)*sizeof(char) );
    if( cpDir == NULL ) {
       if( icComm->commRank() == 0 ) {
          fflush(stdout);
