@@ -539,8 +539,19 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 
 	   // copy weights from full sized temporary patch to (possibly shrunken) patch
 	   w = wp->data;
-	   pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-	   size_t data_offset = w - data_head;
+	   const int nxunshrunkPatch = wp_tmp->nx;
+	   const int nyunshrunkPatch = wp_tmp->ny;
+	   const int nfunshrunkPatch = wp_tmp->nf;
+	   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
+	   pvdata_t *wtop = this->getPatchDataStart(0);
+	   pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
+	   //pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+	   //size_t data_offset = w - data_head;
+	   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*kPre]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+	   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+	   size_t data_offset1 = w - data_head1;
+	   size_t data_offset2 = w - data_head2;
+	   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
 	   w_tmp = &wp_tmp->data[data_offset];
 	   int nk = nxPatch * nfPatch;
 	   for (int ky = 0; ky < nyPatch; ky++) {
@@ -761,8 +772,19 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
 
    // copy weights from full sized temporary patch to (possibly shrunken) patch
    w = wp->data;
-   pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset = w - data_head;
+   const int nxunshrunkPatch = wp_tmp->nx;
+   const int nyunshrunkPatch = wp_tmp->ny;
+   const int nfunshrunkPatch = wp_tmp->nf;
+   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
+   pvdata_t *wtop = this->getPatchDataStart(0);
+   //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
+   //pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   //size_t data_offset = w - data_head;
+   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*kPre]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   size_t data_offset1 = w - data_head1;
+   size_t data_offset2 = w - data_head2;
+   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
    w_tmp = &wp_tmp->data[data_offset];
    int nk = nxPatch * nfPatch;
    for (int ky = 0; ky < nyPatch; ky++) {
