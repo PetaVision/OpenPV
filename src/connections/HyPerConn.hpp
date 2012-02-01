@@ -118,6 +118,10 @@ public:
    inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? pIncr[arborId][kPre] : NULL;}
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
+
+   inline pvdata_t * getPatchDataStart(int arborId) {return patchDataStart[arborId];}
+   inline void setPatchDataStart(int arborId, pvdata_t * pDataStart) {patchDataStart[arborId]=pDataStart;}
+
    // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
    //                                                  {return &axonalArborList[arborId][kPre];}
    virtual int numWeightPatches();
@@ -179,6 +183,9 @@ private:
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
+   pvdata_t      ** patchDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+
+
 
    int defaultDelay; //added to save params file defined delay...
 

@@ -86,6 +86,8 @@ int           pvcube_setAddr(PVLayerCube * cube);
 PVPatch * pvpatch_new(int nx, int ny, int nf);
 int       pvpatch_delete(PVPatch * p);
 
+pvdata_t * pvpatches_inplace_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches);
+PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data);
 PVPatch * pvpatch_inplace_new(int nx, int ny, int nf);
 int       pvpatch_inplace_delete(PVPatch * p);
 

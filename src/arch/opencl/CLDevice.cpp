@@ -100,7 +100,7 @@ int CLDevice::initialize(int device)
 
    // create a command queue
    //
-   commands = clCreateCommandQueue(context, device_ids[device_id], 0, &status);
+   commands = clCreateCommandQueue(context, device_ids[device_id], CL_QUEUE_PROFILING_ENABLE, &status);
    if (!commands)
    {
        printf("Error: Failed to create a command commands!\n");
@@ -247,15 +247,66 @@ CLDevice::print_error_code(int code)
 {
    char msg[256];
 
+//   switch (code) {
+//      case CL_INVALID_WORK_GROUP_SIZE:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_WORK_GROUP_SIZE", code);
+//         break;
+//      case CL_INVALID_COMMAND_QUEUE:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_COMMAND_QUEUE", code);
+//         break;
+//      case CL_INVALID_EVENT:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_EVENT", code);
+//         break;
+//      case CL_BUILD_PROGRAM_FAILURE:
+//         sprintf(msg, "%s (%d)", "CL_BUILD_PROGRAM_FAILURE", code);
+//         break;
+//      case CL_INVALID_HOST_PTR:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_HOST_PTR", code);
+//         break;
+//      case CL_INVALID_KERNEL_ARGS:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_ARGS", code);
+//         break;
+//      case CL_INVALID_KERNEL_NAME:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_NAME", code);
+//         break;
+//      case CL_INVALID_VALUE:
+//         sprintf(msg, "%s (%d)", "CL_INVALID_VALUE", code);
+//         break;
+//      default:
+//         sprintf(msg, "%s (%d)\n", "UNKNOWN_CODE", code);
+//         break;
    switch (code) {
-      case CL_INVALID_WORK_GROUP_SIZE:
-         sprintf(msg, "%s (%d)", "CL_INVALID_WORK_GROUP_SIZE", code);
+      case CL_SUCCESS:
+         return;
+      case CL_INVALID_ARG_INDEX:
+         sprintf(msg, "%s (%d)", "CL_INVALID_ARG_INDEX", code);
+         break;
+      case CL_INVALID_ARG_SIZE:
+         sprintf(msg, "%s (%d)", "CL_INVALID_ARG_SIZE", code);
+         break;
+      case CL_INVALID_ARG_VALUE:
+         sprintf(msg, "%s (%d)", "CL_INVALID_ARG_VALUE", code);
+         break;
+      case CL_INVALID_BUFFER_SIZE:
+         sprintf(msg, "%s (%d)", "CL_INVALID_BUFFER_SIZE", code);
          break;
       case CL_INVALID_COMMAND_QUEUE:
          sprintf(msg, "%s (%d)", "CL_INVALID_COMMAND_QUEUE", code);
          break;
-      case CL_INVALID_EVENT:
-         sprintf(msg, "%s (%d)", "CL_INVALID_EVENT", code);
+      case CL_INVALID_CONTEXT:
+         sprintf(msg, "%s (%d)", "CL_INVALID_CONTEXT", code);
+         break;
+      case CL_INVALID_EVENT_WAIT_LIST:
+         sprintf(msg, "%s (%d)", "CL_INVALID_EVENT_WAIT_LIST", code);
+         break;
+      case CL_INVALID_KERNEL_NAME:
+         sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_NAME", code);
+         break;
+      case CL_INVALID_MEM_OBJECT:
+         sprintf(msg, "%s (%d)", "CL_INVALID_MEM_OBJECT", code);
+         break;
+      case CL_INVALID_PROGRAM_EXECUTABLE:
+         sprintf(msg, "%s (%d)", "CL_INVALID_PROGRAM_EXECUTABLE", code);
          break;
       case CL_BUILD_PROGRAM_FAILURE:
          sprintf(msg, "%s (%d)", "CL_BUILD_PROGRAM_FAILURE", code);
@@ -266,20 +317,39 @@ CLDevice::print_error_code(int code)
       case CL_INVALID_KERNEL_ARGS:
          sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_ARGS", code);
          break;
-      case CL_INVALID_KERNEL_NAME:
-         sprintf(msg, "%s (%d)", "CL_INVALID_KERNEL_NAME", code);
+      case CL_INVALID_PLATFORM:
+         sprintf(msg, "%s (%d)", "CL_INVALID_PLATFORM", code);
+         break;
+      case CL_INVALID_QUEUE_PROPERTIES:
+         sprintf(msg, "%s (%d)", "CL_INVALID_QUEUE_PROPERTIES", code);
          break;
       case CL_INVALID_VALUE:
          sprintf(msg, "%s (%d)", "CL_INVALID_VALUE", code);
          break;
+      case CL_INVALID_WORK_GROUP_SIZE:
+         sprintf(msg, "%s (%d)", "CL_INVALID_WORK_GROUP_SIZE", code);
+         break;
+      case CL_OUT_OF_HOST_MEMORY:
+         sprintf(msg, "%s (%d)", "CL_OUT_HOST_MEMORY", code);
+         break;
+      case CL_OUT_OF_RESOURCES:
+         sprintf(msg, "%s (%d)", "CL_OUT_OF_RESOURCES", code);
+         break;
+      case CL_PROFILING_INFO_NOT_AVAILABLE:
+         sprintf(msg, "%s (%d)", "CL_PROFILING_INFO_NOT_AVAILABLE", code);
+         break;
       default:
          sprintf(msg, "%s (%d)\n", "UNKNOWN_CODE", code);
          break;
-   }
+  }
    printf("ERROR_CODE==%s\n", msg);
 }
 
 #endif // PV_USE_OPENCL
 
-} // namespace PV
+}
+
+
+
+ // namespace PV
 

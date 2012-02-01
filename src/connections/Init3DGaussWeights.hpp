@@ -30,7 +30,7 @@ public:
 protected:
    virtual int initialize_base();
 
-private:
+//private:
    int gauss3DWeights(PVPatch * patch, Init3DGaussWeightsParams * weightParamPtr);
 
 };

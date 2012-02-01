@@ -15,8 +15,13 @@ LDFLAGS = -framework OpenCL
 	
 all: cl_info
 
-cl_info: cl_info.o CLDevice.o
-	$(CPP) -o cl_info $(LDFLAGS) $< CLDevice.o
+conv: convolve_main.o CLDevice.o CLBuffer.o CLKernel.o ../../utils/Timer.o
+	$(CPP) -o convolve_main $(LDFLAGS) $< CLBuffer.o CLKernel.o CLDevice.o Timer.o
+
+
+
+cl_info: cl_info.o CLDevice.o CLBuffer.o CLKernel.o
+	$(CPP) -o cl_info $(LDFLAGS) $< CLBuffer.o CLKernel.o CLDevice.o
 
 clean:
 	rm -f *.o cl_info

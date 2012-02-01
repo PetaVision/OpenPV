@@ -162,6 +162,44 @@ PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
    return p;
 }
 
+pvdata_t * pvpatches_inplace_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches) {
+   //int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
+   int sp = sy*ny;
+
+   size_t patchSize = nx * ny * nf * sizeof(pvdata_t);
+   size_t dataSize = nPatches * patchSize;
+   pvdata_t * dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+   assert(dataPatches != NULL);
+
+   //PVPatch ** patches;
+   int k;
+   for (k = 0; k < nPatches; k++) {
+      patches[k] = pvpatch_inplace_new_sepdata(nx, ny, nf, &dataPatches[k*sp]);
+   }
+
+   return dataPatches;
+
+}
+
+PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data)
+{
+   int sf = 1;
+   int sx = nf;
+   int sy = sx * nx;
+
+   //size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
+   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + sizeof(pvdata_t*), sizeof(char));
+   assert(p != NULL);
+
+   //pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+
+   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+
+   return p;
+}
+
 int pvpatch_inplace_delete(PVPatch* p)
 {
    free(p);

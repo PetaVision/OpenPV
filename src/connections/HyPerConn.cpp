@@ -208,6 +208,11 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
+   patchDataStart = (pvdata_t **) malloc(numAxonalArborLists*sizeof(pvdata_t *));
+   if( patchDataStart == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
    return PV_SUCCESS;
 }
 

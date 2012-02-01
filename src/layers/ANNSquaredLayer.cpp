@@ -40,6 +40,16 @@ int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc, int numChannel
 int ANNSquaredLayer::updateV() {
    ANNLayer::updateV();
    squareV();
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
+//   pvdata_t * GSynDivInh = this->getChannel(CHANNEL_INHB);
+//
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      //V[k] = (GSynExc[k] - GSynInh[k])*(GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
+//      V[k] = (GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
+//   }
+
    return PV_SUCCESS;
 }
 

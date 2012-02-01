@@ -69,7 +69,8 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, 
             }
 
             //copy back to unshrunk patch:
-            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
+            //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
+            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp, callingConn->getPatchDataStart(arbor), patchIndex);
          }
       }
       delete(weightParams);
@@ -205,7 +206,8 @@ PVPatch * InitWeights::createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * 
  * Copy from full sized patch back to potentially shrunken patch.
  *
  */
-int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
+//int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
+int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex) {
    // copy weights from full sized temporary patch to (possibly shrunken) patch
    pvdata_t * w = wp->data;
    const int nxPatch = wp->nx;
@@ -216,9 +218,15 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
    const int sy_tmp = wp_tmp->sy;
 
 
-
-   pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset = w - data_head;
+   const int nxunshrunkPatch = wp_tmp->nx;
+   const int nyunshrunkPatch = wp_tmp->ny;
+   const int nfunshrunkPatch = wp_tmp->nf;
+   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
+   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*patchIndex]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   size_t data_offset1 = w - data_head1;
+   size_t data_offset2 = w - data_head2;
+   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
    pvdata_t * w_tmp = &wp_tmp->data[data_offset];
    int nk = nxPatch * nfPatch;
    for (int ky = 0; ky < nyPatch; ky++) {

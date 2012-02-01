@@ -124,6 +124,9 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
 
+   if((type == COSWAVE)||(type =SINEWAVE))
+      rotation = params->value(name, "rotation", 0.0);
+
    movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
 
    // set parameters that controls writing of new images
@@ -141,7 +144,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
                "Movie output path set to default \"%s\"\n",patternsOutputPath);
       }
    }
-
+   initPatternCntr=0;
    writePosition     = (int) params->value(name,"writePosition", 0);
    if(writePosition){
       char file_name[PV_PATH_MAX];

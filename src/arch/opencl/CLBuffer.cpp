@@ -63,6 +63,7 @@ int CLBuffer::copyToDevice(void * host_ptr, unsigned int nWait, cl_event * waitL
    status = clEnqueueWriteBuffer(commands, d_buf, CL_TRUE, 0, size,
                                  host_ptr, nWait, waitList, ev);
 
+   clFinish(commands);
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
 #endif

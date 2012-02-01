@@ -76,6 +76,9 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
        exit(status);
    }
 
+
+
+
 #endif // PV_USE_OPENCL
 
 }
@@ -169,8 +172,20 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    // execute the kernel over the entire range of our 1d input data set
    // using the maximum number of work group items for this device
    //
+   cl_event startMark, endMark;
+   if (profiling) {
+      int error = clEnqueueMarker(commands, &startMark);
+      error |= clFinish(commands);
+      if(error) CLDevice::print_error_code(error);
+   }
    status = clEnqueueNDRangeKernel(commands, kernel, 2, NULL,
                                    global_work_size, local_work_size, nWait, waitList, ev);
+   if (profiling) {
+      int error = clEnqueueMarker(commands, &endMark);
+      error |= clFinish(commands);
+      if(error) CLDevice::print_error_code(error);
+   }
+   //clFinish(commands);
    if (status) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
       fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
@@ -182,18 +197,25 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //
    if (profiling) {
       size_t param_size;
-      cl_ulong start, end;
+      cl_ulong start=0, end=0;
 #ifdef PV_USE_TAU
       tau_id += 1000;
       TAU_STOP("CLKernel::run::CPU");
 #endif
-      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_START,
-                                       sizeof(start), &start, &param_size);
-      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_END,
-                                       sizeof(end), &end, &param_size);
+//      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_START,
+//                                       sizeof(start), &start, &param_size);
+//      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_END,
+//                                       sizeof(end), &end, &param_size);
+      status = clGetEventProfilingInfo(startMark, CL_PROFILING_COMMAND_END,
+                                       sizeof(start), &start, NULL);
+      status |= clGetEventProfilingInfo(endMark, CL_PROFILING_COMMAND_END,
+                                       sizeof(end), &end, NULL);
       if (status == 0) {
          elapsed = (end - start) / 1000;  // microseconds
       }
+      //fprintf(stderr, "status %d\n",status);
+      //CLDevice::print_error_code(status);
+      //fprintf(stderr, "start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
 #ifdef PV_USE_TAU
       Tau_opencl_register_gpu_event("CLKernel::run::GPU", tau_id, start, end);
 #endif

@@ -38,6 +38,7 @@
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
+#include "../layers/ANNDivInh.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
@@ -86,6 +87,7 @@
 #include "../connections/InitUniformWeights.hpp"
 #include "../connections/InitSpreadOverArborsWeights.hpp"
 #include "../connections/Init3DGaussWeights.hpp"
+#include "../connections/InitWindowed3DGaussWeights.hpp"
 #include "../connections/InitMTWeights.hpp"
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/KernelProbe.hpp"
