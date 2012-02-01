@@ -1,5 +1,11 @@
-function [data,hdr] = readpvpfile(filename)
-% [data,hdr] = readpvpfile(filename)
+function [data,hdr] = readpvpfile(filename,progressperiod)
+% Usage:[data,hdr] = readpvpfile(filename)
+% filename is a pvp file (any type)
+% data is a cell array containing the data.
+%     In general, data has one element for each time step written.
+%     Each element is a struct containing the fields 'time' and 'values'
+%     For activities, values is an nx-by-ny-by-nf array.
+%     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
 
 filedata = dir(filename);
 if length(filedata) ~= 1
@@ -27,18 +33,20 @@ switch hdr.filetype
     case 1 % PVP_FILE_TYPE
         framesize = hdr.recordsize*hdr.numrecords;
         numframes = (filedata(1).bytes - hdr.headersize)/framesize;
-    case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
-        errorident = 'readpvpfile:unimplementedfiletype';
-        errorstring = sprintf('readpvpfile:File %s has unimplemented file type %d',filename,hdr.filetype);
-    case 3 % PVP_WEIGHT_FILE_TYPE
-        framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
+    case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
+        numframes = hdr.nbands;
+        % framesize is variable
+    case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
+        framesize = hdr.recordsize*hdr.numrecords*hdr.nbands+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-        % who defined this stupid format?
         nxprocs = hdr.nxGlobal/hdr.nx;
-        nyprocs = hdr.nyGlobal/hdr.ny; % I mean, what is the "contiguous" flag supposed to indicate?
+        nyprocs = hdr.nyGlobal/hdr.ny;
         framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
-        numframes = (filedata(1).bytes - hdr.headersize)/framesize;
+        numframes = hdr.nbands;
+    case 5 % PVP_KERNEL_FILE_TYPE
+        framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
+        numframes = filedata(1).bytes/framesize;
     otherwise
         errorident = 'readpvpfile:badfiletype';
         errorstring = sprintf('readpvpfile:File %s has unrecognized file type %d',filename,hdr.filetype);
@@ -78,15 +86,88 @@ if isempty(errorstring)
                     for x=1:hdr.nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
                         r = r+1;
-                        for band=1:hdr.nf
-                            Z(xidx,yidx,band) = reshape(Y(band:hdr.nf:hdr.nx*hdr.ny*hdr.nf,r),hdr.nx,hdr.ny);
+                        for feature=1:hdr.nf
+                            Z(xidx,yidx,feature) = reshape(Y(feature:hdr.nf:hdr.nx*hdr.ny*hdr.nf,r),hdr.nx,hdr.ny);
                         end
                     end
                 end
                 data{f}.values = Z;
+                if exist('progressperiod','var')
+                    if ~mod(f,progressperiod)
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fflush(1);
+                    end
+                end
             end
-            % case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+            for f=1:numframes
+                data{f} = struct('time',0,'values',[]);
+                data{f}.time = fread(fid,1,'float64');
+                numactive = fread(fid,1,'uint32');
+                data{f}.values = fread(fid,numactive,'uint32');
+            end
         case 3 % PVP_WGT_FILE_TYPE
+            fseek(fid,0,'bof');
+            for f=1:numframes
+                hdr = readpvpheader(fid,ftell(fid));
+                hdr = rmfield(hdr,'additional');
+                numextrabytes = hdr.headersize - 80;
+                fseek(fid,-numextrabytes,'cof');
+                wgt_extra = [fread(fid,3,'int32');fread(fid,2,'float32');fread(fid,1,'int32')];
+                numextra = numextrabytes/4 - 6;
+                hdr.nxp = wgt_extra(1);
+                hdr.nyp = wgt_extra(2);
+                hdr.nfp = wgt_extra(3);
+                hdr.wMin = wgt_extra(4);
+                hdr.wMax = wgt_extra(5);
+                hdr.numPatches = wgt_extra(6);
+                if numextra > 0
+                    hdr.additional = fread(fid,numextra,'int32');
+                end
+                data{f} = struct('time',hdr.time,'values',[]);
+                data{f}.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
+                for arbor=1:hdr.nbands
+                    for y=1:hdr.nyprocs
+                        for x=1:hdr.nxprocs
+                            cellindex = sub2ind([hdr.nxprocs hdr.nyprocs hdr.nbands],x,y,arbor);
+                            % octave has trouble with multidim cell arrays
+                            patchesperproc = hdr.numPatches/(hdr.nxprocs*hdr.nyprocs);
+                            data{f}.values{cellindex} = nan(hdr.nxp,hdr.nyp,hdr.nfp,patchesperproc);
+                            for p=1:patchesperproc
+                                patchnx = fread(fid,1,'int16');
+                                patchny = fread(fid,1,'int16');
+                                Z = fread(fid,hdr.nxp*hdr.nyp*hdr.nfp,precision);
+                                tempdata = reshape(Z(1:hdr.nfp*patchnx*patchny),hdr.nfp,patchnx,patchny);
+                                tempdata = permute(tempdata,[2 3 1]);
+                                xpindices = 1:patchnx;
+                                ypindices = 1:patchny;
+                                % Need to move shrunken patches
+                                data{f}.values{cellindex}(xpindices,ypindices,:,p) = tempdata;
+                            end
+                        end
+                    end
+                end
+            end
+        case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
+            for f=1:numframes
+                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
+                data{f}.time = fread(fid,1,'float64');
+                for y=1:nyprocs
+                    yidx = (1:hdr.ny)+(y-1)*hdr.ny;
+                    for x=1:nxprocs
+                        xidx = (1:hdr.nx)+(x-1)*hdr.nx;
+                        Z = fread(fid,hdr.recordsize,precision);
+                        data{f}.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
+                    end
+                end
+                if exist('progressperiod','var')
+                    if ~mod(f,progressperiod)
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fflush(1);
+                    end
+                end
+            end
+        case 5 % PVP_KERNEL_FILE_TYPE
             fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types
             % So go back to the beginning and read the header in each frame.
             for f=1:numframes
@@ -105,37 +186,37 @@ if isempty(errorstring)
                 if numextra > 0
                     hdr.additional = fread(fid,numextra,'int32');
                 end
-                patchesperproc = hdr.numPatches/hdr.nxprocs/hdr.nyprocs;
                 data{f} = struct('time',hdr.time,'values',[]);
-                data{f}.values = cell(hdr.nyprocs,hdr.nxprocs);
-                %TODO scales by wMin and wMax if datatype is byte-type
-                for y=1:hdr.nyprocs
-                    for x=1:hdr.nxprocs
-                        data{f}.values{y,x} = zeros(hdr.nxp,hdr.nyp,hdr.nfp,patchesperproc);
-                        for p=1:patchesperproc
-                            patchnx = fread(fid,1,'int16');
-                            patchny = fread(fid,1,'int16');
-                            Z = fread(fid,hdr.nfp*hdr.nxp*hdr.nyp,precision);
-                            data{f}.values{y,x}(:,:,:,p) = permute(reshape(Z,[hdr.nfp,hdr.nxp,hdr.nyp]),[2 3 1]);
-                            if patchnx~=hdr.nxp || patchny~=hdr.nyp
-                                warning('readpvpfile:shrunkenpatch',...
-                                    'Readpvpfile:Warning:data{%f}{%f}{%f}, patch %d: shrunken patches not implemented',f,x,y,p);
-                            end
-                        end
-                        data{f}.values{y,x} = data{f}.values{y,x}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                data{f}.values = cell(1,1,hdr.nbands);
+                for arbor=1:hdr.nbands
+                    cellindex = sub2ind([1 1 hdr.nbands],1,1,arbor);
+                    % octave has trouble with multidim cell arrays
+                    data{f}.values{cellindex} = nan(hdr.nxp,hdr.nyp,hdr.nfp,hdr.numPatches);
+                    for p=1:hdr.numPatches
+                        patchnx = fread(fid,1,'int16');
+                        patchny = fread(fid,1,'int16');
+                        Z = fread(fid,hdr.nfp*hdr.nxp*hdr.nyp,precision);
+                        tempdata = reshape(Z(1:hdr.nfp*patchnx*patchny),hdr.nfp,patchnx,patchny);
+                        tempdata = permute(tempdata,[2 3 1]);
+                        
+                        xpindices = 1:patchnx;
+                        ypindices = 1:patchny;
+                        % Shrunken patches on the left side and top side of the layer need to be moved to the right/bottom of unshrunken patch
+                        
+                        data{f}.values{cellindex}(xpindices,ypindices,:,p) = tempdata;
+                    end
+                    if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
+                        data{f}.values{cellindex} = data{f}.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                    elseif hdr.datatype ~= 3
+                        error('readpvpfile:baddatatype',...
+                            'Weight file type requires hdr.datatype of 1 or 3; received %d',...
+                            hdr.datatype);
                     end
                 end
-            end
-        case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-            for f=1:numframes
-                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
-                data{f}.time = fread(fid,1,'float64');
-                for y=1:nyprocs
-                    yidx = (1:hdr.ny)+(y-1)*hdr.ny;
-                    for x=1:nxprocs
-                        xidx = (1:hdr.nx)+(x-1)*hdr.nx;
-                        Z = fread(fid,hdr.recordsize,precision);
-                        data{f}.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
+                if exist('progressperiod','var')
+                    if ~mod(f,progressperiod)
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fflush(1);
                     end
                 end
             end

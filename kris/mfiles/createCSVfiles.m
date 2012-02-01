@@ -1,7 +1,7 @@
 close all;
 clc;
 
-load = 1;
+load = 0;
 
 if(load==1)
     clear all;
@@ -9,7 +9,7 @@ if(load==1)
 end
 
 
-clip='030';
+%clip='030';
 
 for(clpcnt=[26])
 if(load==1)
@@ -23,7 +23,7 @@ end
     %pvpfilepath='/Users/kpeterson/Documents/competitionResults/Tower/output/';
     %pvpfilepath='/Users/kpeterson/Documents/competitionResults/Tower/output/050/050_005/';
     %pvpfilepath=['/Users/kpeterson/Documents/workdir/', clip, '/', clip, '_000/'];
-    pvpfilepath=['/Volumes/Fantom/output/Tower/', clip, '/', clip, '_000/'];
+    pvpfilepath=['/Volumes/Fantom/output/HeliNew/', clip, '/', clip, '_000/'];
     %pvpfilepath='/Volumes/Fantom/output/Tower/026/026_000/';
     %pvpfilepath='/Volumes/Time Machine Backups/stuff/outputHeli/045/045_000/';
     %pvpfilepath='/Users/kpeterson/Documents/competitionResults/Tower/output/052/052_005/';
@@ -37,20 +37,20 @@ end
     %videopath='/Volumes/Time Machine Backups/video/Tower-PNG/001/';
     csvsavepath=pvpfilepath;
     %csvsavepath=['/Users/kpeterson/Documents/competitionData/neovision-results-challenge-heli/',clip, '/'];
-    objecttype='Tower';
+    objecttype='Heli';
 
 
     videopath=pvpfilepath;
     mt1pvpnum=12; %27;
     multiplier=4;
     mtnumber=1;
-    featurenum=1;
+    featurenum=2;
     %thresh=800; %tower
     thresh=50; %heli; %normally 14
     subclip='000';
     runcnt='002';
     display=1;
-    displayinc=1;
+    displayinc=10;
 
     mkdir(pvpfilepath, 'generatedframes');
 
@@ -63,7 +63,7 @@ end
         mt1=readactivities([pvpfilepath, 'a', num2str(mt1pvpnum), '.pvp']);
         mt2=readactivities([pvpfilepath, 'a', num2str(mt1pvpnum+1), '.pvp']);
     end
-    for(mtcnt=1) %[1,2])
+    for(mtcnt=[1,2])
         mtnumber=mtcnt;
         %originalinput=readactivities([pvpfilepath,'a1.pvp']);
         %[origx, origy, orignf, origt]=size(originalinput);
@@ -154,7 +154,7 @@ end
 
             threshhold=[threshhold,thresh*stdblah];
             %blah3=blah2<meanblahtmp-thresh*stdblah;
-            blah3=blah2<meanblahtmp-1.18; %1.2;  %0.9; %1.18
+            blah3=blah2<meanblahtmp-0.7; %1.18; %1.2;  %0.9; %1.18
             %blah3=blah2>38;
             %imagesc(double(blah3(:,[1:250])));colormap(Gray);
             %set(h, 'AlphaData', ((1-fliplr(rot90(rot90(blah3(:,[1:250])))))))
