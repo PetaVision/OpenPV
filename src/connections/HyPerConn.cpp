@@ -1934,9 +1934,10 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
 PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
-   for (int k = 0; k < nPatches; k++) {
-      patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-   }
+   setPatchDataStart(axonId, pvpatches_inplace_new(patches, nxPatch, nyPatch, nfPatch, nPatches));
+//   for (int k = 0; k < nPatches; k++) {
+//      patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+//   }
    return patches;
 }
 
