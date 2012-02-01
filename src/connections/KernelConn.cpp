@@ -59,6 +59,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    weightUpdateTime = initializeUpdateTime(params);
+   lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
    //int axonID = 0; // for now, only one axonal arbor
