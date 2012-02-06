@@ -745,23 +745,29 @@ int HyPerCol::checkpointRead() {
    }
    sprintf(cpDir, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
    chdir(cpDir);
-   size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
+   // size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
+   size_t bufsize = sizeof(int) + sizeof(float);
    unsigned char * buf = (unsigned char *) malloc(bufsize);
    assert(buf);
    if( icCommunicator()->commRank()==0 ) {
       FILE * timestampfile = fopen("timeinfo.bin","r");
       assert(timestampfile);
       fread(buf,1,bufsize,timestampfile);
+      fclose(timestampfile);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
+#ifdef OBSOLETE // Marked obsolete Feb 6, 2012.  nextCPWrite{Time,Step} is retrieved from params file so it doesn't have to be saved in timeinfo
    float * fbuf = (float *) (buf);
    int * ibuf = (int *) (buf+2*sizeof(float));
    simTime = fbuf[0];
    nextCPWriteTime = fbuf[1];
    currentStep = ibuf[0];
    nextCPWriteStep = ibuf[1];
+#endif // OBSOLETE
+   simTime = *((float *) buf);
+   currentStep = *((int *) (buf+sizeof(float)));
    float checkTime;
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(&checkTime);
@@ -770,6 +776,20 @@ int HyPerCol::checkpointRead() {
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointRead(&checkTime);
       assert(checkTime==simTime);
+   }
+   if(checkpointWriteFlag) {
+      if( cpWriteStepInterval > 0) {
+         assert(cpWriteTimeInterval<0.0f);
+         nextCPWriteStep = currentStep; // checkpointWrite should be called before any timesteps,
+             // analogous to checkpointWrite being called immediately after initialization on a fresh run.
+      }
+      else if( cpWriteTimeInterval > 0.0f ) {
+         assert(cpWriteStepInterval<0);
+         nextCPWriteTime = simTime; // checkpointWrite should be called before any timesteps
+      }
+      else {
+         assert(false); // if checkpointWriteFlag is set, one of cpWrite{Step,Time}Interval should be positive
+      }
    }
    chdir(path);
    return PV_SUCCESS;
@@ -803,6 +823,7 @@ int HyPerCol::checkpointWrite() {
    }
    if( icCommunicator()->commRank()==0 ) {
       FILE * timestampfile = fopen("timeinfo.bin","w");
+#ifdef OBSOLETE // Marked obsolete Feb 6, 2012.  nextCPWrite{Time,Step} is retrieved from params file so it doesn't have to be saved in timeinfo
       size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
       unsigned char * buf = (unsigned char *) malloc(bufsize);
       assert(buf && timestampfile);
@@ -816,6 +837,15 @@ int HyPerCol::checkpointWrite() {
       ibuf[1] = nextCPWriteStep;
       fwrite(buf,1,bufsize,timestampfile);
       free(buf);
+#endif // OBSOLETE
+      assert(timestampfile);
+      fwrite(&simTime,1,sizeof(float),timestampfile);
+      fwrite(&currentStep,1,sizeof(int),timestampfile);
+      fclose(timestampfile);
+      timestampfile = fopen("timeinfo.txt","w");
+      assert(timestampfile);
+      fprintf(timestampfile,"time = %g\n", simTime);
+      fprintf(timestampfile,"timestep = %d\n", currentStep);
       fclose(timestampfile);
    }
    chdir(path);
