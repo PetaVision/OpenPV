@@ -307,8 +307,8 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[0][kernelindex]->nx * dKernelPatches[0][kernelindex]->ny * dKernelPatches[0][kernelindex]->nf;
-      pvdata_t * dwpatchdata = dKernelPatches[0][kernelindex]->data;
+      int numpatchitems = dKernelPatches[axonId][kernelindex]->nx * dKernelPatches[axonId][kernelindex]->ny * dKernelPatches[axonId][kernelindex]->nf;
+      pvdata_t * dwpatchdata = dKernelPatches[axonId][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
