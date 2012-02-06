@@ -114,7 +114,7 @@ int PoolingGenConn::updateWeights(int axonID) {
             int lineoffsetw = 0;
             int lineoffseta = 0;
             for( int k=0; k<nk; k++ ) {
-                float w = wtpatch[lineoffsetw + k] + relaxation*0.5*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
+                float w = wtpatch[lineoffsetw + k] + relaxation*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
                 if( nonnegConstraintFlag && w < 0) w = 0;
                 wtpatch[lineoffsetw + k] = w;
             }
