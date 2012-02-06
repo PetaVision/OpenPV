@@ -1134,11 +1134,6 @@ int HyPerConn::createAxonalArbors(int arborId)
    // assert(axonalArborList[arborId] != NULL);
    //}
 
-   //for (int n = 0; n < numAxons; n++) {
-   //int numArbors = numWeightPatches();
-   PVPatch * dataPatches = (PVPatch *) calloc(numPatches, sizeof(PVPatch));
-   assert(dataPatches != NULL);
-
    for (int kex = 0; kex < numPatches; kex++) {
       // PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
