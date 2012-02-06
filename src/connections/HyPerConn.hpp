@@ -72,7 +72,7 @@ public:
    virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(const char * filename);
    virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
-#ifdef OBSOLETE_NBANDSFORARBORS
+#ifdef OBSOLETE // Marked obsolete Nov 29, 2011.
    virtual int writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last, int arborId);
 #endif // OBSOLETE_NBANDSFORARBORS
@@ -81,7 +81,7 @@ public:
                                                     {return PV_SUCCESS;}
 
    virtual int writePostSynapticWeights(float time, bool last);
-#ifdef OBSOLETE_NBANDSFORARBORS
+#ifdef OBSOLETE  // Marked obsolete Nov 29, 2011.
    virtual int writePostSynapticWeights(float time, bool last, int axonID);
 #endif // OBSOLETE_NBANDSFORARBORS
 

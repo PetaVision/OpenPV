@@ -1510,7 +1510,7 @@ int HyPerConn::writePostSynapticWeights(float timef, bool last) {
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE_NBANDSFORARBORS
+#ifdef OBSOLETE // Marked obsolete Nov 29, 2011.
 int HyPerConn::writePostSynapticWeights(float time, bool last) {
    for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
       writePostSynapticWeights(time, last, axonID);
@@ -1559,7 +1559,7 @@ int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
 
    return 0;
 }
-#endif // OBSOLETE_NBANDSFORARBORS
+#endif // OBSOLETE
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
