@@ -157,7 +157,16 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
       status = pvp_read_header(this->filename, icComm, &timed,
                           &pvpfiletype, &datatype, params, &numParams);
       assert(status == PV_SUCCESS);
-      assert(checkLoc(loc, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF], params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL])==PV_SUCCESS);
+      status = checkLoc(loc, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF], params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL]);
+      assert(status == PV_SUCCESS);
+      fileLoc.nx = params[INDEX_NX];
+      fileLoc.ny = params[INDEX_NY];
+      fileLoc.nf = params[INDEX_NF];
+      fileLoc.nb = params[INDEX_NB];
+      fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
+      fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
+      fileLoc.kx0 = icComm->commColumn()*fileLoc.nx;
+      fileLoc.ky0 = icComm->commRow()*fileLoc.ny;
       switch(pvpfiletype) {
       case PVP_FILE_TYPE:
          status = read_pvdata(this->filename, icComm, &timed, V,
@@ -178,7 +187,7 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
 
    }
    else { // Treat as an image file
-      status = getImageInfo(this->filename, icComm, &fileLoc);
+      status = getImageInfoGDAL(this->filename, icComm, &fileLoc);
       assert(status == PV_SUCCESS);
       assert(checkLoc(loc, fileLoc.nx, fileLoc.ny, fileLoc.nf, fileLoc.nxGlobal, fileLoc.nyGlobal)==PV_SUCCESS);
       int n=clayer->numNeurons;
