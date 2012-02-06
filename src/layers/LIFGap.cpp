@@ -190,7 +190,7 @@ int LIFGap::checkpointWrite() {
    // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
    assert(filename != NULL);
    sprintf(filename, "%s_G_Gap.pvp", name);
-   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/true, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;
 }
