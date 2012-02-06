@@ -544,7 +544,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 	   const int nfunshrunkPatch = wp_tmp->nf;
 	   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
 	   pvdata_t *wtop = this->getPatchDataStart(0);
-	   pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
+	   //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
 	   //pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
 	   //size_t data_offset = w - data_head;
 	   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*kPre]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
