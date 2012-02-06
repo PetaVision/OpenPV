@@ -6,7 +6,7 @@
  */
 
 #include "IdentConn.hpp"
-#include "InitIdentWeights.hpp"
+#include "../weightinit/InitIdentWeights.hpp"
 
 namespace PV {
 

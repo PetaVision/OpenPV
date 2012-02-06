@@ -18,11 +18,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
-#include "../connections/InitWeights.hpp"
-#include "../connections/InitCocircWeights.hpp"
-#include "../connections/InitSmartWeights.hpp"
-#include "../connections/InitUniformRandomWeights.hpp"
-#include "../connections/InitGaussianRandomWeights.hpp"
+#include "../weightinit/InitWeights.hpp"
+#include "../weightinit/InitCocircWeights.hpp"
+#include "../weightinit/InitSmartWeights.hpp"
+#include "../weightinit/InitUniformRandomWeights.hpp"
+#include "../weightinit/InitGaussianRandomWeights.hpp"
 
 namespace PV {
 

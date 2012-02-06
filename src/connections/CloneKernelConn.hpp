@@ -9,7 +9,7 @@
 #define CLONEKERNELCONN_HPP_
 
 #include "KernelConn.hpp"
-#include "InitCloneKernelWeights.hpp"
+#include "../weightinit/InitCloneKernelWeights.hpp"
 
 namespace PV {
 

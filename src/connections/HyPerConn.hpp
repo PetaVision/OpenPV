@@ -15,7 +15,7 @@
 #include "../io/BaseConnectionProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../utils/Timer.hpp"
-#include "InitWeights.hpp"
+#include "../weightinit/InitWeights.hpp"
 #include <stdlib.h>
 
 #ifdef PV_USE_OPENCL

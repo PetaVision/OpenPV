@@ -9,7 +9,7 @@
 #define INITTRANSPOSEWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
-#include "KernelConn.hpp"
+#include "../connections/KernelConn.hpp"
 
 namespace PV {
 
