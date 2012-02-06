@@ -36,9 +36,10 @@ protected:
    float displayPeriod;
    float distToData;
    int nextLabelTime;
+   pvdata_t strength;
 
    int setLabeledNeuronToValue(pvdata_t val);
-   int setLabeledNeuron() {return setLabeledNeuronToValue(1.0f);}
+   int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
    int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
    void sendBadNeuronMessage();
 
