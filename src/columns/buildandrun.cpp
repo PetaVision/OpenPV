@@ -823,11 +823,11 @@ int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayer
             size_t preLen = locto - name;
             preLayerName[preLen] = '\0';
             char * postLayerName = layerNames + preLen + strlen(separator);
-            *preLayerPtr = getLayerFromName(preLayerName, hc);
+            *preLayerPtr = hc->getLayerFromName(preLayerName);
             if( *preLayerPtr == NULL ) {
                fprintf(stderr, "Group \"%s\": Unable to get presynaptic layer \"%s\".\n", name, preLayerName);
             }
-            *postLayerPtr = getLayerFromName(postLayerName, hc);
+            *postLayerPtr = hc->getLayerFromName(postLayerName);
             if( *postLayerPtr == NULL ) {
                fprintf(stderr, "Group \"%s\": Unable to get postsynaptic layer \"%s\".\n", name, postLayerName);
             }
@@ -849,48 +849,22 @@ HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, c
    PVParams * params = hc->parameters();
    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
    if( !layerName ) return NULL;
-   HyPerLayer * l = getLayerFromName(layerName, hc);
+   HyPerLayer * l = hc->getLayerFromName(layerName);
    if( l == NULL && warnIfAbsent )  {
       fprintf(stderr, "Group \"%s\": could not find layer \"%s\"\n", groupName, layerName);
    }
    return l;
 }
 
-HyPerLayer * getLayerFromName(const char * layerName, HyPerCol * hc) {
-   int n = hc->numberOfLayers();
-   for( int i=0; i<n; i++ ) {
-      HyPerLayer * curLayer = hc->getLayer(i);
-      assert(curLayer);
-      const char * curLayerName = curLayer->getName();
-      assert(curLayerName);
-      if( !strcmp( curLayer->getName(), layerName) ) return curLayer;
-   }
-   return NULL;
-}
-
 HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
    PVParams * params = hc->parameters();
    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
    if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
-   HyPerConn * c = getConnFromName(connName, hc);
+   HyPerConn * c = hc->getConnFromName(connName);
    if( c == NULL && warnIfAbsent)  {
       fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
    }
    return c;
-}
-
-// make a method in HyPerCol?
-HyPerConn * getConnFromName(const char * connName, HyPerCol * hc) {
-   if( connName == NULL ) return NULL;
-   int n = hc->numberOfConnections();
-   for( int i=0; i<n; i++ ) {
-      HyPerConn * curConn = hc->getConnection(i);
-      assert(curConn);
-      const char * curConnName = curConn->getName();
-      assert(curConnName);
-      if( !strcmp( curConn->getName(), connName) ) return curConn;
-   }
-   return NULL;
 }
 
 ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
@@ -951,7 +925,7 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       keywordMatched = true;
       int kernelIndex = params->value(name, "kernelIndex", 0);
       int arborId = params->value(name, "arborId", 0);
-      targetConn = getConnFromName(params->stringValue(name, "targetConnection"), hc);
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
       if( targetConn ) {
          const char * filename = params->stringValue(name, "probeOutputFile");
          addedProbe = new KernelProbe(name, filename, hc, kernelIndex, arborId);

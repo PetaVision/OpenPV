@@ -58,6 +58,9 @@ public:
    int addLayer(HyPerLayer * l);
    int addConnection(HyPerConn * conn);
 
+   HyPerLayer * getLayerFromName(const char * layerName);
+   HyPerConn * getConnFromName(const char * connectionName);
+
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
    ColProbe * getColProbe(int which)      {return probes[which];}

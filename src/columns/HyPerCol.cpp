@@ -963,6 +963,33 @@ int HyPerCol::outputState(float time)
    return PV_SUCCESS;
 }
 
+
+HyPerLayer * HyPerCol::getLayerFromName(const char * layerName) {
+   int n = numberOfLayers();
+   for( int i=0; i<n; i++ ) {
+      HyPerLayer * curLayer = getLayer(i);
+      assert(curLayer);
+      const char * curLayerName = curLayer->getName();
+      assert(curLayerName);
+      if( !strcmp( curLayer->getName(), layerName) ) return curLayer;
+   }
+   return NULL;
+}
+
+HyPerConn * HyPerCol::getConnFromName(const char * connName) {
+   if( connName == NULL ) return NULL;
+   int n = numberOfConnections();
+   for( int i=0; i<n; i++ ) {
+      HyPerConn * curConn = getConnection(i);
+      assert(curConn);
+      const char * curConnName = curConn->getName();
+      assert(curConnName);
+      if( !strcmp( curConn->getName(), connName) ) return curConn;
+   }
+   return NULL;
+}
+
+
 int HyPerCol::checkMarginWidths() {
    // For each connection, make sure that the pre-synaptic margin width is
    // large enough for the patch size.
