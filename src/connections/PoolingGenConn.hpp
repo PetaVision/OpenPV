@@ -34,18 +34,16 @@ public:
 
 protected:
     int initialize_base();
-//    int initialize(const char * name, HyPerCol * hc,
-//            HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-//            ChannelType channel, const char * filename);
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-            ChannelType channel, const char * filename, InitWeights *weightInit);
-    int initialize(const char * name, HyPerCol * hc,
-            HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-            ChannelType channel);
+            ChannelType channel, const char * filename=NULL, InitWeights *weightInit=NULL);
     bool checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2);
+    int getSlownessLayer(HyPerLayer ** l, const char * paramname);
     HyPerLayer * pre2;
     HyPerLayer * post2;
+    bool slownessFlag;
+    HyPerLayer * slownessPre;
+    HyPerLayer * slownessPost;
 };  // end class PoolingGenConn
 
 }  // end namespace PV

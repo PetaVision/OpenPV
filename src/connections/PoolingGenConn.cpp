@@ -48,24 +48,33 @@ int PoolingGenConn::initialize_base() {
 int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
         HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
         ChannelType channel, const char * filename, InitWeights *weightInit) {
-    GenerativeConn::initialize(name, hc, pre, post, channel, filename, weightInit);
-    if( checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ) {
-        this->pre2 = pre2;
-        this->post2 = post2;
-        return PV_SUCCESS;
-    }
-    else {
-        return PV_FAILURE;
-    }
+   int status;
+   PVParams * params = hc->parameters();
+   status = GenerativeConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   if( status == PV_SUCCESS && checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ) {
+      this->pre2 = pre2;
+      this->post2 = post2;
+   }
+   else {
+      status = PV_FAILURE;
+   }
+   if( status == PV_SUCCESS ) {
+      slownessFlag = params->value(name, "slownessFlag", 0.0/*default is false*/);
+   }
+   if( slownessFlag ) {
+      status = getSlownessLayer(&slownessPre, "slownessPre");
+      status = getSlownessLayer(&slownessPost, "slownessPost")==PV_SUCCESS ? status : PV_FAILURE;
+   }
+   if( slownessFlag && status == PV_SUCCESS ) {
+      status = checkLayersCompatible(pre, slownessPre) ? status : PV_FAILURE;
+      status = checkLayersCompatible(post, slownessPost) ? status : PV_FAILURE;
+   }
+   if( status != PV_SUCCESS ) {
+      abort();
+   }
+   return status;
 }  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *)
-
-int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-        ChannelType channel) {
-    return initialize(name, hc, pre, post, pre2, post2, channel, NULL, NULL);
-}  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *)
+   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *, InitWeights *)
 
 bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
 	int nx1 = layer1->getLayerLoc()->nx;
@@ -89,6 +98,24 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
     }
     return result;
 }  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
+
+int PoolingGenConn::getSlownessLayer(HyPerLayer ** l, const char * paramname) {
+   int status = PV_SUCCESS;
+   assert(slownessFlag);
+   const char * slownessLayerName = parent->parameters()->stringValue(name, paramname, false);
+   if( slownessLayerName == NULL ) {
+      status = PV_FAILURE;
+      fprintf(stderr, "PoolingGenConn \"%s\": if slownessFlag is set, parameter \"%s\" must be set\n", name, paramname);
+   }
+   if( status == PV_SUCCESS ) {
+      *l = parent->getLayerFromName(slownessLayerName);
+      if( *l == NULL ) {
+         status = PV_FAILURE;
+         fprintf(stderr, "PoolingGenConn \"%s\": %s layer \"%s\" was not found\n", name, paramname, slownessLayerName);
+      }
+   }
+   return status;
+}
 
 int PoolingGenConn::updateWeights(int axonID) {
     int nPre = preSynapticLayer()->getNumNeurons();
@@ -115,14 +142,56 @@ int PoolingGenConn::updateWeights(int axonID) {
             int lineoffseta = 0;
             for( int k=0; k<nk; k++ ) {
                 float w = wtpatch[lineoffsetw + k] + relaxation*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
-                if( nonnegConstraintFlag && w < 0) w = 0;
                 wtpatch[lineoffsetw + k] = w;
             }
             lineoffsetw += syw;
             lineoffseta += sya;
         }
     }
-    // normalizeWeights now called in KernelConn::updateState // normalizeWeights( kernelPatches, numDataPatches(0) );
+    if( slownessFlag ) {
+       for(int kPre=0; kPre<nPre;kPre++) {
+           int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
+
+           size_t offset = getAPostOffset(kPre, axonID);
+           pvdata_t preact = slownessPre->getCLayer()->activity->data[kExt];
+           PVPatch * weights = getWeights(kPre,axonID);
+           int nyp = weights->ny;
+           int nk = weights->nx * weights->nf;
+           pvdata_t * postactRef = &(slownessPost->getCLayer()->activity->data[offset]);
+           int sya = getPostNonextStrides()->sy;
+           pvdata_t * wtpatch = weights->data;
+           int syw = weights->sy;
+           for( int y=0; y<nyp; y++ ) {
+               int lineoffsetw = 0;
+               int lineoffseta = 0;
+               for( int k=0; k<nk; k++ ) {
+                   float w = wtpatch[lineoffsetw + k] - relaxation*(preact*postactRef[lineoffseta + k]);
+                   wtpatch[lineoffsetw + k] = w;
+               }
+               lineoffsetw += syw;
+               lineoffseta += sya;
+           }
+       }
+    }
+    if( nonnegConstraintFlag ) {
+       for(int kPatch=0; kPatch<numDataPatches();kPatch++) {
+          PVPatch * weights = this->getKernelPatch(axonID, kPatch);
+          pvdata_t * wtpatch = weights->data;
+           int nk = weights->nx * nfp;
+           int syw = nxp*nfp;
+           for( int y=0; y < weights->ny; y++ ) {
+               int lineoffsetw = 0;
+               for( int k=0; k<nk; k++ ) {
+                   pvdata_t w = wtpatch[lineoffsetw + k];
+                   if( w<0 ) {
+                      wtpatch[lineoffsetw + k] = 0;
+                   }
+               }
+               lineoffsetw += syw;
+           }
+       }
+    }
+    // normalizeWeights now called in KernelConn::updateState
     lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;
