@@ -38,7 +38,7 @@ int ShadowRandomPatchMovie::initialize(const char * name, HyPerCol * hc, const c
       fprintf(stderr,"ShadowRandomPatchMovie \"%s\": the string parameter shadowedRandomPatchMovie must be set.  Exiting\n", name);
       exit(EXIT_FAILURE);
    }
-   HyPerLayer * shadowedLayer = getLayerFromName(shadowedName, hc);
+   HyPerLayer * shadowedLayer = hc->getLayerFromName(shadowedName);
    shadowedRandomPatchMovie = dynamic_cast<RandomPatchMovie *>(shadowedLayer);
    if( this->shadowedRandomPatchMovie == NULL ) {
       fprintf(stderr, "ShadowRandomPatchMovie \"%s\": shadowed layer \"%s\" must be a RandomPatchMovie\n", name, shadowedName);
