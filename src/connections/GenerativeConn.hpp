@@ -27,9 +27,6 @@ public:
          const char * filename, InitWeights *weightInit);
 
    int initialize_base();
-   //    int initialize(const char * name, HyPerCol * hc,
-   //            HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-   //            const char * filename=NULL);
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
          const char * filename, InitWeights *weightInit);
@@ -47,7 +44,6 @@ protected:
    virtual int update_dW(int axonID);
 
    float relaxation;
-   int * patchindices; // An array whose length is the number of extended neurons in the presynaptic layer
    bool nonnegConstraintFlag;
    int normalizeMethod;
    float normalizeConstant;

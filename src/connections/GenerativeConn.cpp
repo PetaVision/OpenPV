@@ -71,17 +71,7 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 
    //GenerativeConn has not been updated to support multiple arbors!
    assert(numberOfAxonalArborLists()==1);
-   // For now, only one arbor.
-   // If we add arbors, patchindices will need to take the arbor index as an argument
 
-   patchindices = (int *) malloc( pre->getNumExtended()*sizeof(int) );
-   if( patchindices==NULL ) {
-      fprintf(stderr,"GenerativeConn \"%s\": unable to allocate memory for patchindices\n",name);
-      exit(EXIT_FAILURE);
-   }
-   for( int kex=0; kex<pre->getNumExtended(); kex++ ) {
-      patchindices[kex] = this->patchIndexToKernelIndex(kex);
-   }
    return PV_SUCCESS;
 }
 
