@@ -79,7 +79,7 @@ int PlasticConnTestProbe::outputState(float timef, HyPerConn * c) {
          }
       }
    }
-   // assert(status==PV_SUCCESS);
+   assert(status==PV_SUCCESS);
    if( status == PV_SUCCESS ) {
       if( outputWeights ) fprintf(fp, "        All weights are correct.\n");
       if( outputPlasticIncr ) fprintf(fp, "        All plastic increments are correct.\n");
