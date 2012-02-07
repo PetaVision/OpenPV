@@ -99,7 +99,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       int kernelIndex = params->value(name, "kernelIndex");
       int arborID = params->value(name, "arborId");
       const char * targetConnName = params->stringValue(name, "targetConnection");
-      HyPerConn * targetConn = getConnFromName(targetConnName, hc);
+      HyPerConn * targetConn = hc->getConnFromName(targetConnName);
       if( targetConn ) {
          const char * filename = params->stringValue(name, "probeOutputFile");
          addedProbe = new PlasticConnTestProbe(name, filename, hc, kernelIndex, arborID);
