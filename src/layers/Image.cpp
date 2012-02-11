@@ -41,8 +41,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 
    PVParams * params = parent->parameters();
    this->writeImages = params->value(name, "writeImages", 0) != 0;
-   this->offsetX      = (int) params->value(name,"offsetX", 0);
-   this->offsetY      = (int) params->value(name,"offsetY", 0);
+   readOffsets();
 
    if(filename != NULL ) {
       this->filename = strdup(filename);
@@ -71,6 +70,13 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    exchange();
 
    return status;
+}
+
+int Image::readOffsets() {
+   PVParams * params = parent->parameters();
+   this->offsetX      = (int) params->value(name,"offsetX", 0);
+   this->offsetY      = (int) params->value(name,"offsetY", 0);
+   return PV_SUCCESS;
 }
 
 int Image::initializeV() {

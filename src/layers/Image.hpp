@@ -18,6 +18,7 @@ class Image : public HyPerLayer {
 protected:
    Image();
    int initialize(const char * name, HyPerCol * hc, const char * filename);
+   virtual int readOffsets(); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
    virtual int initializeV();
 
 public:
