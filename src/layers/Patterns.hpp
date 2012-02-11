@@ -37,7 +37,7 @@ class Patterns : public PV::Image {
 public:
    Patterns(const char * name, HyPerCol * hc, PatternType type);
    virtual ~Patterns();
-   virtual int updateState(float time, float dt);
+   virtual int updateState(float timef, float dt);
 
    void setProbMove(float p)     {pMove = p;}
    void setProbSwitch(float p)   {pSwitch = p;}
@@ -53,7 +53,11 @@ protected:
 
    Patterns();
    int initialize(const char * name, HyPerCol * hc, PatternType type);
-   int initPattern(float val);
+   virtual int readOffsets() {return PV_SUCCESS;}
+   int setOrientation(OrientationMode ormode);
+   int generatePattern(float val);
+   int generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val);
+   int updatePattern(float timef);
    float calcPosition(float pos, int step);
 
    PatternType type;
@@ -71,12 +75,19 @@ protected:
    float pSwitch;
    float pMove;
    float movementSpeed; //save a movement speed in pixels/time step
+   float positionBound; // The supremum of possible values of position
 
 
    int minWidth, maxWidth;
    int minHeight, maxHeight;
+   int wavelengthVert;
+   int wavelengthHoriz;
+   float maxVal;
    char * patternsOutputPath;  // path to output file directory for patterns
 
+   float displayPeriod;   // length of time a frame is displayed
+   float nextDisplayTime; // time of next frame
+   FILE * patternsFile;
 
 private:
    float rotation;

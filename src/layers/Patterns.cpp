@@ -14,8 +14,6 @@
 namespace PV {
 
 // CER-new
-FILE * fp;
-int start = 0;
 
 Patterns::Patterns() {
    initialize_base();
@@ -28,12 +26,14 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
 
 int Patterns::initialize_base() {
    patternsOutputPath = NULL;
+   patternsFile = NULL;
 
    return PV_SUCCESS;
 }
 
 int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    Image::initialize(name, hc, NULL);
+   assert(this->clayer->loc.nf == 1);
    this->type = type;
 
    // set default params
@@ -54,7 +54,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    const char * orientationModeStr = hc->parameters()->stringValue(name, "orientation");
    if( ! orientationModeStr ) {
       this->orientation = vertical;
-      this->lastOrientation = orientation;
    }
    else {
       OrientationMode orientationMode;
@@ -69,11 +68,9 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
       if( orientationModeMatch ) {
          this->orientation = orientationMode;
-         this->lastOrientation = orientationMode;
       }
       else { //if the set orientation isn't recognized, use vertical as default
          this->orientation = vertical;
-         this->lastOrientation = orientation;
       }
    }
 
@@ -115,16 +112,17 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    //
    PVParams * params = hc->parameters();
 
-   minWidth  = 4.0;
-   minHeight = 4.0;
-
-   maxWidth  = params->value(name, "width", loc->nx);
-   maxHeight = params->value(name, "height", loc->ny);
+   maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
+   maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
+   if( type == BARS ) {
+      wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
+      wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
+   }
 
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
 
-   if((type == COSWAVE)||(type =SINEWAVE))
+   if((type == COSWAVE)||(type == SINEWAVE))
       rotation = params->value(name, "rotation", 0.0);
 
    movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
@@ -145,33 +143,59 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
    }
    initPatternCntr=0;
-   writePosition     = (int) params->value(name,"writePosition", 0);
+   writePosition = (int) params->value(name,"writePosition", 0);
    if(writePosition){
       char file_name[PV_PATH_MAX];
 
       //Return value of snprintf commented out because it was generating an
       //unused-variable compiler warning.
       //
-      snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
+      snprintf(file_name, PV_PATH_MAX-1, "%s/patterns-pos.txt", patternsOutputPath);
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       printf("write position to %s\n",file_name);
       // TODO In MPI, fp should only be opened and written to by root process
-      fp = fopen(file_name,"a");
-      assert(fp != NULL);
+      patternsFile = fopen(file_name,"a");
+      assert(patternsFile != NULL);
    }
 
-   initPattern(PATTERNS_MAXVAL);
+   maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
 
-   // make sure initialization is finished
-   updateState(0.0, 0.0);
+   displayPeriod = params->value(name,"displayPeriod", 0.0f);
+   // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
+   nextDisplayTime = hc->simulationTime() + displayPeriod;
+
+   setOrientation(orientation); // Sets positionBound based on orientation
+
+   generatePattern(maxVal);
 
    return PV_SUCCESS;
 }
 
 Patterns::~Patterns()
 {
-   // CER-new
-   fclose(fp);
+   free(patternsOutputPath);
+
+   if( patternsFile != NULL ) {
+      fclose(patternsFile);
+      patternsFile = NULL;
+   }
+}
+
+int Patterns::setOrientation(OrientationMode ormode) {
+   orientation = ormode;
+   switch(ormode) {
+   case vertical:
+      positionBound = wavelengthVert;
+      break;
+   case horizontal:
+      positionBound = wavelengthHoriz;
+      break;
+   case mixed:
+   default:
+      assert(0);
+      break;
+   }
+   return PV_SUCCESS;
 }
 
 int Patterns::tag()
@@ -182,7 +206,7 @@ int Patterns::tag()
       return 10*position;
 }
 
-int Patterns::initPattern(float val)
+int Patterns::generatePattern(float val)
 {
    int width, height;
 
@@ -232,39 +256,76 @@ int Patterns::initPattern(float val)
       return 0;
    }
    else if (type == BARS) { // type is bars
-
-
+      return generateBars(orientation, data, nx, ny, val);
+/*
+      int idx;
       if (orientation == vertical) { // vertical bars
-         width = maxWidth;
          for (int iy = 0; iy < ny; iy++) {
-            for (int ix = 0; ix < nx; ix++) {
-               //int m = (ix + int(position)) % (2*width);
-               float m = ix + position - (floor((ix + position) / (2*width))) * (2*width); //calculate position including fraction
-               //float m = (ix + position);
-               if((int(m)==width)||(int(m)==0)) data[ix * sx + iy * sy] = (m-int(m))*val;
-               else if(m<width) data[ix * sx + iy * sy] = val;
-               //else if(int(m)==width) data[ix * sx + iy * sy] = (1-(m-int(m)))*val;
-               //else if(int(m)==width+1) data[ix * sx + iy * sy] = (m-int(m))*val;
-               else data[ix * sx + iy * sy] = 0;
-               //data[ix * sx + iy * sy] = (m < width) ? val : 0;
+            // data is maxVal on the interval [position,position+maxWidth), discretized by pixels.
+            // Set the pixel at floor(position) to maxVal*( 1-(mod(position,1)) ),
+            // then subsequent pixels are set to maxVal, until the total mass is less than maxVal,
+            // then the next pixel is set to the remainder.
+            // The pattern is then repeated with period wavelengthVert.
+            float mass = maxWidth;
+            float point = position;
+            int ix = ((int) floor(point)) % wavelengthVert;
+            float dm = maxVal*(1-(point-ix));
+            idx = ix*sx + iy*sy;
+            data[idx] = dm;
+            mass -= dm;
+            dm = maxVal;
+            while( mass > dm ) {
+               ix++; ix %= wavelengthVert;
+               idx = ix*sx + iy*sy;
+               data[idx] = dm;
+               mass -= dm;
+            }
+            ix++; ix %= wavelengthVert;
+            idx = ix*sx + iy*sy;
+            data[idx] = mass;
+
+            // Repeat with period wavelengthVert
+            for(int ix = wavelengthVert; ix < nx; ix++ ) {
+                int idx1 = ix*sx + iy*sy;
+                int idx0 = (ix-wavelengthVert)*sx + iy*sy;
+                data[idx1] = data[idx0];
             }
          }
       }
       else { // horizontal bars
-         height = maxHeight;
-         for (int iy = 0; iy < ny; iy++) {
-            //int m = (iy + position) % (2*height);
-            float m = iy + position - (floor((iy + position) / (2*height))) * (2*height); //calculate position including fraction
-            for (int ix = 0; ix < nx; ix++) {
-               if((int(m)==height)||(int(m)==0)) data[ix * sx + iy * sy] = (m-int(m))*val;
-               else if(m<height) data[ix * sx + iy * sy] = val;
-               //else if(int(m)==height+1) data[ix * sx + iy * sy] = (1-(m-int(m)))*val;
-               else data[ix * sx + iy * sy] = 0;
-               //data[ix * sx + iy * sy] = (m < height) ? val : 0;
+         for (int ix = 0; ix < nx; ix++) {
+            // data is maxVal on the interval [position,position+maxHeight), discretized by pixels.
+            // Set the pixel at floor(position) to maxVal*( 1-(mod(position,1)) ),
+            // then subsequent pixels are set to maxVal, until the total mass is less than maxVal,
+            // then the next pixel is set to the remainder.
+            // The pattern is then repeated with period wavelengthHoriz.
+            float mass = maxHeight;
+            float point = position;
+            int iy = ((int) floor(point)) % wavelengthHoriz;
+            float dm = maxVal*(1-(point-iy));
+            idx = ix*sx + iy*sy;
+            data[idx] = dm;
+            mass -= dm;
+            dm = maxVal;
+            while( mass > dm ) {
+               iy++; iy %= wavelengthHoriz;
+               idx = ix*sx + iy*sy;
+               data[idx] = dm;
+               mass -= dm;
+            }
+            iy++; iy %= wavelengthHoriz;
+            idx = ix*sx + iy*sy;
+            data[idx] = mass;
+
+            // Repeat with period wavelengthHoriz
+            for(int iy = wavelengthHoriz; iy < nx; iy++ ) {
+                int idx1 = ix*sx + iy*sy;
+                int idx0 = ix*sx + (iy-wavelengthHoriz)*sy;
+                data[idx1] = data[idx0];
             }
          }
       }
-
+ */
       return 0;
    }
    else if (type == COSWAVE) {
@@ -343,66 +404,125 @@ int Patterns::initPattern(float val)
    return 0;
 }
 
+int Patterns::generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val) {
+   int crossstride, alongstride;  // strides in the direction across the bar and along the bar, respectively
+   int crosssize, alongsize; // Size of buffer in the direction across the bar and along the bar, respectively
+   int wavelength;
+   int width;
+   switch(ormode) {
+   case vertical:
+      crossstride = 1; // assumes number of features = 1;
+      alongstride = nx;
+      crosssize = nx;
+      alongsize = ny;
+      wavelength = wavelengthVert;
+      width = maxWidth;
+      break;
+   case horizontal:
+      crossstride = nx;
+      alongstride = 1; // assumes number of features = 1;
+      crosssize = ny;
+      alongsize = nx;
+      wavelength = wavelengthHoriz;
+      width = maxHeight;
+      break;
+   case mixed:
+   default:
+      assert(0);
+      break;
+   }
+
+   // data is val on [position,position+width), discretized by pixels
+   // Set the pixel at floor(position) to maxVal*( 1-(mod(position,1)) ).
+   // Subsequent pixels are set to val (in the while loop), until the
+   // remaining mass is less than maxVal;
+   // The next pixel after that is set to the remainder.
+   // The pattern is then repeated with period wavelength in the direction
+   // across the bar; and repeated with period one in the direction along
+   // the bar.
+   float mass = width;
+   float point = position;
+   int k = ((int) floor(point)) % wavelength;
+   float dm = val*(1-(point-k));
+   buf[k*crossstride] = dm;
+   mass -= dm;
+   dm = val;
+   while( mass > dm ) {
+      k++; k %= wavelength;
+      data[k*crossstride] = dm;
+      mass -= dm;
+   }
+   k++; k %= wavelength;
+   data[k*crossstride] = mass;
+
+   // Repeat with period wavelength
+   for( k = wavelength; k < crosssize; k++ ) {
+      data[k*crossstride] = data[(k-wavelength)*crossstride];
+   }
+
+   // Repeat in the direction along the bar
+   for( int m = 0; m < crosssize; m++ ) {
+      int idxsrc = m*crossstride;
+      for( k = 1; k < alongsize; k++ ) {
+         int idxdest = idxsrc + k*alongstride;
+         data[idxdest] = data[idxsrc];
+      }
+   }
+
+   return PV_SUCCESS;
+}
+
 /**
  * update the image buffers
  */
-int Patterns::updateState(float time, float dt) {
-   update_timer->start();
+int Patterns::updateState(float timef, float dt) {
+   int status = PV_SUCCESS;
+   bool needNewPattern = timef >= nextDisplayTime;
+   if (needNewPattern) {
+      nextDisplayTime += displayPeriod;
+      status = updatePattern(timef);
+   }
+   return status;
+}
 
-   int size = 0;
-   int changed = 0;
+int Patterns::updatePattern(float timef) {
+   update_timer->start();
 
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
+   bool newPattern = false;
 
-   if (orientation == vertical) { // current vertical gratings
-      size = maxWidth;
-      if (p < pSwitch) { // switch with probability pSwitch
-         orientation = horizontal;
-         initPattern(PATTERNS_MAXVAL);
-      }
-   }
-   else {
-      size = maxHeight;
-      if (p < pSwitch) { // current horizontal gratings
-         orientation = vertical;
-         initPattern(PATTERNS_MAXVAL);
-      }
+   if( p < pSwitch) { // switch with probability pSwitch
+      setOrientation(orientation == vertical ? horizontal : vertical);
+      newPattern = true;
    }
 
    // moving probability
-   double p_move = pv_random_prob();
-   if (p_move < pMove) {
-      position = calcPosition(position, 2*size);
-      //position = (start++) % 4;
-      //position = prefPosition;
-      initPattern(PATTERNS_MAXVAL);
+   p -= pSwitch; // Doesn't make sense to both switch and move
+   if (p >= 0 && p < pMove) {
+      newPattern = true;
       //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
    }
-   else {
-      position = lastPosition;
-   }
 
-   if (lastPosition != position || lastOrientation != orientation) {
-      lastPosition = position;
-      lastOrientation = orientation;
-      lastUpdateTime = time;
-      changed = 1;
+   if (newPattern) {
+      lastUpdateTime = timef;
+      position = calcPosition(position, positionBound);
+      generatePattern(maxVal);
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
          if (type == BARS)
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.tif", patternsOutputPath, time);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.tif", patternsOutputPath, timef);
          else if (type == RECTANGLES){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.tif", patternsOutputPath, time);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == SINEWAVE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.tif", patternsOutputPath, time);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == COSWAVE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.tif", patternsOutputPath, time);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == IMPULSE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, time);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
          }
          write(basicfilename);
       }
@@ -410,55 +530,25 @@ int Patterns::updateState(float time, float dt) {
 
    update_timer->stop();
 
-   return changed;
+   return (int) newPattern;
 }
 
 /**
  *
- *  Return an integer between 0 and (step-1)
+ *  Return a value in the interval [0,step)
+ *  For movementType RANDOMJUMP or RANDOMWALK, value is integral
+ *  For MOVEFORWARD or MOVEBACKWARD, returns a float
  */
 float Patterns::calcPosition(float pos, int step)
 {
-   // float dp = 1.0 / step;
    double p = pv_random_prob();
-   /*
-    * now use movementType to determine which kind of movement to make
-   int random_walk = 1;
-   int move_forward = 0;
-   int move_backward = 0;
-   int random_jump = 0;*/
-
-   /* old code:
-   if (random_walk) {
-      if (p < 0.5){
-         pos = (pos+1) % step;
-      } else {
-         pos = (pos-1+step) % step;
-      }
-      //printf("pos = %f\n",position);
-   } else if (move_forward){
-      pos = (pos+1) % step;
-   } else if (move_backward){
-      pos = (pos-1+step) % step;
-   }
-   else if (random_jump) {
-      pos = int(p * step) % step;
-   }*/
 
    switch (movementType) {
-   case RANDOMWALK:
-      if (p < 0.5){
-         //pos = (int(pos)+1) % step;
-         pos = ((int)(pos+movementSpeed)) % step;
-      } else {
-         //pos = (int(pos)-1+step) % step;
-         pos = ((int)(pos-movementSpeed)) % step;
-      }
-      break;
    case MOVEFORWARD:
      pos = (pos+movementSpeed) ;
      if(pos>step) {pos -= step;}
      if(pos<0) {pos += step;}
+     if(pos>step) {pos -= step;}
     break;
    case MOVEBACKWARD:
       pos = (pos-movementSpeed) ;
@@ -466,15 +556,14 @@ float Patterns::calcPosition(float pos, int step)
       if(pos>step) {pos -= step;}
      break;
    case RANDOMJUMP:
-      pos = int(p * step) % step;
+      pos = floor(p * step);
       break;
+   case RANDOMWALK:
    default: //in case of any problems with setting the movementType var, just use the
-      //random walk as default
+            //random walk as default
       if (p < 0.5){
-         //pos = (int(pos)+1) % step;
          pos = ((int)(pos+movementSpeed)) % step;
       } else {
-         //pos = (int(pos)-1+step) % step;
          pos = ((int)(pos-movementSpeed)) % step;
       }
       break;
