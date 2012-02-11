@@ -250,7 +250,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", false);
 
    const char * lcfilename = params->stringValue(name, "outputNamesOfLayersAndConns", false);
-   if( lcfilename != NULL && rank==0 ) {
+   if( lcfilename != NULL && lcfilename[0] != 0 && rank==0 ) {
       outputNamesOfLayersAndConns = (char *) malloc( (strlen(outputPath)+strlen(lcfilename)+2)*sizeof(char) );
       if( !outputNamesOfLayersAndConns ) {
          fprintf(stderr, "HyPerCol \"%s\": Unable to allocate memory for outputNamesOfLayersAndConns.  Exiting.\n", name);
