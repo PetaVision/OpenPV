@@ -67,26 +67,27 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
-             "ANNSquaredLayer",
-             "ANNDivInhLayer",
-                 "GenerativeLayer",
-                   "LogLatWTAGenLayer",
-                 "ODDLayer",
-                 "CliqueLayer",
-                 "PoolingANNLayer",
-                 "PtwiseProductLayer",
-                 "TrainingLayer",
-               "GapLayer",
-               "HMaxSimple",
-               "Image",
-                 "CreateMovies",
-                 "ImageCreator",
-                 "Movie",
-                 "Patterns",
-               "LIF",
-                  "LIFGap",
-               "Retina",
-               "SigmoidLayer",
+               "ANNSquaredLayer",
+               "ANNDivInhLayer",
+               "CliqueLayer",
+               "GenerativeLayer",
+                 "LogLatWTAGenLayer",
+               "IncrementLayer",
+               "ODDLayer",
+               "PoolingANNLayer",
+               "PtwiseProductLayer",
+               "TrainingLayer",
+             "GapLayer",
+             "HMaxSimple",
+             "Image",
+               "CreateMovies",
+               "ImageCreator",
+               "Movie",
+               "Patterns",
+             "LIF",
+                "LIFGap",
+             "Retina",
+             "SigmoidLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -301,6 +302,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "LogLatWTAGenLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "IncrementLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new IncrementLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PoolingANNLayer") ) {

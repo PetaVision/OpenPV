@@ -20,6 +20,7 @@
 #include "../layers/PVLayer.h"
 #include "../layers/ANNLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"
+#include "../layers/IncrementLayer.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
 #include "../layers/ODDLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
