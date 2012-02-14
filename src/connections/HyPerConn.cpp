@@ -175,40 +175,45 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   // axonalArborList = (PVAxonalArbor**) calloc(numAxonalArborLists, sizeof(PVAxonalArbor*));
-   // assert(axonalArborList != NULL);
-   gSynPatchStart = (pvdata_t ***) malloc( numAxonalArborLists*sizeof(pvdata_t **) );
+   gSynPatchStart = (pvdata_t ***) calloc( numAxonalArborLists, sizeof(pvdata_t **) );
    if( gSynPatchStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   pvdata_t ** gSynPatchStartBuffer = (pvdata_t **) malloc( numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(pvdata_t *));
-   if( gSynPatchStartBuffer == NULL ) {
+   pvdata_t ** gSynPatchStartBuffer = (pvdata_t **) calloc(
+         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+               * preSynapticLayer()->getNumExtended(), sizeof(pvdata_t *));
+   if (gSynPatchStartBuffer == NULL) {
       createArborsOutOfMemory();
       assert(false);
    }
-   for( int k=0; k<numAxonalArborLists; k++ ) {
-      gSynPatchStart[k] = gSynPatchStartBuffer + k*preSynapticLayer()->getNumExtended();
+   for (int k = 0; k < numAxonalArborLists; k++) {
+      gSynPatchStart[k] = gSynPatchStartBuffer
+            + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-   aPostOffset = (size_t **) malloc(numAxonalArborLists*sizeof(size_t *));
+
+   aPostOffset = (size_t **) calloc(numAxonalArborLists, sizeof(size_t *));
    if( aPostOffset == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   size_t * aPostOffsetBuffer = (size_t *) malloc(numAxonalArborLists*preSynapticLayer()->getNumExtended()*sizeof(size_t));
+   size_t * aPostOffsetBuffer = (size_t *) calloc(
+         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+               * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if( aPostOffsetBuffer == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
    for( int k=0; k<numAxonalArborLists; k++ ) {
-      aPostOffset[k] = aPostOffsetBuffer + k*preSynapticLayer()->getNumExtended();
+      aPostOffset[k] = aPostOffsetBuffer
+            + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-   delays = (int *) malloc(numAxonalArborLists*sizeof(int));
+   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
    if( delays == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   patchDataStart = (pvdata_t **) malloc(numAxonalArborLists*sizeof(pvdata_t *));
+   patchDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
    if( patchDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
