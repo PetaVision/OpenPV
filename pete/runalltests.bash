@@ -1,9 +1,18 @@
 #! /usr/bin/env bash
+#
+# This script runs each systems test and each unit test, suppressing all
+# output but reporting whether the test passed or failed.  The system tests
+# that get run are hardcoded in the script; you need to add a new section
+# if a new test is created.
+#
+# The script assumes that it is in a subdirectory of the eclipse workspace folder
+# (I have it in my sandbox directory)
+
 if test "${0%/*}" != "$0"
 then
     cd "${0%/*}"
 fi
-cd ..
+cd .. # Assumes the script is in a subdirectory of the eclipse workspace folder
 wd=$PWD
 
 function runandecho() {
