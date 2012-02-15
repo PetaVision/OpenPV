@@ -40,6 +40,9 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc, int numChannels)
       fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
       abort();
    }
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      assert(GSyn[0][k]==0 && GSyn[1][k]==0);
+   }
 
    return status;
 }
@@ -56,21 +59,24 @@ int IncrementLayer::readVThreshParams(PVParams * params) {
 
 int IncrementLayer::updateState(float timef, float dt) {
    int status = PV_SUCCESS;
-   if( !VInited && timef >= firstUpdateTime ) {
-      status = updateV();
-      VInited = true;
-   }
-   else if( VInited && timef >= nextUpdateTime ) {
-      nextUpdateTime += displayPeriod;
-      pvdata_t * Vprev1 = Vprev;
-      pvdata_t * V = getV();
-      for( int k=0; k<getNumNeurons(); k++ ) {
-         *(Vprev1++) = *(V++);
+   if( VInited ) {
+      if( timef >= nextUpdateTime ) {
+         nextUpdateTime += displayPeriod;
+         pvdata_t * Vprev1 = Vprev;
+         pvdata_t * V = getV();
+         for( int k=0; k<getNumNeurons(); k++ ) {
+            *(Vprev1++) = *(V++);
+         }
       }
-      updateV();
-      setActivity();
+      status = ANNLayer::updateState(timef, dt);
    }
-   resetGSynBuffers();
+   else {
+      if( timef >= firstUpdateTime ) {
+         status = updateV();
+         resetGSynBuffers();
+         VInited = true;
+      }
+   }
    return status;
 }
 
