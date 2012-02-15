@@ -257,76 +257,6 @@ int Patterns::generatePattern(float val)
    }
    else if (type == BARS) { // type is bars
       return generateBars(orientation, data, nx, ny, val);
-/*
-      int idx;
-      if (orientation == vertical) { // vertical bars
-         for (int iy = 0; iy < ny; iy++) {
-            // data is maxVal on the interval [position,position+maxWidth), discretized by pixels.
-            // Set the pixel at floor(position) to maxVal*( 1-(mod(position,1)) ),
-            // then subsequent pixels are set to maxVal, until the total mass is less than maxVal,
-            // then the next pixel is set to the remainder.
-            // The pattern is then repeated with period wavelengthVert.
-            float mass = maxWidth;
-            float point = position;
-            int ix = ((int) floor(point)) % wavelengthVert;
-            float dm = maxVal*(1-(point-ix));
-            idx = ix*sx + iy*sy;
-            data[idx] = dm;
-            mass -= dm;
-            dm = maxVal;
-            while( mass > dm ) {
-               ix++; ix %= wavelengthVert;
-               idx = ix*sx + iy*sy;
-               data[idx] = dm;
-               mass -= dm;
-            }
-            ix++; ix %= wavelengthVert;
-            idx = ix*sx + iy*sy;
-            data[idx] = mass;
-
-            // Repeat with period wavelengthVert
-            for(int ix = wavelengthVert; ix < nx; ix++ ) {
-                int idx1 = ix*sx + iy*sy;
-                int idx0 = (ix-wavelengthVert)*sx + iy*sy;
-                data[idx1] = data[idx0];
-            }
-         }
-      }
-      else { // horizontal bars
-         for (int ix = 0; ix < nx; ix++) {
-            // data is maxVal on the interval [position,position+maxHeight), discretized by pixels.
-            // Set the pixel at floor(position) to maxVal*( 1-(mod(position,1)) ),
-            // then subsequent pixels are set to maxVal, until the total mass is less than maxVal,
-            // then the next pixel is set to the remainder.
-            // The pattern is then repeated with period wavelengthHoriz.
-            float mass = maxHeight;
-            float point = position;
-            int iy = ((int) floor(point)) % wavelengthHoriz;
-            float dm = maxVal*(1-(point-iy));
-            idx = ix*sx + iy*sy;
-            data[idx] = dm;
-            mass -= dm;
-            dm = maxVal;
-            while( mass > dm ) {
-               iy++; iy %= wavelengthHoriz;
-               idx = ix*sx + iy*sy;
-               data[idx] = dm;
-               mass -= dm;
-            }
-            iy++; iy %= wavelengthHoriz;
-            idx = ix*sx + iy*sy;
-            data[idx] = mass;
-
-            // Repeat with period wavelengthHoriz
-            for(int iy = wavelengthHoriz; iy < nx; iy++ ) {
-                int idx1 = ix*sx + iy*sy;
-                int idx0 = ix*sx + (iy-wavelengthHoriz)*sy;
-                data[idx1] = data[idx0];
-            }
-         }
-      }
- */
-      return 0;
    }
    else if (type == COSWAVE) {
       if (orientation == vertical) { // vertical bars
@@ -440,7 +370,7 @@ int Patterns::generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int n
    // The pattern is then repeated with period wavelength in the direction
    // across the bar; and repeated with period one in the direction along
    // the bar.
-   float mass = width;
+   float mass = val*width;
    float point = position;
    int k = ((int) floor(point)) % wavelength;
    float dm = val*(1-(point-k));
