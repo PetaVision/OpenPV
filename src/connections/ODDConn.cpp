@@ -229,9 +229,9 @@ int ODDConn::updateWeights(int axonID)
       size_t postOffset = getAPostOffset(kPre, axonID);
       const pvdata_t * aPost = &post->getLayerData()[postOffset];
 
-      int nk  = wPatch->nf * wPatch->nx; // one line in x at a time
+      int nk  = nfp * wPatch->nx; // one line in x at a time
       int ny  = wPatch->ny;
-      int sy  = wPatch->sy;
+      int sy  = syp;
 
       int kfPre = kPre % nKernels;
       PVPatch * gPatch = ODDPatches[axonID][kfPre];

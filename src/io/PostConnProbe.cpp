@@ -123,7 +123,7 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    w = wPost[arborID][kPost];
 
-   const int nw = w->nx * w->ny * w->nf;
+   const int nw = w->nx * w->ny * nfPost; //w->nf;
 
    if (wPrev == NULL) {
       wPrev = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
@@ -180,18 +180,23 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    return 0;
 }
 
+//broken but never referenced: if used need to change patch size and strides to match post-synaptic patch
+/*
 int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
-                                          pvdata_t * data, pvdata_t * prev, pvdata_t * activ)
+                                          pvdata_t * data, pvdata_t * prev, pvdata_t * activ, HyPerConn * parentConn)
 {
    int f, i, j;
 
    const int nx = patch->nx;
    const int ny = patch->ny;
-   const int nf = patch->nf;
+   const int nf = parentConn->fPatchSize(); //patch->nf;
 
-   const int sx = patch->sx;  assert(sx == nf);
-   const int sy = patch->sy;  assert(sy == nf*nx); // stride could be weird at border
-   const int sf = patch->sf;  assert(sf == 1);
+   const int sx = parentConn->xPatchStride(); //patch->sx;
+   assert(sx == nfp);
+   const int sy = parentConn->yPatchStride(); //patch->sy;
+   assert(sy == nf*nxp); // stride could be weird at border
+   const int sf = parentConn->fPatchStride(); //patch->sf;
+   assert(sf == 1);
 
    assert(fp != NULL);
 
@@ -219,6 +224,7 @@ int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
 
    return 0;
 }
+*/
 
 
 } // namespace PV

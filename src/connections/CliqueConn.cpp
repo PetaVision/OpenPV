@@ -175,9 +175,9 @@ int CliqueConn::update_dW(int arborId)
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 
-         int nkPatch = dWPatch->nf * dWPatch->nx;
+         int nkPatch = nfp * dWPatch->nx;
          int nyPatch = dWPatch->ny;
-         int syPatch = dWPatch->sy;
+         int syPatch = syp;
 
          // TODO - unroll
          for (int y = 0; y < nyPatch; y++) {

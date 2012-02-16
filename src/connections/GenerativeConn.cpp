@@ -86,12 +86,12 @@ int GenerativeConn::updateWeights(int axonID) {
       pvdata_t * wdata = w->data;
       PVPatch * dw = dKernelPatches[0][k];
       pvdata_t * dwdata = dw->data;
-      const int sxp = w->sx;
-      const int syp = w->sy;
-      const int sfp = w->sf;
+      //const int sxp = w->sx;
+      //const int syp = w->sy;
+      //const int sfp = w->sf;
       for( int y = 0; y < w->ny; y++ ) {
          for( int x = 0; x < w->nx; x++ ) {
-            for( int f = 0; f < w->nf; f++ ) {
+            for( int f = 0; f < nfp; f++ ) {
                int idx = f*sfp + x*sxp + y*syp;
                wdata[idx] += relaxation*dwdata[idx];
                if( nonnegConstraintFlag && wdata[idx] < 0) wdata[idx] = 0;
@@ -135,7 +135,7 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arb
       status = KernelConn::normalizeWeights(patches, numPatches, arborId);
       break;
    case 2:
-      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);
+      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(nfp);
       for( int n=0; n<neuronsperpatch; n++ ) {
          pvdata_t s = 0;
          for( int k=0; k<numPatches; k++ ) {
@@ -149,7 +149,7 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arb
       }
       break;
    case 3:
-      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(patches[0]->nf);
+      neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(nfp);
       for( int k=0; k<numPatches; k++ ) {
          PVPatch * curpatch = patches[k];
          pvdata_t s = 0;

@@ -130,6 +130,9 @@ int HyPerConn::initialize_base()
    this->nxp = 1;
    this->nyp = 1;
    this->nfp = 1;
+   this->sxp = 1;
+   this->syp = 1;
+   this->sfp = 1;
    this->parent = NULL;
    this->connId = 0;
    this->pre = NULL;
@@ -297,11 +300,11 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
    int nxp = weights->nx;
    int nyp = weights->ny;
-   int nfp = weights->nf;
+   //int nfp = weights->nf;
 
-   int sxp = weights->sx;
-   int syp = weights->sy;
-   int sfp = weights->sf;
+   //int sxp = weights->sx;
+   //int syp = weights->sy;
+   //int sfp = weights->sf;
 
    int maxnx = -999999;
    int minnx = 999999;
@@ -333,7 +336,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
-      pvpatch_adjust(weights, nxNew, nyNew, dxNew, dyNew);
+      pvpatch_adjust(weights, sxp, syp, nxNew, nyNew, dxNew, dyNew);
 
       // adjust patch size (shrink) for the data to fit within interior of post-synaptic layer
       //
@@ -457,7 +460,7 @@ int HyPerConn::initPlasticityPatches()
          //
          //arbor->plasticIncr = pIncr[n][kex];
          //arbor->plasticIncr = pIncr[arborId][kex];
-         pvpatch_adjust(pIncr[arborId][kex], nxPatch, nyPatch, dx, dy);
+         pvpatch_adjust(pIncr[arborId][kex], sxp, syp, nxPatch, nyPatch, dx, dy);
 
       } // loop over pre-synaptic neurons
       setdWPatches(pIncr[arborId], arborId);
@@ -836,7 +839,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
       // give a chance for derived classes to add extra information
       //
       writeTextWeightsExtra(fd, k, arbor);
-      pv_text_write_patch(fd, wPatches[arbor][k]);
+      pv_text_write_patch(fd, wPatches[arbor][k], nfp, sxp, syp, sfp);
       fprintf(fd, "----------------------------\n");
    }
 
@@ -1160,7 +1163,7 @@ int HyPerConn::createAxonalArbors(int arborId)
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
-      pvpatch_adjust(getWeights(kex,arborId), nxPatch, nyPatch, dx, dy);
+      pvpatch_adjust(getWeights(kex,arborId), sxp, syp, nxPatch, nyPatch, dx, dy);
 
    } // loop over arbors (pre-synaptic neurons)
    //} // loop over neighbors
@@ -1262,12 +1265,12 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
                PVPatch * p = wPatches[axonID][kPre];
                //PVPatch * p = c->getWeights(kPre, arbor);
 
-               const int nfp = p->nf;
+               //const int nfp = p->nf;
 
                // get strides for possibly shrunken patch
-               const int sxp = p->sx;
-               const int syp = p->sy;
-               const int sfp = p->sf;
+               //const int sxp = p->sx;
+               //const int syp = p->sy;
+               //const int sfp = p->sf;
 
                // *** Old Method (fails test_post_weights) *** //
                // The patch from the pre-synaptic layer could be smaller at borders.
@@ -1588,18 +1591,18 @@ int HyPerConn::sumWeights(PVPatch * wp, double * sum, double * sum2, pvdata_t * 
    assert(w != NULL);
    const int nx = wp->nx;
    const int ny = wp->ny;
-   const int nf = wp->nf;
-   const int sy = wp->sy;
+   //const int nfp = wp->nf;
+   //const int syp = wp->sy;
    double sum_tmp = 0;
    double sum2_tmp = 0;
    pvdata_t max_tmp = -FLT_MAX;
    for (int ky = 0; ky < ny; ky++) {
-      for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
+      for(int iWeight = 0; iWeight < nfp * nx; iWeight++ ){
          sum_tmp += w[iWeight];
          sum2_tmp += w[iWeight] * w[iWeight];
          max_tmp = ( max_tmp > w[iWeight] ) ? max_tmp : w[iWeight];
       }
-      w += sy;
+      w += syp;
    }
    *sum = sum_tmp;
    *sum2 = sum2_tmp;
@@ -1610,7 +1613,7 @@ int HyPerConn::sumWeights(PVPatch * wp, double * sum, double * sum2, pvdata_t * 
 int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
 {
    assert(wp != NULL);
-   int num_weights = wp->nx * wp->ny * wp->nf;
+   int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
    if (!this->normalize_arbors_individually){
       num_weights *= numberOfAxonalArborLists(); // assumes all arbors shrunken equally at this point (shrink patches should occur after normalize)
    }
@@ -1636,11 +1639,11 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t 
    pvdata_t * w = wp->data;
    assert(w != NULL);
    for (int ky = 0; ky < wp->ny; ky++) {
-      for(int iWeight = 0; iWeight < wp->nf * wp->nx; iWeight++ ){
+      for(int iWeight = 0; iWeight < nfp * wp->nx; iWeight++ ){
          w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
          w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
       }
-      w += wp->sy;
+      w += syp;
    }
    maxVal = ( maxVal - zero_offset ) * scale_factor;
    maxVal = ( fabs(maxVal) > fabs(normalize_cutoff) ) ? maxVal : 0.0f;
@@ -1682,7 +1685,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbor
       double sum2 = 0;
       float maxVal = -FLT_MAX;
       status = sumWeights(wp, &sum, &sum2, &maxVal);
-      int num_weights = wp->nx * wp->ny * wp->nf;
+      int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
       float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
       if( sum != 0 || sigma2 != 0 ) {
          status = checkNormalizeWeights(wp, sum, sigma2, maxVal);
@@ -1846,6 +1849,9 @@ int HyPerConn::setPatchSize(const char * filename)
                post->getCLayer()->loc.nf, post->getName() );
       exit(PV_FAILURE);
    }
+   sfp = 1;
+   sxp = nfp;
+   syp = nfp * nxp;
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
    status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');

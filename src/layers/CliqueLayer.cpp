@@ -193,13 +193,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 
-         int nkPost = weights->nf * weights->nx;
+         int nkPost = conn->getPost()->getLayerLoc()->nf * weights->nx;
          int nyPost = weights->ny;
-         int sywPatch = weights->sy; // stride in patch
+         int sywPatch = conn->yPatchStride(); // stride in patch
 
          // TODO - unroll
          for (int y = 0; y < nyPost; y++) {
-            // pvpatch_accumulate(nkPost, GSyn->data + y*syPost, cliqueProd, weights->data + y*sywPatch);
             pvpatch_accumulate(nkPost,
                   conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost, cliqueProd,
                   weights->data + y * sywPatch);

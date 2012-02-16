@@ -58,8 +58,8 @@ int SiblingConn::normalizeFamily()
          assert(siblingWeights != NULL);
          const int nx = myWpatch->nx;
          const int ny = myWpatch->ny;
-         const int nf = myWpatch->nf;
-         const int sy = myWpatch->sy;
+         const int nf = nfp;
+         const int sy = syp;
          for (int ky = 0; ky < ny; ky++) {
             for (int iWeight = 0; iWeight < nf * nx; iWeight++) {
                pvdata_t norm_denom = fabs(siblingWeights[iWeight]) + fabs(myWeights[iWeight]);

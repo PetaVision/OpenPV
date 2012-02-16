@@ -23,10 +23,10 @@ int ConvolveConn::initialize(const char * filename)
    patch.data = pre->clayer->V;
    patch.nx = nxp;
    patch.ny = nyp;
-   patch.nf = nfp;
-   patch.sx = nfp;
-   patch.sy = nfp * nxp;
-   patch.sf = 1;
+   //patch.nf = nfp;
+   //patch.sx = nfp;
+   //patch.sy = nfp * nxp;
+   //patch.sf = 1;
 
    return 0;
 }

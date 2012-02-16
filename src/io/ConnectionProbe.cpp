@@ -116,14 +116,14 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
 
       if (P != NULL && M != NULL) {
          fprintf(fp, "M= ");
-         text_write_patch(fp, P, M);
+         text_write_patch(fp, P, M, c);
       }
       if (P != NULL) {
          fprintf(fp, "P= ");
-         text_write_patch(fp, P, P->data); // write the P variable
+         text_write_patch(fp, P, P->data, c); // write the P variable
       }
       fprintf(fp, "w= ");
-      text_write_patch(fp, w, w->data);
+      text_write_patch(fp, w, w->data, c);
       fprintf(fp, "\n");
       fflush(fp);
    } // if (stdpVars)
@@ -155,17 +155,20 @@ int ConnectionProbe::outputState(float time, HyPerConn * c)
    return 0;
 }
 
-int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data)
+int ConnectionProbe::text_write_patch(FILE * fp, PVPatch * patch, float * data, HyPerConn * parentConn)
 {
    int f, i, j;
 
    const int nx = patch->nx;
    const int ny = patch->ny;
-   const int nf = patch->nf;
+   const int nf = parentConn->fPatchSize(); //patch->nf;
 
-   const int sx = patch->sx;  assert(sx == nf);
-   const int sy = patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
-   const int sf = patch->sf;  assert(sf == 1);
+   const int sx = parentConn->xPatchStride(); //patch->sx;
+   assert(sx == nf);
+   const int sy = parentConn->yPatchStride(); //patch->sy;  //
+   assert(sy == nf*parentConn->xPatchSize()); // stride could be weird at border
+   const int sf = parentConn->fPatchStride(); //patch->sf;
+   assert(sf == 1);
 
    assert(fp != NULL);
 
@@ -207,7 +210,7 @@ int ConnectionProbe::write_patch_indices(FILE * fp, PVPatch * patch,
 
    const int nx = patch->nx;
    const int ny = patch->ny;
-   const int nf = patch->nf;
+   const int nf = loc->nf; //patch->nf;
 
    // these strides are from the layer, not the patch
    // NOTE: assumes nf from layer == nf from patch

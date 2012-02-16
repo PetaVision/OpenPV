@@ -63,9 +63,9 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
       PVPatch * p = patches[k];
       const pvdata_t * data = p->data;
 
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
+      const int sxp = nfp; //p->sx;
+      const int syp = nfp * nxp; //p->sy;
+      const int sfp = 1; //p->sf;
 
       unsigned short * nxny = (unsigned short *) cptr;
 
@@ -74,11 +74,11 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
 
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(p->nf);
+      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(nfp);
       if( compressed ) {
          for (int y = 0; y < p->ny; y++) {
             for (int x = 0; x < p->nx; x++) {
-               for (int f = 0; f < p->nf; f++) {
+               for (int f = 0; f < nfp; f++) {
                   float val = data[x*sxp + y*syp + f*sfp];
                   val = 255.0 * (val - minVal) / (maxVal - minVal);
                   *cptr++ = (unsigned char) (val + 0.5f);
@@ -96,7 +96,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
       else {
          for (int y = 0; y < p->ny; y++) {
             for (int x = 0; x < p->nx; x++) {
-               for (int f = 0; f < p->nf; f++) {
+               for (int f = 0; f < nfp; f++) {
                   float val = data[x*sxp + y*syp + f*sfp];
                   memcpy(cptr, &val, sizeof(float));
                   cptr += sizeof(float);
@@ -137,19 +137,19 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
 
       p->nx = (int) nxny[0];
       p->ny = (int) nxny[1];
-      p->nf = nfp;
+      //p->nf = nfp;
 
-      p->sf = sfp;
-      p->sx = sxp;
-      p->sy = syp;
+      //p->sf = sfp;
+      //p->sx = sxp;
+      //p->sy = syp;
 
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(p->nf);
+      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(nfp);
       if( compress ) {
          for (int y = 0; y < p->ny; y++) {
             for (int x = 0; x < p->nx; x++) {
-               for (int f = 0; f < p->nf; f++) {
+               for (int f = 0; f < nfp; f++) {
                   // data are packed into chars
                   float val = (float) *cptr++;
                   int offset = x*sxp + y*syp + f*sfp;
@@ -165,7 +165,7 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
       else {
          for (int y = 0; y < p->ny; y++) {
             for (int x = 0; x < p->nx; x++) {
-               for (int f = 0; f < p->nf; f++) {
+               for (int f = 0; f < nfp; f++) {
                   int offset = x*sxp + y*syp + f*sfp;
                   float val;
                   memcpy(&val, cptr, sizeof(float));

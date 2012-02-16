@@ -96,7 +96,7 @@ int pv_read_patches(FILE *fp, int nxp, int nyp, int nfp, float minVal, float max
                     int numPatches, PVPatch ** patches);
 int log_parameters(int n_time_steps, char * input_filename);
 #endif // OBSOLETE
-int pv_text_write_patch(FILE * fd, PVPatch * patch);
+int pv_text_write_patch(FILE * fd, PVPatch * patch, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
 FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf);

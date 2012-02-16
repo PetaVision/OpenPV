@@ -253,9 +253,9 @@ int KernelConn::clear_dW(int axonId) {
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
          PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy); // eventually dKernelPatches->data will be split out and the other fields will be replaced by references to kernelPatches[kAxon][kKernel]
-         int syPatch = dKernelPatch->sy;
-         int nkPatch = dKernelPatch->nf * dKernelPatch->nx;
+         //assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy); // eventually dKernelPatches->data will be split out and the other fields will be replaced by references to kernelPatches[kAxon][kKernel]
+         int syPatch = syp; //dKernelPatch->sy;
+         int nkPatch = nfp * dKernelPatch->nx;
          float * dWeights = dKernelPatch->data;
          for(int kyPatch = 0; kyPatch < dKernelPatch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
@@ -287,11 +287,11 @@ int KernelConn::defaultUpdate_dW(int axonId) {
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
-      int nk = weights->nx * weights->nf;
+      int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
       int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
       pvdata_t * dwdata = get_dWData(kExt, axonId);
-      int syw = getWeights(kExt, axonId)->sy;
+      int syw = syp;
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -307,7 +307,7 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[axonId][kernelindex]->nx * dKernelPatches[axonId][kernelindex]->ny * dKernelPatches[axonId][kernelindex]->nf;
+      int numpatchitems = dKernelPatches[axonId][kernelindex]->nx * dKernelPatches[axonId][kernelindex]->ny * nfp;
       pvdata_t * dwpatchdata = dKernelPatches[axonId][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
@@ -370,8 +370,8 @@ int KernelConn::updateWeights(int axonId){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
          PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
          PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         int syPatch = kernelPatch->sy;
-         int nkPatch = kernelPatch->nf * kernelPatch->nx;
+         int syPatch = syp;
+         int nkPatch = nfp * kernelPatch->nx;
          pvdata_t * weights = kernelPatch->data;
          pvdata_t * dWeights = dKernelPatch->data;
          for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
@@ -412,13 +412,13 @@ int KernelConn::reduceKernels(const int axonID) {
       PVPatch * p = dKernelPatches[axonID][k];
       const pvdata_t * data = p->data;
 
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
+      //const int sxp = p->sx;
+      //const int syp = p->sy;
+      //const int sfp = p->sf;
 
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
+            for (int f = 0; f < nfp; f++) {
                mpiReductionBuffer[idx] = data[x*sxp + y*syp + f*sfp];
                idx++;
             }
@@ -445,13 +445,13 @@ int KernelConn::reduceKernels(const int axonID) {
       PVPatch * p = dKernelPatches[axonID][k];
       pvdata_t * data = p->data;
 
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
+      //const int sxp = p->sx;
+      //const int syp = p->sy;
+      //const int sfp = p->sf;
 
       for (int y = 0; y < p->ny; y++) {
          for (int x = 0; x < p->nx; x++) {
-            for (int f = 0; f < p->nf; f++) {
+            for (int f = 0; f < nfp; f++) {
                data[x*sxp + y*syp + f*sfp] = mpiReductionBuffer[idx]/nProcs;
                idx++;
             }

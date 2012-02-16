@@ -986,17 +986,17 @@ int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
  * @fd
  * @patch
  */
-int pv_text_write_patch(FILE * fd, PVPatch * patch)
+int pv_text_write_patch(FILE * fd, PVPatch * patch, int nf, int sx, int sy, int sf)
 {
    int f, i, j;
 
    const int nx = (int) patch->nx;
    const int ny = (int) patch->ny;
-   const int nf = (int) patch->nf;
+   //const int nf = (int) patch->nf;
 
-   const int sx = (int) patch->sx;  assert(sx == nf);
-   const int sy = (int) patch->sy;  //assert(sy == nf*nx);
-   const int sf = (int) patch->sf;  assert(sf == 1);
+   //const int sx = (int) patch->sx;  assert(sx == nf);
+   //const int sy = (int) patch->sy;  //assert(sy == nf*nx);
+   //const int sf = (int) patch->sf;  assert(sf == 1);
 
    assert(fd != NULL);
 

@@ -111,6 +111,9 @@ public:
    inline int xPatchSize()                           {return nxp;}
    inline int yPatchSize()                           {return nyp;}
    inline int fPatchSize()                           {return nfp;}
+   inline int xPatchStride()                         {return sxp;}
+   inline int yPatchStride()                         {return syp;}
+   inline int fPatchStride()                         {return sfp;}
 
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
@@ -199,6 +202,7 @@ protected:
 
    char * name;
    int nxp, nyp, nfp;      // size of weight dimensions
+   int sxp, syp, sfp;    // stride in x,y,features
 
    int numParams;
    //PVConnParams * params;

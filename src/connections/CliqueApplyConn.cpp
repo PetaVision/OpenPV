@@ -23,21 +23,21 @@ int CliqueApplyConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * p
 }
 
 
-int sumCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, double * sum_denom, double * sum_weights)
+int sumCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, double * sum_denom, double * sum_weights, HyPerConn * parentConn)
 {
    assert(targetWpatch != NULL);
    pvdata_t * targetWeights = targetWpatch->data;
    assert(targetWeights != NULL);
    const int nx = targetWpatch->nx;
    const int ny = targetWpatch->ny;
-   const int nf = targetWpatch->nf;
-   const int sy = targetWpatch->sy;
+   const int nf = parentConn->fPatchSize();
+   const int sy = parentConn->yPatchStride();
    assert(distractorWpatch != NULL);
    pvdata_t * distractorWeights = distractorWpatch->data;
    assert(distractorWeights != NULL);
    assert(nx == distractorWpatch->nx);
    assert(ny == distractorWpatch->ny);
-   assert(nf == distractorWpatch->nf);
+   //assert(nf == distractorWpatch->nf);
    double sum_denom_tmp = 0;
    double sum_weights_tmp = 0;
    for (int ky = 0; ky < ny; ky++) {
@@ -56,21 +56,21 @@ int sumCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, double 
 } // sumCliqueWeights
 
 
-int scaleCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, double sum_denom, double sum_weights)
+int scaleCliqueWeights(PVPatch * targetWpatch, PVPatch * distractorWpatch, double sum_denom, double sum_weights, HyPerConn * parentConn)
 {
    assert(targetWpatch != NULL);
    pvdata_t * targetWeights = targetWpatch->data;
    assert(targetWeights != NULL);
    const int nx = targetWpatch->nx;
    const int ny = targetWpatch->ny;
-   const int nf = targetWpatch->nf;
-   const int sy = targetWpatch->sy;
+   const int nf = parentConn->fPatchSize();
+   const int sy = parentConn->yPatchStride();
    assert(distractorWpatch != NULL);
    pvdata_t * distractorWeights = distractorWpatch->data;
    assert(distractorWeights != NULL);
    assert(nx == distractorWpatch->nx);
    assert(ny == distractorWpatch->ny);
-   assert(nf == distractorWpatch->nf);
+   //assert(nf == distractorWpatch->nf);
    pvdata_t shift_val = 0; //(sum_denom != 0.0f) ? ((1.0f/2.0f) * sum_weights / sum_denom) : 0.0f;
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
@@ -110,13 +110,13 @@ int CliqueApplyConn::normalizeWeights(PVPatch ** patches, int numPatches, int ar
    for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
       PVPatch * targetWpatch = this->getKernelPatch(0,kPatch);
       PVPatch * distractorWpatch = this->getKernelPatch(1,kPatch);
-      status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights);
+      status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights, this);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       loop_count = 0;
       while((fabs(sum_denom) > tol) && (loop_count < max_loop_count)){
-         status = scaleCliqueWeights(targetWpatch, distractorWpatch, sum_denom, sum_weights);
+         status = scaleCliqueWeights(targetWpatch, distractorWpatch, sum_denom, sum_weights, this);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-         status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights);
+         status = sumCliqueWeights(targetWpatch, distractorWpatch, &sum_denom, &sum_weights, this);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          loop_count++;
        } // while
@@ -130,8 +130,8 @@ int CliqueApplyConn::normalizeWeights(PVPatch ** patches, int numPatches, int ar
       assert(distractorWeights != NULL);
       const int nx = targetWpatch->nx;
       const int ny = targetWpatch->ny;
-      const int nf = targetWpatch->nf;
-      const int sy = targetWpatch->sy;
+      const int nf = nfp;
+      const int sy = syp;
       for (int ky = 0; ky < ny; ky++) {
          for(int iWeight = 0; iWeight < nf * nx; iWeight++ ){
             distractorWeights[iWeight] *= -1.0f;

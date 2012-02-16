@@ -222,9 +222,9 @@ int STDPConn::updateWeights(int axonId)
       pvdata_t * P = get_dWData(kPre, axonId);        // STDP increment variable
       pvdata_t * W = w->data;
 
-      int nk  = w->nf * w->nx; // one line in x at a time
+      int nk  = nfp * w->nx; // one line in x at a time
       int ny  = w->ny;
-      int sy  = w->sy;
+      int sy  = syp;
 
       // TODO - unroll
 
@@ -281,7 +281,7 @@ float STDPConn::maxWeight()
 int STDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, pIncr[arborID][k]); // write the Ps variable
+      pv_text_write_patch(fd, pIncr[arborID][k], nfp, sxp, syp, sfp); // write the Ps variable
    }
    return 0;
 }

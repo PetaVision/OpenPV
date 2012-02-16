@@ -43,8 +43,9 @@ enum ChannelType {
 
 typedef struct PVPatch_ {
    pvdata_t * __attribute__ ((aligned)) data;
-   int nx, ny, nf;    // number of items in x,y,features
-   int sx, sy, sf;    // stride in x,y,features
+   unsigned short nx, ny;
+//   int nx, ny, nf;    // number of items in x,y,features
+//   int sx, sy, sf;    // stride in x,y,features
 #ifndef PV_ARCH_64
    float padding;       // structure size should be 8*4 bytes
 #endif
@@ -106,19 +107,19 @@ void pvpatch_init(PVPatch * p, int nx, int ny, int nf,
 {
    p->nx = nx;
    p->ny = ny;
-   p->nf = nf;
-   p->sx = sx;
-   p->sy = sy;
-   p->sf = sf;
+//   p->nf = nf;
+//   p->sx = sx;
+//   p->sy = sy;
+//   p->sf = sf;
    p->data = data;
 }
 
 static inline
-void pvpatch_adjust(PVPatch * p, int nxNew, int nyNew, int dx, int dy)
+void pvpatch_adjust(PVPatch * p, int sx, int sy, int nxNew, int nyNew, int dx, int dy)
 {
    p->nx = nxNew;
    p->ny = nyNew;
-   p->data += dx * p->sx + dy * p->sy;
+   p->data += dx * sx + dy * sy;
 }
 
 #endif /* PV_TYPES_H_ */

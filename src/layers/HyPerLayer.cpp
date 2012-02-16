@@ -739,10 +739,10 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // WARNING - assumes weight and GSyn patches from task same size
       //         - assumes patch stride sf is 1
 
-      int nk  = weights->nf * weights->nx;
+      int nk  = conn->fPatchSize() * weights->nx;
       int ny  = weights->ny;
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
-      int syw = weights->sy;    // stride in patch
+      int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
       pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       // TODO - unroll
       for (int y = 0; y < ny; y++) {
