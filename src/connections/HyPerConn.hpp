@@ -242,6 +242,7 @@ protected:
 
 protected:
    virtual int setPatchSize(const char * filename);
+   virtual int setPatchStrides();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
    int calcPatchSize(int n, int kex,
                      int * kl, int * offset,

@@ -251,6 +251,7 @@ int HyPerConn::constructWeights(const char * filename)
    //numAxonalArborLists = 1;
 
    setPatchSize(filename);
+   setPatchStrides();
 
    //allocate weightpatches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
@@ -1849,9 +1850,6 @@ int HyPerConn::setPatchSize(const char * filename)
                post->getCLayer()->loc.nf, post->getName() );
       exit(PV_FAILURE);
    }
-   sfp = 1;
-   sxp = nfp;
-   syp = nfp * nxp;
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
    status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
@@ -1936,6 +1934,12 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
    return PV_SUCCESS;
 }
 
+int HyPerConn::setPatchStrides() {
+   sfp = 1;
+   sxp = nfp;
+   syp = nfp * nxp;
+   return PV_SUCCESS;
+}
 
 PVPatch ** HyPerConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
