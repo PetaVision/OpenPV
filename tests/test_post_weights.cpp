@@ -98,14 +98,14 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights)
 
       const int nxp = p->nx;
       const int nyp = p->ny;
-      const int nfp = p->nf;
+      const int nfp = c->fPatchSize(); // p->nf;
 
       // these strides are from the extended pre-synaptic layer, not the patch
       // NOTE: assumes nf from layer == nf from patch
       //
       const int sx = nfPre;
       const int sy = (nxPre + 2*nbPre) * nfPre;
-      const int sf = p->sf;
+      const int sf = c->fPatchStride(); // p->sf;
 
       pvdata_t * w = p->data;
 
@@ -177,15 +177,15 @@ static int set_weights_to_source_index(HyPerConn * c)
 
       c->postSynapticPatchHead(kPre, &kxPostHead, &kyPostHead, &kfPostHead, &dx, &dy, &nxp, &nyp);
 
-      const int nfp = p->nf;
+      const int nfp = c->fPatchSize(); // p->nf;
 
       assert(nxp == p->nx);
       assert(nyp == p->ny);
       assert(nfp == lPost->loc.nf);
 
-      const int sxp = p->sx;
-      const int syp = p->sy;
-      const int sfp = p->sf;
+      const int sxp = c->xPatchStride(); // p->sx;
+      const int syp = c->yPatchStride(); // p->sy;
+      const int sfp = c->fPatchStride(); // p->sf;
 
       pvdata_t * w = p->data;
 

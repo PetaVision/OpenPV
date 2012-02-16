@@ -64,12 +64,12 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * cocircPatch = cKernel->getWeights(kPre, axonID);
    
-   int nk = hyperPatch->nf * hyperPatch->nx;
-   assert(nk == (cocircPatch->nf * cocircPatch->nx));
+   int nk = cHyPer->fPatchSize() * (int) hyperPatch->nx; //; hyperPatch->nf * hyperPatch->nx;
+   assert(nk == (cKernel->fPatchSize() * (int) cocircPatch->nx)); // assert(nk == (cocircPatch->nf * cocircPatch->nx));
    int ny = hyperPatch->ny;
    assert(ny == cocircPatch->ny);
-   int sy = hyperPatch->sy;
-   assert(sy == cocircPatch->sy);
+   int sy = cHyPer->yPatchStride(); // hyperPatch->sy;
+   assert(sy == cKernel->yPatchStride()); // assert(sy == cocircPatch->sy);
    pvdata_t * hyperWeights = hyperPatch->data;
    pvdata_t * cocircWeights = cocircPatch->data;
    float test_cond = 0.0f;

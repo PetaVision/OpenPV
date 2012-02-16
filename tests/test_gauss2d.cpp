@@ -84,12 +84,12 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * kernelPatch = cKernel->getWeights(kPre, axonID);
 
-   int nk = hyperPatch->nf * hyperPatch->nx;
-   assert(nk == (kernelPatch->nf * kernelPatch->nx));
+   int nk = cHyPer->fPatchSize() * (int) hyperPatch->nx; // hyperPatch->nf * hyperPatch->nx;
+   assert(nk == (cKernel->fPatchSize() * (int) kernelPatch->nx));// assert(nk == (kernelPatch->nf * kernelPatch->nx));
    int ny = hyperPatch->ny;
    assert(ny == kernelPatch->ny);
-   int sy = hyperPatch->sy;
-   assert(sy == kernelPatch->sy);
+   int sy = cHyPer->yPatchStride(); // hyperPatch->sy;
+   assert(sy == cKernel->yPatchStride()); // assert(sy == kernelPatch->sy);
    pvdata_t * hyperWeights = hyperPatch->data;
    pvdata_t * kernelWeights = kernelPatch->data;
    float test_cond = 0.0f;
