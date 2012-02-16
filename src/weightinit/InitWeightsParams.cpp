@@ -63,13 +63,13 @@ void InitWeightsParams::getcheckdimensionsandstrides(PVPatch * patch) {
    // get/check dimensions and strides of full sized temporary patch
    nxPatch_tmp = patch->nx;
    nyPatch_tmp = patch->ny;
-   nfPatch_tmp = patch->nf;
+   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
 
-   sx_tmp = patch->sx;
-   assert(sx_tmp == patch->nf);
-   sy_tmp = patch->sy;
-   assert(sy_tmp == patch->nf * patch->nx);
-   sf_tmp = patch->sf;
+   sx_tmp = parentConn->xPatchStride(); //patch->sx;
+   assert(sx_tmp == parentConn->fPatchSize()); // patch->nf);
+   sy_tmp = parentConn->yPatchStride(); //patch->sy;
+   assert(sy_tmp == parentConn->fPatchSize()*parentConn->xPatchSize()); //patch->nf * patch->nx);
+   sf_tmp = parentConn->fPatchStride(); //patch->sf;
    assert(sf_tmp == 1);
 }
 

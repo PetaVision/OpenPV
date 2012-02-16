@@ -55,11 +55,11 @@ int InitUniformWeights::uniformWeights(PVPatch * wp, float iWeight) {
 
    const int nxp = wp->nx;
    const int nyp = wp->ny;
-   const int nfp = wp->nf;
+   const int nfp = parentConn->fPatchSize(); //wp->nf;
 
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
+   const int sxp = parentConn->xPatchStride(); //wp->sx;
+   const int syp = parentConn->yPatchStride(); //wp->sy;
+   const int sfp = parentConn->fPatchStride(); //wp->sf;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

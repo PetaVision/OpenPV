@@ -59,7 +59,7 @@ int InitOneToOneWeights::createOneToOneConnection(PVPatch * patch, int patchInde
    //int k=patchIndex;
    int k=weightParamPtr->getParentConn()->patchIndexToKernelIndex(patchIndex);
    PVPatch * kp = patch; //getKernelPatch(k);
-   assert(kp->nf == nfPatch_tmp);
+   //assert(kp->nf == nfPatch_tmp);
    assert(kp->nx == nxPatch_tmp);
    assert(kp->ny == nyPatch_tmp);
 
@@ -67,11 +67,11 @@ int InitOneToOneWeights::createOneToOneConnection(PVPatch * patch, int patchInde
 
    const int nxp = kp->nx;
    const int nyp = kp->ny;
-   const int nfp = kp->nf;
+   const int nfp = weightParamPtr->getnfPatch_tmp(); // kp->nf;
 
-   const int sxp = kp->sx;
-   const int syp = kp->sy;
-   const int sfp = kp->sf;
+   const int sxp = weightParamPtr->getsx_tmp(); // kp->sx;
+   const int syp = weightParamPtr->getsy_tmp(); //kp->sy;
+   const int sfp = weightParamPtr->getsf_tmp(); //kp->sf;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

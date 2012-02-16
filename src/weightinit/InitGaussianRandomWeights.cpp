@@ -79,11 +79,11 @@ int InitGaussianRandomWeights::gaussianWeights(PVPatch * wp, float mean, float s
 
    const int nxp = wp->nx;
    const int nyp = wp->ny;
-   const int nfp = wp->nf;
+   const int nfp = parentConn->xPatchSize(); //wp->nf;
 
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
+   const int sxp = parentConn->xPatchStride();
+   const int syp = parentConn->yPatchStride();
+   const int sfp = parentConn->fPatchStride();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

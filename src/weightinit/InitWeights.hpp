@@ -60,7 +60,7 @@ protected:
 //   HyPerLayer     * pre;
 //   HyPerLayer     * post;
 //   HyPerCol       * parent;
-//   HyPerConn      * parentConn;
+   HyPerConn      * parentConn;
 //   ChannelType channel;    // which channel of the post to update (e.g. inhibit)
 
 private:

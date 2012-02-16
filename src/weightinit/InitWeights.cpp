@@ -38,6 +38,7 @@ InitWeights::~InitWeights()
  * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
 PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
+   parentConn = callingConn;
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
    InitWeightsParams *weightParams = NULL;
@@ -182,17 +183,17 @@ PVPatch * InitWeights::createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * 
    // get dimensions of (potentially shrunken patch)
    const int nxPatch = wp->nx;
    const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
+   const int nfPatch = callingConn->fPatchSize(); //wp->nf;
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
    }
 
 
    // get strides of (potentially shrunken) patch
-   const int sx = wp->sx;
+   const int sx = callingConn->xPatchStride(); //wp->sx;
    assert(sx == nfPatch);
    //const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sf = wp->sf;
+   const int sf = callingConn->fPatchStride(); //wp->sf;
    assert(sf == 1);
 
    // make full sized temporary patch, positioned around center of unit cell
@@ -212,15 +213,15 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * 
    pvdata_t * w = wp->data;
    const int nxPatch = wp->nx;
    const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
+   const int nfPatch = parentConn->fPatchSize(); //wp->nf;
 
-   const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sy_tmp = wp_tmp->sy;
+   const int sy = parentConn->yPatchStride(); //wp->sy; // no assert here because patch may be shrunken
+   const int sy_tmp = sy; //wp_tmp->sy;
 
 
    const int nxunshrunkPatch = wp_tmp->nx;
    const int nyunshrunkPatch = wp_tmp->ny;
-   const int nfunshrunkPatch = wp_tmp->nf;
+   const int nfunshrunkPatch = parentConn->fPatchSize(); //wp_tmp->nf;
    const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
    pvdata_t * data_head1 = &wtop[unshrunkPatchSize*patchIndex]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
    pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
