@@ -112,8 +112,17 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    //
    PVParams * params = hc->parameters();
 
-   maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
-   maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
+   if( type == RECTANGLES ) {
+      maxWidth  = params->value(name, "maxWidth", loc->nx);
+      maxHeight = params->value(name, "maxHeight", loc->ny);
+      minWidth = params->value(name, "minWidth", maxWidth);
+      minHeight = params->value(name, "minWeight", maxHeight);
+   }
+   else {
+      maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
+      maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
+   }
+
    if( type == BARS ) {
       wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
       wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
@@ -500,6 +509,75 @@ float Patterns::calcPosition(float pos, int step)
    }
 
    return pos;
+}
+
+
+int Patterns::checkpointRead(float * timef) {
+   int status = HyPerLayer::checkpointRead(timef);
+   InterColComm * icComm = parent->icCommunicator();
+   char * filename = (char *) malloc( (strlen(name)+18)*sizeof(char) );
+   // The +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   assert(filename != NULL);
+
+   sprintf(filename, "%s_PatternState.bin", name);
+   if( icComm->commRank() == 0 ) {
+      FILE * fp = fopen(filename, "r");
+      if( fp != NULL ) {
+         status = fread(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fread(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fread(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         fclose(fp);
+      }
+      else {
+         fprintf(stderr, "Unable to read from \"%s\"\n", filename);
+      }
+   }
+   return status;
+}
+
+int Patterns::checkpointWrite() {
+   int status = HyPerLayer::checkpointWrite();
+   InterColComm * icComm = parent->icCommunicator();
+   char * filename = (char *) malloc( (strlen(name)+18)*sizeof(char) );
+   // The +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   assert(filename != NULL);
+
+   sprintf(filename, "%s_PatternState.bin", name);
+   if( icComm->commRank() == 0 ) {
+      FILE * fp = fopen(filename, "w");
+      if( fp != NULL ) {
+         status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         fclose(fp);
+      }
+      else {
+         fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+      }
+      sprintf(filename, "%s_PatternState.txt", name);
+      fp = fopen(filename, "w");
+      fprintf(fp, "Orientation = ");
+      switch(orientation) {
+      case horizontal:
+         fprintf(fp, "horizontal\n");
+         break;
+      case vertical:
+         fprintf(fp, "vertical\n");
+         break;
+      case mixed:
+         fprintf(fp, "mixed\n");
+         break;
+      default:
+         assert(0);
+         break;
+      }
+      fprintf(fp, "Position = %f\n", position);
+      fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
+      fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);
+   }
+   return PV_SUCCESS;
 }
 
 } // namespace PV

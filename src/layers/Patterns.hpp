@@ -49,6 +49,9 @@ public:
 
    virtual int tag();
 
+   int checkpointRead(float * timef);
+   int checkpointWrite();
+
 protected:
 
    Patterns();
@@ -67,7 +70,7 @@ protected:
                               //(random walk, horizontal or vertical drift
                               //or random jumping)
 
-   int writeImages;
+//   int writeImages;  // Base class Image already has member variable writeImages
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
    float position;
    int lastPosition;
