@@ -115,13 +115,13 @@ int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, int k)
 {
    pvdata_t * w = wp->data;
 
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
-   const int nfp = wp->nf;
+   const int nxp = (int) wp->nx;
+   const int nyp = (int) wp->ny;
+   const int nfp = fPatchSize();
 
-   const int sxp = wp->sx;
-   const int syp = wp->sy;
-   const int sfp = wp->sf;
+   const int sxp = xPatchStride();
+   const int syp = yPatchStride();
+   const int sfp = fPatchStride();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
@@ -212,16 +212,16 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 
 	   const int nxPatch = (int) wp->nx;
 	   const int nyPatch = (int) wp->ny;
-	   const int nfPatch = (int) wp->nf;
+	   const int nfPatch = fPatchSize();
 	   if (nxPatch * nyPatch * nfPatch == 0) {
 	      return 0; // reduced patch size is zero
 	   }
 
 	   // get strides of (potentially shrunken) patch
-	   const int sx = (int) wp->sx;
+	   const int sx = xPatchStride();
 	   assert(sx == nfPatch);
-	   const int sy = (int) wp->sy; // no assert here because patch may be shrunken
-	   const int sf = (int) wp->sf;
+	   const int sy = yPatchStride(); // no assert here because patch may be shrunken
+	   const int sf = fPatchStride();
 	   assert(sf == 1);
 
 	   // make full sized temporary patch, positioned around center of unit cell
@@ -232,7 +232,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 	   // get/check dimensions and strides of full sized temporary patch
 	   const int nxPatch_tmp = wp_tmp->nx;
 	   const int nyPatch_tmp = wp_tmp->ny;
-	   const int nfPatch_tmp = wp_tmp->nf;
+	   const int nfPatch_tmp = fPatchSize();  // should nfPatch_tmp just be replaced with nfPatch throughout?
 	   int kxKernelIndex;
 	   int kyKerneIndex;
 	   int kfKernelIndex;
@@ -241,11 +241,11 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 	   const int kxPre_tmp = kxKernelIndex;
 	   const int kyPre_tmp = kyKerneIndex;
 	   //   const int kfPre_tmp = kfKernelIndex;
-	   const int sx_tmp = wp_tmp->sx;
-	   assert(sx_tmp == wp_tmp->nf);
-	   const int sy_tmp = wp_tmp->sy;
-	   assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
-	   const int sf_tmp = wp_tmp->sf;
+	   const int sx_tmp = xPatchStride();
+	   assert(sx_tmp == fPatchSize());
+	   const int sy_tmp = yPatchStride();
+	   assert(sy_tmp == fPatchSize() * wp_tmp->nx);
+	   const int sf_tmp = fPatchStride();
 	   assert(sf_tmp == 1);
 
 	   // get distances to nearest neighbor in post synaptic layer
@@ -541,7 +541,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
 	   w = wp->data;
 	   const int nxunshrunkPatch = wp_tmp->nx;
 	   const int nyunshrunkPatch = wp_tmp->ny;
-	   const int nfunshrunkPatch = wp_tmp->nf;
+	   const int nfunshrunkPatch = fPatchSize();
 	   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
 	   pvdata_t *wtop = this->getPatchDataStart(0);
 	   //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
@@ -621,9 +621,9 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    bool self = (pre != post);
 
    // get dimensions of (potentially shrunken patch)
-   const int nxPatch = wp->nx;
-   const int nyPatch = wp->ny;
-   const int nfPatch = wp->nf;
+   const int nxPatch = (int) wp->nx;
+   const int nyPatch = (int) wp->ny;
+   const int nfPatch = fPatchSize();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
    }
@@ -631,10 +631,10 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    pvdata_t * w = wp->data;
 
    // get strides of (potentially shrunken) patch
-   const int sx = wp->sx;
+   const int sx = xPatchStride();
    assert(sx == nfPatch);
-   const int sy = wp->sy; // no assert here because patch may be shrunken
-   const int sf = wp->sf;
+   const int sy = yPatchStride(); // no assert here because patch may be shrunken
+   const int sf = fPatchStride();
    assert(sf == 1);
 
    // make full sized temporary patch, positioned around center of unit cell
@@ -645,7 +645,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = wp_tmp->nx;
    const int nyPatch_tmp = wp_tmp->ny;
-   const int nfPatch_tmp = wp_tmp->nf;
+   const int nfPatch_tmp = fPatchSize();
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
@@ -654,11 +654,11 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp = wp_tmp->sx;
-   assert(sx_tmp == wp_tmp->nf);
-   const int sy_tmp = wp_tmp->sy;
-   assert(sy_tmp == wp_tmp->nf * wp_tmp->nx);
-   const int sf_tmp = wp_tmp->sf;
+   const int sx_tmp = xPatchStride();
+   assert(sx_tmp == fPatchSize());
+   const int sy_tmp = yPatchStride();
+   assert(sy_tmp == fPatchSize() * wp_tmp->nx);
+   const int sf_tmp = fPatchStride();
    assert(sf_tmp == 1);
 
    // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic cell)
@@ -774,7 +774,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    w = wp->data;
    const int nxunshrunkPatch = wp_tmp->nx;
    const int nyunshrunkPatch = wp_tmp->ny;
-   const int nfunshrunkPatch = wp_tmp->nf;
+   const int nfunshrunkPatch = fPatchSize();
    const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
    pvdata_t *wtop = this->getPatchDataStart(0);
    //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
@@ -844,13 +844,13 @@ int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, int xScale, int yScale
 
    //const float phi = 3.1416;  // phase
 
-   const int nx = wp->nx;
-   const int ny = wp->ny;
-   const int nf = wp->nf;
+   const int nx = (int) wp->nx;
+   const int ny = (int) wp->ny;
+   const int nf = fPatchSize();
 
-   const int sx = wp->sx;  //assert(sx == nf);
-   const int sy = wp->sy;  //assert(sy == nf*nx);
-   const int sf = wp->sf;  //assert(sf == 1);
+   const int sx = xPatchStride();  //assert(sx == nf);
+   const int sy = yPatchStride();  //assert(sy == nf*nx);
+   const int sf = fPatchStride();  //assert(sf == 1);
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
