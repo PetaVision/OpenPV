@@ -49,8 +49,8 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc, int numChannels)
 
 int IncrementLayer::readVThreshParams(PVParams * params) {
    // Threshold paramaters are not used, as updateState does not call applyVMax or applyVThresh
-   // Override ANNLayer::readVThreshParams so that params file does not attempt to read the
-   // threshold params
+   // Override ANNLayer::readVThreshParams so that the threshold params are not read from the
+   // params file, thereby creating an unnecessary warning.
    VMax = max_pvdata_t;
    VThresh = -max_pvdata_t;
    VMin = VThresh;
@@ -87,5 +87,38 @@ int IncrementLayer::setActivity() {
    }
    return status;
 }
+
+int IncrementLayer::checkpointRead(float * timef) {
+   HyPerLayer::checkpointRead(timef);
+   InterColComm * icComm = parent->icCommunicator();
+   double timed;
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   assert(filename != NULL);
+
+   sprintf(filename, "%s_Vprev.pvp", name);
+   readBufferFile(filename, icComm, &timed, Vprev, 1, /*extended*/false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+   VInited = *timef >= firstUpdateTime + parent->getDeltaTime();
+
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int IncrementLayer::checkpointWrite() {
+   HyPerLayer::checkpointWrite();
+   InterColComm * icComm = parent->icCommunicator();
+   double timed = (double) parent->simulationTime();
+   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   assert(filename != NULL);
+   sprintf(filename, "%s_Vprev.pvp", name);
+   writeBufferFile(filename, icComm, timed, Vprev, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   free(filename);
+   return PV_SUCCESS;
+}
+
 
 } /* namespace PV */

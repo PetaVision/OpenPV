@@ -18,6 +18,8 @@ class IncrementLayer: public PV::ANNLayer {
 public:
    IncrementLayer(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual ~IncrementLayer();
+   int checkpointRead(float * timef);
+   int checkpointWrite();
 
 protected:
    IncrementLayer();
