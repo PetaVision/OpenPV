@@ -22,11 +22,11 @@ int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
    // initialize all dW's to one.
+   int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
          PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         int syPatch = dKernelPatch->sy;
-         int nkPatch = dKernelPatch->nf * dKernelPatch->nx;
+         int nkPatch = fPatchSize() * dKernelPatch->nx;
          float * dWeights = dKernelPatch->data;
          for(int kyPatch = 0; kyPatch < dKernelPatch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){

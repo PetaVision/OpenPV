@@ -22,11 +22,11 @@ int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
    // initialize all dW's to one.
+   int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
       for(int kPatch = 0; kPatch < numDataPatches(); kPatch++){
          PVPatch * W = getWeights(kPatch, kAxon);
-         int syPatch = W->sy;
-         int nkPatch = W->nf * W->nx;
+         int nkPatch = fPatchSize() * W->nx;
          float * dWdata = get_dWData(kPatch, kAxon);
          for(int kyPatch = 0; kyPatch < W->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
@@ -45,10 +45,10 @@ int VaryingHyPerConn::calc_dW(int axonId) {
 }
 
 int VaryingHyPerConn::updateWeights(int axonId) {
+   int syPatch = yPatchStride();
    for( int kPatch = 0; kPatch < numDataPatches(); kPatch++) {
       PVPatch * W = getWeights(kPatch, axonId);
-      int syPatch = W->sy;
-      int nkPatch = W->nf * W->nx;
+      int nkPatch = fPatchSize() * W->nx;
       float * Wdata = W->data;
       float * dWdata = get_dWData(kPatch, axonId);
       for(int kyPatch = 0; kyPatch < W->ny; kyPatch++) {
