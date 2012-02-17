@@ -281,24 +281,23 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonId));
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonId));
 
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   // int syw = syp;
    for(int kExt=0; kExt<nExt;kExt++) {
-      // PVAxonalArbor * arbor = axonalArbor(kExt, axonID);
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
       pvdata_t * dwdata = get_dWData(kExt, axonId);
-      int syw = syp;
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
             dwdata[lineoffsetw + k] += updateRule_dW(preact, postactRef[lineoffseta+k]);
          }
-         lineoffsetw += syw;
+         lineoffsetw += syp;
          lineoffseta += sya;
       }
    }
