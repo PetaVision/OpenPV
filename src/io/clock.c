@@ -68,7 +68,9 @@ static double       mach_elapsed;
 
 #endif
 
+#ifdef MACH_TIMER
 double mach_time_to_sec(uint64_t elapsed);
+#endif
 
 void start_clock()
 {
