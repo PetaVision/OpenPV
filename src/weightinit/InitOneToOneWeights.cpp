@@ -51,8 +51,8 @@ int InitOneToOneWeights::calcWeights(PVPatch * patch, int patchIndex, int arborI
 }
 
 int InitOneToOneWeights::createOneToOneConnection(PVPatch * patch, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr) {
-   //int numKernels = numDataPatches(0);
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
+   // int numKernels = numDataPatches(0);
+   // int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
    //for( int k=0; k < numKernels; k++ ) {
