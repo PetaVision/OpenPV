@@ -54,7 +54,7 @@ protected:
 //                  ChannelType channel);
    PVPatch * createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * wp);
    //int copyToOriginalPatch(PVPatch * wp, PVPatch * w_tmp);
-   int copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex);
+   static int copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex, int nf_patch, int sy_patch);
 
 //   char * name; //this is actually the Connection name
 //   HyPerLayer     * pre;

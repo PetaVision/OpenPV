@@ -125,6 +125,9 @@ public:
    inline pvdata_t * getPatchDataStart(int arborId) {return patchDataStart[arborId];}
    inline void setPatchDataStart(int arborId, pvdata_t * pDataStart) {patchDataStart[arborId]=pDataStart;}
 
+   inline pvdata_t * getPIncrDataStart(int arborId) {return pIncrDataStart[arborId];}
+   inline void setPIncrDataStart(int arborId, pvdata_t * pIncrStart) {pIncrDataStart[arborId]=pIncrStart;}
+
    // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
    //                                                  {return &axonalArborList[arborId][kPre];}
    virtual int numWeightPatches();
@@ -187,6 +190,7 @@ private:
    PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvdata_t      ** patchDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvdata_t      ** pIncrDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
 
 
 
@@ -267,10 +271,15 @@ protected:
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
          const char * filename);
    virtual InitWeights * handleMissingInitWeights(PVParams * params);
-   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+//   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+//         int nyPatch, int nfPatch, int axonId);
+//   PVPatch ** createWeights(PVPatch ** patches, int axonId);
+//   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+//         int nyPatch, int nfPatch, int axonId);
+   virtual pvdata_t * createWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
-   PVPatch ** createWeights(PVPatch ** patches, int axonId);
-   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+   pvdata_t * createWeights(PVPatch *** patches, int axonId);
+   virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    //PVPatch ** allocWeights(PVPatch ** patches);
 

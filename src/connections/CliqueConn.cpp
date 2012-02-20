@@ -52,6 +52,11 @@ int CliqueConn::update_dW(int arborId)
    int syPostExt = post->getLayerLoc()->nf
          * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb); // compute just once
 
+   // make a clone of size PVPatch to hold temporary postsynaptic activity values
+   // needed to eliminate generalize self-interactions
+   //bool self_flag = this->getPre() == this->getPost();
+   pvdata_t * a_post_tmp = (pvdata_t *) calloc(nfp * nxp * nyp, sizeof(pvdata_t));
+
    int delay = getDelay(arborId);
    //     // assume each synaptic connection with the same arborId has the same delay
    //     int delay = this->axonalArbor(0, arborId)->delay;
@@ -130,6 +135,11 @@ int CliqueConn::update_dW(int arborId)
       int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
+         //initialize a_post_tmp
+         for (int k_post = 0; k_post < nxp*nyp*nfp; k_post++){
+            a_post_tmp[k_post] = 0;
+         }
+
          // decompose kClique to compute product of active clique elements
          int arborNdx = 0;
          pvdata_t cliqueProd = aPre[kPreExt];
@@ -190,6 +200,7 @@ int CliqueConn::update_dW(int arborId)
    } // kPreActive
    free(cliqueActiveIndices);
    free(activeExt);
+   free(a_post_tmp);
    return PV_BREAK;
 
 }

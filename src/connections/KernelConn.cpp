@@ -78,11 +78,16 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 int KernelConn::createArbors() {
    HyPerConn::createArbors();
    kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+      kernelPatches[arborId] = NULL;
+   }
    assert(kernelPatches!=NULL);
-   dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   assert(dKernelPatches!=NULL);
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++){
-      dKernelPatches[arborId] = NULL;
+   if (this->getPlasticityFlag()){
+      dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+      assert(dKernelPatches!=NULL);
+      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+         dKernelPatches[arborId] = NULL;
+      }
    }
    return PV_SUCCESS; //should we check if allocation was successful?
 }
@@ -105,30 +110,41 @@ int KernelConn::setdWPatches(PVPatch ** patches, int arborId){
    return PV_SUCCESS;
 }
 
-PVPatch ** KernelConn::allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
+pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
    //const int arbor = 0;
    int numKernelPatches = numDataPatches();
 
+// allocate kernel (or dKernelPatches)
    assert(tmpPatch == NULL);
-   tmpPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+//   tmpPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
+   tmpPatch = (PVPatch**) calloc(numKernelPatches, sizeof(PVPatch*));
    assert(tmpPatch != NULL);
    //setKernelPatches(newKernelPatch, axonId);
 
+   pvdata_t * data_patches = pvpatches_inplace_new(tmpPatch, nxPatch, nyPatch, nfPatch, numKernelPatches);
+
+/*
    for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
       //kernelPatches[axonId][kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
       tmpPatch[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
       assert(tmpPatch[kernelIndex] != NULL );
    }
+*/
+
+   // need to allocate PVPatch for each pre-synaptic cell to store patch dimensions because patches may be shrunken
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
+      patches[axonId][patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
+
+
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
       int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
-      patches[patchIndex]->data = tmpPatch[kernelIndex]->data;
+      patches[axonId][patchIndex]->data = tmpPatch[kernelIndex]->data;
    }
-   return patches;
+//   return patches[0]->data;
+   return data_patches;
 }
 
 int KernelConn::initializeUpdateTime(PVParams * params) {
@@ -152,6 +168,7 @@ int KernelConn::shrinkPatches(int arborId) {
  * fix interface by adding extra dataPatches argument to overloaded method
  * so asserts are unnecessary
  */
+/*
 PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
@@ -167,6 +184,7 @@ PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPat
 
    return patches;
 }
+*/
 
 int KernelConn::deleteWeights()
 {

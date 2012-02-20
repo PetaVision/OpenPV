@@ -71,7 +71,10 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, 
 
             //copy back to unshrunk patch:
             //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
-            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp, callingConn->getPatchDataStart(arbor), patchIndex);
+            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp,
+                  callingConn->getPatchDataStart(arbor), patchIndex,
+                  callingConn->fPatchSize(), callingConn->yPatchStride());
+            free(wp_tmp);
          }
       }
       delete(weightParams);
@@ -208,20 +211,20 @@ PVPatch * InitWeights::createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * 
  *
  */
 //int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
-int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex) {
+int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex, int nf_patch, int sy_patch) {
    // copy weights from full sized temporary patch to (possibly shrunken) patch
    pvdata_t * w = wp->data;
    const int nxPatch = wp->nx;
    const int nyPatch = wp->ny;
-   const int nfPatch = parentConn->fPatchSize(); //wp->nf;
+   const int nfPatch = nf_patch; //parentConn->fPatchSize(); //wp->nf;
 
-   const int sy = parentConn->yPatchStride(); //wp->sy; // no assert here because patch may be shrunken
+   const int sy = sy_patch; //parentConn->yPatchStride(); //wp->sy; // no assert here because patch may be shrunken
    const int sy_tmp = sy; //wp_tmp->sy;
 
 
    const int nxunshrunkPatch = wp_tmp->nx;
    const int nyunshrunkPatch = wp_tmp->ny;
-   const int nfunshrunkPatch = parentConn->fPatchSize(); //wp_tmp->nf;
+   const int nfunshrunkPatch = nf_patch; //parentConn->fPatchSize(); //wp_tmp->nf;
    const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
    pvdata_t * data_head1 = &wtop[unshrunkPatchSize*patchIndex]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
    pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
@@ -238,7 +241,7 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * 
       w_tmp += sy_tmp;
    }
 
-   free(wp_tmp);
+   //free(wp_tmp);
 
    return 1;
 }

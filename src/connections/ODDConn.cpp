@@ -81,10 +81,10 @@ int ODDConn::createArbors() {
 }
 
 
-PVPatch ** ODDConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+pvdata_t *  ODDConn::createWeights(PVPatch *** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
-   patches = KernelConn::createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = KernelConn::createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
 
    //const int arbor = 0;
    int num_geisler_patches = numDataPatches();
@@ -102,7 +102,7 @@ PVPatch ** ODDConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
       assert(ODDPatches[axonId][geislerIndex] != NULL );
    }
 
-   return patches;
+   return data_patches;
 }
 
 int ODDConn::deleteWeights()

@@ -45,7 +45,7 @@ protected:
    virtual int deleteWeights();
    virtual int initialize_base();
    virtual int createArbors();
-   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
+   virtual pvdata_t * createWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
 
 

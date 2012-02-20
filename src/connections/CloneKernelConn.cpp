@@ -56,7 +56,7 @@ int CloneKernelConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
+pvdata_t * CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
       int nxPatch, int nyPatch, int nfPatch, int axonId) {
 
    //const int arbor = 0;
@@ -77,7 +77,7 @@ PVPatch ** CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
       int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
       patches[patchIndex]->data = getKernelPatch(axonId, kernelIndex)->data;
    }
-   return patches;
+   return patches[0]->data;
 }
 
 PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches,

@@ -190,7 +190,7 @@ PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data)
    int sy = sx * nx;
 
    //size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
-   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + sizeof(pvdata_t*), sizeof(char));
+   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch)); //calloc(sizeof(PVPatch) + sizeof(pvdata_t*), sizeof(char));
    assert(p != NULL);
 
    //pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
