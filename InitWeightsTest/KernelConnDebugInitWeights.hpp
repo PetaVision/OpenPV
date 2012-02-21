@@ -42,7 +42,7 @@ protected:
    int gaborWeights(PVPatch * wp, int xScale, int yScale,
                     float aspect, float sigma, float r2Max, float lambda, float strength, float phi);
    PVPatch ** initializeGaborWeights(PVPatch ** patches, int numPatches);
-
+   int copyToKernelPatch(PVPatch * sourcepatch, int arbor, int patchindex);
 
 private:
    HyPerConn *otherConn;

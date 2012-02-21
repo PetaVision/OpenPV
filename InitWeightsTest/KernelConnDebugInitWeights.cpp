@@ -203,7 +203,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int no
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
 {
-           pvdata_t * w = wp->data;
+           // pvdata_t * w = wp->data;
 
            const float min_weight = 0.0f; // read in as param
            const float sigma2 = 2 * sigma * sigma;
@@ -219,7 +219,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int no
            // get strides of (potentially shrunken) patch
            const int sx = xPatchStride();
            assert(sx == nfPatch);
-           const int sy = yPatchStride(); // no assert here because patch may be shrunken
+           // const int sy = yPatchStride(); // no assert here because patch may be shrunken
            const int sf = fPatchStride();
            assert(sf == 1);
 
@@ -537,6 +537,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int no
            }
 
            // copy weights from full sized temporary patch to (possibly shrunken) patch
+           copyToKernelPatch(wp_tmp, 0, kPre);
+/*
            w = wp->data;
            pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
            size_t data_offset = w - data_head;
@@ -549,6 +551,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int no
               w += sy;
               w_tmp += sy_tmp;
            }
+*/
 
            free(wp_tmp);
            return 0;
@@ -616,12 +619,12 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int n
       return 0; // reduced patch size is zero
    }
 
-   pvdata_t * w = wp->data;
+   // pvdata_t * w = wp->data;
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
    assert(sx == nfPatch);
-   const int sy = yPatchStride(); // no assert here because patch may be shrunken
+   // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
    assert(sf == 1);
 
@@ -759,6 +762,8 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int n
    }
 
    // copy weights from full sized temporary patch to (possibly shrunken) patch
+   copyToKernelPatch(wp_tmp, 0, kPre);
+/*
    w = wp->data;
    pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
    size_t data_offset = w - data_head;
@@ -771,6 +776,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int n
       w += sy;
       w_tmp += sy_tmp;
    }
+*/
 
    free(wp_tmp);
    return 0;
@@ -878,6 +884,29 @@ int KernelConnDebugInitWeights::gaborWeights(PVPatch * wp, int xScale, int yScal
 
 
    return 0;
+}
+
+int KernelConnDebugInitWeights::copyToKernelPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
+   int status = PV_SUCCESS;
+   assert(arbor >= 0 && arbor < this->numberOfAxonalArborLists());
+   assert(patchindex >= 0 && patchindex < this->numDataPatches());
+   assert((int) sourcepatch->nx == nxp && (int) sourcepatch->ny == nyp);
+   PVPatch * targetpatch = getKernelPatch(arbor, patchindex);
+   pvdata_t * targetdata = targetpatch->data;
+   const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
+   pvdata_t * wtop = getPatchDataStart(arbor);
+   pvdata_t * data_head = (pvdata_t *) &wtop[unshrunkPatchSize*patchindex];
+   size_t data_offset = targetpatch->data - data_head;
+   pvdata_t * sourcedata = &sourcepatch->data[data_offset];
+   int nk = targetpatch->nx * nfp;
+   for (int ky = 0; ky < targetpatch->ny; ky++) {
+      for (int iWeight = 0; iWeight < nk; iWeight++) {
+         targetdata[iWeight] = sourcedata[iWeight];
+      }
+      targetdata += yPatchStride();
+      sourcedata += yPatchStride();
+   }
+   return status;
 }
 
 } /* namespace PV */
