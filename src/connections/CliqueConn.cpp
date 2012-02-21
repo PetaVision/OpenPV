@@ -7,6 +7,7 @@
 
 #include "CliqueConn.hpp"
 int pvpatch_update_clique(int nk, float* RESTRICT v, float a, float* RESTRICT w);
+int pvpatch_update_clique2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m);
 
 namespace PV {
 
@@ -52,14 +53,18 @@ int CliqueConn::update_dW(int arborId)
    int syPostExt = post->getLayerLoc()->nf
          * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb); // compute just once
 
-   // make a clone of size PVPatch to hold temporary postsynaptic activity values
-   // needed to eliminate generalize self-interactions
-   //bool self_flag = this->getPre() == this->getPost();
-   pvdata_t * a_post_tmp = (pvdata_t *) calloc(nfp * nxp * nyp, sizeof(pvdata_t));
+   // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
+   // in order to eliminate generalize self-interactions
+   bool self_flag = this->getPre() == this->getPost();
+   pvdata_t * a_post_mask = NULL;
+   const int a_post_size = nfp * nxp * nyp;
+   a_post_mask = (pvdata_t *) calloc(a_post_size, sizeof(pvdata_t));
+   assert(a_post_mask != NULL);
+   // get linear index of cell at center of patch for self_flag == true
+   const int k_post_self = (int) (a_post_size / 2);  // if self_flag == true, a_post_size should be odd
+
 
    int delay = getDelay(arborId);
-   //     // assume each synaptic connection with the same arborId has the same delay
-   //     int delay = this->axonalArbor(0, arborId)->delay;
 
    // gather active indices in extended layer
    // hard to pre-compute at HyPerLayer level because of variable delays
@@ -136,8 +141,11 @@ int CliqueConn::update_dW(int arborId)
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          //initialize a_post_tmp
-         for (int k_post = 0; k_post < nxp*nyp*nfp; k_post++){
-            a_post_tmp[k_post] = 0;
+         if (self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
+            for (int k_post = 0; k_post < a_post_size; k_post++) {
+               a_post_mask[k_post] = 1;
+            }
+            a_post_mask[k_post_self] = 0;
          }
 
          // decompose kClique to compute product of active clique elements
@@ -174,6 +182,11 @@ int CliqueConn::update_dW(int arborId)
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
 
+            // remove self-interactions if pre == post
+            if (self_flag){
+               a_post_mask[kArbor] = 0;
+            }
+
          } // iProd
 
          // receive weights input from clique (mostly copied from superclass method)
@@ -181,6 +194,10 @@ int CliqueConn::update_dW(int arborId)
          PVPatch * dWPatch = pIncr[arborNdx][kPreExt]; // arbor->plasticIncr;
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
+
+         const pvdata_t * dWStart = this->getPIncrDataStart(arborNdx);
+         const pvdata_t * dW_head = &(dWStart[a_post_size*kPreExt]);
+         size_t dW_offset = dWPatch->data - dW_head;
 
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
@@ -191,16 +208,19 @@ int CliqueConn::update_dW(int arborId)
 
          // TODO - unroll
          for (int y = 0; y < nyPatch; y++) {
-            pvpatch_update_clique(
+            pvpatch_update_clique2(
                   nkPatch,
-                  (float *) (dWPatch->data + y * syPatch), cliqueProd, (float *) (aPost + y*syPostExt));
+                  (float *) (dWPatch->data + y * syPatch),
+                  cliqueProd,
+                  (float *) (aPost + y*syPostExt),
+                  (float *) (a_post_mask + dW_offset + y * syPatch));
                }
 
             } // kClique
    } // kPreActive
    free(cliqueActiveIndices);
    free(activeExt);
-   free(a_post_tmp);
+   free(a_post_mask);
    return PV_BREAK;
 
 }
@@ -230,6 +250,16 @@ int pvpatch_update_clique(int nk, float* RESTRICT dW, float aPre, float* RESTRIC
    int err = 0;
    for (k = 0; k < nk; k++) {
       dW[k] += aPre * aPost[k];
+   }
+   return err;
+}
+
+int pvpatch_update_clique2(int nk, float* RESTRICT dW, float aPre, float* RESTRICT aPost, float* RESTRICT a_mask)
+{
+   int k;
+   int err = 0;
+   for (k = 0; k < nk; k++) {
+      dW[k] += aPre * aPost[k] * a_mask[k];
    }
    return err;
 }
