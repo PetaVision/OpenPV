@@ -227,11 +227,11 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * 
    const int nfunshrunkPatch = nf_patch; //parentConn->fPatchSize(); //wp_tmp->nf;
    const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
    pvdata_t * data_head1 = &wtop[unshrunkPatchSize*patchIndex]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
+   //pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
    size_t data_offset1 = w - data_head1;
-   size_t data_offset2 = w - data_head2;
-   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
-   pvdata_t * w_tmp = &wp_tmp->data[data_offset];
+   //size_t data_offset2 = w - data_head2;
+   //size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
+   pvdata_t * w_tmp = &wp_tmp->data[data_offset1];
    int nk = nxPatch * nfPatch;
    for (int ky = 0; ky < nyPatch; ky++) {
       for (int iWeight = 0; iWeight < nk; iWeight++) {
