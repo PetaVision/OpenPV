@@ -2012,10 +2012,9 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
       int * kyKernelIndex, int * kfKernelIndex)
 {
    const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
-   assert(kxKernelIndex && kyKernelIndex && kfKernelIndex);
-   *kxKernelIndex = kxPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
-   *kyKernelIndex = kyPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
-   *kfKernelIndex = featureIndex(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
+   if(kxKernelIndex) *kxKernelIndex = kxPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
+   if(kyKernelIndex) *kyKernelIndex = kyPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
+   if(kfKernelIndex) *kfKernelIndex = featureIndex(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
    return patchIndex;
 }
 
