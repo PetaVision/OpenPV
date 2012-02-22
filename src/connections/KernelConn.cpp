@@ -43,9 +43,9 @@ int KernelConn::initialize_base()
    plasticityFlag = false;
    tmpPatch = NULL;
    this->normalize_arbors_individually = false;
-   nxKernel = 1;
-   nyKernel = 1;
-   nfKernel = 1;
+   nxKernel = 0;
+   nyKernel = 0;
+   nfKernel = 0;
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
@@ -573,7 +573,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
       status = checkNormalizeArbor(patches, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       status = PV_BREAK;
-   } // numberOfAxonalArborLists() != 1
+   } // this->normalize_arbors_individually
    return status;
 }
 
@@ -702,17 +702,17 @@ int KernelConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 {
    int patchIndex;
    // get size of kernel PV cube
-//   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
-//         post->getXScale() - pre->getXScale()) : 1;
-//   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
-//         post->getYScale() - pre->getYScale()) : 1;
-//   int nfKernel = pre->getLayerLoc()->nf;
-   int kxPreExtended = kxPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->getLayerLoc()->nb;
-   int kyPreExtended = kyPos(kernelIndex, nxKernel, nyKernel, nfKernel) + pre->getLayerLoc()->nb;
-   int kfPre = featureIndex(kernelIndex, nxKernel, nyKernel, nfKernel);
+   int nxKernel_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
+         post->getXScale() - pre->getXScale()) : 1;
+   int nyKernel_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
+         post->getYScale() - pre->getYScale()) : 1;
+   int nfKernel_tmp = pre->getLayerLoc()->nf;
+   int kxPreExtended = kxPos(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp) + pre->getLayerLoc()->nb;
+   int kyPreExtended = kyPos(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp) + pre->getLayerLoc()->nb;
+   int kfPre = featureIndex(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp);
    int nxPreExtended = pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb;
    int nyPreExtended = pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb;
-   patchIndex = kIndex(kxPreExtended, kyPreExtended, kfPre, nxPreExtended, nyPreExtended, nfKernel);
+   patchIndex = kIndex(kxPreExtended, kyPreExtended, kfPre, nxPreExtended, nyPreExtended, nfKernel_tmp);
    if (kxPatchIndex != NULL){
       *kxPatchIndex = kxPreExtended;
    }
@@ -765,14 +765,14 @@ int KernelConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
 
    int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
 
-//   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
-//         post->getXScale() - pre->getXScale()) : 1;
-//   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
-//         post->getYScale() - pre->getYScale()) : 1;
-   int kxKernel = kxPreRestricted % nxKernel;
-   int kyKernel = kyPreRestricted % nyKernel;
+   int nxKernel_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
+         post->getXScale() - pre->getXScale()) : 1;
+   int nyKernel_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
+         post->getYScale() - pre->getYScale()) : 1;
+   int kxKernel = kxPreRestricted % nxKernel_tmp;
+   int kyKernel = kyPreRestricted % nyKernel_tmp;
 
-   kernelIndex = kIndex(kxKernel, kyKernel, kfPre, nxKernel, nyKernel, nfPre);
+   kernelIndex = kIndex(kxKernel, kyKernel, kfPre, nxKernel_tmp, nyKernel_tmp, nfPre);
    if (kxKernelIndex != NULL){
       *kxKernelIndex = kxKernel;
    }
