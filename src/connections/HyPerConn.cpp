@@ -1087,7 +1087,18 @@ int HyPerConn::deleteWeights()
          free(wPatches[arbor]);
          wPatches[arbor] = NULL;
       }
-   }
+      free(this->patchDataStart[arbor]);
+      this->patchDataStart[arbor] = NULL;
+      if (pIncr[arbor] != NULL) {
+         for (int k = 0; k < numPatches; k++) {
+            pvpatch_inplace_delete(pIncr[arbor][k]);
+         }
+         free(pIncr[arbor]);
+         pIncr[arbor] = NULL;
+      }
+      free(this->pIncrDataStart[arbor]);
+      this->pIncrDataStart[arbor] = NULL;
+  }
 
    if (wPostPatches != NULL) {
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
