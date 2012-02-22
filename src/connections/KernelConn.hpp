@@ -57,6 +57,12 @@ public:
    virtual int checkpointWrite();
    virtual int checkpointRead(float *timef);
 
+   virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
+         int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
+
+   virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
+         int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
+
 protected:
 //   bool plasticityFlag;
    float weightUpdatePeriod;
@@ -74,6 +80,9 @@ private:
 
 protected:
    PVPatch *** dKernelPatches;   // list of dKernel patches for storing changes in kernel strengths
+   int nxKernel;
+   int nyKernel;
+   int nfKernel;
 
 #ifdef PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
