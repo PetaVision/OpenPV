@@ -76,6 +76,19 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
    const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
    int syPost = conn->getPostNonextStrides()->sy; // stride in layer
 
+   // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
+   // in order to eliminate generalize self-interactions
+   bool self_flag = conn->getPre() == conn->getPost();
+   pvdata_t * a_post_mask = NULL;
+   const int a_post_size = conn->fPatchSize() * conn->xPatchSize() * conn->yPatchSize();
+   a_post_mask = (pvdata_t *) calloc(a_post_size, sizeof(pvdata_t));
+   assert(a_post_mask != NULL);
+   // get linear index of cell at center of patch for self_flag == true
+   const int k_post_self = (int) (a_post_size / 2);  // if self_flag == true, a_post_size should be odd
+   for (int k_post = 0; k_post < a_post_size; k_post++) {
+      a_post_mask[k_post] = 1;
+   }
+
    // gather active indices in extended layer
    // hard to pre-compute at HyPerLayer level because of variable delays
    int numActiveExt = 0;
@@ -150,6 +163,14 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
       int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
+         //initialize a_post_tmp
+         if (self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
+            for (int k_post = 0; k_post < a_post_size; k_post++) {
+               a_post_mask[k_post] = 1;
+            }
+            a_post_mask[k_post_self] = 0;
+         }
+
          // decompose kClique to compute product of active clique elements
          int arborNdx = 0;
          pvdata_t cliqueProd = aPre[kPreExt];
@@ -183,31 +204,43 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int
             if ((arborNdx < 0) || (arborNdx >= numCliques)){
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
-         }
+            // remove self-interactions if pre == post
+            if (self_flag){
+               a_post_mask[kArbor] = 0;
+            }
+         } // iProd
 
          // receive weights input from clique (mostly copied from superclass method)
          // PVAxonalArbor * arbor = conn->axonalArbor(kPreExt, arborNdx);
          // PVPatch * GSyn = arbor->data;
-         PVPatch * weights = conn->getWeights(kPreExt, arborNdx);
+         PVPatch * w_patch = conn->getWeights(kPreExt, arborNdx);
+
+         const pvdata_t * w_start = conn->getPatchDataStart(arborNdx);
+         int kernelIndex = conn->patchIndexToKernelIndex(kPreExt);
+         const pvdata_t * w_head = &(w_start[a_post_size*kernelIndex]);
+         size_t w_offset = w_patch->data - w_head;
 
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 
-         int nkPost = conn->getPost()->getLayerLoc()->nf * weights->nx;
-         int nyPost = weights->ny;
+         int nkPost = conn->getPost()->getLayerLoc()->nf * w_patch->nx;
+         int nyPost = w_patch->ny;
          int sywPatch = conn->yPatchStride(); // stride in patch
 
          // TODO - unroll
          for (int y = 0; y < nyPost; y++) {
-            pvpatch_accumulate(nkPost,
-                  conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost, cliqueProd,
-                  weights->data + y * sywPatch);
+            pvpatch_accumulate2(nkPost,
+                  (float *) (conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
+                  cliqueProd,
+                  (float *) (w_patch->data + y * sywPatch),
+                  (float *) (a_post_mask + w_offset + y * sywPatch));
          }
 
       } // kClique
    } // kPreActive
    free(activeExt);
    free(cliqueActiveIndices);
+   free(a_post_mask);
    recvsyn_timer->stop();
    return PV_BREAK;
 }

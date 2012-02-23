@@ -92,6 +92,7 @@ PVPatch * pvpatch_inplace_new(int nx, int ny, int nf);
 int       pvpatch_inplace_delete(PVPatch * p);
 
 int pvpatch_accumulate(int nk, float * v, float a, float * w);
+int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m);
 int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w);
 
 #ifdef __cplusplus

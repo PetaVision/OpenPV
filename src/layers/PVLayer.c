@@ -235,6 +235,17 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
 }
 #endif
 
+int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m)
+{
+   int k;
+   int err = 0;
+   for (k = 0; k < nk; k++) {
+      v[k] = v[k] + a*w[k]*m[k];
+   }
+   return err;
+}
+
+
 int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w)
 {
    int k;
