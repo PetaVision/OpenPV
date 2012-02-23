@@ -258,7 +258,7 @@ protected:
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
-   int constructWeights(const char * filename);
+   virtual int constructWeights(const char * filename);
 #ifdef OBSOLETE // Marked obsolete Oct 1, 2011.  Made redundant by adding default value to weightInit argument of other initialize method
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          HyPerLayer * post, ChannelType channel, const char * filename);
