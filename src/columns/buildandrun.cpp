@@ -91,7 +91,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
-             "ConvolveConn",
+#ifdef OBSOLETE // Marked obsolete Feb 22, 2012.  ConvolveConn is incomplete and doesn't follow initialize_base/initialize pattern for constructors.  I don't think it's being used.  -PS
+               "ConvolveConn",
+#endif // OBSOLETE
                "KernelConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
@@ -100,6 +102,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GenerativeConn",
                    "PoolingGenConn",
                  "ODDConn",
+                 "ReciprocalConn",
                  "CliqueConn",
                  "CliqueApplyConn",
                  "SiblingConn",
@@ -127,6 +130,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_LayerProbes_",
            "_Start_BaseConnectionProbes_",
              "KernelProbe",
+             "PatchProbe",
+             "ReciprocalEnergyProbe",
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
              "ConnectionProbe",
@@ -636,6 +641,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Feb 22, 2012.  ConvolveConn has been moved to the obsolete folder
    if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -644,6 +650,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -942,6 +949,39 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          status = PV_FAILURE;
       }
    }
+   if( !strcmp(classkeyword, "PatchProbe") ) {
+      keywordMatched = true;
+      int arborID = params->value(name, "arborID");
+      int indexmethod = params->present(name, "kPre");
+      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+      if( indexmethod && coordmethod ) {
+         fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         return NULL;
+      }
+      if( !indexmethod && !coordmethod ) {
+         fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         return NULL;
+      }
+      const char * filename = params->stringValue(name, "probeOutputFile");
+      if( indexmethod ) {
+         int kPre = params->value(name, "kPre");
+         addedProbe = new PatchProbe(name, filename, hc, kPre, arborID);
+      }
+      else {
+         assert(coordmethod);
+         int kxPre = params->value(name, "kxPre");
+         int kyPre = params->value(name, "kyPre");
+         int kfPre = params->value(name, "kfPre");
+         addedProbe = new PatchProbe(name, filename, hc, kxPre, kyPre, kfPre, arborID);
+      }
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
+      keywordMatched = true;
+      const char * filename = params->stringValue(name, "probeOutputFile");
+      addedProbe = new ReciprocalEnergyProbe(name, filename, hc);
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
    assert(keywordMatched);
    if( status == PV_SUCCESS ) {
       assert(targetConn != NULL);
@@ -954,8 +994,9 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    return addedProbe;
 }
 
-// ConnectionProbe will soon be deprecated in favor of PatchProbe, which is a derived class of BaseConnectionProbe
+// ConnectionProbe is be deprecated in favor of PatchProbe, which is a derived class of BaseConnectionProbe
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
+   fprintf(stderr, "Warning: ConnectionProbe is deprecated.  Please use PatchProbe instead.\n");
    ConnectionProbe * addedProbe;
    PVParams * params = hc->parameters();
    int kPre, kxPre, kyPre, kfPre;
@@ -972,7 +1013,7 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
          fprintf(stderr, "Group \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
          return NULL;
       }
-      if( !indexmethod && !indexmethod) {
+      if( !indexmethod && !coordmethod) {
          fprintf(stderr, "Group \"%s\": Neither kPre nor (kxPre,kyPre,kfPre) were defined\n", name);
          return NULL;
       }

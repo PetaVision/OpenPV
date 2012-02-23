@@ -45,7 +45,9 @@
 #ifdef OBSOLETE // Marked Obsolete Oct 22, 2011.  No one seems to be using AvgConn, so the refactoring of arbors will leave it behind.
 #include "../connections/AvgConn.hpp"
 #endif // OBSOLETE
+#ifdef OBSOLETE // Marked Obsolete Feb 22, 2012.  ConvolveConn is incomplete and no one seems to be planning on using it.
 #include "../connections/ConvolveConn.hpp"
+#endif // OBSOLETE
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
@@ -92,6 +94,8 @@
 #include "../weightinit/InitMTWeights.hpp"
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/KernelProbe.hpp"
+#include "../io/PatchProbe.hpp"
+#include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/ConnectionProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
