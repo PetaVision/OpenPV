@@ -122,11 +122,11 @@ public:
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
 
-   inline pvdata_t * getPatchDataStart(int arborId) {return patchDataStart[arborId];}
-   inline void setPatchDataStart(int arborId, pvdata_t * pDataStart) {patchDataStart[arborId]=pDataStart;}
+   inline pvdata_t * getPatchDataStart(int arborId) {return wDataStart[arborId];}
+   inline void setPatchDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;}
 
-   inline pvdata_t * getPIncrDataStart(int arborId) {return pIncrDataStart[arborId];}
-   inline void setPIncrDataStart(int arborId, pvdata_t * pIncrStart) {pIncrDataStart[arborId]=pIncrStart;}
+   inline pvdata_t * getPIncrDataStart(int arborId) {return dwDataStart[arborId];}
+   inline void setPIncrDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
 
    // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
    //                                                  {return &axonalArborList[arborId][kPre];}
@@ -189,8 +189,8 @@ private:
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-   pvdata_t      ** patchDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   pvdata_t      ** pIncrDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvdata_t      ** wDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvdata_t      ** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
 
 
 

@@ -216,13 +216,13 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   patchDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
-   if( patchDataStart == NULL ) {
+   wDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+   if( wDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   pIncrDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
-   if( pIncrDataStart == NULL ) {
+   dwDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+   if( dwDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
@@ -260,7 +260,7 @@ int HyPerConn::constructWeights(const char * filename)
 
    //allocate weightpatches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-      patchDataStart[arborId] = createWeights(wPatches, arborId);
+      wDataStart[arborId] = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
       setWPatches(wPatches[arborId], arborId);
       //wPatches[arborId] = createWeights(wPatches[arborId]); //allocates memory for weights
@@ -1091,11 +1091,11 @@ int HyPerConn::deleteWeights()
          free(wPatches);
          wPatches = NULL;
       }
-      if (patchDataStart != NULL) {
-         free(this->patchDataStart[arbor]);
-         this->patchDataStart[arbor] = NULL;
-         free(patchDataStart);
-         patchDataStart = NULL;
+      if (wDataStart != NULL) {
+         free(this->wDataStart[arbor]);
+         this->wDataStart[arbor] = NULL;
+         free(wDataStart);
+         wDataStart = NULL;
       }
       if (dwPatches != NULL) {
          if (dwPatches[arbor] != NULL) {
@@ -1108,11 +1108,11 @@ int HyPerConn::deleteWeights()
          free(dwPatches);
          dwPatches = NULL;
       }
-      if (pIncrDataStart != NULL){
-         free(this->pIncrDataStart[arbor]);
-         this->pIncrDataStart[arbor] = NULL;
-         free(pIncrDataStart);
-         pIncrDataStart = NULL;
+      if (dwDataStart != NULL){
+         free(this->dwDataStart[arbor]);
+         this->dwDataStart[arbor] = NULL;
+         free(dwDataStart);
+         dwDataStart = NULL;
       }
   }
 
