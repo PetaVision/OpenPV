@@ -103,73 +103,6 @@ CliqueLayer "L1 Clique" = {
 };
 
 
-CliqueLayer "L2 Clique" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 4;
-    marginWidth = 32;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    cliqueSize = 2;
-    VThresh = 0.5;
-    VMax = 1.0;
-    VMin = 0.0;
-    Vgain = 0.25; // Vgain = 0.25; //;
-    Voffset = 0.0;
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
-
-CliqueLayer "L3 Clique" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 4;
-    marginWidth = 32;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    cliqueSize = 2;
-    VThresh = 0.5;
-    VMax = 1.0;
-    VMin = 0.0;
-    Vgain = 0.25; // Vgain = 0.25; //;
-    Voffset = 0.0;
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
-
-CliqueLayer "L4 Clique" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 4;
-    marginWidth = 32;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    cliqueSize = 2;
-    VThresh = 0.5;
-    VMax = 1.0;
-    VMin = 0.0;
-    Vgain = 0.25; // Vgain = 0.25; //;
-    Voffset = 0.0;
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
-
-
 
 
 //  connections: 
@@ -368,286 +301,35 @@ SiblingConn "L1toL1CliqueDistractor" = {
 };
 
 
-// L2 Clique
-
-IdentConn "L1toL2CliqueVertical" = {
-    preLayerName = "L1 Clique";
-    postLayerName = "L2 Clique";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-
-
-SiblingConn "L1toL2CliqueTarget" = {
-   preLayerName = "L1 Clique";
-   postLayerName = "L2 Clique";
-   channelCode = 1;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/3way/w3_last.pvp";
-   siblingConnName = "L1toL2CliqueDistractor";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = 1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-SiblingConn "L1toL2CliqueDistractor" = {
-   preLayerName = "L1 Clique";
-   postLayerName = "L2 Clique";
-   channelCode = 2;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/3way/w3_last.pvp";
-   siblingConnName = "L1toL2CliqueTarget";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = -1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-
-
-
-// L3 Clique
-
-IdentConn "L2toL3CliqueVertical" = {
-    preLayerName = "L2 Clique";
-    postLayerName = "L3 Clique";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-
-
-SiblingConn "L2toL3CliqueTarget" = {
-   preLayerName = "L2 Clique";
-   postLayerName = "L3 Clique";
-   channelCode = 1;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/3way/w3_last.pvp";
-   siblingConnName = "L2toL3CliqueDistractor";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = 1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-SiblingConn "L2toL3CliqueDistractor" = {
-   preLayerName = "L2 Clique";
-   postLayerName = "L3 Clique";
-   channelCode = 2;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/3way/w3_last.pvp";
-   siblingConnName = "L2toL3CliqueTarget";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = -1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-
-
-// L4 Clique
-
-IdentConn "L3toL4CliqueVertical" = {
-    preLayerName = "L3 Clique";
-    postLayerName = "L4 Clique";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-
-
-SiblingConn "L3toL4CliqueTarget" = {
-   preLayerName = "L3 Clique";
-   postLayerName = "L4 Clique";
-   channelCode = 1;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/3way/w3_last.pvp";
-   siblingConnName = "L3toL4CliqueDistractor";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = 1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-SiblingConn "L3toL4CliqueDistractor" = {
-   preLayerName = "L3 Clique";
-   postLayerName = "L4 Clique";
-   channelCode = 2;
-   nxp = 11; //65;
-   nyp = 11; //65;
-   nfp = 4; //8;
-   numAxonalArbors = 484; // pow(cliquePatchSize, cliqueSize-1),
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-
-   weightInitType = "FileWeight";
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/3way/w3_last.pvp";
-   siblingConnName = "L3toL4CliqueTarget";
-   cliqueSize = 2;
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   normalize_arbors_individually = true;
-
-   strength = -1.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 1;
-
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-
-   delay = 0;
-};
-
-
-
-
 
 
 StatsProbe "Retina Stats" = {
     targetLayer = "Retina";
-//    probeOutputFile = "Retina_Stats.txt";
 };
 
 StatsProbe "L1 Stats" = {
     targetLayer = "L1";
-//    probeOutputFile = "L1_Stats.txt";
 };
 
 StatsProbe "L1 Clique Stats" = {
     targetLayer = "L1 Clique";
-//    probeOutputFile = "L1_Clique_Stats.txt";
 };
 
-StatsProbe "L2 Clique Stats" = {
-    targetLayer = "L2 Clique";
-//    probeOutputFile = "L2_Clique_Stats.txt";
+
+
+StatsProbe "Retina Stats File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
 };
 
-StatsProbe "L3 Clique Stats" = {
-    targetLayer = "L3 Clique";
-//    probeOutputFile = "L3_Clique_Stats.txt";
+StatsProbe "L1 Stats File" = {
+    targetLayer = "L1";
+    probeOutputFile = "L1_Stats.txt";
 };
 
-StatsProbe "L4 Clique Stats" = {
-    targetLayer = "L4 Clique";
-//    probeOutputFile = "L4_Clique_Stats.txt";
+StatsProbe "L1 Clique Stats File" = {
+    targetLayer = "L1 Clique";
+    probeOutputFile = "L1_Clique_Stats.txt";
 };
+
 
