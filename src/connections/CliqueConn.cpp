@@ -62,7 +62,9 @@ int CliqueConn::update_dW(int arborId)
    assert(a_post_mask != NULL);
    // get linear index of cell at center of patch for self_flag == true
    const int k_post_self = (int) (a_post_size / 2);  // if self_flag == true, a_post_size should be odd
-
+   for (int k_post = 0; k_post < a_post_size; k_post++) {
+      a_post_mask[k_post] = 1;
+   }
 
    int delay = getDelay(arborId);
 
