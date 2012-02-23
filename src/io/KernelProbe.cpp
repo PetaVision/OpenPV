@@ -64,7 +64,7 @@ int KernelProbe::outputState(float time, HyPerConn * c) {
                fprintf(fp, "  weight=%f", w->data[k]);
             }
             if(outputPlasticIncr) {
-               fprintf(fp, "  pIncr=%f", dw[k]);
+               fprintf(fp, "  dw=%f", dw[k]);
             }
             fprintf(fp,"\n");
          }

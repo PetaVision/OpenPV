@@ -118,7 +118,7 @@ public:
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
    virtual PVPatch * getWeights(int kPre, int arborId);
-   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? pIncr[arborId][kPre] : NULL;}
+   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
 
@@ -134,7 +134,7 @@ public:
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
-   inline pvdata_t * get_dWData(int kPre, int arborId) {return pIncr[arborId][kPre]->data;}
+   inline pvdata_t * get_dWData(int kPre, int arborId) {return dwPatches[arborId][kPre]->data;}
    inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
    inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
 
@@ -198,7 +198,7 @@ private:
 
 protected:
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
-   PVPatch       *** pIncr;      // list of weight patches for storing changes to weights
+   PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
@@ -295,7 +295,7 @@ protected:
    // following is overridden by KernelConn to set kernelPatches
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
-   virtual int setdWPatches(PVPatch ** patches, int arborId) {pIncr[arborId]=patches; return 0;}
+   virtual int setdWPatches(PVPatch ** patches, int arborId) {dwPatches[arborId]=patches; return 0;}
    // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    virtual int calc_dW(int axonId = 0);
 

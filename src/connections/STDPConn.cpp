@@ -27,7 +27,7 @@ STDPConn::~STDPConn()
 
 int STDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
-   this->pIncr = NULL;
+   this->dwPatches = NULL;
    this->pDecr = NULL;
    this->ampLTP = 1.0;
    this->ampLTD = 1.1;
@@ -59,19 +59,19 @@ int STDPConn::initPlasticityPatches()
    //const int arbor = 0;
    //const int numAxons = numberOfAxonalArborLists();
 
-//   pIncr = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+//   dwPatches = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
    pDecr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    assert(pDecr != NULL);
 
    // moved to HyPerConn
 #ifdef OBSOLETE_STDP
-   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
-   assert(pIncr != NULL);
+   dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+   assert(dwPatches != NULL);
    int numArbors = numWeightPatches();
    for (int n = 0; n < numAxons; n++) {
 
-      pIncr[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-      assert(pIncr[n] != NULL);
+      dwPatches[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      assert(dwPatches[n] != NULL);
 
 
       // kex is in extended frame
@@ -83,8 +83,8 @@ int STDPConn::initPlasticityPatches()
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
-         // arbor->plasticIncr = pIncr[n][kex];
-         pvpatch_adjust(pIncr[n][kex], nxPatch, nyPatch, dx, dy);
+         // arbor->plasticIncr = dwPatches[n][kex];
+         pvpatch_adjust(dwPatches[n][kex], nxPatch, nyPatch, dx, dy);
 
       } // loop over arbors (pre-synaptic neurons)
    } // loop over neighbors
@@ -100,11 +100,11 @@ int STDPConn::deleteWeights()
       const int numAxons = numberOfAxonalArborLists();
       for (int n = 0; n < numAxons; n++) {
          for (int k = 0; k < numPatches; k++) {
-            pvpatch_inplace_delete(pIncr[n][k]);
+            pvpatch_inplace_delete(dwPatches[n][k]);
          }
-         free(pIncr[n]);
+         free(dwPatches[n]);
       }
-      free(pIncr);
+      free(dwPatches);
       pvcube_delete(pDecr);
    }
    return 0;
@@ -192,7 +192,7 @@ int STDPConn::updateWeights(int axonId)
 {
    // Steps:
    // 1. Update pDecr (assume already done as it should only be done once)
-   // 2. update Psij (pIncr) for each synapse
+   // 2. update Psij (dwPatches) for each synapse
    // 3. update wij
 
    const float dt = parent->getDeltaTime();
@@ -213,7 +213,7 @@ int STDPConn::updateWeights(int axonId)
 
       const pvdata_t preActivity = preLayerData[kPre];
 
-      // PVPatch * pIncrPatch   = pIncr[axonId][kPre];
+      // PVPatch * pIncrPatch   = dwPatches[axonId][kPre];
       PVPatch * w       = getWeights(kPre, axonId);
       size_t postOffset = getAPostOffset(kPre, axonId);
 
@@ -228,7 +228,7 @@ int STDPConn::updateWeights(int axonId)
 
       // TODO - unroll
 
-      // update Psij (pIncr variable)
+      // update Psij (dwPatches variable)
       // we are processing patches, one line in y at a time
       for (int y = 0; y < ny; y++) {
          pvpatch_update_plasticity_incr(nk, P + y * sy, preActivity, decayLTP, ampLTP);
@@ -281,7 +281,7 @@ float STDPConn::maxWeight()
 int STDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, pIncr[arborID][k], nfp, sxp, syp, sfp); // write the Ps variable
+      pv_text_write_patch(fd, dwPatches[arborID][k], nfp, sxp, syp, sfp); // write the Ps variable
    }
    return 0;
 }
@@ -329,7 +329,7 @@ void STDP_update_state_post(
 
 
 /**
- * Loop over presynaptic extended layer.  Calculate pIncr, and weights.
+ * Loop over presynaptic extended layer.  Calculate dwPatches, and weights.
  */
 void STDP_update_state_pre(
       const float time,

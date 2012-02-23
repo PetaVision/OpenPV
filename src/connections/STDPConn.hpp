@@ -48,7 +48,7 @@ protected:
 
    PVLayerCube    * pDecr;      // plasticity decrement variable (Mi) for post-synaptic layer
 #ifdef OBSOLETE_STDP
-   PVPatch       *** pIncr;      // list of stdp patches Psij variable
+   PVPatch       *** dwPatches;      // list of stdp patches Psij variable
 #endif
 
    bool       stdpFlag;         // presence of spike timing dependent plasticity

@@ -157,7 +157,7 @@ int HyPerConn::initialize_base()
 
    wPatches=NULL;
    // axonalArborList=NULL;
-   pIncr = NULL;
+   dwPatches = NULL;
    aPostOffset = NULL;
 
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
@@ -443,14 +443,14 @@ int HyPerConn::initPlasticityPatches()
 
    const int numAxons = numberOfAxonalArborLists();
 
-   pIncr = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
-   assert(pIncr != NULL);
+   dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+   assert(dwPatches != NULL);
 
    int numArbors = numWeightPatches();
    for (int arborId = 0; arborId < numAxons; arborId++) {
 
-      this->setPIncrDataStart(arborId, createWeights(pIncr, numWeightPatches(), nxp, nyp, nfp, arborId));
-      assert(pIncr[arborId] != NULL);
+      this->setPIncrDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
+      assert(dwPatches[arborId] != NULL);
       // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
       // assert(dWPatch != NULL);
 
@@ -463,12 +463,12 @@ int HyPerConn::initPlasticityPatches()
 
          // adjust patch size (shrink) to fit within interior of post-synaptic layer
          //
-         //arbor->plasticIncr = pIncr[n][kex];
-         //arbor->plasticIncr = pIncr[arborId][kex];
-         pvpatch_adjust(pIncr[arborId][kex], sxp, syp, nxPatch, nyPatch, dx, dy);
+         //arbor->plasticIncr = dwPatches[n][kex];
+         //arbor->plasticIncr = dwPatches[arborId][kex];
+         pvpatch_adjust(dwPatches[arborId][kex], sxp, syp, nxPatch, nyPatch, dx, dy);
 
       } // loop over pre-synaptic neurons
-      setdWPatches(pIncr[arborId], arborId);
+      setdWPatches(dwPatches[arborId], arborId);
 
    } // loop over arbors
 
@@ -1097,16 +1097,16 @@ int HyPerConn::deleteWeights()
          free(patchDataStart);
          patchDataStart = NULL;
       }
-      if (pIncr != NULL) {
-         if (pIncr[arbor] != NULL) {
+      if (dwPatches != NULL) {
+         if (dwPatches[arbor] != NULL) {
             for (int k = 0; k < numPatches; k++) {
-               pvpatch_inplace_delete(pIncr[arbor][k]);
+               pvpatch_inplace_delete(dwPatches[arbor][k]);
             }
-            free(pIncr[arbor]);
-            pIncr[arbor] = NULL;
+            free(dwPatches[arbor]);
+            dwPatches[arbor] = NULL;
          }
-         free(pIncr);
-         pIncr = NULL;
+         free(dwPatches);
+         dwPatches = NULL;
       }
       if (pIncrDataStart != NULL){
          free(this->pIncrDataStart[arbor]);

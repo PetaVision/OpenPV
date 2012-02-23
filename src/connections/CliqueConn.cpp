@@ -191,7 +191,7 @@ int CliqueConn::update_dW(int arborId)
 
          // receive weights input from clique (mostly copied from superclass method)
          // PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
-         PVPatch * dWPatch = pIncr[arborNdx][kPreExt]; // arbor->plasticIncr;
+         PVPatch * dWPatch = dwPatches[arborNdx][kPreExt]; // arbor->plasticIncr;
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
 
