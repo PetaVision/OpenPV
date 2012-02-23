@@ -88,18 +88,32 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 int KernelConn::createArbors() {
    HyPerConn::createArbors();
    kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      kernelPatches[arborId] = NULL;
-   }
    assert(kernelPatches!=NULL);
-   if (this->getPlasticityFlag()){
+   // The following for-statement is redundant since kernelPatches is created with calloc.
+   // for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+   //    kernelPatches[arborId] = NULL;
+   // }
+
+   // The following if-statement was moved to initPlasticityPatches, which is called by HyPerConn::constructWeights
+   // if (this->getPlasticityFlag()){
+   //    dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+   //    assert(dKernelPatches!=NULL);
+   //    for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+   //       dKernelPatches[arborId] = NULL;
+   //    }
+   // }
+   return PV_SUCCESS; //should we check if allocation was successful?
+}
+
+int KernelConn::initPlasticityPatches() {
+   if( getPlasticityFlag() ) {
       dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
       assert(dKernelPatches!=NULL);
-      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-         dKernelPatches[arborId] = NULL;
-      }
+      // Have to allocate dKernelPatches before calling initPlasticityPatches, since
+      // initPlasticityPatches calls setdWPatches, which uses dKernelPatches
+      HyPerConn::initPlasticityPatches();
    }
-   return PV_SUCCESS; //should we check if allocation was successful?
+   return PV_SUCCESS;
 }
 
 int KernelConn::setWPatches(PVPatch ** patches, int arborId){

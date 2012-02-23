@@ -95,12 +95,7 @@ protected:
                   ChannelType channel, const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int createArbors();
-/*
-   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch, int axonId);
-*/
-//   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
-//         int nyPatch, int nfPatch, int axonId);
+   virtual int initPlasticityPatches();
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    virtual int initializeUpdateTime(PVParams * params);
