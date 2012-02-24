@@ -20,7 +20,7 @@ public:
    CliqueLayer(const char * name, HyPerCol * hc, int numChannels);
    CliqueLayer(const char * name, HyPerCol * hc);
    virtual ~CliqueLayer();
-   virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
+   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateActiveIndices();
 protected:

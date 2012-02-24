@@ -48,7 +48,7 @@ int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
    return PV_SUCCESS;
 }
 
-int CliqueLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int axonId)
+int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int axonId)
 {
    recvsyn_timer->start();
 
