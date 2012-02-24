@@ -641,6 +641,8 @@ float HyPerCol::advanceTime(float sim_time)
    //
    for (int c = 0; c < numConnections; c++) {
       connections[c]->outputState(sim_time);
+   }
+   for (int c = 0; c < numConnections; c++) {
       connections[c]->updateState(sim_time, deltaTime);
    }
 
