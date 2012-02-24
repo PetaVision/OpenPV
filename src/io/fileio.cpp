@@ -293,8 +293,13 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
    if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
    if (tmp_status == INDEX_NB) {
+      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
          fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
-      fprintf(stderr, "\n");
+         fprintf(stderr, "\n");
+      }
+      else {
+         status = PV_SUCCESS; // kernels can be used regardless of margin size
+      }
    }
    if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    if (tmp_status == INDEX_NF) {

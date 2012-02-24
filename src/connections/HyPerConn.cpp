@@ -162,6 +162,8 @@ int HyPerConn::initialize_base()
    dwPatches = NULL;
    aPostOffset = NULL;
 
+   this->selfFlag = false;  // determines whether connections are made to neuron at same location (i.e. could be a self-connection)
+
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
@@ -488,6 +490,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
 
+   selfFlag = inputParams->value(name, "selfFlag", selfFlag, true);
 
    return 0;
 }

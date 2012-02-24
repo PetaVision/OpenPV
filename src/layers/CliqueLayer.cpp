@@ -44,13 +44,23 @@ int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
    PVParams * params = parent->parameters();
    Voffset = params->value(name, "Voffset", 0.0f, true);
    Vgain = params->value(name, "Vgain", 2.0f, true);
-   cliqueSize = params->value(name, "cliqueSize", 1, true);
+   //cliqueSize = params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
 }
 
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int axonId)
 {
    recvsyn_timer->start();
+   enum ChannelType channel_type = conn->getChannel();
+   if (channel_type == CHANNEL_EXC){
+      return HyPerLayer::recvSynapticInput(conn, activity, axonId);
+   }
+   // number of axons = patch size ^ (clique size - 1)
+   int numCliques = conn->numberOfAxonalArborLists();
+   int cliqueSize = 1 + (int) rint(log2(numCliques)/ log2(conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize()));
+   if (cliqueSize == 1){
+      return HyPerLayer::recvSynapticInput(conn, activity, axonId);
+   }
 
    assert(axonId == 0);
    // assume called only once
@@ -78,7 +88,8 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 
    // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
    // in order to eliminate generalize self-interactions
-   bool self_flag = conn->getPre() == conn->getPost();
+   bool self_flag = conn->getSelfFlag();
+
    pvdata_t * a_post_mask = NULL;
    const int a_post_size = conn->fPatchSize() * conn->xPatchSize() * conn->yPatchSize();
    a_post_mask = (pvdata_t *) calloc(a_post_size, sizeof(pvdata_t));
@@ -121,8 +132,8 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
    //int numKernels = conn->numDataPatches();  // per arbor?
-   int numCliques = pow(cliquePatchSize, cliqueSize - 1);
-   assert(numCliques == conn->numberOfAxonalArborLists());
+   //int numCliques = pow(cliquePatchSize, cliqueSize - 1);
+   //assert(numCliques == conn->numberOfAxonalArborLists());
 
    // loop over all products of cliqueSize active presynaptic cells
    // outer loop is over presynaptic cells, each of which defines the center of a cliquePatch
@@ -164,7 +175,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          //initialize a_post_tmp
-         if (self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
+         if (~self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
             for (int k_post = 0; k_post < a_post_size; k_post++) {
                a_post_mask[k_post] = 1;
             }
@@ -205,7 +216,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
             // remove self-interactions if pre == post
-            if (self_flag){
+            if (~self_flag){
                a_post_mask[kArbor] = 0;
             }
          } // iProd

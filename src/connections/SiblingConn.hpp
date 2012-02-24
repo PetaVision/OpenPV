@@ -19,6 +19,7 @@ public:
    virtual int initNormalize();
    bool getIsNormalized();
    void setSiblingConn(SiblingConn *sibling_conn);
+   SiblingConn * getSiblingConn(){return siblingConn;};
 
 protected:
    int initialize_base(){return PV_SUCCESS;};

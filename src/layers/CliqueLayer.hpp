@@ -28,7 +28,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, int numChannels);
    pvdata_t Vgain;
    pvdata_t Voffset;
-   int cliqueSize; // number of presynaptic cells in clique (traditional ANN uses 1)
+   //int cliqueSize; // must get separately from each connection
 private:
    int initialize_base();
 };
