@@ -894,7 +894,7 @@ int KernelConnDebugInitWeights::copyToKernelPatch(PVPatch * sourcepatch, int arb
    PVPatch * targetpatch = getKernelPatch(arbor, patchindex);
    pvdata_t * targetdata = targetpatch->data;
    const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
-   pvdata_t * wtop = getPatchDataStart(arbor);
+   pvdata_t * wtop = get_wDataStart(arbor);
    pvdata_t * data_head = (pvdata_t *) &wtop[unshrunkPatchSize*patchindex];
    size_t data_offset = targetpatch->data - data_head;
    pvdata_t * sourcedata = &sourcepatch->data[data_offset];
