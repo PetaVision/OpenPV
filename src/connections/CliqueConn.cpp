@@ -197,7 +197,7 @@ int CliqueConn::update_dW(int arborId)
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
 
-         const pvdata_t * dWStart = this->getPIncrDataStart(arborNdx);
+         const pvdata_t * dWStart = this->get_dwDataStart(arborNdx);
          int kernelIndex = this->patchIndexToKernelIndex(kPreExt);
          const pvdata_t * dW_head = &(dWStart[a_post_size*kernelIndex]);
          size_t dW_offset = dWPatch->data - dW_head;

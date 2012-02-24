@@ -72,7 +72,7 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, 
             //copy back to unshrunk patch:
             //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
             copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp,
-                  callingConn->getPatchDataStart(arbor), patchIndex,
+                  callingConn->get_wDataStart(arbor), patchIndex,
                   callingConn->fPatchSize(), callingConn->yPatchStride());
             free(wp_tmp);
          }

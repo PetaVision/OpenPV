@@ -88,6 +88,8 @@ protected:
    pvdata_t * mpiReductionBuffer;
 #endif // PV_USE_MPI
 
+   void set_kernelPatches(PVPatch *** p) {kernelPatches = p;}
+
    virtual int deleteWeights();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,

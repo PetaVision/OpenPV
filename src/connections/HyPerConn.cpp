@@ -114,6 +114,8 @@ HyPerConn::~HyPerConn()
    free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
    free(aPostOffset);
 
+   free(delays);
+
    // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
 }
@@ -248,6 +250,8 @@ int HyPerConn::constructWeights(const char * filename)
 {
    int status = PV_SUCCESS;
 
+   initShrinkPatches(); // Sets shrinkPatches; derived-class methods that override initShrinkPatches must also set shrinkPatches
+   // createArbors() uses the value of shrinkPatches.
    //allocate the arbor arrays:
    createArbors();
 
@@ -275,9 +279,7 @@ int HyPerConn::constructWeights(const char * filename)
    assert( initializeWeights(wPatches, numWeightPatches(), filename) != NULL);
    status |= initPlasticityPatches();
    assert(status == 0);
-   initShrinkPatches(); // Sets shrinkPatches; derived-class methods that override initShrinkPatches must also set shrinkPatches
    if (shrinkPatches_flag) {
-
       for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
          shrinkPatches(arborId);
       }
@@ -449,7 +451,7 @@ int HyPerConn::initPlasticityPatches()
    int numArbors = numWeightPatches();
    for (int arborId = 0; arborId < numAxons; arborId++) {
 
-      this->setPIncrDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
+      this->set_dwDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
       assert(dwPatches[arborId] != NULL);
       // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
       // assert(dWPatch != NULL);
@@ -1088,14 +1090,10 @@ int HyPerConn::deleteWeights()
             free(wPatches[arbor]);
             wPatches[arbor] = NULL;
          }
-         free(wPatches);
-         wPatches = NULL;
       }
       if (wDataStart != NULL) {
          free(this->wDataStart[arbor]);
          this->wDataStart[arbor] = NULL;
-         free(wDataStart);
-         wDataStart = NULL;
       }
       if (dwPatches != NULL) {
          if (dwPatches[arbor] != NULL) {
@@ -1105,16 +1103,20 @@ int HyPerConn::deleteWeights()
             free(dwPatches[arbor]);
             dwPatches[arbor] = NULL;
          }
-         free(dwPatches);
-         dwPatches = NULL;
       }
       if (dwDataStart != NULL){
          free(this->dwDataStart[arbor]);
          this->dwDataStart[arbor] = NULL;
-         free(dwDataStart);
-         dwDataStart = NULL;
       }
-  }
+   }
+   free(wPatches);
+   wPatches = NULL;
+   free(wDataStart);
+   wDataStart = NULL;
+   free(dwPatches);
+   dwPatches = NULL;
+   free(dwDataStart);
+   dwDataStart = NULL;
 
    if (wPostPatches != NULL) {
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
@@ -1977,7 +1979,7 @@ int HyPerConn::setPatchStrides() {
 pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
-//   setPatchDataStart(axonId, pvpatches_inplace_new(patches, nxPatch, nyPatch, nfPatch, nPatches));
+//   set_wDataStart(axonId, pvpatches_inplace_new(patches, nxPatch, nyPatch, nfPatch, nPatches));
    pvdata_t * dataPatches = pvpatches_inplace_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
 //   for (int k = 0; k < nPatches; k++) {
 //      patches[k] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);

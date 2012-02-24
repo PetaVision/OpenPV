@@ -40,10 +40,10 @@ public:
    virtual int updateState(float time, float dt);
 
 protected:
-   pvdata_t * allocWeights(PVPatch ** patches, int nPatches,
-         int nxPatch, int nyPatch, int nfPatch, int axonId);
    virtual PVPatch *** initializeWeights(PVPatch *** patches, int numPatches,
             const char * filename);
+   virtual int constructWeights(const char * filename);
+   void constructWeightsOutOfMemory();
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
    int deleteWeights();

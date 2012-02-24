@@ -56,28 +56,70 @@ int CloneKernelConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-pvdata_t * CloneKernelConn::allocWeights(PVPatch ** patches, int nPatches,
-      int nxPatch, int nyPatch, int nfPatch, int axonId) {
+int CloneKernelConn::constructWeights(const char * filename) {
+   PVPatch *** patches = (PVPatch ***) malloc(numberOfAxonalArborLists()*sizeof(PVPatch **));
+   if( patches==NULL ){ constructWeightsOutOfMemory(); abort(); }
+   set_wPatches(patches);
 
-   //const int arbor = 0;
-   int numKernelPatches = numDataPatches();
-   assert( numKernelPatches == originalConn->numDataPatches() );
-   //assert(kernelPatches == NULL);
-   //kernelPatches = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   //assert(kernelPatches != NULL);
-   PVPatch** newKernelPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   assert(newKernelPatch != NULL);
-   setKernelPatches(newKernelPatch, axonId);
-   for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
-      setKernelPatch(originalConn->getKernelPatch(axonId, kernelIndex), axonId, kernelIndex);
-      //kernelPatches[kernelIndex] = originalConn->getKernelPatch(kernelIndex);
+   pvdata_t *** patchstart = (pvdata_t ***) malloc( numberOfAxonalArborLists()*sizeof(pvdata_t **) );
+   if( patchstart==NULL ){ constructWeightsOutOfMemory(); abort(); }
+   setGSynPatchStart(patchstart);
+   pvdata_t ** gSynPatchStartBuffer = (pvdata_t **) malloc(
+         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+               * preSynapticLayer()->getNumExtended() * sizeof(pvdata_t *));
+   if (gSynPatchStartBuffer == NULL) { constructWeightsOutOfMemory(); abort(); }
+
+   size_t ** postoffset = (size_t **) malloc( numberOfAxonalArborLists()*sizeof(size_t **) );
+   if( postoffset==NULL ){ constructWeightsOutOfMemory(); abort(); }
+   setAPostOffset(postoffset);
+   size_t * aPostOffsetBuffer = (size_t *) malloc(
+         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+               * preSynapticLayer()->getNumExtended() * sizeof(size_t));
+   if( aPostOffsetBuffer == NULL ) { constructWeightsOutOfMemory(); abort(); }
+
+   int * delayptr = (int *) malloc(numAxonalArborLists * sizeof(int));
+   if( delayptr == NULL ) { constructWeightsOutOfMemory(); abort(); }
+   setDelays(delayptr);
+
+   pvdata_t ** datastart;
+   datastart = (pvdata_t **) malloc(numAxonalArborLists * sizeof(pvdata_t *));
+   if( datastart == NULL ) { constructWeightsOutOfMemory(); abort(); }
+   set_wDataStart(datastart);
+
+   datastart = (pvdata_t **) malloc(numAxonalArborLists * sizeof(pvdata_t *));
+   if( datastart == NULL ) { constructWeightsOutOfMemory(); abort(); }
+   set_dwDataStart(datastart);
+
+   set_kernelPatches(originalConn->getAllKernelPatches());
+
+   int arborstep = this->shrinkPatches_flag * preSynapticLayer()->getNumExtended();
+   for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
+      get_wPatches()[arbor] = originalConn->weights(arbor);
+
+      patchstart[arbor] = gSynPatchStartBuffer;
+      postoffset[arbor] = aPostOffsetBuffer;
+      for( int kex=0; kex<numWeightPatches(); kex++ ) {
+         patchstart[arbor][kex] = originalConn->getGSynPatchStart(kex,arbor);
+         postoffset[arbor][kex] = originalConn->getAPostOffset(kex,arbor);
+      }
+      gSynPatchStartBuffer += arborstep;
+      aPostOffsetBuffer += arborstep;
+
+      delayptr[arbor] = originalConn->getDelay(arbor);
+      set_wDataStart(arbor, originalConn->get_wDataStart(arbor));
+      set_dwDataStart(arbor, originalConn->get_wDataStart(arbor));
    }
-   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      patches[patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
-      int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
-      patches[patchIndex]->data = getKernelPatch(axonId, kernelIndex)->data;
-   }
-   return patches[0]->data;
+
+   dKernelPatches = NULL;
+
+   initShrinkPatches();
+   // Don't call shrinkPatches() since the original connection will have already shrunk patches
+
+   return PV_SUCCESS;
+}
+
+void CloneKernelConn::constructWeightsOutOfMemory() {
+   connOutOfMemory("CloneKernelConn::constructWeightsOutOfMemory()");
 }
 
 PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches,
@@ -111,8 +153,15 @@ int CloneKernelConn::updateState(float time, float dt) {
 }
 
 int CloneKernelConn::deleteWeights() {
-   //free(kernelPatches);  // don't delete kernelPatches[k] as it belongs to originalConn
-   free(getAllKernelPatches());
+   // Have to make sure not to free memory belonging to originalConn.
+   // Set pointers that point into originalConn to NULL so that free() has no effect.
+   for( int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+      PVPatch *** p = get_wPatches();
+      p[arbor] = NULL;
+      set_wDataStart(arbor,NULL);
+      set_dwDataStart(arbor,NULL);
+   }
+   set_kernelPatches(NULL);
    return HyPerConn::deleteWeights();
 }
 

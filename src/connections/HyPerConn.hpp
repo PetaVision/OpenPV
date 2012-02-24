@@ -122,11 +122,11 @@ public:
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
 
-   inline pvdata_t * getPatchDataStart(int arborId) {return wDataStart[arborId];}
-   inline void setPatchDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;}
+   inline pvdata_t * get_wDataStart(int arborId) {return wDataStart[arborId];}
+   inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;}
 
-   inline pvdata_t * getPIncrDataStart(int arborId) {return dwDataStart[arborId];}
-   inline void setPIncrDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
+   inline pvdata_t * get_dwDataStart(int arborId) {return dwDataStart[arborId];}
+   inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
 
    // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
    //                                                  {return &axonalArborList[arborId][kPre];}
@@ -136,7 +136,7 @@ public:
 
    inline pvdata_t * get_dWData(int kPre, int arborId) {return dwPatches[arborId][kPre]->data;}
    inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
-   inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];} // {return axonalArbor(kPre,arborId)->offset;}
+   inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];}
 
    HyPerLayer * preSynapticLayer()                   {return pre;}
    HyPerLayer * postSynapticLayer()                  {return post;}
@@ -180,10 +180,8 @@ protected:
    HyPerCol       * parent;
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
-   //PVAxonalArbor  * axonalArborList[MAX_ARBOR_LIST]; // list of axonal arbors for each neighbor
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
-   // PVAxonalArbor ** axonalArborList; // list of axonal arbors for each presynaptic cell in extended layer
    pvdata_t      *** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
@@ -245,6 +243,20 @@ protected:
    InitWeights *weightInitializer;
 
 protected:
+   PVPatch *** get_wPatches() {return wPatches;} // protected so derived classes can use; public methods are weights(arbor) and getWeights(patchindex,arbor)
+   void set_wPatches(PVPatch *** patches) {wPatches=patches;}
+   pvdata_t *** getGSynPatchStart() {return gSynPatchStart;}
+   void setGSynPatchStart(pvdata_t *** patchstart) {gSynPatchStart = patchstart;}
+   size_t ** getAPostOffset() {return aPostOffset;}
+   void setAPostOffset(size_t ** postoffset) {aPostOffset = postoffset;}
+   pvdata_t ** get_wDataStart() {return wDataStart;}
+   void set_wDataStart(pvdata_t ** datastart) {wDataStart = datastart;}
+   pvdata_t ** get_dwDataStart() {return dwDataStart;}
+   void set_dwDataStart(pvdata_t ** datastart) {dwDataStart = datastart;}
+
+   int * getDelays() {return delays;}
+   void setDelays(int * delayptr) {delays = delayptr;}
+
    virtual int setPatchSize(const char * filename);
    virtual int setPatchStrides();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
