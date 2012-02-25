@@ -1,0 +1,213 @@
+//
+// CloneKernelConnTest.params
+//
+// created by peteschultz: Feb 24, 2012
+//
+
+//  A params file for testing CloneKernelConn
+//  A KernelConn and its clone separately act on a sequence of images.
+//  One acts on the excitatory channel of an ANNLayer, and the other
+//  on the inhibitory channel.  Since the two conns should be exactly
+//  the same, the resulting layer should be zero
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 10;
+   progressStep = 10;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+Movie "input" = {
+    imageListPath = "./input/images.txt";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = 0;
+
+    displayPeriod = 100;
+    jitterFlag = 0;
+    randomMovie = true;
+    randomMovieProb = 0.25;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output from original" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "output from clone" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "comparison" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+KernelConn "original" = {
+    preLayerName = "input";
+    postLayerName = "output from original";
+    channelCode = 0;
+    nxp = 7;
+    nyp = 7;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = false;
+    bowtieFlag = false;
+    aspect = 3;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    // no = 4;
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    writeCompressedWeights = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+CloneKernelConn "clone" = {
+    preLayerName = "input";
+    postLayerName = "output from clone";
+    
+    originalConnName = "original";
+
+    channelCode = 0;
+
+    writeStep = 1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+    
+    stochasticReleaseFlag = false;
+};
+
+IdentConn "excitatory output" = {
+    preLayerName = "output from original";
+    postLayerName = "comparison";
+
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+IdentConn "inhibitory output" = {
+    preLayerName = "output from clone";
+    postLayerName = "comparison";
+
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "input to retina" = {
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+CloneKernelConnTestProbe "comparison probe" = {
+    targetLayer = "comparison";
+    probeOutputFile = "comparison_stats.txt";
+};
+

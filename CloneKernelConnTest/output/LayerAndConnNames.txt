@@ -1,0 +1,13 @@
+Layers and Connections in HyPerCol "column"
+
+    Layer    0: input
+    Layer    1: retina
+    Layer    2: output from original
+    Layer    3: output from clone
+    Layer    4: comparison
+
+    Conn.    0: original
+    Conn.    1: clone
+    Conn.    2: excitatory output
+    Conn.    3: inhibitory output
+    Conn.    4: input to retina
