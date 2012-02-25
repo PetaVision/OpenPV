@@ -20,16 +20,15 @@ public:
    CloneKernelConn(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
       KernelConn * originalConn);
-   //virtual ~CloneKernelConn();
+   virtual ~CloneKernelConn();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
       KernelConn * originalConn);
 
    virtual int setPatchSize(const char * filename);
-   // For CloneKernelConn, filename should always be null, but this prototype is
-   // needed because the method is called by the base class's initialize, which
-   // uses a filename.
+   // For CloneKernelConn, filename is ignored, but we include it
+   // to agree with the interface for HyPerConn
 
    virtual int initShrinkPatches();
 
@@ -44,11 +43,14 @@ protected:
             const char * filename);
    virtual int constructWeights(const char * filename);
    void constructWeightsOutOfMemory();
+   virtual int createAxonalArbors(int arborId);
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
-   int deleteWeights();
 
    KernelConn * originalConn;
+
+private:
+   int deleteWeights();
 
 }; // end class CloneKernelConn
 
