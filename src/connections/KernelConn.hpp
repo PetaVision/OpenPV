@@ -90,7 +90,7 @@ protected:
 
    void set_kernelPatches(PVPatch *** p) {kernelPatches = p;}
 
-   virtual int deleteWeights();
+   // int deleteWeights(); // Changed to private method.  Should not be virtual since it's called from the destructor
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
@@ -120,6 +120,9 @@ protected:
                                      const char * filename);
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
+
+private:
+   int deleteWeights();
 };
 
 }

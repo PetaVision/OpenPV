@@ -95,17 +95,18 @@ int STDPConn::initPlasticityPatches()
 int STDPConn::deleteWeights()
 {
    if (stdpFlag) {
-      //const int arbor = 0;
-      const int numPatches = numWeightPatches();
-      const int numAxons = numberOfAxonalArborLists();
-      for (int n = 0; n < numAxons; n++) {
-         for (int k = 0; k < numPatches; k++) {
-            pvpatch_inplace_delete(dwPatches[n][k]);
-         }
-         free(dwPatches[n]);
-      }
-      free(dwPatches);
+      //dwPatches belongs to HyPerConn, so it is deleted in HyPerConn::deleteWeights()
+      // const int numPatches = numWeightPatches();
+      // const int numAxons = numberOfAxonalArborLists();
+      // for (int n = 0; n < numAxons; n++) {
+      //    for (int k = 0; k < numPatches; k++) {
+      //       pvpatch_inplace_delete(dwPatches[n][k]);
+      //    }
+      //    free(dwPatches[n]);
+      // }
+      // free(dwPatches);
       pvcube_delete(pDecr);
+      pDecr = NULL;
    }
    return 0;
 }

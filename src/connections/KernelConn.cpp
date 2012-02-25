@@ -27,8 +27,9 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPer
 }
 
 KernelConn::~KernelConn() {
-   free(kernelPatches);
-   if (dKernelPatches != NULL) {free(dKernelPatches);};
+   // Moved to deleteWeights()
+   // free(kernelPatches);
+   // if (dKernelPatches != NULL) {free(dKernelPatches);};
 #ifdef PV_USE_MPI
    free(mpiReductionBuffer);
 #endif // PV_USE_MPI
@@ -214,15 +215,30 @@ int KernelConn::deleteWeights()
 {
    //const int arbor = 0;
 
-   for(int n=0;n<numberOfAxonalArborLists(); n++) {
-      for (int k = 0; k < numDataPatches(); k++) {
-         pvpatch_inplace_delete(kernelPatches[n][k]);
+   if(kernelPatches) {
+      for (int n=0; n<numberOfAxonalArborLists(); n++) {
+         if(kernelPatches[n]) {
+            for (int k = 0; k < numDataPatches(); k++) {
+               pvpatch_inplace_delete(kernelPatches[n][k]);
+            }
+            free(kernelPatches[n]);
+         }
       }
-      free(kernelPatches[n]);
+      free(kernelPatches);
    }
-   free(kernelPatches);
+   if(kernelPatches) {
+      for (int n=0; n<numberOfAxonalArborLists(); n++) {
+         if(dKernelPatches[n]) {
+            for (int k = 0; k < numDataPatches(); k++) {
+               pvpatch_inplace_delete(dKernelPatches[n][k]);
+            }
+            free(dKernelPatches[n]);
+         }
+      }
+      free(dKernelPatches);
+   }
 
-   return HyPerConn::deleteWeights();
+   return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
 
 PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, int numPatches,

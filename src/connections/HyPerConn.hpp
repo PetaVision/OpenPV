@@ -299,7 +299,7 @@ protected:
    virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
 
-   virtual int deleteWeights();
+   // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 
    virtual int createAxonalArbors(int arborId);
 
@@ -332,6 +332,9 @@ protected:
    int clArgIdWeights;
 
 #endif
+
+private:
+   int deleteWeights();
 
 public:
 

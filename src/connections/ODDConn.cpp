@@ -64,6 +64,10 @@ ODDConn::ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    // constructWeights(filename); // HyPerConn::constructWeights moved back into HyPerConn::initialize
 }
 
+ODDConn::~ODDConn() {
+   deleteWeights();
+}
+
 int ODDConn::initialize_base()
 {
    numUpdates = 0;
@@ -119,7 +123,7 @@ int ODDConn::deleteWeights()
    free(avePreActivity);
    free(avePostActivity);
 
-   return KernelConn::deleteWeights();
+   return 0; // KernelConn::deleteWeights(); // KernelConn destructor will call KernelConn::deleteWeights()
 }
 
 PVPatch ** ODDConn::initializeDefaultWeights(PVPatch ** patches, int numPatches)

@@ -27,7 +27,7 @@ public:
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
 
-   virtual int deleteWeights();
+   // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 
    virtual float maxWeight();
 
@@ -69,6 +69,10 @@ protected:
    float tauLTP;
    float tauLTD;
    float dWMax;
+
+private:
+   int deleteWeights();
+
 };
 
 }

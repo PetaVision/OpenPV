@@ -28,9 +28,8 @@ public:
                ChannelType channel);
    ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, InitWeights *weightInit);
-#ifdef OBSOLETE // marked obsolete Jul 21, 2011.  No routine calls it, and it doesn't make sense to define a connection without specifying a channel.
-   ODDConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
-#endif
+   virtual ~ODDConn();
+
    virtual PVPatch ** initializeDefaultWeights(PVPatch ** patches, int numPatches);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
@@ -42,12 +41,14 @@ protected:
    pvdata_t * avePostActivity;
    pvdata_t * avePreActivity;
    int numUpdates;
-   virtual int deleteWeights();
+   // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
    virtual int initialize_base();
    virtual int createArbors();
    virtual pvdata_t * createWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
 
+private:
+   int deleteWeights();
 
 };  // class ODDConn
 

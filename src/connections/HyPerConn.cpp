@@ -94,25 +94,15 @@ HyPerConn::~HyPerConn()
    }
 #endif // PV_USE_OPENCL
 
-   // assert(params != NULL); // freeing a null pointer is not an error
-   //free(params);
-
    deleteWeights();
 
    // free the task information
 
-//   for (int l = 0; l < numAxonalArborLists; l++) {
-//      if ( axonalArborList[l] ) {
-//         free(axonalArbor(0, l)->data);
-//         // axonalArbor(0,l) frees all data patches for arbor l because all
-//         // axonalArbor patches for that l were created in a single calloc().
-//         free(axonalArborList[l]);
-//      }
-//   }
-   free(*gSynPatchStart); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
-   free(gSynPatchStart);
-   free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
-   free(aPostOffset);
+   // Moved to deleteWeights()
+   // free(*gSynPatchStart); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+   // free(gSynPatchStart);
+   // free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
+   // free(aPostOffset);
 
    free(delays);
 
@@ -1132,6 +1122,11 @@ int HyPerConn::deleteWeights()
       free(wPostPatches);
    }
 
+   free(*gSynPatchStart); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+   free(gSynPatchStart);
+   free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
+   free(aPostOffset);
+
    return 0;
 }
 
@@ -1156,41 +1151,16 @@ int HyPerConn::deleteWeights()
  */
 int HyPerConn::createAxonalArbors(int arborId)
 {
-   //PVParams * inputParams = parent->parameters();
-
-   // these strides are for post-synaptic phi variable, a non-extended layer variable
-   //
-   // const int psf = 1;
-   // const int psx = nfp;
-   // const int psy = psx * post->getLayerLoc()->nx;
-   postNonextStrides.sf = 1;
-   postNonextStrides.sx = nfp;
-   postNonextStrides.sy = nfp * post->getLayerLoc()->nx;
-   postExtStrides.sf = 1;
-   postExtStrides.sx = nfp;
-   postExtStrides.sy = nfp * (post->getLayerLoc()->nx+2*post->getLayerLoc()->nb);
-
    // activity is extended into margins
    //
-   //for (int n = 0; n < numAxons; n++) {
    int numPatches = numWeightPatches();
-   // PVAxonalArbor* newArbor = (PVAxonalArbor*) calloc(numPatches, sizeof(PVAxonalArbor));
-   // assert(newArbor != NULL);
-   // setArbor(newArbor, arborId);
-   // assert(axonalArborList[arborId] != NULL);
-   //}
 
    for (int kex = 0; kex < numPatches; kex++) {
-      // PVAxonalArbor * arbor = axonalArbor(kex, arborId);
 
       // kex is in extended frame, this makes transformations more difficult
       int kl, offset, nxPatch, nyPatch, dx, dy;
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
-      // arbor->data = &dataPatches[kex];
-      // arbor->plasticIncr = NULL;   // set later by initPlasticityPatches
-
-      // arbor->delay=(int) inputParams->value(name, "delay", 0);
       // initialize the receiving (of spiking data) gSyn variable
       pvdata_t * gSyn = post->getChannel(channel) + kl;
       gSynPatchStart[arborId][kex] = gSyn;
@@ -1203,9 +1173,8 @@ int HyPerConn::createAxonalArbors(int arborId)
       //
       pvpatch_adjust(getWeights(kex,arborId), sxp, syp, nxPatch, nyPatch, dx, dy);
 
-   } // loop over arbors (pre-synaptic neurons)
-   //} // loop over neighbors
-   //delays[arborId] = (int) inputParams->value(name, "delay", 0);
+   } // loop over patches
+
    delays[arborId] = defaultDelay;
 
    return 0;
@@ -1973,9 +1942,22 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
 }
 
 int HyPerConn::setPatchStrides() {
+   // these strides are for the weight patches
    sfp = 1;
    sxp = nfp;
    syp = nfp * nxp;
+
+   // these strides are for a post-synaptic non-extended layer variable.
+   // HyPerLayer::recvSynapticInput uses these strides for GSyn, which is nonextended
+   postNonextStrides.sf = 1;
+   postNonextStrides.sx = nfp;
+   postNonextStrides.sy = nfp * post->getLayerLoc()->nx;
+
+   // these strides are for a post-synaptic extended layer variable.
+   postExtStrides.sf = 1;
+   postExtStrides.sx = nfp;
+   postExtStrides.sy = nfp * (post->getLayerLoc()->nx+2*post->getLayerLoc()->nb);
+
    return PV_SUCCESS;
 }
 
