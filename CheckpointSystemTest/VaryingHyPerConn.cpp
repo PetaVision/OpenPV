@@ -27,7 +27,7 @@ int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
       for(int kPatch = 0; kPatch < numDataPatches(); kPatch++){
          PVPatch * W = getWeights(kPatch, kAxon);
          int nkPatch = fPatchSize() * W->nx;
-         float * dWdata = get_dWData(kPatch, kAxon);
+         float * dWdata = get_dwData(kAxon, kPatch);
          for(int kyPatch = 0; kyPatch < W->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWdata[kPatch] = 1.0f;
@@ -49,8 +49,8 @@ int VaryingHyPerConn::updateWeights(int axonId) {
    for( int kPatch = 0; kPatch < numDataPatches(); kPatch++) {
       PVPatch * W = getWeights(kPatch, axonId);
       int nkPatch = fPatchSize() * W->nx;
-      float * Wdata = W->data;
-      float * dWdata = get_dWData(kPatch, axonId);
+      float * Wdata = get_wData(axonId, kPatch); // W->data;
+      pvdata_t * dWdata = get_dwData(axonId, kPatch);
       for(int kyPatch = 0; kyPatch < W->ny; kyPatch++) {
          for(int kPatch = 0; kPatch < nkPatch; kPatch++) {
             Wdata[kPatch] += dWdata[kPatch];

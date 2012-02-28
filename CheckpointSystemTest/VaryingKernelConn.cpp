@@ -25,10 +25,10 @@ int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
    int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
-         PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         int nkPatch = fPatchSize() * dKernelPatch->nx;
-         float * dWeights = dKernelPatch->data;
-         for(int kyPatch = 0; kyPatch < dKernelPatch->ny; kyPatch++){
+         PVPatch * patch = getWeights(kKernel, kAxon); // dKernelPatches[kAxon][kKernel];
+         int nkPatch = fPatchSize() * patch->nx;
+         float * dWeights = get_dwData(kAxon, kKernel); // dKernelPatch->data;
+         for(int kyPatch = 0; kyPatch < patch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 1.0f;
             }
