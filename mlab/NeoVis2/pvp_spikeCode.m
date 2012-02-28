@@ -1,5 +1,4 @@
-function [eventCount_array, ...
-	  rand_state] = ...
+function [status_info] = ...
       pvp_spikeCode(input_image, ...
 		    base_rate, max_rate, refractory_period, ...
 		    gray_intensity, max_intensity, ...
@@ -16,6 +15,7 @@ function [eventCount_array, ...
   %% rate determined by the stochastic process with the specified refractory period.  
   %% The maximum rate is used only to set the slope of a linear encoding.
   %% Gray pixels are guaranteed to produce events at the specified base rate if possible.
+
 
   num_argin = 0;
   num_argin = num_argin + 1;
@@ -129,6 +129,11 @@ function [eventCount_array, ...
     [event_hist, event_bins] = hist(eventCount_array(:), 10);
     bar(event_bins, event_hist);
   endif
+
+  status_info = struct;
+  status_info.eventCount_array = eventCount_array;
+  status_info.rand_state = rand_state;
+
 
 
 endfunction %% pvp_spikeCode
