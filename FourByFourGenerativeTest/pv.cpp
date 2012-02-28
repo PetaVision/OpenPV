@@ -66,12 +66,12 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
 
    for(int f=0; f<8; f++) {
       for(int k=0; k<16; k++) {
-         wgtA[f][k] = connA->getKernelPatch(0,k)->data[f];
+         wgtA[f][k] = connA->get_wData(0,k)[f]; // connA->getKernelPatch(0,k)->data[f];
       }
    }
    for(int f=0; f<2; f++) {
       for(int k=0; k<8; k++) {
-         wgtB[f][k] = connB->getKernelPatch(0,k)->data[f];
+         wgtB[f][k] = connB->get_wData(0,k)[f]; // connB->getKernelPatch(0,k)->data[f];
       }
    }
 //
