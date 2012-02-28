@@ -69,7 +69,7 @@ int CloneKernelConn::constructWeights(const char * filename) {
    for( int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
       get_wDataStart()[arbor] = originalConn->get_wDataStart(arbor);
       get_wPatches()[arbor] = originalConn->weights(arbor);
-      this->setKernelPatches(originalConn->getKernelPatches(arbor),arbor);
+      // this->setKernelPatches(originalConn->getKernelPatches(arbor),arbor);
       if( status == PV_SUCCESS )
          status = createAxonalArbors(arbor); // sets gSynPatchStart[arbor][*] and aPostOffset[arbor][*]
       if( status != PV_SUCCESS ) break;
@@ -137,7 +137,7 @@ int CloneKernelConn::deleteWeights() {
       get_wPatches()[arbor] = NULL;
       set_wDataStart(arbor,NULL);
    }
-   set_kernelPatches(NULL);
+   // set_kernelPatches(NULL);
 
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()
 }

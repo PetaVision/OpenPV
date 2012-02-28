@@ -710,7 +710,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
-   if (patches == NULL) return PV_SUCCESS;
+   // if (patches == NULL) return PV_SUCCESS; // KernelConn::writeWeights will call with patches set to NULL.
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -1671,11 +1671,10 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pv
 } // scaleWeights
 
 // only checks for certain combinations of normalize parameter settings
-int HyPerConn::checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal)
+int HyPerConn::checkNormalizeWeights(float sum, float sigma2, float maxVal)
 {
    assert( sum != 0 || sigma2 != 0 ); // Calling routine should make sure this condition is met.
    float tol = 0.01f;
-   assert(wp != NULL);
    if (normalize_zero_offset && (normalize_cutoff == 0.0f)){  // condition may be violated is normalize_cutoff != 0.0f
       // set sum to zero and normalize std of weights to sigma
       assert((sum > -tol) && (sum < tol));
@@ -1707,7 +1706,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int
       int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
       float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
       if( sum != 0 || sigma2 != 0 ) {
-         status = checkNormalizeWeights(wp, sum, sigma2, maxVal);
+         status = checkNormalizeWeights(sum, sigma2, maxVal);
          assert( status == PV_SUCCESS );
       }
       else {

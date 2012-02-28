@@ -175,11 +175,11 @@ int PoolingGenConn::updateWeights(int axonID) {
     }
     if( nonnegConstraintFlag ) {
        for(int kPatch=0; kPatch<numDataPatches();kPatch++) {
-          PVPatch * weights = this->getKernelPatch(axonID, kPatch);
+          // PVPatch * weights = this->getKernelPatch(axonID, kPatch);
           pvdata_t * wtpatch = get_wData(axonID, kPatch); // weights->data;
-           int nk = weights->nx * nfp;
+           int nk = nxp * nfp;
            int syw = nxp*nfp;
-           for( int y=0; y < weights->ny; y++ ) {
+           for( int y=0; y < nyp; y++ ) {
                int lineoffsetw = 0;
                for( int k=0; k<nk; k++ ) {
                    pvdata_t w = wtpatch[lineoffsetw + k];

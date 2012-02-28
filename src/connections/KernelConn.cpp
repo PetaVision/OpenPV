@@ -37,8 +37,8 @@ KernelConn::~KernelConn() {
 
 int KernelConn::initialize_base()
 {
-   kernelPatches = NULL;
-   dKernelPatches = NULL;
+   // kernelPatches = NULL;
+   // dKernelPatches = NULL;
    fileType = PVP_KERNEL_FILE_TYPE;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
@@ -88,8 +88,8 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int KernelConn::createArbors() {
    HyPerConn::createArbors();
-   kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   assert(kernelPatches!=NULL);
+   // kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+   // assert(kernelPatches!=NULL);
    // The following for-statement is redundant since kernelPatches is created with calloc.
    // for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
    //    kernelPatches[arborId] = NULL;
@@ -108,8 +108,8 @@ int KernelConn::createArbors() {
 
 int KernelConn::initPlasticityPatches() {
    if( getPlasticityFlag() ) {
-      dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-      assert(dKernelPatches!=NULL);
+      // dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
+      // assert(dKernelPatches!=NULL);
       // Have to allocate dKernelPatches before calling initPlasticityPatches, since
       // initPlasticityPatches calls setdWPatches, which uses dKernelPatches
       HyPerConn::initPlasticityPatches();
@@ -221,6 +221,7 @@ int KernelConn::deleteWeights()
 {
    //const int arbor = 0;
 
+/*
    if(kernelPatches) {
       for (int n=0; n<numberOfAxonalArborLists(); n++) {
          if(kernelPatches[n]) {
@@ -243,6 +244,7 @@ int KernelConn::deleteWeights()
       }
       free(dKernelPatches);
    }
+*/
 
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
@@ -252,7 +254,7 @@ PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataS
 {
    //int arbor = 0;
    int numKernelPatches = numDataPatches();
-   HyPerConn::initializeWeights(kernelPatches, dataStart, numKernelPatches, filename);
+   HyPerConn::initializeWeights(get_wPatches(), dataStart, numKernelPatches, filename);
    return arbors;
 }
 
@@ -561,7 +563,7 @@ int KernelConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, in
       float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
          if( sumAll != 0 || sigma2 != 0 ) {
-            status = checkNormalizeWeights(kernelPatches[kArbor][kPatch], sumAll, sigma2, maxAll);
+            status = checkNormalizeWeights(sumAll, sigma2, maxAll);
             assert(status == PV_SUCCESS );
          }
          else {
@@ -707,11 +709,11 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int 
 
 int KernelConn::writeWeights(float timef, bool last) {
    const int numPatches = numDataPatches();
-   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numPatches, NULL, timef, last);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), numPatches, NULL, timef, last);
 }
 
 int KernelConn::writeWeights(const char * filename) {
-   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
 }
 
 #ifdef OBSOLETE_NBANDSFORARBORS
@@ -731,7 +733,7 @@ int KernelConn::writeWeights(float time, bool last)
 int KernelConn::checkpointRead(float * timef) {
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, this, timef);
+   weightsInitObject->initializeWeights(get_wPatches(), get_wDataStart(), numDataPatches(), filename, this, timef);
    free(filename);
    return PV_SUCCESS;
 }
@@ -741,7 +743,7 @@ int KernelConn::checkpointWrite() {
    filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
    assert(filename != NULL);
    sprintf(filename, "%s_W.pvp", name);
-   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
 }
 
 // one to many mapping, chose first patch index in restricted space

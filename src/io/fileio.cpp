@@ -1363,6 +1363,8 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch *** patches, pvdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type)
 // compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
+// If file_type is PVP_WGT_FILE_TYPE (HyPerConn), the patches variable is consulted for the shrunken patch information.
+// If file_type is PVP_KERNEL_FILE_TYPE, patches is ignored and all patches are written with nx=nxp and ny=nyp
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
@@ -1457,7 +1459,8 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          // write local portion
          // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
-         pvp_copy_patches(cbuf, patches[arbor], dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+         PVPatch ** arborPatches = file_type == PVP_KERNEL_FILE_TYPE ? NULL : patches[arbor];
+         pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
          size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
          if ( numfwritten != 1 ) return -1;
 

@@ -35,14 +35,14 @@ public:
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
    virtual int symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
 
-   PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
-   PVPatch ** getKernelPatches(int axonId)   {return kernelPatches[axonId];}
-   inline void setKernelPatches(PVPatch** newKernelPatch, int axonId) {kernelPatches[axonId]=newKernelPatch;}
-   inline void setKernelPatch(PVPatch* newKernelPatch, int axonId, int kernelIndex) {kernelPatches[axonId][kernelIndex]=newKernelPatch;}
+   // PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
+   // PVPatch ** getKernelPatches(int axonId)   {return [axonId];}
+   // inline void setKernelPatches(PVPatch** newKernelPatch, int axonId) {kernelPatches[axonId]=newKernelPatch;}
+   // inline void setKernelPatch(PVPatch* newKernelPatch, int axonId, int kernelIndex) {kernelPatches[axonId][kernelIndex]=newKernelPatch;}
    virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(const char * filename);
    // virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
-   inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
+   // inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
    // inline const pvdata_t * get_dKernelData(int axonId, int kernelIndex) {if( dKernelPatches && axonId>=0 && axonId<numAxonalArborLists && kernelIndex>=0 && kernelIndex<numDataPatches()) { return dKernelPatches[axonId][kernelIndex]->data;} else return NULL;}
 
    // virtual int shrinkPatches(int arborId);
@@ -75,11 +75,11 @@ protected:
 private:
    //made private to control use and now 3D to allow different Kernel patches
    //for each axon:
-   PVPatch *** kernelPatches;   // list of kernel patches
+   // PVPatch *** kernelPatches;   // list of kernel patches
 
 
 protected:
-   PVPatch *** dKernelPatches;   // list of dKernel patches for storing changes in kernel strengths
+   // PVPatch *** dKernelPatches;   // list of dKernel patches for storing changes in kernel strengths
    int nxKernel;
    int nyKernel;
    int nfKernel;
@@ -88,7 +88,7 @@ protected:
    pvdata_t * mpiReductionBuffer;
 #endif // PV_USE_MPI
 
-   void set_kernelPatches(PVPatch *** p) {kernelPatches = p;}
+   // void set_kernelPatches(PVPatch *** p) {kernelPatches = p;}
 
    // int deleteWeights(); // Changed to private method.  Should not be virtual since it's called from the destructor
    int initialize_base();

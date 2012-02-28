@@ -115,6 +115,9 @@ public:
    inline int xPatchStride()                         {return sxp;}
    inline int yPatchStride()                         {return syp;}
    inline int fPatchStride()                         {return sfp;}
+   inline int xPostSize()                            {return nxpPost;}
+   inline int yPostSize()                            {return nypPost;}
+   inline int fPostSize()                            {return nfpPost;}
 
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
@@ -134,6 +137,7 @@ public:
 
    inline PVPatch * getWPostPatches(int arbor, int patchIndex) {return wPostPatches[arbor][patchIndex];}
    inline pvdata_t * getWPostData(int arbor, int patchIndex) {return &wPostDataStart[arbor][patchIndex*nxpPost*nypPost*nfpPost]+wPostPatches[arbor][patchIndex]->offset;}
+   inline pvdata_t * getWPostData(int arbor) {return wPostDataStart[arbor];}
 
    virtual int numWeightPatches();
    virtual int numDataPatches();
@@ -168,7 +172,7 @@ public:
    virtual int initNormalize();
    int sumWeights(PVPatch * wp, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal);
    int scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
-   virtual int checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal);
+   virtual int checkNormalizeWeights(float sum, float sigma2, float maxVal);
    virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
 
