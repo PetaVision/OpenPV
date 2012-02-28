@@ -70,8 +70,8 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
    assert(ny == cocircPatch->ny);
    int sy = cHyPer->yPatchStride(); // hyperPatch->sy;
    assert(sy == cKernel->yPatchStride()); // assert(sy == cocircPatch->sy);
-   pvdata_t * hyperWeights = hyperPatch->data;
-   pvdata_t * cocircWeights = cocircPatch->data;
+   pvdata_t * hyperWeights = cHyPer->get_wData(axonID, kPre); // hyperPatch->data;
+   pvdata_t * cocircWeights = cKernel->get_wData(axonID, cKernel->patchIndexToKernelIndex(kPre)); // cocircPatch->data;
    float test_cond = 0.0f;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {

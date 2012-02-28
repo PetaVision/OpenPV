@@ -15,7 +15,7 @@
 #include "../src/columns/HyPerCol.hpp"
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
-#include "../src/io/ConnectionProbe.hpp"
+// #include "../src/io/ConnectionProbe.hpp"
 #include "../src/io/PostConnProbe.hpp"
 
 #include <assert.h>
@@ -23,7 +23,7 @@
 using namespace PV;
 
 static int set_weights_to_source_index(HyPerConn * c);
-static int check_weights(HyPerConn * c, PVPatch ** postWeights);
+static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * dataStart);
 
 int main(int argc, char * argv[])
 {
@@ -38,6 +38,9 @@ int main(int argc, char * argv[])
    HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, CHANNEL_EXC);
    HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, CHANNEL_EXC);
    HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, CHANNEL_EXC);
+   assert(c1->numberOfAxonalArborLists() == 1);
+   assert(c2->numberOfAxonalArborLists() == 1);
+   assert(c3->numberOfAxonalArborLists() == 1);
 
    // set weights to be k index source in pre-synaptic layer
    //
@@ -46,15 +49,15 @@ int main(int argc, char * argv[])
    status = set_weights_to_source_index(c3);
 
    postWeights = c1->convertPreSynapticWeights(0.0f)[0];
-   status = check_weights(c1, postWeights);
+   status = check_weights(c1, postWeights, c1->getWPostData(0,0));
    if (status) return status;
 
    postWeights = c2->convertPreSynapticWeights(0.0f)[0];
-   status = check_weights(c2, postWeights);
+   status = check_weights(c2, postWeights, c2->getWPostData(0,0));
    if (status) return status;
 
    postWeights = c3->convertPreSynapticWeights(0.0f)[0];
-   status = check_weights(c3, postWeights);
+   status = check_weights(c3, postWeights, c3->getWPostData(0,0));
    if (status) return status;
 
 #ifdef DEBUG_PRING
@@ -71,7 +74,7 @@ int main(int argc, char * argv[])
    return status;
 }
 
-static int check_weights(HyPerConn * c, PVPatch ** postWeights)
+static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postDataStart)
 {
    int status = 0;
 
@@ -107,7 +110,7 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights)
       const int sy = (nxPre + 2*nbPre) * nfPre;
       const int sf = c->fPatchStride(); // p->sf;
 
-      pvdata_t * w = p->data;
+      pvdata_t * w = &postDataStart[kPost*c->xPostSize()*c->yPostSize()*c->fPostSize() + p->offset]; // p->data;
 
       c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
@@ -187,7 +190,7 @@ static int set_weights_to_source_index(HyPerConn * c)
       const int syp = c->yPatchStride(); // p->sy;
       const int sfp = c->fPatchStride(); // p->sf;
 
-      pvdata_t * w = p->data;
+      pvdata_t * w = c->get_wData(arbor, kPre); // p->data;
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
