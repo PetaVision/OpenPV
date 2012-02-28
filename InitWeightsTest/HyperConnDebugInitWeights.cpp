@@ -40,13 +40,14 @@ int HyperConnDebugInitWeights::initialize_base() {
 }
 
 
-PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int numPatches, const char * filename)
+PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
    // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an InitWeightsMethod
    //       instantiation as an argument.  The routines called below would be put into derived classes
    //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
    PVPatch ** patches = arbors[0];
+   pvdata_t * arborStart = dataStart[0];
    //PVPatch ** kpatches = kernelPatches;
    //int arbor = 0;
    //int numKernelPatches = numDataPatches(arbor);
@@ -59,10 +60,10 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int
    else {
       const char * weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
       if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-         initializeCocircWeights(patches, numPatches);
+         initializeCocircWeights(patches, arborStart, numPatches);
       }
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
-         initializeSmartWeights(patches, numPatches);
+         initializeSmartWeights(patches, arborStart, numPatches);
       }
       //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
       //	      weightInitializer = new InitUniformRandomWeights();
@@ -71,7 +72,7 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int
       //	      weightInitializer = new InitGaussianRandomWeights();
       //	   }
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
-         initializeGaborWeights(patches, numPatches);
+         initializeGaborWeights(patches, arborStart, numPatches);
       }
       //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
       //	      weightInitializer = new InitPoolWeights();
@@ -86,11 +87,11 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int
       //	      weightInitializer = new InitIdentWeights();
       //	   }
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-         initializeGaussian2DWeights(patches, numPatches);
+         initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
       else { //default is also Gauss2D
          //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
-         initializeGaussian2DWeights(patches, numPatches);
+         initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
 
    }
@@ -98,22 +99,22 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, int
    bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
-      normalizeWeights(patches, numPatches, 0);
+      normalizeWeights(patches, arborStart, numPatches, 0);
    }
    return arbors;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches, int numPatches)
+PVPatch ** HyperConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
 
    for (int k = 0; k < numPatches; k++) {
-      smartWeights(patches[k], k); // MA
+      smartWeights(patches[k], dataStart + k*nxp*nyp*nfp, k); // MA
    }
    return patches;
 }
-int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, int k)
+int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
 {
-   pvdata_t * w = wp->data;
+   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
 
    const int nxp = (int) wp->nx;
    const int nyp = (int) wp->ny;
@@ -135,7 +136,7 @@ int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, int k)
    return 0;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, int numPatches)
+PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
    PVParams * params = parent->parameters();
    float aspect = 1.0; // circular (not line oriented)
@@ -191,7 +192,8 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
          delta_radius_curvature);
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      cocircCalcWeights(patches[patchIndex], patchIndex, noPre, noPost, sigma_cocirc,
+      pvdata_t * patchDataStart = &dataStart[patchIndex*nxp*nyp*nfp];
+      cocircCalcWeights(patches[patchIndex], patchDataStart, patchIndex, noPre, noPost, sigma_cocirc,
             sigma_kurve, sigma_chord, delta_theta_max, cocirc_self,
             delta_radius_curvature, numFlanks, shift, aspect, rotate, sigma, r2Max,
             strength);
@@ -199,7 +201,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
 
    return patches;
 }
-int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noPre, int noPost,
+int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPre, int noPost,
       float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
@@ -225,13 +227,14 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
    assert(sf == 1);
 
    // make full sized temporary patch, positioned around center of unit cell
-   PVPatch * wp_tmp;
-   wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t * w_tmp = wp_tmp->data;
+   // PVPatch * wp_tmp;
+   // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
+   // pvdata_t * w_tmp = wp_tmp->data;
+   pvdata_t * w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = wp_tmp->nx;
-   const int nyPatch_tmp = wp_tmp->ny;
+   const int nxPatch_tmp = nxp; // wp_tmp->nx;
+   const int nyPatch_tmp = nyp; // wp_tmp->ny;
    const int nfPatch_tmp = fPatchSize();  // should nfPatch_tmp just be replaced with nfPatch throughout?
    int kxKernelIndex;
    int kyKerneIndex;
@@ -244,7 +247,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
    const int sx_tmp = xPatchStride();
    assert(sx_tmp == fPatchSize());
    const int sy_tmp = yPatchStride();
-   assert(sy_tmp == fPatchSize() * wp_tmp->nx);
+   assert(sy_tmp == fPatchSize() * nxPatch_tmp);
    const int sf_tmp = fPatchStride();
    assert(sf_tmp == 1);
 
@@ -538,7 +541,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
    }
 
    // copy weights from full sized temporary patch to (possibly shrunken) patch
-   copyToWeightPatch(wp_tmp, 0, kPre);
+   // copyToWeightPatch(wp_tmp, 0, kPre);
 /*
    w = wp->data;
    const int nxunshrunkPatch = wp_tmp->nx;
@@ -565,12 +568,12 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, int kPre, int noP
    }
 */
 
-   free(wp_tmp);
+   // free(wp_tmp);
    return 0;
 
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** patches, int numPatches)
+PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
    PVParams * params = parent->parameters();
 
@@ -608,13 +611,13 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
    float r2Max = rMax * rMax;
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      gauss2DCalcWeights(patches[patchIndex], patchIndex, noPost, numFlanks, shift, rotate,
+      gauss2DCalcWeights(patches[patchIndex], &dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPost, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
    }
 
    return patches;
 }
-int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no, int numFlanks,
+int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
@@ -641,13 +644,13 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    assert(sf == 1);
 
    // make full sized temporary patch, positioned around center of unit cell
-   PVPatch * wp_tmp;
-   wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t * w_tmp = wp_tmp->data;
+   // PVPatch * wp_tmp;
+   // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
+   pvdata_t * w_tmp = &dataStart[wp->offset]; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = wp_tmp->nx;
-   const int nyPatch_tmp = wp_tmp->ny;
+   const int nxPatch_tmp = nxp; // wp_tmp->nx;
+   const int nyPatch_tmp = nyp; // wp_tmp->ny;
    const int nfPatch_tmp = fPatchSize();
    int kxKernelIndex;
    int kyKernelIndex;
@@ -660,7 +663,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    const int sx_tmp = xPatchStride();
    assert(sx_tmp == fPatchSize());
    const int sy_tmp = yPatchStride();
-   assert(sy_tmp == fPatchSize() * wp_tmp->nx);
+   assert(sy_tmp == fPatchSize() * nxPatch_tmp);
    const int sf_tmp = fPatchStride();
    assert(sf_tmp == 1);
 
@@ -774,7 +777,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    }
 
    // copy weights from full sized temporary patch to (possibly shrunken) patch
-   copyToWeightPatch(wp_tmp, 0, kPre);
+   // copyToWeightPatch(wp_tmp, 0, kPre);
 /*
    w = wp->data;
    const int nxunshrunkPatch = wp_tmp->nx;
@@ -801,11 +804,11 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, int kPre, int no
    }
 */
 
-   free(wp_tmp);
+   // free(wp_tmp);
    return 0;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches, int numPatches)
+PVPatch ** HyperConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
 
    const int xScale = post->clayer->xScale - pre->clayer->xScale;
@@ -831,12 +834,12 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches,
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
-      gaborWeights(patches[kernelIndex], xScale, yScale, aspect, sigma, r2Max, lambda, strength, phi);
+      gaborWeights(patches[kernelIndex], &dataStart[kernelIndex*nxp*nyp*nfp], xScale, yScale, aspect, sigma, r2Max, lambda, strength, phi);
    }
    return patches;
 }
 
-int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, int xScale, int yScale,
+int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, int xScale, int yScale,
       float aspect, float sigma, float r2Max, float lambda, float strength, float phi)
 {
    PVParams * params = parent->parameters();
@@ -846,7 +849,7 @@ int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, int xScale, int yScale
    if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
    if (params->present(name, "invert")) invert = params->value(name, "invert");
 
-   pvdata_t * w = wp->data;
+   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
 
    //const float phi = 3.1416;  // phase
 
@@ -909,18 +912,18 @@ int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, int xScale, int yScale
    return 0;
 }
 
-
+/*
 int HyperConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
    int status = PV_SUCCESS;
    assert(arbor >= 0 && arbor < this->numberOfAxonalArborLists());
    assert(patchindex >= 0 && patchindex < this->numWeightPatches());
    assert((int) sourcepatch->nx == nxp && (int) sourcepatch->ny == nyp);
    PVPatch * targetpatch = getWeights(patchindex, arbor);
-   pvdata_t * targetdata = targetpatch->data;
+   pvdata_t * targetdata = get_wData(arbor, patchindex); // targetpatch->data;
    const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
    pvdata_t * wtop = get_wDataStart(arbor);
    pvdata_t * data_head = (pvdata_t *) &wtop[unshrunkPatchSize*patchindex];
-   size_t data_offset = targetpatch->data - data_head;
+   size_t data_offset = targetpatch - data_head;
    pvdata_t * sourcedata = &sourcepatch->data[data_offset];
    int nk = targetpatch->nx * nfp;
    for (int ky = 0; ky < targetpatch->ny; ky++) {
@@ -932,6 +935,6 @@ int HyperConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbo
    }
    return status;
 }
-
+ */
 
 } /* namespace PV */
