@@ -44,9 +44,9 @@ int PlasticConnTestProbe::outputState(float timef, HyPerConn * c) {
       return PV_FAILURE;
    }
    fprintf(fp, "    Time %f, connection \"%s\":\n", timef, kconn->getName());
-   const PVPatch * wPatch = kconn->getKernelPatch(arborID, kernelIndex);
-   const pvdata_t * w = wPatch->data;
-   const pvdata_t * dw = kconn->get_dKernelData(arborID, kernelIndex);
+   // kconn->getKernelPatch(arborID, kernelIndex);
+   const pvdata_t * w = kconn->get_wData(arborID, kernelIndex); // wPatch->data;
+   const pvdata_t * dw = kconn->get_dwData(arborID, kernelIndex); // kconn->get_dKernelData(arborID, kernelIndex);
    if( outputPlasticIncr && dw == NULL ) {
       fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", name, kconn->getName(), kernelIndex, arborID);
       assert(false);
