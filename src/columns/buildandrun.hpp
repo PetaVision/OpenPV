@@ -22,7 +22,9 @@
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/IncrementLayer.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueLayer.
 #include "../layers/ODDLayer.hpp"
+#endif // OBSOLETE
 #include "../layers/CliqueLayer.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
@@ -56,7 +58,9 @@
 #include "../connections/CocircConn.hpp"
 #include "../connections/GaborConn.hpp"
 #endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueConn.
 #include "../connections/ODDConn.hpp"
+#endif // OBSOLETE
 #include "../connections/CliqueConn.hpp"
 #include "../connections/CliqueApplyConn.hpp"
 #include "../connections/SiblingConn.hpp"

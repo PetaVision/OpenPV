@@ -102,7 +102,7 @@ pvdata_t *  ODDConn::createWeights(PVPatch *** patches, int nPatches, int nxPatc
    ODDPatches[axonId] = newGeislerPatches;
 
    for (int geislerIndex = 0; geislerIndex < num_geisler_patches; geislerIndex++) {
-      ODDPatches[axonId][geislerIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
+      ODDPatches[axonId][geislerIndex] = pvpatch_new(nxPatch, nyPatch); // pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
       assert(ODDPatches[axonId][geislerIndex] != NULL );
    }
 

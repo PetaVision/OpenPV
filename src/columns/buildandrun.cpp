@@ -73,7 +73,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "GenerativeLayer",
                  "LogLatWTAGenLayer",
                "IncrementLayer",
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueLayer.
                "ODDLayer",
+#endif // OBSOLETE
                "PoolingANNLayer",
                "PtwiseProductLayer",
                "TrainingLayer",
@@ -101,7 +103,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "IdentConn",
                  "GenerativeConn",
                    "PoolingGenConn",
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueConn.
                  "ODDConn",
+#endif // OBSOLETE
                  "ReciprocalConn",
                  "CliqueConn",
                  "CliqueApplyConn",
@@ -289,11 +293,13 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new ANNDivInh(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueLayer.
    if( !strcmp(classkeyword, "ODDLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+#endif // OBSOLETE
    if( !strcmp(classkeyword, "CliqueLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
@@ -679,6 +685,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Rebplaced by CliqueConn.
    if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -688,6 +695,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
