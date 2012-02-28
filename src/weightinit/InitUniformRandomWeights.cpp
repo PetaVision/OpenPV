@@ -42,7 +42,7 @@ InitWeightsParams * InitUniformRandomWeights::createNewWeightParams(HyPerConn * 
    return tempPtr;
 }
 
-int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
    InitUniformRandomWeightsParams *weightParamPtr = dynamic_cast<InitUniformRandomWeightsParams*>(weightParams);
 
@@ -54,8 +54,7 @@ int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int a
    const float wMinInit = weightParamPtr->getWMin();
    const float wMaxInit = weightParamPtr->getWMax();
 
-
-   uniformWeights(patch, wMinInit, wMaxInit);
+   uniformWeights(dataStart, wMinInit, wMaxInit);
    return PV_SUCCESS; // return 1;
 }
 
@@ -73,12 +72,12 @@ int InitUniformRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int a
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int InitUniformRandomWeights::uniformWeights(PVPatch * wp, float minwgt, float maxwgt) {
+int InitUniformRandomWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
-   pvdata_t * w = wp->data;
+   // pvdata_t * w = wp->data;
 
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
+   const int nxp = parentConn->xPatchSize(); // wp->nx;
+   const int nyp = parentConn->yPatchSize(); // wp->ny;
    const int nfp = parentConn->fPatchSize(); //wp->nf;
 
    const int sxp = parentConn->xPatchStride(); //wp->sx;
@@ -101,7 +100,7 @@ int InitUniformRandomWeights::uniformWeights(PVPatch * wp, float minwgt, float m
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
+            dataStart[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
          }
       }
    }

@@ -17,7 +17,7 @@ public:
    Init3DGaussWeightsParams();
    Init3DGaussWeightsParams(HyPerConn * parentConn);
    virtual ~Init3DGaussWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
    bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
    bool checkBowtieAngle(float xp, float yp);
 

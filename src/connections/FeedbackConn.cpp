@@ -66,9 +66,9 @@ int FeedbackConn::setPatchSize(const char * filename) {
     return status;
 }  // end of FeedbackConn::setPatchSize(const char *)
 
-PVPatch *** FeedbackConn::initializeWeights(PVPatch *** arbors, int numPatches,
+PVPatch *** FeedbackConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
       const char * filename) {
-    if( filename ) return KernelConn::initializeWeights(arbors, numPatches, filename);
+    if( filename ) return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);
 
     transposeKernels();
     return arbors;

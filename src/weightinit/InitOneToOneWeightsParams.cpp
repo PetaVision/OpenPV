@@ -43,9 +43,9 @@ int InitOneToOneWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitOneToOneWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitOneToOneWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
    //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
 

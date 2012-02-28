@@ -17,7 +17,7 @@ public:
    InitGauss2DWeightsParams();
    InitGauss2DWeightsParams(HyPerConn * parentConn);
    virtual ~InitGauss2DWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
    bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
    bool checkBowtieAngle(float xp, float yp);
 

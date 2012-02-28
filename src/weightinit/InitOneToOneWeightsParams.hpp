@@ -22,7 +22,7 @@ public:
    InitOneToOneWeightsParams();
    InitOneToOneWeightsParams(HyPerConn * parentConn);
    virtual ~InitOneToOneWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getInitWeight()        {return initWeight;}

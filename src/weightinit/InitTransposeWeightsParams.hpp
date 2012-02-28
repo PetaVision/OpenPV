@@ -17,7 +17,7 @@ public:
    InitTransposeWeightsParams();
    InitTransposeWeightsParams(HyPerConn * parentConn);
    virtual ~InitTransposeWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
 
 protected:

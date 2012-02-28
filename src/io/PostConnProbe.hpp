@@ -8,12 +8,12 @@
 #ifndef POSTCONNPROBE_HPP_
 #define POSTCONNPROBE_HPP_
 
-#include "ConnectionProbe.hpp"
+#include "PatchProbe.hpp"       // #include "ConnectionProbe.hpp"
 #include "../layers/Image.hpp"
 
 namespace PV {
 
-class PostConnProbe: public PV::ConnectionProbe {
+class PostConnProbe: public PV::PatchProbe {
 public:
    PostConnProbe(int kPost, int arbID=0);
    PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID=0);
@@ -33,6 +33,8 @@ protected:
    Image * image;
    pvdata_t * wPrev;
    pvdata_t * wActiv;
+   bool   outputIndices;
+   bool   stdpVars;
 };
 
 }

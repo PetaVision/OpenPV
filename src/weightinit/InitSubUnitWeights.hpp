@@ -21,17 +21,17 @@ public:
    InitSubUnitWeights();
    virtual ~InitSubUnitWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
    virtual int initialize_base();
 
 private:
-   int subUnitWeights(PVPatch * patch, InitSubUnitWeightsParams * weightParamPtr);
+   int subUnitWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitSubUnitWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */

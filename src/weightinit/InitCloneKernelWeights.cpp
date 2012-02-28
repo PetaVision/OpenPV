@@ -19,7 +19,7 @@ int InitCloneKernelWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitCloneKernelWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitCloneKernelWeights::calcWeights(/*PVPatch * patch*/ pvdata_t * patchDataStart, int patchIndex, int arborId,
                                         InitWeightsParams *weightParams) {
    // Don't modify anything; CloneKernelConn doesn't allocate new weights,
    // but points weight patches at an existing connection's patch.

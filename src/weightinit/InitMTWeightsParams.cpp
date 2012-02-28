@@ -69,11 +69,11 @@ float InitMTWeightsParams::calcTh0Pre(float dthPre) {
    return inputV1Rotate * dthPre / 2.0f;
 }
 
-void InitMTWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitMTWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

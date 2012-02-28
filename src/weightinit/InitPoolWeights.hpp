@@ -20,17 +20,17 @@ public:
    InitPoolWeights();
    virtual ~InitPoolWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
    virtual int initialize_base();
 
 private:
-   int poolWeights(PVPatch * patch, InitPoolWeightsParams * weightParamPtr);
+   int poolWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitPoolWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */

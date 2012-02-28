@@ -193,27 +193,27 @@ int CliqueConn::update_dW(int arborId)
 
          // receive weights input from clique (mostly copied from superclass method)
          // PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
-         PVPatch * dWPatch = dwPatches[arborNdx][kPreExt]; // arbor->plasticIncr;
+         PVPatch * wPatch = this->getWeights(kPreExt,arborNdx); // wPatches[arborNdx][kPreExt]; // arbor->plasticIncr;
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
 
-         const pvdata_t * dWStart = this->get_dwDataStart(arborNdx);
+         // const pvdata_t * dWStart = this->get_dwDataStart(arborNdx);
          int kernelIndex = this->patchIndexToKernelIndex(kPreExt);
-         const pvdata_t * dW_head = &(dWStart[a_post_size*kernelIndex]);
-         size_t dW_offset = dWPatch->data - dW_head;
-
+         // const pvdata_t * dW_head = &(dWStart[a_post_size*kernelIndex]);
+         size_t dW_offset = wPatch->offset; // dWPatch->data - dW_head;
+         pvdata_t * dwData = get_dwData(arborNdx,kernelIndex);
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 
-         int nkPatch = nfp * dWPatch->nx;
-         int nyPatch = dWPatch->ny;
+         int nkPatch = nfp * wPatch->nx;
+         int nyPatch = wPatch->ny;
          int syPatch = syp;
 
          // TODO - unroll
          for (int y = 0; y < nyPatch; y++) {
             pvpatch_update_clique2(
                   nkPatch,
-                  (float *) (dWPatch->data + y * syPatch),
+                  (float *) (dwData + y * syPatch),
                   cliqueProd,
                   (float *) (aPost + y*syPostExt),
                   (float *) (a_post_mask + dW_offset + y * syPatch));

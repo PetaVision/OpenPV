@@ -17,7 +17,7 @@ public:
    InitPoolWeightsParams();
    InitPoolWeightsParams(HyPerConn * parentConn);
    virtual ~InitPoolWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getStrength()        {return strength;}

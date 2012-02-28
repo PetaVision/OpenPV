@@ -27,11 +27,9 @@ public:
 
    virtual int outputState(float time, HyPerConn * c);
 
-#ifdef NOT_YET_IMPLEMENTED
-   static int text_write_patch(FILE * fd, PVPatch * patch, float * data);
+   static int text_write_patch(FILE * fd, int nx, int ny, int nf, int sx, int sy, int sf, float * data);
    static int write_patch_indices(FILE * fp, PVPatch * patch,
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
-#endif // NOT_YET_IMPLEMENTED
 
    void setOutputWeights(bool flag)       {outputWeights = flag;}
    void setOutputPlasticIncr(bool flag)   {outputPlasticIncr = flag;}

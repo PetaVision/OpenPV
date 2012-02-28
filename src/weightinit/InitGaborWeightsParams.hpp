@@ -17,7 +17,7 @@ public:
    InitGaborWeightsParams();
    InitGaborWeightsParams(HyPerConn * parentConn);
    virtual ~InitGaborWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getaspect()        {return aspect;}

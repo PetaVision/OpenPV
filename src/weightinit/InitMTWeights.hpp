@@ -21,7 +21,7 @@ class InitMTWeights: public PV::InitWeights {
 public:
    InitMTWeights();
    virtual ~InitMTWeights();
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
@@ -30,7 +30,7 @@ protected:
    virtual int initialize_base();
 
 private:
-   int calculateMTWeights(PVPatch * patch, InitMTWeightsParams * weightParamPtr);
+   int calculateMTWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitMTWeightsParams * weightParamPtr);
    int calculateVector(float theta, float speed, float &x, float &y, float &t);
    int calculateMTPlane(float theta, float speed, float &x, float &y, float &t);
    int calculate2ndVector(float p1x, float p1y, float p1t, float &p2x, float &p2y, float &p2t);

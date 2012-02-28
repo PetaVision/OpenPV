@@ -178,16 +178,15 @@ int PatchProbe::outputState(float time, HyPerConn * c)
 #endif // PV_USE_MPI
    }
 
-#ifdef NOT_YET_IMPLEMENTED // need to incorporate the code below into the MPI framework
    PVPatch * w = c->getWeights(kPre, arborID);
    fprintf(fp, "w%d:      \n", kPre);
    if( outputWeights ) {
-      text_write_patch(fp, w, w->data);
+      text_write_patch(fp, w->nx, w->ny, c->fPatchSize(), c->xPatchStride(), c->yPatchStride(), c->fPatchStride(), c->get_wData(arborID, kPre));
    }
    if( outputPlasticIncr ) {
-      PVPatch * plasticPatch = c->getPlasticIncr(kPre,arborID);
+      pvdata_t * plasticPatch = c->getPlasticIncr(kPre,arborID);
       if( plasticPatch )
-         text_write_patch(fp, w, plasticPatch->data);
+         text_write_patch(fp, w->nx, w->ny, c->fPatchSize(), c->xPatchStride(), c->yPatchStride(), c->fPatchStride(), c->get_dwData(arborID, kPre));
    }
    if (outputPostIndices) {
       int kPost = c->getAPostOffset(kPre, arborID);
@@ -213,22 +212,24 @@ int PatchProbe::outputState(float time, HyPerConn * c)
       write_patch_indices(fp, w, lPostLoc, kxPost, kyPost, 0);
       fflush(fp);
    } // if(outputIndices)
-#endif // NOT_YET_IMPLEMENTED
    return PV_SUCCESS;
 }
 
-#ifdef NOT_YET_IMPLEMENTED
-int PatchProbe::text_write_patch(FILE * fp, PVPatch * patch, pvdata_t * data)
+int PatchProbe::text_write_patch(FILE * fp, int nx, int ny, int nf, int sx, int sy, int sf, pvdata_t * data)
 {
    int f, i, j;
 
-   const int nx = patch->nx;
-   const int ny = patch->ny;
-   const int nf = patch->nf;
+//   const int nx = patch->nx;
+//   const int ny = patch->ny;
+//   const int nf = patch->nf;
 
-   const int sx = patch->sx;  assert(sx == nf);
-   const int sy = patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
-   const int sf = patch->sf;  assert(sf == 1);
+//   const int sx = patch->sx;  assert(sx == nf);
+//   const int sy = patch->sy;  //assert(sy == nf*nx); // stride could be weird at border
+//   const int sf = patch->sf;  assert(sf == 1);
+
+   assert(sf == 1);
+   assert(sx == nf);
+   // Do not assert(sy == nf*nx) because patch could be shrunken
 
    assert(fp != NULL);
 
@@ -270,7 +271,7 @@ int PatchProbe::write_patch_indices(FILE * fp, PVPatch * patch,
 
    const int nx = patch->nx;
    const int ny = patch->ny;
-   const int nf = patch->nf;
+   const int nf = loc->nf; // patch->nf;
 
    // these strides are from the layer, not the patch
    // NOTE: assumes nf from layer == nf from patch
@@ -303,6 +304,5 @@ int PatchProbe::write_patch_indices(FILE * fp, PVPatch * patch,
 
    return 0;
 }
-#endif // NOT_YET_IMPLEMENTED
 
 } // namespace PV

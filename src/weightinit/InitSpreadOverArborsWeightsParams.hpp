@@ -17,7 +17,7 @@ public:
    InitSpreadOverArborsWeightsParams();
    InitSpreadOverArborsWeightsParams(HyPerConn * parentConn);
    virtual ~InitSpreadOverArborsWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get-set methods:
    inline float getInitWeight()        {return initWeight;}

@@ -92,11 +92,11 @@ int Init3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void Init3DGaussWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void Init3DGaussWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

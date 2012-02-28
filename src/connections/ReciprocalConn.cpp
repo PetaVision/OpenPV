@@ -139,7 +139,7 @@ int ReciprocalConn::update_dW(int axonID) {
       int nk = weights->nx * nfp;
       pvdata_t preact = preactbuf[kExt];
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dWData(kExt, axonID);
+      pvdata_t * dwdata = get_dwData(axonID, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -166,14 +166,15 @@ int ReciprocalConn::update_dW(int axonID) {
    }
    if( reciprocalFidelityCoeff ) {
       for( int k=0; k<numKernelIndices; k++) {
-         pvdata_t * dwdata = get_dWData(k, axonID);
-         PVPatch * p = getKernelPatch(axonID, k);
-         const pvdata_t * wdata = p->data;
+         const pvdata_t * wdata = get_wData(axonID, k); // p->data;
+         pvdata_t * dwdata = get_dwData(axonID, k);
+         PVPatch * p = getWeights(k, axonID); // getKernelPatch(axonID, k);
          short int nx = p->nx;
          short int ny = p->ny;
          for( int n=0; n<nx*ny*nfp; n++ ) {
             int f = featureIndex(n,nx,ny,nfp);
-            const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
+            const pvdata_t * recipwdata = reciprocalWgts->get_wData(axonID, f);
+            // const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
             dwdata[n] += reciprocalFidelityCoeff*(wdata[n]-nfp/reciprocalWgts->fPatchSize()*recipwdata[k]);
          }
       }
@@ -183,8 +184,11 @@ int ReciprocalConn::update_dW(int axonID) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[axonID][kernelindex]->nx * dKernelPatches[axonID][kernelindex]->ny * nfp;
-      pvdata_t * dwpatchdata = dKernelPatches[axonID][kernelindex]->data;
+      int patchIndex = kernelIndexToPatchIndex(kernelindex);
+      int numpatchitems = getWeights(patchIndex, axonID)->nx * getWeights(patchIndex, axonID)->ny * nfp;
+      // int numpatchitems = dKernelPatches[axonID][kernelindex]->nx * dKernelPatches[axonID][kernelindex]->ny * nfp;
+      pvdata_t * dwpatchdata = get_dwData(axonID,kernelindex);
+      // pvdata_t * dwpatchdata = dKernelPatches[axonID][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
@@ -194,28 +198,33 @@ int ReciprocalConn::update_dW(int axonID) {
    return PV_SUCCESS;
 }
 
-int ReciprocalConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborID) {
-   // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
-   assert(arborID == 0);
+int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborID) {
+   assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
    int status = PV_SUCCESS;
    assert( numPatches == numDataPatches() );
    for( int f=0; f<nfp; f++ ) {
       pvdata_t sum = 0.0f;
       for( int k=0; k<numPatches; k++ ) {
+         int patchIndex = kernelIndexToPatchIndex(k);
+         PVPatch * w = getWeights(patchIndex,arborID);
          int nx = (int) patches[k]->nx;
          int ny = (int) patches[k]->ny;
          for( int m=0; m<nx; m++ ) {
             for( int n=0; n<ny; n++) {
-               sum += getKernelPatch(arborID, k)->data[f];
+               sum += dataStart[k*nxp*nyp*nfp+w->offset+f];
+               // sum += getKernelPatch(arborID, k)->data[f];
             }
          }
       }
       for( int k=0; k<numPatches; k++ ) {
+         int patchIndex = kernelIndexToPatchIndex(k);
+         PVPatch * w = getWeights(patchIndex,arborID);
          int nx = (int) patches[k]->nx;
          int ny = (int) patches[k]->ny;
          for( int m=0; m<nx; m++ ) {
             for( int n=0; n<ny; n++) {
-               getKernelPatch(arborID, k)->data[f] /= sum;
+               dataStart[k*nxp*nyp*nfp+w->offset+f] /= sum;
+               // getKernelPatch(arborID, k)->data[f] /= sum;
             }
          }
       }

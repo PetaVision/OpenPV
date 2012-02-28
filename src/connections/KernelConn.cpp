@@ -117,6 +117,7 @@ int KernelConn::initPlasticityPatches() {
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  kernelPatches and dKernelPatches are no longer being used.
 int KernelConn::setWPatches(PVPatch ** patches, int arborId){
    int status = HyPerConn::setWPatches(patches, arborId);
    assert(status == 0);
@@ -134,7 +135,9 @@ int KernelConn::setdWPatches(PVPatch ** patches, int arborId){
    tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With patches storing offsets instead of pointers, no need for KernelConn to override.
 pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
@@ -148,7 +151,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
    assert(tmpPatch != NULL);
    //setKernelPatches(newKernelPatch, axonId);
 
-   pvdata_t * data_patches = pvpatches_inplace_new(tmpPatch, nxPatch, nyPatch, nfPatch, numKernelPatches);
+   pvdata_t * data_patches = pvpatches_new(tmpPatch, nxPatch, nyPatch, nfPatch, numKernelPatches);
 
 /*
    for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
@@ -160,7 +163,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
 
    // need to allocate PVPatch for each pre-synaptic cell to store patch dimensions because patches may be shrunken
    for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      patches[axonId][patchIndex] = pvpatch_new(nxPatch, nyPatch, nfPatch);
+      patches[axonId][patchIndex] = pvpatch_new(nxPatch, nyPatch); // pvpatch_new(nxPatch, nyPatch, nfPatch);
    }
 
 
@@ -171,6 +174,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
 //   return patches[0]->data;
    return data_patches;
 }
+#endif // OBSOLETE
 
 int KernelConn::initializeUpdateTime(PVParams * params) {
    if( plasticityFlag ) {
@@ -180,6 +184,7 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
+/*
 int KernelConn::shrinkPatches(int arborId) {
    int numPatches = numDataPatches();
    for (int kex = 0; kex < numPatches; kex++) {
@@ -188,6 +193,7 @@ int KernelConn::shrinkPatches(int arborId) {
 
    return 0;
 }
+ */
 
 /*TODO  createWeights currently breaks in this subclass if called more than once,
  * fix interface by adding extra dataPatches argument to overloaded method
@@ -241,12 +247,12 @@ int KernelConn::deleteWeights()
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
 
-PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, int numPatches,
+PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
       const char * filename)
 {
    //int arbor = 0;
    int numKernelPatches = numDataPatches();
-   HyPerConn::initializeWeights(kernelPatches, numKernelPatches, filename);
+   HyPerConn::initializeWeights(kernelPatches, dataStart, numKernelPatches, filename);
    return arbors;
 }
 
@@ -275,7 +281,8 @@ float KernelConn::minWeight(int arborId)
    const int numWeights = nxp * nyp * nfp;
    float min_weight = FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
+      pvdata_t * kernelWeights = get_wDataStart(arborId) + nxp*nyp*nfp*iKernel + getWeights(iKernel, arborId)->offset;
+      // pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
                : kernelWeights[iWeight];
@@ -291,7 +298,8 @@ float KernelConn::maxWeight(int arborId)
    const int numWeights = nxp * nyp * nfp;
    float max_weight = -FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
+      pvdata_t * kernelWeights = get_wDataStart(arborId) + nxp*nyp*nfp*iKernel + getWeights(iKernel, arborId)->offset;
+      // pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
                : kernelWeights[iWeight];
@@ -310,12 +318,13 @@ int KernelConn::clear_dW(int axonId) {
    // zero dWeightPatches
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
-         PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         PVPatch * kernelPatch = getWeights(kKernel, kAxon);
+         //PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
          //assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy); // eventually dKernelPatches->data will be split out and the other fields will be replaced by references to kernelPatches[kAxon][kKernel]
          int syPatch = syp; //dKernelPatch->sy;
-         int nkPatch = nfp * dKernelPatch->nx;
-         float * dWeights = dKernelPatch->data;
-         for(int kyPatch = 0; kyPatch < dKernelPatch->ny; kyPatch++){
+         int nkPatch = nfp * kernelPatch->nx;
+         float * dWeights = get_dwDataStart(axonId)+kKernel*nfp*nxp*nyp+kernelPatch->offset; // dKernelPatch->data;
+         for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
             }
@@ -348,7 +357,7 @@ int KernelConn::defaultUpdate_dW(int axonId) {
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dWData(kExt, axonId);
+      pvdata_t * dwdata = get_dwData(kExt, axonId);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -364,8 +373,9 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = dKernelPatches[axonId][kernelindex]->nx * dKernelPatches[axonId][kernelindex]->ny * nfp;
-      pvdata_t * dwpatchdata = dKernelPatches[axonId][kernelindex]->data;
+      PVPatch * kernelPatch = this->getWeights(kernelindex, axonId);
+      int numpatchitems = kernelPatch->nx * kernelPatch->ny * nfp;
+      pvdata_t * dwpatchdata = get_dwDataStart(axonId) + kernelindex*numpatchitems + kernelPatch->offset; // dKernelPatches[axonId][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
@@ -409,7 +419,7 @@ int KernelConn::updateState(float time, float dt) {
       }
       if( normalize_flag ) {
          for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-            status = normalizeWeights(kernelPatches[axonID], numDataPatches(), axonID);
+            status = normalizeWeights(weights(axonID), get_wDataStart(axonID), numDataPatches(), axonID);
             if (status == PV_BREAK) {break;}
             assert(status == PV_SUCCESS);
          }
@@ -425,12 +435,15 @@ int KernelConn::updateWeights(int axonId){
    // add dKernelPatches to KernelPatches
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
-         PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
-         PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         // PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
+         // PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
+         PVPatch * kernelPatch = getWeights(kKernel, axonId);
          int syPatch = syp;
          int nkPatch = nfp * kernelPatch->nx;
-         pvdata_t * weights = kernelPatch->data;
-         pvdata_t * dWeights = dKernelPatch->data;
+         int arborOffset = nxp*nyp*nfp*kKernel;
+         int kernelOffset = arborOffset + kernelPatch->offset;
+         pvdata_t * weights = this->get_wDataStart(kAxon)+kernelOffset; // kernelPatch->data;
+         pvdata_t * dWeights = this->get_dwDataStart(kAxon)+kernelOffset; // dKernelPatch->data;
          for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                weights[kPatch] += dWeights[kPatch];
@@ -466,8 +479,8 @@ int KernelConn::reduceKernels(const int axonID) {
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
       //PVPatch * p = kernelPatches[axonID][k];
-      PVPatch * p = dKernelPatches[axonID][k];
-      const pvdata_t * data = p->data;
+      PVPatch * p = getWeights(k, axonID); // dKernelPatches[axonID][k];
+      const pvdata_t * data = get_dwDataStart(axonID)+nxp*nyp*nfp*k+p->offset; // p->data;
 
       //const int sxp = p->sx;
       //const int syp = p->sy;
@@ -499,8 +512,8 @@ int KernelConn::reduceKernels(const int axonID) {
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
       //PVPatch * p = kernelPatches[axonID][k];
-      PVPatch * p = dKernelPatches[axonID][k];
-      pvdata_t * data = p->data;
+      PVPatch * p = this->getWeights(k, axonID);// dKernelPatches[axonID][k];
+      pvdata_t * data = get_dwDataStart(axonID)+nxp*nyp*nfp*k+p->offset; // p->data;
 
       //const int sxp = p->sx;
       //const int syp = p->sy;
@@ -526,7 +539,7 @@ int KernelConn::correctPIndex(int patchIndex) {
 }
 
 
-int KernelConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId)
+int KernelConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = PV_BREAK;
    const int num_kernels = numDataPatches();
@@ -537,7 +550,8 @@ int KernelConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbo
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
          double sum, sum2;
          float maxVal;
-         status = sumWeights(kernelPatches[kArbor][kPatch], &sum, &sum2, &maxVal);
+         PVPatch * p = patches[kPatch];
+         status = sumWeights(p, dataStart + kPatch*nxp*nyp*nfp + p->offset, &sum, &sum2, &maxVal);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          sumAll += sum;
          sum2All += sum2;
@@ -559,7 +573,7 @@ int KernelConn::checkNormalizeArbor(PVPatch ** patches, int numPatches, int arbo
 } // checkNormalizeArbor
 
 
-int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
    const int num_kernels = numDataPatches();
@@ -567,7 +581,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
    // symmetrize before normalization
    if ( symmetrizeWeightsFlag ){
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = symmetrizeWeights(kernelPatches[kArbor], num_kernels, kArbor);
+         status = symmetrizeWeights(patches, dataStart, num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       }
    }
@@ -575,7 +589,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
    // normalize after symmetrization
    if (this->normalize_arbors_individually) {
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = HyPerConn::normalizeWeights(kernelPatches[kArbor], num_kernels, kArbor);
+         status = HyPerConn::normalizeWeights(patches, dataStart, num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       }
       status = PV_BREAK;
@@ -588,46 +602,50 @@ int KernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
             double sum, sum2;
             float maxVal;
-            status = sumWeights(kernelPatches[kArbor][kPatch], &sum, &sum2, &maxVal);
+            status = sumWeights(patches[kPatch], dataStart+kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
             sumAll += sum;
             sum2All += sum2;
             maxAll = maxVal > maxAll ? maxVal : maxAll;
          } // kArbor
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-            status = scaleWeights(kernelPatches[kArbor][kPatch], sumAll, sum2All, maxAll);
+            status = scaleWeights(patches[kPatch], dataStart+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
       } // kPatch < numPatches
 
-      status = checkNormalizeArbor(patches, numPatches, arborId);
+      status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       status = PV_BREAK;
    } // this->normalize_arbors_individually
    return status;
 }
 
-int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int KernelConn::symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
    if (arborId == 0)
       printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    assert(pre->clayer->loc.nf==post->clayer->loc.nf);
-   PVPatch ** symPatches;
-   symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);
+
+   // PVPatch ** symPatches;
+   // symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);
+   // assert(symPatches != NULL);
+   // for (int iKernel = 0; iKernel < numPatches; iKernel++) {
+   //    symPatches[iKernel] = pvpatch_new(nxp, nyp); // pvpatch_inplace_new(nxp, nyp, nfp);
+   //    assert(symPatches[iKernel] != NULL );
+   // }
+   pvdata_t * symPatches = (pvdata_t *) calloc(nxp*nyp*nfp*numPatches, sizeof(pvdata_t));
    assert(symPatches != NULL);
-   for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      symPatches[iKernel] = pvpatch_inplace_new(nxp, nyp, nfp);
-      assert(symPatches[iKernel] != NULL );
-   }
+
    const int sy = nxp * nfp;
    const float deltaTheta = PI / nfp;
    const float offsetTheta = 0.5f * deltaTheta;
    const int kyMid = nyp / 2;
    const int kxMid = nxp / 2;
    for (int iSymKernel = 0; iSymKernel < numPatches; iSymKernel++) {
-      PVPatch * symWp = symPatches[iSymKernel];
-      pvdata_t * symW = symWp->data;
+      // PVPatch * symWp = symPatches[iSymKernel];
+      pvdata_t * symW = symPatches + iSymKernel*nxp*nyp*nfp; // symWp->data;
       float symTheta = offsetTheta + iSymKernel * deltaTheta;
       for (int kySym = 0; kySym < nyp; kySym++) {
          float dySym = kySym - kyMid;
@@ -643,8 +661,8 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
                int kDf = kfSym - iSymKernel;
                int iSymW = kfSym + nfp * kxSym + sy * kySym;
                for (int iKernel = 0; iKernel < nfp; iKernel++) {
-                  PVPatch * kerWp = getKernelPatch(arborId, iKernel);
-                  pvdata_t * kerW = kerWp->data;
+                  // PVPatch * kerWp = getKernelPatch(arborId, iKernel);
+                  pvdata_t * kerW = get_wDataStart(arborId) + iKernel*nxp*nyp*nfp; // kerWp->data;
                   int kfRot = iKernel + kDf;
                   if (kfRot < 0) {
                      kfRot = nfp + kfRot;
@@ -669,29 +687,31 @@ int KernelConn::symmetrizeWeights(PVPatch ** patches, int numPatches, int arborI
    } // iKernel
    const int num_weights = nfp * nxp * nyp;
    for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      PVPatch * kerWp = kernelPatches[arborId][iKernel];
-      pvdata_t * kerW = kerWp->data;
-      PVPatch * symWp = symPatches[iKernel];
-      pvdata_t * symW = symWp->data;
+      // PVPatch * kerWp = kernelPatches[arborId][iKernel];
+      pvdata_t * kerW = get_wDataStart(arborId)+iKernel*nxp*nyp*nfp;// kerWp->data;
+      // PVPatch * symWp = symPatches[iKernel];
+      pvdata_t * symW = symPatches + iKernel*nxp*nyp*nfp;// symWp->data;
       for (int iW = 0; iW < num_weights; iW++) {
          kerW[iW] = symW[iW];
       }
    } // iKernel
-   for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      pvpatch_inplace_delete(symPatches[iKernel]);
-   } // iKernel
+
+   // for (int iKernel = 0; iKernel < numPatches; iKernel++) {
+   //    pvpatch_inplace_delete(symPatches[iKernel]);
+   // } // iKernel
    free(symPatches);
+
    printf("Exiting KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    return status;
 }
 
 int KernelConn::writeWeights(float timef, bool last) {
    const int numPatches = numDataPatches();
-   return HyPerConn::writeWeights(kernelPatches, numPatches, NULL, timef, last);
+   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numPatches, NULL, timef, last);
 }
 
 int KernelConn::writeWeights(const char * filename) {
-   return HyPerConn::writeWeights(kernelPatches, numDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
 }
 
 #ifdef OBSOLETE_NBANDSFORARBORS
@@ -711,7 +731,7 @@ int KernelConn::writeWeights(float time, bool last)
 int KernelConn::checkpointRead(float * timef) {
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(kernelPatches, numDataPatches(), filename, this, timef);
+   weightsInitObject->initializeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, this, timef);
    free(filename);
    return PV_SUCCESS;
 }
@@ -721,7 +741,7 @@ int KernelConn::checkpointWrite() {
    filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
    assert(filename != NULL);
    sprintf(filename, "%s_W.pvp", name);
-   return HyPerConn::writeWeights(kernelPatches, numDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(kernelPatches, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
 }
 
 // one to many mapping, chose first patch index in restricted space

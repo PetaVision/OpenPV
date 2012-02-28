@@ -31,8 +31,8 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
    assert(arborId == 0);  // necessary?  could execute this routine numAxonArbors times without apparent harm
    for (int axonIndex = 0; axonIndex < this->numberOfAxonalArborLists(); axonIndex++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-         PVPatch * wp = getKernelPatch(axonIndex, kPatch);
-         pvdata_t * w = wp->data;
+         // PVPatch * wp = getWeights(axonIndex, kPatch); // getKernelPatch(axonIndex, kPatch);
+         pvdata_t * w = get_wData(axonIndex, kPatch); // wp->data;
          int kfSelf = kPatch;
          int kxSelf = (nxp / 2);
          int kySelf = (nyp / 2);
@@ -43,11 +43,11 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
    return PV_BREAK;
 }
 
-int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = zeroSelfWeights(patches, numPatches, arborId);
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-   return KernelConn::normalizeWeights(patches, numPatches, arborId);  // parent class should return PV_BREAK
+   return KernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
 }
 
 

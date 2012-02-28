@@ -17,7 +17,7 @@ public:
    InitRuleWeightsParams();
    InitRuleWeightsParams(HyPerConn * parentConn);
    virtual ~InitRuleWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getStrength()        {return strength;}

@@ -37,9 +37,9 @@ int InitTransposeWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitTransposeWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitTransposeWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
    //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
 

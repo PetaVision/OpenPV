@@ -40,11 +40,11 @@ int InitRuleWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitRuleWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitRuleWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

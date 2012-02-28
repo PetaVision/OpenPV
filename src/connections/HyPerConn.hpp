@@ -71,7 +71,7 @@ public:
 
    virtual int writeWeights(float time, bool last=false);
    virtual int writeWeights(const char * filename);
-   virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
+   virtual int writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, float timef, bool last);
 #ifdef OBSOLETE // Marked obsolete Nov 29, 2011.
    virtual int writeWeights(PVPatch ** patches, int numPatches,
                             const char * filename, float time, bool last, int arborId);
@@ -119,23 +119,26 @@ public:
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}
    virtual PVPatch * getWeights(int kPre, int arborId);
-   inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
+   // inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
+   inline pvdata_t * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? &dwDataStart[arborId][kPre*nxp*nyp*nfp + wPatches[arborId][kPre]->offset] : NULL;}
    inline const PVPatchStrides * getPostExtStrides() {return &postExtStrides;}
    inline const PVPatchStrides * getPostNonextStrides() {return &postNonextStrides;}
 
    inline pvdata_t * get_wDataStart(int arborId) {return wDataStart[arborId];}
-   inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;}
+   // inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;} // Should be protected
+   inline pvdata_t * get_wData(int arborId, int patchIndex) {return &wDataStart[arborId][patchIndex*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
 
    inline pvdata_t * get_dwDataStart(int arborId) {return dwDataStart[arborId];}
-   inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
+   // inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;} // Should be protected
+   inline pvdata_t * get_dwData(int arborId, int patchIndex) {return &dwDataStart[arborId][patchIndex*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
 
-   // inline PVAxonalArbor * axonalArbor(int kPre, int arborId)
-   //                                                  {return &axonalArborList[arborId][kPre];}
+   inline PVPatch * getWPostPatches(int arbor, int patchIndex) {return wPostPatches[arbor][patchIndex];}
+   inline pvdata_t * getWPostData(int arbor, int patchIndex) {return &wPostDataStart[arbor][patchIndex*nxpPost*nypPost*nfpPost]+wPostPatches[arbor][patchIndex]->offset;}
+
    virtual int numWeightPatches();
    virtual int numDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
-   inline pvdata_t * get_dWData(int kPre, int arborId) {return dwPatches[arborId][kPre]->data;}
    inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
    inline size_t getAPostOffset(int kPre, int arborId) {return aPostOffset[arborId][kPre];}
 
@@ -163,11 +166,11 @@ public:
    bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
    virtual int initNormalize();
-   int sumWeights(PVPatch * wp, double * sum, double * sum2, pvdata_t * maxVal);
-   int scaleWeights(PVPatch * wp, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
+   int sumWeights(PVPatch * wp, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal);
+   int scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
    virtual int checkNormalizeWeights(PVPatch * wp, float sum, float sigma2, float maxVal);
-   virtual int checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId);
-   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
 
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
          int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
@@ -186,8 +189,8 @@ private:
    pvdata_t      *** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
-   PVPatchStrides  postExtStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into an extended post-synaptic layer
-   PVPatchStrides  postNonextStrides; // nx,ny,nf,sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
+   PVPatchStrides  postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
+   PVPatchStrides  postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvdata_t      ** wDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    pvdata_t      ** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
 
@@ -196,16 +199,19 @@ private:
    int defaultDelay; //added to save params file defined delay...
 
 protected:
-   PVPatch       *** wPostPatches;  // post-synaptic linkage of weights
-   PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
-   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
+   char * name;
+   int nxp, nyp, nfp;      // size of weight dimensions
+   int sxp, syp, sfp;    // stride in x,y,features
 
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    int connId;             // connection id
 
-   char * name;
-   int nxp, nyp, nfp;      // size of weight dimensions
-   int sxp, syp, sfp;    // stride in x,y,features
+   PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
+   int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
+
+   PVPatch       *** wPostPatches;  // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
+   pvdata_t      **  wPostDataStart;
+   int nxpPost, nypPost, nfpPost;
 
    int numParams;
    //PVConnParams * params;
@@ -244,19 +250,20 @@ protected:
    InitWeights *weightInitializer;
 
 protected:
-   PVPatch *** get_wPatches() {return wPatches;} // protected so derived classes can use; public methods are weights(arbor) and getWeights(patchindex,arbor)
-   void set_wPatches(PVPatch *** patches) {wPatches=patches;}
-   pvdata_t *** getGSynPatchStart() {return gSynPatchStart;}
-   void setGSynPatchStart(pvdata_t *** patchstart) {gSynPatchStart = patchstart;}
-   size_t ** getAPostOffset() {return aPostOffset;}
-   void setAPostOffset(size_t ** postoffset) {aPostOffset = postoffset;}
-   pvdata_t ** get_wDataStart() {return wDataStart;}
-   void set_wDataStart(pvdata_t ** datastart) {wDataStart = datastart;}
-   pvdata_t ** get_dwDataStart() {return dwDataStart;}
-   void set_dwDataStart(pvdata_t ** datastart) {dwDataStart = datastart;}
-
-   int * getDelays() {return delays;}
-   void setDelays(int * delayptr) {delays = delayptr;}
+   inline PVPatch *** get_wPatches() {return wPatches;} // protected so derived classes can use; public methods are weights(arbor) and getWeights(patchindex,arbor)
+   inline void set_wPatches(PVPatch *** patches) {wPatches=patches;}
+   inline pvdata_t *** getGSynPatchStart() {return gSynPatchStart;}
+   inline void setGSynPatchStart(pvdata_t *** patchstart) {gSynPatchStart = patchstart;}
+   inline size_t ** getAPostOffset() {return aPostOffset;}
+   inline void setAPostOffset(size_t ** postoffset) {aPostOffset = postoffset;}
+   inline pvdata_t ** get_wDataStart() {return wDataStart;}
+   inline void set_wDataStart(pvdata_t ** datastart) {wDataStart = datastart;}
+   inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;}
+   inline pvdata_t ** get_dwDataStart() {return dwDataStart;}
+   inline void set_dwDataStart(pvdata_t ** datastart) {dwDataStart = datastart;}
+   inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
+   inline int * getDelays() {return delays;}
+   inline void setDelays(int * delayptr) {delays = delayptr;}
 
    virtual int setPatchSize(const char * filename);
    virtual int setPatchStrides();
@@ -281,7 +288,7 @@ protected:
                   ChannelType channel, const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int initPlasticityPatches();
-   virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
    virtual InitWeights * handleMissingInitWeights(PVParams * params);
 //   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
@@ -341,23 +348,29 @@ public:
    // static member functions
    //
 
-   static PVPatch ** createPatches(int numBundles, int nx, int ny, int nf)
+   static PVPatch ** createPatches(int nPatches, int nx, int ny)
    {
-      PVPatch ** patches = (PVPatch**) malloc(numBundles*sizeof(PVPatch*));
+      PVPatch ** patchpointers = (PVPatch**) malloc(nPatches*sizeof(PVPatch*));
+      PVPatch * patcharray = (PVPatch*) malloc(nPatches*sizeof(PVPatch));
 
-      for (int i = 0; i < numBundles; i++) {
-         patches[i] = pvpatch_inplace_new(nx, ny, nf);
+      PVPatch * curpatch = patcharray;
+      for (int i = 0; i < nPatches; i++) {
+         pvpatch_init(curpatch, nx, ny);
+         patchpointers[i] = curpatch;
+         curpatch++;
       }
 
-      return patches;
+      return patchpointers;
    }
 
-   static int deletePatches(int numBundles, PVPatch ** patches)
+   static int deletePatches(PVPatch ** patchpointers)
    {
-      for (int i = 0; i < numBundles; i++) {
-         pvpatch_inplace_delete(patches[i]);
-      }
-      free(patches);
+      free(*patchpointers);
+      free(patchpointers);
+//      for (int i = 0; i < numBundles; i++) {
+//         pvpatch_inplace_delete(patches[i]);
+//      }
+      //free(patches);
 
       return 0;
    }

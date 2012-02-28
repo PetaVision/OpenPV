@@ -23,10 +23,10 @@ public:
    InitTransposeWeights(KernelConn * origConn);
    virtual ~InitTransposeWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
@@ -34,7 +34,7 @@ protected:
    int initialize(KernelConn * origConn);
 
 private:
-   int transposeKernels(PVPatch * patch, InitTransposeWeightsParams * weightParamPtr);
+   int transposeKernels(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, InitTransposeWeightsParams * weightParamPtr);
 
    KernelConn * originalConn;
 

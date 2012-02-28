@@ -24,7 +24,7 @@ InitWeightsParams * InitWindowed3DGaussWeights::createNewWeightParams(HyPerConn 
    return tempPtr;
 }
 
-int InitWindowed3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitWindowed3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitWindowed3DGaussWeightsParams *weightParamPtr = dynamic_cast<InitWindowed3DGaussWeightsParams*>(weightParams);
@@ -36,14 +36,11 @@ int InitWindowed3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
    weightParamPtr->setTime(arborId);
 
-   gauss3DWeights(patch, (Init3DGaussWeightsParams*)weightParamPtr);
-   windowWeights(patch, weightParamPtr);
-
-   //PVAxonalArbor * arbor = weightParamPtr->getParentConn()->axonalArbor(patchIndex, arborId);
-   //arbor->delay = weightParamPtr->getTime();
+   gauss3DWeights(dataStart, (Init3DGaussWeightsParams*)weightParamPtr);
+   windowWeights(dataStart, weightParamPtr);
 
    weightParamPtr->getParentConn()->setDelay(arborId, weightParamPtr->getTime());
 
@@ -56,7 +53,7 @@ int InitWindowed3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int
  * and get single quadrant separable receptive fields
  *
  */
-int InitWindowed3DGaussWeights::windowWeights(PVPatch * patch, InitWindowed3DGaussWeightsParams * weightParamPtr) {
+int InitWindowed3DGaussWeights::windowWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitWindowed3DGaussWeightsParams * weightParamPtr) {
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
@@ -81,7 +78,7 @@ int InitWindowed3DGaussWeights::windowWeights(PVPatch * patch, InitWindowed3DGau
    //float thetaXT = weightParamPtr->getThetaXT();
    //float strength = weightParamPtr->getStrength();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
 
 
@@ -109,7 +106,7 @@ int InitWindowed3DGaussWeights::windowWeights(PVPatch * patch, InitWindowed3DGau
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             //w_tmp[index] = 0;
             if (d2 <= r2Max) {
-               w_tmp[index] *= expf(-d2 / (2.0f * sigma * sigma));
+               dataStart[index] *= expf(-d2 / (2.0f * sigma * sigma));
             }
          }
       }

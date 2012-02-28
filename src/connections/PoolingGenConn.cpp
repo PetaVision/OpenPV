@@ -135,7 +135,7 @@ int PoolingGenConn::updateWeights(int axonID) {
         pvdata_t * postactRef = &(postSynapticLayer()->getCLayer()->activity->data[offset]);
         pvdata_t * postact2Ref = &(getPost2()->getCLayer()->activity->data[offset]);
         int sya = getPostNonextStrides()->sy;
-        pvdata_t * wtpatch = weights->data;
+        pvdata_t * wtpatch = get_wData(axonID, kPre); // weights->data;
         int syw = syp;
         for( int y=0; y<nyp; y++ ) {
             int lineoffsetw = 0;
@@ -159,7 +159,7 @@ int PoolingGenConn::updateWeights(int axonID) {
            int nk = weights->nx * nfp;
            pvdata_t * postactRef = &(slownessPost->getCLayer()->activity->data[offset]);
            int sya = getPostNonextStrides()->sy;
-           pvdata_t * wtpatch = weights->data;
+           pvdata_t * wtpatch = get_wData(axonID, kPre); // weights->data;
            int syw = syp;
            for( int y=0; y<nyp; y++ ) {
                int lineoffsetw = 0;
@@ -176,7 +176,7 @@ int PoolingGenConn::updateWeights(int axonID) {
     if( nonnegConstraintFlag ) {
        for(int kPatch=0; kPatch<numDataPatches();kPatch++) {
           PVPatch * weights = this->getKernelPatch(axonID, kPatch);
-          pvdata_t * wtpatch = weights->data;
+          pvdata_t * wtpatch = get_wData(axonID, kPatch); // weights->data;
            int nk = weights->nx * nfp;
            int syw = nxp*nfp;
            for( int y=0; y < weights->ny; y++ ) {

@@ -47,11 +47,11 @@ int InitSpreadOverArborsWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitSpreadOverArborsWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitSpreadOverArborsWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

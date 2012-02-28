@@ -21,7 +21,7 @@ public:
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
    virtual int initialize_base();
@@ -30,7 +30,7 @@ protected:
 //                  ChannelType channel);
 
 private:
-   int smartWeights(PVPatch * wp, int k);
+   int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k);
 };
 
 } /* namespace PV */

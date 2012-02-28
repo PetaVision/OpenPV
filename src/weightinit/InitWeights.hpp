@@ -32,15 +32,15 @@ public:
     * THis is the top weight initializing method.  It will first call createUnShrunkenPatch to create a full sized patch,
     * and then calcWeights to calculate the weights for the patch.  Finally it will call copyToOriginalPatch to copy the weights from
     * the full sized patch to a possibly shrunken patch.
-    * This method is purposely not virtual!  Only calcweights will be virtual and can be over ridden by sub
+    * This method is purposely not virtual!  Only calcWeights will be virtual and can be over ridden by sub
     * initweights classes
     */
-   PVPatch *** initializeWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
+   PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
-   virtual int readWeights(PVPatch *** patches, int numPatches,
+   virtual int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
                            const char * filename, HyPerConn * callingConn, float * time=NULL);
 
    //get-set methods:
@@ -49,13 +49,10 @@ public:
 
 protected:
    virtual int initialize_base();
-//   int initialize(const char * name, HyPerCol * hc,
-//                  HyPerLayer * pre, HyPerLayer * post,
-//                  ChannelType channel);
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With refactoring of wDataStart, there is no need to initialize on an unshrunken patch and copy to a shrunken patch
    PVPatch * createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * wp);
-   //int copyToOriginalPatch(PVPatch * wp, PVPatch * w_tmp);
    static int copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex, int nf_patch, int sy_patch);
-
+#endif // OBSOLETE
 //   char * name; //this is actually the Connection name
 //   HyPerLayer     * pre;
 //   HyPerLayer     * post;
@@ -65,7 +62,7 @@ protected:
 
 private:
 
-   int gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * weightParamPtr);
+   int gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */

@@ -29,7 +29,7 @@ InitWeightsParams * InitPoolWeights::createNewWeightParams(HyPerConn * callingCo
    return tempPtr;
 }
 
-int InitPoolWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitPoolWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitPoolWeightsParams *weightParamPtr = dynamic_cast<InitPoolWeightsParams*>(weightParams);
@@ -41,15 +41,15 @@ int InitPoolWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   poolWeights(patch, weightParamPtr);
+   poolWeights(dataStart, weightParamPtr);
 
    return PV_SUCCESS; // return 1;
 
 }
 
-int InitPoolWeights::poolWeights(PVPatch * patch, InitPoolWeightsParams * weightParamPtr) {
+int InitPoolWeights::poolWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitPoolWeightsParams * weightParamPtr) {
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
    int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
@@ -58,13 +58,13 @@ int InitPoolWeights::poolWeights(PVPatch * patch, InitPoolWeightsParams * weight
    int sy_tmp=weightParamPtr->getsy_tmp();
    int sf_tmp=weightParamPtr->getsf_tmp();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
    // initialize connections of OFF and ON cells to 0
    for (int f = 0; f < nfPatch_tmp; f++) {
       for (int j = 0; j < nyPatch_tmp; j++) {
          for (int i = 0; i < nxPatch_tmp; i++) {
-            w_tmp[i*nxPatch_tmp + j*nyPatch_tmp + f*nfPatch_tmp] = 0;
+            dataStart[i*nxPatch_tmp + j*nyPatch_tmp + f*nfPatch_tmp] = 0;
          }
       }
    }
@@ -72,11 +72,11 @@ int InitPoolWeights::poolWeights(PVPatch * patch, InitPoolWeightsParams * weight
    // connect an OFF cells to all OFF cells (and vice versa)
 
    for (int f = (weightParamPtr->getFPre() % 2); f < nfPatch_tmp; f += 2) {
-      w_tmp[0*sx_tmp + 0*sy_tmp + f*sf_tmp] = 1;
+      dataStart[0*sx_tmp + 0*sy_tmp + f*sf_tmp] = 1;
    }
    float factor = strength;
    for (int f = 0; f < nfPatch_tmp; f++) {
-      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) w_tmp[f + i*nfPatch_tmp] *= factor;
+      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) dataStart[f + i*nfPatch_tmp] *= factor;
    }
 
    return 0;

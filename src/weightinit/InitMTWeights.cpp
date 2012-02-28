@@ -28,7 +28,7 @@ InitWeightsParams * InitMTWeights::createNewWeightParams(HyPerConn * callingConn
    return tempPtr;
 }
 
-int InitMTWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitMTWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitMTWeightsParams *weightParamPtr = dynamic_cast<InitMTWeightsParams*>(weightParams);
@@ -40,9 +40,9 @@ int InitMTWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   calculateMTWeights(patch, weightParamPtr);
+   calculateMTWeights(dataStart, weightParamPtr);
 
 
    return PV_SUCCESS;
@@ -52,7 +52,7 @@ int InitMTWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 /**
  * calculate temporal-spatial gaussian filter for use in optic flow detector
  */
-int InitMTWeights::calculateMTWeights(PVPatch * patch, InitMTWeightsParams * weightParamPtr) {
+int InitMTWeights::calculateMTWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitMTWeightsParams * weightParamPtr) {
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    //for MT cells, the patch size must be 1!  We are connecting to the V1 outputs
@@ -74,7 +74,7 @@ int InitMTWeights::calculateMTWeights(PVPatch * patch, InitMTWeightsParams * wei
    float v1X, v1Y, v1T;
    calculateVector(thetaPre, v1Speed, v1X, v1Y, v1T);
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
 
 
@@ -89,15 +89,15 @@ int InitMTWeights::calculateMTWeights(PVPatch * patch, InitMTWeightsParams * wei
       float distance = calcDist(v1X, v1Y, v1T, mtX, mtY, mtT);
       //printf("distance %f\n",distance);
       int index = fPost * sf_tmp;
-      w_tmp[index] = 0;
+      dataStart[index] = 0;
       if((channel == CHANNEL_EXC)&&(distance>-0.01)&&(distance<0.01)) {
-         w_tmp[index] = 1;
+         dataStart[index] = 1;
       }
       else if(channel == CHANNEL_EXC) {
-         w_tmp[index] = 0;
+         dataStart[index] = 0;
       }
       else if(channel == CHANNEL_INH) {
-         w_tmp[index] = distance;
+         dataStart[index] = distance;
       }
       else {
          assert((channel == CHANNEL_INH)||(channel == CHANNEL_EXC));

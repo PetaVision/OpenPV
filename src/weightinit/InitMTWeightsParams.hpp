@@ -17,7 +17,7 @@ public:
    InitMTWeightsParams();
    InitMTWeightsParams(HyPerConn * parentConn);
    virtual ~InitMTWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    virtual float calcDthPre();
    virtual float calcTh0Pre(float dthPre);

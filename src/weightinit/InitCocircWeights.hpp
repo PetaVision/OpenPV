@@ -24,7 +24,7 @@ public:
 //         ChannelType channel);
    virtual ~InitCocircWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
@@ -38,7 +38,7 @@ protected:
 private:
    bool calcDistChordCocircKurvePreNKurvePost(
             float xDelta, float yDelta, int kfPost, InitCocircWeightsParams *weightParamPtr, float thPost);
-   int cocircCalcWeights(PVPatch * patch, InitCocircWeightsParams * weightParamPtr);
+   int cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */

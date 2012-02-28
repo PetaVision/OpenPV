@@ -21,7 +21,7 @@ public:
 
 	   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-	   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
+	   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 
 protected:
@@ -31,7 +31,7 @@ protected:
 //	               ChannelType channel);
 
 private:
-	int gaussianWeights(PVPatch * wp, float mean, float stdev);
+	int gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev);
 
 };
 

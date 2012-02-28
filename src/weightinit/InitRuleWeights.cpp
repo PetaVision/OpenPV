@@ -30,7 +30,7 @@ InitWeightsParams * InitRuleWeights::createNewWeightParams(HyPerConn * callingCo
    return tempPtr;
 }
 
-int InitRuleWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitRuleWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitRuleWeightsParams *weightParamPtr = dynamic_cast<InitRuleWeightsParams*>(weightParams);
@@ -42,15 +42,15 @@ int InitRuleWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   ruleWeights(patch, weightParamPtr);
+   ruleWeights(dataStart, weightParamPtr);
 
    return PV_SUCCESS; // return 1;
 
 }
 
-int InitRuleWeights::ruleWeights(PVPatch * patch, InitRuleWeightsParams * weightParamPtr) {
+int InitRuleWeights::ruleWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitRuleWeightsParams * weightParamPtr) {
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
    int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
@@ -60,7 +60,8 @@ int InitRuleWeights::ruleWeights(PVPatch * patch, InitRuleWeightsParams * weight
    int sf_tmp=weightParamPtr->getsf_tmp();
    int fPre = weightParamPtr->getFPre();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * dataStart = patch->data;
+
    // rule 16 (only 100 applies, left neighbor fires, I fire, all other patterns fire 0)
     // left (post view) -> right (pre view) -> 100 -> 000
 
@@ -70,7 +71,7 @@ int InitRuleWeights::ruleWeights(PVPatch * patch, InitRuleWeightsParams * weight
     for (int f = 0; f < nfPatch_tmp; f++) {
        for (int j = 0; j < nyPatch_tmp; j++) {
           for (int i = 0; i < nxPatch_tmp; i++) {
-             w_tmp[i*sx_tmp + j*sy_tmp + f*sf_tmp] = 0;
+             dataStart[i*sx_tmp + j*sy_tmp + f*sf_tmp] = 0;
           }
        }
     }
@@ -82,36 +83,36 @@ int InitRuleWeights::ruleWeights(PVPatch * patch, InitRuleWeightsParams * weight
        for (int j = 0; j < nyPatch_tmp; j++) {
           // sub-rule 000 (first OFF cell fires)
           int f = 0;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 001 (second OFF cell fires)
           f = 2;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 010 (third OFF cell fires)
           f = 4;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 011 (fourth OFF cell fires)
           f = 6;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 100 (fifth _ON_ cell fires)
           f = 9;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 101 (six OFF cell fires)
           f = 10;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 110 (seventh OFF cell fires)
           f = 12;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 111 (eighth OFF cell fires)
           f = 14;
@@ -126,42 +127,42 @@ int InitRuleWeights::ruleWeights(PVPatch * patch, InitRuleWeightsParams * weight
 
           // sub-rule 001 (second OFF cell fires)
           f = 2;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 010 (third OFF cell fires)
           f = 4;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 011 (fourth OFF cell fires)
           f = 6;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 100 (fifth _ON_ cell fires)
           f = 9;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 101 (six OFF cell fires)
           f = 10;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 110 (seventh OFF cell fires)
           f = 12;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
 
           // sub-rule 111 (eighth OFF cell fires)
           f = 14;
-          w_tmp[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
-          w_tmp[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[0*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[1*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
+          dataStart[2*sx_tmp + j*sy_tmp + f*sf_tmp] = 1;
        }
     }
 
     for (int f = 0; f < nfPatch_tmp; f++) {
        float factor = strength;
-       for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) w_tmp[f + i*nfPatch_tmp] *= factor;
+       for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) dataStart[f + i*nfPatch_tmp] *= factor;
     }
 
     return 0;

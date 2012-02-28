@@ -29,7 +29,7 @@ InitWeightsParams * InitSpreadOverArborsWeights::createNewWeightParams(HyPerConn
    return tempPtr;
 }
 
-int InitSpreadOverArborsWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
    InitSpreadOverArborsWeightsParams *weightParamPtr = dynamic_cast<InitSpreadOverArborsWeightsParams*>(weightParams);
 
@@ -38,11 +38,9 @@ int InitSpreadOverArborsWeights::calcWeights(PVPatch * patch, int patchIndex, in
       exit(1);
    }
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-
-
-   spreadOverArborsWeights(patch, arborId, weightParamPtr);
+   spreadOverArborsWeights(/* patch */ dataStart, arborId, weightParamPtr);
    weightParamPtr->getParentConn()->setDelay(arborId, arborId);
    return PV_SUCCESS; // return 1;
 }
@@ -51,7 +49,7 @@ int InitSpreadOverArborsWeights::calcWeights(PVPatch * patch, int patchIndex, in
  * Initializes all weights to iWeight
  *
  */
-int InitSpreadOverArborsWeights::spreadOverArborsWeights(PVPatch * patch, int arborId,
+int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ pvdata_t * dataStart, int arborId,
       InitSpreadOverArborsWeightsParams * weightParamPtr) {
 
 
@@ -68,7 +66,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(PVPatch * patch, int ar
    const int nArbors = weightParamPtr->getNumArbors();
 
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
@@ -106,7 +104,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(PVPatch * patch, int ar
                weight = iWeight;
 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
-            w_tmp[index] = weight;
+            dataStart[index] = weight;
          }
       }
    }

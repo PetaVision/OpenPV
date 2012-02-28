@@ -18,13 +18,13 @@ public:
    virtual ~InitUniformWeights();
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
    virtual int initialize_base();
 
 private:
-   int uniformWeights(PVPatch * wp, float iWeight);
+   int uniformWeights(/* PVPatch * patch */ pvdata_t * dataStart, float iWeight);
 
 };
 

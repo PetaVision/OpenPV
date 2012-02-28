@@ -46,28 +46,30 @@ void SiblingConn::setSiblingConn(SiblingConn *sibling_conn){
 
 int SiblingConn::normalizeFamily()
 {
-   // normalize all arbors individuaqlly relative to siblings
+   // normalize all arbors individuqlly relative to siblings
    const int num_kernels = numDataPatches();
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-         PVPatch * myWpatch = this->getKernelPatch(kArbor, kPatch);
-         pvdata_t * myWeights = myWpatch->data;
-         assert(myWeights != NULL);
-         PVPatch * siblingWpatch = siblingConn->getKernelPatch(kArbor, kPatch);
-         pvdata_t * siblingWeights = siblingWpatch->data;
+         // PVPatch * localWPatch = getWeights(kPatch,kArbor); // this->getKernelPatch(kArbor, kPatch);
+         // pvdata_t * myWeights = myWpatch->data;
+         pvdata_t * localWeights = get_wData(kArbor, kPatch);
+         assert(localWeights != NULL);
+         // PVPatch * siblingWpatch = siblingConn->getKernelPatch(kArbor, kPatch);
+         // pvdata_t * siblingWeights = siblingWpatch->data;
+         pvdata_t * siblingWeights = siblingConn->get_wData(kArbor, kPatch);
          assert(siblingWeights != NULL);
-         const int nx = myWpatch->nx;
-         const int ny = myWpatch->ny;
+         const int nx = nxp; // localWPatch->nx;
+         const int ny = nyp; // localWPatch->ny;
          const int nf = nfp;
          const int sy = syp;
          for (int ky = 0; ky < ny; ky++) {
             for (int iWeight = 0; iWeight < nf * nx; iWeight++) {
-               pvdata_t norm_denom = fabs(siblingWeights[iWeight]) + fabs(myWeights[iWeight]);
+               pvdata_t norm_denom = fabs(siblingWeights[iWeight]) + fabs(localWeights[iWeight]);
                norm_denom = (norm_denom != 0.0f) ? norm_denom : 1.0f;
-               myWeights[iWeight] /= norm_denom;
+               localWeights[iWeight] /= norm_denom;
                siblingWeights[iWeight] /= norm_denom;
             }
-            myWeights += sy;
+            localWeights += sy;
             siblingWeights += sy;
          }
       } // kPatch < numPatches
@@ -75,7 +77,7 @@ int SiblingConn::normalizeFamily()
    return PV_BREAK;
 } // normalizeFamily
 
-int SiblingConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId)
+int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
 
@@ -83,7 +85,7 @@ int SiblingConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborI
    if (this->numberOfAxonalArborLists() > 1) {
       assert(this->normalize_arbors_individually);
    }
-   status = NoSelfKernelConn::normalizeWeights(patches, numPatches, arborId);  // parent class should return PV_BREAK
+   status = NoSelfKernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
 
    if ((siblingConn != NULL) && (siblingConn->getIsNormalized())){

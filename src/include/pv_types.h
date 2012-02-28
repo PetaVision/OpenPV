@@ -42,7 +42,8 @@ enum ChannelType {
 };
 
 typedef struct PVPatch_ {
-   pvdata_t * __attribute__ ((aligned)) data;
+   // pvdata_t * __attribute__ ((aligned)) data;
+   unsigned int offset;
    unsigned short nx, ny;
 //   int nx, ny, nf;    // number of items in x,y,features
 //   int sx, sy, sf;    // stride in x,y,features
@@ -102,8 +103,7 @@ enum PVPatchStrideFields {
  */
 
 static inline
-void pvpatch_init(PVPatch * p, int nx, int ny, int nf,
-                  int sx, int sy, int sf, pvdata_t * data)
+void pvpatch_init(PVPatch * p, int nx, int ny)
 {
    p->nx = nx;
    p->ny = ny;
@@ -111,7 +111,7 @@ void pvpatch_init(PVPatch * p, int nx, int ny, int nf,
 //   p->sx = sx;
 //   p->sy = sy;
 //   p->sf = sf;
-   p->data = data;
+   p->offset = 0;
 }
 
 static inline
@@ -119,7 +119,8 @@ void pvpatch_adjust(PVPatch * p, int sx, int sy, int nxNew, int nyNew, int dx, i
 {
    p->nx = nxNew;
    p->ny = nyNew;
-   p->data += dx * sx + dy * sy;
+   p->offset += dx * sx + dy * sy;
+   // p->data += dx * sx + dy * sy;
 }
 
 #endif /* PV_TYPES_H_ */

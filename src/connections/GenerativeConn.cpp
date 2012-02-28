@@ -83,9 +83,9 @@ int GenerativeConn::updateWeights(int axonID) {
    const int numPatches = numDataPatches();
    for( int k=0; k<numPatches; k++ ) {
       PVPatch * w = getKernelPatch(axonID, k);
-      pvdata_t * wdata = w->data;
-      PVPatch * dw = dKernelPatches[0][k];
-      pvdata_t * dwdata = dw->data;
+      pvdata_t * wdata = get_wData(axonID, k); // w->data;
+      // PVPatch * dw = dKernelPatches[0][k];
+      pvdata_t * dwdata = get_dwData(axonID, k); // dw->data;
       //const int sxp = w->sx;
       //const int syp = w->sy;
       //const int sfp = w->sf;
@@ -125,26 +125,26 @@ int GenerativeConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arborId) {
+int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId) {
    int status = PV_SUCCESS;
    int neuronsperpatch;
    switch( normalizeMethod ) {
    case 0:
       break;
    case 1:
-      status = KernelConn::normalizeWeights(patches, numPatches, arborId);
+      status = KernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);
       break;
    case 2:
       neuronsperpatch = (patches[0]->nx)*(patches[0]->ny)*(nfp);
       for( int n=0; n<neuronsperpatch; n++ ) {
          pvdata_t s = 0;
          for( int k=0; k<numPatches; k++ ) {
-            pvdata_t d = patches[k]->data[n];
+            pvdata_t d = dataStart[k*nxp*nyp*nfp+patches[k]->offset+n];// patches[k]->data[n];
             s += d*d;
          }
          s = sqrt(s);
          for( int k=0; k<numPatches; k++ ) {
-            patches[k]->data[n] *= normalizeConstant/s;
+            dataStart[k*nxp*nyp*nfp+patches[k]->offset+n] *= normalizeConstant/s; // patches[k]->data[n] *= normalizeConstant/s;
          }
       }
       break;
@@ -154,12 +154,12 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, int numPatches, int arb
          PVPatch * curpatch = patches[k];
          pvdata_t s = 0;
          for( int n=0; n<neuronsperpatch; n++ ) {
-            pvdata_t d = curpatch->data[n];
+            pvdata_t d = dataStart[k*nxp*nyp*nfp+curpatch->offset+n]; // curpatch->data[n];
             s += d*d;
          }
          s = sqrt(s);
          for( int n=0; n<neuronsperpatch; n++ ) {
-            curpatch->data[n] *= normalizeConstant/s;
+            dataStart[k*nxp*nyp*nfp+curpatch->offset+n] *= normalizeConstant/s; // curpatch->data[n] *= normalizeConstant/s;
          }
       }
       break;

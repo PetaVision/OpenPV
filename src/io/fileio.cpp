@@ -54,14 +54,16 @@ size_t pv_sizeof_patch(int count, int datatype)
 /**
  * Copy patches into an unsigned char buffer
  */
-int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
+int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numPatches,
                      int nxp, int nyp, int nfp, float minVal, float maxVal,
                      bool compressed=true) {
    unsigned char * cptr = buf;
+   const int patchsize = nxp * nyp * nfp;
 
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = patches[k];
-      const pvdata_t * data = p->data;
+      // const pvdata_t * data = p->data;
+      const pvdata_t * data = dataStart + k*patchsize + p->offset;
 
       const int sxp = nfp; //p->sx;
       const int syp = nfp * nxp; //p->sy;
@@ -119,7 +121,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
 /**
  * Set patches given an unsigned char input buffer
  */
-int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
+int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numPatches,
                     int nxp, int nyp, int nfp, float minVal, float maxVal,
                     bool compress=true)
 {
@@ -128,10 +130,12 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, int numPatches,
    const int sfp = 1;
    const int sxp = nfp;
    const int syp = nfp * nxp;
+   const int patchsize = syp * nyp;
 
    for (int k = 0; k < numPatches; k++) {
       PVPatch * p = patches[k];
-      pvdata_t * data = p->data;
+      // pvdata_t * data = p->data;
+      pvdata_t * data = dataStart + k*patchsize + p->offset;
 
       unsigned short * nxny = (unsigned short *) cptr;
 
@@ -1160,7 +1164,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
    return status;
 }
 
-int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc) {
+int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc) {
    int status = PV_SUCCESS;
    int header_data_type;
    int header_file_type;
@@ -1345,7 +1349,7 @@ int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char *
       // set the contents of the weights patches from the unsigned character buffer, cbuf
       //
       bool compress = header_data_type == PV_BYTE_TYPE;
-      status = pvp_set_patches(cbuf, patches[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      status = pvp_set_patches(cbuf, patches[arborId], dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
          fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
                  comm->commRank(), numPatches);
@@ -1357,7 +1361,7 @@ int readWeights(PVPatch *** patches, int numArbors, int numPatches, const char *
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch *** patches, int numPatches, int numArbors, bool compress, int file_type)
+                 PVPatch *** patches, pvdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type)
 // compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
 {
    int status = PV_SUCCESS;
@@ -1402,7 +1406,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       if( file_type != PVP_KERNEL_FILE_TYPE ) {
          const int dest = 0;
          for( int arbor=0; arbor<numArbors; arbor++ ) {
-            pvp_copy_patches(cbuf, patches[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+            pvp_copy_patches(cbuf, patches[arbor], dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
             MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
@@ -1453,7 +1457,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          // write local portion
          // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
-         pvp_copy_patches(cbuf, patches[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+         pvp_copy_patches(cbuf, patches[arbor], dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
          size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
          if ( numfwritten != 1 ) return -1;
 

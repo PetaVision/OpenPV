@@ -83,11 +83,11 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitGauss2DWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitGauss2DWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

@@ -42,7 +42,7 @@ InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams(HyPerConn *
    return tempPtr;
 }
 
-int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitGaussianRandomWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
 
    InitGaussianRandomWeightsParams *weightParamPtr = dynamic_cast<InitGaussianRandomWeightsParams*>(weightParams);
@@ -55,7 +55,7 @@ int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int 
    const float wGaussMean = weightParamPtr->getMean();
    const float wGaussStdev = weightParamPtr->getStDev();
 
-   gaussianWeights(patch, wGaussMean, wGaussStdev);
+   gaussianWeights(dataStart, wGaussMean, wGaussStdev);
    return PV_SUCCESS; // return 1;
 }
 
@@ -74,12 +74,12 @@ int InitGaussianRandomWeights::calcWeights(PVPatch * patch, int patchIndex, int 
  *    .
  */
 // int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
-int InitGaussianRandomWeights::gaussianWeights(PVPatch * wp, float mean, float stdev) {
-   pvdata_t * w = wp->data;
+int InitGaussianRandomWeights::gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev) {
+   // pvdata_t * w = wp->data;
 
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
-   const int nfp = parentConn->xPatchSize(); //wp->nf;
+   const int nxp = parentConn->xPatchSize(); // wp->nx;
+   const int nyp = parentConn->yPatchSize(); // wp->ny;
+   const int nfp = parentConn->fPatchSize(); //wp->nf;
 
    const int sxp = parentConn->xPatchStride();
    const int syp = parentConn->yPatchStride();
@@ -89,7 +89,7 @@ int InitGaussianRandomWeights::gaussianWeights(PVPatch * wp, float mean, float s
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = box_muller(mean,stdev);
+            dataStart[x * sxp + y * syp + f * sfp] = box_muller(mean,stdev);
          }
       }
    }

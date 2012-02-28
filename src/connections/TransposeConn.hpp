@@ -25,7 +25,7 @@ public:
 protected:
     virtual int initialize_base();
     int initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn);
-    virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches, const char * filename);
+    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename);
     int setPatchSize(const char * filename);
     int transposeKernels();
     KernelConn * originalConn;

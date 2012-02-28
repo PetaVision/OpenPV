@@ -229,7 +229,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
          const pvdata_t * w_start = conn->get_wDataStart(arborNdx);
          int kernelIndex = conn->patchIndexToKernelIndex(kPreExt);
          const pvdata_t * w_head = &(w_start[a_post_size*kernelIndex]);
-         size_t w_offset = w_patch->data - w_head;
+         size_t w_offset = w_patch->offset; // w_patch->data - w_head;
 
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
@@ -243,7 +243,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
             pvpatch_accumulate2(nkPost,
                   (float *) (conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
                   cliqueProd,
-                  (float *) (w_patch->data + y * sywPatch),
+                  (float *) (w_head + w_offset),// (w_patch->data + y * sywPatch),
                   (float *) (a_post_mask + w_offset + y * sywPatch));
          }
 

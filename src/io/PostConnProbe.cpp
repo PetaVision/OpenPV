@@ -15,7 +15,7 @@ namespace PV {
  * @kPost
  */
 PostConnProbe::PostConnProbe(int kPost, int arbID)
-   : ConnectionProbe(0, arbID)
+   : PatchProbe(0, arbID)
 {
    this->kxPost = 0;
    this->kyPost = 0;
@@ -30,7 +30,7 @@ PostConnProbe::PostConnProbe(int kPost, int arbID)
  * @kPost
  */
 PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost, int arbID)
-   : ConnectionProbe(filename, hc, 0, arbID)
+   : PatchProbe(NULL, filename, hc, 0, arbID)
 {
    this->kxPost = 0;
    this->kyPost = 0;
@@ -42,7 +42,7 @@ PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost, in
 }
 
 PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID)
-   : ConnectionProbe(0, arbID)
+   : PatchProbe(0, arbID)
 {
    this->kxPost = kxPost;
    this->kyPost = kyPost;
@@ -54,7 +54,7 @@ PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID)
 }
 
 PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost, int arbID)
-   : ConnectionProbe(filename, hc, 0, 0, 0, arbID)
+   : PatchProbe(NULL, filename, hc, 0, 0, 0, arbID)
 {
    this->kxPost = kxPost;
    this->kyPost = kyPost;
@@ -80,7 +80,6 @@ PostConnProbe::~PostConnProbe()
  */
 int PostConnProbe::outputState(float time, HyPerConn * c)
 {
-   bool changed;
    int k, kxPre, kyPre;
    PVPatch  * w;
    PVPatch *** wPost = c->convertPreSynapticWeights(time);
@@ -122,13 +121,14 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
    const bool postFired = lPost->activity->data[kPostEx] > 0.0;
 
    w = wPost[arborID][kPost];
+   pvdata_t * wPostData = c->getWPostData(arborID,kPost);
 
    const int nw = w->nx * w->ny * nfPost; //w->nf;
 
    if (wPrev == NULL) {
       wPrev = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
       for (k = 0; k < nw; k++) {
-         wPrev[k] = w->data[k];
+         wPrev[k] = wPostData[k]; // This is broken if the patch is shrunken
       }
    }
    if (wActiv == NULL) {
@@ -143,9 +143,9 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
       }
    }
 
-   changed = false;
+   bool changed = false;
    for (k = 0; k < nw; k++) {
-      if (wPrev[k] != w->data[k] || wActiv[k] != 0.0) {
+      if (wPrev[k] != wPostData[k] || wActiv[k] != 0.0) {
          changed = true;
          break;
       }
@@ -159,12 +159,12 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
       fprintf(fp, "\n");
    }
    if (stdpVars && changed) {
-      text_write_patch_extra(fp, w, w->data, wPrev, wActiv);
+      text_write_patch_extra(fp, w, wPostData, wPrev, wActiv);
       fflush(fp);
    }
 
    for (k = 0; k < nw; k++) {
-      wPrev[k] = w->data[k];
+      wPrev[k] = wPostData[k];
    }
 
    if (outputIndices) {

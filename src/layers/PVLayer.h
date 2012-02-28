@@ -83,12 +83,14 @@ int           pvcube_delete(PVLayerCube * cube);
 size_t        pvcube_size(int numItems);
 int           pvcube_setAddr(PVLayerCube * cube);
 
-PVPatch * pvpatch_new(int nx, int ny, int nf);
+PVPatch * pvpatch_new(int nx, int ny); // PVPatch * pvpatch_new(int nx, int ny, int nf);
 int       pvpatch_delete(PVPatch * p);
 
-pvdata_t * pvpatches_inplace_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches);
+pvdata_t * pvpatches_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches);
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  New refactoring for weights means that patches are never created with the data adjacent to the patch structure.
 PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data);
 PVPatch * pvpatch_inplace_new(int nx, int ny, int nf);
+#endif // OBSOLETE
 int       pvpatch_inplace_delete(PVPatch * p);
 
 int pvpatch_accumulate(int nk, float * v, float a, float * w);

@@ -62,7 +62,9 @@
 #include "../connections/ODDConn.hpp"
 #endif // OBSOLETE
 #include "../connections/CliqueConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by SiblingConn.
 #include "../connections/CliqueApplyConn.hpp"
+#endif // OBSOLETE
 #include "../connections/SiblingConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/GenerativeConn.hpp"
@@ -100,7 +102,9 @@
 #include "../io/KernelProbe.hpp"
 #include "../io/PatchProbe.hpp"
 #include "../io/ReciprocalEnergyProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 #include "../io/ConnectionProbe.hpp"
+#endif // OBSOLETE
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
 #include "../io/PointLIFProbe.hpp"
@@ -134,7 +138,9 @@ PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer 
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
+#endif // OBSOLETE
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
 int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayer);
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent=true);

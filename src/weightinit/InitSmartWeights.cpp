@@ -34,10 +34,11 @@ namespace PV {
 //      return PV_SUCCESS;
 //   }
 
-   int InitSmartWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams) {
+   int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams) {
       //smart weights doesn't have any params to load and is too simple to
       //actually need to save anything to work on...
-      smartWeights(patch, patchIndex);
+
+      smartWeights(dataStart, patchIndex);
       return PV_SUCCESS; // return 1;
    }
 
@@ -46,11 +47,11 @@ namespace PV {
       return tempPtr;
    }
 
-   int InitSmartWeights::smartWeights(PVPatch * wp, int k) {
-      pvdata_t * w = wp->data;
+   int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k) {
+      // pvdata_t * w = wp->data;
 
-      const int nxp = wp->nx;
-      const int nyp = wp->ny;
+      const int nxp = parentConn->xPatchSize(); // wp->nx;
+      const int nyp = parentConn->yPatchSize(); // wp->ny;
       const int nfp = parentConn->fPatchSize(); // wp->nf;
 
       const int sxp = parentConn->xPatchStride(); //wp->sx;
@@ -61,7 +62,7 @@ namespace PV {
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
             for (int f = 0; f < nfp; f++) {
-               w[x * sxp + y * syp + f * sfp] = k;
+               dataStart[x * sxp + y * syp + f * sfp] = k;
             }
          }
       }

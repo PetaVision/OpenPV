@@ -31,9 +31,9 @@ public:
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
 
-   virtual int checkNormalizeArbor(PVPatch ** patches, int numPatches, int arborId);
-   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
-   virtual int symmetrizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
+   virtual int symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
 
    PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
    PVPatch ** getKernelPatches(int axonId)   {return kernelPatches[axonId];}
@@ -43,9 +43,9 @@ public:
    virtual int writeWeights(const char * filename);
    // virtual int writeWeights(PVPatch *** patches, int numPatches, const char * filename, float timef, bool last);
    inline PVPatch *** getAllKernelPatches() {return kernelPatches;}
-   inline const pvdata_t * get_dKernelData(int axonId, int kernelIndex) {if( dKernelPatches && axonId>=0 && axonId<numAxonalArborLists && kernelIndex>=0 && kernelIndex<numDataPatches()) { return dKernelPatches[axonId][kernelIndex]->data;} else return NULL;}
+   // inline const pvdata_t * get_dKernelData(int axonId, int kernelIndex) {if( dKernelPatches && axonId>=0 && axonId<numAxonalArborLists && kernelIndex>=0 && kernelIndex<numDataPatches()) { return dKernelPatches[axonId][kernelIndex]->data;} else return NULL;}
 
-   virtual int shrinkPatches(int arborId);
+   // virtual int shrinkPatches(int arborId);
 
    bool getPlasticityFlag() {return plasticityFlag;}
    float getWeightUpdatePeriod() {return weightUpdatePeriod;}
@@ -98,11 +98,13 @@ protected:
                   InitWeights *weightInit=NULL);
    virtual int createArbors();
    virtual int initPlasticityPatches();
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With patches storing offsets instead of pointers, no need for KernelConn to override.
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
+#endif // OBSOLETE
    virtual int initializeUpdateTime(PVParams * params);
-   virtual PVPatch *** initializeWeights(PVPatch *** arbors, int numPatches,
-         const char * filename);
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
+         int numPatches, const char * filename);
 
    virtual int calc_dW(int axonId);
    virtual int clear_dW(int axonId);
@@ -118,8 +120,10 @@ protected:
 #endif // PV_USE_MPI
    virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
                                      const char * filename);
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  kernelPatches and dKernelPatches are no longer being used.
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
+#endif // OBSOLETE
 
 private:
    int deleteWeights();

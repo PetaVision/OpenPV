@@ -29,7 +29,7 @@ InitWeightsParams * InitSubUnitWeights::createNewWeightParams(HyPerConn * callin
    return tempPtr;
 }
 
-int InitSubUnitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitSubUnitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitSubUnitWeightsParams *weightParamPtr = dynamic_cast<InitSubUnitWeightsParams*>(weightParams);
@@ -41,9 +41,9 @@ int InitSubUnitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   subUnitWeights(patch, weightParamPtr);
+   subUnitWeights(dataStart, weightParamPtr);
 
    return PV_SUCCESS; // return 1;
 
@@ -54,7 +54,7 @@ int InitSubUnitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
  * exhaustively computes presence of a hierarchy of 4 x 2x2 (on/off) patch of pixels
  * (embedded in a 3x3 pixel patch).
  */
-int InitSubUnitWeights::subUnitWeights(PVPatch * patch, InitSubUnitWeightsParams * weightParamPtr) {
+int InitSubUnitWeights::subUnitWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitSubUnitWeightsParams * weightParamPtr) {
    assert(weightParamPtr->getPost()->clayer->loc.nf == 4*16);
 
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
@@ -64,11 +64,11 @@ int InitSubUnitWeights::subUnitWeights(PVPatch * patch, InitSubUnitWeightsParams
    int sy_tmp=weightParamPtr->getsy_tmp();
    int sf_tmp=weightParamPtr->getsf_tmp();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
    // TODO - already initialized to zero (so delete)
    for (int k = 0; k < nxPatch_tmp*nyPatch_tmp*nfPatch_tmp; k++) {
-      w_tmp[k] = 0.0;
+      dataStart[k] = 0.0;
    }
 
    for (int f = 0; f < nfPatch_tmp; f++) {
@@ -86,7 +86,7 @@ int InitSubUnitWeights::subUnitWeights(PVPatch * patch, InitSubUnitWeightsParams
             int n = i + 2*j;
             int r = kf >> n;
             r = 0x1 & r;
-            w_tmp[(i+i0)*sx_tmp + (j+j0)*sy_tmp + f*sf_tmp] = r;
+            dataStart[(i+i0)*sx_tmp + (j+j0)*sy_tmp + f*sf_tmp] = r;
          }
       }
    }
@@ -94,12 +94,12 @@ int InitSubUnitWeights::subUnitWeights(PVPatch * patch, InitSubUnitWeightsParams
    // normalize
    for (int f = 0; f < nfPatch_tmp; f++) {
       float sum = 0;
-      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) sum += w_tmp[f + i*nfPatch_tmp];
+      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) sum += dataStart[f + i*nfPatch_tmp];
 
       if (sum == 0) continue;
 
       float factor = 1.0/sum;
-      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) w_tmp[f + i*nfPatch_tmp] *= factor;
+      for (int i = 0; i < nxPatch_tmp*nyPatch_tmp; i++) dataStart[f + i*nfPatch_tmp] *= factor;
    }
 
    return 0;

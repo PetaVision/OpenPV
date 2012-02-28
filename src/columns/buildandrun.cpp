@@ -58,7 +58,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    ColProbe * addedColProbe;
    LayerProbe * addedLayerProbe;
    BaseConnectionProbe * addedBaseConnectionProbe;
-   ConnectionProbe * addedConnectionProbe;
+   // ConnectionProbe * addedConnectionProbe;
 
    const char * allowedkeywordarray[] = { // indentation indicates derived class hierarchy
            "_Start_HyPerCols_",
@@ -138,7 +138,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "ReciprocalEnergyProbe",
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
              "ConnectionProbe",
+#endif // OBSOLETE
            "_Stop_ConnectionProbes_",
            "_End_allowedkeywordarray" // Don't delete this; it provides a for-loop test that doesn't require you to keep track of the total number of keywords.
    };
@@ -235,11 +237,13 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          addedBaseConnectionProbe = addBaseConnectionProbeToColumn(kw, name, hc);
          didAddObject = addedBaseConnectionProbe != NULL;
       }
-      else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
+     else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
          addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
          didAddObject = addedConnectionProbe != NULL;
       }
-      else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
+#endif // OBSOLETE
+     else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
          addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
          didAddObject = addedLayerProbe != NULL;
       }
@@ -722,6 +726,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Feb 28, 2012.  Replaced by SiblingConn
    if( !keywordMatched && !strcmp(classkeyword, "CliqueApplyConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -731,6 +736,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       // Filename is ignored
       keywordMatched = true;
@@ -1002,7 +1008,7 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    return addedProbe;
 }
 
-// ConnectionProbe is be deprecated in favor of PatchProbe, which is a derived class of BaseConnectionProbe
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    fprintf(stderr, "Warning: ConnectionProbe is deprecated.  Please use PatchProbe instead.\n");
    ConnectionProbe * addedProbe;
@@ -1051,6 +1057,7 @@ ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const ch
    }
    return addedProbe;
 }
+#endif // OBSOLETE
 
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    int status;

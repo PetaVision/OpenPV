@@ -112,10 +112,10 @@ int InitCocircWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitCocircWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
-   this->getcheckdimensionsandstrides(patch);
+void InitCocircWeightsParams::calcOtherParams(int patchIndex) {
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
    nKurvePre = pre->getLayerLoc()->nf / getNoPre();
    nKurvePost = post->getLayerLoc()->nf / getNoPost();
    this->calculateThetas(kfPre_tmp, patchIndex);

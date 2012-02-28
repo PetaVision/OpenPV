@@ -20,15 +20,15 @@ public:
    InitOneToOneWeights();
    virtual ~InitOneToOneWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
 
 protected:
    virtual int initialize_base();
-   int createOneToOneConnection(PVPatch * patch, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr);
+   int createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */

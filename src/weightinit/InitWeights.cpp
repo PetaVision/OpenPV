@@ -10,7 +10,9 @@
 #include <stdlib.h>
 
 #include "../include/default_params.h"
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 #include "../io/ConnectionProbe.hpp"
+#endif // OBSOLETE
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
@@ -37,7 +39,7 @@ InitWeights::~InitWeights()
  * This method first calls XXX to create an unshrunken patch.  Then it calls calcWeights to initialize
  * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
-PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
+PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    parentConn = callingConn;
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -46,24 +48,32 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, 
    if( initFromLastFlag ) {
       char nametmp[PV_PATH_MAX];
       snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
-      readWeights(patches, numPatches, nametmp, callingConn);
+      readWeights(patches, dataStart, numPatches, nametmp, callingConn);
    }
    else if( filename != NULL ) {
-      readWeights(patches, numPatches, filename, callingConn, timef);
+      readWeights(patches, dataStart, numPatches, filename, callingConn, timef);
    }
    else {
+      // int patchsize = callingConn->xPatchSize() * callingConn->yPatchSize() * callingConn->fPatchSize();
       weightParams = createNewWeightParams(callingConn);
+
+      int nfp = weightParams->getnfPatch_tmp();
+      int nxp = weightParams->getnxPatch_tmp();
+      int nyp = weightParams->getnyPatch_tmp();
+      int patchSize = nfp*nxp*nyp;
+
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
 
-            int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
+            //int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
             //int correctedPatchIndex = patchIndex;
             //create full sized patch:
-            PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[arbor][patchIndex]);
-            if(wp_tmp==NULL) continue;
+            // PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[arbor][patchIndex]);
+            // if(wp_tmp==NULL) continue;
 
             //calc weights for patch:
-            int successFlag = calcWeights(wp_tmp, correctedPatchIndex, arbor, weightParams);
+
+            int successFlag = calcWeights(dataStart[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
@@ -71,10 +81,10 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, int numPatches, 
 
             //copy back to unshrunk patch:
             //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
-            copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp,
-                  callingConn->get_wDataStart(arbor), patchIndex,
-                  callingConn->fPatchSize(), callingConn->yPatchStride());
-            free(wp_tmp);
+            //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp,
+            //      callingConn->get_wDataStart(arbor), patchIndex,
+            //      callingConn->fPatchSize(), callingConn->yPatchStride());
+            //free(wp_tmp);
          }
       }
       delete(weightParams);
@@ -87,7 +97,7 @@ InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) 
    return tempPtr;
 }
 
-int InitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                InitWeightsParams *weightParams) {
 
     InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);
@@ -98,10 +108,10 @@ int InitWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
     }
 
 
-    weightParamPtr->calcOtherParams(patch, patchIndex);
+    weightParamPtr->calcOtherParams(patchIndex);
 
     //calculate the weights:
-    gauss2DCalcWeights(patch, weightParamPtr);
+    gauss2DCalcWeights(dataStart, weightParamPtr);
 
 
     return PV_SUCCESS;
@@ -112,7 +122,7 @@ int InitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitWeights::readWeights(PVPatch *** patches, int numPatches, const char * filename, HyPerConn * conn, float * timef/*default=NULL*/) {
+int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * conn, float * timef/*default=NULL*/) {
    InterColComm *icComm = conn->getParent()->icCommunicator();
    int numArbors = conn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = conn->preSynapticLayer()->getLayerLoc();
@@ -157,7 +167,7 @@ int InitWeights::readWeights(PVPatch *** patches, int numPatches, const char * f
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
          pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
          int thisfilearbors = params[INDEX_NBANDS];
-         int status = PV::readWeights(&patches[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
+         int status = PV::readWeights(&patches[arbor], &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
          if (status != PV_SUCCESS) {
             fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
             exit(EXIT_FAILURE);
@@ -166,7 +176,7 @@ int InitWeights::readWeights(PVPatch *** patches, int numPatches, const char * f
       }
    }
    else {
-      int status = PV::readWeights(patches, numArbors, numPatches, filename, icComm, &timed, preLoc);
+      int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
          fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
          exit(EXIT_FAILURE);
@@ -177,6 +187,7 @@ int InitWeights::readWeights(PVPatch *** patches, int numPatches, const char * f
 }
 
 
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With refactoring of wDataStart, there is no need to initialize on an unshrunken patch and copy to a shrunken patch
 /*
  * Create a full sized patch for a potentially shrunken patch. This full sized patch will be used for initializing weights and will later be copied back to
  * the original.
@@ -210,7 +221,6 @@ PVPatch * InitWeights::createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * 
  * Copy from full sized patch back to potentially shrunken patch.
  *
  */
-//int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp) {
 int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex, int nf_patch, int sy_patch) {
    // copy weights from full sized temporary patch to (possibly shrunken) patch
    pvdata_t * w = wp->data;
@@ -245,11 +255,12 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * 
 
    return 1;
 }
+#endif // OBSOLETE
 
 /**
  * calculate gaussian weights between oriented line segments
  */
-int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * weightParamPtr) {
+int InitWeights::gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr) {
 
 
 
@@ -267,7 +278,7 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
    double r2Max=weightParamPtr->getr2Max();
    double r2Min=weightParamPtr->getr2Min();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
 
 
@@ -293,15 +304,15 @@ int InitWeights::gauss2DCalcWeights(PVPatch * patch, InitGauss2DWeightsParams * 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
-            w_tmp[index] = 0;
+            dataStart[index] = 0;
             if ((d2 <= r2Max) && (d2 >= r2Min)) {
-               w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
+               dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if ((d2 <= r2Max) && (d2 >= r2Min)) {
-                  w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
+                  dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
                }
             }
          }

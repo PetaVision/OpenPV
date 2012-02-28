@@ -17,7 +17,7 @@ public:
    InitSubUnitWeightsParams();
    InitSubUnitWeightsParams(HyPerConn * parentConn);
    virtual ~InitSubUnitWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
 
 protected:

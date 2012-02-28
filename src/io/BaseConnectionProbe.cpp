@@ -6,7 +6,9 @@
  */
 
 #include "BaseConnectionProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 #include "ConnectionProbe.hpp"  // Temporary to allow backwards-compatibility kludge
+#endif // OBSOLETE
 
 namespace PV {
 
@@ -41,9 +43,10 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    else {
       this->filename = NULL;
    }
-                                       /* dynamic_cast below is temporary for backwards compatibility of ConnectionProbe */
-   ConnectionProbe * connectionProbe = dynamic_cast<ConnectionProbe *>(this);
-   if( ( hc && hc->icCommunicator()->commRank() == 0 ) || connectionProbe != NULL ) {
+//                                       /* dynamic_cast below is temporary for backwards compatibility of ConnectionProbe */
+//   ConnectionProbe * connectionProbe = dynamic_cast<ConnectionProbe *>(this);
+//   if( ( hc && hc->icCommunicator()->commRank() == 0 ) || connectionProbe != NULL ) {
+   if( hc && hc->icCommunicator()->commRank() == 0 ) {
       if( filename ) {
          const char * outputdir = hc->getOutputPath();
          if( strlen(outputdir) + strlen(filename) + 2 > PV_PATH_MAX ) {

@@ -27,7 +27,7 @@ protected:
                   HyPerLayer * pre, HyPerLayer * post,
                   ChannelType channel, const char * filename,
                   InitWeights *weightInit=NULL, SiblingConn *sibling_conn=NULL);
-   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
    virtual int normalizeFamily();
 
 private:

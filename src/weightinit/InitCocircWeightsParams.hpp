@@ -17,7 +17,7 @@ public:
    InitCocircWeightsParams();
    InitCocircWeightsParams(HyPerConn * parentConn);
    virtual ~InitCocircWeightsParams();
-   void calcOtherParams(PVPatch * patch, int patchIndex);
+   void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getaspect()        {return aspect;}

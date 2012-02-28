@@ -70,11 +70,11 @@ int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitGaborWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitGaborWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

@@ -29,7 +29,7 @@ InitWeightsParams * InitUniformWeights::createNewWeightParams(HyPerConn * callin
    return tempPtr;
 }
 
-int InitUniformWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
       InitWeightsParams *weightParams) {
    InitUniformWeightsParams *weightParamPtr = dynamic_cast<InitUniformWeightsParams*>(weightParams);
 
@@ -40,8 +40,7 @@ int InitUniformWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
 
    const float iWeight = weightParamPtr->getInitWeight();
 
-
-   uniformWeights(patch, iWeight);
+   uniformWeights(dataStart, iWeight);
    return PV_SUCCESS; // return 1;
 }
 
@@ -49,12 +48,12 @@ int InitUniformWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
  * Initializes all weights to iWeight
  *
  */
-int InitUniformWeights::uniformWeights(PVPatch * wp, float iWeight) {
+int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
-   pvdata_t * w = wp->data;
+   // pvdata_t * w = wp->data;
 
-   const int nxp = wp->nx;
-   const int nyp = wp->ny;
+   const int nxp = parentConn->xPatchSize(); // wp->nx;
+   const int nyp = parentConn->yPatchSize(); // wp->ny;
    const int nfp = parentConn->fPatchSize(); //wp->nf;
 
    const int sxp = parentConn->xPatchStride(); //wp->sx;
@@ -65,7 +64,7 @@ int InitUniformWeights::uniformWeights(PVPatch * wp, float iWeight) {
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            w[x * sxp + y * syp + f * sfp] = iWeight;
+            dataStart[x * sxp + y * syp + f * sfp] = iWeight;
          }
       }
    }

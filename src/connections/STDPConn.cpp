@@ -220,8 +220,8 @@ int STDPConn::updateWeights(int axonId)
 
       const pvdata_t * postActivity = &post->getLayerData()[postOffset];
       const pvdata_t * M = &pDecr->data[postOffset];  // STDP decrement variable
-      pvdata_t * P = get_dWData(kPre, axonId);        // STDP increment variable
-      pvdata_t * W = w->data;
+      pvdata_t * P = get_dwData(axonId, kPre);        // STDP increment variable
+      pvdata_t * W = get_wData(axonId, kPre); // w->data;
 
       int nk  = nfp * w->nx; // one line in x at a time
       int ny  = w->ny;
@@ -282,7 +282,7 @@ float STDPConn::maxWeight()
 int STDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, dwPatches[arborID][k], nfp, sxp, syp, sfp); // write the Ps variable
+      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write the Ps variable
    }
    return 0;
 }

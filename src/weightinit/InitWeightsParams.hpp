@@ -44,6 +44,7 @@ public:
    inline int getnfPatch_tmp()        {return nfPatch_tmp;}
    inline int getnyPatch_tmp()        {return nyPatch_tmp;}
    inline int getnxPatch_tmp()        {return nxPatch_tmp;}
+   inline int getPatchSize_tmp()      {return nfPatch_tmp*nxPatch_tmp*nyPatch_tmp;}
    inline int getsx_tmp()        {return sx_tmp;}
    inline int getsy_tmp()        {return sy_tmp;}
    inline int getsf_tmp()        {return sf_tmp;}
@@ -62,8 +63,8 @@ protected:
    HyPerConn      * parentConn;
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
 
-   void getcheckdimensionsandstrides(PVPatch * patch);
-   int kernelIndexCalculations(PVPatch * patch, int patchIndex);
+   void getcheckdimensionsandstrides();
+   int kernelIndexCalculations(int patchIndex);
    void calculateThetas(int kfPre_tmp, int patchIndex);
 
    //more get/set

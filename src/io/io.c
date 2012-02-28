@@ -986,7 +986,7 @@ int pv_tiff_write_patch(FILE * fd, PVPatch * patch)
  * @fd
  * @patch
  */
-int pv_text_write_patch(FILE * fd, PVPatch * patch, int nf, int sx, int sy, int sf)
+int pv_text_write_patch(FILE * fd, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf)
 {
    int f, i, j;
 
@@ -1003,7 +1003,7 @@ int pv_text_write_patch(FILE * fd, PVPatch * patch, int nf, int sx, int sy, int 
    for (f = 0; f < nf; f++) {
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
-            fprintf(fd, "%7.5f ", patch->data[i*sx + j*sy + f*sf]);
+            fprintf(fd, "%7.5f ", data[i*sx + j*sy + f*sf]);
          }
          fprintf(fd, "\n");
       }

@@ -42,7 +42,7 @@ protected:
    int initParameterLayer(const char * parametername, HyPerLayer ** layerPtr,
          HyPerLayer * defaultlayer=NULL);
    virtual int update_dW(int axonID);
-   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborID);
+   virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborID);
 
 private:
    // private methods

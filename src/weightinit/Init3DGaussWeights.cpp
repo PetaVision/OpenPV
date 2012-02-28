@@ -29,7 +29,7 @@ InitWeightsParams * Init3DGaussWeights::createNewWeightParams(HyPerConn * callin
    return tempPtr;
 }
 
-int Init3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int Init3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    Init3DGaussWeightsParams *weightParamPtr = dynamic_cast<Init3DGaussWeightsParams*>(weightParams);
@@ -41,10 +41,10 @@ int Init3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
    weightParamPtr->setTime(arborId);
 
-   gauss3DWeights(patch, weightParamPtr);
+   gauss3DWeights(dataStart, weightParamPtr);
 
    //PVAxonalArbor * arbor = weightParamPtr->getParentConn()->axonalArbor(patchIndex, arborId);
    //arbor->delay = weightParamPtr->getTime();
@@ -58,7 +58,7 @@ int Init3DGaussWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId
 /**
  * calculate temporal-spatial gaussian filter for use in optic flow detector
  */
-int Init3DGaussWeights::gauss3DWeights(PVPatch * patch, Init3DGaussWeightsParams * weightParamPtr) {
+int Init3DGaussWeights::gauss3DWeights(/* PVPatch * patch */ pvdata_t * w_tmp, Init3DGaussWeightsParams * weightParamPtr) {
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
@@ -77,7 +77,7 @@ int Init3DGaussWeights::gauss3DWeights(PVPatch * patch, Init3DGaussWeightsParams
    float thetaXT = weightParamPtr->getThetaXT();
    //float strength = weightParamPtr->getStrength();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
 
 

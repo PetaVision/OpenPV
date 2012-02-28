@@ -123,18 +123,19 @@ int pvlayer_copyUpdate(PVLayer* l) {
 // pvpatch interface implementation
 //
 
-PVPatch * pvpatch_new(int nx, int ny, int nf)
+// PVPatch * pvpatch_new(int nx, int ny, int nf)
+PVPatch * pvpatch_new(int nx, int ny)
 {
-   int sf = 1;
-   int sx = nf;
-   int sy = sx * nx;
+   // int sf = 1;
+   // int sx = nf;
+   // int sy = sx * nx;
 
    PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
    assert(p != NULL);
 
-   pvdata_t * data = NULL;
+   // pvdata_t * data = NULL;
 
-   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+   pvpatch_init(p, nx, ny); // pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
    return p;
 }
@@ -145,24 +146,28 @@ int pvpatch_delete(PVPatch* p)
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  New refactoring for weights means that patches are never created with the data adjacent to the patch structure.
 PVPatch * pvpatch_inplace_new(int nx, int ny, int nf)
 {
-   int sf = 1;
-   int sx = nf;
-   int sy = sx * nx;
+   // int sf = 1;
+   // int sx = nf;
+   // int sy = sx * nx;
 
-   size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
-   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
+   // size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
+   PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch));
+   // PVPatch * p = (PVPatch *) calloc(sizeof(PVPatch) + dataSize, sizeof(char));
    assert(p != NULL);
 
-   pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
+   // pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
 
-   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+   pvpatch_init(p, nx, ny); // pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
    return p;
 }
+#endif // OBSOLETE
 
-pvdata_t * pvpatches_inplace_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches) {
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Duplicates createPatches
+pvdata_t * pvpatches_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches) {
    //int sf = 1;
    int sx = nf;
    int sy = sx * nx;
@@ -174,20 +179,21 @@ pvdata_t * pvpatches_inplace_new(PVPatch ** patches, int nx, int ny, int nf, int
    assert(dataPatches != NULL);
 
    //PVPatch ** patches;
-   int k;
-   for (k = 0; k < nPatches; k++) {
-      patches[k] = pvpatch_inplace_new_sepdata(nx, ny, nf, &dataPatches[k*sp]);
+   for (int k = 0; k < nPatches; k++) {
+      patches[k] = pvpatch_new(nx, ny); // patches[k] = pvpatch_inplace_new_sepdata(nx, ny, nf, &dataPatches[k*sp]);
    }
 
    return dataPatches;
-
 }
+#endif // OBSOLETE
 
+
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  New refactoring for weights means that patches are never created with the data adjacent to the patch structure.
 PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data)
 {
-   int sf = 1;
-   int sx = nf;
-   int sy = sx * nx;
+   // int sf = 1;
+   // int sx = nf;
+   // int sy = sx * nx;
 
    //size_t dataSize = nx * ny * nf * sizeof(pvdata_t);
    PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch)); //calloc(sizeof(PVPatch) + sizeof(pvdata_t*), sizeof(char));
@@ -195,10 +201,11 @@ PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data)
 
    //pvdata_t * data = (pvdata_t *) ((char*) p + sizeof(PVPatch));
 
-   pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
+   pvpatch_init(p, nx, ny); // pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
 
    return p;
 }
+#endif // OBSOLETE
 
 int pvpatch_inplace_delete(PVPatch* p)
 {

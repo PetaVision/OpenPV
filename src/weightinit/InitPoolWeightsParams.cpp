@@ -41,11 +41,11 @@ int InitPoolWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitPoolWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitPoolWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
-   const int kfPre_tmp = this->kernelIndexCalculations(patch, patchIndex);
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
 
 

@@ -37,7 +37,7 @@ public:
    inline float getRelaxation() { return relaxation; }
    virtual int updateWeights(int axonID);
    virtual int initNormalize();
-   virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
+   virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
 
 
 protected:

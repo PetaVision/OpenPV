@@ -10,7 +10,9 @@
 #include <stdlib.h>
 
 #include "../include/default_params.h"
+#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 #include "../io/ConnectionProbe.hpp"
+#endif // OBSOLETE
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
@@ -59,10 +61,10 @@ int InitWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitWeightsParams::getcheckdimensionsandstrides(PVPatch * patch) {
+void InitWeightsParams::getcheckdimensionsandstrides() {
    // get/check dimensions and strides of full sized temporary patch
-   nxPatch_tmp = patch->nx;
-   nyPatch_tmp = patch->ny;
+   nxPatch_tmp = parentConn->xPatchSize();
+   nyPatch_tmp = parentConn->yPatchSize();
    nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
 
    sx_tmp = parentConn->xPatchStride(); //patch->sx;
@@ -73,7 +75,7 @@ void InitWeightsParams::getcheckdimensionsandstrides(PVPatch * patch) {
    assert(sf_tmp == 1);
 }
 
-int InitWeightsParams::kernelIndexCalculations(PVPatch * patch, int patchIndex) {
+int InitWeightsParams::kernelIndexCalculations(int patchIndex) {
    //kernel index stuff:
    int kxKernelIndex;
    int kyKernelIndex;

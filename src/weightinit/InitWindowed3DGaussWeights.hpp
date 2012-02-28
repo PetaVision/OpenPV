@@ -23,12 +23,12 @@ public:
    InitWindowed3DGaussWeights();
    virtual ~InitWindowed3DGaussWeights();
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId,
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
          InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
 private:
-   int windowWeights(PVPatch * patch, InitWindowed3DGaussWeightsParams * weightParamPtr);
+   int windowWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitWindowed3DGaussWeightsParams * weightParamPtr);
 
 
 };

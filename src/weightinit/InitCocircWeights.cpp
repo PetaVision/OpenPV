@@ -40,7 +40,7 @@ InitWeightsParams * InitCocircWeights::createNewWeightParams(HyPerConn * calling
    return tempPtr;
 }
 
-int InitCocircWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitCocircWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitCocircWeightsParams *weightParamPtr = dynamic_cast<InitCocircWeightsParams*>(weightParams);
@@ -52,15 +52,15 @@ int InitCocircWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   cocircCalcWeights(patch, weightParamPtr);
+   cocircCalcWeights(dataStart, weightParamPtr);
 
    return PV_SUCCESS;
 
 }
 
-int InitCocircWeights::cocircCalcWeights(PVPatch * patch, InitCocircWeightsParams * weightParamPtr) {
+int InitCocircWeights::cocircCalcWeights(/* PVPatch * patch */ pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr) {
 
    //load stored params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
@@ -71,7 +71,7 @@ int InitCocircWeights::cocircCalcWeights(PVPatch * patch, InitCocircWeightsParam
    int sf_tmp=weightParamPtr->getsf_tmp();
    float min_weight=weightParamPtr->getmin_weight();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
    // loop over all post synaptic neurons in patch
    for (int kfPost = 0; kfPost < nfPatch_tmp; kfPost++) {

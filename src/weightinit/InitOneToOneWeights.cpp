@@ -29,7 +29,7 @@ InitWeightsParams * InitOneToOneWeights::createNewWeightParams(HyPerConn * calli
    return tempPtr;
 }
 
-int InitOneToOneWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitOneToOneWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitOneToOneWeightsParams *weightParamPtr = dynamic_cast<InitOneToOneWeightsParams*>(weightParams);
@@ -41,33 +41,35 @@ int InitOneToOneWeights::calcWeights(PVPatch * patch, int patchIndex, int arborI
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
    const float iWeight = weightParamPtr->getInitWeight();
-   return createOneToOneConnection(patch, patchIndex, iWeight, weightParamPtr);
+
+   return createOneToOneConnection(dataStart, patchIndex, iWeight, weightParamPtr);
    //subUnitWeights(patch, weightParamPtr);
 
 
 }
 
-int InitOneToOneWeights::createOneToOneConnection(PVPatch * patch, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr) {
+int InitOneToOneWeights::createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr) {
    // int numKernels = numDataPatches(0);
-   // int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
    //for( int k=0; k < numKernels; k++ ) {
    //int k=patchIndex;
    int k=weightParamPtr->getParentConn()->patchIndexToKernelIndex(patchIndex);
-   PVPatch * kp = patch; //getKernelPatch(k);
+   // PVPatch * kp = patch; //getKernelPatch(k);
    //assert(kp->nf == nfPatch_tmp);
-   assert(kp->nx == nxPatch_tmp);
-   assert(kp->ny == nyPatch_tmp);
+   // assert(kp->nx == nxPatch_tmp);
+   // assert(kp->ny == nyPatch_tmp);
 
-   pvdata_t * w = kp->data;
+   // pvdata_t * w = kp->data;
 
-   const int nxp = kp->nx;
-   const int nyp = kp->ny;
-   const int nfp = weightParamPtr->getnfPatch_tmp(); // kp->nf;
+   const int nfp = weightParamPtr->getnfPatch_tmp();
+   const int nxp = weightParamPtr->getnxPatch_tmp();
+   const int nyp = weightParamPtr->getnyPatch_tmp();
+
+   // const int nxp = kp->nx;
+   // const int nyp = kp->ny;
+   // const int nfp = weightParamPtr->getnfPatch_tmp(); // kp->nf;
 
    const int sxp = weightParamPtr->getsx_tmp(); // kp->sx;
    const int syp = weightParamPtr->getsy_tmp(); //kp->sy;
@@ -78,9 +80,9 @@ int InitOneToOneWeights::createOneToOneConnection(PVPatch * patch, int patchInde
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
             if((x!=(int)(nxp/2))||(y!=(int)(nyp/2)))
-               w[x * sxp + y * syp + f * sfp] = 0;
+               dataStart[x * sxp + y * syp + f * sfp] = 0;
             else
-               w[x * sxp + y * syp + f * sfp] = f==k ? iWeight : 0;
+               dataStart[x * sxp + y * syp + f * sfp] = f==k ? iWeight : 0;
         }
       }
    }

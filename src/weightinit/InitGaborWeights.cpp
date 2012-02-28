@@ -29,7 +29,7 @@ InitWeightsParams * InitGaborWeights::createNewWeightParams(HyPerConn * callingC
    return tempPtr;
 }
 
-int InitGaborWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams*>(weightParams);
@@ -41,15 +41,15 @@ int InitGaborWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
-   gaborWeights(patch, weightParamPtr);
+   gaborWeights(dataStart, weightParamPtr);
 
    return PV_SUCCESS; // return 1;
 
 }
 
-int InitGaborWeights::gaborWeights(PVPatch * patch, InitGaborWeightsParams * weightParamPtr) {
+int InitGaborWeights::gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGaborWeightsParams * weightParamPtr) {
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
@@ -66,7 +66,7 @@ int InitGaborWeights::gaborWeights(PVPatch * patch, InitGaborWeightsParams * wei
    int sf_tmp=weightParamPtr->getsf_tmp();
    double r2Max=weightParamPtr->getr2Max();
 
-   pvdata_t * w_tmp = patch->data;
+   // pvdata_t * w_tmp = patch->data;
 
 
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
@@ -88,12 +88,12 @@ int InitGaborWeights::gaborWeights(PVPatch * patch, InitGaborWeightsParams * wei
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
 
             if (xDelta*xDelta + yDelta*yDelta > r2Max) {
-               w_tmp[index] = 0.0f;
+               dataStart[index] = 0.0f;
             }
             else {
                if (invert) wt *= -1.0f;
                if (wt < 0.0f) wt = 0.0f;       // clip negative values
-               w_tmp[index] = wt;
+               dataStart[index] = wt;
             }
 
 

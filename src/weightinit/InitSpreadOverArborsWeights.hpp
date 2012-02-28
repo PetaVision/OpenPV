@@ -21,13 +21,13 @@ public:
    virtual ~InitSpreadOverArborsWeights();
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(PVPatch * patch, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
    virtual int initialize_base();
 
 private:
-   int spreadOverArborsWeights(PVPatch * patch, int arborId,
+   int spreadOverArborsWeights(/* PVPatch * patch */ pvdata_t * dataStart, int arborId,
          InitSpreadOverArborsWeightsParams * weightParamPtr);
 };
 

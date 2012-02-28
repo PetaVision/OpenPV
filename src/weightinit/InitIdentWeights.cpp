@@ -29,7 +29,7 @@ InitWeightsParams * InitIdentWeights::createNewWeightParams(HyPerConn * callingC
    return tempPtr;
 }
 
-int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
+int InitIdentWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
                                    InitWeightsParams *weightParams) {
 
    InitIdentWeightsParams *weightParamPtr = dynamic_cast<InitIdentWeightsParams*>(weightParams);
@@ -41,7 +41,7 @@ int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
    }
 
 
-   weightParamPtr->calcOtherParams(patch, patchIndex);
+   weightParamPtr->calcOtherParams(patchIndex);
 
    //subUnitWeights(patch, weightParamPtr);
 
@@ -56,7 +56,8 @@ int InitIdentWeights::calcWeights(PVPatch * patch, int patchIndex, int arborId,
 //        kp->data[l] = l==k;
 //   }
    //}
-   return createOneToOneConnection(patch, patchIndex, 1, weightParamPtr);
+
+   return createOneToOneConnection(dataStart, patchIndex, 1, weightParamPtr);
    //return PV_SUCCESS; // return 1;
 
 }

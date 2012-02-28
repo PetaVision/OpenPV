@@ -37,9 +37,9 @@ int InitSubUnitWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitSubUnitWeightsParams::calcOtherParams(PVPatch * patch, int patchIndex) {
+void InitSubUnitWeightsParams::calcOtherParams(int patchIndex) {
 
-   this->getcheckdimensionsandstrides(patch);
+   this->getcheckdimensionsandstrides();
 
    //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
 
