@@ -77,7 +77,7 @@ int SiblingConn::normalizeFamily()
    return PV_BREAK;
 } // normalizeFamily
 
-int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
+int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
 

@@ -125,7 +125,7 @@ int GenerativeConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId) {
+int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId) {
    int status = PV_SUCCESS;
    int neuronsperpatch;
    switch( normalizeMethod ) {
@@ -139,12 +139,12 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, i
       for( int n=0; n<neuronsperpatch; n++ ) {
          pvdata_t s = 0;
          for( int k=0; k<numPatches; k++ ) {
-            pvdata_t d = dataStart[k*nxp*nyp*nfp+patches[k]->offset+n];// patches[k]->data[n];
+            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+patches[k]->offset+n];// patches[k]->data[n];
             s += d*d;
          }
          s = sqrt(s);
          for( int k=0; k<numPatches; k++ ) {
-            dataStart[k*nxp*nyp*nfp+patches[k]->offset+n] *= normalizeConstant/s; // patches[k]->data[n] *= normalizeConstant/s;
+            dataStart[arborId][k*nxp*nyp*nfp+patches[k]->offset+n] *= normalizeConstant/s; // patches[k]->data[n] *= normalizeConstant/s;
          }
       }
       break;
@@ -154,12 +154,12 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, i
          PVPatch * curpatch = patches[k];
          pvdata_t s = 0;
          for( int n=0; n<neuronsperpatch; n++ ) {
-            pvdata_t d = dataStart[k*nxp*nyp*nfp+curpatch->offset+n]; // curpatch->data[n];
+            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+curpatch->offset+n]; // curpatch->data[n];
             s += d*d;
          }
          s = sqrt(s);
          for( int n=0; n<neuronsperpatch; n++ ) {
-            dataStart[k*nxp*nyp*nfp+curpatch->offset+n] *= normalizeConstant/s; // curpatch->data[n] *= normalizeConstant/s;
+            dataStart[arborId][k*nxp*nyp*nfp+curpatch->offset+n] *= normalizeConstant/s; // curpatch->data[n] *= normalizeConstant/s;
          }
       }
       break;

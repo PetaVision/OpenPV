@@ -43,7 +43,7 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
    return PV_BREAK;
 }
 
-int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
+int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
    int status = zeroSelfWeights(patches, numPatches, arborId);
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
