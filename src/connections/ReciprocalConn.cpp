@@ -166,14 +166,14 @@ int ReciprocalConn::update_dW(int axonID) {
    }
    if( reciprocalFidelityCoeff ) {
       for( int k=0; k<numKernelIndices; k++) {
-         const pvdata_t * wdata = get_wData(axonID, k); // p->data;
-         pvdata_t * dwdata = get_dwData(axonID, k);
-         PVPatch * p = getWeights(k, axonID); // getKernelPatch(axonID, k);
-         short int nx = p->nx;
-         short int ny = p->ny;
-         for( int n=0; n<nx*ny*nfp; n++ ) {
-            int f = featureIndex(n,nx,ny,nfp);
-            const pvdata_t * recipwdata = reciprocalWgts->get_wData(axonID, f);
+         const pvdata_t * wdata = get_wDataHead(axonID, k); // p->data;
+         pvdata_t * dwdata = get_dwDataHead(axonID, k);
+         // PVPatch * p = getWeights(k, axonID); // getKernelPatch(axonID, k);
+         // short int nx = nxp; // p->nx;
+         // short int ny = nyp; // p->ny;
+         for( int n=0; n<nxp*nyp*nfp; n++ ) {
+            int f = featureIndex(n,nxp,nyp,nfp);
+            const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, f);
             // const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
             dwdata[n] += reciprocalFidelityCoeff*(wdata[n]-nfp/reciprocalWgts->fPatchSize()*recipwdata[k]);
          }
@@ -184,10 +184,10 @@ int ReciprocalConn::update_dW(int axonID) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int patchIndex = kernelIndexToPatchIndex(kernelindex);
-      int numpatchitems = getWeights(patchIndex, axonID)->nx * getWeights(patchIndex, axonID)->ny * nfp;
+      // int patchIndex = kernelIndexToPatchIndex(kernelindex);
+      int numpatchitems = nxp * nyp * nfp;
       // int numpatchitems = dKernelPatches[axonID][kernelindex]->nx * dKernelPatches[axonID][kernelindex]->ny * nfp;
-      pvdata_t * dwpatchdata = get_dwData(axonID,kernelindex);
+      pvdata_t * dwpatchdata = get_dwDataHead(axonID,kernelindex);
       // pvdata_t * dwpatchdata = dKernelPatches[axonID][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;

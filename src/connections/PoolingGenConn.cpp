@@ -176,7 +176,7 @@ int PoolingGenConn::updateWeights(int axonID) {
     if( nonnegConstraintFlag ) {
        for(int kPatch=0; kPatch<numDataPatches();kPatch++) {
           // PVPatch * weights = this->getKernelPatch(axonID, kPatch);
-          pvdata_t * wtpatch = get_wData(axonID, kPatch); // weights->data;
+          pvdata_t * wtpatch = get_wDataHead(axonID, kPatch); // weights->data;
            int nk = nxp * nfp;
            int syw = nxp*nfp;
            for( int y=0; y < nyp; y++ ) {

@@ -32,7 +32,7 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
    for (int axonIndex = 0; axonIndex < this->numberOfAxonalArborLists(); axonIndex++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          // PVPatch * wp = getWeights(axonIndex, kPatch); // getKernelPatch(axonIndex, kPatch);
-         pvdata_t * w = get_wData(axonIndex, kPatch); // wp->data;
+         pvdata_t * w = get_wDataHead(axonIndex, kPatch); // wp->data;
          int kfSelf = kPatch;
          int kxSelf = (nxp / 2);
          int kySelf = (nyp / 2);

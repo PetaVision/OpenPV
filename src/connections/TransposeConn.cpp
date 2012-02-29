@@ -129,7 +129,7 @@ int TransposeConn::transposeKernels() {
 
         for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
             // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
-            pvdata_t * dataStartFB = get_wData(0, kernelnumberFB);
+            pvdata_t * dataStartFB = get_wDataHead(0, kernelnumberFB);
             int nfFB = nfp;
             assert(numFFKernelPatches == nfFB);
             int nxFB = nxp; // kpFB->nx;
@@ -140,7 +140,7 @@ int TransposeConn::transposeKernels() {
                         int kIndexFB = kIndex(kxFB,kyFB,kfFB,nxFB,nyFB,nfFB);
                         int kernelnumberFF = kfFB;
                         // PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
-                        pvdata_t * dataStartFF = originalConn->get_wData(0, kernelnumberFF);
+                        pvdata_t * dataStartFF = originalConn->get_wDataHead(0, kernelnumberFF);
                         int nxpFF = originalConn->xPatchSize();
                         int nypFF = originalConn->yPatchSize();
                         assert(numFBKernelPatches == originalConn->fPatchSize() * xscaleq * yscaleq);
@@ -163,7 +163,7 @@ int TransposeConn::transposeKernels() {
         int yscaleq = (int) pow(2,yscalediff);
         for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
             // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
-            pvdata_t * dataStartFB = get_wData(0, kernelnumberFB);
+            pvdata_t * dataStartFB = get_wDataHead(0, kernelnumberFB);
             int nxFB = nxp; // kpFB->nx;
             int nyFB = nyp; // kpFB->ny;
             int nfFB = nfp;
@@ -174,7 +174,7 @@ int TransposeConn::transposeKernels() {
                     for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                         int kernelnumberFF = (precelloffsety*xscaleq + precelloffsetx)*nfFB + kfFB;
                         // PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
-                        pvdata_t * dataStartFF = originalConn->get_wData(0, kernelnumberFF);
+                        pvdata_t * dataStartFF = originalConn->get_wDataHead(0, kernelnumberFF);
                         int nxpFF = originalConn->xPatchSize();
                         int nypFF = originalConn->yPatchSize();
                         int kxFF = (nxp-kxFB-1)/xscaleq;

@@ -52,11 +52,11 @@ int SiblingConn::normalizeFamily()
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          // PVPatch * localWPatch = getWeights(kPatch,kArbor); // this->getKernelPatch(kArbor, kPatch);
          // pvdata_t * myWeights = myWpatch->data;
-         pvdata_t * localWeights = get_wData(kArbor, kPatch);
+         pvdata_t * localWeights = get_wDataHead(kArbor, kPatch);
          assert(localWeights != NULL);
          // PVPatch * siblingWpatch = siblingConn->getKernelPatch(kArbor, kPatch);
          // pvdata_t * siblingWeights = siblingWpatch->data;
-         pvdata_t * siblingWeights = siblingConn->get_wData(kArbor, kPatch);
+         pvdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
          assert(siblingWeights != NULL);
          const int nx = nxp; // localWPatch->nx;
          const int ny = nyp; // localWPatch->ny;
