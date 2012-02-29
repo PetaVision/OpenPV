@@ -99,7 +99,7 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
-      normalizeWeights(patches, arborStart, numPatches, 0);
+      normalizeWeights(patches, dataStart, numPatches, 0);
    }
    return arbors;
 }
