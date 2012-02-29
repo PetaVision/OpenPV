@@ -747,6 +747,7 @@ int KernelConn::checkpointWrite() {
    return HyPerConn::writeWeights(NULL, get_wDataStart(), numDataPatches(), filename, parent->simulationTime(), true);
 }
 
+#ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
 // one to many mapping, chose first patch index in restricted space
 // kernelIndex for unit cell
 // patchIndex in extended space
@@ -777,6 +778,7 @@ int KernelConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
    }
    return patchIndex;
 }
+#endif // OBSOLETE
 
 // many to one mapping from weight patches to kernels
 // patchIndex always in extended space

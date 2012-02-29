@@ -205,25 +205,25 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, i
    for( int f=0; f<nfp; f++ ) {
       pvdata_t sum = 0.0f;
       for( int k=0; k<numPatches; k++ ) {
-         int patchIndex = kernelIndexToPatchIndex(k);
-         PVPatch * w = getWeights(patchIndex,arborID);
-         int nx = (int) patches[k]->nx;
-         int ny = (int) patches[k]->ny;
-         for( int m=0; m<nx; m++ ) {
-            for( int n=0; n<ny; n++) {
-               sum += dataStart[k*nxp*nyp*nfp+w->offset+f];
+         // int patchIndex = kernelIndexToPatchIndex(k);
+         // PVPatch * w = getWeights(patchIndex,arborID);
+         // int nx = (int) patches[k]->nx;
+         // int ny = (int) patches[k]->ny;
+         for( int m=0; m<nxp; m++ ) {
+            for( int n=0; n<nyp; n++) {
+               sum += dataStart[k*nxp*nyp*nfp+f];
                // sum += getKernelPatch(arborID, k)->data[f];
             }
          }
       }
       for( int k=0; k<numPatches; k++ ) {
-         int patchIndex = kernelIndexToPatchIndex(k);
-         PVPatch * w = getWeights(patchIndex,arborID);
-         int nx = (int) patches[k]->nx;
-         int ny = (int) patches[k]->ny;
-         for( int m=0; m<nx; m++ ) {
-            for( int n=0; n<ny; n++) {
-               dataStart[k*nxp*nyp*nfp+w->offset+f] /= sum;
+         // int patchIndex = kernelIndexToPatchIndex(k);
+         // PVPatch * w = getWeights(patchIndex,arborID);
+         // int nx = (int) patches[k]->nx;
+         // int ny = (int) patches[k]->ny;
+         for( int m=0; m<nxp; m++ ) {
+            for( int n=0; n<nyp; n++) {
+               dataStart[k*nxp*nyp*nfp+f] /= sum;
                // getKernelPatch(arborID, k)->data[f] /= sum;
             }
          }

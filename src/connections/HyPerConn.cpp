@@ -2008,6 +2008,7 @@ pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatc
 //   return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
 //}
 
+#ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
 // one to many mapping, chose first patch index in restricted space
 // kernelIndex for unit cell
 // patchIndex in extended space
@@ -2016,6 +2017,7 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 {
    return kernelIndex;
 }
+#endif // OBSOLETE
 
 // many to one mapping from weight patches to kernels
 // patchIndex always in extended space

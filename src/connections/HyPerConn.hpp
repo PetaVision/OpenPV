@@ -178,8 +178,10 @@ public:
    virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
 
+#ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,
-         int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
+        int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
+#endif // OBSOLETE
 
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
