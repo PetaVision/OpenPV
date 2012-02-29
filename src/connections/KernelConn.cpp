@@ -537,7 +537,7 @@ int KernelConn::reduceKernels(const int axonID) {
 #endif // PV_USE_MPI
 
 int KernelConn::correctPIndex(int patchIndex) {
-   return kernelIndexToPatchIndex(patchIndex);
+   return patchIndexToKernelIndex(patchIndex);
 }
 
 
@@ -552,8 +552,8 @@ int KernelConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, in
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
          double sum, sum2;
          float maxVal;
-         PVPatch * p = patches[kPatch];
-         status = sumWeights(p, dataStart + kPatch*nxp*nyp*nfp + p->offset, &sum, &sum2, &maxVal);
+         // PVPatch * p = patches[kPatch];
+         status = sumWeights(nxp, nyp, 0, dataStart + kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          sumAll += sum;
          sum2All += sum2;
@@ -604,14 +604,14 @@ int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int n
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
             double sum, sum2;
             float maxVal;
-            status = sumWeights(patches[kPatch], dataStart+kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
+            status = sumWeights(nxp, nyp, 0, dataStart+kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
             sumAll += sum;
             sum2All += sum2;
             maxAll = maxVal > maxAll ? maxVal : maxAll;
          } // kArbor
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-            status = scaleWeights(patches[kPatch], dataStart+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
+            status = scaleWeights(nxp, nyp, 0, dataStart+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
       } // kPatch < numPatches

@@ -1603,20 +1603,20 @@ int HyPerConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::sumWeights(PVPatch * wp, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal)
+int HyPerConn::sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal)
 {
-   assert(wp != NULL);
-   pvdata_t * w = dataStart + wp->offset;
-   assert(w != NULL);
-   const int nx = wp->nx;
-   const int ny = wp->ny;
+   // assert(wp != NULL);
+   pvdata_t * w = dataStart + offset;
+   // assert(w != NULL);
+   // const int nx = wp->nx;
+   // const int ny = wp->ny;
    //const int nfp = wp->nf;
    //const int syp = wp->sy;
    double sum_tmp = 0;
    double sum2_tmp = 0;
    pvdata_t max_tmp = -FLT_MAX;
    for (int ky = 0; ky < ny; ky++) {
-      for(int iWeight = 0; iWeight < nfp * nx; iWeight++ ){
+      for(int iWeight = 0; iWeight < syp; iWeight++ ){
          sum_tmp += w[iWeight];
          sum2_tmp += w[iWeight] * w[iWeight];
          max_tmp = ( max_tmp > w[iWeight] ) ? max_tmp : w[iWeight];
@@ -1629,10 +1629,10 @@ int HyPerConn::sumWeights(PVPatch * wp, pvdata_t * dataStart, double * sum, doub
    return PV_SUCCESS;
 } // sumWeights
 
-int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
+int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
 {
-   assert(wp != NULL);
-   int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
+   // assert(wp != NULL);
+   int num_weights = nx * ny * nfp; //wp->nf;
    if (!this->normalize_arbors_individually){
       num_weights *= numberOfAxonalArborLists(); // assumes all arbors shrunken equally at this point (shrink patches should occur after normalize)
    }
@@ -1655,10 +1655,10 @@ int HyPerConn::scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pv
    else if (sum == 0.0f && sigma2 > 0.0f) {
       scale_factor = normalize_strength / sqrt(sigma2);
    }
-   pvdata_t * w = dataStart + wp->offset;
+   pvdata_t * w = dataStart + offset;
    assert(w != NULL);
-   for (int ky = 0; ky < wp->ny; ky++) {
-      for(int iWeight = 0; iWeight < nfp * wp->nx; iWeight++ ){
+   for (int ky = 0; ky < ny; ky++) {
+      for(int iWeight = 0; iWeight < syp; iWeight++ ){
          w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
          w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
       }
@@ -1702,7 +1702,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int
       double sum = 0;
       double sum2 = 0;
       float maxVal = -FLT_MAX;
-      status = sumWeights(wp, dataStart + k*nxp*nyp*nfp, &sum, &sum2, &maxVal);
+      status = sumWeights(wp->nx, wp->ny, wp->offset, dataStart + k*nxp*nyp*nfp, &sum, &sum2, &maxVal);
       int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
       float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
       if( sum != 0 || sigma2 != 0 ) {
@@ -1726,9 +1726,9 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int nu
       double sum = 0;
       double sum2 = 0;
       pvdata_t * dataStartPatch = dataStart + k*nxp*nyp*nfp;
-      status = sumWeights(wp, dataStartPatch, &sum, &sum2, &maxVal);
+      status = sumWeights(wp->nx, wp->ny, wp->offset, dataStartPatch, &sum, &sum2, &maxVal);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-      status = scaleWeights(wp, dataStartPatch, sum, sum2, maxVal);
+      status = scaleWeights(wp->nx, wp->ny, wp->offset, dataStartPatch, sum, sum2, maxVal);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    } // k < numPatches
    status = HyPerConn::checkNormalizeArbor(patches, dataStart, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false

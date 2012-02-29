@@ -59,11 +59,18 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
                      bool compressed=true) {
    unsigned char * cptr = buf;
    const int patchsize = nxp * nyp * nfp;
-
+   int nx = nxp;
+   int ny = nyp;
+   int offset = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = patches[k];
+      if( patches != NULL ) {
+         PVPatch * p = patches[k];
+         nx = p->nx;
+         ny = p->ny;
+         offset = p->offset;
+      }
       // const pvdata_t * data = p->data;
-      const pvdata_t * data = dataStart + k*patchsize + p->offset;
+      const pvdata_t * data = dataStart + k*patchsize + offset;
 
       const int sxp = nfp; //p->sx;
       const int syp = nfp * nxp; //p->sy;
@@ -71,15 +78,15 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
 
       unsigned short * nxny = (unsigned short *) cptr;
 
-      nxny[0] = (unsigned short) p->nx;
-      nxny[1] = (unsigned short) p->ny;
+      nxny[0] = (unsigned short) nx;
+      nxny[1] = (unsigned short) ny;
 
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(nfp);
+      int numExtraNeurons = nxp*nyp*nfp - nx*ny*nfp;
       if( compressed ) {
-         for (int y = 0; y < p->ny; y++) {
-            for (int x = 0; x < p->nx; x++) {
+         for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
                for (int f = 0; f < nfp; f++) {
                   float val = data[x*sxp + y*syp + f*sfp];
                   val = 255.0 * (val - minVal) / (maxVal - minVal);
@@ -96,8 +103,8 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
          }
       }
       else {
-         for (int y = 0; y < p->ny; y++) {
-            for (int x = 0; x < p->nx; x++) {
+         for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
                for (int f = 0; f < nfp; f++) {
                   float val = data[x*sxp + y*syp + f*sfp];
                   memcpy(cptr, &val, sizeof(float));

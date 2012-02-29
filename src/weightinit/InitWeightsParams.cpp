@@ -56,6 +56,12 @@ int InitWeightsParams::initialize(HyPerConn * parentConn) {
    this->post = parentConn->getPost();
    this->channel = parentConn->getChannel();
    this->setName(parentConn->getName());
+   nxPatch_tmp = parentConn->xPatchSize();
+   nyPatch_tmp = parentConn->yPatchSize();
+   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
+   sx_tmp = parentConn->xPatchStride(); //patch->sx;
+   sy_tmp = parentConn->yPatchStride(); //patch->sy;
+   sf_tmp = parentConn->fPatchStride(); //patch->sf;
 
    return status;
 
@@ -63,15 +69,15 @@ int InitWeightsParams::initialize(HyPerConn * parentConn) {
 
 void InitWeightsParams::getcheckdimensionsandstrides() {
    // get/check dimensions and strides of full sized temporary patch
-   nxPatch_tmp = parentConn->xPatchSize();
-   nyPatch_tmp = parentConn->yPatchSize();
-   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
+   // nxPatch_tmp = parentConn->xPatchSize();
+   // nyPatch_tmp = parentConn->yPatchSize();
+   // nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
 
-   sx_tmp = parentConn->xPatchStride(); //patch->sx;
+   // sx_tmp = parentConn->xPatchStride(); //patch->sx;
    assert(sx_tmp == parentConn->fPatchSize()); // patch->nf);
-   sy_tmp = parentConn->yPatchStride(); //patch->sy;
+   // sy_tmp = parentConn->yPatchStride(); //patch->sy;
    assert(sy_tmp == parentConn->fPatchSize()*parentConn->xPatchSize()); //patch->nf * patch->nx);
-   sf_tmp = parentConn->fPatchStride(); //patch->sf;
+   // sf_tmp = parentConn->fPatchStride(); //patch->sf;
    assert(sf_tmp == 1);
 }
 

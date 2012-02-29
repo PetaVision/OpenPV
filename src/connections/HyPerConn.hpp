@@ -170,8 +170,8 @@ public:
    bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
    virtual int initNormalize();
-   int sumWeights(PVPatch * wp, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal);
-   int scaleWeights(PVPatch * wp, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
+   int sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal);
+   int scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
    virtual int checkNormalizeWeights(float sum, float sigma2, float maxVal);
    virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
