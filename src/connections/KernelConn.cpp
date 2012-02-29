@@ -359,7 +359,7 @@ int KernelConn::defaultUpdate_dW(int axonId) {
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(kExt, axonId);
+      pvdata_t * dwdata = get_dwData(axonId, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {

@@ -210,7 +210,7 @@ protected:
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    int connId;             // connection id
 
-   PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
+   // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
    int numAxonalArborLists;  // number of axonal arbors (weight patches) for presynaptic layer
 
    PVPatch       *** wPostPatches;  // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
@@ -319,7 +319,7 @@ protected:
    // following is overridden by KernelConn to set kernelPatches
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
    virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
-   virtual int setdWPatches(PVPatch ** patches, int arborId) {dwPatches[arborId]=patches; return 0;}
+   //  int setdWPatches(PVPatch ** patches, int arborId) {dwPatches[arborId]=patches; return 0;}
    // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    virtual int calc_dW(int axonId = 0);
 

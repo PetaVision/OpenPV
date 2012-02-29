@@ -27,7 +27,7 @@ STDPConn::~STDPConn()
 
 int STDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
-   this->dwPatches = NULL;
+   // this->dwPatches = NULL;
    this->pDecr = NULL;
    this->ampLTP = 1.0;
    this->ampLTD = 1.1;

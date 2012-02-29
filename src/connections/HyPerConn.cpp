@@ -153,7 +153,7 @@ int HyPerConn::initialize_base()
 
    wPatches=NULL;
    // axonalArborList=NULL;
-   dwPatches = NULL;
+   // dwPatches = NULL;
    aPostOffset = NULL;
 
    this->selfFlag = false;  // determines whether connections are made to neuron at same location (i.e. could be a self-connection)
@@ -442,18 +442,19 @@ int HyPerConn::initPlasticityPatches()
 
    const int numAxons = numberOfAxonalArborLists();
 
-   dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
-   assert(dwPatches != NULL);
+   // dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
+   // assert(dwPatches != NULL);
 
-   int numArbors = numWeightPatches();
+   // int numArbors = numWeightPatches();
    for (int arborId = 0; arborId < numAxons; arborId++) {
 
-      this->set_dwDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
-      assert(dwPatches[arborId] != NULL);
+      set_dwDataStart(arborId, allocWeights(wPatches, numDataPatches(), nxp, nyp, nfp, arborId));
+      // this->set_dwDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
+      assert(get_dwDataStart(arborId) != NULL);
       // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
       // assert(dWPatch != NULL);
 
-
+/*
       // kex is in extended frame
       for (int kex = 0; kex < numArbors; kex++) {
          int kl, offset, nxPatch, nyPatch, dx, dy;
@@ -468,6 +469,7 @@ int HyPerConn::initPlasticityPatches()
 
       } // loop over pre-synaptic neurons
       setdWPatches(dwPatches[arborId], arborId);
+*/
 
    } // loop over arbors
 
@@ -1079,7 +1081,7 @@ int HyPerConn::deleteWeights()
    // HyPerConn::deletePatches(numAxonalArborLists, wPatches);
 
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      int numPatches = numWeightPatches();
+      // int numPatches = numWeightPatches();
       if (wPatches != NULL) {
          if (wPatches[arbor] != NULL) {
             //for (int k = 0; k < numPatches; k++) {
@@ -1094,6 +1096,7 @@ int HyPerConn::deleteWeights()
          free(this->wDataStart[arbor]);
          this->wDataStart[arbor] = NULL;
       }
+/*
       if (dwPatches != NULL) {
          if (dwPatches[arbor] != NULL) {
             for (int k = 0; k < numPatches; k++) {
@@ -1103,6 +1106,7 @@ int HyPerConn::deleteWeights()
             dwPatches[arbor] = NULL;
          }
       }
+*/
       if (dwDataStart != NULL){
          free(this->dwDataStart[arbor]);
          this->dwDataStart[arbor] = NULL;
@@ -1112,8 +1116,8 @@ int HyPerConn::deleteWeights()
    wPatches = NULL;
    free(wDataStart);
    wDataStart = NULL;
-   free(dwPatches);
-   dwPatches = NULL;
+   // free(dwPatches);
+   // dwPatches = NULL;
    free(dwDataStart);
    dwDataStart = NULL;
 
