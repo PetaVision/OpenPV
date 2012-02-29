@@ -353,13 +353,14 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
    // int syw = syp;
    for(int kExt=0; kExt<nExt;kExt++) {
+      int kKernel = patchIndexToKernelIndex(kExt);
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(axonId, kExt);
+      pvdata_t * dwdata = get_dwData(axonId, kKernel);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
