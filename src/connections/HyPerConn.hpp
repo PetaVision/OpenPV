@@ -130,12 +130,12 @@ public:
    inline pvdata_t * get_wDataStart(int arborId) {return wDataStart[arborId];}
    // inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;} // Should be protected
    inline pvdata_t * get_wDataHead(int arborId, int dataIndex) {return &wDataStart[arborId][dataIndex*nxp*nyp*nfp];}
-   inline pvdata_t * get_wData(int arborId, int patchIndex) {return &wDataStart[arborId][patchIndex*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
+   inline pvdata_t * get_wData(int arborId, int patchIndex) {return &wDataStart[arborId][correctPIndex(patchIndex)*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
 
    inline pvdata_t * get_dwDataStart(int arborId) {return dwDataStart[arborId];}
    // inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;} // Should be protected
    inline pvdata_t * get_dwDataHead(int arborId, int dataIndex) {return &dwDataStart[arborId][dataIndex*nxp*nyp*nfp];}
-   inline pvdata_t * get_dwData(int arborId, int patchIndex) {return &dwDataStart[arborId][patchIndex*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
+   inline pvdata_t * get_dwData(int arborId, int patchIndex) {return &dwDataStart[arborId][correctPIndex(patchIndex)*nxp*nyp*nfp + wPatches[arborId][patchIndex]->offset];}
 
    inline PVPatch * getWPostPatches(int arbor, int patchIndex) {return wPostPatches[arbor][patchIndex];}
    inline pvdata_t * getWPostData(int arbor, int patchIndex) {return &wPostDataStart[arbor][patchIndex*nxpPost*nypPost*nfpPost]+wPostPatches[arbor][patchIndex]->offset;}
