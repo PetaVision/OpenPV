@@ -162,16 +162,15 @@ int ANNLayer::readVThreshParams(PVParams * params) {
  *
  *
  */
+#ifdef PV_USE_OPENCL
 int ANNLayer::updateState(float time, float dt)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(true)) {
       updateStateOpenCL(time, dt);
       //HyPerLayer::updateState(time, dt);
    }
    else {
-#endif
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
@@ -183,13 +182,12 @@ int ANNLayer::updateState(float time, float dt)
       pvdata_t * activity = clayer->activity->data;
 
       ANNLayer_update_state(nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynExc, GSynInh, activity);
-#ifdef PV_USE_OPENCL
    }
-#endif
 
    update_timer->stop();
    return PV_SUCCESS;
 }
+#endif
 
 
 int ANNLayer::updateV() {
