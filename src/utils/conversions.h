@@ -419,7 +419,7 @@ static inline int zUnitCellSize(float preZScale, float postZScale){
          postZScale - preZScale) : 1;
 }
 
-int layerIndexToUnitCellIndex(int patchIndex, PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
+int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
       int * kyUnitCellIndex, int * kfUnitCellIndex);
 
 /**

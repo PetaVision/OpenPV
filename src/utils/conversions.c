@@ -110,10 +110,10 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
 
 
 
-int layerIndexToUnitCellIndex(int patchIndex, PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
+int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
       int * kyUnitCellIndex, int * kfUnitCellIndex)
 {
-   int UnitCellIndex;
+   // int UnitCellIndex;
    int nxPreExtended = preLoc->nx + 2*preLoc->nb;
    int nyPreExtended = preLoc->ny + 2*preLoc->nb;
    int nfPre = preLoc->nf;
