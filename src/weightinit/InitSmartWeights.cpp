@@ -38,7 +38,7 @@ namespace PV {
       //smart weights doesn't have any params to load and is too simple to
       //actually need to save anything to work on...
 
-      smartWeights(dataStart, patchIndex);
+      smartWeights(dataStart, patchIndex, weightParams);
       return PV_SUCCESS; // return 1;
    }
 
@@ -47,22 +47,22 @@ namespace PV {
       return tempPtr;
    }
 
-   int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k) {
+   int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams) {
       // pvdata_t * w = wp->data;
 
-      const int nxp = parentConn->xPatchSize(); // wp->nx;
-      const int nyp = parentConn->yPatchSize(); // wp->ny;
-      const int nfp = parentConn->fPatchSize(); // wp->nf;
+      const int nxp = weightParams->getnxPatch_tmp(); // wp->nx;
+      const int nyp = weightParams->getnyPatch_tmp(); // wp->ny;
+      const int nfp = weightParams->getnfPatch_tmp(); //wp->nf;
 
-      const int sxp = parentConn->xPatchStride(); //wp->sx;
-      const int syp = parentConn->yPatchStride(); //wp->sy;
-      const int sfp = parentConn->fPatchStride(); //wp->sf;
+      const int sxp = weightParams->getsx_tmp(); //wp->sx;
+      const int syp = weightParams->getsy_tmp(); //wp->sy;
+      const int sfp = weightParams->getsf_tmp(); //wp->sf;
 
       // loop over all post-synaptic cells in patch
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
             for (int f = 0; f < nfp; f++) {
-               dataStart[x * sxp + y * syp + f * sfp] = k;
+               dataStart[x * sxp + y * syp + f * sfp] = weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
             }
          }
       }

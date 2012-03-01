@@ -9,6 +9,7 @@
 #define INITSMARTWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitWeightsParams.hpp"
 
 namespace PV {
 
@@ -30,7 +31,7 @@ protected:
 //                  ChannelType channel);
 
 private:
-   int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k);
+   int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams);
 };
 
 } /* namespace PV */

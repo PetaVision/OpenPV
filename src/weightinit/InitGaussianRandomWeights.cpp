@@ -55,7 +55,7 @@ int InitGaussianRandomWeights::calcWeights(/* PVPatch * patch */ pvdata_t * data
    const float wGaussMean = weightParamPtr->getMean();
    const float wGaussStdev = weightParamPtr->getStDev();
 
-   gaussianWeights(dataStart, wGaussMean, wGaussStdev);
+   gaussianWeights(dataStart, wGaussMean, wGaussStdev, weightParamPtr);
    return PV_SUCCESS; // return 1;
 }
 
@@ -74,16 +74,16 @@ int InitGaussianRandomWeights::calcWeights(/* PVPatch * patch */ pvdata_t * data
  *    .
  */
 // int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
-int InitGaussianRandomWeights::gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev) {
+int InitGaussianRandomWeights::gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev, InitGaussianRandomWeightsParams *weightParamPtr) {
    // pvdata_t * w = wp->data;
 
-   const int nxp = parentConn->xPatchSize(); // wp->nx;
-   const int nyp = parentConn->yPatchSize(); // wp->ny;
-   const int nfp = parentConn->fPatchSize(); //wp->nf;
+   const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
+   const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
+   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
 
-   const int sxp = parentConn->xPatchStride();
-   const int syp = parentConn->yPatchStride();
-   const int sfp = parentConn->fPatchStride();
+   const int sxp = weightParamPtr->getsx_tmp(); //wp->sx;
+   const int syp = weightParamPtr->getsy_tmp(); //wp->sy;
+   const int sfp = weightParamPtr->getsf_tmp(); //wp->sf;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

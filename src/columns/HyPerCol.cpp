@@ -124,7 +124,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
-   int opencl_device = 1;  // default to CPU for now
+   int opencl_device = 0;  // default to GPU for now
    numSteps = 0; // numSteps = 2;
    outputPath = NULL;
    image_file = NULL;
@@ -205,8 +205,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       outputParams(printParamsFilename);
    }
 
-   // run only on CPU for now
+   // run only on GPU for now
+#ifdef PV_USE_OPENCL
    initializeThreads(opencl_device);
+   clDevice->query_device_info();
+#endif
 
    // set random seed if it wasn't set in the command line
    if( !random_seed ) {

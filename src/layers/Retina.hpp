@@ -20,8 +20,8 @@
 
 #define NUM_RETINA_CHANNELS 2
 #define NUM_RETINA_EVENTS   3
-#define EV_R_PHI_E    0
-#define EV_R_PHI_I    1
+//#define EV_R_PHI_E    0
+//#define EV_R_PHI_I    1
 #define EV_R_ACTIVITY 2
 
 namespace PV
@@ -51,8 +51,14 @@ protected:
    int initialize(const char * name, HyPerCol * hc, PVLayerType type);
    virtual int initializeV();
 #ifdef PV_USE_OPENCL
+   //int initializeGPU();  //right now there's no use for a Retina specific version
+   virtual int getNumCLEvents() {return numEvents;}
+   virtual const char * getKernelName() {
+      return spikingFlag ? "Retina_spiking_update_state" : "Retina_nonspiking_update_state";
+   }
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
+   virtual int getEVActivity() {return EV_R_ACTIVITY;}
 
    CLBuffer * clRand;
 #endif

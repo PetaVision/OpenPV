@@ -67,6 +67,8 @@ DerivedLayer::initialize(arguments) {
 #define PV_CL_COPY_BUFFERS 0
 #define PV_CL_EVENTS 1
 #include "../arch/opencl/CLKernel.hpp"
+#define EV_HPL_PHI_E 0
+#define EV_HPL_PHI_I 1
 #endif
 
 namespace PV {
@@ -243,15 +245,47 @@ protected:
    //
 #ifdef PV_USE_OPENCL
 public:
+   int initializeGPU(); //this method setups up GPU stuff...
+   //virtual int getNumCLEvents() {return 0;}
+   virtual const char * getKernelName() {return NULL;}
    virtual int getNumKernelArgs() {return numKernelArgs;}
    virtual int getNumCLEvents()   {return numEvents;}
 
    CLBuffer * getChannelCLBuffer(ChannelType ch) {
       return ch < this->numChannels ? clGSyn[ch] : NULL;
    }
-
+   //#define EV_PHI_E 0
+   //#define EV_PHI_I 1
+   virtual int getEVGSynE() {return EV_HPL_PHI_E;}
+   virtual int getEVGSynI() {return EV_HPL_PHI_I;}
    CLBuffer * getLayerDataStoreCLBuffer();
    size_t     getLayerDataStoreOffset(int delay=0);
+   void initUseGPUFlag();
+   inline bool getUseGPUFlag() {return gpuAccelerateFlag;}
+   int initializeDataStoreThreadBuffers();
+   void tellLayerToCopyDataStoreCLBuffer(cl_event * evCpDataStore) {copyDataStoreFlag=true; evCopyDataStore=evCpDataStore;}
+
+   //temporary method for debuging recievesynapticinput
+   virtual inline int getGSynEvent(ChannelType ch) {
+      switch (ch) {
+      case CHANNEL_EXC: return getEVGSynE();
+      case CHANNEL_INH: return getEVGSynI();
+      default: return -1;
+      }
+   }
+   virtual void copyChannelFromDevice(ChannelType ch) {
+      int gsynEvent = getGSynEvent(ch);
+      if(gsynEvent>=0){
+         getChannelCLBuffer(ch)->copyFromDevice(&evList[gsynEvent]);
+         clWaitForEvents(1, &evList[gsynEvent]);
+         clReleaseEvent(evList[gsynEvent]);
+      }
+   }
+   virtual void copyChannelToDevice() {
+      copyToDevice=true;
+   }
+   void startTimer() {recvsyn_timer->start();}
+   void stopTimer() {recvsyn_timer->stop();}
 
 protected:
 
@@ -270,9 +304,16 @@ protected:
    int numWait;               // number of events to wait for
    cl_event * evList;         // event list
    cl_event   evUpdate;
+   cl_event * evCopyDataStore;
 
    int nxl;  // local OpenCL grid size in x
    int nyl;  // local OpenCL grid size in y
+
+   bool gpuAccelerateFlag;
+   bool copyToDevice;
+   bool copyDataStoreFlag;
+   bool buffersInitialized;
+
 #endif
 
    Timer * update_timer;

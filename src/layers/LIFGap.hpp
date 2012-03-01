@@ -11,7 +11,9 @@
 #include "LIF.hpp"
 
 #define NUM_LIFGAP_EVENTS   1 + NUM_LIF_EVENTS  // ???
-#define EV_LIF_GSYN_GAP     NUM_LIF_EVENTS + 1
+//#define EV_LIF_GSYN_GAP     NUM_LIF_EVENTS + 1
+#define EV_LIFGAP_GSYN_GAP     3
+#define EV_LIFGAP_ACTIVITY  4
 
 
 namespace PV {
@@ -43,15 +45,23 @@ protected:
    pvdata_t sumGap;
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(char * kernelName);
-   virtual int initializeThreadKernels(char * kernelName);
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
 
    // OpenCL buffers
    //
    CLBuffer * clG_Gap;
    CLBuffer * clGSynGap;
 
+   virtual int getEVGSynGap() {return EV_LIFGAP_GSYN_GAP;}
+   virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
+   virtual inline int getGSynEvent(ChannelType ch) {
+      if(LIF::getGSynEvent(ch)>=0) return LIF::getGSynEvent(ch);
+      if(ch==CHANNEL_GAP) return getEVGSynGap();
+      return -1;
+   }
    virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS;}
+   virtual const char * getKernelName() {return "LIFGap_update_state";}
 #endif
 
 private:

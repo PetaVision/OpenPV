@@ -40,7 +40,7 @@ InitWeights::~InitWeights()
  * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
 PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
-   parentConn = callingConn;
+//void InitWeights::initializeWeights(const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
    InitWeightsParams *weightParams = NULL;
@@ -48,22 +48,23 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
    if( initFromLastFlag ) {
       char nametmp[PV_PATH_MAX];
       snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
-      readWeights(patches, dataStart, numPatches, nametmp, callingConn);
+      readWeights(patches, dataStart, callingConn->getNumDataPatches(), nametmp, callingConn);
    }
    else if( filename != NULL ) {
-      readWeights(patches, dataStart, numPatches, filename, callingConn, timef);
+      readWeights(patches, dataStart, callingConn->getNumDataPatches(), filename, callingConn, timef);
    }
    else {
       // int patchsize = callingConn->xPatchSize() * callingConn->yPatchSize() * callingConn->fPatchSize();
       weightParams = createNewWeightParams(callingConn);
 
-      int nfp = weightParams->getnfPatch_tmp();
-      int nxp = weightParams->getnxPatch_tmp();
-      int nyp = weightParams->getnyPatch_tmp();
-      int patchSize = nfp*nxp*nyp;
+//      int nfp = weightParams->getnfPatch_tmp();
+//      int nxp = weightParams->getnxPatch_tmp();
+//      int nyp = weightParams->getnyPatch_tmp();
+      //int patchSize = nfp*nxp*nyp;
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
-         for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
+         //for (int patchIndex = 0; patchIndex < callingConn->numDataPatches(); patchIndex++) {
+         for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
 
             //int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
             //int correctedPatchIndex = patchIndex;
@@ -73,7 +74,9 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
 
             //calc weights for patch:
 
-            int successFlag = calcWeights(dataStart[arbor]+dataPatchIndex*patchSize, dataPatchIndex, arbor, weightParams);
+            //int successFlag = calcWeights(get_wDataHead[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
+            //int successFlag = calcWeights(callingConn->get_wDataHead(arbor, patchIndex), patchIndex /*correctedPatchIndex*/, arbor, weightParams);
+            int successFlag = calcWeights(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
@@ -89,7 +92,7 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
       }
       delete(weightParams);
    }
-   return patches;
+   //return callingConn->weights();
 }
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {

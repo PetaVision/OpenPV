@@ -25,9 +25,9 @@ InitWeightsParams::InitWeightsParams()
 {
    initialize_base();
 }
-InitWeightsParams::InitWeightsParams(HyPerConn * parentConn) {
+InitWeightsParams::InitWeightsParams(HyPerConn * pConn) {
    initialize_base();
-   initialize(parentConn);
+   initialize(pConn);
 }
 
 InitWeightsParams::~InitWeightsParams()
@@ -47,21 +47,32 @@ int InitWeightsParams::initialize_base() {
 
    return 1;
 }
-int InitWeightsParams::initialize(HyPerConn * parentConn) {
+int InitWeightsParams::getnfPatch_tmp()        {return parentConn->fPatchSize();}
+int InitWeightsParams::getnyPatch_tmp() {
+   return parentConn->yPatchSize();
+}
+int InitWeightsParams::getnxPatch_tmp()        {return parentConn->xPatchSize();}
+int InitWeightsParams::getPatchSize_tmp()      {return parentConn->fPatchSize()*
+      parentConn->xPatchSize()*parentConn->yPatchSize();}
+int InitWeightsParams::getsx_tmp()        {return parentConn->xPatchStride();}
+int InitWeightsParams::getsy_tmp()        {return parentConn->yPatchStride();}
+int InitWeightsParams::getsf_tmp()        {return parentConn->fPatchStride();}
+
+int InitWeightsParams::initialize(HyPerConn * pConn) {
    int status = PV_SUCCESS;
 
-   this->parentConn = parentConn;
+   this->parentConn = pConn;
    this->parent = parentConn->getParent();
    this->pre = parentConn->getPre();
    this->post = parentConn->getPost();
    this->channel = parentConn->getChannel();
    this->setName(parentConn->getName());
-   nxPatch_tmp = parentConn->xPatchSize();
-   nyPatch_tmp = parentConn->yPatchSize();
-   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
-   sx_tmp = parentConn->xPatchStride(); //patch->sx;
-   sy_tmp = parentConn->yPatchStride(); //patch->sy;
-   sf_tmp = parentConn->fPatchStride(); //patch->sf;
+//   nxPatch_tmp = parentConn->xPatchSize();
+//   nyPatch_tmp = parentConn->yPatchSize();
+//   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
+//   sx_tmp = parentConn->xPatchStride(); //patch->sx;
+//   sy_tmp = parentConn->yPatchStride(); //patch->sy;
+//   sf_tmp = parentConn->fPatchStride(); //patch->sf;
 
    return status;
 
@@ -74,11 +85,11 @@ void InitWeightsParams::getcheckdimensionsandstrides() {
    // nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
 
    // sx_tmp = parentConn->xPatchStride(); //patch->sx;
-   assert(sx_tmp == parentConn->fPatchSize()); // patch->nf);
-   // sy_tmp = parentConn->yPatchStride(); //patch->sy;
-   assert(sy_tmp == parentConn->fPatchSize()*parentConn->xPatchSize()); //patch->nf * patch->nx);
-   // sf_tmp = parentConn->fPatchStride(); //patch->sf;
-   assert(sf_tmp == 1);
+//   assert(sx_tmp == parentConn->fPatchSize()); // patch->nf);
+//   // sy_tmp = parentConn->yPatchStride(); //patch->sy;
+//   assert(sy_tmp == parentConn->fPatchSize()*parentConn->xPatchSize()); //patch->nf * patch->nx);
+//   // sf_tmp = parentConn->fPatchStride(); //patch->sf;
+//   assert(sf_tmp == 1);
 }
 
 int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
@@ -86,6 +97,7 @@ int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
+   //parentConn->patchIndexToKernelIndex(patchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    parentConn->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
@@ -110,8 +122,8 @@ int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, parentConn->xPatchSize(), pre->getXScale(), post->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, parentConn->yPatchSize(), pre->getYScale(), post->getYScale());
 
    // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;

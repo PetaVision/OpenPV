@@ -18,8 +18,8 @@
 #endif
 
 #define NUM_LIF_EVENTS   4
-#define EV_LIF_GSYN_E     0
-#define EV_LIF_GSYN_I     1
+//#define EV_LIF_GSYN_E     0
+//#define EV_LIF_GSYN_I     1
 #define EV_LIF_GSYN_IB    2
 #define EV_LIF_ACTIVITY  3
 
@@ -86,6 +86,15 @@ protected:
    virtual int initializeThreadKernels(const char * kernelName);
 
    virtual int getNumCLEvents() {return NUM_LIF_EVENTS;}
+   virtual const char * getKernelName() {return "LIF_update_state";}
+
+   virtual int getEVGSynIB() {return EV_LIF_GSYN_IB;}
+   virtual int getEVActivity() {return EV_LIF_ACTIVITY;}
+   virtual inline int getGSynEvent(ChannelType ch) {
+      if(HyPerLayer::getGSynEvent(ch)>=0) return HyPerLayer::getGSynEvent(ch);
+      if(ch==CHANNEL_INHB) return getEVGSynIB();
+      return -1;
+   }
 
    // OpenCL buffers
    //

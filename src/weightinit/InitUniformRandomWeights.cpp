@@ -54,7 +54,7 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
    const float wMinInit = weightParamPtr->getWMin();
    const float wMaxInit = weightParamPtr->getWMax();
 
-   uniformWeights(dataStart, wMinInit, wMaxInit);
+   uniformWeights(dataStart, wMinInit, wMaxInit, weightParamPtr);
    return PV_SUCCESS; // return 1;
 }
 
@@ -72,17 +72,17 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int InitUniformRandomWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt) {
+int InitUniformRandomWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, InitUniformRandomWeightsParams *weightParamPtr) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
    // pvdata_t * w = wp->data;
 
-   const int nxp = parentConn->xPatchSize(); // wp->nx;
-   const int nyp = parentConn->yPatchSize(); // wp->ny;
-   const int nfp = parentConn->fPatchSize(); //wp->nf;
+   const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
+   const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
+   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
 
-   const int sxp = parentConn->xPatchStride(); //wp->sx;
-   const int syp = parentConn->yPatchStride(); //wp->sy;
-   const int sfp = parentConn->fPatchStride(); //wp->sf;
+   const int sxp = weightParamPtr->getsx_tmp(); //wp->sx;
+   const int syp = weightParamPtr->getsy_tmp(); //wp->sy;
+   const int sfp = weightParamPtr->getsf_tmp(); //wp->sf;
 
    double p;
    if( maxwgt <= minwgt ) {

@@ -53,7 +53,7 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    if (status != CL_SUCCESS)
    {
        size_t len;
-       char buffer[8192];
+       char buffer[12050]; //[8192];
 
        printf("Error: Failed to build program executable!\n");
        CLDevice::print_error_code(status);
@@ -160,8 +160,8 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       CLDevice::print_error_code(status);
       exit(status);
    } else {
-      //printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
-      //       local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
+      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
    if (lWorkSizeX * lWorkSizeY > max_local_size) {
@@ -196,7 +196,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    // get profiling information
    //
    if (profiling) {
-      size_t param_size;
+      //size_t param_size;
       cl_ulong start=0, end=0;
 #ifdef PV_USE_TAU
       tau_id += 1000;

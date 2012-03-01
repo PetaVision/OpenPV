@@ -9,6 +9,7 @@
 #define INITGAUSSIANRANDOMWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGaussianRandomWeightsParams.hpp"
 
 namespace PV {
 
@@ -31,7 +32,7 @@ protected:
 //	               ChannelType channel);
 
 private:
-	int gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev);
+	int gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev, InitGaussianRandomWeightsParams *weightParamPtr);
 
 };
 

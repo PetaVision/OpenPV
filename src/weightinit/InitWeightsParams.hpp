@@ -12,15 +12,17 @@
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
+#include "../connections/HyPerConn.hpp"
 #include <stdlib.h>
 #include <string.h>
 
 namespace PV {
+class HyPerConn;
 
 class InitWeightsParams {
 public:
    InitWeightsParams();
-   InitWeightsParams(HyPerConn * parentConn);
+   InitWeightsParams(HyPerConn * pConn);
    virtual ~InitWeightsParams();
 
    //get-set methods:
@@ -41,19 +43,23 @@ public:
    bool checkTheta(float thPost);
 
    //get/set:
-   inline int getnfPatch_tmp()        {return nfPatch_tmp;}
-   inline int getnyPatch_tmp()        {return nyPatch_tmp;}
-   inline int getnxPatch_tmp()        {return nxPatch_tmp;}
-   inline int getPatchSize_tmp()      {return nfPatch_tmp*nxPatch_tmp*nyPatch_tmp;}
-   inline int getsx_tmp()        {return sx_tmp;}
-   inline int getsy_tmp()        {return sy_tmp;}
-   inline int getsf_tmp()        {return sf_tmp;}
+   int getnfPatch_tmp(); //       {
+      //int nf= parentConn->fPatchSize();
+//      return 0;
+//   }
+   int getnyPatch_tmp();//        {return parentConn->yPatchSize();}
+   int getnxPatch_tmp();    //    {return 0; } //parentConn->xPatchSize();}
+   int getPatchSize_tmp();//      {return 0; } //parentConn->fPatchSize()*
+         //parentConn->xPatchSize()*parentConn->yPatchSize();}
+   int getsx_tmp();//        {return 0; } //parentConn->xPatchStride();}
+   int getsy_tmp();//        {return 0; } //parentConn->yPatchStride();}
+   int getsf_tmp();//        {return 0; } //parentConn->fPatchStride();}
    inline float getthPre()        {return thPre;}
    inline int getFPre()        {return fPre;}
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(HyPerConn * pConn);
 
 
    char * name; //this is actually the Connection name
@@ -85,12 +91,12 @@ protected:
    inline void setNoPost(int noPostTmp)        {noPost=noPostTmp;}
 
 public:
-   int nxPatch_tmp;
-   int nyPatch_tmp;
-   int nfPatch_tmp;
-   int sx_tmp;
-   int sy_tmp;
-   int sf_tmp;
+//   int nxPatch_tmp;
+//   int nyPatch_tmp;
+//   int nfPatch_tmp;
+//   int sx_tmp;
+//   int sy_tmp;
+//   int sf_tmp;
    float dxPost;
    float dyPost;
    float xDistHeadPreUnits;

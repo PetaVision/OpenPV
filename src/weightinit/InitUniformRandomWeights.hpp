@@ -9,6 +9,7 @@
 #define INITUNIFORMRANDOMWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitUniformRandomWeightsParams.hpp"
 
 namespace PV {
 
@@ -30,7 +31,7 @@ protected:
 //                  ChannelType channel);
 
 private:
-   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt);
+   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, InitUniformRandomWeightsParams *weightParamPtr);
 };
 
 } /* namespace PV */

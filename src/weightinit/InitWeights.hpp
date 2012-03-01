@@ -35,6 +35,7 @@ public:
     * This method is purposely not virtual!  Only calcWeights will be virtual and can be over ridden by sub
     * initweights classes
     */
+   //void initializeWeights(const char * filename, HyPerConn * callingConn, float * timef=NULL);
    PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
@@ -57,7 +58,7 @@ protected:
 //   HyPerLayer     * pre;
 //   HyPerLayer     * post;
 //   HyPerCol       * parent;
-   HyPerConn      * parentConn;
+//   HyPerConn      * parentConn;
 //   ChannelType channel;    // which channel of the post to update (e.g. inhibit)
 
 private:

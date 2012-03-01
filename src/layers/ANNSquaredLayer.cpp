@@ -7,6 +7,28 @@
 
 #include "ANNSquaredLayer.hpp"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void ANNSquaredLayer_update_state(
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    float * V,
+    const float Vth,
+    const float VMax,
+    const float VMin,
+    float * GSynExc,
+    float * GSynInh,
+    float * activity);
+
+#ifdef __cplusplus
+}
+#endif
+
 namespace PV {
 
 ANNSquaredLayer::ANNSquaredLayer() {
@@ -17,11 +39,19 @@ ANNSquaredLayer::ANNSquaredLayer() {
 ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc, int numChannels) {
    initialize_base();
    initialize(name, hc, numChannels);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
 
 ANNSquaredLayer::~ANNSquaredLayer()
@@ -34,7 +64,83 @@ int ANNSquaredLayer::initialize_base() {
 }
 
 int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc, int numChannels/*Default=MAX_CHANNELS*/) {
-   return ANNLayer::initialize(name, hc, numChannels);
+   int status = ANNLayer::initialize(name, hc, numChannels);
+#ifdef PV_USE_OPENCL
+   numEvents=NUM_ANNSQ_EVENTS;
+#endif
+   return status;
+}
+
+
+#ifdef PV_USE_OPENCL
+/**
+ * Initialize OpenCL buffers.  This must be called after PVLayer data have
+ * been allocated.
+ */
+int ANNSquaredLayer::initializeThreadBuffers(const char * kernel_name)
+{
+   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
+
+   //right now there are no ANN layer specific buffers...
+   return status;
+}
+
+int ANNSquaredLayer::initializeThreadKernels(const char * kernel_name)
+{
+   //at the moment there's no reason to do anything differently
+   //for ANNSquaredLayer, but I still defined the method in case
+   //that changes in the future.
+   return ANNLayer::initializeThreadKernels(kernel_name);
+}
+int ANNSquaredLayer::updateStateOpenCL(float time, float dt)
+{
+   //at the moment there's no reason to do anything differently
+   //for ANNSquaredLayer, but I still defined the method in case
+   //that changes in the future.
+   return ANNLayer::updateStateOpenCL(time, dt);
+}
+#endif
+
+//! new ANNLayer update state, to add support for GPU kernel.
+//
+/*!
+ * REMARKS:
+ *      - This basically will replace the old version of update state
+ *        as defined in HyperLayer
+ *      - The kernel does the following:
+ *      - V = (GSynExc - GSynInh) * (GSynExc - GSynInh)
+ *      - Activity = V
+ *      - GSynExc = GSynInh = 0
+ *
+ *
+ */
+int ANNSquaredLayer::updateState(float time, float dt)
+{
+   update_timer->start();
+#ifdef PV_USE_OPENCL
+   if((gpuAccelerateFlag)&&(true)) {
+      updateStateOpenCL(time, dt);
+      //HyPerLayer::updateState(time, dt);
+   }
+   else {
+#endif
+      const int nx = clayer->loc.nx;
+      const int ny = clayer->loc.ny;
+      const int nf = clayer->loc.nf;
+      const int nb = clayer->loc.nb;
+
+      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+      pvdata_t * V = getV();
+      pvdata_t * activity = clayer->activity->data;
+
+      ANNSquaredLayer_update_state(nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynExc, GSynInh, activity);
+#ifdef PV_USE_OPENCL
+   }
+#endif
+
+   update_timer->stop();
+   return PV_SUCCESS;
 }
 
 int ANNSquaredLayer::updateV() {
@@ -63,3 +169,25 @@ int ANNSquaredLayer::squareV() {
 
 
 } /* namespace PV */
+
+///////////////////////////////////////////////////////
+//
+// implementation of ANNLayer kernels
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "../kernels/ANNSquaredLayer_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  include "../kernels/ANNSquaredLayer_update_state.cl"
+#  define PV_USE_OPENCL
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+

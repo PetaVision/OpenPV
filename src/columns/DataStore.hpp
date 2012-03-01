@@ -54,7 +54,7 @@ private:
    CLBuffer * clRecvBuffers;
 public:
    int initializeThreadBuffers(HyPerCol * hc);
-   CLBuffer * getCLBuffer()  {return clRecvBuffers;}
+   CLBuffer * getCLBuffer() {return clRecvBuffers;}
 #endif
 };
 

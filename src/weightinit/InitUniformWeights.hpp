@@ -9,6 +9,7 @@
 #define INITUNIFORMWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitUniformWeightsParams.hpp"
 
 namespace PV {
 
@@ -24,7 +25,7 @@ protected:
    virtual int initialize_base();
 
 private:
-   int uniformWeights(/* PVPatch * patch */ pvdata_t * dataStart, float iWeight);
+   int uniformWeights(/* PVPatch * patch */ pvdata_t * dataStart, float iWeight, InitUniformWeightsParams *weightParamPtr);
 
 };
 

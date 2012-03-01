@@ -40,7 +40,7 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
 
    const float iWeight = weightParamPtr->getInitWeight();
 
-   uniformWeights(dataStart, iWeight);
+   uniformWeights(dataStart, iWeight, weightParamPtr);
    return PV_SUCCESS; // return 1;
 }
 
@@ -48,17 +48,17 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
  * Initializes all weights to iWeight
  *
  */
-int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight) {
+int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight, InitUniformWeightsParams *weightParamPtr) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
    // pvdata_t * w = wp->data;
 
-   const int nxp = parentConn->xPatchSize(); // wp->nx;
-   const int nyp = parentConn->yPatchSize(); // wp->ny;
-   const int nfp = parentConn->fPatchSize(); //wp->nf;
+   const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
+   const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
+   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
 
-   const int sxp = parentConn->xPatchStride(); //wp->sx;
-   const int syp = parentConn->yPatchStride(); //wp->sy;
-   const int sfp = parentConn->fPatchStride(); //wp->sf;
+   const int sxp = weightParamPtr->getsx_tmp(); //wp->sx;
+   const int syp = weightParamPtr->getsy_tmp(); //wp->sy;
+   const int sfp = weightParamPtr->getsf_tmp(); //wp->sf;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

@@ -30,13 +30,15 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevel
    assert(this->recvBuffers != NULL);
 
 #ifdef PV_USE_OPENCL
-   initializeThreadBuffers(hc);
+   //initializeThreadBuffers(hc);
+   clRecvBuffers=NULL;
 #endif
 }
 
 DataStore::~DataStore()
 {
 #ifdef PV_USE_OPENCL
+   //this will be added back later...
    if (clRecvBuffers != NULL) delete clRecvBuffers;
 #endif
 

@@ -37,6 +37,12 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
    mpiReductionBuffer = NULL;
 #endif PV_USE_MPI
    int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+#ifdef PV_USE_OPENCL
+   //don't support GPU accelleration in kernelconn yet
+   ignoreGPUflag=true;
+   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
+   post->copyChannelToDevice();
+#endif
    delete weightInit;
    return status;
 }

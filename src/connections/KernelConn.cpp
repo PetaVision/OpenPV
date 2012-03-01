@@ -84,6 +84,13 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       exit(PV_FAILURE);
    }
 #endif // PV_USE_MPI
+#ifdef PV_USE_OPENCL
+   //don't support GPU accelleration in kernelconn yet
+   ignoreGPUflag=true;
+   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
+   post->copyChannelToDevice();
+#endif
+
    return PV_SUCCESS;
 }
 
@@ -225,6 +232,7 @@ int KernelConn::deleteWeights()
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
 
+#ifdef OBSOLETE // Marked obsolete Feb 29, 2012.  This is no longer necessary.  Initweights will ask the conn for what it needs
 PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
       const char * filename)
 {
@@ -233,6 +241,7 @@ PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataS
    HyPerConn::initializeWeights(get_wPatches(), dataStart, numKernelPatches, filename);
    return arbors;
 }
+#endif // OBSOLETE
 
 PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
       const char * filename)

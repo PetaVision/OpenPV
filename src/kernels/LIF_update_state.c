@@ -1,23 +1,22 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
 
+#undef PV_USE_OPENCL
 #ifndef PV_USE_OPENCL
 #  include <math.h>
 #  define EXP expf
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
-#  define CL_MEM_CONST
 #  define CL_MEM_LOCAL
 #else  /* compiling with OpenCL */
 #  define EXP exp
 #  define CL_KERNEL       __kernel
 #  define CL_MEM_GLOBAL   __global
-#  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
 #  include "conversions.hcl"
 #endif
 
-//#undef USE_CLRANDOM
+#undef USE_CLRANDOM
 #ifndef USE_CLRANDOM
 #  include "../utils/pv_random.h"
 #endif
@@ -29,7 +28,7 @@
 //
 CL_KERNEL
 void LIF_update_state(
-    const float time, 
+    const float time,
     const float dt,
 
     const int nx,
@@ -37,7 +36,7 @@ void LIF_update_state(
     const int nf,
     const int nb,
 
-    CL_MEM_CONST LIF_params * params,
+    CL_MEM_GLOBAL LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
@@ -91,7 +90,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
-   
+
    // temporary arrays
    float tauInf, VmemInf;
 
@@ -148,7 +147,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
    l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
    l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
-   
+
    l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
    l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
    l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
@@ -187,7 +186,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    rnd[k] = l_rnd;
 
    activity[kex] = l_activ;
-   
+
    V[k]   = l_V;
    Vth[k] = l_Vth;
 

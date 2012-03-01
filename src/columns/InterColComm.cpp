@@ -252,11 +252,18 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
       printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
       fflush(stdout);
 #endif // DEBUG_OUTPUT
-#ifdef PV_USE_OPENCL
-      conn->deliverOpenCL(this);
-#else
+//I'm moving this to below.  Now that layers will decide based on a Params
+//flag whether that layer is GPU accelerated, the layers will tell
+//connections whether to use GPU acceleration and the connections
+//will then decide how to handle deliver
+//#ifdef PV_USE_OPENCL
+//      conn->deliverOpenCL(this);
+//#else
+//      conn->deliver(this, &cube, LOCAL);
+//#endif // PV_USE_OPENCL
+
       conn->deliver(this, &cube, LOCAL);
-#endif // PV_USE_OPENCL
+
    }
 
    return 0;

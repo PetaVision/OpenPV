@@ -122,6 +122,11 @@ int InitMTWeights::calculateVector(float theta, float speed, float &x, float &y,
    t=speed;
    x=cos(theta);
    y=sin(theta);
+   float radius = sqrt(t*t+x*x+y*y);
+   //make vector into a unit vector:
+   t/=radius;
+   x/=radius;
+   y/=radius;
 
 //   printf("1st vector x %f\n",x);
 //   printf("1st vector y %f\n",y);
@@ -140,6 +145,11 @@ int InitMTWeights::calculateMTPlane(float theta, float speed, float &x, float &y
    x=p1Y*p2T-p1T*p2Y;
    y=-(p1X*p2T-p1T*p2X);
    t=p1X*p2Y-p1Y*p2X;
+   float radius = sqrt(t*t+x*x+y*y);
+   //make vector into a unit vector:
+   t/=radius;
+   x/=radius;
+   y/=radius;
 
    return PV_SUCCESS;
 }
@@ -163,6 +173,11 @@ int InitMTWeights::calculate2ndVector(float p1x, float p1y, float p1t, float &p2
    p2x=p1x+u2x;
    p2y=p1y+u2y;
    p2t=p1t+u2t;
+   float radius = sqrt(p2t*p2t+p2x*p2x+p2y*p2y);
+   //make vector into a unit vector:
+   p2t/=radius;
+   p2x/=radius;
+   p2y/=radius;
 //   printf("3rd vector p2x %f\n",p2x);
 //   printf("3rd vector p2y %f\n",p2y);
 //   printf("3rd vector p2t %f\n",p2t);

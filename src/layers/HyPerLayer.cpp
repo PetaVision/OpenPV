@@ -98,6 +98,7 @@ int HyPerLayer::initialize_base() {
    this->numEvents = 0;
    this->numWait = 0;
    this->evList = NULL;
+   this->gpuAccelerateFlag=false;
 #endif // PV_USE_OPENCL
    this->update_timer = NULL;
    this->recvsyn_timer = NULL;
@@ -181,8 +182,49 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    // labels are not extended
    labels = (int *) calloc(getNumNeurons(), sizeof(int));
    assert(labels != NULL);
+
+#ifdef PV_USE_OPENCL
+   initUseGPUFlag();
+#endif
    return PV_SUCCESS;
 }
+
+#ifdef PV_USE_OPENCL
+//This method checks for a parameter telling Petavision to GPU accellerate
+//this layer
+void HyPerLayer::initUseGPUFlag() {
+   PVParams * params = parent->parameters();
+   gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
+   copyDataStoreFlag=false;
+   buffersInitialized=false;
+}
+
+//this method sets up GPU related variables and calls the
+//initializeThreadBuffers and initializeThreadKernels
+int HyPerLayer::initializeGPU() {
+   CLDevice * device = parent->getCLDevice();
+
+   copyToDevice=false;
+   numWait = 0;
+   numEvents = getNumCLEvents();
+   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+   assert(evList != NULL);
+
+   // TODO - fix to use device and layer parameters
+   if (device->id() == 1) {
+      nxl = 1;  nyl = 1;
+   }
+   else {
+      nxl = 16; nyl = 8;
+   }
+
+   const char * kernel_name = getKernelName();
+   initializeThreadBuffers(kernel_name);
+   initializeThreadKernels(kernel_name);
+
+   return PV_SUCCESS;
+}
+#endif
 
 HyPerLayer::~HyPerLayer()
 {
@@ -206,21 +248,24 @@ HyPerLayer::~HyPerLayer()
    freeChannels();
    
 #ifdef PV_USE_OPENCL
-   delete krUpdate;
-   delete clV;
-   delete clActivity;
-   delete clPrevTime;
+   if(gpuAccelerateFlag) {
+      delete krUpdate;
+      delete clV;
+      delete clActivity;
+      delete clPrevTime;
+      delete clParams;
 
-   if (clGSyn != NULL) {
-      for (int m = 0; m < numChannels; m++) {
-         delete clGSyn[m];
-      }
-      free(clGSyn);
-      clGSyn = NULL;
+   //   if (clGSyn != NULL) {
+   //      for (int m = 0; m < numChannels; m++) {
+   //         delete clGSyn[m];
+   //      }
+   //      free(clGSyn);
+   //      clGSyn = NULL;
+   //   }
+
+      free(evList);
+      evList = NULL;
    }
-
-   free(evList);
-   evList = NULL;
 
 #endif
 
@@ -231,8 +276,12 @@ HyPerLayer::~HyPerLayer()
 void HyPerLayer::freeChannels()
 {
 #ifdef PV_USE_OPENCL
-   for (int m = 0; m < numChannels; m++) {
-      delete clGSyn[m];
+   if(gpuAccelerateFlag) {
+      for (int m = 0; m < numChannels; m++) {
+         delete clGSyn[m];
+      }
+      free(clGSyn);
+      clGSyn = NULL;
    }
 #endif
 
@@ -321,7 +370,7 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
    if (clayer->V != NULL) {
       clV = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, clayer->V);
    }
-   clActivity = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
+   clActivity = device->createBuffer(CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size_ex, clayer->activity->data);
    clPrevTime = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_ex, clayer->prevActivity);
 
    // defer creation of clParams to derived classes (as it is class specific)
@@ -397,9 +446,28 @@ size_t HyPerLayer::getLayerDataStoreOffset(int delay)
 
 CLBuffer * HyPerLayer::getLayerDataStoreCLBuffer()
 {
+   if(!buffersInitialized) {
+      //this may seem like a strange place to do this, but when the
+      //layer is being created, the publishers don't exist yet!
+      if(initializeDataStoreThreadBuffers()) {
+         buffersInitialized=true;
+      }
+      //else
+        // return NULL;
+   }
+
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
    return store->getCLBuffer();
 }
+
+int HyPerLayer::initializeDataStoreThreadBuffers()
+{
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   int status= store->initializeThreadBuffers(parent);
+   //status |= store->getCLBuffer()->copyToDevice(evCopyDataStore);
+   return status;
+}
+
 #endif
 
 
@@ -636,8 +704,8 @@ int HyPerLayer::updateBorder(float time, float dt)
    }
    numWait = 0;
 
-   status |= clWaitForEvents(1, &evUpdate);
-   clReleaseEvent(evUpdate);
+//   status |= clWaitForEvents(1, &evUpdate);
+//   clReleaseEvent(evUpdate);
 #endif
 
    return status;
@@ -745,6 +813,9 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
       pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       // TODO - unroll
+      //int patchSize = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
+      //pvdata_t * data = conn->get_wDataHead(arborID, conn->correctPIndex(kPre)) + weights->offset;
+      //pvdata_t * data = conn->get_wDataStart(arborID) + conn->correctPIndex(kPre)*patchSize + weights->offset;
       // int patchSize = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
       pvdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
@@ -770,7 +841,15 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
 {
    // deliver calls recvSynapticInput for all presynaptic connections
    //
-   return comm->deliver(parent, getLayerId());
+   int status = comm->deliver(parent, getLayerId());
+#ifdef PV_USE_OPENCL
+   if((gpuAccelerateFlag)&&(copyToDevice)) {
+      status |= getChannelCLBuffer(CHANNEL_EXC)->copyToDevice(&evList[getEVGSynE()]);
+      status |= getChannelCLBuffer(CHANNEL_INH)->copyToDevice(&evList[getEVGSynI()]);
+      numWait += 2;
+   }
+#endif
+   return status;
 }
 
 int HyPerLayer::publish(InterColComm* comm, float time)
@@ -782,6 +861,12 @@ int HyPerLayer::publish(InterColComm* comm, float time)
    }
 
    int status = comm->publish(this, clayer->activity);
+#ifdef PV_USE_OPENCL
+   if(copyDataStoreFlag) {
+      status |= getLayerDataStoreCLBuffer()->copyToDevice(evCopyDataStore);
+      //numWait += 1;
+   }
+#endif
    return status;
 }
 

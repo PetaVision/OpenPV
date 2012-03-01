@@ -43,11 +43,11 @@ void LIFGap_update_state(
     float * GSynExc,
     float * GSynInh,
     float * GSynInhB,
+    float * GSynGap,
     float * activity,
 
     const float sum_gap,
-    float * G_Gap,
-    float * GSynGap
+    float * G_Gap
 
 );
 
@@ -66,11 +66,19 @@ LIFGap::LIFGap() {
 LIFGap::LIFGap(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc, TypeLIFGap, MAX_CHANNELS+1, "LIFGap_update_state");
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
    initialize_base();
    initialize(name, hc, type, MAX_CHANNELS+1, "LIFGap_update_state");
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 LIFGap::~LIFGap()
@@ -78,8 +86,10 @@ LIFGap::~LIFGap()
 
 
 #ifdef PV_USE_OPENCL
-   delete clG_Gap;
-   delete clGSynGap;
+   if(gpuAccelerateFlag) {
+      delete clG_Gap;
+      delete clGSynGap;
+   }
 #endif
 
 }
@@ -102,6 +112,10 @@ int LIFGap::initialize_base() {
 int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
 
+#ifdef PV_USE_OPENCL
+   numEvents=NUM_LIFGAP_EVENTS;
+#endif
+
 #ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize, called by LIF::initialize
    const size_t num_neurons = getNumNeurons();
    this->G_Gap  = G_E + 3*num_neurons;
@@ -116,7 +130,7 @@ int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int n
  * Initialize OpenCL buffers.  This must be called after PVLayer data have
  * been allocated.
  */
-int LIFGap::initializeThreadBuffers(char * kernel_name)
+int LIFGap::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
@@ -128,14 +142,14 @@ int LIFGap::initializeThreadBuffers(char * kernel_name)
    // these buffers are shared between host and device
    //
 
-   // TODO - use constant memory
+   // TODO - use constant memory ????  put what in constant memory???
    clG_Gap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_Gap);
    clGSynGap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_GAP));
 
    return status;
 }
 
-int LIFGap::initializeThreadKernels(char * kernel_name)
+int LIFGap::initializeThreadKernels(const char * kernel_name)
 
 {
    int status = CL_SUCCESS;
@@ -146,7 +160,7 @@ int LIFGap::initializeThreadKernels(char * kernel_name)
 
    status |= krUpdate->setKernelArg(argid++, sumGap);
    status |= krUpdate->setKernelArg(argid++, clG_Gap);
-   status |= krUpdate->setKernelArg(argid++, clGSynGap);
+   //status |= krUpdate->setKernelArg(argid++, clGSynGap);
 
    numKernelArgs = argid;
 
@@ -203,9 +217,12 @@ int LIFGap::updateStateOpenCL(float time, float dt)
    status = LIF::updateStateOpenCL(time, dt);
 
 #if PV_CL_COPY_BUFFERS
-   status |= clGSynGap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+   status |= clGSynGap->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
 #endif
 
+   //do we need to copy gap back and forth?
+   //status |= clG_Gap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+   status |= getChannelCLBuffer(CHANNEL_GAP)->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
    numWait += 1;
 #endif
 
@@ -219,6 +236,12 @@ int LIFGap::triggerReceive(InterColComm* comm)
 
 #ifdef PV_USE_OPENCL
    // copy data to device
+   if(gpuAccelerateFlag) {
+      //do we need to copy gap back and forth? what should the event be?
+      //status |= clG_Gap->copyToDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+      status |= getChannelCLBuffer(CHANNEL_GAP)->copyToDevice(&evList[getEVGSynGap()]);
+      numWait += 1;
+   }
 #if PV_CL_COPY_BUFFERS
    status |= clGSynGap->copyToDevice(&evList[EV_LIF_GSYN_GAP]);
    numWait += 1;
@@ -234,7 +257,12 @@ int LIFGap::updateState(float time, float dt)
    int status = CL_SUCCESS;
    update_timer->start();
 
-#ifndef PV_USE_OPENCL
+#ifdef PV_USE_OPENCL
+   if((gpuAccelerateFlag)&&(true)) {
+      updateStateOpenCL(time, dt);
+   }
+   else {
+#endif
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
@@ -248,12 +276,9 @@ int LIFGap::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
 
    LIFGap_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, GSynExc, GSynInh, GSynInhB, activity, sumGap, G_Gap, GSynGap);
-
-#else
-
-   status = updateStateOpenCL(time, dt);
-
+         G_I, G_IB, GSynExc, GSynInh, GSynInhB, GSynGap, activity, sumGap, G_Gap);
+#ifdef PV_USE_OPENCL
+   }
 #endif
    updateActiveIndices();
    update_timer->stop();
@@ -337,6 +362,11 @@ extern "C" {
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIFGap_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  undef USE_CLRANDOM
+#  include "../kernels/LIFGap_update_state.cl"
+#  define PV_USE_OPENCL
 #endif
 
 #ifdef __cplusplus

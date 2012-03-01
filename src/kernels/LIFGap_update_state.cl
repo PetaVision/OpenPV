@@ -6,16 +6,18 @@
 #  define EXP expf
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
+#  define CL_MEM_CONST
 #  define CL_MEM_LOCAL
 #else  /* compiling with OpenCL */
 #  define EXP exp
 #  define CL_KERNEL       __kernel
 #  define CL_MEM_GLOBAL   __global
+#  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
 #  include "conversions.hcl"
 #endif
 
-#undef USE_CLRANDOM
+//#undef USE_CLRANDOM
 #ifndef USE_CLRANDOM
 #  include "../utils/pv_random.h"
 #endif
@@ -36,7 +38,7 @@ void LIFGap_update_state(
     const int nb,
     
     
-    CL_MEM_GLOBAL LIF_params * params,
+    CL_MEM_CONST LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
@@ -46,11 +48,11 @@ void LIFGap_update_state(
     CL_MEM_GLOBAL float * GSynExc,
     CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * GSynInhB,
+    CL_MEM_GLOBAL float * GSynGap,
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap,
-    CL_MEM_GLOBAL float * GSynGap
+    CL_MEM_GLOBAL float * G_Gap
     )
 {
    int k;

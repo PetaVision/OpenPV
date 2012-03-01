@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #ifdef PV_USE_OPENCL
+#undef DEBUG_OPENCL  //this is used with some debug code
 #include "../arch/opencl/CLKernel.hpp"
 #include "../arch/opencl/CLBuffer.hpp"
 #endif
@@ -58,7 +59,11 @@ public:
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
 #ifdef PV_USE_OPENCL
+#   ifdef DEBUG_OPENCL
+   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
+#   else
    virtual int deliverOpenCL(Publisher * pub);
+#   endif
 #endif
 
    virtual int checkpointRead(float *timef);
@@ -337,15 +342,23 @@ protected:
 
    void connOutOfMemory(const char * funcname);
 #ifdef PV_USE_OPENCL
+   void initUseGPUFlag();
+   int initializeGPU(); //this method setups up GPU stuff...
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
 
    CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
-   cl_event   evRecvSyn;
+   cl_event * evRecvSynList;
+   int numWait;  //number of receive synaptic runs to wait for (=numarbors)
+   cl_event   evCopyDataStore;
 
+   size_t nxl;
+   size_t nyl;
    // OpenCL buffers
    //
    CLBuffer *  clGSyn;
+   //CLBuffer *   clGSynSemaphors;
+   //int *     gSynSemaphors; //only saving this so it can be deallocated...
    CLBuffer *  clActivity;
    CLBuffer ** clWeights;
 
@@ -353,6 +366,11 @@ protected:
    //
    int clArgIdOffset;
    int clArgIdWeights;
+   int clArgIdDataStore;
+
+public:
+   bool gpuAccelerateFlag;
+   bool ignoreGPUflag;
 
 #endif
 

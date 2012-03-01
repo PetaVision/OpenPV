@@ -24,6 +24,34 @@
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 
+#ifdef DEBUG_OPENCL
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void HyPerLayer_recv_synaptic_input (
+      int kx, int ky, int lidx, int lidy, int nxl, int nyl,
+      float *gtemp,
+          int nxPre,
+          int nyPre,
+          int nfPre,
+          int nbPre,
+          int nxp,
+          int nyp,
+          int nfp,
+          float xScale,
+          float yScale,
+          size_t offsetA,
+           float * A,
+           float * W,
+           float   * G);
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 namespace PV {
 
 // default values
@@ -46,6 +74,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL, NULL);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -53,6 +85,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, NULL, weightInit);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 // provide filename or set to NULL
@@ -61,6 +97,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename, NULL);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -68,6 +108,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    initialize_base();
    initialize(name, hc, pre, post, channel, filename, weightInit);
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 
@@ -83,14 +127,21 @@ HyPerConn::~HyPerConn()
    free(name);
 
 #ifdef PV_USE_OPENCL
-   delete krRecvSyn;
+   if((gpuAccelerateFlag)&&(!ignoreGPUflag)) {
+      delete krRecvSyn;
 
-   if (clWeights != NULL) {
-      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-         delete clWeights[arbor];
+      if (clWeights != NULL) {
+         for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+            delete clWeights[arbor];
+         }
+         free(clWeights);
+         clWeights = NULL;
       }
-      free(clWeights);
-      clWeights = NULL;
+
+      free(evRecvSynList);
+      evRecvSynList=NULL;
+      //delete gSynSemaphors;
+      //gSynSemaphors=NULL;
    }
 #endif // PV_USE_OPENCL
 
@@ -272,7 +323,7 @@ int HyPerConn::constructWeights(const char * filename)
    }  // arborId
 
    //initialize weights for patches:
-   status |= initializeWeights(wPatches, wDataStart, getNumWeightPatches(), filename) != NULL ? PV_SUCCESS : PV_FAILURE;
+   status |= initializeWeights(wPatches, wDataStart, getNumDataPatches(), filename) != NULL ? PV_SUCCESS : PV_FAILURE;
    assert(status == 0);
    status |= initPlasticityPatches();
    assert(status == 0);
@@ -428,10 +479,15 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       exit(EXIT_FAILURE);
    }
 
+//This has been commented out because layers will decide if GPU acceleration
+//will happen and they will call the init methods as necessary
+//#ifdef PV_USE_OPENCL
+//   initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
+//   initializeThreadKernels("HyPerLayer_recv_synaptic_input");
+//#endif // PV_USE_OPENCL
 #ifdef PV_USE_OPENCL
-   initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
-   initializeThreadKernels("HyPerLayer_recv_synaptic_input");
-#endif // PV_USE_OPENCL
+   gpuAccelerateFlag=post->getUseGPUFlag();
+#endif
 
    return status;
 }
@@ -495,6 +551,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
+   //weightInitializer->initializeWeights(filename, this);
    weightInitializer->initializeWeights(arbors, dataStart, numPatches, filename, this);
    // for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
    //    weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
@@ -569,6 +626,30 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 }
 
 #ifdef PV_USE_OPENCL
+void HyPerConn::initUseGPUFlag() {
+   PVParams * params = parent->parameters();
+   ignoreGPUflag=false;
+   ignoreGPUflag = params->value(name, "ignoreGPU", ignoreGPUflag);
+}
+//this method sets up GPU related variables and calls the
+//initializeThreadBuffers and initializeThreadKernels
+int HyPerConn::initializeGPU() {
+   initUseGPUFlag();
+   if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelToDevice();
+   numWait = numberOfAxonalArborLists();
+   evRecvSynList = (cl_event *) malloc(numWait*sizeof(cl_event));
+
+   nxl = 16;
+   nyl = 8;
+
+   //TODO - define kernel name somewhere else...
+   const char* kernel_name = "HyPerLayer_recv_synaptic_input";
+   initializeThreadBuffers(kernel_name);
+   initializeThreadKernels(kernel_name);
+   //pre->initializeDataStoreThreadBuffers();
+
+   return PV_SUCCESS;
+}
 /**
  * Initialize OpenCL buffers.  This must be called after weights have
  * been allocated.
@@ -593,6 +674,15 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
       pvdata_t * wBuf = getWeights(0, arbor)->data;
       clWeights[arbor] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, wBuf);
    }
+
+//   gSynSemaphors=(int*)calloc(sizeof(int), post->getNumNeurons());
+//   const size_t sizeSem = sizeof(int)*post->getNumNeurons();
+//   clGSynSemaphors= device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeSem, gSynSemaphors);
+   //float *gSemaphors=(float*)calloc(sizeof(float), postLoc->getNumNeurons();
+
+
+   //tell the presynaptic layer to copy its data store to the GPU after publishing
+   pre->tellLayerToCopyDataStoreCLBuffer(&evCopyDataStore);
 
    return status;
 }
@@ -619,6 +709,12 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
 
    int argid = 0;
 
+   //const size_t nxl = 16;
+   //const size_t nyl = 8;
+   //size_t local_size_ex_int = ((nxl+nxp*nfp)*(nyl+nyp))*sizeof(int);
+   //status |= krRecvSyn->setLocalArg(argid++, local_size_ex_int);
+   //size_t local_size_ex_fl = ((nxl+nxp*nfp)*(nyl+nyp))*sizeof(float);
+   //status |= krRecvSyn->setLocalArg(argid++, local_size_ex_fl);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
@@ -634,12 +730,16 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    status |= krRecvSyn->setKernelArg(argid++, yScale);
 
    clArgIdOffset = argid;  // offset into activity buffer (with delay)
-   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
+   //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
    // activity buffer from DataStore
-   status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
+   //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
+   argid++;
+   clArgIdDataStore=argid;
+   argid++;
    clArgIdWeights = argid; // weights
    status |= krRecvSyn->setKernelArg(argid++, clWeights[0]);
    // update variable, GSyn
+   //status |= krRecvSyn->setKernelArg(argid++, clGSynSemaphors);
    status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer(getChannel()));
 
    return status;
@@ -680,9 +780,6 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
       nfp = nfpFile;
    }
    return 0;
-}
-int HyPerConn::correctPIndex(int patchIndex) {
-   return patchIndex;
 }
 
 int HyPerConn::writeWeights(float time, bool last)
@@ -869,28 +966,141 @@ void HyPerConn::setDelay(int arborId, int delay) {
 // NOTE: this should be temporary until delivery interface is straightened out
 //
 #ifdef PV_USE_OPENCL
+#   ifdef DEBUG_OPENCL
+int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
+#   else
 int HyPerConn::deliverOpenCL(Publisher * pub)
+#   endif
 {
    int status = PV_SUCCESS;
 
+
    const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const size_t nxex = preLoc->nx + 2*preLoc->nb;
+   const size_t nxex = preLoc->nx*preLoc->nf + 2*preLoc->nb;
    const size_t nyex = preLoc->ny + 2*preLoc->nb;
-   const size_t nxl = 16;
-   const size_t nyl = 8;
+   while(nxex%nxl!=0) {nxl--;}
+   while(nyex%nyl!=0) {nyl--;}
+
+   status |= krRecvSyn->setKernelArg(clArgIdDataStore, pre->getLayerDataStoreCLBuffer());
+
+   status |= clWaitForEvents(1, &evCopyDataStore);
+   clReleaseEvent(evCopyDataStore);
+
 
    // for all numextended in pre
 
+   post->startTimer();
+
    for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
-      size_t activityOffset = pre->getLayerDataStoreOffset(arbor);
+      int delay = getDelay(arbor);
+      size_t activityOffset = pre->getLayerDataStoreOffset(delay);
       status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset);
       status |= krRecvSyn->setKernelArg(clArgIdWeights, clWeights[arbor]);
-      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSyn);
+      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSynList[arbor]);
+      //status |= krRecvSyn->run(nxl, nyl, nxl, nyl, 0, NULL, &evRecvSyn);
    }
 
    // TODO - use events properly
-   status |= clWaitForEvents(1, &evRecvSyn);
-   clReleaseEvent(evRecvSyn);
+   status |= clWaitForEvents(numWait, evRecvSynList);
+   for (int i = 0; i < numWait; i++) {
+      clReleaseEvent(evRecvSynList[i]);
+   }
+   numWait = 0;
+
+   post->stopTimer();
+
+#ifdef DEBUG_OPENCL
+   /* debug OpenCL stuff: */
+
+   int arborId=0;
+   int delay = getDelay(arborId);
+   pub->readData(delay);
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   //define global location:
+   int kx=nxex/2; int ky=nyex/2;
+   //int kPre=ky*nxex+kx;
+
+   float *gTempBuf=(float*)calloc(sizeof(float), post->getNumNeurons());
+   for(kx=0;kx<(int)(nxex/nxl);kx++) {
+      for(ky=0;ky<(int)(nyex/nyl);ky++) {
+
+         for(int lidx=0;lidx<(int)nxl;lidx++) {
+            for(int lidy=0;lidy<(int)nyl;lidy++) {
+               float *tempBuf = (float*) calloc(sizeof(float),(nxl+nxp*nfp)*(nyl+nyp));
+               HyPerLayer_recv_synaptic_input(kx*nxl+nxl/2, ky*nyl+nyl/2, lidx, lidy, nxl, nyl, tempBuf,
+                     preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, nxp, nyp, nfp,
+                     (float)postLoc->nx/(float)preLoc->nx,(float)postLoc->ny/(float)preLoc->ny,
+                     0, cube->data, getPatchDataStart(arborId), gTempBuf);
+               free(tempBuf);
+            }
+         }
+
+      }
+   }
+   //copy back to G:
+//   float xScale = (float)postLoc->nx/(float)preLoc->nx;
+//   float yScale = (float)postLoc->ny/(float)preLoc->ny;
+//   const int kPostX = (int)(xScale*kx) - (int)(xScale*preLoc->nb); // kPostX==0 is left boundary non-extended
+//   const int kPostY = (int)(yScale*ky) - (int)(yScale*preLoc->nb); // kPostY==0 is top  boundary non-extended
+//   const int gStride = xScale*preLoc->nx;
+//   int tempBufStride=nxl+nxp*nfp;
+//
+//   const int gx=kPostX-nxp/2;
+//   const int gy=kPostY-nyp/2;
+//   for(int clidx=0;clidx<nxp;clidx++){
+//      for(int clidy=0;clidy<nyp;clidy++){
+//         gTempBuf[(gy+clidy)*gStride + gx+clidx]+=tempBuf[clidy*tempBufStride + clidx];
+//      }
+//   }
+   //free(tempBuf);
+
+   cl_event   tmpcopybackGevList;         // event list
+   cl_event   tmpevUpdate;
+//   post->getChannelCLBuffer(getChannel())->copyFromDevice(1, &evRecvSyn, &tmpcopybackGevList);
+//   status |= clWaitForEvents(1, &tmpcopybackGevList);
+//   clReleaseEvent(tmpcopybackGevList);
+   post->copyChannelExcFromDevice();
+   float *gTempBuf2=getGSynPatchStart(0, arborId);
+
+   int errcnt=0;
+   for(int ix=0;ix<postLoc->nx; ix++) {
+      for(int iy=0;iy<postLoc->ny; iy++) {
+         if(fabs(gTempBuf[iy*postLoc->nx+ix]-gTempBuf2[iy*postLoc->nx+ix])>0.00001){
+            printf("mismatch! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
+            printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
+            printf("at loc x: %d y %d \n",ix, iy);
+            errcnt++;
+            if(errcnt>500) exit(1);
+         }
+//         if((gTempBuf[iy*postLoc->nx+ix]>25)||(gTempBuf2[iy*postLoc->nx+ix]>25)){
+//            printf("not equal to row! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
+//            printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
+//            printf("at loc x: %d y %d \n",ix, iy);
+//            errcnt++;
+//            if(errcnt>500) exit(1);
+//         }
+//         if((gTempBuf[iy*postLoc->nx+ix]!=gTempBuf2[iy*postLoc->nx+ix])&&
+//               (gTempBuf[iy*postLoc->nx+ix]!=0)){
+//            printf("mismatch (2)! C function version: %d \n",gTempBuf[iy*postLoc->nx+ix]);
+//            printf("opencl function version: %d \n",gTempBuf2[iy*postLoc->nx+ix]);
+//            printf("at loc x: %d y %d \n",ix, iy);
+//            errcnt++;
+//            if(errcnt>10) exit(1);
+//         }
+//         if((gTempBuf[iy*postLoc->nx+ix]==gTempBuf2[iy*postLoc->nx+ix])&&
+//               (gTempBuf[iy*postLoc->nx+ix]!=0)){
+//            printf("nonzero match found! C function version: %d \n",gTempBuf[iy*postLoc->nx+ix]);
+//            printf("opencl function version: %d \n",gTempBuf2[iy*postLoc->nx+ix]);
+//            printf("at loc x: %d y %d \n",ix, iy);
+//            //errcnt++;
+//            //if(errcnt>10) exit(1);
+//         }
+      }
+   }
+   free(gTempBuf);
+#else
+   //post->copyChannelFromDevice(getChannel());
+#endif
 
    return status;
 }
@@ -905,13 +1115,30 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-      int delay = getDelay(arborId);
-      pub->readData(delay);
-      int status = post->recvSynapticInput(this, cube, arborId);
-      if (status == PV_BREAK) break;
-      assert(status == PV_SUCCESS);
+#ifdef PV_USE_OPENCL
+   if((gpuAccelerateFlag)&&(!ignoreGPUflag)) {
+#   ifdef DEBUG_OPENCL
+      deliverOpenCL(pub, cube);
+#   else
+      deliverOpenCL(pub);
+#   endif
+
+
    }
+   else {
+      if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
+#endif
+      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+         int delay = getDelay(arborId);
+         pub->readData(delay);
+         int status = post->recvSynapticInput(this, cube, arborId);
+         if (status == PV_BREAK) break;
+         assert(status == PV_SUCCESS);
+      }
+#ifdef PV_USE_OPENCL
+
+   }
+#endif
 
 #ifdef DEBUG_OUTPUT
    printf("[%d]: HyPerConn::delivered: \n", rank);
@@ -2019,6 +2246,9 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 }
 #endif // OBSOLETE
 
+int HyPerConn::correctPIndex(int patchIndex) {
+   return patchIndex;
+}
 // patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
 // many to one mapping from weight patches to kernels
 // patchIndex always in extended space
@@ -2062,3 +2292,22 @@ void HyPerConn::connOutOfMemory(const char * funcname) {
 }
 
 } // namespace PV
+
+#ifdef DEBUG_OPENCL
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
+#else
+#  undef PV_USE_OPENCL
+#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
+#  define PV_USE_OPENCL
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+#endif

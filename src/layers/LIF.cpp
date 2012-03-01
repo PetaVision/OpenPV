@@ -62,16 +62,28 @@ LIF::LIF() {
 LIF::LIF(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc, TypeLIFSimple, MAX_CHANNELS, "LIF_update_state");
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type) {
    initialize_base();
    initialize(name, hc, type, MAX_CHANNELS, "LIF_update_state");
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type, int num_channels) {
    initialize_base();
    initialize(name, hc, type, numChannels, "LIF_update_state");
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 LIF::~LIF() {
@@ -83,16 +95,19 @@ LIF::~LIF() {
    free(rand_state);
 
 #ifdef PV_USE_OPENCL
-   delete krUpdate;
-
-   free(evList);
-
-   delete clParams;
-   delete clRand;
-   delete clVth;
-   delete clG_E;
-   delete clG_I;
-   delete clG_IB;
+//hyperlayer is destroying these:
+//   delete krUpdate;
+//
+//   free(evList);
+//
+//   delete clParams;
+   if(gpuAccelerateFlag) {
+      delete clRand;
+      delete clVth;
+      delete clG_E;
+      delete clG_I;
+      delete clG_IB;
+   }
 #endif
 
 }
@@ -104,7 +119,7 @@ int LIF::initialize_base() {
    G_I = NULL;
    G_IB = NULL;
 
-#ifdef PV_USE_OPEN_CL
+#ifdef PV_USE_OPENCL
    clRand = NULL;
    clVth = NULL;
    clG_E = NULL;
@@ -162,28 +177,31 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
 
    // initialize OpenCL parameters
    //
+   //This stuff is commented out for now, but will be used later and added to
+   //its own initializeGPU method
 #ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getCLDevice();
-
-   // TODO - fix to use device and layer parameters
-   if (device->id() == 1) {
-      nxl = 1;  nyl = 1;
-   }
-   else {
-      nxl = 16; nyl = 8;
-   }
-
-   numWait = 0;
-   numEvents = getNumCLEvents(); //NUM_LIF_EVENTS;
-   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
-   assert(evList != NULL);
-
-   numKernelArgs = 0;
-   initializeThreadBuffers(kernel_name);
-   initializeThreadKernels(kernel_name);
-
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   store->initializeThreadBuffers(parent);
+   numEvents=NUM_LIF_EVENTS;
+//   CLDevice * device = parent->getCLDevice();
+//
+//   // TODO - fix to use device and layer parameters
+//   if (device->id() == 1) {
+//      nxl = 1;  nyl = 1;
+//   }
+//   else {
+//      nxl = 16; nyl = 8;
+//   }
+//
+//   numWait = 0;
+//   numEvents = getNumCLEvents(); //NUM_LIF_EVENTS;
+//   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+//   assert(evList != NULL);
+//
+//   numKernelArgs = 0;
+//   initializeThreadBuffers(kernel_name);
+//   initializeThreadKernels(kernel_name);
+//
+//   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+//   store->initializeThreadBuffers(parent);
 #endif
 
    return PV_SUCCESS;
@@ -205,8 +223,11 @@ int LIF::initializeThreadBuffers(const char * kernel_name)
    // these buffers are shared between host and device
    //
 
-   // TODO - use constant memory
-   clParams = device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeof(lParams), &lParams);
+   // TODO - use constant memory --done.  did I do it correctly?
+   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(lParams), &lParams);
+//   clParams->copyToDevice(&evUpdate);
+//   status |= clWaitForEvents(1, &evUpdate);
+//   clReleaseEvent(evUpdate);
 
    clRand = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
    clVth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, Vth);
@@ -227,7 +248,7 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 
    const char * pvRelPath = "../PetaVision";
    sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -D USE_CLRANDOM -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
 
    // create kernels
    //
@@ -394,6 +415,13 @@ int LIF::updateStateOpenCL(float time, float dt)
    status |= krUpdate->setKernelArg(0, time);
    status |= krUpdate->setKernelArg(1, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
+   krUpdate->finish();
+
+   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
+   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
+   status |= getChannelCLBuffer(CHANNEL_INHB)->copyFromDevice(1, &evUpdate, &evList[getEVGSynIB()]);
+   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
+   numWait += 4;
 
 #if PV_CL_COPY_BUFFERS
    status |= clGSynE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_E]);
@@ -414,6 +442,10 @@ int LIF::triggerReceive(InterColComm* comm)
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag) {
+      status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
+      numWait += 1;
+   }
 #if PV_CL_COPY_BUFFERS
    status |= clGSynE->copyToDevice(&evList[EV_LIF_GSYN_E]);
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
@@ -446,25 +478,28 @@ int LIF::updateState(float time, float dt)
    int status = 0;
    update_timer->start();
 
-#ifndef PV_USE_OPENCL
+#ifdef PV_USE_OPENCL
+   if((gpuAccelerateFlag)&&(true)) {
+      updateStateOpenCL(time, dt);
+   }
+   else {
+#endif
+      const int nx = clayer->loc.nx;
+      const int ny = clayer->loc.ny;
+      const int nf = clayer->loc.nf;
+      const int nb = clayer->loc.nb;
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->loc.nf;
-   const int nb = clayer->loc.nb;
+      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
+      pvdata_t * activity = clayer->activity->data;
 
-   pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-   pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
-   pvdata_t * activity = clayer->activity->data;
+      LIF_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+            G_I, G_IB, GSynExc, GSynInh, GSynInhB, activity);
 
-   LIF_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, GSynExc, GSynInh, GSynInhB, activity);
 
-#else
-
-   status = updateStateOpenCL(time, dt);
-
+#ifdef PV_USE_OPENCL
+   }
 #endif
    updateActiveIndices();
    update_timer->stop();
@@ -578,8 +613,17 @@ int LIF::findPostSynaptic(int dim, int maxSize, int col,
 extern "C" {
 #endif
 
+//#ifndef PV_USE_OPENCL
+//#  include "../kernels/LIF_update_state.cl"
+//#endif
+//#include "../kernels/LIF_update_state.c"
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIF_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  undef USE_CLRANDOM
+#  include "../kernels/LIF_update_state.cl"
+#  define PV_USE_OPENCL
 #endif
 
 #ifdef __cplusplus

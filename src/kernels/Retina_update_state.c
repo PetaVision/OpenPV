@@ -1,3 +1,8 @@
+//  This file should be an exact copy of Retina_update_state.cl except that
+//  the compiler directives have been changed to make this one always compile
+//  as standard C.
+
+
 #include "Retina_params.h"
 #include "cl_random.hcl"
 
@@ -5,7 +10,7 @@
 #  define PI 3.1415926535897932
 #endif
 
-#ifndef PV_USE_OPENCL
+//#ifndef PV_USE_OPENCL
 
 #  include <math.h>
 #  define EXP  expf
@@ -13,21 +18,19 @@
 #  define FMOD fmodf
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
-#  define CL_MEM_CONST
 #  define CL_MEM_LOCAL
 
-#else
-
-#  define EXP exp
-#  define COS  __cosf
-#  define FMOD __fmodf
-#  define CL_KERNEL     __kernel
-#  define CL_MEM_GLOBAL __global
-#  define CL_MEM_CONST    __constant
-#  define CL_MEM_LOCAL  __local
-#  include "conversions.hcl"
-
-#endif /* PV_USE_OPENCL */
+//#else
+//
+//#  define EXP exp
+//#  define COS  __cosf
+//#  define FMOD __fmodf
+//#  define CL_KERNEL     __kernel
+//#  define CL_MEM_GLOBAL __global
+//#  define CL_MEM_LOCAL  __local
+//#  include "conversions.hcl"
+//
+//#endif /* PV_USE_OPENCL */
 
 /*
  * Spiking method for Retina
@@ -60,7 +63,7 @@
  */
 static inline
 int spike(float time, float dt,
-          float prev, float stimFactor, uint4 * rnd_state, CL_MEM_CONST Retina_params * params)
+          float prev, float stimFactor, uint4 * rnd_state, CL_MEM_GLOBAL Retina_params * params)
 {
    float probSpike;
    float burstStatus = 1;
@@ -119,7 +122,7 @@ void Retina_spiking_update_state (
     const int nf,
     const int nb,
 
-    CL_MEM_CONST Retina_params * params,
+    CL_MEM_GLOBAL Retina_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * phiExc,
     CL_MEM_GLOBAL float * phiInh,
@@ -127,21 +130,21 @@ void Retina_spiking_update_state (
     CL_MEM_GLOBAL float * prevTime)
 {
    int k;
-#ifndef PV_USE_OPENCL
+//#ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
-#endif
+//#else
+//   k = get_global_id(0);
+//#endif
 
    int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    //
    // kernel (nonheader part) begins here
    //
-   
+
    // load local variables from global memory
    //
-   uint4 l_rnd = rnd[k]; 
+   uint4 l_rnd = rnd[k];
    float l_phiExc = phiExc[k];
    float l_phiInh = phiInh[k];
    float l_prev   = prevTime[kex];
@@ -161,9 +164,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    prevTime[kex] = l_prev;
    activity[kex] = l_activ;
 
-#ifndef PV_USE_OPENCL
+//#ifndef PV_USE_OPENCL
    }
-#endif
+//#endif
 
 }
 
@@ -182,24 +185,20 @@ void Retina_nonspiking_update_state (
     const int nf,
     const int nb,
 
-    CL_MEM_CONST Retina_params * params,
+    CL_MEM_GLOBAL Retina_params * params,
     CL_MEM_GLOBAL float * phiExc,
     CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity)
 {
    int k;
-#ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
-#endif
 
    int kex = kIndexExtended(k, nx, ny, nf, nb);
 
    //
    // kernel (nonheader part) begins here
    //
-   
+
    // load local variables from global memory
    //
    float l_phiExc = phiExc[k];
@@ -218,8 +217,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    phiInh[k] = l_phiInh;
    activity[kex] = l_activ;
 
-#ifndef PV_USE_OPENCL
    }
-#endif
 
 }
