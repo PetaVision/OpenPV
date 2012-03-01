@@ -26,7 +26,7 @@ InitWeightTestProbe::InitWeightTestProbe(const char * msg)
 
 int InitWeightTestProbe::outputState(float time, HyPerLayer * l)
 {
-	int status = StatsProbe::outputState(time, l);
+   int status = StatsProbe::outputState(time, l);
 #ifdef PV_USE_MPI
    InterColComm * icComm = l->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -34,13 +34,13 @@ int InitWeightTestProbe::outputState(float time, HyPerLayer * l)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(time>2.0f){
-		assert((fMin>-0.001)&&(fMin<0.001));
-		assert((fMax>-0.001)&&(fMax<0.001));
-		assert((avg>-0.001)&&(avg<0.001));
-	}
+   if(time>2.0f){
+      assert((fMin>-0.001)&&(fMin<0.001));
+      assert((fMax>-0.001)&&(fMax<0.001));
+      assert((avg>-0.001)&&(avg<0.001));
+   }
 
-	return status;
+   return status;
 }
 
 
