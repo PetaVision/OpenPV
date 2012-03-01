@@ -49,7 +49,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
 
    PVPatch ** kpatches = arbors[0]; // getKernelPatches(0);
    pvdata_t * arborStart = dataStart[0];
-   int numKernelPatches = numDataPatches();
+   int numKernelPatches = getNumDataPatches();
 
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
@@ -199,7 +199,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeCocircWeights(PVPatch ** patche
 
    return patches;
 }
-int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPre, int noPost,
+int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
       float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
@@ -237,7 +237,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataS
            int kxKernelIndex;
            int kyKerneIndex;
            int kfKernelIndex;
-           this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
+           this->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
 
            const int kxPre_tmp = kxKernelIndex;
            const int kyPre_tmp = kyKerneIndex;
@@ -290,7 +290,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataS
            const float dyPost = powf(2, post->getYScale());
 
            //const int kfPre = kPre % pre->clayer->loc.nf;
-           const int kfPre = featureIndex(kPre, pre->getLayerLoc()->nx, pre->getLayerLoc()->ny,
+           const int kfPre = featureIndex(dataPatchIndex, pre->getLayerLoc()->nx, pre->getLayerLoc()->ny,
                  pre->getLayerLoc()->nf);
 
            bool POS_KURVE_FLAG = false; //  handle pos and neg curvature separately
@@ -301,7 +301,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataS
            const float dThPost = PI / noPost;
            const float th0Pre = rotate * dThPre / 2.0;
            const float th0Post = rotate * dThPost / 2.0;
-           const int iThPre = kPre % noPre;
+           const int iThPre = dataPatchIndex % noPre;
            //const int iThPre = kfPre / nKurvePre;
            const float thetaPre = th0Pre + iThPre * dThPre;
 
@@ -604,7 +604,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pa
 
    return patches;
 }
-int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int no, int numFlanks,
+int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
@@ -643,7 +643,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * data
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
+   this->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
 
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
@@ -706,9 +706,9 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * data
    const int noPre = pre->getLayerLoc()->nf;
    const float dthPre = PI*thetaMax / (float) noPre;
    const float th0Pre = rotate * dthPre / 2.0f;
-   const int fPre = kPre % pre->getLayerLoc()->nf;
+   const int fPre = dataPatchIndex % pre->getLayerLoc()->nf;
    assert(fPre == kfPre_tmp);
-   const int iThPre = kPre % noPre;
+   const int iThPre = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
 
    // loop over all post-synaptic cells in temporary patch

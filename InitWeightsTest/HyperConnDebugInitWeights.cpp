@@ -136,7 +136,7 @@ int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, 
    return 0;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
+PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numDataPatches)
 {
    PVParams * params = parent->parameters();
    float aspect = 1.0; // circular (not line oriented)
@@ -191,7 +191,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
    delta_radius_curvature = params->value(name, "deltaRadiusCurvature",
          delta_radius_curvature);
 
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+   for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       pvdata_t * patchDataStart = &dataStart[patchIndex*nxp*nyp*nfp];
       cocircCalcWeights(patches[patchIndex], patchDataStart, patchIndex, noPre, noPost, sigma_cocirc,
             sigma_kurve, sigma_chord, delta_theta_max, cocirc_self,
@@ -201,7 +201,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
 
    return patches;
 }
-int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPre, int noPost,
+int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
       float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
@@ -239,7 +239,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
    int kxKernelIndex;
    int kyKerneIndex;
    int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
+   this->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKerneIndex, &kfKernelIndex);
 
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
@@ -292,7 +292,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
    const float dyPost = powf(2, post->getYScale());
 
    //const int kfPre = kPre % pre->clayer->loc.nf;
-   const int kfPre = featureIndex(kPre, pre->getLayerLoc()->nx, pre->getLayerLoc()->ny,
+   const int kfPre = featureIndex(dataPatchIndex, pre->getLayerLoc()->nx, pre->getLayerLoc()->ny,
          pre->getLayerLoc()->nf);
 
    bool POS_KURVE_FLAG = false; //  handle pos and neg curvature separately
@@ -303,7 +303,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
    const float dThPost = PI / noPost;
    const float th0Pre = rotate * dThPre / 2.0;
    const float th0Post = rotate * dThPost / 2.0;
-   const int iThPre = kPre % noPre;
+   const int iThPre = dataPatchIndex % noPre;
    //const int iThPre = kfPre / nKurvePre;
    const float thetaPre = th0Pre + iThPre * dThPre;
 
@@ -617,7 +617,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
 
    return patches;
 }
-int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int no, int numFlanks,
+int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
@@ -655,7 +655,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
-   this->patchIndexToKernelIndex(kPre, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
+   this->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
 
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
@@ -718,9 +718,9 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
    const int noPre = pre->getLayerLoc()->nf;
    const float dthPre = PI*thetaMax / (float) noPre;
    const float th0Pre = rotate * dthPre / 2.0f;
-   const int fPre = kPre % pre->getLayerLoc()->nf;
+   const int fPre = dataPatchIndex % pre->getLayerLoc()->nf;
    assert(fPre == kfPre_tmp);
-   const int iThPre = kPre % noPre;
+   const int iThPre = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
 
    // loop over all post-synaptic cells in temporary patch
