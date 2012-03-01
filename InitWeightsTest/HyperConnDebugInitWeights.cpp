@@ -48,6 +48,7 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    PVParams * inputParams = parent->parameters();
    PVPatch ** patches = arbors[0];
    pvdata_t * arborStart = dataStart[0];
+   numPatches=getNumDataPatches();
    //PVPatch ** kpatches = kernelPatches;
    //int arbor = 0;
    //int numKernelPatches = numDataPatches(arbor);
@@ -108,13 +109,13 @@ PVPatch ** HyperConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches,
 {
 
    for (int k = 0; k < numPatches; k++) {
-      smartWeights(patches[k], dataStart + k*nxp*nyp*nfp, k); // MA
+      smartWeights(patches[k], dataStart + k*nxp*nyp*nfp, dataIndexToUnitCellIndex(k)); // MA
    }
    return patches;
 }
 int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
 {
-   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
+   pvdata_t * w = dataStart; // wp->data;
 
    const int nxp = (int) wp->nx;
    const int nyp = (int) wp->ny;
@@ -646,7 +647,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t * w_tmp = &dataStart[wp->offset]; // wp_tmp->data;
+   pvdata_t * w_tmp = dataStart; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -849,7 +850,7 @@ int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
    if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
    if (params->present(name, "invert")) invert = params->value(name, "invert");
 
-   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
+   pvdata_t * w = dataStart; // wp->data;
 
    //const float phi = 3.1416;  // phase
 

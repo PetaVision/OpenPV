@@ -113,7 +113,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches
 }
 int KernelConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
 {
-   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
+   pvdata_t * w = dataStart; // wp->data;
 
    const int nxp = (int) wp->nx;
    const int nyp = (int) wp->ny;
@@ -634,7 +634,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * data
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    // pvdata_t * w_tmp = wp_tmp->data;
-   pvdata_t * w_tmp = &dataStart[wp->offset]; // wp_tmp->data;
+   pvdata_t * w_tmp = dataStart; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -826,17 +826,17 @@ int KernelConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart,
    if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
    if (params->present(name, "invert")) invert = params->value(name, "invert");
 
-   pvdata_t * w = &dataStart[wp->offset]; // wp->data;
+   pvdata_t * w = dataStart; // wp->data;
 
    //const float phi = 3.1416;  // phase
 
-   const int nx = (int) wp->nx;
-   const int ny = (int) wp->ny;
+   const int nx = xPatchSize(); //(int) wp->nx;
+   const int ny = yPatchSize(); //(int) wp->ny;
    const int nf = fPatchSize();
 
-   const int sx = xPatchStride();  assert(sx == nf);
-   const int sy = yPatchStride();  assert(sy == nf*nx);
-   const int sf = fPatchStride();  assert(sf == 1);
+   const int sx = xPatchStride();  //assert(sx == nf);
+   const int sy = yPatchStride();  //assert(sy == nf*nx);
+   const int sf = fPatchStride();  //assert(sf == 1);
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);

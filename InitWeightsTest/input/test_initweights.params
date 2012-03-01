@@ -246,7 +246,7 @@ HyPerConn "Retina to L0" = {
    
    randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
+   writeStep = 1;
 
    aspect = 7;
    sigma = 7;
@@ -259,7 +259,7 @@ HyPerConn "Retina to L0" = {
    rotate = 5;
        
    strength = 25;  
-   normalize = 1.0;
+   normalize = 1;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
