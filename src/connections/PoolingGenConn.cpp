@@ -135,7 +135,7 @@ int PoolingGenConn::updateWeights(int axonID) {
         pvdata_t * postactRef = &(postSynapticLayer()->getCLayer()->activity->data[offset]);
         pvdata_t * postact2Ref = &(getPost2()->getCLayer()->activity->data[offset]);
         int sya = getPostNonextStrides()->sy;
-        pvdata_t * wtpatch = get_wData(axonID, kPre); // weights->data;
+        pvdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
         int syw = syp;
         for( int y=0; y<nyp; y++ ) {
             int lineoffsetw = 0;
@@ -159,7 +159,7 @@ int PoolingGenConn::updateWeights(int axonID) {
            int nk = weights->nx * nfp;
            pvdata_t * postactRef = &(slownessPost->getCLayer()->activity->data[offset]);
            int sya = getPostNonextStrides()->sy;
-           pvdata_t * wtpatch = get_wData(axonID, kPre); // weights->data;
+           pvdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
            int syw = syp;
            for( int y=0; y<nyp; y++ ) {
                int lineoffsetw = 0;
