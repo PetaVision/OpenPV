@@ -39,7 +39,7 @@ InitWeights::~InitWeights()
  * This method first calls XXX to create an unshrunken patch.  Then it calls calcWeights to initialize
  * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
  */
-PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
+int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
 //void InitWeights::initializeWeights(const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -93,6 +93,7 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
       delete(weightParams);
    }
    //return callingConn->weights();
+   return PV_SUCCESS;
 }
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {
