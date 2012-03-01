@@ -30,7 +30,8 @@ KernelConn::~KernelConn() {
    // Moved to deleteWeights()
    // free(kernelPatches);
    // if (dKernelPatches != NULL) {free(dKernelPatches);};
-#ifdef PV_USE_MPI
+   deleteWeights();
+   #ifdef PV_USE_MPI
    free(mpiReductionBuffer);
 #endif // PV_USE_MPI
 }
@@ -42,7 +43,7 @@ int KernelConn::initialize_base()
    fileType = PVP_KERNEL_FILE_TYPE;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
-   tmpPatch = NULL;
+   // tmpPatch = NULL;
    this->normalize_arbors_individually = false;
    nxKernel = 0;
    nyKernel = 0;
@@ -219,33 +220,8 @@ PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPat
 
 int KernelConn::deleteWeights()
 {
-   //const int arbor = 0;
-
-/*
-   if(kernelPatches) {
-      for (int n=0; n<numberOfAxonalArborLists(); n++) {
-         if(kernelPatches[n]) {
-            for (int k = 0; k < numDataPatches(); k++) {
-               pvpatch_inplace_delete(kernelPatches[n][k]);
-            }
-            free(kernelPatches[n]);
-         }
-      }
-      free(kernelPatches);
-   }
-   if(kernelPatches) {
-      for (int n=0; n<numberOfAxonalArborLists(); n++) {
-         if(dKernelPatches[n]) {
-            for (int k = 0; k < numDataPatches(); k++) {
-               pvpatch_inplace_delete(dKernelPatches[n][k]);
-            }
-            free(dKernelPatches[n]);
-         }
-      }
-      free(dKernelPatches);
-   }
-*/
-
+   // As of the Feb. 27 refactoring, there are no weights specific to KernelConn that need to be deleted here.
+   // The HyPerConn destructor calls HyPerConn::deleteWeights(), which gets rid of wPatches, wDataStart and dwDataStart
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
 

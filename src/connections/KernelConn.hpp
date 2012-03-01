@@ -77,7 +77,7 @@ protected:
    float weightUpdateTime;
    float lastUpdateTime;
    bool symmetrizeWeightsFlag;
-   PVPatch ** tmpPatch;  // stores most recently allocated PVPatch **, set to NULL after assignment
+   // PVPatch ** tmpPatch;  // No longer necessary after Feb 27, 2012, refactoring.
 
 
 private:
