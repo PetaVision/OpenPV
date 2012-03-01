@@ -24,7 +24,7 @@ int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
    // initialize all dW's to one.
    int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
-      for(int kPatch = 0; kPatch < numDataPatches(); kPatch++){
+      for(int kPatch = 0; kPatch < getNumDataPatches(); kPatch++){
          PVPatch * W = getWeights(kPatch, kAxon);
          int nkPatch = fPatchSize() * W->nx;
          float * dWdata = get_dwData(kAxon, kPatch);
@@ -46,7 +46,7 @@ int VaryingHyPerConn::calc_dW(int axonId) {
 
 int VaryingHyPerConn::updateWeights(int axonId) {
    int syPatch = yPatchStride();
-   for( int kPatch = 0; kPatch < numDataPatches(); kPatch++) {
+   for( int kPatch = 0; kPatch < getNumDataPatches(); kPatch++) {
       PVPatch * W = getWeights(kPatch, axonId);
       int nkPatch = fPatchSize() * W->nx;
       float * Wdata = get_wData(axonId, kPatch); // W->data;
