@@ -135,8 +135,8 @@ int dumponeweight(GenerativeConn * conn) {
    int yScaleDiff = conn->postSynapticLayer()->getYScale() - conn->preSynapticLayer()->getYScale();
    float yFalloff = powf(2,yScaleDiff);
 
-   for( int p=0; p<conn->numDataPatches(); p++ ) {
-      pvdata_t * wgtData = conn->get_wData(0,p); // conn->getKernelPatch(0,p)->data;
+   for( int p=0; p<conn->getNumDataPatches(); p++ ) {
+      pvdata_t * wgtData = conn->get_wDataHead(0,p); // conn->getKernelPatch(0,p)->data;
       for( int f=0; f<nfp; f++ ) {
          for( int x=0; x<nxp; x++ ) {
             int xoffset = abs((int) floor((x-xcenter)*xFalloff));
