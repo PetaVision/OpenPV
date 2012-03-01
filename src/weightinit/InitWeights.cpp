@@ -63,7 +63,7 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
       int patchSize = nfp*nxp*nyp;
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
-         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+         for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
 
             //int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
             //int correctedPatchIndex = patchIndex;
@@ -73,7 +73,7 @@ PVPatch *** InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** data
 
             //calc weights for patch:
 
-            int successFlag = calcWeights(dataStart[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
+            int successFlag = calcWeights(dataStart[arbor]+dataPatchIndex*patchSize, dataPatchIndex, arbor, weightParams);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
@@ -97,7 +97,7 @@ InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) 
    return tempPtr;
 }
 
-int InitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
+int InitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId,
                                InitWeightsParams *weightParams) {
 
     InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);
@@ -108,7 +108,7 @@ int InitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int pat
     }
 
 
-    weightParamPtr->calcOtherParams(patchIndex);
+    weightParamPtr->calcOtherParams(dataPatchIndex);
 
     //calculate the weights:
     gauss2DCalcWeights(dataStart, weightParamPtr);

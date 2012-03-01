@@ -87,7 +87,7 @@ int KernelProbe::patchIndices(KernelConn * kconn) {
    int nfp = kconn->fPatchSize();
    // int numSynapses = nxp*nyp*nfp;
    // PVPatch * w = kconn->getKernelPatch(arborID, kernelIndex);
-   int nPreExt = kconn->numWeightPatches();
+   int nPreExt = kconn->getNumWeightPatches();
    assert(nPreExt == kconn->preSynapticLayer()->getNumExtended());
    const PVLayerLoc * loc = kconn->preSynapticLayer()->getLayerLoc();
    int marginWidth = loc->nb;
@@ -104,7 +104,7 @@ int KernelProbe::patchIndices(KernelConn * kconn) {
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
       fprintf(fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
-              kPre, kxPre, kyPre, kfPre, kconn->patchIndexToKernelIndex(kPre), xOffset, yOffset);
+            kPre, kxPre, kyPre, kfPre, kconn->patchIndexToDataIndex(kPre), xOffset, yOffset);
    /*
       pvdata_t * hData = kconn->getWeights(kPre, arborID)->data;
       pvdata_t * kData = w->data;

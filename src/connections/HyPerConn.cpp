@@ -272,7 +272,7 @@ int HyPerConn::constructWeights(const char * filename)
    }  // arborId
 
    //initialize weights for patches:
-   status |= initializeWeights(wPatches, wDataStart, numWeightPatches(), filename) != NULL ? PV_SUCCESS : PV_FAILURE;
+   status |= initializeWeights(wPatches, wDataStart, getNumWeightPatches(), filename) != NULL ? PV_SUCCESS : PV_FAILURE;
    assert(status == 0);
    status |= initPlasticityPatches();
    assert(status == 0);
@@ -285,7 +285,7 @@ int HyPerConn::constructWeights(const char * filename)
 }
 
 int HyPerConn::shrinkPatches(int arborId) {
-   int numPatches = numWeightPatches();
+   int numPatches = getNumWeightPatches();
    for (int kex = 0; kex < numPatches; kex++) {
       shrinkPatch(kex, arborId /* arbor */ );
    } // loop over pre-synaptic neurons
@@ -448,7 +448,7 @@ int HyPerConn::initPlasticityPatches()
    // int numArbors = numWeightPatches();
    for (int arborId = 0; arborId < numAxons; arborId++) {
 
-      set_dwDataStart(arborId, allocWeights(wPatches, numDataPatches(), nxp, nyp, nfp, arborId));
+      set_dwDataStart(arborId, allocWeights(wPatches, getNumDataPatches(), nxp, nyp, nfp, arborId));
       // this->set_dwDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
       assert(get_dwDataStart(arborId) != NULL);
       // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
@@ -577,7 +577,7 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
-   const size_t size = numWeightPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
+   const size_t size = getNumWeightPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
 
    CLDevice * device = parent->getCLDevice();
 
@@ -687,19 +687,19 @@ int HyPerConn::correctPIndex(int patchIndex) {
 
 int HyPerConn::writeWeights(float time, bool last)
 {
-   const int numPatches = numWeightPatches();
+   const int numPatches = getNumWeightPatches();
    return writeWeights(wPatches, wDataStart, numPatches, NULL, time, last);
 }
 
 int HyPerConn::writeWeights(const char * filename) {
-   return writeWeights(wPatches, wDataStart, numWeightPatches(), filename, parent->simulationTime(), true);
+   return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
 }
 
 #ifdef OBSOLETE_NBANDSFORARBORS
 int HyPerConn::writeWeights(float time, bool last)
 {
    //const int arbor = 0;
-   const int numPatches = numWeightPatches();
+   const int numPatches = getNumWeightPatches();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       if(writeWeights(wPatches[arborId], numPatches, NULL, time, last, arborId))
          return 1;
@@ -923,14 +923,14 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 int HyPerConn::checkpointRead(float * timef) {
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(wPatches, wDataStart, numDataPatches(), filename, this, timef);
+   weightsInitObject->initializeWeights(wPatches, wDataStart, getNumDataPatches(), filename, this, timef);
    free(filename);
    return PV_SUCCESS;
 }
 
 int HyPerConn::checkpointWrite() {
    char * filename = checkpointFilename();
-   int status = writeWeights(wPatches, wDataStart, numWeightPatches(), filename, parent->simulationTime(), true);
+   int status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
    free(filename);
    return status;
 }
@@ -1020,16 +1020,16 @@ int HyPerConn::updateWeights(int axonId)
    return 0;
 }
 
-int HyPerConn::numDataPatches()
+int HyPerConn::getNumDataPatches()
 {
-   return numWeightPatches();
+   return getNumWeightPatches();
 }
 
 /**
  * returns the number of weight patches for the given neighbor
  * @param neighbor the id of the neighbor (0 for interior/self)
  */
-int HyPerConn::numWeightPatches()
+int HyPerConn::getNumWeightPatches()
 {
    // for now there is just one axonal arbor
    // extending to all neurons in extended layer
@@ -1066,7 +1066,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
  */
 pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
 {
-   int nPatches = numWeightPatches();
+   int nPatches = getNumWeightPatches();
    int nxPatch = nxp;
    int nyPatch = nyp;
    int nfPatch = nfp;
@@ -1163,7 +1163,7 @@ int HyPerConn::createAxonalArbors(int arborId)
 {
    // activity is extended into margins
    //
-   int numPatches = numWeightPatches();
+   int numPatches = getNumWeightPatches();
 
    for (int kex = 0; kex < numPatches; kex++) {
 
@@ -2023,6 +2023,7 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 // many to one mapping from weight patches to kernels
 // patchIndex always in extended space
 // kernelIndex always for unit cell
+/*
 int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
       int * kyKernelIndex, int * kfKernelIndex)
 {
@@ -2032,6 +2033,7 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
    if(kfKernelIndex) *kfKernelIndex = featureIndex(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
    return patchIndex;
 }
+*/
 
 int HyPerConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
    const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -2047,12 +2049,8 @@ int HyPerConn::dataIndexToUnitCellIndex(int dataIndex, int * kx/*default=NULL*/,
 
 int HyPerConn::calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex/*default=NULL*/, int * kyUnitCellIndex/*default=NULL*/, int * kfUnitCellIndex/*default=NULL*/) {
    const PVLayerLoc * preLoc = pre->getLayerLoc();
-   int xScaleDiff = post->getXScale() - pre->getXScale();
-   if( xScaleDiff < 0 ) xScaleDiff = 0;
-   int nxUnitCell = (int) pow(2,xScaleDiff);
-   int yScaleDiff = post->getYScale() - post->getYScale();
-   if( yScaleDiff < 0 ) yScaleDiff = 0;
-   int nyUnitCell = (int) pow(2,yScaleDiff);
+   int nxUnitCell = zUnitCellSize(pre->getXScale(), post->getXScale());
+   int nyUnitCell = zUnitCellSize(pre->getYScale(), post->getYScale());
    int unitCellIndex = layerIndexToUnitCellIndex(patchIndex, preLoc, nxUnitCell, nyUnitCell,
          kxUnitCellIndex, kyUnitCellIndex, kfUnitCellIndex);
    return unitCellIndex;

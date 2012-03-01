@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   assert(num_pre_extended == cHyPer->numWeightPatches());
+   assert(num_pre_extended == cHyPer->getNumWeightPatches());
 
    int status = 0;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
@@ -83,6 +83,8 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
    int status = 0;
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * kernelPatch = cKernel->getWeights(kPre, axonID);
+   int hyPerDataIndex = cHyPer->patchIndexToDataIndex(kPre);
+   int kernelDataIndex = cKernel->patchIndexToDataIndex(kPre);
 
    int nk = cHyPer->fPatchSize() * (int) hyperPatch->nx; // hyperPatch->nf * hyperPatch->nx;
    assert(nk == (cKernel->fPatchSize() * (int) kernelPatch->nx));// assert(nk == (kernelPatch->nf * kernelPatch->nx));
@@ -90,8 +92,8 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, in
    assert(ny == kernelPatch->ny);
    int sy = cHyPer->yPatchStride(); // hyperPatch->sy;
    assert(sy == cKernel->yPatchStride()); // assert(sy == kernelPatch->sy);
-   pvdata_t * hyperWeights = cHyPer->get_wData(axonID, kPre); // hyperPatch->data;
-   pvdata_t * kernelWeights = cKernel->get_wData(axonID, cKernel->patchIndexToKernelIndex(kPre)); // kernelPatch->data;
+   pvdata_t * hyperWeights = cHyPer->get_wData(axonID, hyPerDataIndex); // hyperPatch->data;
+   pvdata_t * kernelWeights = cKernel->get_wData(axonID, kernelDataIndex); // kernelPatch->data;
    float test_cond = 0.0f;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {

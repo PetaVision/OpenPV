@@ -79,8 +79,8 @@ int InitTransposeWeights::transposeKernels(/* PVPatch * patch */ pvdata_t * data
    int yscalediff = pre->getYScale()-post->getYScale();
    // scalediff>0 means TransposeConn's post--that is, the originalConn's pre--has a higher neuron density
 
-   int numFBKernelPatches = thisConn->numDataPatches();
-   int numFFKernelPatches = originalConn->numDataPatches();
+   int numFBKernelPatches = thisConn->getNumDataPatches();
+   int numFFKernelPatches = originalConn->getNumDataPatches();
 
    if( xscalediff <= 0 && yscalediff <= 0) {
       int xscaleq = (int) powf(2,-xscalediff);

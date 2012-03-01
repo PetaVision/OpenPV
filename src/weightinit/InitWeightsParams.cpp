@@ -81,12 +81,12 @@ void InitWeightsParams::getcheckdimensionsandstrides() {
    assert(sf_tmp == 1);
 }
 
-int InitWeightsParams::kernelIndexCalculations(int patchIndex) {
+int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
    //kernel index stuff:
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
-   parentConn->patchIndexToKernelIndex(patchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
+   parentConn->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;

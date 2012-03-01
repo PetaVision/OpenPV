@@ -67,10 +67,10 @@ int STDPConn::initPlasticityPatches()
 #ifdef OBSOLETE_STDP
    dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
    assert(dwPatches != NULL);
-   int numArbors = numWeightPatches();
+   int numArbors = getNumWeightPatches();
    for (int n = 0; n < numAxons; n++) {
 
-      dwPatches[n] = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+      dwPatches[n] = createWeights(NULL, getNumWeightPatches(), nxp, nyp, nfp, 0);
       assert(dwPatches[n] != NULL);
 
 
@@ -200,7 +200,7 @@ int STDPConn::updateWeights(int axonId)
    const float decayLTP = exp(-dt / tauLTP);
 
    const int numExtended = pre->getNumExtended();
-   assert(numExtended == numWeightPatches());
+   assert(numExtended == getNumWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData();
 

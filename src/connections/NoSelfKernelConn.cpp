@@ -24,7 +24,7 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
    assert(this->getPre()->getCLayer()->loc.nx == this->getPost()->getCLayer()->loc.nx);
    assert(this->getPre()->getCLayer()->loc.ny == this->getPost()->getCLayer()->loc.ny);
    assert(this->getPre()->getCLayer()->loc.nf == this->getPost()->getCLayer()->loc.nf);
-   int num_kernels = this->numDataPatches();
+   int num_kernels = this->getNumDataPatches();
 
    // because the default return value/behavior of KernelConn::normalizeWeights is PV_BREAK,
    // safest approach here is to zero self-interactions for all arbors

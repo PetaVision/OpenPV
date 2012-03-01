@@ -85,7 +85,7 @@ void CloneKernelConn::constructWeightsOutOfMemory() {
 }
 
 int CloneKernelConn::createAxonalArbors(int arborId) {
-   int numPatches = numWeightPatches();
+   int numPatches = getNumWeightPatches();
    for( int kex = 0; kex < numPatches; kex++ ) {
       // kex is in extended frame, this makes transformations more difficult
       int kl, offset, nxPatch, nyPatch, dx, dy;

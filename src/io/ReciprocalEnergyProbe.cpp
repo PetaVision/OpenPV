@@ -38,7 +38,7 @@ int ReciprocalEnergyProbe::outputState(float timef, HyPerConn * c) {
    if( status == PV_SUCCESS ) {
       double energy = 0.0f;
       for( int arbor=0; arbor<rc->numberOfAxonalArborLists(); arbor++) {
-         for( int k=0; k<rc->numDataPatches(); k++) {
+         for( int k=0; k<rc->getNumDataPatches(); k++) {
             PVPatch * p = rc->getWeights(k, arbor); // getKernelPatch(arbor, k);
             // const pvdata_t * wdata = p->data;
             pvdata_t * wdata = rc->get_wDataStart(arbor) + k*rc->xPatchSize()*rc->yPatchSize()*rc->fPatchSize() + p->offset;

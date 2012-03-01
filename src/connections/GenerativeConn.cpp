@@ -80,7 +80,7 @@ int GenerativeConn::update_dW(int axonID) {
 }  // end of GenerativeConn::calc_dW(int);
 
 int GenerativeConn::updateWeights(int axonID) {
-   const int numPatches = numDataPatches();
+   const int numPatches = getNumDataPatches();
    for( int k=0; k<numPatches; k++ ) {
       // PVPatch * w = getKernelPatch(axonID, k);
       pvdata_t * wdata = get_wDataHead(axonID, k); // w->data;

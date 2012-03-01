@@ -123,7 +123,7 @@ int ReciprocalConn::setReciprocalWgts(const char * recipName) {
 
 int ReciprocalConn::update_dW(int axonID) {
    int nExt = preSynapticLayer()->getNumExtended();
-   int numKernelIndices = numDataPatches();
+   int numKernelIndices = getNumDataPatches();
    int delay = getDelay(axonID);
    const pvdata_t * preactbuf = updateRulePre->getLayerData(delay);
    const pvdata_t * postactbuf = updateRulePost->getLayerData(delay);
@@ -201,7 +201,7 @@ int ReciprocalConn::update_dW(int axonID) {
 int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborID) {
    assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
    int status = PV_SUCCESS;
-   assert( numPatches == numDataPatches() );
+   assert( numPatches == getNumDataPatches() );
    for( int f=0; f<nfp; f++ ) {
       pvdata_t sum = 0.0f;
       for( int k=0; k<numPatches; k++ ) {

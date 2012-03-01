@@ -168,7 +168,7 @@ static int set_weights_to_source_index(HyPerConn * c)
    const int nyPost = lPost->loc.ny;
    const int nfPost = lPost->loc.nf;
 
-   int numPatches = c->numWeightPatches();
+   int numPatches = c->getNumWeightPatches();
 
    // assume (or at least use) only one arbor (set of weight patches)
    // k index is in extended space

@@ -141,8 +141,8 @@ public:
    inline pvdata_t * getWPostData(int arbor, int patchIndex) {return &wPostDataStart[arbor][patchIndex*nxpPost*nypPost*nfpPost]+wPostPatches[arbor][patchIndex]->offset;}
    inline pvdata_t * getWPostData(int arbor) {return wPostDataStart[arbor];}
 
-   virtual int numWeightPatches();
-   virtual int numDataPatches();
+   virtual int getNumWeightPatches();
+   virtual int getNumDataPatches();
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
@@ -184,8 +184,10 @@ public:
 #endif // OBSOLETE
 
 // patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
+/*
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
+*/
 
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);

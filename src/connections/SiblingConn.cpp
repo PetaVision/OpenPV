@@ -47,7 +47,7 @@ void SiblingConn::setSiblingConn(SiblingConn *sibling_conn){
 int SiblingConn::normalizeFamily()
 {
    // normalize all arbors individuqlly relative to siblings
-   const int num_kernels = numDataPatches();
+   const int num_kernels = getNumDataPatches();
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          // PVPatch * localWPatch = getWeights(kPatch,kArbor); // this->getKernelPatch(kArbor, kPatch);

@@ -26,7 +26,7 @@ public:
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL);
-   virtual int numDataPatches();
+   virtual int getNumDataPatches();
 
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
@@ -63,11 +63,13 @@ public:
 #endif // OBSOLETE
 
 // patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
+/*
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
+*/
 
-   virtual int patchIndexToDataIndex(int patchIndex, int * kx, int * ny, int * nf);
-   virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx, int * ny, int * nf);
+   virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
+   virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
 
 protected:
 //   bool plasticityFlag;

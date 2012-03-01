@@ -51,11 +51,11 @@ int InitOneToOneWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart,
 
 }
 
-int InitOneToOneWeights::createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr) {
+int InitOneToOneWeights::createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, float iWeight, InitWeightsParams * weightParamPtr) {
    // int numKernels = numDataPatches(0);
    //for( int k=0; k < numKernels; k++ ) {
    //int k=patchIndex;
-   int k=weightParamPtr->getParentConn()->patchIndexToKernelIndex(patchIndex);
+   int k=weightParamPtr->getParentConn()->dataIndexToUnitCellIndex(dataPatchIndex);
    // PVPatch * kp = patch; //getKernelPatch(k);
    //assert(kp->nf == nfPatch_tmp);
    // assert(kp->nx == nxPatch_tmp);
