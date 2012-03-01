@@ -2019,6 +2019,7 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 }
 #endif // OBSOLETE
 
+// patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
 // many to one mapping from weight patches to kernels
 // patchIndex always in extended space
 // kernelIndex always for unit cell
@@ -2030,6 +2031,31 @@ int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
    if(kyKernelIndex) *kyKernelIndex = kyPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
    if(kfKernelIndex) *kfKernelIndex = featureIndex(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
    return patchIndex;
+}
+
+int HyPerConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   if(kx) *kx = kxPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+   if(ky) *ky = kyPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+   if(kf) *kf = featureIndex(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+   return patchIndex;
+}
+
+int HyPerConn::dataIndexToUnitCellIndex(int dataIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
+   return calcUnitCellIndex(dataIndex, kx, ky, kf);
+}
+
+int HyPerConn::calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex/*default=NULL*/, int * kyUnitCellIndex/*default=NULL*/, int * kfUnitCellIndex/*default=NULL*/) {
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   int xScaleDiff = post->getXScale() - pre->getXScale();
+   if( xScaleDiff < 0 ) xScaleDiff = 0;
+   int nxUnitCell = (int) pow(2,xScaleDiff);
+   int yScaleDiff = post->getYScale() - post->getYScale();
+   if( yScaleDiff < 0 ) yScaleDiff = 0;
+   int nyUnitCell = (int) pow(2,yScaleDiff);
+   int unitCellIndex = layerIndexToUnitCellIndex(patchIndex, preLoc, nxUnitCell, nyUnitCell,
+         kxUnitCellIndex, kyUnitCellIndex, kfUnitCellIndex);
+   return unitCellIndex;
 }
 
 void HyPerConn::connOutOfMemory(const char * funcname) {

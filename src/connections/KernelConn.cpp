@@ -317,16 +317,16 @@ int KernelConn::calc_dW(int axonId){
 }
 
 int KernelConn::clear_dW(int axonId) {
-   // zero dWeightPatches
-   for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
-      for(int kKernel = 0; kKernel < this->numDataPatches(); kKernel++){
-         PVPatch * kernelPatch = getWeights(kKernel, kAxon);
+   // zero dwDataStart
+   for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
+      for(int kKernel = 0; kKernel < numDataPatches(); kKernel++){
+         // PVPatch * kernelPatch = getWeights(kKernel, kAxon);
          //PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         //assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy); // eventually dKernelPatches->data will be split out and the other fields will be replaced by references to kernelPatches[kAxon][kKernel]
+         //assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy);
          int syPatch = syp; //dKernelPatch->sy;
-         int nkPatch = nfp * kernelPatch->nx;
-         float * dWeights = get_dwDataStart(axonId)+kKernel*nfp*nxp*nyp+kernelPatch->offset; // dKernelPatch->data;
-         for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
+         int nkPatch = nfp * nxp;
+         float * dWeights = get_dwDataHead(axonId,kKernel); // dKernelPatch->data;
+         for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
             }
@@ -353,14 +353,14 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
    // int syw = syp;
    for(int kExt=0; kExt<nExt;kExt++) {
-      int kKernel = patchIndexToKernelIndex(kExt);
+      // int kKernel = patchIndexToKernelIndex(kExt);
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwDataHead(axonId, kKernel);
+      pvdata_t * dwdata = get_dwData(axonId, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -376,9 +376,9 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      PVPatch * kernelPatch = this->getWeights(kernelindex, axonId);
-      int numpatchitems = kernelPatch->nx * kernelPatch->ny * nfp;
-      pvdata_t * dwpatchdata = get_dwDataStart(axonId) + kernelindex*numpatchitems + kernelPatch->offset; // dKernelPatches[axonId][kernelindex]->data;
+      // PVPatch * kernelPatch = this->getWeights(kernelindex, axonId);
+      int numpatchitems = nxp*nyp*nfp; // kernelPatch->nx * kernelPatch->ny * nfp;
+      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex); // dKernelPatches[axonId][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
@@ -838,6 +838,25 @@ int KernelConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
       *kfKernelIndex = kfPre;
    }
    return kernelIndex;
+}
+
+int KernelConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
+   return calcUnitCellIndex(patchIndex, kx, ky, kf);
+}
+
+int KernelConn::dataIndexToUnitCellIndex(int dataIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
+   int nfUnitCell = pre->getLayerLoc()->nf;
+   int xScaleDiff = post->getXScale() - pre->getXScale();
+   if( xScaleDiff < 0 ) xScaleDiff = 0;
+   int nxUnitCell = (int) pow(2,xScaleDiff);
+   int yScaleDiff = post->getYScale() - post->getYScale();
+   if( yScaleDiff < 0 ) yScaleDiff = 0;
+   int nyUnitCell = (int) pow(2,yScaleDiff);
+   assert( dataIndex >= 0 && dataIndex < nxUnitCell*nyUnitCell*nfUnitCell );
+   if(kx) *kx = kxPos(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+   if(ky) *ky = kyPos(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+   if(kf) *kf = featureIndex(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+   return dataIndex;
 }
 
 

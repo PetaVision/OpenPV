@@ -183,8 +183,12 @@ public:
         int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
 #endif // OBSOLETE
 
+// patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
+
+   virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);
+   virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);
 
 protected:
    HyPerLayer     * pre;
@@ -272,6 +276,8 @@ protected:
    inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;}
    inline int * getDelays() {return delays;}
    inline void setDelays(int * delayptr) {delays = delayptr;}
+
+   int calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex=NULL, int * kyUnitCellIndex=NULL, int * kfUnitCellIndex=NULL);
 
    virtual int setPatchSize(const char * filename);
    virtual int setPatchStrides();

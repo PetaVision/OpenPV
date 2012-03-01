@@ -62,8 +62,12 @@ public:
          int * kyPatchIndex = NULL, int * kfPatchIndex = NULL);
 #endif // OBSOLETE
 
+// patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
+
+   virtual int patchIndexToDataIndex(int patchIndex, int * kx, int * ny, int * nf);
+   virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx, int * ny, int * nf);
 
 protected:
 //   bool plasticityFlag;
