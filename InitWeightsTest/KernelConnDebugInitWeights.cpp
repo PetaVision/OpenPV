@@ -107,7 +107,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches
 {
 
    for (int k = 0; k < numPatches; k++) {
-      smartWeights(patches[k], &dataStart[k*nxp*nyp*nfp], k); // MA
+      smartWeights(patches[k], &dataStart[k*nxp*nyp*nfp], dataIndexToUnitCellIndex(k)); // MA
    }
    return patches;
 }
