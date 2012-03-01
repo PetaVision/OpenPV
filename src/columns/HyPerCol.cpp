@@ -48,7 +48,9 @@ HyPerCol::~HyPerCol()
 {
    int n;
 
+#ifdef PV_USE_OPENCL
    finalizeThreads();
+#endif // PV_USE_OPENCL
 
    if (image_file != NULL) free(image_file);
 
@@ -921,11 +923,13 @@ int HyPerCol::initializeThreads(int device)
    return 0;
 }
 
+#ifdef PV_USE_OPENCL
 int HyPerCol::finalizeThreads()
 {
    delete clDevice;
    return 0;
 }
+#endif // PV_USE_OPENCL
 
 int HyPerCol::loadState()
 {

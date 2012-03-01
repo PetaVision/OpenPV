@@ -38,7 +38,9 @@ public:
 
    int initFinish(void); // call after all layers/connections have been added
    int initializeThreads(int device);
+#ifdef PV_USE_OPENCL
    int finalizeThreads();
+#endif PV_USE_OPENCL
 
    int run()  {return run(numSteps);}
    int run(int nTimeSteps);
