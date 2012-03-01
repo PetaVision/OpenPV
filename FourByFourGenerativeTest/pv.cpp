@@ -55,11 +55,11 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
    assert(connA->xPatchSize() == 1);
    assert(connA->yPatchSize() == 1);
    assert(connA->fPatchSize() == 8);
-   assert(connA->numDataPatches() == 16);
+   assert(connA->getNumDataPatches() == 16);
    assert(connB->xPatchSize() == 1);
    assert(connB->yPatchSize() == 1);
    assert(connB->fPatchSize() == 2);
-   assert(connB->numDataPatches() == 8);
+   assert(connB->getNumDataPatches() == 8);
 
    float wgtA[8][16];
    float wgtB[2][8];
