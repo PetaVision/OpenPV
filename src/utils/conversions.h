@@ -414,6 +414,14 @@ static inline int localIndexFromGlobal(int kGlobal, PVLayerLoc loc)
 #endif // PV_USE_MPI
 }
 
+static inline int zUnitCellSize(float preZScale, float postZScale){
+   return (preZScale < postZScale) ? pow(2,
+         postZScale - preZScale) : 1;
+}
+
+int layerIndexToUnitCellIndex(int patchIndex, PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
+      int * kyUnitCellIndex, int * kfUnitCellIndex);
+
 /**
  * @x
  */

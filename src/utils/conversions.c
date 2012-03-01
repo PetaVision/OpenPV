@@ -108,6 +108,69 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
    return kzPre;
 }
 
+
+
+int layerIndexToUnitCellIndex(int patchIndex, PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
+      int * kyUnitCellIndex, int * kfUnitCellIndex)
+{
+   int UnitCellIndex;
+   int nxPreExtended = preLoc->nx + 2*preLoc->nb;
+   int nyPreExtended = preLoc->ny + 2*preLoc->nb;
+   int nfPre = preLoc->nf;
+   int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+   int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+
+   // check that patchIndex lay within margins
+   /*
+   assert(kxPreExtended >= 0);
+   assert(kyPreExtended >= 0);
+   assert(kxPreExtended < nxPreExtended);
+   assert(kyPreExtended < nyPreExtended);
+   */
+
+   // convert from extended to restricted space (in local HyPerCol coordinates)
+   int kxPreRestricted;
+   kxPreRestricted = kxPreExtended - preLoc->nb;
+   while(kxPreRestricted < 0){
+      kxPreRestricted += preLoc->nx;
+   }
+   while(kxPreRestricted >= preLoc->nx){
+      kxPreRestricted -= preLoc->nx;
+   }
+
+   int kyPreRestricted;
+   kyPreRestricted = kyPreExtended - preLoc->nb;
+   while(kyPreRestricted < 0){
+      kyPreRestricted += preLoc->ny;
+   }
+   while(kyPreRestricted >= preLoc->ny){
+      kyPreRestricted -= preLoc->ny;
+   }
+
+   int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
+
+//   int nxUnitCell_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
+//         post->getXScale() - pre->getXScale()) : 1;
+//   int nyUnitCell_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
+//         post->getYScale() - pre->getYScale()) : 1;
+   int kxUnitCell = kxPreRestricted % nxUnitCell;
+   int kyUnitCell = kyPreRestricted % nyUnitCell;
+
+   int unitCellIndex = kIndex(kxUnitCell, kyUnitCell, kfPre, nxUnitCell, nyUnitCell, nfPre);
+
+   if (kxUnitCellIndex != NULL){
+      *kxUnitCellIndex = kxUnitCell;
+   }
+   if (kyUnitCellIndex != NULL){
+      *kyUnitCellIndex = kyUnitCell;
+   }
+   if (kfUnitCellIndex != NULL){
+      *kfUnitCellIndex = kfPre;
+   }
+   return unitCellIndex;
+}
+
+
 #define DEPRECATED_FEATURES
 #ifdef DEPRECATED_FEATURES
 // deprecated
