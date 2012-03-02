@@ -470,15 +470,15 @@ int KernelConn::reduceKernels(const int axonID) {
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
       //PVPatch * p = kernelPatches[axonID][k];
-      PVPatch * p = getWeights(k, axonID); // dKernelPatches[axonID][k];
-      const pvdata_t * data = get_dwDataStart(axonID)+nxp*nyp*nfp*k+p->offset; // p->data;
+      //PVPatch * p = getWeights(k, axonID); // dKernelPatches[axonID][k];
+      const pvdata_t * data = get_dwDataHead(axonID,k); // p->data;
 
       //const int sxp = p->sx;
       //const int syp = p->sy;
       //const int sfp = p->sf;
 
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
+      for (int y = 0; y < nyp; y++) {
+         for (int x = 0; x < nxp; x++) {
             for (int f = 0; f < nfp; f++) {
                mpiReductionBuffer[idx] = data[x*sxp + y*syp + f*sfp];
                idx++;
@@ -503,15 +503,15 @@ int KernelConn::reduceKernels(const int axonID) {
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
       //PVPatch * p = kernelPatches[axonID][k];
-      PVPatch * p = this->getWeights(k, axonID);// dKernelPatches[axonID][k];
-      pvdata_t * data = get_dwDataStart(axonID)+nxp*nyp*nfp*k+p->offset; // p->data;
+      //PVPatch * p = this->getWeights(k, axonID);// dKernelPatches[axonID][k];
+      pvdata_t * data = get_dwDataHead(axonID,k); // p->data;
 
       //const int sxp = p->sx;
       //const int syp = p->sy;
       //const int sfp = p->sf;
 
-      for (int y = 0; y < p->ny; y++) {
-         for (int x = 0; x < p->nx; x++) {
+      for (int y = 0; y < nyp; y++) {
+         for (int x = 0; x < nxp; x++) {
             for (int f = 0; f < nfp; f++) {
                data[x*sxp + y*syp + f*sfp] = mpiReductionBuffer[idx]/nProcs;
                idx++;
