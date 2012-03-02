@@ -399,7 +399,7 @@ public:
 
    static int deletePatches(PVPatch ** patchpointers)
    {
-      if (*patchpointers != NULL){
+      if (patchpointers != NULL && *patchpointers != NULL){
          free(*patchpointers);
          *patchpointers = NULL;
       }
