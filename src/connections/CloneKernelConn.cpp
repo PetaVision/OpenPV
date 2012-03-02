@@ -104,12 +104,14 @@ PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches,
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }
+/*
 int CloneKernelConn::setWPatches(PVPatch ** patches, int arborId) {
    return HyPerConn::setWPatches(patches, arborId);
 }
 int CloneKernelConn::setdWPatches(PVPatch ** patches, int arborId) {
    return HyPerConn::setWPatches(patches, arborId);
 }
+*/
 
 int CloneKernelConn::initShrinkPatches() {
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();

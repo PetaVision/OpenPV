@@ -329,13 +329,13 @@ protected:
 
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 
-   virtual int createAxonalArbors(int arborId);
+   virtual int adjustAxonalArbors(int arborId);
 
    char * checkpointFilename();
 
    // following is overridden by KernelConn to set kernelPatches
    //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
-   virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
+   //virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
    //  int setdWPatches(PVPatch ** patches, int arborId) {dwPatches[arborId]=patches; return 0;}
    // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    virtual int calc_dW(int axonId = 0);
@@ -399,8 +399,12 @@ public:
 
    static int deletePatches(PVPatch ** patchpointers)
    {
-      free(*patchpointers);
+      if (*patchpointers != NULL){
+         free(*patchpointers);
+         *patchpointers = NULL;
+      }
       free(patchpointers);
+      patchpointers = NULL;
 //      for (int i = 0; i < numBundles; i++) {
 //         pvpatch_inplace_delete(patches[i]);
 //      }

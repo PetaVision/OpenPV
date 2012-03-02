@@ -44,8 +44,10 @@ protected:
    virtual int constructWeights(const char * filename);
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
+/*
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
+*/
 
    KernelConn * originalConn;
 

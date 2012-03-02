@@ -311,15 +311,11 @@ int HyPerConn::constructWeights(const char * filename)
 
    //allocate weight patches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-      wDataStart[arborId] = createWeights(wPatches, arborId);
-      assert(wPatches[arborId] != NULL);
-      setWPatches(wPatches[arborId], arborId);
-      //wPatches[arborId] = createWeights(wPatches[arborId]); //allocates memory for weights
-
-      // Create list of axonal arbors containing pointers to {phi,w,P,M} patches.
-      //  weight patches may shrink
-      status |= createAxonalArbors(arborId);
-      assert(weights(arborId) != NULL);
+         wDataStart[arborId] = createWeights(wPatches, arborId);
+         assert(wPatches[arborId] != NULL);
+         if (shrinkPatches_flag || arborId == 0){
+            status |= adjustAxonalArbors(arborId);
+         }
    }  // arborId
 
    //initialize weights for patches:
@@ -1280,8 +1276,13 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
 
    //patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    //patches[axonId] = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
-   patches[axonId] = createPatches(nPatches, nxPatch, nyPatch);
-   assert(patches[axonId] != NULL);
+   if (shrinkPatches_flag || axonId == 0){
+      patches[axonId] = createPatches(nPatches, nxPatch, nyPatch);
+      assert(patches[axonId] != NULL);
+   }
+   else{
+      patches[axonId] = patches[0];
+   }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
    pvdata_t * data_patches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
@@ -1315,7 +1316,9 @@ int HyPerConn::deleteWeights()
             //   pvpatch_inplace_delete(wPatches[arbor][k]);
             //}
             //free(wPatches[arbor]);
-            deletePatches(wPatches[arbor]);
+            if (shrinkPatches_flag || arbor == 0){
+               deletePatches(wPatches[arbor]);
+            }
             wPatches[arbor] = NULL;
          }
       }
@@ -1386,7 +1389,7 @@ int HyPerConn::deleteWeights()
  *      .
  *
  */
-int HyPerConn::createAxonalArbors(int arborId)
+int HyPerConn::adjustAxonalArbors(int arborId)
 {
    // activity is extended into margins
    //
