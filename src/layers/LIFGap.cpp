@@ -186,7 +186,7 @@ int LIFGap::checkpointRead(float * timef) {
    // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
    assert(filename != NULL);
 
-   sprintf(filename, "%s_G_IB.pvp", name);
+   sprintf(filename, "%s_G_Gap.pvp", name);
    readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
@@ -204,7 +204,7 @@ int LIFGap::checkpointWrite() {
    // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
    assert(filename != NULL);
    sprintf(filename, "%s_G_Gap.pvp", name);
-   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_Gap, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;
 }
