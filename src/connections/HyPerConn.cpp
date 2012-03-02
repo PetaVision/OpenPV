@@ -311,11 +311,11 @@ int HyPerConn::constructWeights(const char * filename)
 
    //allocate weight patches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-         wDataStart[arborId] = createWeights(wPatches, arborId);
-         assert(wPatches[arborId] != NULL);
-         if (shrinkPatches_flag || arborId == 0){
-            status |= adjustAxonalArbors(arborId);
-         }
+      wDataStart[arborId] = createWeights(wPatches, arborId);
+      assert(wPatches[arborId] != NULL);
+      if (shrinkPatches_flag || arborId == 0){
+         status |= adjustAxonalArbors(arborId);
+      }
    }  // arborId
 
    //initialize weights for patches:
@@ -1285,7 +1285,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
    }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   pvdata_t * data_patches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = allocWeights(patches, getNumDataPatches(), nxPatch, nyPatch, nfPatch, axonId);
    return data_patches;
 }
 
