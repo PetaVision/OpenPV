@@ -724,7 +724,7 @@ int KernelConn::writeWeights(float time, bool last)
 int KernelConn::checkpointRead(float * timef) {
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(get_wPatches(), get_wDataStart(), getNumDataPatches(), filename, this, timef);
+   weightsInitObject->initializeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, this, timef);
    free(filename);
    return PV_SUCCESS;
 }

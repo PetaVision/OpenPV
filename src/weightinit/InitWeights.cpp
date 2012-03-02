@@ -171,7 +171,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
          pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
          int thisfilearbors = params[INDEX_NBANDS];
-         int status = PV::readWeights(&patches[arbor], &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
+         int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
          if (status != PV_SUCCESS) {
             fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
             exit(EXIT_FAILURE);

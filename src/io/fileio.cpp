@@ -139,15 +139,23 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
    const int syp = nfp * nxp;
    const int patchsize = syp * nyp;
 
+   int nx = nxp;
+   int ny = nyp;
+   int offset = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * p = patches[k];
+      if( patches != NULL ) {
+         PVPatch * p = patches[k];
+         nx = p->nx;
+         ny = p->ny;
+         offset = p->offset;
+      }
       // pvdata_t * data = p->data;
-      pvdata_t * data = dataStart + k*patchsize + p->offset;
+      pvdata_t * data = dataStart + k*patchsize + offset;
 
       unsigned short * nxny = (unsigned short *) cptr;
-
-      p->nx = (int) nxny[0];
-      p->ny = (int) nxny[1];
+      nx = (int) nxny[0];
+      ny = (int) nxny[1];
+      assert( patches==NULL || (patches[k]->nx==nx && patches[k]->ny==ny) );
       //p->nf = nfp;
 
       //p->sf = sfp;
@@ -156,10 +164,10 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
 
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp -(p->nx)*(p->ny)*(nfp);
+      int numExtraNeurons = nxp*nyp*nfp -nx*ny*nfp;
       if( compress ) {
-         for (int y = 0; y < p->ny; y++) {
-            for (int x = 0; x < p->nx; x++) {
+         for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
                for (int f = 0; f < nfp; f++) {
                   // data are packed into chars
                   float val = (float) *cptr++;
@@ -174,8 +182,8 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
          cptr += nExtra;
       }
       else {
-         for (int y = 0; y < p->ny; y++) {
-            for (int x = 0; x < p->nx; x++) {
+         for (int y = 0; y < ny; y++) {
+            for (int x = 0; x < nx; x++) {
                for (int f = 0; f < nfp; f++) {
                   int offset = x*sxp + y*syp + f*sfp;
                   float val;
@@ -1356,7 +1364,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
       // set the contents of the weights patches from the unsigned character buffer, cbuf
       //
       bool compress = header_data_type == PV_BYTE_TYPE;
-      status = pvp_set_patches(cbuf, patches[arborId], dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
          fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
                  comm->commRank(), numPatches);
