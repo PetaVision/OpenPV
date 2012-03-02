@@ -18,7 +18,7 @@ NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer 
    KernelConn::initialize(name, hc, pre, post,channel, filename, weightInit);
 };
 
-int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int arborId){
+int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
    //int axonID = 0;
    // self-interactions only defined for layers of same size
    assert(this->getPre()->getCLayer()->loc.nx == this->getPost()->getCLayer()->loc.nx);
@@ -45,7 +45,7 @@ int NoSelfKernelConn::zeroSelfWeights(PVPatch ** patches, int numPatches, int ar
 
 int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
-   int status = zeroSelfWeights(patches, numPatches, arborId);
+   int status = zeroSelfWeights(numPatches, arborId);
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    return KernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
 }

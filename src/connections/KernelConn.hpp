@@ -33,7 +33,7 @@ public:
 
    virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
-   virtual int symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId);
+   virtual int symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId);
 
    // PVPatch * getKernelPatch(int axonId, int kernelIndex)   {return kernelPatches[axonId][kernelIndex];}
    // PVPatch ** getKernelPatches(int axonId)   {return [axonId];}
@@ -111,10 +111,8 @@ protected:
          int nyPatch, int nfPatch, int axonId);
 #endif // OBSOLETE
    virtual int initializeUpdateTime(PVParams * params);
-#ifdef OBSOLETE // Marked obsolete Feb 29, 2012.  This is no longer necessary.  Initweights will ask the conn for what it needs
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
          int numPatches, const char * filename);
-#endif // OBSOLETE
 
    virtual int calc_dW(int axonId);
    virtual int clear_dW(int axonId);

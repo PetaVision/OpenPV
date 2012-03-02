@@ -232,16 +232,14 @@ int KernelConn::deleteWeights()
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 }
 
-#ifdef OBSOLETE // Marked obsolete Feb 29, 2012.  This is no longer necessary.  Initweights will ask the conn for what it needs
 PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
       const char * filename)
 {
    //int arbor = 0;
    int numKernelPatches = getNumDataPatches();
-   HyPerConn::initializeWeights(get_wPatches(), dataStart, numKernelPatches, filename);
+   HyPerConn::initializeWeights(NULL, dataStart, numKernelPatches, filename);
    return arbors;
 }
-#endif // OBSOLETE
 
 PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
       const char * filename)
@@ -407,7 +405,7 @@ int KernelConn::updateState(float time, float dt) {
       }
       if( normalize_flag ) {
          for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-            status = normalizeWeights(weights(axonID), this->get_wDataStart(), getNumDataPatches(), axonID);
+            status = normalizeWeights(NULL, this->get_wDataStart(), getNumDataPatches(), axonID);
             if (status == PV_BREAK) {break;}
             assert(status == PV_SUCCESS);
          }
@@ -422,10 +420,14 @@ int KernelConn::updateWeights(int axonId){
    lastUpdateTime = parent->simulationTime();
    // add dKernelPatches to KernelPatches
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
+      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         get_wDataStart(kAxon)[k] += get_dwDataStart(kAxon)[k];
+      }
+/*
       for(int kKernel = 0; kKernel < this->getNumDataPatches(); kKernel++){
          // PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
          // PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         PVPatch * kernelPatch = getWeights(kKernel, axonId);
+         // PVPatch * kernelPatch = getWeights(kKernel, axonId);
          int syPatch = syp;
          int nkPatch = nfp * kernelPatch->nx;
          int arborOffset = nxp*nyp*nfp*kKernel;
@@ -440,6 +442,7 @@ int KernelConn::updateWeights(int axonId){
             dWeights += syPatch;
          }
       }
+*/
    }
    return PV_BREAK;
 }
@@ -571,7 +574,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int 
    // symmetrize before normalization
    if ( symmetrizeWeightsFlag ){
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = symmetrizeWeights(patches, dataStart[arborId], num_kernels, kArbor);
+         status = symmetrizeWeights(dataStart[arborId], num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       }
    }
@@ -579,7 +582,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int 
    // normalize after symmetrization
    if (this->normalize_arbors_individually) {
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = HyPerConn::normalizeWeights(patches, dataStart, num_kernels, kArbor);
+         status = HyPerConn::normalizeWeights(NULL, dataStart, num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       }
       status = PV_BREAK;
@@ -611,7 +614,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int 
    return status;
 }
 
-int KernelConn::symmetrizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborId)
+int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
    if (arborId == 0)

@@ -559,7 +559,7 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataSta
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
-         int status = normalizeWeights(arbors[arborId], dataStart, numPatches, arborId);
+         int status = normalizeWeights(arbors ? arbors[arborId] : NULL, dataStart, numPatches, arborId);
          if (status == PV_BREAK) break;
       } // arborId
    } // normalize_flag
@@ -1951,15 +1951,23 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
 {
    int status = PV_SUCCESS;
    this->wMax = -FLT_MAX;
+   int nx = nxp;
+   int ny = nyp;
+   int offset = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * wp = patches[k];
+      if( patches != NULL ) {
+         PVPatch * wp = patches[k];
+         nx = wp->nx;
+         ny = wp->ny;
+         offset = wp->offset;
+      }
       float maxVal = -FLT_MAX;
       double sum = 0;
       double sum2 = 0;
       pvdata_t * dataStartPatch = dataStart[arborId] + k*nxp*nyp*nfp;
-      status = sumWeights(wp->nx, wp->ny, wp->offset, dataStartPatch, &sum, &sum2, &maxVal);
+      status = sumWeights(nx, ny, offset, dataStartPatch, &sum, &sum2, &maxVal);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-      status = scaleWeights(wp->nx, wp->ny, wp->offset, dataStartPatch, sum, sum2, maxVal);
+      status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    } // k < numPatches
    status = HyPerConn::checkNormalizeArbor(patches, dataStart, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false

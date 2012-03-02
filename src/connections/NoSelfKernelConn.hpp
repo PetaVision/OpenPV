@@ -18,7 +18,7 @@ public:
 
    NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                ChannelType channel, const char * filename, InitWeights *weightInit);
-   int zeroSelfWeights(PVPatch ** patches, int numPatches, int arborId);
+   int zeroSelfWeights(int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
 };
 
