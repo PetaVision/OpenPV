@@ -91,6 +91,8 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    post->copyChannelToDevice();
 #endif
 
+   initPatchToDataLUT();
+
    return PV_SUCCESS;
 }
 
@@ -525,9 +527,20 @@ int KernelConn::reduceKernels(const int axonID) {
 }
 #endif // PV_USE_MPI
 
-int KernelConn::correctPIndex(int patchIndex) {
-   // This will use a look-up table
-   return patchIndexToDataIndex(patchIndex, NULL, NULL, NULL);
+void KernelConn::initPatchToDataLUT() {
+   int numWeightPatches=getNumWeightPatches();
+   //int numDataPatches=getNumDatapatches();
+
+   patch2datalookuptable=(int *) malloc(numWeightPatches*sizeof(int));
+   for(int i=0; i<numWeightPatches; i++) {
+      patch2datalookuptable[i]=patchIndexToDataIndex(i);
+   }
+
+}
+int KernelConn::patchToDataLUT(int patchIndex) {
+   // This uses a look-up table
+   return patch2datalookuptable[patchIndex];
+   //return patchIndexToDataIndex(patchIndex, NULL, NULL, NULL);
    // return patchIndexToKernelIndex(patchIndex);
 }
 

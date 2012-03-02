@@ -26,6 +26,9 @@ int FeedbackConn::initialize_base() {
 
 int FeedbackConn::initialize(const char * name, HyPerCol *hc, ChannelType channel, KernelConn * ffconn) {
    feedforwardConn = originalConn;
+   //why doesn't identconn call kernelconn's initialize???
+   //kernelconns need this and the GPU stuff...
+   initPatchToDataLUT();
    return PV_SUCCESS;
 }
 

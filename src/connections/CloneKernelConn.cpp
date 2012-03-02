@@ -31,6 +31,9 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
    InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
    assert(weightInit != NULL);
    int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   //why doesn't identconn call kernelconn's initialize???
+   //kernelconns need this and the GPU stuff...
+   initPatchToDataLUT();
    delete weightInit;
    return status;
 }

@@ -311,11 +311,11 @@ int HyPerConn::constructWeights(const char * filename)
 
    //allocate weight patches and axonal arbors for each arbor
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-      wDataStart[arborId] = createWeights(wPatches, arborId);
-      assert(wPatches[arborId] != NULL);
-      if (shrinkPatches_flag || arborId == 0){
-         status |= adjustAxonalArbors(arborId);
-      }
+         wDataStart[arborId] = createWeights(wPatches, arborId);
+         assert(wPatches[arborId] != NULL);
+         if (shrinkPatches_flag || arborId == 0){
+            status |= adjustAxonalArbors(arborId);
+         }
    }  // arborId
 
    //initialize weights for patches:
@@ -342,7 +342,7 @@ int HyPerConn::shrinkPatches(int arborId) {
 
 int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
-   int kIndex = correctPIndex(kExt);
+   int kIndex = patchToDataLUT(kExt);
 
    PVPatch *weights = getWeights(kExt,arborId);
 
@@ -2257,7 +2257,7 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 }
 #endif // OBSOLETE
 
-int HyPerConn::correctPIndex(int patchIndex) {
+int HyPerConn::patchToDataLUT(int patchIndex) {
    return patchIndex;
 }
 // patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead

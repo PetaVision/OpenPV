@@ -227,7 +227,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
          PVPatch * w_patch = conn->getWeights(kPreExt, arborNdx);
 
          const pvdata_t * w_start = conn->get_wDataStart(arborNdx);
-         int kernelIndex = conn->correctPIndex(kPreExt);
+         int kernelIndex = conn->patchToDataLUT(kPreExt);
          const pvdata_t * w_head = &(w_start[a_post_size*kernelIndex]);
          size_t w_offset = w_patch->offset; // w_patch->data - w_head;
 

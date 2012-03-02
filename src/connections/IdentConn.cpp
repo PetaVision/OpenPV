@@ -43,6 +43,9 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
    //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
    post->copyChannelToDevice();
 #endif
+   //why doesn't identconn call kernelconn's initialize???
+   //kernelconns need this and the GPU stuff...
+   initPatchToDataLUT();
    delete weightInit;
    return status;
 }

@@ -52,7 +52,6 @@ public:
    float getWeightUpdateTime() {return weightUpdateTime;}
    float getLastUpdateTime() {return lastUpdateTime;}
 
-   virtual int correctPIndex(int patchIndex);
 
    virtual int checkpointWrite();
    virtual int checkpointRead(float *timef);
@@ -68,6 +67,8 @@ public:
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
 */
 
+   void initPatchToDataLUT();
+   virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
 
@@ -81,6 +82,7 @@ protected:
 
 
 private:
+   int * patch2datalookuptable;
    //made private to control use and now 3D to allow different Kernel patches
    //for each axon:
    // PVPatch *** kernelPatches;   // list of kernel patches
