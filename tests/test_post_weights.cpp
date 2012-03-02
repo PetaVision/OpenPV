@@ -16,7 +16,7 @@
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
 // #include "../src/io/ConnectionProbe.hpp"
-#include "../src/io/PostConnProbe.hpp"
+// #include "../src/io/PostConnProbe.hpp"
 
 #include <assert.h>
 
@@ -87,10 +87,10 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
    const int ny = c->postSynapticLayer()->clayer->loc.ny;
    const int nf = c->postSynapticLayer()->clayer->loc.nf;
 
-   const int numPatches = nx * ny * nf;
+   const int numPostPatches = nx * ny * nf;
 
    // assume (or at least use) only one arbor (set of weight patches)
-   for (int kPost = 0; kPost < numPatches; kPost++) {
+   for (int kPost = 0; kPost < numPostPatches; kPost++) {
       int kxPre, kyPre, kfPre = 0;
 
       const int kxPost = kxPos(kPost, nx, ny, nf);
@@ -131,18 +131,25 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
       for (int f = 0; f < nfp; f++) {
          for (int j = 0; j < nyp; j++) {
             for (int i = 0; i < nxp; i++) {
-               short * ws;
                int kPre = kPreHead + i*sx + j*sy + f*sf;
 
-               ws = (short *) &w[kp++];
+               // short * ws;
+               // ws = (short *) &w[kp++];
+               // int kPreObserved = (int) ws[0];
+               // int kPostObserved = (int) ws[1];
 
-               if (kPre != (int) ws[0] || kPost != (int) ws[1]) {
+               int ws = (int) w[kp];
+               int kPostObserved = ws % numPostPatches;
+               int kPreObserved = (ws-kPostObserved)/numPostPatches;
+
+               if (kPre != kPreObserved || kPost != kPostObserved) {
                   status = -1;
-                  fprintf(stderr, "ERROR: check_weights: kPost==%d kPre==%d kp==%d != w==%d\n",
-                          kPost, kPre, kp, (int) w[kp-1]);
+                  fprintf(stderr, "ERROR: check_weights: connection %s, kPost==%d kPre==%d kp==%d != w==%d\n",
+                          c->getName(), kPost, kPre, kp, (int) w[kp]);
                   fprintf(stderr, "    nxp==%d nyp==%d nfp==%d\n", nxp, nyp, nfp);
                   const char * filename = "post_weights.txt";
                   c->writeTextWeights(filename, kPre);
+                  kp++;
                   return status;
                }
             }
@@ -167,6 +174,7 @@ static int set_weights_to_source_index(HyPerConn * c)
    const int nxPost = lPost->loc.nx;
    const int nyPost = lPost->loc.ny;
    const int nfPost = lPost->loc.nf;
+   const int numPostPatches = nxPost * nyPost * nfPost;
 
    int numPatches = c->getNumWeightPatches();
 
@@ -200,15 +208,18 @@ static int set_weights_to_source_index(HyPerConn * c)
                int kfPost = kfPostHead + f;
                int kPost = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
 
-               wPacked[0] = kPre;
-               wPacked[1] = kPost;
-               w[x*sxp + y*syp + f*sfp] = * ((float *) wPacked);
+               // wPacked[0] = kPre;
+               // wPacked[1] = kPost;
+               w[x*sxp + y*syp + f*sfp] = kPre*numPostPatches + kPost; // * ((float *) wPacked);
                //w[x*sxp + y*syp + f*sfp] = kPre;
             }
          }
       }
 
    } // end loop over weight patches
+   char filename[PV_PATH_MAX];
+   status = snprintf(filename, PV_PATH_MAX, "%s/%s_W.pvp", c->getParent()->getOutputPath(), c->getName())<PV_PATH_MAX ? PV_SUCCESS : PV_FAILURE;
+   if(status==PV_SUCCESS) status = c->writeWeights(filename);
 
    return status;
 }
