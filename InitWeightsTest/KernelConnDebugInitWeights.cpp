@@ -47,7 +47,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
    //       of InitWeightsMethod.
    PVParams * inputParams = parent->parameters();
 
-   PVPatch ** kpatches = arbors[0]; // getKernelPatches(0);
+   // PVPatch ** kpatches = arbors[0]; // getKernelPatches(0);
    pvdata_t * arborStart = dataStart[0];
    int numKernelPatches = getNumDataPatches();
 
@@ -59,10 +59,10 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
    else {
            const char * weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
            if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-                   initializeCocircWeights(kpatches, arborStart, numKernelPatches);
+                   initializeCocircWeights(NULL, arborStart, numKernelPatches);
            }
            else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
-                  initializeSmartWeights(kpatches, arborStart, numKernelPatches);
+                  initializeSmartWeights(NULL, arborStart, numKernelPatches);
            }
 //         else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
 //            weightInitializer = new InitUniformRandomWeights();
@@ -71,7 +71,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
 //            weightInitializer = new InitGaussianRandomWeights();
 //         }
            else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
-                   initializeGaborWeights(kpatches, arborStart, numKernelPatches);
+                   initializeGaborWeights(NULL, arborStart, numKernelPatches);
            }
 //         else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
 //            weightInitializer = new InitPoolWeights();
@@ -86,11 +86,11 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
 //            weightInitializer = new InitIdentWeights();
 //         }
            else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-                   initializeGaussian2DWeights(kpatches, arborStart, numKernelPatches);
+                   initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
            }
            else { //default is also Gauss2D
               //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
-              initializeGaussian2DWeights(kpatches, arborStart, numKernelPatches);
+              initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
            }
 
    }
@@ -98,7 +98,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
    bool normalize_flag = (bool) inputParams->value(getName(), "normalize", 0.0f, true);
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
-      normalizeWeights(kpatches, dataStart, numPatches, 0);
+      normalizeWeights(NULL, dataStart, numPatches, 0);
    }
    return arbors;
 }
@@ -107,16 +107,16 @@ PVPatch ** KernelConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches
 {
 
    for (int k = 0; k < numPatches; k++) {
-      smartWeights(patches[k], &dataStart[k*nxp*nyp*nfp], dataIndexToUnitCellIndex(k)); // MA
+      smartWeights(&dataStart[k*nxp*nyp*nfp], dataIndexToUnitCellIndex(k)); // MA
    }
    return patches;
 }
-int KernelConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
+int KernelConnDebugInitWeights::smartWeights(pvdata_t * dataStart, int k)
 {
    pvdata_t * w = dataStart; // wp->data;
 
-   const int nxp = (int) wp->nx;
-   const int nyp = (int) wp->ny;
+   // const int nxp = (int) wp->nx;
+   // const int nyp = (int) wp->ny;
    const int nfp = fPatchSize();
 
    const int sxp = xPatchStride();
@@ -191,7 +191,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeCocircWeights(PVPatch ** patche
          delta_radius_curvature);
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      cocircCalcWeights(patches[patchIndex], &dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPre, noPost, sigma_cocirc,
+      cocircCalcWeights(&dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPre, noPost, sigma_cocirc,
             sigma_kurve, sigma_chord, delta_theta_max, cocirc_self,
             delta_radius_curvature, numFlanks, shift, aspect, rotate, sigma, r2Max,
             strength);
@@ -199,7 +199,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeCocircWeights(PVPatch ** patche
 
    return patches;
 }
-int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
+int KernelConnDebugInitWeights::cocircCalcWeights(pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
       float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
@@ -210,8 +210,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataS
            const float sigma2 = 2 * sigma * sigma;
            const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
 
-           const int nxPatch = (int) wp->nx;
-           const int nyPatch = (int) wp->ny;
+           const int nxPatch = nxp; // (int) wp->nx;
+           const int nyPatch = nyp; // (int) wp->ny;
            const int nfPatch = fPatchSize();
            if (nxPatch * nyPatch * nfPatch == 0) {
               return 0; // reduced patch size is zero
@@ -598,13 +598,13 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pa
    float r2Max = rMax * rMax;
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      gauss2DCalcWeights(patches[patchIndex], &dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPost, numFlanks, shift, rotate,
+      gauss2DCalcWeights(&dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPost, numFlanks, shift, rotate,
             aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
    }
 
    return patches;
 }
-int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
+int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
@@ -614,8 +614,8 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * data
    bool self = (pre != post);
 
    // get dimensions of (potentially shrunken patch)
-   const int nxPatch = (int) wp->nx;
-   const int nyPatch = (int) wp->ny;
+   const int nxPatch = nxp; // (int) wp->nx;
+   const int nyPatch = nyp; // (int) wp->ny;
    const int nfPatch = fPatchSize();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return 0; // reduced patch size is zero
@@ -811,12 +811,12 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches
 
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
-      gaborWeights(patches[kernelIndex], &dataStart[kernelIndex*nxp*nyp*nfp], xScale, yScale, aspect, sigma, r2Max, lambda, strength, phi);
+      gaborWeights(&dataStart[kernelIndex*nxp*nyp*nfp], xScale, yScale, aspect, sigma, r2Max, lambda, strength, phi);
    }
    return patches;
 }
 
-int KernelConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, int xScale, int yScale,
+int KernelConnDebugInitWeights::gaborWeights(pvdata_t * dataStart, int xScale, int yScale,
                             float aspect, float sigma, float r2Max, float lambda, float strength, float phi)
 {
    PVParams * params = parent->parameters();
