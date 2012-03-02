@@ -2,7 +2,8 @@ function [status_info] = ...
       batch_spikeCode(input_dir, output_dir, ...
 		      base_rate, max_rate, refractory_period, ...
 		      gray_intensity, max_intensity, ...
-		      integration_period, num_procs)
+		      integration_period, ...
+		      max_images, num_procs)
 
   num_argin = 0;
   num_argin = num_argin + 1;
@@ -35,7 +36,11 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    integration_period = 0.100;
+    integration_period = 0.0300;
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin
+    max_images = 1;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
@@ -47,15 +52,17 @@ function [status_info] = ...
       [input_dir, '*', image_type];
   input_pathnames = glob(input_path);
   num_images = size(input_pathnames,1);
+  if num_images > max_images
+    num_images = max_images;
+    input_pathnames = input_pathnames(1:num_images,1);
+  endif
   disp(['num_images = ', num2str(num_images)]);
 
   mean_hist = zeros(1, num_images);
   std_hist = zeros(1, num_images);
   std_mean_hist = zeros(1, num_images);
 
-  
-
-
+  %%keyboard;
   if num_procs > 1
     [status_info] = ...
 	parcellfun(num_procs, @pvp_spikeCode, ...

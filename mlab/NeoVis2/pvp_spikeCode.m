@@ -1,5 +1,5 @@
 function [status_info] = ...
-      pvp_spikeCode(input_image, ...
+      pvp_spikeCode(image_pathname, ...
 		    base_rate, max_rate, refractory_period, ...
 		    gray_intensity, max_intensity, ...
 		    integration_period, ...
@@ -16,11 +16,11 @@ function [status_info] = ...
   %% The maximum rate is used only to set the slope of a linear encoding.
   %% Gray pixels are guaranteed to produce events at the specified base rate if possible.
 
-
+  %%keyboard;
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin
-    input_image = imread("~/Pictures/lena/lena.png");
+    image_pathname = "~/Pictures/lena/lena.png";
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
@@ -44,7 +44,7 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    integration_period = 0.100;
+    integration_period = 0.030;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
@@ -57,6 +57,7 @@ function [status_info] = ...
     rand_state = rand("state");
   endif
 
+  input_image = imread(image_pathname);
   image_size = size(input_image);
   if isrgb(input_image)
     gray_image = rgb2gray(input_image);
@@ -112,7 +113,7 @@ function [status_info] = ...
   eventTime_3D(:,:,2:num_isi+1) = cumsum( isi_array, 3);
   eventTime_3D(eventTime_3D > integration_period) = -1;
   [max_eventTime, eventCount_array] = ...
-      max(eventTime_3D, repmat(integration_period, [prod(image_size(1:2)), num_isi+1]), 3);
+      max(eventTime_3D, integration_period, 3);
   eventCount_array = eventCount_array - 1;  %% count >= 1
   
   plot_eventCount = 1;
