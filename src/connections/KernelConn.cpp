@@ -49,6 +49,7 @@ int KernelConn::initialize_base()
    nyKernel = 0;
    nfKernel = 0;
 #ifdef PV_USE_MPI
+   keepKernelsSynchronized_flag = true;
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
    return PV_SUCCESS;
@@ -62,6 +63,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+   keepKernelsSynchronized_flag = params->value(name, "keepKernelsSynchronized",0);
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    weightUpdateTime = initializeUpdateTime(params);
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -393,10 +395,15 @@ int KernelConn::updateState(float time, float dt) {
       }
 
 #ifdef PV_USE_MPI
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         status = reduceKernels(axonID);  // combine partial changes in each column
-         if (status == PV_BREAK) {break;}
-         assert(status == PV_SUCCESS);
+      if (keepKernelsSynchronized_flag
+            || parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime()) {
+         for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
+            status = reduceKernels(axonID); // combine partial changes in each column
+            if (status == PV_BREAK) {
+               break;
+            }
+            assert(status == PV_SUCCESS);
+         }
       }
 #endif // PV_USE_MPI
 
@@ -457,6 +464,15 @@ float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime
 
 #ifdef PV_USE_MPI
 int KernelConn::reduceKernels(const int axonID) {
+   Communicator * comm = parent->icCommunicator();
+   const MPI_Comm mpi_comm = comm->communicator();
+   int ierr;
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+   const int nProcs = nxProcs * nyProcs;
+   if (nProcs == 1){
+      return PV_BREAK;
+   }
    const int numPatches = getNumDataPatches();
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
@@ -491,17 +507,11 @@ int KernelConn::reduceKernels(const int axonID) {
 
    // MPI_Allreduce combines all processors' buffers and puts the common result
    // into each processor's buffer.
-   Communicator * comm = parent->icCommunicator();
-   const MPI_Comm mpi_comm = comm->communicator();
-   int ierr;
    ierr = MPI_Allreduce(MPI_IN_PLACE, mpiReductionBuffer, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    // TODO error handling
 
    // mpiReductionBuffer now holds the sum over all processes.
    // Divide by number of processes to get average and copy back to patches
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-   const int nProcs = nxProcs * nyProcs;
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
       //PVPatch * p = kernelPatches[axonID][k];

@@ -543,7 +543,7 @@ int HyPerCol::run(int nTimeSteps)
       fpOutputNames = NULL;
    }
 
-   float stopTime = simTime + nTimeSteps * deltaTime;
+   stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
 
    if (!isInitialized) {
@@ -1041,8 +1041,8 @@ int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSiz
    // if post has higher neuronal density than pre, scaleDiff < 0.
    HyPerLayer * pre = conn->preSynapticLayer();
    int padding = conn->preSynapticLayer()->getLayerLoc()->nb;
-   int needed = scaleDiff > 0 ? ( patchSize/( (int) powf(2,scaleDiff) )/2 ) :
-                                ( (patchSize/2) * ( (int) powf(2,-scaleDiff) ) );
+   int needed = scaleDiff > 0 ? ( patchSize/( (int) pow(2,scaleDiff) )/2 ) :
+                                ( (patchSize/2) * ( (int) pow(2,-scaleDiff) ) );
    if( padding < needed ) {
       if( prevStatus == PV_SUCCESS ) {
          fprintf(stderr, "Margin width error.\n");

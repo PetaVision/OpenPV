@@ -81,6 +81,7 @@ public:
 
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return simTime;}
+   float getStopTime()                    {return stopTime;}
 
    PVLayerLoc getImageLoc()               {return imageLoc;}
    int width()                            {return imageLoc.nxGlobal;}
@@ -152,6 +153,7 @@ private:
    float nextCPWriteTime;
 
    float simTime;          // current time in milliseconds
+   float stopTime;         // time to stop time
    float deltaTime;        // time step interval
    int progressStep;       // How many timesteps between outputting progress
 

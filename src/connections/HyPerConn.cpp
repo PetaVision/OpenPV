@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <limits.h>
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
 #include "../weightinit/InitSmartWeights.hpp"

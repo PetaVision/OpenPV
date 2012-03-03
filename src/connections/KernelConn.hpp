@@ -96,6 +96,7 @@ protected:
 
 #ifdef PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
+   bool keepKernelsSynchronized_flag;
 #endif // PV_USE_MPI
 
    // void set_kernelPatches(PVPatch *** p) {kernelPatches = p;}
