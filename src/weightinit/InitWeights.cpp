@@ -36,8 +36,8 @@ InitWeights::~InitWeights()
 /*This method does the three steps involved in initializing weights.  Subclasses shouldn't touch this method.
  * Subclasses should only generate their own versions of calcWeights to do their own type of weight initialization.
  *
- * This method first calls XXX to create an unshrunken patch.  Then it calls calcWeights to initialize
- * the weights for that unshrunken patch.  Finally it copies the weights back to the original, possibly shrunk patch.
+ * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
+ * data patches.
  */
 int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
 //void InitWeights::initializeWeights(const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
@@ -54,16 +54,10 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, i
       readWeights(patches, dataStart, callingConn->getNumDataPatches(), filename, callingConn, timef);
    }
    else {
-      // int patchsize = callingConn->xPatchSize() * callingConn->yPatchSize() * callingConn->fPatchSize();
       weightParams = createNewWeightParams(callingConn);
-
-//      int nfp = weightParams->getnfPatch_tmp();
-//      int nxp = weightParams->getnxPatch_tmp();
-//      int nyp = weightParams->getnyPatch_tmp();
       //int patchSize = nfp*nxp*nyp;
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
-         //for (int patchIndex = 0; patchIndex < callingConn->numDataPatches(); patchIndex++) {
          for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
 
             //int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
@@ -133,6 +127,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    double timed;
    bool useListOfArborFiles = numArbors>1 &&
                               conn->getParent()->parameters()->value(conn->getName(), "useListOfArborFiles", false)!=0;
+   bool combineWeightFiles = conn->getParent()->parameters()->value(conn->getName(), "combineWeightFiles", false)!=0;
    if( useListOfArborFiles ) {
       int arbor=0;
       FILE * arborfp = pvp_open_read_file(filename, icComm);
@@ -177,8 +172,57 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
             exit(EXIT_FAILURE);
          }
          arbor += thisfilearbors;
+      }  // while
+   } // if useListOfArborFiles
+   else if (combineWeightFiles){
+      int max_weight_files = 1;  // arbitrary limit...
+      int num_weight_files = conn->getParent()->parameters()->value(conn->getName(), "numWeightFiles", max_weight_files, true);
+      int file_count=0;
+      FILE * weightsfp = pvp_open_read_file(filename, icComm);
+
+      int rootproc = 0;
+      char weightsfilename[PV_PATH_MAX];
+      while( file_count < num_weight_files ) {
+         if( icComm->commRank() == rootproc ) {
+            char * fgetsstatus = fgets(weightsfilename, PV_PATH_MAX, weightsfp);
+            if( fgetsstatus == NULL ) {
+               bool endoffile = feof(weightsfp)!=0;
+               if( endoffile ) {
+                  fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", filename, num_weight_files);
+                  exit(EXIT_FAILURE);
+               }
+               else {
+                  int error = ferror(weightsfp);
+                  assert(error);
+                  fprintf(stderr, "File of weight files: error %d while reading.  Exiting.\n", error);
+                  exit(error);
+               }
+            }
+            else {
+               // Remove linefeed from end of string
+               weightsfilename[PV_PATH_MAX-1] = '\0';
+               int len = strlen(weightsfilename);
+               if (len > 1) {
+                  if (weightsfilename[len-1] == '\n') {
+                     weightsfilename[len-1] = '\0';
+                  }
+               }
+            }
+         }
+         int filetype, datatype;
+         int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
+         int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
+         pvp_read_header(weightsfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
+         int thisfilearbors = params[INDEX_NBANDS];
+         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, weightsfilename, icComm, &timed, preLoc);
+         if (status != PV_SUCCESS) {
+            fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
+            exit(EXIT_FAILURE);
+         }
+         file_count += 1;
       }
-   }
+
+   } // if combineWeightFiles
    else {
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {

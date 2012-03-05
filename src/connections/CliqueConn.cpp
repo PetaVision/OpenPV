@@ -29,6 +29,7 @@ int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
       InitWeights *weightInit){
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   pvdata_t *** dw_data;
    PVParams * params = parent->parameters();
    cliqueSize = params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
@@ -36,9 +37,55 @@ int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int CliqueConn::updateState(float time, float dt)
 {
-   int status = KernelConn::updateState(time, dt);
-   assert(status == PV_SUCCESS);
-   return PV_SUCCESS;
+//   int status = KernelConn::updateState(time, dt);
+//   assert(status == PV_SUCCESS);
+//   return PV_SUCCESS;
+
+   update_timer->start();
+   int status = PV_SUCCESS;
+   if( !plasticityFlag ) {
+      return status;
+   }
+   if( time >= weightUpdateTime) {
+      computeNewWeightUpdateTime(time, weightUpdateTime);
+      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+         status = update_dW(axonID);  // don't clear dW, just accumulate changes
+         if (status == PV_BREAK) {break;}
+         assert(status == PV_SUCCESS);
+      }
+
+#ifdef PV_USE_MPI
+      if (keepKernelsSynchronized_flag
+            || parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime()) {
+         for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
+            status = reduceKernels(axonID); // combine partial changes in each column
+            if (status == PV_BREAK) {
+               break;
+            }
+            assert(status == PV_SUCCESS);
+         }
+      }
+#endif // PV_USE_MPI
+
+      // dW and W are the same so don't copy
+      if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
+         if (normalize_flag) {
+            for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
+               status = normalizeWeights(NULL, this->get_wDataStart(),
+                     getNumDataPatches(), axonID);
+               if (status == PV_BREAK) {
+                  break;
+               }
+               assert(status == PV_SUCCESS);
+            }
+         } // normalize_flag
+      } //
+
+   } // time > weightUpdateTime
+
+update_timer->stop();
+return PV_SUCCESS;
+
 };
 
 int CliqueConn::update_dW(int arborId)

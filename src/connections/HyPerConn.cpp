@@ -208,8 +208,8 @@ int HyPerConn::initialize_base()
    // dwPatches = NULL;
    aPostOffset = NULL;
 
-   this->selfFlag = false;  // determines whether connections are made to neuron at same location (i.e. could be a self-connection)
-
+   this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
+   this->combine_dW_with_W_flag = false;
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
@@ -495,35 +495,13 @@ int HyPerConn::initPlasticityPatches()
 
    const int numAxons = numberOfAxonalArborLists();
 
-   // dwPatches = (PVPatch***) calloc(numAxons, sizeof(PVPatch**));
-   // assert(dwPatches != NULL);
-
-   // int numArbors = numWeightPatches();
+   if (this->combine_dW_with_W_flag){
+      dwDataStart = wDataStart;
+      return PV_SUCCESS;
+   }
    for (int arborId = 0; arborId < numAxons; arborId++) {
-
       set_dwDataStart(arborId, allocWeights(wPatches, getNumDataPatches(), nxp, nyp, nfp, arborId));
-      // this->set_dwDataStart(arborId, createWeights(dwPatches, numWeightPatches(), nxp, nyp, nfp, arborId));
       assert(get_dwDataStart(arborId) != NULL);
-      // PVPatch** dWPatch = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-      // assert(dWPatch != NULL);
-
-/*
-      // kex is in extended frame
-      for (int kex = 0; kex < numArbors; kex++) {
-         int kl, offset, nxPatch, nyPatch, dx, dy;
-
-         calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
-
-         // adjust patch size (shrink) to fit within interior of post-synaptic layer
-         //
-         //arbor->plasticIncr = dwPatches[n][kex];
-         //arbor->plasticIncr = dwPatches[arborId][kex];
-         pvpatch_adjust(dwPatches[arborId][kex], sxp, syp, nxPatch, nyPatch, dx, dy);
-
-      } // loop over pre-synaptic neurons
-      setdWPatches(dwPatches[arborId], arborId);
-*/
-
    } // loop over arbors
 
    return PV_SUCCESS;
@@ -535,12 +513,13 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    const char * name = getName();
 
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
-   plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true);
+   plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true) != 0;
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
-   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
+   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
 
-   selfFlag = inputParams->value(name, "selfFlag", selfFlag, true);
+   selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
+   combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
 
    return 0;
 }
@@ -1249,6 +1228,40 @@ int HyPerConn::getNumDataPatches()
    return getNumWeightPatches();
 }
 
+float HyPerConn::minWeight(int arborId)
+{
+   const int num_data_patches = getNumDataPatches();
+   float min_weight = FLT_MAX;
+   for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
+      pvdata_t * w_data = this->get_wData(arborId, i_patch);
+      PVPatch * w_patch = this->getWeights(i_patch, arborId);
+      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         min_weight = (min_weight < w_data[iWeight]) ? min_weight
+               : w_data[iWeight];
+      }
+   }
+   return min_weight;
+}
+
+float HyPerConn::maxWeight(int arborId)
+{
+   const int num_data_patches = getNumDataPatches();
+   float max_weight = -FLT_MAX;
+   for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
+      pvdata_t * w_data = this->get_wData(arborId, i_weight);
+      PVPatch * w_patch = this->getWeights(i_weight, arborId);
+      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         max_weight = (max_weight > w_data[iWeight]) ? max_weight
+               : w_data[iWeight];
+      }
+   }
+   return max_weight;
+}
+
+
+
 /**
  * returns the number of weight patches for the given neighbor
  * @param neighbor the id of the neighbor (0 for interior/self)
@@ -1338,9 +1351,11 @@ int HyPerConn::deleteWeights()
          }
       }
 */
-      if (dwDataStart != NULL){
-         free(this->dwDataStart[arbor]);
-         this->dwDataStart[arbor] = NULL;
+      if (!this->combine_dW_with_W_flag) {
+         if (dwDataStart != NULL) {
+            free(this->dwDataStart[arbor]);
+            this->dwDataStart[arbor] = NULL;
+         }
       }
    }
    free(wPatches);

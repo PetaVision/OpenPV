@@ -63,7 +63,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
-   keepKernelsSynchronized_flag = params->value(name, "keepKernelsSynchronized",0);
+   keepKernelsSynchronized_flag = params->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    weightUpdateTime = initializeUpdateTime(params);
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -265,13 +265,11 @@ int KernelConn::getNumDataPatches()
 
 float KernelConn::minWeight(int arborId)
 {
-   //const int axonID = 0;
    const int numKernels = getNumDataPatches();
    const int numWeights = nxp * nyp * nfp;
    float min_weight = FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = get_wDataStart(arborId) + nxp*nyp*nfp*iKernel + getWeights(iKernel, arborId)->offset;
-      // pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
+      pvdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
                : kernelWeights[iWeight];
@@ -282,13 +280,11 @@ float KernelConn::minWeight(int arborId)
 
 float KernelConn::maxWeight(int arborId)
 {
-   //const int axonID = 0;
    const int numKernels = getNumDataPatches();
    const int numWeights = nxp * nyp * nfp;
    float max_weight = -FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = get_wDataStart(arborId) + nxp*nyp*nfp*iKernel + getWeights(iKernel, arborId)->offset;
-      // pvdata_t * kernelWeights = kernelPatches[arborId][iKernel]->data;
+      pvdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
                : kernelWeights[iWeight];
@@ -321,11 +317,13 @@ int KernelConn::clear_dW(int axonId) {
          }
       }
    }
-   return PV_SUCCESS;
+   return PV_BREAK;
+   //return PV_SUCCESS;
 }
 int KernelConn::update_dW(int axonId) {
    // Typically override this method with a call to defaultUpdate_dW(axonId)
-   return PV_SUCCESS;
+   return PV_BREAK;
+   //return PV_SUCCESS;
 }
 
 int KernelConn::defaultUpdate_dW(int axonId) {

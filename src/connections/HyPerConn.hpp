@@ -110,8 +110,8 @@ public:
    inline int getDelay(int arborId = 0)               {assert(arborId>=0 && arborId<numAxonalArborLists); return delays[arborId];}
 
    inline bool getSelfFlag(){return selfFlag;};
-   virtual float minWeight(int arborId = 0)          {return 0.0;}
-   virtual float maxWeight(int arborId = 0)          {return wMax;}
+   virtual float minWeight(int arborId = 0);
+   virtual float maxWeight(int arborId = 0);
 
    inline int xPatchSize()                           {return nxp;}
    inline int yPatchSize()                           {return nyp;}
@@ -214,7 +214,8 @@ private:
    pvdata_t      ** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
 
 
-   bool selfFlag;
+   bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
+   bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    int defaultDelay; //added to save params file defined delay...
 
 protected:

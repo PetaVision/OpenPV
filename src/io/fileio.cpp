@@ -172,7 +172,7 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
                   // data are packed into chars
                   float val = (float) *cptr++;
                   int offset = x*sxp + y*syp + f*sfp;
-                  data[offset] = minVal + (maxVal - minVal) * (val / 255.0);
+                  data[offset] += minVal + (maxVal - minVal) * (val / 255.0);
                }
             }
          }
@@ -189,7 +189,7 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
                   float val;
                   memcpy(&val, cptr, sizeof(float));
                   cptr += sizeof(float);
-                  data[offset] = (pvdata_t) val;
+                  data[offset] += (pvdata_t) val;
                }
             }
          }
