@@ -1,17 +1,21 @@
 #! /usr/bin/env bash
+
+# If called from a directory other than PetaVision/scripts, change to PetaVision/scripts
 if test "${0%/*}" != "$0"
 then
     cd "${0%/*}"
 fi
-cd ..
+cd ../.. # We should now be in the eclipse workspace directory
 wd=$PWD
 
-cd ../PetaVision/lib
+# PetaVision must be compiled before any projects that depend on it
+cd PetaVision/lib
 make clean
 make -j4 all
 cd $wd
 
-for k in $(ls | egrep -v ../PetaVision)
+# Compile each project in workspace directory except PetaVision
+for k in $(ls | egrep -v PetaVision)
 do
     cd $k/Debug
     make clean
@@ -19,7 +23,8 @@ do
     cd $wd
 done
 
-cd ../PetaVision/tests
+# Compile the unit tests
+cd PetaVision/tests
 make clean
 make -j4 all
 cd $wd
