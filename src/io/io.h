@@ -79,23 +79,7 @@ int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
 int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * ulVal);
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
-#ifdef OBSOLETE // Marked obsolete Sept 27, 2011.  These functions have been superseded and no other functions call them.
-int scatterReadBuf(PVLayer * l, float * globalBuf, float * localBuf, MPI_Comm comm);
-int scatterReadFile(const char * filename, PVLayer * l, float * buf, MPI_Comm comm);
-int gatherWriteFile(const char * filename, PVLayer * l, float * ibuf, MPI_Comm comm);
-int pv_tiff_write_patch(FILE * fd, PVPatch * patch);
-int pv_tiff_write_cube(const char * filename, PVLayerCube * cube, int nx, int ny, int nf);
-int printStats(pvdata_t * buf, int nItems, char * msg);
-int pv_dump(const char * output_path, const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
-int pv_dump_sparse(const char * output_path, const char * filename, int append, pvdata_t * I, int nx, int ny, int nf);
-int pv_write_patch(FILE * fp, int numTotal, float minVal, float maxVal, PVPatch * p);
-int pv_write_patches(const char * output_path, const char * filename, int append,
-                     int nx, int ny, int nf, float minVal, float maxVal,
-                     int numPatches, PVPatch ** patches);
-int pv_read_patches(FILE *fp, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                    int numPatches, PVPatch ** patches);
-int log_parameters(int n_time_steps, char * input_filename);
-#endif // OBSOLETE
+
 int pv_text_write_patch(FILE * fd, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
