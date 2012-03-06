@@ -484,6 +484,16 @@ static inline float gaussianWeight(float x0, float x, float sigma, float max)
    return expf(-0.5f * dx * dx / (sigma * sigma));
 }
 
+static inline unsigned char compressWeight(pvdata_t pval, float minVal, float maxVal) {
+   unsigned char cval = (unsigned char) (255.0 * (((float)pval - minVal) / (maxVal - minVal)) + 0.5);
+   return cval;
+}
+
+static inline pvdata_t uncompressWeight(unsigned char cval, float minVal, float maxVal) {
+   pvdata_t pval =  (pvdata_t) (minVal + (maxVal - minVal) * ((float)cval / 255.0));
+   return pval;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

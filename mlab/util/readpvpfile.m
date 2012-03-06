@@ -124,8 +124,11 @@ if isempty(errorstring)
                 if numextra > 0
                     hdr.additional = fread(fid,numextra,'int32');
                 end
-                data{f} = struct('time',hdr.time,'values',[]);
+                data{f} = struct('time',hdr.time,'values',[],'nx',[],'ny',[],'offset',[]);
                 data{f}.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
+                data{f}.nx = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
+                data{f}.ny = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
+                data{f}.offset = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);                
                 for arbor=1:hdr.nbands
                     for y=1:hdr.nyprocs
                         for x=1:hdr.nxprocs
@@ -134,15 +137,17 @@ if isempty(errorstring)
                             patchesperproc = hdr.numPatches/(hdr.nxprocs*hdr.nyprocs);
                             data{f}.values{cellindex} = nan(hdr.nxp,hdr.nyp,hdr.nfp,patchesperproc);
                             for p=1:patchesperproc
-                                patchnx = fread(fid,1,'int16');
-                                patchny = fread(fid,1,'int16');
+                                patchnx = fread(fid,1,'uint16');
+                                patchny = fread(fid,1,'uint16');
+                                patchoffset = fread(fid,1,'uint32');
                                 Z = fread(fid,hdr.nxp*hdr.nyp*hdr.nfp,precision);
-                                tempdata = reshape(Z(1:hdr.nfp*patchnx*patchny),hdr.nfp,patchnx,patchny);
+                                tempdata = reshape(Z(1:hdr.nfp*hdr.nxp*hdr.nyp),hdr.nfp,hdr.nxp,hdr.nyp);
                                 tempdata = permute(tempdata,[2 3 1]);
-                                xpindices = 1:patchnx;
-                                ypindices = 1:patchny;
                                 % Need to move shrunken patches
-                                data{f}.values{cellindex}(xpindices,ypindices,:,p) = tempdata;
+                                data{f}.values{cellindex}(:,:,:,p) = tempdata;
+                                data{f}.nx{cellindex} = patchnx;
+                                data{f}.ny{cellindex} = patchny;
+                                data{f}.offset{cellindex} = patchoffset;
                             end
                         end
                     end
@@ -193,17 +198,14 @@ if isempty(errorstring)
                     % octave has trouble with multidim cell arrays
                     data{f}.values{cellindex} = nan(hdr.nxp,hdr.nyp,hdr.nfp,hdr.numPatches);
                     for p=1:hdr.numPatches
-                        patchnx = fread(fid,1,'int16');
-                        patchny = fread(fid,1,'int16');
+                        fread(fid,1,'uint16'); % patch->nx
+                        fread(fid,1,'uint16'); % patch->ny
+                        fread(fid,1,'uint32'); % patch->offset
                         Z = fread(fid,hdr.nfp*hdr.nxp*hdr.nyp,precision);
-                        tempdata = reshape(Z(1:hdr.nfp*patchnx*patchny),hdr.nfp,patchnx,patchny);
+                        tempdata = reshape(Z,hdr.nfp,hdr.nxp,hdr.nyp);
                         tempdata = permute(tempdata,[2 3 1]);
-                        
-                        xpindices = 1:patchnx;
-                        ypindices = 1:patchny;
-                        % Shrunken patches on the left side and top side of the layer need to be moved to the right/bottom of unshrunken patch
-                        
-                        data{f}.values{cellindex}(xpindices,ypindices,:,p) = tempdata;
+                                                
+                        data{f}.values{cellindex}(:,:,:,p) = tempdata;
                     end
                     if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
                         data{f}.values{cellindex} = data{f}.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;

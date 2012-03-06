@@ -48,21 +48,30 @@ size_t pv_sizeof(int datatype)
  */
 size_t pv_sizeof_patch(int count, int datatype)
 {
-   return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
+   return ( 2*sizeof(unsigned short) + sizeof(unsigned int) + count*pv_sizeof(datatype) );
+   // return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
 /**
  * Copy patches into an unsigned char buffer
  */
-int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numPatches,
+int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numDataPatches,
                      int nxp, int nyp, int nfp, float minVal, float maxVal,
                      bool compressed=true) {
+   // Copies data from patches and dataStart to buf.
+   // buf should point to a buffer of size numDataPatches*pv_sizeof_patch(numweights,datatype) characters,
+   // where numweights is nxp*nyp*nfp; and datatype is PV_FLOAT_TYPE for uncompressed weights and PV_BYTE_TYPE for compressed.
+   // The calling routine is responsible for allocating and for freeing buf.
+   // For PVP_KERNEL_FILE_TYPE, patches should be null.  For PVP_WGT_FILE_TYPE, patches should point to the weight patches for one arbor.
+   // Each patch takes up pv_sizeof_patch(numweights,datatype) chars in buf --- even for shrunken patches.
+   // The values in patches[k] will be written to &buf[k].  (For PVP_KERNEL_FILE_TYPE, the values are always nx=nxp, ny=nyp, offset=0).
+   // The numweights values from dataStart+k*numweights will be copied to buf starting at &buf[k*(numweights*datasize+2*sizeof(short)+sizeof(int))].
    unsigned char * cptr = buf;
    const int patchsize = nxp * nyp * nfp;
    int nx = nxp;
    int ny = nyp;
    int offset = 0;
-   for (int k = 0; k < numPatches; k++) {
+   for (int k = 0; k < numDataPatches; k++) {
       if( patches != NULL ) {
          PVPatch * p = patches[k];
          nx = p->nx;
@@ -70,55 +79,32 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
          offset = p->offset;
       }
       // const pvdata_t * data = p->data;
-      const pvdata_t * data = dataStart + k*patchsize + offset;
+      const pvdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
 
-      const int sxp = nfp; //p->sx;
-      const int syp = nfp * nxp; //p->sy;
-      const int sfp = 1; //p->sf;
+      // const int sxp = nfp; //p->sx;
+      // const int syp = nfp * nxp; //p->sy;
+      // const int sfp = 1; //p->sf;
 
       unsigned short * nxny = (unsigned short *) cptr;
-
       nxny[0] = (unsigned short) nx;
       nxny[1] = (unsigned short) ny;
-
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp - nx*ny*nfp;
+      unsigned int * offsetptr = (unsigned int *) cptr;
+      *offsetptr = offset;
+      cptr += sizeof(unsigned int);
+
       if( compressed ) {
-         for (int y = 0; y < ny; y++) {
-            for (int x = 0; x < nx; x++) {
-               for (int f = 0; f < nfp; f++) {
-                  float val = data[x*sxp + y*syp + f*sfp];
-                  val = 255.0 * (val - minVal) / (maxVal - minVal);
-                  *cptr++ = (unsigned char) (val + 0.5f);
-               }
-            }
-         }
-
-         // write leftover null characters
-         int nExtra = sizeof(unsigned char)*numExtraNeurons;
-
-         for (int i = 0; i < nExtra; i++) {
-            *cptr++ = (unsigned char) 0;
+         for (int k = 0; k < patchsize; k++) {
+            *cptr++ = compressWeight(data[k], minVal, maxVal);
          }
       }
       else {
-         for (int y = 0; y < ny; y++) {
-            for (int x = 0; x < nx; x++) {
-               for (int f = 0; f < nfp; f++) {
-                  float val = data[x*sxp + y*syp + f*sfp];
-                  memcpy(cptr, &val, sizeof(float));
-                  cptr += sizeof(float);
-               }
-            }
+         float * fptr = (float *) cptr;
+         for (int k = 0; k < patchsize; k++) {
+            *fptr++ = data[k];
          }
-
-         // write leftover null characters
-         if( numExtraNeurons > 0 ) {
-            int nExtra = sizeof(pvdata_t)*numExtraNeurons;
-            memset(cptr, 0, nExtra);
-            cptr += nExtra;
-         }
+         cptr = (unsigned char *) fptr;
       }
    }
 
@@ -128,21 +114,29 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
 /**
  * Set patches given an unsigned char input buffer
  */
-int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numPatches,
+int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numDataPatches,
                     int nxp, int nyp, int nfp, float minVal, float maxVal,
                     bool compress=true)
 {
+   // Copies data from patches and dataStart to buf.
+   // buf should point to a buffer of size numDataPatches*pv_sizeof_patch(numweights,datatype) characters,
+   // where numweights is nxp*nyp*nfp; and datatype is PV_FLOAT_TYPE for uncompressed weights and PV_BYTE_TYPE for compressed.
+   // The calling routine is responsible for allocating and for freeing buf.
+   // For PVP_KERNEL_FILE_TYPE, patches should be null.  For PVP_WGT_FILE_TYPE, patches should point to the weight patches for one arbor.
+   // Each patch takes up pv_sizeof_patch(numweights,datatype) chars in buf --- even for shrunken patches.
+   // The values in patches[k] are compared to &buf[k] in an assert statement; they should be equal.  (For PVP_KERNEL_FILE_TYPE, these tests are skipped).
+   // The numweights values from dataStart+k*numweights will be copied from buf starting at &buf[k*(numweights*datasize+2*sizeof(short)+sizeof(int))].
    unsigned char * cptr = buf;
 
-   const int sfp = 1;
-   const int sxp = nfp;
-   const int syp = nfp * nxp;
-   const int patchsize = syp * nyp;
+   // const int sfp = 1;
+   // const int sxp = nfp;
+   // const int syp = nfp * nxp;
+   const int patchsize = nxp * nyp * nfp; // syp * nyp;
 
-   int nx = nxp;
-   int ny = nyp;
-   int offset = 0;
-   for (int k = 0; k < numPatches; k++) {
+   unsigned short nx = nxp;
+   unsigned short ny = nyp;
+   unsigned int offset = 0;
+   for (int k = 0; k < numDataPatches; k++) {
       if( patches != NULL ) {
          PVPatch * p = patches[k];
          nx = p->nx;
@@ -150,55 +144,30 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
          offset = p->offset;
       }
       // pvdata_t * data = p->data;
-      pvdata_t * data = dataStart + k*patchsize + offset;
+      pvdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
 
       unsigned short * nxny = (unsigned short *) cptr;
-      nx = (int) nxny[0];
-      ny = (int) nxny[1];
-      assert( patches==NULL || (patches[k]->nx==nx && patches[k]->ny==ny) );
-      //p->nf = nfp;
-
-      //p->sf = sfp;
-      //p->sx = sxp;
-      //p->sy = syp;
-
+      nx = nxny[0];
+      ny = nxny[1];
       cptr += 2 * sizeof(unsigned short);
 
-      int numExtraNeurons = nxp*nyp*nfp -nx*ny*nfp;
-      if( compress ) {
-         for (int y = 0; y < ny; y++) {
-            for (int x = 0; x < nx; x++) {
-               for (int f = 0; f < nfp; f++) {
-                  // data are packed into chars
-                  float val = (float) *cptr++;
-                  int offset = x*sxp + y*syp + f*sfp;
-                  data[offset] += minVal + (maxVal - minVal) * (val / 255.0);
-               }
-            }
-         }
+      unsigned int * offsetptr = (unsigned int *) cptr;
+      offset = *offsetptr;
+      cptr += sizeof(unsigned int);
+      assert( patches==NULL || (patches[k]->nx==nx && patches[k]->ny==ny && patches[k]->offset == offset) );
 
-         // skip leftover null characters
-         int nExtra = sizeof(unsigned char)*numExtraNeurons;
-         cptr += nExtra;
+      if( compress ) {
+         for (int k = 0; k < patchsize; k++) {
+            // values in buf are packed into chars
+            data[k] += uncompressWeight(*cptr++, minVal, maxVal);
+         }
       }
       else {
-         for (int y = 0; y < ny; y++) {
-            for (int x = 0; x < nx; x++) {
-               for (int f = 0; f < nfp; f++) {
-                  int offset = x*sxp + y*syp + f*sfp;
-                  float val;
-                  memcpy(&val, cptr, sizeof(float));
-                  cptr += sizeof(float);
-                  data[offset] += (pvdata_t) val;
-               }
-            }
+         float * fptr = (float *) cptr;
+         for (int k = 0; k < patchsize; k++) {
+            data[k] += *fptr++;
          }
-
-         // skip leftover null characters
-         if( numExtraNeurons > 0 ) {
-            int nExtra = sizeof(pvdata_t)*numExtraNeurons;
-            cptr += nExtra;
-         }
+         cptr = (unsigned char *) fptr;
       }
    }
 
@@ -966,96 +935,6 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
                        extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 22, 2011
-int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
-{
-   int status = PV_SUCCESS;
-
-   const int icRoot = 0;
-   const int icRank = comm->commRank();
-   int numNeurons = l->numNeurons;
-   pvdata_t * VmemVals = l->V;
-
-#ifdef PV_USE_MPI
-   const int tag = PVP_NONSPIKING_ACT_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-   if (icRank != icRoot) {
-
-#ifdef PV_USE_MPI
-      const int dest = icRoot;
-      MPI_Send(VmemVals, numNeurons, MPI_FLOAT, dest, tag, mpi_comm);
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeActivity: sent to %d, numNeurons==%d\n",
-              comm->commRank(), dest, numNeurons);
-      fflush(stderr);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-
-      // leaving not root-process section
-      //
-   }
-   else {
-      // we are io root process
-      //
-
-#ifdef PV_USE_MPI
-      // get the number active from each process
-      // TODO - use collective?
-      //
-      const int icSize = comm->commSize();
-
-#endif // PV_USE_MPI
-
-      bool extended   = false;
-      bool contiguous = true;
-
-      const int datatype = PV_FLOAT_TYPE;
-
-      // write activity header
-      //
-      long fpos = ftell(fp);
-      if (fpos == 0L) {
-         int numParams = NUM_BIN_PARAMS;
-         status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                   datatype, sizeof(int), extended, contiguous, numParams, (size_t) numNeurons);
-         if (status != 0) return status;
-      }
-
-      // write time, total active count, and local activity
-      //
-      if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
-      if ( fwrite(VmemVals, sizeof(pvdata_t), numNeurons, fp) != (size_t) numNeurons ) {
-         return -1;
-      }
-
-      // recv and write non-local activity
-      //
-#ifdef PV_USE_MPI
-      for (int p = 1; p < icSize; p++) {
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeActivity: receiving from %d numNeurons==%d\n",
-                    comm->commRank(), p, numNeurons);
-            fflush(stderr);
-#endif // DEBUG_OUTPUT
-            MPI_Recv(VmemVals, numNeurons, MPI_FLOAT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
-// (CER) I think this is wrong as it doesn't have header size and if you want to read
-// more than once it is really wrong.  It shouldn't be needed because writes are ordered.
-//            long offset = p * numNeurons * sizeof(float);
-//            fseek(fp, offset, SEEK_SET);
-            if ( fwrite(VmemVals, sizeof(float), numNeurons, fp) != (unsigned int) numNeurons ) return -1;
-      }
-#endif // PV_USE_MPI
-
-      // leaving root-process section
-      //
-   }
-
-   return status;
-}
-#endif // OBSOLETE
-
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
 {
    int status = PV_SUCCESS;
@@ -1385,7 +1264,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    int nxBlocks, nyBlocks;
 
    bool extended = true;
-   bool contiguous = false;   // TODO implement contiguous = false case
+   bool contiguous = false;   // TODO implement contiguous = true case
 
    int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
 
@@ -1507,151 +1386,5 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
    return PV_SUCCESS; // TODO error handling
 }  // end writeWeights (all arbors)
-
-#ifdef OBSOLETE_NBANDSFORARBORS
-/*!
- *
- * numPatches is NX x NY x NF in extended space
- * patchSize includes these records:
- * - nx
- * - ny
- * - nxp x nyp weights
- * .
- *
- */
-int writeWeights(const char * filename, Communicator * comm, double time, bool append,
-                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch ** patches, int numPatches, bool compress, int file_type) // compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
-{
-   int status = PV_SUCCESS;
-   int nxBlocks, nyBlocks;
-
-   bool extended = true;
-   bool contiguous = false;   // for now
-
-   int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
-
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-
-   const int icRank = comm->commRank();
-
-// TODO - do I need to check this??
-   //   assert(numPatches == nx*ny*nf);
-
-
-   const int numPatchItems = nxp * nyp * nfp;
-   const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
-   const size_t localSize = numPatches * patchSize;
-
-   if (contiguous) {
-      nxBlocks = 1;
-      nyBlocks = 1;
-   }
-   else {
-      nxBlocks = nxProcs;
-      nyBlocks = nyProcs;
-   }
-
-   unsigned char * cbuf = (unsigned char *) malloc(localSize);
-   assert(cbuf != NULL);
-
-   pvp_copy_patches(cbuf, patches, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-
-#ifdef PV_USE_MPI
-   const int tag = file_type; // PVP_WGT_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-   if (icRank > 0) {
-
-#ifdef PV_USE_MPI
-      const int dest = 0;
-      if (file_type != PVP_KERNEL_FILE_TYPE){
-         MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
-      }
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
-              comm->commRank(), nxBlocks, nyBlocks, numPatches);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-
-   }
-   else {
-      float * fptr;
-      int params[NUM_WGT_EXTRA_PARAMS];
-
-      int numParams = NUM_WGT_PARAMS;
-
-      FILE * fp = pvp_open_write_file(filename, comm, append);
-
-      if (fp == NULL) {
-         fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
-         return -1;
-      }
-
-      // use file_type passed as argument to enable different behavior
-      status = pvp_write_header(fp, comm, time, loc, file_type,
-                                datatype, 1, extended, contiguous, numParams, localSize);
-      if (status != 0) return status;
-
-      // write extra weight parameters
-      //
-      params[INDEX_WGT_NXP] = nxp;
-      params[INDEX_WGT_NYP] = nyp;
-      params[INDEX_WGT_NFP] = nfp;
-
-      fptr  = (float *) &params[INDEX_WGT_MIN];
-      *fptr = minVal;
-      fptr  = (float *) &params[INDEX_WGT_MAX];
-      *fptr = maxVal;
-
-
-      params[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
-      if (file_type == PVP_KERNEL_FILE_TYPE){
-         params[INDEX_WGT_NUMPATCHES] = numPatches;
-      }
-
-      numParams = NUM_WGT_EXTRA_PARAMS;
-      if ( fwrite(params, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
-
-      // write local portion
-      // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
-      //
-      size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
-      if ( numfwritten != 1 ) return -1;
-
-      if (file_type == PVP_KERNEL_FILE_TYPE){
-         free(cbuf);
-         status = pvp_close_file(fp, comm);
-         return status;
-      }
-
-#ifdef PV_USE_MPI
-      int src = -1;
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++src == 0) continue;
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeWeights: receiving from %d nxProcs==%d nyProcs==%d localSize==%ld\n",
-                    comm->commRank(), src, nxProcs, nyProcs, localSize);
-#endif // DEBUG_OUTPUT
-            MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-
-            // const int headerSize = numParams * sizeof(int);
-            // long offset = headerSize + src * localSize;
-            // fseek(fp, offset, SEEK_SET);
-            if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
-         }
-      }
-#endif // PV_USE_MPI
-
-      free(cbuf);
-      status = pvp_close_file(fp, comm);
-   } // rank == 0
-
-   return status;
-}
-#endif // OBSOLETE_NBANDSFORARBORS
 
 } // namespace PV
