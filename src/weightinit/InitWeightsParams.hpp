@@ -27,7 +27,7 @@ public:
 
    //get-set methods:
    inline const char * getName()                       {return name;}
-   inline void setName(const char * name)    {this->name = strdup(name);}
+   inline void setName(const char * name)    {free(this->name); this->name = strdup(name);}
    inline HyPerCol * getParent()                     {return parent;}
    inline HyPerLayer * getPre()                        {return pre;}
    inline HyPerLayer * getPost()                       {return post;}

@@ -33,7 +33,6 @@ InitWeightsParams::InitWeightsParams(HyPerConn * pConn) {
 InitWeightsParams::~InitWeightsParams()
 {
    free(this->name);
-   // TODO Auto-generated destructor stub
 }
 
 
@@ -68,29 +67,11 @@ int InitWeightsParams::initialize(HyPerConn * pConn) {
    this->post = parentConn->getPost();
    this->channel = parentConn->getChannel();
    this->setName(parentConn->getName());
-//   nxPatch_tmp = parentConn->xPatchSize();
-//   nyPatch_tmp = parentConn->yPatchSize();
-//   nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
-//   sx_tmp = parentConn->xPatchStride(); //patch->sx;
-//   sy_tmp = parentConn->yPatchStride(); //patch->sy;
-//   sf_tmp = parentConn->fPatchStride(); //patch->sf;
 
    return status;
-
 }
 
 void InitWeightsParams::getcheckdimensionsandstrides() {
-   // get/check dimensions and strides of full sized temporary patch
-   // nxPatch_tmp = parentConn->xPatchSize();
-   // nyPatch_tmp = parentConn->yPatchSize();
-   // nfPatch_tmp = parentConn->fPatchSize(); //patch->nf;
-
-   // sx_tmp = parentConn->xPatchStride(); //patch->sx;
-//   assert(sx_tmp == parentConn->fPatchSize()); // patch->nf);
-//   // sy_tmp = parentConn->yPatchStride(); //patch->sy;
-//   assert(sy_tmp == parentConn->fPatchSize()*parentConn->xPatchSize()); //patch->nf * patch->nx);
-//   // sf_tmp = parentConn->fPatchStride(); //patch->sf;
-//   assert(sf_tmp == 1);
 }
 
 int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
@@ -98,7 +79,6 @@ int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
-   //parentConn->patchIndexToKernelIndex(patchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    parentConn->dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
@@ -140,8 +120,8 @@ int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
 
 
    // sigma is in units of pre-synaptic layer
-   dxPost = xRelativeScale; //powf(2, (float) post->getXScale());
-   dyPost = yRelativeScale; //powf(2, (float) post->getYScale());
+   dxPost = xRelativeScale;
+   dyPost = yRelativeScale;
 
    return kfPre_tmp;
 }
