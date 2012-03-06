@@ -48,7 +48,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
          float checkperiod = hc->parameters()->value(name, "checkPeriod", 0, true);
          addedProbe = new TopDownTestProbe(filename, hc, msg, checkperiod);
       }
-      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+      free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       if( addedProbe != NULL ) {
          assert(targetLayer);
          targetLayer->insertProbe(addedProbe);

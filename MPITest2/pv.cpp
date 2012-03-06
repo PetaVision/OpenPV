@@ -77,7 +77,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       if( status == PV_SUCCESS ) {
          addedProbe = new MPITestProbe(filename, hc, msg);
       }
-      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+      free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       if( addedProbe != NULL ) {
          assert(targetLayer);
          targetLayer->insertProbe(addedProbe);
