@@ -1231,41 +1231,45 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
 
 #define LAYERPROBEMSGLENGTH 32
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, char ** messagePtr, const char ** filenamePtr) {
+   // If messagePtr is null, no memory is allocated for the message.
+   // If messagePtr is non-null, memory is allocated and the calling routine is responsible for freeing it.
    PVParams * params = hc->parameters();
    int rank = hc->icCommunicator()->commRank();
-   char * message = NULL;
    const char * filename;
    *targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
    if( *targetLayerPtr==NULL && rank==0 ) {
       fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
       return PV_FAILURE;
    }
-   message = getStringValueFromParameterGroup(name, params, "message", false);
-   if( message && messagePtr ) {
-      message = strdup(message);
+   if( messagePtr ) {
+      char * message = NULL;
+      const char * msgFromParams = getStringValueFromParameterGroup(name, params, "message", false);
+      if( msgFromParams ) {
+         message = strdup(msgFromParams);
+      }
+      else {
+         size_t messagelen = strlen(name);
+         assert(LAYERPROBEMSGLENGTH>0);
+         messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
+         message = (char *) malloc(LAYERPROBEMSGLENGTH+1);
+         if( ! message ) {
+            fprintf(stderr, "Group \"%s\": Rank %d process unable to allocate memory for message\n", name, rank);
+            return PV_FAILURE;
+         }
+         for( size_t c=0; c<messagelen; c++ ) {
+            message[c] = name[c];
+         }
+         for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
+            message[c] = ' ';
+         }
+         message[LAYERPROBEMSGLENGTH-1] = ':';
+         message[LAYERPROBEMSGLENGTH] = '\0';
+         if( rank == 0 ) {
+            printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
+         }
+      }
+      *messagePtr = message;
    }
-   else {
-      size_t messagelen = strlen(name);
-      assert(LAYERPROBEMSGLENGTH>0);
-      messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
-      message = (char *) malloc(LAYERPROBEMSGLENGTH+1);
-      if( ! message ) {
-         fprintf(stderr, "Group \"%s\": Rank %d process unable to allocate memory for message\n", name, rank);
-         return PV_FAILURE;
-      }
-      for( size_t c=0; c<messagelen; c++ ) {
-         message[c] = name[c];
-      }
-      for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
-         message[c] = ' ';
-      }
-      message[LAYERPROBEMSGLENGTH-1] = ':';
-      message[LAYERPROBEMSGLENGTH] = '\0';
-      if( rank == 0 ) {
-         printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
-      }
-   }
-   if(messagePtr) *messagePtr = message;
    filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
    *filenamePtr = filename;
    filename = NULL;
