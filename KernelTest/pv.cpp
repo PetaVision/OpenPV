@@ -42,7 +42,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    const char * filename;
    HyPerLayer * targetlayer;
-   const char * message;
+   char * message = NULL;
    bool errorFound;
    if( !strcmp(keyword, "KernelTestProbe") ) {
       status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
@@ -58,6 +58,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
          else {
             addedProbe = (LayerProbe *) new KernelTestProbe(message);
          }
+         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
          if( !addedProbe ) {
             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
             errorFound = true;

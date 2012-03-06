@@ -34,7 +34,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
       const char * kw = params->groupKeywordFromIndex(n);
       const char * name = params->groupNameFromIndex(n);
       HyPerLayer * targetlayer;
-      const char * message;
+      char * message = NULL;
       const char * filename;
       ArborTestProbe * addedProbe;
       ArborTestForOnesProbe * addedOnesProbe;
@@ -51,6 +51,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
          else {
             addedProbe =  new ArborTestProbe(message);
          }
+         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
          if( !addedProbe ) {
             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          }
@@ -71,6 +72,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
          else {
             addedOnesProbe =  new ArborTestForOnesProbe(message);
          }
+         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
          if( !addedOnesProbe ) {
             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          }

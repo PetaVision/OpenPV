@@ -39,7 +39,7 @@ int main(int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    HyPerLayer * targetLayer;
    void * addedGroup = NULL;
-   const char * msg;
+   char * msg = NULL;
    const char * filename;
    if( !strcmp( keyword, "TopDownTestProbe") ) {
       TopDownTestProbe * addedProbe;
@@ -48,6 +48,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
          float checkperiod = hc->parameters()->value(name, "checkPeriod", 0, true);
          addedProbe = new TopDownTestProbe(filename, hc, msg, checkperiod);
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       if( addedProbe != NULL ) {
          assert(targetLayer);
          targetLayer->insertProbe(addedProbe);

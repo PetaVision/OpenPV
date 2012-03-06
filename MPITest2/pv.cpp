@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    HyPerLayer * targetLayer;
    void * addedGroup = NULL;
-   const char * msg;
+   char * msg = NULL;
    const char * filename;
    if( !strcmp(keyword, "MPITestLayer") ) {
 	   HyPerLayer * addedLayer = (HyPerLayer *) new MPITestLayer(name, hc);
@@ -77,6 +77,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       if( status == PV_SUCCESS ) {
          addedProbe = new MPITestProbe(filename, hc, msg);
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       if( addedProbe != NULL ) {
          assert(targetLayer);
          targetLayer->insertProbe(addedProbe);

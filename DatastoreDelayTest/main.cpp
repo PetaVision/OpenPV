@@ -70,7 +70,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    else if( !strcmp( keyword, "DatastoreDelayTestProbe" ) ) {
       HyPerLayer * targetLayer;
-      const char * message;
+      char * message = NULL;
       const char * filename;
       getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &message, &filename);
       DatastoreDelayTestProbe * addedProbe = NULL;
@@ -85,6 +85,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
          fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
          addedProbe = NULL;
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       addedGroup = (void *) addedProbe;
    }
    return addedGroup;
