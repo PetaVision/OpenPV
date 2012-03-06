@@ -119,9 +119,9 @@ public:
    inline int xPatchStride()                         {return sxp;}
    inline int yPatchStride()                         {return syp;}
    inline int fPatchStride()                         {return sfp;}
-   inline int xPostSize()                            {return nxpPost;}
-   inline int yPostSize()                            {return nypPost;}
-   inline int fPostSize()                            {return nfpPost;}
+   inline int xPostPatchSize()                            {return nxpPost;}
+   inline int yPostPatchSize()                            {return nypPost;}
+   inline int fPostPatchSize()                            {return nfpPost;}
 
    //arbor and weight patch related get/set methods:
    inline PVPatch ** weights(int arborId = 0)        {return wPatches[arborId];}

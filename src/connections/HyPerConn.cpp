@@ -1463,17 +1463,17 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
    const int nyPre = lPre->loc.ny + 2 * prePad;
    const int nfPre = lPre->loc.nf;
 
-   nxpPost  = lPost->loc.nx;
-   nypPost  = lPost->loc.ny;
-   nfpPost  = lPost->loc.nf;
+   const int nxPost  = lPost->loc.nx;
+   const int nyPost  = lPost->loc.ny;
+   const int nfPost  = lPost->loc.nf;
    const int numPost = lPost->numNeurons;
 
-   const int nxPostPatch = (int) (nxp * powXScale);
-   const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = lPre->loc.nf;
+   nxpPost = (int) (nxp * powXScale);
+   nypPost = (int) (nyp * powYScale);
+   nfpPost = lPre->loc.nf;
 
    // the number of features is the end-point value (normally post-synaptic)
-   const int numPostPatch = nxPostPatch * nyPostPatch * nfPostPatch;
+   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
    if (wPostPatches == NULL) {
       wPostPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
@@ -1482,7 +1482,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
       wPostDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
       assert(wPostDataStart!=NULL);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         wPostDataStart[axonID] = createWeights(wPostPatches, numPost, nxPostPatch, nyPostPatch, nfPostPatch, axonID);
+         wPostDataStart[axonID] = createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, axonID);
       }
    }
 
@@ -1492,12 +1492,12 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
       // loop through post-synaptic neurons (non-extended indices)
 
       for (int kPost = 0; kPost < numPost; kPost++) {
-         int kxPost = kxPos(kPost, nxpPost, nypPost, nfpPost);
-         int kyPost = kyPos(kPost, nxpPost, nypPost, nfpPost);
-         int kfPost = featureIndex(kPost, nxpPost, nypPost, nfpPost);
+         int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
+         int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
+         int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
 
-         int kxPreHead = zPatchHead(kxPost, nxPostPatch, post->getXScale(), pre->getXScale());
-         int kyPreHead = zPatchHead(kyPost, nyPostPatch, post->getYScale(), pre->getYScale());
+         int kxPreHead = zPatchHead(kxPost, nxpPost, post->getXScale(), pre->getXScale());
+         int kyPreHead = zPatchHead(kyPost, nypPost, post->getYScale(), pre->getYScale());
 
          // convert kxPreHead and kyPreHead to extended indices
          kxPreHead += prePad;
@@ -1509,13 +1509,13 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
    //      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
-         pvdata_t * postData = wPostDataStart[axonID] + nxPostPatch*nyPostPatch*nfPostPatch + wPostPatches[axonID][kPost]->offset;
+         pvdata_t * postData = wPostDataStart[axonID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[axonID][kPost]->offset;
          for (int kp = 0; kp < numPostPatch; kp++) {
 
             // calculate extended indices of presynaptic neuron {kPre, kzPre}
-            int kxPostPatch = (int) kxPos(kp, nxPostPatch, nyPostPatch, nfPre);
-            int kyPostPatch = (int) kyPos(kp, nxPostPatch, nyPostPatch, nfPre);
-            int kfPostPatch = (int) featureIndex(kp, nxPostPatch, nyPostPatch, nfPre);
+            int kxPostPatch = (int) kxPos(kp, nxpPost, nypPost, nfPre);
+            int kyPostPatch = (int) kyPos(kp, nxpPost, nypPost, nfPre);
+            int kfPostPatch = (int) featureIndex(kp, nxpPost, nypPost, nfPre);
 
             int kxPre = kxPreHead + kxPostPatch;
             int kyPre = kyPreHead + kyPostPatch;
