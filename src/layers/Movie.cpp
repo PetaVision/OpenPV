@@ -147,6 +147,7 @@ Movie::~Movie()
             fclose(fp_pos);
          }
    }
+   free(mpi_datatypes);
 }
 
 pvdata_t * Movie::getImageBuffer()

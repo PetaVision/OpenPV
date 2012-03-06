@@ -157,6 +157,10 @@ HyPerConn::~HyPerConn()
    // free(aPostOffset);
 
    free(delays);
+   for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
+      free(probes[i_probe]);
+   }
+   free(this->probes);
 
    // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
@@ -233,7 +237,7 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   pvdata_t ** gSynPatchStartBuffer = (pvdata_t **) calloc(
+   gSynPatchStartBuffer = (pvdata_t **) calloc(
          (this->shrinkPatches_flag ? numAxonalArborLists : 1)
                * preSynapticLayer()->getNumExtended(), sizeof(pvdata_t *));
    if (gSynPatchStartBuffer == NULL) {
@@ -250,7 +254,7 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   size_t * aPostOffsetBuffer = (size_t *) calloc(
+   aPostOffsetBuffer = (size_t *) calloc(
          (this->shrinkPatches_flag ? numAxonalArborLists : 1)
                * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if( aPostOffsetBuffer == NULL ) {
@@ -1394,9 +1398,9 @@ int HyPerConn::deleteWeights()
       free(wPostPatches);
    }
 
-   free(*gSynPatchStart); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+   free(gSynPatchStartBuffer); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
    free(gSynPatchStart);
-   free(*aPostOffset); // All aPostOffset[k]'s were allocated together in a single malloc call.
+   free(aPostOffsetBuffer); // All aPostOffset[k]'s were allocated together in a single malloc call.
    free(aPostOffset);
 
    return 0;

@@ -233,7 +233,9 @@ int KernelConn::deleteWeights()
 {
    // As of the Feb. 27 refactoring, there are no weights specific to KernelConn that need to be deleted here.
    // The HyPerConn destructor calls HyPerConn::deleteWeights(), which gets rid of wPatches, wDataStart and dwDataStart
+   free(patch2datalookuptable);
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
+
 }
 
 PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
@@ -539,7 +541,7 @@ void KernelConn::initPatchToDataLUT() {
    int numWeightPatches=getNumWeightPatches();
    //int numDataPatches=getNumDatapatches();
 
-   patch2datalookuptable=(int *) malloc(numWeightPatches*sizeof(int));
+   patch2datalookuptable=(int *) calloc(numWeightPatches, sizeof(int));
    for(int i=0; i<numWeightPatches; i++) {
       patch2datalookuptable[i]=patchIndexToDataIndex(i);
    }

@@ -271,6 +271,10 @@ HyPerLayer::~HyPerLayer()
 
    free(labels); labels = NULL;
    free(marginIndices); marginIndices = NULL;
+   for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
+      free(probes[i_probe]);
+   }
+   free(probes);
 }
 
 void HyPerLayer::freeChannels()

@@ -73,7 +73,7 @@ int InitV::initialize(HyPerCol * hc, const char * groupName) {
    return status;
 }
 
-InitV::~InitV() {}
+InitV::~InitV() {free(this->groupName);}
 
 int InitV::calcV(HyPerLayer * layer) {
    int status = PV_SUCCESS;

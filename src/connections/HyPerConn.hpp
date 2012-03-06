@@ -206,7 +206,9 @@ protected:
 private:
    PVPatch       *** wPatches; // list of weight patches, one set per arbor
    pvdata_t      *** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
+   pvdata_t      ** gSynPatchStartBuffer;
    size_t        ** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
+   size_t         * aPostOffsetBuffer;
    int           *  delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides  postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides  postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer

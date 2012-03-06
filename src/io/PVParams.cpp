@@ -494,7 +494,7 @@ int PVParams::parsefile(const char * filename) {
  */
    int rootproc = 0;
    InterColComm * icComm = parentHyPerCol->icCommunicator();
-   char * paramBuffer;
+   char * paramBuffer = NULL;
    size_t bufferlen;
    if( icComm->commRank() == rootproc ) {
       if( filename == NULL ) {
@@ -512,6 +512,7 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile: ERROR seeking end of file \"%s\".  Error code %d\n", filename, errno);
          exit(errno);
       }
+      //TODO:: make sure paramBuffer is correctly freed (this method was flagged as a memory lead by valgrind)
       bufferlen = (size_t) ftell(paramfp);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
@@ -550,6 +551,7 @@ int PVParams::parsefile(const char * filename) {
    if( parseStatus != 0 ) {
       fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, parseStatus);
    }
+   free(paramBuffer);
    return PV_SUCCESS;
 }
 

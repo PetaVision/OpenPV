@@ -32,6 +32,7 @@ InitWeightsParams::InitWeightsParams(HyPerConn * pConn) {
 
 InitWeightsParams::~InitWeightsParams()
 {
+   free(this->name);
    // TODO Auto-generated destructor stub
 }
 
