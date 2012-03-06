@@ -324,6 +324,7 @@ protected:
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    //PVPatch ** allocWeights(PVPatch ** patches);
+   int clearWeights(pvdata_t ** dataStart, int numPatches, int nx, int ny, int nf);
 
    virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
@@ -376,6 +377,7 @@ public:
 #endif
 
 private:
+   int clearWeights(pvdata_t * arborDataStart, int numPatches, int nx, int ny, int nf);
    int deleteWeights();
 
 public:

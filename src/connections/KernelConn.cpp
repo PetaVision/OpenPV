@@ -743,6 +743,9 @@ int KernelConn::writeWeights(float time, bool last)
 #endif // OBSOLETE_NBANDSFORARBORS
 
 int KernelConn::checkpointRead(float * timef) {
+   // Only difference from HyPerConn::checkpointRead() is first argument to weightsInitObject->initializeWeights.
+   // Can we juggle things so that KernelConn::checkpointWrite is unnecessary?
+   clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, this, timef);

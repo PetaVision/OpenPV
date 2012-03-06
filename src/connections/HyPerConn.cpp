@@ -1124,9 +1124,10 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 }
 
 int HyPerConn::checkpointRead(float * timef) {
+   clearWeights(wDataStart, getNumDataPatches(), nxp, nyp, nfp);
    char * filename = checkpointFilename();
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(wPatches, wDataStart, getNumDataPatches(), filename, this, timef);
+   weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), filename, this, timef);
    free(filename);
    return PV_SUCCESS;
 }
@@ -1315,6 +1316,21 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
 
    pvdata_t * data_patches = createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
    return data_patches;
+}
+
+int HyPerConn::clearWeights(pvdata_t ** dataStart, int numPatches, int nxp, int nyp, int nfp) {
+   int status;
+   for( int arborID = 0; arborID<numAxonalArborLists; arborID++ ) {
+      if( clearWeights(dataStart[arborID], numPatches, nxp, nyp, nfp)!=PV_SUCCESS ) status = PV_FAILURE;
+   }
+   return status;
+}
+
+int HyPerConn::clearWeights(pvdata_t * arborDataStart, int numPatches, int nxp, int nyp, int nfp) {
+   for( int w=0; w<numPatches*nxp*nyp*nfp; w++ ) {
+      arborDataStart[w] = 0.0f;
+   }
+   return PV_SUCCESS;
 }
 
 int HyPerConn::deleteWeights()
