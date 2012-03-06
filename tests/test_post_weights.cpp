@@ -15,6 +15,7 @@
 #include "../src/columns/HyPerCol.hpp"
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
+#include "../src/weightinit/InitUniformWeights.hpp"
 // #include "../src/io/ConnectionProbe.hpp"
 // #include "../src/io/PostConnProbe.hpp"
 
@@ -35,9 +36,10 @@ int main(int argc, char * argv[])
    Example   * l1 = new Example("test_post_weights L1", hc);
    Example   * l2 = new Example("test_post_weights L2", hc);
    Example   * l3 = new Example("test_post_weights L3", hc);
-   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, CHANNEL_EXC);
-   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, CHANNEL_EXC);
-   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, CHANNEL_EXC);
+   InitWeights * initWeights = new InitUniformWeights();
+   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, CHANNEL_EXC, NULL, initWeights);
+   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, CHANNEL_EXC, NULL, initWeights);
+   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, CHANNEL_EXC, NULL, initWeights);
    assert(c1->numberOfAxonalArborLists() == 1);
    assert(c2->numberOfAxonalArborLists() == 1);
    assert(c3->numberOfAxonalArborLists() == 1);
@@ -45,22 +47,24 @@ int main(int argc, char * argv[])
    // set weights to be k index source in pre-synaptic layer
    //
    status = set_weights_to_source_index(c1);
-   status = set_weights_to_source_index(c2);
-   status = set_weights_to_source_index(c3);
-
    postWeights = c1->convertPreSynapticWeights(0.0f)[0];
+   status = c1->writePostSynapticWeights(c1->getParent()->simulationTime(),false);
    status = check_weights(c1, postWeights, c1->getWPostData(0,0));
    if (status) return status;
 
+   status = set_weights_to_source_index(c2);
    postWeights = c2->convertPreSynapticWeights(0.0f)[0];
+   status = c2->writePostSynapticWeights(c2->getParent()->simulationTime(),false);
    status = check_weights(c2, postWeights, c2->getWPostData(0,0));
    if (status) return status;
 
+   status = set_weights_to_source_index(c3);
    postWeights = c3->convertPreSynapticWeights(0.0f)[0];
+   status = c3->writePostSynapticWeights(c3->getParent()->simulationTime(),false);
    status = check_weights(c3, postWeights, c3->getWPostData(0,0));
    if (status) return status;
 
-#ifdef DEBUG_PRING
+#ifdef DEBUG_PRINT
    ConnectionProbe * cp = new ConnectionProbe(-1, -2, 0);
    c2->insertProbe(cp);
 
@@ -110,7 +114,8 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
       const int sy = (nxPre + 2*nbPre) * nfPre;
       const int sf = c->fPatchStride(); // p->sf;
 
-      pvdata_t * w = &postDataStart[kPost*c->xPostSize()*c->yPostSize()*c->fPostSize() + p->offset]; // p->data;
+      const int postPatchSize = c->xPostPatchSize()*c->yPostPatchSize()*c->fPostPatchSize();
+      pvdata_t * w = &postDataStart[kPost*postPatchSize + p->offset]; // p->data;
 
       c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
@@ -138,20 +143,20 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
                // int kPreObserved = (int) ws[0];
                // int kPostObserved = (int) ws[1];
 
-               int ws = (int) w[kp];
-               int kPostObserved = ws % numPostPatches;
-               int kPreObserved = (ws-kPostObserved)/numPostPatches;
+               float ws = w[kp]; // int ws = (int) w[kp];
+               int kPostObserved = (int) nearbyintf((float)fmod(ws,numPostPatches));
+               int kPreObserved = (int) nearbyintf((ws-kPostObserved)/numPostPatches);
 
                if (kPre != kPreObserved || kPost != kPostObserved) {
                   status = -1;
-                  fprintf(stderr, "ERROR: check_weights: connection %s, kPost==%d kPre==%d kp==%d != w==%d\n",
-                          c->getName(), kPost, kPre, kp, (int) w[kp]);
+                  fprintf(stderr, "ERROR: check_weights: connection %s, kPost==%d kPre==%d kp==%d, expected %d != w==%d\n",
+                          c->getName(), kPost, kPre, kp, kPre*numPostPatches+kPost, (int) w[kp]);
                   fprintf(stderr, "    nxp==%d nyp==%d nfp==%d\n", nxp, nyp, nfp);
                   const char * filename = "post_weights.txt";
                   c->writeTextWeights(filename, kPre);
-                  kp++;
                   return status;
                }
+               kp++;
             }
          }
       }
@@ -207,7 +212,6 @@ static int set_weights_to_source_index(HyPerConn * c)
                int kyPost = kyPostHead + y;
                int kfPost = kfPostHead + f;
                int kPost = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
-
                // wPacked[0] = kPre;
                // wPacked[1] = kPost;
                w[x*sxp + y*syp + f*sfp] = kPre*numPostPatches + kPost; // * ((float *) wPacked);
@@ -219,7 +223,8 @@ static int set_weights_to_source_index(HyPerConn * c)
    } // end loop over weight patches
    char filename[PV_PATH_MAX];
    status = snprintf(filename, PV_PATH_MAX, "%s/%s_W.pvp", c->getParent()->getOutputPath(), c->getName())<PV_PATH_MAX ? PV_SUCCESS : PV_FAILURE;
-   if(status==PV_SUCCESS) status = c->writeWeights(filename);
+   if(status == PV_SUCCESS) status = c->writeWeights(filename);
+   status = snprintf(filename, PV_PATH_MAX, "%s/%s_W.pvp", c->getParent()->getOutputPath(), c->getName())<PV_PATH_MAX ? PV_SUCCESS : PV_FAILURE;
 
    return status;
 }

@@ -1,39 +1,106 @@
+debugParsing=false;
+
 HyPerCol "column" = {
-   nx = 64;
-   ny = 64;
+   nx = 32;
+   ny = 32;
+   numSteps = 1;
+   progressStep = 1;
+   randomSeed = 1615192023;
+   dt = 1;
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   outputPath = "output/test_post_weights";
 };
 
 HyPerLayer "test_post_weights L1" = {
    nxScale = 1;
    nyScale = 1;
+   nf = 1;
    marginWidth = 1;
+   writeStep = -1;
+   spikingFlag = false;
+   writeNonspikingActivity = true;
+   mirrorBCflag = false;
+   restart = false;
+   InitVType = "ZeroV";
 };
 
 HyPerLayer "test_post_weights L2" = {
    nxScale = 1;
    nyScale = 1;
+   nf = 1;
    marginWidth = 2;  // works for scale of 2 and npatch of 8
+   writeStep = -1;
+   spikingFlag = false;
+   writeNonspikingActivity = true;
+   mirrorBCflag = false;
+   restart = false;
+   InitVType = "ZeroV";
 };
 
 HyPerLayer "test_post_weights L3" = {
    nxScale = 2;
    nyScale = 2;
+   nf = 1;
    marginWidth = 4;
+   writeStep = -1;
+   spikingFlag = false;
+   writeNonspikingActivity = true;
+   mirrorBCflag = false;
+   restart = false;
+   InitVType = "ZeroV";
 };
 
 HyPerConn "test_post_weights L1 to L1" = {
    nxp = 3;
    nyp = 3;
+   nfp = 1;
+   numAxonalArbors = 1;
+   combine_dW_with_W_flag = false;
+   weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   writeCompressedWeights = false;
+   selfFlag = false;
+   delay = 0;
+   writeStep = -1;
+   shrinkPatches = false;
+   normalize = false;
 };
 
 // patch size should be odd number times scale factor
 HyPerConn "test_post_weights L2 to L3" = {
    nxp = 10; //6; //8;
    nyp = 10; //6; //8;
+   nfp = 1;
+   numAxonalArbors = 1;
+   combine_dW_with_W_flag = false;
+   weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   writeCompressedWeights = false;
+   selfFlag = false;
+   delay = 0;
+   writeStep = -1;
+   shrinkPatches = false;
+   normalize = false;
 };
 
 // patch size should be odd number 
 HyPerConn "test_post_weights L3 to L2" = {
    nxp = 5; // 1/2 of forward weight patch
    nyp = 5;
+   nfp = 1;
+   numAxonalArbors = 1;
+   combine_dW_with_W_flag = false;
+   weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   writeCompressedWeights = false;
+   selfFlag = false;
+   delay = 0;
+   writeStep = -1;
+   shrinkPatches = false;
+   normalize = false;
 };
