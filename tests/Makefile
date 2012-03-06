@@ -8,7 +8,7 @@ INPARAMS = input/params.test
 
 # flags
 #
-dbg    := 0
+dbg    := 1
 mpi    := 1
 gdal   := 1
 opencl := 1
