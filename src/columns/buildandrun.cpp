@@ -1066,7 +1066,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    LayerProbe * addedProbe;
    // char * probename;
    HyPerLayer * targetlayer;
-   const char * message;
+   char * message = NULL;
    const char * filename;
    PVParams * params = hc->parameters();
    GenColProbe * parentcolprobe;
@@ -1099,6 +1099,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
              errorFound = true;
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    if( !strcmp(classkeyword, "PointLIFProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
@@ -1124,6 +1125,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
              errorFound = true;
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    if( !strcmp(classkeyword, "StatsProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
@@ -1144,6 +1146,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
              errorFound = true;
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    if( !strcmp(classkeyword, "L2NormProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
@@ -1168,6 +1171,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    if( !strcmp(classkeyword, "SparsityTermProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
@@ -1192,6 +1196,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
@@ -1216,6 +1221,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    assert(targetlayer);
    if( addedProbe ) targetlayer->insertProbe(addedProbe);
@@ -1224,10 +1230,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
 }
 
 #define LAYERPROBEMSGLENGTH 32
-int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, const char ** messagePtr, const char ** filenamePtr) {
+int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayerPtr, char ** messagePtr, const char ** filenamePtr) {
    PVParams * params = hc->parameters();
    int rank = hc->icCommunicator()->commRank();
-   const char * message;
+   char * message = NULL;
    const char * filename;
    *targetLayerPtr = getLayerFromParameterGroup(name, hc, "targetLayer");
    if( *targetLayerPtr==NULL && rank==0 ) {
@@ -1235,30 +1241,31 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
       return PV_FAILURE;
    }
    message = getStringValueFromParameterGroup(name, params, "message", false);
-   if( ! message ) {
+   if( message && messagePtr ) {
+      message = strdup(message);
+   }
+   else {
       size_t messagelen = strlen(name);
       assert(LAYERPROBEMSGLENGTH>0);
       messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
-      char * newmessage = (char *) malloc(LAYERPROBEMSGLENGTH+1);
-      if( ! newmessage ) {
+      message = (char *) malloc(LAYERPROBEMSGLENGTH+1);
+      if( ! message ) {
          fprintf(stderr, "Group \"%s\": Rank %d process unable to allocate memory for message\n", name, rank);
          return PV_FAILURE;
       }
       for( size_t c=0; c<messagelen; c++ ) {
-         newmessage[c] = name[c];
+         message[c] = name[c];
       }
       for( size_t c=messagelen; c<LAYERPROBEMSGLENGTH-1; c++ ) {
-         newmessage[c] = ' ';
+         message[c] = ' ';
       }
-      newmessage[LAYERPROBEMSGLENGTH-1] = ':';
-      newmessage[LAYERPROBEMSGLENGTH] = '\0';
-      message = newmessage;
-      newmessage = NULL;
+      message[LAYERPROBEMSGLENGTH-1] = ':';
+      message[LAYERPROBEMSGLENGTH] = '\0';
       if( rank == 0 ) {
          printf("Group \"%s\": will use \"%s\" for the message\n", name, message);
       }
    }
-   *messagePtr = message;
+   if(messagePtr) *messagePtr = message;
    filename = getStringValueFromParameterGroup(name, params, "probeOutputFile", false);
    *filenamePtr = filename;
    filename = NULL;
