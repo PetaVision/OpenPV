@@ -29,7 +29,7 @@ int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, ChannelType channel, const char * filename,
       InitWeights *weightInit){
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
-   pvdata_t *** dw_data;
+   // pvdata_t *** dw_data;
    PVParams * params = parent->parameters();
    cliqueSize = params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
