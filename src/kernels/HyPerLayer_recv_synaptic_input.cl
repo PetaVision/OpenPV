@@ -107,6 +107,7 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
           float xScale,
           float yScale,
           size_t offsetA,
+          CL_MEM_GLOBAL int * p2dLUT,
           CL_MEM_GLOBAL float * A,
           CL_MEM_GLOBAL float * W,
 #ifdef PV_USE_OPENCL
@@ -134,6 +135,7 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
    int kxl=lidx+kx-nxl/2;
    int kyl=lidy+ky-nyl/2;
    int kPre=kyl*(nxPre*nfPre+2*nbPre)+kxl;
+   if(p2dLUT[0]==-1) kPre=p2dLUT[kPre];
    int wPatchSize = nxp*nyp*nfp;
    int wOffset=wPatchSize*kPre;
    //int tempBufStride=nxl+nxp*nfp;
@@ -152,7 +154,7 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
 //#endif
 
 #ifdef PV_USE_OPENCL
-   float activity=A[kPre+offsetA];
+   float activity=A[kPre]+offsetA;
 #else
    float activity=A[kPre];
 #endif

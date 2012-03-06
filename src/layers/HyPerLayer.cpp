@@ -196,7 +196,7 @@ void HyPerLayer::initUseGPUFlag() {
    PVParams * params = parent->parameters();
    gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
    copyDataStoreFlag=false;
-   buffersInitialized=false;
+   //buffersInitialized=false;
 }
 
 //this method sets up GPU related variables and calls the
@@ -448,29 +448,38 @@ size_t HyPerLayer::getLayerDataStoreOffset(int delay)
    return offset;
 }
 
+int HyPerLayer::copyDataStoreCLBuffer() {
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return store->copyBufferToDevice();
+}
+int HyPerLayer::waitForDataStoreCopy() {
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   return store->waitForCopy();
+}
+
 CLBuffer * HyPerLayer::getLayerDataStoreCLBuffer()
 {
-   if(!buffersInitialized) {
-      //this may seem like a strange place to do this, but when the
-      //layer is being created, the publishers don't exist yet!
-      if(initializeDataStoreThreadBuffers()) {
-         buffersInitialized=true;
-      }
-      //else
-        // return NULL;
-   }
+//   if(!buffersInitialized) {
+//      //this may seem like a strange place to do this, but when the
+//      //layer is being created, the publishers don't exist yet!
+//      if(initializeDataStoreThreadBuffers()) {
+//         buffersInitialized=true;
+//      }
+//      //else
+//        // return NULL;
+//   }
 
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
    return store->getCLBuffer();
 }
 
-int HyPerLayer::initializeDataStoreThreadBuffers()
-{
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   int status= store->initializeThreadBuffers(parent);
-   //status |= store->getCLBuffer()->copyToDevice(evCopyDataStore);
-   return status;
-}
+//int HyPerLayer::initializeDataStoreThreadBuffers()
+//{
+//   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+//   int status= store->initializeThreadBuffers(parent);
+//   //status |= store->getCLBuffer()->copyToDevice(evCopyDataStore);
+//   return status;
+//}
 
 #endif
 
@@ -867,7 +876,8 @@ int HyPerLayer::publish(InterColComm* comm, float time)
    int status = comm->publish(this, clayer->activity);
 #ifdef PV_USE_OPENCL
    if(copyDataStoreFlag) {
-      status |= getLayerDataStoreCLBuffer()->copyToDevice(evCopyDataStore);
+      status |= copyDataStoreCLBuffer();
+      //status |= getLayerDataStoreCLBuffer()->copyToDevice(evCopyDataStore);
       //numWait += 1;
    }
 #endif

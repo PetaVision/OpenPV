@@ -262,8 +262,11 @@ public:
    size_t     getLayerDataStoreOffset(int delay=0);
    void initUseGPUFlag();
    inline bool getUseGPUFlag() {return gpuAccelerateFlag;}
-   int initializeDataStoreThreadBuffers();
-   void tellLayerToCopyDataStoreCLBuffer(cl_event * evCpDataStore) {copyDataStoreFlag=true; evCopyDataStore=evCpDataStore;}
+   //int initializeDataStoreThreadBuffers();
+   inline bool getCopyDataStoreFlag() {return copyDataStoreFlag;}
+   int waitForDataStoreCopy();
+   int copyDataStoreCLBuffer();
+   void tellLayerToCopyDataStoreCLBuffer(/*cl_event * evCpDataStore*/) {copyDataStoreFlag=true; /*evCopyDataStore=evCpDataStore;*/}
 
    //temporary method for debuging recievesynapticinput
    virtual inline int getGSynEvent(ChannelType ch) {
@@ -304,7 +307,7 @@ protected:
    int numWait;               // number of events to wait for
    cl_event * evList;         // event list
    cl_event   evUpdate;
-   cl_event * evCopyDataStore;
+   //cl_event * evCopyDataStore;
 
    int nxl;  // local OpenCL grid size in x
    int nyl;  // local OpenCL grid size in y
@@ -312,7 +315,7 @@ protected:
    bool gpuAccelerateFlag;
    bool copyToDevice;
    bool copyDataStoreFlag;
-   bool buffersInitialized;
+   //bool buffersInitialized;
 
 #endif
 

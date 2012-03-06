@@ -193,6 +193,9 @@ public:
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
 */
 
+#ifdef PV_USE_OPENCL
+   virtual int * getLUTpointer() {return NULL;}
+#endif // PV_USE_OPENCL
    virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ky=NULL, int * kf=NULL);
@@ -352,17 +355,17 @@ protected:
    virtual int initializeThreadKernels(const char * kernelName);
 
    CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
-   cl_event * evRecvSynList;
+   cl_event   evRecvSyn;
+   cl_event * evRecvSynWaitList;
    int numWait;  //number of receive synaptic runs to wait for (=numarbors)
-   cl_event   evCopyDataStore;
+   //cl_event   evCopyDataStore;
 
    size_t nxl;
    size_t nyl;
+
    // OpenCL buffers
-   //
    CLBuffer *  clGSyn;
-   //CLBuffer *   clGSynSemaphors;
-   //int *     gSynSemaphors; //only saving this so it can be deallocated...
+   CLBuffer *  clPatch2DataLookUpTable;
    CLBuffer *  clActivity;
    CLBuffer ** clWeights;
 

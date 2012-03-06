@@ -139,8 +139,8 @@ HyPerConn::~HyPerConn()
          clWeights = NULL;
       }
 
-      free(evRecvSynList);
-      evRecvSynList=NULL;
+      free(evRecvSynWaitList);
+      evRecvSynWaitList=NULL;
       //delete gSynSemaphors;
       //gSynSemaphors=NULL;
    }
@@ -616,8 +616,9 @@ void HyPerConn::initUseGPUFlag() {
 int HyPerConn::initializeGPU() {
    initUseGPUFlag();
    if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelToDevice();
-   numWait = numberOfAxonalArborLists();
-   evRecvSynList = (cl_event *) malloc(numWait*sizeof(cl_event));
+   int totwait = numberOfAxonalArborLists();
+   evRecvSynWaitList = (cl_event *) malloc(totwait*sizeof(cl_event));
+   numWait = 0;
 
    nxl = 16;
    nyl = 8;
@@ -651,8 +652,8 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
    // create device buffers for weights
    //
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      pvdata_t * wBuf = getWeights(0, arbor)->data;
-      clWeights[arbor] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, wBuf);
+      pvdata_t * wBuf = get_wDataStart(arbor);
+      clWeights[arbor] = device->createReadBuffer(size, (void*)wBuf);
    }
 
 //   gSynSemaphors=(int*)calloc(sizeof(int), post->getNumNeurons());
@@ -660,9 +661,20 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
 //   clGSynSemaphors= device->createBuffer(CL_MEM_COPY_HOST_PTR, sizeSem, gSynSemaphors);
    //float *gSemaphors=(float*)calloc(sizeof(float), postLoc->getNumNeurons();
 
+   const int numWeightPatches = getNumWeightPatches();
+   const size_t lutSize = numWeightPatches*sizeof(int);
+   int * lutpointer = getLUTpointer();
+   bool freelutpointer=false;
+   if(lutpointer==NULL) {
+      lutpointer = (int *) calloc(sizeof(int), numWeightPatches);
+      freelutpointer=true;
+      lutpointer[0]=-1;
+   }
+   clPatch2DataLookUpTable = device->createReadBuffer(lutSize, (void*)lutpointer);
+   if(freelutpointer) free(lutpointer);
 
    //tell the presynaptic layer to copy its data store to the GPU after publishing
-   pre->tellLayerToCopyDataStoreCLBuffer(&evCopyDataStore);
+   pre->tellLayerToCopyDataStoreCLBuffer(/*&evCopyDataStore*/);
 
    return status;
 }
@@ -710,10 +722,11 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    status |= krRecvSyn->setKernelArg(argid++, yScale);
 
    clArgIdOffset = argid;  // offset into activity buffer (with delay)
+   argid++;
+   status |= krRecvSyn->setKernelArg(argid++, clPatch2DataLookUpTable);
    //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
    // activity buffer from DataStore
    //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
-   argid++;
    clArgIdDataStore=argid;
    argid++;
    clArgIdWeights = argid; // weights
@@ -958,32 +971,43 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const size_t nxex = preLoc->nx*preLoc->nf + 2*preLoc->nb;
    const size_t nyex = preLoc->ny + 2*preLoc->nb;
-   while(nxex%nxl!=0) {nxl--;}
-   while(nyex%nyl!=0) {nyl--;}
+   while((nxex%nxl!=0)&&(nxl>1)) {nxl--;}
+   while((nyex%nyl!=0)&&(nyl>1)) {nyl--;}
 
    status |= krRecvSyn->setKernelArg(clArgIdDataStore, pre->getLayerDataStoreCLBuffer());
 
-   status |= clWaitForEvents(1, &evCopyDataStore);
-   clReleaseEvent(evCopyDataStore);
+   status |= pre->waitForDataStoreCopy();
+//   status |= clWaitForEvents(1, &evCopyDataStore);
+//   clReleaseEvent(evCopyDataStore);
 
 
    // for all numextended in pre
 
    post->startTimer();
 
-   for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
+
+   int arborCnt=numberOfAxonalArborLists();
+   //arborCnt=1;
+   for (int arbor = 0; arbor < arborCnt; arbor++) {
       int delay = getDelay(arbor);
       size_t activityOffset = pre->getLayerDataStoreOffset(delay);
       status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset);
       status |= krRecvSyn->setKernelArg(clArgIdWeights, clWeights[arbor]);
-      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSynList[arbor]);
+      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSynWaitList[arbor]);
+      numWait++;
+//      numWait = 1;
+//      status |= clWaitForEvents(numWait, &evRecvSynWaitList[arbor]);
+//      //for (int i = 0; i < numWait; i++) {
+//      status |= clReleaseEvent(evRecvSynWaitList[arbor]);
+//     // }
+//      numWait = 0;
       //status |= krRecvSyn->run(nxl, nyl, nxl, nyl, 0, NULL, &evRecvSyn);
    }
 
    // TODO - use events properly
-   status |= clWaitForEvents(numWait, evRecvSynList);
+   status |= clWaitForEvents(numWait, evRecvSynWaitList);
    for (int i = 0; i < numWait; i++) {
-      clReleaseEvent(evRecvSynList[i]);
+      clReleaseEvent(evRecvSynWaitList[i]);
    }
    numWait = 0;
 

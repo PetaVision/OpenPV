@@ -24,6 +24,10 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPer
    KernelConn::initialize_base();
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    // HyPerConn::initialize is not virtual
+#ifdef PV_USE_OPENCL
+   if(gpuAccelerateFlag)
+      initializeGPU();
+#endif
 }
 
 KernelConn::~KernelConn() {
@@ -63,7 +67,9 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+#ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = params->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
+#endif
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    weightUpdateTime = initializeUpdateTime(params);
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -88,7 +94,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif // PV_USE_MPI
 #ifdef PV_USE_OPENCL
    //don't support GPU accelleration in kernelconn yet
-   ignoreGPUflag=true;
+   ignoreGPUflag=false;
    //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
    post->copyChannelToDevice();
 #endif

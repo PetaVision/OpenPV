@@ -67,6 +67,9 @@ public:
          int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
 */
 
+#ifdef PV_USE_OPENCL
+   virtual int * getLUTpointer() {return patch2datalookuptable;}
+#endif // PV_USE_OPENCL
    void initPatchToDataLUT();
    virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
