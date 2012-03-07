@@ -36,7 +36,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	   void * addedGroup = NULL;
 	   const char * filename;
 	   HyPerLayer * targetlayer;
-	   const char * message;
+	   char * message = NULL;
 	   bool errorFound;
 	   if( !strcmp(keyword, "CloneKernelConnTestProbe") ) {
 	      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
@@ -59,6 +59,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	         targetlayer->insertProbe(addedProbe);
 	         if( !errorFound ) addedGroup = (void *) addedProbe;
 	      }
+	      free(message); message = NULL;
 	   }
 	   return addedGroup;
 }
