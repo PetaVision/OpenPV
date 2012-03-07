@@ -54,10 +54,9 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
    int status;
    PVParams * params = hc->parameters();
    HyPerLayer * targetlayer;
-   const char * message;
    const char * filename;
    if( !strcmp( keyword, "ChannelProbe") ) {
-      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
+      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, NULL, &filename);
       if(status != PV_SUCCESS) {
          fprintf(stderr, "Skipping params group \"%s\"\n", name);
          return NULL;
