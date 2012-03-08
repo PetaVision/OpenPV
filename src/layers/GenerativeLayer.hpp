@@ -35,7 +35,7 @@ protected:
    /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t * GSynAux, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence);
    // virtual int updateV();
    virtual int setActivity();
-   virtual int updateSparsityTermDerivative();
+   // virtual int updateSparsityTermDerivative();
 
    pvdata_t relaxation; // V(new) = V(old) - relaxation*(gradient wrt V)
    pvdata_t activityThreshold;  // values with absolute value below threshold are zero

@@ -89,6 +89,7 @@ int GenerativeLayer::updateState(float timef, float dt) {
 }
 
 int GenerativeLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t * GSynAux, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence) {
+   updateSparsityTermDeriv_GenerativeLayer(numNeurons, V, sparsitytermderivative);
    updateV_GenerativeLayer(numNeurons, V, GSynExc, GSynInh, GSynAux, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
    setActivity();
    resetGSynBuffers();
@@ -96,14 +97,14 @@ int GenerativeLayer::updateState(float timef, float dt, int numNeurons, pvdata_t
    return PV_SUCCESS;
 }
 
-int GenerativeLayer::updateSparsityTermDerivative() {
-   pvdata_t * V = getV();
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      pvdata_t vk = V[k];
-      sparsitytermderivative[k] = 2*vk/(1+vk*vk);
-   }
-   return PV_SUCCESS;
-}
+//int GenerativeLayer::updateSparsityTermDerivative() {
+//   pvdata_t * V = getV();
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      pvdata_t vk = V[k];
+//      sparsitytermderivative[k] = 2*vk/(1+vk*vk);
+//   }
+//   return PV_SUCCESS;
+//}
 
 int GenerativeLayer::setActivity() {
    const int nx = getLayerLoc()->nx;

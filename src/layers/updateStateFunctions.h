@@ -48,8 +48,11 @@ static inline int updateV_SigmoidLayer();
 static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMax);
 static inline int applyVThresh_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VThresh);
 static inline int squareV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V);
+static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * sparsitytermderivative);
+static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, CL_MEM_GLOBAL int num_features, pvdata_t * V, pvdata_t * sparsitytermderivative);
+static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int num_features);
 
-static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * A, int nx, int ny, int nf, int nb);
+static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb);
 
 // Definitions
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh) {
@@ -177,7 +180,6 @@ static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 
 static inline int applyVThresh_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VThresh) {
    if( VThresh > -max_pvdata_t ) {
-      //pvdata_t * V = V;
       int k=0;
 #ifndef PV_USE_OPENCL
       for( k=0; k<numNeurons; k++ )
@@ -205,10 +207,52 @@ static inline int squareV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
    return PV_SUCCESS;
 }
 
-static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * A, int nx, int ny, int nf, int nb) {
+static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, pvdata_t * V, pvdata_t * sparsitytermderivative) {
    int k;
-#ifndef PV_USE_OPENCL
-   for( k=0; k<numNeurons; k++ )
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPEN_CL
+   {
+      pvdata_t vk = V[k];
+      sparsitytermderivative[k] = 2*vk/(1+vk*vk);
+   }
+   return PV_SUCCESS;
+}
+static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int num_features, pvdata_t * V, pvdata_t * sparsitytermderivative) {
+   int k;
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPEN_CL
+   {
+      int feature_start = k - (k % num_features);
+      pvdata_t sum_across_features = 0.0f;
+      for( int f=0; f<num_features; f++ ) sum_across_features += V[feature_start+f];
+      pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
+      // Each block of num_features neurons will have the same sum_across_features and latWTAexpr.
+      // Can we eliminate redundant calculations?
+      sparsitytermderivative[k] = 2*(sum_across_features-V[k])/(1+lat_wta_expr);
+   }
+   return PV_SUCCESS;
+}
+
+static inline pvdata_t lateralCompetitionPenalty(pvdata_t * V, int num_features) {
+   pvdata_t z=0;
+   for( int p=0; p<num_features; p++ ) {
+      for( int q=0; q<num_features; q++ ) {
+         if( p!= q ) z += V[p]*V[q];
+      }
+   }
+   return z;
+}
+
+static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb) {
+   int k;
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
