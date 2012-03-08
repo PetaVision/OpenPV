@@ -2,7 +2,8 @@ function [MNIST_images] = ...
       getMNIST(digit_id, ...
 	       train_flag, ...
 	       resize_factor, ...
-	       nominal_ndx)
+	       nominal_ndx, ...
+	       MNIST_path)
 
   if nargin < 1 || ~exist("digit_id") || isempty(digit_id)
     digit_id = 0;
@@ -16,8 +17,10 @@ function [MNIST_images] = ...
   if nargin < 4 || ~exist("nominal_ndx") || isempty(nominal_ndx)
     nominal_ndx = -1;  %% denotes that random digit_image will be returned
   endif
+  if nargin < 5 || ~exist("MNIST_path") || isempty(MNIST_path)
+    MNIST_path = "~/Pictures/MNIST/";
+  endif
 
-  MNIST_path = "/Users/gkenyon/MATLAB/MNIST/";
   if train_flag == 0
     MNIST_digits_filename = [MNIST_path, "t10k-images.idx3-ubyte"];
     MNIST_labels_filename = [MNIST_path, "t10k-labels.idx1-ubyte"];

@@ -118,7 +118,9 @@ function [MNIST_images] = ...
   for image_count = 1 : MNIST_num_images
     digit_image = ...
 	reshape(MNIST_images{2,image_count}, [MNIST_num_rows, MNIST_num_cols])';
-    digit_image = imresize (digit_image, resize_factor);
+    if resize_factor ~= 1
+      digit_image = imresize (digit_image, resize_factor);
+    endif
     MNIST_images{2,image_count} = digit_image;
   endfor
 
