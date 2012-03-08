@@ -58,7 +58,7 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
    pvdata_t * V = getV();
    for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
    // above line not necessary if V was allocated with calloc
-   setLabeledNeuron();
+   getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
    setActivity(); // needed because updateState won't call setActivity until the first update period has passed.
    return status;
 }
@@ -98,45 +98,56 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
    return n;
 }
 
-int TrainingLayer::updateState(float time, float dt) {
-   if(time >= nextLabelTime) {
+int TrainingLayer::updateState(float timef, float dt) {
+   int status = PV_SUCCESS;
+   if(timef >= nextLabelTime) {
       nextLabelTime += displayPeriod;
-      return ANNLayer::updateState(time, dt);
+      status = updateState(timef, dt, getNumNeurons(), getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    }
-   else return PV_SUCCESS;
+   return status;
 }
 
-int TrainingLayer::updateV() {
-   int status1 = clearLabeledNeuron();
-
+int TrainingLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
+   updateV_TrainingLayer(numNeurons, V, numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    curTrainingLabelIndex++;
-   curTrainingLabelIndex = curTrainingLabelIndex == numTrainingLabels ? 0 : curTrainingLabelIndex;
-   int status2 = setLabeledNeuron();
-   return (status1==PV_SUCCESS && status2==PV_SUCCESS) ?
-         PV_SUCCESS : PV_FAILURE;
-}  // end of TrainingLayer::updateV()
-
-int TrainingLayer::setLabeledNeuronToValue(pvdata_t val) {
-   int n = trainingLabels[curTrainingLabelIndex];
-   int N = getNumNeurons();
-   if( n>=N ) {
-      sendBadNeuronMessage();
-      return PV_FAILURE;
-   }
-   else {
-      pvdata_t * V = getV();
-      V[trainingLabels[curTrainingLabelIndex]] = val;
-      return PV_SUCCESS;
-   }
-}  // end of TrainingLayer::setLabeledNeuronToValue(int, pvdata_t)
-
-void TrainingLayer::sendBadNeuronMessage() {
-   fprintf(stderr, "TrainingLayer \"%s\":\n", name);
-   fprintf(stderr, "Number of training labels is %d\n", numTrainingLabels);
-   fprintf(stderr, "Current label index is %d\n", curTrainingLabelIndex);
-   fprintf(stderr, "Value of label %d is %d\n", curTrainingLabelIndex,
-         trainingLabels[curTrainingLabelIndex]);
-   fprintf(stderr, "Number of neurons is %d\n", getNumNeurons());
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
+      // return ANNLayer::updateState(time, dt);
+   return PV_SUCCESS;
 }
+
+//int TrainingLayer::updateV() {
+//   int status1 = clearLabeledNeuron();
+//
+//   curTrainingLabelIndex++;
+//   curTrainingLabelIndex = curTrainingLabelIndex == numTrainingLabels ? 0 : curTrainingLabelIndex;
+//   int status2 = setLabeledNeuron();
+//   return (status1==PV_SUCCESS && status2==PV_SUCCESS) ?
+//         PV_SUCCESS : PV_FAILURE;
+//}  // end of TrainingLayer::updateV()
+
+//int TrainingLayer::setLabeledNeuronToValue(pvdata_t val) {
+//   int n = trainingLabels[curTrainingLabelIndex];
+//   int N = getNumNeurons();
+//   if( n>=N ) {
+//      sendBadNeuronMessage();
+//      return PV_FAILURE;
+//   }
+//   else {
+//      pvdata_t * V = getV();
+//      V[trainingLabels[curTrainingLabelIndex]] = val;
+//      return PV_SUCCESS;
+//   }
+//}  // end of TrainingLayer::setLabeledNeuronToValue(int, pvdata_t)
+
+//void TrainingLayer::sendBadNeuronMessage() {
+//   fprintf(stderr, "TrainingLayer \"%s\":\n", name);
+//   fprintf(stderr, "Number of training labels is %d\n", numTrainingLabels);
+//   fprintf(stderr, "Current label index is %d\n", curTrainingLabelIndex);
+//   fprintf(stderr, "Value of label %d is %d\n", curTrainingLabelIndex,
+//         trainingLabels[curTrainingLabelIndex]);
+//   fprintf(stderr, "Number of neurons is %d\n", getNumNeurons());
+//}
 
 }  // end of namespace PV

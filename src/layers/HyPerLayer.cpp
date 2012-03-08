@@ -690,12 +690,16 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
-int HyPerLayer::updateState(float time, float dt)
+int HyPerLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+}
+
+int HyPerLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   updateV();
+   updateV_HyPerLayer(numNeurons, V, GSynExc, GSynInh);
    setActivity();
    resetGSynBuffers();
    updateActiveIndices();
@@ -724,24 +728,15 @@ int HyPerLayer::updateBorder(float time, float dt)
    return status;
 }
 
-int HyPerLayer::updateV() {
-   pvdata_t * V = getV();
-   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh = getChannel(CHANNEL_INH);
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      V[k] = GSynExc[k] - GSynInh[k];
-// functionality of MAX and THRESH moved to ANNLayer
-//#undef SET_MAX
-//#ifdef SET_MAX
-//      V[k] = V[k] > 1.0f ? 1.0f : V[k];
-//#endif
-//#undef SET_THRESH
-//#ifdef SET_THRESH
-//      V[k] = V[k] < 0.5f ? 0.0f : V[k];
-//#endif
-   }
-   return PV_SUCCESS;
-}
+//int HyPerLayer::updateV() {
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh = getChannel(CHANNEL_INH);
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      V[k] = GSynExc[k] - GSynInh[k];
+//   }
+//   return PV_SUCCESS;
+//}
 
 int HyPerLayer::updateActiveIndices(){
    if (!spikingFlag) return PV_SUCCESS;

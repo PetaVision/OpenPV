@@ -21,9 +21,9 @@ public:
    ANNSquaredLayer(const char* name, HyPerCol * hc);
    virtual ~ANNSquaredLayer();
    virtual int updateState(float time, float dt);
-   virtual int updateV();
+//    virtual int updateV();
 
-   virtual int squareV();
+//    virtual int squareV();
 
 protected:
    ANNSquaredLayer();

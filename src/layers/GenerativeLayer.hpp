@@ -24,13 +24,16 @@ public:
 //   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
    ~GenerativeLayer();
 
+   virtual int updateState(float timef, float dt);
+
    pvdata_t getRelaxation() {return relaxation;}
    pvdata_t getActivityThreshold() { return activityThreshold; }
 
 protected:
    GenerativeLayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int updateV();
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t * GSynAux, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence);
+   // virtual int updateV();
    virtual int setActivity();
    virtual int updateSparsityTermDerivative();
 

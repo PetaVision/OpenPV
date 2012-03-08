@@ -21,11 +21,15 @@ class PtwiseProductLayer : public ANNLayer {
 public:
    PtwiseProductLayer(const char * name, HyPerCol * hc);
    virtual ~PtwiseProductLayer();
-   virtual int updateV();
+
+   virtual int updateState(float timef, float dt);
+   // virtual int updateV();
 
 protected:
    PtwiseProductLayer();
    int initialize(const char * name, HyPerCol * hc);
+
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
 
 private:
    int initialize_base();

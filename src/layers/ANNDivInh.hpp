@@ -23,7 +23,7 @@ public:
    virtual ~ANNDivInh();
 
    virtual int updateState(float time, float dt);
-   virtual int updateV();
+   // virtual int updateV();
 
 protected:
    ANNDivInh();

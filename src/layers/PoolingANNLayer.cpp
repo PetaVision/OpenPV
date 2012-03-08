@@ -38,14 +38,26 @@ int PoolingANNLayer::initialize(const char * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }  // end of PoolingANNLayer::initialize()
 
-int PoolingANNLayer::updateV() {
-   pvdata_t * V = getV();
-   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      V[k] = GSynExc[k]*GSynInh[k]*(getBiasa()*GSynExc[k]+getBiasb()*GSynInh[k]);
-   }
+int PoolingANNLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH), getBiasa(), getBiasb());
+}
+
+int PoolingANNLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t biasa, pvdata_t biasb) {
+   updateV_PoolingANNLayer(numNeurons, V, GSynExc, GSynInh, biasa, biasb);
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
    return PV_SUCCESS;
-}  // end of PoolingANNLayer::updateV()
+}
+
+//int PoolingANNLayer::updateV() {
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      V[k] = GSynExc[k]*GSynInh[k]*(getBiasa()*GSynExc[k]+getBiasb()*GSynInh[k]);
+//   }
+//   return PV_SUCCESS;
+//}  // end of PoolingANNLayer::updateV()
 
 }  // end of namespace PV block

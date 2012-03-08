@@ -56,9 +56,21 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    return status_init;
 }
 
-int SigmoidLayer::updateV() {
+int SigmoidLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+}
+
+int SigmoidLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh) {
+   updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
    return PV_SUCCESS;
 }
+
+//int SigmoidLayer::updateV() {
+//   return PV_SUCCESS;
+//}
 
 int SigmoidLayer::resetGSynBuffers() {
    return PV_SUCCESS;

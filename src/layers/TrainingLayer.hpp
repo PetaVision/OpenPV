@@ -24,8 +24,8 @@ public:
    virtual ~TrainingLayer();
    int readTrainingLabels(const char * filename, int ** trainingLabels);
 
-   virtual int updateState(float time, float dt);
-   virtual int updateV();
+   virtual int updateState(float timef, float dt);
+   // virtual int updateV();
 
 protected:
    TrainingLayer();
@@ -38,10 +38,11 @@ protected:
    int nextLabelTime;
    pvdata_t strength;
 
-   int setLabeledNeuronToValue(pvdata_t val);
-   int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
-   int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
-   void sendBadNeuronMessage();
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
+   // int setLabeledNeuronToValue(pvdata_t val);
+   // int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
+   // int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
+   // void sendBadNeuronMessage();
 
 private:
    int initialize_base();

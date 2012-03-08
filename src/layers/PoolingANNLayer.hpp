@@ -26,6 +26,8 @@ public:
    PoolingANNLayer(const char * name, HyPerCol * hc);
    int initialize();
 
+   virtual int updateState(float timef, float dt);
+
    pvdata_t getBiasa() { return biasa;}
    pvdata_t getBiasb() { return biasb;}
    void setBias(pvdata_t bias) { biasa=0.5*(1+bias); biasb=0.5*(1-bias); return;}
@@ -33,7 +35,8 @@ public:
 protected:
    PoolingANNLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int updateV();
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t biasa, pvdata_t biasb);
+   // int updateV();
 
 private:
    int initialize_base();

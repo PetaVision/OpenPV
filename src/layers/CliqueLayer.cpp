@@ -258,18 +258,16 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
 // the following is copied directly from ODDLayer::updateState()
-int CliqueLayer::updateState(float time, float dt)
+int CliqueLayer::updateState(float timef, float dt)
 {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH), getChannel(CHANNEL_INHB), this->Voffset, this->Vgain, this->VMax, this->VMin, this->VThresh, clayer->columnId);
+}
 
-   pv_debug_info("[%d]: CliqueLayer::updateState:", clayer->columnId);
+int CliqueLayer::updateState(float timef, float dt, int num_neurons, pvdata_t * V, pvdata_t * gSynExc, pvdata_t * gSynInh, pvdata_t * gSynInhB, pvdata_t Voffset, pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID) {
+   pv_debug_info("[%d]: CliqueLayer::updateState:", columnID);
 
-   pvdata_t * V = clayer->V;
-   pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
-   pvdata_t * gSynInh = getChannel(CHANNEL_INH);
-   pvdata_t * gSynInhB = getChannel(CHANNEL_INHB);
-
-   // assume bottomUp input to GSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
-   for (int k = 0; k < clayer->numNeurons; k++) {
+   // assume bottomUp input to gSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
+   for (int k = 0; k < num_neurons; k++) {
       V[k] = 0.0f;
       pvdata_t bottomUp_input = gSynExc[k];
       if (bottomUp_input <= 0.0f) {
@@ -280,12 +278,12 @@ int CliqueLayer::updateState(float time, float dt)
       //pvdata_t lateral_denom = ((lateral_exc + fabs(lateral_inh)) > 0.0f) ? (lateral_exc + fabs(lateral_inh)) : 1.0f;
 
       //V[k] = bottomUp_input * (this->Voffset + this->Vgain * (lateral_exc - lateral_inh));
-      V[k] = bottomUp_input * (this->Voffset + this->Vgain * (lateral_exc - fabs(lateral_inh))); // / lateral_denom);
+      V[k] = bottomUp_input * (Voffset + Vgain * (lateral_exc - fabs(lateral_inh))); // / lateral_denom);
    } // k
 
    resetGSynBuffers();
-   applyVMax();
-   applyVThresh();
+   applyVMax_ANNLayer(num_neurons, V, VMax); // applyVMax();
+   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh); // applyVThresh();
    setActivity();
    updateActiveIndices();
 

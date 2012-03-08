@@ -20,12 +20,16 @@ public:
    virtual ~IncrementLayer();
    int checkpointRead(float * timef);
    int checkpointWrite();
+   virtual int updateState(float timef, float dt);
+
+   inline pvdata_t * getVprev() {return Vprev;}
 
 protected:
    IncrementLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
    virtual int readVThreshParams(PVParams * params);
-   virtual int updateState(float timef, float dt);
+   /* static */ int updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, int num_neurons, pvdata_t * V, pvdata_t * Vprev, pvdata_t * GSynExc, pvdata_t * GSynInh);
+
    virtual int setActivity();
 
 private:

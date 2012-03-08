@@ -55,6 +55,7 @@ DerivedLayer::initialize(arguments) {
 
 #include "../layers/PVLayer.h"
 #include "../layers/LayerDataInterface.hpp"
+#include "../layers/updateStateFunctions.h"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
@@ -129,7 +130,7 @@ public:
    virtual int publish(InterColComm * comm, float time);
    virtual int waitOnPublish(InterColComm * comm);
 
-   virtual int updateV();
+//   virtual int updateV();
    virtual int setActivity();
    virtual int resetGSynBuffers();
    virtual int updateActiveIndices();
@@ -215,6 +216,7 @@ public:
 
 protected:
 
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
    void freeChannels();
 
    char * name;                 // well known name of layer

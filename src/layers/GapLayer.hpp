@@ -20,7 +20,9 @@ public:
    GapLayer(const char * name, HyPerCol * hc, LIFGap * clone);
    virtual ~GapLayer();
 
-   virtual int updateV();
+   virtual int updateState(float timef, float dt);
+
+   // virtual int updateV();
 
    virtual int setActivity();
    LIFGap * sourceLayer;
@@ -29,6 +31,8 @@ protected:
    GapLayer();
    int initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer);
       // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
+
+   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
 
 private:
    int initialize_base();

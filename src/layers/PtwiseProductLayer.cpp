@@ -34,14 +34,26 @@ int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
    return ANNLayer::initialize(name, hc, 2);
 }
 
-int PtwiseProductLayer::updateV() {
-    pvdata_t * V = getV();
-    pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
-    pvdata_t * GSynInh = getChannel(CHANNEL_INH);
-    for( int k=0; k<getNumNeurons(); k++ ) {
-        V[k] = GSynExc[k] * GSynInh[k];
-    }
-    return PV_SUCCESS;
-}  // end PtwiseProductLayer::updateV()
+int PtwiseProductLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+}
+
+int PtwiseProductLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh) {
+   updateV_PtwiseProductLayer(numNeurons, V, GSynExc, GSynInh);
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
+   return PV_SUCCESS;
+}
+
+//int PtwiseProductLayer::updateV() {
+//    pvdata_t * V = getV();
+//    pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
+//    pvdata_t * GSynInh = getChannel(CHANNEL_INH);
+//    for( int k=0; k<getNumNeurons(); k++ ) {
+//        V[k] = GSynExc[k] * GSynInh[k];
+//    }
+//    return PV_SUCCESS;
+//}  // end PtwiseProductLayer::updateV()
 
 }  // end namespace PV

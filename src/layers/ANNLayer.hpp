@@ -22,9 +22,9 @@ public:
 #ifdef PV_USE_OPENCL
    virtual int updateState(float time, float dt);
 #endif // PV_USE_OPENCL
-   virtual int updateV();
-   virtual int applyVMax();
-   virtual int applyVThresh();
+   // virtual int updateV();
+   // virtual int applyVMax();
+   // virtual int applyVThresh();
    pvdata_t getVThresh()        { return VThresh; }
    pvdata_t getVMax()           { return VMax; }
    pvdata_t getVMin()           { return VMin; }

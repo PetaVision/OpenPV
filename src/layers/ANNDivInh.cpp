@@ -195,26 +195,26 @@ int ANNDivInh::updateState(float time, float dt)
    return PV_SUCCESS;
 }
 
-int ANNDivInh::updateV() {
-//   ANNLayer::updateV();
-//   squareV();
-   pvdata_t * V = getV();
-   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
-   pvdata_t * GSynDivInh = this->getChannel(CHANNEL_INHB);
-
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      //V[k] = (GSynExc[k] - GSynInh[k])*(GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
-//      printf("V[k] %f\n", V[k]);
-//      printf("GSynExc[k] %f\n", GSynExc[k]);
-//      printf("GSynInh[k] %f\n", GSynInh[k]);
-//      printf("GSynDivInh[k] %f\n", GSynDivInh[k]);
-      V[k] = (GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
-//      printf("after: V[k] %f\n", V[k]);
-   }
-
-   return PV_SUCCESS;
-}
+//int ANNDivInh::updateV() {
+////   ANNLayer::updateV();
+////   squareV();
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
+//   pvdata_t * GSynDivInh = this->getChannel(CHANNEL_INHB);
+//
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      //V[k] = (GSynExc[k] - GSynInh[k])*(GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
+////      printf("V[k] %f\n", V[k]);
+////      printf("GSynExc[k] %f\n", GSynExc[k]);
+////      printf("GSynInh[k] %f\n", GSynInh[k]);
+////      printf("GSynDivInh[k] %f\n", GSynDivInh[k]);
+//      V[k] = (GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
+////      printf("after: V[k] %f\n", V[k]);
+//   }
+//
+//   return PV_SUCCESS;
+//}
 
 } /* namespace PV */
 

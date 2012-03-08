@@ -67,22 +67,34 @@ int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }  // end of GenerativeLayer::initialize()
 
-int GenerativeLayer::updateV() {
-   pvdata_t * V = getV();
-   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
-   pvdata_t * GSynAux = this->getChannel(CHANNEL_INHB);
-   updateSparsityTermDerivative();
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      pvdata_t dAnew = GSynExc[k] - GSynInh[k] + auxChannelCoeff*GSynAux[k] - sparsityTermCoeff*sparsitytermderivative[k];
-      dAnew = persistence*dAold[k] + (1-persistence)*dAnew;
-      V[k] += relaxation*dAnew;
-      dAold[k] = dAnew;
-   }
-   applyVMax();
-   applyVThresh();
+//int GenerativeLayer::updateV() {
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = this->getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh = this->getChannel(CHANNEL_INH);
+//   pvdata_t * GSynAux = this->getChannel(CHANNEL_INHB);
+//   updateSparsityTermDerivative();
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      pvdata_t dAnew = GSynExc[k] - GSynInh[k] + auxChannelCoeff*GSynAux[k] - sparsityTermCoeff*sparsitytermderivative[k];
+//      dAnew = persistence*dAold[k] + (1-persistence)*dAnew;
+//      V[k] += relaxation*dAnew;
+//      dAold[k] = dAnew;
+//   }
+//   applyVMax();
+//   applyVThresh();
+//   return PV_SUCCESS;
+//}  // end of GenerativeLayer::updateV()
+
+int GenerativeLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH), getChannel(CHANNEL_INHB), sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
+}
+
+int GenerativeLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh, pvdata_t * GSynAux, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence) {
+   updateV_GenerativeLayer(numNeurons, V, GSynExc, GSynInh, GSynAux, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
    return PV_SUCCESS;
-}  // end of GenerativeLayer::updateV()
+}
 
 int GenerativeLayer::updateSparsityTermDerivative() {
    pvdata_t * V = getV();

@@ -43,17 +43,29 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
    return status_init;
 }
 
-// use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
-int GapLayer::updateV() {
-#ifdef OBSOLETE
-   pvdata_t * V = getV();
-   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
-   pvdata_t exp_deltaT = 1.0f - exp(-this->getParent()->getDeltaTime() / sourceLayer->getLIFParams()->tau);
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      V[k] += GSynExc[k] * exp_deltaT;  //!!! uses base tau, not the true time-dep tau
-#endif
+int GapLayer::updateState(float timef, float dt) {
+   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+}
+
+int GapLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh) {
+   updateV_GapLayer();
+   setActivity();
+   resetGSynBuffers();
+   updateActiveIndices();
    return PV_SUCCESS;
 }
+
+//// use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
+//int GapLayer::updateV() {
+//#ifdef OBSOLETE
+//   pvdata_t * V = getV();
+//   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
+//   pvdata_t exp_deltaT = 1.0f - exp(-this->getParent()->getDeltaTime() / sourceLayer->getLIFParams()->tau);
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      V[k] += GSynExc[k] * exp_deltaT;  //!!! uses base tau, not the true time-dep tau
+//#endif
+//   return PV_SUCCESS;
+//}
 
 //!!!TODO: add param in LIFGap for spikelet amplitude
 int GapLayer::setActivity() {
