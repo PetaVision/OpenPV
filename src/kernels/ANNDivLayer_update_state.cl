@@ -36,7 +36,6 @@ void ANNDivLayer_update_state(
    int k;
 
 #ifndef PV_USE_OPENCL
-
 for (k = 0; k < nx*ny*nf; k++) {
 #else
    k = get_global_id(0);

@@ -55,7 +55,6 @@ DerivedLayer::initialize(arguments) {
 
 #include "../layers/PVLayer.h"
 #include "../layers/LayerDataInterface.hpp"
-#include "../layers/updateStateFunctions.h"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
@@ -63,6 +62,15 @@ DerivedLayer::initialize(arguments) {
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
+
+#ifndef PV_USE_OPENCL
+#  include "../layers/updateStateFunctions.h"
+#else
+#  undef PV_USE_OPENCL
+#  include "../layers/updateStateFunctions.h"
+#  define PV_USE_OPENCL
+#endif
+
 
 #ifdef PV_USE_OPENCL
 #define PV_CL_COPY_BUFFERS 0

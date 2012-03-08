@@ -72,7 +72,7 @@ int IncrementLayer::updateState(float timef, float dt, bool * inited, float * ne
             *(Vprev1++) = *(V++);
          }
       }
-      status = ANNLayer::updateState(timef, dt, num_neurons, V, GSynExc, GSynInh);
+      status = HyPerLayer::updateState(timef, dt, num_neurons, V, GSynExc, GSynInh);
    }
    else {
       if( timef >= first_update_time ) {
