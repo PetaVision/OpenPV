@@ -26,11 +26,11 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "d"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
+    object_name = "a"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
-    num_train = repmat(-1, 8, 1);  %% -1 use all images in train_dir
+    num_train = repmat(-1, 16, 1);  %% -1 use all images in train_dir
     %% if num_train is a vector of length > 1, make length(num_train) separate training files with the specified number of images in each
   endif
   num_output_files = length(num_train);
@@ -44,7 +44,7 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("train_dir") || isempty(train_dir)
-    train_dir = "4"; %% "canny";  %%  
+    train_dir = "8"; %% "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
