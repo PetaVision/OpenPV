@@ -90,22 +90,36 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
 //      printf("\n");
 //   }
 
-   float nonbinary = 0.0;
+   float nonbinaryA = -1;
+   int worstk = 0;
+   int worstf = 0;
    for( int f=0; f<8; f++ ) {
       for( int k=0; k<16; k++ ) {
          float z = fabs(fabs(wgtA[f][k]-0.5)-0.5);
-         if( z>nonbinary ) nonbinary = z;
+         if( z>nonbinaryA ) {
+            worstk = k;
+            worstf = f;
+            nonbinaryA = z;
+         }
       }
    }
+   printf("Largest discrepancy in weights A from zero or one is %f, when f=%d, k=%d\n",nonbinaryA, worstf, worstk);
+
+   float nonbinaryB = -1;
    for( int f=0; f<2; f++ ) {
       for( int k=0; k<8; k++ ) {
          float z = fabs(fabs(wgtB[f][k]-0.5)-0.5);
-         if( z>nonbinary ) nonbinary = z;
+         if( z>nonbinaryB ) {
+            worstk = k;
+            worstf = f;
+            nonbinaryB = z;
+         }
       }
    }
-   printf("Largest discrepancy in weights from zero or one is %f\n",nonbinary);
+   printf("Largest discrepancy in weights B from zero or one is %f, when f=%d, k=%d\n",nonbinaryB, worstf, worstk);
+
    float nonbinarytol = 0.10;
-   if( nonbinary > nonbinarytol ) {
+   if( nonbinaryA > nonbinarytol || nonbinaryB > nonbinarytol ) {
       printf("Outside of tolerance %f.  FourbyFourLineTest failed.\n",nonbinarytol);
       exit(EXIT_FAILURE);
    }
