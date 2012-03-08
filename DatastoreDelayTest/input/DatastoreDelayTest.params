@@ -7,6 +7,8 @@
 //  - input parameters for DatastoreDelayTest for testing the datastore with various delays
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 16;   
    ny = 16;
@@ -38,7 +40,7 @@ DatastoreDelayTestLayer "input" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 0.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -55,7 +57,7 @@ ANNLayer "output" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 0.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
