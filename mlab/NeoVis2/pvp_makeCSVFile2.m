@@ -190,7 +190,7 @@ function [num_frames, ...
     pvp_use_PANN_boundingBoxes = 0;
   endif
   
-  %%setenv('GNUTERM', 'x11');
+  setenv('GNUTERM', 'x11');
   image_type = ".png";
   
   %% path to generic image processing routines

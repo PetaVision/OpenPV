@@ -8,11 +8,11 @@ function [status_info] = ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin
-    input_dir = "~/Pictures/amoeba/256/4/t/";
+    input_dir = "~/Pictures/lena/"; %% "~/Pictures/MNIST/6/"; %% "~/Pictures/amoeba/256/4/t/";
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    output_dir = "~/Pictures/spikeCode/amoeba/4/";
+    output_dir = "~/Pictures/spikeCode/lena/";
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
@@ -47,7 +47,17 @@ function [status_info] = ...
     num_procs = 1;
   endif
 
+  setenv('GNUTERM', 'x11');
   image_type = ".png";
+  
+  %% path to generic image processing routines
+  img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
+  addpath(img_proc_dir);
+  
+  %% path to string manipulation kernels for use with parcellfun
+  str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
+  addpath(str_kernel_dir);
+
   input_path = ...
       [input_dir, '*', image_type];
   input_pathnames = glob(input_path);
@@ -86,3 +96,28 @@ function [status_info] = ...
 		num2cell(repmat(integration_period, num_images, 1)), ...
 		"UniformOutput", false);
   endif
+
+  %%keyboard;
+  max_count = 0;
+  min_count = 10000;
+  for i_image = 1 : num_images
+    eventCount_array = status_info{i_image}.eventCount_array;
+    max_count = max(max(eventCount_array(:)), max_count);
+    min_count = min(min(eventCount_array(:)), min_count);
+  endfor
+  disp(["max_count = ", num2str(max_count)]);
+  disp(["min_count = ", num2str(min_count)]);
+
+  mkdir(output_dir);
+  for i_image = 1 : num_images
+    input_filename = strFolderFromPath(input_pathnames{i_image});
+    input_rootname = strRemoveExtension(input_filename);
+    spikeCode_filename = [output_dir, input_rootname, ".png"];
+    eventCount_array = status_info{i_image}.eventCount_array;
+    disp(["size(eventCount_array) = ", num2str(size(eventCount_array))]);
+    image_tmp = uint8(floor(255*(eventCount_array - min_count) / ...
+		      (max_count - min_count + ((max_count - min_count)==0))));
+    disp(["max(image) = ", num2str(max(image_tmp(:)))]);
+    disp(["min(image) = ", num2str(min(image_tmp(:)))]);
+    imwrite(image_tmp, spikeCode_filename, "png");
+  endfor

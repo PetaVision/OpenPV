@@ -51,6 +51,8 @@ function [status_info] = ...
     rand_state = [];
   endif
 
+  setenv('GNUTERM', 'x11');
+
   if (exist("rand_state", "var") && ~isempty(rand_state))
     rand("state", rand_state);
   else
@@ -69,7 +71,7 @@ function [status_info] = ...
     gray_image = squeeze(input_image(:,:,1));
   endif
 
-  plot_gray_image = 1;
+  plot_gray_image = 0;
   if plot_gray_image
     figure;
     imagesc(gray_image);
@@ -90,13 +92,15 @@ function [status_info] = ...
 
   renormalized_rate = base_rate / ( 1 - base_rate * refractory_period );
   rand_max = exp( -base_rate * refractory_period / ( 1 - base_rate * refractory_period ) );
+  renormalized_max_rate = max_rate / ( 1 - base_rate * refractory_period );
 
   %%keyboard;
   if (max_intensity > gray_intensity)
     gray_array = double(gray_image);
     rate_array = ...
 	renormalized_rate + ...
-	(gray_array - gray_intensity) * (max_rate - renormalized_rate) / (max_intensity - gray_intensity);
+	(gray_array - gray_intensity) * ...
+	(renormalized_max_rate - renormalized_rate) / (max_intensity - gray_intensity);
   else
     rate_array = repmat(renormalized_rate, image_size(1:2));
   endif
@@ -116,7 +120,7 @@ function [status_info] = ...
       max(eventTime_3D, integration_period, 3);
   eventCount_array = eventCount_array - 1;  %% count >= 1
   
-  plot_eventCount = 1;
+  plot_eventCount = 0;
   if plot_eventCount
     figure;
     eventCount_image = uint8(eventCount_array);
@@ -124,7 +128,7 @@ function [status_info] = ...
     colormap(gray);
   endif
 
-  hist_eventCount = 1;
+  hist_eventCount = 0;
   if hist_eventCount
     figure;
     [event_hist, event_bins] = hist(eventCount_array(:), 10);
