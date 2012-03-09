@@ -59,7 +59,10 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
    for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
    // above line not necessary if V was allocated with calloc
    getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
-   setActivity(); // needed because updateState won't call setActivity until the first update period has passed.
+   const PVLayerLoc * loc = getLayerLoc();
+   setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+   // needed because updateState won't call setActivity until the first update period has passed.
+   // setActivity();
    return status;
 }
 
@@ -102,16 +105,20 @@ int TrainingLayer::updateState(float timef, float dt) {
    int status = PV_SUCCESS;
    if(timef >= nextLabelTime) {
       nextLabelTime += displayPeriod;
-      status = updateState(timef, dt, getNumNeurons(), getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
+      status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    }
    return status;
 }
 
-int TrainingLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
-   updateV_TrainingLayer(numNeurons, V, numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
+int TrainingLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   updateV_TrainingLayer(num_neurons, V, numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    curTrainingLabelIndex++;
-   setActivity();
-   resetGSynBuffers();
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
+   // resetGSynBuffers(); // Since V doesn't use GSyn when updating, no need to reset GSyn buffers
    updateActiveIndices();
       // return ANNLayer::updateState(time, dt);
    return PV_SUCCESS;

@@ -400,7 +400,7 @@ static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
 }
 
 
-static inline int localIndexFromGlobal(int kGlobal, PVLayerLoc loc)
+static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc)
 {
 #ifdef PV_USE_MPI
    int kxGlobal = kxPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
@@ -492,6 +492,10 @@ static inline unsigned char compressWeight(pvdata_t pval, float minVal, float ma
 static inline pvdata_t uncompressWeight(unsigned char cval, float minVal, float maxVal) {
    pvdata_t pval =  (pvdata_t) (minVal + (maxVal - minVal) * ((float)cval / 255.0));
    return pval;
+}
+
+static inline pvdata_t * getChannelStart(pvdata_t * gSynHead, enum ChannelType ch, int num_neurons) {
+   return &gSynHead[num_neurons*((int) ch)];
 }
 
 #ifdef __cplusplus

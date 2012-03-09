@@ -57,13 +57,17 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
 }
 
 int SigmoidLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag);
 }
 
-int SigmoidLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh) {
+int SigmoidLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V,  int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
-   setActivity();
-   resetGSynBuffers();
+   setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->nb, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag); // setActivity();
+   // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    updateActiveIndices();
    return PV_SUCCESS;
 }
@@ -72,55 +76,55 @@ int SigmoidLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * 
 //   return PV_SUCCESS;
 //}
 
-int SigmoidLayer::resetGSynBuffers() {
-   return PV_SUCCESS;
-}
+//int SigmoidLayer::resetGSynBuffers() {
+//   return PV_SUCCESS;
+//}
 
 
-int SigmoidLayer::setActivity() {
-
-   const int nx = getLayerLoc()->nx;
-   const int ny = getLayerLoc()->ny;
-   const int nf = getLayerLoc()->nf;
-   const int nb = getLayerLoc()->nb;
-   pvdata_t * activity = getCLayer()->activity->data;
-   pvdata_t * V = getV();
-   for( int k=0; k<getNumExtended(); k++ ) {
-      activity[k] = 0; // Would it be faster to only do the margins?
-   }
-   pvdata_t sig_scale = 1.0f;
-   if ( Vth > V0 ){
-      if(SigmoidFlag){
-      sig_scale = -0.5f * log(1.0f/SigmoidAlpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
-      }
-      else{
-      sig_scale = 0.5/(Vth-V0);        // threshold in the middle
-      }
-   }
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
-
-      if(!SigmoidFlag) {
-         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
-            activity[kex] = 1.0f;
-         }
-         else if (V[k] < V0){
-            activity[kex] = 0.0f;
-         }
-         else{
-            activity[kex] = (V[k] - V0) * sig_scale;
-         }
-      }
-      else{
-         activity[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
-      }
-
-      if (InverseFlag) activity[kex] = 1.0f - activity[kex];
-   }
-
-   return PV_SUCCESS;
-
-}
+//int SigmoidLayer::setActivity() {
+//
+//   const int nx = getLayerLoc()->nx;
+//   const int ny = getLayerLoc()->ny;
+//   const int nf = getLayerLoc()->nf;
+//   const int nb = getLayerLoc()->nb;
+//   pvdata_t * activity = getCLayer()->activity->data;
+//   pvdata_t * V = getV();
+//   for( int k=0; k<getNumExtended(); k++ ) {
+//      activity[k] = 0; // Would it be faster to only do the margins?
+//   }
+//   pvdata_t sig_scale = 1.0f;
+//   if ( Vth > V0 ){
+//      if(SigmoidFlag){
+//      sig_scale = -0.5f * log(1.0f/SigmoidAlpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
+//      }
+//      else{
+//      sig_scale = 0.5/(Vth-V0);        // threshold in the middle
+//      }
+//   }
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      int kex = kIndexExtended(k, nx, ny, nf, nb);
+//
+//      if(!SigmoidFlag) {
+//         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
+//            activity[kex] = 1.0f;
+//         }
+//         else if (V[k] < V0){
+//            activity[kex] = 0.0f;
+//         }
+//         else{
+//            activity[kex] = (V[k] - V0) * sig_scale;
+//         }
+//      }
+//      else{
+//         activity[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
+//      }
+//
+//      if (InverseFlag) activity[kex] = 1.0f - activity[kex];
+//   }
+//
+//   return PV_SUCCESS;
+//
+//}
 
 
 } // end namespace PV

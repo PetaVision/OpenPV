@@ -260,13 +260,22 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 // the following is copied directly from ODDLayer::updateState()
 int CliqueLayer::updateState(float timef, float dt)
 {
-   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH), getChannel(CHANNEL_INHB), this->Voffset, this->Vgain, this->VMax, this->VMin, this->VThresh, clayer->columnId);
+   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->VMax, this->VMin, this->VThresh, clayer->columnId);
 }
 
-int CliqueLayer::updateState(float timef, float dt, int num_neurons, pvdata_t * V, pvdata_t * gSynExc, pvdata_t * gSynInh, pvdata_t * gSynInhB, pvdata_t Voffset, pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID) {
+int CliqueLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t Voffset, pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID) {
    pv_debug_info("[%d]: CliqueLayer::updateState:", columnID);
 
-   // assume bottomUp input to gSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+
+   // Assumes that channels are contiguous in memory, i.e. GSyn[ch] = GSyn[0]+num_neurons*ch.  See allocateBuffers().
+   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+   pvdata_t * gSynInhB = getChannelStart(gSynHead, CHANNEL_INHB, num_neurons);
+// assume bottomUp input to gSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < num_neurons; k++) {
       V[k] = 0.0f;
       pvdata_t bottomUp_input = gSynExc[k];
@@ -281,10 +290,11 @@ int CliqueLayer::updateState(float timef, float dt, int num_neurons, pvdata_t * 
       V[k] = bottomUp_input * (Voffset + Vgain * (lateral_exc - fabs(lateral_inh))); // / lateral_denom);
    } // k
 
-   resetGSynBuffers();
+   resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
+   // resetGSynBuffers();
    applyVMax_ANNLayer(num_neurons, V, VMax); // applyVMax();
    applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh); // applyVThresh();
-   setActivity();
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
    updateActiveIndices();
 
    return 0;

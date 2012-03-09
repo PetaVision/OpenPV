@@ -52,8 +52,14 @@ static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_ME
 static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, CL_MEM_GLOBAL int num_features, pvdata_t * V, pvdata_t * sparsitytermderivative);
 static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int num_features);
 
-static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb);
+static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb);
+static inline int setActivity_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold);
+static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * Vprev, int nx, int ny, int nf, int nb);
+static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
+static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
 
+static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, pvdata_t * GSynHead);
+static inline int resetGSynBuffers_SigmoidLayer();
 // Definitions
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh) {
    int k;
@@ -249,7 +255,7 @@ static inline pvdata_t lateralCompetitionPenalty(pvdata_t * V, int num_features)
    return z;
 }
 
-static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb) {
+static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb) {
    int k;
 #ifndef PV_USE_OPEN_CL
    for( k=0; k<num_neurons; k++ )
@@ -263,5 +269,114 @@ static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * V, pvdata_t
    return PV_SUCCESS;
 }
 
+
+static inline int setActivity_GenerativeLayer(int num_neurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold) {
+   int k;
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      if( fabs(V[k]) > activity_threshold ) A[kex] = V[k];
+   }
+   return PV_SUCCESS;
+}
+
+static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb) {
+   int k;
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      A[kex] = V[k]-Vprev[k];
+   }
+   return PV_SUCCESS;
+}
+
+
+//!!!TODO: add param in LIFGap for spikelet amplitude
+static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices) {
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, nb); // this copies the potential into the activity buffer
+
+   // extended activity may not be current but this is alright since only local activity is used
+   // !!! will break (non-deterministic) if layers are updated simultaneously--fix is to use datastore
+   if(src_spiking) { // probably not needed since numActive will be zero for non-spiking
+      unsigned int kActive;
+   #ifndef PV_USE_OPEN_CL
+      for (kActive = 0; kActive < src_num_active; kActive++) // If putting on a GPU, need src_num_active threads, not num_neurons
+   #else
+      kActive = get_global_id(0);
+   #endif // PV_USE_OPENCL
+      {
+         int kGlobalRestricted = src_active_indices[kActive];
+         int kLocalRestricted = localIndexFromGlobal(kGlobalRestricted, *src_loc);
+         int kLocalExtended = kIndexExtended(kLocalRestricted, src_loc->nx, src_loc->ny, src_loc->nf, src_loc->nb);
+         A[kLocalExtended] += 50; // add 50 mV spike to local membrane potential
+      }
+   }
+   return PV_SUCCESS;
+}
+
+static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
+   pvdata_t sig_scale = 1.0f;
+   if( Vth > V0 ) {
+      if( sigmoid_flag ) {
+         sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
+      }
+      else {
+         sig_scale = 0.5/(Vth-V0); // threshold in the middle
+      }
+   }
+   int k;
+#ifndef PV_USE_OPEN_CL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      if(!sigmoid_flag) {
+         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
+            A[kex] = 1.0f;
+         }
+         else if (V[k] < V0){
+            A[kex] = 0.0f;
+         }
+         else{
+            A[kex] = (V[k] - V0) * sig_scale;
+         }
+      }
+      else{
+         A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
+      }
+      if (inverse_flag) A[kex] = 1.0f - A[kex];
+   }
+   return PV_SUCCESS;
+}
+
+static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, pvdata_t * GSynHead) {
+   for( int ch = 0; ch < num_channels; ch ++ ) {
+      pvdata_t * channelStart = &GSynHead[ch*num_neurons];
+      int k;
+   #ifndef PV_USE_OPEN_CL
+      for( k=0; k<num_neurons; k++ )
+   #else
+         k = get_global_id(0);
+   #endif // PV_USE_OPENCL
+      {
+         channelStart[k] = 0.0f;
+      }
+   }
+   return PV_SUCCESS;
+}
+
+static inline int resetGSynBuffers_SigmoidLayer() {
+   return PV_SUCCESS; // V is cloned from sourcelayer, so Sigmoid Layer doesn't use the GSynBuffers
+}
 
 #endif /* UPDATESTATEFUNCTIONS_H_ */

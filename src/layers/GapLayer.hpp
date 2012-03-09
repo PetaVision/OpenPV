@@ -24,7 +24,7 @@ public:
 
    // virtual int updateV();
 
-   virtual int setActivity();
+   // virtual int setActivity();
    LIFGap * sourceLayer;
 
 protected:
@@ -32,7 +32,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer);
       // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
 
-   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
 
 private:
    int initialize_base();

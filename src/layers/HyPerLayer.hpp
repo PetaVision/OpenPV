@@ -138,9 +138,9 @@ public:
    virtual int publish(InterColComm * comm, float time);
    virtual int waitOnPublish(InterColComm * comm);
 
-//   virtual int updateV();
-   virtual int setActivity();
-   virtual int resetGSynBuffers();
+   // virtual int updateV();
+   // virtual int setActivity();
+   // virtual int resetGSynBuffers();
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
@@ -224,7 +224,7 @@ public:
 
 protected:
 
-   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead);
    void freeChannels();
 
    char * name;                 // well known name of layer

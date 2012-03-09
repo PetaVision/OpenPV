@@ -333,6 +333,7 @@ int HyPerLayer::allocateBuffers() {
       }
 
       GSyn[0] = (pvdata_t *) calloc(getNumNeurons()*numChannels, sizeof(pvdata_t));
+      // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes this is true, to make it easier to port to GPU.
       if(GSyn[0] == NULL) {
          status = PV_FAILURE;
          return status;
@@ -691,17 +692,24 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 }
 
 int HyPerLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, getNumNeurons(), getV(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
 }
 
-int HyPerLayer::updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh)
+int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   updateV_HyPerLayer(numNeurons, V, GSynExc, GSynInh);
-   setActivity();
-   resetGSynBuffers();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+   updateV_HyPerLayer(num_neurons, V, gSynExc, gSynInh);
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
+   // setActivity();
+   resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    updateActiveIndices();
 
    return PV_SUCCESS;
@@ -756,38 +764,38 @@ int HyPerLayer::updateActiveIndices(){
 
 
 
-int HyPerLayer::setActivity() {
-   const int nx = getLayerLoc()->nx;
-   const int ny = getLayerLoc()->ny;
-   const int nf = getLayerLoc()->nf;
-   const int nb = getLayerLoc()->nb;
-   pvdata_t * activity = getCLayer()->activity->data;
-   pvdata_t * V = getV();
-   for( int k=0; k<getNumExtended(); k++ ) {
-      activity[k] = 0; // Would it be faster to only do the margins?
-   }
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
-      activity[kex] = V[k];
-   }
-   return PV_SUCCESS;
-}
+//int HyPerLayer::setActivity() {
+//   const int nx = getLayerLoc()->nx;
+//   const int ny = getLayerLoc()->ny;
+//   const int nf = getLayerLoc()->nf;
+//   const int nb = getLayerLoc()->nb;
+//   pvdata_t * activity = getCLayer()->activity->data;
+//   pvdata_t * V = getV();
+//   for( int k=0; k<getNumExtended(); k++ ) {
+//      activity[k] = 0; // Would it be faster to only do the margins?
+//   }
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      int kex = kIndexExtended(k, nx, ny, nf, nb);
+//      activity[kex] = V[k];
+//   }
+//   return PV_SUCCESS;
+//}
 
-int HyPerLayer::resetGSynBuffers() {
-   int n = getNumNeurons();
-   for( int k=0; k<numChannels; k++ ) {
-      resetBuffer( getChannel((ChannelType) k), n );
-   }
-   // resetBuffer( getChannel(CHANNEL_EXC), n );
-   // resetBuffer( getChannel(CHANNEL_INH), n );
-   return PV_SUCCESS;
-}
-
-int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
-   assert(buf);
-   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
-   return PV_SUCCESS;
-}
+//int HyPerLayer::resetGSynBuffers() {
+//   int n = getNumNeurons();
+//   for( int k=0; k<numChannels; k++ ) {
+//      resetBuffer( getChannel((ChannelType) k), n );
+//   }
+//   // resetBuffer( getChannel(CHANNEL_EXC), n );
+//   // resetBuffer( getChannel(CHANNEL_INH), n );
+//   return PV_SUCCESS;
+//}
+//
+//int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
+//   assert(buf);
+//   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
+//   return PV_SUCCESS;
+//}
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {

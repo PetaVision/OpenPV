@@ -29,7 +29,7 @@ protected:
    PtwiseProductLayer();
    int initialize(const char * name, HyPerCol * hc);
 
-   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 
 private:
    int initialize_base();

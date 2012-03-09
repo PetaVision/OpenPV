@@ -58,11 +58,18 @@ int IncrementLayer::readVThreshParams(PVParams * params) {
 }
 
 int IncrementLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getNumNeurons(), getV(), getVprev(), getChannel(CHANNEL_EXC), getChannel(CHANNEL_INH));
+   return updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0]);
 }
 
-int IncrementLayer::updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, int num_neurons, pvdata_t * V, pvdata_t * Vprev, pvdata_t * GSynExc, pvdata_t * GSynInh) {
+int IncrementLayer::updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead) {
    int status = PV_SUCCESS;
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+
    if( *inited ) {
       if( timef >= *next_update_time ) {
          *next_update_time += display_period;
@@ -72,12 +79,15 @@ int IncrementLayer::updateState(float timef, float dt, bool * inited, float * ne
             *(Vprev1++) = *(V++);
          }
       }
-      status = HyPerLayer::updateState(timef, dt, num_neurons, V, GSynExc, GSynInh);
+      status = updateV_HyPerLayer(num_neurons, V, gSynExc, gSynInh);
+      if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->nb); // setActivity();
+      if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
+      if( status == PV_SUCCESS ) status = updateActiveIndices();
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, GSynExc, GSynInh, max_pvdata_t, -max_pvdata_t, -max_pvdata_t); // updateV();
-         resetGSynBuffers();
+         status = updateV_ANNLayer(num_neurons, V, gSynExc, gSynInh, max_pvdata_t, -max_pvdata_t, -max_pvdata_t); // updateV();
+         resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
          *inited = true;
       }
    }
@@ -85,13 +95,13 @@ int IncrementLayer::updateState(float timef, float dt, bool * inited, float * ne
 
 }
 
-int IncrementLayer::setActivity() {
-   int status = PV_SUCCESS;
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      clayer->activity->data[k] = getV()[k]-Vprev[k];
-   }
-   return status;
-}
+//int IncrementLayer::setActivity() {
+//   int status = PV_SUCCESS;
+//   for( int k=0; k<getNumNeurons(); k++ ) {
+//      clayer->activity->data[k] = getV()[k]-Vprev[k];
+//   }
+//   return status;
+//}
 
 int IncrementLayer::checkpointRead(float * timef) {
    HyPerLayer::checkpointRead(timef);

@@ -28,9 +28,9 @@ protected:
    IncrementLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
    virtual int readVThreshParams(PVParams * params);
-   /* static */ int updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, int num_neurons, pvdata_t * V, pvdata_t * Vprev, pvdata_t * GSynExc, pvdata_t * GSynInh);
+   /* static */ int updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead);
 
-   virtual int setActivity();
+   // virtual int setActivity();
 
 private:
    int initialize_base();

@@ -23,13 +23,13 @@ public:
    virtual ~SigmoidLayer();
    virtual int updateState(float timef, float dt);
    // virtual int updateV();
-   virtual int setActivity();
-   virtual int resetGSynBuffers();
+   // virtual int setActivity();
+   // virtual int resetGSynBuffers();
    LIF * sourceLayer;
 protected:
    SigmoidLayer();
    int initialize(const char * name, HyPerCol * hc, LIF * clone);
-   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, pvdata_t * GSynExc, pvdata_t * GSynInh);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
 private:
    int initialize_base();
    float V0;

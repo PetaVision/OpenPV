@@ -38,7 +38,7 @@ protected:
    int nextLabelTime;
    pvdata_t strength;
 
-   /* static */ int updateState(float timef, float dt, int numNeurons, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
    // int setLabeledNeuronToValue(pvdata_t val);
    // int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
    // int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}

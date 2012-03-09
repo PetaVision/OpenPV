@@ -71,7 +71,7 @@ void ANNLayer_update_state(
 //   if(l_V < Vth) l_V = VMin;
 
    //setActivity():
-   setActivity_HyPerLayer(numNeurons, V, activity, nx, ny, nf, nb);
+   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    //l_activ=l_V;
 
 
