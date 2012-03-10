@@ -167,7 +167,7 @@ int ANNLayer::updateState(float time, float dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
+   if(gpuAccelerateFlag) {
       updateStateOpenCL(time, dt);
       //HyPerLayer::updateState(time, dt);
    }

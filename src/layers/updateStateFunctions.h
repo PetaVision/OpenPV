@@ -38,7 +38,7 @@ static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh);
 static inline int updateV_ANNDivInh(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, CL_MEM_GLOBAL pvdata_t * GSynDivInh);
 static inline int updateV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh);
-static inline int updateV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, CL_MEM_GLOBAL pvdata_t * GSynAux, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence);
+static inline int updateV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, CL_MEM_GLOBAL pvdata_t * GSynAux, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative, CL_MEM_GLOBAL pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence);
 static inline int updateV_PoolingANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, pvdata_t biasa, pvdata_t biasb);
 static inline int updateV_PtwiseProductLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh);
 static inline int updateV_TrainingLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
@@ -48,17 +48,21 @@ static inline int updateV_SigmoidLayer();
 static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMax);
 static inline int applyVThresh_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VThresh);
 static inline int squareV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V);
-static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * sparsitytermderivative);
-static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, CL_MEM_GLOBAL int num_features, pvdata_t * V, pvdata_t * sparsitytermderivative);
+static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative);
+static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int num_features, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative);
 static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int num_features);
 
+//static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * A, int nx, int ny, int nf, int nb);
 static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb);
-static inline int setActivity_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold);
-static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, pvdata_t * Vprev, int nx, int ny, int nf, int nb);
+static inline int setActivity_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold);
+static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb);
+#ifndef PV_USE_OPENCL
+//opencl can't use class objects like PVLayerLoc, but I don't see an easy way to get around this, but I'll come back to it later
 static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
+#endif //PV_USE_OPENCL
 static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
 
-static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, pvdata_t * GSynHead);
+static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int resetGSynBuffers_SigmoidLayer();
 // Definitions
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh) {
@@ -102,7 +106,7 @@ static inline int updateV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
    return status;
 }
 
-static inline int updateV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, CL_MEM_GLOBAL pvdata_t * GSynAux, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence) {
+static inline int updateV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh, CL_MEM_GLOBAL pvdata_t * GSynAux, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative, CL_MEM_GLOBAL  pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence) {
    int k;
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
@@ -213,26 +217,26 @@ static inline int squareV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
    return PV_SUCCESS;
 }
 
-static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, pvdata_t * V, pvdata_t * sparsitytermderivative) {
+static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative) {
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
-#endif // PV_USE_OPEN_CL
+#endif // PV_USE_OPENCL
    {
       pvdata_t vk = V[k];
       sparsitytermderivative[k] = 2*vk/(1+vk*vk);
    }
    return PV_SUCCESS;
 }
-static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int num_features, pvdata_t * V, pvdata_t * sparsitytermderivative) {
+static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int num_features, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative) {
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
-#endif // PV_USE_OPEN_CL
+#endif // PV_USE_OPENCL
    {
       int feature_start = k - (k % num_features);
       pvdata_t sum_across_features = 0.0f;
@@ -245,7 +249,7 @@ static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int
    return PV_SUCCESS;
 }
 
-static inline pvdata_t lateralCompetitionPenalty(pvdata_t * V, int num_features) {
+static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int num_features) {
    pvdata_t z=0;
    for( int p=0; p<num_features; p++ ) {
       for( int q=0; q<num_features; q++ ) {
@@ -255,9 +259,10 @@ static inline pvdata_t lateralCompetitionPenalty(pvdata_t * V, int num_features)
    return z;
 }
 
-static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb) {
+static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb) {
+//static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb) {
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
@@ -270,9 +275,9 @@ static inline int setActivity_HyPerLayer(int num_neurons, pvdata_t * A, pvdata_t
 }
 
 
-static inline int setActivity_GenerativeLayer(int num_neurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold) {
+static inline int setActivity_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold) {
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
@@ -286,7 +291,7 @@ static inline int setActivity_GenerativeLayer(int num_neurons, pvdata_t * A, pvd
 
 static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb) {
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
@@ -300,6 +305,7 @@ static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvda
 
 
 //!!!TODO: add param in LIFGap for spikelet amplitude
+#ifndef PV_USE_OPENCL
 static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices) {
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, nb); // this copies the potential into the activity buffer
 
@@ -307,7 +313,7 @@ static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t *
    // !!! will break (non-deterministic) if layers are updated simultaneously--fix is to use datastore
    if(src_spiking) { // probably not needed since numActive will be zero for non-spiking
       unsigned int kActive;
-   #ifndef PV_USE_OPEN_CL
+   #ifndef PV_USE_OPENCL
       for (kActive = 0; kActive < src_num_active; kActive++) // If putting on a GPU, need src_num_active threads, not num_neurons
    #else
       kActive = get_global_id(0);
@@ -321,6 +327,7 @@ static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t *
    }
    return PV_SUCCESS;
 }
+#endif //PV_USE_OPENCL
 
 static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
    pvdata_t sig_scale = 1.0f;
@@ -333,7 +340,7 @@ static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata
       }
    }
    int k;
-#ifndef PV_USE_OPEN_CL
+#ifndef PV_USE_OPENCL
    for( k=0; k<num_neurons; k++ )
 #else
       k = get_global_id(0);
@@ -359,11 +366,11 @@ static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata
    return PV_SUCCESS;
 }
 
-static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, pvdata_t * GSynHead) {
+static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead) {
    for( int ch = 0; ch < num_channels; ch ++ ) {
-      pvdata_t * channelStart = &GSynHead[ch*num_neurons];
+      CL_MEM_GLOBAL pvdata_t * channelStart = &GSynHead[ch*num_neurons];
       int k;
-   #ifndef PV_USE_OPEN_CL
+   #ifndef PV_USE_OPENCL
       for( k=0; k<num_neurons; k++ )
    #else
          k = get_global_id(0);
