@@ -1408,7 +1408,9 @@ int HyPerConn::deleteWeights()
    wDataStart = NULL;
    // free(dwPatches);
    // dwPatches = NULL;
-   free(dwDataStart);
+   if (!this->combine_dW_with_W_flag) {
+      free(dwDataStart);
+   }
    dwDataStart = NULL;
 
    if (wPostPatches != NULL) {
