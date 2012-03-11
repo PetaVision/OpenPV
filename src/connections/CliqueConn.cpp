@@ -100,9 +100,10 @@ int CliqueConn::update_dW(int arborId)
    int syPostExt = post->getLayerLoc()->nf
          * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb); // compute just once
 
-   // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
+   // if pre and post denote the same layers, make a clone of size PVPatch to hold temporary activity values
    // in order to eliminate generalize self-interactions
-   bool self_flag = this->getPre() == this->getPost();
+   // note that during learning, per and post may be separate instantiations
+   bool self_flag = this->getSelfFlag(); //this->getPre() == this->getPost();
    pvdata_t * a_post_mask = NULL;
    const int a_post_size = nfp * nxp * nyp;
    a_post_mask = (pvdata_t *) calloc(a_post_size, sizeof(pvdata_t));
