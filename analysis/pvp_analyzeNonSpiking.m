@@ -64,7 +64,7 @@ global FC_STR
 FC_STR = [num2str(NFC), 'fc'];
 
 num_single_trials = 51;
-num_trials = 1000; %%  %% cannot exceed ~1024 for 256x256 image because
+num_trials = 0; %%1000; %%  %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -601,32 +601,34 @@ if max_target_flag > min_target_flag
 endif
 
 
-
+fig_list = [];
 
 %% plot connections
 if plot_weights_flag == 1
   global N_CONNECTIONS
   global NXP NYP NFP
   global NUM_ARBORS
-  NUM_ARBORS = 2;
+  NUM_ARBORS = 1;
   [connID, connIndex, num_arbors] = pvp_connectionID();
   if TRAINING_FLAG > 0
     plot_weights = []; %N_CONNECTIONS;
   else
     if max_target_flag > min_target_flag
-      plot_weights = ( N_CONNECTIONS ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+      plot_weights = ( N_CONNECTIONS - 1) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
     else
-      plot_weights = ( N_CONNECTIONS ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
+      plot_weights = ( N_CONNECTIONS - 1 ) : ( N_CONNECTIONS+(TRAINING_FLAG<=0) );
     endif
   endif
   weights = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
   weight_invert = ones(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
-  weight_invert(5,2) = -1; %% 
-  weight_invert(7,2) = -1; %%-1;
-  weight_invert(9,2) = -1; %%-1;
+  weight_invert(6,1) = -1; %% 
+  weight_invert(9,1) = -1; %% 
+  weight_invert(12,1) = -1; %%-1;
+  weight_invert(15,1) = -1; %%-1;
   pvp_conn_header = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
   nxp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
   nyp = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
+  offset = cell(N_CONNECTIONS+(TRAINING_FLAG<=0), NUM_ARBORS);
   FLAT_ARCH_FLAG = 0;
   write_pvp_kernel_flag = 1;
   write_mat_kernel_flag = 1;
@@ -643,7 +645,7 @@ if plot_weights_flag == 1
       weight_max = -10000000.;
       weight_ave = 0;
       if i_conn < N_CONNECTIONS+1
-	[weights{i_conn, i_arbor}, nxp{i_conn, i_arbor}, nyp{i_conn, i_arbor}, ...
+	[weights{i_conn, i_arbor}, nxp{i_conn, i_arbor}, nyp{i_conn, i_arbor}, offset{i_conn, i_arbor}, ...
 	 pvp_conn_header{i_conn, i_arbor}, pvp_index ] ...
 	    = pvp_readWeights(i_conn, j_arbor);
 	pvp_conn_header_tmp = pvp_conn_header{i_conn, i_arbor};
@@ -667,8 +669,8 @@ if plot_weights_flag == 1
 	  continue;
 	endif
       elseif i_conn == N_CONNECTIONS + 1
-	w_max_target = max(weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch}(:));
-	w_max_distractor = max(weight_invert(i_conn-1,2)*weights{i_conn-1,2}{i_patch}(:));
+	w_max_target = max(weight_invert(i_conn-2,1)*weights{i_conn-2,1}{i_patch}(:));
+	w_max_distractor = max(weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch}(:));
 	disp('calculating geisler kernels');
 	pvp_conn_header{i_conn} = pvp_conn_header{i_conn-1,1};
 	pvp_conn_header_tmp = pvp_conn_header{i_conn,1};
@@ -677,8 +679,8 @@ if plot_weights_flag == 1
 	nyp{i_conn} = nyp{i_conn-1,1};
 	for i_patch = 1:num_patches
 	  weights{i_conn,i_arbor}{i_patch} = ...
-	      (weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch} - ...
-	       weight_invert(i_conn-1,2)*weights{i_conn-1,2}{i_patch});
+	      (weight_invert(i_conn-2,1)*weights{i_conn-2,1}{i_patch} - ...
+	       weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch});
 	  weight_min = min( min(weights{i_conn,1}{i_patch}(:)), weight_min );
 	  weight_max = max( max(weights{i_conn,1}{i_patch}(:)), weight_max );
 	  weight_ave = weight_ave + mean(weights{i_conn,1}{i_patch}(:));
@@ -709,7 +711,7 @@ if plot_weights_flag == 1
       endif % write_mat_kernel_flag
       NK = 1;
       NO = floor( NFEATURES / NK );
-      skip_patches = 1; %%num_patches;
+      skip_patches = num_patches;
       for i_patch = 1 : skip_patches : num_patches
 	NCOLS = nxp{i_conn, i_arbor}(i_patch);
 	NROWS = nyp{i_conn, i_arbor}(i_patch);
@@ -736,9 +738,9 @@ if plot_weights_flag == 1
 	  weights_sub = ...
 	      reshape(weights_sub, patch_size);
 	  sub_size = floor( NROWS / 8 );
-	  row_start = 1 + sub_size;
-	  row_end = row_start + sub_size - 1;
-	  col_start = 1 + sub_size;
+	  row_start = floor((NROWS/2) - (sub_size/2));
+	  row_end = ceil(row_start + sub_size - 1);
+	  col_start = floor((NCOLS/2) - (sub_size/2));
 	  col_end = col_start + sub_size - 1;
 	  weights_sub = ...
 	      weights_sub(1,:, col_start:col_end, row_start:row_end);

@@ -1,4 +1,4 @@
-function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn, j_arbor)
+function [weights, nxp, nyp, offset, pvp_header, pvp_index] = pvp_readWeights(i_conn, j_arbor)
   
   global SPIKE_PATH 
   global N NROWS NCOLS % for the current layer
@@ -93,10 +93,12 @@ function [weights, nxp, nyp, pvp_header, pvp_index] = pvp_readWeights(i_conn, j_
 
   nxp = repmat(NXP, num_patches,1);
   nyp = repmat(NYP, num_patches,1);
+  offset = repmat(NYP, num_patches,1);
   weights = cell(num_patches,1);
   for i_patch = 1 : num_patches
     nxp(i_patch) = fread(fid, 1, 'uint16');
     nyp(i_patch) = fread(fid, 1, 'uint16');
+    offset(i_patch) = fread(fid, 1, 'uint32');
     if COMPRESSED_FLAG 
       weights_tmp = fread(fid, nxp(i_patch) * nyp(i_patch) * NFP, 'uint8');
       weights{i_patch} = ...
