@@ -36,8 +36,8 @@ Retina "Retina" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    // Vrest = 1.0;
     poissonEdgeProb = 1;
     poissonBlankProb = 1;
     burstFreq = 1;
@@ -60,8 +60,10 @@ ANNLayer "L0" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
@@ -79,8 +81,9 @@ ANNLayer "Lx1" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -98,8 +101,9 @@ ANNLayer "Lx2" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -117,8 +121,9 @@ ANNLayer "Lx4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -137,8 +142,9 @@ ANNLayer "Lx1_2" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -157,8 +163,9 @@ ANNLayer "Lx1_4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
+    GPUAccelerate = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -176,7 +183,7 @@ KernelConn "Retina to L0" = {
     nxp = 1;
     nyp = 1;
     nfp = 4;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
     
     weightInit=1;
@@ -185,13 +192,17 @@ KernelConn "Retina to L0" = {
     // aspect = 1;
     // sigma = 1;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 4;
+    
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -224,7 +235,7 @@ KernelConn "L0 to Lx1" = {
     nxp = 5;
     nyp = 5;
     nfp = 4;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -233,14 +244,18 @@ KernelConn "L0 to Lx1" = {
     // aspect = 1;
     // sigma = infinity;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 4;
       
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
+
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
@@ -270,7 +285,7 @@ KernelConn "L0 to Lx2" = {
     nxp = 10;
     nyp = 10;
     nfp = 8;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -279,13 +294,17 @@ KernelConn "L0 to Lx2" = {
     // aspect = 1; //2;
     // sigma = infinity;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 8;
+      
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -316,7 +335,7 @@ KernelConn "L0 to Lx4" = {
     nxp = 20;
     nyp = 20;
     nfp = 16;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -325,13 +344,17 @@ KernelConn "L0 to Lx4" = {
     // aspect = 1; //4;
     // sigma = infinity;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 16;
+      
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -362,7 +385,7 @@ KernelConn "L0 to Lx1_2" = {
     nxp = 3;
     nyp = 3;
     nfp = 2;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -371,13 +394,17 @@ KernelConn "L0 to Lx1_2" = {
     // aspect = 2;
     // sigma = infinity;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 2;
+      
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -408,7 +435,7 @@ KernelConn "L0 to Lx1_4" = {
     nxp = 1;
     nyp = 1;
     nfp = 1;
-    writeStep = -1;
+    writeStep = 1.0; // -1;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -417,13 +444,17 @@ KernelConn "L0 to Lx1_4" = {
     // aspect = 1;
     // sigma = infinity;
     // rMax  = infinity;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
+    deltaThetaMax = 6.2832;
+    thetaMax = 1;
+    rotate = 1;
     // bowtieFlag = 0;
     // numFlanks = 1;
     // flankShift = 0;
-    // rotate = 1;
     // no = 1;
+      
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;

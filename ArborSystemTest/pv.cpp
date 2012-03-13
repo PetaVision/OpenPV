@@ -7,80 +7,64 @@
 #include "ArborTestProbe.hpp"
 #include "ArborTestForOnesProbe.hpp"
 
-#define MAIN_USES_ADDCUSTOM
-
-#ifdef MAIN_USES_ADDCUSTOM
-int addcustom(HyPerCol * hc, int argc, char * argv[]);
-// addcustom is for adding objects not supported by build().
-#endif // MAIN_USES_ADDCUSTOM
+void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
-
-   int status;
-#ifdef MAIN_USES_ADDCUSTOM
-   status = buildandrun(argc, argv, &addcustom);
-#else
-   status = buildandrun(argc, argv);
-#endif // MAIN_USES_ADDCUSTOM
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+	int status = buildandrun(argc, argv, NULL, NULL, &addcustomgroup);
+	return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-#ifdef MAIN_USES_ADDCUSTOM
-int addcustom(HyPerCol * hc, int argc, char * argv[]) {
-   int status;
-   PVParams * params = hc->parameters();
-   int numGroups = params->numberOfGroups();
-   for (int n = 0; n < numGroups; n++) {
-      const char * kw = params->groupKeywordFromIndex(n);
-      const char * name = params->groupNameFromIndex(n);
-      HyPerLayer * targetlayer;
-      char * message = NULL;
-      const char * filename;
-      ArborTestProbe * addedProbe;
-      ArborTestForOnesProbe * addedOnesProbe;
-      if (!strcmp(kw, "ArborTestProbe")) {
-         status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
-               &message, &filename);
-         if (status != PV_SUCCESS) {
-            fprintf(stderr, "Skipping params group \"%s\"\n", name);
-            continue;
-         }
-         if( filename ) {
-            addedProbe =  new ArborTestProbe(filename, hc, message);
-         }
-         else {
-            addedProbe =  new ArborTestProbe(message);
-         }
-         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
-         if( !addedProbe ) {
-            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-         }
-         assert(targetlayer);
-         if( addedProbe ) targetlayer->insertProbe(addedProbe);
-         checknewobject((void *) addedProbe, kw, name, hc);
-      }
-      else if (!strcmp(kw, "ArborTestForOnesProbe")) {
-         status = getLayerFunctionProbeParameters(name, kw, hc, &targetlayer,
-               &message, &filename);
-         if (status != PV_SUCCESS) {
-            fprintf(stderr, "Skipping params group \"%s\"\n", name);
-            continue;
-         }
-         if( filename ) {
-            addedOnesProbe =  new ArborTestForOnesProbe(filename, hc, message);
-         }
-         else {
-            addedOnesProbe =  new ArborTestForOnesProbe(message);
-         }
-         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
-         if( !addedOnesProbe ) {
-            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-         }
-         assert(targetlayer);
-         if( addedOnesProbe ) targetlayer->insertProbe(addedOnesProbe);
-         checknewobject((void *) addedOnesProbe, kw, name, hc);
-      }
-   }
-   return PV_SUCCESS;
+void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc) {
+	int status;
+	LayerProbe * addedProbe = NULL;
+	HyPerLayer * targetlayer;
+	char * message = NULL;
+	const char * filename;
+	if( !strcmp( keyword, "ArborTestProbe") ) {
+		status = getLayerFunctionProbeParameters(groupname, keyword, hc, &targetlayer,
+				&message, &filename);
+		if (status != PV_SUCCESS) {
+			fprintf(stderr, "Error reading params group \"%s\"\n", groupname);
+			return addedProbe;
+		}
+		if( filename ) {
+			addedProbe =  new ArborTestProbe(filename, hc, message);
+		}
+		else {
+			addedProbe =  new ArborTestProbe(message);
+		}
+		free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+		if( !addedProbe ) {
+			fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);
+		}
+		assert(targetlayer);
+		if( addedProbe ) targetlayer->insertProbe(addedProbe);
+		checknewobject((void *) addedProbe, keyword, groupname, hc);
+		return addedProbe;
+	}
+	if( !strcmp( keyword, "ArborTestForOnesProbe") ) {
+		status = getLayerFunctionProbeParameters(groupname, keyword, hc, &targetlayer,
+				&message, &filename);
+		if (status != PV_SUCCESS) {
+			fprintf(stderr, "Error reading params group \"%s\"\n", groupname);
+			return addedProbe;
+		}
+		if( filename ) {
+			addedProbe =  new ArborTestForOnesProbe(filename, hc, message);
+		}
+		else {
+			addedProbe =  new ArborTestForOnesProbe(message);
+		}
+		free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+		if( !addedProbe ) {
+			fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);
+		}
+		assert(targetlayer);
+		if( addedProbe ) targetlayer->insertProbe(addedProbe);
+		checknewobject((void *) addedProbe, keyword, groupname, hc);
+		return addedProbe;
+	}
+	assert(!addedProbe);
+	fprintf(stderr, "Unrecognized params keyword \"%s\"\n", keyword);
+	return addedProbe;
 }
-#endif // MAIN_USES_ADDCUSTOM
