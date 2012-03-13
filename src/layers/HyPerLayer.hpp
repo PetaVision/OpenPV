@@ -102,6 +102,7 @@ protected:
    int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
+   virtual int calcActiveIndices();
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -224,7 +225,7 @@ public:
 
 protected:
 
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    void freeChannels();
 
    char * name;                 // well known name of layer

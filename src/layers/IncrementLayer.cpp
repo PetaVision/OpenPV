@@ -58,10 +58,13 @@ int IncrementLayer::readVThreshParams(PVParams * params) {
 }
 
 int IncrementLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0]);
+   int status;
+   status = updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
+   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   return status;
 }
 
-int IncrementLayer::updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead) {
+int IncrementLayer::updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
    int status = PV_SUCCESS;
    int nx = loc->nx;
    int ny = loc->ny;
@@ -82,7 +85,6 @@ int IncrementLayer::updateState(float timef, float dt, bool * inited, float * ne
       status = updateV_HyPerLayer(num_neurons, V, gSynExc, gSynInh);
       if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->nb); // setActivity();
       if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
-      if( status == PV_SUCCESS ) status = updateActiveIndices();
    }
    else {
       if( timef >= first_update_time ) {

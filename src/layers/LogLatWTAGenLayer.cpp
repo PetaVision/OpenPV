@@ -25,10 +25,13 @@ int LogLatWTAGenLayer::initialize_base() {
 }
 
 int LogLatWTAGenLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold);
+   int status;
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getCLayer()->activeIndices, &getCLayer()->numActive);
+   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   return status;
 }
 
-int LogLatWTAGenLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold) {
+int LogLatWTAGenLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -40,7 +43,6 @@ int LogLatWTAGenLayer::updateState(float timef, float dt, const PVLayerLoc * loc
    updateV_GenerativeLayer(num_neurons, V, gSynExc, gSynInh, gSynAux, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold); // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
-   updateActiveIndices();
    return PV_SUCCESS;
 }
 

@@ -52,18 +52,18 @@ static inline int updateSparsityTermDeriv_GenerativeLayer(int num_neurons, CL_ME
 static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int num_neurons, int num_features, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative);
 static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int num_features);
 
-//static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * A, int nx, int ny, int nf, int nb);
 static inline int setActivity_HyPerLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb);
 static inline int setActivity_GenerativeLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold);
 static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb);
-#ifndef PV_USE_OPENCL
-//opencl can't use class objects like PVLayerLoc, but I don't see an easy way to get around this, but I'll come back to it later
-static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
-#endif //PV_USE_OPENCL
+// #ifndef PV_USE_OPENCL
+// PVLayerLoc is a struct, not a class //opencl can't use class objects like PVLayerLoc, but I don't see an easy way to get around this, but I'll come back to it later
+static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * active);
+// #endif //PV_USE_OPENCL
 static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
 
 static inline int resetGSynBuffers_HyPerLayer(int num_neurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int resetGSynBuffers_SigmoidLayer();
+
 // Definitions
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynExc, CL_MEM_GLOBAL pvdata_t * GSynInh) {
    int k;
@@ -305,6 +305,21 @@ static inline int setActivity_IncrementLayer(int num_neurons, CL_MEM_GLOBAL pvda
 
 
 //!!!TODO: add param in LIFGap for spikelet amplitude
+static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * checkActive) {
+   int k;
+#ifndef PV_USE_OPENCL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k,nx,ny,nf,nb);
+      A[kex] = V[k];
+      if( checkActive[kex] > 0.0) A[kex] += 50;
+   }
+   return PV_SUCCESS;
+}
+#ifdef OBSOLETE // Marked obsolete Mar 12, 2011.  It's inefficient to compute kIndexExtended twice, and the activeIndices list might not be the correct information when adding the 50mV spike
 #ifndef PV_USE_OPENCL
 static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices) {
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, nb); // this copies the potential into the activity buffer
@@ -325,9 +340,24 @@ static inline int setActivity_GapLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t *
          A[kLocalExtended] += 50; // add 50 mV spike to local membrane potential
       }
    }
+
+   int k;
+#ifndef PV_USE_OPENCL
+   for( k=0; k<num_neurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k,nx,ny,nf,nb);
+      A[kex] = V[k];
+      if( active[kex] > 0.0) A[kex] += 50;
+   }
+
+
    return PV_SUCCESS;
 }
 #endif //PV_USE_OPENCL
+#endif // OBSOLETE
 
 static inline int setActivity_SigmoidLayer(int num_neurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
    pvdata_t sig_scale = 1.0f;

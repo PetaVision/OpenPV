@@ -413,6 +413,7 @@ int Retina::updateState(float time, float dt)
 
 #endif
    update_timer->stop();
+   updateActiveIndices();
    return 0;
 }
 
@@ -491,105 +492,9 @@ int Retina::writeState(float time)
 
 int Retina::outputState(float time, bool last)
 {
-   if( spikingFlag ) updateActiveIndices();
+   // if( spikingFlag ) updateActiveIndices(); // updateActiveIndices moved back into updateState.
    return HyPerLayer::outputState(time, last);
-
-#ifdef OBSOLETE // Marked obsolete Aug. 31, 2011.
-       // writeActivity (called by HyPerLayer::outputState) now writes clayer->activity->data, not clayer->V
-       // so it's not necessary to copy A to V before calling
-   int status = 0;
-
-   if (spikingFlag != 0){
-      updateActiveIndices();
-      status = HyPerLayer::outputState(time, last);
-      return status;
-   }
-
-   else if (writeNonspikingActivity != 0){
-      float * Vtmp = this->getV();
-      const PVLayerCube * activity_cube = this->getCLayer()->activity;
-      const float * atmp = activity_cube->data; //this->getLayerData(); // write activity on this time step
-      int nx = this->getCLayer()->loc.nx;
-      int ny = this->getCLayer()->loc.ny;
-      int nf = this->getCLayer()->loc.nf;
-      int nb = this->getCLayer()->loc.nb;
-      for (int k = 0; k < this->getNumNeurons(); k++) {
-         int kext = kIndexExtended( k, nx, ny, nf, nb);
-         Vtmp[k] = atmp[kext];
-      }
-      status = HyPerLayer::outputState(time, last);
-   }
-   return status;
-#endif // OBSOLETE
 }
-
-
-//! Spiking method for Retina
-/*!
- * Returns 1 if an event should occur, 0 otherwise. This is a stochastic model.
- * REMARKS:
- *      - During ABS_REFACTORY_PERIOD a neuron does not spike
- *      - The neurons that correspond to stimuli (on Image pixels)
- *       spike with probability probStim.
- *      - The neurons that correspond to background image pixels
- *      spike with probability probBase.
- *      - After ABS_REFACTORY_PERIOD the spiking probability
- *        grows exponentially to probBase and probStim respectively.
- *      - The burst of the retina is periodic with period T set by
- *        T = 1000/burstFreq in miliseconds
- *      - When the time t is such that mT < t < mT + burstDuration, where m is
- *      an integer, the burstStatus is set to 1.
- *      - The burstStatus is also determined by the condition that
- *      beginStim < t < endStim. These parameters are set in the input
- *      params file params.stdp
- *      - sinAmp modulates the spiking probability only when burstDuration <= 0
- *      or burstFreq = 0
- *      - probSpike is set to probBase for all neurons.
- *      - for neurons exposed to Image on pixels, probSpike increases
- *       with probStim.
- *      - When the probability is negative, the neuron does not spike.
- *      .
- * NOTES:
- *      - time is measured in milliseconds.
- *      .
- */
-#ifdef OBSOLETE
-int Retina::spike(float time, float dt, float prev, float probBase, float probStim, float * probSpike)
-{
-   fileread_params * params = (fileread_params *) clayer->params;
-   float burstStatus = 1;
-   float sinAmp = 1.0;
-
-   // see if neuron is in a refactory period
-   //
-   if ((time - prev) < ABS_REFACTORY_PERIOD) {
-      return 0;
-   }
-   else {
-      float delta = time - prev - ABS_REFACTORY_PERIOD;
-      float refact = 1.0f - expf(-delta/REFACTORY_PERIOD);
-      refact = (refact < 0) ? 0 : refact;
-      probBase *= refact;
-      probStim *= refact;
-   }
-
-   if (params->burstDuration < 0 || params->burstFreq == 0) {
-      sinAmp = cos( 2 * PI * time * params->burstFreq / 1000. );
-   }
-   else {
-      burstStatus = fmodf(time, 1000. / params->burstFreq);
-      burstStatus = burstStatus <= params->burstDuration;
-   }
-
-   burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
-   *probSpike = probBase;
-
-   if ((int)burstStatus) {
-      *probSpike += probStim * sinAmp;  // negative prob is OK
-    }
-   return ( pv_random_prob() < *probSpike );
-}
-#endif
 
 } // namespace PV
 

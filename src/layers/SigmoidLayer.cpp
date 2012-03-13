@@ -57,10 +57,13 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
 }
 
 int SigmoidLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag);
+   int status;
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, getCLayer()->activeIndices, &getCLayer()->numActive);
+   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   return status;
 }
 
-int SigmoidLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V,  int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
+int SigmoidLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V,  int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -68,7 +71,6 @@ int SigmoidLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvd
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
    setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->nb, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag); // setActivity();
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
-   updateActiveIndices();
    return PV_SUCCESS;
 }
 

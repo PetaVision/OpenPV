@@ -692,10 +692,13 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 }
 
 int HyPerLayer::updateState(float timef, float dt) {
-   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
+   int status;
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
+   if(status == PV_SUCCESS) status = updateActiveIndices();
+   return status;
 }
 
-int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
@@ -710,7 +713,6 @@ int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdat
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
    // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
-   updateActiveIndices();
 
    return PV_SUCCESS;
 }
@@ -746,8 +748,11 @@ int HyPerLayer::updateBorder(float time, float dt)
 //   return PV_SUCCESS;
 //}
 
-int HyPerLayer::updateActiveIndices(){
-   if (!spikingFlag) return PV_SUCCESS;
+int HyPerLayer::updateActiveIndices() {
+   if( spikingFlag ) return calcActiveIndices(); else return PV_SUCCESS;
+}
+
+int HyPerLayer::calcActiveIndices() {
    int numActive = 0;
    PVLayerLoc & loc = clayer->loc;
    pvdata_t * activity = clayer->activity->data;

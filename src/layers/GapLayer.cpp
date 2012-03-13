@@ -47,19 +47,20 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
 }
 
 int GapLayer::updateState(float timef, float dt) {
-   PVLayer * src_clayer = sourceLayer->getCLayer();
-   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), sourceLayer->getLayerLoc(), sourceLayer->getSpikingFlag(), src_clayer->numActive, src_clayer->activeIndices);
+   int status;
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getCLayer()->activity->data); // Should we use sourceLayer->getCLayer()->activity->data for active?
+   if( status == PV_SUCCESS  ) status = updateActiveIndices();
+   return status;
 }
 
-int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices) {
+int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_GapLayer();
-   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, src_loc, src_spiking, src_num_active, src_active_indices);
+   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, checkActive);
    // resetGSynBuffers(); // Since GapLayer uses sourceLayer's V, it doesn't seem to use the GSyn channels, so no need to blank them?
-   updateActiveIndices();
    return PV_SUCCESS;
 }
 

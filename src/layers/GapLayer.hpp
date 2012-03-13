@@ -32,7 +32,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer);
       // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
 
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
+   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive);
 
 private:
    int initialize_base();

@@ -107,6 +107,7 @@ int TrainingLayer::updateState(float timef, float dt) {
       nextLabelTime += displayPeriod;
       status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    }
+   if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
@@ -119,7 +120,6 @@ int TrainingLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pv
    curTrainingLabelIndex++;
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
    // resetGSynBuffers(); // Since V doesn't use GSyn when updating, no need to reset GSyn buffers
-   updateActiveIndices();
       // return ANNLayer::updateState(time, dt);
    return PV_SUCCESS;
 }

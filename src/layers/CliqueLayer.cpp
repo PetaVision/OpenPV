@@ -302,18 +302,19 @@ int CliqueLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvda
 
 int CliqueLayer::updateActiveIndices()
 {
-   int numActive = 0;
-   PVLayerLoc & loc = clayer->loc;
-   pvdata_t * activity = clayer->activity->data;
-
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-      if (activity[kex] > 0.0) {
-         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-      }
-   }
-   clayer->numActive = numActive;
-   return PV_SUCCESS;
+//   int numActive = 0;
+//   PVLayerLoc & loc = clayer->loc;
+//   pvdata_t * activity = clayer->activity->data;
+//
+//   for (int k = 0; k < getNumNeurons(); k++) {
+//      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+//      if (activity[kex] > 0.0) {
+//         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+//      }
+//   }
+//   clayer->numActive = numActive;
+//   return PV_SUCCESS;
+   return calcActiveIndices();
 }
 
 } /* namespace PV */
