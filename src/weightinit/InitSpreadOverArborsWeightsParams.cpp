@@ -29,6 +29,9 @@ int InitSpreadOverArborsWeightsParams::initialize_base() {
 
    initWeight = 1;
    numArbors = 1;
+   setDeltaThetaMax(0.0f);
+   setThetaMax(0.0f);
+   setRotate(0.0f);
    return 1;
 }
 
@@ -41,7 +44,9 @@ int InitSpreadOverArborsWeightsParams::initialize(HyPerConn * parentConn) {
    numArbors = parentConn->numberOfAxonalArborLists();
    initWeight = params->value(getName(), "weightInit", initWeight);
    initWeight /= numArbors;
-
+   setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
+   setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
+   setRotate(params->value(getName(), "rotate", getRotate()));
 
    return status;
 
