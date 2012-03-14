@@ -6,8 +6,8 @@
 #include <src/columns/buildandrun.hpp>
 #include "ChannelProbe.hpp"
 #include "RandomPatchMovie.hpp"
-#include "ShadowRandomPatchMovie.hpp"
 #include "RandomPatchMovieProbe.hpp"
+#include "ShadowRandomPatchMovie.hpp"
 #include <unistd.h>
 #ifdef PV_USE_MPI
    #include <mpi.h>
@@ -28,8 +28,8 @@ int main(int argc, char * argv[]) {
 #else
    int rank = 0;
 #endif // PV_USE_MPI
-   int charhit;
    int status = PV_SUCCESS;
+   int charhit;
    fflush(stdout);
    if( rank == 0 ) {
       printarch();
@@ -91,18 +91,6 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
       }
       return (void *) addedLayer;
    }
-   if( !strcmp( keyword, "ShadowRandomPatchMovie") ) {
-      RandomPatchMovie * addedLayer;
-      const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
-      if (imagelabelspath) {
-         addedLayer = new ShadowRandomPatchMovie(name, hc, imagelabelspath);
-      }
-      else {
-         fprintf(stderr, "Group \"%s\": Parameter group for class ShadowRandomPatchMovie must set string parameter imageListPath\n", name);
-         addedLayer = NULL;
-      }
-      return (void *) addedLayer;
-   }
    if( !strcmp( keyword, "RandomPatchMovieProbe") ) {
       targetlayer = getLayerFromParameterGroup(name, hc, "targetLayer");
       if( ! targetlayer ) {
@@ -117,6 +105,18 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
       RandomPatchMovieProbe * rpmProbe = new RandomPatchMovieProbe(filename, hc, name);
       if( rpmProbe ) targetlayer->insertProbe(rpmProbe);
       return (void *) rpmProbe;
+   }
+   if( !strcmp( keyword, "ShadowRandomPatchMovie") ) {
+      RandomPatchMovie * addedLayer;
+      const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
+      if (imagelabelspath) {
+         addedLayer = new ShadowRandomPatchMovie(name, hc, imagelabelspath);
+      }
+      else {
+         fprintf(stderr, "Group \"%s\": Parameter group for class ShadowRandomPatchMovie must set string parameter imageListPath\n", name);
+         addedLayer = NULL;
+      }
+      return (void *) addedLayer;
    }
    fprintf(stderr, "Group \"%s\": Keyword \"%s\" unrecognized.  Skipping group.\n", name, keyword);
    // TODO smarter error handling
