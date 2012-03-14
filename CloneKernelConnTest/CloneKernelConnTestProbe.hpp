@@ -14,10 +14,10 @@ namespace PV {
 
 class CloneKernelConnTestProbe: public PV::StatsProbe {
 public:
-   CloneKernelConnTestProbe(const char * filename, HyPerCol * hc, const char * msg);
-   CloneKernelConnTestProbe(const char * msg);
+   CloneKernelConnTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   CloneKernelConnTestProbe(HyPerLayer * layer, const char * msg);
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float timef);
 
 };
 

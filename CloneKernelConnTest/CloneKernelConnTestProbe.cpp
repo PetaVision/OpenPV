@@ -13,28 +13,28 @@
 
 namespace PV {
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char * filename, HyPerCol * hc, const char * msg)
-: StatsProbe(filename, hc, msg)
+CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+: StatsProbe(filename, layer, msg)
 {
 }
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char * msg)
-: StatsProbe(msg)
+CloneKernelConnTestProbe::CloneKernelConnTestProbe(HyPerLayer * layer, const char * msg)
+: StatsProbe(layer, msg)
 {
 }
 
 
-int CloneKernelConnTestProbe::outputState(float time, HyPerLayer * l)
+int CloneKernelConnTestProbe::outputState(float timef)
 {
-   int status = StatsProbe::outputState(time, l);
+   int status = StatsProbe::outputState(timef);
 #ifdef PV_USE_MPI
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
    }
 #endif // PV_USE_MPI
-   if(time>2.0f){
+   if(timef>2.0f){
       assert(fabs(fMin) < 1e-6);
       assert(fabs(fMax) < 1e-6);
       assert(fabs(avg) < 1e-6);

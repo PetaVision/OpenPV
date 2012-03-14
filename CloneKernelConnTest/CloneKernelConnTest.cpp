@@ -47,16 +47,15 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	            buf_type = BufActivity;
 	         }
 	         if( filename ) {
-	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(filename, hc, message);
+	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(filename, targetlayer, message);
 	         }
 	         else {
-	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(message);
+	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(targetlayer, message);
 	         }
 	         if( !addedProbe ) {
 	            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
 	            errorFound = true;
 	         }
-	         targetlayer->insertProbe(addedProbe);
 	         if( !errorFound ) addedGroup = (void *) addedProbe;
 	      }
 	      free(message); message = NULL;
