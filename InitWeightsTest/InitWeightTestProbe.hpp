@@ -14,10 +14,10 @@ namespace PV {
 
 class InitWeightTestProbe: public PV::StatsProbe {
 public:
-	InitWeightTestProbe(const char * filename, HyPerCol * hc, const char * msg);
-	InitWeightTestProbe(const char * msg);
+	InitWeightTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
+	InitWeightTestProbe(HyPerLayer * layer, const char * msg);
 
-	virtual int outputState(float time, HyPerLayer * l	);
+	virtual int outputState(float timef);
 
 };
 

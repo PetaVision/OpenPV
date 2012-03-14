@@ -67,17 +67,16 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
             continue;
          }
          if( filename ) {
-            addedProbe =  new InitWeightTestProbe(filename, hc, message);
+            addedProbe =  new InitWeightTestProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe =  new InitWeightTestProbe(message);
+            addedProbe =  new InitWeightTestProbe(targetlayer, message);
          }
          free(message); message=NULL;
          if( !addedProbe ) {
             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          }
          assert(targetlayer);
-         if( addedProbe ) targetlayer->insertProbe(addedProbe);
          checknewobject((void *) addedProbe, kw, name, hc);
       }
    }
