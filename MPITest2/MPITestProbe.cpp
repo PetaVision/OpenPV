@@ -18,19 +18,21 @@ namespace PV {
  * @type
  * @msg
  */
-MPITestProbe::MPITestProbe(const char * filename, HyPerCol * hc, const char * msg)
-   : StatsProbe(filename, hc, msg)
+MPITestProbe::MPITestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+   : StatsProbe()
 {
-	cumAvg = 0.0f;
+   initStatsProbe(filename, layer, BufActivity, msg);
+   cumAvg = 0.0f;
 }
 
 /**
  * @type
  * @msg
  */
-MPITestProbe::MPITestProbe(const char * msg)
-   : StatsProbe(msg)
+MPITestProbe::MPITestProbe(HyPerLayer * layer, const char * msg)
+   : StatsProbe()
 {
+   initStatsProbe(NULL, layer, BufActivity, msg);
 	//cumAvg = 0.0f;
 }
 
@@ -39,10 +41,10 @@ MPITestProbe::MPITestProbe(const char * msg)
  * @time
  * @l
  */
-int MPITestProbe::outputState(float time, HyPerLayer * l) {
-	int status = StatsProbe::outputState(time, l);
+int MPITestProbe::outputState(float timef) {
+	int status = StatsProbe::outputState(timef);
 #ifdef PV_USE_MPI
-	InterColComm * icComm = l->getParent()->icCommunicator();
+	InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
 	const int rcvProc = 0;
 	if( icComm->commRank() != rcvProc ) {
 		return status;
@@ -55,12 +57,13 @@ int MPITestProbe::outputState(float time, HyPerLayer * l) {
 	// if many to one connection, each neuron should receive its global x/y/f position
 	// if one to many connection, the position of the nearest sending cell is received
 	// assume sending layer has scale factor == 1
-	int xScaleLog2 = l->getCLayer()->xScale;
+	int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
 
 	// determine min/max position of receiving layer
-	int nf = l->getLayerLoc()->nf;
-	int nxGlobal = l->getLayerLoc()->nxGlobal;
-	int nyGlobal = l->getLayerLoc()->nyGlobal;
+	const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+	int nf = loc->nf;
+	int nxGlobal = loc->nxGlobal;
+	int nyGlobal = loc->nyGlobal;
 	float min_global_xpos = xPosGlobal(0, xScaleLog2, nxGlobal, nyGlobal, nf);
 	int kGlobal = nf * nxGlobal * nyGlobal - 1;
 	float max_global_xpos = xPosGlobal(kGlobal, xScaleLog2, nxGlobal, nyGlobal, nf);
@@ -76,7 +79,7 @@ int MPITestProbe::outputState(float time, HyPerLayer * l) {
 	fprintf(fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 			msg, min_global_xpos, ave_global_xpos, max_global_xpos);
 	fflush(fp);
-	if (time > 3.0f) {
+	if (timef > 3.0f) {
 		assert((fMin > (min_global_xpos - tol)) && (fMin < (min_global_xpos + tol)));
 		assert((fMax > (max_global_xpos - tol)) && (fMax < (max_global_xpos + tol)));
 		assert((avg > (ave_global_xpos - tol)) && (avg < (ave_global_xpos + tol)));

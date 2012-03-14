@@ -14,10 +14,10 @@ namespace PV {
 
 class MPITestProbe: public PV::StatsProbe {
 public:
-   MPITestProbe(const char * filename, HyPerCol * hc, const char * msg);
-   MPITestProbe(const char * msg);
+   MPITestProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   MPITestProbe(HyPerLayer * layer, const char * msg);
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float timef);
 
 protected:
    double cumAvg;

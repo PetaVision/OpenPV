@@ -75,13 +75,10 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	  MPITestProbe * addedProbe = NULL;
       int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
       if( status == PV_SUCCESS ) {
-         addedProbe = new MPITestProbe(filename, hc, msg);
+         addedProbe = new MPITestProbe(filename, targetLayer, msg);
       }
       free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
-      if( addedProbe != NULL ) {
-         assert(targetLayer);
-         targetLayer->insertProbe(addedProbe);
-      }
+      checknewobject((void *) addedProbe, keyword, name, hc);
       addedGroup = (void *) addedProbe;
    }
    return addedGroup;
