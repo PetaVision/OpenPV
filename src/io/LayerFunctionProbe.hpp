@@ -16,19 +16,21 @@ namespace PV {
 
 class LayerFunctionProbe : public StatsProbe {
 public:
-   LayerFunctionProbe(const char * msg);
-   LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg);
-   LayerFunctionProbe(const char * msg, LayerFunction * F);
-   LayerFunctionProbe(const char * filename, HyPerCol * hc, const char * msg, LayerFunction * F);
+   LayerFunctionProbe(HyPerLayer * layer, const char * msg);
+   LayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   LayerFunctionProbe(HyPerLayer * layer, const char * msg, LayerFunction * F);
+   LayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
+   virtual ~LayerFunctionProbe();
 
    LayerFunction * getFunction() {return function;}
    int setFunction(LayerFunction * f);
-   virtual int outputState(float time, HyPerLayer * l);
-   virtual int writeState(float time, HyPerLayer * l, pvdata_t value);
+   virtual int outputState(float timef);
 
 protected:
-	int initialize(LayerFunction * F);
-	LayerFunction * function;
+   LayerFunctionProbe();
+   int initLayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
+   virtual int writeState(float timef, HyPerLayer * l, pvdata_t value);
+   LayerFunction * function;
 };
 
 }  // end namespace PV

@@ -15,16 +15,17 @@ namespace PV {
 
 /**
  * @filename
+ * @layer
  * @xLoc
  * @yLoc
  * @fLoc
  * @msg
  */
-PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
-      const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
+PointLIFProbe::PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
+      const char * msg) : PointProbe(filename, layer, xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
-   writeStep = hc->getDeltaTime();  // Marian, don't change this default behavior
+   writeStep = layer->getParent()->getDeltaTime();  // Marian, don't change this default behavior
 }
 
 /**
@@ -33,22 +34,22 @@ PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int
  * @fLoc
  * @msg
  */
-PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, const char * msg) :
-   PointProbe(xLoc, yLoc, fLoc, msg)
+PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
+   PointProbe(layer, xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
    writeStep = 10.0;
 }
 
-PointLIFProbe::PointLIFProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
-      float writeStep, const char * msg) : PointProbe(filename, hc, xLoc, yLoc, fLoc, msg)
+PointLIFProbe::PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
+      float writeStep, const char * msg) : PointProbe(filename, layer, xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
    this->writeStep = writeStep;
 }
 
-PointLIFProbe::PointLIFProbe(int xLoc, int yLoc, int fLoc, float writeStep, const char * msg) :
-   PointProbe(xLoc, yLoc, fLoc, msg)
+PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg) :
+   PointProbe(layer, xLoc, yLoc, fLoc, msg)
 {
    writeTime = 0.0;
    this->writeStep = writeStep;

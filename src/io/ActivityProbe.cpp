@@ -25,9 +25,10 @@ pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
 
 namespace PV {
 
-ActivityProbe::ActivityProbe(const char * filename, HyPerCol * hc, const PVLayerLoc * loc, int f)
+ActivityProbe::ActivityProbe(const char * filename, HyPerLayer * layer)
 {
-   outfp = pv_tiff_open_frame(filename, loc, &outBuf, &outFrame);
+   initLayerProbe(NULL, layer); // ActivityProbe doesn't use LayerProbe's fp.  Should outfp be replaced with fp?
+   outfp = pv_tiff_open_frame(filename, layer->getLayerLoc(), &outBuf, &outFrame);
 }
 
 ActivityProbe::~ActivityProbe()
@@ -37,13 +38,13 @@ ActivityProbe::~ActivityProbe()
    }
 }
 
-int ActivityProbe::outputState(float time, HyPerLayer * l)
+int ActivityProbe::outputState(float time)
 {
    int status = 0;
 
    if (outfp != NULL) {
-      const pvdata_t * data = l->getLayerData();
-      status = pv_tiff_write_frame(outfp, data, &l->clayer->loc, outBuf, &outFrame);
+      const pvdata_t * data = getTargetLayer()->getLayerData();
+      status = pv_tiff_write_frame(outfp, data, getTargetLayer()->getLayerLoc(), outBuf, &outFrame);
    }
 
    return status;
@@ -65,10 +66,7 @@ pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextLoc)
 static FILE *
 pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc)
 {
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   pvdata_t * buf = (pvdata_t *) malloc(nx * ny * sizeof(pvdata_t));
+   pvdata_t * buf = (pvdata_t *) malloc(loc->nx * loc->ny * loc->nf * sizeof(pvdata_t));
    *imageBuf = buf;
 
    FILE * fp = fopen(filename, "wb");

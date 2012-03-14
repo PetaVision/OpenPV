@@ -156,14 +156,14 @@ public:
    virtual int checkpointRead(float * timef);
    virtual int checkpointWrite();
 
-   virtual int readState (float * time);
-   virtual int writeState(float time, bool last=false);
-   virtual int outputState(float time, bool last=false);
+   virtual int readState (float * timef);
+   virtual int writeState(float timef, bool last=false);
+   virtual int outputState(float timef, bool last=false);
 #ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
    virtual int writeActivity(const char * filename, float time);
 #endif // OBSOLETE
-   virtual int writeActivity(float time);
-   virtual int writeActivitySparse(float time);
+   virtual int writeActivity(float timef);
+   virtual int writeActivitySparse(float timef);
 
    virtual int insertProbe(LayerProbe * probe);
 

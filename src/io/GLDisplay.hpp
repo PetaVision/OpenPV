@@ -16,7 +16,7 @@ namespace PV {
 
 class GLDisplay: public HyPerColRunDelegate, public LayerProbe {
 public:
-   GLDisplay(int * argc, char * argv[], HyPerCol * hc, int numRows, int numCols);
+   GLDisplay(int * argc, char * argv[], HyPerLayer * layer, int numRows, int numCols);
    virtual ~GLDisplay();
 
    int addDisplay(LayerDataInterface * d);
@@ -30,7 +30,7 @@ public:
 
    // implement LayerProbe interface
    //
-   int outputState(float time, HyPerLayer * l);
+   int outputState(float timef);
 
 private:
 

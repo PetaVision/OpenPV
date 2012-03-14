@@ -21,15 +21,30 @@ typedef enum {
 } PVBufType;
 
 class LayerProbe {
+
+// Methods
 public:
-   LayerProbe();
-   LayerProbe(const char * filename, HyPerCol * hc);
+   LayerProbe(const char * filename, HyPerLayer * layer);
    virtual ~LayerProbe();
 
-   virtual int outputState(float time, HyPerLayer * l) = 0;
+   virtual int outputState(float timef) = 0;
+
+   HyPerLayer * getTargetLayer() {return targetLayer;}
 
 protected:
+   LayerProbe();
+   int initLayerProbe(const char * filename, HyPerLayer * layer);
+
+private:
+   int initialize_base();
+   void setTargetLayer(HyPerLayer * l) {targetLayer = l;}
+
+// Member variables
+protected:
    FILE * fp;
+
+private:
+   HyPerLayer * targetLayer;
 };
 
 }

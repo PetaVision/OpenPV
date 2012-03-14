@@ -9,24 +9,31 @@
 
 namespace PV {
 
-L2NormProbe::L2NormProbe(const char * msg) : LayerFunctionProbe(msg) {
-   function = new L2NormFunction(msg);
+L2NormProbe::L2NormProbe(HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
+   initL2NormProbe(NULL, layer, msg);
 }
-L2NormProbe::L2NormProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
-   function = new L2NormFunction(msg);
+
+L2NormProbe::L2NormProbe(const char * filename, HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
+   initL2NormProbe(filename, layer, msg);
 }
 
 L2NormProbe::~L2NormProbe() {
-   delete function;
 }
 
-int L2NormProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
-#ifdef PV_USE_MPI
+int L2NormProbe::initL2NormProbe(const char * filename, HyPerLayer * layer, const char * msg) {
+   L2NormFunction * l2norm = new L2NormFunction(msg);
+   return initLayerFunctionProbe(filename, layer, msg, l2norm);
+}
+
+int L2NormProbe::writeState(float timef, HyPerLayer * l, pvdata_t value) {
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
-#endif // PV_USE_MPI
    int nk = l->getNumGlobalNeurons();
-   fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, time, nk, value);
+   fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, timef, nk, value);
 
    return PV_SUCCESS;
 }

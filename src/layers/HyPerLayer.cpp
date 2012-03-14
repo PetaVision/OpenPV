@@ -272,7 +272,7 @@ HyPerLayer::~HyPerLayer()
    free(labels); labels = NULL;
    free(marginIndices); marginIndices = NULL;
    for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
-      free(probes[i_probe]);
+      delete probes[i_probe];
    }
    free(probes);
 }
@@ -644,12 +644,6 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
          }
       }
    }
-#ifdef OBSOLETE  // Marked obsolete Aug 31, 2011.  Size of the buffer is nx*ny*nf whether buffer is extended or not.
-   // If extended is true, there will be space at the end of the buffer.
-   // Clear it so that the same output file is always produced from the
-   // same value of data.
-   while(ii<numItems) buf[ii++] = 0;
-#endif OBSOLETE
    return 0;
 }
 
@@ -907,6 +901,17 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
  */
 int HyPerLayer::insertProbe(LayerProbe * p)
 {
+   if(p->getTargetLayer() != this) {
+      fprintf(stderr, "HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this layer.  Probe was not inserted.\n", name, p);
+      return numProbes;
+   }
+   for( int i=0; i<numProbes; i++ ) {
+      if( p == probes[i] ) {
+         fprintf(stderr, "HyPerLayer \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", name, p, i);
+         return numProbes;
+      }
+   }
+
    LayerProbe ** tmp;
    tmp = (LayerProbe **) malloc((numProbes + 1) * sizeof(LayerProbe *));
    assert(tmp != NULL);
@@ -922,23 +927,23 @@ int HyPerLayer::insertProbe(LayerProbe * p)
    return ++numProbes;
 }
 
-int HyPerLayer::outputState(float time, bool last)
+int HyPerLayer::outputState(float timef, bool last)
 {
    int status = PV_SUCCESS;
 
    for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputState(time, this);
+      probes[i]->outputState(timef);
    }
 
 
-   if (time >= writeTime && writeStep >= 0) {
+   if (timef >= writeTime && writeStep >= 0) {
       writeTime += writeStep;
       if (spikingFlag != 0) {
-         status = writeActivitySparse(time);
+         status = writeActivitySparse(timef);
       }
       else {
          if (writeNonspikingActivity) {
-            status = writeActivity(time);
+            status = writeActivity(timef);
          }
       }
    }
@@ -1190,7 +1195,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    return status;
 }
 
-int HyPerLayer::readState(float * time)
+int HyPerLayer::readState(float * timef)
 {
    double dtime;
    char path[PV_PATH_MAX];
@@ -1228,7 +1233,7 @@ int HyPerLayer::readState(float * time)
    return status;
 }
 
-int HyPerLayer::writeState(float time, bool last)
+int HyPerLayer::writeState(float timef, bool last)
 {
    char path[PV_PATH_MAX];
    bool contiguous = false;
@@ -1243,45 +1248,31 @@ int HyPerLayer::writeState(float time, bool last)
 
    if( getV() != NULL ) {
       getOutputFilename(path, "V", last_str);
-      status |= write_pvdata(path, comm, time, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
+      status |= write_pvdata(path, comm, timef, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
    }
 
    extended = true;
    getOutputFilename(path, "A", last_str);
-   status |= write_pvdata(path, comm, time, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
+   status |= write_pvdata(path, comm, timef, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
 
    return status;
 }
 
-int HyPerLayer::writeActivitySparse(float time)
+int HyPerLayer::writeActivitySparse(float timef)
 {
-   // calculate active indices  -- Moved to HyPerLayer method
-   //
-//   int numActive = 0;
-//   PVLayerLoc & loc = clayer->loc;
-//   pvdata_t * activity = clayer->activity->data;
-//
-//   for (int k = 0; k < getNumNeurons(); k++) {
-//      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-//      if (activity[kex] > 0.0) {
-//         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-//      }
-//   }
-//   clayer->numActive = numActive;
-
-   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timef, clayer);
    incrementNBands(&writeActivitySparseCalls);
    return status;
 }
 
 // write non-spiking activity
-int HyPerLayer::writeActivity(float time)
+int HyPerLayer::writeActivity(float timef)
 {
    // currently numActive only used by writeActivitySparse
    //
    clayer->numActive = 0;
 
-   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), time, clayer);
+   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timef, clayer);
    incrementNBands(&writeActivityCalls);
    return status;
 }

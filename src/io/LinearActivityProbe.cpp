@@ -10,34 +10,41 @@
 namespace PV {
 
 /**
- * @hc
+ * @layer
  * @dim
  * @kLoc
  * @f
  */
-LinearActivityProbe::LinearActivityProbe(HyPerCol * hc, PVDimType dim, int linePos, int f)
+LinearActivityProbe::LinearActivityProbe(HyPerLayer * layer, PVDimType dim, int linePos, int f)
    : LayerProbe()
 {
-   this->hc = hc;
-   this->dim = dim;
-   this->linePos = linePos;
-   this->f   = f;
+   initLinearActivityProbe(NULL, layer, dim, linePos, f);
 }
 
 /**
  * @filename
- * @hc
+ * @layer
  * @dim
  * @kLoc
  * @f
  */
-LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, PVDimType dim, int linePos, int f)
-    : LayerProbe(filename, hc)
+LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f)
+    : LayerProbe()
 {
-   this->hc = hc;
+   initLinearActivityProbe(filename, layer, dim, linePos, f);
+}
+
+LinearActivityProbe::LinearActivityProbe() {
+   // Derived classes should call initLinearActivityProbe
+}
+
+int LinearActivityProbe::initLinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f) {
+   initLayerProbe(filename, layer);
+   this->hc = layer->getParent();
    this->dim = dim;
    this->linePos = linePos;
    this->f   = f;
+   return PV_SUCCESS;
 }
 
 /**
@@ -49,19 +56,19 @@ LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerCol * hc, P
  *    along the line or along the column.
  *    .
  */
-int LinearActivityProbe::outputState(float time, HyPerLayer * l)
+int LinearActivityProbe::outputState(float timef)
 {
    int width, sLine;
    const float * line;
 
-   const PVLayer * clayer = l->clayer;
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
 
-   const pvdata_t * activity = l->getLayerData();
+   const pvdata_t * activity = getTargetLayer()->getLayerData();
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->loc.nf;
-   const int nb = clayer->loc.nb;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int nb = loc->nb;
 
    float dt = hc->getDeltaTime();
 
@@ -86,7 +93,7 @@ int LinearActivityProbe::outputState(float time, HyPerLayer * l)
    }
 
    freq = sum / (width * dt * 0.001);
-   fprintf(fp, "t=%6.1f sum=%3d f=%6.1f Hz :", time, (int)sum, freq);
+   fprintf(fp, "t=%6.1f sum=%3d f=%6.1f Hz :", timef, (int)sum, freq);
 
    for (int k = 0; k < width; k++) {
      float a = line[f + k * sLine];

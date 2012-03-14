@@ -56,19 +56,20 @@ namespace PV {
 /**
  * This class runs an OpenGL probe.  It MUST be a singleton (only one instance).
  */
-GLDisplay::GLDisplay(int * argc, char * argv[], HyPerCol * hc, int numRows, int numCols)
+GLDisplay::GLDisplay(int * argc, char * argv[], HyPerLayer * layer, int numRows, int numCols)
 {
-   this->parent = hc;
-   hc->setDelegate(this);
+   initLayerProbe(NULL, layer);
+   parent = layer->getParent();
+   parent->setDelegate(this);
 
-   rank = hc->icCommunicator()->commRank();
+   rank = parent->icCommunicator()->commRank();
 
    this->numRows = numRows;
    this->numCols = numCols;
    this->numDisplays = 0;
 
    // start with time before start for initial display refresh
-   lastUpdateTime = hc->simulationTime() - hc->getDeltaTime();
+   lastUpdateTime = parent->simulationTime() - parent->getDeltaTime();
 
    glProbe = this;
    g_msecs = 0.0f;    // glut timer delay
@@ -280,9 +281,9 @@ void GLDisplay::drawDisplays()
 
 // implement LayerProbe interface
 //
-int GLDisplay::outputState(float time, HyPerLayer * l)
+int GLDisplay::outputState(float timef)
 {
-   return loadTexture(getTextureId(l), l);
+   return loadTexture(getTextureId(getTargetLayer()), getTargetLayer());
 }
 
 int GLDisplay::getTextureId(LayerDataInterface * l)

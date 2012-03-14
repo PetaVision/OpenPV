@@ -12,28 +12,15 @@ namespace PV {
 
 LayerProbe::LayerProbe()
 {
-   fp = stdout;
+   // Derived classes of LayerProbe should call LayerProbe::initialize themselves.
 }
 
 /**
  * @filename
  */
-LayerProbe::LayerProbe(const char * filename, HyPerCol * hc)
+LayerProbe::LayerProbe(const char * filename, HyPerLayer * layer)
 {
-   if( hc->icCommunicator()->commRank()==0 && filename != NULL ) {
-      char * outputdir = hc->getOutputPath();
-      char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-      sprintf(path, "%s/%s", outputdir, filename);
-      fp = fopen(path, "w");
-      if( !fp ) {
-         fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
-         exit(EXIT_FAILURE);
-      }
-      free(path);
-   }
-   else {
-      fp = stdout;
-   }
+   initLayerProbe(filename, layer);
 }
 
 LayerProbe::~LayerProbe()
@@ -44,10 +31,40 @@ LayerProbe::~LayerProbe()
 }
 
 /**
- * @time
+ * @fp
  * @l
  */
-int LayerProbe::outputState(float time, HyPerLayer * l)
+int LayerProbe::initLayerProbe(const char * filename, HyPerLayer * layer)
+{
+   HyPerCol * hc = layer->getParent();
+   if( hc->icCommunicator()->commRank()==0 ) {
+      if( filename != NULL ) {
+         char * outputdir = hc->getOutputPath();
+         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
+         sprintf(path, "%s/%s", outputdir, filename);
+         fp = fopen(path, "w");
+         if( !fp ) {
+            fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
+            exit(EXIT_FAILURE);
+         }
+         free(path);
+      }
+      else {
+         fp = stdout;
+      }
+   }
+   else {
+      fp = NULL; // Only root process should be writing; if other processes need something written it should be sent to root.
+   }
+   setTargetLayer(layer);
+   layer->insertProbe(this);
+   return PV_SUCCESS;
+}
+
+/**
+ * @time
+ */
+int LayerProbe::outputState(float timef)
 {
    return 0;
 }

@@ -17,19 +17,19 @@ namespace PV {
  * @hc
  * @msg
  */
-StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, const char * msg)
-   : LayerProbe(filename, hc)
+StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, const char * msg)
+   : LayerProbe()
 {
-   initStatsProbe(BufActivity, msg);
+   initStatsProbe(filename, layer, BufActivity, msg);
 }
 
 /**
  * @msg
  */
-StatsProbe::StatsProbe(const char * msg)
+StatsProbe::StatsProbe(HyPerLayer * layer, const char * msg)
    : LayerProbe()
 {
-   initStatsProbe(BufActivity, msg);
+   initStatsProbe(NULL, layer, BufActivity, msg);
 }
 
 /**
@@ -38,20 +38,26 @@ StatsProbe::StatsProbe(const char * msg)
  * @type
  * @msg
  */
-StatsProbe::StatsProbe(const char * filename, HyPerCol * hc, PVBufType type, const char * msg)
-   : LayerProbe(filename, hc)
+StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg)
+   : LayerProbe()
 {
-   initStatsProbe(type, msg);
+   initStatsProbe(filename, layer, type, msg);
 }
 
 /**
  * @type
  * @msg
  */
-StatsProbe::StatsProbe(PVBufType type, const char * msg)
+StatsProbe::StatsProbe(HyPerLayer * layer, PVBufType type, const char * msg)
    : LayerProbe()
 {
-   initStatsProbe(type, msg);
+   initStatsProbe(NULL, layer, type, msg);
+}
+
+StatsProbe::StatsProbe()
+   : LayerProbe()
+{
+   // Derived classes should call initStatsProbe
 }
 
 StatsProbe::~StatsProbe()
@@ -59,7 +65,8 @@ StatsProbe::~StatsProbe()
    free(msg);
 }
 
-int StatsProbe::initStatsProbe(PVBufType type, const char * msg) {
+int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) {
+   initLayerProbe(filename, layer);
    this->msg = strdup(msg);
    this->type = type;
    fMin = FLT_MAX;
@@ -73,10 +80,10 @@ int StatsProbe::initStatsProbe(PVBufType type, const char * msg) {
  * @time
  * @l
  */
-int StatsProbe::outputState(float time, HyPerLayer * l)
+int StatsProbe::outputState(float timef)
 {
 #ifdef PV_USE_MPI
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    MPI_Comm comm = icComm->communicator();
    int rank = icComm->commRank();
    const int rcvProc = 0;
@@ -89,10 +96,10 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
    sum = 0.0f;
    avg = 0.0f;
 
-   nk = l->getNumNeurons();
+   nk = getTargetLayer()->getNumNeurons();
    switch (type) {
    case BufV:
-      buf = l->getV();
+      buf = getTargetLayer()->getV();
       if( buf == NULL ) {
 #ifdef PV_USE_MPI
          if( rank != rcvProc ) return 0;
@@ -108,10 +115,10 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
       }
       break;
    case BufActivity:
-      buf = l->getLayerData();
+      buf = getTargetLayer()->getLayerData();
       assert(buf != NULL);
       for( int k=0; k<nk; k++ ) {
-         const PVLayerLoc * loc = l->getLayerLoc();
+         const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
          int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
          pvdata_t a = buf[kex];
          sum += a;
@@ -142,13 +149,13 @@ int StatsProbe::outputState(float time, HyPerLayer * l)
    nk = totalNeurons;
 #endif // PV_USE_MPI
    avg = sum/nk;
-   if ( type == BufActivity  && l->getSpikingFlag() ) {
+   if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
       float freq = 1000.0 * avg;
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, time,
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f\n", msg, timef,
               nk, (float)sum, fMin, freq, fMax);
    }
    else {
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, time,
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f\n", msg, timef,
               nk, (float)sum, fMin, (float) avg, fMax);
    }
 

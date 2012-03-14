@@ -11,24 +11,32 @@
 
 namespace PV {
 
-LogLatWTAProbe::LogLatWTAProbe(const char * msg) : LayerFunctionProbe(msg) {
-   function = new LogLatWTAFunction(msg);
+LogLatWTAProbe::LogLatWTAProbe(HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
+   initLogLatWTAProbe(NULL, layer, msg);
 }
-LogLatWTAProbe::LogLatWTAProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
+LogLatWTAProbe::LogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
    function = new LogLatWTAFunction(msg);
 }
 
 LogLatWTAProbe::~LogLatWTAProbe() {
-   delete function;
 }
 
-int LogLatWTAProbe::writeState(float time, HyPerLayer * l, pvdata_t value) {
+int LogLatWTAProbe::initLogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg) {
+   LogLatWTAFunction * loglat = new LogLatWTAFunction(msg);
+   return initLayerFunctionProbe(filename, layer, msg, loglat);
+}
+
+int LogLatWTAProbe::writeState(float timef, HyPerLayer * l, pvdata_t value) {
 #ifdef PV_USE_MPI
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
 #endif // PV_USE_MPI
    int nk = l->getNumGlobalNeurons();
-   fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, time, nk, value);
+   fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, timef, nk, value);
 
    return PV_SUCCESS;
 }

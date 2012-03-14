@@ -1089,10 +1089,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       }
       if( !errorFound ) {
          if( filename ) {
-            addedProbe = (LayerProbe *) new PointProbe(filename, hc, xLoc, yLoc, fLoc, message);
+            addedProbe = (LayerProbe *) new PointProbe(filename, targetlayer, xLoc, yLoc, fLoc, message);
          }
          else {
-            addedProbe = (LayerProbe *) new PointProbe(xLoc, yLoc, fLoc, message);
+            addedProbe = (LayerProbe *) new PointProbe(targetlayer, xLoc, yLoc, fLoc, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
@@ -1115,10 +1115,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       }
       if( !errorFound ) {
          if( filename ) {
-            addedProbe = (LayerProbe *) new PointLIFProbe(filename, hc, xLoc, yLoc, fLoc, message);
+            addedProbe = (LayerProbe *) new PointLIFProbe(filename, targetlayer, xLoc, yLoc, fLoc, message);
          }
          else {
-            addedProbe = (LayerProbe *) new PointLIFProbe(xLoc, yLoc, fLoc, message);
+            addedProbe = (LayerProbe *) new PointLIFProbe(targetlayer, xLoc, yLoc, fLoc, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
@@ -1136,10 +1136,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
             buf_type = BufActivity;
          }
          if( filename ) {
-            addedProbe = (LayerProbe *) new StatsProbe(filename, hc, message);
+            addedProbe = (LayerProbe *) new StatsProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe = (LayerProbe *) new StatsProbe(message);
+            addedProbe = (LayerProbe *) new StatsProbe(targetlayer, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
@@ -1153,10 +1153,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       errorFound = status!=PV_SUCCESS;
       if( !errorFound ) {
          if( filename ) {
-            addedProbe = (LayerProbe *) new L2NormProbe(filename, hc, message);
+            addedProbe = (LayerProbe *) new L2NormProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe = (LayerProbe *) new L2NormProbe(message);
+            addedProbe = (LayerProbe *) new L2NormProbe(targetlayer, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe \n", name);
@@ -1178,10 +1178,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       errorFound = status!=PV_SUCCESS;
       if( !errorFound ) {
          if( filename ) {
-            addedProbe = (LayerProbe *) new SparsityTermProbe(filename, hc, message);
+            addedProbe = (LayerProbe *) new SparsityTermProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe = (LayerProbe *) new SparsityTermProbe(message);
+            addedProbe = (LayerProbe *) new SparsityTermProbe(targetlayer, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
@@ -1203,10 +1203,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       errorFound = status!=PV_SUCCESS;
       if( !errorFound ) {
          if( filename ) {
-            addedProbe = (LayerProbe *) new LogLatWTAProbe(filename, hc, message);
+            addedProbe = (LayerProbe *) new LogLatWTAProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe = (LayerProbe *) new LogLatWTAProbe(message);
+            addedProbe = (LayerProbe *) new LogLatWTAProbe(targetlayer, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
@@ -1224,7 +1224,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
    }
    assert(targetlayer);
-   if( addedProbe ) targetlayer->insertProbe(addedProbe);
    checknewobject((void *) addedProbe, classkeyword, name, hc);
    return addedProbe;
 }

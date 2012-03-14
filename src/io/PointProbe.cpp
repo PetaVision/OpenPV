@@ -7,22 +7,23 @@
 
 #include "PointProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
-// #include "../layers/LIF.hpp" // Commented out May 18, 2011.  LIF-specific code moved to PointLIFProbe back in March.
 #include <string.h>
 
 namespace PV {
 
 /**
  * @filename
+ * @layer
  * @xLoc
  * @yLoc
  * @fLoc
  * @msg
  */
-PointProbe::PointProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc,
+PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
       const char * msg) :
-   LayerProbe(filename, hc)
+   LayerProbe()
 {
+   initLayerProbe(filename, layer);
    this->xLoc = xLoc;
    this->yLoc = yLoc;
    this->fLoc = fLoc;
@@ -31,14 +32,16 @@ PointProbe::PointProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc,
 }
 
 /**
+ * @layer
  * @xLoc
  * @yLoc
  * @fLoc
  * @msg
  */
-PointProbe::PointProbe(int xLoc, int yLoc, int fLoc, const char * msg) :
+PointProbe::PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
    LayerProbe()
 {
+   initLayerProbe(NULL, layer);
    this->xLoc = xLoc;
    this->yLoc = yLoc;
    this->fLoc = fLoc;
@@ -64,11 +67,9 @@ PointProbe::~PointProbe()
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.
  */
-int PointProbe::outputState(float time, HyPerLayer * l)
+int PointProbe::outputState(float timef)
 {
-   // LIF * lif = dynamic_cast<LIF*>(l);  // Commented out May 18, 2011.  LIF-specific code moved to PointLIFProbe back in March.
-
-   const PVLayerLoc * loc = l->getLayerLoc();
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
 
    const int kx0 = loc->kx0;
    const int ky0 = loc->ky0;
@@ -83,7 +84,7 @@ int PointProbe::outputState(float time, HyPerLayer * l)
    const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
    const int kex = kIndexExtended(k, nx, ny, nf, loc->nb);
 
-   return writeState(time, l, k, kex);
+   return writeState(timef, getTargetLayer(), k, kex);
 }
 
 /**
@@ -92,7 +93,7 @@ int PointProbe::outputState(float time, HyPerLayer * l)
  * @k
  * @kex
  */
-int PointProbe::writeState(float time, HyPerLayer * l, int k, int kex) {
+int PointProbe::writeState(float timef, HyPerLayer * l, int k, int kex) {
 
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
@@ -101,7 +102,7 @@ int PointProbe::writeState(float time, HyPerLayer * l, int k, int kex) {
       fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
    }
    else if (activity[kex] != 0.0) {
-      fprintf(fp, "%s t=%.1f", msg, time);
+      fprintf(fp, "%s t=%.1f", msg, timef);
       fprintf(fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
       fprintf(fp, " a=%.5f", activity[kex]);
       fprintf(fp, "\n");

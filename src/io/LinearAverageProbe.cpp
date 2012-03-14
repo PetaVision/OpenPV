@@ -18,11 +18,10 @@ namespace PV {
  * @f
  * @gifFile
  */
-LinearAverageProbe::LinearAverageProbe(HyPerCol * hc, PVDimType dim, int f, const char * gifFile)
-   : LinearActivityProbe(hc, dim, 0, f)
+LinearAverageProbe::LinearAverageProbe(HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
+   : LinearActivityProbe()
 {
-   this->gifFile = strdup(gifFile);
-   this->fpGif   = NULL;
+   initLinearAverageProbe(NULL, layer, dim, f, gifFile);
 }
 
 /**
@@ -32,11 +31,10 @@ LinearAverageProbe::LinearAverageProbe(HyPerCol * hc, PVDimType dim, int f, cons
  * @f
  * @char
  */
-LinearAverageProbe::LinearAverageProbe(const char * filename, HyPerCol * hc, PVDimType dim, int f, const char * gifFile)
-    : LinearActivityProbe(filename, hc, dim, 0, f)
+LinearAverageProbe::LinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
+    : LinearActivityProbe()
 {
-   this->gifFile = strdup(gifFile);
-   this->fpGif   = NULL;
+   initLinearAverageProbe(filename, layer, dim, f, gifFile);
 }
 
 LinearAverageProbe::~LinearAverageProbe()
@@ -46,11 +44,19 @@ LinearAverageProbe::~LinearAverageProbe()
    }
 }
 
+int LinearAverageProbe::initLinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile) {
+
+   initLinearActivityProbe(filename, layer, dim, 0, f);
+   this->gifFile = strdup(gifFile);
+   this->fpGif   = NULL;
+   return PV_SUCCESS;
+}
+
 /**
  * @time
  * @l
  */
-int LinearAverageProbe::outputState(float time, HyPerLayer * l)
+int LinearAverageProbe::outputState(float timef, HyPerLayer * l)
 {
    int nk, sk;
    const pvdata_t * line;
@@ -129,7 +135,7 @@ int LinearAverageProbe::outputState(float time, HyPerLayer * l)
    }
 
    float freq = sum / (nk * dt * 0.001);
-   fprintf(fp, "t=%4d sum=%3d f=%6.1f Hz :", (int)time, (int)sum, freq);
+   fprintf(fp, "t=%4d sum=%3d f=%6.1f Hz :", (int)timef, (int)sum, freq);
 
    for (int k = 0; k < nk; k++) {
       float a = line[f + k * sk];

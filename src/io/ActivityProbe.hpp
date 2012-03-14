@@ -15,10 +15,10 @@ namespace PV {
 
 class ActivityProbe: public PV::LayerProbe {
 public:
-   ActivityProbe(const char * filename, HyPerCol * hc, const PVLayerLoc * loc, int f);
+   ActivityProbe(const char * filename, HyPerLayer * layer);
    virtual ~ActivityProbe();
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float time);
 
 private:
    HyPerCol * parent;

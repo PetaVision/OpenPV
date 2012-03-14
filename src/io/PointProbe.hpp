@@ -14,11 +14,11 @@ namespace PV {
 
 class PointProbe: public PV::LayerProbe {
 public:
-   PointProbe(const char * filename, HyPerCol * hc, int xLoc, int yLoc, int fLoc, const char * msg);
-   PointProbe(int xLoc, int yLoc, int fLoc, const char * msg);
+   PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+   PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual ~PointProbe();
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float timef);
 
    void setSparseOutput(bool flag) {sparseOutput = flag;}
 
@@ -30,7 +30,7 @@ protected:
 
    bool sparseOutput;
 
-   virtual int writeState(float time, HyPerLayer * l, int k, int kex);
+   virtual int writeState(float timef, HyPerLayer * l, int k, int kex);
 };
 
 }

@@ -9,25 +9,34 @@
 
 namespace PV {
 
-SparsityTermProbe::SparsityTermProbe(const char * msg) : LayerFunctionProbe(msg) {
-    function = new SparsityTermFunction(msg);
+SparsityTermProbe::SparsityTermProbe(HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
+   initSparsityTermProbe(NULL, layer, msg);
 }
-SparsityTermProbe::SparsityTermProbe(const char * filename, HyPerCol * hc, const char * msg) : LayerFunctionProbe(filename, hc, msg) {
-    function = new SparsityTermFunction(msg);
+
+SparsityTermProbe::SparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg)
+   : LayerFunctionProbe()
+{
+   initSparsityTermProbe(filename, layer, msg);
 }
 
 SparsityTermProbe::~SparsityTermProbe() {
-    delete function;
 }
 
-int SparsityTermProbe::outputState(float time, HyPerLayer * l) {
-    int nk = l->getNumNeurons();
-    pvdata_t sum = function->evaluate(time, l);
+int SparsityTermProbe::initSparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg) {
+   SparsityTermFunction * sparsity = new SparsityTermFunction(msg);
+   return initLayerFunctionProbe(filename, layer, msg, sparsity);
+}
 
-    fprintf(fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", msg, time, nk, sum);
-    fflush(fp);
+int SparsityTermProbe::outputState(float timef, HyPerLayer * l) {
+   int nk = l->getNumNeurons();
+   pvdata_t sum = function->evaluate(timef, l);
 
-    return EXIT_SUCCESS;
+   fprintf(fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", msg, timef, nk, sum);
+   fflush(fp);
+
+   return EXIT_SUCCESS;
 }
 
 }  // end of namespace PV
