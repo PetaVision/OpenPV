@@ -16,14 +16,14 @@ namespace PV {
 
 class DatastoreDelayTestProbe: public StatsProbe {
 public:
-   DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerCol * hc, const char * msg);
+   DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg);
 
    virtual int outputState(float time, HyPerLayer * l);
 
    virtual ~DatastoreDelayTestProbe();
 
 protected:
-   int initialize(const char * probename);
+   int initDatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg);
 
 protected:
    char * name;

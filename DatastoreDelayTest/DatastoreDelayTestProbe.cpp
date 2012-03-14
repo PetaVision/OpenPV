@@ -16,13 +16,14 @@ namespace PV {
  * @type
  * @msg
  */
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerCol * hc, const char * msg) : StatsProbe(filename, hc, msg)
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg) : StatsProbe()
 {
-   initialize(probename);
+   initDatastoreDelayTestProbe(probename, filename, layer, msg);
 }
 
 
-int DatastoreDelayTestProbe::initialize(const char * probename) {
+int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg) {
+   initStatsProbe(filename, layer, BufActivity, msg);
    if( probename != NULL ) {
       name = strdup(probename);
    }

@@ -76,10 +76,8 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       DatastoreDelayTestProbe * addedProbe = NULL;
       if( targetLayer ) {
          filename = params->stringValue(name, "probeOutputFile");
-         addedProbe = new DatastoreDelayTestProbe(name, filename, hc, message);
-         if( checknewobject((void *) addedProbe, keyword, name, hc) == PV_SUCCESS ) {
-            targetLayer->insertProbe(addedProbe);
-         }
+         addedProbe = new DatastoreDelayTestProbe(name, filename, targetLayer, message);
+         checknewobject((void *) addedProbe, keyword, name, hc);
       }
       else {
          fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
