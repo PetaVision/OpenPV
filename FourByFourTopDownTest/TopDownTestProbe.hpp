@@ -15,18 +15,16 @@ namespace PV {
 
 class TopDownTestProbe: public PV::StatsProbe {
 public:
-   TopDownTestProbe(const char * filename, HyPerCol * hc, const char * msg, float checkperiod);
+   TopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod);
    virtual ~TopDownTestProbe();
 
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float timef);
 
 protected:
-   int initialize(float checkperiod);
+   int initTopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod);
    int setImageLibrary();
-   int resetImageLibrary(HyPerLayer * l);
    pvdata_t l2distsq(pvdata_t * x, pvdata_t * y);
 
-   HyPerLayer * prev_l;
    int numXPixels;
    int numXGlobal;
    int numYPixels;

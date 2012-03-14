@@ -14,33 +14,38 @@ namespace PV {
  * @type
  * @msg
  */
-TopDownTestProbe::TopDownTestProbe(const char * filename, HyPerCol * hc, const char * msg, float checkperiod)
-   : StatsProbe(filename, hc, msg)
+TopDownTestProbe::TopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod)
+   : StatsProbe()
 {
-   initialize(checkperiod);
+   initTopDownTestProbe(filename, layer, msg, checkperiod);
 }
 
 TopDownTestProbe::~TopDownTestProbe() {
-   free(prev_l);
    free(imageLibrary);
    free(scores);
 }
 
-int TopDownTestProbe::initialize(float checkperiod) {
-   prev_l = NULL;
-   numXPixels = 0;
-   numXGlobal = 0;
-   numYPixels = 0;
-   numYGlobal = 0;
-   numAllPixels = 0;
-   numAllGlobal = 0;
-   numImages = 0;
-   localXOrigin = 0;
-   localYOrigin = 0;
+int TopDownTestProbe::initTopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod) {
+   initStatsProbe(filename, layer, BufActivity, msg);
    imageLibrary = NULL;
    scores = NULL;
    this->checkperiod = checkperiod;
    nextupdate = checkperiod;
+   const PVLayerLoc * newLoc = getTargetLayer()->getLayerLoc();
+   assert(newLoc->nf == 1);
+
+   numXPixels = newLoc->nx;
+   numYPixels = newLoc->ny;
+   numAllPixels = numXPixels*numYPixels;
+   numXGlobal = newLoc->nxGlobal;
+   numYGlobal = newLoc->nyGlobal;
+   numAllGlobal = numXGlobal*numYGlobal;
+   localXOrigin = newLoc->kx0;
+   localYOrigin = newLoc->ky0;
+   numImages = numXGlobal + numYGlobal;
+   scores = (pvdata_t *) malloc( numImages*sizeof(pvdata_t) );
+   assert(scores != NULL);
+   setImageLibrary();
    return PV_SUCCESS;
 }
 
@@ -48,19 +53,16 @@ int TopDownTestProbe::initialize(float checkperiod) {
  * @time
  * @l
  */
-int TopDownTestProbe::outputState(float time, HyPerLayer * l) {
-   if( checkperiod > 0 && time >= nextupdate ) {
-      if( l != prev_l ) {
-         resetImageLibrary(l);
-      }
+int TopDownTestProbe::outputState(float timef) {
+   if( checkperiod > 0 && timef >= nextupdate ) {
 #ifdef PV_USE_MPI
-      InterColComm * icComm = l->getParent()->icCommunicator();
+      InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
       MPI_Comm mpi_comm = icComm->communicator();
       int rank = icComm->commRank();
 #endif // PV_USE_MPI
       // Compare l's data to each element in the image library in turn.
       for( int n=0; n<numImages; n++ ) {
-         scores[n] = l2distsq(l->getV(), imageLibrary+n*numAllPixels);
+         scores[n] = l2distsq(getTargetLayer()->getV(), imageLibrary+n*numAllPixels);
       }
 #ifdef PV_USE_MPI
       assert( (float) 3.456789012 == (pvdata_t) 3.456789012 && sizeof(pvdata_t) == sizeof(float) ); // catch if pvdata_t stops being float
@@ -84,39 +86,18 @@ int TopDownTestProbe::outputState(float time, HyPerLayer * l) {
       }
       assert(numatmin > 0);
       minscore = sqrtf(minscore);
-      fprintf(fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, time, minscore, minidx);
+      fprintf(fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timef, minscore, minidx);
       if( numatmin > 1) {
          fprintf(fp, " (as well as %d others)", numatmin-1);
       }
       fprintf(fp,"\n");
       if( minscore > 0.1 ) {
-         fprintf(stderr, "%sLayer %s failed to converge to one of the target images.  Exiting.\n", msg, l->getName());
+         fprintf(stderr, "%sLayer %s failed to converge to one of the target images.  Exiting.\n", msg, getTargetLayer()->getName());
          exit(EXIT_FAILURE);
       }
       nextupdate += checkperiod;
    }
 
-   return PV_SUCCESS;
-}
-
-int TopDownTestProbe::resetImageLibrary(HyPerLayer * l) {
-   prev_l = l;
-   const PVLayerLoc * newLoc = l->getLayerLoc();
-   assert(newLoc->nf == 1);
-   if( numXPixels != newLoc->nx || numYPixels != newLoc->ny ) {
-      numXPixels = newLoc->nx;
-      numYPixels = newLoc->ny;
-      numAllPixels = numXPixels*numYPixels;
-      numXGlobal = newLoc->nxGlobal;
-      numYGlobal = newLoc->nyGlobal;
-      numAllGlobal = numXGlobal*numYGlobal;
-      localXOrigin = newLoc->kx0;
-      localYOrigin = newLoc->ky0;
-      numImages = numXGlobal + numYGlobal;
-      free(scores);
-      scores = (pvdata_t *) malloc( numImages*sizeof(pvdata_t) );
-      setImageLibrary();
-   }
    return PV_SUCCESS;
 }
 
