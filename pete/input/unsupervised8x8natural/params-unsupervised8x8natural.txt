@@ -1,0 +1,203 @@
+// params-unsupervised8x8natural.txt
+//     A two-layer test problem.  Try to learn weights A
+//     by minimizing \|x-A^Ta\|^2/2 when x is an 8x8 space of natural
+//     image patches and a is a V1-type layer
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1;
+    numSteps = 10000000;
+    randomSeed = 1;
+    outputPath = "./output/unsupervised8x8natural/";
+    filenamesContainLayerNames = true;
+};
+
+RandomPatchMovie "Slideshow" = {
+    imageListPath = "./input/unsupervised8x8natural/filenames.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    writeImages = 0;
+
+    displayPeriod = 100;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 40000;
+};
+
+ANNLayer "AnaRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "V1" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 32;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+
+    relaxation = 0.0005; //
+    sparsesityTermCoefficient = 1.0;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    persistence = 0.0;
+    sparsityTermCoefficient = 1.0;
+};
+
+
+// Connections
+
+IdentConn "Slideshow to Retina" = {
+    preLayerName = "Slideshow";
+    postLayerName = "Retina";
+
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = true;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+};
+
+IdentConn "Retina to AnaRetina" = {
+    preLayerName = "Retina";
+    postLayerName = "AnaRetina";
+
+    channelCode = 0;
+
+    writeStep = -1;
+    writeCompressedWeights = true;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+};
+
+GenerativeConn "AnaRetina to V1" = {
+    preLayerName = "AnaRetina";
+    postLayerName = "V1";
+
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 32;
+
+    writeStep = 1000;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;
+    wMaxInit = 1;
+    normalize = 1;
+
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+
+    weightUpdatePeriod = 20;
+    relaxation = 0.5;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 4;
+};
+
+FeedbackConn "V1 to AnaRetina Feedback" = {
+    originalConnName = "AnaRetina to V1";
+
+    channelCode = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+    
+    weightUpdatePeriod = 1;
+};
+
+// RandomPatchMovieProbe "Patch Probe" = {
+//     probeOutputFile = "Patches.txt";
+//     targetLayer = "Slideshow";
+// };
+
+// GenColProbe "Total Energy Probe" = {
+//     probeOutputFile = "TotalEnergy.txt";
+// };
+// 
+// LogLatWTAProbe "V1 LogLatWTA" = {
+//     targetLayer = "V1";
+//     probeOutputFile = "V1LogLatWTA.txt";
+//     parentGenColProbe = "Total Energy Probe";
+//     coeff = 1;
+// };
+// 
+// L2NormProbe "AnaRetina L2Norm" = {
+//     targetLayer = "AnaRetina";
+//     probeOutputFile = "AnaRetinaL2Norm.txt";
+//     parentGenColProbe = "Total Energy Probe";
+//     coeff = 1;
+// };

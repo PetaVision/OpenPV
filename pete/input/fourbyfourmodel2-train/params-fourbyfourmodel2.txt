@@ -1,0 +1,561 @@
+// params-fourbyfourmodel2.txt
+//     input parameters file for training generative model with pooling
+//     and log lateral competition, on world of four horizontal and four
+//     vertical lines.  This uses (b-Ba)^2 instead of b^2(b-Ba)^2 in the
+//     energy.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 4;
+    ny = 4;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 10000;
+    outputPath = "output/fourbyfourmodel2-train/";
+    filenamesContainLayerNames = true;    
+};
+
+// 13 layers:
+//  0 Slideshow
+//  1 Retina
+//  2 AnaRetina
+//  3 Layer A
+//  4 Pooling AnaLayer A
+//  5 Arrow AnaLayer A
+//  6 Flat AnaLayer A
+//  7 CataLayer B
+//  8 Layer B
+//  9 Energy AnaLayer A (used in computing energy)
+
+Movie "Slideshow" = {
+    imageListPath = "./input/fourbyfourmodel2-train/filenames.txt";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = 0;
+
+    displayPeriod = 100;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    poissonEdgeProb = 1; 
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 40000;
+};
+
+ANNLayer "AnaRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    Vrest = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "Layer A" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    Vrest = 0.0;
+
+    VMax = infinity;
+    VThresh = 0;
+    VMin = 0;
+
+    relaxation = 2E-2;
+    activityThreshold = 0;
+    auxChannelCoeff = 0.5;
+    persistence = 0;
+    
+    sparsityTermCoefficient = 0.25;
+};
+
+PoolingANNLayer "Pooling AnaLayer A" = {
+    restart = 0;        
+    nxScale = 0.25;     
+    nyScale = 0.25;     
+    nf = 8;  
+    marginWidth = 0;   
+    writeStep = -1;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = -1;
+        
+    Vrest = 0.0;       
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 0;
+};
+
+PoolingANNLayer "Arrow AnaLayer A" = {
+    restart = 0;       
+    nxScale = 0.25;    
+    nyScale = 0.25;    
+    nf = 8;            
+    marginWidth = 0;   
+    writeStep = -1;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = -1;
+        
+    Vrest = 0.0;       
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 1;
+};
+
+ANNLayer "Flat AnaLayer A" = {
+    restart = 0;       
+    nxScale = 0.25;    
+    nyScale = 0.25;    
+    nf = 8;            
+    marginWidth = 0;   
+    writeStep = -1;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = -1;
+        
+    Vrest = 0.0;       
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "CataLayer B" = {
+    restart = 0;       
+    nxScale = 0.25;    
+    nyScale = 0.25;    
+    nf = 2;            
+    marginWidth = 0;   
+    writeStep = -1;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = -1;
+        
+    Vrest = 0.0;       
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+TrainingLayer "Layer B" = {
+    trainingLabelsPath = "./input/fourbyfourmodel2-train/trainlabels.txt";
+
+    restart = 0;       
+    nxScale = 0.25;    
+    nyScale = 0.25;    
+    nf = 2;            
+    marginWidth = 0;   
+    writeStep = 1.0;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = -1;
+        
+    Vrest = 0.0;
+    
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    displayPeriod = 10000;
+    distToData = 2;         
+};
+
+PtwiseProductLayer "Energy AnaLayer A" = {
+    restart = 0;       
+    nxScale = 0.25;    
+    nyScale = 0.25;    
+    nf = 8;            
+    marginWidth = 0;   
+    writeStep = -1;
+    mirrorBCflag = 1;  
+    spikingFlag = 0;   
+    writeNonspikingActivity = 1;
+        
+    Vrest = 0.0;       
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+
+// 16 connections:
+//
+//  0  Slideshow to Retina                                   KernelConn        +
+//  1  Retina to AnaRetina                                   IdentConn         +
+//  2  AnaRetina to Layer A                                  GenerativeConn    + (weights A)
+//  3  Layer A to AnaRetina Feedback                         FeedbackConn      - (weights A^T)
+//
+//  4  Layer A to Pooling AnaLayer A                         IdentConn         +
+//  5  Pooling AnaLayer A to Layer A                         IdentConn         -
+//  6  Layer A to Flat AnaLayer A                            IdentConn         +
+//  7  Layer A to Arrow AnaLayer A                           IdentConn         +
+//  8  Flat AnaLayer A to Pooling AnaLayer A                 IdentConn         -
+//  9  Flat AnaLayer A to Arrow AnaLayer A                   IdentConn         -
+//
+// 10  Arrow AnaLayer A to Layer B                           PoolingGenConn    aux (weights B)
+// 11  Layer A to CataLayer B                                CloneKernelConn   - (weights B)
+// 12  CataLayer B to Layer A                                TransposeConn     + (weights B^T)
+// 13  Layer B to Flat AnaLayer A                            CloneKernelConn   - (weights B^T)
+//
+// 14  Layer B to CataLayer B                                IdentConn         +
+// 14  CataLayer B to Layer B                                IdentConn         -
+//
+// 15  Layer A to Energy AnaLayer A                          IdentConn         +
+// 16  Flat AnaLayer A to Energy AnaLayer A                  IdentConn         -
+
+IdentConn "Slideshow to Retina" = {
+    preLayerName = "Slideshow";
+    postLayerName = "Retina";
+
+    channelCode = 0;   
+    
+    nxp = 1;           
+    nyp = 1;           
+    nfp = 1;           
+
+    writeStep = -1;
+    writeCompressedWeights = true;
+    
+    delay = 0;         
+};
+
+IdentConn "Retina to AnaRetina" = {
+    preLayerName = "Retina";
+    postLayerName = "AnaRetina";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+    
+    delay = 0;         
+};
+
+GenerativeConn "AnaRetina to Layer A" = {
+    preLayerName = "AnaRetina";
+    postLayerName = "Layer A";
+
+    channelCode = 0;   
+    
+    nxp = 1;           
+    nyp = 1;           
+    nfp = 8;           
+
+    writeStep = 20;   
+    writeCompressedWeights = false;
+    
+    delay = 0;         
+    
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;      
+    wMaxInit = 1;      
+    normalize = 1;     
+    
+    plasticityFlag = true;
+    symmetrizeWeights = 0;
+
+    weightUpdatePeriod = 20;
+    relaxation = 2E-1; 
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+                        
+    normalizeConstant = 1.41421356;
+};
+
+FeedbackConn "Layer A to AnaRetina Feedback" = {
+    originalConnName = "AnaRetina to Layer A";
+
+    channelCode = 1;   
+
+    writeStep = -1;   
+    writeCompressedWeights = false;
+
+    delay = 0;         
+};
+
+IdentConn "Layer A to Pooling AnaLayer A" = {
+    preLayerName = "Layer A";
+    postLayerName = "Pooling AnaLayer A";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Pooling AnaLayer A to Layer A" = {
+    preLayerName = "Pooling AnaLayer A";
+    postLayerName = "Layer A";
+
+    channelCode = 1;   
+
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;   
+};
+
+IdentConn "Layer A to Flat AnaLayer A" = {
+    preLayerName = "Layer A";
+    postLayerName = "Flat AnaLayer A";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Layer A to Arrow AnaLayer A" = {
+    preLayerName = "Layer A";
+    postLayerName = "Arrow AnaLayer A";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Flat AnaLayer A to Pooling AnaLayer A" = {
+    preLayerName = "Flat AnaLayer A";
+    postLayerName = "Pooling AnaLayer A";
+
+    channelCode = 1;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Flat AnaLayer A to Arrow AnaLayer A" = {
+    preLayerName = "Flat AnaLayer A";
+    postLayerName = "Arrow AnaLayer A";
+
+    channelCode = 1;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+PoolingGenConn "Arrow AnaLayer A to Layer B" = {
+    preLayerName = "Arrow AnaLayer A";
+    postLayerName = "Layer B";
+    secondaryPreLayerName = "Layer A";
+    secondaryPostLayerName = "CataLayer B";
+
+    channelCode = 2;   
+    
+    nxp = 1;           
+    nyp = 1;           
+    nfp = 2;           
+
+    writeStep = 20;   
+    writeCompressedWeights = false;
+
+    delay = 0;         
+    
+    weightInitType = "UniformRandomWeight";   
+    wMinInit = 0;      
+    wMaxInit = 1;      
+    normalize = 1;     
+    
+    plasticityFlag = true;
+    symmetrizeWeights = 0;
+
+    weightUpdatePeriod = 20;
+    relaxation = 1E-1;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+                        
+    normalizeConstant = 1;
+};
+
+CloneKernelConn "Layer A to CataLayer B" = {
+    preLayerName = "Layer A";
+    postLayerName = "CataLayer B";
+    
+    originalConnName = "Arrow AnaLayer A to Layer B";
+
+    channelCode = 1;   
+
+    writeStep = -1;   
+    writeCompressedWeights = false;
+
+    delay = 0;         
+};
+
+TransposeConn "CataLayer B to Layer A" = {
+    preLayerName = "CataLayer B";
+    postLayerName = "Layer A";
+
+    originalConnName = "Arrow AnaLayer A to Layer B";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = false;
+
+    delay = 0;  
+};
+
+CloneKernelConn "Layer B to Flat AnaLayer A" = {
+    preLayerName = "Layer B";
+    postLayerName = "Flat AnaLayer A";
+
+    originalConnName = "CataLayer B to Layer A";
+
+    channelCode = 1;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = false;
+    
+    delay = 0;
+};
+
+IdentConn "Layer B to CataLayer B" = {
+    preLayerName = "Layer B";
+    postLayerName = "CataLayer B";
+
+    channelCode = 0;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "CataLayer B to Layer B" = {
+    preLayerName = "CataLayer B";
+    postLayerName = "Layer B";
+
+    channelCode = 1;   
+    
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Layer A to Energy AnaLayer A" = {
+    preLayerName = "Layer A";
+    postLayerName = "Energy AnaLayer A";
+
+    channelCode = 0;   
+
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+IdentConn "Flat AnaLayer A to Energy AnaLayer A" = {
+    preLayerName = "Flat AnaLayer A";
+    postLayerName = "Energy AnaLayer A";
+
+    channelCode = 1;   
+
+    writeStep = -1;   
+    writeCompressedWeights = true;
+
+    delay = 0;         
+};
+
+GenColProbe "Total Energy Probe" = {
+    probeOutputFile = "TotalEnergy.txt";
+};
+
+L2NormProbe "AnaRetina Energy" = {
+    targetLayer = "AnaRetina";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "AnaRetina_Energy.txt";
+};
+
+L2NormProbe "AnaLayer A Energy" = {
+    targetLayer = "Energy AnaLayer A";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 0.5;
+    probeOutputFile = "AnaLayer_A_Energy.txt";
+};
+
+L2NormProbe "CataLayer B Energy" = {
+    targetLayer = "CataLayer B";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "CataLayer_B_Energy.txt";
+};
+
+LogLatWTAProbe "Layer A Lateral Competition Penalty" = {
+    targetLayer = "Layer A";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1.0;
+    probeOutputFile = "Layer_A_LatCompPenalty.txt";
+};
+
+LogLatWTAProbe "Layer B Lateral Competition Penalty" = {
+    targetLayer = "Layer B";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1.0;
+    probeOutputFile = "Layer_B_LatCompPenalty.txt";
+};

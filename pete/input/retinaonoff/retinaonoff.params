@@ -1,0 +1,191 @@
+// retinaonoff.params
+//     input parameters file for learning a dictionary, using
+//     retina on/retina off processing of the input
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    numSteps = 603;
+    randomSeed = 1;
+    outputPath = "./output/retinaonoff/";
+    filenamesContainLayerNames = true;
+};
+
+Movie "Slideshow" = {
+    imageListPath = "./input/retinaonoff/targets.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 17;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    writeImages = 0;
+
+    displayPeriod = 1;
+    randomMovie = false;
+    jitterFlag = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "Large Radius Blur" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "Small Radius Blur" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "DoG Positive" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+};
+
+ANNLayer "DoG Negative" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+};
+
+KernelConn "Slideshow to Large Radius Blur" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+
+    numAxonalArbors = 1;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    normalize = true;
+    normalize_zero_offset = false;
+    normalize_max = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1;
+    strength = 1;
+};
+
+KernelConn "Slideshow to Small Radius Blur" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+    
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    normalize = true;
+    normalize_zero_offset = false;
+    normalize_max = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax = 1;
+    strength = 1;
+};
+
+IdentConn "Large Radius Blur to DoG Positive" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Small Radius Blur to DoG Positive" = {
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Large Radius Blur to DoG Negative" = {
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Small Radius Blur to DoG Negative" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+RandomPatchMovieProbe "Patch Probe" = {
+    probeOutputFile = "Patches.txt";
+    targetLayer = "Slideshow";
+};

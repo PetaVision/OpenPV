@@ -1,0 +1,859 @@
+// generativesymmetry.params
+//     input parameters file for a 3-layer generative model with pooling
+//     between retina and simple as well as between simple and complex.
+//     Uses log-lateral competition between features at the S- and C- layers
+//     Image space is eight horizontal and eight vertical lines.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 10000;
+    outputPath = "output/generativesymmetry/";
+    filenamesContainLayerNames = false;
+    progressStep = 1000;
+    checkpointRead = false;
+    checkpointWrite = false;
+};
+
+// 18 layers:
+//           0 Slideshow                                        Movie
+//           1 Retina                                           Retina
+//           2 AnaRetina                                        ANNLayer
+//           3 CataSimple Pooling 1                     bias 1  PoolingANNLayer
+//           4 CataSimple Pooling 2                     bias -1 PoolingANNLayer
+//           5 CataSimple Layer                                 ANNLayer
+//           6 Simple Layer                                     GenerativeLayer
+//           7 AnaSimple Layer                                  ANNLayer
+//           8 AnaSimple Pooling 1                      bias 1  PoolingANNLayer
+//           9 AnaSimple Pooling 2                      bias -1 PoolingANNLayer
+//          10 CataComplex Pooling 1                    bias 1  PoolingANNLayer
+//          11 CataComplex Pooling 2                    bias -1 PoolingANNLayer
+//          12 CataComplex Layer                                ANNLayer
+//          13 Complex Layer                                    GenerativeLayer
+//  The last four layers accumulate quantities whose L^2 norm appears in the energy
+//          14 Energy AnaRetina                                 PtwiseProductLayer
+//          15 Energy CataSimple Layer                          PtwiseProductLayer
+//          16 Energy AnaSimple Layer                           PtwiseProductLayer
+//          17 Energy CataComplex Layer                         PtwiseProductLayer
+
+Movie "Slideshow" = {
+    imageListPath = "./input/generativesymmetry/filenames.txt";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = 0;
+
+    displayPeriod = 1000;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 40000;
+};
+
+ANNLayer "AnaRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PoolingANNLayer "CataSimple Pooling 1" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 1;
+};
+
+PoolingANNLayer "CataSimple Pooling 2" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = -1;
+};
+
+ANNLayer "CataSimple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "Simple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    // InitVType = "ConstantV";
+    // valueV = 0.0;
+    InitVType = "InitVFromFile";
+    Vfilename = "input/generativesymmetry/correct_y.pvp";
+
+    VMax = infinity;
+    VThresh = 0;
+    VMin = 0;
+
+    relaxation = 5E-2;
+    activityThreshold = 0;
+    auxChannelCoeff = -0.5;
+    persistence = 0;
+    
+    sparsityTermCoefficient = 0.25;
+};
+
+ANNLayer "AnaSimple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PoolingANNLayer "AnaSimple Pooling 1" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 1;
+};
+
+PoolingANNLayer "AnaSimple Pooling 2" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = -1;
+};
+
+PoolingANNLayer "CataComplex Pooling 1" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 1;
+};
+
+PoolingANNLayer "CataComplex Pooling 2" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = -1;
+};
+
+ANNLayer "CataComplex Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+TrainingLayer "Complex Layer" = {
+    trainingLabelsPath = "input/lineworldsimpler-train/trainlabels.txt";
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+    
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+
+    displayPeriod = 1000;
+    distToData = 2;
+};
+
+PtwiseProductLayer "Energy AnaRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PtwiseProductLayer "Energy CataSimple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PtwiseProductLayer "Energy AnaSimple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PtwiseProductLayer "Energy CataComplex Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 2;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+
+// 38 connections:
+//           0 Slideshow to Retina                          +       IdentConn
+//           1 AnaRetina to Simple Layer                    + (A)   PoolingGenConn
+//           2 Retina to AnaRetina                          +       IdentConn
+//           3 Retina to CataSimple Layer                   - (A)   CloneKernelConn
+//           4 CataSimple Pooling 1 to Simple Layer         -       IdentConn
+//           5 CataSimple Pooling 2 to Simple Layer         -       IdentConn
+//           6 CataSimple Layer to CataSimple Pooling 1     -       IdentConn
+//           7 CataSimple Layer to CataSimple Pooling 2     -       IdentConn
+//           8 AnaSimple Pooling 1 to Simple Layer          -       IdentConn
+//           9 AnaSimple Pooling 1 to Complex Layer         + (B)   PoolingGenConn
+//          10 AnaSimple Pooling 2 to Simple Layer          -       IdentConn
+//          11 Simple Layer to AnaRetina                    - (A^T) TransposeConn
+// Note: Because of the update rule for A, it is more natural to define
+//       A^T as a connection from CataSimple Pooling 1 to Retina.  However,
+//       in this training run there is no connection.  If doing top-down
+//       reconstruction, there will be and it would make sense to use
+//       A^T there and define Simple Layer to AnaRetina with a CloneKernelConn
+//       of that connection.
+//          12 Simple Layer to CataSimple Pooling 1         +       IdentConn
+//          13 Simple Layer to CataSimple Pooling 2         +       IdentConn
+//          14 Simple Layer to CataSimple Layer             +       IdentConn
+//          15 Simple Layer to AnaSimple Layer              +       IdentConn
+//          16 Simple Layer to AnaSimple Pooling 1          +       IdentConn
+//          17 Simple Layer to AnaSimple Pooling 2          +       IdentConn
+//          18 Simple Layer to CataComplex Layer            - (B)   CloneKernelConn
+//          19 AnaSimple Layer to AnaSimple Pooling 1       -       IdentConn
+//          20 AnaSimple Layer to AnaSimple Pooling 2       -       IdentConn
+//          21 CataComplex Pooling 1 to Simple Layer        + (B^T) TransposeConn
+//          22 CataComplex Pooling 1 to Complex Layer       -       IdentConn
+//          23 CataComplex Pooling 2 to Complex Layer       -       IdentConn
+//          24 CataComplex Layer to CataComplex Pooling 1   -       IdentConn
+//          25 CataComplex Layer to CataComplex Pooling 2   -       IdentConn
+//          26 Complex Layer to AnaSimple Layer             - (B^T) CloneKernelConn
+//          27 Complex Layer to CataComplex Pooling 1       +       IdentConn
+//          28 Complex Layer to CataComplex Pooling 2       +       IdentConn
+//          29 Complex Layer to CataComplex Layer           +       IdentConn
+// The last eight connections are to the energy layers
+//          30 Retina to Energy AnaRetina                   +       IdentConn
+//          31 AnaRetina to Energy AnaRetina                -       IdentConn
+//          32 Simple Layer to Energy CataSimple Layer      +       IdentConn
+//          33 CataSimple Layer to Energy CataSimple Layer  -       IdentConn
+//          34 Simple Layer to Energy AnaSimple Layer       +       IdentConn
+//          35 AnaSimple Layer to Energy AnaSimple Layer    -       IdentConn
+//          36 Complex Layer to Energy CataComplex Layer    +       IdentConn
+//          37 CataCompex Layer to Energy CataComplex Layer -       IdentConn
+
+IdentConn "Slideshow to Retina" = {
+    preLayerName = "Slideshow";
+    postLayerName = "Retina";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+PoolingGenConn "AnaRetina to Simple Layer" = {
+    preLayerName = "AnaRetina";
+    postLayerName = "Simple Layer";
+    secondaryPreLayerName = "Retina";
+    secondaryPostLayerName = "CataSimple Pooling 1";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 16;
+    numAxonalArbors = 1;
+    writeStep = 1.0;
+    writeCompressedWeights = false;
+    delay = 0;
+    // weightInitType = "UniformRandomWeight";
+    // wMinInit = 0;
+    // wMaxInit = 1;
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/generativesymmetry/correctA.pvp";
+    normalize = 1;
+    plasticityFlag = true;
+    symmetrizeWeights = 0;
+    weightUpdatePeriod = 100;
+    relaxation = 1E-1;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 0.5;
+};
+
+IdentConn "Retina to AnaRetina" = {
+    preLayerName = "Retina";
+    postLayerName = "AnaRetina";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+CloneKernelConn "Retina to CataSimple Layer" = {
+    preLayerName = "Retina";
+    postLayerName = "CataSimple Layer";
+    originalConnName = "AnaRetina to Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+};
+
+IdentConn "CataSimple Pooling 1 to Simple Layer" = {
+    preLayerName = "CataSimple Pooling 1";
+    postLayerName = "Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataSimple Pooling 2 to Simple Layer" = {
+    preLayerName = "CataSimple Pooling 2";
+    postLayerName = "Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataSimple Layer to CataSimple Pooling 1" = {
+    preLayerName = "CataSimple Layer";
+    postLayerName = "CataSimple Pooling 1";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataSimple Layer to CataSimple Pooling 2" = {
+    preLayerName = "CataSimple Layer";
+    postLayerName = "CataSimple Pooling 2";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "AnaSimple Pooling 1 to Simple Layer" = {
+    preLayerName = "AnaSimple Pooling 1";
+    postLayerName = "Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+PoolingGenConn "AnaSimple Pooling 1 to Complex Layer" = {
+    preLayerName = "AnaSimple Pooling 1";
+    postLayerName = "Complex Layer";
+    secondaryPreLayerName = "Simple Layer";
+    secondaryPostLayerName = "CataComplex Pooling 1";
+    channelCode = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 2;
+    writeStep = 1.0;
+    writeCompressedWeights = false;
+    delay = 0;
+    // weightInitType = "UniformRandomWeight";
+    // wMinInit = 0;
+    // wMaxInit = 1;
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/generativesymmetry/correctB.pvp";
+    normalize = 1;
+    plasticityFlag = true;
+    symmetrizeWeights = 0;
+    weightUpdatePeriod = 100;
+    relaxation = 1E-1;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 1;
+};
+
+IdentConn "AnaSimple Pooling 2 to Simple Layer" = {
+    preLayerName = "AnaSimple Pooling 2";
+    postLayerName = "Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+TransposeConn "Simple Layer to AnaRetina" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "AnaRetina";
+    originalConnName = "Retina to CataSimple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to CataSimple Pooling 1" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "CataSimple Pooling 1";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to CataSimple Pooling 2" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "CataSimple Pooling 2";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to CataSimple Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "CataSimple Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to AnaSimple Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "AnaSimple Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to AnaSimple Pooling 1" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "AnaSimple Pooling 1";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to AnaSimple Pooling 2" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "AnaSimple Pooling 2";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+CloneKernelConn "Simple Layer to CataComplex Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "CataComplex Layer";
+    originalConnName = "AnaSimple Pooling 1 to Complex Layer";
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+};
+
+IdentConn "AnaSimple Layer to AnaSimple Pooling 1" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "AnaSimple Pooling 1";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "AnaSimple Layer to AnaSimple Pooling 2" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "AnaSimple Pooling 2";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+TransposeConn "CataComplex Pooling 1 to Simple Layer" = {
+    preLayerName = "CataComplex Pooling 1";
+    postLayerName = "Simple Layer";
+    originalConnName = "AnaSimple Pooling 1 to Complex Layer";
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+};
+
+IdentConn "CataComplex Pooling 1 to Complex Layer" = {
+    preLayerName = "CataComplex Pooling 1";
+    postLayerName = "Complex Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataComplex Pooling 2 to Complex Layer" = {
+    preLayerName = "CataComplex Pooling 2";
+    postLayerName = "Complex Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataComplex Layer to CataComplex Pooling 1" = {
+    preLayerName = "CataComplex Layer";
+    postLayerName = "CataComplex Pooling 1";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataComplex Layer to CataComplex Pooling 2" = {
+    preLayerName = "CataComplex Layer";
+    postLayerName = "CataComplex Pooling 2";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+CloneKernelConn "Complex Layer to AnaSimple Layer" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "AnaSimple Layer";
+    originalConnName = "CataComplex Pooling 1 to Simple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+};
+
+IdentConn "Complex Layer to CataComplex Pooling 1" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "CataComplex Pooling 1";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Complex Layer to CataComplex Pooling 2" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "CataComplex Pooling 2";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Complex Layer to CataComplex Layer" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "CataComplex Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Retina to Energy AnaRetina" = {
+    preLayerName = "Retina";
+    postLayerName = "Energy AnaRetina";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "AnaRetina to Energy AnaRetina" = {
+    preLayerName = "AnaRetina";
+    postLayerName = "Energy AnaRetina";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to Energy CataSimple Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "Energy CataSimple Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataSimple Layer to Energy CataSimple Layer" = {
+    preLayerName = "CataSimple Layer";
+    postLayerName = "Energy CataSimple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Simple Layer to Energy AnaSimple Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "Energy AnaSimple Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "AnaSimple Layer to Energy AnaSimple Layer" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "Energy AnaSimple Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Complex Layer to Energy CataComplex Layer" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "Energy CataComplex Layer";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "CataComplex Layer to Energy CataComplex Layer" = {
+    preLayerName = "CataComplex Layer";
+    postLayerName = "Energy CataComplex Layer";
+    channelCode = 1;
+    writeStep = -1;
+    delay = 0;
+};
+
+GenColProbe "Total Energy Probe" = {
+    probeOutputFile = "TotalEnergy.txt";
+};
+
+L2NormProbe "AnaRetina Energy" = {
+    targetLayer = "Energy AnaRetina";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "AnaRetina_Energy.txt";
+};
+
+L2NormProbe "CataSimple Layer Energy" = {
+    targetLayer = "Energy CataSimple Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "CataSimple_Layer_Energy.txt";
+};
+
+L2NormProbe "AnaSimple Layer Energy" = {
+    targetLayer = "Energy AnaSimple Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "AnaLayer_Layer_Energy.txt";
+};
+
+L2NormProbe "CataComplex Layer Energy" = {
+    targetLayer = "Energy CataComplex Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "CataComplex_Layer_Energy.txt";
+};
+
+LogLatWTAProbe "Simple Layer Lateral Competition Penalty" = {
+    targetLayer = "Simple Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 0.25;
+    probeOutputFile = "Simple_Layer_LatCompPenalty.txt";
+};
+
+LogLatWTAProbe "Complex Layer Lateral Competition Penalty" = {
+    targetLayer = "Complex Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 0.25;
+    probeOutputFile = "Complex_Layer_LatCompPenalty.txt";
+};

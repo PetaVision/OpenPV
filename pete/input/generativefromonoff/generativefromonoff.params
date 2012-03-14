@@ -1,0 +1,317 @@
+// generativefromonoff.params
+//     Uses the retina on/retina off images in the retinaonoff image
+//     and RandomPatchMovie to extract images.
+//     It then uses a generative model to learn a dictionary
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1;
+    numSteps = 10000000;
+    randomSeed = 1;
+    outputPath = "./output/generativefromonoff/";
+    filenamesContainLayerNames = true;
+};
+
+RandomPatchMovie "Retina On" = {
+    imageListPath = "./input/generativefromonoff/retinaonfilenames.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    writeImages = false;
+
+    displayPeriod = 10000001; // 1000;
+};
+
+ShadowRandomPatchMovie "Retina Off" = {
+    imageListPath = "./input/generativefromonoff/retinaofffilenames.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    writeImages = false;
+
+    displayPeriod = 1000;
+    
+    shadowedRandomPatchMovie = "Retina On";
+};
+
+ANNLayer "AnaRetina On" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "AnaRetina Off" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "V1" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 128;
+    marginWidth = 0;
+    writeStep = 1000;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+
+    relaxation = 0.0005;
+    sparsesityTermCoefficient = 1.0;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    persistence = 0.0;
+    sparsityTermCoefficient = 1.0;
+};
+
+ANNLayer "Archive of Retina On" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1000;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "Archive of Retina Off" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1000;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+// Connections
+
+IdentConn "Retina On to AnaRetina On" = {
+    preLayerName = "Retina On";
+    postLayerName = "AnaRetina On";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Retina Off to AnaRetina Off" = {
+    preLayerName = "Retina Off";
+    postLayerName = "AnaRetina Off";
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+GenerativeConn "AnaRetina On to V1" = {
+    preLayerName = "AnaRetina On";
+    postLayerName = "V1";
+
+    channelCode = 0;
+
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 128;
+
+    writeStep = 1000;
+    writeCompressedWeights = false;
+
+    stochasticReleaseFlag = false;
+    delay = 0;
+
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;
+    wMaxInit = 1;
+    normalize = 1;
+
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+
+    weightUpdatePeriod = 20;
+    relaxation = 0.5;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 4;
+};
+
+GenerativeConn "AnaRetina Off to V1" = {
+    preLayerName = "AnaRetina Off";
+    postLayerName = "V1";
+
+    channelCode = 0;
+
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 128;
+
+    writeStep = 1000;
+    writeCompressedWeights = false;
+
+    stochasticReleaseFlag = false;
+    delay = 0;
+
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;
+    wMaxInit = 1;
+    normalize = 1;
+
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+
+    weightUpdatePeriod = 20;
+    relaxation = 0.5;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 4;
+};
+
+FeedbackConn "V1 to AnaRetina On Feedback" = {
+    originalConnName = "AnaRetina On to V1";
+
+    channelCode = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+    
+    weightUpdatePeriod = 1;
+};
+
+FeedbackConn "V1 to AnaRetina Off Feedback" = {
+    originalConnName = "AnaRetina Off to V1";
+
+    channelCode = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+    
+    weightUpdatePeriod = 1;
+};
+
+IdentConn "Retina On to Archive of Retina On" = {
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+IdentConn "Retina Off to Archive of Retina Off" = {
+    channelCode = 0;
+    writeStep = -1;
+    delay = 0;
+};
+
+RandomPatchMovieProbe "Patch On Probe" = {
+    probeOutputFile = "PatchesOn.txt";
+    targetLayer = "Retina On";
+};
+
+// RandomPatchMovieProbe "Patch Off Probe" = {
+//     probeOutputFile = "PatchesOff.txt";
+//     targetLayer = "Retina Off";
+// };
+
+// GenColProbe "Total Energy Probe" = {
+//     probeOutputFile = "TotalEnergy.txt";
+// };
+// 
+// L2NormProbe "AnaRetina On L2Norm" = {
+//     targetLayer = "AnaRetina On";
+//     probeOutputFile = "AnaRetinaOnL2Norm.txt";
+//     parentGenColProbe = "Total Energy Probe";
+//     coeff = 1;
+// };
+// 
+// L2NormProbe "AnaRetina Off L2Norm" = {
+//     targetLayer = "AnaRetina Off";
+//     probeOutputFile = "AnaRetinaOffL2Norm.txt";
+//     parentGenColProbe = "Total Energy Probe";
+//     coeff = 1;
+// };
+// 
+// LogLatWTAProbe "V1 LogLatWTA" = {
+//     targetLayer = "V1";
+//     probeOutputFile = "V1LogLatWTA.txt";
+//     parentGenColProbe = "Total Energy Probe";
+//     coeff = 1;
+// };

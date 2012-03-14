@@ -1,0 +1,501 @@
+// lineworldsimpler-train.params
+//     input parameters file for slowness generative model with pooling
+//     and log lateral competition, on world of eight horizontal and eight
+//     vertical lines.  There is no ||z-By||^2 term in the energy.
+//     This brings the number of layers from 11 (plus 2 layers used to check
+//     that the energy decreases) down to 8 (plus 1 layer used to check energy);
+//     and from 20+4 connections down to 13+2.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8;
+    ny = 8;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 10000;
+    outputPath = "output/lineworldsimpler-train/";
+    filenamesContainLayerNames = false;
+    progressStep = 2000;
+    checkpointRead = false;
+    checkpointWrite = false;
+};
+
+// 9 layers:
+//           0 Slideshow
+//           1 Retina
+//           2 AnaRetina
+//           3 Simple Layer
+//           4 AnaSimple Layer
+//           5 Pooling Term 1
+//           6 Pooling Term 2
+//           7 Complex Layer
+//           8 Energy AnaSimple Layer (used in computing energy)
+
+Movie "Slideshow" = {
+    imageListPath = "./input/lineworldsimpler-train/filenames.txt";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+    
+    writeImages = 0;
+
+    displayPeriod = 50;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    poissonEdgeProb = 1; 
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 40000;
+};
+
+ANNLayer "AnaRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "Simple Layer" = {
+    restart = 0;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 16;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = 0;
+    VMin = 0;
+
+    relaxation = 2E-2;
+    activityThreshold = 0;
+    auxChannelCoeff = -0.5;
+    persistence = 0;
+    
+    sparsityTermCoefficient = 0.25;
+};
+
+ANNLayer "AnaSimple Layer" = {
+    restart = 0;        
+    nxScale = 0.125;     
+    nyScale = 0.125;     
+    nf = 16;             
+    marginWidth = 0;    
+    writeStep = 1.0;
+    mirrorBCflag = 1;   
+    spikingFlag = 0;    
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+PoolingANNLayer "Pooling Term 1" = {
+    restart = 0;        
+    nxScale = 0.125;     
+    nyScale = 0.125;     
+    nf = 16;             
+    marginWidth = 0;    
+    writeStep = 1.0;
+    mirrorBCflag = 1;   
+    spikingFlag = 0;    
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = 1;
+};
+
+PoolingANNLayer "Pooling Term 2" = {
+    restart = 0;        
+    nxScale = 0.125;     
+    nyScale = 0.125;     
+    nf = 16;             
+    marginWidth = 0;    
+    writeStep = 1.0;
+    mirrorBCflag = 1;   
+    spikingFlag = 0;    
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+    
+    bias = -1;
+};
+
+TrainingLayer "Complex Layer" = {
+    trainingLabelsPath = "input/lineworldsimpler-train/trainlabels.txt";
+    restart = 0;        
+    nxScale = 0.125;     
+    nyScale = 0.125;     
+    nf = 2;             
+    marginWidth = 0;    
+    writeStep = 1.0;
+    mirrorBCflag = 1;   
+    spikingFlag = 0;    
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+    
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+
+    displayPeriod = 50;
+    distToData = 2;
+};
+
+PtwiseProductLayer "Energy AnaSimple Layer" = {
+    restart = 0;        
+    nxScale = 0.125;     
+    nyScale = 0.125;     
+    nf = 16;             
+    marginWidth = 0;    
+    writeStep = 1.0;
+    mirrorBCflag = 1;   
+    spikingFlag = 0;    
+    writeNonspikingActivity = -1;
+
+    InitVType = "ConstantV";
+    valueV = 0.0;
+
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
+
+
+// 15 connections:
+//   0 Slideshow to Retina                               IdentConn         +
+//   1 Retina to AnaRetina                               IdentConn         +
+//   2 AnaRetina to Simple Layer                         GenerativeConn    + // weights A
+//   3 Simple Layer to AnaRetina Feedback                FeedbackConn      - // weights A^T
+//
+//   4 Simple Layer to AnaSimple Layer                   IdentConn         +
+//   5 Simple Layer to Pooling Term 1                    IdentConn         +
+//   6 Simple Layer to Pooling Term 2                    IdentConn         +
+//   7 AnaSimple Layer to Pooling Term 1                 IdentConn         -
+//   8 AnaSimple Layer to Pooling Term 2                 IdentConn         -
+//   9 Pooling Term 1 to Simple Layer                    IdentConn         aux(-0.5)
+//  10 Pooling Term 2 to Simple Layer                    IdentConn         aux(-0.5)
+//
+//  11 Pooling Term 1 to Complex Layer                   GenerativeConn    aux(+0.5) // weights B
+//  12 Complex Layer to AnaSimple Layer                  TransposeConn     - // weights B^T
+
+//  13 Simple Layer to Energy AnaLayer A                 IdentConn         +
+//  14 AnaSimple Layer to Energy AnaLayer A              IdentConn         -
+
+IdentConn "Slideshow to Retina" = {
+    preLayerName = "Slideshow";
+    postLayerName = "Retina";
+
+    channelCode = 0;    
+
+    writeStep = -1;
+    
+    delay = 0;          
+};
+
+IdentConn "Retina to AnaRetina" = {
+    preLayerName = "Retina";
+    postLayerName = "AnaRetina";
+
+    channelCode = 0;    
+    
+    writeStep = -1;    
+    
+    delay = 0;          
+};
+
+GenerativeConn "AnaRetina to Simple Layer" = {
+    preLayerName = "AnaRetina";
+    postLayerName = "Simple Layer";
+
+    channelCode = 0;    
+    
+    nxp = 1;            
+    nyp = 1;            
+    nfp = 16;
+    numAxonalArbors = 1;
+
+    writeStep = 5;    
+    writeCompressedWeights = false;
+    
+    delay = 0;          
+    
+    initFromLastFlag = 0; 
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;       
+    wMaxInit = 1;       
+    normalize = 1;      
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    weightUpdatePeriod = 5; 
+    relaxation = 2E-1;  
+    nonnegConstraintFlag = 1; 
+    normalizeMethod = 3;
+                        
+    normalizeConstant = 1.41421356;
+};
+
+FeedbackConn "Simple Layer to AnaRetina Feedback" = {
+    originalConnName = "AnaRetina to Simple Layer";
+
+    channelCode = 1;    
+
+    writeStep = -1;    
+    writeCompressedWeights = false;
+
+    delay = 0;          
+};
+
+IdentConn "Simple Layer to AnaSimple Layer" = {
+    preLayerName = "Layer A";
+    postLayerName = "Pooling AnaLayer A";
+
+    channelCode = 0;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "Simple Layer to Pooling Term 1" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "Pooling Term 1";
+
+    channelCode = 0;    
+
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;    
+};
+
+IdentConn "Simple Layer to Pooling Term 2" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "Pooling Term 2";
+
+    channelCode = 0;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "AnaSimple Layer to Pooling Term 1" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "Pooling Term 1";
+
+    channelCode = 1;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "AnaSimple Layer to Pooling Term 2" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "Pooling Term 2";
+
+    channelCode = 1;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "Pooling Term 1 to Simple Layer" = {
+    preLayerName = "Pooling Term 1";
+    postLayerName = "Simple Layer";
+
+    channelCode = 2;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "Pooling Term 2 to Simple Layer" = {
+    preLayerName = "Pooling Term 2";
+    postLayerName = "Simple Layer";
+
+    channelCode = 2;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+GenerativeConn "Pooling Term 1 to Complex Layer" = {
+    preLayerName = "Pooling Term 1";
+    postLayerName = "Complex Layer";
+
+    channelCode = 2;    
+    
+    nxp = 1;            
+    nyp = 1;            
+    nfp = 2;
+    numAxonalArbors = 1;
+
+    writeStep = 5;    
+    writeCompressedWeights = false;
+    
+    delay = 0;          
+    
+    initFromLastFlag = 0; 
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0;       
+    wMaxInit = 1;       
+    normalize = 1;      
+    
+    plasticityFlag = true;
+    symmetrizeWeights = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+
+    weightUpdatePeriod = 5; 
+    relaxation = 2E-1;  
+    nonnegConstraintFlag = 1; 
+    normalizeMethod = 3;
+                        
+    normalizeConstant = 1;
+};
+
+TransposeConn "Complex Layer to AnaSimple Layer" = {
+    preLayerName = "Complex Layer";
+    postLayerName = "AnaSimple Layer";
+    
+    originalConnName = "Pooling Term 1 to Complex Layer";
+
+    channelCode = 1;    
+    
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "Simple Layer to Energy AnaSimple Layer" = {
+    preLayerName = "Simple Layer";
+    postLayerName = "Energy AnaSimple Layer";
+
+    channelCode = 0;    
+
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+IdentConn "AnaSimple Layer to Energy AnaSimple Layer" = {
+    preLayerName = "AnaSimple Layer";
+    postLayerName = "Energy AnaSimple Layer";
+
+    channelCode = 1;    
+
+    writeStep = -1;    
+    writeCompressedWeights = true;
+
+    delay = 0;          
+};
+
+GenColProbe "Total Energy Probe" = {
+    probeOutputFile = "TotalEnergy.txt";
+};
+
+L2NormProbe "AnaRetina Energy" = {
+    targetLayer = "AnaRetina";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+    probeOutputFile = "AnaRetina_Energy.txt";
+};
+
+L2NormProbe "AnaSimple Layer Energy" = {
+    targetLayer = "Energy AnaSimple Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 0.5;
+    probeOutputFile = "AnaLayer_A_Energy.txt";
+};
+
+LogLatWTAProbe "Simple Layer Lateral Competition Penalty" = {
+    targetLayer = "Simple Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1.0;
+    probeOutputFile = "Layer_A_LatCompPenalty.txt";
+};
+
+LogLatWTAProbe "Complex Layer Lateral Competition Penalty" = {
+    targetLayer = "Complex Layer";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1.0;
+    probeOutputFile = "Layer_B_LatCompPenalty.txt";
+};

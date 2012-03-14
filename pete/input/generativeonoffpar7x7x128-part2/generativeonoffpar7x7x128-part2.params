@@ -1,0 +1,392 @@
+// generativeonoffpar7x7x128-part2.params
+//     Passes natural images through retina-on/retina-off filters
+//     and then learns features from all the patches in parallel
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 64; // 256;
+    ny = 64; // 256;
+    dt = 1;
+    numSteps = 20000;
+    progressStep = 10;
+    randomSeed = 1;
+    outputPath = "./output/generativeonoffpar7x7x128-part2/";
+    filenamesContainLayerNames = true;
+};
+
+Movie "Natural Image Slideshow" = {
+    imageListPath = "./input/generativeonoffpar7x7x128-part2/filenames.txt";
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    writeImages = 0;
+
+    displayPeriod = 1000000;
+    randomMovie = false;
+    jitterFlag = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "Small Radius Blur" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "Large Radius Blur" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "Retina On" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+};
+
+ANNLayer "Retina Off" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    Vrest = 0.0;
+    
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+};
+
+ANNLayer "AnaRetina On" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "AnaRetina Off" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+LogLatWTAGenLayer "V1" = {
+    restart = 1;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 128;
+    marginWidth = 3;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = 0;
+    VMax = infinity;
+    VMin = 0;
+
+    relaxation = 0.0005;
+    sparsesityTermCoefficient = 1.0;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    persistence = 0.0;
+    sparsityTermCoefficient = 1.0;
+};
+
+
+// Connections
+
+KernelConn "Natural Image Slideshow to Large Radius Blur" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    delay = 0;
+
+    numAxonalArbors = 1;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    normalize = true;
+    normalize_zero_offset = false;
+    normalize_max = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1;
+    strength = 1;
+};
+
+KernelConn "Natural Image Slideshow to Small Radius Blur" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+    
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    normalize = true;
+    normalize_zero_offset = false;
+    normalize_max = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax = 1;
+    strength = 1;
+};
+
+IdentConn "Small Radius Blur to Retina On" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Large Radius Blur to Retina On" = {
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Small Radius Blur to Retina Off" = {
+    channelCode = 1;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Large Radius Blur to Retina Off" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Retina On to AnaRetina On" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+IdentConn "Retina Off to AnaRetina Off" = {
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedWeights = true;
+    delay = 0;
+};
+
+GenerativeConn "AnaRetina On to V1" = {
+    preLayerName = "AnaRetina On";
+    postLayerName = "V1";
+
+    channelCode = 0;
+
+    numAxonalArbors = 1;
+    nxp = 7;
+    nyp = 7;
+    nfp = 128;
+
+    writeStep = 1000;
+    writeCompressedWeights = false;
+
+    stochasticReleaseFlag = false;
+    delay = 0;
+
+    initFromLastFlag = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "output/generativeonoffpar7x7x128/w8_last.pvp";
+    normalize = 1;
+    shrinkPatches = false;
+
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+
+    weightUpdatePeriod = 20;
+    relaxation = 100;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 4;
+};
+
+GenerativeConn "AnaRetina Off to V1" = {
+    preLayerName = "AnaRetina Off";
+    postLayerName = "V1";
+
+    channelCode = 0;
+
+    numAxonalArbors = 1;
+    nxp = 7;
+    nyp = 7;
+    nfp = 128;
+
+    writeStep = 1000;
+    writeCompressedWeights = false;
+
+    stochasticReleaseFlag = false;
+    delay = 0;
+
+    initFromLastFlag = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "output/generativeonoffpar7x7x128/w9_last.pvp";
+    normalize = 1;
+    shrinkPatches = false;
+
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+
+    weightUpdatePeriod = 20;
+    relaxation = 100;
+    nonnegConstraintFlag = 1;
+    normalizeMethod = 3;
+    normalizeConstant = 4;
+};
+
+FeedbackConn "V1 to AnaRetina On Feedback" = {
+    originalConnName = "AnaRetina On to V1";
+
+    channelCode = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+    
+    weightUpdatePeriod = 1;
+};
+
+FeedbackConn "V1 to AnaRetina Off Feedback" = {
+    originalConnName = "AnaRetina Off to V1";
+
+    channelCode = 1;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+
+    initFromLastFlag = 0;
+    
+    symmetrizeWeights = 0;
+    plasticityFlag = true;
+    
+    weightUpdatePeriod = 1;
+};
+
+GenColProbe "Total Energy Probe" = {
+    probeOutputFile = "TotalEnergy.txt";
+};
+
+L2NormProbe "AnaRetina On L2Norm" = {
+    targetLayer = "AnaRetina On";
+    probeOutputFile = "AnaRetinaOnL2Norm.txt";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+};
+
+L2NormProbe "AnaRetina Off L2Norm" = {
+    targetLayer = "AnaRetina Off";
+    probeOutputFile = "AnaRetinaOffL2Norm.txt";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+};
+
+LogLatWTAProbe "V1 LogLatWTA" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1LogLatWTA.txt";
+    parentGenColProbe = "Total Energy Probe";
+    coeff = 1;
+};
