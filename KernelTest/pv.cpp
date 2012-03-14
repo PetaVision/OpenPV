@@ -53,17 +53,16 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
             buf_type = BufActivity;
          }
          if( filename ) {
-            addedProbe = (LayerProbe *) new KernelTestProbe(filename, hc, message);
+            addedProbe = (LayerProbe *) new KernelTestProbe(filename, targetlayer, message);
          }
          else {
-            addedProbe = (LayerProbe *) new KernelTestProbe(message);
+            addedProbe = (LayerProbe *) new KernelTestProbe(targetlayer, message);
          }
          free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
          if( !addedProbe ) {
             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
             errorFound = true;
          }
-         targetlayer->insertProbe(addedProbe);
          if( !errorFound ) addedGroup = (void *) addedProbe;
       }
    }
