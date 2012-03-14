@@ -1,7 +1,6 @@
 // params-twolayertestproblem.pv
 //     A two-layer test problem.  Try to learn weights A
-//     by minimizing \|x-A^Ta\|^2/2 when x is four-by-four line world
-//     and a is a training layer
+//     by minimizing \|x-A^Ta\|^2/2 when x is a sequence of natural images.
 
 debugParsing = false;
 
@@ -9,7 +8,7 @@ HyPerCol "column" = {
     nx = 256;
     ny = 256;
     dt = 1;
-    numSteps = 60000;  // number of images times display period
+    numSteps = 500;  // number of images times display period
     randomSeed = 1;
     outputPath = "./output/unsupervised/";
     filenamesContainLayerNames = true;
@@ -61,7 +60,7 @@ ANNLayer "AnaRetina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 3;
+    marginWidth = 6;
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -79,7 +78,7 @@ LogLatWTAGenLayer "V1" = {
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 32;
-    marginWidth = 1;
+    marginWidth = 3;
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -91,8 +90,8 @@ LogLatWTAGenLayer "V1" = {
     VMax = infinity;
     VMin = 0;
 
-    relaxation = 0.01; //
-    sparsesityTermCoefficient = 1.0; //
+    relaxation = 0.01;
+    sparsesityTermCoefficient = 1.0;
 };
 
 
@@ -136,11 +135,11 @@ GenerativeConn "AnaRetina to V1" = {
 
     channelCode = 0;
 
-    nxp = 3;
-    nyp = 3;
+    nxp = 7;
+    nyp = 7;
     nfp = 32;
 
-    writeStep = 100;
+    writeStep = 20;
     writeCompressedWeights = false;
 
     delay = 0;
@@ -155,8 +154,8 @@ GenerativeConn "AnaRetina to V1" = {
 
     symmetrizeWeights = 0;
 
-    weightUpdatePeriod = 100;
-    relaxation = 0.1;
+    weightUpdatePeriod = 20;
+    relaxation = 0.01;
     nonnegConstraintFlag = 1;
     normalizeMethod = 1;
 //    normalizeConstant = 2;
