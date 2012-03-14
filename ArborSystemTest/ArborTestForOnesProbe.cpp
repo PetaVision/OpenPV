@@ -13,28 +13,29 @@
 
 namespace PV {
 
-ArborTestForOnesProbe::ArborTestForOnesProbe(const char * filename, HyPerCol * hc, const char * msg)
-: StatsProbe(filename, hc, msg)
+ArborTestForOnesProbe::ArborTestForOnesProbe(const char * filename, HyPerLayer * layer, const char * msg)
+: StatsProbe(filename, layer, msg)
 {
 }
 
-ArborTestForOnesProbe::ArborTestForOnesProbe(const char * msg)
-: StatsProbe(msg)
+ArborTestForOnesProbe::ArborTestForOnesProbe(HyPerLayer * layer, const char * msg)
+: StatsProbe(layer, msg)
 {
 }
 
+ArborTestForOnesProbe::~ArborTestForOnesProbe() {}
 
-int ArborTestForOnesProbe::outputState(float time, HyPerLayer * l)
+int ArborTestForOnesProbe::outputState(float timef)
 {
-	int status = StatsProbe::outputState(time, l);
+	int status = StatsProbe::outputState(timef);
 #ifdef PV_USE_MPI
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
    }
 #endif // PV_USE_MPI
-	if(time>1.0f){
+	if(timef>1.0f){
 		assert((fMin>0.99)&&(fMin<1.01));
 		assert((fMax>0.99)&&(fMax<1.01));
 		assert((avg>0.99)&&(avg<1.01));

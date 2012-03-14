@@ -28,17 +28,16 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
 			return addedProbe;
 		}
 		if( filename ) {
-			addedProbe =  new ArborTestProbe(filename, hc, message);
+			addedProbe =  new ArborTestProbe(filename, targetlayer, message);
 		}
 		else {
-			addedProbe =  new ArborTestProbe(message);
+			addedProbe =  new ArborTestProbe(targetlayer, message);
 		}
 		free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
 		if( !addedProbe ) {
 			fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);
 		}
 		assert(targetlayer);
-		if( addedProbe ) targetlayer->insertProbe(addedProbe);
 		checknewobject((void *) addedProbe, keyword, groupname, hc);
 		return addedProbe;
 	}
@@ -50,17 +49,16 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
 			return addedProbe;
 		}
 		if( filename ) {
-			addedProbe =  new ArborTestForOnesProbe(filename, hc, message);
+			addedProbe =  new ArborTestForOnesProbe(filename, targetlayer, message);
 		}
 		else {
-			addedProbe =  new ArborTestForOnesProbe(message);
+			addedProbe =  new ArborTestForOnesProbe(targetlayer, message);
 		}
 		free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
 		if( !addedProbe ) {
 			fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);
 		}
 		assert(targetlayer);
-		if( addedProbe ) targetlayer->insertProbe(addedProbe);
 		checknewobject((void *) addedProbe, keyword, groupname, hc);
 		return addedProbe;
 	}

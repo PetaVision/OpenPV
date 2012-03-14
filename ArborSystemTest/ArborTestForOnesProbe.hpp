@@ -14,10 +14,11 @@ namespace PV {
 
 class ArborTestForOnesProbe: public PV::StatsProbe {
 public:
-	ArborTestForOnesProbe(const char * filename, HyPerCol * hc, const char * msg);
-	ArborTestForOnesProbe(const char * msg);
+	ArborTestForOnesProbe(const char * filename, HyPerLayer * layer, const char * msg);
+	ArborTestForOnesProbe(HyPerLayer * layer, const char * msg);
+	virtual ~ArborTestForOnesProbe();
 
-	virtual int outputState(float time, HyPerLayer * l	);
+	virtual int outputState(float timef);
 
 };
 
