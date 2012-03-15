@@ -5,9 +5,13 @@
 
 PV::PVParams* handler;
 
-/* Start block of stuff copied from param_lexer.c, which is created by params.l */
-/* There ought to be an easier way to do this; it's (YY|yy)* variables and this */
-/* is a .y file */
+/* In MPI, root process reads the file and broadcasts it to all processes, and
+ * each process parses the file from memory independently.  The problem is that
+ * by default, yacc/bison parsers read from standard input.  As a workaround
+ * start block of stuff copied from param_lexer.c, which is created by params.l
+ * There ought to be an easier way to do this; it's (YY|yy)* variables and this
+ * is a .y file
+ */
 #ifndef YY_TYPEDEF_YY_SIZE_T
 #define YY_TYPEDEF_YY_SIZE_T
 typedef size_t yy_size_t;
@@ -145,14 +149,12 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %token <dval> T_NUMBER
 %token <sval> T_FILE_KEYWORD
 %token <sval> T_FILENAME
-%type  <sval> parameter_group
 
 %%
 
 declarations : /* empty */
              | declarations pvparams_directive
              | declarations parameter_group
-             | declarations filename_def
              ;
 
 pvparams_directive : T_ID '=' T_NUMBER ';'
@@ -166,6 +168,7 @@ parameter_group : T_ID T_STRING '=' '{' parameter_defs '}' ';'
 parameter_defs : /* empty */
                | parameter_defs parameter_def
                | parameter_defs parameter_string_def
+               | parameter_defs include_directive
                ;
 
 parameter_def : T_ID '=' T_NUMBER ';'
@@ -178,8 +181,6 @@ parameter_string_def : T_ID '=' T_STRING ';'
                         { handler->action_parameter_string_def($1,$3); }
                      ;
 
-filename_def : T_FILE_KEYWORD T_STRING '=' T_FILENAME ';'
-                { handler->action_filename_def($2, $4); }
-             | T_FILE_KEYWORD T_STRING '=' T_STRING ';'
-                { handler->action_filename_def($2, $4); }
-             ;
+include_directive : '#include' T_ID ';'
+                        { handler->action_include_directive($2); }
+                     ;

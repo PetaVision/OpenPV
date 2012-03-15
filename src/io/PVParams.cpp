@@ -478,20 +478,6 @@ int PVParams::initialize(int initialSize, HyPerCol * hc) {
 }
 
 int PVParams::parsefile(const char * filename) {
-/*
-   if (filename == NULL) {
-      const char * altfile = INPUT_PATH "inparams.txt";
-      printf("PVParams::PVParams: rank %d process opening alternate input file \"%s\"\n", rank, altfile);
-      fflush(stdout);
-      filename = altfile;
-   }
-
-   yyin = fopen(filename, "r");
-   if (yyin == NULL) {
-      fprintf(stderr, "PVParams::PVParams: rank %d process FAILED to open file %s.  Error code %d\n", rank, filename, errno);
-      exit(errno);
-   }
- */
    int rootproc = 0;
    InterColComm * icComm = parentHyPerCol->icCommunicator();
    char * paramBuffer = NULL;
@@ -503,6 +489,15 @@ int PVParams::parsefile(const char * filename) {
          fflush(stdout);
          filename = altfile;
       }
+      struct stat filestatus;
+      if( stat(filename, &filestatus) ) {
+         fprintf(stderr, "PVParams::parsefile: ERROR getting status of file \"%s\".  Error code %d\n", filename, errno);
+         exit(errno);
+      }
+      if( filestatus.st_mode & S_IFDIR ) {
+         fprintf(stderr, "PVParams::parsefile: ERROR - specified file \"%s\" is a directory.\n", filename);
+         exit(EISDIR);
+      }
       FILE * paramfp = fopen(filename, "r");
       if( paramfp == NULL ) {
          fprintf(stderr, "PVParams::parsefile: ERROR opening file \"%s\".  Error code %d\n", filename, errno);
@@ -512,17 +507,17 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile: ERROR seeking end of file \"%s\".  Error code %d\n", filename, errno);
          exit(errno);
       }
-      //TODO:: make sure paramBuffer is correctly freed (this method was flagged as a memory lead by valgrind)
+      //TODO:: make sure paramBuffer is correctly freed (this method was flagged as a memory leak by valgrind)
       bufferlen = (size_t) ftell(paramfp);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
          fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
-         abort();
+         exit(ENOMEM);
       }
       fseek(paramfp, 0L, SEEK_SET);
       if( fread(paramBuffer,1, (unsigned long int) bufferlen, paramfp) != bufferlen) {
          fprintf(stderr, "PVParams::parsefile: ERROR reading params file \"%s\"", filename);
-         abort();
+         exit(EIO);
       }
       fclose(paramfp);
 #ifdef PV_USE_MPI
@@ -795,6 +790,14 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
    stringStack->push(pstr);
 }
 
+void PVParams::action_include_directive(const char * stringval) {
+   if( debugParsing && rank == 0 ) {
+      fflush(stdout);
+      printf("action_include_directive: including %s\n", stringval);
+      fflush(stdout);
+   }
+}
+
 int PVParams::checkDuplicates(const char * paramName) {
    int status = PV_SUCCESS;
    for( int k=0; k<stack->size(); k++ ) {
@@ -822,6 +825,7 @@ int PVParams::checkDuplicates(const char * paramName) {
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete March 15, 2012.  There's more flexibility in defining string parameters within groups
 // action_filename_def deprecated on Oct 27, 2011
 void PVParams::action_filename_def(char * id, char * path)
 {
@@ -854,5 +858,6 @@ void PVParams::action_filename_def(char * id, char * path)
       fprintf(stderr, "Rank %d process: No room for %s:%s\n", rank, label, path);
    }
 }  // close PVParams::action_filename_def block
+#endif // OBSOLETE
 
 }  // close namespace PV block

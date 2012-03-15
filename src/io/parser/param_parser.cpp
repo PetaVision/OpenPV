@@ -92,9 +92,13 @@
 
 PV::PVParams* handler;
 
-/* Start block of stuff copied from param_lexer.c, which is created by params.l */
-/* There ought to be an easier way to do this; it's (YY|yy)* variables and this */
-/* is a .y file */
+/* In MPI, root process reads the file and broadcasts it to all processes, and
+ * each process parses the file from memory independently.  The problem is that
+ * by default, yacc/bison parsers read from standard input.  As a workaround
+ * start block of stuff copied from param_lexer.c, which is created by params.l
+ * There ought to be an easier way to do this; it's (YY|yy)* variables and this
+ * is a .y file
+ */
 #ifndef YY_TYPEDEF_YY_SIZE_T
 #define YY_TYPEDEF_YY_SIZE_T
 typedef size_t yy_size_t;
@@ -246,10 +250,10 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 142 "params.y"
+#line 146 "params.y"
 {char * sval; double dval; }
 /* Line 193 of yacc.c.  */
-#line 253 "param_parser.cpp"
+#line 257 "param_parser.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -262,7 +266,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 266 "param_parser.cpp"
+#line 270 "param_parser.cpp"
 
 #ifdef short
 # undef short
@@ -477,16 +481,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   27
+#define YYLAST   22
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  12
+#define YYNTOKENS  13
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  8
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  15
+#define YYNRULES  14
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  33
+#define YYNSTATES  29
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -501,7 +505,7 @@ static const yytype_uint8 yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,    12,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     9,
        2,     8,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -532,26 +536,26 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     4,     7,    10,    13,    18,    26,    27,
-      30,    33,    38,    43,    48,    54
+       0,     0,     3,     4,     7,    10,    15,    23,    24,    27,
+      30,    33,    38,    43,    48
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      13,     0,    -1,    -1,    13,    14,    -1,    13,    15,    -1,
-      13,    19,    -1,     4,     8,     5,     9,    -1,     4,     3,
-       8,    10,    16,    11,     9,    -1,    -1,    16,    17,    -1,
-      16,    18,    -1,     4,     8,     5,     9,    -1,     4,     8,
-       3,     9,    -1,     4,     8,     7,     9,    -1,     6,     3,
-       8,     7,     9,    -1,     6,     3,     8,     3,     9,    -1
+      14,     0,    -1,    -1,    14,    15,    -1,    14,    16,    -1,
+       4,     8,     5,     9,    -1,     4,     3,     8,    10,    17,
+      11,     9,    -1,    -1,    17,    18,    -1,    17,    19,    -1,
+      17,    20,    -1,     4,     8,     5,     9,    -1,     4,     8,
+       3,     9,    -1,     4,     8,     7,     9,    -1,    12,     4,
+       9,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   152,   152,   153,   154,   155,   158,   162,   166,   167,
-     168,   171,   175,   177,   181,   183
+       0,   155,   155,   156,   157,   160,   164,   168,   169,   170,
+     171,   174,   178,   180,   184
 };
 #endif
 
@@ -561,10 +565,10 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "T_STRING", "T_ID", "T_NUMBER",
-  "T_FILE_KEYWORD", "T_FILENAME", "'='", "';'", "'{'", "'}'", "$accept",
-  "declarations", "pvparams_directive", "parameter_group",
+  "T_FILE_KEYWORD", "T_FILENAME", "'='", "';'", "'{'", "'}'", "'#include'",
+  "$accept", "declarations", "pvparams_directive", "parameter_group",
   "parameter_defs", "parameter_def", "parameter_string_def",
-  "filename_def", 0
+  "include_directive", 0
 };
 #endif
 
@@ -574,22 +578,22 @@ static const char *const yytname[] =
 static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,    61,    59,
-     123,   125
+     123,   125,    35
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    12,    13,    13,    13,    13,    14,    15,    16,    16,
-      16,    17,    18,    18,    19,    19
+       0,    13,    14,    14,    14,    15,    16,    17,    17,    17,
+      17,    18,    19,    19,    20
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0,     2,     2,     2,     4,     7,     0,     2,
-       2,     4,     4,     4,     5,     5
+       0,     2,     0,     2,     2,     4,     7,     0,     2,     2,
+       2,     4,     4,     4,     3
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -597,33 +601,31 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,     0,     3,     4,     5,     0,     0,
-       0,     0,     0,     0,     8,     6,     0,     0,     0,    15,
-      14,     0,     0,     9,    10,     0,     7,     0,     0,     0,
-      12,    11,    13
+       2,     0,     1,     0,     3,     4,     0,     0,     0,     0,
+       7,     5,     0,     0,     0,     0,     8,     9,    10,     0,
+       6,     0,     0,     0,     0,    14,    12,    11,    13
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     5,     6,    18,    23,    24,     7
+      -1,     1,     4,     5,    12,    16,    17,    18
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -5
+#define YYPACT_NINF -8
 static const yytype_int8 yypact[] =
 {
-      -5,     2,    -5,     1,     8,    -5,    -5,    -5,     4,    10,
-       5,     6,     9,     7,    -5,    -5,    11,    12,    -4,    -5,
-      -5,    14,    15,    -5,    -5,    -2,    -5,    16,    17,    18,
-      -5,    -5,    -5
+      -8,    10,    -8,    -2,    -8,    -8,    -6,    -1,    -7,     3,
+      -8,    -8,    -4,    -3,     7,    11,    -8,    -8,    -8,     6,
+      -8,     8,     9,    12,    13,    -8,    -8,    -8,    -8
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5
+      -8,    -8,    -8,    -8,    -8,    -8,    -8,    -8
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -633,26 +635,25 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      21,    27,     2,    28,     8,    29,     3,    22,     4,     9,
-      16,    10,    11,    13,    17,    12,    14,     0,    15,     0,
-      19,    20,    25,     0,    26,    30,    31,    32
+      13,     6,     8,    10,     9,    19,     7,    14,    15,    22,
+       2,    23,    11,    24,     3,    21,    20,    25,    26,     0,
+       0,    27,    28
 };
 
 static const yytype_int8 yycheck[] =
 {
-       4,     3,     0,     5,     3,     7,     4,    11,     6,     8,
-       3,     3,     8,     8,     7,     5,    10,    -1,     9,    -1,
-       9,     9,     8,    -1,     9,     9,     9,     9
+       4,     3,     8,    10,     5,     8,     8,    11,    12,     3,
+       0,     5,     9,     7,     4,     4,     9,     9,     9,    -1,
+      -1,     9,     9
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    13,     0,     4,     6,    14,    15,    19,     3,     8,
-       3,     8,     5,     8,    10,     9,     3,     7,    16,     9,
-       9,     4,    11,    17,    18,     8,     9,     3,     5,     7,
-       9,     9,     9
+       0,    14,     0,     4,    15,    16,     3,     8,     8,     5,
+      10,     9,    17,     4,    11,    12,    18,    19,    20,     8,
+       9,     4,     3,     5,     7,     9,     9,     9,     9
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1466,44 +1467,39 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 6:
-#line 159 "params.y"
+        case 5:
+#line 161 "params.y"
     { handler->action_pvparams_directive((yyvsp[(1) - (4)].sval), (yyvsp[(3) - (4)].dval)); }
     break;
 
-  case 7:
-#line 163 "params.y"
+  case 6:
+#line 165 "params.y"
     { handler->action_parameter_group((yyvsp[(1) - (7)].sval), (yyvsp[(2) - (7)].sval)); }
     break;
 
   case 11:
-#line 172 "params.y"
+#line 175 "params.y"
     { handler->action_parameter_def((yyvsp[(1) - (4)].sval), (yyvsp[(3) - (4)].dval)); }
     break;
 
   case 12:
-#line 176 "params.y"
+#line 179 "params.y"
     { handler->action_parameter_string_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 13:
-#line 178 "params.y"
+#line 181 "params.y"
     { handler->action_parameter_string_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 14:
-#line 182 "params.y"
-    { handler->action_filename_def((yyvsp[(2) - (5)].sval), (yyvsp[(4) - (5)].sval)); }
-    break;
-
-  case 15:
-#line 184 "params.y"
-    { handler->action_filename_def((yyvsp[(2) - (5)].sval), (yyvsp[(4) - (5)].sval)); }
+#line 185 "params.y"
+    { handler->action_include_directive((yyvsp[(2) - (3)].sval)); }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1507 "param_parser.cpp"
+#line 1503 "param_parser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);

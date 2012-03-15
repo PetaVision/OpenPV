@@ -17,8 +17,6 @@
 "true" { yylval.dval = 1; return T_NUMBER; }
 "false" { yylval.dval = 0; return T_NUMBER; }
 
-"FileDefinition" { yylval.sval = strdup(yytext); return T_FILE_KEYWORD; }
-
 [a-zA-Z][a-zA-Z0-9_]* {
    yylval.sval = strdup(yytext);
    return T_ID;
@@ -31,6 +29,8 @@
 "}"        { return *yytext; }
 "="        { return *yytext; }
 ";"        { return *yytext; }
+
+"#include" { return *yytext; }
 
 [//].*   /* ignore C++ style comments */
 
