@@ -30,7 +30,7 @@ public:
    bool getSlownessFlag()                     {return slownessFlag;}
    int setReciprocalWgts(const char * recipName);
 
-   virtual int updateState(float time, float dt);
+   virtual int updateState(float timef, float dt);
 
 protected:
    // protected methods

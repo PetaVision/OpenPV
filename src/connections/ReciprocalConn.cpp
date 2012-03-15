@@ -81,13 +81,13 @@ int ReciprocalConn::initParameterLayer(const char * parametername, HyPerLayer **
    return status;
 }
 
-int ReciprocalConn::updateState(float time, float dt) {
+int ReciprocalConn::updateState(float timef, float dt) {
    // Need to set reciprocalWgts the first time updateState is called, so that each ReciprocalConn in a pair can define the other
    // If it was set in initialize, the second would not have been defined when the first was called.
-   int status = PV_SUCCESS;
    if( reciprocalWgts == NULL) {
       setReciprocalWgts(reciprocalWgtsName);
    }
+   int status = KernelConn::updateState(timef, dt);
    return status;
 }
 
