@@ -244,6 +244,7 @@ static int tiff_set_ifd_value(IFDEntry entry, IFD * ifd, int convert)
                 entry.tag, entry.type, entry.count, entry.offset);
          return 1;
       }
+      break;
    }
 
    return 0;
