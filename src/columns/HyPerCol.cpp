@@ -373,7 +373,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    struct stat pathstat;
    int resultcode = checkDirExists(dirname, &pathstat);
    if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
-      if( !(pathstat.st_mode && S_IFDIR ) ) {
+      if( !(pathstat.st_mode & S_IFDIR ) ) {
          if( rank == 0 ) {
             fflush(stdout);
             fprintf(stderr, "Path \"%s\" exists but is not a directory\n", dirname);
