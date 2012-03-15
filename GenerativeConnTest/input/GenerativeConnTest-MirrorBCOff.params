@@ -13,7 +13,10 @@ HyPerCol "column" = {
     numSteps = 5;
     progressStep = 1000;
     outputPath = "output-MirrorBCOff/";
-    filenamesContainLayerNames = true;
+    filenamesContainLayerNames = false;
+    outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
+    checkpointRead = false;
+    checkpointWrite = false;
 };
 
 Movie "8x8 Images" = {
@@ -88,12 +91,13 @@ ANNLayer "pre 16x16 singleband" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 4;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -105,12 +109,13 @@ ANNLayer "pre 16x16 multiband" = {
     nyScale = 1;
     nf = 3;
     marginWidth = 4;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -127,7 +132,8 @@ ANNLayer "post 8x8 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -139,12 +145,13 @@ ANNLayer "post 8x8 multiband" = {
     nyScale = 0.5;
     nf = 4;
     marginWidth = 2;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -161,7 +168,8 @@ ANNLayer "post 16x16 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -173,12 +181,13 @@ ANNLayer "post 16x16 multiband" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 2;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -195,7 +204,8 @@ ANNLayer "post 32x32 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -207,12 +217,13 @@ ANNLayer "post 32x32 multiband" = {
     nyScale = 2;
     nf = 4;
     marginWidth = 2;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -244,6 +255,9 @@ KernelConn "16x16 Images to pre 16x16 multiband" = {
     rMax = 2;
     rMin = 0;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
 };
 
 IdentConn "8x8 Images to post 8x8 singleband" = {
@@ -272,6 +286,9 @@ KernelConn "8x8 Images to post 8x8 multiband" = {
     rMax = 2;
     rMin = 0;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
 };
 
 IdentConn "16x16 Images to post 16x16 singleband" = {
@@ -300,6 +317,9 @@ KernelConn "16x16 Images to post 16x16 multiband" = {
     rMax = 2;
     rMin = 0;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
 };
 
 IdentConn "32x32 Images to post 32x32 singleband" = {
@@ -328,6 +348,9 @@ KernelConn "32x32 Images to post 32x32 multiband" = {
     rMax = 2;
     rMin = 0;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
 };
 
 GenerativeConn "pre 16x16 singleband to post 16x16 singleband" = {
@@ -346,6 +369,9 @@ GenerativeConn "pre 16x16 singleband to post 16x16 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -369,6 +395,9 @@ GenerativeConn "pre 16x16 singleband to post 16x16 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -392,6 +421,9 @@ GenerativeConn "pre 16x16 multiband to post 16x16 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -415,6 +447,9 @@ GenerativeConn "pre 16x16 multiband to post 16x16 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -438,6 +473,9 @@ GenerativeConn "pre 16x16 singleband to post 8x8 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -461,6 +499,9 @@ GenerativeConn "pre 16x16 singleband to post 8x8 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -484,6 +525,9 @@ GenerativeConn "pre 16x16 multiband to post 8x8 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -507,6 +551,9 @@ GenerativeConn "pre 16x16 multiband to post 8x8 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -530,6 +577,9 @@ GenerativeConn "pre 16x16 singleband to post 32x32 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -553,6 +603,9 @@ GenerativeConn "pre 16x16 singleband to post 32x32 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -576,6 +629,9 @@ GenerativeConn "pre 16x16 multiband to post 32x32 singleband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
@@ -599,6 +655,9 @@ GenerativeConn "pre 16x16 multiband to post 32x32 multiband" = {
     symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
     
     weightUpdatePeriod = 1;
     relaxation = 1.0;
