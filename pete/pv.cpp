@@ -72,9 +72,8 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
          return NULL;
       }
       else {
-         ChannelProbe * channelProbe = new ChannelProbe(filename, hc, channelCode);
+         ChannelProbe * channelProbe = new ChannelProbe(filename, targetlayer, channelCode);
          assert(targetlayer);
-         if( channelProbe ) targetlayer->insertProbe(channelProbe);
          checknewobject((void *) channelProbe, keyword, name, hc);
          return (void *) channelProbe;
       }
@@ -93,7 +92,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if( !strcmp( keyword, "RandomPatchMovieProbe") ) {
       targetlayer = getLayerFromParameterGroup(name, hc, "targetLayer");
-      if( ! targetlayer ) {
+      if( !targetlayer ) {
          fprintf(stderr, "Group \"%s\": Class %s must define targetLayer\n", name, keyword);
          return NULL;
       }
@@ -102,8 +101,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
          fprintf(stderr, "Group \"%s\": Class %s must define probeOutputFile\n", name, keyword);
          return NULL;
       }
-      RandomPatchMovieProbe * rpmProbe = new RandomPatchMovieProbe(filename, hc, name);
-      if( rpmProbe ) targetlayer->insertProbe(rpmProbe);
+      RandomPatchMovieProbe * rpmProbe = new RandomPatchMovieProbe(filename, targetlayer, name);
       return (void *) rpmProbe;
    }
    if( !strcmp( keyword, "ShadowRandomPatchMovie") ) {

@@ -16,10 +16,10 @@ namespace PV {
 
 class ChannelProbe : public LayerProbe {
 public:
-    ChannelProbe(ChannelType channel);
-    ChannelProbe(const char * filename, HyPerCol * hc, ChannelType channel);
+    ChannelProbe(HyPerLayer * layer, ChannelType channel);
+    ChannelProbe(const char * filename, HyPerLayer * layer, ChannelType channel);
 
-    virtual int outputState(float time, HyPerLayer * l);
+    virtual int outputState(float timef);
 protected:
     ChannelType pChannel;
 

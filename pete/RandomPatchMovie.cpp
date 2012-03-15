@@ -154,35 +154,35 @@ int RandomPatchMovie::retrieveRandomPatch() {
 	return PV_SUCCESS;
 }
 
-int RandomPatchMovie::outputState(float time, bool last)
+int RandomPatchMovie::outputState(float timef, bool last)
 {
 	if (writeImages) {
 		char basicFilename[PV_PATH_MAX + 1];
-		snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), time);
+		snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), timef);
 		write(basicFilename);
 	}
 
 	for (int i = 0; i < numProbes; i++) {
-		probes[i]->outputState(time, this);
+		probes[i]->outputState(timef);
 	}
 
 	return 0;
 }
 
-int RandomPatchMovie::updateState(float time, float dt)
+int RandomPatchMovie::updateState(float timef, float dt)
 {
-	updateImage(time, dt);
+	updateImage(timef, dt);
 	return 0;
 }
 
-bool RandomPatchMovie::updateImage(float time, float dt) {
-	bool needNewImage = time >= nextDisplayTime;
+bool RandomPatchMovie::updateImage(float timef, float dt) {
+	bool needNewImage = timef >= nextDisplayTime;
 	if( needNewImage ) {
 		free(filename);
 		filename = strdup(getRandomFilename());
 		getImageInfo(filename, parent->icCommunicator(), &imageLoc);
 		nextDisplayTime += displayPeriod;
-		lastUpdateTime = time;
+		lastUpdateTime = timef;
 		retrieveRandomPatch();
 	}
 	exchange();

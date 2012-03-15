@@ -9,20 +9,22 @@
 
 namespace PV {
 
-ChannelProbe::ChannelProbe(ChannelType channel) : LayerProbe() {
-    pChannel = channel;
+ChannelProbe::ChannelProbe(HyPerLayer * layer, ChannelType channel) : LayerProbe() {
+   initLayerProbe(NULL, layer);
+   pChannel = channel;
 }  // end ChannelProbe::ChannelProbe(ChannelType)
 
-ChannelProbe::ChannelProbe(const char * filename, HyPerCol * hc, ChannelType channel) : LayerProbe(filename, hc){
-    pChannel = channel;
+ChannelProbe::ChannelProbe(const char * filename, HyPerLayer * layer, ChannelType channel) : LayerProbe(){
+   initLayerProbe(filename, layer);
+   pChannel = channel;
 }  // end ChannelProbe::ChannelProbe(const char *, HyPerCol *, ChannelType)
 
-int ChannelProbe::outputState(float time, HyPerLayer * l) {
-    pvdata_t * buf = l->getChannel(pChannel);
-    int n = l->getNumNeurons();
+int ChannelProbe::outputState(float timef) {
+    pvdata_t * buf = getTargetLayer()->getChannel(pChannel);
+    int n = getTargetLayer()->getNumNeurons();
     for( int k=0; k<n; k++) {
         fprintf(fp, "Layer %s, channel %d, time %f, neuron %8d, value=%.8g\n",
-        		l->getName(), (int) pChannel, time, k, buf[k]);
+        		getTargetLayer()->getName(), (int) pChannel, timef, k, buf[k]);
     }
     return EXIT_SUCCESS;
 }  // end ChannelProbe::outputState(float, HyPerLayer *)
