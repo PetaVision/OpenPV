@@ -689,7 +689,16 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Rebplaced by CliqueConn.
+   if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new ReciprocalConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueConn.
    if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
