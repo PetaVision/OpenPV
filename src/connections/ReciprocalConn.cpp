@@ -1,6 +1,35 @@
 /*
  * ReciprocalConn.cpp
  *
+ *  For two connections with transpose geometries (the pre of one has the
+ *  same geometry as the post of another and vice versa).  They are not
+ *  forced to be each other's transpose, but there is a penalty term
+ *  on the L2 norm of the difference between it and its reciprocal's
+ *  transpose, of the amount
+ *  r/2 * || W/f_W - (W_recip)'/f_{W_recip} ||^2.
+ *
+ *  r is the parameter reciprocalFidelityCoeff
+ *  W is the weights and W_recip is the weights of the reciprocal connection
+ *  f_W and f_{W_recip} are the number of features of each connection.
+ *
+ *  The connection forces the normalization method to be that for each feature,
+ *  the sum across kernels (number of features of reciprocal connection) is unity.
+ *
+ *  Dividing by f_W and f_{W_recip} therefore makes the sum of all matrix
+ *  entries of each connection 1.
+ *
+ *  This is still under the assumption that nxp = nyp = 1.
+ *
+ *  There is also the ability to specify an additional penalty of the form
+ *  dW/dt += slownessPost * slownessPre', by setting slownessFlag to true
+ *  and specifying slownessPre and slownessPost layers.
+ *
+ *  The name comes from the motivation of including a slowness term on
+ *  ReciprocalConns, but the slowness interpretation is not within ReciprocalConn.
+ *  IncrementLayer was written so that setting A to an IncrementLayer, and
+ *  having a layer B be the post of a clone of the ReciprocalConn, setting
+ *  slownessPre to A and slownessPost to B would implement a slowness term.
+ *
  *  Created on: Feb 16, 2012
  *      Author: pschultz
  */
@@ -175,7 +204,7 @@ int ReciprocalConn::update_dW(int axonID) {
             int f = featureIndex(n,nxp,nyp,nfp);
             const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, f);
             // const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
-            dwdata[n] += reciprocalFidelityCoeff*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
+            dwdata[n] += reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
          }
       }
    }
@@ -205,26 +234,16 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, i
    for( int f=0; f<nfp; f++ ) {
       pvdata_t sum = 0.0f;
       for( int k=0; k<numPatches; k++ ) {
-         // int patchIndex = kernelIndexToPatchIndex(k);
-         // PVPatch * w = getWeights(patchIndex,arborID);
-         // int nx = (int) patches[k]->nx;
-         // int ny = (int) patches[k]->ny;
          for( int m=0; m<nxp; m++ ) {
             for( int n=0; n<nyp; n++) {
                sum += dataStart[k*nxp*nyp*nfp+f];
-               // sum += getKernelPatch(arborID, k)->data[f];
             }
          }
       }
       for( int k=0; k<numPatches; k++ ) {
-         // int patchIndex = kernelIndexToPatchIndex(k);
-         // PVPatch * w = getWeights(patchIndex,arborID);
-         // int nx = (int) patches[k]->nx;
-         // int ny = (int) patches[k]->ny;
          for( int m=0; m<nxp; m++ ) {
             for( int n=0; n<nyp; n++) {
                dataStart[k*nxp*nyp*nfp+f] /= sum;
-               // getKernelPatch(arborID, k)->data[f] /= sum;
             }
          }
       }
