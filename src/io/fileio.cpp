@@ -1131,8 +1131,8 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
    if (header_file_type != PVP_KERNEL_FILE_TYPE){
       status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
    }
-   else{  // backward compatibility
-      status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]) && (numPatches*nxFileBlocks*nyFileBlocks != wgtParams[INDEX_WGT_NUMPATCHES]));
+   else{
+      status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]));
    }
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
