@@ -175,7 +175,7 @@ int ReciprocalConn::update_dW(int axonID) {
             int f = featureIndex(n,nxp,nyp,nfp);
             const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, f);
             // const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
-            dwdata[n] += reciprocalFidelityCoeff*(wdata[n]-nfp/reciprocalWgts->fPatchSize()*recipwdata[k]);
+            dwdata[n] += reciprocalFidelityCoeff*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
          }
       }
    }
