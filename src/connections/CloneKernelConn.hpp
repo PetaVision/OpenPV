@@ -32,8 +32,6 @@ public:
 
    virtual int initShrinkPatches();
 
-   virtual int initNormalize();
-
    virtual int setParams(PVParams * params);
 
    virtual int updateState(float time, float dt);
@@ -44,10 +42,7 @@ protected:
    virtual int constructWeights(const char * filename);
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
-/*
-   virtual int setWPatches(PVPatch ** patches, int arborId);
-   virtual int setdWPatches(PVPatch ** patches, int arborId);
-*/
+   virtual int initNormalize();
 
    KernelConn * originalConn;
 

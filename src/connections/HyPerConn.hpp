@@ -175,7 +175,6 @@ public:
    int shrinkPatch(int kExt, int arborId);
    bool getShrinkPatches_flag() {return shrinkPatches_flag;}
 
-   virtual int initNormalize();
    int sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal);
    int scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal);
    virtual int checkNormalizeWeights(float sum, float sigma2, float maxVal);
@@ -318,11 +317,6 @@ protected:
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
    virtual InitWeights * handleMissingInitWeights(PVParams * params);
-//   virtual PVPatch ** createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-//         int nyPatch, int nfPatch, int axonId);
-//   PVPatch ** createWeights(PVPatch ** patches, int axonId);
-//   virtual PVPatch ** allocWeights(PVPatch ** patches, int nPatches, int nxPatch,
-//         int nyPatch, int nfPatch, int axonId);
    virtual pvdata_t * createWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    pvdata_t * createWeights(PVPatch *** patches, int axonId);
@@ -330,6 +324,7 @@ protected:
          int nyPatch, int nfPatch, int axonId);
    //PVPatch ** allocWeights(PVPatch ** patches);
    int clearWeights(pvdata_t ** dataStart, int numPatches, int nx, int ny, int nf);
+   virtual int initNormalize();
 
    virtual int checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
    virtual int checkWeightsHeader(const char * filename, int wgtParams[]);
@@ -340,11 +335,6 @@ protected:
 
    char * checkpointFilename();
 
-   // following is overridden by KernelConn to set kernelPatches
-   //inline void setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches;}
-   //virtual int setWPatches(PVPatch ** patches, int arborId) {wPatches[arborId]=patches; return 0;}
-   //  int setdWPatches(PVPatch ** patches, int arborId) {dwPatches[arborId]=patches; return 0;}
-   // inline void setArbor(PVAxonalArbor* arbor, int arborId) {axonalArborList[arborId]=arbor;}
    virtual int calc_dW(int axonId = 0);
 
    void connOutOfMemory(const char * funcname);

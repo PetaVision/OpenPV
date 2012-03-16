@@ -77,7 +77,7 @@ int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
       status = initParameterLayer("slownessPost", &slownessPost, NULL) == PV_SUCCESS ? status : PV_FAILURE;
    }
 
-   const char * reciprocalWgtsName = params->stringValue(name, "reciprocalWgts");
+   reciprocalWgtsName = params->stringValue(name, "reciprocalWgts");
    if( reciprocalWgtsName == NULL || reciprocalWgtsName[0] == '0') {
       fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts must be defined.\n", name);
       status = PV_FAILURE;
