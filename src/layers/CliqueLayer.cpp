@@ -88,6 +88,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 
    // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
    // in order to eliminate generalize self-interactions
+   // note that during learning, per and post may be separate instantiations
    bool self_flag = conn->getSelfFlag();
 
    pvdata_t * a_post_mask = NULL;

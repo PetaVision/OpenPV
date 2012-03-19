@@ -452,6 +452,8 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    }
    assert(this->weightInitializer != NULL);
 
+   selfFlag = (pre == post);
+
    status = setParams(inputParams /*, &defaultConnParams*/);
    defaultDelay = (int) inputParams->value(name, "delay", 0);
 
@@ -521,7 +523,6 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
-
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
    combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
 
