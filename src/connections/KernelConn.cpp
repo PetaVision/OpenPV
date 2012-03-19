@@ -67,9 +67,6 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
-#ifdef PV_USE_MPI
-   keepKernelsSynchronized_flag = params->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
-#endif
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    weightUpdateTime = initializeUpdateTime(params);
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -126,10 +123,9 @@ int KernelConn::createArbors() {
 
 int KernelConn::initPlasticityPatches() {
    if( getPlasticityFlag() ) {
-      // dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-      // assert(dKernelPatches!=NULL);
-      // Have to allocate dKernelPatches before calling initPlasticityPatches, since
-      // initPlasticityPatches calls setdWPatches, which uses dKernelPatches
+#ifdef PV_USE_MPI
+   keepKernelsSynchronized_flag = getParent()->parameters()->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
+#endif
       HyPerConn::initPlasticityPatches();
    }
    return PV_SUCCESS;
