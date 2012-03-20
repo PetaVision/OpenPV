@@ -31,7 +31,7 @@ public:
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
 
-   virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
+   //virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId);
 

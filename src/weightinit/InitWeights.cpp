@@ -160,7 +160,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
                   }
                }
             }
-         }
+         } // commRank() == rootproc
          int filetype, datatype;
          int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
@@ -188,7 +188,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
             if( fgetsstatus == NULL ) {
                bool endoffile = feof(weightsfp)!=0;
                if( endoffile ) {
-                  fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", filename, num_weight_files);
+                  fprintf(stderr, "File of weight files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", filename, num_weight_files);
                   exit(EXIT_FAILURE);
                }
                else {
@@ -208,7 +208,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
                   }
                }
             }
-         }
+         } // commRank() == rootproc
          int filetype, datatype;
          int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
@@ -219,7 +219,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
             exit(EXIT_FAILURE);
          }
          file_count += 1;
-      }
+      } // file_count < num_weight_files
 
    } // if combineWeightFiles
    else {

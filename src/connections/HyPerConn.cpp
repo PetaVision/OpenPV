@@ -2011,36 +2011,72 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
    int nx = nxp;
    int ny = nyp;
    int offset = 0;
-   for (int k = 0; k < numPatches; k++) {
-      if (patches != NULL) {
-         PVPatch * wp = patches[k];
-         nx = wp->nx;
-         ny = wp->ny;
-         offset = wp->offset;
-      }
+   if (this->normalizeArborsIndividually) {
+      for (int k = 0; k < numPatches; k++) {
+         if (patches != NULL) {
+            PVPatch * wp = patches[k];
+            nx = wp->nx;
+            ny = wp->ny;
+            offset = wp->offset;
+         }
 //      PVPatch * wp = patches[k];
 //      if( wp->nx < nxp || wp->ny < nyp ) {
 //         continue;  // Normalization of shrunken patches used unshrunken part, which is no longer available
 //      }
-      double sum = 0;
-      double sum2 = 0;
-      float maxVal = -FLT_MAX;
-      status = sumWeights(nx, ny, offset, dataStart[arborId] + k * nxp * nyp * nfp, &sum,
-            &sum2, &maxVal);
-      int num_weights = nx * ny * nfp; //wp->nf;
-      float sigma2 = (sum2 / num_weights) - (sum / num_weights) * (sum / num_weights);
-      if (sum != 0 || sigma2 != 0) {
-         status = checkNormalizeWeights(sum, sigma2, maxVal);
-         assert( status == PV_SUCCESS);
+         double sum = 0;
+         double sum2 = 0;
+         float maxVal = -FLT_MAX;
+         status = sumWeights(nx, ny, offset, dataStart[arborId] + k * nxp * nyp * nfp,
+               &sum, &sum2, &maxVal);
+         int num_weights = nx * ny * nfp; //wp->nf;
+         float sigma2 = (sum2 / num_weights) - (sum / num_weights) * (sum / num_weights);
+         if (sum != 0 || sigma2 != 0) {
+            status = checkNormalizeWeights(sum, sigma2, maxVal);
+            assert( status == PV_SUCCESS);
+         }
+         else {
+            fprintf(stderr,
+                  "checkNormalizeArbor: connection \"%s\", arbor %d, patch %d has all zero weights.\n",
+                  name, arborId, k);
+         }
       }
-      else {
-         fprintf(
-               stderr,
-               "checkNormalizeArbor: connection \"%s\", arbor %d, patch %d has all zero weights.\n",
-               name, arborId, k);
-      }
+      return PV_SUCCESS;
    }
-   return PV_SUCCESS;
+   else{
+      for (int kPatch = 0; kPatch < numPatches; kPatch++) {
+         double sumAll = 0.0f;
+         double sum2All = 0.0f;
+         float maxAll = 0.0f;
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            if (patches != NULL) {
+               PVPatch * wp = patches[kArbor];
+               nx = wp->nx;
+               ny = wp->ny;
+               offset = wp->offset;
+            }
+            double sum, sum2;
+            float maxVal;
+            // PVPatch * p = patches[kPatch];
+            status = sumWeights(nx, ny, offset, dataStart[kArbor] + kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
+            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+            sumAll += sum;
+            sum2All += sum2;
+            maxAll = maxVal > maxAll ? maxVal : maxAll;
+         } // kArbor
+         int num_weights = nx * ny * nfp * numberOfAxonalArborLists();
+         float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            if( sumAll != 0 || sigma2 != 0 ) {
+               status = checkNormalizeWeights(sumAll, sigma2, maxAll);
+               assert(status == PV_SUCCESS );
+            }
+            else {
+               fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n", name, kArbor, kPatch);
+            }
+         }
+      }
+      return PV_BREAK;
+   } // normalizeArborsIndividually
 } // checkNormalizeArbor
 
 int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
@@ -2050,25 +2086,57 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
    int nx = nxp;
    int ny = nyp;
    int offset = 0;
-   for (int k = 0; k < numPatches; k++) {
-      if( patches != NULL ) {
-         PVPatch * wp = patches[k];
-         nx = wp->nx;
-         ny = wp->ny;
-         offset = wp->offset;
-      }
-      float maxVal = -FLT_MAX;
-      double sum = 0;
-      double sum2 = 0;
-      pvdata_t * dataStartPatch = dataStart[arborId] + k*nxp*nyp*nfp;
-      status = sumWeights(nx, ny, offset, dataStartPatch, &sum, &sum2, &maxVal);
+   if (this->normalizeArborsIndividually) {
+      for (int k = 0; k < numPatches; k++) {
+         if (patches != NULL) {
+            PVPatch * wp = patches[k];
+            nx = wp->nx;
+            ny = wp->ny;
+            offset = wp->offset;
+         }
+         float maxVal = -FLT_MAX;
+         double sum = 0;
+         double sum2 = 0;
+         pvdata_t * dataStartPatch = dataStart[arborId] + k * nxp * nyp * nfp;
+         status = sumWeights(nx, ny, offset, dataStartPatch, &sum, &sum2, &maxVal);
+         assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+         status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
+         assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+      } // k < numPatches
+      status = HyPerConn::checkNormalizeArbor(patches, dataStart, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+      return PV_SUCCESS;
+   } // normalizeArborsIndividually
+   else{
+      for (int kPatch = 0; kPatch < numPatches; kPatch++) {
+         if (patches != NULL) {
+            PVPatch * wp = patches[kPatch];
+            nx = wp->nx;
+            ny = wp->ny;
+            offset = wp->offset;
+         }
+         double sumAll = 0.0f;
+         double sum2All = 0.0f;
+         float maxAll = 0.0f;
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            double sum, sum2;
+            float maxVal;
+            status = sumWeights(nx, ny, offset, dataStart[kArbor]+kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
+            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+            sumAll += sum;
+            sum2All += sum2;
+            maxAll = maxVal > maxAll ? maxVal : maxAll;
+         } // kArbor
+         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+            status = scaleWeights(nx, ny, offset, dataStart[kArbor]+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
+            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+         }
+      } // kPatch < numPatches
+
+      status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-      status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
-      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-   } // k < numPatches
-   status = HyPerConn::checkNormalizeArbor(patches, dataStart, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false
-   assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-   return PV_SUCCESS;
+      return PV_BREAK;
+   }
 } // normalizeWeights
 
 
