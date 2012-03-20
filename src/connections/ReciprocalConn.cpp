@@ -110,6 +110,12 @@ int ReciprocalConn::initParameterLayer(const char * parametername, HyPerLayer **
    return status;
 }
 
+int ReciprocalConn::initNormalize() {
+   // ReciprocalConn only normalizes by setting for each feature the sum across all kernels to unity.
+   // As of now there are no options for normalizing a ReciprocalConn
+   return PV_SUCCESS;
+}
+
 int ReciprocalConn::updateState(float timef, float dt) {
    // Need to set reciprocalWgts the first time updateState is called, so that each ReciprocalConn in a pair can define the other
    // If it was set in initialize, the second would not have been defined when the first was called.
@@ -197,14 +203,10 @@ int ReciprocalConn::update_dW(int axonID) {
       for( int k=0; k<numKernelIndices; k++) {
          const pvdata_t * wdata = get_wDataHead(axonID, k); // p->data;
          pvdata_t * dwdata = get_dwDataHead(axonID, k);
-         // PVPatch * p = getWeights(k, axonID); // getKernelPatch(axonID, k);
-         // short int nx = nxp; // p->nx;
-         // short int ny = nyp; // p->ny;
          for( int n=0; n<nxp*nyp*nfp; n++ ) {
             int f = featureIndex(n,nxp,nyp,nfp);
             const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, f);
-            // const pvdata_t * recipwdata = reciprocalWgts->getKernelPatch(axonID, f)->data;
-            dwdata[n] += reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
+            dwdata[n] -= reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
          }
       }
    }
@@ -226,8 +228,7 @@ int ReciprocalConn::update_dW(int axonID) {
    lastUpdateTime = parent->simulationTime();
    return PV_SUCCESS;
 }
-
-int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches, int arborID) {
+int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID) {
    assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
    int status = PV_SUCCESS;
    assert( numPatches == getNumDataPatches() );
@@ -236,14 +237,14 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t * dataStart, i
       for( int k=0; k<numPatches; k++ ) {
          for( int m=0; m<nxp; m++ ) {
             for( int n=0; n<nyp; n++) {
-               sum += dataStart[k*nxp*nyp*nfp+f];
+               sum += dataStart[arborID][k*nxp*nyp*nfp+kIndex(m,n,f,nxp,nyp,nfp)];
             }
          }
       }
       for( int k=0; k<numPatches; k++ ) {
          for( int m=0; m<nxp; m++ ) {
             for( int n=0; n<nyp; n++) {
-               dataStart[k*nxp*nyp*nfp+f] /= sum;
+               dataStart[arborID][k*nxp*nyp*nfp+kIndex(m,n,f,nxp,nyp,nfp)] /= sum;
             }
          }
       }
