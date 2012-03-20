@@ -48,7 +48,7 @@ int KernelConn::initialize_base()
    lastUpdateTime = 0.f;
    plasticityFlag = false;
    // tmpPatch = NULL;
-   this->normalize_arbors_individually = false;
+   this->normalizeArborsIndividually = false;
    nxKernel = 0;
    nyKernel = 0;
    nfKernel = 0;
@@ -605,7 +605,7 @@ int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int 
    }
 
    // normalize after symmetrization
-   if (this->normalize_arbors_individually) {
+   if (this->normalizeArborsIndividually) {
       for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
          status = HyPerConn::normalizeWeights(NULL, dataStart, num_kernels, kArbor);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK) );

@@ -83,7 +83,7 @@ int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int
 
    // individually normalize each arbor for self and sibling
    if (this->numberOfAxonalArborLists() > 1) {
-      assert(this->normalize_arbors_individually);
+      assert(this->normalizeArborsIndividually);
    }
    status = NoSelfKernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );

@@ -261,7 +261,7 @@ protected:
 
    bool normalize_flag;
    float normalize_strength;
-   bool normalize_arbors_individually;  // if true, each arbor is normalized individually, otherwise, arbors normalized together
+   bool normalizeArborsIndividually;  // if true, each arbor is normalized individually, otherwise, arbors normalized together
    bool normalize_max;
    bool normalize_zero_offset;
    float normalize_cutoff;

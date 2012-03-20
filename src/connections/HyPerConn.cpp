@@ -217,7 +217,7 @@ int HyPerConn::initialize_base()
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
-   this->normalize_arbors_individually = true;
+   this->normalizeArborsIndividually = true;
    this->normalize_max = false;
    this->normalize_max = false;
    this->normalize_zero_offset = false;
@@ -1894,7 +1894,7 @@ int HyPerConn::initNormalize() {
       normalize_zero_offset = params->value(name, "normalize_zero_offset", normalize_zero_offset) != 0.0f;
       normalize_cutoff = params->value(name, "normalize_cutoff", normalize_cutoff) * normalize_strength;
       if (this->numberOfAxonalArborLists() > 1) {
-         normalize_arbors_individually = params->value(name, "normalize_arbors_individually", normalize_arbors_individually) != 0.0f;
+         normalizeArborsIndividually = params->value(name, "normalize_arbors_individually", normalizeArborsIndividually) != 0.0f;
       }
    }
    return PV_SUCCESS;
@@ -1930,7 +1930,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
 {
    // assert(wp != NULL);
    int num_weights = nx * ny * nfp; //wp->nf;
-   if (!this->normalize_arbors_individually){
+   if (!this->normalizeArborsIndividually){
       num_weights *= numberOfAxonalArborLists(); // assumes all arbors shrunken equally at this point (shrink patches should occur after normalize)
    }
    float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
@@ -1991,23 +1991,36 @@ int HyPerConn::checkNormalizeWeights(float sum, float sigma2, float maxVal)
 int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
+   int nx = nxp;
+   int ny = nyp;
+   int offset = 0;
    for (int k = 0; k < numPatches; k++) {
-      PVPatch * wp = patches[k];
-      if( wp->nx < nxp || wp->ny < nyp ) {
-         continue;  // Normalization of shrunken patches used unshrunken part, which is no longer available
+      if (patches != NULL) {
+         PVPatch * wp = patches[k];
+         nx = wp->nx;
+         ny = wp->ny;
+         offset = wp->offset;
       }
+//      PVPatch * wp = patches[k];
+//      if( wp->nx < nxp || wp->ny < nyp ) {
+//         continue;  // Normalization of shrunken patches used unshrunken part, which is no longer available
+//      }
       double sum = 0;
       double sum2 = 0;
       float maxVal = -FLT_MAX;
-      status = sumWeights(wp->nx, wp->ny, wp->offset, dataStart[arborId] + k*nxp*nyp*nfp, &sum, &sum2, &maxVal);
-      int num_weights = wp->nx * wp->ny * nfp; //wp->nf;
-      float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
-      if( sum != 0 || sigma2 != 0 ) {
+      status = sumWeights(nx, ny, offset, dataStart[arborId] + k * nxp * nyp * nfp, &sum,
+            &sum2, &maxVal);
+      int num_weights = nx * ny * nfp; //wp->nf;
+      float sigma2 = (sum2 / num_weights) - (sum / num_weights) * (sum / num_weights);
+      if (sum != 0 || sigma2 != 0) {
          status = checkNormalizeWeights(sum, sigma2, maxVal);
-         assert( status == PV_SUCCESS );
+         assert( status == PV_SUCCESS);
       }
       else {
-         fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, patch %d has all zero weights.\n", name, arborId, k);
+         fprintf(
+               stderr,
+               "checkNormalizeArbor: connection \"%s\", arbor %d, patch %d has all zero weights.\n",
+               name, arborId, k);
       }
    }
    return PV_SUCCESS;
@@ -2186,7 +2199,8 @@ int HyPerConn::setPatchSize(const char * filename)
    status = PV_SUCCESS;
    if( filename != NULL ) {
       bool useListOfArborFiles = inputParams->value(name, "useListOfArborFiles", false)!=0;
-      if( !useListOfArborFiles ) status = patchSizeFromFile(filename);
+      bool combineWeightFiles = inputParams->value(name, "combineWeightFiles", false)!=0;
+      if( !useListOfArborFiles && !combineWeightFiles) status = patchSizeFromFile(filename);
    }
 
    return status;

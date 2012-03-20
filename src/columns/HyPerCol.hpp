@@ -40,7 +40,7 @@ public:
    int initializeThreads(int device);
 #ifdef PV_USE_OPENCL
    int finalizeThreads();
-#endif PV_USE_OPENCL
+#endif //PV_USE_OPENCL
 
    int run()  {return run(numSteps);}
    int run(int nTimeSteps);
