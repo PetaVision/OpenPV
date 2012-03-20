@@ -8,15 +8,19 @@ function [train_filenames, ...
 			  num_train, ...
 			  skip_train_images, ...
 			  begin_train_images, ...
-			  train_dir, ...
+			  clip_name, ...
 			  list_dir, ...
 			  shuffle_flag, ...
 			  rand_state)
 
   %% makes list of paths to  DARPA chip images for training,
-  %% training files are drawn from images folder train_dir,
+  %% training files are drawn from images folder clip_name,
 
   begin_time = time();
+
+  program_dir = ...
+      ["/mnt/data1/PetaVision/amoeba/3way/"];
+%%      ["/mnt/data1/PetaVision/amoeba/3way/"];
 
   num_argin = 0;
   num_argin = num_argin + 1;
@@ -26,11 +30,12 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "a"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
+    object_name = "8"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
   endif
+  object_name_suffix = "FC";
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
-    num_train = repmat(-1, 16, 1);  %% -1 use all images in train_dir
+    num_train = repmat(-1, 16, 1);  %% -1 use all images in clip_name
     %% if num_train is a vector of length > 1, make length(num_train) separate training files with the specified number of images in each
   endif
   num_output_files = length(num_train);
@@ -43,12 +48,18 @@ function [train_filenames, ...
     begin_train_images = 1; %% 1;  
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("train_dir") || isempty(train_dir)
-    train_dir = "8"; %% "canny";  %%  
+  if nargin < num_argin || ~exist("clip_name") || isempty(clip_name)
+    clip_name = "t"; %% "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
-    list_dir = ["list_", train_dir]; %%, num2str(2)];  %% 
+    list_head = [program_dir, "list", filesep];
+    mkdir(list_head);
+    list_object_dir = [list_head, object_name, object_name_suffix, filesep];
+    mkdir(list_object_dir);
+    list_clip_name = [list_object_dir, clip_name, filesep];
+    mkdir(list_clip_name);
+    list_dir = list_clip_name; %%, num2str(2)];  %% 
   endif
   %% 0 -> FIFO ordering, %%
   %% 1 -> random sampling, 
@@ -69,9 +80,9 @@ function [train_filenames, ...
   image_type = "png";
 
   train_filenames = {};
-  list_path = [chip_path, list_dir, filesep];
+  list_path = list_dir; %% [chip_path, list_dir, filesep];
   mkdir(list_path);
-  filenames_path = [list_path, object_name, filesep];
+  filenames_path = list_path;
   mkdir(filenames_path);
 
   %% path to generic image processing routines
@@ -83,8 +94,8 @@ function [train_filenames, ...
   str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
-  train_folder = [chip_path, train_dir, filesep];
-  train_path = [train_folder, object_name, filesep];
+  object_folder = [chip_path, object_name, object_name_suffix, filesep];
+  train_path = [object_folder, clip_name, filesep];
 
   tot_train_images = 0;
 
@@ -123,10 +134,9 @@ function [train_filenames, ...
       num_train(i_output) = tot_train_images;
     endif
 
+    output_filename_prefix = [object_name, object_name_suffix, "_", clip_name];
     if num_output_files > 1
-      output_filename = [object_name, "_", num2str(i_output)];
-    else
-      output_filename = object_name;
+      output_filename = [output_filename_prefix, "_",  num2str(i_output, "%3.3i")];
     endif
     noclobber_flag = 0; %% 
     if noclobber_flag
