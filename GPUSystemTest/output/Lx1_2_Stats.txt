@@ -1,0 +1,10 @@
+Lx1_2 Stats File               :t==   0.0 N==512 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx1_2 Stats File               :t==   1.0 N==512 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx1_2 Stats File               :t==   2.0 N==512 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx1_2 Stats File               :t==   3.0 N==512 Total==128.000046 Min==0.250000 Avg==0.250000 Max==0.250000
+Lx1_2 Stats File               :t==   4.0 N==512 Total==298.666595 Min==0.583333 Avg==0.583333 Max==0.583333
+Lx1_2 Stats File               :t==   5.0 N==512 Total==383.999603 Min==0.749999 Avg==0.749999 Max==0.749999
+Lx1_2 Stats File               :t==   6.0 N==512 Total==511.999115 Min==0.999998 Avg==0.999998 Max==0.999998
+Lx1_2 Stats File               :t==   7.0 N==512 Total==511.999115 Min==0.999998 Avg==0.999998 Max==0.999998
+Lx1_2 Stats File               :t==   8.0 N==512 Total==511.999115 Min==0.999998 Avg==0.999998 Max==0.999998
+Lx1_2 Stats File               :t==   9.0 N==512 Total==511.999115 Min==0.999998 Avg==0.999998 Max==0.999998

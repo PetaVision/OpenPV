@@ -1,0 +1,10 @@
+Retina Stats File              :t==   0.0 N==1024 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Retina Stats File              :t==   1.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   2.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   3.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   4.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   5.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   6.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   7.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   8.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000
+Retina Stats File              :t==   9.0 N==1024 Total==1024.000000 Min==1.000000 Avg==1.000000 Max==1.000000

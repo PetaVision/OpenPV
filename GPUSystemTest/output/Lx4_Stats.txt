@@ -1,0 +1,10 @@
+Lx4 Stats File                 :t==   0.0 N==262144 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx4 Stats File                 :t==   1.0 N==262144 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx4 Stats File                 :t==   2.0 N==262144 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000
+Lx4 Stats File                 :t==   3.0 N==262144 Total==65536.000000 Min==0.160000 Avg==0.250000 Max==0.360000
+Lx4 Stats File                 :t==   4.0 N==262144 Total==131071.953125 Min==0.360000 Avg==0.500000 Max==0.640000
+Lx4 Stats File                 :t==   5.0 N==262144 Total==196607.890625 Min==0.640000 Avg==0.750000 Max==0.839999
+Lx4 Stats File                 :t==   6.0 N==262144 Total==262143.828125 Min==0.999999 Avg==0.999999 Max==0.999999
+Lx4 Stats File                 :t==   7.0 N==262144 Total==262143.828125 Min==0.999999 Avg==0.999999 Max==0.999999
+Lx4 Stats File                 :t==   8.0 N==262144 Total==262143.828125 Min==0.999999 Avg==0.999999 Max==0.999999
+Lx4 Stats File                 :t==   9.0 N==262144 Total==262143.828125 Min==0.999999 Avg==0.999999 Max==0.999999
