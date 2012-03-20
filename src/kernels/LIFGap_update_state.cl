@@ -15,6 +15,10 @@
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
 #  include "conversions.hcl"
+#  define CHANNEL_EXC   0
+#  define CHANNEL_INH   1
+#  define CHANNEL_INHB  2
+#  define CHANNEL_GAP   3
 #endif
 
 //#undef USE_CLRANDOM
@@ -29,6 +33,7 @@
 //
 CL_KERNEL
 void LIFGap_update_state(
+    const int numNeurons,
     const float time, 
     const float dt,
 
@@ -45,10 +50,11 @@ void LIFGap_update_state(
     CL_MEM_GLOBAL float * G_E,
     CL_MEM_GLOBAL float * G_I,
     CL_MEM_GLOBAL float * G_IB,
-    CL_MEM_GLOBAL float * GSynExc,
-    CL_MEM_GLOBAL float * GSynInh,
-    CL_MEM_GLOBAL float * GSynInhB,
-    CL_MEM_GLOBAL float * GSynGap,
+    CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * GSynExc,
+//    CL_MEM_GLOBAL float * GSynInh,
+//    CL_MEM_GLOBAL float * GSynInhB,
+//    CL_MEM_GLOBAL float * GSynGap,
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
@@ -95,6 +101,10 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_IB = G_IB[k];
    float l_G_Gap = G_Gap[k];
 
+   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
+   CL_MEM_GLOBAL float * GSynGap = &GSynHead[CHANNEL_GAP*numNeurons];
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];

@@ -8,7 +8,7 @@
 #define PV_USE_MPI
 
 /* define this if using OpenCL for threads on CPU or GPU */
-#undef PV_USE_OPENCL
+#define PV_USE_OPENCL
 
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL

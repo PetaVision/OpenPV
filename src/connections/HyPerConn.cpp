@@ -32,7 +32,7 @@ extern "C" {
 
 void HyPerLayer_recv_synaptic_input (
       int kx, int ky, int lidx, int lidy, int nxl, int nyl,
-      float *gtemp,
+      //float *gtemp,
           int nxPre,
           int nyPre,
           int nfPre,
@@ -40,11 +40,14 @@ void HyPerLayer_recv_synaptic_input (
           int nxp,
           int nyp,
           int nfp,
+          float fScale,
           float xScale,
           float yScale,
           size_t offsetA,
+          int * p2dLUT,
            float * A,
            float * W,
+           int Gstart,
            float   * G);
 
 
@@ -616,7 +619,7 @@ void HyPerConn::initUseGPUFlag() {
 //initializeThreadBuffers and initializeThreadKernels
 int HyPerConn::initializeGPU() {
    initUseGPUFlag();
-   if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelToDevice();
+   //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelToDevice();
    int totwait = numberOfAxonalArborLists();
    evRecvSynWaitList = (cl_event *) malloc(totwait*sizeof(cl_event));
    numWait = 0;
@@ -640,7 +643,7 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
-   const size_t size = getNumWeightPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
+   const size_t size = getNumDataPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
 
    CLDevice * device = parent->getCLDevice();
 
@@ -702,12 +705,6 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
 
    int argid = 0;
 
-   //const size_t nxl = 16;
-   //const size_t nyl = 8;
-   //size_t local_size_ex_int = ((nxl+nxp*nfp)*(nyl+nyp))*sizeof(int);
-   //status |= krRecvSyn->setLocalArg(argid++, local_size_ex_int);
-   //size_t local_size_ex_fl = ((nxl+nxp*nfp)*(nyl+nyp))*sizeof(float);
-   //status |= krRecvSyn->setLocalArg(argid++, local_size_ex_fl);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
    status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
@@ -717,24 +714,24 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    status |= krRecvSyn->setKernelArg(argid++, nyp);
    status |= krRecvSyn->setKernelArg(argid++, nfp);
 
+   float fScale = (float)postLoc->nf/(float)preLoc->nf;
    float xScale = (float)postLoc->nx/(float)preLoc->nx;
    float yScale = (float)postLoc->ny/(float)preLoc->ny;
+   status |= krRecvSyn->setKernelArg(argid++, fScale);
    status |= krRecvSyn->setKernelArg(argid++, xScale);
    status |= krRecvSyn->setKernelArg(argid++, yScale);
 
    clArgIdOffset = argid;  // offset into activity buffer (with delay)
    argid++;
    status |= krRecvSyn->setKernelArg(argid++, clPatch2DataLookUpTable);
-   //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreOffset());
    // activity buffer from DataStore
-   //status |= krRecvSyn->setKernelArg(argid++, pre->getLayerDataStoreCLBuffer());
    clArgIdDataStore=argid;
    argid++;
    clArgIdWeights = argid; // weights
    status |= krRecvSyn->setKernelArg(argid++, clWeights[0]);
    // update variable, GSyn
-   //status |= krRecvSyn->setKernelArg(argid++, clGSynSemaphors);
-   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer(getChannel()));
+   status |= krRecvSyn->setKernelArg(argid++, post->getNumNeurons()*getChannel());
+   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer());
 
    return status;
 }
@@ -970,7 +967,7 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const size_t nxex = preLoc->nx*preLoc->nf + 2*preLoc->nb;
+   const size_t nxex = (preLoc->nx + 2*preLoc->nb)*preLoc->nf;
    const size_t nyex = preLoc->ny + 2*preLoc->nb;
    while((nxex%nxl!=0)&&(nxl>1)) {nxl--;}
    while((nyex%nyl!=0)&&(nyl>1)) {nyl--;}
@@ -978,8 +975,6 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
    status |= krRecvSyn->setKernelArg(clArgIdDataStore, pre->getLayerDataStoreCLBuffer());
 
    status |= pre->waitForDataStoreCopy();
-//   status |= clWaitForEvents(1, &evCopyDataStore);
-//   clReleaseEvent(evCopyDataStore);
 
 
    // for all numextended in pre
@@ -988,21 +983,13 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 
 
    int arborCnt=numberOfAxonalArborLists();
-   //arborCnt=1;
    for (int arbor = 0; arbor < arborCnt; arbor++) {
       int delay = getDelay(arbor);
       size_t activityOffset = pre->getLayerDataStoreOffset(delay);
-      status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset);
+      status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset/sizeof(pvdata_t)); //need to convert offset to an array index offset
       status |= krRecvSyn->setKernelArg(clArgIdWeights, clWeights[arbor]);
       status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSynWaitList[arbor]);
       numWait++;
-//      numWait = 1;
-//      status |= clWaitForEvents(numWait, &evRecvSynWaitList[arbor]);
-//      //for (int i = 0; i < numWait; i++) {
-//      status |= clReleaseEvent(evRecvSynWaitList[arbor]);
-//     // }
-//      numWait = 0;
-      //status |= krRecvSyn->run(nxl, nyl, nxl, nyl, 0, NULL, &evRecvSyn);
    }
 
    // TODO - use events properly
@@ -1024,24 +1011,39 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
    //define global location:
    int kx=nxex/2; int ky=nyex/2;
    //int kPre=ky*nxex+kx;
-
+   int gstart=0;//post->getNumNeurons()*getChannel();
    float *gTempBuf=(float*)calloc(sizeof(float), post->getNumNeurons());
+   int * lutpointer = getLUTpointer();
+   const int numWeightPatches = getNumWeightPatches();
+   bool freelutpointer=false;
+   if(lutpointer==NULL) {
+      lutpointer = (int *) calloc(sizeof(int), numWeightPatches);
+      freelutpointer=true;
+      lutpointer[0]=-1;
+   }
+   printf("nxex %d\n",nxex);
+   printf("nyex %d\n",nyex);
+   printf("nxl %d\n",nxl);
+   printf("nyl %d\n",nyl);
+   printf("nxex/nxl %d\n",nxex/nxl);
+   printf("nyex/nyl %d\n",nyex/nyl);
    for(kx=0;kx<(int)(nxex/nxl);kx++) {
       for(ky=0;ky<(int)(nyex/nyl);ky++) {
 
          for(int lidx=0;lidx<(int)nxl;lidx++) {
             for(int lidy=0;lidy<(int)nyl;lidy++) {
-               float *tempBuf = (float*) calloc(sizeof(float),(nxl+nxp*nfp)*(nyl+nyp));
-               HyPerLayer_recv_synaptic_input(kx*nxl+nxl/2, ky*nyl+nyl/2, lidx, lidy, nxl, nyl, tempBuf,
+               //float *tempBuf = (float*) calloc(sizeof(float),(nxl+nxp*nfp)*(nyl+nyp));
+               HyPerLayer_recv_synaptic_input(kx*nxl+nxl/2, ky*nyl+nyl/2, lidx, lidy, nxl, nyl,
                      preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, nxp, nyp, nfp,
-                     (float)postLoc->nx/(float)preLoc->nx,(float)postLoc->ny/(float)preLoc->ny,
-                     0, cube->data, getPatchDataStart(arborId), gTempBuf);
-               free(tempBuf);
+                     (float)postLoc->nf/(float)preLoc->nf,(float)postLoc->nx/(float)preLoc->nx,(float)postLoc->ny/(float)preLoc->ny,
+                     0, lutpointer, cube->data, get_wDataStart(arborId), gstart, gTempBuf);
+               //free(tempBuf);
             }
          }
 
       }
    }
+   if(freelutpointer) {free(lutpointer);lutpointer=NULL;}
    //copy back to G:
 //   float xScale = (float)postLoc->nx/(float)preLoc->nx;
 //   float yScale = (float)postLoc->ny/(float)preLoc->ny;
@@ -1059,12 +1061,14 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 //   }
    //free(tempBuf);
 
-   cl_event   tmpcopybackGevList;         // event list
-   cl_event   tmpevUpdate;
+   //cl_event   tmpcopybackGevList;         // event list
+   //cl_event   tmpevUpdate;
 //   post->getChannelCLBuffer(getChannel())->copyFromDevice(1, &evRecvSyn, &tmpcopybackGevList);
 //   status |= clWaitForEvents(1, &tmpcopybackGevList);
 //   clReleaseEvent(tmpcopybackGevList);
-   post->copyChannelExcFromDevice();
+   post->copyGSynFromDevice();
+
+   //copyChannelExcFromDevice();
    float *gTempBuf2=getGSynPatchStart(0, arborId);
 
    int errcnt=0;
@@ -1074,9 +1078,18 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
             printf("mismatch! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
             printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
             printf("at loc x: %d y %d \n",ix, iy);
+            printf("kpre %d \n",ix+preLoc->nb+ (iy+preLoc->nb)*(preLoc->nx*preLoc->nf + 2*preLoc->nb));
             errcnt++;
-            if(errcnt>500) exit(1);
+            if(errcnt>10) exit(1);
          }
+//         if(gTempBuf[iy*postLoc->nx+ix]==4){
+//            printf("value = 4! lutpointer: %f \n",gTempBuf[iy*postLoc->nx+ix]);
+//            printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
+//            printf("at loc x: %d y %d \n",ix, iy);
+//            printf("kpre %d \n",ix+preLoc->nb+ (iy+preLoc->nb)*(preLoc->nx*preLoc->nf + 2*preLoc->nb));
+//            errcnt++;
+//            if(errcnt>10) exit(1);
+//         }
 //         if((gTempBuf[iy*postLoc->nx+ix]>25)||(gTempBuf2[iy*postLoc->nx+ix]>25)){
 //            printf("not equal to row! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
 //            printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
@@ -1131,7 +1144,9 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 
    }
    else {
-      if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
+      //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
+      if((gpuAccelerateFlag)&&(ignoreGPUflag))
+         post->copyGSynFromDevice();
 #endif
       for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
          int delay = getDelay(arborId);
@@ -1141,6 +1156,8 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
          assert(status == PV_SUCCESS);
       }
 #ifdef PV_USE_OPENCL
+      if((gpuAccelerateFlag)&&(ignoreGPUflag))
+         post->copyGSynToDevice();
 
    }
 #endif

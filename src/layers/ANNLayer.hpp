@@ -38,7 +38,7 @@ protected:
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
-   virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
+   //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
    int updateStateOpenCL(float time, float dt);
    //temporary method for debuging recievesynapticinput
 public:

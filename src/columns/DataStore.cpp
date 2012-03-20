@@ -53,7 +53,7 @@ DataStore::~DataStore()
 int DataStore::initializeThreadBuffers(HyPerCol * hc)
 {
    const size_t size = numBuffers * numLevels * bufSize * sizeof(char);
-   clRecvBuffers = hc->getCLDevice()->createReadBuffer(size, recvBuffers);
+   clRecvBuffers = hc->getCLDevice()->createBuffer(CL_MEM_COPY_HOST_PTR, size, recvBuffers);
    numWait=0;
    return PV_SUCCESS;
 }

@@ -1,3 +1,5 @@
+#include "../layers/updateStateFunctions.h"
+
 #ifndef PV_USE_OPENCL
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
@@ -8,7 +10,7 @@
 #  define CL_MEM_GLOBAL   __global
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
-#  include "conversions.hcl"
+//#  include "conversions.hcl"
 #endif
 
 
@@ -19,6 +21,7 @@
 //
 CL_KERNEL
 void ANNDivLayer_update_state(
+    const int numNeurons,
     const int nx,
     const int ny,
     const int nf,
@@ -28,56 +31,67 @@ void ANNDivLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
-    CL_MEM_GLOBAL float * GSynExc,
-    CL_MEM_GLOBAL float * GSynInh,
-    CL_MEM_GLOBAL float * GSynInhB,
+    CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * GSynExc,
+//    CL_MEM_GLOBAL float * GSynInh,
+//    CL_MEM_GLOBAL float * GSynInhB,
     CL_MEM_GLOBAL float * activity)
 {
-   int k;
+//   int k;
+//
+//#ifndef PV_USE_OPENCL
+//for (k = 0; k < nx*ny*nf; k++) {
+//#else
+//   k = get_global_id(0);
+//#endif
+//
+//   int kex = kIndexExtended(k, nx, ny, nf, nb);
+//
+//   //
+//   // kernel (nonheader part) begins here
+//   //
+//
+//
+//   // local variables
+//   float l_activ;
+//   float l_V   = V[k];
+//
+//   CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+//   CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+//   CL_MEM_GLOBAL pvdata_t * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
+//   float l_GSynExc  = GSynExc[k];
+//   float l_GSynInh  = GSynInh[k];
+//   float l_GSynInhB  = GSynInhB[k];
+//
+//   //updateV():
+//   l_V=l_GSynExc-l_GSynInh;
+//   //applyVMax():
+//   if(l_V > VMax) l_V = VMax;
+//   //applyVThresh():
+//   if(l_V < Vth) l_V = VMin;
+//   l_V=l_V/(l_GSynInhB+0.04);
+//
+//   //setActivity():
+//   l_activ=l_V;
+//
+//
+//   activity[kex] = l_activ;
+//   V[k]   = l_V;
+//
+//   //resetGSynBuffers():
+//   GSynExc[k]  = 0.0f;
+//   GSynInh[k]  = 0.0f;
+//   GSynInhB[k]  = 0.0f;
+//
+//#ifndef PV_USE_OPENCL
+//   } // loop over k
+//#endif
 
-#ifndef PV_USE_OPENCL
-for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
-#endif
-
-   int kex = kIndexExtended(k, nx, ny, nf, nb);
-
-   //
-   // kernel (nonheader part) begins here
-   //
-
-
-   // local variables
-   float l_activ;
-   float l_V   = V[k];
-
-   float l_GSynExc  = GSynExc[k];
-   float l_GSynInh  = GSynInh[k];
-   float l_GSynInhB  = GSynInhB[k];
 
    //updateV():
-   l_V=l_GSynExc-l_GSynInh;
-   //applyVMax():
-   if(l_V > VMax) l_V = VMax;
-   //applyVThresh():
-   if(l_V < Vth) l_V = VMin;
-   l_V=l_V/(l_GSynInhB+0.04);
-
+   updateV_ANNDivInh(numNeurons, V, GSynHead);
    //setActivity():
-   l_activ=l_V;
-
-
-   activity[kex] = l_activ;
-   V[k]   = l_V;
-
+   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    //resetGSynBuffers():
-   GSynExc[k]  = 0.0f;
-   GSynInh[k]  = 0.0f;
-   GSynInhB[k]  = 0.0f;
-
-#ifndef PV_USE_OPENCL
-   } // loop over k
-#endif
-
+   resetGSynBuffers_HyPerLayer(numNeurons, 3, GSynHead);
 }

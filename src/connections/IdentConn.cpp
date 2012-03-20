@@ -38,13 +38,11 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
 #endif PV_USE_MPI
    int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
 #ifdef PV_USE_OPENCL
-   //don't support GPU accelleration in kernelconn yet
+   //don't support GPU acceleration in kernelconn yet
    ignoreGPUflag=true;
-   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
-   post->copyChannelToDevice();
+   //tell the receiving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
+   //post->copyChannelToDevice();
 #endif
-   //why doesn't identconn call kernelconn's initialize???
-   //kernelconns need this and the GPU stuff...
    initPatchToDataLUT();
    delete weightInit;
    return status;

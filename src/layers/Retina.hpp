@@ -22,7 +22,7 @@
 #define NUM_RETINA_EVENTS   3
 //#define EV_R_PHI_E    0
 //#define EV_R_PHI_I    1
-#define EV_R_ACTIVITY 2
+//#define EV_R_ACTIVITY 2
 
 namespace PV
 {
@@ -58,7 +58,7 @@ protected:
    }
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
-   virtual int getEVActivity() {return EV_R_ACTIVITY;}
+   //virtual int getEVActivity() {return EV_R_ACTIVITY;}
 
    CLBuffer * clRand;
 #endif

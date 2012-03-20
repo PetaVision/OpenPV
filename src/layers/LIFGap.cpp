@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 void LIFGap_update_state(
+    const int numNeurons,
     const float time,
     const float dt,
 
@@ -40,10 +41,11 @@ void LIFGap_update_state(
     float * G_E,
     float * G_I,
     float * G_IB,
-    float * GSynExc,
-    float * GSynInh,
-    float * GSynInhB,
-    float * GSynGap,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+//    float * GSynGap,
     float * activity,
 
     const float sum_gap,
@@ -222,8 +224,8 @@ int LIFGap::updateStateOpenCL(float time, float dt)
 
    //do we need to copy gap back and forth?
    //status |= clG_Gap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
-   status |= getChannelCLBuffer(CHANNEL_GAP)->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
-   numWait += 1;
+//   status |= getChannelCLBuffer(CHANNEL_GAP)->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
+//   numWait += 1;
 #endif
 
    return status;
@@ -236,12 +238,12 @@ int LIFGap::triggerReceive(InterColComm* comm)
 
 #ifdef PV_USE_OPENCL
    // copy data to device
-   if(gpuAccelerateFlag) {
-      //do we need to copy gap back and forth? what should the event be?
-      //status |= clG_Gap->copyToDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
-      status |= getChannelCLBuffer(CHANNEL_GAP)->copyToDevice(&evList[getEVGSynGap()]);
-      numWait += 1;
-   }
+//   if(gpuAccelerateFlag) {
+//      //do we need to copy gap back and forth? what should the event be?
+//      //status |= clG_Gap->copyToDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+//      status |= getChannelCLBuffer(CHANNEL_GAP)->copyToDevice(&evList[getEVGSynGap()]);
+//      numWait += 1;
+//   }
 #if PV_CL_COPY_BUFFERS
    status |= clGSynGap->copyToDevice(&evList[EV_LIF_GSYN_GAP]);
    numWait += 1;
@@ -269,14 +271,15 @@ int LIFGap::updateState(float time, float dt)
    const int nf = clayer->loc.nf;
    const int nb = clayer->loc.nb;
 
-   pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-   pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-   pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
-   pvdata_t * GSynGap  = getChannel(CHANNEL_GAP);
+   pvdata_t * GSynHead   = GSyn[0];
+//   pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+//   pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+//   pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
+//   pvdata_t * GSynGap  = getChannel(CHANNEL_GAP);
    pvdata_t * activity = clayer->activity->data;
 
-   LIFGap_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, GSynExc, GSynInh, GSynInhB, GSynGap, activity, sumGap, G_Gap);
+   LIFGap_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+         G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
 #ifdef PV_USE_OPENCL
    }
 #endif

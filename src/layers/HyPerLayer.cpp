@@ -204,7 +204,7 @@ void HyPerLayer::initUseGPUFlag() {
 int HyPerLayer::initializeGPU() {
    CLDevice * device = parent->getCLDevice();
 
-   copyToDevice=false;
+   //copyToDevice=false;
    numWait = 0;
    numEvents = getNumCLEvents();
    evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
@@ -281,10 +281,11 @@ void HyPerLayer::freeChannels()
 {
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
-      for (int m = 0; m < numChannels; m++) {
-         delete clGSyn[m];
-      }
-      free(clGSyn);
+//      for (int m = 0; m < numChannels; m++) {
+//         delete clGSyn[m];
+//      }
+      //free(clGSyn);
+      delete clGSyn;
       clGSyn = NULL;
    }
 #endif
@@ -381,15 +382,17 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
    // defer creation of clParams to derived classes (as it is class specific)
    clParams = NULL;
 
-   clGSyn = NULL;
-   if (numChannels > 0) {
-      clGSyn = (CLBuffer **) malloc(numChannels*sizeof(CLBuffer *));
-      assert(clGSyn != NULL);
-
-      for (int m = 0; m < numChannels; m++) {
-         clGSyn[m] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, GSyn[m]);
-      }
-   }
+   const size_t size_gsyn=getNumNeurons()*numChannels*sizeof(pvdata_t);
+   //clGSyn = NULL;
+   clGSyn = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_gsyn, GSyn[0]);
+//   if (numChannels > 0) {
+//      clGSyn = (CLBuffer **) malloc(numChannels*sizeof(CLBuffer *));
+//      assert(clGSyn != NULL);
+//
+//      for (int m = 0; m < numChannels; m++) {
+//         clGSyn[m] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, GSyn[m]);
+//      }
+//   }
 
    return status;
 }
@@ -701,9 +704,9 @@ int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdat
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-   updateV_HyPerLayer(num_neurons, V, gSynExc, gSynInh);
+   //pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+   //pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+   updateV_HyPerLayer(num_neurons, V, gSynHead);
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
    // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
@@ -857,13 +860,15 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
    // deliver calls recvSynapticInput for all presynaptic connections
    //
    int status = comm->deliver(parent, getLayerId());
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(copyToDevice)) {
-      status |= getChannelCLBuffer(CHANNEL_EXC)->copyToDevice(&evList[getEVGSynE()]);
-      status |= getChannelCLBuffer(CHANNEL_INH)->copyToDevice(&evList[getEVGSynI()]);
-      numWait += 2;
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(copyToDevice)) {
+//      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSyn()]);
+////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynE()]);
+////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynI()]);
+//      //numWait += 2;
+//      numWait ++;
+//   }
+//#endif
    return status;
 }
 

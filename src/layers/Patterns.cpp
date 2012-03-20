@@ -123,7 +123,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
    }
 
-   if( type == BARS ) {
+   if(( type == BARS )||(type == COSWAVE)||(type == SINEWAVE)||
+         (type == COSV)||(type == SINEV)) {
       wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
       wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
    }
@@ -131,7 +132,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    pMove   = params->value(name, "pMove", 0.0);
    pSwitch = params->value(name, "pSwitch", 0.0);
 
-   if((type == COSWAVE)||(type == SINEWAVE))
+   if((type == COSWAVE)||(type == SINEWAVE)||
+         (type == COSV)||(type == SINEV))
       rotation = params->value(name, "rotation", 0.0);
 
    movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
@@ -267,59 +269,74 @@ int Patterns::generatePattern(float val)
    else if (type == BARS) { // type is bars
       return generateBars(orientation, data, nx, ny, val);
    }
-   else if (type == COSWAVE) {
+//   else if (type == COSWAVE) {
+//      if (orientation == vertical) { // vertical bars
+//         width = maxWidth;
+//         for (int iy = 0; iy < ny; iy++) {
+//            for (int ix = 0; ix < nx; ix++) {
+//               int glx = ix+kx0-nb;
+//               int gly = iy+ky0-nb;
+//               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
+//
+//               //sin of 2*pi*m/wavelength, where wavelength=2*width:
+//               data[ix * sx + iy * sy] = cosf(PI*m/width);
+//            }
+//         }
+//      }
+//      else { // horizontal bars
+//         height = maxHeight;
+//         for (int iy = 0; iy < ny; iy++) {
+//            int gly = iy+ky0-nb;
+//            for (int ix = 0; ix < nx; ix++) {
+//               int glx = ix+kx0-nb;
+//               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
+//               //float value=sinf(2*PI*m/height);
+//               data[ix * sx + iy * sy] = cosf(PI*m/height);
+//            }
+//         }
+//      }
+//      return 0;
+//   }
+   else if((type == COSWAVE)||(type == SINEWAVE)||
+           (type == COSV)||(type == SINEV)) {
+      int wavelength=0;
+      float rot=0;
       if (orientation == vertical) { // vertical bars
-         width = maxWidth;
-         for (int iy = 0; iy < ny; iy++) {
-            for (int ix = 0; ix < nx; ix++) {
-               int glx = ix+kx0-nb;
-               int gly = iy+ky0-nb;
-               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
-
-               //sin of 2*pi*m/wavelength, where wavelength=2*width:
-               data[ix * sx + iy * sy] = cosf(PI*m/width);
-            }
-         }
+         wavelength = maxWidth;
+         rot=rotation;
       }
-      else { // horizontal bars
-         height = maxHeight;
-         for (int iy = 0; iy < ny; iy++) {
+      else if (orientation == horizontal) { // horizontal bars
+         wavelength = maxHeight;
+         rot=rotation+PI/2;
+      }
+      else { // invalid rotation
+         assert(true);
+      }
+      for (int iy = 0; iy < ny; iy++) {
+         for (int ix = 0; ix < nx; ix++) {
+            int glx = ix+kx0-nb;
             int gly = iy+ky0-nb;
-            for (int ix = 0; ix < nx; ix++) {
-               int glx = ix+kx0-nb;
-               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
-               //float value=sinf(2*PI*m/height);
-               data[ix * sx + iy * sy] = cosf(PI*m/height);
+            float rot2=rot;
+            float phi;
+            if((type == COSV)||(type == SINEV)) {
+               float yp=float(glx)*cos(rot) + float(gly)*sin(rot);
+               if(yp<nygl/2) {
+                  rot2+= 3*PI/4;
+                  phi=float(wavelength)/2;
+               }
+               else if(yp>nygl/2) {
+                  rot2+= PI/4;
+                  phi=0;
+               }
             }
-         }
-      }
-      return 0;
-   }
-   else if (type == SINEWAVE) {
-      if (orientation == vertical) { // vertical bars
-         width = maxWidth;
-         for (int iy = 0; iy < ny; iy++) {
-            for (int ix = 0; ix < nx; ix++) {
-               int glx = ix+kx0-nb;
-               int gly = iy+ky0-nb;
-               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
+            float m = float(glx)*cos(rot2) - float(gly)*sin(rot2) + phi + position; //calculate position including fraction
 
-               //sin of 2*pi*m/wavelength, where wavelength=2*width:
-               data[ix * sx + iy * sy] = sinf(PI*m/width);
-            }
-         }
-      }
-      else { // horizontal bars
-         height = maxHeight;
-         for (int iy = 0; iy < ny; iy++) {
-            int gly = iy+ky0-nb;
-            //float m = gly + position; //calculate position including fraction
-            for (int ix = 0; ix < nx; ix++) {
-               int glx = ix+kx0-nb;
-               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
-               //float value=sinf(2*PI*m/height);
-               data[ix * sx + iy * sy] = sinf(PI*m/height);
-            }
+            //sin of 2*pi*m/wavelength, where wavelength=2*width:
+            if((type == SINEWAVE)||(type == SINEV))
+               data[ix * sx + iy * sy] = sinf(PI*m/float(wavelength));
+            else if((type == COSWAVE)||(type == COSV))
+               data[ix * sx + iy * sy] = cosf(PI*m/float(wavelength));
+
          }
       }
       return 0;
@@ -459,6 +476,12 @@ int Patterns::updatePattern(float timef) {
          }
          else if (type == COSWAVE){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.tif", patternsOutputPath, timef);
+         }
+         else if (type == SINEV){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/SineV%.2f.tif", patternsOutputPath, timef);
+         }
+         else if (type == COSV){
+            snprintf(basicfilename, PV_PATH_MAX, "%s/CosV%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == IMPULSE){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);

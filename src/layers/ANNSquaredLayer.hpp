@@ -11,7 +11,7 @@
 #include "ANNLayer.hpp"
 
 #define NUM_ANNSQ_EVENTS   3
-#define EV_ANNSQ_ACTIVITY  2
+//#define EV_ANNSQ_ACTIVITY  2
 
 namespace PV {
 
@@ -34,7 +34,7 @@ protected:
    virtual const char * getKernelName() { return "ANNSquaredLayer_update_state"; }
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
-   virtual int getEVActivity() {return EV_ANNSQ_ACTIVITY;}
+   //virtual int getEVActivity() {return EV_ANNSQ_ACTIVITY;}
    int updateStateOpenCL(float time, float dt);
 #endif
 

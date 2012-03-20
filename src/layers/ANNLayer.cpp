@@ -22,8 +22,9 @@ void ANNLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
-    float * GSynExc,
-    float * GSynInh,
+    float * GSynHead,
+/*    float * GSynExc,
+    float * GSynInh,*/
     float * activity);
 
 #ifdef __cplusplus
@@ -101,6 +102,7 @@ int ANNLayer::initializeThreadKernels(const char * kernel_name)
 
    int argid = 0;
 
+   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
    status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
@@ -111,8 +113,9 @@ int ANNLayer::initializeThreadKernels(const char * kernel_name)
    status |= krUpdate->setKernelArg(argid++, VThresh);
    status |= krUpdate->setKernelArg(argid++, VMax);
    status |= krUpdate->setKernelArg(argid++, VMin);
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
+   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
    status |= krUpdate->setKernelArg(argid++, clActivity);
 
    return status;
@@ -133,8 +136,9 @@ int ANNLayer::updateStateOpenCL(float time, float dt)
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
    krUpdate->finish();
 
-   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
+   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+//   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
+//   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
    numWait += 2; //3;
 
@@ -179,12 +183,13 @@ int ANNLayer::updateState(float time, float dt)
       const int nb = clayer->loc.nb;
       const int numNeurons = getNumNeurons();
 
-      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+      //pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+      //pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+      pvdata_t * GSynHead   = GSyn[0];
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynExc, GSynInh, activity);
+      ANNLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
 #ifdef PV_USE_OPENCL
    }
 #endif

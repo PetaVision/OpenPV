@@ -46,9 +46,9 @@ int PtwiseProductLayer::updateState(float timef, float dt, const PVLayerLoc * lo
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-   updateV_PtwiseProductLayer(num_neurons, V, gSynExc, gSynInh);
+//   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+//   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+   updateV_PtwiseProductLayer(num_neurons, V, gSynHead);
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    return PV_SUCCESS;

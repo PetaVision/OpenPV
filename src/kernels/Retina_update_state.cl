@@ -26,6 +26,10 @@
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL  __local
 #  include "conversions.hcl"
+#  define CHANNEL_EXC   0
+#  define CHANNEL_INH   1
+#  define CHANNEL_INHB  2
+#  define CHANNEL_GAP   3
 
 #endif /* PV_USE_OPENCL */
 
@@ -111,6 +115,7 @@ int spike(float time, float dt,
 //
 CL_KERNEL
 void Retina_spiking_update_state (
+    const int numNeurons,
     const float time,
     const float dt,
 
@@ -121,8 +126,9 @@ void Retina_spiking_update_state (
 
     CL_MEM_CONST Retina_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
-    CL_MEM_GLOBAL float * phiExc,
-    CL_MEM_GLOBAL float * phiInh,
+    CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * phiExc,
+//    CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity,
     CL_MEM_GLOBAL float * prevTime)
 {
@@ -142,6 +148,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    // load local variables from global memory
    //
    uint4 l_rnd = rnd[k]; 
+   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*numNeurons];
+   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*numNeurons];
    float l_phiExc = phiExc[k];
    float l_phiInh = phiInh[k];
    float l_prev   = prevTime[kex];
@@ -174,6 +182,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 //
 CL_KERNEL
 void Retina_nonspiking_update_state (
+    const int numNeurons,
     const float time,
     const float dt,
 
@@ -183,8 +192,9 @@ void Retina_nonspiking_update_state (
     const int nb,
 
     CL_MEM_CONST Retina_params * params,
-    CL_MEM_GLOBAL float * phiExc,
-    CL_MEM_GLOBAL float * phiInh,
+    CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * phiExc,
+//    CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity)
 {
    int k;
@@ -202,6 +212,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    
    // load local variables from global memory
    //
+   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*numNeurons];
+   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*numNeurons];
    float l_phiExc = phiExc[k];
    float l_phiInh = phiInh[k];
    float l_activ;

@@ -12,7 +12,7 @@
 
 #define NUM_ANNDV_EVENTS   4
 #define EV_ANNDV_GSYN_IB   2
-#define EV_ANNDV_ACTIVITY  3
+//#define EV_ANNDV_ACTIVITY  3
 
 namespace PV {
 
@@ -40,9 +40,9 @@ protected:
       if(ch==CHANNEL_INHB) return getEVGSynIB();
       return -1;
    }
-   virtual int getEVActivity() {return EV_ANNDV_ACTIVITY;}
+   //virtual int getEVActivity() {return EV_ANNDV_ACTIVITY;}
    int updateStateOpenCL(float time, float dt);
-   virtual int triggerReceive(InterColComm* comm);
+   //virtual int triggerReceive(InterColComm* comm);
 #endif
 
 private:

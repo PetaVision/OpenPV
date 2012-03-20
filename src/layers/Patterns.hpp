@@ -18,6 +18,8 @@ enum PatternType {
   SINEWAVE  = 2,
   COSWAVE  = 3,
   IMPULSE  = 4,
+  SINEV  = 5,
+  COSV  = 6,
 };
 
 enum OrientationMode {

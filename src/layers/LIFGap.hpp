@@ -13,7 +13,7 @@
 #define NUM_LIFGAP_EVENTS   1 + NUM_LIF_EVENTS  // ???
 //#define EV_LIF_GSYN_GAP     NUM_LIF_EVENTS + 1
 #define EV_LIFGAP_GSYN_GAP     3
-#define EV_LIFGAP_ACTIVITY  4
+//#define EV_LIFGAP_ACTIVITY  4
 
 
 namespace PV {
@@ -54,7 +54,7 @@ protected:
    CLBuffer * clGSynGap;
 
    virtual int getEVGSynGap() {return EV_LIFGAP_GSYN_GAP;}
-   virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
+   //virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
    virtual inline int getGSynEvent(ChannelType ch) {
       if(LIF::getGSynEvent(ch)>=0) return LIF::getGSynEvent(ch);
       if(ch==CHANNEL_GAP) return getEVGSynGap();

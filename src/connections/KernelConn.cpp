@@ -90,10 +90,10 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    }
 #endif // PV_USE_MPI
 #ifdef PV_USE_OPENCL
-   //don't support GPU accelleration in kernelconn yet
-   ignoreGPUflag=false;
-   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
-   post->copyChannelToDevice();
+//   //don't support GPU accelleration in kernelconn yet
+//   ignoreGPUflag=false;
+//   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
+//   post->copyChannelToDevice();
 #endif
 
    initPatchToDataLUT();
@@ -545,7 +545,8 @@ void KernelConn::initPatchToDataLUT() {
 
    patch2datalookuptable=(int *) calloc(numWeightPatches, sizeof(int));
    for(int i=0; i<numWeightPatches; i++) {
-      patch2datalookuptable[i]=patchIndexToDataIndex(i);
+      int kernelindex=patchIndexToDataIndex(i);
+      patch2datalookuptable[i]=kernelindex;
    }
 
 }

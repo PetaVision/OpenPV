@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void ANNDivLayer_update_state(
+    const int numNeurons,
     const int nx,
     const int ny,
     const int nf,
@@ -21,9 +22,10 @@ void ANNDivLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
-    float * GSynExc,
-    float * GSynInh,
-    float * GSynInhB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
     float * activity);
 
 #ifdef __cplusplus
@@ -87,45 +89,48 @@ int ANNDivInh::initializeThreadBuffers(const char * kernel_name)
 
 int ANNDivInh::initializeThreadKernels(const char * kernel_name)
 {
-   char kernelPath[256];
-   char kernelFlags[256];
-
-   int status = CL_SUCCESS;
-   CLDevice * device = parent->getCLDevice();
-
-   const char * pvRelPath = "../PetaVision";
-   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
-
-   // create kernels
-   //
-   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//kernel name should already be set correctly!
-//   if (spikingFlag) {
-//      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//   }
-//   else {
-//      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
-//   }
-
-   int argid = 0;
-
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-
-
-   status |= krUpdate->setKernelArg(argid++, clV);
-   status |= krUpdate->setKernelArg(argid++, VThresh);
-   status |= krUpdate->setKernelArg(argid++, VMax);
-   status |= krUpdate->setKernelArg(argid++, VMin);
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INHB));
-   status |= krUpdate->setKernelArg(argid++, clActivity);
-
-   return status;
+//   char kernelPath[256];
+//   char kernelFlags[256];
+//
+//   int status = CL_SUCCESS;
+//   CLDevice * device = parent->getCLDevice();
+//
+//   const char * pvRelPath = "../PetaVision";
+//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
+//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
+//
+//   // create kernels
+//   //
+//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////kernel name should already be set correctly!
+////   if (spikingFlag) {
+////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////   }
+////   else {
+////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+////   }
+//
+//   int argid = 0;
+//
+//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
+//
+//
+//   status |= krUpdate->setKernelArg(argid++, clV);
+//   status |= krUpdate->setKernelArg(argid++, VThresh);
+//   status |= krUpdate->setKernelArg(argid++, VMax);
+//   status |= krUpdate->setKernelArg(argid++, VMin);
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INHB));
+//   status |= krUpdate->setKernelArg(argid++, clActivity);
+//
+//   return status;
+   return ANNLayer::initializeThreadKernels(kernel_name);
 }
 int ANNDivInh::updateStateOpenCL(float time, float dt)
 {
@@ -133,23 +138,23 @@ int ANNDivInh::updateStateOpenCL(float time, float dt)
    //for ANNSquaredLayer, but I still defined the method in case
    //that changes in the future.
    int status = ANNLayer::updateStateOpenCL(time, dt);
-   status |= getChannelCLBuffer(CHANNEL_INHB)->copyFromDevice(1, &evUpdate, &evList[getEVGSynIB()]);
-   numWait++;
+//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+//   numWait++;
    return status;
 }
-int ANNDivInh::triggerReceive(InterColComm* comm)
-{
-   int status = HyPerLayer::triggerReceive(comm);
-
-   // copy data to device
-   //
-   if(gpuAccelerateFlag) {
-      status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
-      numWait += 1;
-   }
-
-   return status;
-}
+//int ANNDivInh::triggerReceive(InterColComm* comm)
+//{
+//   int status = HyPerLayer::triggerReceive(comm);
+//
+//   // copy data to device
+//   //
+////   if(gpuAccelerateFlag) {
+////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSyn()]);
+////      numWait += 1;
+////   }
+//
+//   return status;
+//}
 #endif
 
 //! new ANNLayer update state, to add support for GPU kernel.
@@ -169,7 +174,7 @@ int ANNDivInh::updateState(float time, float dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
+   if(gpuAccelerateFlag) {
       updateStateOpenCL(time, dt);
       //HyPerLayer::updateState(time, dt);
    }
@@ -180,13 +185,14 @@ int ANNDivInh::updateState(float time, float dt)
       const int nf = clayer->loc.nf;
       const int nb = clayer->loc.nb;
 
-      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-      pvdata_t * GSynInhB   = getChannel(CHANNEL_INHB);
+      pvdata_t * GSynHead   = GSyn[0];
+//      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+//      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+//      pvdata_t * GSynInhB   = getChannel(CHANNEL_INHB);
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNDivLayer_update_state(nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynExc, GSynInh, GSynInhB, activity);
+      ANNDivLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
 #ifdef PV_USE_OPENCL
    }
 #endif

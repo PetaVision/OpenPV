@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 void LIF_update_state(
+    const int numNeurons,
     const float time,
     const float dt,
 
@@ -41,9 +42,10 @@ void LIF_update_state(
     float * G_E,
     float * G_I,
     float * G_IB,
-    float * GSynExc,
-    float * GSynInh,
-    float * GSynInhB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
     float * activity);
 
 #ifdef __cplusplus
@@ -256,6 +258,7 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 
    int argid = 0;
 
+   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
    status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
    status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
 
@@ -272,9 +275,10 @@ int LIF::initializeThreadKernels(const char * kernel_name)
    status |= krUpdate->setKernelArg(argid++, clG_E);
    status |= krUpdate->setKernelArg(argid++, clG_I);
    status |= krUpdate->setKernelArg(argid++, clG_IB);
-   for (int i = 0; i < getNumChannels(); i++) {
-      status |= krUpdate->setKernelArg(argid++, clGSyn[i]);
-   }
+//   for (int i = 0; i < getNumChannels(); i++) {
+//      status |= krUpdate->setKernelArg(argid++, clGSyn[i]);
+//   }
+   status |= krUpdate->setKernelArg(argid++, clGSyn);
    status |= krUpdate->setKernelArg(argid++, clActivity);
    numKernelArgs = argid;
 
@@ -412,16 +416,17 @@ int LIF::updateStateOpenCL(float time, float dt)
    }
    numWait = 0;
 
-   status |= krUpdate->setKernelArg(0, time);
-   status |= krUpdate->setKernelArg(1, dt);
+   status |= krUpdate->setKernelArg(1, time);
+   status |= krUpdate->setKernelArg(2, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
    krUpdate->finish();
 
-   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
-   status |= getChannelCLBuffer(CHANNEL_INHB)->copyFromDevice(1, &evUpdate, &evList[getEVGSynIB()]);
+   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+//   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
+//   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
+//   status |= getChannelCLBuffer(CHANNEL_INHB)->copyFromDevice(1, &evUpdate, &evList[getEVGSynIB()]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-   numWait += 4;
+   numWait += 2;
 
 #if PV_CL_COPY_BUFFERS
    status |= clGSynE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_E]);
@@ -442,10 +447,11 @@ int LIF::triggerReceive(InterColComm* comm)
    // copy data to device
    //
 #ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag) {
-      status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
-      numWait += 1;
-   }
+//   if(gpuAccelerateFlag) {
+//      status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
+//      //status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
+//      numWait += 1;
+//   }
 #if PV_CL_COPY_BUFFERS
    status |= clGSynE->copyToDevice(&evList[EV_LIF_GSYN_E]);
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
@@ -489,13 +495,14 @@ int LIF::updateState(float time, float dt)
       const int nf = clayer->loc.nf;
       const int nb = clayer->loc.nb;
 
-      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
+      pvdata_t * GSynHead   = GSyn[0];
+//      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+//      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+//      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
       pvdata_t * activity = clayer->activity->data;
 
-      LIF_update_state(time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-            G_I, G_IB, GSynExc, GSynInh, GSynInhB, activity);
+      LIF_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+            G_I, G_IB, GSynHead, activity);
 
 
 #ifdef PV_USE_OPENCL

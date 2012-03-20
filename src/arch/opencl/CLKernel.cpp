@@ -160,8 +160,8 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       CLDevice::print_error_code(status);
       exit(status);
    } else {
-      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
-             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
+//      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
    if (lWorkSizeX * lWorkSizeY > max_local_size) {

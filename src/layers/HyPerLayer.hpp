@@ -76,6 +76,8 @@ DerivedLayer::initialize(arguments) {
 #define PV_CL_COPY_BUFFERS 0
 #define PV_CL_EVENTS 1
 #include "../arch/opencl/CLKernel.hpp"
+#define EV_GSYN 0
+#define EV_ACTIVITY 1
 #define EV_HPL_PHI_E 0
 #define EV_HPL_PHI_I 1
 #endif
@@ -262,13 +264,18 @@ public:
    virtual int getNumKernelArgs() {return numKernelArgs;}
    virtual int getNumCLEvents()   {return numEvents;}
 
-   CLBuffer * getChannelCLBuffer(ChannelType ch) {
-      return ch < this->numChannels ? clGSyn[ch] : NULL;
+   CLBuffer * getChannelCLBuffer() {
+      return clGSyn;
    }
+//   CLBuffer * getChannelCLBuffer(ChannelType ch) {
+//      return ch < this->numChannels ? clGSyn[ch] : NULL;
+//   }
    //#define EV_PHI_E 0
    //#define EV_PHI_I 1
+   virtual int getEVGSyn() {return EV_GSYN;}
    virtual int getEVGSynE() {return EV_HPL_PHI_E;}
    virtual int getEVGSynI() {return EV_HPL_PHI_I;}
+   virtual int getEVActivity() {return EV_ACTIVITY;}
    CLBuffer * getLayerDataStoreCLBuffer();
    size_t     getLayerDataStoreOffset(int delay=0);
    void initUseGPUFlag();
@@ -287,16 +294,37 @@ public:
       default: return -1;
       }
    }
-   virtual void copyChannelFromDevice(ChannelType ch) {
-      int gsynEvent = getGSynEvent(ch);
+   virtual void copyGSynFromDevice() {
+      int gsynEvent = getEVGSyn();
+//      if(numWait>0) {
+//         clWaitForEvents(numWait, &evList[gsynEvent]);
+//         for (int i = 0; i < numWait; i++) {
+//            clReleaseEvent(evList[i]);
+//         }
+//         numWait = 0;
+//      }
       if(gsynEvent>=0){
-         getChannelCLBuffer(ch)->copyFromDevice(&evList[gsynEvent]);
+         clGSyn->copyFromDevice(&evList[gsynEvent]);
          clWaitForEvents(1, &evList[gsynEvent]);
          clReleaseEvent(evList[gsynEvent]);
       }
    }
-   virtual void copyChannelToDevice() {
-      copyToDevice=true;
+//   virtual void copyChannelFromDevice(ChannelType ch) {
+//      int gsynEvent = getGSynEvent(ch);
+//      if(gsynEvent>=0){
+//         getChannelCLBuffer(ch)->copyFromDevice(&evList[gsynEvent]);
+//         clWaitForEvents(1, &evList[gsynEvent]);
+//         clReleaseEvent(evList[gsynEvent]);
+//      }
+//   }
+   virtual void copyGSynToDevice() {
+      int gsynEvent = getEVGSyn();
+      if(gsynEvent>=0){
+         clGSyn->copyToDevice(&evList[gsynEvent]);
+         clWaitForEvents(1, &evList[gsynEvent]);
+         clReleaseEvent(evList[gsynEvent]);
+      }
+      //copyToDevice=true;
    }
    void startTimer() {recvsyn_timer->start();}
    void stopTimer() {recvsyn_timer->stop();}
@@ -308,7 +336,8 @@ protected:
    // OpenCL buffers
    //
    CLBuffer * clV;
-   CLBuffer **clGSyn;         // of dynamic length numChannels
+   //CLBuffer **clGSyn;         // of dynamic length numChannels
+   CLBuffer * clGSyn;         // of dynamic length numChannels
    CLBuffer * clActivity;
    CLBuffer * clPrevTime;
    CLBuffer * clParams;       // for transferring params to kernel
@@ -324,7 +353,7 @@ protected:
    int nyl;  // local OpenCL grid size in y
 
    bool gpuAccelerateFlag;
-   bool copyToDevice;
+   //bool copyToDevice;
    bool copyDataStoreFlag;
    //bool buffersInitialized;
 

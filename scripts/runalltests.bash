@@ -137,6 +137,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=GPUSystemTest
+cd "$testname"
+arglist="-d 0 -p input/test_gpu.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 echo $PWD
 cd "./PetaVision/tests"
 make runtests 2>/dev/null | egrep 'passed|failed'

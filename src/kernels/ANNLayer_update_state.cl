@@ -22,9 +22,7 @@
 //
 CL_KERNEL
 void ANNLayer_update_state(
-#ifndef PV_USE_OPENCL
     const int numNeurons,
-#endif
     const int nx,
     const int ny,
     const int nf,
@@ -34,8 +32,9 @@ void ANNLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
-    CL_MEM_GLOBAL float * GSynExc,
-    CL_MEM_GLOBAL float * GSynInh,
+    CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * GSynExc,
+//    CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * activity)
 {
 //   int k;
@@ -59,11 +58,11 @@ void ANNLayer_update_state(
 //
 //   float l_GSynExc  = GSynExc[k];
 //   float l_GSynInh  = GSynInh[k];
-#ifdef PV_USE_OPENCL
-   const int numNeurons=0;
-#endif
+//#ifdef PV_USE_OPENCL
+//   const int numNeurons=0;
+//#endif
    //updateV():
-   updateV_ANNLayer(numNeurons, V, GSynExc, GSynInh, VMax, VMin, Vth);
+   updateV_ANNLayer(numNeurons, V, GSynHead, VMax, VMin, Vth);
 //   l_V=l_GSynExc-l_GSynInh;
 //   //applyVMax():
 //   if(l_V > VMax) l_V = VMax;
@@ -78,19 +77,21 @@ void ANNLayer_update_state(
    //activity[kex] = l_activ;
    //V[k]   = l_V;
 
-   int k;
-
-#ifndef PV_USE_OPENCL
-for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
-#endif
-   //resetGSynBuffers():
-   GSynExc[k]  = 0.0f;
-   GSynInh[k]  = 0.0f;
-
-#ifndef PV_USE_OPENCL
-   } // loop over k
-#endif
+   //int k;
+   resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead);
+//#ifndef PV_USE_OPENCL
+//for (k = 0; k < nx*ny*nf; k++) {
+//#else
+//   k = get_global_id(0);
+//#endif
+//   //resetGSynBuffers():
+//   CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+//   CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+//   GSynExc[k]  = 0.0f;
+//   GSynInh[k]  = 0.0f;
+//
+//#ifndef PV_USE_OPENCL
+//   } // loop over k
+//#endif
 
 }

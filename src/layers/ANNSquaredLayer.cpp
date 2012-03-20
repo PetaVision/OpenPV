@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void ANNSquaredLayer_update_state(
+    const int numNeurons,
     const int nx,
     const int ny,
     const int nf,
@@ -21,8 +22,9 @@ void ANNSquaredLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
-    float * GSynExc,
-    float * GSynInh,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
     float * activity);
 
 #ifdef __cplusplus
@@ -129,12 +131,13 @@ int ANNSquaredLayer::updateState(float time, float dt)
       const int nf = clayer->loc.nf;
       const int nb = clayer->loc.nb;
 
-      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
+      pvdata_t * GSynHead   = GSyn[0];
+//      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
+//      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNSquaredLayer_update_state(nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynExc, GSynInh, activity);
+      ANNSquaredLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
 #ifdef PV_USE_OPENCL
    }
 #endif

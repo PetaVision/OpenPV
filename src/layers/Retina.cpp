@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 void Retina_spiking_update_state (
+    const int numNeurons,
     const float time,
     const float dt,
     const int nx,
@@ -30,12 +31,14 @@ void Retina_spiking_update_state (
     const int nb,
     Retina_params * params,
     uint4 * rnd,
-    float * phiExc,
-    float * phiInh,
+    float * GSynHead,
+//    float * phiExc,
+//    float * phiInh,
     float * activity,
     float * prevTime);
 
 void Retina_nonspiking_update_state (
+    const int numNeurons,
     const float time,
     const float dt,
     const int nx,
@@ -43,8 +46,9 @@ void Retina_nonspiking_update_state (
     const int nf,
     const int nb,
     Retina_params * params,
-    float * phiExc,
-    float * phiInh,
+    float * GSynHead,
+//    float * phiExc,
+//    float * phiInh,
     float * activity);
 
 #ifdef __cplusplus
@@ -201,6 +205,7 @@ int Retina::initializeThreadKernels(const char * kernel_name)
 
    int argid = 0;
 
+   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
    status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
    status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
 
@@ -214,8 +219,9 @@ int Retina::initializeThreadKernels(const char * kernel_name)
       status |= krUpdate->setKernelArg(argid++, clRand);
    }
 
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
+   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
    status |= krUpdate->setKernelArg(argid++, clActivity);
    if (spikingFlag) {
       status |= krUpdate->setKernelArg(argid++, clPrevTime);
@@ -290,15 +296,16 @@ int Retina::updateStateOpenCL(float time, float dt)
    }
    numWait = 0;
 
-   status |= krUpdate->setKernelArg(0, time);
-   status |= krUpdate->setKernelArg(1, dt);
+   status |= krUpdate->setKernelArg(1, time);
+   status |= krUpdate->setKernelArg(2, dt);
    status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
    krUpdate->finish();
 
-   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
+   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+//   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
+//   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-   numWait += 3;
+   numWait += 2;
 
 #if PV_CL_COPY_BUFFERS
    status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
@@ -378,18 +385,19 @@ int Retina::updateState(float time, float dt)
       const int nf = clayer->loc.nf;
       const int nb = clayer->loc.nb;
 
-      pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
-      pvdata_t * phiInh   = getChannel(CHANNEL_INH);
+      pvdata_t * GSynHead   = GSyn[0];
+//      pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
+//      pvdata_t * phiInh   = getChannel(CHANNEL_INH);
       pvdata_t * activity = clayer->activity->data;
 
       if (spikingFlag == 1) {
-         Retina_spiking_update_state(time, dt, nx, ny, nf, nb,
+         Retina_spiking_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb,
                                      &rParams, rand_state,
-                                     phiExc, phiInh, activity, clayer->prevActivity);
+                                     GSynHead, activity, clayer->prevActivity);
       }
       else {
-         Retina_nonspiking_update_state(time, dt, nx, ny, nf, nb,
-                                        &rParams, phiExc, phiInh, activity);
+         Retina_nonspiking_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb,
+                                        &rParams, GSynHead, activity);
       }
 #ifdef PV_USE_OPENCL
    }
