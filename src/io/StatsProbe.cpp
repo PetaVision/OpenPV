@@ -66,14 +66,42 @@ StatsProbe::~StatsProbe()
 }
 
 int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) {
-   initLayerProbe(filename, layer);
-   this->msg = strdup(msg);
-   this->type = type;
-   fMin = FLT_MAX;
-   fMax = -FLT_MAX;
-   sum = 0.0f;
-   avg = 0.0f;
-   return PV_SUCCESS;
+   int status = initLayerProbe(filename, layer);
+   if( status == PV_SUCCESS ) {
+      fMin = FLT_MAX;
+      fMax = -FLT_MAX;
+      sum = 0.0f;
+      avg = 0.0f;
+      this->type = type;
+      status = initMessage(msg);
+   }
+   assert(status == PV_SUCCESS);
+   return status;
+}
+
+int StatsProbe::initMessage(const char * msg) {
+   int status = PV_SUCCESS;
+   if( msg != NULL && msg[0] != '\0' ) {
+      size_t msglen = strlen(msg);
+      this->msg = (char *) calloc(msglen+2, sizeof(char)); // Allocate room for colon plus null terminator
+      if(this->msg) {
+         memcpy(this->msg, msg, msglen);
+         this->msg[msglen] = ':';
+         this->msg[msglen+1] = '\0';
+      }
+   }
+   else {
+      this->msg = (char *) calloc(1, sizeof(char));
+      if(this->msg) {
+         this->msg[0] = '\0';
+      }
+   }
+   if( !this->msg ) {
+      fprintf(stderr, "StatsProbe: Unable to allocate memory for probe's message.\n");
+      status = PV_FAILURE;
+   }
+   assert(status == PV_SUCCESS);
+   return status;
 }
 
 /**

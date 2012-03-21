@@ -23,12 +23,7 @@ PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int 
       const char * msg) :
    LayerProbe()
 {
-   initLayerProbe(filename, layer);
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
-   this->msg = strdup(msg);
-   this->sparseOutput = false;
+   initPointProbe(filename, layer, xLoc, yLoc, fLoc, msg);
 }
 
 /**
@@ -41,12 +36,7 @@ PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int 
 PointProbe::PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
    LayerProbe()
 {
-   initLayerProbe(NULL, layer);
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
-   this->msg = strdup(msg);
-   this->sparseOutput = false;
+   initPointProbe(NULL, layer, xLoc, yLoc, fLoc, msg);
 }
 
 PointProbe::~PointProbe()
@@ -54,9 +44,46 @@ PointProbe::~PointProbe()
    free(msg);
 }
 
+int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
+   int status = initLayerProbe(filename, layer);
+   if( status == PV_SUCCESS ) {
+      this->xLoc = xLoc;
+      this->yLoc = yLoc;
+      this->fLoc = fLoc;
+      this->sparseOutput = false;
+      status = initMessage(msg);
+   }
+   assert(status == PV_SUCCESS);
+   return status;
+}
+
+//PointProbe::initMessage and StatsProbe::initMessage are identical.  Move to LayerProbe (even though LayerProbe doesn't use msg?)
+int PointProbe::initMessage(const char * msg) {
+   int status = PV_SUCCESS;
+   if( msg != NULL && msg[0] != '\0' ) {
+      size_t msglen = strlen(msg);
+      this->msg = (char *) calloc(msglen+2, sizeof(char)); // Allocate room for colon plus null terminator
+      if(this->msg) {
+         memcpy(this->msg, msg, msglen);
+         this->msg[msglen] = ':';
+         this->msg[msglen+1] = '\0';
+      }
+   }
+   else {
+      this->msg = (char *) calloc(1, sizeof(char));
+      if(this->msg) {
+         this->msg[0] = '\0';
+      }
+   }
+   if( !this->msg ) {
+      fprintf(stderr, "PointProbe: Unable to allocate memory for probe's message.\n");
+      status = PV_FAILURE;
+   }
+   return status;
+}
+
 /**
- * @time
- * @l
+ * @timef
  * NOTES:
  *     - Only the activity buffer covers the extended frame - this is the frame that
  * includes boundaries.

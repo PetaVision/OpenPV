@@ -30,6 +30,9 @@ protected:
    double sum;
    float fMin, fMax;
    float avg;
+
+private:
+   int initMessage(const char * msg);
 };
 
 }
