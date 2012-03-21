@@ -200,7 +200,6 @@ KernelConn "Retina to L0" = {
     // flankShift = 0;
     // no = 4;
     
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
@@ -218,7 +217,7 @@ KernelConn "Retina to L0" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -252,7 +251,6 @@ KernelConn "L0 to Lx1" = {
     // flankShift = 0;
     // no = 4;
       
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
 
@@ -270,7 +268,7 @@ KernelConn "L0 to Lx1" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -302,7 +300,6 @@ KernelConn "L0 to Lx2" = {
     // flankShift = 0;
     // no = 8;
       
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
@@ -320,7 +317,7 @@ KernelConn "L0 to Lx2" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -352,7 +349,6 @@ KernelConn "L0 to Lx4" = {
     // flankShift = 0;
     // no = 16;
       
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
@@ -370,7 +366,7 @@ KernelConn "L0 to Lx4" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -402,7 +398,6 @@ KernelConn "L0 to Lx1_2" = {
     // flankShift = 0;
     // no = 2;
       
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
@@ -420,7 +415,7 @@ KernelConn "L0 to Lx1_2" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -452,7 +447,6 @@ KernelConn "L0 to Lx1_4" = {
     // flankShift = 0;
     // no = 1;
       
-    keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
@@ -470,7 +464,7 @@ KernelConn "L0 to Lx1_4" = {
     // wMax = 1.0;
     // wMin = 0;
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -481,52 +475,66 @@ KernelConn "L0 to Lx1_4" = {
 ArborTestForOnesProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File              ";
 };
 ArborTestForOnesProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File                 ";
 };
 ArborTestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
+    message = "Lx1 Stats File                ";
 };
 ArborTestProbe "Lx2 Stats File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
+    message = "Lx2 Stats File                ";
 };
 ArborTestProbe "Lx4 Stats File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
+    message = "Lx4 Stats File                ";
 };
 ArborTestProbe "Lx1_2 Stats File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
+    message = "Lx1_2 Stats File              ";
 };
 ArborTestProbe "Lx1_4 Stats File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
+    message = "Lx1_4 Stats File              ";
 };
 
 ArborTestForOnesProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
+    message = "Retina Stats File             ";
 };
 ArborTestForOnesProbe "L0 Stats Screen" = {
     targetLayer = "L0";
+    message = "L0 Stats Screen               ";
 };
 ArborTestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
+    message = "Lx1 Stats Screen              ";
 };
 ArborTestProbe "Lx2 Stats Screen" = {
     targetLayer = "Lx2";
+    message = "Lx1 Stats Screen              ";
 };
 ArborTestProbe "Lx4 Stats Screen" = {
     targetLayer = "Lx4";
+    message = "Lx4 Stats Screen              ";
 };
 ArborTestProbe "Lx1_2 Stats Screen" = {
     targetLayer = "Lx1_2";
+    message = "Lx1_2 Stats Screen            ";
 };
 ArborTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
+    message = "Lx1_4 Stats Screen            ";
 };
 
 //PointProbe "Lx1 Stats Screen a" = {
