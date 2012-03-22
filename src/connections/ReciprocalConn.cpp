@@ -215,11 +215,8 @@ int ReciprocalConn::update_dW(int axonID) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      // int patchIndex = kernelIndexToPatchIndex(kernelindex);
       int numpatchitems = nxp * nyp * nfp;
-      // int numpatchitems = dKernelPatches[axonID][kernelindex]->nx * dKernelPatches[axonID][kernelindex]->ny * nfp;
       pvdata_t * dwpatchdata = get_dwDataHead(axonID,kernelindex);
-      // pvdata_t * dwpatchdata = dKernelPatches[axonID][kernelindex]->data;
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
