@@ -5,15 +5,23 @@
 # that get run are hardcoded in the script; you need to add a new section
 # if a new test is created.
 #
-# The script assumes that it is in a subdirectory of the eclipse workspace folder
-# (I have it in my sandbox directory)
+# The script assumes that it is in the PetaVision/scripts directory.
+# It can be run from any directory.
+#
+# When run without arguments, it assumes that the library and the tests
+# were compiled with MPI.  It therefore runs system tests with both
+# a single process and multiple processes, and it runs unit tests executed
+# by make runMPItests from within PetaVision/tests.
+#
+# To turn off the MPI-specific tests, do "runalltests.bash --nompi"
 
+# Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
 then
     cd "${0%/*}"
 fi
-cd ../../ # Assumes the script is in a subdirectory of the eclipse workspace folder
-wd=$PWD
+cd ../..
+wd=$PWD # $wd is the eclipse workspace directory
 
 echo $wd
 
@@ -28,32 +36,26 @@ function runandecho() {
     fi
 }
 
-# Check if compiled with MPI
-#mpistring="$(petesandbox/Debug/pv 2>/dev/null | egrep PV_USE_MPI)"
-#if test "$mpistring" = "PV_USE_MPI is set"
-#then
-   echo "assumes PetaVision compiled using PV_USE_MPI"
-   usempi=1
-   function mpirunandecho() {
-       testname=$1
-       shift
-       if mpirun -np 4 $* 1> /dev/null 2>/dev/null
-       then
-           echo "$testname with four processes passed"
-       else
-           echo "$testname with four processes FAILED"
-       fi
-   }
-#elif test "$mpistring" = "PV_USE_MPI is not set"
-#then
-#    echo "PetaVision compiled with PV_USE_MPI turned off"
-#    usempi=0
-#    function mpirunandecho() {
-#        false
-#    }
-#else
-#    exit 1
-#fi
+# Check for --nompi option.
+if test ${1:-usempi} = "--nompi"
+then
+    usempi=0
+    function mpirunandecho() {
+        false
+    }
+else
+    usempi=1
+    function mpirunandecho() {
+        testname=$1
+        shift
+        if mpirun -np 4 $* 1> /dev/null 2>/dev/null
+        then
+            echo "$testname with four processes passed"
+        else
+            echo "$testname with four processes FAILED"
+        fi
+    }
+fi
 
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
@@ -94,6 +96,13 @@ cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
+
+testname=GPUSystemTest
+cd "$testname"
+arglist="-d 0 -p input/test_gpu.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
 
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
@@ -137,14 +146,6 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
-testname=GPUSystemTest
-cd "$testname"
-arglist="-d 0 -p input/test_gpu.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
-cd "$wd"
-
-echo $PWD
 cd "./PetaVision/tests"
 make runtests 2>/dev/null | egrep 'passed|failed'
 if test $usempi -eq 1
