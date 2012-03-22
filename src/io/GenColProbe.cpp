@@ -9,51 +9,52 @@
 
 namespace PV {
 
-GenColProbe::GenColProbe(const char * probename) : ColProbe(probename) {
-   initialize_base();
-}  // end GenColProbe::GenColProbe()
-
-GenColProbe::GenColProbe(const char * probename, const char * filename, HyPerCol * hc) : ColProbe(probename, filename, hc) {
+GenColProbe::GenColProbe(const char * probename) : ColProbe() {
    initialize_base();
 }  // end GenColProbe::GenColProbe(const char *)
 
-int GenColProbe::initialize_base() {
-   numTerms = 0;
-   terms = NULL;
-
-   return PV_SUCCESS;
-}
+GenColProbe::GenColProbe(const char * probename, const char * filename, HyPerCol * hc) : ColProbe() {
+   initialize_base();
+   initializeGenColProbe(probename, filename, hc);
+}  // end GenColProbe::GenColProbe(const char *, const char *, HyPerCol *)
 
 GenColProbe::~GenColProbe() {
-   if( numTerms ) {
-      free(terms);
+   if( numLayerTerms ) {
+      free(layerTerms);
    }
 }  // end GenColProbe::~GenColProbe()
 
-int GenColProbe::addTerm(LayerFunctionProbe * p, HyPerLayer * l) {
-   return addTerm(p, l, DEFAULT_GENCOLPROBE_COEFFICIENT);
+int GenColProbe::initialize_base() {
+   numLayerTerms = 0;
+   layerTerms = NULL;
+
+   return PV_SUCCESS;
 }
 
-int GenColProbe::addTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff) {
-   gencolprobeterm * newtheterms = (gencolprobeterm *) malloc( (numTerms+1)*sizeof(gencolprobeterm) );
+int GenColProbe::initializeGenColProbe(const char * probename, const char * filename, HyPerCol * hc) {
+   return ColProbe::initialize(probename, filename, hc);
+}
+
+int GenColProbe::addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff) {
+   gencolprobelayerterm * newtheterms = (gencolprobelayerterm *) malloc( (numLayerTerms+1)*sizeof(gencolprobelayerterm) );
    if( !newtheterms ) return PV_FAILURE;
-   for( int n=0; n<numTerms; n++) {
-      newtheterms[n] = terms[n];
+   for( int n=0; n<numLayerTerms; n++) {
+      newtheterms[n] = layerTerms[n];
    }
-   newtheterms[numTerms].function = p;
-   newtheterms[numTerms].layer = l;
-   newtheterms[numTerms].coeff = coeff;
-   free(terms);
-   terms = newtheterms;
-   numTerms++;
+   newtheterms[numLayerTerms].function = p;
+   newtheterms[numLayerTerms].layer = l;
+   newtheterms[numLayerTerms].coeff = coeff;
+   free(layerTerms);
+   layerTerms = newtheterms;
+   numLayerTerms++;
    return PV_SUCCESS;
 }  // end GenColProbe::addTerm(LayerFunctionProbe *, HyPerLayer *)
 
-pvdata_t GenColProbe::evaluate(float time) {
+pvdata_t GenColProbe::evaluate(float timef) {
    pvdata_t sum = 0;
-   for( int n=0; n<numTerms; n++) {
-      gencolprobeterm thisterm = terms[n];
-      sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(time, thisterm.layer) );
+   for( int n=0; n<numLayerTerms; n++) {
+      gencolprobelayerterm thisterm = layerTerms[n];
+      sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(timef, thisterm.layer) );
    }
    return sum;
 }  // end GenColProbe::evaluate(float)

@@ -1179,7 +1179,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);
-            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            parentcolprobe->addLayerTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
@@ -1204,7 +1204,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);
-            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            parentcolprobe->addLayerTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
@@ -1229,7 +1229,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);
-            parentcolprobe->addTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+            parentcolprobe->addLayerTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
          }
       }
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call

@@ -9,30 +9,29 @@
 
 namespace PV {
 
-ColProbe::ColProbe() { // Kept for backward compatibility
-   fp = stdout;
-   setColProbeName("ColProbe");
-}
-
-ColProbe::ColProbe(const char * probename) {
-   fp = stdout;
-   setColProbeName(probename);
+ColProbe::ColProbe() { // Default constructor to be called by derived classes.
+   // They should call ColProbe::initialize from their own initialization routine
+   // instead of calling a non-default constructor.
 }
 
 ColProbe::ColProbe(const char * filename, HyPerCol * hc) { // Kept for backward compatibility
-   initialize_path(filename, hc);
-   setColProbeName("ColProbe");
+   initialize("ColProbe", filename, hc);
 }
 
 ColProbe::ColProbe(const char * probeName, const char * filename, HyPerCol * hc) {
-    initialize_path(filename, hc);
-    setColProbeName(probeName);
+    initialize(probeName, filename, hc);
 }
 
 ColProbe::~ColProbe() {
    if( fp != NULL && fp != stdout) {
       fclose(fp);
    }
+}
+
+int ColProbe::initialize(const char * probeName, const char * filename, HyPerCol * hc) {
+   initialize_path(filename, hc);
+   setColProbeName(probeName);
+   return PV_SUCCESS;
 }
 
 int ColProbe::initialize_path(const char * filename, HyPerCol * hc) {

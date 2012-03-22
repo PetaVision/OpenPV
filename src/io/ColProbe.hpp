@@ -15,8 +15,6 @@ namespace PV {
 
 class ColProbe {
 public:
-    ColProbe();
-    ColProbe(const char * probeName);
     ColProbe(const char * filename, HyPerCol * hc);
     ColProbe(const char * probeName, const char * filename, HyPerCol * hc);
     virtual ~ColProbe();
@@ -27,6 +25,9 @@ public:
 protected:
     FILE * fp;
     char * colProbeName;
+
+    ColProbe();
+    int initialize(const char * probeName, const char * filename, HyPerCol * hc);
     int initialize_path(const char * filename, HyPerCol * hc);
     int setColProbeName(const char * name);
 }; // end class ColProbe
