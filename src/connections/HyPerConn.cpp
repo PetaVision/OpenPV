@@ -794,7 +794,7 @@ int HyPerConn::writeWeights(float time, bool last)
    }
    return 0;
 }
-#endif OBSOLETE_NBANDSFORARBORS
+#endif // OBSOLETE_NBANDSFORARBORS
 
 int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, float timef, bool last) {
    int status = PV_SUCCESS;

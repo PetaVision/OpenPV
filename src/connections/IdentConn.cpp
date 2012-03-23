@@ -35,7 +35,7 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
    weightUpdateTime = -1;         // Give them safe values nonetheless, as a precaution.
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
 #ifdef PV_USE_OPENCL
    //don't support GPU acceleration in kernelconn yet
