@@ -24,7 +24,7 @@ function [pvp_header, pvp_index] = pvp_readHeader(filename)
   pvp_index.KX0         = 14+1;
   pvp_index.KY0         = 15+1;
   pvp_index.NPAD        = 16+1;
-  pvp_index.NBANDS      = 17+1;
+  pvp_index.NUM_ARBORS  = 17+1;
   pvp_index.TIME        = 18+1;
 
   if ~exist(filename,'file')
