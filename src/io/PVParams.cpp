@@ -531,10 +531,11 @@ int PVParams::parsefile(const char * filename) {
    else { // rank != rootproc
 #ifdef PV_USE_MPI
       MPI_Status mpi_status;
-      int * count;
+      int count;
       MPI_Probe(rootproc, 31, icComm->communicator(), &mpi_status);
-      int status = MPI_Get_count(&mpi_status, MPI_CHAR, count); //mpi_status._count;
-      bufferlen = (size_t) *count;
+      // int status =
+      MPI_Get_count(&mpi_status, MPI_CHAR, &count); //mpi_status._count;
+      bufferlen = (size_t) count;
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
          fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", icComm->commRank());
