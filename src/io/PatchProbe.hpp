@@ -19,28 +19,37 @@ class PatchProbe : public BaseConnectionProbe {
 
 // Methods
 public:
-   PatchProbe(int kPre, int arbID=0);
-   PatchProbe(int kxPre, int kyPre, int kfPre, int arbID=0);
-   PatchProbe(const char * probename, const char * filename, HyPerCol * hc, int kPre, int arbID=0);
-   PatchProbe(const char * probename, const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID=0);
+   PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kPre, int arbID=0);
+   PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre, int arbID=0);
    virtual ~PatchProbe();
 
-   virtual int outputState(float time, HyPerConn * c);
+   virtual int outputState(float timef);
 
    static int text_write_patch(FILE * fd, int nx, int ny, int nf, int sx, int sy, int sf, float * data);
    static int write_patch_indices(FILE * fp, PVPatch * patch,
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
+   int getKPre()                        {return kPre;}
+   int getKxPre()                       {return kxPre;}
+   int getKyPre()                       {return kyPre;}
+   int getKfPre()                       {return kfPre;}
+   int getArborID()                     {return arborID;}
+   bool getOutputWeightsFlag()          {return outputWeights;}
+   bool getOutputPlasticIncrFlag()      {return outputPlasticIncr;}
+   bool getOutputPostIndicesFlag()      {return outputPostIndices;}
+
+protected:
+   PatchProbe();
+   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int kPre, int kxPre, int kyPre, int kfPre, int arbID);
+
+private:
+   int initialize_base();
    void setOutputWeights(bool flag)       {outputWeights = flag;}
    void setOutputPlasticIncr(bool flag)   {outputPlasticIncr = flag;}
    void setOutputPostIndices(bool flag)   {outputPostIndices = flag;}
-protected:
-   int initialize(const char * probename, const char * filename, HyPerCol * hc, PatchIDMethod method, int kPre, int kxPre, int kyPre, int kfPre, int arbID);
-private:
-   int initialize_base();
 
 // Member variables
-protected:
+private:
    PatchIDMethod patchIDMethod;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;

@@ -13,9 +13,10 @@ KernelProbe::KernelProbe() {
    initialize_base();
 }
 
-KernelProbe::KernelProbe(const char * probename, const char * filename, HyPerCol * hc, int kernelIndex, int arborID) {
+KernelProbe::KernelProbe(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborID) {
    initialize_base();
-   initialize(probename, filename, hc, kernelIndex, arborID);
+   int status = initialize(probename, filename, conn, kernelIndex, arborID);
+   assert(status == PV_SUCCESS);
 }
 
 KernelProbe::~KernelProbe() {
@@ -25,57 +26,62 @@ int KernelProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int KernelProbe::initialize(const char * probename, const char * filename, HyPerCol * hc, int kernel, int arbor) {
-   PVParams * params = hc->parameters();
-   kernelIndex = kernel;
-   arborID = arbor;
-   outputWeights = params->value(probename, "outputWeights", true) != 0.f;
-   outputPlasticIncr = params->value(probename, "outputPlasticIncr", false) != 0.f;
-   outputPatchIndices = params->value(probename, "outputPatchIndices", false) != 0.f;
-   BaseConnectionProbe::initialize(probename, filename, hc);
-   if(fp) fprintf(fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", name, kernelIndex, arborID);
-   return PV_SUCCESS;
+int KernelProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, int kernel, int arbor) {
+   int status = BaseConnectionProbe::initialize(probename, filename, conn);
+   if(status==PV_SUCCESS) {
+      PVParams * params = conn->getParent()->parameters();
+      kernelIndex = kernel;
+      arborID = arbor;
+      outputWeights = params->value(probename, "outputWeights", true) != 0.f;
+      outputPlasticIncr = params->value(probename, "outputPlasticIncr", false) != 0.f;
+      outputPatchIndices = params->value(probename, "outputPatchIndices", false) != 0.f;
+      targetKConn = dynamic_cast<KernelConn *>(conn);
+      if(targetKConn == NULL) {
+         fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not a KernelConn.\n", getName(), getTargetConn()->getName());
+         status = PV_FAILURE;
+      }
+   }
+   if(getFilePtr()) fprintf(getFilePtr(), "Probe \"%s\", kernel index %d, arbor index %d.\n", getName(), kernelIndex, arborID);
+   return status;
 }
 
-int KernelProbe::outputState(float time, HyPerConn * c) {
+int KernelProbe::outputState(float timef) {
 #ifdef PV_USE_MPI
-   InterColComm * icComm = c->getParent()->icCommunicator();
+   InterColComm * icComm = getTargetKConn()->getParent()->icCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
-   KernelConn * kconn = dynamic_cast<KernelConn *>(c);
-   if( kconn == NULL ) {
-      fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not a KernelConn.\n", name, c->getName() );
+   if( getTargetKConn() == NULL ) {
+      fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not a KernelConn.\n", getName(), getTargetConn()->getName() );
       return PV_FAILURE;
    }
-   int nxp = kconn->xPatchSize();
-   int nyp = kconn->yPatchSize();
-   int nfp = kconn->fPatchSize();
+   int nxp = getTargetKConn()->xPatchSize();
+   int nyp = getTargetKConn()->yPatchSize();
+   int nfp = getTargetKConn()->fPatchSize();
    int patchSize = nxp*nyp*nfp;
-   // const PVPatch * w = kconn->getKernelPatch(arborID, kernelIndex);
-   const pvdata_t * wdata = kconn->get_wDataStart(arborID)+patchSize*kernelIndex;
-   // const pvdata_t * dw = outputPlasticIncr ? kconn->get_dKernelData(arborID, kernelIndex) : NULL;
+
+   const pvdata_t * wdata = getTargetKConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvdata_t * dwdata = outputPlasticIncr ?
-         kconn->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   fprintf(fp, "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
-           time, kconn->getName(),nxp, nyp, nfp);
+         getTargetKConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
+   fprintf(getFilePtr(), "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
+           timef, getTargetKConn()->getName(),nxp, nyp, nfp);
    for(int f=0; f<nfp; f++) {
       for(int y=0; y<nyp; y++) {
          for(int x=0; x<nxp; x++) {
             int k = kIndex(x,y,f,nxp,nyp,nfp);
-            fprintf(fp, "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
+            fprintf(getFilePtr(), "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
             if(outputWeights) {
-               fprintf(fp, "  weight=%f", wdata[k]); // fprintf(fp, "  weight=%f", w->data[k]);
+               fprintf(getFilePtr(), "  weight=%f", wdata[k]); // fprintf(fp, "  weight=%f", w->data[k]);
             }
             if(outputPlasticIncr) {
-               fprintf(fp, "  dw=%f", dwdata[k]); // fprintf(fp, "  dw=%f", dw[k]);
+               fprintf(getFilePtr(), "  dw=%f", dwdata[k]); // fprintf(fp, "  dw=%f", dw[k]);
             }
-            fprintf(fp,"\n");
+            fprintf(getFilePtr(),"\n");
          }
       }
    }
    if(outputPatchIndices) {
-      patchIndices(kconn);
+      patchIndices(getTargetKConn());
    }
 
    return PV_SUCCESS;
@@ -103,7 +109,7 @@ int KernelProbe::patchIndices(KernelConn * kconn) {
       int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
-      fprintf(fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
+      fprintf(getFilePtr(),"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
             kPre, kxPre, kyPre, kfPre, kconn->patchIndexToDataIndex(kPre), xOffset, yOffset);
    /*
       pvdata_t * hData = kconn->getWeights(kPre, arborID)->data;

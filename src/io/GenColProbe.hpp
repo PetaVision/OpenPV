@@ -13,6 +13,7 @@
 #include "ColProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../layers/HyPerLayer.hpp"
+#include "ConnFunctionProbe.hpp"
 #include "LayerFunctionProbe.hpp"
 
 namespace PV {
@@ -23,12 +24,19 @@ typedef struct gencolprobelayerterm_ {
    pvdata_t coeff;
 } gencolprobelayerterm;
 
+typedef struct gencolprobconnterm_ {
+   ConnFunctionProbe * function;
+   HyPerConn * conn;
+   pvdata_t coeff;
+} gencolprobeconnterm;
+
 class GenColProbe : public ColProbe {
 public:
    GenColProbe(const char * name);
    GenColProbe(const char * probename, const char * filename, HyPerCol * hc);
    ~GenColProbe();
 
+   int addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff);
    int addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
    virtual int outputState(float time, HyPerCol * hc);
    virtual int writeState(float time, HyPerCol * hc, pvdata_t value);
@@ -39,6 +47,9 @@ protected:
 
    int numLayerTerms;
    gencolprobelayerterm * layerTerms;
+
+   int numConnTerms;
+   gencolprobeconnterm * connTerms;
 
 private:
    int initialize_base();

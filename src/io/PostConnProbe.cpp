@@ -12,57 +12,21 @@
 namespace PV {
 
 /**
- * @kPost
- */
-PostConnProbe::PostConnProbe(int kPost, int arbID)
-   : PatchProbe(0, arbID)
-{
-   this->kxPost = 0;
-   this->kyPost = 0;
-   this->kfPost = 0;
-   this->kPost = kPost;
-   this->image = NULL;
-   this->wPrev = NULL;
-}
-
-/**
  * @filename
+ * @conn
  * @kPost
+ * @arbID
  */
-PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kPost, int arbID)
-   : PatchProbe(NULL, filename, hc, 0, arbID)
+PostConnProbe::PostConnProbe(const char * filename, HyPerConn * conn, int kPost, int arbID)
+   : PatchProbe()
 {
-   this->kxPost = 0;
-   this->kyPost = 0;
-   this->kfPost = 0;
-   this->kPost = kPost;
-   this->image = NULL;
-   this->wPrev = NULL;
-   this->wActiv = NULL;
+   initialize(NULL, filename, conn, INDEX_METHOD, 0, -1, -1, -1, arbID);
 }
 
-PostConnProbe::PostConnProbe(int kxPost, int kyPost, int kfPost, int arbID)
-   : PatchProbe(0, arbID)
+PostConnProbe::PostConnProbe(const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, int arbID)
+   : PatchProbe()
 {
-   this->kxPost = kxPost;
-   this->kyPost = kyPost;
-   this->kfPost = kfPost;
-   this->kPost = -1;
-   this->image = NULL;
-   this->wPrev = NULL;
-   this->wActiv = NULL;
-}
-
-PostConnProbe::PostConnProbe(const char * filename, HyPerCol * hc, int kxPost, int kyPost, int kfPost, int arbID)
-   : PatchProbe(NULL, filename, hc, 0, 0, 0, arbID)
-{
-   this->kxPost = kxPost;
-   this->kyPost = kyPost;
-   this->kfPost = kfPost;
-   this->kPost = -1;
-   this->image = NULL;
-   this->wPrev = NULL;
-   this->wActiv = NULL;
+   initialize(NULL, filename, conn, COORDINATE_METHOD, -1, 0, 0, 0, arbID);
 }
 
 PostConnProbe::~PostConnProbe()
@@ -71,18 +35,30 @@ PostConnProbe::~PostConnProbe()
    if (wActiv != NULL) free(wActiv);
 }
 
+
+int PostConnProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int kPost, int kxPost, int kyPost, int kfPost, int arbID) {
+   int status = PatchProbe::initialize(NULL, filename, conn, method, kPost, kxPost, kyPost, kfPost, arbID);
+   this->kxPost = kxPost;
+   this->kyPost = kyPost;
+   this->kfPost = kfPost;
+   this->kPost = kPost;
+   this->image = NULL;
+   this->wPrev = NULL;
+   this->wActiv = NULL;
+   return status;
+}
 /**
- * @time
- * @c
+ * @timef
  * NOTES:
  *    - kPost, kxPost, kyPost are indices in the restricted post-synaptic layer.
  *
  */
-int PostConnProbe::outputState(float time, HyPerConn * c)
+int PostConnProbe::outputState(float timef)
 {
    int k, kxPre, kyPre;
+   HyPerConn * c = getTargetConn();
    PVPatch  * w;
-   PVPatch *** wPost = c->convertPreSynapticWeights(time);
+   PVPatch *** wPost = c->convertPreSynapticWeights(timef);
 
    // TODO - WARNING: currently only works if nfPre==0
 
@@ -120,8 +96,8 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
 
    const bool postFired = lPost->activity->data[kPostEx] > 0.0;
 
-   w = wPost[arborID][kPost];
-   pvdata_t * wPostData = c->getWPostData(arborID,kPost);
+   w = wPost[getArborID()][kPost];
+   pvdata_t * wPostData = c->getWPostData(getArborID(),kPost);
 
    const int nw = w->nx * w->ny * nfPost; //w->nf;
 
@@ -150,10 +126,11 @@ int PostConnProbe::outputState(float time, HyPerConn * c)
          break;
       }
    }
+   FILE * fp = getFilePtr();
    if (stdpVars && (postFired || changed)) {
       if (postFired) fprintf(fp, "*");
       else fprintf(fp, " ");
-      fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", time, kPost, kxPost,
+      fprintf(fp, "t=%.1f w%d(%d,%d,%d) prePatchHead(%d,%d): ", timef, kPost, kxPost,
             kyPost, kfPost, kxPre, kyPre);
       if (image) fprintf(fp, "tag==%d ", image->tag());
       fprintf(fp, "\n");

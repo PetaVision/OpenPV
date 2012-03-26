@@ -11,6 +11,13 @@
 
 namespace PV {
 
+// Protected default constructor.  Derived classes should call this
+// constructor, and call PatchProbe::initPatchProbe from within their own
+// initialization.
+PatchProbe::PatchProbe() {
+   initialize_base();
+}
+
 /*
  * NOTES:
  *     - kxPre, kyPre, are indices in the restricted space.
@@ -19,28 +26,17 @@ namespace PV {
  *
  *
  */
-PatchProbe::PatchProbe(int kPre, int arbID)
+
+PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kPre, int arbID)
 {
    initialize_base();
-   initialize(NULL, NULL, NULL, INDEX_METHOD, kPre, -1, -1, -1, arbID);
+   initialize(probename, filename, conn, INDEX_METHOD, kPre, -1, -1, -1, arbID);
 }
 
-PatchProbe::PatchProbe(int kxPre, int kyPre, int kfPre, int arbID)
+PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre, int arbID)
 {
    initialize_base();
-   initialize(NULL, NULL, NULL, COORDINATE_METHOD, -1, kxPre, kyPre, kfPre, arbID);
-}
-
-PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerCol * hc, int kPre, int arbID)
-{
-   initialize_base();
-   initialize(probename, filename, hc, INDEX_METHOD, kPre, -1, -1, -1, arbID);
-}
-
-PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerCol * hc, int kxPre, int kyPre, int kfPre, int arbID)
-{
-   initialize_base();
-   initialize(probename, filename, hc, COORDINATE_METHOD, -1, kxPre, kyPre, kfPre, arbID);
+   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPre, kyPre, kfPre, arbID);
 }
 PatchProbe::~PatchProbe()
 {
@@ -51,7 +47,7 @@ int PatchProbe::initialize_base() {
 }
 
 int PatchProbe::initialize(const char * probename, const char * filename,
-      HyPerCol * hc, PatchIDMethod method, int kPre,
+      HyPerConn * conn, PatchIDMethod method, int kPre,
       int kxPre, int kyPre, int kfPre, int arbID) {
    if( method == INDEX_METHOD ) {
       this->kPre = kPre;
@@ -72,7 +68,7 @@ int PatchProbe::initialize(const char * probename, const char * filename,
    outputWeights = true; // set by setOutputWeights method
    outputPlasticIncr = false; // set by setOutputPlasticIncr method
    outputPostIndices = false; // set by setOutputPostIndices method
-   return BaseConnectionProbe::initialize(name, filename, hc);
+   return BaseConnectionProbe::initialize(getName(), filename, conn);
 }
 
 /**
@@ -82,8 +78,9 @@ int PatchProbe::initialize(const char * probename, const char * filename,
  *    - kPre is the linear index of the neuron in the extended space.
  *
  */
-int PatchProbe::outputState(float time, HyPerConn * c)
+int PatchProbe::outputState(float timef)
 {
+   HyPerConn * c = getTargetConn();
 #ifdef PV_USE_MPI
    InterColComm * icComm = c->getParent()->icCommunicator();
    const int rank = icComm->commRank();
@@ -93,6 +90,7 @@ int PatchProbe::outputState(float time, HyPerConn * c)
 #else
    const int rank = 0;
 #endif // PV_USE_MPI
+   FILE * fp = getFilePtr();
    int kPre, kxPre, kyPre, kfPre;
    const PVLayerLoc * loc = c->preSynapticLayer()->getLayerLoc();
    int nxGlobal = loc->nxGlobal;
@@ -117,27 +115,27 @@ int PatchProbe::outputState(float time, HyPerConn * c)
    else assert(false);
    bool errorFound = false;
    if( kPre < 0 || kPre >= numPatches ) {
-      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": index is out of bounds\n", name, c->getName());
+      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": index is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kPre, 0, numPatches);
       errorFound = true;
    }
    if( kxPre < -nb || kxPre >= nxGlobal+nb ) {
-      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": x-coordinate is out of bounds\n", name, c->getName());
+      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": x-coordinate is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kxPre, -nb, nxGlobal+nb);
       errorFound = true;
    }
    if( kyPre < 0 || kyPre >= numPatches ) {
-      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": y-coordinate is out of bounds\n", name, c->getName());
+      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": y-coordinate is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kyPre, 0, nyGlobal+nb);
       errorFound = true;
    }
    if( kfPre < 0 || kfPre >= numPatches ) {
-      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": feature coordinate is out of bounds\n", name, c->getName());
+      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": feature coordinate is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kfPre, 0, nf);
       errorFound = true;
    }
    if( arborID < 0 || arborID >= numPatches ) {
-      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": arbor index is out of bounds\n", name, c->getName());
+      fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": arbor index is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", arborID, 0, c->numberOfAxonalArborLists());
       errorFound = true;
    }
@@ -164,13 +162,13 @@ int PatchProbe::outputState(float time, HyPerConn * c)
    } else {
 #ifdef PV_USE_MPI
       if(inbounds) {
-         fprintf(fp, "Time %f: rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", time, 0, kPre, kxPre, kyPre, kfPre);
+         fprintf(fp, "Time %f: rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", timef, 0, kPre, kxPre, kyPre, kfPre);
       }
       for( int src=1; src<size; src++ ) {
          int procinbounds;
          MPI_Recv(&procinbounds, 1, MPI_INT, 0, basetag+src, mpi_comm, MPI_STATUS_IGNORE);
          if(procinbounds) {
-            fprintf(fp, "Time %f: rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", time, src, kPre, kxPre, kyPre, kfPre);
+            fprintf(fp, "Time %f: rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", timef, src, kPre, kxPre, kyPre, kfPre);
             // TODO receive shrunken patch from process rank
          }
       }

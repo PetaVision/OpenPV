@@ -966,7 +966,7 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
       if( targetConn ) {
          const char * filename = params->stringValue(name, "probeOutputFile");
-         addedProbe = new KernelProbe(name, filename, hc, kernelIndex, arborId);
+         addedProbe = new KernelProbe(name, filename, targetConn, kernelIndex, arborId);
          status = checknewobject((void *) addedProbe, classkeyword, name, hc);
       }
       else {
@@ -990,28 +990,46 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       const char * filename = params->stringValue(name, "probeOutputFile");
       if( indexmethod ) {
          int kPre = params->value(name, "kPre");
-         addedProbe = new PatchProbe(name, filename, hc, kPre, arborID);
+         addedProbe = new PatchProbe(name, filename, targetConn, kPre, arborID);
       }
       else {
          assert(coordmethod);
          int kxPre = params->value(name, "kxPre");
          int kyPre = params->value(name, "kyPre");
          int kfPre = params->value(name, "kfPre");
-         addedProbe = new PatchProbe(name, filename, hc, kxPre, kyPre, kfPre, arborID);
+         addedProbe = new PatchProbe(name, filename, targetConn, kxPre, kyPre, kfPre, arborID);
       }
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
+/*
+      if( !errorFound ) {
+         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         if( parentcolprobe )
+         {
+            pvdata_t coeff = params->value(name, "coeff", 1);
+            parentcolprobe->addLayerTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
+         }
+      }
+ */
    if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
       keywordMatched = true;
       const char * filename = params->stringValue(name, "probeOutputFile");
-      addedProbe = new ReciprocalEnergyProbe(name, filename, hc);
+      addedProbe = new ReciprocalEnergyProbe(name, filename, targetConn);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+      if( status != PV_SUCCESS ) {
+         ColProbe * colProbeFromParams = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         if( colProbeFromParams != NULL ) {
+            GenColProbe * parentcolprobe = dynamic_cast<GenColProbe *>(getColProbeFromParameterGroup(name, hc, "parentGenColProbe"));
+            if( parentcolprobe == NULL) {
+               fprintf(stderr, "ReciprocalEnergyProbe \"%s\": parentGenColProbe \"%s\" is not a GenColProbe\n", name, parentcolprobe->getColProbeName());
+            }
+         }
+      }
    }
    assert(keywordMatched);
    if( status == PV_SUCCESS ) {
       assert(targetConn != NULL);
       assert(addedProbe);
-      targetConn->insertProbe(addedProbe);
    }
    if( status != PV_SUCCESS ) {
       exit(EXIT_FAILURE);

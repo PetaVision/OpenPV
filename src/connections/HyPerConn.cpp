@@ -1200,6 +1200,17 @@ char * HyPerConn::checkpointFilename() {
 
 int HyPerConn::insertProbe(BaseConnectionProbe * p)
 {
+   if(p->getTargetConn() != this) {
+      fprintf(stderr, "HyPerConn \"%s\": insertProbe called with probe %p, whose targetConn is not this conneciton.  Probe was not inserted.\n", name, p);
+      return numProbes;
+   }
+   for( int i=0; i<numProbes; i++ ) {
+      if( p == probes[i] ) {
+         fprintf(stderr, "HyPerConn \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", name, p, i);
+         return numProbes;
+      }
+   }
+
    BaseConnectionProbe ** tmp;
    tmp = (BaseConnectionProbe **) malloc((numProbes + 1) * sizeof(BaseConnectionProbe *));
    assert(tmp != NULL);
@@ -1215,24 +1226,24 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
    return ++numProbes;
 }
 
-int HyPerConn::outputState(float time, bool last)
+int HyPerConn::outputState(float timef, bool last)
 {
    int status = 0;
 
    if( !last ) {
       for (int i = 0; i < numProbes; i++) {
-         probes[i]->outputState(time, this);
+         probes[i]->outputState(timef);
       }
    }
 
    if (last) {
-      status = writeWeights(time, last);
+      status = writeWeights(timef, last);
       assert(status == 0);
    }
-   else if ( (time >= writeTime) && (writeStep >= 0) ) {
+   else if ( (timef >= writeTime) && (writeStep >= 0) ) {
       writeTime += writeStep;
 
-      status = writeWeights(time, last);
+      status = writeWeights(timef, last);
       assert(status == 0);
 
       // append to output file after original open

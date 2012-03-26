@@ -27,10 +27,11 @@ int BaseConnectionProbe::initialize_base() {
    name = NULL;
    filename = NULL;
    fp = NULL;
+   targetConn = NULL;
    return PV_SUCCESS;
 }
 
-int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerCol * hc) {
+int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn) {
    if( probename ) {
       name = strdup(probename);
    }
@@ -43,9 +44,8 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    else {
       this->filename = NULL;
    }
-//                                       /* dynamic_cast below is temporary for backwards compatibility of ConnectionProbe */
-//   ConnectionProbe * connectionProbe = dynamic_cast<ConnectionProbe *>(this);
-//   if( ( hc && hc->icCommunicator()->commRank() == 0 ) || connectionProbe != NULL ) {
+
+   HyPerCol * hc = conn->getParent();
    if( hc && hc->icCommunicator()->commRank() == 0 ) {
       if( filename ) {
          const char * outputdir = hc->getOutputPath();
@@ -69,6 +69,8 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    else {
       fp = NULL;
    }
+   targetConn = conn;
+   conn->insertProbe(this);
    return PV_SUCCESS;
 }
 
