@@ -11,7 +11,7 @@ INPARAMS = input/params.test
 dbg    := 1
 mpi    := 1
 gdal   := 1
-opencl := 1
+opencl := 0
 
 # detect OS                                                                               
 OSUPPER = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
