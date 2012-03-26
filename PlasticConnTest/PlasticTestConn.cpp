@@ -25,7 +25,6 @@ pvdata_t PlasticTestConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
 }
 
 PlasticTestConn::~PlasticTestConn() {
-   // TODO Auto-generated destructor stub
 }
 
 } /* namespace PV */

@@ -102,9 +102,8 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       HyPerConn * targetConn = hc->getConnFromName(targetConnName);
       if( targetConn ) {
          const char * filename = params->stringValue(name, "probeOutputFile");
-         addedProbe = new PlasticConnTestProbe(name, filename, hc, kernelIndex, arborID);
+         addedProbe = new PlasticConnTestProbe(name, filename, targetConn, kernelIndex, arborID);
          if( checknewobject((void *) addedProbe, keyword, name, hc) == PV_SUCCESS ) {
-            targetConn->insertProbe(addedProbe);
          }
       }
       else {
