@@ -36,7 +36,7 @@
 									<listOptionValue builtIn="false" value="pv"/>
 									<listOptionValue builtIn="false" value="gdal"/>
 								</option>
-								<option id="macosx.cpp.link.option.flags.1815373073" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework OpenCL" valueType="string"/>
+								<option id="macosx.cpp.link.option.flags.1815373073" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.1761813918" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
