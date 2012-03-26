@@ -32,7 +32,7 @@
 								<option id="macosx.cpp.link.option.paths.1516321056" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/lib}&quot;"/>
 								</option>
-								<option id="macosx.cpp.link.option.flags.596542630" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework OpenCL" valueType="string"/>
+								<option id="macosx.cpp.link.option.flags.596542630" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.903922767" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
