@@ -89,6 +89,7 @@ int HyPerLayer::initialize_base() {
    this->marginIndices = NULL;
    this->numMargin = 0;
 #ifdef PV_USE_OPENCL
+   this->krUpdate = NULL;
    this->clV = NULL;
    this->clGSyn = NULL;
    this->clActivity = NULL;
