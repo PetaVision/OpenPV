@@ -90,7 +90,6 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    // in order to eliminate generalize self-interactions
    // note that during learning, per and post may be separate instantiations
    bool self_flag = conn->getSelfFlag();
-
    pvdata_t * a_post_mask = NULL;
    const int a_post_size = conn->fPatchSize() * conn->xPatchSize() * conn->yPatchSize();
    a_post_mask = (pvdata_t *) calloc(a_post_size, sizeof(pvdata_t));
@@ -176,7 +175,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          //initialize a_post_tmp
-         if (~self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
+         if (self_flag) {  // otherwise, a_post_mask is not modified and thus doesn't have to be updated
             for (int k_post = 0; k_post < a_post_size; k_post++) {
                a_post_mask[k_post] = 1;
             }
@@ -217,14 +216,11 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
             // remove self-interactions if pre == post
-            if (~self_flag){
+            if (self_flag){
                a_post_mask[kArbor] = 0;
             }
          } // iProd
 
-         // receive weights input from clique (mostly copied from superclass method)
-         // PVAxonalArbor * arbor = conn->axonalArbor(kPreExt, arborNdx);
-         // PVPatch * GSyn = arbor->data;
          PVPatch * w_patch = conn->getWeights(kPreExt, arborNdx);
 
          const pvdata_t * w_start = conn->get_wDataStart(arborNdx);
@@ -244,7 +240,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
             pvpatch_accumulate2(nkPost,
                   (float *) (conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
                   cliqueProd,
-                  (float *) (w_head + w_offset),// (w_patch->data + y * sywPatch),
+                  (float *) (w_head + w_offset + y * sywPatch),// (w_patch->data + y * sywPatch),
                   (float *) (a_post_mask + w_offset + y * sywPatch));
          }
 

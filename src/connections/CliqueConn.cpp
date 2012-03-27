@@ -231,23 +231,16 @@ int CliqueConn::update_dW(int arborId)
             if ((arborNdx < 0) || (arborNdx >= numCliques)){
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
-
             // remove self-interactions if pre == post
             if (self_flag){
                a_post_mask[kArbor] = 0;
             }
-
          } // iProd
 
-         // receive weights input from clique (mostly copied from superclass method)
-         // PVAxonalArbor * arbor = this->axonalArbor(kPreExt, arborNdx);
          PVPatch * wPatch = this->getWeights(kPreExt,arborNdx); // wPatches[arborNdx][kPreExt]; // arbor->plasticIncr;
          size_t postOffset = getAPostOffset(kPreExt, arborNdx);
          const float * aPost = &post->getLayerData()[postOffset];
 
-         // const pvdata_t * dWStart = this->get_dwDataStart(arborNdx);
-         // int kernelIndex = this->patchIndexToKernelIndex(kPreExt);
-         // const pvdata_t * dW_head = &(dWStart[a_post_size*kernelIndex]);
          size_t dW_offset = wPatch->offset; // dWPatch->data - dW_head;
          pvdata_t * dwData = get_dwData(arborNdx,kPreExt);
          // WARNING - assumes weight and GSyn patches from task same size
