@@ -31,7 +31,7 @@ int ConnFunctionProbe::initialize(const char * probename, const char * filename,
 int ConnFunctionProbe::outputState(float timef) {
    int status = PV_SUCCESS;
    if( status == PV_SUCCESS ) {
-      double energy = evaluate();
+      double energy = evaluate(timef);
       fprintf(getFilePtr(), "Time %f: Energy %f\n", timef, energy);
    }
    return status;

@@ -35,28 +35,28 @@ int ReciprocalEnergyProbe::initialize(const char * probename, const char * filen
    return status;
 }
 
-double ReciprocalEnergyProbe::evaluate() {
+double ReciprocalEnergyProbe::evaluate(float timef) {
    double energy = 0.0f;
+   float thisnfp = targetRecipConn->fPatchSize();
+   if( targetRecipConn->getReciprocalWgts() == NULL ) {
+      targetRecipConn->setReciprocalWgts(targetRecipConn->getReciprocalWgtsName());
+   }
+   float recipnfp = targetRecipConn->getReciprocalWgts()->fPatchSize();
    for( int arbor=0; arbor<targetRecipConn->numberOfAxonalArborLists(); arbor++) {
       for( int k=0; k<targetRecipConn->getNumDataPatches(); k++) {
-         PVPatch * p = targetRecipConn->getWeights(k, arbor); // getKernelPatch(arbor, k);
-         // const pvdata_t * wdata = p->data;
-         pvdata_t * wdata = targetRecipConn->get_wDataStart(arbor) + k*targetRecipConn->xPatchSize()*targetRecipConn->yPatchSize()*targetRecipConn->fPatchSize() + p->offset;
+         PVPatch * p = targetRecipConn->getWeights(k, arbor);
+         pvdata_t * wdata = targetRecipConn->get_wDataHead(arbor, k);
          short int nx = p->nx;
          short int ny = p->ny;
          for( int n=0; n<nx*ny*targetRecipConn->fPatchSize(); n++ ) {
             int f = featureIndex(n,nx,ny,targetRecipConn->fPatchSize());
-            ReciprocalConn * reciprocalWgts = targetRecipConn->getReciprocalWgts();
-            PVPatch * recipPatch = reciprocalWgts->getWeights(f,arbor);
-            pvdata_t * recipDataStart = reciprocalWgts->get_wDataStart(arbor);
-            const pvdata_t * recipwdata = recipDataStart+f*reciprocalWgts->xPatchSize()*reciprocalWgts->yPatchSize()*reciprocalWgts->fPatchSize()+recipPatch->offset;
-            // const pvdata_t * recipwdata = targetRecipConn->getReciprocalWgts()->getKernelPatch(arbor, f)->data;
-            double wgtdiff = targetRecipConn->getReciprocalFidelityCoeff()*(wdata[n] - ((double) targetRecipConn->fPatchSize())/((double) targetRecipConn->getReciprocalWgts()->fPatchSize())*recipwdata[k]);
+            const pvdata_t * recipwdata = targetRecipConn->getReciprocalWgts()->get_wDataHead(arbor, f);
+            double wgtdiff = (wdata[n]/thisnfp - recipwdata[k]/recipnfp);
             energy += wgtdiff*wgtdiff;
          }
       }
    }
-   energy *= 0.5;
+   energy *= targetRecipConn->getReciprocalFidelityCoeff()*0.5;
    return energy;
 }
 

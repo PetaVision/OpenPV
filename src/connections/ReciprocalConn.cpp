@@ -127,30 +127,31 @@ int ReciprocalConn::updateState(float timef, float dt) {
 }
 
 int ReciprocalConn::setReciprocalWgts(const char * recipName) {
-   int status;
-   if( reciprocalWgts ) {
-      fprintf(stderr, "ReciprocalConn \"%s\": setReciprocalWgts called with reciprocalWgts already set.\n", name);
+   int status = PV_SUCCESS;
+   if( status == PV_SUCCESS && recipName == NULL ) {
       status = PV_FAILURE;
-      abort();
+      fprintf(stderr, "ReciprocalConn \"%s\": setReciprocalWgts called with null argument.\n", name);
    }
-   else {
-      HyPerConn * c = parent->getConnFromName(recipName);
+
+   HyPerConn * c;
+   if( status == PV_SUCCESS ) {
+      c = parent->getConnFromName(recipName);
       if( c == NULL) {
          status = PV_FAILURE;
          fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts \"%s\" could not be found.\n", name, recipName);
       }
-      else {
-         status = PV_SUCCESS;
+   }
+   if( status == PV_SUCCESS && reciprocalWgts != NULL) {
+      if(c != reciprocalWgts) {
+         fprintf(stderr, "ReciprocalConn \"%s\": setReciprocalWgts called with reciprocalWgts already set.\n", name);
+         status = PV_FAILURE;
       }
    }
-   if( status == PV_SUCCESS ) {
+   if( status == PV_SUCCESS && reciprocalWgts == NULL ) {
       reciprocalWgts = dynamic_cast<ReciprocalConn *>(parent->getConnFromName(recipName));
       if( reciprocalWgts == NULL ) {
          fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts \"%s\" is not a ReciprocalConn.\n", name, recipName);
          status = PV_FAILURE;
-      }
-      else {
-         status = PV_SUCCESS;
       }
    }
    return status;
@@ -166,7 +167,6 @@ int ReciprocalConn::update_dW(int axonID) {
    const pvdata_t * slownesspostbuf = getSlownessFlag() ? slownessPost->getLayerData(delay) : NULL;
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
-   // int syw = syp;
    for(int kExt=0; kExt<nExt;kExt++) {
       PVPatch * weights = getWeights(kExt,axonID);
       size_t offset = getAPostOffset(kExt, axonID);

@@ -18,11 +18,11 @@ public:
    ConnFunctionProbe(const char * probename, const char * filename, HyPerConn * conn);
    virtual ~ConnFunctionProbe();
    virtual int outputState(float timef);
+   virtual double evaluate(float timef) {return 0.0f;}
 
 protected:
    ConnFunctionProbe();
    int initialize(const char * probename, const char * filename, HyPerConn * conn);
-   virtual double evaluate() {return 0.0f;}
 
 private:
    int initialize_base();

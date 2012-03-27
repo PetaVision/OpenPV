@@ -26,6 +26,7 @@ public:
    const HyPerLayer * getSlownessPre()        {return slownessPre;}
    const HyPerLayer * getSlownessPost()       {return slownessPost;}
    ReciprocalConn * getReciprocalWgts()       {return reciprocalWgts;}
+   const char * getReciprocalWgtsName()       {return reciprocalWgtsName;}
    float getReciprocalFidelityCoeff()         {return reciprocalFidelityCoeff;}
    bool getSlownessFlag()                     {return slownessFlag;}
    int setReciprocalWgts(const char * recipName);

@@ -71,6 +71,10 @@ pvdata_t GenColProbe::evaluate(float timef) {
       gencolprobelayerterm thisterm = layerTerms[n];
       sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(timef, thisterm.layer) );
    }
+   for( int n=0; n<numConnTerms; n++) {
+      gencolprobeconnterm thisterm = connTerms[n];
+      sum += thisterm.coeff*( (thisterm.function)->evaluate(timef) );
+   }
    return sum;
 }  // end GenColProbe::evaluate(float)
 

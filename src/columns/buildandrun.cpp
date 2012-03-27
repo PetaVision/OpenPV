@@ -984,10 +984,15 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          return NULL;
       }
       if( !indexmethod && !coordmethod ) {
-         fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
          return NULL;
       }
       const char * filename = params->stringValue(name, "probeOutputFile");
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
+      if( targetConn == NULL ) {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         return NULL;
+      }
       if( indexmethod ) {
          int kPre = params->value(name, "kPre");
          addedProbe = new PatchProbe(name, filename, targetConn, kPre, arborID);
@@ -1001,36 +1006,37 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       }
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
-/*
-      if( !errorFound ) {
-         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
-         if( parentcolprobe )
-         {
-            pvdata_t coeff = params->value(name, "coeff", 1);
-            parentcolprobe->addLayerTerm((LayerFunctionProbe *) addedProbe, targetlayer, coeff);
-         }
-      }
- */
    if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
       keywordMatched = true;
       const char * filename = params->stringValue(name, "probeOutputFile");
-      addedProbe = new ReciprocalEnergyProbe(name, filename, targetConn);
-      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
-      if( status != PV_SUCCESS ) {
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
+      if( targetConn == NULL ) {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         status = PV_FAILURE;
+      }
+      if( status == PV_SUCCESS ) {
+         addedProbe = new ReciprocalEnergyProbe(name, filename, targetConn);
+         status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+      }
+      if( status == PV_SUCCESS ) {
          ColProbe * colProbeFromParams = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
          if( colProbeFromParams != NULL ) {
-            GenColProbe * parentcolprobe = dynamic_cast<GenColProbe *>(getColProbeFromParameterGroup(name, hc, "parentGenColProbe"));
+            GenColProbe * parentcolprobe = dynamic_cast<GenColProbe *>(colProbeFromParams);
             if( parentcolprobe == NULL) {
                fprintf(stderr, "ReciprocalEnergyProbe \"%s\": parentGenColProbe \"%s\" is not a GenColProbe\n", name, parentcolprobe->getColProbeName());
+               status = PV_FAILURE;
+            }
+            else {
+               parentcolprobe->addConnTerm((ConnFunctionProbe *) addedProbe, targetConn, 1.0f);
+               // ReciprocalEnergyProbe uses reciprocalFidelityCoeff for the energy
+               // so I think a separate probe parameter for the coefficient won't be necessary.
             }
          }
       }
    }
    assert(keywordMatched);
-   if( status == PV_SUCCESS ) {
-      assert(targetConn != NULL);
-      assert(addedProbe);
-   }
+   assert( !(status == PV_SUCCESS && targetConn == NULL) );
+   assert( !(status == PV_SUCCESS && !addedProbe) );
    if( status != PV_SUCCESS ) {
       exit(EXIT_FAILURE);
    }

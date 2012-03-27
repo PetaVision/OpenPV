@@ -18,11 +18,11 @@ public:
    // public methods
    ReciprocalEnergyProbe(const char * probename, const char * filename, HyPerConn * conn);
    virtual ~ReciprocalEnergyProbe();
+   virtual double evaluate(float timef);
 
 protected:
    ReciprocalEnergyProbe();
    int initialize(const char * probename, const char * filename, HyPerConn * conn);
-   virtual double evaluate();
 
 private:
    int initialize_base();
