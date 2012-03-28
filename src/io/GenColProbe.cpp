@@ -27,6 +27,8 @@ GenColProbe::~GenColProbe() {
 int GenColProbe::initialize_base() {
    numLayerTerms = 0;
    layerTerms = NULL;
+   numConnTerms = 0;
+   connTerms = NULL;
 
    return PV_SUCCESS;
 }
