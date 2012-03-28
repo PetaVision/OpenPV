@@ -36,41 +36,11 @@ int LogLatWTAGenLayer::updateState(float timef, float dt, const PVLayerLoc * loc
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-//   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-//   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-//   pvdata_t * gSynAux = getChannelStart(gSynHead, CHANNEL_INHB, num_neurons);
    updateSparsityTermDeriv_LogLatWTAGenLayer(num_neurons, getLayerLoc()->nf, V, sparsitytermderivative);
    updateV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold); // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    return PV_SUCCESS;
 }
-
-//int LogLatWTAGenLayer::updateSparsityTermDerivative() {
-//   pvdata_t * V = getV();
-//   int nf = getLayerLoc()->nf;
-//   for( int k=0; k<getNumNeurons(); k+=nf) {
-//      // Assumes that stride in features is one.
-//      pvdata_t sumacrossfeatures = 0;
-//      for( int f=0; f<nf; f++ ) {
-//         sumacrossfeatures += V[k+f];
-//      }
-//      pvdata_t latWTAexpr = latWTAterm(V+k,nf); // a'*Lslash*a
-//      for( int f=0; f<nf; f++ ) {
-//         sparsitytermderivative[k+f] = 2*(sumacrossfeatures-V[k+f])/(1+latWTAexpr);
-//      }
-//   }
-//   return PV_SUCCESS;
-//}  // end of LogLatWTAGenLayer::updateSparsityTermDerivative()
-
-//pvdata_t LogLatWTAGenLayer::latWTAterm(pvdata_t * V, int nf) {
-//   pvdata_t z=0;
-//   for( int p=0; p<nf; p++) {
-//      for( int q=0; q<nf; q++) {
-//         if( p!=q ) z += V[p]*V[q];
-//      }
-//   }
-//    return z;
-//}  // end of LogLatWTAGenLayer::latWTAterm(pvdata_t *, int)
 
 }  // end of namespace PV block
