@@ -17,7 +17,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/list_canny/026/train_fileOfFilenames.txt";
+    imageListPath = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/list_canny2/026/train_fileOfFilenames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -70,7 +70,7 @@ ANNLayer "L1" = {
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
-    writeNonspikingActivity = 0;
+    writeNonspikingActivity = 1;
 
     Vrest = 0.0;
 
@@ -89,14 +89,14 @@ CliqueLayer "L1 Clique" = {
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
-    writeNonspikingActivity = 0;
+    writeNonspikingActivity = 1;
 
     Vrest = 0.0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.031250;
+    Vgain = 0.01625; //0.031250;
     Voffset = 0.0;
 };
 
@@ -110,14 +110,14 @@ CliqueLayer "L2 Clique" = {
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
-    writeNonspikingActivity = 0;
+    writeNonspikingActivity = 1;
 
     Vrest = 0.0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.0625;
+    Vgain = 0.03125; // 0.0625;
     Voffset = 0.0;
 };
 
@@ -127,7 +127,7 @@ CliqueLayer "L3 Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -137,7 +137,7 @@ CliqueLayer "L3 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.0625; 
+    Vgain = 0.03125; // 0.0625; 
     Voffset = 0.0;
 };
 
@@ -157,7 +157,7 @@ CliqueLayer "L4 Clique" = {
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 0.0625; 
+    Vgain = 0.03125; //0.0625; 
     Voffset = 0.0;
 };
 
@@ -289,27 +289,16 @@ IdentConn "L1 to L1 Clique Vertical" = {
     preLayerName = "L1";
     postLayerName = "L1 Clique";
     channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 8;
-    numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     weightInitType = "IdentWeight";
-    symmetrizeWeights = 0;
-    normalize = 0.0;
-
-    writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    stochasticReleaseFlag = false;
-    weightUpdatePeriod = 1.0;
 
     delay = 0;
 };
 
 
 
-CliqueApplyConn "L1 to L1 Clique Lateral" = {
+KernelConn "L1toL1CliqueLateral" = {
    preLayerName = "L1";
    postLayerName = "L1 Clique";
    channelCode = 1;
@@ -321,10 +310,11 @@ CliqueApplyConn "L1 to L1 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car/canny/w3";
+   useListOfArborFiles = true;
+   initWeightsFile = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/026/Car3/canny/w_Heli_Car_arbor.txt";
 
    strength = 1.0;
-   normalize = 1.0;
+   normalize = 0.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
@@ -343,7 +333,7 @@ CliqueApplyConn "L1 to L1 Clique Lateral" = {
 
 // L2 Clique
 
-IdentConn "L1 to L2 Clique Vertical" = {
+IdentConn "L1toL2CliqueVertical" = {
     preLayerName = "L1 Clique";
     postLayerName = "L2 Clique";
     channelCode = 0;
@@ -379,10 +369,11 @@ CliqueApplyConn "L1 to L2 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car2/canny/w6";
+   useListOfArborFiles = true;
+   initWeightsFile = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/026/Car3/canny/w_Heli_Car2_arbor.txt";
 
    strength = 1.0;
-   normalize = 1.0;
+   normalize = 0.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
@@ -435,10 +426,11 @@ CliqueApplyConn "L2 to L3 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny/w8";
+   useListOfArborFiles = true;
+   initWeightsFile = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/026/Car3/canny/w_Heli_Car3_arbor.txt";
 
    strength = 1.0;
-   normalize = 1.0;
+   normalize = 0.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
@@ -491,7 +483,8 @@ CliqueApplyConn "L3 to L4 Clique Lateral" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  // append "_a*_last.pvp" to filename in InitWeights::readWeights
-   initWeightsFile = "/home/garkenyon/workspace-indigo/Clique2/input/Heli/Car3/canny/w8";
+   useListOfArborFiles = true;
+   initWeightsFile = "/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge/activity/026/Car3/canny/w_Heli_Car3_arbor.txt";
 
    strength = 1.0;
    normalize = 1.0;
