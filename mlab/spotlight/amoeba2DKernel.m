@@ -1,4 +1,4 @@
-function [amoeba_info] = ...
+function [foreground_struct] = ...
       amoeba2DKernel(amoeba_struct)
 
 
@@ -53,12 +53,12 @@ function [amoeba_info] = ...
   outline_ndx = sub2ind(amoeba_struct.image_rect_size, fix(amoeba_outline_y), fix(amoeba_outline_x));
   amoeba2D_mask(outline_ndx) = 1;
   [amoeba2D_mask, amoeba2D_ndx] = bwfill(amoeba2D_mask, amoeba_center_col, amoeba_center_row, 4);
-  amoeba_info = struct;
-  amoeba_info.amoeba_struct = amoeba_struct;
-  amoeba_info.amoeba2D_mask = amoeba2D_mask;
-  amoeba_info.amoeba2D_ndx = amoeba2D_ndx;
-  amoeba_info.amoeba_outline_x = amoeba_outline_x;
-  amoeba_info.amoeba_outline_y = amoeba_outline_y;
+  foreground_struct = struct;
+  foreground_struct.foreground_mask = 128 * amoeba_struct.foreground_amp * amoeba2D_mask;
+  foreground_struct.foreground_ndx = amoeba2D_ndx;
+  foreground_struct.foreground_outline_x = amoeba_outline_x;
+  foreground_struct.foreground_outline_y = amoeba_outline_y;
+  foreground_struct.amoeba_struct = amoeba_struct;
 
 
 
