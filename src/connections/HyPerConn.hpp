@@ -382,8 +382,8 @@ public:
 
    static PVPatch ** createPatches(int nPatches, int nx, int ny)
    {
-      PVPatch ** patchpointers = (PVPatch**) malloc(nPatches*sizeof(PVPatch*));
-      PVPatch * patcharray = (PVPatch*) malloc(nPatches*sizeof(PVPatch));
+      PVPatch ** patchpointers = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
+      PVPatch * patcharray = (PVPatch*) calloc(nPatches, sizeof(PVPatch));
 
       PVPatch * curpatch = patcharray;
       for (int i = 0; i < nPatches; i++) {
