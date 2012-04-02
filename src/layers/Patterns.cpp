@@ -149,8 +149,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       else {
          patternsOutputPath = strdup( hc->getOutputPath());
          assert(patternsOutputPath != NULL);
-         printf("Movie output path is not specified in params file.\n"
-               "Movie output path set to default \"%s\"\n",patternsOutputPath);
+         printf("patternsOutputPath is not specified in params file.\n"
+               "Patterns output path set to default \"%s\"\n",patternsOutputPath);
       }
    }
    initPatternCntr=0;
