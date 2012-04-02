@@ -19,7 +19,7 @@ LogLatWTAProbe::LogLatWTAProbe(HyPerLayer * layer, const char * msg)
 LogLatWTAProbe::LogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg)
    : LayerFunctionProbe()
 {
-   function = new LogLatWTAFunction(msg);
+   initLogLatWTAProbe(filename, layer, msg);
 }
 
 LogLatWTAProbe::~LogLatWTAProbe() {
