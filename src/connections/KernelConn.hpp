@@ -26,7 +26,6 @@ public:
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL);
-   virtual int getNumDataPatches();
 
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
@@ -116,6 +115,7 @@ protected:
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
 #endif // OBSOLETE
+   int initNumDataPatches();
    virtual int initializeUpdateTime(PVParams * params);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
          int numPatches, const char * filename);
@@ -138,6 +138,7 @@ protected:
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);
 #endif // OBSOLETE
+   int getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip);
 
 private:
    int deleteWeights();

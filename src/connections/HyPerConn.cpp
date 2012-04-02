@@ -445,6 +445,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->name = strdup(name);
    assert(this->name != NULL);
 
+   initNumWeightPatches();
+   initNumDataPatches();
+
    PVParams * inputParams = parent->parameters();
    //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
    if(weightInit==NULL) {
@@ -496,6 +499,16 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif
 
    return status;
+}
+
+int HyPerConn::initNumWeightPatches() {
+   numWeightPatches = pre->getNumExtended();
+   return PV_SUCCESS;
+}
+
+int HyPerConn::initNumDataPatches() {
+   numDataPatches = getNumWeightPatches();
+   return PV_SUCCESS;
 }
 
 int HyPerConn::initPlasticityPatches()
@@ -1281,11 +1294,6 @@ int HyPerConn::updateWeights(int axonId)
    return 0;
 }
 
-int HyPerConn::getNumDataPatches()
-{
-   return getNumWeightPatches();
-}
-
 float HyPerConn::minWeight(int arborId)
 {
    const int num_data_patches = getNumDataPatches();
@@ -1316,19 +1324,6 @@ float HyPerConn::maxWeight(int arborId)
       }
    }
    return max_weight;
-}
-
-
-
-/**
- * returns the number of weight patches for the given neighbor
- * @param neighbor the id of the neighbor (0 for interior/self)
- */
-int HyPerConn::getNumWeightPatches()
-{
-   // for now there is just one axonal arbor
-   // extending to all neurons in extended layer
-   return pre->getNumExtended();
 }
 
 PVPatch * HyPerConn::getWeights(int k, int arbor)

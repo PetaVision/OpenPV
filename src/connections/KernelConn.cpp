@@ -131,65 +131,6 @@ int KernelConn::initPlasticityPatches() {
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  kernelPatches and dKernelPatches are no longer being used.
-int KernelConn::setWPatches(PVPatch ** patches, int arborId){
-   int status = HyPerConn::setWPatches(patches, arborId);
-   assert(status == 0);
-   assert(kernelPatches[arborId] == NULL);
-   kernelPatches[arborId] = tmpPatch;  // tmpPatch stores most recently allocated PVPatch**
-   tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
-   return PV_SUCCESS;
-}
-
-int KernelConn::setdWPatches(PVPatch ** patches, int arborId){
-   int status = HyPerConn::setdWPatches(patches, arborId);
-   assert(status == 0);
-   assert(dKernelPatches[arborId] == NULL);
-   dKernelPatches[arborId] = tmpPatch;  // tmpPatch stores most recently allocated PVPatch**
-   tmpPatch = NULL;  // assert(tmpPatch == NULL) before assigning tmpPatch;
-   return PV_SUCCESS;
-}
-#endif // OBSOLETE
-
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With patches storing offsets instead of pointers, no need for KernelConn to override.
-pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int axonId)
-{
-   //const int arbor = 0;
-   int numKernelPatches = getNumDataPatches();
-
-// allocate kernel (or dKernelPatches)
-   assert(tmpPatch == NULL);
-//   tmpPatch = (PVPatch**) calloc(sizeof(PVPatch*), numKernelPatches);
-   tmpPatch = (PVPatch**) calloc(numKernelPatches, sizeof(PVPatch*));
-   assert(tmpPatch != NULL);
-   //setKernelPatches(newKernelPatch, axonId);
-
-   pvdata_t * data_patches = pvpatches_new(tmpPatch, nxPatch, nyPatch, nfPatch, numKernelPatches);
-
-/*
-   for (int kernelIndex = 0; kernelIndex < numKernelPatches; kernelIndex++) {
-      //kernelPatches[axonId][kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      tmpPatch[kernelIndex] = pvpatch_inplace_new(nxPatch, nyPatch, nfPatch);
-      assert(tmpPatch[kernelIndex] != NULL );
-   }
-*/
-
-   // need to allocate PVPatch for each pre-synaptic cell to store patch dimensions because patches may be shrunken
-   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      patches[axonId][patchIndex] = pvpatch_new(nxPatch, nyPatch); // pvpatch_new(nxPatch, nyPatch, nfPatch);
-   }
-
-
-   for (int patchIndex = 0; patchIndex < nPatches; patchIndex++) {
-      int kernelIndex = this->patchIndexToKernelIndex(patchIndex);
-      patches[axonId][patchIndex]->data = tmpPatch[kernelIndex]->data;
-   }
-//   return patches[0]->data;
-   return data_patches;
-}
-#endif // OBSOLETE
-
 int KernelConn::initializeUpdateTime(PVParams * params) {
    if( plasticityFlag ) {
       float defaultUpdatePeriod = 1.f;
@@ -197,39 +138,6 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    }
    return PV_SUCCESS;
 }
-
-/*
-int KernelConn::shrinkPatches(int arborId) {
-   int numPatches = numDataPatches();
-   for (int kex = 0; kex < numPatches; kex++) {
-      HyPerConn::shrinkPatch(kernelIndexToPatchIndex(kex), arborId);
-   } // loop over pre-synaptic neurons
-
-   return 0;
-}
- */
-
-/*TODO  createWeights currently breaks in this subclass if called more than once,
- * fix interface by adding extra dataPatches argument to overloaded method
- * so asserts are unnecessary
- */
-/*
-PVPatch ** KernelConn::createWeights(PVPatch ** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int axonId)
-{
-   //assert(numberOfAxonalArborLists() == 1);
-
-   assert(patches == NULL);
-
-   patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
-   assert(patches != NULL);
-
-   //assert(kernelPatches == NULL);
-   allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
-
-   return patches;
-}
-*/
 
 int KernelConn::deleteWeights()
 {
@@ -257,14 +165,14 @@ PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
    return patches;
 }
 
-int KernelConn::getNumDataPatches()
+int KernelConn::initNumDataPatches()
 {
    int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
          post->getXScale() - pre->getXScale()) : 1;
    int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
          post->getYScale() - pre->getYScale()) : 1;
-   int numKernelPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
-   return numKernelPatches;
+   numDataPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
+   return PV_SUCCESS;
 }
 
 float KernelConn::minWeight(int arborId)
@@ -307,12 +215,9 @@ int KernelConn::clear_dW(int axonId) {
    // zero dwDataStart
    for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
       for(int kKernel = 0; kKernel < getNumDataPatches(); kKernel++){
-         // PVPatch * kernelPatch = getWeights(kKernel, kAxon);
-         //PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         //assert(dKernelPatch->sy == kernelPatches[kAxon][kKernel]->sy);
-         int syPatch = syp; //dKernelPatch->sy;
+         int syPatch = syp;
          int nkPatch = nfp * nxp;
-         float * dWeights = get_dwDataHead(axonId,kKernel); // dKernelPatch->data;
+         float * dWeights = get_dwDataHead(axonId,kKernel);
          for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
@@ -340,9 +245,8 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonId));
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
-   // int syw = syp;
+
    for(int kExt=0; kExt<nExt;kExt++) {
-      // int kKernel = patchIndexToKernelIndex(kExt);
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preact = preactbuf[kExt];
@@ -365,9 +269,8 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      // PVPatch * kernelPatch = this->getWeights(kernelindex, axonId);
-      int numpatchitems = nxp*nyp*nfp; // kernelPatch->nx * kernelPatch->ny * nfp;
-      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex); // dKernelPatches[axonId][kernelindex]->data;
+      int numpatchitems = nxp*nyp*nfp;
+      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
@@ -434,26 +337,6 @@ int KernelConn::updateWeights(int axonId){
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
          get_wDataStart(kAxon)[k] += get_dwDataStart(kAxon)[k];
       }
-/*
-      for(int kKernel = 0; kKernel < this->getNumDataPatches(); kKernel++){
-         // PVPatch * kernelPatch = kernelPatches[kAxon][kKernel];
-         // PVPatch * dKernelPatch = dKernelPatches[kAxon][kKernel];
-         // PVPatch * kernelPatch = getWeights(kKernel, axonId);
-         int syPatch = syp;
-         int nkPatch = nfp * kernelPatch->nx;
-         int arborOffset = nxp*nyp*nfp*kKernel;
-         int kernelOffset = arborOffset + kernelPatch->offset;
-         pvdata_t * weights = this->get_wDataStart(kAxon)+kernelOffset; // kernelPatch->data;
-         pvdata_t * dWeights = this->get_dwDataStart(kAxon)+kernelOffset; // dKernelPatch->data;
-         for(int kyPatch = 0; kyPatch < kernelPatch->ny; kyPatch++){
-            for(int kPatch = 0; kPatch < nkPatch; kPatch++){
-               weights[kPatch] += dWeights[kPatch];
-            }
-            weights += syPatch;
-            dWeights += syPatch;
-         }
-      }
-*/
    }
    return PV_BREAK;
 }
@@ -479,23 +362,10 @@ int KernelConn::reduceKernels(const int axonID) {
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
 
-   //Now uses member variable mpiReductionBuffer
-   // pvdata_t * buf = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
-   // if(buf == NULL) {
-   //    fprintf(stderr, "KernelConn::reduceKernels:Unable to allocate memory\n");
-   //    exit(1);
-   // }
-
    // Copy this column's weights into mpiReductionBuffer
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      //PVPatch * p = kernelPatches[axonID][k];
-      //PVPatch * p = getWeights(k, axonID); // dKernelPatches[axonID][k];
-      const pvdata_t * data = get_dwDataHead(axonID,k); // p->data;
-
-      //const int sxp = p->sx;
-      //const int syp = p->sy;
-      //const int sfp = p->sf;
+      const pvdata_t * data = get_dwDataHead(axonID,k);
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
@@ -516,13 +386,7 @@ int KernelConn::reduceKernels(const int axonID) {
    // Divide by number of processes to get average and copy back to patches
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      //PVPatch * p = kernelPatches[axonID][k];
-      //PVPatch * p = this->getWeights(k, axonID);// dKernelPatches[axonID][k];
       pvdata_t * data = get_dwDataHead(axonID,k); // p->data;
-
-      //const int sxp = p->sx;
-      //const int syp = p->sy;
-      //const int sfp = p->sf;
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
@@ -534,7 +398,6 @@ int KernelConn::reduceKernels(const int axonID) {
       }
    }
 
-   // free(buf);
    return PV_SUCCESS;
 }
 #endif // PV_USE_MPI
@@ -553,44 +416,7 @@ void KernelConn::initPatchToDataLUT() {
 int KernelConn::patchToDataLUT(int patchIndex) {
    // This uses a look-up table
    return patch2datalookuptable[patchIndex];
-   //return patchIndexToDataIndex(patchIndex, NULL, NULL, NULL);
-   // return patchIndexToKernelIndex(patchIndex);
 }
-
-
-//int KernelConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
-//{
-//   int status = PV_BREAK;
-//   const int num_kernels = getNumDataPatches();
-//   for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-//      double sumAll = 0.0f;
-//      double sum2All = 0.0f;
-//      float maxAll = 0.0f;
-//      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-//         double sum, sum2;
-//         float maxVal;
-//         // PVPatch * p = patches[kPatch];
-//         status = sumWeights(nxp, nyp, 0, dataStart[kArbor] + kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
-//         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-//         sumAll += sum;
-//         sum2All += sum2;
-//         maxAll = maxVal > maxAll ? maxVal : maxAll;
-//      } // kArbor
-//      int num_weights = nxp * nyp * nfp * numberOfAxonalArborLists();
-//      float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
-//      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-//         if( sumAll != 0 || sigma2 != 0 ) {
-//            status = checkNormalizeWeights(sumAll, sigma2, maxAll);
-//            assert(status == PV_SUCCESS );
-//         }
-//         else {
-//            fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n", name, kArbor, kPatch);
-//         }
-//      }
-//   }
-//   return PV_BREAK;
-//} // checkNormalizeArbor
-
 
 int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
@@ -647,13 +473,6 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
       printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    assert(pre->clayer->loc.nf==post->clayer->loc.nf);
 
-   // PVPatch ** symPatches;
-   // symPatches = (PVPatch**) calloc(sizeof(PVPatch*), numPatches);
-   // assert(symPatches != NULL);
-   // for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-   //    symPatches[iKernel] = pvpatch_new(nxp, nyp); // pvpatch_inplace_new(nxp, nyp, nfp);
-   //    assert(symPatches[iKernel] != NULL );
-   // }
    pvdata_t * symPatches = (pvdata_t *) calloc(nxp*nyp*nfp*numPatches, sizeof(pvdata_t));
    assert(symPatches != NULL);
 
@@ -663,8 +482,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
    const int kyMid = nyp / 2;
    const int kxMid = nxp / 2;
    for (int iSymKernel = 0; iSymKernel < numPatches; iSymKernel++) {
-      // PVPatch * symWp = symPatches[iSymKernel];
-      pvdata_t * symW = symPatches + iSymKernel*nxp*nyp*nfp; // symWp->data;
+      pvdata_t * symW = symPatches + iSymKernel*nxp*nyp*nfp;
       float symTheta = offsetTheta + iSymKernel * deltaTheta;
       for (int kySym = 0; kySym < nyp; kySym++) {
          float dySym = kySym - kyMid;
@@ -681,7 +499,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
                int iSymW = kfSym + nfp * kxSym + sy * kySym;
                for (int iKernel = 0; iKernel < nfp; iKernel++) {
                   // PVPatch * kerWp = getKernelPatch(arborId, iKernel);
-                  pvdata_t * kerW = get_wDataStart(arborId) + iKernel*nxp*nyp*nfp; // kerWp->data;
+                  pvdata_t * kerW = get_wDataStart(arborId) + iKernel*nxp*nyp*nfp;
                   int kfRot = iKernel + kDf;
                   if (kfRot < 0) {
                      kfRot = nfp + kfRot;
@@ -706,18 +524,13 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
    } // iKernel
    const int num_weights = nfp * nxp * nyp;
    for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      // PVPatch * kerWp = kernelPatches[arborId][iKernel];
-      pvdata_t * kerW = get_wDataStart(arborId)+iKernel*nxp*nyp*nfp;// kerWp->data;
-      // PVPatch * symWp = symPatches[iKernel];
-      pvdata_t * symW = symPatches + iKernel*nxp*nyp*nfp;// symWp->data;
+      pvdata_t * kerW = get_wDataStart(arborId)+iKernel*nxp*nyp*nfp;
+      pvdata_t * symW = symPatches + iKernel*nxp*nyp*nfp;
       for (int iW = 0; iW < num_weights; iW++) {
          kerW[iW] = symW[iW];
       }
    } // iKernel
 
-   // for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-   //    pvpatch_inplace_delete(symPatches[iKernel]);
-   // } // iKernel
    free(symPatches);
 
    printf("Exiting KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
@@ -766,101 +579,6 @@ int KernelConn::checkpointWrite() {
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 
-#ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
-// one to many mapping, chose first patch index in restricted space
-// kernelIndex for unit cell
-// patchIndex in extended space
-int KernelConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
-      int * kyPatchIndex, int * kfPatchIndex)
-{
-   int patchIndex;
-   // get size of kernel PV cube
-   int nxKernel_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
-         post->getXScale() - pre->getXScale()) : 1;
-   int nyKernel_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
-         post->getYScale() - pre->getYScale()) : 1;
-   int nfKernel_tmp = pre->getLayerLoc()->nf;
-   int kxPreExtended = kxPos(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp) + pre->getLayerLoc()->nb;
-   int kyPreExtended = kyPos(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp) + pre->getLayerLoc()->nb;
-   int kfPre = featureIndex(kernelIndex, nxKernel_tmp, nyKernel_tmp, nfKernel_tmp);
-   int nxPreExtended = pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb;
-   int nyPreExtended = pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb;
-   patchIndex = kIndex(kxPreExtended, kyPreExtended, kfPre, nxPreExtended, nyPreExtended, nfKernel_tmp);
-   if (kxPatchIndex != NULL){
-      *kxPatchIndex = kxPreExtended;
-   }
-   if (kyPatchIndex != NULL){
-      *kyPatchIndex = kyPreExtended;
-   }
-   if (kfPatchIndex != NULL){
-      *kfPatchIndex = kfPre;
-   }
-   return patchIndex;
-}
-#endif // OBSOLETE
-
-// many to one mapping from weight patches to kernels
-// patchIndex always in extended space
-// kernelIndex always for unit cell
-/*
-int KernelConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
-      int * kyKernelIndex, int * kfKernelIndex)
-{
-   int kernelIndex;
-   int nxPreExtended = pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb;
-   int nyPreExtended = pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb;
-   int nfPre = pre->getLayerLoc()->nf;
-   int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
-   int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
-
-   // check that patchIndex lay within margins
-   assert(kxPreExtended >= 0);
-   assert(kyPreExtended >= 0);
-   assert(kxPreExtended < nxPreExtended);
-   assert(kyPreExtended < nyPreExtended);
-
-   // convert from extended to restricted space (in local HyPerCol coordinates)
-   int kxPreRestricted;
-   kxPreRestricted = kxPreExtended - pre->getLayerLoc()->nb;
-   while(kxPreRestricted < 0){
-      kxPreRestricted += pre->getLayerLoc()->nx;
-   }
-   while(kxPreRestricted >= pre->getLayerLoc()->nx){
-      kxPreRestricted -= pre->getLayerLoc()->nx;
-   }
-
-   int kyPreRestricted;
-   kyPreRestricted = kyPreExtended - pre->getLayerLoc()->nb;
-   while(kyPreRestricted < 0){
-      kyPreRestricted += pre->getLayerLoc()->ny;
-   }
-   while(kyPreRestricted >= pre->getLayerLoc()->ny){
-      kyPreRestricted -= pre->getLayerLoc()->ny;
-   }
-
-   int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
-
-   int nxKernel_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
-         post->getXScale() - pre->getXScale()) : 1;
-   int nyKernel_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
-         post->getYScale() - pre->getYScale()) : 1;
-   int kxKernel = kxPreRestricted % nxKernel_tmp;
-   int kyKernel = kyPreRestricted % nyKernel_tmp;
-
-   kernelIndex = kIndex(kxKernel, kyKernel, kfPre, nxKernel_tmp, nyKernel_tmp, nfPre);
-   if (kxKernelIndex != NULL){
-      *kxKernelIndex = kxKernel;
-   }
-   if (kyKernelIndex != NULL){
-      *kyKernelIndex = kyKernel;
-   }
-   if (kfKernelIndex != NULL){
-      *kfKernelIndex = kfPre;
-   }
-   return kernelIndex;
-}
-*/
-
 int KernelConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
    return calcUnitCellIndex(patchIndex, kx, ky, kf);
 }
@@ -874,6 +592,38 @@ int KernelConn::dataIndexToUnitCellIndex(int dataIndex, int * kx/*default=NULL*/
    if(ky) *ky = kyPos(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
    if(kf) *kf = featureIndex(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
    return dataIndex;
+}
+
+int KernelConn::getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip) {
+   int status = PV_SUCCESS;
+
+   assert( kx>=0 && kx<nxp && ky>=0 && ky<nyp && kf>=0 && kf<nfp && kernelidx>=0 && kernelidx<getNumDataPatches());
+   if( status == PV_SUCCESS ) {
+      int nxUnitCell = zUnitCellSize(pre->getXScale(), post->getXScale());
+      int nyUnitCell = zUnitCellSize(pre->getYScale(), post->getYScale());
+      int nfUnitCell = pre->getLayerLoc()->nf;
+
+      int nxUnitCellRecip = zUnitCellSize(post->getXScale(), pre->getXScale());
+      int nyUnitCellRecip = zUnitCellSize(post->getYScale(), pre->getYScale());
+      int nfUnitCellRecip = post->getLayerLoc()->nf;
+
+      double xScaleFactor = pow(2,pre->getXScale()-post->getXScale()); // many-to-one connections have xScaleFactor<1; one-to-many, >1.
+      double yScaleFactor = pow(2,pre->getYScale()-post->getYScale());
+
+      int kxKern = kxPos(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+      int kyKern = kyPos(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+      int kfKern = featureIndex(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+
+      int xInPostCell = kx % nxUnitCellRecip;
+      int yInPostCell = ky % nyUnitCellRecip;
+
+      *kxRecip = (int) ((nxp-1-kx)/xScaleFactor) + kxKern;
+      *kyRecip = (int) ((nyp-1-ky)/yScaleFactor) + kyKern;
+      *kfRecip = kfKern;
+      *kernelidxRecip = kIndex(xInPostCell, yInPostCell, kf, nxUnitCellRecip, nyUnitCellRecip, nfUnitCellRecip);
+   }
+
+   return status;
 }
 
 

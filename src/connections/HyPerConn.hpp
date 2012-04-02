@@ -145,8 +145,8 @@ public:
    inline pvdata_t * getWPostData(int arbor, int patchIndex) {return &wPostDataStart[arbor][patchIndex*nxpPost*nypPost*nfpPost]+wPostPatches[arbor][patchIndex]->offset;}
    inline pvdata_t * getWPostData(int arbor) {return wPostDataStart[arbor];}
 
-   virtual int getNumWeightPatches();
-   virtual int getNumDataPatches();
+   int getNumWeightPatches() {return numWeightPatches;}
+   int getNumDataPatches()   {return numDataPatches;}
    inline  int numberOfAxonalArborLists()            {return numAxonalArborLists;}
 
    inline pvdata_t * getGSynPatchStart(int kPre, int arborId) {return gSynPatchStart[arborId][kPre];}
@@ -203,6 +203,8 @@ protected:
    HyPerLayer     * pre;
    HyPerLayer     * post;
    HyPerCol       * parent;
+   int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
+   int numDataPatches;   // Number of blocks of pvdata_t's in buffer pointed to by wDataStart[arbor]
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
 private:
@@ -274,6 +276,9 @@ protected:
    InitWeights *weightInitializer;
 
 protected:
+   virtual int initNumWeightPatches();
+   virtual int initNumDataPatches();
+
    inline PVPatch *** get_wPatches() {return wPatches;} // protected so derived classes can use; public methods are weights(arbor) and getWeights(patchindex,arbor)
    inline void set_wPatches(PVPatch *** patches) {wPatches=patches;}
    inline pvdata_t *** getGSynPatchStart() {return gSynPatchStart;}
