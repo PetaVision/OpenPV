@@ -1,0 +1,83 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 50;
+    outputPath = "output/laterMTtest/";
+    progressStep=2000;
+    filenamesContainLayerNames=0;
+    checkpointRead=0;
+    checkpointWrite=0;
+};
+
+Patterns "Patterns" = {
+   //marginWidth = 2;
+   width = 4;
+   height = 4;
+   patternType = "SINEV";
+   orientation = "VERTICAL";
+   movementType = "MOVEFORWARD";
+   movementSpeed = -0.707106781186547;
+   //movementSpeed = -6.7863;
+   marginWidth = 0;
+
+	//rotation = -2.356194490192345;
+	//rotation = 0.785398163397448;
+	rotation = 0;
+
+	nxScale = 1;
+	nyScale = 1;
+	nf = 1;
+	writeStep = 1.0; 
+	mirrorBCflag = 0;
+	spikingFlag =  false; // (no quotes) is translated to 0
+	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   //writeStep = 1;
+   displayPeriod=1;
+   maxValue=1;
+   
+   restart=0;
+   offsetX=0;
+   offsetY=0;
+   patternsOutputPath="output/laterMTtest/vert_sinVdeg";
+   writePosition=0;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 37.5;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+//Image connections
+IdentConn "Patterns to Retina" = {
+    preLayerName = "Patterns";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
