@@ -3,6 +3,7 @@ clear all
 clc
 
 simpath='/Users/kpeterson/Documents/workspace/kris/output/normalizedV1s/';
+%simpath='/Users/kpeterson/Documents/editfiles/output/';
 
 %plot simpleA1:
 simpleA1File=[simpath, 'a3.pvp'];
@@ -10,10 +11,10 @@ simpleA1Mat=readpvpfile(simpleA1File);
 impulserespfouriertransform(simpleA1Mat, 'SimpleA1', 100, 0, pi/2)
 
 
-% simpleAFileName = [simpath, 'w2_last.pvp'];
-% simpleBFileName = [simpath, 'w3_last.pvp'];
-% simpleCFileName = [simpath, 'w4_last.pvp'];
-% plotWeightsNew(simpleAFileName, simpleBFileName, simpleCFileName)
+simpleAFileName = [simpath, 'w2_last.pvp'];
+simpleBFileName = [simpath, 'w3_last.pvp'];
+simpleCFileName = [simpath, 'w4_last.pvp'];
+plotWeightsNew(simpleAFileName, simpleBFileName, simpleCFileName)
 
 %plot simpleB1:
 simpleB1File=[simpath, 'a4.pvp'];

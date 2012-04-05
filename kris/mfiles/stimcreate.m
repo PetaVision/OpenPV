@@ -13,7 +13,7 @@ cm_per_inch = 1/0.3937;
 %     end
 % end
 
-stripecnt=4;
+stripecnt=8;
 width=256/stripecnt;
 black=ones(256, width);
 white=zeros(256, width);
@@ -32,7 +32,8 @@ axis tight
 box on
 
 
-outputfile = '/Users/krispeterson/Documents/workspace/kris/input/1stvertlinedetectorplay/halfblacknwhite.png';
+%outputfile = '/Users/krispeterson/Documents/workspace/kris/input/1stvertlinedetectorplay/halfblacknwhite.png';
+outputfile = '/Users/kpeterson/Documents/presentations/ibmfigs/halfblacknwhite.png';
 imwrite(data, outputfile);
 
 

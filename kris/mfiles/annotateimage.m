@@ -1,26 +1,31 @@
-function annotateimage(inAct, outAct, rotation, rotinc, showframe, dnoff, mt0ff)
+function annotateimage(inAct, outAct, rotation, rotinc, showframe, dnoff, mt0ff, label, multiplier, fignum)
 
-xgridsize=30;
-ygridsize=40;
+xgridsize=4;
+ygridsize=4;
 
 
 [tsize, ysize, xsize]=size(inAct);
 picsize=max(ysize,xsize);
 
 
-figure; hold on;
+close(figure(fignum));
+figure(fignum); hold on;
+title(label);
 imagesc(squeeze(inAct(showframe+dnoff,:,:)));
 xlim([0 picsize])
 ylim([0 picsize])
+%axis equal;
+%axis tight;
 colormap(gray);
 axisHandle=get(gca);
 loc=axisHandle.Position;
 x0=loc(1);xpiclen=loc(3)-x0;picadjx=loc(3)/picsize;
 y0=loc(2);ypiclen=loc(4)-y0;picadjy=loc(4)/picsize;
-arrowlen=100*(xgridsize+ygridsize)/4;
+arrowlen=multiplier*(xgridsize+ygridsize)/4;
 %rotation=pi/4; %pi/4;
 
 maxMT=max(max(max(max(outAct))))
+%maxMT=5*10^19
 
 
 for(xx=[0:xsize/xgridsize-1])
