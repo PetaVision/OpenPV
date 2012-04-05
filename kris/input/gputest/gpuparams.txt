@@ -795,6 +795,9 @@ IdentConn "inputRetina to TestANNDVWGPU d2" = {
     delay = 0;
     initFromLastFlag = 0;
 };
+
+
+
 IdentConn "inputRetina to TestANNDVWOUTGPU p1" = {
     preLayerName = "inputRetina";
     postLayerName = "TestANNDVWOUTGPU";
