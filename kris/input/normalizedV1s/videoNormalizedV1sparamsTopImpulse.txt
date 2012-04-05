@@ -7,7 +7,7 @@ HyPerCol "column" = {
     //ny = 1920;
     dt = 1;
     randomSeed = 1;
-    numSteps = 50;
+    numSteps = 500;
     //outputPath = "/home/kpeterson/competitionwork/tower/output/";
     //outputPath = "/home/kpeterson/competitionwork/heli/output/";
     outputPath = "output/normalizedV1s/";
@@ -279,6 +279,5 @@ KernelConn "Retina to DownScaled" = {
    delay = 0;
 
 };
-
 
 
