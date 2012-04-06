@@ -332,7 +332,7 @@ return PV_SUCCESS;
 
 int KernelConn::updateWeights(int axonId){
    lastUpdateTime = parent->simulationTime();
-   // add dKernelPatches to KernelPatches
+   // add dw to w
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
          get_wDataStart(kAxon)[k] += get_dwDataStart(kAxon)[k];
