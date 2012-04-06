@@ -18,11 +18,16 @@
 // define for debug output
 #define DEBUG_PARSING
 
+#ifdef HAS_MAIN
+extern FILE* yyin;
+#endif HAS_MAIN
+
 /**
  * @yyin
  * @action_handler
+ * @paramBuffer
+ * @len
  */
-extern FILE* yyin;
 int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, size_t len);
 
 #ifdef HAS_MAIN
