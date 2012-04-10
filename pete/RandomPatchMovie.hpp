@@ -31,7 +31,7 @@ public:
 protected:
    RandomPatchMovie();
    int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
-   int readOffsets(PVParams * params);
+   int readOffsets();
    int retrieveRandomPatch();
    virtual bool updateImage(float time, float dt);
    char * getRandomFilename();

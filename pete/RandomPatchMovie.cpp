@@ -139,7 +139,7 @@ return PV_SUCCESS;
 RandomPatchMovie::~RandomPatchMovie() {
 }
 
-int RandomPatchMovie::readOffsets(PVParams * params) {
+int RandomPatchMovie::readOffsets() {
 	// offsets are generated randomly each time an image is produced.
 	offsetX = -1;
 	offsetY = -1;
