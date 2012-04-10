@@ -9,6 +9,7 @@
 #define RECIPROCALCONN_HPP_
 
 #include "KernelConn.hpp"
+#include "../utils/pv_random.h"
 
 namespace PV {
 
@@ -29,6 +30,8 @@ public:
    const char * getReciprocalWgtsName()       {return reciprocalWgtsName;}
    float getReciprocalFidelityCoeff()         {return reciprocalFidelityCoeff;}
    bool getSlownessFlag()                     {return slownessFlag;}
+   int getSizeUnitCellPost()                  {return sizeUnitCellPost;}
+
    int setReciprocalWgts(const char * recipName);
 
    virtual int updateState(float timef, float dt);
@@ -44,7 +47,10 @@ protected:
          HyPerLayer * defaultlayer=NULL);
    virtual int initNormalize();
    virtual int update_dW(int axonID);
+   virtual int updateWeights(int axonId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID);
+
+   pvdata_t * getSums()         {return sums;}
 
 private:
    // private methods
@@ -59,10 +65,17 @@ private:
    HyPerLayer * updateRulePost;
    const char * reciprocalWgtsName;
    ReciprocalConn * reciprocalWgts;
+   float relaxationRate; // The coefficient eta in dW = eta * dE/dW, measured in the same units as HyPerCol's dt
    float reciprocalFidelityCoeff;
    bool slownessFlag;
    HyPerLayer * slownessPre;
    HyPerLayer * slownessPost;
+   int nxUnitCellPost;
+   int nyUnitCellPost;
+   int nfUnitCellPost;
+   int sizeUnitCellPost;
+   pvdata_t * sums; // Used in normalizeWeights
+   pvdata_t normalizeNoiseLevel; // Used in normalizeWeights
 };
 
 } /* namespace PV */

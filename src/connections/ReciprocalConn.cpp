@@ -57,6 +57,8 @@ int ReciprocalConn::initialize_base() {
    reciprocalWgts = NULL;
    slownessPre = NULL;
    slownessPost = NULL;
+   sums = NULL;
+   normalizeNoiseLevel = 0.0;
    return PV_SUCCESS;
 }
 
@@ -66,7 +68,8 @@ int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
    int status = PV_SUCCESS;
    status = KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    PVParams * params = hc->parameters();
-   reciprocalFidelityCoeff = params->value(name, "reciprocalFidelityCoeff", 1);
+   relaxationRate = params->value(name, "relaxationRate", 1.0f);
+   reciprocalFidelityCoeff = params->value(name, "reciprocalFidelityCoeff", 1.0f);
 
    status = initParameterLayer("updateRulePre", &updateRulePre, pre) == PV_SUCCESS ? status : PV_FAILURE;
    status = initParameterLayer("updateRulePost", &updateRulePost, post) == PV_SUCCESS ? status : PV_FAILURE;
@@ -83,6 +86,7 @@ int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
       status = PV_FAILURE;
    }
    if( status != PV_SUCCESS ) abort();
+
    return status;
 }
 
@@ -111,8 +115,15 @@ int ReciprocalConn::initParameterLayer(const char * parametername, HyPerLayer **
 }
 
 int ReciprocalConn::initNormalize() {
-   // ReciprocalConn only normalizes by setting for each feature the sum across all kernels to unity.
-   // As of now there are no options for normalizing a ReciprocalConn
+   PVParams * params = parent->parameters();
+   normalizeNoiseLevel = params->value(name, "normalizeNoiseLevel", normalizeNoiseLevel);
+   nxUnitCellPost = zUnitCellSize(postSynapticLayer()->getXScale(), preSynapticLayer()->getXScale());
+   nyUnitCellPost = zUnitCellSize(postSynapticLayer()->getYScale(), preSynapticLayer()->getYScale());
+   nfUnitCellPost = fPatchSize();
+   sizeUnitCellPost = nxUnitCellPost*nyUnitCellPost*nfUnitCellPost;
+   sums = (pvdata_t *) malloc(sizeUnitCellPost*sizeof(pvdata_t));
+   if( sums == NULL ) abort();
+
    return PV_SUCCESS;
 }
 
@@ -201,13 +212,17 @@ int ReciprocalConn::update_dW(int axonID) {
    }
    if( reciprocalFidelityCoeff ) {
       for( int k=0; k<numKernelIndices; k++) {
-         const pvdata_t * wdata = get_wDataHead(axonID, k); // p->data;
+         const pvdata_t * wdata = get_wDataHead(axonID, k);
          pvdata_t * dwdata = get_dwDataHead(axonID, k);
-         for( int n=0; n<nxp*nyp*nfp; n++ ) {
-            int f = featureIndex(n,nxp,nyp,nfp);
-            const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, f);
-            dwdata[n] -= reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[k]/reciprocalWgts->fPatchSize());
-         }
+         int n=0;
+         for( int y=0; y<nyp; y++ ) { for( int x=0; x<nxp; x++) { for( int f=0; f<nfp; f++ ) {
+            int xRecip, yRecip, fRecip, kRecip;
+            getReciprocalWgtCoordinates(x, y, f, k, &xRecip, &yRecip, &fRecip, &kRecip);
+            const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, kRecip);
+            int nRecip = kIndex(xRecip, yRecip, fRecip, reciprocalWgts->xPatchSize(), reciprocalWgts->yPatchSize(), reciprocalWgts->fPatchSize());
+            dwdata[n] -= reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[nRecip]/reciprocalWgts->fPatchSize());
+            n++;
+         }}}
       }
    }
 
@@ -225,23 +240,56 @@ int ReciprocalConn::update_dW(int axonID) {
    lastUpdateTime = parent->simulationTime();
    return PV_SUCCESS;
 }
+
+int ReciprocalConn::updateWeights(int arborID) {
+   lastUpdateTime = parent->simulationTime();
+   // add dw to w
+      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         get_wDataStart(arborID)[k] += relaxationRate*parent->getDeltaTime()*get_dwDataStart(arborID)[k];
+      }
+   int status = PV_SUCCESS;
+   pvdata_t * arborstart = get_wDataStart(arborID);
+   for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+      if( arborstart[k] < 0 ) arborstart[k] = 0;
+   }
+   return status;
+}
+
 int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID) {
    assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
    int status = PV_SUCCESS;
    assert( numPatches == getNumDataPatches() );
-   for( int f=0; f<nfp; f++ ) {
-      pvdata_t sum = 0.0f;
-      for( int k=0; k<numPatches; k++ ) {
-         for( int m=0; m<nxp; m++ ) {
-            for( int n=0; n<nyp; n++) {
-               sum += dataStart[arborID][k*nxp*nyp*nfp+kIndex(m,n,f,nxp,nyp,nfp)];
+
+   if( normalizeNoiseLevel == 0.0f ) {
+      for( int k=0; k<sizeUnitCellPost; k++ ) sums[k] = 0;
+   }
+   else {
+      for( int k=0; k<sizeUnitCellPost; k++ ) sums[k] = normalizeNoiseLevel * pv_random_prob();
+   }
+
+   for( int kernel=0; kernel<numPatches; kernel++ ) {
+      pvdata_t * kernelData = &dataStart[arborID][kernel*nxp*nyp*nfp];
+      for( int y=0; y<yPatchSize(); y++ ) {
+         int yInCell = y % nyUnitCellPost;
+         for( int x=0; x<xPatchSize(); x++ ) {
+            int xInCell = x % nxUnitCellPost;
+            for( int f=0; f<fPatchSize(); f++ ) {
+               int idxInCell = kIndex(xInCell, yInCell, f, nxUnitCellPost, nyUnitCellPost, nfUnitCellPost);
+               sums[idxInCell] += kernelData[kIndex(x,y,f,nxp,nyp,nfp)];
             }
          }
       }
-      for( int k=0; k<numPatches; k++ ) {
-         for( int m=0; m<nxp; m++ ) {
-            for( int n=0; n<nyp; n++) {
-               dataStart[arborID][k*nxp*nyp*nfp+kIndex(m,n,f,nxp,nyp,nfp)] /= sum;
+   }
+
+   for( int kernel=0; kernel<numPatches; kernel++ ) {
+      pvdata_t * kernelData = &dataStart[arborID][kernel*nxp*nyp*nfp];
+      for( int y=0; y<yPatchSize(); y++ ) {
+         int yInCell = y % nyUnitCellPost;
+         for( int x=0; x<xPatchSize(); x++ ) {
+            int xInCell = x % nxUnitCellPost;
+            for( int f=0; f<fPatchSize(); f++ ) {
+               int idxInCell = kIndex(xInCell, yInCell, f, nxUnitCellPost, nyUnitCellPost, nfUnitCellPost);
+               kernelData[kIndex(x,y,f,nxp,nyp,nfp)] /= sums[idxInCell];
             }
          }
       }
@@ -250,6 +298,7 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, 
 }
 
 ReciprocalConn::~ReciprocalConn() {
+   free(sums); sums=NULL;
 }
 
 } /* namespace PV */
