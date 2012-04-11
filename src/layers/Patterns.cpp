@@ -333,9 +333,9 @@ int Patterns::generatePattern(float val)
 
             //sin of 2*pi*m/wavelength, where wavelength=2*width:
             if((type == SINEWAVE)||(type == SINEV))
-               data[ix * sx + iy * sy] = sinf(PI*m/float(wavelength));
+               data[ix * sx + iy * sy] = sin(PI*m/float(wavelength));
             else if((type == COSWAVE)||(type == COSV))
-               data[ix * sx + iy * sy] = cosf(PI*m/float(wavelength));
+               data[ix * sx + iy * sy] = cos(PI*m/float(wavelength));
 
          }
       }
