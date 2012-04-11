@@ -1,6 +1,7 @@
 function [connID, connIndex, num_arbors] = pvp_connectionID()
 
   global N_CONNECTIONS
+  global N_LAYERS
   global SPIKING_FLAG
   global TRAINING_FLAG
   global NUM_ARBORS
@@ -157,7 +158,7 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
 
   else % NON_SPIKING
     
-    N_CONNECTIONS = 15;
+    N_CONNECTIONS = 6;
     connID = cell(1,N_CONNECTIONS);
 
     ij_conn = ij_conn + 1;
@@ -185,7 +186,7 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     connIndex.l1_l1_distractor = ij_conn;
     connID{ 1, ij_conn } =  'L1ToL1Distractor';
     
-    
+    if N_LAYERS > 4
     N_CONNECTIONS = N_CONNECTIONS + 2;
     connID = [connID, cell(1,2)];
     
@@ -235,13 +236,15 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     
     
     connID = [connID, cell(1,1)];
+    endif
     
     num_arbors = repmat(1, [ 1, N_CONNECTIONS+1 ] );
     num_arbors(connIndex.l1_l1_target) = 1;
+    if N_LAYERS > 4
     num_arbors(connIndex.l2_l2_target) = 1;
     num_arbors(connIndex.l3_l3_target) = 1;
-    num_arbors(connIndex.l4_l4_target) = 1
-;
+    num_arbors(connIndex.l4_l4_target) = 1;
+    endif
     
     if TRAINING_FLAG == -1
       
