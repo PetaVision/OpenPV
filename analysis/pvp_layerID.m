@@ -5,7 +5,7 @@ global N_LAYERS
 global SPIKING_FLAG
 global TRAINING_FLAG
 global TOPDOWN_FLAG
-global G4_FLAG G6_FLAG
+global G2_FLAG G4_FLAG G6_FLAG 
 i_layer = 0;
 
 if ( SPIKING_FLAG == 1 )
@@ -89,49 +89,53 @@ else  % NON_SPIKING
     layerIndex.l1 = i_layer;
     layerID{ 1, i_layer } =  'L1';
     
-    N_LAYERS = N_LAYERS + 2;
-    layerID = [layerID, cell(1, 2)];
+    N_LAYERS = N_LAYERS + 1;
+    layerID = [layerID, cell(1, 1)];
         
     i_layer = i_layer + 1;
     layerIndex.l1_ODD = i_layer;
     layerID{ 1, i_layer } =  'L1_ODD';
-        
-    i_layer = i_layer + 1;
-    layerIndex.l2_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L2_ODD';
-        
-    N_LAYERS = N_LAYERS + 1;
-    layerID = [layerID, cell(1, 1)];
-            
-    i_layer = i_layer + 1;
-    layerIndex.l3_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L3_ODD';
-            
-    if G4_FLAG 
+    
+    if G2_FLAG
       N_LAYERS = N_LAYERS + 1;
       layerID = [layerID, cell(1, 1)];
-            
+        
       i_layer = i_layer + 1;
-      layerIndex.l4_ODD = i_layer;
-      layerID{ 1, i_layer } =  'L4_ODD';
-      if G6_FLAG 
+      layerIndex.l2_ODD = i_layer;
+      layerID{ 1, i_layer } =  'L2_ODD';
+      
+      N_LAYERS = N_LAYERS + 1;
+      layerID = [layerID, cell(1, 1)];
+      
+      i_layer = i_layer + 1;
+      layerIndex.l3_ODD = i_layer;
+      layerID{ 1, i_layer } =  'L3_ODD';
+      
+      if G4_FLAG 
 	N_LAYERS = N_LAYERS + 1;
 	layerID = [layerID, cell(1, 1)];
-            
+        
 	i_layer = i_layer + 1;
-	layerIndex.l5_ODD = i_layer;
-	layerID{ 1, i_layer } =  'L5_ODD';
- 
-	N_LAYERS = N_LAYERS + 1;
-	layerID = [layerID, cell(1, 1)];
+	layerIndex.l4_ODD = i_layer;
+	layerID{ 1, i_layer } =  'L4_ODD';
+	if G6_FLAG 
+	  N_LAYERS = N_LAYERS + 1;
+	  layerID = [layerID, cell(1, 1)];
             
-	i_layer = i_layer + 1;
-	layerIndex.l6_ODD = i_layer;
-	layerID{ 1, i_layer } =  'L6_ODD';
+	  i_layer = i_layer + 1;
+	  layerIndex.l5_ODD = i_layer;
+	  layerID{ 1, i_layer } =  'L5_ODD';
+	  
+	  N_LAYERS = N_LAYERS + 1;
+	  layerID = [layerID, cell(1, 1)];
+          
+	  i_layer = i_layer + 1;
+	  layerIndex.l6_ODD = i_layer;
+	  layerID{ 1, i_layer } =  'L6_ODD';
+	endif
       endif
     endif
-
-
+    
     if TOPDOWN_FLAG
       
       N_LAYERS = N_LAYERS + 3 + G4_FLAG;
