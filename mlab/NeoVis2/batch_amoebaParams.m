@@ -1,4 +1,5 @@
 
+
 object_type = {"2FC"; "4FC"; "6FC"; "8FC"};
 clip_name = cell(3,1);
 clip_name{1} = "a";
@@ -29,10 +30,10 @@ pvp_clique_path = ...
 
 DATASET_ID = "noamoeba"; %%"Heli"; %% "Tower"; %% "Tailwind"; %% 
 dataset_id = tolower(DATASET_ID); %% 
-FLAVOR_ID = "3way"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
+FLAVOR_ID = "33x33"; %%"3way"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
 flavor_id = tolower(FLAVOR_ID); %% 
 pvp_repo_path = ...
-    [filesep, "mnt", filesep, "data1", filesep];
+    [filesep, "mnt", filesep, "data", filesep];
 pvp_program_path = ...
     [pvp_repo_path, "PetaVision", filesep, ...
      DATASET_ID, filesep, ...

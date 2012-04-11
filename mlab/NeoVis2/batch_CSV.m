@@ -1,6 +1,6 @@
-clip_ids = [27:50]; %% [7:17,21:22,30:31]; %%
+clip_ids = [1:50]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
-for i_clip = 1 : length(clip_name)                                                                                                                
+for i_clip = 1 : length(clip_name)                                                                                         
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
 endfor
 
@@ -8,9 +8,9 @@ home_path = ...
     [filesep, "home", filesep, "garkenyon", filesep];
 NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %% 
 neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
-NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Training"; %%  "Formative"; %% 
+NEOVISION_DISTRIBUTION_ID = "Training"; %% "Challenge"; %%  "Formative"; %% 
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
-repo_path = [filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
+repo_path = [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
 program_path = [repo_path, ...
 		"neovision-programs-petavision", filesep, ...
 		NEOVISION_DATASET_ID, filesep, ...
@@ -22,7 +22,7 @@ pvp_frame_offset = 1;
 num_ODD_kernels = 3;  %% 
 pvp_bootstrap_str = ""; %% "_bootstrap"; %%  
 pvp_bootstrap_level_str = ""; %% "1";
-pvp_version_str = "2"; %% ""; %%
+pvp_version_str = "0"; %% ""; %%
 clip_log_dir = [program_path, ...
 		"log", filesep, ObjectType, filesep];
 clip_log_pathname = [clip_log_dir, "log.txt"];
@@ -54,7 +54,7 @@ if exist(clip_log_pathname, "file")
   max_patch_size = clip_log_struct.max_cropped_size;
   min_patch_size = clip_log_struct.min_cropped_size;
 else
-  patch_size = [64, 64]; %%[128, 128];
+  patch_size = [256, 256]; %%[128, 128];
   std_patch_size = [0, 0];
   max_patch_size = patch_size;
   min_patch_size = patch_size;
@@ -65,15 +65,31 @@ pvp_layer = 7;  %%
 training_flag = 1;
 num_procs = 24;  %% 
 
+pvp_path_flag = false;
+canny_flag = false;
 for i_clip = 1 : length(clip_name)
   disp(clip_name{i_clip});
-
-  clip_path = [program_path, ...
-	       pvp_edge_filter, filesep, ...
-	       clip_name{i_clip}, filesep]; %% 
-  pvp_path = [program_path, "activity", filesep, ...
-	      clip_name{i_clip}, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, filesep, pvp_edge_filter, pvp_version_str, filesep];
   
+  if pvp_path_flag == false
+    pvp_path = [];
+  else 
+    pvp_path = ...
+	[program_path, "activity", filesep, ...
+	 clip_name{i_clip}, filesep, ObjectType, num2str(num_ODD_kernels), ...
+	 pvp_bootstrap_str, filesep, pvp_edge_filter, pvp_version_str, filesep];
+  endif
+
+  %% check if chips should be drawn from original images or from canny filtered clip
+  if canny_flag == false
+    clip_path = [repo_path, ...
+		"neovision-data-", ...
+		neovision_distribution_id, "-", neovision_dataset_id, filesep]; %% 		  
+  else
+    clip_path = [program_path, ...
+		 pvp_edge_filter, filesep, ...
+		 clip_name{i_clip}, filesep]; %% 
+  endif
+
   [num_frames, ...
    tot_frames, ...
    nnz_frames, ...

@@ -202,34 +202,36 @@ function [num_frames, ...
   addpath(str_kernel_dir);
   
   global ODD_subdir
-  ODD_path = [program_path, "ODD", filesep]; 
-  mkdir(ODD_path);
-  ODD_clip_dir = [ODD_path, clip_name, filesep];
-  mkdir(ODD_clip_dir);
-  ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-  mkdir(ODD_dir);
-  ODD_subdir = [ODD_dir, pvp_edge_filter, pvp_version_str, filesep];
-  mkdir(ODD_subdir);
-  
-  ROC_path = [program_path, "ROC", filesep]; 
-  mkdir(ROC_path);
-  ROC_clip_dir = [ROC_path, clip_name, filesep];
-  mkdir(ROC_clip_dir);
-  ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-  mkdir(ROC_dir);
-  ROC_subdir = [ROC_dir, pvp_edge_filter, pvp_version_str, filesep];
-  mkdir(ROC_subdir);
+  if ~isempty(pvp_path)
+    ODD_path = [program_path, "ODD", filesep]; 
+    mkdir(ODD_path);
+    ODD_clip_dir = [ODD_path, clip_name, filesep];
+    mkdir(ODD_clip_dir);
+    ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+    mkdir(ODD_dir);
+    ODD_subdir = [ODD_dir, pvp_edge_filter, pvp_version_str, filesep];
+    mkdir(ODD_subdir);
+    
+    ROC_path = [program_path, "ROC", filesep]; 
+    mkdir(ROC_path);
+    ROC_clip_dir = [ROC_path, clip_name, filesep];
+    mkdir(ROC_clip_dir);
+    ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+    mkdir(ROC_dir);
+    ROC_subdir = [ROC_dir, pvp_edge_filter, pvp_version_str, filesep];
+    mkdir(ROC_subdir);
 
-  pvp_results_path = [program_path, "results", filesep];
-  mkdir(pvp_results_path);
-  pvp_results_dir = [pvp_results_path, clip_name, filesep];
-  mkdir(pvp_results_dir);
-  pvp_results_subdir0 = ...
-      [pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-  mkdir(pvp_results_subdir0);
-  pvp_results_subdir = ...
-      [pvp_results_subdir0, pvp_edge_filter, pvp_version_str, filesep];
-  mkdir(pvp_results_subdir);
+    pvp_results_path = [program_path, "results", filesep];
+    mkdir(pvp_results_path);
+    pvp_results_dir = [pvp_results_path, clip_name, filesep];
+    mkdir(pvp_results_dir);
+    pvp_results_subdir0 = ...
+	[pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+    mkdir(pvp_results_subdir0);
+    pvp_results_subdir = ...
+	[pvp_results_subdir0, pvp_edge_filter, pvp_version_str, filesep];
+    mkdir(pvp_results_subdir);
+  endif
 
   global target_bootstrap_dir
   global distractor_bootstrap_dir
@@ -351,18 +353,20 @@ function [num_frames, ...
   tot_frames = length(pvp_frame_offset : pvp_frame_skip : num_frames);
   disp(["tot_frames = ", num2str(tot_frames)]);
   
-  %% read pvp activity into cell array
-  [pvp_fid, ...
-   pvp_header, ...
-   pvp_index ] = ...
-      pvp_openActivityFile(pvp_path, pvp_layer);
-  [layerID] = neoVisLayerID(pvp_layer);
-  
   global NFEATURES NCOLS NROWS N
-  NCOLS = pvp_header(pvp_index.NX_GLOBAL);
-  NROWS = pvp_header(pvp_index.NY_GLOBAL);
-  NFEATURES = pvp_header(pvp_index.NF);
-  N = NFEATURES * NCOLS * NROWS;
+  if ~isempty(pvp_path)
+    %% read pvp activity into cell array
+    [pvp_fid, ...
+     pvp_header, ...
+     pvp_index ] = ...
+	pvp_openActivityFile(pvp_path, pvp_layer);
+    [layerID] = neoVisLayerID(pvp_layer);
+  
+    NCOLS = pvp_header(pvp_index.NX_GLOBAL);
+    NROWS = pvp_header(pvp_index.NY_GLOBAL);
+    NFEATURES = pvp_header(pvp_index.NF);
+    N = NFEATURES * NCOLS * NROWS;
+  endif
   
   pvp_time = zeros(tot_frames, 1);
   pvp_offset = zeros(tot_frames, 1);
@@ -371,31 +375,35 @@ function [num_frames, ...
   frame_pathnames = cell(tot_frames, 1);
   
   %%keyboard;
-  pvp_offset_tmp = 0;
-  i_frame = 0;
-  for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
-    i_frame = i_frame + 1;
-    pvp_frame = j_frame + pvp_layer - 1;
-    [pvp_time{i_frame},...
-     pvp_activity{i_frame}, ...
-     pvp_offset(i_frame)] = ...
-	pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
-    if pvp_offset(i_frame) == -1
-      break;
-      i_frame = i_frame - 1;
+  if ~isempty(pvp_path)
+    pvp_offset_tmp = 0;
+    i_frame = 0;
+    for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
+      i_frame = i_frame + 1;
+      pvp_frame = j_frame + pvp_layer - 1;
+      [pvp_time{i_frame},...
+       pvp_activity{i_frame}, ...
+       pvp_offset(i_frame)] = ...
+	  pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
+      if pvp_offset(i_frame) == -1
+	break;
+	i_frame = i_frame - 1;
+      endif
+      pvp_offset_tmp = pvp_offset(i_frame);
+      frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
+      disp(["i_frame = ", num2str(i_frame)]);
+      disp(["pvp_time = ", num2str(pvp_time{i_frame})]);
+      disp(["frame_ID = ", frame_pathnames{i_frame}]);
+      disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
+    endfor
+    fclose(pvp_fid);
+    nnz_frames = i_frame;
+    disp(["nnz_frames = ", num2str(nnz_frames)]);
+    if nnz_frames <= 0
+      return;
     endif
-    pvp_offset_tmp = pvp_offset(i_frame);
-    frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
-    disp(["i_frame = ", num2str(i_frame)]);
-    disp(["pvp_time = ", num2str(pvp_time{i_frame})]);
-    disp(["frame_ID = ", frame_pathnames{i_frame}]);
-    disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
-  endfor
-  fclose(pvp_fid);
-  nnz_frames = i_frame;
-  disp(["nnz_frames = ", num2str(nnz_frames)]);
-  if nnz_frames <= 0
-    return;
+  else
+    nnz_frames = num_frames;
   endif
 
   if num_procs > nnz_frames

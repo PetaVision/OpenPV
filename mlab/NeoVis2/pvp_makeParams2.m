@@ -56,13 +56,13 @@ function [pvp_params_file] = ...
   dataset_id = tolower(DATASET_ID); %% 
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("FLAVOR_ID") || isempty(FLAVOR_ID)
-    FLAVOR_ID = "3way"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
+    FLAVOR_ID = "33x33"; %% "3way"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
   endif
   flavor_id = tolower(FLAVOR_ID); %% 
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pvp_repo_path") || isempty(pvp_repo_path)
     pvp_repo_path = ...
-	[filesep, "mnt", filesep, "data1", filesep];
+	[filesep, "mnt", filesep, "data", filesep];
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pvp_program_path") || isempty(pvp_program_path)
@@ -80,7 +80,7 @@ function [pvp_params_file] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pvp_clip_name") || isempty(pvp_clip_name)
-    pvp_clip_name = "a"; %% "045"; %%
+    pvp_clip_name = "t"; %% "045"; %%
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("pvp_object_type") || isempty(pvp_object_type)
