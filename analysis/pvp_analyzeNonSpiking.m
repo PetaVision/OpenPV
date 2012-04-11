@@ -5,7 +5,7 @@ expNum = 1;
 				% set paths, may not be applicable to all octave installations
 %%pvp_matlabPath;
 
-plot_2AFC_flag = 0;
+plot_2AFC_flag = 1;
 plot_weights_flag = 1;
 
 setenv('GNUTERM', 'x11');
@@ -40,7 +40,8 @@ TOPDOWN_FLAG = 0;
 global TRAINING_FLAG
 TRAINING_FLAG = -1;
 
-global G4_FLAG G6_FLAG
+global G2_FLAG G4_FLAG G6_FLAG
+G2_FLAG = 1;
 G4_FLAG = 1;
 G6_FLAG = 0;
 
@@ -63,8 +64,8 @@ global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 51;
-num_trials = 0; %%  %% cannot exceed ~1024 for 256x256 image because
+num_single_trials = 20;
+num_trials = 625; %%  %% cannot exceed ~1024 for 256x256 image because
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -98,12 +99,14 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/Users/gkenyon/workspace-indigo/';
+    "/mnt/data/PetaVision/";
+%%    '/home/garkenyon/workspace-indigo/';
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "Clique2/input/amoeba/33x33/test"];
+    [machine_path, "amoeba/33x33/activity/6FC/target/001"];
+%%    [machine_path "Clique2/input/amoeba/3way/test"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
@@ -118,7 +121,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "Clique2/input/noamoeba/33x33/test"];
+    [machine_path, "noamoeba/33x33/activity/6FC/distractor/001"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
@@ -414,7 +417,16 @@ for j_trial = first_trial : skip_trial : last_trial
   reconstruct_count = reconstruct_count + 1;
   raw_hist_count = raw_hist_count + 1;
    
-  pvp_saveFigList( fig_list, OUTPUT_PATH, 'png');
+  if exist(target_path, "dir")
+    pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
+  elseif exist(distractor_path, "dir")
+    pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
+  endif
+  if exist(distractor_path, "dir")
+    pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
+  elseif exist(target_path, "dir")
+    pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
+  endif
   close all;
   fig_list = [];
 
@@ -641,22 +653,22 @@ if plot_weights_flag == 1
   write_pvp_kernel_flag = 0;
   write_mat_kernel_flag = 1;
   for i_conn = plot_weights
-    weights_filename = ['w', num2str(i_conn-1),'_last.pvp'];
-    weights_filename = [SPIKE_PATH, weights_filename];   
-    if ~exist(weights_filename,'file')
-      error(['~exist(weights_filename,''file'') in pvp file: ', weights_filename]);
-    endif
-    [pvp_conn_header{i_conn, 1}, pvp_index] = pvp_readWeightHeader(weights_filename);
-    if isempty(pvp_conn_header{i_conn, 1})
-      disp(['isempty(pvp_conn_header) in pvp file: ', weights_filename]);
-      return;
-    endif
-    num_arbors(i_conn) = pvp_conn_header{i_conn,1}(pvp_index.NUM_ARBORS);
-    NUM_ARBORS = num_arbors(i_conn);
     weight_min = 10000000.;
     weight_max = -10000000.;
     weight_ave = 0;
     if i_conn < N_CONNECTIONS+1
+      weights_filename = ['w', num2str(i_conn-1),'_last.pvp'];
+      weights_filename = [SPIKE_PATH, weights_filename];   
+      if ~exist(weights_filename,'file')
+	error(['~exist(weights_filename,''file'') in pvp file: ', weights_filename]);
+      endif
+      [pvp_conn_header{i_conn, 1}, pvp_index] = pvp_readWeightHeader(weights_filename);
+      if isempty(pvp_conn_header{i_conn, 1})
+	disp(['isempty(pvp_conn_header) in pvp file: ', weights_filename]);
+	return;
+      endif
+      num_arbors(i_conn) = pvp_conn_header{i_conn,1}(pvp_index.NUM_ARBORS);
+      NUM_ARBORS = num_arbors(i_conn);
       [weights_tmp, nxp_tmp, nyp_tmp, offset_tmp] ...
 	  = pvp_readWeights(weights_filename, pvp_conn_header{i_conn,1});
       num_patches = pvp_conn_header{i_conn,1}(pvp_index.WGT_NUMPATCHES);
@@ -782,6 +794,6 @@ if plot_weights_flag == 1
   FLAT_ARCHITECTURE = 0;
 
   pvp_saveFigList( fig_list, OUTPUT_PATH, 'jpg');
-  close all;
-  fig_list = [];
+  %%close all;
+  %%fig_list = [];
 endif
