@@ -132,8 +132,8 @@ protected:
 #ifdef PV_USE_MPI
    virtual int reduceKernels(int axonID);
 #endif // PV_USE_MPI
-   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
-                                     const char * filename);
+//   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
+//                                     const char * filename);
 #ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  kernelPatches and dKernelPatches are no longer being used.
    virtual int setWPatches(PVPatch ** patches, int arborId);
    virtual int setdWPatches(PVPatch ** patches, int arborId);

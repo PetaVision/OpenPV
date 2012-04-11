@@ -157,13 +157,13 @@ PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataS
    return arbors;
 }
 
-PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
-      const char * filename)
-{
-   //HyPerConn::readWeights(patches, numPatches, filename);
-
-   return patches;
-}
+//PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
+//      const char * filename)
+//{
+//   //HyPerConn::readWeights(patches, numPatches, filename);
+//
+//   return patches;
+//}
 
 int KernelConn::initNumDataPatches()
 {
