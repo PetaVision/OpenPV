@@ -36,6 +36,9 @@ public:
 
    virtual int updateState(float time, float dt);
 
+   virtual int writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
+         const char * filename, float timef, bool last){return PV_SUCCESS;};
+
 protected:
    virtual PVPatch *** initializeWeights(PVPatch *** patches, int numPatches,
             const char * filename);
