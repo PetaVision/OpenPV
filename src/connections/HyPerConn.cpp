@@ -540,8 +540,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
-   combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
-
+   if (plasticityFlag){
+      combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
+   }
    return 0;
 }
 
