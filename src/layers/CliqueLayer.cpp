@@ -271,7 +271,7 @@ int CliqueLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvda
    // Assumes that channels are contiguous in memory, i.e. GSyn[ch] = GSyn[0]+num_neurons*ch.  See allocateBuffers().
    pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
    pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-   pvdata_t * gSynInhB = getChannelStart(gSynHead, CHANNEL_INHB, num_neurons);
+   //pvdata_t * gSynInhB = getChannelStart(gSynHead, CHANNEL_INHB, num_neurons);
 // assume bottomUp input to gSynExc, target lateral input to gSynInh, distractor lateral input to gSynInhB
    for (int k = 0; k < num_neurons; k++) {
       V[k] = 0.0f;
@@ -280,11 +280,11 @@ int CliqueLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvda
          continue;
       }
       pvdata_t lateral_exc = gSynInh[k];
-      pvdata_t lateral_inh = gSynInhB[k];
+      //pvdata_t lateral_inh = gSynInhB[k];
       //pvdata_t lateral_denom = ((lateral_exc + fabs(lateral_inh)) > 0.0f) ? (lateral_exc + fabs(lateral_inh)) : 1.0f;
 
       //V[k] = bottomUp_input * (this->Voffset + this->Vgain * (lateral_exc - lateral_inh));
-      V[k] = bottomUp_input * (Voffset + Vgain * (lateral_exc - fabs(lateral_inh))); // / lateral_denom);
+      V[k] = bottomUp_input * (Voffset + Vgain * (lateral_exc)); // - fabs(lateral_inh))); // / lateral_denom);
    } // k
 
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
