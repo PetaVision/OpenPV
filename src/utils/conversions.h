@@ -498,6 +498,22 @@ static inline pvdata_t * getChannelStart(pvdata_t * gSynHead, enum ChannelType c
    return &gSynHead[num_neurons*((int) ch)];
 }
 
+static inline int rankFromRowAndColumn(int row, int column, int numRows, int numColumns) {
+   return (row >=0 && row < numRows && column >=0 && column < numColumns) ? row*numColumns + column : -1;
+}
+
+static inline int rowFromRank(int rank, int numRows, int numColumns) {
+   int row = rank / numColumns;
+   if( row < 0 || row >= numRows ) row = -1;
+   return row;
+}
+
+static inline int columnFromRank(int rank, int numRows, int numColumns) {
+   int col = rank % numColumns;
+   if( col < 0 || col >= numColumns) col = -1;
+   return col;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

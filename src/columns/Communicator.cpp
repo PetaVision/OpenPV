@@ -190,7 +190,7 @@ int Communicator::neighborInit()
  */
 int Communicator::commRow(int commId)
 {
-   return (int) commId / this->numCols;
+   return rowFromRank(commId, numRows, numCols); // (int) commId / this->numCols;
 }
 
 /**
@@ -198,7 +198,7 @@ int Communicator::commRow(int commId)
  */
 int Communicator::commColumn(int commId)
 {
-   return (commId - this->numCols * commRow(commId));
+   return columnFromRank(commId, numRows, numCols); // (commId - this->numCols * commRow(commId));
 }
 
 /**
