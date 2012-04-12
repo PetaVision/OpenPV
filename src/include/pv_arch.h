@@ -19,6 +19,9 @@
 /* maximum length of a path */
 #define PV_PATH_MAX 256 // 127  // imageNet uses long folder names
 
+/* Define to enable behavior convenient for parallel debugging */
+#undef PVP_DEBUG
+
 /* define if using pthreads */
 #undef PV_USE_PTHREADS
 

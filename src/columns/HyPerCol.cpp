@@ -111,6 +111,28 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 {
    icComm = new InterColComm(&argc, &argv);
    int rank = icComm->commRank();
+
+#ifdef PVP_DEBUG
+   bool reqrtn = false;
+   for(int arg=1; arg<argc; arg++) {
+      if( !strcmp(argv[arg], "--require-return")) {
+         reqrtn = true;
+         break;
+      }
+   }
+   if( reqrtn ) {
+      if( rank == 0 ) {
+         printf("Hit enter to begin! ");
+         fflush(stdout);
+         int charhit = -1;
+         while(charhit != '\n') {
+            charhit = getc(stdin);
+         }
+      }
+      MPI_Barrier(icComm->communicator());
+   }
+#endif
+;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
 
