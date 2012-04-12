@@ -49,7 +49,7 @@ int ImageCreator::initialize(const char * name, HyPerCol * hc) {
    const PVLayerLoc * loc = getLayerLoc();
    const int numItems = loc->nx * loc->ny * loc->nf;
 
-   drawBuffer = (unsigned char *) calloc(sizeof(unsigned char), numItems);
+   drawBuffer = (float *) calloc(sizeof(float), numItems);
    assert(drawBuffer != 0);
 
    return PV_SUCCESS;
@@ -186,7 +186,7 @@ int ImageCreator::createRandomImage()
 
    for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
-         drawBuffer[i + j * nx] = (unsigned char) (pv_random() % 2);
+         drawBuffer[i + j * nx] = (float) (pv_random() % 2);
       }
          //Fill in all pixels randomly
    }
@@ -483,7 +483,7 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
  */
 inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
 {
-   drawBuffer[i + j * getLayerLoc()->nx] = value;
+   drawBuffer[i + j * getLayerLoc()->nx] = (float) value;
 }
 
 /*
@@ -499,7 +499,7 @@ inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
  */
 inline void ImageCreator::mark(unsigned int i, int value)
 {
-   drawBuffer[i] = (unsigned char) value;
+   drawBuffer[i] = (float) value;
 }
 
 /*
@@ -512,7 +512,7 @@ inline void ImageCreator::mark(unsigned int i, int value)
  *
  * Return value: the value at (i, j) in the image.
  */
-inline unsigned char ImageCreator::getmark(unsigned int i, unsigned int j)
+inline float ImageCreator::getmark(unsigned int i, unsigned int j)
 {
    return drawBuffer[i + j * getLayerLoc()->nx];
 }

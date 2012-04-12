@@ -75,7 +75,7 @@ public:
 
    void mark(unsigned int i, unsigned int j, int value);
    void mark(unsigned int i, int value);
-   unsigned char getmark(unsigned int i, unsigned int j);
+   float getmark(unsigned int i, unsigned int j);
 
    virtual int writeImageToFile(const float time,
          const unsigned char options);
@@ -91,7 +91,7 @@ private:
    HyPerCol * hc;
    bool modified;
 
-   unsigned char * drawBuffer;
+   float * drawBuffer;
 
    int initialize_base();
    int writeImageToTxt(const char *filename);

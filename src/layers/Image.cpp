@@ -47,6 +47,11 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
       this->filename = strdup(filename);
       assert( this->filename != NULL );
       status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
+      if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
+         fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
+               name, filename, imageLoc.nf, getLayerLoc()->nf);
+         exit(PV_FAILURE);
+      }
    }
    else {
       this->filename = NULL;
@@ -163,7 +168,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY)
 
    const int n = loc->nx * loc->ny * imageLoc.nf;
    // Use number of bands in file instead of in params, to allow for grayscale conversion
-   unsigned char * buf = new unsigned char[n];
+   float * buf = new float[n];
    assert(buf != NULL);
 
    // read the image and scatter the local portions
@@ -229,7 +234,7 @@ int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
    return 0;
 }
 
-int Image::copyFromInteriorBuffer(unsigned char * buf, float fac)
+int Image::copyFromInteriorBuffer(float * buf, float fac)
 {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
@@ -283,7 +288,7 @@ int Image::toGrayScale()
 }
 #endif // OBSOLETE
 
-unsigned char * Image::convertToGrayScale(unsigned char * buf, int nx, int ny, int numBands)
+float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
 {
    // even though the numBands argument goes last, the routine assumes that
    // the organization of buf is, bands vary fastest, then x, then y.
@@ -296,7 +301,7 @@ unsigned char * Image::convertToGrayScale(unsigned char * buf, int nx, int ny, i
    const int sxgray = 1;
    const int sygray = nx;
 
-   unsigned char * graybuf = new unsigned char[nx*ny];
+   float * graybuf = new float[nx*ny];
 
    for (int j = 0; j < ny; j++) {
       for (int i = 0; i < nx; i++) {
@@ -305,7 +310,6 @@ unsigned char * Image::convertToGrayScale(unsigned char * buf, int nx, int ny, i
             float d = buf[i*sxcolor + j*sycolor + b*sb];
             val += d*d;
          }
-         // store the converted image in the first color band
          graybuf[i*sxgray + j*sygray] = (unsigned char) sqrtf(val/numBands);
       }
    }

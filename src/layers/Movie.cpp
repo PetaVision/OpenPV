@@ -162,7 +162,7 @@ PVLayerLoc Movie::getImageLoc()
 //   return clayer->loc;
    // imageLoc contains size information of the image file being loaded;
    // clayer->loc contains size information of the layer, which may
-   // be smaller than the whole image.  To get clayer->loc, use
+   // be smaller than the whole image.  To get information on the layer, use
    // getLayerLoc().  --pete 2011-07-10
 }
 
@@ -256,6 +256,9 @@ int Movie::outputState(float time, bool last)
    int status = PV_SUCCESS;
    if (randomMovie != 0) {
       status = writeActivitySparse(time);
+   }
+   else {
+      status = HyPerLayer::outputState(time, last);
    }
 
    return status;

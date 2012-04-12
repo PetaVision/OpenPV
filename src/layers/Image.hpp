@@ -51,12 +51,12 @@ public:
    int exchange();
 
    int toGrayScale();
-   static unsigned char * convertToGrayScale(unsigned char * buf, int nx, int ny, int numBands);
+   static float * convertToGrayScale(float * buf, int nx, int ny, int numBands);
 
    int  convolve(int width);
    // void setTau(float t)                { tau = t; }
 
-   int copyFromInteriorBuffer(unsigned char * buf, float fac);
+   int copyFromInteriorBuffer(float * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
 
    const char * getFilename() { return filename; }

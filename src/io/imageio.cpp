@@ -401,23 +401,11 @@ int gatherImageFileGDAL(const char * filename,
 #endif // DEBUG_OUTPUT
       }
 
-      // GDALRasterBand * band[maxBands];
-
       assert(numBands <= dataset->GetRasterCount()); // Since dataset was created using numBands, what is this assert testing for?
-
-      // GDALRasterBand ** band = (GDALRasterBand **) malloc( numBands * sizeof(GDALRasterBand *) );
-
-      // for (int b = 0; b < numBands; b++) {
-      //    band[b] = dataset->GetRasterBand(b+1);
-      // }
 
       // write local image portion
       dataset->RasterIO(GF_Write, 0, 0, nx, ny, buf, nx, ny, GDT_Byte,
                         numBands, NULL,numBands, numBands*nx, 1);
-      // for (int b = 0; b < numBands; b++) {
-      //    band[b]->RasterIO(GF_Write, 0, 0, nx, ny,
-      //                      &buf[b*nxny], nx, ny, GDT_Byte, 0, 0);
-      // }
 
 #ifdef PV_USE_MPI
       int src = -1;
@@ -437,11 +425,6 @@ int gatherImageFileGDAL(const char * filename,
             MPI_Recv(icBuf, nxnynf, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
             dataset->RasterIO(GF_Write, kx, ky, nx, ny, icBuf, nx, ny, GDT_Byte,
                               numBands, NULL, numBands, numBands*nx, 1);
-            // for (int b = 0; b < numBands; b++) {
-            //    MPI_Recv(icBuf, nxny, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-            //    band[b]->RasterIO(GF_Write, kx, ky, nx, ny,
-            //                      tmp, nx, ny, GDT_Byte, 0, 0);
-            // }
          }
       }
       free(icBuf);
@@ -457,20 +440,20 @@ int gatherImageFileGDAL(const char * filename,
 }
 
 int scatterImageFile(const char * filename, int xOffset, int yOffset,
-                     PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+                     PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
-      // TODO - add xOffset and yOffset parameters
-      return scatterImageFilePVP(filename, comm, loc, buf);
+      return scatterImageFilePVP(filename, xOffset, yOffset, comm, loc, buf);
    }
    return scatterImageFileGDAL(filename, xOffset, yOffset, comm, loc, buf);
 }
 
-int scatterImageFilePVP(const char * filename,
-                        PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
+                        PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
 {
+   // Read a PVP file and scatter it to the multiple processes.  Because of offsets and windowing,
+   // we cannot assume the pixels on process k in memory appear in process k in the file.
    int status = 0;
-   // const int maxBands = 3;
 
    const int icRank = comm->commRank();
 
@@ -478,18 +461,16 @@ int scatterImageFilePVP(const char * filename,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   // assert(numBands <= maxBands);
 
-   // const int nxny     = nx * ny;
    const int numItems = nx * ny * numBands;
+   const MPI_Comm mpi_comm = comm->communicator();
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
       const int src = 0;
       const int tag = PVP_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
 
-      MPI_Recv(buf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(buf, numItems, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d nf==%d numItems==%d\n",
@@ -499,7 +480,7 @@ int scatterImageFilePVP(const char * filename,
    }
    else {
       int params[NUM_PAR_BYTE_PARAMS];
-      int numParams, numRead, type, nxIn, nyIn, nfIn;
+      int numParams, type, nxIn, nyIn, nfIn;
 
       FILE * fp = pv_open_binary(filename, &numParams, &type, &nxIn, &nyIn, &nfIn);
       assert(fp != NULL);
@@ -512,38 +493,29 @@ int scatterImageFilePVP(const char * filename,
       const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
 
       const int numRecords = params[INDEX_NUM_RECORDS];
+      const size_t recordSize = params[INDEX_RECORD_SIZE];
       const int dataSize = params[INDEX_DATA_SIZE];
       const int dataType = params[INDEX_DATA_TYPE];
-      const int nxProcs  = params[INDEX_NX_PROCS];
-      const int nyProcs  = params[INDEX_NY_PROCS];
 
-      loc->nx       = params[INDEX_NX];
-      loc->ny       = params[INDEX_NY];
-      loc->nxGlobal = params[INDEX_NX_GLOBAL];
-      loc->nyGlobal = params[INDEX_NY_GLOBAL];
-      loc->kx0      = params[INDEX_KX0];
-      loc->ky0      = params[INDEX_KY0];
-      loc->nb       = params[INDEX_NB];
-      loc->nf       = params[INDEX_NF];
+      assert( (dataSize == 1 && dataType == PV_BYTE_TYPE) || (dataSize == sizeof(float) && dataType == PV_FLOAT_TYPE) );
 
-      assert(dataSize == 1);
-      assert(dataType == PV_BYTE_TYPE);
-      assert(nxProcs == comm->numCommColumns());
-      assert(nyProcs == comm->numCommRows());
-      assert(numRecords == comm->commSize());
-      // TODO when in MPI, reading a file should not depend
-      // on the number of processors being the same between
-      // reading and writing
+      char * filebuf = (char *) malloc(recordSize*numRecords*dataSize);
+      if(filebuf==NULL) abort();
+      fseek(fp, (long) headerSize, SEEK_SET);
+      size_t numRead = fread(filebuf, dataSize, recordSize*numRecords, fp);
+      if( numRead != recordSize*numRecords ) abort();
 
 #ifdef PV_USE_MPI
-      int dest = -1;
       const int tag = PVP_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
-      const int recordSize = numItems * sizeof(unsigned char);
 
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++dest == 0) continue;
+      int dest, destrow, destcol, startx, starty;
+      for( dest = 1; dest < comm->commSize(); dest++ ) {
+         // Do dest=0 after the others so that we can use buf to hold nonlocal portions
+         destrow = rowFromRank(dest, comm->numCommRows(), comm->numCommColumns());
+         destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
+         starty = yOffset + ny * destrow;
+         startx = xOffset + nx * destcol;
+         windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf);
 
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: scatter: sending to %d xSize==%d"
@@ -551,28 +523,63 @@ int scatterImageFilePVP(const char * filename,
                     comm->commRank(), dest, nx, ny, nx*ny,
                     nx*ny*comm->commSize());
 #endif // DEBUG_OUTPUT
-            long offset = headerSize + dest * recordSize;
-            fseek(fp, offset, SEEK_SET);
-            numRead = fread(buf, sizeof(unsigned char), numItems, fp);
-            assert(numRead == numItems);
-            MPI_Send(buf, numItems, MPI_BYTE, dest, tag, mpi_comm);
-         }
+         MPI_Send(buf, numItems, MPI_FLOAT, dest, tag, mpi_comm);
       }
 #endif // PV_USE_MPI
 
       // get local image portion
-      fseek(fp, (long) headerSize, SEEK_SET);
-      numRead = fread(buf, sizeof(unsigned char), numItems, fp);
-      assert(numRead == numItems);
+      dest = 0;
+      destrow = rowFromRank(dest, comm->numCommRows(), comm->numCommColumns());
+      destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
+      starty = yOffset + ny * destrow;
+      startx = xOffset + nx * destcol;
+      windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf);
 
+      free(filebuf);
       status = pv_close_binary(fp);
    }
 
    return status;
 }
 
+int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer) {
+   // Extracts a window from the data portion of a PVP file.
+   // The params from the PVP file should be in params[].  The data should already be loaded into pvpbuffer,
+   // with the bytes exactly as they appear in the file, not including the header.  The routine accounts for
+   // fragmentation of the window across MPI processes.
+   // The nx-by-ny portion beginning at row starty, column startx is loaded into destbuf.  If params[INDEX_DATA_TYPE]
+   // is byte, the data is converted to float as it is stored into destbuf.  All params[INDEX_NF] features are
+   // copied; there is no way to select individual features.
+   for( int y=0; y<ny; y++) {
+      for( int x=0; x<nx; x++) {
+         int idx_in_buf = kIndex(x, y, 0, nx, ny, params[INDEX_NF]);
+         int xProc = (startx + x)/params[INDEX_NX];
+         int yProc = (starty + y)/params[INDEX_NY];
+         int kProc = rankFromRowAndColumn(yProc, xProc, params[INDEX_NX_PROCS], params[INDEX_NY_PROCS]);
+         int idx_in_proc = kIndex(x + startx - xProc*params[INDEX_NX_PROCS],
+                                  y + starty - yProc*params[INDEX_NY_PROCS],
+                                  0,
+                                  params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL], params[INDEX_NF]);
+         long offset = kProc * params[INDEX_RECORD_SIZE] + idx_in_proc;
+         if( params[INDEX_DATA_TYPE] == PV_BYTE_TYPE ) {
+            char * filebufstart = &pvpbuffer[offset];
+            for( int f=0; f<params[INDEX_NF]; f++ ) {
+               destbuf[idx_in_buf+f] = (float) filebufstart[idx_in_proc+f];
+            }
+         }
+         else if( params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE ) {
+            float * filebufstart = (float *) pvpbuffer;
+            filebufstart = &filebufstart[offset];
+            memcpy(&destbuf[idx_in_buf], &filebufstart[idx_in_proc], sizeof(float)*params[INDEX_NF]);
+         }
+         else assert(0);
+      }
+   }
+   return PV_SUCCESS;
+}
+
 int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
 {
    int status = 0;
 
@@ -603,7 +610,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
-      MPI_Recv(buf, numTotal, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(buf, numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
       int nf=numTotal/(nx*ny);
       assert( nf*nx*ny == numTotal );
@@ -647,93 +654,31 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int dest = -1;
       const int tag = 13;
 
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++dest == 0) continue;
-            int kx = nx * px;
-            int ky = ny * py;
-            dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
-                              nx, ny, GDT_Byte, bandsInFile, NULL,
-                              bandsInFile, bandsInFile*nx, 1);
+      for( dest = 1; dest < nyProcs*nxProcs; dest++ ) {
+         int kx = nx * columnFromRank(dest, nyProcs, nxProcs);
+         int ky = ny * rowFromRank(dest, nyProcs, nxProcs);
+         dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
+                           nx, ny, GDT_Float32, bandsInFile, NULL,
+                           bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
-                    " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
-                    comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
-                    nx*ny*comm->commSize());
+fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+      " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
+      comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
+      nx*ny*comm->commSize());
 #endif // DEBUG_OUTPUT
-            MPI_Send(buf, numTotal, MPI_BYTE, dest, tag, mpi_comm);
-         }
+         MPI_Send(buf, numTotal, MPI_FLOAT, dest, tag, mpi_comm);
       }
 #endif // PV_USE_MPI
 
       // get local image portion
       dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
-                        GDT_Byte, bandsInFile, NULL, bandsInFile, bandsInFile*nx, 1);
+                        GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
       GDALClose(dataset);
    }
 #else
    fprintf(stderr, GDAL_CONFIG_ERR_STR);
    exit(1);
 #endif // PV_USE_GDAL
-
-   return status;
-}
-
-int scatterImageBlocks(const char* filename,
-                       PV::Communicator * comm, PVLayerLoc * loc, float * buf)
-{
-   int status = 0;
-#ifdef UNIMPLEMENTED
-
-   const MPI_Comm icComm = comm->communicator();
-
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-
-   const int icRank = comm->commRank();
-   const int icCol  = comm->commColumn();
-   const int icRow  = comm->commRow();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   const int nxGlobal = loc->nxGlobal;
-   const int nyBorder = loc->nyBorder;
-
-   const int xSize = nx + 2 * nxGlobal;
-   const int ySize = ny + 2 * nyBorder;
-
-   if (icRank > 0) {
-   }
-   else {
-      int nxBlocks, nyBlocks, nxBlockSize, nyBlockSize;
-      int ixBlock, iyBlock;
-
-      GDALAllRegister();
-
-      GDALDataset * dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
-      GDALRasterBand * band = dataset->GetRasterBand(1);
-
-      CPLAssert(band->GetRasterDataType() == GDT_Byte);
-
-      band->GetBlockSize(&nxBlockSize, &nyBlockSize);
-      nxBlocks = (band->GetXSize() + nxBlockSize - 1) / nxBlockSize;
-      nyBlocks = (band->GetYSize() + nyBlockSize - 1) / nyBlockSize;
-
-      GByte * data = (GByte *) CPLMalloc(nxBlockSize * nyBlockSize);
-
-      fprintf(stderr, "[ 0]: nxBlockSize==%d nyBlockSize==%d"
-              " nxBlocks==%d nyBlocks==%d\n",
-              nxBlockSize, nyBlockSize, nxBlocks, nyBlocks);
-
-      for (iyBlock = 0; iyBlock < nyBlocks; iyBlock++) {
-         for (ixBlock = 0; ixBlock < nxBlocks; ixBlock++) {
-            int nxValid, nyValid;
-            band->ReadBlock(ixBlock, ixBlock, data);
-         }
-      }
-   }
-#endif // UNIMPLEMENTED
 
    return status;
 }
@@ -825,33 +770,6 @@ int gather(PV::Communicator * comm, const PVLayerLoc * loc,
 #endif // PV_USE_MPI
 
    return 0;
-}
-
-/**
- * scatter relevant portions of buf from root process to all others
- *    NOTE: buf is np times larger on root process
- */
-int scatter(PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf)
-{
-   return -1;
-}
-
-/**
- * gather relevant portions of buf on root process from all others
- *    NOTE: buf is np times larger on root process
- */
-int gather(PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
-{
-   return -1;
-}
-
-/**
- * scatter relevant portions of buf from root process to all others
- *    NOTE: buf is np times larger on root process
- */
-int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf)
-{
-   return -1;
 }
 
 #ifdef PV_USE_GDAL

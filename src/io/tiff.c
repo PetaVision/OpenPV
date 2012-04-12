@@ -133,7 +133,7 @@ int tiff_write_file(const char * filename, float * buf, int width, int height)
    return 0;
 }
 
-int tiff_write_file_drawBuffer(const char * filename, unsigned char * buf, int width, int height)
+int tiff_write_file_drawBuffer(const char * filename, float * buf, int width, int height)
 {
    long nextLoc;
 
@@ -656,7 +656,7 @@ int tiff_write_image(FILE * fd, float * buf, int width, int height)
  * Writes from the restricted frame.
  *
  */
-int tiff_write_image_drawBuffer(FILE * fd, unsigned char * buf, int width, int height)
+int tiff_write_image_drawBuffer(FILE * fd, float * buf, int width, int height)
 {
    int i;
    unsigned char value;
@@ -664,7 +664,7 @@ int tiff_write_image_drawBuffer(FILE * fd, unsigned char * buf, int width, int h
 
    for (i = 0; i < imageSize; i++) {
      // TODO - check that range is 0:1
-      value = 255 * (float) buf[i];
+      value = (unsigned char) (255 * buf[i]);
       assert( fwrite(&value, 1, 1, fd) == 1 );
    }
    return 0;

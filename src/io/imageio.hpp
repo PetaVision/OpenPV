@@ -26,18 +26,15 @@ int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
 
 int scatterImageFile(    const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
-int scatterImageFilePVP( const char * filename,
-                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
+int scatterImageFilePVP( const char * filename, int xOffset, int yOffset,
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
+int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer);
 int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
 
-int scatter(PV::Communicator * comm, PVLayerLoc * loc, unsigned char * buf);
 int gather (PV::Communicator * comm, const PVLayerLoc * loc,
             unsigned char * dstBuf, unsigned char * srcBuf);
-
-int scatter(PV::Communicator * comm, PVLayerLoc * loc, float * buf);
-int gather (PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
 
 int writeWithBorders(const char * filename, PVLayerLoc * loc, float * buf);
 
