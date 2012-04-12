@@ -98,18 +98,18 @@ function [num_target_chips, num_distractor_chips] = ...
       y_BB_max = hit_list{i_hit_BB}.BoundingBox_Y3;
 
       %% expand chip size
-      chip_size_x = (x_BB_max - x_BB_min);
-      chip_size_y = (y_BB_max - y_BB_min) / 2;
-      chip_center_x = x_BB_min + chip_radius_x;
-      chip_center_y = y_BB_min + chip_radius_y;
+      chip_size_x = (x_BB_max - x_BB_min); 
+      chip_size_y = (y_BB_max - y_BB_min);
+      chip_center_x = (x_BB_max + x_BB_min) / 2; 
+      chip_center_y = (y_BB_max + y_BB_min) / 2; 
       target_radius_x = pvp_max_patch_size(2) / 2;
       target_radius_y = pvp_max_patch_size(1) / 2;
       x_BB_min2 = ceil(chip_center_x - target_radius_x);
       x_BB_max2 = floor(chip_center_x + target_radius_x);
-      x_BB_max2 = x_BB_max2 +  fix(x_BB_max2 - x_BB_min2 - pvp_max_patch_size(2));
+      x_BB_max2 = x_BB_max2 - fix(length(x_BB_min2:x_BB_max2) - pvp_max_patch_size(2));
       y_BB_min2 = ceil(chip_center_y - target_radius_y);
-      y_BB_min2 = floor(chip_center_y - target_radius_y);
-      y_BB_max2 = y_BB_max2 +  fix(y_BB_max2 - y_BB_min2 - pvp_max_patch_size(1));
+      y_BB_max2 = floor(chip_center_y + target_radius_y);
+      y_BB_max2 = y_BB_max2 - fix(length(y_BB_min2:y_BB_max2) - pvp_max_patch_size(1));
       if x_BB_min2 < 1
 	pad_x_min = 1 - x_BB_min2;
 	x_BB_min2 = 1;
@@ -123,44 +123,64 @@ function [num_target_chips, num_distractor_chips] = ...
 	pad_y_min = 0;
       endif
       if x_BB_max2 > NCOLS
-	pad_x_max = NCOLS - x_BB_max2;
+	pad_x_max = x_BB_max2 - NCOLS;
 	x_BB_max2 = NCOLS;
       else
 	pad_x_max = 0;
       endif
       if y_BB_max2 > NROWS
-	pad_y_max = NROWS - y_BB_max2;
+	pad_y_max = y_BB_max2 - NROWS;
 	y_BB_max2 = NROWS;
       else
 	pad_y_max = 0;
       endif
+      
+      %%keyboard;
       pvp_image = imread(frame_pathname);
       hit_chip = uint8(zeros(pvp_max_patch_size));
-      hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max)...
-	  = pvp_image(y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2);
+      if any(size([1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max]) ~= ...
+	     size([y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2]))
+	disp(["size hit_chip = ", ...
+	      num2str(size([1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max]))]);
+	disp(["size BB = ", num2str(size([y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2]))]);
+	keyboard;
+	error(["size of hit_chip != size of bounding box: ", frame_pathname]);
+      endif
+      hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max) = ...
+	  pvp_image(y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2);
       if pad_x_min > 0
-	hit_chip(:, 1:pad_x_min) = ...
-	    fliplr(pvp_image(:, 1:pad_x_min));
-	%%hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1:pad_x_min) = ...
-	%%fliplr(pvp_image(y_BB_min:y_BB_max, 1:pad_x_min));
+	hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1:pad_x_min) = ...
+	    fliplr(pvp_image(y_BB_min2:y_BB_max2, 1:pad_x_min));
       endif
       if pad_x_max > 0
-	hit_chip(:, pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)) = ...
-	    fliplr(pvp_image(:, NCOLS-pad_x_max:NCOLS));
-	%%hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)) = ...
-	%%fliplr(pvp_image(y_BB_min2:y_BB_max2, NCOLS-pad_x_max:NCOLS));
+	hit_chip(1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)) = ...
+	    fliplr(pvp_image(y_BB_min2:y_BB_max2, NCOLS-pad_x_max:NCOLS));
       endif
       if pad_y_min > 0
-	hit_chip(1:pad_y_min, :) = ...
-	    flipud(pvp_image(1:pad_y_min, :));
-	%%hit_chip(1:pad_y_min, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max) = ...
-	%%flipud(pvp_image(1:pad_y_min, x_BB_min2:x_BB_max2));
+	hit_chip(1:pad_y_min, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max) = ...
+	    flipud(pvp_image(1:pad_y_min, x_BB_min2:x_BB_max2));
       endif
       if pad_y_max > 0
-	hit_chip(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), :) = ...
-	    flipud(pvp_image(NROWS-pad_y_max:NROWS, :));
-	%%hit_chip(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max) = ...
-	%%flipud(pvp_image(NROWS-pad_y_max:NROWS, x_BB_min2:x_BB_max2));
+	hit_chip(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max) = ...
+	    flipud(pvp_image(NROWS-pad_y_max:NROWS, x_BB_min2:x_BB_max2));
+      endif
+      if pad_x_min > 0 && pad_y_min > 0
+	hit_chip(1:pad_y_min, 1:pad_x_min) = ...
+	    fliplr(pvp_image(1:pad_y_min, 1:pad_x_min));
+      endif
+      if pad_x_max > 0 && pad_y_min > 0
+	hit_chip(1:pad_y_min, pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)) = ...
+	    fliplr(pvp_image(1:pad_y_min, pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)));
+      endif
+      if pad_x_min > 0 && pad_y_max > 0
+	hit_chip(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), 1:pad_x_min) = ...
+	    fliplr(pvp_image(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), 1:pad_x_min));
+      endif
+      if pad_x_max > 0 && pad_y_max > 0
+	hit_chip(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), ...
+		 pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)) = ...
+	    fliplr(pvp_image(pvp_max_patch_size(1)-pad_y_max:pvp_max_patch_size(1), ...
+			     pvp_max_patch_size(2)-pad_x_max:pvp_max_patch_size(2)));
       endif
       hit_chip_pathname = strExtractPath(frame_pathname);
       hit_chip_parent = strFolderFromPath(hit_chip_pathname);

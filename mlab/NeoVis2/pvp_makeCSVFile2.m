@@ -1,4 +1,3 @@
-
 function [num_frames, ...
 	  tot_frames, ...
 	  nnz_frames, ...
@@ -154,7 +153,7 @@ function [num_frames, ...
     pvp_layer = 7;  %% 
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist("pvp_path") || isempty(pvp_path)
+  if nargin < num_input_args || ~exist("pvp_path") %% || isempty(pvp_path)
     pvp_path = [program_path, "activity", filesep, ...
 		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep, pvp_edge_filter, pvp_version_str, filesep];
   endif
@@ -236,62 +235,82 @@ function [num_frames, ...
   global target_bootstrap_dir
   global distractor_bootstrap_dir
   if isempty(pvp_bootstrap_str)
+    target_bootstrap_dir1 = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+    mkdir(target_bootstrap_dir1);
+    target_bootstrap_dir2 = ...
+	[target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+    mkdir(target_bootstrap_dir2);
     target_bootstrap_dir = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(target_bootstrap_dir);
-    target_bootstrap_dir = ...
-	[target_bootstrap_dir, ObjectType, "_bootstrap0", filesep];
-    mkdir(target_bootstrap_dir);
+	[target_bootstrap_dir2, ObjectType, "_bootstrap0", filesep];
+
+    distractor_bootstrap_dir1 = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+    mkdir(distractor_bootstrap_dir1);
+    distractor_bootstrap_dir2 = ...
+	[distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+    mkdir(distractor_bootstrap_dir2);
     distractor_bootstrap_dir = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(distractor_bootstrap_dir);
-    distractor_bootstrap_dir = ...
-	[distractor_bootstrap_dir, "distractor", "_bootstrap0", filesep];
-    mkdir(distractor_bootstrap_dir);
+	[distractor_bootstrap_dir2, "distractor", "_bootstrap0", filesep];
   else
+    target_bootstrap_dir1 = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+    mkdir(target_bootstrap_dir1);
+    target_bootstrap_dir2 = ...
+	[target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+    mkdir(target_bootstrap_dir2);
     target_bootstrap_dir = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+	[target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+
+    distractor_bootstrap_dir1 = ...
+	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+    mkdir(distractor_bootstrap_dir1);
+    distractor_bootstrap_dir2 = ...
+	[distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+    mkdir(distractor_bootstrap_dir2);
     distractor_bootstrap_dir = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+	[distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
   endif
   mkdir(target_bootstrap_dir);
   mkdir(distractor_bootstrap_dir);
   
 
   global pvp_density_thresh
-  hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
-  BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
-  if 0 %%~pvp_training_flag && exist(hit_and_miss_stats_pathname, "file")
-    hit_and_miss_stats_struct = struct;
-    hit_and_miss_stats_fid = fopen(hit_and_miss_stats_pathname, "r");
-    hit_and_miss_stats_struct.pvp_tot_hits = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_tot_miss = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_min_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_max_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_ave_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_std_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_median_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_min_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_max_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_ave_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_std_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-    hit_and_miss_stats_struct.pvp_median_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-    fclose(hit_and_miss_stats_fid);
-    pvp_density_thresh = ...
-	(hit_and_miss_stats_struct.pvp_ave_hit_density); 
-  elseif 0 %% ~pvp_training_flag && exist(BB_stats_pathname, "file")
-    BB_stats_struct = struct;
-    BB_stats_fid = fopen(BB_stats_pathname, "r");
-    BB_stats_struct.pvp_min_BB_density = str2num(fgets(BB_stats_fid));
-    BB_stats_struct.pvp_max_BB_density = str2num(fgets(BB_stats_fid));
-    BB_stats_struct.pvp_ave_BB_density = str2num(fgets(BB_stats_fid));
-    BB_stats_struct.pvp_std_BB_density = str2num(fgets(BB_stats_fid));
-    if ~feof(BB_stats_fid)
-      BB_stats_struct.pvp_median_BB_density = str2num(fgets(BB_stats_fid));
+  if exist("ROC_subdir", "dir")
+    hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
+    BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
+    if 0 %%~pvp_training_flag && exist(hit_and_miss_stats_pathname, "file")
+      hit_and_miss_stats_struct = struct;
+      hit_and_miss_stats_fid = fopen(hit_and_miss_stats_pathname, "r");
+      hit_and_miss_stats_struct.pvp_tot_hits = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_tot_miss = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_min_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_max_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_ave_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_std_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_median_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_min_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_max_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_ave_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_std_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+      hit_and_miss_stats_struct.pvp_median_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+      fclose(hit_and_miss_stats_fid);
+      pvp_density_thresh = ...
+	  (hit_and_miss_stats_struct.pvp_ave_hit_density); 
+    elseif 0 %% ~pvp_training_flag && exist(BB_stats_pathname, "file")
+      BB_stats_struct = struct;
+      BB_stats_fid = fopen(BB_stats_pathname, "r");
+      BB_stats_struct.pvp_min_BB_density = str2num(fgets(BB_stats_fid));
+      BB_stats_struct.pvp_max_BB_density = str2num(fgets(BB_stats_fid));
+      BB_stats_struct.pvp_ave_BB_density = str2num(fgets(BB_stats_fid));
+      BB_stats_struct.pvp_std_BB_density = str2num(fgets(BB_stats_fid));
+      if ~feof(BB_stats_fid)
+	BB_stats_struct.pvp_median_BB_density = str2num(fgets(BB_stats_fid));
+      endif
+      fclose(BB_stats_fid);
+      pvp_density_thresh = ...
+	  (BB_stats_struct.pvp_ave_BB_density(1)); %% + BB_stats_struct.pvp_std_BB_density(1)) / 2;
     endif
-    fclose(BB_stats_fid);
-    pvp_density_thresh = ...
-	(BB_stats_struct.pvp_ave_BB_density(1)); %% + BB_stats_struct.pvp_std_BB_density(1)) / 2;
   else
     pvp_density_thresh = -1.0;  %% flag to use ave density across image
   endif
@@ -340,6 +359,7 @@ function [num_frames, ...
   num_true_CSV = i_CSV;
   
   %% get frame IDs 
+  %%keyboard;
   clip_dir = clip_path; %% 
   if ~exist(clip_dir, "dir")
     error(["~exist(clip_dir):", clip_dir]);
@@ -375,37 +395,35 @@ function [num_frames, ...
   frame_pathnames = cell(tot_frames, 1);
   
   %%keyboard;
-  if ~isempty(pvp_path)
-    pvp_offset_tmp = 0;
-    i_frame = 0;
-    for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
-      i_frame = i_frame + 1;
-      pvp_frame = j_frame + pvp_layer - 1;
+  pvp_offset_tmp = 0;
+  i_frame = 0;
+  for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
+    i_frame = i_frame + 1;
+    pvp_frame = j_frame + pvp_layer - 1;
+    if ~isempty(pvp_path)
       [pvp_time{i_frame},...
        pvp_activity{i_frame}, ...
        pvp_offset(i_frame)] = ...
 	  pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
+      fclose(pvp_fid);
       if pvp_offset(i_frame) == -1
 	break;
 	i_frame = i_frame - 1;
       endif
       pvp_offset_tmp = pvp_offset(i_frame);
-      frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
       disp(["i_frame = ", num2str(i_frame)]);
       disp(["pvp_time = ", num2str(pvp_time{i_frame})]);
       disp(["frame_ID = ", frame_pathnames{i_frame}]);
       disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
-    endfor
-    fclose(pvp_fid);
-    nnz_frames = i_frame;
-    disp(["nnz_frames = ", num2str(nnz_frames)]);
-    if nnz_frames <= 0
-      return;
     endif
-  else
-    nnz_frames = num_frames;
+    frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
+  endfor %% j_frame
+  nnz_frames = i_frame;
+  disp(["nnz_frames = ", num2str(nnz_frames)]);
+  if nnz_frames <= 0
+    return;
   endif
-
+ 
   if num_procs > nnz_frames
     num_procs = nnz_frames;
   endif
@@ -502,6 +520,10 @@ function [num_frames, ...
   endif
   
   disp("");
+
+  if isempty(pvp_path)
+    return;
+  endif
 
   frames_per_CSV_file = 150000;
   num_CSV_files = length(CSV_struct);
@@ -604,8 +626,9 @@ function [num_frames, ...
       endfor %% i_miss
       disp("");
     endfor %% i_frame
+    fclose(pvp_results_fid);
   endfor %% i_CSV_file
-  fclose(pvp_results_fid);
+
   
   if pvp_tot_hits == 0
     return;
