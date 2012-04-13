@@ -116,8 +116,9 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
       loc->nb       = params[INDEX_NB];
       loc->nf       = params[INDEX_NF];
 
-      assert(dataSize == 1);
-      assert(dataType == PV_BYTE_TYPE);
+//      assert(dataSize == 1);
+      assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
+
 
       copyToLocBuffer(locBuf, loc);
    }
@@ -499,10 +500,10 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
 
       assert( (dataSize == 1 && dataType == PV_BYTE_TYPE) || (dataSize == sizeof(float) && dataType == PV_FLOAT_TYPE) );
 
-      char * filebuf = (char *) malloc(recordSize*numRecords*dataSize);
+      char * filebuf = (char *) malloc(recordSize*numRecords);
       if(filebuf==NULL) abort();
       fseek(fp, (long) headerSize, SEEK_SET);
-      size_t numRead = fread(filebuf, dataSize, recordSize*numRecords, fp);
+      size_t numRead = fread(filebuf, 1, recordSize*numRecords, fp);
       if( numRead != recordSize*numRecords ) abort();
 
 #ifdef PV_USE_MPI
@@ -559,7 +560,7 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
          int idx_in_proc = kIndex(x + startx - xProc*params[INDEX_NX_PROCS],
                                   y + starty - yProc*params[INDEX_NY_PROCS],
                                   0,
-                                  params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL], params[INDEX_NF]);
+                                  params[INDEX_NX], params[INDEX_NY], params[INDEX_NF]);
          long offset = kProc * params[INDEX_RECORD_SIZE] + idx_in_proc;
          if( params[INDEX_DATA_TYPE] == PV_BYTE_TYPE ) {
             char * filebufstart = &pvpbuffer[offset];
@@ -569,8 +570,7 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
          }
          else if( params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE ) {
             float * filebufstart = (float *) pvpbuffer;
-            filebufstart = &filebufstart[offset];
-            memcpy(&destbuf[idx_in_buf], &filebufstart[idx_in_proc], sizeof(float)*params[INDEX_NF]);
+            memcpy(&destbuf[idx_in_buf], &filebufstart[offset], sizeof(float)*params[INDEX_NF]);
          }
          else assert(0);
       }
