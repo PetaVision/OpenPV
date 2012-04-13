@@ -155,7 +155,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    param_file = NULL;
    working_dir = NULL;
    unsigned long random_seed = 0;
-   parse_options(argc, argv, &outputPath, &image_file, &param_file,
+   parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
 
    if(working_dir) {
@@ -247,24 +247,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    }
    pv_srandom(random_seed); // initialize random seed
 
-   // set image file from params file if it wasn't set on the command line
-   if (image_file == NULL ) {
-      if (params->stringPresent(name, "imageFile")) {
-         image_file = strdup(params->stringValue(name, "imageFile"));
-         assert(image_file);
-      }
-   }
-   int status = -1;
-   if (image_file) {
-      status = getImageInfo(image_file, icComm, &imageLoc);
-   }
-   if (status) {
-      imageLoc.nxGlobal = (int) params->value(name, "nx");
-      imageLoc.nyGlobal = (int) params->value(name, "ny");
-      // set loc based on global parameters and processor partitioning
-      //
-      setLayerLoc(&imageLoc, 1.0f, 1.0f, 0, 1);
-   }
+   nxGlobal = (int) params->value(name, "nx");
+   nyGlobal = (int) params->value(name, "ny");
 
    deltaTime = DELTA_T;
    deltaTime = params->value(name, "dt", deltaTime, true);
@@ -442,36 +426,6 @@ int HyPerCol::commColumn(int colId)
 int HyPerCol::commRow(int colId)
 {
    return colId / icComm->numCommColumns();
-}
-
-int HyPerCol::setLayerLoc(PVLayerLoc * layerLoc,
-                          float nxScale, float nyScale, int margin, int nf)
-{
-   layerLoc->nxGlobal = (int) (nxScale * imageLoc.nxGlobal);
-   layerLoc->nyGlobal = (int) (nyScale * imageLoc.nyGlobal);
-
-   // partition input space based on the number of processor
-   // columns and rows
-   //
-
-   layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
-   layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
-
-   assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
-   assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
-
-   layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
-   layerLoc->ky0 = layerLoc->ny * icComm->commRow();
-
-   layerLoc->nf = nf;
-   layerLoc->nb = margin;
-
-   layerLoc->halo.lt = margin;
-   layerLoc->halo.rt = margin;
-   layerLoc->halo.dn = margin;
-   layerLoc->halo.up = margin;
-
-   return 0;
 }
 
 int HyPerCol::addLayer(HyPerLayer * l)

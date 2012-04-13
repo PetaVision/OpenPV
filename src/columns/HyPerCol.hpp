@@ -70,6 +70,8 @@ public:
    char * getName()                       {return name;}
    char * getPath()                       {return path;}
    char * getOutputPath()                 {return outputPath;}
+   int getNxGlobal()                      {return nxGlobal;}
+   int getNyGlobal()                      {return nyGlobal;}
 
    CLDevice * getCLDevice()               {return clDevice;}
 
@@ -83,15 +85,7 @@ public:
    float simulationTime()                 {return simTime;}
    float getStopTime()                    {return stopTime;}
 
-   PVLayerLoc getImageLoc()               {return imageLoc;}
-   int width()                            {return imageLoc.nxGlobal;}
-   int height()                           {return imageLoc.nyGlobal;}
-   int localWidth()                       {return imageLoc.nx;}
-   int localHeight()                      {return imageLoc.ny;}
-
    int includeLayerName()                 {return filenamesContainLayerNames;}
-
-   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
 
    const char * inputFile()               {return image_file;}
 
@@ -167,7 +161,8 @@ private:
    char * outputPath;     // path to output file directory
    char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
    char * image_file;
-   PVLayerLoc imageLoc;
+   int nxGlobal;
+   int nyGlobal;
 
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};

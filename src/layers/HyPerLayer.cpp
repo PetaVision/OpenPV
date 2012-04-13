@@ -159,7 +159,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
 
    PVLayerLoc layerLoc;
-   hc->setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
+   setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
    clayer->layerType = TypeGeneric;
    // layerId stored as clayer->layerId
@@ -317,6 +317,36 @@ int HyPerLayer::initializeLayerId(int layerId)
       snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), clayer->layerId);
    }
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+
+   return 0;
+}
+
+int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf)
+{
+   InterColComm * icComm = parent->icCommunicator();
+   layerLoc->nxGlobal = (int) (nxScale * parent->getNxGlobal());
+   layerLoc->nyGlobal = (int) (nyScale * parent->getNxGlobal());
+
+   // partition input space based on the number of processor
+   // columns and rows
+   //
+
+   layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
+   layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
+
+   assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
+   assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
+
+   layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
+   layerLoc->ky0 = layerLoc->ny * icComm->commRow();
+
+   layerLoc->nf = nf;
+   layerLoc->nb = margin;
+
+   layerLoc->halo.lt = margin;
+   layerLoc->halo.rt = margin;
+   layerLoc->halo.dn = margin;
+   layerLoc->halo.up = margin;
 
    return 0;
 }

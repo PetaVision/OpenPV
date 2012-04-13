@@ -21,7 +21,6 @@ void usage()
    printf(" -p <parameters filename>\n");
    printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
-   printf(" [-i <input image filename>]\n");
    printf(" [-s <random number generator seed>]\n");
    printf(" [-d <OpenCL device>]\n");
    printf(" [-w <working directory>]\n");
@@ -35,8 +34,9 @@ void usage()
  * @n_time_steps
  * @device
  */
-int parse_options(int argc, char * argv[], char ** output_path, char ** input_file,
-                  char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed, char ** working_dir)
+int parse_options(int argc, char * argv[], char ** output_path,
+                  char ** param_file, int * n_time_steps, int * opencl_device,
+                  unsigned long * random_seed, char ** working_dir)
 {
    if (argc < 2) {
       usage();
@@ -49,7 +49,6 @@ int parse_options(int argc, char * argv[], char ** output_path, char ** input_fi
 
    pv_getopt_int(argc, argv, "-n", n_time_steps);
    pv_getopt_int(argc, argv, "-d", opencl_device);
-   pv_getopt_str(argc, argv, "-i", input_file);
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
    pv_getopt_unsigned_long(argc, argv, "-s", random_seed);

@@ -88,8 +88,9 @@ int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
 int    pv_close_binary(FILE * fp);
 size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
 
-int parse_options(int argc, char * argv[], char ** output_path, char ** input_file,
-                  char ** param_file, int * n_time_steps, int * opencl_device, unsigned long * random_seed, char ** working_dir);
+int parse_options(int argc, char * argv[], char ** output_path,
+                  char ** param_file, int * n_time_steps, int * opencl_device,
+                  unsigned long * random_seed, char ** working_dir);
 
 #ifdef __cplusplus
 }
