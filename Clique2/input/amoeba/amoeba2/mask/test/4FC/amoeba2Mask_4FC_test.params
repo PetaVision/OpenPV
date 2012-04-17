@@ -1,0 +1,676 @@
+//
+// clique_train.params
+//  - input parameters for learning clique kernels
+//
+
+HyPerCol "column" = {
+   nx = 256;   // until we get going with images
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1;  // if not set here,  clock time is usedTogenerate seed
+   numSteps = 1009;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/amoeba2/mask/test/4FC/";
+   progressStep = 2000;
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+};
+
+//
+// layers
+//
+
+Movie "Image" = {
+    imageListPath = "/Users/gkenyon/Pictures/amoeba/256/amoeba1x1000_4FC_fileNames.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+    writeImages = 0;
+    displayPeriod = 1;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+
+ANNLayer "L1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L1Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 1.0;
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L2Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 1.0;
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L3Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 1.0;
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L4Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    Vgain = 1.0;
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+
+
+
+//  connections: 
+
+KernelConn "MovieToRetina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+   
+    normalize = 0.0;
+    symmetrizeWeights = 0;
+   
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+
+    delay = 0;     
+};
+
+
+// Retina connections
+
+KernelConn "RetinaToL1" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 0;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+   shrinkPatches = false;
+       
+   strength = 25.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+    
+   delay = 0;
+};
+
+
+
+KernelConn "RetinaToL1Inh" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   channelCode = 1;
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.41;
+   rotate = 1;
+       
+   strength = 50.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+
+
+
+
+//Clique connections
+
+
+// L1Clique
+
+IdentConn "L1toL1CliqueVertical" = {
+    preLayerName = "L1";
+    postLayerName = "L1Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+SiblingConn "L1toL1CliqueTarget" = {
+   preLayerName = "L1";
+   postLayerName = "L1Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/mask/w5_last.pvp";
+   siblingConnName = "L1toL1CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+SiblingConn "L1toL1CliqueDistractor" = {
+   preLayerName = "L1";
+   postLayerName = "L1Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/w3_last.pvp";
+   siblingConnName = "L1toL1CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+// L2Clique
+
+IdentConn "L1toL2CliqueVertical" = {
+    preLayerName = "L1Clique";
+    postLayerName = "L2Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+SiblingConn "L1toL2CliqueTarget" = {
+   preLayerName = "L1Clique";
+   postLayerName = "L2Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/amoeba2/mask/w8_last.pvp";
+   siblingConnName = "L1toL2CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+SiblingConn "L1toL2CliqueDistractor" = {
+   preLayerName = "L1Clique";
+   postLayerName = "L2Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/noamoeba2/mask/w6_last.pvp";
+   siblingConnName = "L1toL2CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = -1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+
+
+
+// L3Clique
+
+IdentConn "L2toL3CliqueVertical" = {
+    preLayerName = "L2Clique";
+    postLayerName = "L3Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+SiblingConn "L2toL3CliqueTarget" = {
+   preLayerName = "L2Clique";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/amoeba2/mask/w8_last.pvp";
+   siblingConnName = "L2toL3CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+SiblingConn "L2toL3CliqueDistractor" = {
+   preLayerName = "L2Clique";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/noamoeba2/mask/w6_last.pvp";
+   siblingConnName = "L2toL3CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = -1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+
+
+// L4Clique
+
+IdentConn "L3toL4CliqueVertical" = {
+    preLayerName = "L3Clique";
+    postLayerName = "L4Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+SiblingConn "L3toL4CliqueTarget" = {
+   preLayerName = "L3Clique";
+   postLayerName = "L4Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/amoeba/amoeba2/mask/w8_last.pvp";
+   siblingConnName = "L3toL4CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = 1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+SiblingConn "L3toL4CliqueDistractor" = {
+   preLayerName = "L3Clique";
+   postLayerName = "L4Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/noamoeba2/mask/w6_last.pvp";
+   siblingConnName = "L3toL4CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+
+   strength = -1.0;
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 1;
+
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0;
+};
+
+
+
+
+
+
+StatsProbe "RetinaStats" = {
+    targetLayer = "Retina";
+};
+
+StatsProbe "L1Stats" = {
+    targetLayer = "L1";
+};
+
+StatsProbe "L1CliqueStats" = {
+    targetLayer = "L1Clique";
+};
+
+StatsProbe "L2CliqueStats" = {
+    targetLayer = "L2Clique";
+};
+
+StatsProbe "L3CliqueStats" = {
+    targetLayer = "L3Clique";
+};
+
+StatsProbe "L4CliqueStats" = {
+    targetLayer = "L4Clique";
+};
+
+
+StatsProbe "RetinaStatsFile" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+};
+
+StatsProbe "L1StatsFile" = {
+    targetLayer = "L1";
+    probeOutputFile = "L1_Stats.txt";
+};
+
+StatsProbe "L1CliqueStatsFile" = {
+    targetLayer = "L1Clique";
+    probeOutputFile = "L1_Clique_Stats.txt";
+};
+
+StatsProbe "L2CliqueStatsFile" = {
+    targetLayer = "L2Clique";
+    probeOutputFile = "L2_Clique_Stats.txt";
+};
+
+StatsProbe "L3CliqueStatsFile" = {
+    targetLayer = "L3Clique";
+    probeOutputFile = "L3_Clique_Stats.txt";
+};
+
+StatsProbe "L4CliqueStatsFile" = {
+    targetLayer = "L4Clique";
+    probeOutputFile = "L4_Clique_Stats.txt";
+};
+
