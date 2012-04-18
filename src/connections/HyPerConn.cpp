@@ -1212,6 +1212,22 @@ char * HyPerConn::checkpointFilename() {
    return filename;
 }
 
+float HyPerConn::maxWeight(int arborId)
+{
+   const int num_data_patches = getNumDataPatches();
+   float max_weight = -FLT_MAX;
+   for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
+      pvdata_t * w_data = this->get_wData(arborId, i_weight);
+      PVPatch * w_patch = this->getWeights(i_weight, arborId);
+      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
+      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+         max_weight = (max_weight > w_data[iWeight]) ? max_weight
+               : w_data[iWeight];
+      }
+   }
+   return max_weight;
+}
+
 int HyPerConn::insertProbe(BaseConnectionProbe * p)
 {
    if(p->getTargetConn() != this) {
@@ -1309,22 +1325,6 @@ float HyPerConn::minWeight(int arborId)
       }
    }
    return min_weight;
-}
-
-float HyPerConn::maxWeight(int arborId)
-{
-   const int num_data_patches = getNumDataPatches();
-   float max_weight = -FLT_MAX;
-   for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
-      pvdata_t * w_data = this->get_wData(arborId, i_weight);
-      PVPatch * w_patch = this->getWeights(i_weight, arborId);
-      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         max_weight = (max_weight > w_data[iWeight]) ? max_weight
-               : w_data[iWeight];
-      }
-   }
-   return max_weight;
 }
 
 PVPatch * HyPerConn::getWeights(int k, int arbor)
@@ -2088,6 +2088,9 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
 
 int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
+   if (dataStart == NULL){
+      dataStart = this->get_wDataStart();
+   }
    int status = PV_SUCCESS;
    this->wMax = -FLT_MAX;
    int nx = nxp;

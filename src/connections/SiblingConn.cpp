@@ -48,6 +48,8 @@ int SiblingConn::normalizeFamily()
 {
    // normalize all arbors individuqlly relative to siblings
    const int num_kernels = getNumDataPatches();
+   double sum_local = 0.0;
+   double sum_sibling = 0.0;
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          // PVPatch * localWPatch = getWeights(kPatch,kArbor); // this->getKernelPatch(kArbor, kPatch);
@@ -68,12 +70,22 @@ int SiblingConn::normalizeFamily()
                norm_denom = (norm_denom != 0.0f) ? norm_denom : 1.0f;
                localWeights[iWeight] /= norm_denom;
                siblingWeights[iWeight] /= norm_denom;
+               sum_local += localWeights[iWeight];
+               sum_sibling += siblingWeights[iWeight];
             }
             localWeights += sy;
             siblingWeights += sy;
          }
       } // kPatch < numPatches
    } // kArbor
+   // scale local weights so that average = sibling average
+   float scale_factor = sum_local > 0 ? sum_sibling / sum_local : 1;
+   for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
+      pvdata_t * localWeights = this->get_wDataStart(kArbor);
+      for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++){
+         localWeights[iWeight] *= scale_factor;
+      }
+   }
    return PV_BREAK;
 } // normalizeFamily
 
@@ -90,6 +102,11 @@ int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int
 
    if ((siblingConn != NULL) && (siblingConn->getIsNormalized())){
       status = this->normalizeFamily();
+      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+//      status = HyPerConn::normalizeWeights(NULL, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
+//      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+//      status = siblingConn->HyPerConn::normalizeWeights(NULL, siblingConn->get_wDataStart(), numPatches, arborId);  // parent class should return PV_BREAK
+//      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    }
 
    return PV_BREAK;
