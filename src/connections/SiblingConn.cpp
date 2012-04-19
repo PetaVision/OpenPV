@@ -79,7 +79,7 @@ int SiblingConn::normalizeFamily()
       } // kPatch < numPatches
    } // kArbor
    // scale local weights so that average = sibling average
-   float scale_factor = sum_local > 0 ? sum_sibling / sum_local : 1;
+   float scale_factor = sum_local != 0 ? fabs(sum_sibling) / fabs(sum_local) : 1;
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       pvdata_t * localWeights = this->get_wDataStart(kArbor);
       for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++){
