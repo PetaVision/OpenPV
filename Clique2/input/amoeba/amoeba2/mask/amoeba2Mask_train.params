@@ -147,14 +147,31 @@ CliqueLayer "L2Post" = {
 
 //  connections: 
 
-IdentConn "MovieToRetina" = {
+KernelConn "MovieToRetina" = {
     preLayerName = "Image";
     postLayerName = "Retina";
     channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
     writeStep = -1;
     initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
+    weightInitType = "OneToOneWeights";
+    
+    strength = 255;  
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    
+    numAxonalArbors = 1;
+    shrinkPatches = false;
+       
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+    
     delay = 0;     
 };
 
@@ -358,7 +375,7 @@ KernelConn "MasktoL2Post" = {
    rMax  = 7;
    rMin = 0;
        
-   strength = 8.0;  
+   strength = 2040.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -416,7 +433,7 @@ CliqueConn "L1CliquetoL2Post" = {
 
 
 
-StatsProbe "Retina Stats" = {
+StatsProbe "RetinaStats" = {
     targetLayer = "Retina";
 };
 
