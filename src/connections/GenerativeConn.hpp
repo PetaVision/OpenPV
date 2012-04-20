@@ -9,6 +9,7 @@
 #define GENERATIVECONN_HPP_
 
 #include "KernelConn.hpp"
+#include "../utils/pv_random.h"
 
 namespace PV {
 
@@ -47,6 +48,11 @@ protected:
    bool nonnegConstraintFlag;
    int normalizeMethod;
    float normalizeConstant;
+   bool imprintingFlag;
+   int imprintCount;
+   bool weightDecayFlag;  // Include Nugent-like decay and noise on weights.  If flag is set, use weightDecayRate and weightNoiseLevel
+   float weightDecayRate; // Include a term of weightDecayRate * W_{ij} in dW_{ij}
+   float weightNoiseLevel;// Include a random fluctuation term, uniformly distributed on [-weightNoiseLevel,weightNoiseLevel], in dW_{ij}
 };
 
 }  // end of block for namespace PV

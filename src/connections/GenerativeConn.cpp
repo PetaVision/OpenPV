@@ -49,6 +49,11 @@ int GenerativeConn::initialize_base() {
    relaxation = 1.0;
    nonnegConstraintFlag = false;
    normalizeMethod = 0;
+   imprintingFlag = false;
+   imprintCount = 0;
+   weightDecayFlag = false;
+   weightDecayRate = 0.0;
+   weightNoiseLevel = 0.0;
    return PV_SUCCESS;
    // Base class constructor calls base class initialize_base
    // so derived class initialize_base doesn't need to.
@@ -66,7 +71,15 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
       const char * filename, InitWeights *weightInit) {
    PVParams * params = hc->parameters();
    relaxation = params->value(name, "relaxation", 1.0f);
-   nonnegConstraintFlag = (bool) params->value(name, "nonnegConstraintFlag", 0.f); // default is not to constrain nonnegative.
+   nonnegConstraintFlag = params->value(name, "nonnegConstraintFlag", 0.0f) != 0.0; // default is not to constrain nonnegative.
+   imprintingFlag = params->value(name,"imprintingFlag", 0.f) != 0; // default is no imprinting
+   if( imprintingFlag ) imprintCount = 0;
+   weightDecayFlag = params->value(name, "weightDecayFlag", 0.0f) != 0.0f;
+   if( weightDecayFlag ) {
+      weightDecayRate = params->value(name, "weightDecayRate", 0.0f);
+      weightNoiseLevel = params->value(name, "weightNoiseLevel", 0.0f);
+
+   }
    KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
    //GenerativeConn has not been updated to support multiple arbors!
@@ -76,11 +89,43 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 }
 
 int GenerativeConn::update_dW(int axonID) {
-   return defaultUpdate_dW(axonID);
+   int status;
+   status = defaultUpdate_dW(axonID);
+   if(weightDecayFlag) {
+      for(int p=0; p<getNumDataPatches(); p++) {
+         const pvdata_t * patch_wData = get_wDataHead(axonID, p);
+         pvdata_t * patch_dwData = get_dwDataHead(axonID, p);
+         for(int k=0; k<nxp*nyp*nfp; k++) {
+//            pvdata_t y = postSynapticLayer()->getLayerData(getDelay(axonID))[k];
+//            pvdata_t decayterm = 1-y;
+//            pvdata_t W = patch_wData[k];
+//            if(decayterm <= 0) {
+//               decayterm = 0;
+//            }
+//            else {
+//               decayterm *= y;
+//               decayterm *= W*(1-W);
+//            }
+            pvdata_t decayterm = patch_wData[k];
+            // decayterm *= 1-decayterm;
+            patch_dwData[k] += -weightDecayRate * decayterm + weightNoiseLevel * (2*pv_random_prob()-1);
+         }
+      }
+   }
+   return status;
 }  // end of GenerativeConn::calc_dW(int);
 
 int GenerativeConn::updateWeights(int axonID) {
    const int numPatches = getNumDataPatches();
+   if( imprintingFlag && imprintCount < nfp ) {
+      assert(nxp==1 && nyp==1 && numberOfAxonalArborLists()==1);
+      for( int p=0; p<numPatches; p++ ) {
+         pvdata_t * dataPatch = get_wDataHead(0,p);
+         dataPatch[imprintCount] = preSynapticLayer()->getLayerData(getDelays()[0])[p];
+      }
+      imprintCount++;
+      return PV_SUCCESS;
+   }
    for( int k=0; k<numPatches; k++ ) {
       // PVPatch * w = getKernelPatch(axonID, k);
       pvdata_t * wdata = get_wDataHead(axonID, k); // w->data;
@@ -115,6 +160,7 @@ int GenerativeConn::initNormalize() {
       break;
    case 2: // fallthrough is intentional
    case 3:
+   case 4:
       normalizeConstant = params->value(name, "normalizeConstant", 1.0f);
       break;
    default:
@@ -139,27 +185,35 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, 
       for( int n=0; n<neuronsperpatch; n++ ) {
          pvdata_t s = 0;
          for( int k=0; k<numPatches; k++ ) {
-            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+n];// patches[k]->data[n];
+            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+n];
             s += d*d;
          }
          s = sqrt(s);
          for( int k=0; k<numPatches; k++ ) {
-            dataStart[arborId][k*nxp*nyp*nfp+n] *= normalizeConstant/s; // patches[k]->data[n] *= normalizeConstant/s;
+            dataStart[arborId][k*nxp*nyp*nfp+n] *= normalizeConstant/s;
          }
       }
       break;
    case 3:
       neuronsperpatch = nxp*nyp*nfp;
       for( int k=0; k<numPatches; k++ ) {
-         // PVPatch * curpatch = patches[k];
          pvdata_t s = 0;
          for( int n=0; n<neuronsperpatch; n++ ) {
-            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+n]; // curpatch->data[n];
+            pvdata_t d = dataStart[arborId][k*nxp*nyp*nfp+n];
             s += d*d;
          }
          s = sqrt(s);
          for( int n=0; n<neuronsperpatch; n++ ) {
-            dataStart[arborId][k*nxp*nyp*nfp+n] *= normalizeConstant/s; // curpatch->data[n] *= normalizeConstant/s;
+            dataStart[arborId][k*nxp*nyp*nfp+n] *= normalizeConstant/s;
+         }
+      }
+      break;
+   case 4:
+      neuronsperpatch = nxp*nyp*nfp;
+      for( int k=0; k<numPatches; k++ ) {
+         pvdata_t * dataHead = get_wDataHead(0, k);
+         for( int n=0; n<neuronsperpatch; n++ ) {
+            if( dataHead[n] > normalizeConstant ) dataHead[n] = normalizeConstant;
          }
       }
       break;
