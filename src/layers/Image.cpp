@@ -178,10 +178,15 @@ int Image::readImage(const char * filename, int offsetX, int offsetY)
    }
    // now buf is loc->nf by loc->nx by loc->ny
 
-   if (status == 0) {
-      float fac = 1.0f / 255.0f;  // normalize to 1.0
-      status = copyFromInteriorBuffer(buf, fac);
-   }
+// Scaling by 1/255 moved to scatterImageFileGDAL and the compressed part of scatterImageFilePVP,
+// since it is unnecessary for uncompressed PVP files.
+//   if (status == 0) {
+//      float fac = 1.0f / 255.0f;  // normalize to 1.0
+//      status = copyFromInteriorBuffer(buf, fac);
+//   }
+
+   if( status == 0 ) copyFromInteriorBuffer(buf, 1.0f);
+
    delete buf;
 
    return status;

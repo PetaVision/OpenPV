@@ -566,6 +566,7 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
             char * filebufstart = &pvpbuffer[offset];
             for( int f=0; f<params[INDEX_NF]; f++ ) {
                destbuf[idx_in_buf+f] = (float) filebufstart[idx_in_proc+f];
+               destbuf[idx_in_buf+f] *= 1.0/255.0;
             }
          }
          else if( params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE ) {
@@ -680,6 +681,12 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
    exit(1);
 #endif // PV_USE_GDAL
 
+   if (status == 0) {
+     float fac = 1.0f / 255.0f;  // normalize to 1.0
+     for( int n=0; n<numTotal; n++ ) {
+        buf[n] *= fac;
+     }
+   }
    return status;
 }
 
