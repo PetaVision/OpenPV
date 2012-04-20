@@ -301,7 +301,7 @@ static inline int setActivity_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvda
 #endif // PV_USE_OPENCL
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
-      if( fabs(V[k]) > activity_threshold ) A[kex] = V[k];
+      if( fabs(V[k]) > activity_threshold ) A[kex] = V[k]; else A[kex] = 0.0f;
    }
    return PV_SUCCESS;
 }
