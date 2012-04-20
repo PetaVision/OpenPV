@@ -23,27 +23,9 @@ int main(int argc, char * argv[]) {
    int mpi_is_initialized;
    MPI_Initialized(&mpi_is_initialized);
    if( !mpi_is_initialized ) MPI_Init(&argc, &argv);
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#else
-   int rank = 0;
 #endif // PV_USE_MPI
    int status = PV_SUCCESS;
-   int charhit;
-   fflush(stdout);
-   if( rank == 0 ) {
-      printarch();
-      if( argc > 1 ) {
-         printf("Hit enter to begin! ");
-         fflush(stdout);
-         charhit = getc(stdin);
-      }
-   }
-#ifdef PV_USE_MPI
-      int ierr;
-      ierr = MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif // PV_USE_MPI
-      status = buildandrun(argc, argv, NULL, NULL, &customgroups);
+   status = buildandrun(argc, argv, NULL, NULL, &customgroups);
 #ifdef PV_USE_MPI
    if( !mpi_is_initialized) MPI_Finalize();
 #endif // PV_USE_MPI
