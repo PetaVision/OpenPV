@@ -24,6 +24,7 @@ int RandomPatchMovie::initialize_base() {
    numImageFiles = 0;
    imageFilenameIndices = NULL;
    listOfImageFiles = NULL;
+   patchposfile = NULL;
    return PV_SUCCESS;
 }
 
@@ -77,6 +78,23 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
       }
       fclose(fp);
       fp = NULL;
+
+      patchposfilename = parent->parameters()->stringValue(name, "patchPosFilename", true);
+      if( patchposfilename && patchposfilename[0] != 0 ) {
+         char patchpospath[PV_PATH_MAX];
+         int actuallength = snprintf(patchpospath, PV_PATH_MAX, "%s/%s", parent->getOutputPath(), patchposfilename);
+         if( actuallength >= PV_PATH_MAX ) {
+            fprintf(stderr, "Error: RandomPatchMovie \"%s\": patchposfilename \"%s\" too long.  Exiting.\n", name, patchposfilename);
+            exit(EXIT_FAILURE);
+         }
+         patchposfile = fopen(patchpospath, "w");
+         if( patchposfile == NULL ) {
+            fprintf(stderr, "RandomPatchMovie \"%s\": Unable to open filename \"%s\" for writing patch filenames and positions.  Exiting.", name, filename);
+            exit(EXIT_FAILURE);
+         }
+      }
+//       snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.tif", movieOutputPath, time);
+
       numImageFiles = 0;
       if( listOfImageFiles[0] == '\n' ) listOfImageFiles[0] = 0;
       for( int n=1; n<(int) filesize; n++ ) {
@@ -137,6 +155,14 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
 }
 
 RandomPatchMovie::~RandomPatchMovie() {
+   if( patchposfile != NULL ) {
+      assert(patchposfilename != NULL);
+      int status = fclose(patchposfile);
+      if( status != 0 ) {
+         fprintf(stderr, "Warning: closing file \"%s\" returned error %d\n", patchposfilename, errno);
+      }
+      patchposfilename = NULL; // Don't free; it belongs to parent->params
+   }
 }
 
 int RandomPatchMovie::readOffsets() {
@@ -150,6 +176,10 @@ int RandomPatchMovie::retrieveRandomPatch() {
    getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    getRandomOffsets(&imageLoc, &offsetX, &offsetY);
    readImage(filename, offsetX, offsetY);
+
+   if( patchposfile != NULL) {
+      fprintf(patchposfile, "time = %f, offsetX = %d, offsetY = %d, filename = \"%s\"\n", parent->simulationTime(), offsetX, offsetY, filename);
+   }
 
    return PV_SUCCESS;
 }
@@ -166,7 +196,7 @@ int RandomPatchMovie::outputState(float timef, bool last)
       probes[i]->outputState(timef);
    }
 
-   return 0;
+   return HyPerLayer::outputState(timef, last);
 }
 
 int RandomPatchMovie::updateState(float timef, float dt)

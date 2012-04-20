@@ -42,6 +42,8 @@ protected:
    int * imageFilenameIndices;
    char * listOfImageFiles;
    int fileIndex;
+   const char * patchposfilename;
+   FILE * patchposfile;
 
 private:
    int initialize_base();
