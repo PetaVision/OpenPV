@@ -175,7 +175,7 @@ static inline int updateV_TrainingLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
    V[trainingLabels[traininglabelindex]] = 0;
    traininglabelindex++;
    if( traininglabelindex == numTrainingLabels) traininglabelindex = 0;
-   V[trainingLabels[traininglabelindex]] = strength;
+   if( trainingLabels[traininglabelindex]>=0 ) V[trainingLabels[traininglabelindex]] = strength;
    return PV_SUCCESS;
 }
 
