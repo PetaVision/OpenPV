@@ -261,7 +261,7 @@ int RandomPatchMovie::getRandomOffsets(const PVLayerLoc * imgloc, int * offsetXp
 int RandomPatchMovie::getRandomFileIndex() {
 #ifdef PV_USE_MPI
    assert(parent->icCommunicator()->commRank()==RANDOMPATCHMOVIE_ROOTPROC);
-#endif PV_USE_MPI
+#endif // PV_USE_MPI
    double x = ((double)pv_random() * numImageFiles)/((double) pv_random_max());
    int idx = (int) x;
    return idx;
