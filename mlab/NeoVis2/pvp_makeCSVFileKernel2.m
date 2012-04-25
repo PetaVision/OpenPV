@@ -56,7 +56,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
     CSV_struct.max_confidence = pvp_max_confidence;
     
     [num_target_chips, num_distractor_chips] = ...
-	pvp_bootstrapChips(frame_pathname, hit_list, miss_list);
+	pvp_bootstrapChips(frame_pathname, hit_list, miss_list, truth_CSV_struct);
   endif
 
   CSV_struct.hit_list = hit_list;

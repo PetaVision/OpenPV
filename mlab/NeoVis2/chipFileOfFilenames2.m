@@ -19,8 +19,8 @@ function [train_filenames, ...
   begin_time = time();
 
   program_dir = ...
-      ["/mnt/data/PetaVision/noamoeba/33x33/"];
-%%      ["/mnt/data1/PetaVision/amoeba/3way/"];
+      ["/mnt/data/PetaVision/amoeba/3way/"];
+%%      ["/mnt/data/PetaVision/noamoeba/33x33/"];
 
   num_argin = 0;
   num_argin = num_argin + 1;
@@ -49,7 +49,7 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "d"; %% "canny";  %%  
+    clip_name = "a"; %% "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)

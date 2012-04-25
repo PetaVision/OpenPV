@@ -1,8 +1,10 @@
 function [num_target_chips, num_distractor_chips] = ...
-      pvp_bootstrapChips(frame_pathname, hit_list, miss_list);
+      pvp_bootstrapChips(frame_pathname, hit_list, miss_list, truth_CSV_struct);
 
   global target_bootstrap_dir
   global distractor_bootstrap_dir
+  global target_mask_dir
+  global distractor_mask_dir
   global pvp_max_patch_size
   global pvp_min_patch_size
   global NFEATURES NCOLS NROWS N
@@ -137,6 +139,46 @@ function [num_target_chips, num_distractor_chips] = ...
       
       %%keyboard;
       pvp_image = imread(frame_pathname);
+      bounding_quad = 0;
+      largest_rect = 1;
+      hit_mask_method = bounding_quad;
+      mask_chip = uint8(zeros(pvp_max_patch_size));
+      if hit_mask_method == largest_rect
+	mask_y = [fix((pvp_max_patch_size(1)-min(chip_size_y, pvp_max_patch_size(1)))/2)+1: ...
+		  fix((pvp_max_patch_size(1)+min(chip_size_y, pvp_max_patch_size(1)))/2)];
+	mask_x = [fix((pvp_max_patch_size(2)-min(chip_size_x, pvp_max_patch_size(2)))/2)+1: ...
+		  fix((pvp_max_patch_size(2)+min(chip_size_x, pvp_max_patch_size(2)))/2)]; 
+	mask_y_2D = repmat(mask_y', 1, length(mask_x));
+	mask_x_2D = repmat(mask_x, length(mask_y), 1);
+	mask_ndx = sub2ind(pvp_max_patch_size, mask_y_2D(:), mask_x_2D(:));
+	mask_chip(mask_ndx) = 255;
+      elseif (hit_mask_method == bounding_quad)
+	mask_center_x = pvp_max_patch_size(2) / 2;
+	mask_center_y = pvp_max_patch_size(1) / 2;
+	x1_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_X1 - chip_center_x + mask_center_x;
+	x1_truth = fix(max(1, x1_truth));
+	y1_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_Y1 - chip_center_y + mask_center_y;
+	y1_truth = fix(max(1, y1_truth));
+	x2_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_X2 - chip_center_x + mask_center_x;
+	x2_truth = fix(min(NCOLS, x2_truth));
+	y2_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_Y2 - chip_center_y + mask_center_y;
+	y2_truth = fix(max(1, y2_truth));
+	x3_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_X3 - chip_center_x + mask_center_x;
+	x3_truth = fix(min(NCOLS, x3_truth));
+	y3_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_Y3 - chip_center_y + mask_center_y;
+	y3_truth = fix(min(NROWS, y3_truth));
+	x4_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_X4 - chip_center_x + mask_center_x;
+	x4_truth = fix(max(1, x4_truth));
+	y4_truth = truth_CSV_struct{i_hit_BB}.BoundingBox_Y4 - chip_center_y + mask_center_y;
+	y4_truth = fix(min(NROWS, y4_truth));
+
+	x_poly = [x1_truth, x2_truth, x3_truth, x4_truth];
+	y_poly = [y1_truth, y2_truth, y3_truth, y4_truth];
+	mask_chip = poly2mask(x_poly, y_poly, pvp_max_patch_size(1), pvp_max_patch_size(2));
+	mask_chip(find(mask_chip>0)) = uint8(255);
+      endif
+      
+
       hit_chip = uint8(zeros(pvp_max_patch_size));
       if any(size([1+pad_y_min:pvp_max_patch_size(1)-pad_y_max, 1+pad_x_min:pvp_max_patch_size(2)-pad_x_max]) ~= ...
 	     size([y_BB_min2:y_BB_max2, x_BB_min2:x_BB_max2]))
@@ -191,7 +233,9 @@ function [num_target_chips, num_distractor_chips] = ...
       hit_chip_title = [hit_chip_parent_root, "_", hit_chip_rootname, "_", num2str(chip_id, "%3.3d"), ".png"];
       hit_chip_pathname = [target_bootstrap_dir, hit_chip_title];
       imwrite(hit_chip, hit_chip_pathname);
-      num_distractor_chips = num_target_chips + 1;
+      mask_chip_pathname = [target_mask_dir, hit_chip_title];
+      imwrite(mask_chip, mask_chip_pathname);
+      num_target_chips = num_target_chips + 1;
     endfor  %% i_BB
   endif  %% num_hit_BB > 0
 
