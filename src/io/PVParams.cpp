@@ -20,7 +20,7 @@
 
 #ifdef HAS_MAIN
 extern FILE* yyin;
-#endif HAS_MAIN
+#endif // HAS_MAIN
 
 /**
  * @yyin
