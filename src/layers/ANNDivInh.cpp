@@ -155,7 +155,7 @@ int ANNDivInh::updateStateOpenCL(float time, float dt)
 //
 //   return status;
 //}
-#endif
+#endif // PV_USE_OPENCL
 
 //! new ANNLayer update state, to add support for GPU kernel.
 //

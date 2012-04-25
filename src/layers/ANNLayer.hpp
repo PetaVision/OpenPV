@@ -48,7 +48,7 @@ public:
 //      clReleaseEvent(evList[getEVGSynE()]);
 //   }
 protected:
-#endif
+#endif // PV_USE_OPENCL
 
 private:
    int initialize_base();
