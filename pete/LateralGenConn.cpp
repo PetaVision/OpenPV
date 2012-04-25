@@ -109,8 +109,8 @@ int LateralGenConn::updateWeights(int axonID) {
    return PV_SUCCESS;
 }  // end of LateralGenConn::updateWeights(int)
 
-PVPatch ** LateralGenConn::initializeWeights(PVPatch ** patches, int numPatches,
-      const char * filename) {
+PVPatch *** LateralGenConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+      int numPatches,const char * filename) {
    // initialize to identity
    if( nxp != nyp ) {
       fprintf(stderr, "Lateral connection \"%s\":\n", name);
@@ -124,7 +124,7 @@ PVPatch ** LateralGenConn::initializeWeights(PVPatch ** patches, int numPatches,
    for( int k=0; k < numKernels; k++ ) {
       // PVPatch * kp = getKernelPatch(0,k);
       // assert(kp->offset == 0);
-      pvdata_t * data = get_wData(0,k);
+      pvdata_t * data = &dataStart[0][k*nxp*nyp*nfp];
       int idx = kIndex(xc, yc, k, nxp, nyp, nfp);
       data[idx] = 1; // kp->data[idx] = 1;
    }

@@ -24,8 +24,8 @@ public:
     int updateWeights(int axonID);
 
 protected:
-    PVPatch ** initializeWeights(PVPatch ** patches, int numPatches,
-          const char * filename);
+    PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+          int numPatches, const char * filename);
 };
 
 }  // end of block for namespace PV
