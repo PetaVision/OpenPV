@@ -36,11 +36,11 @@ public:
 
    virtual int updateState(float time, float dt);
 
-   virtual int writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-         const char * filename, float timef, bool last){return PV_SUCCESS;};
+   // virtual int writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
+   //      const char * filename, float timef, bool last){return PV_SUCCESS;};
 
 protected:
-   virtual PVPatch *** initializeWeights(PVPatch *** patches, int numPatches,
+   virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
             const char * filename);
    virtual int constructWeights(const char * filename);
    void constructWeightsOutOfMemory();

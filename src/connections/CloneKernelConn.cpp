@@ -102,7 +102,7 @@ int CloneKernelConn::createAxonalArbors(int arborId) {
    return PV_SUCCESS;
 }
 
-PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches,
+PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
       int numPatches, const char * filename) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
