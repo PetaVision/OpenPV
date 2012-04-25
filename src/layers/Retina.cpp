@@ -473,9 +473,9 @@ int Retina::updateBorder(float time, float dt)
    return 0;
 }
 
-int Retina::writeState(float time)
+int Retina::writeState(float timef, bool last)
 {
-   int status = HyPerLayer::writeState(time);
+   int status = HyPerLayer::writeState(timef, last);
 
    // print activity at center of image
 

@@ -44,7 +44,7 @@ public:
    virtual int updateStateOpenCL(float time, float dt);
    virtual int updateBorder(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
-   virtual int writeState(float time);
+   virtual int writeState(float timef, bool last=false);
 
 protected:
    Retina();
