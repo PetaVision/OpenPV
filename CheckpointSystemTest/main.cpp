@@ -84,7 +84,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
             fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, keyword);
             return NULL;
          }
-         weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+         weightInitializer = createInitWeightsObject(name, hc, channelType);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
@@ -104,7 +104,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
             fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, keyword);
             return NULL;
          }
-         weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+         weightInitializer = createInitWeightsObject(name, hc, channelType);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
