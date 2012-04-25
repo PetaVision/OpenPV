@@ -36,8 +36,8 @@ endif
 
 # Compilers
 ifeq ($(mpi),1)
-   CC  := mpicc
-   CPP := mpic++
+   CC  := openmpicc
+   CPP := openmpic++
 else
    CC  := cc
    CPP := c++
@@ -233,35 +233,35 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
-	@if mpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns failed."; fi
+	@if openmpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns failed."; fi
 #	@echo "Running test_read_header with 1 node ..."
 #	@./test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 2 nodes ..."
-#	@mpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
+#	@openmpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 4 nodes ..."
-#	@mpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
+#	@openmpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
 #	@rm -rf output/*.pvp
 #	@rm -rf output/*.tif
 #	@echo "Running test_image_io with 1 node ..."
 #	@./test_image_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_image_io with 2 nodes ..."
-#	@mpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_image_io with 4 nodes ..."
-#	@mpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_image_io with 6 nodes ..."
-#	@mpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_weights_io with 1 node ..."
 #	@./test_weights_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_weights_io with 2 nodes ..."
-#	@mpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_weights_io with 4 nodes ..."
-#	@mpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_weights_io with 6 nodes ..."
-#	@mpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
+#	@openmpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
 #	@echo "Running test_constant_input with 2 nodes ..."
-#	@mpirun -np 2 test_constant_input -p $(INPARAMS)
+#	@openmpirun -np 2 test_constant_input -p $(INPARAMS)
 #	@echo "Running test_constant_input with 4 nodes ..."
-#	@mpirun -np 4 test_constant_input -p $(INPARAMS)
+#	@openmpirun -np 4 test_constant_input -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp

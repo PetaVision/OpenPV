@@ -48,7 +48,7 @@ else
     function mpirunandecho() {
         testname=$1
         shift
-        if mpirun -np 4 $* 1> /dev/null 2>/dev/null
+        if openmpirun -np 4 $* 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
