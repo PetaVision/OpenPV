@@ -209,14 +209,14 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
    const int ny = loc->ny;
 
    clearImage();
-   unsigned int posx; //random() % nx;
-   unsigned int posy; //random() % ny;
-   unsigned int length = 4; //nx / 8;
+   int posx; //random() % nx;
+   int posy; //random() % ny;
+   int length = 4; //nx / 8;
 
    for (int image = 0; image < n_images; image++) {
       do {
          posx = pv_random() % nx;
-      } while(posx < 0 && posx > (nx - length));
+      } while(posx < 0 || posx > (nx - length));
 
       do{
          posy = pv_random() % ny;
