@@ -102,12 +102,12 @@ int PatchProbe::outputState(float timef)
    int numPatches = c->preSynapticLayer()->getNumGlobalExtended();
    if( patchIDMethod == INDEX_METHOD ) {
       kPre = this->kPre;
-      kxPre = kxPos(kPre,nxext,nyext,loc->nf)-nb;
-      kyPre = kyPos(kPre,nxext,nyext,loc->nf)-nb;
-      kfPre = featureIndex(kPre,nxext,nyext,loc->nf);
+      kxPre = kxPos(this->kPre,nxext,nyext,loc->nf)-nb;
+      kyPre = kyPos(this->kPre,nxext,nyext,loc->nf)-nb;
+      kfPre = featureIndex(this->kPre,nxext,nyext,loc->nf);
    }
    else if( patchIDMethod == COORDINATE_METHOD ) {
-      kPre = kIndex(kxPre,kyPre,kfPre,loc->nx+2*nb,loc->ny+2*nb,loc->nf);
+      kPre = kIndex(this->kxPre,this->kyPre,this->kfPre,loc->nx+2*nb,loc->ny+2*nb,loc->nf);
       kxPre = this->kxPre;
       kyPre = this->kyPre;
       kfPre = this->kfPre;
