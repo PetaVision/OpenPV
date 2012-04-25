@@ -56,11 +56,12 @@ int LinearAverageProbe::initLinearAverageProbe(const char * filename, HyPerLayer
  * @time
  * @l
  */
-int LinearAverageProbe::outputState(float timef, HyPerLayer * l)
+int LinearAverageProbe::outputState(float timef)
 {
    int nk, sk;
    const pvdata_t * line;
 
+   HyPerLayer * l = getTargetLayer();
    const PVLayer * clayer = l->clayer;
 
    if (fpGif == NULL) {

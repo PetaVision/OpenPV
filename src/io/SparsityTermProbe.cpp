@@ -29,7 +29,8 @@ int SparsityTermProbe::initSparsityTermProbe(const char * filename, HyPerLayer *
    return initLayerFunctionProbe(filename, layer, msg, sparsity);
 }
 
-int SparsityTermProbe::outputState(float timef, HyPerLayer * l) {
+int SparsityTermProbe::outputState(float timef) {
+   HyPerLayer * l = getTargetLayer();
    int nk = l->getNumNeurons();
    pvdata_t sum = function->evaluate(timef, l);
 

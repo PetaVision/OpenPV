@@ -18,7 +18,7 @@ public:
    SparsityTermProbe(HyPerLayer * layer, const char * msg);
    SparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg);
    virtual ~SparsityTermProbe();
-   virtual int outputState(float time, HyPerLayer * l);
+   virtual int outputState(float timef);
 
 protected:
    int initSparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg);
