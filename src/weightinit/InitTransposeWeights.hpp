@@ -24,7 +24,7 @@ public:
    virtual ~InitTransposeWeights();
 
    virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex,
-         InitWeightsParams *weightParams);
+         int arborID, InitWeightsParams *weightParams);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
    // void calcOtherParams(PVPatch * patch, int patchIndex);
 

@@ -41,7 +41,7 @@ InitWeightsParams * InitTransposeWeights::createNewWeightParams(HyPerConn * call
 }
 
 int InitTransposeWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex,
-                           InitWeightsParams *weightParams) {
+                           int arborID, InitWeightsParams *weightParams) {
 
    InitTransposeWeightsParams *weightParamPtr = dynamic_cast<InitTransposeWeightsParams*>(weightParams);
 
@@ -49,6 +49,10 @@ int InitTransposeWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart
    if(weightParamPtr==NULL) {
       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
       exit(1);
+   }
+   if(arborID!=0) {
+      fprintf(stderr, "InitTransposeWeights not yet implemented for connections with multiple arbors.\n");
+      exit(EXIT_FAILURE);
    }
 
 
