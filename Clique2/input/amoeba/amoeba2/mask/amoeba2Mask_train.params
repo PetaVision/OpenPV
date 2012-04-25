@@ -319,7 +319,7 @@ SiblingConn "L1toL1CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/w3_last.pvp";
+   initWeightsFile = "/Users/gkenyon/workspace-indigo/Clique2/input/noamoeba/mask/w3_last.pvp";
    siblingConnName = "L1toL1CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
