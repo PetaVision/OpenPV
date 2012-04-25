@@ -116,7 +116,7 @@ int Image::tag()
    return 0;
 }
 
-int Image::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor)
+int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor)
 {
    // this should never be called as an image shouldn't have an incoming connection
    recvsyn_timer->start();

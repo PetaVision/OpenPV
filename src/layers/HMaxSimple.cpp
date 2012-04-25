@@ -30,7 +30,7 @@ int HMaxSimple::initialize(const char * name, HyPerCol * hc) {
    return HyPerLayer::initialize(name, hc, 1);
 }
 
-int HMaxSimple::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
+int HMaxSimple::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int neighbor)
 {
    pv_debug_info("[%d]: HMaxSimple::recvSynapticInput: layer %d from %d)",
                  clayer->columnId,

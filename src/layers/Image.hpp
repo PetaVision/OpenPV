@@ -27,13 +27,13 @@ public:
 
    // primary layer interface
    //
-   virtual int recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neighbor);
+   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor);
    virtual int updateState(float time, float dt);
    virtual int outputState(float time, bool last=false);
 
    // partially override implementation of LayerDataInterface interface
    //
-   const pvdata_t * getLayerData()   { return data; }
+   const pvdata_t * getLayerData(int delay=0)   { return data; }
 
    virtual int  clearImage();
 
