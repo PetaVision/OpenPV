@@ -130,8 +130,7 @@ Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
-InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel);
+InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelType channel);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit);

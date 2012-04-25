@@ -520,8 +520,7 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
  * appropriate InitWeight object for the chosen weight initialization.
  *
  */
-InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel) {
+InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelType channel) {
 
    // Get weightInitType.  The HyPerConn subclass may have a natural weightInitType so don't issue a warning yet if weightInitType is missing.
    // The warning is issued in getDefaultInitWeightsMethod().
@@ -635,7 +634,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       return NULL;
    }
 
-   weightInitializer = createInitWeightsObject(name, hc, preLayer, postLayer, channelType);
+   weightInitializer = createInitWeightsObject(name, hc, channelType);
    if( weightInitializer == NULL ) {
       weightInitializer = getDefaultInitWeightsMethod(classkeyword);
    }
