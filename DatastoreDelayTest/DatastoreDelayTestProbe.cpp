@@ -36,7 +36,8 @@ int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probename,
  * @time
  * @l
  */
-int DatastoreDelayTestProbe::outputState(float time, HyPerLayer * l) {
+int DatastoreDelayTestProbe::outputState(float timef) {
+   HyPerLayer * l = getTargetLayer();
 #ifdef PV_USE_MPI
    InterColComm * icComm = l->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -46,16 +47,16 @@ int DatastoreDelayTestProbe::outputState(float time, HyPerLayer * l) {
    int status = PV_SUCCESS;
    int numDelayLevels = l->getParent()->getLayer(0)->getCLayer()->numDelayLevels;
    pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;
-   if( time >= numDelayLevels+2 ) {
+   if( timef >= numDelayLevels+2 ) {
       pvdata_t * V = l->getV();
       for( int k=0; k<l->getNumNeurons(); k++ ) {
          if( V[k] != correctValue ) {
-            fprintf(fp, "Layer \"%s\": time = %f, neuron %d: value is %f instead of %d\n", l->getName(), time, k, V[k], (int) correctValue);
+            fprintf(fp, "Layer \"%s\": timef = %f, neuron %d: value is %f instead of %d\n", l->getName(), timef, k, V[k], (int) correctValue);
             status = PV_FAILURE;
          }
       }
       if( status == PV_SUCCESS) {
-         fprintf(fp, "Layer \"%s\": time = %f, all neurons have correct value %d\n", l->getName(), time, (int) correctValue);
+         fprintf(fp, "Layer \"%s\": timef = %f, all neurons have correct value %d\n", l->getName(), timef, (int) correctValue);
       }
    }
    assert(status == PV_SUCCESS);
