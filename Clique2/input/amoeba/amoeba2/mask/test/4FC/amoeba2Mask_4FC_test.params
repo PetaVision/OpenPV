@@ -184,11 +184,17 @@ KernelConn "MovieToRetina" = {
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
-    weightInit = 1.0;
+    weightInit = 255.0;
    
-    normalize = 0.0;
+    normalize = 1.0;
+    strength = 255.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
     symmetrizeWeights = 0;
-   
+    
+    shrinkPatches = false;
+       
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
