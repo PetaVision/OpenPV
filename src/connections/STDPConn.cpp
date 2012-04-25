@@ -274,7 +274,7 @@ int STDPConn::outputState(float time, bool last)
    return status;
 }
 
-float STDPConn::maxWeight()
+float STDPConn::maxWeight(int arborID)
 {
    return wMax;
 }

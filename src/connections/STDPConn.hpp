@@ -29,7 +29,7 @@ public:
 
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 
-   virtual float maxWeight();
+   virtual float maxWeight(int arborId = 0);
 
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int axonId);
