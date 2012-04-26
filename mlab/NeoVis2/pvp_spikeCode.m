@@ -111,8 +111,10 @@ function [status_info] = ...
   %%rate_array(rate_array > max_rate) = max_rate;
   tau_array = repmat(1./rate_array, [ 1, 1, num_isi ] );
   
-  %%keyboard;
-  isi_array = -(tau_array) .* log(rand_max * rand([image_size(1:2), num_isi]));
+  keyboard;
+  isi_arg = rand_max * rand([image_size(1:2), num_isi]);
+  isi_arg(isi_arg == 0) = exp(-1);
+  isi_array = -(tau_array) .* log(isi_arg);
   eventTime_3D = zeros([image_size(1:2), num_isi+1]);
   eventTime_3D(:,:,2:num_isi+1) = cumsum( isi_array, 3);
   eventTime_3D(eventTime_3D > integration_period) = -1;

@@ -8,12 +8,13 @@ function [status_info] = ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin
-    input_dir = "~/Pictures/lena/"; %% "~/Pictures/MNIST/6/"; %% "~/Pictures/amoeba/256/4/t/";
+    input_dir = "~/Pictures/AnimalDB/Distractors/"; %% "~/Pictures/MNIST/6/"; %% "~/Pictures/amoeba/256/4/t/";
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    output_dir = "~/Pictures/spikeCode/lena/";
+    output_dir = "~/Pictures/spikeCode/AnimalDB/Distractors/100msec/";
   endif
+  mkdir(output_dir);
   num_argin = num_argin + 1;
   if nargin < num_argin
     base_rate = 50; %% gray level activity
@@ -36,19 +37,19 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    integration_period = 0.0300;
+    integration_period = 0.10;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    max_images = 1;
+    max_images = 0;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    num_procs = 1;
+    num_procs = 2;
   endif
 
   setenv('GNUTERM', 'x11');
-  image_type = ".png";
+  image_type = ".jpg";
   
   %% path to generic image processing routines
   img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
@@ -62,7 +63,7 @@ function [status_info] = ...
       [input_dir, '*', image_type];
   input_pathnames = glob(input_path);
   num_images = size(input_pathnames,1);
-  if num_images > max_images
+  if max_images > 0 && num_images > max_images
     num_images = max_images;
     input_pathnames = input_pathnames(1:num_images,1);
   endif
