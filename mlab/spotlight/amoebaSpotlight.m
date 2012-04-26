@@ -1,6 +1,6 @@
 clear all
 
-num_images = 10;
+num_images = 20;
 machine_path = "~/Pictures/amoeba2D/";
 mkdir(machine_path);
 
@@ -53,9 +53,23 @@ for i_RF =  1 : num_RFs
 
   output_path = [machine_path, num2str(max_RF_list(i_RF)), "FC", filesep];
   mkdir(output_path);
+
+  target_path = [output_path, "target", filesep];
+  mkdir(target_path);
   for i_image = 1 : num_images
     spotlight_image = uint8(spotlight_array{i_image});
-    imwrite(spotlight_image, [output_path, "amoeba2D_", num2str(i_image, "%4.4i")], "png");
+    imwrite(spotlight_image, [target_path, "amoeba2D_", num2str(2*i_image-1, "%4.4i"), ".png"], "png");
+  endfor
+
+  if num_procs >= 1
+    [distractor_array] = cellfun( @fInvKernel, fInv_struct_array, "UniformOutput", false);
+  endif
+
+  distractor_path = [output_path, "fInv", filesep];
+  mkdir(distractor_path);
+  for i_image = 1 : num_images
+    fInv_image = uint8(distractor_array{i_image}.background_image);
+    imwrite(fInv_image, [distractor_path, "amoeba2D_", num2str(2*i_image, "%4.4i"), ".png"], "png");
   endfor
 
 endfor
