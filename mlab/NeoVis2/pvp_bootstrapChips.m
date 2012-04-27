@@ -148,7 +148,7 @@ function [num_target_chips, num_distractor_chips] = ...
 		  fix((pvp_max_patch_size(1)+min(chip_size_y, pvp_max_patch_size(1)))/2)];
 	mask_x = [fix((pvp_max_patch_size(2)-min(chip_size_x, pvp_max_patch_size(2)))/2)+1: ...
 		  fix((pvp_max_patch_size(2)+min(chip_size_x, pvp_max_patch_size(2)))/2)]; 
-	mask_y_2D = repmat(mask_y', 1, length(mask_x));
+	mask_y_2D = repmat(mask_y.', 1, length(mask_x));
 	mask_x_2D = repmat(mask_x, length(mask_y), 1);
 	mask_ndx = sub2ind(pvp_max_patch_size, mask_y_2D(:), mask_x_2D(:));
 	mask_chip(mask_ndx) = 255;
@@ -175,7 +175,8 @@ function [num_target_chips, num_distractor_chips] = ...
 	x_poly = [x1_truth, x2_truth, x3_truth, x4_truth];
 	y_poly = [y1_truth, y2_truth, y3_truth, y4_truth];
 	mask_chip = poly2mask(x_poly, y_poly, pvp_max_patch_size(1), pvp_max_patch_size(2));
-	mask_chip(find(mask_chip>0)) = uint8(255);
+	mask_chip = uint8(mask_chip);
+	mask_chip(find(mask_chip>0)) = 255;
       endif
       
 
