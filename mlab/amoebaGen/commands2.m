@@ -1,29 +1,41 @@
-function [] = commands2(image_size)
+function [] = commands2(image_size, fourC, numT)
 
   addpath("/Users/gkenyon/workspace-indigo/PetaVision/mlab/imgProc/");
   setenv('GNUTERM', 'x11');
+  more off;
 
-  if nargin < 1
+  num_argin = 0;
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("image_size", "var") || isempty(image_size)
     image_size =  [256 256]; %[128 128]; %
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("fourC", "var") || isempty(fourC)
+    %% sets number of fourier components
+    %%fourC = [2 4 6 8];
+    fourC = [4];
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("numT", "var") || isempty(numT)
+    numT = 10000;
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("plot_amoega2D", "var") || isempty(plot_amoega2D)
+    plot_amoega2D = false;
   endif
 
   global image_dim
   image_dim = image_size;
 
 				% number of targets/fourier component
-  numT = 10000; %%10000;
   global trial num_trials
   num_trials = numT;
   global plot_amoeba2D fh_amoeba2D
-  plot_amoeba2D = 0;
   setenv('GNUTERM', 'x11');
   if plot_amoeba2D
     fh_amoeba2D = figure;
   endif
 
-  %% sets number of fourier components
-  fourC = [2 4 6 8];
-  %%fourC = [4];
   global nz_image
   nz_image = zeros(3, numT);
   nz_image_cell = cell(length(fourC), 1);

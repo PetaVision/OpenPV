@@ -69,7 +69,7 @@ image_filename = ...
     [image_file_dir, fname, suffix_zeros, num2str(trial)];
 % image_filename = ...
 %     [image_file_path, fname, suffix_zeros, num2str(trial)];
-savefile2(image_filename, image);
+savefile2(image_filename, uint8(image));
 
 global plot_amoeba2D fh_amoeba2D
 if plot_amoeba2D
