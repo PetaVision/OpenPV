@@ -4,15 +4,15 @@ function [status_info] = ...
 		      gray_intensity, max_intensity, ...
 		      integration_period, ...
 		      max_images, num_procs)
-
+  more off;
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin
-    input_dir = "~/Pictures/AnimalDB/Distractors/"; %% "~/Pictures/MNIST/6/"; %% "~/Pictures/amoeba/256/4/t/";
+    input_dir = "~/Pictures/AnimalDB/Targets/"; %% "~/Pictures/MNIST/6/"; %% "~/Pictures/amoeba/256/4/t/";
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    output_dir = "~/Pictures/spikeCode/AnimalDB/Distractors/100msec/";
+    output_dir = "~/Pictures/spikeCode/AnimalDB/Targets/200msec/";
   endif
   mkdir(output_dir);
   num_argin = num_argin + 1;
@@ -37,7 +37,7 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    integration_period = 0.10;
+    integration_period = 0.2;
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
@@ -45,9 +45,10 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    num_procs = 2;
+    num_procs = 4;
   endif
 
+  %%keyboard;
   setenv('GNUTERM', 'x11');
   image_type = ".jpg";
   

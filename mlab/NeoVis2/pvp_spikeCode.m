@@ -119,7 +119,7 @@ function [status_info] = ...
   eventTime_3D(:,:,2:num_isi+1) = cumsum( isi_array, 3);
   eventTime_3D(eventTime_3D > integration_period) = -1;
   [max_eventTime, eventCount_array] = ...
-      max(eventTime_3D, integration_period, 3);
+      max(eventTime_3D - repmat(integration_period, size(eventTime_3D)), [], 3);
   eventCount_array = eventCount_array - 1;  %% count >= 1
   
   plot_eventCount = 0;
