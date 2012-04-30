@@ -111,7 +111,7 @@ function [status_info] = ...
   %%rate_array(rate_array > max_rate) = max_rate;
   tau_array = repmat(1./rate_array, [ 1, 1, num_isi ] );
   
-  keyboard;
+  %%keyboard;
   isi_arg = rand_max * rand([image_size(1:2), num_isi]);
   isi_arg(isi_arg == 0) = exp(-1);
   isi_array = -(tau_array) .* log(isi_arg);
