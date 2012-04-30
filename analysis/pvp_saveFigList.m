@@ -1,4 +1,5 @@
 function pvp_saveFigList( fig_list, fig_path, fig_suffix)
+%%keyboard
 num_figs = length(fig_list);
 for i_fig = 1 : num_figs
   fig_hndl = fig_list(i_fig);
@@ -17,6 +18,6 @@ for i_fig = 1 : num_figs
     delete(fig_filename);
   end%%if
   fig_option = ['-d', fig_suffix];
-  saveas(fig_hndl, fig_filename, fig_option);
-  %%print(fig_hndl, fig_filename, fig_option);
+  %%saveas(fig_hndl, fig_filename, fig_suffix);
+  print(fig_hndl, fig_filename, fig_option);
 end%%for
