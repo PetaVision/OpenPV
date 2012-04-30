@@ -4,8 +4,9 @@ function [] = commands3(image_size, target_type, num_trials)
     image_size = [256 256]; %
   endif
   if nargin < 2 || ~exist("target_type") || isempty(target_type)
-    target_type = 0; %% radial frequency pattern + clutter
+    %% target_type = 0; %% radial frequency pattern + clutter
     %% target_type = 1; %% MNIST digits (resized) + clutter
+    target_type = 2; %% radial frequency spotlight on 1/f background
   endif
   if nargin < 3 || ~exist("num_trials") || isempty(num_trials)
     num_trials = 1; %
@@ -25,7 +26,7 @@ function [] = commands3(image_size, target_type, num_trials)
   endif
   
   global machine_path  %% assume we're in the /workspace-*/PetaVision/mlab/MNIST directory
-  machine_path = '../../../../MATLAB/figures/amoeba/'; %%'/Users/gkenyon/MATLAB/captcha/';
+  machine_path = "~/Pictures/amoeba/"; %%"~/Pictures/capcha/";
   if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
@@ -44,13 +45,17 @@ function [] = commands3(image_size, target_type, num_trials)
 
   global image_file_path image_file_name
 
-  if target_type == 0
+  if target_type == 0 || target_type == 2
   %% set number of fourier components
   %%fourC = [2 4 6 8];
     fourC = [4];
     min_target_ndx = 1;
     max_target_ndx = length(fourC);
     target_list = fourC;
+    if target_type == 2
+      background_contrast = 0.1;  %% percentage of gray == 128
+      foreground_contrast = 0.5; 
+    endif
   elseif target_type == 1
     %% set range of MNIST targets
     target_list = [6];

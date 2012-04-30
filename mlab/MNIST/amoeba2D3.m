@@ -28,6 +28,9 @@ for i_amoeba = 1 : amoeba_struct.num_targets
   elseif target_type == 1
     [amoeba_image_x, amoeba_image_y, amoeba_struct] = ...
 	MNISTSegments(amoeba_struct, 1, target_id, target_type);
+  elseif target_type == 2
+    [amoeba_image_x, amoeba_image_y, amoeba_struct] = ...
+	amoebaSpotlight(amoeba_struct, 0);    
   endif
   
     amoeba_image{i_amoeba, 1} = amoeba_image_x;

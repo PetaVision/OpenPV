@@ -94,7 +94,7 @@ if ~exist(image_file_dir, 'dir')
 end%%if
 image_file_name = ...
     [image_file_dir, fname, suffix_zeros, num2str(trial), '_', fflag];
-savefile2(image_file_name, image);
+savefile2(image_file_name, uint8(image));
 
 global plot_amoeba2D fh_amoeba2D
 if plot_amoeba2D
