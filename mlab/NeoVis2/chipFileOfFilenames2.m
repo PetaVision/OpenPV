@@ -3,17 +3,23 @@ function [tot_train_images, ...
 	  tot_time, ...
 	  rand_state] = ...
       chipFileOfFilenames2(chip_path, ...
-			  object_name, ...
-			  num_train, ...
-			  skip_train_images, ...
-			  begin_train_images, ...
-			  clip_name, ...
-			  list_dir, ...
-			  shuffle_flag, ...
-			  rand_state)
+			   num_train, ...
+			   skip_train_images, ...
+			   begin_train_images, ...
+			   clip_name, ...
+			   list_dir, ...
+			   mask_dir, ...
+			   shuffle_flag, ...
+			   rand_state)
 
   %% makes list of paths to  DARPA chip images for training,
   %% training files are drawn from images folder clip_name,
+  %% located in chip_path
+  %% num_train can be a vector, specifying length(num_train) lists
+  %% with num_train(i) images in the ith list
+  %% if num_train == -1, allot equal number of images to each list,
+  %% such that the total number of images in all lists equals the number of
+  %% images in the clip_name folder
 
   begin_time = time();
 
@@ -29,9 +35,9 @@ function [tot_train_images, ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = ["~/Pictures/amoeba/256", filesep]; 
-%%    chip_path = ["/mnt/data1/repo/neovision-programs-petavision/Heli/Challenge", filesep]; 
-  endif
+    chip_path = [program_dir, "canny", filesep, clip_name, filesep];
+%%    chip_path = ["/mnt/data/repo/neovision-programs-petavision/Heli/Training", filesep]; 
+%%    chip_path = ["~/Pictures/amoeba/256", filesep]; 
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
     object_name = "2"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
@@ -53,17 +59,23 @@ function [tot_train_images, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name") || isempty(clip_name)
+<<<<<<< .mine
+    clip_name = "Car_bootstrap0"; %% "a"; %% "canny";  %%  
+=======
     clip_name = "d"; %% "canny";  %%  
+>>>>>>> .r5104
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
     list_head = [program_dir, "list", filesep];
     mkdir(list_head);
-    list_object_dir = [list_head, object_name, object_name_suffix, filesep];
-    mkdir(list_object_dir);
-    list_clip_name = [list_object_dir, clip_name, filesep];
+    list_clip_name = [list_head, clip_name, filesep];
     mkdir(list_clip_name);
     list_dir = list_clip_name; %%, num2str(2)];  %% 
+  endif
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("mask_dir") %% || isempty(mask_dir)
+    mask_dir = []; %%[chip_path, clip_name, "_mask"]; 
   endif
   %% 0 -> FIFO ordering, %%
   %% 1 -> random sampling, 
@@ -98,8 +110,8 @@ function [tot_train_images, ...
   str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
-  object_folder = [chip_path, object_name, object_name_suffix, filesep];
-  train_path = [object_folder, clip_name, filesep];
+  %%object_folder = [chip_path, object_name, object_name_suffix, filesep];
+  train_path = [chip_path]; %%, clip_name, filesep];
 
   tot_train_images = 0;
 
@@ -112,7 +124,7 @@ function [tot_train_images, ...
   num_train_images = size(train_names,1);   
   disp(['num_train_images = ', num2str(num_train_images)]);
   
-  output_filename_root = object_name;
+  output_filename_root = clip_name;
 
   num_output_files = length(num_train);
   for i_output = 1 : num_output_files
@@ -138,9 +150,10 @@ function [tot_train_images, ...
       num_train(i_output) = tot_train_images;
     endif
 
-    output_filename_prefix = [object_name, object_name_suffix, "_", clip_name];
     if num_output_files > 1
-      output_filename = [output_filename_prefix, "_",  num2str(i_output, "%3.3i")];
+      output_filename = [output_filename_root, "_",  num2str(i_output, "%3.3i")];
+    else
+      output_filename = output_filename_root;
     endif
     noclobber_flag = 0; %% 
     if noclobber_flag
@@ -157,6 +170,15 @@ function [tot_train_images, ...
       fprintf(fid_train, "%s\n", train_filenames{write_train_ndx(i_file)});
     endfor %%
     fclose(fid_train);
+    if ~isempty(mask_dir)
+      fileOfFilenames_mask = [filenames_path, output_filename, "_fileOfMasknames", ".txt"];
+      disp(["fileOfFilenames_mask = ", fileOfFilenames_mask]);
+      fid_mask = fopen(fileOfFilenames_mask, "w", "native");
+      for i_file = 1 : num_train(i_output)
+	fprintf(fid_mask, "%s\n", [mask_dir, train_names{write_train_ndx(i_file)}]);
+      endfor %%
+      fclose(fid_mask);
+    endif
 
   endfor %% i_output
   
