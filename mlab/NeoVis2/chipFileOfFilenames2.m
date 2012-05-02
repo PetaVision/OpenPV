@@ -1,6 +1,5 @@
 
-function [train_filenames, ...
-	  tot_train_images, ...
+function [tot_train_images, ...
 	  tot_time, ...
 	  rand_state] = ...
       chipFileOfFilenames2(chip_path, ...
@@ -18,9 +17,14 @@ function [train_filenames, ...
 
   begin_time = time();
 
-  program_dir = ...
-      ["/mnt/data/PetaVision/amoeba/3way/"];
-%%      ["/mnt/data/PetaVision/noamoeba/33x33/"];
+  petavision_dir = ...
+      ["/mnt/data/repo/neovision-programs-petavision", filesep];
+  dataset_dir = [petavision_dir, "noamoeba2", filesep];
+  mkdir(dataset_dir);
+  flavor_dir = [dataset_dir, "3way", filesep];
+  mkdir(flavor_dir);
+  program_dir = flavor_dir;
+  mkdir(program_dir);
 
   num_argin = 0;
   num_argin = num_argin + 1;
@@ -30,12 +34,12 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "8"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
+    object_name = "2"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
   endif
   object_name_suffix = "FC";
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
-    num_train = repmat(-1, 16, 1);  %% -1 use all images in clip_name
+    num_train = repmat(-1, 8, 1);  %% -1 use all images in clip_name
     %% if num_train is a vector of length > 1, make length(num_train) separate training files with the specified number of images in each
   endif
   num_output_files = length(num_train);
@@ -49,7 +53,7 @@ function [train_filenames, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "a"; %% "canny";  %%  
+    clip_name = "d"; %% "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
