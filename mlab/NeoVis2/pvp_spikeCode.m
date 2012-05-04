@@ -81,40 +81,41 @@ function [status_info] = ...
 
   %%keyboard;
 
-  %% calculate renormalized_rate and rand_max
-  %% -log(rand_max) / renormalized_rate = refractory_period;
-  %% limit (N->infinity)  (1/renormalized_rate) * sum(-log(rand_max * rand(T,1)) / N = 1 / base_rate
-  %% (1/renormalized_rate) < -log(rand_max * x > = 1 / base_rate
-  %% < -log(a*x) >, x uniformly distributed between {0,1} and 0 < a < 1, -log(a) - log(0) * 0 + log(1) * 1 + 1 = 
-  %% < -log(a*x)> = 1 - log(a)
-  %% 1 + renormalized_rate * refractory_period = renormalized_rate / base_rate
-  %% renormalized_rate = 1 / ( (1/base_rate) - refractory_period )
+  %% calculate renormalized_base_rate
+  %% Time between spikes is refractory_period plus exponentially-distributed random variable
+  %% Call renormalized_base_rate the mean value of exp.-distributed variable.
+  %% refractory_period + 1/renormalized_base_rate = 1/base_rate
+  %% renormalized_base_rate = 1 / ( (1/base_rate) - refractory_period )
 
-  renormalized_rate = base_rate / ( 1 - base_rate * refractory_period );
-  rand_max = exp( -base_rate * refractory_period / ( 1 - base_rate * refractory_period ) );
+  renormalized_base_rate = base_rate / ( 1 - base_rate * refractory_period );
+  %% rand_max = exp( -base_rate * refractory_period / ( 1 - base_rate * refractory_period ) );
   renormalized_max_rate = max_rate / ( 1 - base_rate * refractory_period );
 
   %%keyboard;
   if (max_intensity > gray_intensity)
     gray_array = double(gray_image);
     rate_array = ...
-	renormalized_rate + ...
+	renormalized_base_rate + ...
 	(gray_array - gray_intensity) * ...
-	(renormalized_max_rate - renormalized_rate) / (max_intensity - gray_intensity);
+	(renormalized_max_rate - renormalized_base_rate) / (max_intensity - gray_intensity);
   else
     rate_array = repmat(renormalized_rate, image_size(1:2));
   endif
 
   num_isi = ceil(3 * max_rate * integration_period);
   min_rate = 1 / num_isi;
-  rate_array(rate_array < 0) = min_rate;
+  rate_array(rate_array < min_rate) = min_rate;
   %%rate_array(rate_array > max_rate) = max_rate;
   tau_array = repmat(1./rate_array, [ 1, 1, num_isi ] );
   
   %%keyboard;
-  isi_arg = rand_max * rand([image_size(1:2), num_isi]);
+  isi_arg = rand([image_size(1:2), num_isi]);
   isi_arg(isi_arg == 0) = exp(-1);
-  isi_array = -(tau_array) .* log(isi_arg);
+  isi_array = -(tau_array) .* log(isi_arg) + refractory_period;
+  
+  %% isi_arg = rand_max * rand([image_size(1:2), num_isi]);
+  %% isi_arg(isi_arg == 0) = exp(-1);
+  %% isi_array = -(tau_array) .* log(isi_arg);
   eventTime_3D = zeros([image_size(1:2), num_isi+1]);
   eventTime_3D(:,:,2:num_isi+1) = cumsum( isi_array, 3);
   eventTime_3D(eventTime_3D > integration_period) = -1;
