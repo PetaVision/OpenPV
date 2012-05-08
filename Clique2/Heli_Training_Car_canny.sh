@@ -1,9 +1,7 @@
-#! /bin/bash
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/001/Heli_Training_Car_Car_bootstrap0_canny_001.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/001/Heli_Training_Car_Car_bootstrap0_canny_001.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/001/Heli_Training_Car_Car_bootstrap0_canny_001.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/001/Heli_Training_Car_Car_bootstrap0_canny_002.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/003/Heli_Training_Car_Car_bootstrap0_canny_003.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/003/Heli_Training_Car_Car_bootstrap0_canny_003.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/004/Heli_Training_Car_Car_bootstrap0_canny_004.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/004/Heli_Training_Car_Car_bootstrap0_canny_004.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/005/Heli_Training_Car_Car_bootstrap0_canny_005.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/005/Heli_Training_Car_Car_bootstrap0_canny_005.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/006/Heli_Training_Car_Car_bootstrap0_canny_006.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/006/Heli_Training_Car_Car_bootstrap0_canny_006.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/007/Heli_Training_Car_Car_bootstrap0_canny_007.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/007/Heli_Training_Car_Car_bootstrap0_canny_007.log
-time ./Debug/Clique2 -p ./input/Heli/Training/Car/canny/Car_bootstrap0/008/Heli_Training_Car_Car_bootstrap0_canny_008.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/008/Heli_Training_Car_Car_bootstrap0_canny_008.log
+#!/bin/bash
+
+for i_ver in {001..008}
+do
+    echo ${i_ver}
+    time LD_LIBRARY_PATH=/usr/lib64/openmpi/lib  ~/workspace-indigo/Clique2/Debug/Clique2 -p ~/workspace-indigo/Clique2/input/Heli/Training/Car/canny/Car_bootstrap0/${i_ver}/Heli_Training_Car_Car_bootstrap0_canny_${i_ver}.params 1> /mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/Car_bootstrap0/${i_ver}/Heli_Training_Car_Car_bootstrap0_canny_${i_ver}.log &
+done
