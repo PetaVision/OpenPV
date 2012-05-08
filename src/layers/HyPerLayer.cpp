@@ -325,7 +325,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 {
    InterColComm * icComm = parent->icCommunicator();
    layerLoc->nxGlobal = (int) (nxScale * parent->getNxGlobal());
-   layerLoc->nyGlobal = (int) (nyScale * parent->getNxGlobal());
+   layerLoc->nyGlobal = (int) (nyScale * parent->getNyGlobal());
 
    // partition input space based on the number of processor
    // columns and rows
