@@ -94,7 +94,8 @@ KernelConn "input to output" = {
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
+    selfFlag = false;
 
     delay = 0;
 
