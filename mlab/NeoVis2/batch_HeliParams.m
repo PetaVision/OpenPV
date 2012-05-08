@@ -1,23 +1,24 @@
 
-object_type = {"Car"}; %%{"2FC"; "4FC"; "6FC"; "8FC"};
+object_type = {"Car"}; %%{"distractor"}; %%{"2FC"; "4FC"; "6FC"; "8FC"};
 
 %% clip_name stores the directories that contain the individual frames
-clip_flag = false;
+clip_flag = true; %%false; %%  
 if clip_flag
-  clip_ids = [1:50]; %% [7:17,21:22,30:31];
+  clip_ids = [26:50]; %% [1:50]; %% [7:17,21:22,30:31];
   clip_name = cell(length(clip_ids),1);
   for i_clip = 1 : length(clip_name)
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
   endfor
 else
   clip_name = cell(1);
-  clip_name{1} = "Car_bootstrap0";
+  clip_name{1} = "distractor"; %% "Car_bootstrap0"; %%
 endif
 
 %% version_str stores the training or testing run index 
-version_ids = [1:8];
-version_str = cell(length(version_ids),1);
-for i_version = 1 : length(version_ids)
+version_ids = [1:128];
+num_versions = length(version_ids);
+version_str = cell(num_versions,1);
+for i_version = 1 : num_versions
   version_str{i_version} = num2str(version_ids(i_version), "%3.3i");   
 endfor
 
@@ -40,7 +41,7 @@ pvp_clique_path = ...
 
 DATASET_ID = "Heli"; %% "amoeba"; %%"Tower"; %% "Tailwind"; %% 
 dataset_id = tolower(DATASET_ID); %% 
-FLAVOR_ID = "Training"; %% "3way"; %%"33x33"; %% "Challenge"; %% "Formative"; %%  
+FLAVOR_ID = "Challenge"; %% "Training"; %% "3way"; %%"33x33"; %%  "Formative"; %%  
 flavor_id = tolower(FLAVOR_ID); %% 
 pvp_repo_path = ...
     [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
@@ -76,8 +77,8 @@ if pvp_num_ODD_kernels > 1
 endif
 pvp_bootstrap_str = ""; %% "_bootstrap0"; %%  
 pvp_edge_type = "canny"; %% ""; %% 
-pvp_frame_size =  [256, 256];
-pvp_num_frames =  12294; %%625;
+pvp_frame_size =  [1080 1920]; %% [256, 256];
+pvp_num_frames =  []; %% ceil(12294 / num_versions); %%625;
 
 output_activity_path = ...
     [pvp_program_path, ...
@@ -87,6 +88,10 @@ mkdir(output_activity_path);
 pvp_list_path = ...
     [pvp_program_path, ...
      "list", "_", pvp_edge_type, filesep];
+
+%% path to generic image processing routines
+util_dir = "~/workspace-indigo/PetaVision/mlab/util/";
+addpath(util_dir);
 
 for i_object = 1 : length(object_type)
   disp(object_type{i_object});
@@ -140,7 +145,7 @@ for i_object = 1 : length(object_type)
 	 clip_name{i_clip}, filesep];
     list_path = list_clip_path;
 
-    for i_version = 1 : length(version_str)
+    for i_version = 1 : num_versions
       disp(version_str{i_version});
       
       output_version_path = ...
@@ -161,12 +166,16 @@ for i_object = 1 : length(object_type)
 	  [clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfFilenames.txt"];
       pvp_fileOfFrames = ...
 	  [pvp_fileOfFrames_path, pvp_fileOfFrames_file];
+      pvp_num_frames = linecount(pvp_fileOfFrames);
+      if pvp_num_frames == 0
+	error(["linecount = 0:", "pvp_fileOfFrames = ", pvp_fileOfFrames]);
+      endif
 
       pvp_fileOfMasks_file = ...
 	  [clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfMasknames.txt"];
       pvp_fileOfMasks = ...
 	  [pvp_fileOfFrames_path, pvp_fileOfMasks_file];
-
+      pvp_fileOfMasks = [];
 
       params_filename = ...
 	  [DATASET_ID, ...

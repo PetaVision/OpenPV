@@ -128,7 +128,7 @@ function [pvp_params_file] = ...
     disp(["frame_size = ", num2str(pvp_frame_size)]);
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("pvp_num_frames") || isempty(pvp_num_frames)
+  if nargin < num_argin || ~exist("pvp_num_frames") %% || isempty(pvp_num_frames)
     pvp_num_frames =  clip_log_struct.tot_clips; %%
     disp(["num_frames = ", num2str(pvp_num_frames)]);
   endif
@@ -149,7 +149,7 @@ function [pvp_params_file] = ...
 	[pvp_fileOfFrames_path, pvp_fileOfFrames_file];
   endif
   num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("pvp_fileOfMasks") || isempty(pvp_fileOfMasks)
+  if nargin < num_argin || ~exist("pvp_fileOfMasks") %% || isempty(pvp_fileOfMasks)
     pvp_fileOfMasks_path = ...
 	[list_path, pvp_clip_name, filesep];
     pvp_fileOfMasks_file = ...
