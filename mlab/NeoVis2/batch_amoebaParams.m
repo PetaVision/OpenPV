@@ -28,7 +28,7 @@ pvp_clique_path = ...
     [pvp_workspace_path, "Clique2", filesep];
 
 
-DATASET_ID = "noamoeba2"; %%"Heli"; %% "Tower"; %% "Tailwind"; %% 
+DATASET_ID = "noamoeba3"; %%"Heli"; %% "Tower"; %% "Tailwind"; %% 
 dataset_id = tolower(DATASET_ID); %% 
 FLAVOR_ID = "3way"; %%"33x33"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
 flavor_id = tolower(FLAVOR_ID); %% 
@@ -47,7 +47,7 @@ pvp_input_path = ...
     [pvp_input_path2, FLAVOR_ID, filesep];
 mkdir(pvp_input_path);
 
-pvp_num_ODD_kernels =  2; %% 3; %%
+pvp_num_ODD_kernels =  3; %% 3; %%
 pvp_bootstrap_str =  ""; %% "_bootstrap"; %%
 pvp_edge_type =  ""; %% "canny"; %%
 pvp_params_template = ...
@@ -106,7 +106,7 @@ for i_object = 1 : length(object_type)
 
     list_mask_path = ...
 	[list_object_path, ...
-	   "a", filesep];
+	   clip_name{i_clip}, filesep];
 
     for i_version = 1 : length(version_str)
       disp(version_str{i_version});
@@ -134,7 +134,7 @@ for i_object = 1 : length(object_type)
       pvp_fileOfMasks_path = ...
 	  [list_mask_path];
       pvp_fileOfMasks_file = ...
-	  [object_type{i_object}, "_", "a", "_", version_str{i_version}, "_", "fileOfFilenames.txt"];
+	  [object_type{i_object}, "_", clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfMasknames.txt"];
       pvp_fileOfMasks = ...
 	  [pvp_fileOfMasks_path, pvp_fileOfMasks_file];
 

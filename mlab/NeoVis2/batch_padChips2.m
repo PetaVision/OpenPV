@@ -9,8 +9,8 @@ if clips_flag
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");   
   endfor
 else
-  clip_name = cell(1);
-  clip_name{1} = "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
+  clip_name = cell(1,1);
+  clip_name{1} = "d"; %%"Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
 endif
 
 global DoG_flag
@@ -28,10 +28,18 @@ global image_size_thresh
 global VERBOSE_FLAG
 
 %% chip_path is the path to the folders referenced by clip_name 
-chip_path = "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/"; %%  "/mnt/data/repo/neovision-data-training-heli/"; %%
+chip_path = "~/Pictures/amoeba/256/"; %% "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/"; %%  "/mnt/data/repo/neovision-data-training-heli/"; %%
+chip_path_append = "8FC";
 
-%% petavision_path is the path to the results folders 
-petavision_path = "/mnt/data/repo/neovision-programs-petavision/Heli/Training/"; %% Challenge/;
+%% petavision_path is the path to the results folders
+petavision_dir = ...
+    ["/mnt/data/repo/neovision-programs-petavision", filesep];
+dataset_dir = [petavision_dir, "noamoeba3", filesep];
+mkdir(dataset_dir);
+flavor_dir = [dataset_dir, "3way", filesep];
+mkdir(flavor_dir);
+petavision_path = flavor_dir;
+mkdir(petavision_path);
 
 DoG_flag = 0;
 DoG_struct = struct;  %% 
@@ -47,7 +55,7 @@ canny_struct.sigma_canny = 1;
 pad_size = [256 256]; %%  [1080 1920]; %% 
 num_procs = 8;
 %%keyboard;
-for i_clip = 1 : length(clip_name)
+for i_clip = 1 : 0 %%length(clip_name)
   disp(["clip_name = ", clip_name{i_clip}]);
 
   [tot_chips, ...
@@ -84,10 +92,16 @@ skip_train_images = num_procs;
 begin_train_images = 1;
 shuffle_flag = 0;
 for i_clip = 1 : length(clip_name)
-  train_path = [petavision_path, "canny", filesep, clip_name{i_clip}, filesep];
-  list_dir = [petavision_path, "list_canny", filesep, clip_name{i_clip}, filesep];
-  mask_dir = [chip_path, clip_name{i_clip}, "_mask", filesep];
+  train_path = [chip_path, chip_path_append, filesep, clip_name{i_clip}, filesep]; %% [petavision_path, "canny", filesep, clip_name{i_clip}, filesep]; %% 
+  list_dir2 = [petavision_path, "list", filesep];
+  mkdir(list_dir2);
+  list_dir3 = [list_dir2, chip_path_append, filesep]; 
+  mkdir(list_dir3);
+  list_dir = [list_dir3, clip_name{i_clip}, filesep]; %% [petavision_path, "list_canny", filesep, clip_name{i_clip}, filesep]; %%
+  mkdir(list_dir);
+  mask_dir = [chip_path, chip_path_append, filesep, "a", filesep]; %% [chip_path, clip_name{i_clip}, "_mask", filesep];
   chipFileOfFilenames2(train_path, ...
+		       chip_path_append, ...
 		       num_train, ...
 		       skip_train_images, ...
 		       begin_train_images, ...

@@ -1,6 +1,6 @@
 function [] = commands2(image_size, fourC, numT)
 
-  addpath("/Users/gkenyon/workspace-indigo/PetaVision/mlab/imgProc/");
+  addpath("/home/garkenyon/workspace-indigo/PetaVision/mlab/imgProc/");
   setenv('GNUTERM', 'x11');
   more off;
 
@@ -45,7 +45,7 @@ function [] = commands2(image_size, fourC, numT)
 
   global machine_path
   %%machine_path = '/nh/home/gkenyon/Documents/MATLAB/amoeba_ltd/';
-  machine_path = '/Users/gkenyon/Pictures/amoeba/';
+  machine_path = '/home/garkenyon/Pictures/amoeba/';
   if ~exist( 'machine_path', 'dir')
     [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', machine_path); 
     if SUCCESS ~= 1
@@ -67,7 +67,7 @@ function [] = commands2(image_size, fourC, numT)
   for i_FC = 1:length(fourC)
     nfour = fourC(i_FC);
     nz_image = zeros(2,0);
-    image_file_path = [ amoeba_file_path, num2str(nfour), '/']
+    image_file_path = [ amoeba_file_path, num2str(nfour), "FC", '/']
     if ~exist( 'image_file_path', 'dir')
       [SUCCESS,MESSAGE,MESSAGEID] = feval( 'mkdir', image_file_path ); 
       if SUCCESS ~= 1

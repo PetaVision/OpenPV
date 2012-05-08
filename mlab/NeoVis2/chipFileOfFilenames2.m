@@ -3,6 +3,7 @@ function [tot_train_images, ...
 	  tot_time, ...
 	  rand_state] = ...
       chipFileOfFilenames2(chip_path, ...
+			   chip_path_append, ...
 			   num_train, ...
 			   skip_train_images, ...
 			   begin_train_images, ...
@@ -23,26 +24,15 @@ function [tot_train_images, ...
 
   begin_time = time();
 
-  petavision_dir = ...
-      ["/mnt/data/repo/neovision-programs-petavision", filesep];
-  dataset_dir = [petavision_dir, "noamoeba2", filesep];
-  mkdir(dataset_dir);
-  flavor_dir = [dataset_dir, "3way", filesep];
-  mkdir(flavor_dir);
-  program_dir = flavor_dir;
-  mkdir(program_dir);
-
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = [program_dir, "canny", filesep, clip_name, filesep];
-%%    chip_path = ["/mnt/data/repo/neovision-programs-petavision/Heli/Training", filesep]; 
-%%    chip_path = ["~/Pictures/amoeba/256", filesep]; 
-  num_argin = num_argin + 1;
-  if nargin < num_argin || ~exist("object_name") || isempty(object_name)
-    object_name = "2"; %% "Car"; %% "Plane"; %% "Car_bootstrap1"; %%  "distractor"; "030"; %%    
+    chip_path = ["~/Pictures/amoeba/256/", filesep]; 
   endif
-  object_name_suffix = "FC";
+  num_argin = num_argin + 1;
+  if nargin < num_argin || ~exist("chip_path_append") %% || isempty(chip_path_append)
+    chip_path_append = "2FC/";
+  endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("num_train") || isempty(num_train)
     num_train = repmat(-1, 8, 1);  %% -1 use all images in clip_name
@@ -59,15 +49,11 @@ function [tot_train_images, ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name") || isempty(clip_name)
-<<<<<<< .mine
-    clip_name = "Car_bootstrap0"; %% "a"; %% "canny";  %%  
-=======
-    clip_name = "d"; %% "canny";  %%  
->>>>>>> .r5104
+    clip_name = "t"; %% "canny";  %%  
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("list_dir") || isempty(list_dir)
-    list_head = [program_dir, "list", filesep];
+    list_head = ["/mnt/data/neoviosn-program-petavision/amoeba3/3way/", "list", filesep];
     mkdir(list_head);
     list_clip_name = [list_head, clip_name, filesep];
     mkdir(list_clip_name);
@@ -89,7 +75,7 @@ function [tot_train_images, ...
   endif
   rand("state", rand_state);
 
- 
+  
   setenv('GNUTERM', 'x11');
 
   local_dir = pwd;
@@ -125,6 +111,9 @@ function [tot_train_images, ...
   disp(['num_train_images = ', num2str(num_train_images)]);
   
   output_filename_root = clip_name;
+  if ~isempty(chip_path_append)
+    output_filename_root = [chip_path_append, "_", output_filename_root];
+  endif
 
   num_output_files = length(num_train);
   for i_output = 1 : num_output_files
@@ -134,7 +123,7 @@ function [tot_train_images, ...
     write_train_ndx = begin_train_images2:skip_train_images:(num_train_images-num_output_files+i_output);
     tot_train_images = length(write_train_ndx);
     disp(['tot_train_images = ', num2str(tot_train_images)]);
-   
+    
     if num_train(i_output) < 0 
       num_train(i_output) = floor(tot_train_images);
     endif
@@ -190,4 +179,4 @@ function [tot_train_images, ...
   end_time = time;
   tot_time = end_time - begin_time;
 
- endfunction %% chipFileOfFilenames
+endfunction %% chipFileOfFilenames
