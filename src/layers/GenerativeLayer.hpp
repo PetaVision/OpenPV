@@ -33,18 +33,15 @@ protected:
    GenerativeLayer();
    int initialize(const char * name, HyPerCol * hc);
    /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, bool spiking, unsigned int * active_indices, unsigned int * num_active);
-   // virtual int updateV();
-   // virtual int setActivity();
-   // virtual int updateSparsityTermDerivative();
+   static pvdata_t reduce_relaxation(int num_neurons, pvdata_t * V, pvdata_t * dV, pvdata_t relaxation);
 
    pvdata_t relaxation; // V(new) = V(old) - relaxation*(gradient wrt V)
    pvdata_t activityThreshold;  // values with absolute value below threshold are zero
    pvdata_t auxChannelCoeff; // coefficient on channel 2 in update rule
    pvdata_t sparsityTermCoeff; // coefficient in front of the sparsity function in energy
    pvdata_t persistence;  // "stickiness" of the rate of change of weights
-   pvdata_t * dAold;  // buffer holding past rate of change of weights
+   pvdata_t * dV;  // buffer holding past rate of change of weights
    pvdata_t * sparsitytermderivative;  // buffer holding derivative of sparsity function
-
 private:
    int initialize_base();
 };
