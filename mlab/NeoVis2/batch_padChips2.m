@@ -1,16 +1,16 @@
 clear all
 
 %% clip_name gives the folder storing input images or chips
-clips_flag = false;
+clips_flag = true;
 if clips_flag 
-  clip_ids = [1:50];
+  clip_ids = [26:50]; %% [1:50];
   clip_name = cell(length(clip_ids),1);
   for i_clip = 1 : length(clip_name)
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");   
   endfor
 else
-  clip_name = cell(1,1);
-  clip_name{1} = "d"; %%"Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
+  clip_name = cell(1);
+  clip_name{1} = "Car"; %% "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
 endif
 
 global DoG_flag
@@ -28,7 +28,8 @@ global image_size_thresh
 global VERBOSE_FLAG
 
 %% chip_path is the path to the folders referenced by clip_name 
-chip_path = "~/Pictures/amoeba/256/"; %% "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/"; %%  "/mnt/data/repo/neovision-data-training-heli/"; %%
+chip_path = "/mnt/data/repo/neovision-data-challenge-heli/"; %%"/mnt/data/repo/neovision-data-training-heli/"; %%  "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/";  %%
+%% chip_path = "~/Pictures/amoeba/256/"; %% "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/"; %%  "/mnt/data/repo/neovision-data-training-heli/"; %%
 chip_path_append = "8FC";
 
 %% petavision_path is the path to the results folders
@@ -52,7 +53,7 @@ canny_flag = 1;
 canny_struct = struct;  %% 
 canny_struct.sigma_canny = 1;
 
-pad_size = [256 256]; %%  [1080 1920]; %% 
+pad_size = [1080 1920]; %%[256 256]; %%   
 num_procs = 8;
 %%keyboard;
 for i_clip = 1 : 0 %%length(clip_name)
@@ -87,19 +88,23 @@ for i_clip = 1 : 0 %%length(clip_name)
 
 endfor
 
-num_train = repmat(-1,num_procs,1);
-skip_train_images = num_procs;
+num_versions = 128;
+num_train = repmat(-1,num_versions,1);
+skip_train_images = num_versions;
 begin_train_images = 1;
 shuffle_flag = 0;
 for i_clip = 1 : length(clip_name)
-  train_path = [chip_path, chip_path_append, filesep, clip_name{i_clip}, filesep]; %% [petavision_path, "canny", filesep, clip_name{i_clip}, filesep]; %% 
-  list_dir2 = [petavision_path, "list", filesep];
-  mkdir(list_dir2);
-  list_dir3 = [list_dir2, chip_path_append, filesep]; 
-  mkdir(list_dir3);
-  list_dir = [list_dir3, clip_name{i_clip}, filesep]; %% [petavision_path, "list_canny", filesep, clip_name{i_clip}, filesep]; %%
-  mkdir(list_dir);
-  mask_dir = [chip_path, chip_path_append, filesep, "a", filesep]; %% [chip_path, clip_name{i_clip}, "_mask", filesep];
+  train_path = [petavision_path, "canny", filesep, clip_name{i_clip}, filesep];
+  list_dir = [petavision_path, "list_canny", filesep, clip_name{i_clip}, filesep];
+  mask_dir = []; %%[chip_path, clip_name{i_clip}, "_mask", filesep];
+%%  train_path = [chip_path, chip_path_append, filesep, clip_name{i_clip}, filesep]; %% [petavision_path, "canny", filesep, clip_name{i_clip}, filesep]; %% 
+%%  list_dir2 = [petavision_path, "list", filesep];
+%%  mkdir(list_dir2);
+%%  list_dir3 = [list_dir2, chip_path_append, filesep]; 
+%%  mkdir(list_dir3);
+%%  list_dir = [list_dir3, clip_name{i_clip}, filesep]; %% [petavision_path, "list_canny", filesep, clip_name{i_clip}, filesep]; %%
+%%  mkdir(list_dir);
+%%  mask_dir = [chip_path, chip_path_append, filesep, "a", filesep]; %% [chip_path, clip_name{i_clip}, "_mask", filesep];
   chipFileOfFilenames2(train_path, ...
 		       chip_path_append, ...
 		       num_train, ...
@@ -110,6 +115,7 @@ for i_clip = 1 : length(clip_name)
 		       mask_dir, ...
 		       shuffle_flag, ...
 		       []);
+
 endfor
 
 
