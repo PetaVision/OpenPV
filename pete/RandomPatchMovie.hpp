@@ -44,6 +44,8 @@ protected:
    int fileIndex;
    const char * patchposfilename;
    FILE * patchposfile;
+   float skipLowContrastPatchProb;
+   float lowContrastThreshold;
 
 private:
    int initialize_base();

@@ -36,6 +36,7 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    int rank = 0;
 #endif // PV_USE_MPI
 
+   PVParams * params = parent->parameters();
    int rootproc = 0;
    if( rank == rootproc) {
       FILE * fp = fopen(fileOfFileNames, "rb");
@@ -79,7 +80,7 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
       fclose(fp);
       fp = NULL;
 
-      patchposfilename = parent->parameters()->stringValue(name, "patchPosFilename", true);
+      patchposfilename = params->stringValue(name, "patchPosFilename", true);
       if( patchposfilename && patchposfilename[0] != 0 ) {
          char patchpospath[PV_PATH_MAX];
          int actuallength = snprintf(patchpospath, PV_PATH_MAX, "%s/%s", parent->getOutputPath(), patchposfilename);
@@ -93,7 +94,11 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
             exit(EXIT_FAILURE);
          }
       }
-//       snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.tif", movieOutputPath, time);
+
+      skipLowContrastPatchProb = params->value(name, "skipLowContrastPatchProb", 0.0f);
+      if( skipLowContrastPatchProb > 0 ) {
+    	  lowContrastThreshold = params->value(name, "lowContrastThreshold", 0.0f);
+      }
 
       numImageFiles = 0;
       if( listOfImageFiles[0] == '\n' ) listOfImageFiles[0] = 0;
@@ -142,7 +147,6 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    mpi_datatypes = Communicator::newDatatypes(loc);
 
    imageData = NULL;
-   PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
@@ -174,8 +178,30 @@ int RandomPatchMovie::readOffsets() {
 
 int RandomPatchMovie::retrieveRandomPatch() {
    getImageInfo(filename, parent->icCommunicator(), &imageLoc);
-   getRandomOffsets(&imageLoc, &offsetX, &offsetY);
-   readImage(filename, offsetX, offsetY);
+   bool finished = false;
+   while(!finished) {
+      getRandomOffsets(&imageLoc, &offsetX, &offsetY);
+      readImage(filename, offsetX, offsetY);
+      if( skipLowContrastPatchProb > 0 ) {
+         for( int k=0; k<getNumNeurons(); k++ ) {
+            const PVLayerLoc * loc = getLayerLoc();
+            int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+            if( fabsf(data[kex])>lowContrastThreshold ) {
+    	       finished = true;
+    	       break;
+            }
+         }
+         if( !finished ) {
+            double p = pv_random_prob();
+            if( p > skipLowContrastPatchProb ) {
+               finished = true;
+            }
+         }
+      }
+      else {
+    	  finished = true;
+      }
+   }
 
    if( patchposfile != NULL) {
       fprintf(patchposfile, "time = %f, offsetX = %d, offsetY = %d, filename = \"%s\"\n", parent->simulationTime(), offsetX, offsetY, filename);
