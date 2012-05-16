@@ -13,6 +13,7 @@ function [pvp_num_active_BB_mask, ...
   global NFEATURES NCOLS NROWS N
   global pvp_patch_size
   global pvp_use_PANN_boundingBoxes
+  global miss_list_flag;
 
   pvp_num_active_BB_mask = 0;
   pvp_num_active_BB_notmask = 0;
@@ -158,6 +159,7 @@ function [pvp_num_active_BB_mask, ...
 
   endfor %% i_BB
 
+  if miss_list_flag
   BB_mask3D = repmat(BB_mask, [1, 1, NFEATURES]);
   BB_mask3D = permute(BB_mask3D, [3, 2, 1]);
   false_pos_activity3D = pvp_activity3D .* (BB_mask3D==0);
@@ -181,5 +183,6 @@ function [pvp_num_active_BB_mask, ...
   endfor %% i_BB
   pvp_num_active_BB_notmask = nnz(pvp_activity2D .* (BB_mask==1));
   pvp_num_BB_notmask = nnz(BB_mask);
-  
+  endif
+
 endfunction %% pvp_numActiveInBoundingBox2

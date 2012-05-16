@@ -1,28 +1,40 @@
-clip_ids = [1:50]; %% [7:17,21:22,30:31]; %%
+%% begin definition of most variable input params
+clip_ids = [26:50]; %% [1:25]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)                                                                                         
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
 endfor
+num_ODD_kernels = 4;  %% 
+pvp_path_flag = true; %% false; %% 
+NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Formative"; %% "Training"; %%  
+ObjectType = "Car"; %% "Cyclist"; %%  
+global make_bootstrap_chips_flag 
+make_bootstrap_chips_flag = false; %% true; %% 
+global miss_list_flag;
+miss_list_flag = false;
+num_procs = 8; %% 24;  %% 
+%% end most variable portion of input params
 
 home_path = ...
-    [filesep, "home", filesep, "garkenyon", filesep];
+    [filesep, "home", filesep, "gkenyon", filesep];
 NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %% 
 neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
-NEOVISION_DISTRIBUTION_ID = "Training"; %% "Challenge"; %%  "Formative"; %% 
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
 repo_path = [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
 program_path = [repo_path, ...
 		"neovision-programs-petavision", filesep, ...
 		NEOVISION_DATASET_ID, filesep, ...
 		NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
-ObjectType = "Car"; %% "Cyclist"; %%  
 pvp_edge_filter = "canny";
 pvp_frame_skip = 1;
 pvp_frame_offset = 1;
-num_ODD_kernels = 3;  %% 
+num_ODD_kernels_str = "";
+if num_ODD_kernels > 1
+  num_ODD_kernels_str = num2str(num_ODD_kernels);
+endif
 pvp_bootstrap_str = ""; %% "_bootstrap"; %%  
 pvp_bootstrap_level_str = ""; %% "1";
-pvp_version_str = "0"; %% ""; %%
+pvp_version_str = ""; %% "0"; %% 
 clip_log_dir = [program_path, ...
 		"log", filesep, ObjectType, filesep];
 clip_log_pathname = [clip_log_dir, "log.txt"];
@@ -63,9 +75,7 @@ disp(["patch_size = ", num2str(patch_size)]);
 disp(["std_patch_size = ", num2str(std_patch_size)]);
 pvp_layer = 7;  %% 
 training_flag = 1;
-num_procs = 24;  %% 
 
-pvp_path_flag = false;
 canny_flag = false;
 for i_clip = 1 : length(clip_name)
   disp(clip_name{i_clip});
@@ -74,9 +84,9 @@ for i_clip = 1 : length(clip_name)
     pvp_path = [];
   else 
     pvp_path = ...
-	[program_path, "activity", filesep, ...
-	 clip_name{i_clip}, filesep, ObjectType, num2str(num_ODD_kernels), ...
-	 pvp_bootstrap_str, filesep, pvp_edge_filter, pvp_version_str, filesep];
+	[program_path, "activity", filesep, ObjectType, num2str(num_ODD_kernels), ...
+	 pvp_bootstrap_str, filesep, pvp_edge_filter, filesep, ...
+	 clip_name{i_clip}, pvp_version_str, filesep];
   endif
 
   %% check if chips should be drawn from original images or from canny filtered clip

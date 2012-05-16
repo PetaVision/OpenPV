@@ -64,7 +64,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist(pvp_version_str) %% || isempty(pvp_version_str)
-    pvp_version_str = "2";
+    pvp_version_str = "";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
@@ -86,7 +86,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("num_ODD_kernels") || isempty(num_ODD_kernels)
-    num_ODD_kernels = 3;  %% 
+    num_ODD_kernels = 1;  %% 
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_bootstrap_str") 
@@ -417,7 +417,6 @@ function [num_frames, ...
        pvp_activity{i_frame}, ...
        pvp_offset(i_frame)] = ...
 	  pvp_readSparseLayerActivity(pvp_fid, pvp_frame, pvp_header, pvp_index, pvp_offset_tmp);
-      fclose(pvp_fid);
       if pvp_offset(i_frame) == -1
 	break;
 	i_frame = i_frame - 1;
@@ -425,7 +424,7 @@ function [num_frames, ...
       pvp_offset_tmp = pvp_offset(i_frame);
       disp(["i_frame = ", num2str(i_frame)]);
       disp(["pvp_time = ", num2str(pvp_time{i_frame})]);
-      disp(["frame_ID = ", frame_pathnames{i_frame}]);
+      disp(["frame_ID = ", frame_pathnames_all{j_frame}]);
       disp(["mean(pvp_activty) = ", num2str(mean(pvp_activity{i_frame}(:)))]);    
     endif
     frame_pathnames{i_frame} = frame_pathnames_all{j_frame};
@@ -434,6 +433,9 @@ function [num_frames, ...
   disp(["nnz_frames = ", num2str(nnz_frames)]);
   if nnz_frames <= 0
     return;
+  endif
+  if ~isempty(pvp_path)
+    fclose(pvp_fid);
   endif
  
   if num_procs > nnz_frames
