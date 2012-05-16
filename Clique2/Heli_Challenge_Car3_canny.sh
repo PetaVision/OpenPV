@@ -1,57 +1,41 @@
+#!/bin/bash
+set -x
+anterior_nodes=({101..116})
+echo ${anterior_nodes[*]}
+anterior_cores=({1..1})
+echo ${anterior_cores[*]}
 
-
-
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/026/Car3/canny2/Heli_Challenge_026_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/027/Car3/canny2/Heli_Challenge_027_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/028/Car3/canny2/Heli_Challenge_028_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/029/Car3/canny2/Heli_Challenge_029_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/030/Car3/canny2/Heli_Challenge_030_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/031/Car3/canny2/Heli_Challenge_031_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/032/Car3/canny2/Heli_Challenge_032_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/033/Car3/canny2/Heli_Challenge_033_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/034/Car3/canny2/Heli_Challenge_034_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/035/Car3/canny2/Heli_Challenge_035_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/036/Car3/canny2/Heli_Challenge_036_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/037/Car3/canny2/Heli_Challenge_037_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/038/Car3/canny2/Heli_Challenge_038_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/039/Car3/canny2/Heli_Challenge_039_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/040/Car3/canny2/Heli_Challenge_040_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/041/Car3/canny2/Heli_Challenge_041_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/042/Car3/canny2/Heli_Challenge_042_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/043/Car3/canny2/Heli_Challenge_043_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/044/Car3/canny2/Heli_Challenge_044_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/045/Car3/canny2/Heli_Challenge_045_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/046/Car3/canny2/Heli_Challenge_046_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/047/Car3/canny2/Heli_Challenge_047_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/048/Car3/canny2/Heli_Challenge_048_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/049/Car3/canny2/Heli_Challenge_049_Car3_canny2.params;
-time mpirun -np 24  /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 4 -columns 6 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/050/Car3/canny2/Heli_Challenge_050_Car3_canny2.params;
-
-
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/026/Car3/canny22/Heli_026_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/027/Car3/canny22/Heli_027_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/028/Car3/canny22/Heli_028_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/029/Car3/canny22/Heli_029_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/030/Car3/canny22/Heli_030_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/031/Car3/canny22/Heli_031_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/032/Car3/canny22/Heli_032_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/033/Car3/canny22/Heli_033_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/034/Car3/canny22/Heli_034_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/035/Car3/canny22/Heli_035_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/036/Car3/canny22/Heli_036_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/037/Car3/canny22/Heli_037_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/038/Car3/canny22/Heli_038_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/039/Car3/canny22/Heli_039_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/040/Car3/canny22/Heli_040_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/041/Car3/canny22/Heli_041_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/042/Car3/canny22/Heli_042_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/043/Car3/canny22/Heli_043_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/044/Car3/canny22/Heli_044_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/045/Car3/canny22/Heli_045_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/046/Car3/canny22/Heli_046_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/047/Car3/canny22/Heli_047_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/048/Car3/canny22/Heli_048_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/049/Car3/canny22/Heli_049_Car3_canny22.params;
-#time mpirun -np 96 -H rubor,retozo,rona,sahumerio /home/garkenyon/workspace-indigo/Clique2/Debug/Clique2 -rows 8 -columns 12 -p /home/garkenyon/workspace-indigo/Clique2/input/Heli/Challenge/050/Car3/canny22/Heli_050_Car3_canny22.params;
-
+home_path=$HOME
+openmpi64_home="/usr/lib64/openmpi"
+#openmpi64_lib="/usr/lib64/openmpi/lib"
+clique_path=${home_path}"/workspace-indigo/Clique2/"
+echo ${clique_path[0]}
+exe_path=${clique_path}"Debug/"
+echo ${exe_path[0]}
+input_path=${clique_path}"input/Heli/Challenge/Car3/canny/"
+echo ${input_path[0]}
+input_prefix="Heli_Challenge_Car3_canny_"
+output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Challenge/activity/Car3/canny/"
+output_prefix="Heli_Challenge_Car3_canny_"
+version_id=0;
+version_IDs=({042..050}); # ({026..041}); #
+echo ${version_IDs[*]}
+for i_node in ${anterior_nodes[*]}
+do
+    echo "i_node=${i_node}"
+    for i_core in ${anterior_cores[*]}
+    do
+	echo "i_core=${i_core}"
+	echo "version_id =${version_id}"
+	input_params=${input_path}${version_IDs[${version_id}]}"/"${input_prefix}${version_IDs[${version_id}]}".params"
+	echo "input_params=$input_params"
+	ouput_log=${output_path}${output_prefix}${version_IDs[${version_id}]}".log" 
+	echo $output_log
+	host_node="10.0.0."${i_node}
+	echo "host_node=${host_node}"
+	mpirun -np 8 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 2 -columns 4 -p ${input_params} & # 1> ${output_log}
+	#mpirun -np 1 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -p ${input_params} & # 1> ${output_log}
+	version_id=$((${version_id}+1))
+    done
+done
 
