@@ -311,8 +311,10 @@ CliqueConn "L1toL1Post" = {
    selfFlag = true;
    writeStep = -1;
 
-   weightInitType = "UniformWeight";
-   weightInit = 0;
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car/canny/weights/Heli_Challenge_Car_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
    
    normalize = 0.0;
    symmetrizeWeights = 0;

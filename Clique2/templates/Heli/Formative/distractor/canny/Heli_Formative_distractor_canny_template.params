@@ -4,13 +4,13 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;   // until we get going with images
-   ny = 256;
+   nx = 1920; //256;   // until we get going with images
+   ny = 1080; //256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
    $$$_outputPath_$$$
-   progressStep = 200;
+   progressStep = 2000;
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
@@ -22,26 +22,6 @@ HyPerCol "column" = {
 
 Movie "Image" = {
     $$$_imageListPath_$$$
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 0;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
-    writeImages = 0;
-    displayPeriod = 1;
-    jitterFlag = 0;
-    randomMovie = 0;
-    offsetX = 0;
-    offsetY = 0;
-};
-
-
-Movie "Mask" = {
-    $$$_maskListPath_$$$
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -100,29 +80,6 @@ ANNLayer "L1" = {
     InitVType = "ConstantV";
     valueV = 0;
 };
-
-
-// masked edges
-CliqueLayer "L1Post" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 8;
-    marginWidth = 32;
-    writeStep = -1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
-
-    VThresh = 0.5;
-    VMax = 1.0;
-    VMin = 0.0;
-    Vgain = 1.0;
-    Voffset = 0.0;
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
 
 
 
@@ -239,63 +196,12 @@ KernelConn "RetinaToL1Inh" = {
 
 
 
-// Mask connections
-
-// copy edge detections
-IdentConn "L1ToL1PostVertical" = {
-    preLayerName = "L1";
-    postLayerName = "L1Post";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-// mask non-amoeba edges
-KernelConn "MasktoL1Post" = {
-   preLayerName = "Mask";
-   postLayerName = "L1Post";
-   channelCode = 1;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-       
-   strength = 2040.0; // 8 * 255 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   selfFlag = false;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 2;
-};
-
-
-
-
 
 // Clique connections
 
-CliqueConn "L1toL1Post" = {
+CliqueConn "L1toL1" = {
    preLayerName = "L1";
-   postLayerName = "L1Post";
+   postLayerName = "L1";
    channelCode = 2;
    nxp = 65;
    nyp = 65;
@@ -306,13 +212,15 @@ CliqueConn "L1toL1Post" = {
    cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
    initFromLastFlag = 0;  // 1;  // restart
-   keepKernelsSynchronized = false; // true; 
-   combine_dW_with_W_flag = true; //false; // 
+   keepKernelsSynchronized = false; //true; //
+   combine_dW_with_W_flag = true; //false; //
    selfFlag = true;
    writeStep = -1;
 
-   weightInitType = "UniformWeight";
-   weightInit = 0;
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor/canny/weights/Heli_Challenge_distractor_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
    
    normalize = 0.0;
    symmetrizeWeights = 0;
@@ -323,7 +231,7 @@ CliqueConn "L1toL1Post" = {
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 
-   delay = 1; 
+   delay = 0; 
 };
 
 
@@ -336,26 +244,16 @@ CliqueConn "L1toL1Post" = {
 //    targetLayer = "L1";
 //};
 //
-//StatsProbe "L1PostStats" = {
-//    targetLayer = "L1Post";
+//
+//StatsProbe "RetinaStatsFile" = {
+//    targetLayer = "Retina";
+//    probeOutputFile = "Retina_Stats.txt";
 //};
-
-
-StatsProbe "RetinaStatsFile" = {
-    targetLayer = "Retina";
-    probeOutputFile = "Retina_Stats.txt";
-};
-
-StatsProbe "L1StatsFile" = {
-    targetLayer = "L1";
-    probeOutputFile = "L1_Stats.txt";
-};
-
-StatsProbe "L1PostStatsFile" = {
-    targetLayer = "L1Post";
-    probeOutputFile = "L1Post_Stats.txt";
-};
-
+//
+//StatsProbe "L1StatsFile" = {
+//    targetLayer = "L1";
+//    probeOutputFile = "L1_Stats.txt";
+//};
 
 
 

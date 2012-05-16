@@ -212,8 +212,8 @@ CliqueConn "L1toL1" = {
    cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
    initFromLastFlag = 0;  // 1;  // restart
-   keepKernelsSynchronized = true; //false;
-   combine_dW_with_W_flag = false; //true;
+   keepKernelsSynchronized = false; //true; //
+   combine_dW_with_W_flag = true; //false; //
    selfFlag = true;
    writeStep = -1;
 

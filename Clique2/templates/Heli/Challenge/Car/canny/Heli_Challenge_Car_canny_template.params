@@ -4,8 +4,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 1920; // 256;   // until we get going with images
-   ny = 1080; // 256;
+   nx = 1920;
+   ny = 1080;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
@@ -69,9 +69,9 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
+    spikingFlag = 1;
     writeNonspikingActivity = 0;
 
     VThresh = 0.5;
@@ -82,6 +82,7 @@ ANNLayer "L1" = {
 };
 
 
+// clique layers
 CliqueLayer "L1Clique" = {
     restart = 0;
     nxScale = 1;
@@ -90,18 +91,17 @@ CliqueLayer "L1Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL1Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
 };
-
 
 
 CliqueLayer "L2Clique" = {
@@ -112,18 +112,17 @@ CliqueLayer "L2Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL2Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
 };
-
 
 
 CliqueLayer "L3Clique" = {
@@ -134,18 +133,17 @@ CliqueLayer "L3Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL3Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
 };
-
 
 
 CliqueLayer "L4Clique" = {
@@ -156,17 +154,20 @@ CliqueLayer "L4Clique" = {
     marginWidth = 32;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL4Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
 };
+
+
+
 
 
 
@@ -282,10 +283,8 @@ KernelConn "RetinaToL1Inh" = {
 };
 
 
-// Clique connections
 
-
-// L1 Clique
+// L1Clique
 
 IdentConn "L1toL1CliqueVertical" = {
     preLayerName = "L1";
@@ -307,14 +306,14 @@ SiblingConn "L1toL1CliqueTarget" = {
    nxp = 65;
    nyp = 65;
    nfp = 8;
-   numAxonalArbors = 1; //8712;
+   numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car/canny/Heli_Training_Car_canny_weights.txt"; 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car/canny/weights/Heli_Challenge_Car_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 28;
+   numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -336,22 +335,23 @@ SiblingConn "L1toL1CliqueTarget" = {
    delay = 0; 
 };
 
+
 //KernelConn "L1toL1CliqueDistractor" = {
 SiblingConn "L1toL1CliqueDistractor" = {
    preLayerName = "L1";
    postLayerName = "L1Clique";
    channelCode = 1;
-   nxp = 65; //33;
-   nyp = 65; //33;
+   nxp = 65;
+   nyp = 65;
    nfp = 8;
-   numAxonalArbors = 1; // 8712;
+   numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/distractor/canny/Heli_Training_distractor_canny_weights.txt"; 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor/canny/weights/Heli_Challenge_distractor_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 28;
+   numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -372,8 +372,6 @@ SiblingConn "L1toL1CliqueDistractor" = {
 
    delay = 0; 
 };
-
-
 
 
 // L2Clique
@@ -414,6 +412,7 @@ CloneKernelConn "L1toL2CliqueDistractor" = {
    stochasticReleaseFlag = false;
    delay = 0;
 };
+
 
 
 
@@ -501,63 +500,33 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
 
 
 
-
-StatsProbe "Retina_Stats" = {
-    targetLayer = "Retina";
-};
-
-StatsProbe "L1_Stats" = {
-    targetLayer = "L1";
-};
-
-StatsProbe "L1Clique_Stats" = {
-    targetLayer = "L1Clique";
-};
-
-StatsProbe "L2Clique_Stats" = {
-    targetLayer = "L2Clique";
-//    probeOutputFile = "L2Clique_Stats.txt";
-};
-
-StatsProbe "L3Clique_Stats" = {
-    targetLayer = "L3Clique";
-};
-
-StatsProbe "L4Clique_Stats" = {
-    targetLayer = "L4Clique";
-};
+//StatsProbe "Retina Stats" = {
+//    targetLayer = "Retina";
+//};
+//
+//StatsProbe "L1Stats" = {
+//    targetLayer = "L1";
+//};
+//
+//StatsProbe "L1CliqueStats" = {
+//    targetLayer = "L1Clique";
+//};
 
 
-StatsProbe "Retina_Stats_File" = {
-    targetLayer = "Retina";
-    probeOutputFile = "Retina_Stats.txt";
-};
-
-StatsProbe "L1_Stats_File" = {
-    targetLayer = "L1";
-    probeOutputFile = "L1_Stats.txt";
-};
-
-StatsProbe "L1Clique_Stats_File" = {
-    targetLayer = "L1Clique";
-    probeOutputFile = "L1Clique_Stats.txt";
-};
-
-
-StatsProbe "L2Clique_Stats_File" = {
-    targetLayer = "L2Clique";
-    probeOutputFile = "L2Clique_Stats.txt";
-};
-
-StatsProbe "L3Clique_Stats_File" = {
-    targetLayer = "L3Clique";
-    probeOutputFile = "L3Clique_Stats.txt";
-};
-
-StatsProbe "L4Clique_Stats_File" = {
-    targetLayer = "L4Clique";
-    probeOutputFile = "L4Clique_Stats.txt";
-};
+//StatsProbe "RetinaStatsFile" = {
+//    targetLayer = "Retina";
+//    probeOutputFile = "Retina_Stats.txt";
+//};
+//
+//StatsProbe "L1StatsFile" = {
+//    targetLayer = "L1";
+//    probeOutputFile = "L1_Stats.txt";
+//};
+//
+//StatsProbe "L1CliqueStatsFile" = {
+//    targetLayer = "L1Clique";
+//    probeOutputFile = "L1Clique_Stats.txt";
+//};
 
 
 
