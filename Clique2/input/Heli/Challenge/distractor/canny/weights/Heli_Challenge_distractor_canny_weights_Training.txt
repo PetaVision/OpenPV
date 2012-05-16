@@ -1,0 +1,16 @@
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/001/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/002/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/003/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/004/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/005/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/006/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/007/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/008/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/009/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/010/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/011/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/012/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/013/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/014/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/015/w3_last.pvp
+/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/016/w3_last.pvp
