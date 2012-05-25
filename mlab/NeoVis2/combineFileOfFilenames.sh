@@ -2,7 +2,7 @@
 set -x
 clip_IDs=({001..050})
 echo ${clip_IDs[*]}
-version_IDs=({001..128})
+version_IDs=({001..016})
 echo ${version_IDs[*]}
 object_ID="distractor"
 echo ${object_ID}
