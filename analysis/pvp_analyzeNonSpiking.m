@@ -99,14 +99,13 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    "/mnt/data/PetaVision/";
-%%    '/home/garkenyon/workspace-indigo/';
+    '/Users/garkenyon/workspace-indigo/';
+%%    "/mnt/data/PetaVision/";
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path, "amoeba/33x33/activity/6FC/target/001"];
-%%    [machine_path "Clique2/input/amoeba/3way/test"];
+    [machine_path "Clique2/input/amoeba/amoeba3/mask/test/8FC"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
 %%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
@@ -121,7 +120,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path, "noamoeba/33x33/activity/6FC/distractor/001"];
+    [machine_path "Clique2/input/noamoeba/noamoeba3/mask/test/8FC"];
 %%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
 %%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
 %%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
@@ -417,6 +416,7 @@ for j_trial = first_trial : skip_trial : last_trial
   reconstruct_count = reconstruct_count + 1;
   raw_hist_count = raw_hist_count + 1;
    
+  %%keyboard;
   if exist(target_path, "dir")
     pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
   elseif exist(distractor_path, "dir")
@@ -652,6 +652,7 @@ if plot_weights_flag == 1
   FLAT_ARCH_FLAG = 0;
   write_pvp_kernel_flag = 0;
   write_mat_kernel_flag = 1;
+  make_weight_hist_flag = 1;
   for i_conn = plot_weights
     weight_min = 10000000.;
     weight_max = -10000000.;
@@ -672,7 +673,7 @@ if plot_weights_flag == 1
       [weights_tmp, nxp_tmp, nyp_tmp, offset_tmp] ...
 	  = pvp_readWeights(weights_filename, pvp_conn_header{i_conn,1});
       num_patches = pvp_conn_header{i_conn,1}(pvp_index.WGT_NUMPATCHES);
-      for i_arbor = 1 : min(MAX_ARBORS, NUM_ARBORS)
+      for i_arbor = 1 : MAX_ARBORS %% min(MAX_ARBORS, NUM_ARBORS)
 	weights{i_conn, i_arbor} = cell(num_patches,1);
 	for i_patch = 1 : num_patches
 	  weights{i_conn, i_arbor}{i_patch} = weights_tmp{i_patch, i_arbor};
@@ -684,10 +685,12 @@ if plot_weights_flag == 1
       if NXP <= 1 || NYP <= 1
 	continue;
       endif
-      for i_patch = 1:num_patches
-	weight_min = min( min(weights{i_conn,i_arbor}{i_patch}(:)), weight_min );
-	weight_max = max( max(weights{i_conn,i_arbor}{i_patch}(:)), weight_max );
-	weight_ave = weight_ave + mean(weights{i_conn, i_arbor}{i_patch}(:));
+      for i_arbor = 1 : MAX_ARBORS %% min(MAX_ARBORS, NUM_ARBORS)
+	for i_patch = 1:num_patches
+	  weight_min = min( min(weights{i_conn,i_arbor}{i_patch}(:)), weight_min );
+	  weight_max = max( max(weights{i_conn,i_arbor}{i_patch}(:)), weight_max );
+	  weight_ave = weight_ave + mean(weights{i_conn, i_arbor}{i_patch}(:));
+	endfor
       endfor
       weight_ave = weight_ave / num_patches;
       disp( ['weight_min = ', num2str(weight_min)] );
@@ -697,21 +700,23 @@ if plot_weights_flag == 1
 	continue;
       endif
     elseif i_conn == N_CONNECTIONS + 1
-      w_max_target = max(weight_invert(i_conn-2,1)*weights{i_conn-2,1}{i_patch}(:));
-      w_max_distractor = max(weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch}(:));
-      disp('calculating geisler kernels');
-      pvp_conn_header{i_conn} = pvp_conn_header{i_conn-1,1};
-      pvp_conn_header_tmp = pvp_conn_header{i_conn,1};
-      num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
-      nxp{i_conn} = nxp{i_conn-1,1};
-      nyp{i_conn} = nyp{i_conn-1,1};
-      for i_patch = 1:num_patches
-	weights{i_conn,1}{i_patch} = ...
-	    (weight_invert(i_conn-2,1)*weights{i_conn-2,1}{i_patch} - ...
-	     weight_invert(i_conn-1,1)*weights{i_conn-1,1}{i_patch});
-	weight_min = min( min(weights{i_conn,1}{i_patch}(:)), weight_min );
-	weight_max = max( max(weights{i_conn,1}{i_patch}(:)), weight_max );
-	weight_ave = weight_ave + mean(weights{i_conn,1}{i_patch}(:));
+      for i_arbor = 1 : MAX_ARBORS %% min(MAX_ARBORS, NUM_ARBORS)
+	w_max_target = max(weight_invert(i_conn-2,1)*weights{i_conn-2,i_arbor}{i_patch}(:));
+	w_max_distractor = max(weight_invert(i_conn-1,1)*weights{i_conn-1,i_arbor}{i_patch}(:));
+	disp('calculating ODD kernels');
+	pvp_conn_header{i_conn} = pvp_conn_header{i_conn-1,1};
+	pvp_conn_header_tmp = pvp_conn_header{i_conn,1};
+	num_patches = pvp_conn_header_tmp(pvp_index.WGT_NUMPATCHES);
+	nxp{i_conn} = nxp{i_conn-1,1};
+	nyp{i_conn} = nyp{i_conn-1,1};
+	for i_patch = 1:num_patches
+	  weights{i_conn,1}{i_patch} = ...
+	      (weight_invert(i_conn-2,1)*weights{i_conn-2,i_arbor}{i_patch} - ...
+	       weight_invert(i_conn-1,1)*weights{i_conn-1,i_arbor}{i_patch});
+	  weight_min = min( min(weights{i_conn,i_arbor}{i_patch}(:)), weight_min );
+	  weight_max = max( max(weights{i_conn,i_arbor}{i_patch}(:)), weight_max );
+	  weight_ave = weight_ave + mean(weights{i_conn,i_arbor}{i_patch}(:));
+	endfor
       endfor
       weight_ave = weight_ave / num_patches;
       disp( ['weight_min = ', num2str(weight_min)] );
@@ -729,7 +734,14 @@ if plot_weights_flag == 1
     else
       continue;
     endif  % i_conn < N_CONNECTIONS + 1
-    for i_arbor = min(NUM_ARBORS, MAX_ARBORS)
+    if make_weight_hist_flag
+      num_weight_hist_bins = 20;
+      weight_hist_bin_size = (weight_max - weight_min) / num_weight_hist_bins; 
+      weight_hist_bins = ...
+	  [weight_min+(weight_hist_bin_size/2) : weight_hist_bin_size : weight_max-(weight_hist_bin_size/2)];
+      weight_hist = zeros(1,num_weight_hist_bins);
+    endif
+    for i_arbor = MAX_ARBORS %% min(NUM_ARBORS, MAX_ARBORS)
       if write_mat_kernel_flag
 	mat_weights = weights{i_conn,i_arbor};
 	mat_weights_filename = ...
@@ -789,7 +801,21 @@ if plot_weights_flag == 1
 	  fig_list = [fig_list; fig_sub];      
 	endif
       endfor %% i_patch
+      if make_weight_hist_flag
+	weight_hist_tmp = ...
+	    hist(weights{i_conn,i_arbor}{i_patch}, ...
+		  weight_hist_bins);
+	weight_hist = weight_hist + weight_hist_tmp;
+      endif
     endfor %% i_arbor
+    if make_weight_hist_flag
+      fig_tmp = figure;
+      plot_name = ...
+	  [connID{i_conn}, '(', ...
+			     int2str(i_conn), ')' ];
+      bar(weight_hist_bins, weight_hist);
+      fig_list = [fig_list; fig_tmp];
+    endif
   endfor %% i_conn
   FLAT_ARCHITECTURE = 0;
 
