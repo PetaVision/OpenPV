@@ -124,8 +124,71 @@ CliqueLayer "L1Clique" = {
 };
 
 
+CliqueLayer "L2Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    $$$_VgainL2Clique_$$$
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L3Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    $$$_VgainL3Clique_$$$
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+CliqueLayer "L4Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    $$$_VgainL4Clique_$$$
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
 // masked edges
-CliqueLayer "L2Post" = {
+CliqueLayer "L5Post" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -350,12 +413,284 @@ SiblingConn "L1toL1CliqueDistractor" = {
 };
 
 
+// L2Clique
+
+IdentConn "L1toL2CliqueVertical" = {
+    preLayerName = "L1Clique";
+    postLayerName = "L2Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+//KernelConn "L1toL2CliqueTarget" = {
+SiblingConn "L1toL2CliqueTarget" = {
+   preLayerName = "L1Clique";
+   postLayerName = "L2Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car2/canny/weights/Heli_Training_Car2_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L1toL2CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+//KernelConn "L1toL2CliqueDistractor" = {
+SiblingConn "L1toL2CliqueDistractor" = {
+   preLayerName = "L1Clique";
+   postLayerName = "L2Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor2/canny/weights/Heli_Training_Car_distractor2_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L1toL2CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+// L3Clique
+
+IdentConn "L2toL3CliqueVertical" = {
+    preLayerName = "L2Clique";
+    postLayerName = "L3Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+//KernelConn "L2toL3CliqueTarget" = {
+SiblingConn "L2toL3CliqueTarget" = {
+   preLayerName = "L2Clique";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car3/canny/weights/Heli_Training_Car3_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L2toL3CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+//KernelConn "L2toL3CliqueDistractor" = {
+SiblingConn "L2toL3CliqueDistractor" = {
+   preLayerName = "L2Clique";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor3/canny/weights/Heli_Training_Car_distractor3_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L2toL3CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+// L4Clique
+
+IdentConn "L3toL4CliqueVertical" = {
+    preLayerName = "L3Clique";
+    postLayerName = "L4Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+//KernelConn "L3toL4CliqueTarget" = {
+SiblingConn "L3toL4CliqueTarget" = {
+   preLayerName = "L3Clique";
+   postLayerName = "L4Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car4/canny/weights/Heli_Training_Car4_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L3toL4CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+//KernelConn "L3toL4CliqueDistractor" = {
+SiblingConn "L3toL4CliqueDistractor" = {
+   preLayerName = "L3Clique";
+   postLayerName = "L4Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor4/canny/weights/Heli_Training_Car_distractor4_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 16;
+   siblingConnName = "L3toL4CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+
+
 // Mask connections
 
 // copy edge detections
-IdentConn "L1ToL2PostVertical" = {
-    preLayerName = "L1Clique";
-    postLayerName = "L2Post";
+IdentConn "L4ToL5PostVertical" = {
+    preLayerName = "L4Clique";
+    postLayerName = "L5Post";
     channelCode = 0;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -365,9 +700,9 @@ IdentConn "L1ToL2PostVertical" = {
 };
 
 // mask non-amoeba edges
-KernelConn "MasktoL2Post" = {
+KernelConn "MasktoL5Post" = {
    preLayerName = "Mask";
-   postLayerName = "L2Post";
+   postLayerName = "L5Post";
    channelCode = 1;
    nxp = 1; 
    nyp = 1; 
@@ -395,7 +730,7 @@ KernelConn "MasktoL2Post" = {
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
-   delay = 3;
+   delay = 6;
 };
 
 
@@ -404,9 +739,9 @@ KernelConn "MasktoL2Post" = {
 
 // Clique connections
 
-CliqueConn "L1CliqueToL2Post" = {
-   preLayerName = "L1Clique";
-   postLayerName = "L2Post";
+CliqueConn "L4CliqueToL5Post" = {
+   preLayerName = "L4Clique";
+   postLayerName = "L5Post";
    channelCode = 2;
    nxp = 65;
    nyp = 65;
@@ -471,9 +806,24 @@ StatsProbe "L1CliqueStatsFile" = {
     probeOutputFile = "L1Clique_Stats.txt";
 };
 
-StatsProbe "L2PostStatsFile" = {
-    targetLayer = "L2Post";
-    probeOutputFile = "L2Post_Stats.txt";
+StatsProbe "L2CliqueStatsFile" = {
+    targetLayer = "L2Clique";
+    probeOutputFile = "L2Clique_Stats.txt";
+};
+
+StatsProbe "L3CliqueStatsFile" = {
+    targetLayer = "L3Clique";
+    probeOutputFile = "L3Clique_Stats.txt";
+};
+
+StatsProbe "L4CliqueStatsFile" = {
+    targetLayer = "L4Clique";
+    probeOutputFile = "L4Clique_Stats.txt";
+};
+
+StatsProbe "L5PostStatsFile" = {
+    targetLayer = "L5Post";
+    probeOutputFile = "L5Post_Stats.txt";
 };
 
 

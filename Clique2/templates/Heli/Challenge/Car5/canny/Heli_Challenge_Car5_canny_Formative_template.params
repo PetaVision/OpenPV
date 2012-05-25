@@ -4,13 +4,13 @@
 //
 
 HyPerCol "column" = {
-   nx = 1920;   // until we get going with images
+   nx = 1920;
    ny = 1080;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
    $$$_outputPath_$$$
-   progressStep = 200;
+   progressStep = 2000;
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
@@ -22,26 +22,6 @@ HyPerCol "column" = {
 
 Movie "Image" = {
     $$$_imageListPath_$$$
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 0;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
-    writeImages = 0;
-    displayPeriod = 1;
-    jitterFlag = 0;
-    randomMovie = 0;
-    offsetX = 0;
-    offsetY = 0;
-};
-
-
-Movie "Mask" = {
-    $$$_maskListPath_$$$
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -89,9 +69,9 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
+    spikingFlag = 1;
     writeNonspikingActivity = 0;
 
     VThresh = 0.5;
@@ -109,7 +89,7 @@ CliqueLayer "L1Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -130,7 +110,7 @@ CliqueLayer "L2Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -151,7 +131,7 @@ CliqueLayer "L3Clique" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 1;
     writeNonspikingActivity = 0;
@@ -166,26 +146,49 @@ CliqueLayer "L3Clique" = {
 };
 
 
-// masked edges
-CliqueLayer "L4Post" = {
+CliqueLayer "L4Clique" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     marginWidth = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
+    spikingFlag = 1;
     writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL4Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
 };
+
+
+
+CliqueLayer "L5Clique" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    $$$_VgainL5Clique_$$$
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
 
 
 
@@ -302,6 +305,7 @@ KernelConn "RetinaToL1Inh" = {
 };
 
 
+
 // L1Clique
 
 IdentConn "L1toL1CliqueVertical" = {
@@ -329,7 +333,7 @@ SiblingConn "L1toL1CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car/canny/weights/Heli_Training_Car_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car/canny/weights/Heli_Formative_Car_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueDistractor";
@@ -367,9 +371,9 @@ SiblingConn "L1toL1CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor/canny/weights/Heli_Training_Car_distractor_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor/canny/weights/Heli_Formative_Car_distractor_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL1CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -419,9 +423,9 @@ SiblingConn "L1toL2CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car2/canny/weights/Heli_Training_Car2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car2/canny/weights/Heli_Formative_Car2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL2CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -457,9 +461,9 @@ SiblingConn "L1toL2CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor2/canny/weights/Heli_Training_Car_distractor2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor2/canny/weights/Heli_Formative_Car_distractor2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL2CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -509,9 +513,9 @@ SiblingConn "L2toL3CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car3/canny/weights/Heli_Training_Car3_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car3/canny/weights/Heli_Formative_Car3_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L2toL3CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -547,9 +551,9 @@ SiblingConn "L2toL3CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor3/canny/weights/Heli_Training_Car_distractor3_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor3/canny/weights/Heli_Formative_Car_distractor3_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L2toL3CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -572,12 +576,11 @@ SiblingConn "L2toL3CliqueDistractor" = {
 };
 
 
-// Mask connections
+// L4Clique
 
-// copy edge detections
-IdentConn "L3ToL4PostVertical" = {
+IdentConn "L3toL4CliqueVertical" = {
     preLayerName = "L3Clique";
-    postLayerName = "L4Post";
+    postLayerName = "L4Clique";
     channelCode = 0;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -586,78 +589,179 @@ IdentConn "L3ToL4PostVertical" = {
     delay = 0;
 };
 
-// mask non-amoeba edges
-KernelConn "MasktoL4Post" = {
-   preLayerName = "Mask";
-   postLayerName = "L4Post";
+
+//KernelConn "L3toL4CliqueTarget" = {
+SiblingConn "L3toL4CliqueTarget" = {
+   preLayerName = "L3Clique";
+   postLayerName = "L4Clique";
    channelCode = 1;
-   nxp = 1; 
-   nyp = 1; 
+   nxp = 65;
+   nyp = 65;
    nfp = 8;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car4/canny/weights/Heli_Formative_Car4_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 32;
+   siblingConnName = "L3toL4CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
    
-   weightInitType = "Gauss2DWeight";
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-       
-   strength = 2040.0; // 8 * 255 
-   normalize = 1.0;
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
-
-   shrinkPatches = false;
+   normalize_arbors_individually = false;   
+   
    writeCompressedWeights = 0.0;
-   selfFlag = false;
    plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
    stochasticReleaseFlag = false;
-    
-   delay = 5;
+
+   delay = 0; 
 };
 
 
-
-
-
-// Clique connections
-
-CliqueConn "L3CliqueToL4Post" = {
+//KernelConn "L3toL4CliqueDistractor" = {
+SiblingConn "L3toL4CliqueDistractor" = {
    preLayerName = "L3Clique";
-   postLayerName = "L4Post";
-   channelCode = 2;
+   postLayerName = "L4Clique";
+   channelCode = 1;
    nxp = 65;
    nyp = 65;
    nfp = 8;
-//    int nyCliqueRadius = (int) (nyPostPatch/2);
-//    int nxCliqueRadius = (int) (nxPostPatch/2);
-//    int cliquePatchSize = (2*nxCliqueRadius + 1) * (2*nyCliqueRadius + 1) * nfPre;
-   cliqueSize = 1;// number of presynaptic cells in clique (traditional ANN uses 1)
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
+   numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
-   keepKernelsSynchronized = false; // true; 
-   combine_dW_with_W_flag = true; //false; // 
-   selfFlag = true;
    writeStep = -1;
 
-   weightInitType = "UniformWeight";
-   weightInit = 0;
-   
-   normalize = 0.0;
-   symmetrizeWeights = 0;
-   
-   plasticityFlag = 1;
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor4/canny/weights/Heli_Formative_Car_distractor4_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 32;
+   siblingConnName = "L3toL4CliqueTarget";
+   useListOfArborFiles = false;
    shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
    writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
    stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
 
-   delay = 1; 
+   delay = 0; 
 };
+
+
+
+
+
+// L5Clique
+
+IdentConn "L4toL5CliqueVertical" = {
+    preLayerName = "L4Clique";
+    postLayerName = "L5Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+//KernelConn "L4toL5CliqueTarget" = {
+SiblingConn "L4toL5CliqueTarget" = {
+   preLayerName = "L4Clique";
+   postLayerName = "L5Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car5/canny/weights/Heli_Formative_Car5_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 32;
+   siblingConnName = "L4toL5CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+//KernelConn "L4toL5CliqueDistractor" = {
+SiblingConn "L4toL5CliqueDistractor" = {
+   preLayerName = "L4Clique";
+   postLayerName = "L5Clique";
+   channelCode = 1;
+   nxp = 65;
+   nyp = 65;
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor5/canny/weights/Heli_Formative_Car_distractor5_canny_weights_Training.txt"; // 
+   combineWeightFiles = true; // false; //
+   numWeightFiles = 32;
+   siblingConnName = "L4toL5CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+
+
+
 
 
 
@@ -671,10 +775,6 @@ CliqueConn "L3CliqueToL4Post" = {
 //
 //StatsProbe "L1CliqueStats" = {
 //    targetLayer = "L1Clique";
-//};
-//
-//StatsProbe "L2PostStats" = {
-//    targetLayer = "L2Post";
 //};
 
 
@@ -703,9 +803,14 @@ StatsProbe "L3CliqueStatsFile" = {
     probeOutputFile = "L3Clique_Stats.txt";
 };
 
-StatsProbe "L4PostStatsFile" = {
-    targetLayer = "L4Post";
-    probeOutputFile = "L4Post_Stats.txt";
+StatsProbe "L4CliqueStatsFile" = {
+    targetLayer = "L4Clique";
+    probeOutputFile = "L4Clique_Stats.txt";
+};
+
+StatsProbe "L5CliqueStatsFile" = {
+    targetLayer = "L5Clique";
+    probeOutputFile = "L5Clique_Stats.txt";
 };
 
 

@@ -4,8 +4,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;   // until we get going with images
-   ny = 256;
+   nx = 1920;   // until we get going with images
+   ny = 1080;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
@@ -308,7 +308,7 @@ SiblingConn "L1toL1CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car/canny/weights/Heli_Challenge_Car_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car/canny/weights/Heli_Training_Car_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueDistractor";
@@ -346,7 +346,7 @@ SiblingConn "L1toL1CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor/canny/weights/Heli_Challenge_distractor_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor/canny/weights/Heli_Training_Car_distractor_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueTarget";
@@ -398,7 +398,7 @@ SiblingConn "L1toL2CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car2/canny/weights/Heli_Challenge_Car2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car2/canny/weights/Heli_Training_Car2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL2CliqueDistractor";
@@ -436,7 +436,7 @@ SiblingConn "L1toL2CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor2/canny/weights/Heli_Challenge_distractor2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor2/canny/weights/Heli_Training_Car_distractor2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL2CliqueTarget";

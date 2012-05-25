@@ -4,8 +4,8 @@
 //
 
 HyPerCol "column" = {
-   nx = 256;   // until we get going with images
-   ny = 256;
+   nx = 1920;   // until we get going with images
+   ny = 1080;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
@@ -308,9 +308,9 @@ SiblingConn "L1toL1CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car/canny/weights/Heli_Challenge_Car_canny_weights_Formative.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car/canny/weights/Heli_Formative_Car_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL1CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -346,9 +346,9 @@ SiblingConn "L1toL1CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor/canny/weights/Heli_Challenge_distractor_canny_weights_Formative.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor/canny/weights/Heli_Formative_Car_distractor_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL1CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -398,9 +398,9 @@ SiblingConn "L1toL2CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car2/canny/weights/Heli_Challenge_Car2_canny_weights_Formative.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car2/canny/weights/Heli_Formative_Car2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL2CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -436,9 +436,9 @@ SiblingConn "L1toL2CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor2/canny/weights/Heli_Challenge_distractor2_canny_weights_Formative.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car_distractor2/canny/weights/Heli_Formative_Car_distractor2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   numWeightFiles = 32;
    siblingConnName = "L1toL2CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -533,10 +533,8 @@ CliqueConn "L2CliqueToL3Post" = {
    selfFlag = true;
    writeStep = -1;
 
-   weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car3/canny/weights/Heli_Challenge_Car3_canny_weights_Training.txt"; // 
-   combineWeightFiles = true; // false; //
-   numWeightFiles = 16;
+   weightInitType = "UniformWeight";
+   weightInit = 0;
    
    normalize = 0.0;
    symmetrizeWeights = 0;
