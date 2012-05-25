@@ -38,7 +38,7 @@ global TOPDOWN_FLAG
 TOPDOWN_FLAG = 0;
 
 global TRAINING_FLAG
-TRAINING_FLAG = -1;
+TRAINING_FLAG = -2;
 
 global G2_FLAG G4_FLAG G6_FLAG
 G2_FLAG = 1;
@@ -99,18 +99,12 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    '/Users/garkenyon/workspace-indigo/';
-%%    "/mnt/data/PetaVision/";
+    "/mnt/data/repo/neovision-programs-petavision/";
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path "Clique2/input/amoeba/amoeba3/mask/test/8FC"];
-%%    [machine_path "ODD/input/imageNet/DoG_Mask/test/dog/terrier_vs_antiterrier/trial1"];
-%%    [machine_path "kernel/input/256/amoeba/test_target40K_W325_target"];
-%%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_target"];
-%%    [machine_path "geisler/input/256/dog/rendered_DoG_test_6/cat_6"]; 
-%%    [machine_path "geisler/input/256/cat/likimas512"];    
+    [machine_path, "amoeba2/3way/activity/8FC/target/001"];
 if ~isempty(target_path)
   target_path = [target_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
@@ -120,13 +114,7 @@ endif % ~isempty(target_path)
 
 if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path "Clique2/input/noamoeba/noamoeba3/mask/test/8FC"];
-%%    [machine_path "ODD/input/imageNet/DoG_Mask/test/cat/terrier_vs_antiterrier/trial1"];
-%%    [machine_path, "kernel/input/256/amoeba/test_target40K_W325_distractor"]; 
-%%    [machine_path "ODD/input/amoeba/test_target40K_W975_uncompressed_distractor"];
-%%    [machine_path "geisler/input/256/cat/rendered_DoG_test_6/dog_6"]; 
-%%      []; 
-%%      [machine_path, "geisler/input/256/amoeba/distractor40K"]; 
+    [machine_path, "noamoeba2/3way/activity/8FC/distractor/001"];
 else
   distractor_path = [];
 endif
