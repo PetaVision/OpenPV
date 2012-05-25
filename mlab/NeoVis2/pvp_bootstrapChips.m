@@ -3,8 +3,8 @@ function [num_target_chips, num_distractor_chips] = ...
 
   global target_bootstrap_dir
   global distractor_bootstrap_dir
-  global target_mask_dir
-  global distractor_mask_dir
+  global target_bootstrap_mask_dir
+  global distractor_bootstrap_mask_dir
   global pvp_max_patch_size
   global pvp_min_patch_size
   global NFEATURES NCOLS NROWS N
@@ -234,7 +234,7 @@ function [num_target_chips, num_distractor_chips] = ...
       hit_chip_title = [hit_chip_parent_root, "_", hit_chip_rootname, "_", num2str(chip_id, "%3.3d"), ".png"];
       hit_chip_pathname = [target_bootstrap_dir, hit_chip_title];
       imwrite(hit_chip, hit_chip_pathname);
-      mask_chip_pathname = [target_mask_dir, hit_chip_title];
+      mask_chip_pathname = [target_bootstrap_mask_dir, hit_chip_title];
       imwrite(mask_chip, mask_chip_pathname);
       num_target_chips = num_target_chips + 1;
     endfor  %% i_BB

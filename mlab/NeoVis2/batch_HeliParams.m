@@ -1,29 +1,36 @@
 
 %% begin definition of the most volitile parameters
 %% clip_name stores the directories that contain the individual frames
-object_type = {"Car"}; %% {"distractor"}; %% 
+FLAVOR_ID = "Challenge"; %% "Formative"; %%   "Training"; %%  
+disp(["FLAVOR_ID = ", FLAVOR_ID]);
+clip_flag = true; %%  false; %% 
+mask_flag = ~clip_flag; %% false; %% true; %% 
+target_mask_flag = false; %% true && mask_flag; %% 
+disp(["target_mask_flag = ", num2str(target_mask_flag)]);
+object_type = {"Car"}; %%_distractor"}; %% 
 disp(["object_type = ", object_type{1}]);
-clip_flag = false; %% true; %%  
+pvp_num_ODD_kernels = 5; %%
+disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 if clip_flag
-  clip_ids = [1:25]; %% [26:50]; %%[1:50]; %%  [7:17,21:22,30:31];
+  clip_ids = [26:50]; %%[1:25]; %% [1:50]; %%  [7:17,21:22,30:31];
   clip_name = cell(length(clip_ids),1);
   for i_clip = 1 : length(clip_name)
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
   endfor
 else
   clip_name = cell(1);
-  clip_name{1} = "Car"; %% "distractor"; %% 
+  clip_name{1} = "mask"; %% "Car"; %% "distractor"; %% 
 endif
 disp(["clip_name{1} = ", clip_name{1}]);
-mask_flag = true; %% false; %% 
-disp(["mask_flag = ", num2str(mask_flag)]);
-FLAVOR_ID = "Formative"; %%  "Challenge"; %% "Training"; %%  
-disp(["FLAVOR_ID = ", FLAVOR_ID]);
-version_ids = [1:16]; %% []; %%  
+distractor_mask_flag = ~target_mask_flag && mask_flag;
+disp(["distractor_mask_flag = ", num2str(distractor_mask_flag)]);
+if clip_flag
+  version_ids = []; %%  
+else
+  version_ids = [1:16]; %% 
+endif
 disp(["version_ids = ", mat2str(version_ids)]);
-pvp_num_ODD_kernels =  1; %% 3; %%
-disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
-pvp_frame_size =  [256, 256]; %%[1080 1920]; %% 
+pvp_frame_size = [1080 1920]; %%  [256, 256]; %%
 disp(["frame_size = ", mat2str(pvp_frame_size)]);
 %% end definition of the most volitile parameters
 
@@ -188,13 +195,18 @@ for i_object = 1 : length(object_type)
 	  error(["linecount = 0:", "pvp_fileOfFrames = ", pvp_fileOfFrames]);
 	endif
 	
-	if mask_flag
+	if target_mask_flag
 	  pvp_fileOfMasks_file = ...
-	      [clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfMasknames.txt"];
+	      [clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfTargetMasknames.txt"];
 	  pvp_fileOfMasks = ...
 	      [pvp_fileOfFrames_path, pvp_fileOfMasks_file];
 	  %%disp(["pvp_fileOfMasks: ", pvp_fileOfMasks]);
 	  %%if ~exist("pvp_fileOfMasks", "file")
+	elseif distractor_mask_flag
+	  pvp_fileOfMasks_file = ...
+	      [clip_name{i_clip}, "_", version_str{i_version}, "_", "fileOfDistractorMasknames.txt"];
+	  pvp_fileOfMasks = ...
+	      [pvp_fileOfFrames_path, pvp_fileOfMasks_file];	  
 	else
 	  pvp_fileOfMasks = [];
 	endif
@@ -230,12 +242,18 @@ for i_object = 1 : length(object_type)
 	if pvp_num_frames == 0
 	  error(["linecount = 0:", "pvp_fileOfFrames = ", pvp_fileOfFrames]);
 	endif
-	if mask_flag
+	if target_mask_flag
 	  pvp_fileOfMasks_file = ...
-	      [clip_name{i_clip}, "_", "fileOfMasknames.txt"];
+	      [clip_name{i_clip}, "_", "fileOfTargetMasknames.txt"];
 	  pvp_fileOfMasks = ...
 	      [pvp_fileOfFrames_path, pvp_fileOfMasks_file];
+	  %%disp(["pvp_fileOfMasks: ", pvp_fileOfMasks]);
 	  %%if ~exist("pvp_fileOfMasks", "file")
+	elseif distractor_mask_flag
+	  pvp_fileOfMasks_file = ...
+	      [clip_name{i_clip}, "_", "fileOfDistractorMasknames.txt"];
+	  pvp_fileOfMasks = ...
+	      [pvp_fileOfFrames_path, pvp_fileOfMasks_file];	  
 	else
 	  pvp_fileOfMasks = [];
 	endif

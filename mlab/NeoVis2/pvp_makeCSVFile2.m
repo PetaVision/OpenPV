@@ -189,6 +189,8 @@ function [num_frames, ...
     pvp_use_PANN_boundingBoxes = 0;
   endif
   
+  global miss_list_flag;
+
   setenv('GNUTERM', 'x11');
   image_type = ".png";
   
@@ -234,8 +236,8 @@ function [num_frames, ...
 
   global target_bootstrap_dir
   global distractor_bootstrap_dir
-  global target_mask_dir
-  global distractor_mask_dir
+  global target_bootstrap_mask_dir
+  global distractor_bootstrap_mask_dir
   if isempty(pvp_bootstrap_str)
     target_bootstrap_dir1 = ...
 	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
@@ -244,9 +246,9 @@ function [num_frames, ...
 	[target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
     mkdir(target_bootstrap_dir2);
     target_bootstrap_dir = ...
-	[target_bootstrap_dir2, ObjectType, "_bootstrap0", filesep];
-    target_mask_dir = ...
-	[target_bootstrap_dir2, ObjectType, "_bootstrap0", "_mask", filesep];
+	[target_bootstrap_dir2, ObjectType, filesep]; %% "_bootstrap0", filesep];
+    target_bootstrap_mask_dir = ...
+	[target_bootstrap_dir2, ObjectType, "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
 
     distractor_bootstrap_dir1 = ...
 	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
@@ -255,9 +257,9 @@ function [num_frames, ...
 	[distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
     mkdir(distractor_bootstrap_dir2);
     distractor_bootstrap_dir = ...
-	[distractor_bootstrap_dir2, "distractor", "_bootstrap0", filesep];
-    distractor_mask_dir = ...
-	[distractor_bootstrap_dir2, "distractor", "_bootstrap0", "_mask", filesep];
+	[distractor_bootstrap_dir2, "distractor", filesep]; %% "_bootstrap0", filesep];
+    distractor_bootstrap_mask_dir = ...
+	[distractor_bootstrap_dir2, "distractor", "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
   else
     target_bootstrap_dir1 = ...
 	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
@@ -267,7 +269,7 @@ function [num_frames, ...
     mkdir(target_bootstrap_dir2);
     target_bootstrap_dir = ...
 	[target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-    target_mask_dir = ...
+    target_bootstrap_mask_dir = ...
 	[target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
 
     distractor_bootstrap_dir1 = ...
@@ -278,13 +280,13 @@ function [num_frames, ...
     mkdir(distractor_bootstrap_dir2);
     distractor_bootstrap_dir = ...
 	[distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-    distractor_mask_dir = ...
+    distractor_bootstrap_mask_dir = ...
 	[distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
   endif
   mkdir(target_bootstrap_dir);
   mkdir(distractor_bootstrap_dir);
-  mkdir(target_mask_dir);
-  mkdir(distractor_mask_dir);
+  mkdir(target_bootstrap_mask_dir);
+  mkdir(distractor_bootstrap_mask_dir);
   
 
   global pvp_density_thresh
@@ -443,6 +445,7 @@ function [num_frames, ...
   endif
   
   %% struct for storing rank order of comma separators between fields
+  %%keyboard;
   truth_CSV_struct = cell(tot_frames, 1);
   DCR_CSV_struct = cell(tot_frames, 1);
   other_CSV_struct = cell(tot_frames, 1);
@@ -458,9 +461,9 @@ function [num_frames, ...
     true_CSV_comma_rank.BoundingBox_X4 = [8, 9];
     true_CSV_comma_rank.BoundingBox_Y4 = [9, 10];
     true_CSV_comma_rank.ObjectType = [10, 11];
-    num_truth_BBs = 0;
-    num_other_BBs = 0;
-    num_DCR_BBs = 0;
+    num_truth_BBs = zeros(tot_frames,1);
+    num_other_BBs = zeros(tot_frames,1);
+    num_DCR_BBs = zeros(tot_frames,1);
     for i_CSV = 1 : num_true_CSV
       true_CSV_comma_ndx = [1, strfind(true_CSV_list{i_CSV}, ",")];
       ObjectType_ndx(1) = true_CSV_comma_ndx(true_CSV_comma_rank.ObjectType(1))+1;
@@ -509,16 +512,16 @@ function [num_frames, ...
       BoundingBox_Y4 = true_CSV_list{i_CSV}(BoundingBox_Y4_ndx(1):BoundingBox_Y4_ndx(2));
       truth_CSV_struct_tmp.BoundingBox_Y4 = str2num(BoundingBox_Y4);
       if strcmp(CSV_ObjectType, ObjectType)
-	truth_CSV_struct{i_frame}{num_truth_BBs + 1} = truth_CSV_struct_tmp;
-	num_truth_BBs = length(truth_CSV_struct{i_frame});
+	truth_CSV_struct{i_frame}{num_truth_BBs(i_frame) + 1} = truth_CSV_struct_tmp;
+	num_truth_BBs(i_frame) = length(truth_CSV_struct{i_frame});
       elseif strcmp(CSV_ObjectType, "DCR")
-	DCR_CSV_struct{i_frame}{num_DCR_BBs + 1} = truth_CSV_struct_tmp;
-	num_DCR_BBs = length(DCR_CSV_struct{i_frame});
+	DCR_CSV_struct{i_frame}{num_DCR_BBs(i_frame) + 1} = truth_CSV_struct_tmp;
+	num_DCR_BBs(i_frame) = length(DCR_CSV_struct{i_frame});
       else
-	other_CSV_struct{i_frame}{num_other_BBs + 1} = truth_CSV_struct_tmp;
-	num_other_BBs = length(other_CSV_struct{i_frame});
+	other_CSV_struct{i_frame}{num_other_BBs(i_frame) + 1} = truth_CSV_struct_tmp;
+	num_other_BBs(i_frame) = length(other_CSV_struct{i_frame});
       endif
-    endfor
+    endfor %% i_CSV
   endif %% pvp_training_flag
   
   disp("");
@@ -581,7 +584,7 @@ function [num_frames, ...
       disp(["pvp_time = ", num2str(CSV_struct{i_frame}.pvp_time)]);
       disp(["mean(pvp_activty) = ", num2str(CSV_struct{i_frame}.mean_activity)]);    
       disp(["num_active = ", num2str(CSV_struct{i_frame}.num_active)]);
-      if pvp_training_flag
+      if pvp_training_flag && miss_list_flag
 	disp(["num_active_BB_mask = ", num2str(CSV_struct{i_frame}.num_active_BB_mask)]);
 	disp(["num_active_BB_notmask = ", num2str(CSV_struct{i_frame}.num_active_BB_notmask)]);
 	disp(["num_BB_mask = ", num2str(CSV_struct{i_frame}.num_BB_mask)]);

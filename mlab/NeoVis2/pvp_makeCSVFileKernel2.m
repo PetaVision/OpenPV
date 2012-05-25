@@ -7,6 +7,7 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
   global ODD_subdir
   global pvp_reconstruct_sparse
   global make_bootstrap_chips_flag 
+  global make_target_mask_flag 
 
   %%keyboard;
   CSV_struct = struct;
@@ -32,12 +33,13 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
     endif
     N = NFEATURES * NCOLS * NROWS;
     pvp_activity = sparse(N, 1);
-   endif
+  endif
 
+  hit_list = [];
+  miss_list = [];
   %%keyboard;
   if 0 %% pvp_training_flag == 0   %% no ground truth provided
     [hit_list] = pvp_dbscan(pvp_activity);  
-    miss_list = [];
   elseif make_bootstrap_chips_flag
     [pvp_num_active_BB_mask, ...
      pvp_num_active_BB_notmask, ...
@@ -60,9 +62,8 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
       [num_target_chips, num_distractor_chips] = ...
 	  pvp_bootstrapChips(frame_pathname, hit_list, miss_list, truth_CSV_struct);
     endif
-  else
-    hit_list = [];
-    miss_list = [];
+  elseif make_target_mask_flag
+    pvp_makeTargetMask(frame_pathname, truth_CSV_struct, DCR_CSV_struct);
   endif
 
   CSV_struct.hit_list = hit_list;
