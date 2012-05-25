@@ -1,15 +1,15 @@
 
 
 object_type = {"2FC"; "4FC"; "6FC"; "8FC"};
-clip_name = cell(3,1);
-clip_name{1} = "a";
-clip_name{2} = "d";
-clip_name{3} = "t";
+clip_name = cell(1,1);
+clip_name{1} = "t"; %% "d"; %% 
 version_ids = [1:8];
 version_str = cell(length(version_ids),1);
 for i_version = 1 : length(version_ids)
   version_str{i_version} = num2str(version_ids(i_version), "%3.3i");   
 endfor
+DATASET_ID = "amoeba3"; %% "noamoeba2"; %% 
+pvp_num_ODD_kernels = 3; %%
 
 global PVP_VERBOSE_FLAG
 PVP_VERBOSE_FLAG = 0;
@@ -28,7 +28,6 @@ pvp_clique_path = ...
     [pvp_workspace_path, "Clique2", filesep];
 
 
-DATASET_ID = "noamoeba3"; %%"Heli"; %% "Tower"; %% "Tailwind"; %% 
 dataset_id = tolower(DATASET_ID); %% 
 FLAVOR_ID = "3way"; %%"33x33"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
 flavor_id = tolower(FLAVOR_ID); %% 
@@ -38,6 +37,7 @@ pvp_program_path = ...
     [pvp_repo_path, "neovision-programs-petavision", filesep, ...
      DATASET_ID, filesep, ...
      FLAVOR_ID, filesep];
+disp(pvp_program_path);
 
 pvp_input_path2 = ...
     [pvp_clique_path, "input", filesep, ...
@@ -47,7 +47,6 @@ pvp_input_path = ...
     [pvp_input_path2, FLAVOR_ID, filesep];
 mkdir(pvp_input_path);
 
-pvp_num_ODD_kernels =  3; %% 3; %%
 pvp_bootstrap_str =  ""; %% "_bootstrap"; %%
 pvp_edge_type =  ""; %% "canny"; %%
 pvp_params_template = ...
@@ -86,7 +85,7 @@ for i_object = 1 : length(object_type)
       [pvp_list_path, ...
        object_type{i_object}, filesep];
 
-  for i_clip = 2 %% 1 : length(clip_name)
+  for i_clip = 1 : length(clip_name)
     disp(clip_name{i_clip});
     
     output_clip_path = ...
