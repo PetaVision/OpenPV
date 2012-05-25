@@ -59,6 +59,9 @@ function [weights, nxp, nyp, offset] = ...
   N = NROWS * NCOLS * NFEATURES;
 
   NUM_ARBORS = pvp_header(pvp_index.NUM_ARBORS);
+  if MAX_ARBORS > NUM_ARBORS + 1
+    MAX_ARBORS = NUM_ARBORS + 1;
+  endif
   
   disp(['NXP = ', num2str(NXP)]);
   disp(['NYP = ', num2str(NYP)]);
@@ -81,13 +84,11 @@ function [weights, nxp, nyp, offset] = ...
   offset = repmat(NYP, num_patches,1); %%MAX_ARBORS);
   weights = cell(num_patches,MAX_ARBORS);
    
-  for i_arbor = 1 : min(NUM_ARBORS, MAX_ARBORS)
+  for i_arbor = 1 : MAX_ARBORS %% min(NUM_ARBORS, MAX_ARBORS)
 
-    if NUM_ARBORS == 1
-      arbor_list = 0;
-    elseif i_arbor < min(NUM_ARBORS, MAX_ARBORS)
+    if i_arbor < MAX_ARBORS %% min(NUM_ARBORS, MAX_ARBORS)
       arbor_list = i_arbor-1;
-    elseif i_arbor == min(NUM_ARBORS, MAX_ARBORS)
+    elseif i_arbor == MAX_ARBORS %% min(NUM_ARBORS, MAX_ARBORS)
       arbor_list = [0:NUM_ARBORS-1];
     endif
 
