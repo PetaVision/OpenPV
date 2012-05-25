@@ -41,7 +41,7 @@ Movie "Image" = {
 
 
 Movie "Mask" = {
-    $$$_movieListPath_$$$
+    $$$_maskListPath_$$$
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -106,7 +106,7 @@ CliqueLayer "L1Post" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 32;
+    marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -221,8 +221,6 @@ KernelConn "RetinaToL1Inh" = {
 
 
 
-
-
 // Mask connections
 
 // copy edge detections
@@ -250,9 +248,9 @@ KernelConn "MasktoL1Post" = {
    writeStep = -1;
    
    weightInitType = "Gauss2DWeight";
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
    rMin = 0;
        
    strength = 8.0;  
@@ -311,11 +309,11 @@ CliqueConn "L1ToL1Post" = {
 
 
 
-StatsProbe "Retina Stats" = {
+StatsProbe "RetinaStats" = {
     targetLayer = "Retina";
 };
 
-StatsProbe "L1 Stats" = {
+StatsProbe "L1Stats" = {
     targetLayer = "L1";
 };
 
@@ -324,12 +322,12 @@ StatsProbe "L1PostStats" = {
 };
 
 
-StatsProbe "Retina Stats File" = {
+StatsProbe "RetinaStatsFile" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
 };
 
-StatsProbe "L1 Stats File" = {
+StatsProbe "L1StatsFile" = {
     targetLayer = "L1";
     probeOutputFile = "L1_Stats.txt";
 };
