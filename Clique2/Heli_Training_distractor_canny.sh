@@ -12,11 +12,11 @@ clique_path=${home_path}"/workspace-indigo/Clique2/"
 echo ${clique_path[0]}
 exe_path=${clique_path}"Debug/"
 echo ${exe_path[0]}
-input_path=${clique_path}"input/Heli/Training/distractor/canny/distractor/"
+input_path=${clique_path}"input/Heli/Training/Car_distractor2/canny/mask/"
 echo ${input_path[0]}
-input_prefix="Heli_Training_distractor_canny_distractor_"
-output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/distractor/canny/distractor/"
-output_prefix="Heli_Training_distractor_canny_"
+input_prefix="Heli_Training_Car_distractor2_canny_mask_"
+output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car_distractor2/canny/mask/"
+output_prefix="Heli_Training_Car_distractor2_canny_mask_"
 version_id=0;
 version_IDs=({001..016})
 echo ${version_IDs[*]}

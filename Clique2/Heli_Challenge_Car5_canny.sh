@@ -12,13 +12,13 @@ clique_path=${home_path}"/workspace-indigo/Clique2/"
 echo ${clique_path[0]}
 exe_path=${clique_path}"Debug/"
 echo ${exe_path[0]}
-input_path=${clique_path}"input/Heli/Training/Car/canny/mask/"
+input_path=${clique_path}"input/Heli/Challenge/Car5/canny/"
 echo ${input_path[0]}
-input_prefix="Heli_Training_Car_canny_mask_"
-output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny/mask/"
-output_prefix="Heli_Training_Car_canny_mask_"
-version_id=0; #0
-version_IDs=({001..016})
+input_prefix="Heli_Challenge_Car5_canny_"
+output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Challenge/activity/Car5/canny/"
+output_prefix="Heli_Challenge_Car5_canny_"
+version_id=0;
+version_IDs=({042..050}); # ({026..041}); # 
 echo ${version_IDs[*]}
 for i_node in ${anterior_nodes[*]}
 do
@@ -34,7 +34,8 @@ do
 	host_node="10.0.0."${i_node}
 	echo "host_node=${host_node}"
 	mpirun -np 8 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 2 -columns 4 -p ${input_params} & # 1> ${output_log}
-	#mpirun -np 1 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 1 -columns 1 -p ${input_params} & # 1> ${output_log}
+	#mpirun -np 1 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -p ${input_params} & # 1> ${output_log}
 	version_id=$((${version_id}+1))
     done
 done
+
