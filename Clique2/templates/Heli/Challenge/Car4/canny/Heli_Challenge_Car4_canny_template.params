@@ -311,7 +311,7 @@ SiblingConn "L1toL1CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car/canny/weights/Heli_Challenge_Car_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car/canny/weights/Heli_Training_Car_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueDistractor";
@@ -349,7 +349,7 @@ SiblingConn "L1toL1CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor/canny/weights/Heli_Challenge_distractor_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor/canny/weights/Heli_Training_Car_distractor_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL1CliqueTarget";
@@ -401,7 +401,7 @@ SiblingConn "L1toL2CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car2/canny/weights/Heli_Challenge_Car2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car2/canny/weights/Heli_Training_Car2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL2CliqueDistractor";
@@ -439,7 +439,7 @@ SiblingConn "L1toL2CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor2/canny/weights/Heli_Challenge_distractor2_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor2/canny/weights/Heli_Training_Car_distractor2_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L1toL2CliqueTarget";
@@ -493,7 +493,7 @@ SiblingConn "L2toL3CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car3/canny/weights/Heli_Challenge_Car3_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car3/canny/weights/Heli_Training_Car3_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L2toL3CliqueDistractor";
@@ -531,7 +531,7 @@ SiblingConn "L2toL3CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor3/canny/weights/Heli_Challenge_distractor3_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor3/canny/weights/Heli_Training_Car_distractor3_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L2toL3CliqueTarget";
@@ -584,7 +584,7 @@ SiblingConn "L3toL4CliqueTarget" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/Car4/canny/weights/Heli_Challenge_Car4_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car4/canny/weights/Heli_Training_Car4_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L3toL4CliqueDistractor";
@@ -622,7 +622,7 @@ SiblingConn "L3toL4CliqueDistractor" = {
    writeStep = -1;
 
    weightInitType = "FileWeight";  
-   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Challenge/distractor4/canny/weights/Heli_Challenge_distractor4_canny_weights_Training.txt"; // 
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor4/canny/weights/Heli_Training_Car_distractor4_canny_weights_Training.txt"; // 
    combineWeightFiles = true; // false; //
    numWeightFiles = 16;
    siblingConnName = "L3toL4CliqueTarget";
