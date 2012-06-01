@@ -1,15 +1,18 @@
 %% begin definition of most variable input params
-clip_ids = [26:50]; %% [1:25]; %% [7:17,21:22,30:31]; %%
+clip_ids = [26:26]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)                                                                                         
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
 endfor
-num_ODD_kernels = 4;  %% 
+num_ODD_kernels = 0; %% 5; %% 
+pvp_layer = 3;  %% 8; %%  
 pvp_path_flag = true; %% false; %% 
 NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Formative"; %% "Training"; %%  
 ObjectType = "Car"; %% "Cyclist"; %%  
 global make_bootstrap_chips_flag 
 make_bootstrap_chips_flag = false; %% true; %% 
+global make_target_mask_flag 
+make_target_mask_flag = false; %% true; %% 
 global miss_list_flag;
 miss_list_flag = false;
 num_procs = 8; %% 24;  %% 
@@ -26,11 +29,13 @@ program_path = [repo_path, ...
 		NEOVISION_DATASET_ID, filesep, ...
 		NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
 pvp_edge_filter = "canny";
-pvp_frame_skip = 1;
-pvp_frame_offset = 1;
+pvp_frame_skip = 1; %% 1000;
+pvp_frame_offset = 1; %% 160;
 num_ODD_kernels_str = "";
 if num_ODD_kernels > 1
   num_ODD_kernels_str = num2str(num_ODD_kernels);
+elseif num_ODD_kernels == 0
+  num_ODD_kernels_str = "0";
 endif
 pvp_bootstrap_str = ""; %% "_bootstrap"; %%  
 pvp_bootstrap_level_str = ""; %% "1";
@@ -73,8 +78,28 @@ else
 endif %% exist(clip_log_pathname)
 disp(["patch_size = ", num2str(patch_size)]);
 disp(["std_patch_size = ", num2str(std_patch_size)]);
-pvp_layer = 7;  %% 
 training_flag = 1;
+
+global target_mask_dir
+global distractor_mask_dir
+global frame_mask_dir
+target_mask_dir = "";
+distractor_mask_dir = "";
+frame_mask_dir = "";
+if make_target_mask_flag
+  mask_dir = ...
+      [program_path, "mask", filesep]; 
+  mkdir(mask_dir);
+  target_mask_dir = ...
+      [mask_dir, ObjectType, filesep];
+  mkdir(target_mask_dir);
+  distractor_mask_dir = ...
+      [mask_dir, ObjectType, "_", "distractor", filesep];
+  mkdir(distractor_mask_dir);
+  frame_mask_dir = ...
+      [program_path, pvp_edge_filter, filesep, "mask", filesep];
+  mkdir(frame_mask_dir);
+endif
 
 canny_flag = false;
 for i_clip = 1 : length(clip_name)
@@ -84,7 +109,7 @@ for i_clip = 1 : length(clip_name)
     pvp_path = [];
   else 
     pvp_path = ...
-	[program_path, "activity", filesep, ObjectType, num2str(num_ODD_kernels), ...
+	[program_path, "activity", filesep, ObjectType, num_ODD_kernels_str, ...
 	 pvp_bootstrap_str, filesep, pvp_edge_filter, filesep, ...
 	 clip_name{i_clip}, pvp_version_str, filesep];
   endif
