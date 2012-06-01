@@ -18,7 +18,7 @@ input_prefix="Heli_Challenge_Car5_canny_"
 output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Challenge/activity/Car5/canny/"
 output_prefix="Heli_Challenge_Car5_canny_"
 version_id=0;
-version_IDs=({042..050}); # ({026..041}); # 
+version_IDs=({026..041}); #({042..050}); #  
 echo ${version_IDs[*]}
 for i_node in ${anterior_nodes[*]}
 do
