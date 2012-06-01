@@ -235,6 +235,22 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
     connID{ 1, ij_conn } =  'L4ToL4Distractor';
     
     
+    N_CONNECTIONS = N_CONNECTIONS + 2;
+    connID = [connID, cell(1,2)];
+    
+    ij_conn = ij_conn + 1;
+    connIndex.l5_l5_vertical = ij_conn;
+    connID{ 1, ij_conn } =  'L5ToL5Vertical';
+    
+    ij_conn = ij_conn + 1;
+    connIndex.l5_l5_target = ij_conn;
+    connID{ 1, ij_conn } =  'L5ToL5Target';
+    
+    ij_conn = ij_conn + 1;
+    connIndex.l5_l5_distractor = ij_conn;
+    connID{ 1, ij_conn } =  'L5ToL5Distractor';
+    
+    
     connID = [connID, cell(1,1)];
     endif
     
@@ -264,6 +280,18 @@ function [connID, connIndex, num_arbors] = pvp_connectionID()
       N_CONNECTIONS = 12;
       connIndex.l3_l3_ODD = 13;
       connID{ 1, 13 } =  'L13ToL13ODD';
+      
+    elseif TRAINING_FLAG == -4
+
+      N_CONNECTIONS = 15;
+      connIndex.l4_l4_ODD = 16;
+      connID{ 1, 14 } =  'L14ToL14ODD';
+      
+    elseif TRAINING_FLAG == -5
+
+      N_CONNECTIONS = 18;
+      connIndex.l5_l5_ODD = 19;
+      connID{ 1, 15 } =  'L15ToL15ODD';
       
 
     end%%if
