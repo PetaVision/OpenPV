@@ -10,7 +10,7 @@
 #include <src/utils/pv_random.h>
 #include "stdio.h"
 
-#define MAXVAL  1.0f
+#define PATTERNS_MAXVAL  1.0f
 
 namespace PV {
 
@@ -18,9 +18,25 @@ namespace PV {
 FILE * fp;
 int start = 0;
 
-Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
-   Image(name, hc)
-{
+Patterns::Patterns() {
+   initialize_base();
+}
+
+Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
+   initialize_base();
+   initialize(name, hc, type);
+}
+
+int Patterns::initialize_base() {
+   patternsOutputPath = NULL;
+
+   return PV_SUCCESS;
+}
+
+int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
+   Image::initialize(name, hc, NULL);
+   this->type = type;
+
    // CER-new
    fp = fopen("bar-pos.txt", "w");
 
@@ -54,7 +70,7 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) :
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
 
-   //clearPattern(MAXVAL);
+   //clearPattern(PATTERNS_MAXVAL);
 
    // make sure initialization is finished
    updateState(0.0, 0.0);
@@ -88,8 +104,10 @@ int Patterns::initPattern(float val,float time)
    // reset data buffer
    const int nk = nx * ny;
    for (int k = 0; k < nk; k++) {
-      data[k] = 0.0;
+      data[k] = 0.18;               // make it 18% gray
    }
+
+     val = 0.75;                    // box value is 196
 
    if (type == RECTANGLES) {
       // width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
@@ -136,6 +154,20 @@ int Patterns::initPattern(float val,float time)
                   data[ix * sx + iy * sy] = val;
                }
             }
+            xc = 180;
+             yc =180;
+
+                   x0 = (xc - half_w < 0) ? 0 : xc - half_w/2.;
+                   y0 = (yc - half_h < 0) ? 0 : yc - half_h/2.;
+
+                   x1 = (xc + half_w > nx) ? nx : xc + half_w/2.;
+                   y1 = (yc + half_h > ny) ? ny : yc + half_h/2.;
+
+                   for (int iy = y0; iy < y1; iy++) {
+                      for (int ix = x0; ix < x1; ix++) {
+                         data[ix * sx + iy * sy] = val;
+                      }
+                   }
 
 
       position = x0 + y0*nx;
@@ -385,7 +417,7 @@ int Patterns::updateState(float time, float dt)
    if(time>49.0 && time<1900)
    {
 	           //orientation = vertical;
-	           initPattern(MAXVAL,time);
+	           initPattern(PATTERNS_MAXVAL,time);
 	           fprintf(stdout,"---- this is updateState of Patterns with INIT %f ----\n",time);
    }
 
@@ -402,7 +434,7 @@ int Patterns::updateState(float time, float dt)
       size = maxWidth;
       if (p < pSwitch) { // switch with probability pSwitch
          orientation = horizontal;
-         initPattern(MAXVAL);
+         initPattern(PATTERNS_MAXVAL);
          fprintf(stdout,"horizontal Pattern");
       }
    }
@@ -410,7 +442,7 @@ int Patterns::updateState(float time, float dt)
       size = maxHeight;
       if (p < pSwitch) { // current horizontal gratings
          orientation = vertical;
-         initPattern(MAXVAL);
+         initPattern(PATTERNS_MAXVAL);
          fprintf(stdout,"vertical Pattern");
       }
    }
@@ -421,7 +453,7 @@ int Patterns::updateState(float time, float dt)
       position = calcPosition(position, 2*size);
       //position = (start++) % 4;
       //position = prefPosition;
-      initPattern(MAXVAL);
+      initPattern(PATTERNS_MAXVAL);
       fprintf(stdout,"move Pattern");
       //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
    }
