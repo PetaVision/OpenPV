@@ -37,7 +37,9 @@ public:
 
 protected:
 
+   Patterns();
    int initPattern(float val);
+   int initialize(const char * name, HyPerCol * hc, PatternType type);
    int initPattern(float val,float time);
    int clearPattern(float val);
    int calcPosition(int pos, int step);
@@ -55,6 +57,14 @@ protected:
 
    float minWidth, maxWidth;
    float minHeight, maxHeight;
+   char * patternsOutputPath;  // path to output file directory for patterns
+
+
+private:
+   float rotation;
+
+   int initPatternCntr;
+   int initialize_base();
 };
 
 }
