@@ -1,90 +1,79 @@
-// 
-// Parameter file for GJKs retina project
 //
-// Complete model with SF WF And PolyAxonal Amacrine
+// 
+// parameter file for GJKs retina project, initially with moving bars as input
 //
 HyPerCol "column" = {
    nx = 256;
    ny = 256;
    dt = 1.;                  // according GK
    randomSeed = 1020304050.0; // remove when running for real
-   //checkpointRead  = true;  // normal run
-   checkpointRead  = false; // init run
-   checkpointWrite = true;  // always
-   checkpointWriteDir = "amoebarun";
-   checkpointWriteStepInterval = 100;
-   checkpointReadDir = "graystartzero"; // (the same directory as specified in the initial run)
-   checkpointReadDirIndex =1000;
 };
 
-//     Image "Image" = {
-//     useParamsImage = 1;  // initializing image at checkpoint from HERE !
-//     //imagePath = "./input/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png"; // amoeba
-//     //imagePath = "./input/amoeba/1f/sigma20/background_1f_20_gjk.png";    //background
-//     imagePath = "./input/amoeba/1f/sigma1/background_1f_1_gjk.png";
-//      //imagePath = "./input/000396.png"; 
-//      //imagePath = "./output/movie/walking/00100.png";
-//      //imagePath = "./input/blackimage.png";
-//      // imagePath = "./input/gray128image.png";
-//      restart = 0;
-//      nxScale = 1;
-//      nyScale = 1;
-//      nf = 1;
-//      marginWidth = 0;
-//      writeStep = 0;
-//      mirrorBCflag = 0;
-//      spikingFlag = 0;
-//      writeNonspikingActivity = true; // true (no quotes) is translated to 1 
-//      writeImages = 0;
-//      };
-      
-          Movie "Image" = {
-          imageListPath = "./input/filenames.txt";
+//
+// Complete model with SF WF And PolyAxonal Amacrine
 
-          restart = 0;
-          nxScale = 1;
-          nyScale = 1;
-          nf = 1;
-          marginWidth = 0;
-          writeStep = -1;
-          mirrorBCflag = 1;
-          spikingFlag = 0;
-          writeNonspikingActivity = -1;
+//    Movie "Image" = {
+//    imageListPath = "./input/filenames.txt";
 
-          writeImages = 0;
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    marginWidth = 0;
+//    writeStep = -1;
+//    mirrorBCflag = 1;
+//    spikingFlag = 0;
+//    writeNonspikingActivity = -1;
 
-          displayPeriod = 10;
-          jitterFlag = 0;
-          stepSize   = 1;
-          biasChangeTime = 20;
-          randomMovie = 0;
-          offsetX = 1;
-          offsetY = 1;
-       };
-       
+//    writeImages = 0;
 
-//Patterns "Image" = {      // 0          // animation with horizontal and vertical lines
-//   patternType  = "RECTANGLES";         // "RECTANGLES" or "BARS"
-//   width        = 25.6;                 // width of the vertical bar
-//   height       = 25.6;                 // width of the horizontal bar 
-//   prefPosition = 10;                  // does not work !
-//   marginWidth  = 0;                  // ?
-//  pMove        = 0.0;                // every 16 ms ????
-//   pSwitch      = 0.0;             // switch between horizontal and vertical
-//   pMove        = 0.2;                // every 16 ms ????
-//   pSwitch      = 0.0025;             // switch between horizontal and vertical
-//   writeImages  = 0;                  // write out image file when changes
-   
-//   restart      = 0.0;                // ?
-//   Vrest        = -55.0;              // ?
-//   mirrorBCflag = 1.0;                // ?
-//   writeStep    = -1;                // ?
-//  nf           = 1.0;                // ?
-//   nyScale      = 1.0;                // ?
-//   nxScale      = 1.0;                // ?
-//   writeNonspikingActivity = 1.0;      // 
-   
+//    displayPeriod = 20;
+//    jitterFlag = 0;
+//    randomMovie = 0;
+//    offsetX = 0;
+//    offsetY = 0;
+// };
+
+//    Image "Image" = {
+//    imagePath = "./input/000396.png"; 
+//    imagePath = "./output/movie/walking/00100.png";
+//  imagePath = "./input/blackimage.png";
+//    imagePath = "./input/gray128image.png";
+//	restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    marginWidth = 0;
+//    writeStep = 0;
+//   mirrorBCflag = 0;
+//    spikingFlag = 0;
+//    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+//
+//    writeImages = 0;
 //};
+
+Patterns "Image" = {      // 0          // animation with horizontal and vertical lines
+   patternType  = "RECTANGLES";         // "RECTANGLES" or "BARS"
+   width        = 25.6;                 // width of the vertical bar
+   height       = 25.6;                 // width of the horizontal bar 
+   prefPosition = 10;                  // does not work !
+   marginWidth  = 0;                  // ?
+   pMove        = 0.0;                // every 16 ms ????
+   pSwitch      = 0.0;             // switch between horizontal and vertical
+   pMove        = 0.2;                // every 16 ms ????
+   pSwitch      = 0.0025;             // switch between horizontal and vertical
+   writeImages  = 0;                  // write out image file when changes
+   
+   restart      = 0.0;                // ?
+   Vrest        = -55.0;              // ?
+   mirrorBCflag = 1.0;                // ?
+   writeStep    = -1;                // ?
+   nf           = 1.0;                // ?
+   nyScale      = 1.0;                // ?
+   nxScale      = 1.0;                // ?
+   writeNonspikingActivity = 1.0;      // 
+   
+};
 
 LIF "Cone" = {       // 1 //
 
@@ -106,10 +95,9 @@ LIF "Cone" = {       // 1 //
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 2.0;     // for MPI running
 	writeStep        = -1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
+	mirrorBCflag     = 0.0;     // mirroring boundary conditions
 	Vrest            = -55.;    // adjusted as per discussion with Garrett
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -144,11 +132,10 @@ SigmoidLayer "ConeSigmoidON" ={   // 2
 	nyScale          = 1.;
 	marginWidth      = 2.0;     // for MPI running
     originalLayerName="Cone";
-    InitVType        = "ConstantV";
 	Vrest            = -55.0;   //
 	VthRest          = -47.5;   // was -40. before moving the threshold in the middle                  
-    mirrorBCflag     = 1.0; 
-	restart          = 0.0;     // from graylast
+    mirrorBCflag = 0.0; 
+	restart          = 1.0;     // from graylast
 
 };
 
@@ -157,12 +144,11 @@ SigmoidLayer "ConeSigmoidOFF" ={   // 3
 	nyScale          = 1.;
 	marginWidth      = 2.0;     // for MPI running
     originalLayerName="Cone";
-    InitVType        = "ConstantV";
 	Vrest            = -55.0;   //
 	VthRest          = -47.5;   // was -40. before moving the threshold in the middle                  
-    mirrorBCflag = 1.0;                // 
+    mirrorBCflag = 0.0;                // 
     inverseFlag  = 1.; 
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 };
 
 // ---------------------------------------------------------------- ON LAYER
@@ -174,9 +160,8 @@ LIF "BipolarON" = {	           // 4
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -212,11 +197,10 @@ SigmoidLayer "BipolarSigmoidON" ={    //5
     nxScale          = 1.;
 	nyScale          = 1.;
 	marginWidth      = 4.0;     // for MPI running
-    InitVType        = "ConstantV";
 	Vrest            = -70.0;   //
 	VthRest          = -65.0;   //  was -60 before moving the threshold in the middle                 
     mirrorBCflag = 1.0;                //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	};
 
 
@@ -240,10 +224,9 @@ LIFGap "Horizontal" = {             //6
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 1.0;     // for MPI running
 	writeStep        = 1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
-    Vrest            = -55.0;    // adjusted for gap of 0.025	
-	restart          = 0.0;     // from graylast
+	mirrorBCflag     = -1.0;     // mirroring boundary conditions
+	Vrest            = -55.0;    // adjusted for gap of 0.025	
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -281,8 +264,7 @@ GapLayer "HoriGap" ={                 // 7
 	nyScale      = 0.5; // three are fewer horizontal 
 	marginWidth      = 1.0;     // for MPI running
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+	restart          = 1.0;     // from graylast
 };
 
 SigmoidLayer "HoriSigmoid" ={         // 8
@@ -290,11 +272,10 @@ SigmoidLayer "HoriSigmoid" ={         // 8
    	nxScale      = 0.5; // 5/18 discussion with Garrett
 	nyScale      = 0.5; // three are fewer horizontal 
 	marginWidth      = 1.0;     // for MPI running
-    InitVType        = "ConstantV";
 	Vrest            = -55.0;   //
 	VthRest          =   0.0;   //                            <=============== disabled
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 };
 
 LIFGap "WFAmacrineON" = {             //9
@@ -317,10 +298,9 @@ LIFGap "WFAmacrineON" = {             //9
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 2.0;     // for MPI running
 	writeStep        = 1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
+	mirrorBCflag     = -1.0;     // mirroring boundary conditions
 	Vrest            = -70.0;    // adjusted for gap of 0.025
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -356,23 +336,22 @@ GapLayer "WFAmacrineGapON" ={                 // 10
     originalLayerName="WFAmacrineON";
    	nxScale      = 0.5; // 5/18 discussion with Garrett
 	nyScale      = 0.5; // three are fewer horizontal 
-	marginWidth      = 2.0;     // for MPI running
+	marginWidth      = 1.0;     // for MPI running
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+	restart          = 1.0;     // from graylast
 };
 
 SigmoidLayer "WFAmacrineSigmoidON" ={         // 11
     originalLayerName="WFAmacrineON";
    	nxScale      = 0.5; // 5/18 discussion with Garrett
 	nyScale      = 0.5; // three are fewer horizontal 
-	marginWidth      = 2.0;     // for MPI running
-    InitVType        = "ConstantV";
+	marginWidth      = 1.0;     // for MPI running
 	Vrest            = -70.0;   //
 	VthRest          =   0.0;   //                            <=============== disabled
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 };
+
 
 
 LIFGap "GanglionON" = {                // 12
@@ -383,23 +362,22 @@ LIFGap "GanglionON" = {                // 12
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = 1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
 	tau              = 10.0;    // intrinsic leak membrane time constant (max)
-	tauE             = 2.5;     // how long glutamine stays bound
-	tauI             = 1.0;     // how long GABA stays bound
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
 	tauIB            = 10.0;    // inhibitory potassium channel 
 	tauRate          = 100000.; // marian's integration time for firing rate  
 	VthRest          = -55.0;   // firing threshold 15 mV above rest
-	tauVth           = 10.0;    // 10.0 relative refractory period
+	tauVth           = 10.0;    // relative refractory period
 	deltaVth         = 5.0;     // jump of threshold when firing
 	alphaVthRest     = 0.01;    // slow and fast adapation
-	noiseAmpE        = 0.0;     // 0.5 1 means conductance is equal to lead conductance  gjk
-	noiseAmpI        = 0.0;     // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+	noiseAmpE        = 0.5;     // 0.5 1 means conductance is equal to lead conductance  
+	noiseAmpI        = 0.5;     // 0,5 "twice as easy for the membrane capacitance to discharge"
 	noiseAmpIB       = 0.0;     // no noise here 
 	noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
 	noiseFreqI       = 250.;    // correlation to time step size !!!
@@ -422,10 +400,8 @@ GapLayer "GangliGapON" ={             // 13
 	nyScale          = 0.5;
 	marginWidth      = 4.0;     // for MPI running
     mirrorBCflag     = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+	restart          = 1.0;     // from graylast
 };
-
 
 LIFGap "PAAmacrineON" = {             // 14
 	nxScale          = 0.25;
@@ -435,18 +411,18 @@ LIFGap "PAAmacrineON" = {             // 14
 	marginWidth      = 2.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
-	Vrest            = -70.;    // same as Ganglion after gray
-	restart          = 0.0;     // from graylast
+	Vrest            = -70.;    // same as Ganglion
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
 	tau              = 10.0;    // intrinsic leak membrane time constant (max)
-	tauE             = 2.5;     // how long glutamine stays bound
-	tauI             = 2.5;     // how long GABA stays bound
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
 	tauIB            = 10.0;    // inhibitory potassium channel 
 	tauRate          = 100000.; // marian's integration time for firing rate  
-    VthRest          = -55.;   // has to be high enough to not fire before the ganglion
+    VthRest          = -68.0;   // same as resting for testing
+                                // noise should make it fire ...
 		
 	tauVth           = 10.0;    // relative refractory period
 	deltaVth         = 5.0;     // jump of threshold when firing
@@ -473,9 +449,8 @@ GapLayer "PAAmaGapON" ={        // 15
 	nxScale          = 0.25;
 	nyScale          = 0.25;
 	marginWidth      = 2.0;     // for MPI running
-    mirrorBCflag     = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+    mirrorBCflag = 1.0;                // 
+	restart          = 1.0;     // from graylast
 };
 
 
@@ -487,9 +462,8 @@ LIF     "SynchronicityON" = {                // 16
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -541,12 +515,11 @@ Retina "RetinaON" = {      // 17
    no = 1.0;
    poissonBlankProb = 0.0;
    poissonEdgeProb = 1.0;
-   InitVType        = "ConstantV";
    Vrest = -70.0;
    mirrorBCflag = 1.0;
    writeStep = -1.0;
    nf = 1.0;
-   restart          = 0.0;     // from graylast
+   restart          = 1.0;     // from graylast
 };
 
 LIF "BipolarOFF" = {	           // 18
@@ -557,9 +530,8 @@ LIF "BipolarOFF" = {	           // 18
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -595,11 +567,10 @@ SigmoidLayer "BipolarSigmoidOFF" ={    //19
     nxScale          = 1.;
 	nyScale          = 1.;
 	marginWidth      = 4.0;     // for MPI running
-    InitVType        = "ConstantV";
 	Vrest            = -70.0;   //
 	VthRest          = -65.0;   //  was -60 before moving the threshold in the middle                 
     mirrorBCflag = 1.0;  //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	};
 
 LIFGap "WFAmacrineOFF" = {             //20
@@ -622,10 +593,9 @@ LIFGap "WFAmacrineOFF" = {             //20
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 2.0;     // for MPI running
 	writeStep        = 1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
+	mirrorBCflag     = -1.0;     // mirroring boundary conditions
 	Vrest            = -70.0;    // adjusted for gap of 0.025
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -661,25 +631,21 @@ GapLayer "WFAmacrineGapOFF" ={                 // 21
     originalLayerName="WFAmacrineOFF";
    	nxScale      = 0.5; // 5/18 discussion with Garrett
 	nyScale      = 0.5; // three are fewer horizontal 
-	marginWidth      = 2.0;     // for MPI running
+	marginWidth      = 1.0;     // for MPI running
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+	restart          = 1.0;     // from graylast
 };
 
 SigmoidLayer "WFAmacrineSigmoidOFF" ={         // 22
     originalLayerName="WFAmacrineOFF";
    	nxScale      = 0.5; // 5/18 discussion with Garrett
 	nyScale      = 0.5; // three are fewer horizontal 
-	marginWidth      = 2.0;     // for MPI running
-    InitVType        = "ConstantV";
+	marginWidth      = 1.0;     // for MPI running
 	Vrest            = -70.0;   //
 	VthRest          =   0.0;   //                            <=============== disabled
     mirrorBCflag = 1.0;                // 
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 };
-
-
 
 
 LIFGap "GanglionOFF" = {                // 23
@@ -690,26 +656,25 @@ LIFGap "GanglionOFF" = {                // 23
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = 1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
 	tau              = 10.0;    // intrinsic leak membrane time constant (max)
-	tauE             = 2.5;     // how long glutamine stays bound
-	tauI             = 1.0;     // how long GABA stays bound
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
 	tauIB            = 10.0;    // inhibitory potassium channel 
 	tauRate          = 100000.; // marian's integration time for firing rate  
 	VthRest          = -55.0;   // firing threshold 15 mV above rest
 	tauVth           = 10.0;    // relative refractory period
 	deltaVth         = 5.0;     // jump of threshold when firing
 	alphaVthRest     = 0.01;    // slow and fast adapation
-	noiseAmpE        = 0.0;     // 0.5 1 means conductance is equal to lead conductance  
-	noiseAmpI        = 0.0;     // 0,5 "twice as easy for the membrane capacitance to discharge"
+	noiseAmpE        = 0.5;     // 0.5 1 means conductance is equal to lead conductance  
+	noiseAmpI        = 0.5;     // 0,5 "twice as easy for the membrane capacitance to discharge"
 	noiseAmpIB       = 0.0;     // no noise here 
-	noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
-	noiseFreqI       = 250.;    // correlation to time step size !!!
+	noiseFreqE       =  250.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       =  250.;    // correlation to time step size !!!
 	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
 	localVthRestFlag = 0.0;     // adaptive threshold   
 	tauVthRest       = 10000;   // time constant to adapt
@@ -728,11 +693,9 @@ GapLayer "GangliGapOFF" ={             // 24
 	nxScale          = 0.5;
 	nyScale          = 0.5;
 	marginWidth      = 4.0;     // for MPI running
-    mirrorBCflag     = 1.0;                // 
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+    mirrorBCflag = 1.0;                // 
+	restart          = 1.0;     // from graylast
 };
-
 
 LIFGap "PAAmacrineOFF" = {             // 25
 	nxScale          = 0.25;
@@ -742,18 +705,18 @@ LIFGap "PAAmacrineOFF" = {             // 25
 	marginWidth      = 2.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
-	Vrest            = -70.;    // same as Ganglion after gray
-	restart          = 0.0;     // from graylast
+	Vrest            = -70.;    // same as Ganglion
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
 	tau              = 10.0;    // intrinsic leak membrane time constant (max)
-	tauE             = 2.5;     // how long glutamine stays bound
-	tauI             = 2.5;     // how long GABA stays bound
+	tauE             = 1.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
 	tauIB            = 10.0;    // inhibitory potassium channel 
 	tauRate          = 100000.; // marian's integration time for firing rate  
-    VthRest          = -55;   // has to be high enough to not fire the ganglion first
+    VthRest          = -68.0;   // same as resting for testing
+                                // noise should make it fire ...
 		
 	tauVth           = 10.0;    // relative refractory period
 	deltaVth         = 5.0;     // jump of threshold when firing
@@ -781,8 +744,7 @@ GapLayer "PAAmaGapOFF" ={        // 26
 	nyScale          = 0.25;
 	marginWidth      = 2.0;     // for MPI running
     mirrorBCflag = 1.0;                //
-	restart          = 0.0;     // from graylast
-    InitVType        = "ConstantV";
+	restart          = 1.0;     // from graylast
 };
 
 
@@ -794,9 +756,8 @@ LIF     "SynchronicityOFF" = {                // 27
 	marginWidth      = 4.0;     // for MPI running
 	writeStep        = -1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
 	Vrest            = -70.;    //
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -848,12 +809,11 @@ Retina "RetinaOFF" = {      // 28
    no = 1.0;
    poissonBlankProb = 0.0;
    poissonEdgeProb = 1.0;
-   InitVType        = "ConstantV";
    Vrest = -70.0;
    mirrorBCflag = 1.0;
    writeStep = -1.0;
    nf = 1.0;
-   restart          = 0.0;     // from graylast
+   restart          = 1.0;     // from graylast
 };
 
 
@@ -878,10 +838,9 @@ LIF "SFAmacrine" = {             //29
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 1.0;     // for MPI running
 	writeStep        = 1.0;
-	mirrorBCflag     = 1.0;     // mirroring boundary conditions
-    InitVType        = "ConstantV";
+	mirrorBCflag     = -1.0;     // mirroring boundary conditions
 	Vrest            = -70.0;    // adjusted for gap of 0.025
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 	Vexc             = 0.0;     // reversal potential 
 	Vinh             = -75.0;   // chloride channel
 	VinhB            = -90.0;   // potassium reversal
@@ -916,13 +875,12 @@ LIF "SFAmacrine" = {             //29
 SigmoidLayer "SFAmacrineSigmoid" ={         // 30
     originalLayerName="SFAmacrine";
    	nxScale      = 0.25; // 5/18 discussion with Garrett
-	nyScale      = 0.25; // there are fewer horizontal 
+	nyScale      = 0.25; // three are fewer horizontal 
 	marginWidth      = 1.0;     // for MPI running
-    InitVType        = "ConstantV";
 	Vrest            = -70.0;   //
 	VthRest          =   0.0;   //                            <=============== disabled
     mirrorBCflag     = 1.0;     // 
-	restart          = 0.0;     // from graylast
+	restart          = 1.0;     // from graylast
 };
 
 //
@@ -950,7 +908,7 @@ KernelConn "Image to Cone" = {
 	normalize     = 1.0; // 
 	//strength      = 0.1475; // adjusted to give a 15 mv swing for input of 1.0, id est 40 mV
 	//strength      = 0.97; // adjusted to give 0.5 ConeSigmoid for 46 
-	strength      = 0.35;   // ImageCone adjusted to give symmetric ON/OFF response staerke
+	strength      = 0.35;
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -985,7 +943,7 @@ KernelConn "ConeSigmoidON to BipolarON" = {        // 1
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = 0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
+	strength      = 0.2537; // 0.2537 gives 50 mV without feedback
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1028,7 +986,7 @@ KernelConn "ConeSigmoidON to Horizontal" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = 0.2766;// 0.2766; // adjusted to give swing of -55 to -20 ConeSigmoidHorizontal staerke
+	strength      = 0.2766;// 0.2766; // adjusted to give swing of -55 to -20
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
 	invert        = 0.0; // check this ...
@@ -1061,7 +1019,7 @@ GapConn "HoriGap to Horizontal" = {        // 3  gap junction, watch the strengt
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = 2.0; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
+	strength      = 2.0; // 2.0 ZERO  for nogap                 <=================================
 		
 	rMin          = 0.1; // take out the self connection
 	
@@ -1105,7 +1063,7 @@ KernelConn "HoriSigmoid to Cone" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = 1.5; // 1.5 is good 0.273 HoriSigmoidCone staerke
+	strength      = 1.5; // 1.5 is good 0.273 adjusted to bring the asymtopice cone swing back to 50%
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1149,7 +1107,7 @@ KernelConn "BipolarSigmoidON to WFAmacrineON" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; // 
-	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20 BipolarSigmoidWFAmacrine staerke
+	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
 	invert        = 0.0; // check this ...
@@ -1182,7 +1140,7 @@ GapConn "WFAmacrineGapON to WFAmacrineON" = {        // 3  gap junction, watch t
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = 2.0; // 2.0 ZERO  for nogap WFAmacrineGapWFAmacrine staerke <=================================
+	strength      = 2.0; // 2.0 ZERO  for nogap                 <=================================
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1227,7 +1185,7 @@ KernelConn "WFAmacrineSigmoidON to BipolarON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //
-	strength      = 1.5; // 1.5 WFAmacrineSigmoidBipolar staerke
+	strength      = 1.5; // 1.5 
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1265,7 +1223,7 @@ KernelConn "BipolarSigmoidON to GanglionON" = {        // 5  sigmoid, need linea
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = 0.088; // 0.12 BipolarSigmoidGanglion staerke
+	strength      = 0.2; // 0.2 
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1300,9 +1258,9 @@ GapConn "GangliGapON to PAAmacrineON" = {        // 7  gap junction
     weightInitType = "Gauss2DWeight";
     channelCode = 3;             // gapjunction
 	nxp           = 3;   //
-	nyp           = 3;   // set it back to 3 scaling is 0.12 * 1/9 * 3 % = 0.06
+	nyp           = 3;   // set it back to 3
 	normalize     = 1.0; //  
-	strength      = 0.12; // 0.12 gjk   0.4  GanglionGapPAAmacrine  staerke <=================================
+	strength      = 0.8; //   0.4  ZERO                <=================================
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1334,9 +1292,9 @@ GapConn "PAAmaGapON to GanglionON" = {        // 8   gap junction
     weightInitType = "Gauss2DWeight";
     channelCode = 3;              // gapjunction
 	nxp           = 6;
-	nyp           = 6;   // scaling is 0.12 * 4/36 * 1.25% =0.06
+	nyp           = 6;
 	normalize     = 1.0; //  
-	strength      = 0.12; // gjk  0.4   PAAmaGapGanglion   staerke <=================================
+	strength      = 0.4; //  0.4   ZERO                <=================================
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1370,7 +1328,7 @@ GapConn "PAAmaGapON to PAAmacrineON" = {        // 9  gap junction, watch the st
  	nxp           = 3;
 	nyp           = 3; // not to itself
 	normalize     = 1.0; //  
-	strength      = 0.12; //  gjk  PAAmaGapPAAmacrine staerke <========================= debug
+	strength      = 0.4; //    ZEro                 <========================= debug
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1405,47 +1363,10 @@ KernelConn "PAAmacrineON to GanglionON" = {        // 10 NOT CONNECTED
     weightInitType = "Gauss2DWeight";
     channelCode = 1;  // inhibit feedback
 	nxp           = 10;
-	nyp           = 10;  // 10 //two times an odd number
+	nyp           = 10;  //two times an odd number
 	normalize     = 1.0;  // 
-	strength      = 10.0;  // 32.  PAAmacrineGanglion staerke ============================   debug
+	strength      = 8.0;  // 32.  ZERO <============================   debug
 		
-	aspect        = 1.0;
-	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
-	invert        = 0.0; // check this ...
-	delay         = 2.0; // in time steps, additional to the one you always get
-	stdpFlag      = 0.0; 
-//	nfp           = 1.0; // should fit the feature number of post synaptic layer
-	randomFlag    = 0.0; // init method
-	smartWeights  = 0.0; // init method, mutially exclusive
-	no            = 1.0; // only for cocirc
-	sigma         = 10.0; // only for Gauss/cocirc
-	rMax          = 256.; // maximum distance of connection
-
-	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
-	thetaMax      = 1.0;      //
-	bowtieFlag    = 0.0;      //
-	numFlanks     = 1.0;      //
-	flankShift    = 0.0;      //
-	cocircWeights = 0.0;      //
-	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
-	normalize_zero_offset = 0.0;  //
-	normalize_cutoff      = 0.0;  //
-	writeStep             = -1.0;  // 
-};
-
-KernelConn "PAAmacrineON to PAAmacrineON" = {        // 10 NOT CONNECTED
-    preLayerName = "PAAmacrineON";
-    postLayerName = "PAAmacrineON";
-    weightInitType = "Gauss2DWeight";
-    channelCode = 1;  // inhibit feedback
-	nxp           = 5;
-	nyp           = 5;  // 10 //two times an odd number
-	normalize     = 1.0;  // 
-	strength      = 10.0;  // 32.  PAAmacrinePAAmacrine staerke ============================   debug
-	
-	rMin          = 0.1; // take out the self connection
-
-	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
 	invert        = 0.0; // check this ...
@@ -1479,7 +1400,7 @@ KernelConn "GanglionON to SynchronicityON" = {        // 10 NOT CONNECTED
 	nxp           =  5;
 	nyp           =  5;   //
 	normalize     = 1.0;  //  
-	strength      = 1.0;  //  GanglionSynchronicity staerke <============================   debug
+	strength      = 1.0;  //  ZERO <============================   debug
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1518,7 +1439,7 @@ KernelConn "Image to RetinaON" = {
    aspect = 1.0;
    sigma = 1.0;
    rMax =  4; 
-   strength = 1;//  ImageRetinaON staerke 
+   strength = 1;//7;
    
    writeStep = -1.0;
    symmetrizeWeights = 0.0;
@@ -1563,7 +1484,7 @@ KernelConn "ConeSigmoidOFF to BipolarOFF" = {        // 1
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = 0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
+	strength      = 0.2537; // 0.2537 gives 50 mV without feedback
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1605,7 +1526,7 @@ KernelConn "BipolarSigmoidOFF to WFAmacrineOFF" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; // 
-	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20 BipolarSigmoidWFAmacrine staerke
+	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
 	invert        = 0.0; // check this ...
@@ -1638,7 +1559,7 @@ GapConn "WFAmacrineGapOFF to WFAmacrineOFF" = {        // 3  gap junction, watch
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = 2.0; // 2.0 ZERO  for WFAmacrineGapWFAmarine staerke <=================================
+	strength      = 2.0; // 2.0 ZERO  for nogap                 <=================================
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1683,7 +1604,7 @@ KernelConn "WFAmacrineSigmoidOFF to BipolarOFF" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = 1.5; // 1.5 WFAmacrineSigmoidBipolar staerke
+	strength      = 1.5; // 1.5 
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1721,7 +1642,7 @@ KernelConn "BipolarSigmoidOFF to GanglionOFF" = {        // 5  sigmoid, need lin
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = 0.088; // 0.08 BipolarSigmoidGanglion staerke
+	strength      = 0.2; // 0.2 
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1765,7 +1686,7 @@ KernelConn "Image to RetinaOFF" = {
    aspect = 1.0;
    sigma = 1.0;
    rMax =  4; 
-   strength = 1;//7; ImageRetinaOFF staerke
+   strength = 1;//7;
    
    writeStep = -1.0;
    symmetrizeWeights = 0.0;
@@ -1824,7 +1745,7 @@ KernelConn "BipolarSigmoidON to SFAmacrine" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = 0.02766;// 0.2766; //
+	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20
 	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1870,7 +1791,7 @@ KernelConn "BipolarSigmoidOFF to SFAmacrine" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = 0.02766;// 0.2766;
+	strength      = 1.0;// 0.2766; // adjusted to give swing of -55 to -20
 	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -1897,7 +1818,7 @@ KernelConn "BipolarSigmoidOFF to SFAmacrine" = {        // 2
 };
 
 
-KernelConn "SFAmacrineSigmoid to GanglionON" = {        // 4
+KernelConn "SFAmacrineSigmoid to GangilonON" = {        // 4
   
 // Case 2: nxScalePost > nxScalePre.
 // (the post-synaptic layer has more neurons than the pre-synaptic layer)
@@ -1913,53 +1834,7 @@ KernelConn "SFAmacrineSigmoid to GanglionON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; // 
-	strength      = 0.25; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
-	
-	stochasticReleaseFlag = 1.0;
-
-	aspect        = 1.0;
-	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
-	invert        = 0.0; // check this ...
-	delay         = 0.0; // in time steps, additional to the one you always get
-	stdpFlag      = 0.0; 
-//	nfp           = 1.0; // should fit the feature number of post synaptic layer
-	randomFlag    = 0.0; // init method
-	smartWeights  = 0.0; // init method, mutially exclusive
-	no            = 1.0; // only for cocirc
-	sigma         = 6.0; // only for Gauss/cocirc
-	rMax          = 256.; // maximum distance of connection
-
-	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
-	thetaMax      = 1.0;      //
-	bowtieFlag    = 0.0;      //
-	numFlanks     = 1.0;      //
-    flankShift    = 0.0;      //
-	cocircWeights = 0.0;      //
-	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
-	normalize_zero_offset = 0.0;  //
-	normalize_cutoff      = 0.0;  //
-	writeStep             = -1.0;  // do not write these out
-};
-
-
-
-KernelConn "SFAmacrineSigmoid to PAAmacrineON" = {        // 4
-  
-// Case 2: nxScalePost > nxScalePre.
-// (the post-synaptic layer has more neurons than the pre-synaptic layer)
-//
-// nxp must be an odd multiple of the nxScaleRatio
-//
-// marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
-    preLayerName = "SFAmacrineSigmoid";
-    postLayerName = "PAAmacrineON";
-    weightInitType = "Gauss2DWeight";
-    channelCode = 1;   // inhibitory   feedback
-	nxp           = 3; // odd times 2 because of scale factor
-	nyp           = 3; // 
-	normalize     = 1.0; // 
-	strength      = 0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
+	strength      = 0.25; // 0.25
 	
 	stochasticReleaseFlag = 1.0;
 
@@ -1996,8 +1871,8 @@ GapConn "GangliGapOFF to PAAmacrineOFF" = {        // 7  gap junction
     channelCode = 3;             // gapjunction
 	nxp           = 3;   //
 	nyp           = 3;   // set it back to 3
-	normalize     = 1.0; //  see scaling of ON cells
-	strength      = 0.12; //   0.4  GangliGapPAAmacrine staerke <=================================
+	normalize     = 1.0; //  
+	strength      = 0.8; //   0.4  ZERO                <=================================
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2030,8 +1905,8 @@ GapConn "PAAmaGapOFF to GanglionOFF" = {        // 8   gap junction
     channelCode = 3;              // gapjunction
 	nxp           = 6;
 	nyp           = 6;
-	normalize     = 1.0; // see scaling on ON cells  
-	strength      = 0.12; //  0.4   PAAmaGapGanglion staerke <=================================
+	normalize     = 1.0; //  
+	strength      = 0.4; //  0.4   ZERO                <=================================
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2065,7 +1940,7 @@ GapConn "PAAmaGapOFF to PAAmacrineOFF" = {        // 9  gap junction, watch the 
  	nxp           = 3;
 	nyp           = 3; // not to itself
 	normalize     = 1.0; // 
-	strength      = 0.12; //    PAAmaGapPAAmacrine staerke <========================= debug
+	strength      = 0.4; //    ZEro                 <========================= debug
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -2100,9 +1975,9 @@ KernelConn "PAAmacrineOFF to GanglionOFF" = {        // 10 NOT CONNECTED
     weightInitType = "Gauss2DWeight";
     channelCode = 1;  // inhibit feedback
 	nxp           = 10;
-	nyp           = 10;  // 10 is target two times an odd number
-	normalize     = 1.0;  //  4.0 for 2x2 gives one unit of G
-	strength      = 10.0;  // 32 ZERO PAAmacrineGanglion staerke <============================   debug
+	nyp           = 10;  //two times an odd number
+	normalize     = 1.0;  //  
+	strength      = 8.0;  // 32 ZERO <============================   debug
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2111,44 +1986,7 @@ KernelConn "PAAmacrineOFF to GanglionOFF" = {        // 10 NOT CONNECTED
 	stdpFlag      = 0.0; 
 //	nfp           = 1.0; // should fit the feature number of post synaptic layer
 	randomFlag    = 0.0; // init method
-	smartWeights  = 0.0; // init method, mutually exclusive
-	no            = 1.0; // only for cocirc
-	sigma         = 10.0; // only for Gauss/cocirc
-	rMax          = 256.; // maximum distance of connection
-
-	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
-	thetaMax      = 1.0;      //
-	bowtieFlag    = 0.0;      //
-	numFlanks     = 1.0;      //
-	flankShift    = 0.0;      //
-	cocircWeights = 0.0;      //
-	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
-	normalize_zero_offset = 0.0;  //
-	normalize_cutoff      = 0.0;  //
-	writeStep             = -1.0;  // 
-};
-
-
-KernelConn "PAAmacrineOFF to PAAmacrineOFF" = {        // 10 self shut down
-    preLayerName = "PAAmacrineOFF";
-    postLayerName = "PAAmacrineOFF";
-    weightInitType = "Gauss2DWeight";
-    channelCode = 1;  // inhibit feedback
-	nxp           = 5;
-	nyp           = 5;  // 10 is target two times an odd number
-	normalize     = 1.0;  //  4.0 for 2x2 gives one unit of G
-	strength      = 10.0;  // 32 ZERO PAAmacrinePAAmacrine staerke <============================   debug
-
-	rMin          = 0.1; // take out the self connection
-	
-	aspect        = 1.0;
-	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
-	invert        = 0.0; // check this ...
-	delay         = 2.0; // in time steps, additional to the one you always get
-	stdpFlag      = 0.0; 
-//	nfp           = 1.0; // should fit the feature number of post synaptic layer
-	randomFlag    = 0.0; // init method
-	smartWeights  = 0.0; // init method, mutually exclusive
+	smartWeights  = 0.0; // init method, mutially exclusive
 	no            = 1.0; // only for cocirc
 	sigma         = 10.0; // only for Gauss/cocirc
 	rMax          = 256.; // maximum distance of connection
@@ -2174,7 +2012,7 @@ KernelConn "GanglionOFF to SynchronicityOFF" = {        // 10 NOT CONNECTED
 	nxp           =  5;
 	nyp           =  5;   //
 	normalize     = 1.0;  // 
-	strength      = 1.0;  //  GanglionSynchronicity staerke <============================   debug
+	strength      = 1.0;  //  ZERO <============================   debug
 		
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2217,7 +2055,7 @@ KernelConn "PAAmacrineON to WFAmacrineON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = 1.0; // 1.0 PAAmacrineWFAmacrine staerke
+	strength      = 1.0; // 1.0
 	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2244,7 +2082,7 @@ KernelConn "PAAmacrineON to WFAmacrineON" = {        // 4
 };
 
 
-KernelConn "WFAmacrineSigdmoidON to SFAmacrine" = {        // 4
+KernelConn "WFAmacrineON to SFAmacrine" = {        // 4
   
 // Case 2: nxScalePost > nxScalePre.
 // (the post-synaptic layer has more neurons than the pre-synaptic layer)
@@ -2253,17 +2091,14 @@ KernelConn "WFAmacrineSigdmoidON to SFAmacrine" = {        // 4
 //
 // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
 
-    preLayerName = "WFAmacrineSigmoidON";
+    preLayerName = "WFAmacrineON";
     postLayerName = "SFAmacrine";
     weightInitType = "Gauss2DWeight";
     channelCode = 1;   // inhibitory   feedback
 	nxp           = 3; // odd times 2 because of scale factor
 	nyp           = 3; // 
 	normalize     = 1.0; //  
-	strength      = 1.0; // 1.0 WFAmacrineSFAmacrine
-
-	stochasticReleaseFlag = 1.0;
-
+	strength      = 1.0; // 1.0
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
 	invert        = 0.0; // check this ...
@@ -2306,7 +2141,7 @@ KernelConn "SFAmacrineSigmoid to GangilonOFF" = {        // 4
 	nxp           = 6; // odd times 
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = 0.25; // today 0.25 SFAmacrineSigmoidGanglion staerke
+	strength      = 0.25; // 0.25
 
 	stochasticReleaseFlag = 1.0;
 
@@ -2334,53 +2169,6 @@ KernelConn "SFAmacrineSigmoid to GangilonOFF" = {        // 4
 	normalize_cutoff      = 0.0;  //
 	writeStep             = -1.0;  // do not write these out
 };
-
-
-KernelConn "SFAmacrineSigmoid to PAAmacrineOFF" = {        // 4
-  
-// Case 2: nxScalePost > nxScalePre.
-// (the post-synaptic layer has more neurons than the pre-synaptic layer)
-//
-// nxp must be an odd multiple of the nxScaleRatio
-//
-// marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
-    preLayerName = "SFAmacrineSigmoid";
-    postLayerName = "PAAmacrineOFF";
-    weightInitType = "Gauss2DWeight";
-    channelCode = 1;   // inhibitory   feedback
-	nxp           = 3; // odd times 
-	nyp           = 3; // 
-	normalize     = 1.0; //  
-	strength      = 0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
-
-	stochasticReleaseFlag = 1.0;
-
-	
-	aspect        = 1.0;
-	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
-	invert        = 0.0; // check this ...
-	delay         = 0.0; // in time steps, additional to the one you always get
-	stdpFlag      = 0.0; 
-//	nfp           = 1.0; // should fit the feature number of post synaptic layer
-	randomFlag    = 0.0; // init method
-	smartWeights  = 0.0; // init method, mutially exclusive
-	no            = 1.0; // only for cocirc
-	sigma         = 6.0; // only for Gauss/cocirc
-	rMax          = 256.; // maximum distance of connection
-
-	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
-	thetaMax      = 1.0;      //
-	bowtieFlag    = 0.0;      //
-	numFlanks     = 1.0;      //
-    flankShift    = 0.0;      //
-	cocircWeights = 0.0;      //
-	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
-	normalize_zero_offset = 0.0;  //
-	normalize_cutoff      = 0.0;  //
-	writeStep             = -1.0;  // do not write these out
-};
-
 
 
 
@@ -2400,7 +2188,7 @@ KernelConn "PAAmacrineOFF to WFAmacrineOFF" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; // 
-	strength      = 1.0; // 1.0 PAAmacrineWFAmacrine staerke
+	strength      = 1.0; // 1.0
 	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -2427,7 +2215,7 @@ KernelConn "PAAmacrineOFF to WFAmacrineOFF" = {        // 4
 };
 
 
-KernelConn "WFAmacrineSigmoidOFF to SFAmacrine" = {        // 4
+KernelConn "WFAmacrineOFF to SFAmacrine" = {        // 4
   
 // Case 2: nxScalePost > nxScalePre.
 // (the post-synaptic layer has more neurons than the pre-synaptic layer)
@@ -2436,17 +2224,14 @@ KernelConn "WFAmacrineSigmoidOFF to SFAmacrine" = {        // 4
 //
 // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
 
-    preLayerName = "WFAmacrineSigmoidOFF";
+    preLayerName = "WFAmacrineOFF";
     postLayerName = "SFAmacrine";
     weightInitType = "Gauss2DWeight";
     channelCode = 1;   // inhibitory   feedback
 	nxp           = 3; // odd times 2 because of scale factor
 	nyp           = 3; // 
 	normalize     = 1.0; // 
-	strength      = 1.0; // 1.0 WFAmacrineSFAmacrine staerke
-
-	stochasticReleaseFlag = 1.0;
-
+	strength      = 1.0; // 1.0
 	
 	aspect        = 1.0;
 	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
