@@ -74,6 +74,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
    // make sure initialization is finished
    updateState(0.0, 0.0);
+   return PV_SUCCESS;
 }
 
 Patterns::~Patterns()
