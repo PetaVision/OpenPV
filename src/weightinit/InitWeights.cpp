@@ -225,7 +225,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    else {
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "PV::HyPerConn::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
+         fprintf(stderr, "PV::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
          exit(EXIT_FAILURE);
       }
       if( timef != NULL ) *timef = (float) timed;
