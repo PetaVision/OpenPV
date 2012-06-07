@@ -49,22 +49,31 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     if (Horizontal == NULL) {fprintf(stdout,"Can't find Horizontal pointer"); exit(-1);};
     HyPerLayer * GanglionON      = hc->getLayerFromName("GanglionON");
     if (GanglionON == NULL) {fprintf(stdout,"Can't find GanglionON pointer"); exit(-1);};
-    HyPerLayer * AmacrineON      = hc->getLayerFromName("AmacrineON");
-    if (AmacrineON == NULL) {fprintf(stdout,"Can't find AmacrineON pointer"); exit(-1);};
-    HyPerLayer * SynchronicityON = hc->getLayerFromName("SynchronicityON"); // for analysis
+    HyPerLayer * WFAmacrineON      = hc->getLayerFromName("WFAmacrineON");
+     if (WFAmacrineON == NULL) {fprintf(stdout,"Can't find WFAmacrineON pointer"); exit(-1);};
+     HyPerLayer * PAAmacrineON      = hc->getLayerFromName("PAAmacrineON");
+      if (PAAmacrineON == NULL) {fprintf(stdout,"Can't find PAAmacrineON pointer"); exit(-1);};
+       HyPerLayer * SynchronicityON = hc->getLayerFromName("SynchronicityON"); // for analysis
     if (SynchronicityON == NULL) {fprintf(stdout,"Can't find SynchronicityON pointer"); exit(-1);};
     HyPerLayer * RetinaON      = hc->getLayerFromName("RetinaON");
     if (RetinaON == NULL) {fprintf(stdout,"Can't find Cone pointer"); exit(-1);};
+
+    HyPerLayer * SFAmacrine      = hc->getLayerFromName("SFAmacrine");
+     if (SFAmacrine == NULL) {fprintf(stdout,"Can't find SFAmacrine pointer"); exit(-1);};
+
 
 
     HyPerLayer * BipolarOFF       = hc->getLayerFromName("BipolarOFF");
     if (BipolarOFF == NULL) {fprintf(stdout,"Can't find BipolarOFF pointer"); exit(-1);};
     HyPerLayer * GanglionOFF      = hc->getLayerFromName("GanglionOFF");
     if (GanglionOFF == NULL) {fprintf(stdout,"Can't find GanglionOFF pointer"); exit(-1);};
-    HyPerLayer * AmacrineOFF      = hc->getLayerFromName("AmacrineOFF");
-    if (AmacrineOFF == NULL) {fprintf(stdout,"Can't find AmacrineOFF pointer"); exit(-1);};
+    HyPerLayer * WFAmacrineOFF      = hc->getLayerFromName("WFAmacrineOFF");
+    if (WFAmacrineOFF == NULL) {fprintf(stdout,"Can't find WFAmacrineOFF pointer"); exit(-1);};
+    HyPerLayer * PAAmacrineOFF      = hc->getLayerFromName("PAAmacrineOFF");
+    if (PAAmacrineOFF == NULL) {fprintf(stdout,"Can't find PAAmacrineOFF pointer"); exit(-1);};
+
     HyPerLayer * SynchronicityOFF = hc->getLayerFromName("SynchronicityOFF"); // for analysis
-    if (SynchronicityOFF == NULL) {fprintf(stdout,"Can't find SynchronicityOFF pointer"); exit(-1);};
+     if (SynchronicityOFF == NULL) {fprintf(stdout,"Can't find SynchronicityOFF pointer"); exit(-1);};
     HyPerLayer * RetinaOFF      = hc->getLayerFromName("RetinaOFF");
     if (RetinaOFF == NULL) {fprintf(stdout,"Can't find Cone pointer"); exit(-1);};
 
@@ -109,13 +118,19 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //GanglionON->insertProbe(statsGanglionONScr);
 
  //----------------------------------------------------------------------
-    PointLIFProbe * ptprobeAmacrineON = new PointLIFProbe("ptAmacrineON.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineON);
+    PointLIFProbe * ptprobeWFAmacrineON = new PointLIFProbe("ptWFAmacrineON.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
 
-    StatsProbe * statsAmacrineON = new StatsProbe("statsAmacrineON.txt",AmacrineON,BufActivity,"AmacrineON:");
-    //AmacrineON->insertProbe(statsAmacrineON);
+     StatsProbe * statsWFAmacrineON = new StatsProbe("statsWFAmacrineON.txt",WFAmacrineON,BufActivity,"WFAmacrineON:");
 
-    //----------------------------------------------------------------------
+     PointLIFProbe * ptprobePAAmacrineON = new PointLIFProbe("ptPAAmacrineON.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+      StatsProbe * statsPAAmacrineON = new StatsProbe("statPAAmacrineON.txt",PAAmacrineON,BufActivity,"PAAmacrineON:");
+
+      PointLIFProbe * ptprobeSFAmacrine = new PointLIFProbe("ptSFAmacrine.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
+
+       StatsProbe * statsSFAmacrine = new StatsProbe("statsSFAmacrine.txt",SFAmacrine,BufActivity,"SFAmacrine:");
+
+       //----------------------------------------------------------------------
 
     StatsProbe * statsSynchronicityON = new StatsProbe(SynchronicityON, BufActivity,"SynchronicityON:");
     //SynchronicityON->insertProbe(statsSynchronicityON);
@@ -151,11 +166,14 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
         //GanglionOFF->insertProbe(statsGanglionOFFScr);
 
      //----------------------------------------------------------------------
-        PointLIFProbe * ptprobeAmacrineOFF = new PointLIFProbe("ptAmacrineOFF.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-        //AmacrineOFF->insertProbe(ptprobeAmacrineOFF);
+        PointLIFProbe * ptprobeWFAmacrineOFF = new PointLIFProbe("ptWFAmacrineOFF.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
 
-        StatsProbe * statsAmacrineOFF = new StatsProbe("statsAmacrineOFF.txt",AmacrineOFF,BufActivity,"AmacrineOFF:");
-        //AmacrineOFF->insertProbe(statsAmacrineOFF);
+        StatsProbe * statsWFAmacrineOFF = new StatsProbe("statsWFAmacrineOFF.txt",WFAmacrineOFF,BufActivity,"WFAmacrineOFF:");
+
+        PointLIFProbe * ptprobePAAmacrineOFF = new PointLIFProbe("ptPAAmacrineOFF.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
+        StatsProbe * statsPAAmacrineOFF = new StatsProbe("statsPAAmacrineOFF.txt",PAAmacrineOFF,BufActivity,"PAAmacrineOFF:");
+
 
         //----------------------------------------------------------------------
 
@@ -233,15 +251,22 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //BipolarON->insertProbe(ptprobeBipolarONP1);
     PointLIFProbe * ptprobeGanglionONP1 = new PointLIFProbe("ptGanglionONP1.txt",GanglionON,locX/2., locY/2., locF, "GanglionON:");
     //GanglionON->insertProbe(ptprobeGanglionONP1);
-    PointLIFProbe * ptprobeAmacrineONP1 = new PointLIFProbe("ptAmacrineONP1.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineONP1);
+    PointLIFProbe * ptprobeWFAmacrineONP1 = new PointLIFProbe("ptWFAmacrineONP1.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
+
+    PointLIFProbe * ptprobePAAmacrineONP1 = new PointLIFProbe("ptPAAmacrineONP1.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+    PointLIFProbe * ptprobeSFAmacrineP1 = new PointLIFProbe("ptSFAmacrineP1.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
+
 
     PointLIFProbe * ptprobeBipolarOFFP1 = new PointLIFProbe("ptBipolarOFFP1.txt",BipolarOFF,locX, locY, locF, "BipolarOFF:");
     //BipolarOFF->insertProbe(ptprobeBipolarOFFP1);
     PointLIFProbe * ptprobeGanglionOFFP1 = new PointLIFProbe("ptGanglionOFFP1.txt",GanglionOFF,locX/2., locY/2., locF, "GanglionOFF:");
     //GanglionOFF->insertProbe(ptprobeGanglionOFFP1);
-    PointLIFProbe * ptprobeAmacrineOFFP1 = new PointLIFProbe("ptAmacrineOFFP1.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-    //AmacrineOFF->insertProbe(ptprobeAmacrineOFFP1);
+    PointLIFProbe * ptprobeWFAmacrineOFFP1 = new PointLIFProbe("ptWFAmacrineOFFP1.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
+
+    PointLIFProbe * ptprobePAAmacrineOFFP1 = new PointLIFProbe("ptPAAmacrineOFFP1.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
+
 
 
     locX = 128-15.;
@@ -254,15 +279,20 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //BipolarON->insertProbe(ptprobeBipolarONP3);
     PointLIFProbe * ptprobeGanglionONP3 = new PointLIFProbe("ptGanglionONP3.txt",GanglionON,locX/2., locY/2., locF, "GanglionON:");
     //GanglionON->insertProbe(ptprobeGanglionONP3);
-    PointLIFProbe * ptprobeAmacrineONP3 = new PointLIFProbe("ptAmacrineONP3.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineONP3);
+    PointLIFProbe * ptprobeWFAmacrineONP3 = new PointLIFProbe("ptWFAmacrineONP3.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
+
+    PointLIFProbe * ptprobePAAmacrineONP3 = new PointLIFProbe("ptPAAmacrineONP3.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+    PointLIFProbe * ptprobeSFAmacrineP3 = new PointLIFProbe("ptSFAmacrineP3.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
 
     PointLIFProbe * ptprobeBipolarOFFP3 = new PointLIFProbe("ptBipolarOFFP3.txt",BipolarOFF,locX, locY, locF, "BipolarOFF:");
     //BipolarOFF->insertProbe(ptprobeBipolarOFFP3);
     PointLIFProbe * ptprobeGanglionOFFP3 = new PointLIFProbe("ptGanglionOFFP3.txt",GanglionOFF,locX/2., locY/2., locF, "GanglionOFF:");
     //GanglionOFF->insertProbe(ptprobeGanglionOFFP3);
-    PointLIFProbe * ptprobeAmacrineOFFP3 = new PointLIFProbe("ptAmacrineOFFP3.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-    //AmacrineOFF->insertProbe(ptprobeAmacrineOFFP3);
+    PointLIFProbe * ptprobeWFAmacrineOFFP3 = new PointLIFProbe("ptWFAmacrineOFFP3.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
+
+    PointLIFProbe * ptprobePAAmacrineOFFP3 = new PointLIFProbe("ptPAAmacrineOFFP3.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
 
 
     locX = 128-15;
@@ -275,15 +305,22 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //BipolarON->insertProbe(ptprobeBipolarONP5);
     PointLIFProbe * ptprobeGanglionONP5 = new PointLIFProbe("ptGanglionONP5.txt",GanglionON,locX/2., locY/2., locF, "GanglionON:");
     //GanglionON->insertProbe(ptprobeGanglionONP5);
-    PointLIFProbe * ptprobeAmacrineONP5 = new PointLIFProbe("ptAmacrineONP5.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineONP5);
+    PointLIFProbe * ptprobeWFAmacrineONP5 = new PointLIFProbe("ptWFAmacrineONP5.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
+
+    PointLIFProbe * ptprobePAAmacrineONP5 = new PointLIFProbe("ptPAAmacrineONP5.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+    PointLIFProbe * ptprobeSFAmacrineP5 = new PointLIFProbe("ptSFAmacrineP5.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
+
 
     PointLIFProbe * ptprobeBipolarOFFP5 = new PointLIFProbe("ptBipolarOFFP5.txt",BipolarOFF,locX, locY, locF, "BipolarOFF:");
      //BipolarOFF->insertProbe(ptprobeBipolarOFFP5);
      PointLIFProbe * ptprobeGanglionOFFP5 = new PointLIFProbe("ptGanglionOFFP5.txt",GanglionOFF,locX/2., locY/2., locF, "GanglionOFF:");
      //GanglionOFF->insertProbe(ptprobeGanglionOFFP5);
-     PointLIFProbe * ptprobeAmacrineOFFP5 = new PointLIFProbe("ptAmacrineOFFP5.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-     //AmacrineOFF->insertProbe(ptprobeAmacrineOFFP5);
+     PointLIFProbe * ptprobeWFAmacrineOFFP5 = new PointLIFProbe("ptWFAmacrineOFFP5.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
+
+     PointLIFProbe * ptprobePAAmacrineOFFP5 = new PointLIFProbe("ptPAAmacrineOFFP5.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
+
 
 
     locX = 128+15;
@@ -296,15 +333,22 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //BipolarON->insertProbe(ptprobeBipolarONP7);
     PointLIFProbe * ptprobeGanglionONP7 = new PointLIFProbe("ptGanglionONP7.txt",GanglionON,locX/2., locY/2., locF, "GanglionON:");
     //GanglionON->insertProbe(ptprobeGanglionONP7);
-    PointLIFProbe * ptprobeAmacrineONP7 = new PointLIFProbe("ptAmacrineONP7.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineONP7);
+    PointLIFProbe * ptprobeWFAmacrineONP7 = new PointLIFProbe("ptWFAmacrineONP7.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
+
+    PointLIFProbe * ptprobePAAmacrineONP7 = new PointLIFProbe("ptPAAmacrineONP7.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+    PointLIFProbe * ptprobeAmacrineP7 = new PointLIFProbe("ptSFAmacrineP7.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
 
     PointLIFProbe * ptprobeBipolarOFFP7 = new PointLIFProbe("ptBipolarOFFP7.txt",BipolarOFF,locX, locY, locF, "BipolarOFF:");
     //BipolarOFF->insertProbe(ptprobeBipolarOFFP7);
     PointLIFProbe * ptprobeGanglionOFFP7 = new PointLIFProbe("ptGanglionOFFP7.txt",GanglionOFF,locX/2., locY/2., locF, "GanglionOFF:");
     //GanglionOFF->insertProbe(ptprobeGanglionOFFP7);
-    PointLIFProbe * ptprobeAmacrineOFFP7 = new PointLIFProbe("ptAmacrineOFFP7.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-    //AmacrineOFF->insertProbe(ptprobeAmacrineOFFP7);
+    PointLIFProbe * ptprobeWFAmacrineOFFP7 = new PointLIFProbe("ptWFAmacrineOFFP7.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
+
+    PointLIFProbe * ptprobePAAmacrineOFFP7 = new PointLIFProbe("ptPAAmacrineOFFP7.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
+
+
 
 
     locX = 128+15;
@@ -317,15 +361,23 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     //BipolarON->insertProbe(ptprobeBipolarONP9);
     PointLIFProbe * ptprobeGanglionONP9 = new PointLIFProbe("ptGanglionONP9.txt",GanglionON,locX/2., locY/2., locF, "GanglionON:");
     //GanglionON->insertProbe(ptprobeGanglionONP9);
-    PointLIFProbe * ptprobeAmacrineONP9 = new PointLIFProbe("ptAmacrineONP9.txt",AmacrineON,locX/4., locY/4., locF, "AmacrineON:");
-    //AmacrineON->insertProbe(ptprobeAmacrineONP9);
+    PointLIFProbe * ptprobeWFAmacrineONP9 = new PointLIFProbe("ptWFAmacrineONP9.txt",WFAmacrineON,locX/4., locY/4., locF, "WFAmacrineON:");
+
+    PointLIFProbe * ptprobePAAmacrineONP9 = new PointLIFProbe("ptPAAmacrineONP9.txt",PAAmacrineON,locX/4., locY/4., locF, "PAAmacrineON:");
+
+    PointLIFProbe * ptprobeSFAmacrineP9 = new PointLIFProbe("ptSFAmacrineP9.txt",SFAmacrine,locX/4., locY/4., locF, "SFAmacrine:");
+
 
     PointLIFProbe * ptprobeBipolarOFFP9 = new PointLIFProbe("ptBipolarOFFP9.txt",BipolarOFF,locX, locY, locF, "BipolarOFF:");
     //BipolarOFF->insertProbe(ptprobeBipolarOFFP9);
     PointLIFProbe * ptprobeGanglionOFFP9 = new PointLIFProbe("ptGanglionOFFP9.txt",GanglionOFF,locX/2., locY/2., locF, "GanglionOFF:");
     //GanglionOFF->insertProbe(ptprobeGanglionOFFP9);
-    PointLIFProbe * ptprobeAmacrineOFFP9 = new PointLIFProbe("ptAmacrineOFFP9.txt",AmacrineOFF,locX/4., locY/4., locF, "AmacrineOFF:");
-    //AmacrineOFF->insertProbe(ptprobeAmacrineOFFP9);
+    PointLIFProbe * ptprobeWFAmacrineOFFP9 = new PointLIFProbe("ptWFAmacrineOFFP9.txt",WFAmacrineOFF,locX/4., locY/4., locF, "WFAmacrineOFF:");
+
+    PointLIFProbe * ptprobePAAmacrineOFFP9 = new PointLIFProbe("ptPAAmacrineOFFP9.txt",PAAmacrineOFF,locX/4., locY/4., locF, "PAAmacrineOFF:");
+
+
+
 
 
     //
@@ -410,7 +462,7 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 
              locX = pt08/2.;    // 3 + 12.8 /2 + n * 25.6
              PointLIFProbe * ptprobeGanglionON08 = new PointLIFProbe("ptGanglionON08.txt",GanglionON,locX, locY, locF, "GanglionON:");
-             GanglionON->insertProbe(ptprobeGanglionON08);
+             //GanglionON->insertProbe(ptprobeGanglionON08);
 
              locX = pt06/2.;    // 3 + 12.8 /2 + n * 25.6
              PointLIFProbe * ptprobeGanglionON06 = new PointLIFProbe("ptGanglionON06.txt",GanglionON,locX, locY, locF, "GanglionON:");
@@ -432,48 +484,133 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                 locF = 0;        // feature 0
 
                 locX = ptb/4.;    // mid between the first two bars
-                PointLIFProbe * ptprobeAmacrineONB = new PointLIFProbe("ptAmacrineONB.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineONB = new PointLIFProbe("ptWFAmacrineONB.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineONB);
 
                 locX = pt10/4.;    // 3 + 12.8 /2 + n * 25.6
-                PointLIFProbe * ptprobeAmacrineON10 = new PointLIFProbe("ptAmacrineON10.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineON10 = new PointLIFProbe("ptWFAmacrineON10.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineON10);
 
                 locX = pt08/4.;    // 3 + 12.8 /2 + n * 25.6
-                PointLIFProbe * ptprobeAmacrineON08 = new PointLIFProbe("ptAmacrineON08.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineON08 = new PointLIFProbe("ptWFAmacrineON08.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineON08);
 
                 locX = pt06/4.;    // 3 + 12.8 /2 + n * 25.6
-                PointLIFProbe * ptprobeAmacrineON06 = new PointLIFProbe("ptAmacrineON06.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineON06 = new PointLIFProbe("ptWFAmacrineON06.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineON06);
 
                 locX = pt04/4.;    // 3 + 12.8 /2 + n * 25.6
-                PointLIFProbe * ptprobeAmacrineON04 = new PointLIFProbe("ptAmacrineON04.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineON04 = new PointLIFProbe("ptWFAmacrineON04.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineON04);
 
                 locX = pt02/4.;    // 3 + 12.8 /2 + n * 25.6
-                PointLIFProbe * ptprobeAmacrineON02 = new PointLIFProbe("ptAmacrineON02.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineON02 = new PointLIFProbe("ptWFAmacrineON02.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineON02);
 
                 // ---- calibration probes NSCALE IS 4
 
                 locX = 	60/4.;
                 locY =  15.;      // probing
-                PointLIFProbe * ptprobeAmacrineONRU1 = new PointLIFProbe("ptAmacrineONRU1.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineONRU1 = new PointLIFProbe("ptWFAmacrineONRU1.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineONRU1);
 
                 locY =  44;      // probing
-                PointLIFProbe * ptprobeAmacrineONRD1 = new PointLIFProbe("ptAmacrineONRD1.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineONRD1 = new PointLIFProbe("ptWFAmacrineONRD1.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineONRD1);
 
 
                 locY =  75;      // probing
-                PointLIFProbe * ptprobeAmacrineONRU2 = new PointLIFProbe("ptAmacrineONRU2.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineONRU2 = new PointLIFProbe("ptWFAmacrineONRU2.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineONRU2);
 
                 locY =  104;      // probing
-                PointLIFProbe * ptprobeAmacrineONRD2 = new PointLIFProbe("ptAmacrineONRD2.txt",AmacrineON,locX, locY, locF, "AmacrineON:");
+                PointLIFProbe * ptprobeWFAmacrineONRD2 = new PointLIFProbe("ptWFAmacrineONRD2.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON:");
                 //AmacrineON->insertProbe(ptprobeAmacrineONRD2);
+
+
+
+                PointLIFProbe * ptprobePAAmacrineONB = new PointLIFProbe("ptPAAmacrineONB.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+                                //AmacrineON->insertProbe(ptprobeAmacrineONB);
+
+                locX = pt10/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobePAAmacrineON10 = new PointLIFProbe("ptPAAmacrineON10.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+                locX = pt08/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobePAAmacrineON08 = new PointLIFProbe("ptPAAmacrineON08.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locX = pt06/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobePAAmacrineON06 = new PointLIFProbe("ptPAAmacrineON06.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locX = pt04/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobePAAmacrineON04 = new PointLIFProbe("ptPAAmacrineON04.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locX = pt02/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobePAAmacrineON02 = new PointLIFProbe("ptPAAmacrineON02.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+                // ---- calibration probes NSCALE IS 4
+
+                locX = 	60/4.;
+                locY =  15.;      // probing
+                PointLIFProbe * ptprobePAAmacrineONRU1 = new PointLIFProbe("ptPAAmacrineONRU1.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locY =  44;      // probing
+                PointLIFProbe * ptprobePAAmacrineONRD1 = new PointLIFProbe("ptPAAmacrineONRD1.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locY =  75;      // probing
+                PointLIFProbe * ptprobePAAmacrineONRU2 = new PointLIFProbe("ptPAAmacrineONRU2.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                locY =  104;      // probing
+                PointLIFProbe * ptprobePAAmacrineONRD2 = new PointLIFProbe("ptPAAmacrineONRD2.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON:");
+
+
+                // ---- calibration probes NSCALE IS 4 --- 0.25
+
+                locY = 225/4.;      // probing the middle of the bar
+                locF = 0;        // feature 0
+
+                locX = ptb/4.;    // mid between the first two bars
+                PointLIFProbe * ptprobeSFAmacrineB = new PointLIFProbe("ptSFAmacrineB.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+
+                locX = pt10/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobeSFAmacrine10 = new PointLIFProbe("ptSFAmacrine10.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+                locX = pt08/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobeSFAmacrine08 = new PointLIFProbe("ptSFAmacrine08.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+
+                locX = pt06/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobeSFAmacrine06 = new PointLIFProbe("ptSFAmacrine06.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+                locX = pt04/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobeSFAmacrine04 = new PointLIFProbe("ptSFAmacrine04.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+
+                locX = pt02/4.;    // 3 + 12.8 /2 + n * 25.6
+                PointLIFProbe * ptprobeSFAmacrine02 = new PointLIFProbe("ptSFAmacrine02.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+                // ---- calibration probes NSCALE IS 4
+
+                locX = 	60/4.;
+                locY =  15.;      // probing
+                PointLIFProbe * ptprobeSFAmacrineRU1 = new PointLIFProbe("ptSFAmacrineRU1.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+                locY =  44;      // probing
+                PointLIFProbe * ptprobeSFAmacrineRD1 = new PointLIFProbe("ptSFAmacrineRD1.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+
+                locY =  75;      // probing
+                PointLIFProbe * ptprobeSFAmacrineRU2 = new PointLIFProbe("ptSFAmacrineRU2.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
+                locY =  104;      // probing
+                PointLIFProbe * ptprobeSFAmacrineRD2 = new PointLIFProbe("ptSFAmacrineRD2.txt",SFAmacrine,locX, locY, locF, "SFAmacrine:");
+
 
 
 
@@ -626,49 +763,97 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                                 locF = 0;        // feature 0
 
                                 locX = ptb/4.;    // mid between the first two bars
-                                PointLIFProbe * ptprobeAmacrineOFFB = new PointLIFProbe("ptAmacrineOFFB.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFFB = new PointLIFProbe("ptWFAmacrineOFFB.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFFB);
 
                                 locX = pt10/4.;    // 3 + 12.8 /2 + n * 25.6
-                                PointLIFProbe * ptprobeAmacrineOFF10 = new PointLIFProbe("ptAmacrineOFF10.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFF10 = new PointLIFProbe("ptWFAmacrineOFF10.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFF10);
 
                                 locX = pt08/4.;    // 3 + 12.8 /2 + n * 25.6
-                                PointLIFProbe * ptprobeAmacrineOFF08 = new PointLIFProbe("ptAmacrineOFF08.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFF08 = new PointLIFProbe("ptWFAmacrineOFF08.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFF08);
 
                                 locX = pt06/4.;    // 3 + 12.8 /2 + n * 25.6
-                                PointLIFProbe * ptprobeAmacrineOFF06 = new PointLIFProbe("ptAmacrineOFF06.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFF06 = new PointLIFProbe("ptWFAmacrineOFF06.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFF06);
 
                                 locX = pt04/4.;    // 3 + 12.8 /2 + n * 25.6
-                                PointLIFProbe * ptprobeAmacrineOFF04 = new PointLIFProbe("ptAmacrineOFF04.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFF04 = new PointLIFProbe("ptWFAmacrineOFF04.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFF04);
 
                                 locX = pt02/4.;    // 3 + 12.8 /2 + n * 25.6
-                                PointLIFProbe * ptprobeAmacrineOFF02 = new PointLIFProbe("ptAmacrineOFF02.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFF02 = new PointLIFProbe("ptWFAmacrineOFF02.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFF02);
 
                                 // ---- calibration probes NSCALE IS 4
 
                                 locX = 	60/4.;
                                 locY =  15.;      // probing
-                                PointLIFProbe * ptprobeAmacrineOFFRU1 = new PointLIFProbe("ptAmacrineOFFRU1.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFFRU1 = new PointLIFProbe("ptWFAmacrineOFFRU1.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFFRU1);
 
                                 locY =  44;      // probing
-                                PointLIFProbe * ptprobeAmacrineOFFRD1 = new PointLIFProbe("ptAmacrineOFFRD1.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFFRD1 = new PointLIFProbe("ptWFAmacrineOFFRD1.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFFRD1);
 
 
                                 locY =  75;      // probing
-                                PointLIFProbe * ptprobeAmacrineOFFRU2 = new PointLIFProbe("ptAmacrineOFFRU2.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFFRU2 = new PointLIFProbe("ptWFAmacrineOFFRU2.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFFRU2);
 
                                 locY =  104;      // probing
-                                PointLIFProbe * ptprobeAmacrineOFFRD2 = new PointLIFProbe("ptAmacrineOFFRD2.txt",AmacrineOFF,locX, locY, locF, "AmacrineOFF:");
+                                PointLIFProbe * ptprobeWFAmacrineOFFRD2 = new PointLIFProbe("ptWFAmacrineOFFRD2.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF:");
                                 //AmacrineOFF->insertProbe(ptprobeAmacrineOFFRD2);
 
+
+
+                                // ---- calibration probes NSCALE IS 4 --- 0.25
+
+                                locY = 225/4.;      // probing the middle of the bar
+                                locF = 0;        // feature 0
+
+                                locX = ptb/4.;    // mid between the first two bars
+                                PointLIFProbe * ptprobePAAmacrineOFFB = new PointLIFProbe("ptPAAmacrineOFFB.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+                                locX = pt10/4.;    // 3 + 12.8 /2 + n * 25.6
+                                PointLIFProbe * ptprobePAAmacrineOFF10 = new PointLIFProbe("ptPAAmacrineOFF10.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                locX = pt08/4.;    // 3 + 12.8 /2 + n * 25.6
+                                PointLIFProbe * ptprobePAAmacrineOFF08 = new PointLIFProbe("ptPAAmacrineOFF08.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                locX = pt06/4.;    // 3 + 12.8 /2 + n * 25.6
+                                PointLIFProbe * ptprobePAAmacrineOFF06 = new PointLIFProbe("ptPAAmacrineOFF06.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                locX = pt04/4.;    // 3 + 12.8 /2 + n * 25.6
+                                PointLIFProbe * ptprobePAAmacrineOFF04 = new PointLIFProbe("ptPAAmacrineOFF04.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                locX = pt02/4.;    // 3 + 12.8 /2 + n * 25.6
+                                PointLIFProbe * ptprobePAAmacrineOFF02 = new PointLIFProbe("ptPAAmacrineOFF02.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                // ---- calibration probes NSCALE IS 4
+
+                                locX = 	60/4.;
+                                locY =  15.;      // probing
+                                PointLIFProbe * ptprobePAAmacrineOFFRU1 = new PointLIFProbe("ptPAAmacrineOFFRU1.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+                                locY =  44;      // probing
+                                PointLIFProbe * ptprobePAAmacrineOFFRD1 = new PointLIFProbe("ptPAAmacrineOFFRD1.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+
+
+
+                                locY =  75;      // probing
+                                PointLIFProbe * ptprobePAAmacrineOFFRU2 = new PointLIFProbe("ptPAAmacrineOFFRU2.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
+                                                               //AmacrineOFF->insertProbe(ptprobeAmacrineOFFRU2);
+
+                                locY =  104;      // probing
+                                PointLIFProbe * ptprobePAAmacrineOFFRD2 = new PointLIFProbe("ptPAAmacrineOFFRD2.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF:");
 
 
 
@@ -769,59 +954,136 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
     float strength = params->value("Image to Cone", "strength", strength);
     float sigma = params->value("Image to Cone", "sigma", sigma);
     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","Image to Cone" ,strength,sigma);
-    strength = params->value("ConeSigmoid to Horizontal", "strength", strength);
-    sigma    = params->value("ConeSigmoid to Horizontal", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "ConeSigmoid to Horizontal",strength,sigma);
+
+    strength = params->value("ConeSigmoidON to Horizontal", "strength", strength);
+    sigma    = params->value("ConeSigmoidON to Horizontal", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "ConeSigmoidON to Horizontal",strength,sigma);
+
     strength = params->value("HoriGap to Horizontal", "strength", strength);
     sigma    = params->value("HoriGap to Horizontal", "sigma", sigma);
     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","HoriGap to Horizontal" ,strength,sigma);
+
     strength = params->value("HoriSigmoid to Cone", "strength", strength);
     sigma = params->value("HoriSigmoid to Cone", "sigma", sigma);
     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","HoriSigmoid to Cone" ,strength,sigma);
-    strength = params->value("ConeSigmoid to BipolarON", "strength", strength);
-    sigma    = params->value("ConeSigmoid to BipolarON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","ConeSigmoid to BipolarON" ,strength,sigma);
+
+    strength = params->value("ConeSigmoidON to BipolarON", "strength", strength);
+    sigma    = params->value("ConeSigmoidON to BipolarON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","ConeSigmoidON to BipolarON" ,strength,sigma);
+
     strength = params->value("BipolarSigmoidON to GanglionON", "strength", strength);
     sigma    = params->value("BipolarSigmoidON to GanglionON", "sigma", sigma);
     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","BipolarSigmoidON to GanglionON" ,strength,sigma);
-    strength = params->value("BipolarSigmoidON to AmacrineON", "strength", strength);
-    sigma    = params->value("BipolarSigmoidON to AmacrineON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "BipolarSigmoidON to AmacrineON",strength,sigma);
-    strength = params->value("GangliGapON to AmacrineON", "strength", strength);
-    sigma    = params->value("GangliGapON to AmacrineON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","GangliGapON to AmacrineON" ,strength,sigma);
-    strength = params->value("AmaGapON to GanglionON", "strength", strength);
-    sigma    = params->value("AmaGapON to GanglionON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","AmaGapON to GanglionON" ,strength,sigma);
-    strength = params->value("AmaGapON to AmacrineON", "strength", strength);
-    sigma    = params->value("AmaGapON to AmacrineON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","AmaGapON to AmacrineON" ,strength,sigma);
-    strength = params->value("AmacrineON to GanglionON", "strength", strength);
-    sigma = params->value("AmacrineON to GanglionON", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f  \n","AmacrineON to GanglionON" ,strength,sigma);
-    strength = params->value("ConeSigmoid to BipolarOFF", "strength", strength);
-    sigma    = params->value("ConeSigmoid to BipolarOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","ConeSigmoid to BipolarOFF" ,strength,sigma);
-    strength = params->value("BipolarSigmoidOFF to GanglionOFF", "strength", strength);
-    sigma    = params->value("BipolarSigmoidOFF to GanglionOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","BipolarSigmoidOFF to GanglionOFF" ,strength,sigma);
-    strength = params->value("BipolarSigmoidOFF to AmacrineOFF", "strength", strength);
-    sigma    = params->value("BipolarSigmoidOFF to AmacrineOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "BipolarSigmoidOFF to AmacrineOFF",strength,sigma);
-    strength = params->value("GangliGapOFF to AmacrineOFF", "strength", strength);
-    sigma    = params->value("GangliGapOFF to AmacrineOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","GangliGapOFF to AmacrineOFF" ,strength,sigma);
-    strength = params->value("AmaGapOFF to GanglionOFF", "strength", strength);
-    sigma    = params->value("AmaGapOFF to GanglionOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","AmaGapOFF to GanglionOFF" ,strength,sigma);
-    strength = params->value("AmaGapOFF to AmacrineOFF", "strength", strength);
-    sigma    = params->value("AmaGapOFF to AmacrineOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","AmaGapOFF to AmacrineOFF" ,strength,sigma);
-    strength = params->value("AmacrineOFF to GanglionOFF", "strength", strength);
-    sigma = params->value("AmacrineOFF to GanglionOFF", "sigma", sigma);
-    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f  \n","AmacrineOFF to GanglionOFF" ,strength,sigma);
+
+    strength = params->value("BipolarSigmoidON to WFAmacrineON", "strength", strength);
+    sigma    = params->value("BipolarSigmoidON to WFAmacrineON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "BipolarSigmoidON to WFAmacrineON",strength,sigma);
+
+    strength = params->value("WFAmacrineSigmoidON to BipolarON", "strength", strength);
+       sigma    = params->value("WFAmacrineSigmoidON to BipolarON", "sigma", sigma);
+       fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "WFAmacrineSigmoidON to BipolarON",strength,sigma);
+
+    strength = params->value("WFAmacrineGapON to WFAmacrineON", "strength", strength);
+       sigma    = params->value("WFAmacrineGapON to WFAmacrineON", "sigma", sigma);
+       fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "WFAmacrineGapON to WFAmacrineON",strength,sigma);
+
+    strength = params->value("GangliGapON to PAAmacrineON", "strength", strength);
+    sigma    = params->value("GangliGapON to PAAmacrineON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","GangliGapON to PAAmacrineON" ,strength,sigma);
+
+    strength = params->value("PAAmaGapON to GanglionON", "strength", strength);
+    sigma    = params->value("PAAmaGapON to GanglionON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmaGapON to GanglionON" ,strength,sigma);
+
+    strength = params->value("PAAmaGapON to PAAmacrineON", "strength", strength);
+    sigma    = params->value("PAAmaGapON to PAAmacrineON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmaGapON to PAAmacrineON" ,strength,sigma);
+
+    strength = params->value("BipolarSigmoidON to SFAmacrine", "strength", strength);
+    sigma    = params->value("BipolarSigmoidON to SFAmacrine", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","BipolarSigmoidON to SFAmacrine" ,strength,sigma);
+
+    strength = params->value("WFAmacrineSigmoidON to SFAmacrine", "strength", strength);
+    sigma    = params->value("WFAmacrineSigmoidON to SFAmacrine", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","WFAmacrineSigmoidON to SFAmacrine" ,strength,sigma);
+
+    strength = params->value("PAAmacrineON to WFAmacrineON", "strength", strength);
+    sigma    = params->value("PAAmacrineON to WFAmacrineON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmacrineON to WFAmacrineON" ,strength,sigma);
+
+    strength = params->value("PAAmacrineON to GanglionON", "strength", strength);
+    sigma    = params->value("PAAmacrineON to GanglionON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmacrineON to GanglionON" ,strength,sigma);
+
+    strength = params->value("PAAmacrineON to PAAmacrineON", "strength", strength);
+        sigma    = params->value("PAAmacrineON to PAAmacrineON", "sigma", sigma);
+        fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","self shutdown PAAmacrineON to PAAmacrineON" ,strength,sigma);
 
 
+    strength = params->value("SFAmacrineSigmoid to GanglionON", "strength", strength);
+    sigma    = params->value("SFAmacrineSigmoid to GanglionON", "sigma", sigma);
+    fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","SFAmacrineSigmoid to GanglionON" ,strength,sigma);
+
+
+
+    // OFF connections
+
+
+    strength = params->value("ConeSigmoidOFF to BipolarOFF", "strength", strength);
+     sigma    = params->value("ConeSigmoidOFF to BipolarOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","ConeSigmoidOFF to BipolarOFF" ,strength,sigma);
+
+     strength = params->value("BipolarSigmoidOFF to GanglionOFF", "strength", strength);
+     sigma    = params->value("BipolarSigmoidOFF to GanglionOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","BipolarSigmoidOFF to GanglionOFF" ,strength,sigma);
+
+     strength = params->value("BipolarSigmoidOFF to WFAmacrineOFF", "strength", strength);
+     sigma    = params->value("BipolarSigmoidOFF to WFAmacrineOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "BipolarSigmoidOFF to WFAmacrineOFF",strength,sigma);
+
+     strength = params->value("WFAmacrineSigmoidOFF to BipolarOFF", "strength", strength);
+        sigma    = params->value("WFAmacrineSigmoidOFF to BipolarOFF", "sigma", sigma);
+        fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "WFAmacrineSigmoidOFF to BipolarOFF",strength,sigma);
+
+     strength = params->value("WFAmacrineGapOFF to WFAmacrineOFF", "strength", strength);
+        sigma    = params->value("WFAmacrineGapOFF to WFAmacrineOFF", "sigma", sigma);
+        fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n", "WFAmacrineGapOFF to WFAmacrineOFF",strength,sigma);
+
+     strength = params->value("GangliGapOFF to PAAmacrineOFF", "strength", strength);
+     sigma    = params->value("GangliGapOFF to PAAmacrineOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","GangliGapOFF to PAAmacrineOFF" ,strength,sigma);
+
+     strength = params->value("PAAmaGapOFF to GanglionOFF", "strength", strength);
+     sigma    = params->value("PAAmaGapOFF to GanglionOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmaGapOFF to GanglionOFF" ,strength,sigma);
+
+     strength = params->value("PAAmaGapOFF to PAAmacrineOFF", "strength", strength);
+     sigma    = params->value("PAAmaGapOFF to PAAmacrineOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmaGapOFF to PAAmacrineOFF" ,strength,sigma);
+
+     strength = params->value("BipolarSigmoidOFF to SFAmacrine", "strength", strength);
+     sigma    = params->value("BipolarSigmoidOFF to SFAmacrine", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","BipolarSigmoidOFF to SFAmacrine" ,strength,sigma);
+
+     strength = params->value("WFAmacrineSigmoidOFF to SFAmacrine", "strength", strength);
+     sigma    = params->value("WFAmacrineSigmoidOFF to SFAmacrine", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","WFSigmoidAmacrineOFF to SFAmacrine" ,strength,sigma);
+
+     strength = params->value("PAAmacrineOFF to WFAmacrineOFF", "strength", strength);
+     sigma    = params->value("PAAmacrineOFF to WFAmacrineOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmacrineOFF to WFAmacrineOFF" ,strength,sigma);
+
+     strength = params->value("PAAmacrineOFF to GanglionOFF", "strength", strength);
+     sigma    = params->value("PAAmacrineOFF to GanglionOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","PAAmacrineOFF to GanglionOFF" ,strength,sigma);
+
+     strength = params->value("PAAmacrineOFF to PAAmacrineOFF", "strength", strength);
+         sigma    = params->value("PAAmacrineOFF to PAAmacrineOFF", "sigma", sigma);
+         fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","self shutdown PAAmacrineOFF to PAAmacrineOFF" ,strength,sigma);
+
+     strength = params->value("SFAmacrineSigmoid to GanglionOFF", "strength", strength);
+     sigma    = params->value("SFAmacrineSigmoid to GanglionOFF", "sigma", sigma);
+     fprintf(stdout,"%32s has a strength of  %f and a sigma of %f \n","SFAmacrineSigmoid to GanglionOFF" ,strength,sigma);
 
     fprintf(stdout,"================================================ \a \a \a \a \a \a \a \n");
     fprintf(stderr,"================================================ \a \a \a \a \a \a \a \n");
