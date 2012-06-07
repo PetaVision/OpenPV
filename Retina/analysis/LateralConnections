@@ -1,0 +1,33 @@
+
+myfilw = fopen("../../gjkunde/output/ptAmacine02.tzt","r");
+
+Time = [];
+G_E  = [];
+G_I  = [];
+G_IB = [];
+V    = [];
+Vth  = [];
+A    = [];
+
+
+time = zeros(1000, 1);
+G_E  = zeros(1000, 1);
+G_I  = zeros(1000, 1);
+G_IB = zeros(1000, 1);
+V    = zeros(1000, 1);
+Vth  = zeros(1000, 1);
+A    = zeros(100, 1);
+
+for i_step = 1:1000
+    name         = fscanf(fid, '%s', 1);
+    time(i_step) = fscanf(fid, ' t=%f', 1);
+    location     = fscanf(fid, ' k=%i', 1);
+    G_E(i_step)  = fscanf(fid, ' G_E=%f', 1);
+    G_I(i_step)  = fscanf(fid, ' G_I=%f', 1);
+    G_IB(i_step) = fscanf(fid, ' G_IB=%f', 1);
+    V(i_step)    = fscanf(fid, ' V=%f', 1);
+    Vth(i_step)  = fscanf(fid, ' Vth=%f', 1);
+    R            = fscanf(fid, ' R= %f', 1);
+    A(i_step)    = fscanf(fid, ' a=%f\n', 1);
+end
+fclose(fid);
