@@ -1,0 +1,281 @@
+// 
+// Parameter file for BIDS
+//
+//
+HyPerCol "column" = {
+   nx = 256;
+   ny = 256;
+   dt = 1.;                  // according GK
+   randomSeed = 1020304050.0; // remove when running for real
+   //checkpointRead  = true;  // normal run
+   checkpointRead  = false; // init run
+   checkpointWrite = false;  // always
+};
+
+       Image "Image" = {
+       useParamsImage = 1;  // initializing image at checkpoint from HERE !
+
+        imagePath = "./input/obama.png";
+        restart = 0;
+        nxScale = 1;
+        nyScale = 1;
+        nf = 1;
+        marginWidth = 0;
+        writeStep = 0;
+        mirrorBCflag = 0;
+        spikingFlag = 0;
+        writeNonspikingActivity = true; // true (no quotes) is translated to 1 
+        writeImages = 0;
+       };
+      
+  
+LIF "Cone" = {       // 1 //
+
+	nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // no longer an ANN layer 
+	marginWidth      = 2.0;     // for MPI running
+	writeStep        = -1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+	Vrest            = -55.;    // adjusted as per discussion with Garrett
+	restart          = 0.0;     // from graylast
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 10.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 2.0;     // how long glutamine stays bound
+	tauI             = 5.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = 100000.0;   // firing threshold disabled                           <=============== disabled
+	tauVth           = 10.0;    // relative refractory period
+	deltaVth         = 0.0;     // jump of threshold when firing                          <=============== disabled
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+	noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       = 0.0.;     // no noise here 
+	noiseFreqE       =   0.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       =   0.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+};
+
+LIFGap "GanglionON" = {                // 12
+	nxScale          = 1.0;
+	nyScale          = 1.0;
+	nf               = 1;       // one feature for now
+	spikingFlag      = 1;       // the whole idea 
+	marginWidth      = 4.0;     // for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+	Vrest            = -70.;    //
+	restart          = 0.0;     // from graylast
+	Vexc             = 0.0;     // reversal potential 
+	Vinh             = -75.0;   // chloride channel
+	VinhB            = -90.0;   // potassium reversal
+	tau              = 10.0;    // intrinsic leak membrane time constant (max)
+	tauE             = 2.5;     // how long glutamine stays bound
+	tauI             = 1.0;     // how long GABA stays bound
+	tauIB            = 10.0;    // inhibitory potassium channel 
+	tauRate          = 100000.; // marian's integration time for firing rate  
+	VthRest          = -55.0;   // firing threshold 15 mV above rest
+	tauVth           = 10.0;    // 10.0 relative refractory period
+	deltaVth         = 5.0;     // jump of threshold when firing
+	alphaVthRest     = 0.01;    // slow and fast adapation
+	noiseAmpE        = 0.0;     // 0.5 1 means conductance is equal to lead conductance  gjk
+	noiseAmpI        = 0.0;     // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+	noiseAmpIB       = 0.0;     // no noise here 
+	noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
+	noiseFreqI       = 250.;    // correlation to time step size !!!
+	noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+	localVthRestFlag = 0.0;     // adaptive threshold   
+	tauVthRest       = 10000;   // time constant to adapt
+	localWmaxFlag    = 0.0;     // No homeostatic STPD
+	wMax             = 0.75;    // STPD max weight 
+	wMin             = 0.0;      
+	tauWmax          = 100000.0;// time constant to integrate	
+	alphaW           = 0.01;    // 
+	averageR         = 10.;     // 
+//	no               = 0.0;     // probably a HyPercon thing
+};
+
+
+
+Retina "RetinaON" = {      // 17
+   nxScale = 1;
+   nyScale = 1;
+   marginWidth = 2; //CER 2;
+   
+   beginStim = 0;
+   endStim   = 9000000;
+
+   burstFreq = 4000; //25; // 0.001; //20;   // Hz
+   burstDuration = 10; //7.5; //1000000; // ms
+
+   spikingFlag = 1;     // spike as poisson
+
+   noiseOnFreq  = 100;  // (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq = 25;//50;   // (Hz) when this is defined poissonBlank overridden
+   
+   writeNonspikingActivity = 0.0;
+   
+   no = 1.0;
+   poissonBlankProb = 0.0;
+   poissonEdgeProb = 1.0;
+   InitVType        = "ConstantV";
+   Vrest = -70.0;
+   mirrorBCflag = 1.0;
+   writeStep = -1.0;
+   nf = 1.0;
+   restart          = 0.0;     // from graylast
+};
+
+//
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections Connectioncs Connections Connections
+//
+
+
+KernelConn "Image to Cone" = {   
+    preLayerName = "Image";
+    postLayerName = "Cone";
+    weightInitType = "Gauss2DWeight";
+    channelCode = 0;               // forward
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; // 
+	//strength      = 0.1475; // adjusted to give a 15 mv swing for input of 1.0, id est 40 mV
+	//strength      = 0.97; // adjusted to give 0.5 ConeSigmoid for 46 
+	strength      = 0.35;   // ImageCone adjusted to give symmetric ON/OFF response staerke
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for Gauss/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = -1.0;  // do not write these out
+};
+
+
+KernelConn "Cone to GanglionON" = {        // 5  sigmoid, need linear output ?
+    preLayerName = "Cone";
+    postLayerName = "GanglionON";
+    weightInitType = "Gauss2DWeight";
+    channelCode = 0;               // forward
+	nxp           = 1;
+	nyp           = 1;
+	normalize     = 1.0; //  
+	strength      = 0.088; // 0.12 ConeGanglion staerke
+	
+	stochasticReleaseFlag = 1.0;
+		
+	aspect        = 1.0;
+	rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
+	invert        = 0.0; // check this ...
+	delay         = 0.0; // in time steps, additional to the one you always get
+	stdpFlag      = 0.0; 
+//	nfp           = 1.0; // should fit the feature number of post synaptic layer
+	randomFlag    = 0.0; // init method
+	smartWeights  = 0.0; // init method, mutially exclusive
+	no            = 1.0; // only for cocirc
+	sigma         = 0.8; // only for Gauss/cocirc
+	rMax          = 256.; // maximum distance of connection
+
+	deltaThetaMax = 6.283185; // that is 2 pi init  for oriented connections
+	thetaMax      = 1.0;      //
+	bowtieFlag    = 0.0;      //
+	numFlanks     = 1.0;      //
+	flankShift    = 0.0;      //
+	cocircWeights = 0.0;      //
+	normalize_max = 0.0;          // all flags zero means it normalize total integrated output
+	normalize_zero_offset = 0.0;  //
+	normalize_cutoff      = 0.0;  //
+	writeStep             = -1.0;  // do not write these out
+};
+
+KernelConn "Image to RetinaON" = {
+   preLayerName = "Image";
+   postLayerName = "RetinaON";
+   weightInitType = "Gauss2DWeight";
+   channelCode = 0; 
+   nxp = 1;
+   nyp = 1;
+   
+   normalize = 1.0;
+   
+   aspect = 1.0;
+   sigma = 1.0;
+   rMax =  4; 
+   strength = 1;//  ImageRetinaON staerke 
+   
+   writeStep = -1.0;
+   symmetrizeWeights = 0.0;
+   normalize_cutoff = 0.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   rotate = 0.0;
+   flankShift = 0.0;
+   numFlanks = 1.0;
+   cocircWeights = 0.0;
+   smartWeights = 0.0;
+   randomFlag = 0.0;
+   nfp = 1.0;
+   averageR = 10.0;
+   alphaW = 0.01;
+   gammaW = 0.05;
+   localWmaxFlag = 0.0;
+   stdpFlag = 0.0;
+   dWMax = 0.1;
+   wMin = 0.0;
+   wMax = 10.0;
+   tauLTD = 20.0;
+   tauLTP = 20.0;
+   ampLTD = 1.1;
+   ampLTP = 1.0;
+   isGraded = 0.0;
+   numDelay = 1.0;
+   varDelayMax = 0.0;
+   varDelayMin = 0.0;
+   rmax = 4.0;
+   rmin = 0.0;
+   vel = 45.248001;
+   fixDelay = 0.0;
+   delay = 0.0;
+};
+ 
