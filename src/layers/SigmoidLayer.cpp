@@ -58,7 +58,7 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
 
 int SigmoidLayer::updateState(float timef, float dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, getCLayer()->activeIndices, &getCLayer()->numActive);
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
