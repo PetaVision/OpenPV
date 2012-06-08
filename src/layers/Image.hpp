@@ -31,6 +31,8 @@ public:
    virtual int updateState(float time, float dt);
    virtual int outputState(float time, bool last=false);
 
+   virtual int checkpointRead(float * timef);
+
    // partially override implementation of LayerDataInterface interface
    //
    const pvdata_t * getLayerData(int delay=0)   { return data; }
@@ -88,6 +90,8 @@ protected:
    // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
    int offsetX;          // offset of layer section within full image frame
    int offsetY;
+
+   bool useParamsImage;
 
    float lastPhase;
    float lastUpdateTime; // time of last image update
