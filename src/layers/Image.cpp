@@ -35,6 +35,24 @@ int Image::initialize_base() {
    return PV_SUCCESS;
 }
 
+int Image::checkpointRead(float * timef){
+
+   PVParams * params = parent->parameters();
+   this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
+   if (this->useParamsImage) {
+      fprintf(stderr,"Initializing image from params file location ! \n");
+      * timef = parent->simulationTime(); // fakes the pvp time stamp
+   }
+   else {
+      fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
+      HyPerLayer::checkpointRead(timef);
+   }
+
+
+   return PV_SUCCESS;
+}
+
+
 int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    HyPerLayer::initialize(name, hc, 0);
    int status = PV_SUCCESS;
