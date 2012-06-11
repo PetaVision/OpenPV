@@ -273,44 +273,6 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
    return 0;
 }
 
-#ifdef OBSOLETE // Marked obsolete July 10, 2011
-int Image::toGrayScale()
-{
-   const PVLayerLoc * loc = getLayerLoc();
-   const int nx_ex = loc->nx + 2*loc->nb;
-   const int ny_ex = loc->ny + 2*loc->nb;
-
-   const int numBands = loc->nf;
-
-   const size_t sx = 1;
-   const size_t sy = loc->nx + loc->halo.lt + loc->halo.rt;
-   const size_t sb = sy * (loc->ny + loc->halo.dn + loc->halo.up);
-
-   if (numBands < 2) return 0;
-
-   for (int j = 0; j < ny_ex; j++) {
-      for (int i = 0; i < nx_ex; i++) {
-         float val = 0;
-         for (int b = 0; b < numBands; b++) {
-            float d = data[i*sx + j*sy + b*sb];
-            val += d*d;
-//            val += d;
-         }
-         // store the converted image in the first color band
-         data[i*sx + j*sy + 0*sb] = sqrtf(val/numBands);
-//         data[i*sx + j*sy + 0*sb] = val/numBands;
-      }
-   }
-
-   // turn off the color
-   clayer->loc.nf = 1;
-   clayer->numNeurons = clayer->loc.nx * clayer->loc.ny;
-   clayer->numExtended = (clayer->loc.nx + 2*clayer->loc.nb) * (clayer->loc.ny + 2*clayer->loc.nb);
-
-   return 0;
-}
-#endif // OBSOLETE
-
 float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
 {
    // even though the numBands argument goes last, the routine assumes that
@@ -331,9 +293,9 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
          float val = 0;
          for (int b = 0; b < numBands; b++) {
             float d = buf[i*sxcolor + j*sycolor + b*sb];
-            val += d*d;
+            val += d;
          }
-         graybuf[i*sxgray + j*sygray] = sqrtf(val/numBands);
+         graybuf[i*sxgray + j*sygray] = val/numBands;
       }
    }
    delete buf;
