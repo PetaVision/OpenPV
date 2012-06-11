@@ -193,10 +193,12 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
       int n=clayer->numNeurons;
       float * buf = new float[n];
       status = scatterImageFileGDAL(this->filename, 0, 0, icComm, &fileLoc, buf);
-      pvdata_t scale = 0.003921569; // 1.0/255.0  This needs to change if pvdata_t stops being float
-      for( int k=0; k<n; k++ ) {
-         V[k] = buf[k]*scale;
-      }
+      // Lines below unnecessary as scatterImageFileGDAL already scales by 1/255.0
+      //
+      // pvdata_t scale = 0.003921569; // 1.0/255.0  This needs to change if pvdata_t stops being float
+      // for( int k=0; k<n; k++ ) {
+      //    V[k] = buf[k]*scale;
+      // }
       delete buf;
    }
    return status;
