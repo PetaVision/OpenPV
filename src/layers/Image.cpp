@@ -333,7 +333,7 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
             float d = buf[i*sxcolor + j*sycolor + b*sb];
             val += d*d;
          }
-         graybuf[i*sxgray + j*sygray] = (unsigned char) sqrtf(val/numBands);
+         graybuf[i*sxgray + j*sygray] = sqrtf(val/numBands);
       }
    }
    delete buf;
