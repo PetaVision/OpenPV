@@ -10,6 +10,7 @@ HyPerCol "column" = {
    //checkpointRead  = true;  // normal run
    checkpointRead  = false; // init run
    checkpointWrite = false;  // always
+   numSteps = 100;
 };
 
        Image "Image" = {
@@ -21,7 +22,7 @@ HyPerCol "column" = {
         nyScale = 1;
         nf = 1;
         marginWidth = 0;
-        writeStep = 0;
+        writeStep = 1;
         mirrorBCflag = 0;
         spikingFlag = 0;
         writeNonspikingActivity = true; // true (no quotes) is translated to 1 
@@ -36,7 +37,8 @@ LIF "Cone" = {       // 1 //
 	nf               = 1;       // one feature for now
 	spikingFlag      = 1;       // no longer an ANN layer 
 	marginWidth      = 2.0;     // for MPI running
-	writeStep        = -1.0;
+	writeStep        = 1.0;
+	writeNonspikingActivity = 1.0;
 	mirrorBCflag     = 1.0;     // mirroring boundary conditions
     InitVType        = "ConstantV";
 	Vrest            = -55.;    // adjusted as per discussion with Garrett
@@ -136,7 +138,7 @@ Retina "RetinaON" = {      // 17
    InitVType        = "ConstantV";
    Vrest = -70.0;
    mirrorBCflag = 1.0;
-   writeStep = -1.0;
+   writeStep = 1.0;
    nf = 1.0;
    restart          = 0.0;     // from graylast
 };
@@ -277,5 +279,18 @@ KernelConn "Image to RetinaON" = {
    vel = 45.248001;
    fixDelay = 0.0;
    delay = 0.0;
+};
+
+
+StatsProbe "GanglionONProbe" = {
+	targetLayer = "GanglionON";
+};
+
+StatsProbe "ConeProbe" = {
+	targetLayer = "Cone";
+};
+
+StatsProbe "RetinaONProbe" = {
+	targetLayer = "RetinaON";
 };
  
