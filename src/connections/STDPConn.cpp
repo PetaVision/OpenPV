@@ -132,20 +132,21 @@ PVLayerCube * STDPConn::getPlasticityDecrement()
  * to a pointer to a derived class (LIF). This way I do not need to define a virtual
  * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
  */
-int STDPConn::setParams(PVParams * filep)
+int STDPConn::setParams(PVParams * params)
 {
    // stdpFlag is now set by constructor
    // stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
+   HyPerConn::setParams(params);
 
    if (stdpFlag) {
-      ampLTP = filep->value(getName(), "ampLTP", ampLTP);
-      ampLTD = filep->value(getName(), "ampLTD", ampLTD);
-      tauLTP = filep->value(getName(), "tauLTP", tauLTP);
-      tauLTD = filep->value(getName(), "tauLTD", tauLTD);
+      ampLTP = params->value(getName(), "ampLTP", ampLTP);
+      ampLTD = params->value(getName(), "ampLTD", ampLTD);
+      tauLTP = params->value(getName(), "tauLTP", tauLTP);
+      tauLTD = params->value(getName(), "tauLTD", tauLTD);
 
-      wMax = filep->value(getName(), "wMax", wMax);
-      wMin = filep->value(getName(), "wMin", wMin);
-      dWMax = filep->value(getName(), "dWMax", dWMax);
+      wMax = params->value(getName(), "wMax", wMax);
+      wMin = params->value(getName(), "wMin", wMin);
+      dWMax = params->value(getName(), "dWMax", dWMax);
 
    }
 
