@@ -12,7 +12,7 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    output_dir = "~/Pictures/spikeCode/AnimalDB/Targets/200msec/";
+    output_dir = "~/Pictures/spikeCode/AnimalDB/Targets/0msec/";
   endif
   mkdir(output_dir);
   num_argin = num_argin + 1;
@@ -37,7 +37,7 @@ function [status_info] = ...
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin
-    integration_period = 0.2;
+    integration_period = 0; %% 0.025; %% 0.05; %% 0.1; %% 0.2; %% 0; %% 
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin

@@ -76,6 +76,14 @@ function [status_info] = ...
     figure;
     imagesc(gray_image);
     colormap(gray);
+    axis off;
+    axis image;
+  endif
+
+  status_info = struct;
+  if integration_period == 0
+    status_info.eventCount_array = double(gray_image);
+    return;
   endif
     
 
@@ -138,7 +146,6 @@ function [status_info] = ...
     bar(event_bins, event_hist);
   endif
 
-  status_info = struct;
   status_info.eventCount_array = eventCount_array;
   status_info.rand_state = rand_state;
 
