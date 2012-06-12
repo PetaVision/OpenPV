@@ -1,6 +1,7 @@
 %%
 close all
 clear all
+more off
 
 start_timer = time;
 
@@ -14,7 +15,7 @@ start_timer = time;
 				% endif %%
 
 global NUM_PROCS 
-NUM_PROCS = 8;    
+NUM_PROCS = 4;    
 
 global parallel_flag  
 parallel_flag = 1;
@@ -40,7 +41,7 @@ FLAT_ARCH_FLAG = 1;
 global SPIKING_FLAG
 SPIKING_FLAG = 1;
 
-workspace_path = ['../../../Documents/workspace/'];
+workspace_path = ['../../../../Documents/workspace/'];
 project_path = [workspace_path, 'BIDS/'];
 
 global OUTPUT_PATH SPIKE_PATH
@@ -53,8 +54,8 @@ mkdir(MOVIE_PATH);
 
 %%image_path = ['amoebaX2/256_png/4/'];
 image_path = [project_path, 'input/'];
-image_filename = [image_path 'obama.png'];
-target_filename{1} = [image_path 'obama.png'];
+image_filename = [image_path 'stimulus1.png'];
+target_filename{1} = [image_path 'stimulus1.png'];
 
 global pvp_order
 pvp_order = 1;
@@ -199,7 +200,7 @@ num_eigen = 3;
 xcorr_struct.num_eigen = num_eigen;
 xcorr_struct.calc_power_mask = 1;
 xcorr_struct.num_sig = 4;  %% ? throws memory allocation error
-calc_eigen = 1;
+calc_eigen = 0;
 xcorr_struct.calc_eigen = calc_eigen;
 
 xcorr_eigenvector = cell( num_layers, num_modes, num_eigen);
@@ -229,7 +230,6 @@ epoch_struct.total_steps = zeros(num_epochs, num_layers);
 
 
 %% setup epoch_struct for each layer
-keyboard;
 for layer = read_spikes
   disp(['building epoch stuct: ', num2str(layer)]);
 
@@ -1042,7 +1042,7 @@ for layer = read_spikes;
     xcorr_array{i_mode, layer} = ...
 	xcorr_array{i_mode, layer} - mean_xcorr_array;
     [eigen_vec, eigen_value, eigen_flag] = ...
-        eigs( xcorr_array{i_mode, layer}, num_eigen, 'lm', options);
+        eigs(xcorr_array{i_mode, layer}, num_eigen, 'lm', options);
     [sort_eigen, sort_eigen_ndx] = ...
 	sort( diag( eigen_value ), 'descend' );
     for i_vec = 1:num_eigen
