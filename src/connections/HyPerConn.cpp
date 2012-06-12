@@ -1981,12 +1981,20 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < syp; iWeight++ ){
          w[iWeight] = ( w[iWeight] - zero_offset ) * scale_factor;
-         w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) ) ? w[iWeight] : 0.0f;
       }
       w += syp;
    }
    maxVal = ( maxVal - zero_offset ) * scale_factor;
-   maxVal = ( fabs(maxVal) > fabs(normalize_cutoff) ) ? maxVal : 0.0f;
+   w = dataStart + offset;
+   if (fabs(normalize_cutoff) > 0.0f){
+      for (int ky = 0; ky < ny; ky++) {
+         for(int iWeight = 0; iWeight < syp; iWeight++ ){
+            w[iWeight] = ( fabs(w[iWeight]) > fabs(normalize_cutoff) * maxVal) ? w[iWeight] : 0.0f;
+         }
+         w += syp;
+      }
+   }
+   //maxVal = ( fabs(maxVal) > fabs(normalize_cutoff) ) ? maxVal : 0.0f;
    this->wMax = maxVal > this->wMax ? maxVal : this->wMax;
    return PV_SUCCESS;
 } // scaleWeights
