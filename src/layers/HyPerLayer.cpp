@@ -319,10 +319,11 @@ int HyPerLayer::initializeLayerId(int layerId)
       snprintf(filename, PV_PATH_MAX, "%s/a%d_%s.pvp", parent->getOutputPath(), clayer->layerId, name);
       break;
    case 2:
-      snprintf(filename, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath());
+      snprintf(filename, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
       break;
    default:
       assert(0);
+      break;
    }
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
 
