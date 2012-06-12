@@ -260,7 +260,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
 
    filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
-      fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n");
+      fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
       abort();
    }
 
