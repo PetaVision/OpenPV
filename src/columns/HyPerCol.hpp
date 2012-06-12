@@ -174,8 +174,10 @@ private:
    int numProbes;
    ColProbe ** probes;
 
-   bool filenamesContainLayerNames; // Whether filenames of layers' clayer->activeFP
-                                    // have the form a5.pvp or a5_NameOfLayer.pvp
+   int filenamesContainLayerNames; // Controls the form of layers' clayer->activeFP
+                                   // Value 0: layers have form a5.pvp
+                                   // Value 1: layers have form a5_NameOfLayer.pvp
+                                   // Value 2: layers have form NameOfLayer.pvp
 
 }; // class HyPerCol
 
