@@ -2,14 +2,14 @@
 
 object_type = {"2FC"; "4FC"; "6FC"; "8FC"};
 clip_name = cell(1,1);
-clip_name{1} = "t"; %% "d"; %% 
+clip_name{1} = "d"; %% "t"; %% 
+DATASET_ID = "noamoeba3"; %% "amoeba3"; %% 
+pvp_num_ODD_kernels = 3; %%
 version_ids = [1:8];
 version_str = cell(length(version_ids),1);
 for i_version = 1 : length(version_ids)
   version_str{i_version} = num2str(version_ids(i_version), "%3.3i");   
 endfor
-DATASET_ID = "amoeba3"; %% "noamoeba2"; %% 
-pvp_num_ODD_kernels = 3; %%
 
 global PVP_VERBOSE_FLAG
 PVP_VERBOSE_FLAG = 0;
