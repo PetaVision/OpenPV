@@ -42,14 +42,16 @@ int MPITestLayer::setActivitytoGlobalPos(){
 		float x0 = xOriginGlobal(xScaleLog2);
 		float dx = deltaX(xScaleLog2);
 		float x_global_pos = (x0 + dx * kxGlobalExt);
-		clayer->activity->data[kLocalExt] = x_global_pos;
+		if( x_global_pos < 0 || x_global_pos > clayer->loc.nxGlobal || (x_global_pos > clayer->loc.kx0 && x_global_pos < clayer->loc.kx0 + clayer->loc.nx) ) {
+		   clayer->activity->data[kLocalExt] = x_global_pos;
+		}
 	}
 	return PV_SUCCESS;
 }
 
 
 int MPITestLayer::initialize(){
-	//int status = ANNLayer::initialize();  // parent class inialize already called in constructor (!!!violation of PV convention)
+	//int status = ANNLayer::initialize();  // parent class initialize already called in constructor (!!!violation of PV convention)
 	setVtoGlobalPos();
 	setActivitytoGlobalPos();
 
