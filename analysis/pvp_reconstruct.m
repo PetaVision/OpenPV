@@ -1,5 +1,5 @@
 
-function [fh, recon_colormap] = ...
+function [fh, recon_colormap, recon_image] = ...
       pvp_reconstruct(recon_array, ...
 		      plot_title, ...
 		      fh, ...
@@ -103,23 +103,24 @@ function [fh, recon_colormap] = ...
   min_line_width = 1.0;
 				% cmap = colormap;
   hold on;
-  if ~FLAT_ARCH_FLAG && NO > 1  && plot_recon_flag
-    if ~exist('fh','var') || isempty(fh) || nargin < 3
-      fh = figure;
-    endif
-    set(fh, 'Name', plot_title);
-    axis([0 NCOLS+1 0 NROWS+1]);
-    if NROWS == NCOLS
-      axis "square";
-    endif
-    axis "tight";
-    axis "image";
-    if flip_ij
-      axis "ij"
-    endif
-    box "off"
-    axis "off"
-
+  if ~FLAT_ARCH_FLAG && NO > 1  
+    if plot_recon_flag
+      if ~exist('fh','var') || isempty(fh) || nargin < 3
+	fh = figure;
+      endif
+      set(fh, 'Name', plot_title);
+      axis([0 NCOLS+1 0 NROWS+1]);
+      if NROWS == NCOLS
+	axis "square";
+      endif
+      axis "tight";
+      axis "image";
+      if flip_ij
+	axis "ij"
+      endif
+      box "off"
+      axis "off"
+    endif %% plot_recon_flag
     [recon_array_tmp, recon_ndx] = sort(abs(recon_array(:)));
     recon_array = recon_array(recon_ndx);
     first_recon_ndx = 1;
@@ -210,14 +211,13 @@ function [fh, recon_colormap] = ...
 	  endif
 	endfor %% i_recon_ndx
       endfor %% edge_val
-      line_width_values = ...
-	  min_line_width + ...
-	  (max_line_width - min_line_width) * recon_values;
-      imagesc(1:1/pixels_per_cell:NROWS, 1:1/pixels_per_cell:NCOLS, recon_image);
+      if plot_recon_flag
+	imagesc(1:1/pixels_per_cell:NROWS, 1:1/pixels_per_cell:NCOLS, recon_image);
+      endif
       %%axis off;
       %%box off;
       colorbar;
-    else
+    elseif plot_recon_flag  %% && ~make_recon_image
       for recon_index = first_recon_ndx : last_recon_ndx
 	i_recon = recon_ndx(recon_index);
 	recon_val = recon_array(recon_index);
@@ -248,29 +248,32 @@ function [fh, recon_colormap] = ...
 	set( lh, 'LineWidth', line_width );
       endfor %% recon_index
     endif %% make_recon_image
-  elseif ~FLAT_ARCH_FLAG && NO == 1 && plot_recon_flag
-    fh = zeros(1,NFEATURES);
-    fh = figure;
-    recon2D = reshape( recon_array(:), [NCOLS, NROWS] );
-    set(fh, 'Name', plot_title);
-    axis([0 NCOLS+1 0 NROWS+1]);
-    if NROWS == NCOLS
-      axis "square";
-    endif
-    axis "tight";
-    axis "image";
-    if flip_ij
-      axis "ij"
-    endif
-    box "off"
-    axis "off"
-    imagesc( recon2D' );  % plots recod2D as an image
-    colormap('gray');
+  elseif ~FLAT_ARCH_FLAG && NO == 1 
+    recon_image = reshape( recon_array(:), [NCOLS, NROWS] )';
+    if plot_recon_flag
+      fh = zeros(1,NFEATURES);
+      fh = figure;
+      set(fh, 'Name', plot_title);
+      axis([0 NCOLS+1 0 NROWS+1]);
+      if NROWS == NCOLS
+	axis "square";
+      endif
+      axis "tight";
+      axis "image";
+      if flip_ij
+	axis "ij"
+      endif
+      box "off"
+      axis "off"
+      imagesc( recon_image );  % plots recod2D as an image
+      colormap('gray');
+    endif  %%  plot_recon_flag 
   elseif FLAT_ARCH_FLAG
     NFEATURES = size_recon(1) * size_recon(2);
-    recon3D = reshape( recon_array(:), [NFEATURES, NCOLS, NROWS] );
-    recon3D = ...
-	( recon3D - min_recon_val ) ./ ...
+    recon_image = reshape( recon_array(:), [NFEATURES, NCOLS, NROWS] );
+    recon_image = permute(recon_image,[3,2,1]);
+    recon_image = ...
+	( recon_image - min_recon_val ) ./ ...
 	( max_recon_val - min_recon_val + (max_recon_val == min_recon_val) );
     if plot_recon_flag
       if ( ~exist('fh','var') || isempty(fh) || nargin < 5 )
@@ -290,20 +293,20 @@ function [fh, recon_colormap] = ...
       endif
       box "off"
       axis "off"
-      tmp = squeeze( max(recon3D,[],1) );
+      tmp = squeeze( max(recon_image,[],3) );
 				%imagesc( gca, tmp' );  % plots recod2D as an image
       imagesc( tmp' );  % plots recod2D as an image
       colormap('gray');
     endif
 %%    plot_title_tmp = ...
 %%	[OUTPUT_PATH, plot_title, '.tiff'];
-%%    recon3D = uint8(255*recon3D);
-%%    imwrite( squeeze( max(recon3D,[],1) )', ...
+%%    recon_image = uint8(255*recon_image);
+%%    imwrite( squeeze( max(recon_image,[],1) )', ...
 %%	    plot_title_tmp);
     for i_feature = 1 : 0 % NFEATURES
       plot_title_tmp = ...
 	  [OUTPUT_PATH, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
-      imwrite( squeeze( recon3D(i_feature,:,:) )', ...
+      imwrite( squeeze( recon_image(:,:,i_feature) )', ...
 	      plot_title_tmp, 'tiff');
     endfor
   endif

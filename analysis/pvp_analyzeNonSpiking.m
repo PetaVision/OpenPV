@@ -1,3 +1,4 @@
+more off
 %%
 close all
 clear all
@@ -6,9 +7,14 @@ expNum = 1;
 %%pvp_matlabPath;
 
 plot_2AFC_flag = 1;
-plot_weights_flag = 1;
+plot_weights_flag = 0;
+noplot_flag = true; %% false; %% 
 
-setenv('GNUTERM', 'x11');
+try
+  setenv('GNUTERM', 'x11');
+catch
+  noplot_flag = true;
+end %% try
 
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
@@ -64,8 +70,8 @@ global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_single_trials = 20;
 num_trials = 625; %%  %% cannot exceed ~1024 for 256x256 image because
+num_single_trials = 20 + num_trials * noplot_flag;
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -104,7 +110,7 @@ machine_path = ...
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path, "amoeba2/3way/activity/8FC/target/001"];
+    [machine_path, "amoeba3/3way/activity/6FC/target/001"];
 if ~isempty(target_path)
   target_path = [target_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
@@ -112,12 +118,12 @@ if ~isempty(target_path)
   endif
 endif % ~isempty(target_path)
 
-if num_trials > num_single_trials || RAW_HIST_FLAG
+%%if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path, "noamoeba2/3way/activity/8FC/distractor/001"];
-else
-  distractor_path = [];
-endif
+    [machine_path, "noamoeba3/3way/activity/6FC/distractor/001"];
+%%else
+%%  distractor_path = [];
+%%endif
 if ~isempty(distractor_path)
   distractor_path = [distractor_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
@@ -208,7 +214,7 @@ pvp_layer_header = cell(N_LAYERS, 1);
 activity = cell(2,1);
 
 raw_hist_count = 0;
-reconstruct_count = 0;
+reconstruct_count = num_single_trials;
 
 for j_trial = first_trial : skip_trial : last_trial    
   
@@ -344,9 +350,9 @@ for j_trial = first_trial : skip_trial : last_trial
 	set(fig_tmp, 'Name', recon_filename);
         fig_tmp = ...
 	    pvp_reconstruct(activity{target_flag}, ...
-			    recon_filename, fig_tmp, ...
+			    recon_filename, fig_tmp * ~noplot_flag, ...
 			    size_activity, ...
-			    1);
+			    ~noplot_flag);
         fig_list = [fig_list; fig_tmp];
 	
       endif
@@ -364,7 +370,7 @@ for j_trial = first_trial : skip_trial : last_trial
     
   endfor  % layer
   
-  if RAW_HIST_FLAG && ( mod(raw_hist_count-1,num_single_trials)==0 )
+  if ~noplot_flag && RAW_HIST_FLAG && ( mod(raw_hist_count-1,num_single_trials)==0 )
     
     raw_hist_filename = ...
         ['raw hist ', ...
@@ -405,18 +411,20 @@ for j_trial = first_trial : skip_trial : last_trial
   raw_hist_count = raw_hist_count + 1;
    
   %%keyboard;
-  if exist(target_path, "dir")
-    pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
-  elseif exist(distractor_path, "dir")
-    pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
+  if ~noplot_flag
+    if exist(target_path, "dir")
+      pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
+    elseif exist(distractor_path, "dir")
+      pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
+    endif
+    if exist(distractor_path, "dir")
+      pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
+    elseif exist(target_path, "dir")
+      pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
+    endif
+    close all;
+    fig_list = [];
   endif
-  if exist(distractor_path, "dir")
-    pvp_saveFigList( fig_list(2:2:end), distractor_path, 'png');
-  elseif exist(target_path, "dir")
-    pvp_saveFigList( fig_list(1:2:end), target_path, 'png');
-  endif
-  close all;
-  fig_list = [];
 
 endfor % j_trial
 
@@ -510,12 +518,14 @@ if max_target_flag > min_target_flag
 			   baseline_layer, ...
 			   percent_change_flag, ...
 			   cum_change_flag);
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCHist(twoAFC_hist, ...
-			   twoAFC_bins, ...
-			   read_activity, ...
-			   twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
+      if ~noplot_flag
+	[fig_list_tmp] = ...
+	    pvp_plot2AFCHist(twoAFC_hist, ...
+			     twoAFC_bins, ...
+			     read_activity, ...
+			     twoAFC_test_str{i_2AFC_test});
+	fig_list = [fig_list; fig_list_tmp];
+      endif
       
       [twoAFC_cumsum, twoAFC_ideal] = ...
 	  pvp_calc2AFCCumsum(twoAFC_hist, ...
@@ -524,13 +534,13 @@ if max_target_flag > min_target_flag
 			     twoAFC_test_str{i_2AFC_test});
       plot_ideal = 0;
       if plot_ideal
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCIdeal(twoAFC_ideal, ...
-			    twoAFC_bins, ...
-			    read_activity, ...
-			    1, ...
-			    twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
+	[fig_list_tmp] = ...
+	    pvp_plot2AFCIdeal(twoAFC_ideal, ...
+			      twoAFC_bins, ...
+			      read_activity, ...
+			      1, ...
+			      twoAFC_test_str{i_2AFC_test});
+	fig_list = [fig_list; fig_list_tmp];
       endif
 
       
@@ -539,12 +549,14 @@ if max_target_flag > min_target_flag
 			  read_activity, ...
 			  1, ...
 			  twoAFC_test_str{i_2AFC_test});
-      [fig_list_tmp] = ...
-	  pvp_plot2AFCROC(twoAFC_ROC, ...
-			  read_activity, ...
-			  1, ...
-			  twoAFC_test_str{i_2AFC_test});
-      fig_list = [fig_list; fig_list_tmp];
+      if ~noplot_flag
+	[fig_list_tmp] = ...
+	    pvp_plot2AFCROC(twoAFC_ROC, ...
+			    read_activity, ...
+			    1, ...
+			    twoAFC_test_str{i_2AFC_test});
+	fig_list = [fig_list; fig_list_tmp];
+      endif
 
       
       disp(twoAFC_test_str{i_2AFC_test});
@@ -595,8 +607,10 @@ if max_target_flag > min_target_flag
     
   endif
 
-  pvp_saveFigList( fig_list, twoAFC_path, 'png');
-  fig_list = [];
+  if ~noplot_flag
+    pvp_saveFigList( fig_list, twoAFC_path, 'png');
+    fig_list = [];
+  endif
   
 endif
 
@@ -610,6 +624,15 @@ if plot_weights_flag == 1
   global NUM_ARBORS
   global MAX_ARBORS
   MAX_ARBORS = 1;
+  make_kernel_movie = MAX_ARBORS > 1;
+  if make_kernel_movie
+    target_kernel_path = [target_path, "target_kernels", filesep];
+    mkdir(target_kernel_path);
+    distractor_kernel_path = [distractor_path, "distractor_kernels", filesep];
+    mkdir(distractor_kernel_path);
+    ODD_kernel_path = [target_path, "ODD_kernels", filesep];
+    mkdir(ODD_kernel_path);
+  endif
   [connID, connIndex, num_arbors] = pvp_connectionID();
   %% num_arbors specifies the number of arbors to be explicitly extracted
   %% the value returned by pvp_connectionID is overwritten by the value stored in the header
@@ -645,6 +668,13 @@ if plot_weights_flag == 1
     weight_min = 10000000.;
     weight_max = -10000000.;
     weight_ave = 0;
+    if i_conn == N_CONNECTIONS - 1
+      kernel_path = target_kernel_path;
+    elseif i_conn == N_CONNECTIONS 
+      kernel_path = distractor_kernel_path;
+    elseif i_conn == N_CONNECTIONS + 1
+      kernel_path = ODD_kernel_path;
+    endif 
     if i_conn < N_CONNECTIONS+1
       weights_filename = ['w', num2str(i_conn-1),'_last.pvp'];
       weights_filename = [SPIKE_PATH, weights_filename];   
@@ -748,17 +778,21 @@ if plot_weights_flag == 1
 	patch_size = [1 NFEATURES  NCOLS NROWS];
 	NO = NFP;
 	plot_name = ...
-	    [connID{i_conn}, '(', ...
-			       int2str(i_conn), ',', ...
-			       int2str(i_arbor), ',', ...
-			       int2str(i_patch), ')' ];
+	    [connID{i_conn}, '_', ...
+			       int2str(i_conn), '_', ...
+			       int2str(i_arbor), '_', ...
+			       int2str(i_patch) ];
 	pixels_per_cell = 5;
-	[fig_tmp, recon_colormap] = ...
+	[fig_tmp, recon_colormap, recon_image] = ...
 	    pvp_reconstruct(weights{i_conn,i_arbor}{i_patch}*weight_invert(i_conn,1), ...
 			    plot_name, ...
-			    [], patch_size, [], ...
+			    [], patch_size, ~noplot_flag, ...
 			    pixels_per_cell);
 	fig_list = [fig_list; fig_tmp];
+	if make_kernel_movie
+	  kernel_pathname = [kernel_path, plot_name, ".png"];
+	  imwrite(recon_image, kernel_pathname);
+	endif
 	plot_recon_subsection = 0;
 	plot_recon_subsection
 	if plot_recon_subsection
@@ -784,7 +818,7 @@ if plot_weights_flag == 1
 	  [fig_sub, recon_colormap] = ...
 	      pvp_reconstruct(weights_sub(:), ...
 			      plot_name_sub, ...
-			      [], patch_size_sub, [], ...
+			      [], patch_size_sub, ~noplot_flag, ...
 			      pixels_per_cell_sub);
 	  fig_list = [fig_list; fig_sub];      
 	endif
@@ -796,7 +830,8 @@ if plot_weights_flag == 1
 	weight_hist = weight_hist + weight_hist_tmp;
       endif
     endfor %% i_arbor
-    if make_weight_hist_flag
+    disp(["weight_hist = ", mat2str(weight_hist)]);
+    if make_weight_hist_flag && ~noplot_flag
       fig_tmp = figure;
       plot_name = ...
 	  [connID{i_conn}, '(', ...
@@ -806,8 +841,9 @@ if plot_weights_flag == 1
     endif
   endfor %% i_conn
   FLAT_ARCHITECTURE = 0;
-
-  pvp_saveFigList( fig_list, OUTPUT_PATH, 'jpg');
+  if ~noplot_flag
+    pvp_saveFigList( fig_list, OUTPUT_PATH, 'jpg');
+  endif
   %%close all;
   %%fig_list = [];
 endif
