@@ -27,35 +27,36 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
 
-    int status;
+   int status;
+   // If params file was not specified, add input/MPI_test.params to command line arguments
+   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
+   int num_cl_args;
+   char ** cl_args;
+   if( paramfileabsent ) {
+      num_cl_args = argc + 2;
+      cl_args = (char **) malloc(num_cl_args*sizeof(char *));
+      cl_args[0] = argv[0];
+      cl_args[1] = strdup("-p");
+      cl_args[2] = strdup("input/MPI_test.params");
+      for( int k=1; k<argc; k++) {
+         cl_args[k+2] = strdup(argv[k]);
+      }
+   }
+   else {
+      num_cl_args = argc;
+      cl_args = argv;
+   }
 #ifdef MAIN_USES_CUSTOMGROUP
-    int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
-    int num_cl_args;
-    char ** cl_args;
-    if( paramfileabsent ) {
-       num_cl_args = argc + 2;
-       cl_args = (char **) malloc(num_cl_args*sizeof(char *));
-       cl_args[0] = argv[0];
-       cl_args[1] = strdup("-p");
-       cl_args[2] = strdup("input/MPI_test.params");
-       for( int k=1; k<argc; k++) {
-          cl_args[k+2] = strdup(argv[k]);
-       }
-    }
-    else {
-       num_cl_args = argc;
-       cl_args = argv;
-    }
-    status = buildandrun(num_cl_args, cl_args, NULL, NULL, customgroup)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-    if( paramfileabsent ) {
-       free(cl_args[1]);
-       free(cl_args[2]);
-       free(cl_args);
-    }
+   status = buildandrun(num_cl_args, cl_args, NULL, NULL, customgroup)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 #else
-    status = buildandrun(argc, argv);
+   status = buildandrun(argc, argv);
 #endif // MAIN_USES_ADDCUSTOM
-    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   if( paramfileabsent ) {
+      free(cl_args[1]);
+      free(cl_args[2]);
+      free(cl_args);
+   }
+   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 #ifdef MAIN_USES_CUSTOMGROUP
@@ -66,13 +67,13 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    char * msg = NULL;
    const char * filename;
    if( !strcmp(keyword, "MPITestLayer") ) {
-	   HyPerLayer * addedLayer = (HyPerLayer *) new MPITestLayer(name, hc);
+      HyPerLayer * addedLayer = (HyPerLayer *) new MPITestLayer(name, hc);
       int status = checknewobject((void *) addedLayer, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
       assert(status == PV_SUCCESS);
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp( keyword, "MPITestProbe") ) {
-	  MPITestProbe * addedProbe = NULL;
+      MPITestProbe * addedProbe = NULL;
       int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
       if( status == PV_SUCCESS ) {
          addedProbe = new MPITestProbe(filename, targetLayer, msg);

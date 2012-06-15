@@ -16,11 +16,14 @@ class MPITestLayer: public PV::ANNLayer {
 public:
 	MPITestLayer(const char* name, HyPerCol * hc, int numChannels);
 	MPITestLayer(const char* name, HyPerCol * hc);
-	int initialize();
 	virtual int updateState(float time, float dt);
 	virtual int publish(InterColComm * comm, float time);
 	int setVtoGlobalPos();
 	int setActivitytoGlobalPos();
+
+private:
+    int initialize(const char * name, HyPerCol * hc, int numChannels);
+
 };
 
 } /* namespace PV */
