@@ -47,6 +47,21 @@ PointProbe::~PointProbe()
 int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
    int status = initLayerProbe(filename, layer);
    if( status == PV_SUCCESS ) {
+      const PVLayerLoc * loc = layer->getLayerLoc();
+      bool isRoot = layer->parent->icCommunicator()->commRank()==0;
+      if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
+         fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", layer->getName(), xLoc, loc->nxGlobal);
+         status = PV_FAILURE;
+      }
+      if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
+         fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", layer->getName(), xLoc, loc->nyGlobal);
+         status = PV_FAILURE;
+      }
+      if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
+         fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", layer->getName(), xLoc, loc->nf);
+         status = PV_FAILURE;
+      }
+      if( status != PV_SUCCESS ) abort();
       this->xLoc = xLoc;
       this->yLoc = yLoc;
       this->fLoc = fLoc;
