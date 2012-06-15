@@ -190,6 +190,7 @@ int Publisher::publish(HyPerLayer* pub,
 }
 
 int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay/*default 0*/) {
+   // Code duplication with Communicator::exchange.  Consolidate?
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
@@ -200,9 +201,9 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
-      pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + Communicator::recvOffset(n, loc);
+      pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + comm->recvOffset(n, loc);
       // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
-      pvdata_t * sendBuf = recvBuffer(LOCAL, delay) + Communicator::sendOffset(n, loc);
+      pvdata_t * sendBuf = recvBuffer(LOCAL, delay) + comm->sendOffset(n, loc);
 
 
 #ifdef DEBUG_OUTPUT
@@ -210,9 +211,9 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
       size_t sendOff = Communicator::sendOffset(n, &cube->loc);
       fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
 #endif //DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm,
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm,
                 &requests[nreq++]);
-      int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, mpiComm);
+      int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
       assert(status==0);
 
    }

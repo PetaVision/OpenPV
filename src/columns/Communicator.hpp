@@ -34,8 +34,8 @@ namespace PV {
 class Communicator {
 public:
 
-   static size_t recvOffset(int n, const PVLayerLoc * loc);
-   static size_t sendOffset(int n, const PVLayerLoc * loc);
+   size_t recvOffset(int n, const PVLayerLoc * loc);
+   size_t sendOffset(int n, const PVLayerLoc * loc);
 
    static MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
 
@@ -65,10 +65,13 @@ public:
                 const MPI_Datatype neighborDatatypes [],
                 const PVLayerLoc * loc);
 
+   int getTag(int neighbor) { return tags[neighbor]; }
+
 protected:
 
    int commRow(int commId);
    int commColumn(int commId);
+   int commIdFromRowColumn(int commRow, int commColumn);
 
    int numNeighbors;  // # of remote neighbors plus local
    int numBorders;    // # of border regions (no communicating neighbor)
@@ -77,6 +80,7 @@ protected:
    int borders[NUM_NEIGHBORHOOD-1];
    int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
+   int tags[NUM_NEIGHBORHOOD];             // diagonal communication needs a different tag from left/right or up/down communication.
 
 private:
 
@@ -99,23 +103,23 @@ private:
 
    int neighborInit();
 
-   bool hasNorthwesternNeighbor(int commId);
-   bool hasNorthernNeighbor(int commId);
-   bool hasNortheasternNeighbor(int commId);
-   bool hasWesternNeighbor(int commId);
-   bool hasEasternNeighbor(int commId);
-   bool hasSouthwesternNeighbor(int commId);
-   bool hasSouthernNeighbor(int commId);
-   bool hasSoutheasternNeighbor(int commId);
+   bool hasNorthwesternNeighbor(int commRow, int commColumn);
+   bool hasNorthernNeighbor(int commRow, int commColumn);
+   bool hasNortheasternNeighbor(int commRow, int commColumn);
+   bool hasWesternNeighbor(int commRow, int commColumn);
+   bool hasEasternNeighbor(int commRow, int commColumn);
+   bool hasSouthwesternNeighbor(int commRow, int commColumn);
+   bool hasSouthernNeighbor(int commRow, int commColumn);
+   bool hasSoutheasternNeighbor(int commRow, int commColumn);
 
-   int northwest(int commId);
-   int north(int commId);
-   int northeast(int commId);
-   int west(int commId);
-   int east(int commId);
-   int southwest(int commId);
-   int south(int commId);
-   int southeast(int commId);
+   int northwest(int commRow, int commColumn);
+   int north(int commRow, int commColumn);
+   int northeast(int commRow, int commColumn);
+   int west(int commRow, int commColumn);
+   int east(int commRow, int commColumn);
+   int southwest(int commRow, int commColumn);
+   int south(int commRow, int commColumn);
+   int southeast(int commRow, int commColumn);
 
    int neighborIndex(int commId, int index);
 

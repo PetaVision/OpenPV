@@ -160,6 +160,11 @@ int Communicator::neighborInit()
 
    this->numNeighbors = numberOfNeighbors();
    this->numBorders   = NUM_NEIGHBORHOOD - this->numNeighbors;
+   int tags[9] = {0, 33, 34, 33, 34, 34, 33, 34, 33};
+   // Corners (NW, NE, SW, SE) have tag 33 and edges (N, W, E, S) have tag 34.
+   // In the top row of processes in the hypercolumn, a process is both the
+   // northeast and east neighbor of the process to its left.  The difference
+   // in tags ensures that the MPI_Send/MPI_Irecv calls can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
       int n = neighborIndex(icRank, i);
@@ -178,6 +183,7 @@ int Communicator::neighborInit()
          fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
+      this->tags[i] = tags[i];
    }
    assert(this->numNeighbors == num_neighbors);
    assert(this->numBorders   == num_borders);
@@ -190,7 +196,7 @@ int Communicator::neighborInit()
  */
 int Communicator::commRow(int commId)
 {
-   return rowFromRank(commId, numRows, numCols); // (int) commId / this->numCols;
+   return rowFromRank(commId, numRows, numCols);
 }
 
 /**
@@ -198,7 +204,14 @@ int Communicator::commRow(int commId)
  */
 int Communicator::commColumn(int commId)
 {
-   return columnFromRank(commId, numRows, numCols); // (commId - this->numCols * commRow(commId));
+   return columnFromRank(commId, numRows, numCols);
+}
+
+/**
+ * Returns the communication id for a given row and column
+ */
+int Communicator::commIdFromRowColumn(int commRow, int commColumn) {
+   return rankFromRowAndColumn(commRow, commColumn, numRows, numCols);
 }
 
 /**
@@ -207,101 +220,104 @@ int Communicator::commColumn(int commId)
  */
 bool Communicator::hasNeighbor(int neighbor)
 {
-   switch (neighbor) {
-   case LOCAL: /* local */
-      return true;
-   case NORTHWEST : /* northwest */
-      return hasNorthwesternNeighbor(icRank);
-   case NORTH     : /* north */
-      return hasNorthernNeighbor(icRank);
-   case NORTHEAST : /* northeast */
-      return hasNortheasternNeighbor(icRank);
-   case WEST      : /* west */
-      return hasWesternNeighbor(icRank);
-   case EAST      : /* east */
-      return hasEasternNeighbor(icRank);
-   case SOUTHWEST : /* southwest */
-      return hasSouthwesternNeighbor(icRank);
-   case SOUTH     : /* south */
-      return hasSouthernNeighbor(icRank);
-   case SOUTHEAST : /* southeast */
-      return hasSoutheasternNeighbor(icRank);
-   default:
-      fprintf(stderr, "ERROR:hasNeighbor: bad index\n");
-      return false;
-   }
+   int nbrIdx = neighborIndex(icRank, neighbor);
+   return nbrIdx >= 0;
+
+//   switch (neighbor) {
+//   case LOCAL: /* local */
+//      return true;
+//   case NORTHWEST : /* northwest */
+//      return hasNorthwesternNeighbor(commRow(), commColumn());
+//   case NORTH     : /* north */
+//      return hasNorthernNeighbor(commRow(), commColumn());
+//   case NORTHEAST : /* northeast */
+//      return hasNortheasternNeighbor(commRow(), commColumn());
+//   case WEST      : /* west */
+//      return hasWesternNeighbor(commRow(), commColumn());
+//   case EAST      : /* east */
+//      return hasEasternNeighbor(commRow(), commColumn());
+//   case SOUTHWEST : /* southwest */
+//      return hasSouthwesternNeighbor(commRow(), commColumn());
+//   case SOUTH     : /* south */
+//      return hasSouthernNeighbor(commRow(), commColumn());
+//   case SOUTHEAST : /* southeast */
+//      return hasSoutheasternNeighbor(commRow(), commColumn());
+//   default:
+//      fprintf(stderr, "ERROR:hasNeighbor: bad index\n");
+//      return false;
+//   }
 }
 
 /**
  * Returns true if the given commId has a northwestern neighbor
  * (false otherwise)
  */
-bool Communicator::hasNorthwesternNeighbor(int commId)
+bool Communicator::hasNorthwesternNeighbor(int row, int column)
 {
-   return (hasNorthernNeighbor(commId) && hasWesternNeighbor(commId));
+   return (hasNorthernNeighbor(row, column) || hasWesternNeighbor(row, column));
 }
 
 /**
  * Returns true if the given commId has a northern neighbor
  * (false otherwise)
  */
-bool Communicator::hasNorthernNeighbor(int commId)
+bool Communicator::hasNorthernNeighbor(int row, int column)
 {
-   return ((commId - numCommColumns()) < 0) ? false : true;
+   return row > 0;
 }
 
 /**
  * Returns true if the given commId has a northeastern neighbor
  * (false otherwise)
  */
-bool Communicator::hasNortheasternNeighbor(int commId)
+bool Communicator::hasNortheasternNeighbor(int row, int column)
 {
-   return (hasNorthernNeighbor(commId) && hasEasternNeighbor(commId));
+   return (hasNorthernNeighbor(row, column) || hasEasternNeighbor(row, column));
 }
 
 /**
  * Returns true if the given commId has a western neighbor
  * (false otherwise)
  */
-bool Communicator::hasWesternNeighbor(int commId)
+bool Communicator::hasWesternNeighbor(int row, int column)
 {
-   return (commId % numCommColumns());
+   return column > 0;
 }
 
 /**
  * Returns true if the given commId has an eastern neighbor
  * (false otherwise)
  */
-bool Communicator::hasEasternNeighbor(int commId)
+bool Communicator::hasEasternNeighbor(int row, int column)
 {
-   return ((commId + 1) % numCommColumns());
+   return column < numCommColumns() - 1;
 }
 
 /**
  * Returns true if the given commId has a southwestern neighbor
  * (false otherwise)
  */
-bool Communicator::hasSouthwesternNeighbor(int commId)
+bool Communicator::hasSouthwesternNeighbor(int row, int column)
 {
-   return (hasSouthernNeighbor(commId) && hasWesternNeighbor(commId));
+   return (hasSouthernNeighbor(row, column) || hasWesternNeighbor(row, column));
 }
 
 /**
  * Returns true if the given commId has a southern neighbor
  * (false otherwise)
  */
-bool Communicator::hasSouthernNeighbor(int commId)
+bool Communicator::hasSouthernNeighbor(int row, int column)
 {
-   return ((commId + numCommColumns()) < icSize) ? true : false;
+   return row < numCommRows() - 1;
 }
 
 /**
  * Returns true if the given commId has a southeastern neighbor
  * (false otherwise)
  */
-bool Communicator::hasSoutheasternNeighbor(int commId)
+bool Communicator::hasSoutheasternNeighbor(int row, int column)
 {
-   return (hasSouthernNeighbor(commId) && hasEasternNeighbor(commId));
+   return (hasSouthernNeighbor(row, column) || hasEasternNeighbor(row, column));
 }
 
 /**
@@ -309,27 +325,35 @@ bool Communicator::hasSoutheasternNeighbor(int commId)
  */
 int Communicator::numberOfNeighbors()
 {
-   int n = 1;
+   int n = 1 +
+         hasNorthwesternNeighbor(commRow(), commColumn()) +
+         hasNorthernNeighbor(commRow(), commColumn()) +
+         hasNortheasternNeighbor(commRow(), commColumn()) +
+         hasWesternNeighbor(commRow(), commColumn()) +
+         hasEasternNeighbor(commRow(), commColumn()) +
+         hasSouthwesternNeighbor(commRow(), commColumn()) +
+         hasSouthernNeighbor(commRow(), commColumn()) +
+         hasSoutheasternNeighbor(commRow(), commColumn());
 
-   int hasWest = hasWesternNeighbor(icRank);
-   int hasEast = hasEasternNeighbor(icRank);
-   int hasNorth = hasNorthernNeighbor(icRank);
-   int hasSouth = hasSouthernNeighbor(icRank);
-
-   if (hasNorth > 0) n += 1;
-   if (hasSouth > 0) n += 1;
-
-   if (hasWest > 0) {
-      n += 1;
-      if (hasNorth > 0) n += 1;
-      if (hasSouth > 0) n += 1;
-   }
-
-   if (hasEast > 0) {
-      n += 1;
-      if (hasNorth > 0) n += 1;
-      if (hasSouth > 0) n += 1;
-   }
+//   int hasWest = hasWesternNeighbor(commRow(), commColumn());
+//   int hasEast = hasEasternNeighbor(commRow(), commColumn());
+//   int hasNorth = hasNorthernNeighbor(commRow(), commColumn());
+//   int hasSouth = hasSouthernNeighbor(commRow(), commColumn());
+//
+//   if (hasNorth > 0) n += 1;
+//   if (hasSouth > 0) n += 1;
+//
+//   if (hasWest > 0) {
+//      n += 1;
+//      if (hasNorth > 0) n += 1;
+//      if (hasSouth > 0) n += 1;
+//   }
+//
+//   if (hasEast > 0) {
+//      n += 1;
+//      if (hasNorth > 0) n += 1;
+//      if (hasSouth > 0) n += 1;
+//   }
 
    return n;
 }
@@ -337,99 +361,134 @@ int Communicator::numberOfNeighbors()
 /**
  * Returns the communication id of the northwestern HyperColumn
  */
-int Communicator::northwest(int commId)
+int Communicator::northwest(int commRow, int commColumn)
 {
-   if (not hasNorthwesternNeighbor(commId)) return -NORTHWEST;
-   return (commId - 1 - numCommColumns());
+   int nbr_id = -NORTHWEST;
+   if( hasNorthwesternNeighbor(commRow, commColumn) ) {
+      int nbr_row = commRow - (commRow > 0);
+      int nbr_column = commColumn - (commColumn > 0);
+      nbr_id = commIdFromRowColumn(nbr_row, nbr_column);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the northern HyperColumn
  */
-int Communicator::north(int commId)
+int Communicator::north(int commRow, int commColumn)
 {
-   if (not hasNorthernNeighbor(commId)) return -NORTH;
-   return (commId - numCommColumns());
+   int nbr_id = -NORTH;
+   if( hasNorthernNeighbor(commRow, commColumn) ) {
+      nbr_id = commIdFromRowColumn(commRow-1, commColumn);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the northeastern HyperColumn
  */
-int Communicator::northeast(int commId)
+int Communicator::northeast(int commRow, int commColumn)
 {
-   if (not hasNortheasternNeighbor(commId)) return -NORTHEAST;
-   return (commId + 1 - numCommColumns());
+   int nbr_id = -NORTHEAST;
+   if( hasNortheasternNeighbor(commRow, commColumn) ) {
+      int nbr_row = commRow - (commRow > 0);
+      int nbr_column = commColumn + (commColumn < numCommColumns()-1);
+      nbr_id = commIdFromRowColumn(nbr_row, nbr_column);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the western HyperColumn
  */
-int Communicator::west(int commId)
+int Communicator::west(int commRow, int commColumn)
 {
-   if (not hasWesternNeighbor(commId)) return -WEST;
-   return (commId - 1);
+   int nbr_id = -WEST;
+   if( hasWesternNeighbor(commRow, commColumn) ) {
+      nbr_id = commIdFromRowColumn(commRow, commColumn-1);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the eastern HyperColumn
  */
-int Communicator::east(int commId)
+int Communicator::east(int commRow, int commColumn)
 {
-   if (not hasEasternNeighbor(commId)) return -EAST;
-   return (commId + 1);
+   int nbr_id = -EAST;
+   if( hasEasternNeighbor(commRow, commColumn) ) {
+      nbr_id = commIdFromRowColumn(commRow, commColumn+1);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the southwestern HyperColumn
  */
-int Communicator::southwest(int commId)
+int Communicator::southwest(int commRow, int commColumn)
 {
-   if (not hasSouthwesternNeighbor(commId)) return -SOUTHWEST;
-   return (commId - 1 + numCommColumns());
+   int nbr_id = -SOUTHWEST;
+   if( hasSouthwesternNeighbor( commRow, commColumn) ) {
+      int nbr_row = commRow + (commRow < numCommRows()-1);
+      int nbr_column = commColumn - (commColumn > 0);
+      nbr_id = commIdFromRowColumn(nbr_row, nbr_column);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the southern HyperColumn
  */
-int Communicator::south(int commId)
+int Communicator::south(int commRow, int commColumn)
 {
-   if (not hasSouthernNeighbor(commId)) return -SOUTH;
-   return (commId + numCommColumns());
+   int nbr_id = -SOUTH;
+   if( hasSouthernNeighbor(commRow, commColumn) ) {
+      nbr_id = commIdFromRowColumn(commRow+1, commColumn);
+   }
+   return nbr_id;
 }
 
 /**
  * Returns the communication id of the southeastern HyperColumn
  */
-int Communicator::southeast(int commId)
+int Communicator::southeast(int commRow, int commColumn)
 {
-   if (not hasSoutheasternNeighbor(commId)) return -SOUTHEAST;
-   return (commId + 1 + numCommColumns());
+    int nbr_id = -SOUTHEAST;
+    if( hasSoutheasternNeighbor( commRow, commColumn) ) {
+       int nbr_row = commRow + (commRow < numCommRows()-1);
+       int nbr_column = commColumn + (commColumn < numCommColumns()-1);
+       nbr_id = commIdFromRowColumn(nbr_row, nbr_column);
+    }
+    return nbr_id;
 }
 
 /**
- * Returns the sender rank for the given connection index
+ * Returns the intercolumn rank of the neighbor in the given direction
+ * If there is no neighbor, returns a negative value
  */
 int Communicator::neighborIndex(int commId, int index)
 {
+   int row = commRow(commId);
+   int column = commColumn(commId);
    switch (index) {
    case LOCAL: /* local */
       return commId;
    case NORTHWEST : /* northwest */
-      return northwest(commId);
+      return northwest(row, column);
    case NORTH     : /* north */
-      return north(commId);
+      return north(row, column);
    case NORTHEAST : /* northeast */
-      return northeast(commId);
+      return northeast(row, column);
    case WEST      : /* west */
-      return west(commId);
+      return west(row, column);
    case EAST      : /* east */
-      return east(commId);
+      return east(row, column);
    case SOUTHWEST : /* southwest */
-      return southwest(commId);
+      return southwest(row, column);
    case SOUTH     : /* south */
-      return south(commId);
+      return south(row, column);
    case SOUTHEAST : /* southeast */
-      return southeast(commId);
+      return southeast(row, column);
    default:
       fprintf(stderr, "ERROR:neighborIndex: bad index\n");
       return -1;
@@ -491,25 +550,30 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
    const size_t sx = strideXExtended(loc);
    const size_t sy = strideYExtended(loc);
 
+   bool has_north_nbr = hasNorthernNeighbor(commRow(), commColumn());
+   bool has_west_nbr = hasWesternNeighbor(commRow(), commColumn());
+   bool has_east_nbr = hasEasternNeighbor(commRow(), commColumn());
+   bool has_south_nbr = hasSouthernNeighbor(commRow(), commColumn());
+
    switch (n) {
    case LOCAL:
-      return (sx*nxBorder + sy * nyBorder);
+      return (sx*nxBorder                      + sy*nyBorder);
    case NORTHWEST:
-      return (sx*nxBorder + sy * nyBorder);
+      return (sx*has_west_nbr*nxBorder         + sy*has_north_nbr*nyBorder);
    case NORTH:
-      return (sx*nxBorder + sy * nyBorder);
+      return (sx*nxBorder                      + sy*nyBorder);
    case NORTHEAST:
-      return (sx*nx       + sy * nyBorder);
+      return (sx*(nx + !has_east_nbr*nxBorder) + sy*has_north_nbr*nyBorder);
    case WEST:
-      return (sx*nxBorder + sy * nyBorder);
+      return (sx*nxBorder                      + sy*nyBorder);
    case EAST:
-      return (sx*nx       + sy * nyBorder);
+      return (sx*nx                            + sy*nyBorder);
    case SOUTHWEST:
-      return (sx*nxBorder + sy * ny);
+      return (sx*has_west_nbr*nxBorder         + sy*(ny + !has_south_nbr*nyBorder));
    case SOUTH:
-      return (sx*nxBorder + sy * ny);
+      return (sx*nxBorder                      + sy*ny);
    case SOUTHEAST:
-      return (sx*nx       + sy * ny);
+      return (sx*(nx + !has_east_nbr*nxBorder) + sy*(ny + !has_south_nbr*nyBorder));
    default:
       fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
       return 0;
@@ -612,9 +676,9 @@ int Communicator::exchange(pvdata_t * data,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
 #endif // DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm,
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], tags[n], icComm,
                 &requests[nreq++]);
-      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], 33, icComm);
+      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], tags[n], icComm);
    }
 
    // don't recv interior
