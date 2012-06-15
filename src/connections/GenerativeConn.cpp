@@ -127,13 +127,8 @@ int GenerativeConn::updateWeights(int axonID) {
       return PV_SUCCESS;
    }
    for( int k=0; k<numPatches; k++ ) {
-      // PVPatch * w = getKernelPatch(axonID, k);
-      pvdata_t * wdata = get_wDataHead(axonID, k); // w->data;
-      // PVPatch * dw = dKernelPatches[0][k];
-      pvdata_t * dwdata = get_dwDataHead(axonID, k); // dw->data;
-      //const int sxp = w->sx;
-      //const int syp = w->sy;
-      //const int sfp = w->sf;
+      pvdata_t * wdata = get_wDataHead(axonID, k);
+      pvdata_t * dwdata = get_dwDataHead(axonID, k);
       for( int y = 0; y < nyp; y++ ) {
          for( int x = 0; x < nxp; x++ ) {
             for( int f = 0; f < nfp; f++ ) {
