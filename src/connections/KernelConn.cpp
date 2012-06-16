@@ -68,7 +68,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
-   weightUpdateTime = initializeUpdateTime(params);
+   initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 
    nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
@@ -135,6 +135,7 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    if( plasticityFlag ) {
       float defaultUpdatePeriod = 1.f;
       weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
+      weightUpdateTime = params->value(name, "initialWeightUpdateTime", 0.0f);
    }
    return PV_SUCCESS;
 }
@@ -285,14 +286,14 @@ pvdata_t KernelConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
    return pre*post;
 }
 
-int KernelConn::updateState(float time, float dt) {
+int KernelConn::updateState(float timef, float dt) {
    update_timer->start();
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
       return status;
    }
-   if( time >= weightUpdateTime) {
-      computeNewWeightUpdateTime(time, weightUpdateTime);
+   if( timef >= weightUpdateTime) {
+      computeNewWeightUpdateTime(timef, weightUpdateTime);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = calc_dW(axonID);  // calculate changes in weights
          if (status == PV_BREAK) {break;}
