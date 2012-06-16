@@ -46,6 +46,11 @@ int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    return status;
 }
 
+InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
+   // TransposeConn doesn't use InitWeights; it initializes the weight by transposing the initial weights of originalConn
+   return NULL;
+}
+
 PVPatch *** TransposeConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename) {
     if( filename ) {
        return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);

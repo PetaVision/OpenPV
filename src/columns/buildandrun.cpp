@@ -73,9 +73,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "GenerativeLayer",
                  "LogLatWTAGenLayer",
                "IncrementLayer",
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueLayer.
-               "ODDLayer",
-#endif // OBSOLETE
                "PoolingANNLayer",
                "PtwiseProductLayer",
                "TrainingLayer",
@@ -93,9 +90,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
-#ifdef OBSOLETE // Marked obsolete Feb 22, 2012.  ConvolveConn is incomplete and doesn't follow initialize_base/initialize pattern for constructors.  I don't think it's being used.  -PS
-               "ConvolveConn",
-#endif // OBSOLETE
                "KernelConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
@@ -103,9 +97,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "IdentConn",
                  "GenerativeConn",
                    "PoolingGenConn",
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueConn.
-                 "ODDConn",
-#endif // OBSOLETE
                  "ReciprocalConn",
                  "CliqueConn",
                  "CliqueApplyConn",
@@ -138,9 +129,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "ReciprocalEnergyProbe",
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-             "ConnectionProbe",
-#endif // OBSOLETE
            "_Stop_ConnectionProbes_",
            "_End_allowedkeywordarray" // Don't delete this; it provides a for-loop test that doesn't require you to keep track of the total number of keywords.
    };
@@ -237,12 +225,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          addedBaseConnectionProbe = addBaseConnectionProbeToColumn(kw, name, hc);
          didAddObject = addedBaseConnectionProbe != NULL;
       }
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-     else if( j > first_connectionprobe_index && j < last_connectionprobe_index ) {
-         addedConnectionProbe = addConnectionProbeToColumn(kw, name, hc);
-         didAddObject = addedConnectionProbe != NULL;
-      }
-#endif // OBSOLETE
      else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
          addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
          didAddObject = addedLayerProbe != NULL;
@@ -297,13 +279,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new ANNDivInh(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueLayer.
-   if( !strcmp(classkeyword, "ODDLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ODDLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
-   }
-#endif // OBSOLETE
    if( !strcmp(classkeyword, "CliqueLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
@@ -602,6 +577,12 @@ InitWeights * getDefaultInitWeightsMethod(const char * keyword) {
    else if( !strcmp(keyword, "CloneKernelConn") ) {
       weightInitializer = NULL; // new InitCloneKernelWeights(); will be called in CloneKernelConn::initialize
    }
+   else if( !strcmp(keyword, "TransposeConn") ) {
+      weightInitializer = NULL; // weights are initialized by transposing originalConn's initial weights
+   }
+   else if( !strcmp(keyword, "FeedbackConn") ) {
+      weightInitializer = NULL; // inherits from TransposeConn
+   }
    else {
       weightInitializer = new InitWeights();
       fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
@@ -652,16 +633,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Feb 22, 2012.  ConvolveConn has been moved to the obsolete folder
-   if( !keywordMatched && !strcmp(classkeyword, "ConvolveConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new ConvolveConn(name, hc, preLayer, postLayer, channelType, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -699,17 +670,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  Replaced by CliqueConn.
-   if( !keywordMatched && !strcmp(classkeyword, "ODDConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new ODDConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
@@ -736,17 +696,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Feb 28, 2012.  Replaced by SiblingConn
-   if( !keywordMatched && !strcmp(classkeyword, "CliqueApplyConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new CliqueApplyConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       // Filename is ignored
       keywordMatched = true;
@@ -1041,57 +990,6 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    }
    return addedProbe;
 }
-
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-   fprintf(stderr, "Warning: ConnectionProbe is deprecated.  Please use PatchProbe instead.\n");
-   ConnectionProbe * addedProbe;
-   PVParams * params = hc->parameters();
-   int kPre, kxPre, kyPre, kfPre;
-   bool keywordMatched = false;
-   int status = PV_SUCCESS;
-   if( !strcmp(classkeyword, "ConnectionProbe") ) {
-      keywordMatched = true;
-
-      int arborID = params->value(name, "arborid");
-
-      int indexmethod = params->present(name, "kPre");
-      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
-      if( indexmethod && coordmethod ) {
-         fprintf(stderr, "Group \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
-         return NULL;
-      }
-      if( !indexmethod && !coordmethod) {
-         fprintf(stderr, "Group \"%s\": Neither kPre nor (kxPre,kyPre,kfPre) were defined\n", name);
-         return NULL;
-      }
-      if( indexmethod ) {
-         kPre = params->value(name, "kPre");
-         addedProbe = new ConnectionProbe(kPre, arborID);
-      }
-      else if( coordmethod ) {
-         kxPre = params->value(name, "kxPre");
-         kyPre = params->value(name, "kyPre");
-         kfPre = params->value(name, "kfPre");
-         addedProbe = new ConnectionProbe(kxPre, kyPre, kfPre, arborID);
-      }
-      else {
-         assert(false);
-      }
-      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
-   }
-   if( !keywordMatched ) { // The reason this is a separate if statement and not an else statement attached to if( !strcmp... )
-                     // is that if subclasses are added, addConnectionProbeToColumn() should be extended along the lines
-                     // of the other add.*ToColumn() functions.
-      fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
-      status = PV_FAILURE;
-   }
-   if( status != PV_SUCCESS ) {
-      exit(EXIT_FAILURE);
-   }
-   return addedProbe;
-}
-#endif // OBSOLETE
 
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    int status;
