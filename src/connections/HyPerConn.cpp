@@ -456,7 +456,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    else {
       this->weightInitializer = weightInit;
    }
-   assert(this->weightInitializer != NULL);
+   // assert(this->weightInitializer != NULL); // TransposeConn doesn't use weightInitializer so it overrides handleMissingInitWeights to return NULL.
 
    selfFlag = (pre == post);
 
@@ -468,8 +468,11 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    this->connId = parent->addConnection(this);
 
+   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
    writeTime = parent->simulationTime();
-   writeStep = parent->parameters()->value(name, "writeStep", parent->getDeltaTime());
+   if( writeStep >= 0 ) {
+      writeTime = inputParams->value(name, "initialWriteTime", writeTime);
+   }
 
    constructWeights(filename);
 
@@ -549,11 +552,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
-   //weightInitializer->initializeWeights(filename, this);
    weightInitializer->initializeWeights(arbors, dataStart, numPatches, filename, this);
-   // for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
-   //    weightInitializer->initializeWeights(arbors[arborId], arborId, numPatches, filename, this);
-   // }
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
@@ -562,6 +561,12 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataSta
       } // arborId
    } // normalize_flag
    return arbors;
+}
+
+InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
+   fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
+   InitWeights * initWeightsObj = new InitWeights();
+   return initWeightsObj;
 }
 
 InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {

@@ -248,7 +248,7 @@ protected:
    BaseConnectionProbe ** probes; // probes used to output data
    bool ioAppend;               // controls opening of binary files
    float wPostTime;             // time of last conversion to wPostPatches
-   float writeTime;             // time of next output
+   float writeTime;             // time of next output, initialized in params file parameter initialWriteTime
    float writeStep;             // output time interval
 
    bool writeCompressedWeights; // true=write weights with 8-bit precision;
@@ -321,6 +321,7 @@ protected:
    virtual int initPlasticityPatches();
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
+   virtual InitWeights * getDefaultInitWeightsMethod(const char * keyword);
    virtual InitWeights * handleMissingInitWeights(PVParams * params);
    virtual pvdata_t * createWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
