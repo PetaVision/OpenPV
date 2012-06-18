@@ -811,21 +811,23 @@ int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayer
             char * postLayerName = layerNames + preLen + strlen(separator);
             *preLayerPtr = hc->getLayerFromName(preLayerName);
             if( *preLayerPtr == NULL ) {
-               fprintf(stderr, "Group \"%s\": Unable to get presynaptic layer \"%s\".\n", name, preLayerName);
+               fprintf(stderr, "Group \"%s\" preLayerName: No layer named \"%s\".\n", name, preLayerName);
             }
             *postLayerPtr = hc->getLayerFromName(postLayerName);
             if( *postLayerPtr == NULL ) {
-               fprintf(stderr, "Group \"%s\": Unable to get postsynaptic layer \"%s\".\n", name, postLayerName);
+               fprintf(stderr, "Group \"%s\" postLayerName: No layer named \"%s\".\n", name, postLayerName);
             }
             free(layerNames);
          }
       }
-   }
-   if( *preLayerPtr == NULL ) {
-      fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
-   }
-   if( *postLayerPtr == NULL ) {
-      fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
+      else {
+         if( *preLayerPtr == NULL ) {
+            fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
+         }
+         if( *postLayerPtr == NULL ) {
+            fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
+         }
+      }
    }
    return *preLayerPtr != NULL && *postLayerPtr != NULL ? PV_SUCCESS : PV_FAILURE;
 }
