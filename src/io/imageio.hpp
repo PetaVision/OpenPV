@@ -29,7 +29,7 @@ int scatterImageFile(    const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
 int scatterImageFilePVP( const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
-int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer);
+int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer, const char * filename);
 int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
 

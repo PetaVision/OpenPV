@@ -516,7 +516,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
          starty = yOffset + ny * destrow;
          startx = xOffset + nx * destcol;
-         windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf);
+         windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf, filename);
 
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: scatter: sending to %d xSize==%d"
@@ -534,7 +534,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
       starty = yOffset + ny * destrow;
       startx = xOffset + nx * destcol;
-      windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf);
+      windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf, filename);
 
       free(filebuf);
       status = pv_close_binary(fp);
@@ -543,7 +543,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
    return status;
 }
 
-int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer) {
+int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer, const char * filename) {
    // Extracts a window from the data portion of a PVP file.
    // The params from the PVP file should be in params[].  The data should already be loaded into pvpbuffer,
    // with the bytes exactly as they appear in the file, not including the header.  The routine accounts for
@@ -556,12 +556,16 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
          int idx_in_buf = kIndex(x, y, 0, nx, ny, params[INDEX_NF]);
          int xProc = (startx + x)/params[INDEX_NX];
          int yProc = (starty + y)/params[INDEX_NY];
-         int kProc = rankFromRowAndColumn(yProc, xProc, params[INDEX_NX_PROCS], params[INDEX_NY_PROCS]);
-         int idx_in_proc = kIndex(x + startx - xProc*params[INDEX_NX_PROCS],
-                                  y + starty - yProc*params[INDEX_NY_PROCS],
+         int kProc = rankFromRowAndColumn(yProc, xProc, params[INDEX_NY_PROCS], params[INDEX_NX_PROCS]);
+         if( kProc < 0 ) {
+            fprintf(stderr, "windowFromPVPBuffer: Requested x and y coordinates out of bounds of PVP file %s. x=%d, y=%d, xOffset=%d, yOffset=%d\n", filename, x, y, startx, starty);
+            abort();
+         }
+         int idx_in_proc = kIndex(x + startx - xProc*params[INDEX_NX],
+                                  y + starty - yProc*params[INDEX_NY],
                                   0,
                                   params[INDEX_NX], params[INDEX_NY], params[INDEX_NF]);
-         long offset = kProc * params[INDEX_RECORD_SIZE] + idx_in_proc;
+         long offset = kProc * params[INDEX_RECORD_SIZE] + idx_in_proc*params[INDEX_DATA_SIZE];
          if( params[INDEX_DATA_TYPE] == PV_BYTE_TYPE ) {
             char * filebufstart = &pvpbuffer[offset];
             for( int f=0; f<params[INDEX_NF]; f++ ) {
@@ -570,10 +574,14 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
             }
          }
          else if( params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE ) {
-            float * filebufstart = (float *) pvpbuffer;
-            memcpy(&destbuf[idx_in_buf], &filebufstart[offset], sizeof(float)*params[INDEX_NF]);
+            float * srcbuf = (float *) (&pvpbuffer[offset]);
+            memcpy(&destbuf[idx_in_buf], srcbuf, sizeof(float)*params[INDEX_NF]);
          }
-         else assert(0);
+         else {
+            fprintf(stderr, "windowFromPVPBuffer: pvp file %s does not have a well-formed header.\n", filename);
+            fprintf(stderr, "Parameters (INDEX_DATA_SIZE,INDEX_DATA_TYPE) must be set to either (1,%d) (compressed) or (4,%d) (uncompressed).\n", PV_BYTE_TYPE, PV_FLOAT_TYPE);
+            abort();
+         }
       }
    }
    return PV_SUCCESS;
