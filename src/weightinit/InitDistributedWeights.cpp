@@ -20,6 +20,10 @@ InitDistributedWeights::InitDistributedWeights()
    initialize_base();
 }
 
+InitDistributedWeights::~InitDistributedWeights()
+{
+   // TODO Auto-generated destructor stub
+}
 
 int InitDistributedWeights::initialize_base() {
    return PV_SUCCESS;
@@ -81,7 +85,7 @@ int InitDistributedWeights::distributedWeights(/* PVPatch * wp */ pvdata_t * dat
    int i = 0;
    int * ptr = randmatrix(1, 65536, numNodes);
    int indices[numNodes];
-   memcpy(indices, ptr, sizeof(ptr));
+   memcpy(indices, ptr, numNodes * sizeof(*ptr));
    const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
    const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
    const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;

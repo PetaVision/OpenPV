@@ -20,6 +20,10 @@ InitDistributedWeightsParams::InitDistributedWeightsParams(HyPerConn * parentCon
    initialize(parentConn);
 }
 
+InitDistributedWeightsParams::~InitDistributedWeightsParams()
+{
+   // TODO Auto-generated destructor stub
+}
 
 int InitDistributedWeightsParams::initialize_base() {
 
