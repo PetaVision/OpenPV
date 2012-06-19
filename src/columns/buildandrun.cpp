@@ -512,6 +512,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelTy
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
       weightInitializer = new InitSmartWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
+      weightInitializer = new InitDistributedWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
       weightInitializer = new InitUniformRandomWeights();
    }

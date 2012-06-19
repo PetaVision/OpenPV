@@ -62,6 +62,7 @@
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 #include "../weightinit/InitGaborWeights.hpp"
+#include "../weightinit/InitDistributedWeights.hpp"
 #include "../weightinit/InitPoolWeights.hpp"
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
