@@ -10,14 +10,14 @@ HyPerCol "column" = {
    //checkpointRead  = true;  // normal run
    checkpointRead  = false; // init run
    checkpointWrite = false;  // always
-   numSteps = 100;
+   numSteps = 1000;
    filenamesContainLayerNames = 2; 
 };
 
        Image "Image" = {
        useParamsImage = 1;  // initializing image at checkpoint from HERE !
 
-        imagePath = "./input/stimulus.png";
+        imagePath = "./input/stimulus2.png";
         restart = 0;
         nxScale = 1;
         nyScale = 1;
@@ -87,6 +87,7 @@ SigmoidLayer "BIDS_ADC" ={   // Uses the sigmoid layer to convert the receptor's
 	restart          = 0.0;     // from graylast
 	writeStep 		 = 1.0;
 	spikingFlag		 = 0;
+	writeNonspikingActivity = 1;
 
 };
 
@@ -180,12 +181,12 @@ Retina "RetinaON" = {      // 17
 HyPerConn "Image to BIDS_receptor" = {   
     preLayerName = "Image";
     postLayerName = "BIDS_receptor";
-    weightInitType = "DistributedWeights";
-    numNodes = 20;
+    weightInitType = "DistributedWeight";
+    numNodes = 65536;
     channelCode = 0;               // forward
 	nxp           = 1;
 	nyp           = 1;
-	normalize     = 1.0; // 
+	normalize     = 0;  
 	//strength      = 0.1475; // adjusted to give a 15 mv swing for input of 1.0, id est 40 mV
 	//strength      = 0.97; // adjusted to give 0.5 ConeSigmoid for 46 
 	//strength      = 0.35;   // ImageCone adjusted to give symmetric ON/OFF response staerke
@@ -304,9 +305,9 @@ KernelConn "Image to RetinaON" = {
 };
 
 
-StatsProbe "BIDS_nodeProbe" = {
-	targetLayer = "BIDS_node";
-};
+//StatsProbe "BIDS_nodeProbe" = {
+//	targetLayer = "BIDS_node";
+//};
 
 //StatsProbe "BIDS_receptorProbe" = {
 //	targetLayer = "BIDS_receptor";
