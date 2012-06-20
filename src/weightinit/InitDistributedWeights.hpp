@@ -3,6 +3,12 @@
  *
  *  Created on: Jun 18, 2012
  *      Author: bnowers
+ *
+ *  NOTES: This weight initialization class can ONLY be used in a HyPer Connection. It will
+ *  not work with a Kernel Connection. The purpose of this class is to sparsely fill the patch
+ *  matrix with a specified amount of neurons (nodes) that are randomly distributed throughout
+ *  the matrix. To specify the number of nodes, add a numNodes parameter to the HyPerConn you
+ *  wish to use in the params file.
  */
 
 #ifndef INITDISTRIBUTEDWEIGHTS_HPP_
@@ -19,10 +25,10 @@ public:
 //   InitUniformRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
 //         ChannelType channel);
    virtual ~InitDistributedWeights();
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
+   int randIndex(int lowerb, int upperb); //returns a random index based on upper and lower bounds
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-
-   virtual int calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
    virtual int initialize_base();
@@ -30,8 +36,7 @@ protected:
 //                  HyPerLayer * pre, HyPerLayer * post,
 //                  ChannelType channel);
 
-private:
-   int distributedWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, InitDistributedWeightsParams *weightParamPtr);
+
 };
 
 } /* namespace PV */

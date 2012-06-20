@@ -3,6 +3,12 @@
  *
  *  Created on: Jun 18, 2012
  *      Author: bnowers
+ *
+ *  NOTES: This weight initialization class can ONLY be used in a HyPer Connection. It will
+ *  not work with a Kernel Connection. The purpose of this class is to sparsely fill the patch
+ *  matrix with a specified amount of neurons (nodes) that are randomly distributed throughout
+ *  the matrix. To specify the number of nodes, add a numNodes parameter to the HyPerConn you
+ *  wish to use in the params file.
  */
 
 #include "InitDistributedWeightsParams.hpp"
@@ -44,7 +50,7 @@ int InitDistributedWeightsParams::initialize(HyPerConn * parentConn) {
    //wMax = (float) parentConn->maxWeight();
    wMin = params->value(getName(), "wMinInit", wMin);
    wMax = params->value(getName(), "wMaxInit", wMax);
-
+   numNodes = params->value(getName(), "numNodes", numNodes);
 
    return status;
 
