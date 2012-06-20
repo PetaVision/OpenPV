@@ -480,7 +480,7 @@ int Retina::writeState(float timef, bool last)
    // print activity at center of image
 
 #ifdef DEBUG_OUTPUT
-   int sx = clayer->numFeatures;
+   int sx = clayer->loc.nf;
    int sy = sx*clayer->loc.nx;
    pvdata_t * a = clayer->activity->data;
 
@@ -489,7 +489,7 @@ int Retina::writeState(float timef, bool last)
    }
 
   int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-  for (int f = 0; f < clayer->numFeatures; f++) {
+  for (int f = 0; f < clayer->loc.nf; f++) {
      printf("a[%d] = %f\n", n, a[n]);
      n += 1;
   }

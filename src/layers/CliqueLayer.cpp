@@ -69,7 +69,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, axonId, numExtended, activity, this, conn);
+   printf("[%d]: HyPerLayer::recvSynapticInput: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, axonId, getNumExtended(), activity, this, conn);
    fflush(stdout);
 #endif
 

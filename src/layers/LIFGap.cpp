@@ -329,12 +329,12 @@ int LIFGap::writeState(float time, bool last)
 #ifdef DEBUG_OUTPUT
    // print activity at center of image
 
-   int sx = clayer->numFeatures;
+   int sx = clayer->loc.nf;
    int sy = sx*clayer->loc.nx;
    pvdata_t * a = clayer->activity->data;
 
    int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-   for (int f = 0; f < clayer->numFeatures; f++) {
+   for (int f = 0; f < clayer->loc.nf; f++) {
       printf("f = %d, a[%d] = %f\n", f, n, a[n]);
       n += 1;
    }
@@ -342,7 +342,7 @@ int LIFGap::writeState(float time, bool last)
 
    n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
    n -= 8;
-   for (int f = 0; f < clayer->numFeatures; f++) {
+   for (int f = 0; f < clayer->loc.nf; f++) {
       printf("f = %d, a[%d] = %f\n", f, n, a[n]);
       n += 1;
    }

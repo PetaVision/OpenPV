@@ -207,9 +207,15 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
 
 
 #ifdef DEBUG_OUTPUT
-      size_t recvOff = Communicator::recvOffset(n, &cube->loc);
-      size_t sendOff = Communicator::sendOffset(n, &cube->loc);
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, send[0]==%f, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, sendBuf[0], cube->numItems); fflush(stdout);
+      size_t recvOff = comm->recvOffset(n, &cube.loc);
+      size_t sendOff = comm->sendOffset(n, &cube.loc);
+      if( cube.loc.nb > 0 ) {
+         fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
+      }
+      else {
+         fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
+      }
+      fflush(stdout);
 #endif //DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm,
                 &requests[nreq++]);
