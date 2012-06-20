@@ -1,0 +1,283 @@
+HyPerCol "column" = {
+    //nx = 256;
+    //ny = 256;
+    nx = 1920;
+    ny = 1080;
+    //nx = 1080;
+    //ny = 1920;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 500;
+    //outputPath = "/home/kpeterson/competitionwork/tower/output/";
+    //outputPath = "/home/kpeterson/competitionwork/heli/output/";
+    outputPath = "output/normalizedV1s/";
+    progressStep=2000;
+    filenamesContainLayerNames=0;
+    checkpointRead=0;
+    checkpointWrite=0;
+    //outputPath = "/Users/kpeterson/Documents/testrun1st200/";
+    //outputPath = "/Users/kpeterson/Documents/Tower/";
+};
+// Movie "Patterns" = {
+//     //imageListPath = "/Users/kpeterson/matlabplay/filenames.txt";
+//     //imageListPath = "/Users/kpeterson/Documents/Tower/filenames.txt";
+//     //imageListPath = "/Users/kpeterson/Documents/heli/050/filenames.txt";
+//     imageListPath = "/mnt/data1/repo/neovision-data-challenge-heli/Heli-PNG/026/filenames000.txt";
+//     //imageListPath = "/mnt/data1/repo/neovision-data-challenge-tower/Tower-PNG/050/filenames000.txt";
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 1;
+//     marginWidth = 0;
+//     writeStep = -1;
+//     mirrorBCflag = 1;
+//     spikingFlag = 0;
+//     writeNonspikingActivity = -1;
+//     
+//     writeImages = 0;
+// 
+//     displayPeriod = 1;
+//     jitterFlag = 0;
+//     randomMovie = 0;
+//     offsetX = 0;
+//     offsetY = 0;
+// 
+// };
+Patterns "Patterns" = {
+   //marginWidth = 2;
+   width = 20;
+   height = 20;
+   patternType = "IMPULSE";
+   orientation = "VERTICAL";
+   movementType = "MOVEFORWARD";
+   //movementSpeed = -1;
+   movementSpeed = -6.7863;
+   marginWidth = 0;
+
+	//rotation = -2.356194490192345;
+	//rotation = 0.785398163397448;
+	//rotation = 0;
+
+	nxScale = 1;
+	nyScale = 1;
+	nf = 1;
+	writeStep = 1.0; 
+	mirrorBCflag = 0;
+	spikingFlag =  false; // (no quotes) is translated to 0
+	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   //writeStep = 1;
+   
+   restart=0;
+   offsetX=0;
+   offsetY=0;
+   patternsOutputPath="output/seprecfields/";
+   writePosition=0;
+};
+
+// Patterns "Patterns" = {
+//    //marginWidth = 2;
+//    width = 6;
+//    height = 6;
+//    patternType = "SINEWAVE";
+//    orientation = "VERTICAL";
+//    movementType = "MOVEFORWARD";
+//    movementSpeed = -1;
+//    //movementSpeed = -6.7863;
+//    marginWidth = 0;
+// 
+// 	//rotation = -2.356194490192345;
+// 	//rotation = 0.785398163397448;
+// 	rotation = 0;
+// 
+// 	nxScale = 1;
+// 	nyScale = 1;
+// 	nf = 1;
+// 	writeStep = 1.0; 
+// 	mirrorBCflag = 0;
+// 	spikingFlag =  false; // (no quotes) is translated to 0
+// 	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+// 
+//    
+//    pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+//    pSwitch = 0.0;    // switch between horizontal and vertical
+//    writeImages = 1;  // write out image file when changes   
+//    //writeStep = 1;
+//    
+//    restart=0;
+//    offsetX=0;
+//    offsetY=0;
+//    patternsOutputPath="output/normalizedV1s/";
+//    writePosition=0;
+// };
+// 
+// Patterns "Patterns2" = {
+//    //marginWidth = 2;
+//    width = 6;
+//    height = 6;
+//    patternType = "SINEWAVE";
+//    orientation = "HORIZONTAL";
+//    movementType = "MOVEFORWARD";
+//    movementSpeed = -1;
+//    //movementSpeed = -6.7863;
+//    marginWidth = 0;
+// 
+// 	//rotation = -2.356194490192345;
+// 	//rotation = 0.785398163397448;
+// 	rotation = 0;
+// 
+// 	nxScale = 1;
+// 	nyScale = 1;
+// 	nf = 1;
+// 	writeStep = 1.0; 
+// 	mirrorBCflag = 0;
+// 	spikingFlag =  false; // (no quotes) is translated to 0
+// 	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+// 
+//    
+//    pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+//    pSwitch = 0.0;    // switch between horizontal and vertical
+//    writeImages = 1;  // write out image file when changes   
+//    //writeStep = 1;
+//    
+//    restart=0;
+//    offsetX=0;
+//    offsetY=0;
+//    patternsOutputPath="output/normalizedV1s/";
+//    writePosition=0;
+// };
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 37.5;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+//Image connections
+IdentConn "Patterns to Retina" = {
+    preLayerName = "Patterns";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+// IdentConn "Patterns2 to Retina" = {
+//     preLayerName = "Patterns2";
+//     postLayerName = "Retina";
+//     channelCode = 0;
+//     weightInitType = "IdentWeight";
+//     writeStep = -1.0;
+//     delay = 0;
+//     initFromLastFlag = 0;
+// };
+
+ANNLayer "DownScaled" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    //no = 8;
+    marginWidth = 37;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+
+// KernelConn "Retina to DownScaled" = {
+//    preLayerName = "Retina";
+//    postLayerName = "DownScaled";
+//    channelCode = 0;
+//    weightInitType = "OneToOneWeights";
+//    nxp = 1; 
+//    nyp = 1; 
+//    nfp = 1;
+//    
+//    initFromLastFlag = 0;  // 1;  // restart
+//    writeStep = -1;
+// 
+//    numAxonalArbors = 1;
+//    
+//    shrinkPatches=0;
+// 
+//    weightInit = 0.0025;
+//        
+//    normalize = 0.0;
+//    symmetrizeWeights = 0;
+// 
+//    writeCompressedWeights = 0.0;
+// 
+//    stochasticReleaseFlag=0;
+//    
+//    
+//    delay = 0;
+// 
+// };
+KernelConn "Retina to DownScaled" = {
+   preLayerName = "Retina";
+   postLayerName = "DownScaled";
+   channelCode = 0;
+   weightInitType = "Gauss2DWeight";
+   nxp = 7; 
+   nyp = 7; 
+   nfp = 1;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   rMax  = infinity;
+   rMin  = 0;
+   
+   aspect = 1;
+   sigma = 5;
+   numAxonalArbors = 1;
+   
+   shrinkPatches=0;
+   stochasticReleaseFlag=0;
+
+       
+   strength = 1;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 0.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   delay = 0;
+
+};
+
+

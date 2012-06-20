@@ -1,0 +1,656 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 30;
+    outputPath = "output/3DGauss/";
+};
+
+Patterns "Patterns" = {
+   //marginWidth = 2;
+   width = 3;
+   height = 3;
+   patternType = "SINEWAVE";
+   orientation = "HORIZONTAL";
+   movementType = "MOVEFORWARD";
+   movementSpeed = -1;
+   marginWidth = 0;
+
+	nxScale = 1;
+	nyScale = 1;
+	nf = 1;
+	writeStep = 1.0;
+	mirrorBCflag = 0;
+	spikingFlag =  false; // (no quotes) is translated to 0
+	writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+   
+   pMove = 1; //.06=8ms//0.03125;  // probability of moving (tau ~= 1/pMove = 50 ms)
+   pSwitch = 0.0;    // switch between horizontal and vertical
+   writeImages = 1;  // write out image file when changes   
+   writeStep = 1;
+};
+
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 16;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+
+ANNSquaredLayer "V1SIMPLE" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNSquaredLayer "V1SIMPLE 2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    //no = 8;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+ANNLayer "V1COMPLEX" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    //no = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 0.0;
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+//Image connections
+IdentConn "Patterns to Retina" = {
+    preLayerName = "Patterns";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=1;
+
+   rotate = 0;
+       
+   strength = 0.0065419;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 0;
+   delay = 0;
+
+};
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE a Inh " = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+   
+   rotate = 0;
+       
+   strength = 0.0032710;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = 1.25;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE b Inh " = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+   
+   rotate = 0;
+       
+   strength = 0.0032710;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   flankShift = -1.25;
+   delay = 0;
+
+};
+
+
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE 2" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE 2";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+
+   rotate = 0;
+       
+   strength = 0.0034013;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   //flankShift = -0.9375;
+   flankShift = -1.25;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 2 little" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE 2";
+   channelCode = 0;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+
+   rotate = 0;
+       
+   strength = 0.0017007;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   //flankShift = 1.875;
+   flankShift = 2.5;
+   delay = 0;
+
+};
+
+// Retina connections
+KernelConn "RetinaON to V1SIMPLE 2  Inh " = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE 2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = 1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+   
+   rotate = 0;
+       
+   strength = 0.0034013;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   
+   //flankShift = 0.9375;
+   flankShift = 1.25;
+   delay = 0;
+
+};
+
+KernelConn "RetinaON to V1SIMPLE 2  Inh little" = {
+   preLayerName = "Retina";
+   postLayerName = "V1SIMPLE 2";
+   channelCode = 1;
+   weightInitType = "Gauss3DWeight";
+   nxp = 29; 
+   nyp = 29; 
+   nfp = 4;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = 1;
+
+   yaspect = 8;
+   taspect = 2;
+   sigma = 10;
+   rMax  = infinity;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flowSpeed = 1;
+   
+   dT = 1;
+   shiftT = -5.5;
+   numAxonalArbors = 9;
+   
+   shrinkPatches=0;
+   
+   rotate = 0;
+       
+   strength = 0.0017007;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 1.0;
+   symmetrizeWeights = 0;
+
+   wMax = 50;
+   wMin = 0;
+   writeCompressedWeights = 0.0;
+   //gauss2DCalcWeights = 1;
+   no = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = -1.0;
+   
+   //flankShift = -1.875;
+   flankShift = -2.5;
+   delay = 0;
+
+};
+
+IdentConn "V1SIMPLE to V1COMPLEX" = {
+    preLayerName = "V1SIMPLE";
+    postLayerName = "V1COMPLEX";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+
+IdentConn "V1SIMPLE 2 to V1COMPLEX" = {
+    preLayerName = "V1SIMPLE 2";
+    postLayerName = "V1COMPLEX";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    shrinkPatches=0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+
+};
+
+// PointProbe "V1COMPLEX Stats Screen a 1" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=128;
+//     yLoc=128;
+//     fLoc=1;
+// };
+// PointProbe "V1COMPLEX Stats Screen a 2" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=128;
+//     yLoc=128;
+//     fLoc=2;
+// };
+// PointProbe "V1COMPLEX Stats Screen a 3" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=128;
+//     yLoc=128;
+//     fLoc=3;
+// };
+// PointProbe "V1SIMPLE Stats Screen a l 4" = {
+//     targetLayer = "V1SIMPLE";
+//     xLoc=128;
+//     yLoc=128;
+//     fLoc=4;
+//     probeOutputFile = "a_l_4_Stats.txt";
+// };
+// PointProbe "V1SIMPLE 2 Stats Screen a r 4" = {
+//     targetLayer = "V1SIMPLE 2";
+//     xLoc=128;
+//     yLoc=128;
+//     fLoc=4;
+//     probeOutputFile = "a_r_4_Stats.txt";
+// };
+// PointProbe "V1SIMPLE Stats Screen b l 4" = {
+//     targetLayer = "V1SIMPLE";
+//     xLoc=32;
+//     yLoc=64;
+//     fLoc=4;
+//     probeOutputFile = "b_l_4_Stats.txt";
+// };
+// PointProbe "V1SIMPLE 2 Stats Screen b r 4" = {
+//     targetLayer = "V1SIMPLE 2";
+//     xLoc=32;
+//     yLoc=64;
+//     fLoc=4;
+//     probeOutputFile = "b_r_4_Stats.txt";
+// };
+
+
+PointProbe "Retina Stats Screen a" = {
+    targetLayer = "Retina";
+    xLoc=128;
+    yLoc=128;
+    fLoc=1;
+    probeOutputFile = "Retina_a_Stats.txt";
+};
+PointProbe "Retina Stats Screen b" = {
+    targetLayer = "Retina";
+    xLoc=32;
+    yLoc=64;
+    fLoc=1;
+    probeOutputFile = "Retina_b_Stats.txt";
+};
+
+// PointProbe "V1COMPLEX Stats Screen b 1" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=32;
+//     yLoc=64;
+//     fLoc=1;
+// };
+// PointProbe "V1COMPLEX Stats Screen b 2" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=32;
+//     yLoc=64;
+//     fLoc=2;
+// };
+// PointProbe "V1COMPLEX Stats Screen b 3" = {
+//     targetLayer = "V1COMPLEX";
+//     xLoc=32;
+//     yLoc=64;
+//     fLoc=3;
+// };
+//PointProbe "V1COMPLEX Stats Screen b 4" = {
+//    targetLayer = "V1COMPLEX";
+//    xLoc=32;
+//    yLoc=64;
+//    fLoc=4;
+//};
+

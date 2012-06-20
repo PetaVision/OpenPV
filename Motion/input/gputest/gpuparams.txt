@@ -1,0 +1,1227 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 15;
+    outputPath = "output/gputest/";
+    progressStep=2000;
+    filenamesContainLayerNames=0;
+    checkpointRead=0;
+    checkpointWrite=0;
+}; 
+
+Retina "inputRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 1;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    GPUAccelerate=false;
+};
+
+
+
+Retina "RetinaWOutGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 37.5;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    GPUAccelerate=false;
+};
+Retina "RetinaWGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 37.5;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    GPUAccelerate=true;
+};
+
+//Image connections
+IdentConn "inputRetina to RetinaWOutGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "RetinaWOutGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+//Image connections
+IdentConn "inputRetina to RetinaWGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "RetinaWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+
+ANNLayer "testNonSpikingRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+KernelConn "RetinaWOutGPU to testNonSpikingRetina" = {
+   preLayerName = "RetinaWOutGPU";
+   postLayerName = "testNonSpikingRetina";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+KernelConn "RetinaWGPU to testNonSpikingRetina" = {
+   preLayerName = "RetinaWGPU";
+   postLayerName = "testNonSpikingRetina";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+StatsProbe "inputRetina Stats Screen" = {
+    targetLayer = "inputRetina";
+};
+StatsProbe "RetinaWOutGPU Stats Screen" = {
+    targetLayer = "RetinaWOutGPU";
+};
+StatsProbe "RetinaWGPU Stats Screen" = {
+    targetLayer = "RetinaWGPU";
+};
+StatsProbe "testNonSpikingRetina Stats Screen" = {
+    targetLayer = "testNonSpikingRetina";
+};
+
+//PointProbe "RetinaWOutGPU Stats Screen point probe" = {
+//    targetLayer = "RetinaWOutGPU";
+//    xLoc=128;
+//    yLoc=128;
+//    fLoc=1;
+    //probeOutputFile = "Retina_a_Stats.txt";
+//};
+
+LIF "lgntest" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+    GPUAccelerate=true;
+};
+
+IdentConn "inputRetina to lgntest" = {
+    preLayerName = "inputRetina";
+    postLayerName = "lgntest";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+StatsProbe "lgntest Stats Screen" = {
+    targetLayer = "lgntest";
+};
+
+LIFGap "lifgaptest" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+    GPUAccelerate=false;
+};
+
+IdentConn "inputRetina to lifgaptest" = {
+    preLayerName = "inputRetina";
+    postLayerName = "lifgaptest";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+LIFGap "lifgaptestwgpu" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1; 
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  
+   
+   	Vrest = -70.0;
+   	Vexc = 0.0;
+   	Vinh = -75.0;
+   	VinhB = -90.0;
+   	tau = 20.0;
+   	tauE = 1.0;
+   	tauI = 3.0;
+   	tauIB = 5.0;
+   	VthRest = -55.0;
+   	tauVth = 5.0;
+   	deltaVth = 5.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;  
+   	noiseAmpIB = 0.0;  
+    GPUAccelerate=true;
+};
+
+IdentConn "inputRetina to lifgaptestwgpu" = {
+    preLayerName = "inputRetina";
+    postLayerName = "lifgaptestwgpu";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+StatsProbe "lifgaptest Stats Screen" = {
+    targetLayer = "lifgaptest";
+};StatsProbe "lifgaptestwgpu Stats Screen" = {
+    targetLayer = "lifgaptestwgpu";
+};
+
+ANNLayer "TestANNWGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=true;
+};
+ANNLayer "TestANNWOUTGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+IdentConn "inputRetina to TestANNWGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNWOUTGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+ANNLayer "CompareANNLayers" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+KernelConn "TestANNWGPU to CompareANNLayers" = {
+   preLayerName = "TestANNWGPU";
+   postLayerName = "CompareANNLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+KernelConn "TestANNWOUTGPU to CompareANNLayers" = {
+   preLayerName = "TestANNWOUTGPU";
+   postLayerName = "CompareANNLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+StatsProbe "TestANNWGPU Stats Screen" = {
+    targetLayer = "TestANNWGPU";
+};
+StatsProbe "TestANNWOUTGPU Stats Screen" = {
+    targetLayer = "TestANNWOUTGPU";
+};
+StatsProbe "CompareANNLayers Stats Screen" = {
+    targetLayer = "CompareANNLayers";
+};
+
+//test annsquaredlayer
+ANNSquaredLayer "TestANNSQWGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=true;
+};
+ANNSquaredLayer "TestANNSQWOUTGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+IdentConn "inputRetina to TestANNSQWGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNSQWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNSQWOUTGPU" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNSQWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+ANNLayer "CompareANNSQLayers" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+KernelConn "TestANNSQWGPU to CompareANNSQLayers" = {
+   preLayerName = "TestANNSQWGPU";
+   postLayerName = "CompareANNSQLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+KernelConn "TestANNSQWOUTGPU to CompareANNSQLayers" = {
+   preLayerName = "TestANNSQWOUTGPU";
+   postLayerName = "CompareANNSQLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+StatsProbe "TestANNSQWGPU Stats Screen" = {
+    targetLayer = "TestANNSQWGPU";
+};
+StatsProbe "TestANNSQWOUTGPU Stats Screen" = {
+    targetLayer = "TestANNSQWOUTGPU";
+};
+StatsProbe "CompareANNSQLayers Stats Screen" = {
+    targetLayer = "CompareANNSQLayers";
+};
+
+//test anndivlayer
+ANNDivInhLayer "TestANNDVWGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=true;
+};
+ANNDivInhLayer "TestANNDVWOUTGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+IdentConn "inputRetina to TestANNDVWGPU p1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU p2" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU p3" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU p4" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU p5" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU m1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 1;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU d1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 2;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWGPU d2" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWGPU";
+    channelCode = 2;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+
+
+IdentConn "inputRetina to TestANNDVWOUTGPU p1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU p2" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU p3" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU p4" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU p5" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU m1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 1;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU d1" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 2;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+IdentConn "inputRetina to TestANNDVWOUTGPU d2" = {
+    preLayerName = "inputRetina";
+    postLayerName = "TestANNDVWOUTGPU";
+    channelCode = 2;
+    weightInitType = "IdentWeight";
+    writeStep = -1.0;
+    delay = 0;
+    initFromLastFlag = 0;
+};
+
+ANNLayer "CompareANNDVLayers" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+KernelConn "TestANNDVWGPU to CompareANNDVLayers" = {
+   preLayerName = "TestANNDVWGPU";
+   postLayerName = "CompareANNDVLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+KernelConn "TestANNDVWOUTGPU to CompareANNDVLayers" = {
+   preLayerName = "TestANNDVWOUTGPU";
+   postLayerName = "CompareANNDVLayers";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+StatsProbe "TestANNDVWGPU Stats Screen" = {
+    targetLayer = "TestANNDVWGPU";
+};
+StatsProbe "TestANNDVWOUTGPU Stats Screen" = {
+    targetLayer = "TestANNDVWOUTGPU";
+};
+StatsProbe "CompareANNDVLayers Stats Screen" = {
+    targetLayer = "CompareANNDVLayers";
+};
+
+ANNLayer "hyperconntest" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=true;
+};
+ANNLayer "hyperconntestNoGPU" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+
+HyPerConn "inputRetina to hyperconntest" = {
+   preLayerName = "inputRetina";
+   postLayerName = "hyperconntest";
+   numAxonalArbors=1;
+   weightInitType = "UniformWeight";
+   weightInit=1;
+   channelCode = 0;
+   nxp = 5; 
+   nyp = 5; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 0;
+       
+   strength = 25;  
+   normalize =0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+HyPerConn "inputRetina to hyperconntestNoGPU" = {
+   preLayerName = "inputRetina";
+   postLayerName = "hyperconntestNoGPU";
+   numAxonalArbors=1;
+   weightInitType = "UniformWeight";
+   weightInit=1;
+   channelCode = 0;
+   nxp = 5; 
+   nyp = 5; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 0;
+       
+   strength = 25;  
+   normalize =0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+
+
+ANNLayer "Comparehyperconntest" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    GPUAccelerate=false;
+};
+
+KernelConn "hyperconntest to Comparehyperconntest" = {
+   preLayerName = "hyperconntest";
+   postLayerName = "Comparehyperconntest";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+
+KernelConn "hyperconntestNoGPU to Comparehyperconntest" = {
+   preLayerName = "hyperconntestNoGPU";
+   postLayerName = "Comparehyperconntest";
+   weightInitType = "Gauss2DWeight";
+   numAxonalArbors=1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stochasticReleaseFlag = false;
+   shrinkPatches = false;
+   
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;   
+};
+StatsProbe "hyperconntest Stats Screen" = {
+    targetLayer = "hyperconntest";
+};
+StatsProbe "hyperconntestNoGPU Stats Screen" = {
+    targetLayer = "hyperconntestNoGPU";
+};
+StatsProbe "Comparehyperconntest Stats Screen" = {
+    targetLayer = "Comparehyperconntest";
+};

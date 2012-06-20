@@ -1,0 +1,106 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 1;
+    outputPath = "output/testinitweights/";
+};
+
+Image "Image" = {
+    imagePath = "/Users/kpeterson/Documents/workspace/kris/input/1stvertlinedetectorplay/halfblacknwhite.png";
+    //imagePath = "./input/genericprogramexample/image.png";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 4;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    writeImages = 0;
+};
+
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 22;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+
+
+//IdentConn "Image to Retina " = {
+//KernelConn "Image to Retina " = {
+ODDConn "Image to Retina " = {
+   preLayerName = "Image";
+   postLayerName = "Retina";
+   weightInitType = "UniformWeight";
+   weightInit=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 0;
+       
+   strength = 25;  
+   normalize =0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+
+
+
+
+

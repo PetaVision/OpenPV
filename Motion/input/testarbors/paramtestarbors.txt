@@ -1,0 +1,148 @@
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 1;
+    outputPath = "output/testarbors/";
+};
+
+Image "Image" = {
+    imagePath = "/Users/kpeterson/Documents/workspace/kris/input/1stvertlinedetectorplay/halfblacknwhite.png";
+    //imagePath = "./input/genericprogramexample/image.png";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    writeImages = 0;
+};
+
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 1;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag =  false; // (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+
+    Vrest = 0.0;
+    invert = 0;
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 1000;
+    
+};
+
+ANNLayer "L0" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 8;
+    marginWidth = 1;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    Vrest = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+// Image connections
+IdentConn "Image to Retina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    weightInitType = "IdentWeight";
+    nxp = 1;
+    nyp = 1;
+    nfp = 8;
+    writeStep = 1.0;
+    delay = 0;
+    stdpFlag = 0;
+    initFromLastFlag = 0;
+    
+    wMax = 1.0;
+    wMin = 0;
+    writeCompressedWeights = 1.0;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+
+    delay = 0;     
+};
+
+//IdentConn "Image to Retina " = {
+//KernelConn "Image to Retina " = {
+//KernelConn "Retina to L0 " = {
+HyPerConn "Retina to L0 " = {
+//ODDConn "Image to Retina " = {
+   preLayerName = "Retina";
+   postLayerName = "L0";
+   weightInitType = "Gauss2DWeight";
+   //initFromLastFlag = 1;
+   numAxonalArbors = 5;
+   weightInit=1;
+   channelCode = 0;
+   nxp = 6; 
+   nyp = 6; 
+   nfp = 8;
+   
+   stdpFlag   = 0;
+   randomFlag = 0; 
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 5;
+       
+   strength = 25;  
+   normalize =1;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+
+   wMax = 25;
+   wMin = 0;
+   writeCompressedWeights = 1.0;
+   gauss2DCalcWeights = 1;
+   no = 8;
+   normalize_cutoff = 0;
+   plasticityFlag = 0;
+   weightUpdatePeriod = 1.0;
+   
+   
+   flankShift = 1.5;
+   delay = 0;
+
+};
+
+
+
+
+
