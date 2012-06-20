@@ -4,6 +4,9 @@
 #include "param_parser.hpp"
 %}
 %option nounput
+%option noinput
+%option noyyget_extra
+%option noyyset_extra
 
 %%
 ([+]|[-])?(([0-9]+(\.[0-9]*)?)|([0-9]*\.[0-9]+)|([0-9](\.[0-9]*)?[Ee]([+]|[-])?[0-9]+)) {
