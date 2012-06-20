@@ -26,7 +26,6 @@ public:
 //         ChannelType channel);
    virtual ~InitDistributedWeights();
    virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
-   int randIndex(int lowerb, int upperb); //returns a random index based on upper and lower bounds
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 

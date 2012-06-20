@@ -39,13 +39,6 @@ InitWeightsParams * InitDistributedWeights::createNewWeightParams(HyPerConn * ca
    return tempPtr;
 }
 
-//creates a random index in which to place a node based on the the upper and lower bounds
-int InitDistributedWeights::randIndex(int lowerb, int upperb){
-   int val = (rand() % (upperb - lowerb)) + lowerb;
-
-   return val;
-}
-
 int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    assert(callingConn->getNumDataPatches() == callingConn->getNumWeightPatches()); //assures that this function can only be called in a HyPerConn
@@ -66,28 +59,53 @@ int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** d
       const int numNodes = weightParamPtr->getNumNodes(); //retrieves the number of nodes specified in the params file
       const int numDataPatches = callingConn->getNumDataPatches(); //retrieves the number of patches present in the current image
       assert(numArbors == 1); //makes sure #of arbors will always be 1
+      assert(numNodes <= numDataPatches);
       int arbor = 0;
       int i = 0;
+      int upperb = numDataPatches - 1;
+      int lowerb = 0;
       const int nxp = weightParamPtr->getnxPatch_tmp();
       const int nyp = weightParamPtr->getnyPatch_tmp();
       const int nfp = weightParamPtr->getnfPatch_tmp();
       int patchSize = nfp*nxp*nyp;
       assert(patchSize == 1); //makes sure that nxp, nyp and nfp will always be 1
 
-      //the loop zeros out all the weights in the matrix
-      for(int j = 0; j < numDataPatches; j++){
-         pvdata_t *weightptr = callingConn->get_wDataHead(arbor, j);
-         *weightptr = 0;
+      int flag = 0;
+      int max = 0;
+      if(numNodes < (numDataPatches / 2)){
+         flag = 1;
+         max = numNodes;
+      } else {
+         flag = 0;
+         max = numDataPatches - numNodes;
       }
+         //the loop zeros out all the weights in the matrix
+         for(int j = 0; j < numDataPatches; j++){
+            pvdata_t *weightptr = callingConn->get_wDataHead(arbor, j);
+            if (flag) {
+               *weightptr = 0;
+            }
+            else{
+               *weightptr = 1;
+            }
+        }
 
       srand(time(NULL));
       //this loop receives a random index,then checks to see if it is a duplicate. If not, it sets the weight at that index to 1
-      while(i < numNodes) {
-         int dataPatchIndex = randIndex(0, (numDataPatches - 1));
+      while(i < max) {
+         int dataPatchIndex = (rand() % (upperb - lowerb)) + lowerb; //creates a random index in which to place a node based on the the upper and lower bounds
          pvdata_t *weightptr = callingConn->get_wDataHead(arbor, dataPatchIndex);
-         if(*weightptr == 0){
-            *weightptr = 1;
-            i++;
+         if (flag) {
+            if(*weightptr == 0){
+               *weightptr = 1;
+               i++;
+            }
+         }
+         else{
+            if(*weightptr == 1){
+               *weightptr = 0;
+               i++;
+            }
          }
       }
 
