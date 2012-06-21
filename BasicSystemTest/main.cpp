@@ -13,8 +13,6 @@ void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 // customgroups is for adding objects not supported by build().
 #endif // MAIN_USES_ADDCUSTOM
 
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
-
 int main(int argc, char * argv[]) {
 
    int status;
