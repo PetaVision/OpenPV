@@ -63,15 +63,15 @@ int getFileType(const char * filename)
  * @ic the inter-column communicator (in)
  * @loc location information (inout) (loc->nx and loc->ny are out)
  */
-int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
+int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
-      return getImageInfoPVP(filename, comm, loc);
+      return getImageInfoPVP(filename, comm, loc, colorbandtypes);
    }
-   return getImageInfoGDAL(filename, comm, loc);
+   return getImageInfoGDAL(filename, comm, loc, colorbandtypes);
 }
 
-int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
+int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
    const int locSize = sizeof(PVLayerLoc) / sizeof(int);
    int locBuf[locSize];
@@ -137,9 +137,10 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    return status;
 }
 
-int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
+int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
    int status = 0;
+   int rank = comm->commRank();
 
 #ifdef PV_USE_GDAL
    const int locSize = sizeof(PVLayerLoc) / sizeof(int);
@@ -156,10 +157,10 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
-           comm->commRank(), nxProcs, nyProcs, icRow, icCol);
+           rank, nxProcs, nyProcs, icRow, icCol);
 #endif // DEBUG_OUTPUT
 
-   if (comm->commRank() == 0) {
+   if (rank == 0) {
       GDALAllRegister();
 
       GDALDataset * dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
@@ -169,6 +170,17 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
       int yImageSize = dataset->GetRasterYSize();
 
       loc->nf = dataset->GetRasterCount();
+      if( colorbandtypes ) {
+         *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
+         if( *colorbandtypes == NULL ) {
+            fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
+            abort();
+         }
+         for( int b=0; b<loc->nf; b++) {
+            GDALRasterBand * band = dataset->GetRasterBand(b+1);
+            (*colorbandtypes)[b] = band->GetColorInterpretation();
+         }
+      }
 
       // calculate local layer size
 
@@ -196,6 +208,23 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    // fix up layer indices
    loc->kx0 = loc->nx * icCol;
    loc->ky0 = loc->ny * icRow;
+
+#ifdef PV_USE_MPI
+   // broadcast colorband type info.  This needs to follow copyFromLocBuffer because
+   // it depends on the loc->nf which is set in copyFromLocBuffer.
+   if( colorbandtypes ) {
+      if (rank!=0) {
+         *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
+         if( *colorbandtypes == NULL ) {
+            fprintf(stderr, "getImageInfoGDAL: Rank %d process unable to allocate memory for colorbandtypes\n", rank);
+            abort();
+         }
+      }
+      MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
+   }
+#endif // PV_USE_MPI
+
+
 #else
    fprintf(stderr, GDAL_CONFIG_ERR_STR);
    exit(1);

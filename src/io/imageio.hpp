@@ -10,11 +10,12 @@
 
 #include "../columns/Communicator.hpp"
 #include "../include/pv_types.h"
+#include <gdal.h>
 
 int getFileType(const char * filename);
-int getImageInfo(    const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
-int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
-int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
+int getImageInfo(    const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
+int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
+int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
 
 int gatherImageFile(    const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);

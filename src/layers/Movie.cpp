@@ -59,7 +59,8 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    assert(filename != NULL);
 
    // get size info from image so that data buffer can be allocated
-   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
+   GDALColorInterp * colorbandtypes = NULL;
+   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
       abort();
@@ -92,8 +93,9 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       // random number generator initialized by HyPerCol::initialize
       randomFrame();
    }else{
-      readImage(filename, offsetX, offsetY);
+      readImage(filename, offsetX, offsetY, colorbandtypes);
    }
+   free(colorbandtypes); colorbandtypes = NULL;
 
    // set output path for movie frames
    if(writeImages){
@@ -230,7 +232,14 @@ bool Movie::updateImage(float time, float dt)
       } // jitterFlag
 
       if( needNewImage ){
-         readImage(filename, offsetX, offsetY);
+         GDALColorInterp * colorbandtypes;
+         int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+         if( status == PV_SUCCESS ) status = readImage(filename, offsetX, offsetY, colorbandtypes);
+         free(colorbandtypes); colorbandtypes = NULL;
+         if( status != PV_SUCCESS ) {
+            fprintf(stderr, "Movie %s: File %s is bad and you should feel bad!\n", name, filename);
+            abort();
+         }
       }
    } // randomMovie
 

@@ -10,6 +10,7 @@
 
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
+#include <gdal.h>
 
 namespace PV {
 
@@ -20,6 +21,8 @@ protected:
    int initialize(const char * name, HyPerCol * hc, const char * filename);
    virtual int readOffsets(); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
    virtual int initializeV();
+   static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
+   static inline void equalBandWeights(int numBands, float * bandweights);
 
 public:
    Image(const char * name, HyPerCol * hc, const char * filename);
@@ -47,13 +50,13 @@ public:
    virtual int tag();
 
    int readImage(const char * filename);
-   int readImage(const char * filename, int offsetX, int offsetY);
+   int readImage(const char * filename, int offsetX, int offsetY, GDALColorInterp * colorbandtypes);
    int write(const char * filename);
 
    int exchange();
 
    int toGrayScale();
-   static float * convertToGrayScale(float * buf, int nx, int ny, int numBands);
+   static float * convertToGrayScale(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes);
 
    int  convolve(int width);
    // void setTau(float t)                { tau = t; }

@@ -61,10 +61,11 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    this->writeImages = params->value(name, "writeImages", 0) != 0;
    readOffsets();
 
+   GDALColorInterp * colorbandtypes = NULL;
    if(filename != NULL ) {
       this->filename = strdup(filename);
       assert( this->filename != NULL );
-      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
+      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
       if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
          fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
                name, filename, imageLoc.nf, getLayerLoc()->nf);
@@ -86,8 +87,9 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    if (filename != NULL) {
-      readImage(filename, offsetX, offsetY);
+      readImage(filename, offsetX, offsetY, colorbandtypes);
    }
+   free(colorbandtypes); colorbandtypes = NULL;
 
    // exchange border information
    exchange();
@@ -176,10 +178,10 @@ int Image::clearImage()
 
 int Image::readImage(const char * filename)
 {
-   return readImage(filename, 0, 0);
+   return readImage(filename, 0, 0, NULL);
 }
 
-int Image::readImage(const char * filename, int offsetX, int offsetY)
+int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorInterp * colorbandtypes)
 {
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
@@ -192,7 +194,9 @@ int Image::readImage(const char * filename, int offsetX, int offsetY)
    // read the image and scatter the local portions
    status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
-      buf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf);
+      float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
+      delete buf;
+      buf = graybuf;
    }
    // now buf is loc->nf by loc->nx by loc->ny
 
@@ -273,12 +277,13 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
    return 0;
 }
 
-float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
+float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
 {
    // even though the numBands argument goes last, the routine assumes that
    // the organization of buf is, bands vary fastest, then x, then y.
-
    if (numBands < 2) return buf;
+
+
    const int sxcolor = numBands;
    const int sycolor = numBands*nx;
    const int sb = 1;
@@ -288,19 +293,64 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands)
 
    float * graybuf = new float[nx*ny];
 
+   float * bandweight = (float *) malloc(numBands*sizeof(float));
+   calcBandWeights(numBands, bandweight, colorbandtypes);
+
    for (int j = 0; j < ny; j++) {
       for (int i = 0; i < nx; i++) {
          float val = 0;
          for (int b = 0; b < numBands; b++) {
             float d = buf[i*sxcolor + j*sycolor + b*sb];
-            val += d;
+            val += d*bandweight[b];
          }
-         graybuf[i*sxgray + j*sygray] = val/numBands;
+         graybuf[i*sxgray + j*sygray] = val;
       }
    }
-   delete buf;
-
+   free(bandweight);
    return graybuf;
+}
+
+int Image::calcBandWeights(int numBands, float * bandweight, GDALColorInterp * colorbandtypes) {
+   int colortype = 0; // 1=grayscale(with or without alpha), return value 2=RGB(with or without alpha), 0=unrecognized
+   const GDALColorInterp grayalpha[2] = {GCI_GrayIndex, GCI_AlphaBand};
+   const GDALColorInterp rgba[4] = {GCI_RedBand, GCI_GreenBand, GCI_BlueBand, GCI_AlphaBand};
+   const float grayalphaweights[2] = {1.0, 0.0};
+   const float rgbaweights[4] = {0.30, 0.59, 0.11, 0.0}; // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
+   switch( numBands ) {
+   case 1:
+      bandweight[0] = 1.0;
+      colortype = 1;
+      break;
+   case 2:
+      if ( !memcmp(colorbandtypes, grayalpha, 2*sizeof(GDALColorInterp)) ) {
+         memcpy(bandweight, grayalphaweights, 2*sizeof(float));
+         colortype = 1;
+      }
+      break;
+   case 3:
+      if ( !memcmp(colorbandtypes, rgba, 3*sizeof(GDALColorInterp)) ) {
+         memcpy(bandweight, rgbaweights, 3*sizeof(float));
+         colortype = 2;
+      }
+      break;
+   case 4:
+      if ( !memcmp(colorbandtypes, rgba, 4*sizeof(GDALColorInterp)) ) {
+         memcpy(bandweight, rgbaweights, 4*sizeof(float));
+         colortype = 2;
+      }
+      break;
+   default:
+      break;
+   }
+   if (colortype==0) {
+      equalBandWeights(numBands, bandweight);
+   }
+   return colortype;
+}
+
+void Image::equalBandWeights(int numBands, float * bandweight) {
+   float w = 1.0/(float) numBands;
+   for( int b=0; b<numBands; b++ ) bandweight[b] = w;
 }
 
 int Image::convolve(int width)

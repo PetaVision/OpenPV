@@ -187,18 +187,17 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
 
    }
    else { // Treat as an image file
-      status = getImageInfoGDAL(this->filename, icComm, &fileLoc);
+      status = getImageInfoGDAL(filename, icComm, &fileLoc, NULL);
       assert(status == PV_SUCCESS);
-      assert(checkLoc(loc, fileLoc.nx, fileLoc.ny, fileLoc.nf, fileLoc.nxGlobal, fileLoc.nyGlobal)==PV_SUCCESS);
+      if ( checkLoc(loc, fileLoc.nx, fileLoc.ny, fileLoc.nf, fileLoc.nxGlobal, fileLoc.nyGlobal)!=PV_SUCCESS ) {
+         // error message produced by checkLoc
+         abort();
+      }
       int n=clayer->numNeurons;
       float * buf = new float[n];
       status = scatterImageFileGDAL(this->filename, 0, 0, icComm, &fileLoc, buf);
-      // Lines below unnecessary as scatterImageFileGDAL already scales by 1/255.0
-      //
-      // pvdata_t scale = 0.003921569; // 1.0/255.0  This needs to change if pvdata_t stops being float
-      // for( int k=0; k<n; k++ ) {
-      //    V[k] = buf[k]*scale;
-      // }
+      // scatterImageFileGDAL handles the scaling by 1/255.0
+
       delete buf;
    }
    return status;
