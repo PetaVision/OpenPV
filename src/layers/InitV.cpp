@@ -165,12 +165,10 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
       fileLoc.nb = params[INDEX_NB];
       fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
       fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
-      fileLoc.kx0 = icComm->commColumn()*fileLoc.nx;
-      fileLoc.ky0 = icComm->commRow()*fileLoc.ny;
       switch(pvpfiletype) {
       case PVP_FILE_TYPE:
          status = read_pvdata(this->filename, icComm, &timed, V,
-                              &fileLoc, PV_FLOAT_TYPE, false, false);
+                              loc, PV_FLOAT_TYPE, false, false);
          break;
       case PVP_ACT_FILE_TYPE:
          printerr("calcVFromFile for file \"%s\": sparse activity files are not yet implemented.\n", this->filename);
@@ -205,12 +203,10 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
 
 int InitV::checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal) {
    int status = PV_SUCCESS;
-   if( checkLocValue(loc->nx, nx, "nx") != PV_SUCCESS ) status = PV_FAILURE;
-   if( checkLocValue(loc->ny, ny, "ny") != PV_SUCCESS ) status = PV_FAILURE;
-   if( checkLocValue(loc->nf, nf, "nf") != PV_SUCCESS ) status = PV_FAILURE;
    if( checkLocValue(loc->nxGlobal, nxGlobal, "nxGlobal") != PV_SUCCESS ) status = PV_FAILURE;
    if( checkLocValue(loc->nyGlobal, nyGlobal, "nyGlobal") != PV_SUCCESS ) status = PV_FAILURE;
-   return PV_SUCCESS;
+   if( checkLocValue(loc->nf, nf, "nf") != PV_SUCCESS ) status = PV_FAILURE;
+   return status;
 }
 
 int InitV::checkLocValue(int fromParams, int fromFile, const char * field) {

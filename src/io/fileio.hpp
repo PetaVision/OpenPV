@@ -37,6 +37,7 @@ int readNonspikingActFile(const char * filename, Communicator * comm, double * t
          int level, const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
 int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
+size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, unsigned char * cbuf, const size_t localSizeInMem, const int * params, int numParams);
 
 int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);

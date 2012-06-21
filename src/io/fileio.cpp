@@ -359,7 +359,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    if (icRank == 0) {
        FILE * fp = pvp_open_read_file(filename, comm);
        if (fp == NULL) {
-          fprintf(stderr, "[%2d]: pvp_read_header: pvp_open_read_file: fp == NULL, filename==%s\n",
+          fprintf(stderr, "[%2d]: pvp_read_header: pvp_open_read_file failed to open file \"%s\"\n",
                   comm->commRank(), filename);
           return -1;
        }
@@ -410,15 +410,6 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
 //   const int ny = loc->ny;
 //   const int nf = loc->nf;
 //   const int nb = loc->nb;
-
-#ifdef OBSOLETE // Marked Obsolete Oct 12, 2010.  None of the quantities in the header depend on the extended flag.
-   if (extended) {
-      numItems = (nx + 2*nb) * (ny + 2*nb) * nf;
-   }
-   else {
-      numItems = nx * ny * nf;
-   }
-#endif // OBSOLETE
 
    if (contiguous) {
       nxBlocks = 1;
@@ -476,41 +467,33 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    return status;
 }
 
-int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,
+int read_pvdata(const char * filename, Communicator * comm, double * timed, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
    int status = PV_SUCCESS;
-   int nxBlocks, nyBlocks, numItems;
 
    // TODO - everything isn't implemented yet so make sure we are using it correctly
-   assert(contiguous == false);
    assert(datatype == PV_FLOAT_TYPE || datatype == PV_INT_TYPE);
-   assert(sizeof(float) == sizeof(int));
+   assert(sizeof(float) == 4 && sizeof(int) == 4);
 
    // scale factor for floating point conversion
    float scale = 1.0f;
 
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
+   const int nxProcsInMem = comm->numCommColumns();
+   const int nyProcsInMem = comm->numCommRows();
 
    const int icRank = comm->commRank();
 
 // Only the interior, non-restricted part of the buffer gets written, even if the buffer is extended.
-   numItems = loc->nx * loc->ny * loc->nf;
+   int numItemsInMem = loc->nx * loc->ny * loc->nf;
 
-   const size_t localSize = numItems * pv_sizeof(datatype);
+   const size_t sizeBufInMem = numItemsInMem * pv_sizeof(datatype);
 
-   if (contiguous) {
-      nxBlocks = 1;
-      nyBlocks = 1;
+   unsigned char * cbuf = (unsigned char *) malloc(sizeBufInMem);
+   if(cbuf == NULL) {
+      fprintf(stderr, "read_pvdata: unable to allocate memory for file %s\n", filename);
+      abort();
    }
-   else {
-      nxBlocks = nxProcs;
-      nyBlocks = nyProcs;
-   }
-
-   unsigned char * cbuf = (unsigned char *) malloc(localSize);
-   assert(cbuf != NULL);
 
 #ifdef PV_USE_MPI
    const int tag = PVP_FILE_TYPE;
@@ -530,7 +513,7 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
 #endif // DEBUG_OUTPUT
       if( !fileexists ) return PV_ERR_FILE_NOT_FOUND;
 
-      MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(cbuf, sizeBufInMem, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: read: received from 0, nx==%d ny==%d numItems==%d\n",
@@ -554,58 +537,55 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
 #endif // PV_USE_MPI
       if (!fileexists) return PV_ERR_FILE_NOT_FOUND;
       
-      assert(numParams == NUM_PAR_BYTE_PARAMS);
+      if(numParams != NUM_PAR_BYTE_PARAMS) {
+         fprintf(stderr, "read_pvdata: expecting %lu params in file %s, but NUM_PAR_BYTE_PARAMS is %d.  Exiting.\n", NUM_PAR_BYTE_PARAMS, filename, numParams);
+         abort();
+      }
       assert(type      == PVP_FILE_TYPE);
 
       status = pv_read_binary_params(fp, numParams, params);
       assert(status == numParams);
 
       const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-      const size_t recordSize = (size_t) params[INDEX_RECORD_SIZE];
-      assert(recordSize == localSize);
 
-      const int numRecords = params[INDEX_NUM_RECORDS];
       const int dataSize = params[INDEX_DATA_SIZE];
       const int dataType = params[INDEX_DATA_TYPE];
-      const int nxBlocks = params[INDEX_NX_PROCS];
-      const int nyBlocks = params[INDEX_NY_PROCS];
 
-      *time = timeFromParams(&params[INDEX_TIME]);
+      *timed = timeFromParams(&params[INDEX_TIME]);
 
       assert(dataSize == (int) pv_sizeof(datatype));
       assert(dataType == PV_FLOAT_TYPE || dataType == PV_INT_TYPE);
-      assert(nxBlocks == comm->numCommColumns());
-      assert(nyBlocks == comm->numCommRows());
-      assert(numRecords == comm->commSize());
 
 #ifdef PV_USE_MPI
       int dest = -1;
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
+      for (int py = 0; py < nyProcsInMem; py++) {
+         for (int px = 0; px < nxProcsInMem; px++) {
             if (++dest == 0) continue;
 
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: read: sending to %d nx==%d ny==%d numItems==%d\n",
                     comm->commRank(), dest, loc->nx, loc->ny, numItems);
 #endif // DEBUG_OUTPUT
-            long offset = headerSize + dest * localSize;
-            fseek(fp, offset, SEEK_SET);
-            numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
-            assert(numRead == (int) localSize);
-            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+            numRead = read_pvdata_oneproc(fp, px, py, loc, cbuf, sizeBufInMem, params, numParams);
+            //long offset = headerSize + dest * sizeBufInMem;
+            //fseek(fp, offset, SEEK_SET);
+            //numRead = fread(cbuf, sizeof(unsigned char), sizeBufInMem, fp);
+            assert(numRead == (int) sizeBufInMem);
+            MPI_Send(cbuf, sizeBufInMem, MPI_BYTE, dest, tag, mpi_comm);
          }
       }
 #endif // PV_USE_MPI
 
       // get local image portion
-      fseek(fp, (long) headerSize, SEEK_SET);
-      numRead = fread(cbuf, sizeof(unsigned char), localSize, fp);
-      assert(numRead == (int) localSize);
+      numRead = read_pvdata_oneproc(fp, 0, 0, loc, cbuf, sizeBufInMem, params, numParams);
+      //fseek(fp, (long) headerSize, SEEK_SET);
+      //numRead = fread(cbuf, sizeof(unsigned char), sizeBufInMem, fp);
+      assert(numRead == (int) sizeBufInMem);
 
       status = pvp_close_file(fp, comm);
    }
 
-   // copy from buffer communication buffer
+   // copy from communication buffer to data array
    //
    if (datatype == PV_FLOAT_TYPE) {
       float * fbuf = (float *) cbuf;
@@ -617,6 +597,46 @@ int read_pvdata(const char * filename, Communicator * comm, double * time, void 
    }
    free(cbuf);
    return status;
+}
+
+size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, unsigned char * cbuf, const size_t localSizeInMem, const int * params, int numParams) {
+   assert(loc->nf == params[INDEX_NF]);
+   unsigned char * ptrintocbuf = cbuf;
+   bool startset = false;
+   size_t numread = 0;
+   long offset;
+   long blockstart, blockstop;
+   for( int y=py*loc->ny; y<(py+1)*loc->ny; y++ ) {
+      for( int x=px*loc->nx; x<(px+1)*loc->nx; x++ ) {
+         int xProcInFile = x/params[INDEX_NX];
+         int yProcInFile = y/params[INDEX_NY];
+         int kProcInFile = rankFromRowAndColumn(yProcInFile, xProcInFile, params[INDEX_NY_PROCS], params[INDEX_NX_PROCS]);
+         int xInProc = x % params[INDEX_NX];
+         int yInProc = y % params[INDEX_NY];
+         int idxInProc = kIndex(xInProc, yInProc, 0, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF]);
+         offset = params[INDEX_HEADER_SIZE] + kProcInFile * params[INDEX_RECORD_SIZE] + idxInProc*params[INDEX_DATA_SIZE];
+         if( startset ) {
+            if( offset == blockstop ) {
+               blockstop += params[INDEX_NF]*params[INDEX_DATA_SIZE];
+            }
+            else {
+               fseek(fp, blockstart, SEEK_SET);
+               numread += fread(ptrintocbuf, 1, blockstop-blockstart, fp);
+               blockstart = offset;
+               blockstop = offset + params[INDEX_NF]*params[INDEX_DATA_SIZE];
+               ptrintocbuf = &cbuf[numread];
+            }
+         }
+         else {
+            blockstart = offset;
+            blockstop = offset + params[INDEX_NF]*params[INDEX_DATA_SIZE];
+            startset = true;
+         }
+      }
+   }
+   fseek(fp, blockstart, SEEK_SET);
+   numread += fread(ptrintocbuf, 1, blockstop-blockstart, fp);
+   return numread;
 }
 
 int readNonspikingActFile(const char * filename, Communicator * comm, double * time, void * data,
