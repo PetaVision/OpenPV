@@ -55,7 +55,7 @@ ifeq ($(gdal),1)
 endif
 
 # Warning flags
-CWARN_FLAGS := -W
+CWARN_FLAGS := -Wall
 
 # architecture flag for nvcc and gcc compilers build
 LIB_ARCH := $(OSARCH)
