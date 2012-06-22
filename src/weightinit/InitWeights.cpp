@@ -175,12 +175,17 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
       }  // while
    } // if useListOfArborFiles
    else if (combineWeightFiles){
+      int rootproc = 0;
       int max_weight_files = 1;  // arbitrary limit...
       int num_weight_files = conn->getParent()->parameters()->value(conn->getName(), "numWeightFiles", max_weight_files, true);
       int file_count=0;
       FILE * weightsfp = pvp_open_read_file(filename, icComm);
+      if ((weightsfp == NULL) && (icComm->commRank() == rootproc) ){
+         fprintf(stderr, ""
+               "Cannot open file of weight files \"%s\".  Exiting.\n", filename);
+         exit(EXIT_FAILURE);
+      }
 
-      int rootproc = 0;
       char weightsfilename[PV_PATH_MAX];
       while( file_count < num_weight_files ) {
          if( icComm->commRank() == rootproc ) {
