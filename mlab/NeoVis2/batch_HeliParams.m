@@ -1,7 +1,7 @@
 
 %% begin definition of the most volitile parameters
 %% clip_name stores the directories that contain the individual frames
-FLAVOR_ID = "Training"; %% "Challenge"; %%   "Formative"; %%   
+FLAVOR_ID = "Training"; %%   "Formative"; %%   "Challenge"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 clip_flag = false; %% true; %%  
 mask_flag = ~clip_flag; %% false; %% true; %% 
@@ -9,23 +9,23 @@ target_mask_flag = true && mask_flag; %% false; %%
 disp(["target_mask_flag = ", num2str(target_mask_flag)]);
 object_type = {"Car"}; %%_distractor"}; %% 
 disp(["object_type = ", object_type{1}]);
-pvp_num_ODD_kernels = 1; %%
+pvp_num_ODD_kernels = 2; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 if clip_flag
-  clip_ids = [26:50]; %%[1:25]; %% [1:50]; %%  [7:17,21:22,30:31];
+  clip_ids = [26:26]; %%[1:25]; %% [1:50]; %%  [7:17,21:22,30:31];
   clip_name = cell(length(clip_ids),1);
   for i_clip = 1 : length(clip_name)
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
   endfor
 else
   clip_name = cell(1);
-  clip_name{1} = "mask"; %% "Car"; %% "distractor"; %% 
+  clip_name{1} = "mask"; %% "026"; %% 
 endif
 disp(["clip_name{1} = ", clip_name{1}]);
 distractor_mask_flag = ~target_mask_flag && mask_flag;
 disp(["distractor_mask_flag = ", num2str(distractor_mask_flag)]);
 if clip_flag
-  version_ids = []; %%  
+  version_ids = [1:16]; %%  
 else
   version_ids = [1:16]; %% 
 endif

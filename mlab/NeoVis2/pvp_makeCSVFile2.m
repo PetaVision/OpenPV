@@ -9,6 +9,7 @@ function [num_frames, ...
 		       ObjectType, ...
 		       pvp_edge_filter, ...
 		       pvp_version_str, ...
+		       pvp_num_versions, ...
 		       clip_name, ...
 		       pvp_frame_skip, ...
 		       pvp_frame_offset, ...
@@ -59,12 +60,16 @@ function [num_frames, ...
     ObjectType = "Car"; %% "Cyclist"; %%  
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist(pvp_edge_filter) || isempty(pvp_edge_filter)
+  if nargin < num_input_args || ~exist("pvp_edge_filter") || isempty(pvp_edge_filter)
     pvp_edge_filter = "canny";
   endif
   num_input_args = num_input_args + 1;
-  if nargin < num_input_args || ~exist(pvp_version_str) %% || isempty(pvp_version_str)
+  if nargin < num_input_args || ~exist("pvp_version_str") %% || isempty(pvp_version_str)
     pvp_version_str = "";
+  endif
+  num_input_args = num_input_args + 1;
+  if nargin < num_input_args || ~exist("pvp_num_versions")  || isempty(pvp_num_versions)
+    pvp_num_versions = 1;
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
@@ -210,8 +215,6 @@ function [num_frames, ...
     mkdir(ODD_clip_dir);
     ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
     mkdir(ODD_dir);
-    ODD_subdir = [ODD_dir, pvp_edge_filter, pvp_version_str, filesep];
-    mkdir(ODD_subdir);
     
     ROC_path = [program_path, "ROC", filesep]; 
     mkdir(ROC_path);
@@ -219,8 +222,6 @@ function [num_frames, ...
     mkdir(ROC_clip_dir);
     ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
     mkdir(ROC_dir);
-    ROC_subdir = [ROC_dir, pvp_edge_filter, pvp_version_str, filesep];
-    mkdir(ROC_subdir);
 
     pvp_results_path = [program_path, "results", filesep];
     mkdir(pvp_results_path);
@@ -229,9 +230,28 @@ function [num_frames, ...
     pvp_results_subdir0 = ...
 	[pvp_results_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
     mkdir(pvp_results_subdir0);
-    pvp_results_subdir = ...
-	[pvp_results_subdir0, pvp_edge_filter, pvp_version_str, filesep];
-    mkdir(pvp_results_subdir);
+
+    if ~isempty(pvp_version_str)
+      ODD_subdir = ...
+	  [ODD_dir, pvp_edge_filter, filesep, pvp_version_str, filesep];
+      mkdir(ODD_subdir);
+      ROC_subdir = ...
+	  [ROC_dir, pvp_edge_filter, filesep, pvp_version_str, filesep];
+      mkdir(ROC_subdir);
+      pvp_results_subdir = ...
+	  [pvp_results_subdir0, pvp_edge_filter, filesep, pvp_version_str, filesep];
+      mkdir(pvp_results_subdir);
+    else
+      ODD_subdir = ...
+	  [ODD_dir, pvp_edge_filter, filesep];
+      mkdir(ODD_subdir);
+      ROC_subdir = ...
+	  [ROC_dir, pvp_edge_filter, filesep];
+      mkdir(ROC_subdir);
+      pvp_results_subdir = ...
+	  [pvp_results_subdir0, pvp_edge_filter, filesep];
+      mkdir(pvp_results_subdir);
+    endif
   endif
 
   global target_bootstrap_dir
@@ -413,7 +433,11 @@ function [num_frames, ...
   i_frame = 0;
   for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
     i_frame = i_frame + 1;
-    pvp_frame = j_frame + pvp_layer - 1;
+    if pvp_num_versions == 1
+      pvp_frame = j_frame + pvp_layer - 1;
+    else
+      pvp_frame = i_frame + pvp_layer - 1;
+    endif
     if ~isempty(pvp_path)
       [pvp_time{i_frame},...
        pvp_activity{i_frame}, ...
