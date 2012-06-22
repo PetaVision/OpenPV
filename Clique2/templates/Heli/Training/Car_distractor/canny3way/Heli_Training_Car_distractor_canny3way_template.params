@@ -102,7 +102,7 @@ ANNLayer "L1" = {
 };
 
 // downsample edges
-ANNLayer "L1X2" = {
+ANNLayer "L1Pre" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -261,9 +261,9 @@ KernelConn "RetinaToL1Inh" = {
 
 
 // downsample/pooling 
-KernelConn "L1ToL1X2" = {
+KernelConn "L1ToL1Pre" = {
    preLayerName = "L1";
-   postLayerName = "L1X2";
+   postLayerName = "L1Pre";
    channelCode = 0;
    nxp = 1; 
    nyp = 1; 
@@ -304,8 +304,8 @@ KernelConn "L1ToL1X2" = {
 // Mask connections
 
 // copy edge detections
-IdentConn "L1X2ToL1PostVertical" = {
-    preLayerName = "L1X2";
+IdentConn "L1PreToL1PostVertical" = {
+    preLayerName = "L1Pre";
     postLayerName = "L1Post";
     channelCode = 0;
     writeStep = -1;
@@ -355,8 +355,8 @@ KernelConn "MasktoL1Post" = {
 
 // Clique connections
 
-CliqueConn "L1X2toL1Post" = {
-   preLayerName = "L1X2";
+CliqueConn "L1PretoL1Post" = {
+   preLayerName = "L1Pre";
    postLayerName = "L1Post";
    channelCode = 2;
    nxp = 33;
@@ -413,9 +413,9 @@ StatsProbe "L1StatsFile" = {
     probeOutputFile = "L1_Stats.txt";
 };
 
-StatsProbe "L1X2StatsFile" = {
-    targetLayer = "L1X2";
-    probeOutputFile = "L1X2_Stats.txt";
+StatsProbe "L1PreStatsFile" = {
+    targetLayer = "L1Pre";
+    probeOutputFile = "L1Pre_Stats.txt";
 };
 
 StatsProbe "L1PostStatsFile" = {

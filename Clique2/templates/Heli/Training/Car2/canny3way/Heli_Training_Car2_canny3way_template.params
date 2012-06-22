@@ -88,7 +88,7 @@ ANNLayer "L1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 0;
+    marginWidth = 32;
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -101,8 +101,9 @@ ANNLayer "L1" = {
     valueV = 0;
 };
 
+
 // downsample edges
-ANNLayer "L1X2" = {
+ANNLayer "L1Pool2X2" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -123,14 +124,35 @@ ANNLayer "L1X2" = {
 };
 
 
-
-// masked edges
-CliqueLayer "L1Post" = {
+// clique layers
+CliqueLayer "L1Clique" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 8;
-    marginWidth = 16;
+    marginWidth = 32;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 1;
+    writeNonspikingActivity = 0;
+
+    VThresh = 0.5;
+    VMax = 1.0;
+    VMin = 0.0;
+    $$$_VgainL1Clique_$$$
+    Voffset = 0.0;
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+// masked edges
+CliqueLayer "L2Post" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 32;
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -261,9 +283,9 @@ KernelConn "RetinaToL1Inh" = {
 
 
 // downsample/pooling 
-KernelConn "L1ToL1X2" = {
+KernelConn "L1ToL1Pool2X2" = {
    preLayerName = "L1";
-   postLayerName = "L1X2";
+   postLayerName = "L1Pool2X2";
    channelCode = 0;
    nxp = 1; 
    nyp = 1; 
@@ -301,12 +323,104 @@ KernelConn "L1ToL1X2" = {
 
 
 
+// L1 Clique
+
+IdentConn "L1Pool2X2toL1CliqueVertical" = {
+    preLayerName = "L1Pool2X2";
+    postLayerName = "L1Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+//KernelConn "L1Pool2X2toL1CliqueTarget" = {
+SiblingConn "L1Pool2X2toL1CliqueTarget" = {
+   preLayerName = "L1Pool2X2";
+   postLayerName = "L1Clique";
+   channelCode = 1;
+   nxp = 33;
+   nyp = 33;
+   nfp = 8;
+   numAxonalArbors = 8712;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car/canny3way/weights/Heli_Training_Car_canny3way_weights.txt"; // 
+   combineWeightFiles = true; //false; // 
+   numWeightFiles = 16;
+   siblingConnName = "L1Pool2X2toL1CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+//KernelConn "L1Pool2X2toL1CliqueDistractor" = {
+SiblingConn "L1Pool2X2toL1CliqueDistractor" = {
+   preLayerName = "L1Pool2X2";
+   postLayerName = "L1Clique";
+   channelCode = 1;
+   nxp = 33;
+   nyp = 33;
+   nfp = 8;
+   numAxonalArbors = 8712;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   initWeightsFile = "/home/gkenyon/workspace-indigo/Clique2/input/Heli/Training/Car_distractor/canny3way/weights/Heli_Training_Car_distractor_canny3way_weights.txt"; // 
+   combineWeightFiles = true; //false; // 
+   numWeightFiles = 16;
+   siblingConnName = "L1Pool2X2toL1CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+};
+
+
+
 // Mask connections
 
 // copy edge detections
-IdentConn "L1X2ToL1PostVertical" = {
-    preLayerName = "L1X2";
-    postLayerName = "L1Post";
+IdentConn "L1CliqueToL2PostVertical" = {
+    preLayerName = "L1Clique";
+    postLayerName = "L2Post";
     channelCode = 0;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -316,9 +430,9 @@ IdentConn "L1X2ToL1PostVertical" = {
 };
 
 // mask non-amoeba edges
-KernelConn "MasktoL1Post" = {
+KernelConn "MasktoL2Post" = {
    preLayerName = "Mask";
-   postLayerName = "L1Post";
+   postLayerName = "L2Post";
    channelCode = 1;
    nxp = 1; 
    nyp = 1; 
@@ -333,7 +447,7 @@ KernelConn "MasktoL1Post" = {
    rMax  = 1;
    rMin = 0;
        
-   strength = 510.0; // 8 * 255 / 4 // require all pixels surrounding L1Post neuron to be active 
+   strength = 2040.0; // 8 * 255 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -346,7 +460,7 @@ KernelConn "MasktoL1Post" = {
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
-   delay = 3;
+   delay = 4;
 };
 
 
@@ -355,9 +469,9 @@ KernelConn "MasktoL1Post" = {
 
 // Clique connections
 
-CliqueConn "L1X2toL1Post" = {
-   preLayerName = "L1X2";
-   postLayerName = "L1Post";
+CliqueConn "L1CliquetoL2Post" = {
+   preLayerName = "L1Clique";
+   postLayerName = "L2Post";
    channelCode = 2;
    nxp = 33;
    nyp = 33;
@@ -390,6 +504,8 @@ CliqueConn "L1X2toL1Post" = {
 
 
 
+
+
 //StatsProbe "Retina Stats" = {
 //    targetLayer = "Retina";
 //};
@@ -398,8 +514,12 @@ CliqueConn "L1X2toL1Post" = {
 //    targetLayer = "L1";
 //};
 //
-//StatsProbe "L1PostStats" = {
-//    targetLayer = "L1Post";
+//StatsProbe "L1CliqueStats" = {
+//    targetLayer = "L1Clique";
+//};
+//
+//StatsProbe "L2PostStats" = {
+//    targetLayer = "L2Post";
 //};
 
 
@@ -408,19 +528,19 @@ StatsProbe "RetinaStatsFile" = {
     probeOutputFile = "Retina_Stats.txt";
 };
 
-StatsProbe "L1StatsFile" = {
-    targetLayer = "L1";
-    probeOutputFile = "L1_Stats.txt";
+StatsProbe "L1Pool2X2StatsFile" = {
+    targetLayer = "L1Pool2X2";
+    probeOutputFile = "L1Pool2X2_Stats.txt";
 };
 
-StatsProbe "L1X2StatsFile" = {
-    targetLayer = "L1X2";
-    probeOutputFile = "L1X2_Stats.txt";
+StatsProbe "L1CliqueStatsFile" = {
+    targetLayer = "L1Clique";
+    probeOutputFile = "L1Clique_Stats.txt";
 };
 
-StatsProbe "L1PostStatsFile" = {
-    targetLayer = "L1Post";
-    probeOutputFile = "L1Post_Stats.txt";
+StatsProbe "L2PostStatsFile" = {
+    targetLayer = "L2Post";
+    probeOutputFile = "L2Post_Stats.txt";
 };
 
 

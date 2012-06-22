@@ -88,7 +88,7 @@ ANNLayer "L1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 0;
+    marginWidth = 32;
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -101,8 +101,9 @@ ANNLayer "L1" = {
     valueV = 0;
 };
 
+
 // downsample edges
-ANNLayer "L1X2" = {
+ANNLayer "L1Pre" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -260,10 +261,11 @@ KernelConn "RetinaToL1Inh" = {
 };
 
 
+
 // downsample/pooling 
-KernelConn "L1ToL1X2" = {
+KernelConn "L1ToL1Pre" = {
    preLayerName = "L1";
-   postLayerName = "L1X2";
+   postLayerName = "L1Pre";
    channelCode = 0;
    nxp = 1; 
    nyp = 1; 
@@ -304,8 +306,8 @@ KernelConn "L1ToL1X2" = {
 // Mask connections
 
 // copy edge detections
-IdentConn "L1X2ToL1PostVertical" = {
-    preLayerName = "L1X2";
+IdentConn "L1PreToL1PostVertical" = {
+    preLayerName = "L1Pre";
     postLayerName = "L1Post";
     channelCode = 0;
     writeStep = -1;
@@ -314,6 +316,7 @@ IdentConn "L1X2ToL1PostVertical" = {
 
     delay = 0;
 };
+
 
 // mask non-amoeba edges
 KernelConn "MasktoL1Post" = {
@@ -333,7 +336,7 @@ KernelConn "MasktoL1Post" = {
    rMax  = 1;
    rMin = 0;
        
-   strength = 510.0; // 8 * 255 / 4 // require all pixels surrounding L1Post neuron to be active 
+   strength = 2040.0; // 8 * 255 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -346,7 +349,7 @@ KernelConn "MasktoL1Post" = {
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
-   delay = 3;
+   delay = 2;
 };
 
 
@@ -355,8 +358,8 @@ KernelConn "MasktoL1Post" = {
 
 // Clique connections
 
-CliqueConn "L1X2toL1Post" = {
-   preLayerName = "L1X2";
+CliqueConn "L1PretoL1Post" = {
+   preLayerName = "L1Pre";
    postLayerName = "L1Post";
    channelCode = 2;
    nxp = 33;
@@ -390,6 +393,7 @@ CliqueConn "L1X2toL1Post" = {
 
 
 
+
 //StatsProbe "Retina Stats" = {
 //    targetLayer = "Retina";
 //};
@@ -411,11 +415,6 @@ StatsProbe "RetinaStatsFile" = {
 StatsProbe "L1StatsFile" = {
     targetLayer = "L1";
     probeOutputFile = "L1_Stats.txt";
-};
-
-StatsProbe "L1X2StatsFile" = {
-    targetLayer = "L1X2";
-    probeOutputFile = "L1X2_Stats.txt";
 };
 
 StatsProbe "L1PostStatsFile" = {
