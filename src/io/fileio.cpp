@@ -546,8 +546,6 @@ int read_pvdata(const char * filename, Communicator * comm, double * timed, void
       status = pv_read_binary_params(fp, numParams, params);
       assert(status == numParams);
 
-      const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-
       const int dataSize = params[INDEX_DATA_SIZE];
       const int dataType = params[INDEX_DATA_TYPE];
 
