@@ -5,7 +5,6 @@
  *      Author: Shreyas
  */
 
-#include <cmath>
 #include <cassert>
 
 #include "../io/tiff.h"
