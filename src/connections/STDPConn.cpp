@@ -44,7 +44,7 @@ int STDPConn::initialize(const char * name, HyPerCol * hc,
    this->stdpFlag = stdpFlag; // needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
    int status = HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
 
-   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
+   //status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
    status |= initPlasticityPatches();
 
    return status;
