@@ -1,8 +1,8 @@
 #!/bin/bash
 set -x
-anterior_nodes=({101..116})  # set number of nodes
+anterior_nodes=({101..116})
 echo ${anterior_nodes[*]}
-anterior_cores=({1..1})  # sets number of jobs per node
+anterior_cores=({1..1})
 echo ${anterior_cores[*]}
 
 home_path=$HOME
@@ -12,11 +12,11 @@ clique_path=${home_path}"/workspace-indigo/Clique2/"
 echo ${clique_path[0]}
 exe_path=${clique_path}"Debug/"
 echo ${exe_path[0]}
-input_path=${clique_path}"input/Heli/Training/Car/canny3way/mask/"
+input_path=${clique_path}"input/Heli/Training/Car_distractor/canny3way/mask/"
 echo ${input_path[0]}
-input_prefix="Heli_Training_Car_canny3way_mask_"
-output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car/canny3way/mask/"
-output_prefix="Heli_Training_Car_canny3way_mask_"
+input_prefix="Heli_Training_Car_distractor_canny3way_mask_"
+output_path="/mnt/data/repo/neovision-programs-petavision/Heli/Training/activity/Car_distractor/canny3way/mask/"
+output_prefix="Heli_Training_Car_distractor_canny3way_mask_"
 version_id=0; #0
 version_IDs=({001..016})
 echo ${version_IDs[*]}
@@ -33,7 +33,7 @@ do
 	echo $output_log
 	host_node="10.0.0."${i_node}
 	echo "host_node=${host_node}"
-	mpirun -np 4 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 2 -columns 2 -p ${input_params} & # 1> ${output_log}
+	mpirun -np 8 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 2 -columns 4 -p ${input_params} & # 1> ${output_log}
 	#mpirun -np 1 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 1 -columns 1 -p ${input_params} & # 1> ${output_log}
 	version_id=$((${version_id}+1))
     done
