@@ -121,11 +121,19 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
       snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
       printf("write position to %s\n",file_name);
-      // TODO In MPI, fp_pos should only be opened and written to by root process
-      fp_pos = fopen(file_name,"a");
-      assert(fp_pos != NULL);
-      fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
-            hc->simulationTime(),offsetX,offsetY);
+      // TODO (Done 2012-06-21 --pete) In MPI, fp_pos should only be opened and written to by root process
+      // Note: biasX and biasY are used only to calculate offsetX and offsetY;
+      //       offsetX and offsetY are used only by readImage;
+      //       readImage only uses the offsets in the zero-rank process
+      // Therefore, the other ranks do not need to have their offsets stored.
+      // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
+      // but I chose not to fill the code with even more if(rank==0) statements.
+      if( parent->icCommunicator()->commRank()==0 ) {
+         fp_pos = fopen(file_name,"a");
+         assert(fp_pos != NULL);
+         fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
+               hc->simulationTime(),offsetX,offsetY);
+      }
    }
 
    // exchange border information
@@ -202,7 +210,7 @@ bool Movie::updateImage(float time, float dt)
          assert(filename != NULL);
          nextDisplayTime += displayPeriod;
 
-         if(writePosition){
+         if(writePosition && parent->icCommunicator()->commRank()==0){
             fprintf(fp_pos,"%f %s: \n",time,filename);
          }
          lastUpdateTime = time;
@@ -219,25 +227,25 @@ bool Movie::updateImage(float time, float dt)
          if (p > persistenceProb){
             needNewImage = true;
             calcBiasedOffset(stepSize, imageLoc.nx - loc->nx - stepSize);
-            if(writePosition){
+            if(writePosition && parent->icCommunicator()->commRank()==0){
                fprintf(fp_pos,"%d %d ",biasX,biasY);
             }
          }
          // ensure that offsets keep loc within image bounds
          resetPositionInBounds();
-         if(writePosition){
+         if(writePosition && parent->icCommunicator()->commRank()==0){
             fprintf(fp_pos,"\t\t%f %d %d\n",time,offsetX,offsetY);
          }
          lastUpdateTime = time;
       } // jitterFlag
 
       if( needNewImage ){
-         GDALColorInterp * colorbandtypes;
+         GDALColorInterp * colorbandtypes = NULL;
          int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
          if( status == PV_SUCCESS ) status = readImage(filename, offsetX, offsetY, colorbandtypes);
          free(colorbandtypes); colorbandtypes = NULL;
          if( status != PV_SUCCESS ) {
-            fprintf(stderr, "Movie %s: File %s is bad and you should feel bad!\n", name, filename);
+            fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
             abort();
          }
       }
