@@ -87,8 +87,7 @@ int buildandverify(int argc, char * argv[]) {
       assert(argv[i] != NULL);
    }
    PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
-   PV::ANNLayer * layer = new PV::ANNLayer("layer", hc);
-   PV::PVParams * params = hc->parameters();
+   /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows = -1;
    int columns = -1;
    pv_getopt_int(argc, argv, "-rows", &rows);

@@ -27,7 +27,7 @@ int Example::initializeThreadKernels()
 }
 #endif
 
-int Example::recvSynapticInput(HyPerConn * conn, PVLayerCube * activity, int neighbor)
+int Example::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int neighbor)
 {
    pv_debug_info("[%d]: Example::recvSynapticInput: to layer %d from %d, neighbor %d",
                  clayer->columnId, clayer->layerId, conn->preSynapticLayer()->clayer->layerId, neighbor);
@@ -77,12 +77,12 @@ int Example::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int Example::outputState(float time)
+int Example::outputState(float timef, bool last)
 {
    pv_debug_info("[%d]: Example::outputState:", clayer->columnId);
 
    // use implementation in base class
-   HyPerLayer::outputState(time);
+   HyPerLayer::outputState(timef);
 
    return 0;
 }

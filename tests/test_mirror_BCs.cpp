@@ -31,8 +31,6 @@ int main(int argc, char * argv[])
    int nS = l->clayer->loc.nx; // 8;
    int syex = ( nS + 2*nB ) * nf;
    int sy = nS * nf;
-   int nx = 2*nB + nS;
-   int ny = nx;
 
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used

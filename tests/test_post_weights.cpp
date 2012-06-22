@@ -170,7 +170,6 @@ static int set_weights_to_source_index(HyPerConn * c)
 {
    int status = 0;
    int arbor = 0;
-   short wPacked[2];
 
    assert(sizeof(short) == 2);
 

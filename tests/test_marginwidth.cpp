@@ -18,10 +18,6 @@ using namespace PV;
 int runonecolumn(int argc, char * argv[], int correctvalue);
 
 int main(int argc, char * argv[]) {
-   HyPerCol * hc;
-   Retina * pre;
-   ANNLayer * post;
-   KernelConn * conn;
    char * cl_args[3];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
@@ -96,7 +92,7 @@ int runonecolumn(int argc, char * argv[], int correctvalue) {
    HyPerCol * hc = new HyPerCol("column", argc, argv);
    HyPerLayer * pre = new Retina("presynaptic layer", hc);
    HyPerLayer * post = new ANNLayer("postsynaptic layer", hc);
-   HyPerConn * conn = new KernelConn("pre to post connection", hc, pre, post, CHANNEL_EXC);
+   /* HyPerConn * conn = */ new KernelConn("pre to post connection", hc, pre, post, CHANNEL_EXC);
    bool rootproc = hc->icCommunicator()->commRank()==0;
    if(rootproc) {
       printf("%s: Beginning test of %s.  For this test, ", argv[0], argv[2]);
