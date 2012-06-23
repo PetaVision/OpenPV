@@ -503,7 +503,6 @@ int LIF::updateState(float time, float dt)
 
       LIF_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity);
-      setActivity_HyPerLayer(getNumNeurons(), activity, clayer->V, nx, ny, nf, nb);
 
 #ifdef PV_USE_OPENCL
    }
