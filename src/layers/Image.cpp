@@ -104,8 +104,8 @@ int Image::readOffsets() {
    return PV_SUCCESS;
 }
 
-int Image::initializeV() {
-   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeV should only be called if restart is false
+int Image::initializeState() {
+   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeState should only be called if restart is false
    // Image doesn't use the V buffer so free it and set the pointer to null.
    free(clayer->V);
    clayer->V = NULL;

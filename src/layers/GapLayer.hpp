@@ -24,7 +24,6 @@ public:
 
    // virtual int updateV();
 
-   // virtual int setActivity();
    LIFGap * sourceLayer;
 
 protected:
@@ -33,6 +32,7 @@ protected:
       // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
 
    /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive);
+   virtual int setActivity();
 
 private:
    int initialize_base();

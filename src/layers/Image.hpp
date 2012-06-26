@@ -20,7 +20,7 @@ protected:
    Image();
    int initialize(const char * name, HyPerCol * hc, const char * filename);
    virtual int readOffsets(); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
-   virtual int initializeV();
+   virtual int initializeState();
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
 

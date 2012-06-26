@@ -49,7 +49,7 @@ public:
 protected:
    Retina();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type);
-   virtual int initializeV();
+   virtual int initializeState();
 #ifdef PV_USE_OPENCL
    //int initializeGPU();  //right now there's no use for a Retina specific version
    virtual int getNumCLEvents() {return numEvents;}

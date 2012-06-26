@@ -77,6 +77,11 @@ int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_
 //}
 
 ////!!!TODO: add param in LIFGap for spikelet amplitude
+int GapLayer::setActivity() {
+   const PVLayerLoc * loc = getLayerLoc();
+   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getCLayer()->activity->data);
+}
+
 //int GapLayer::setActivity() {
 //
 //   HyPerLayer::setActivity(); // this copies the potential into the activity buffer

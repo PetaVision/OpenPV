@@ -171,13 +171,13 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    int status = allocateBuffers();
    assert(status == PV_SUCCESS);
 
-   bool restart_flag = parent->parameters()->value(name, "restart", 0.0f) != 0.0f;
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
       float timef;
       readState(&timef);
    }
    else {
-      initializeV();
+      initializeState();
    }
 
    // labels are not extended
@@ -387,12 +387,13 @@ int HyPerLayer::allocateBuffers() {
    return status;
 }
 
-int HyPerLayer::initializeV() {
-   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeV should only be called if restart is false
+int HyPerLayer::initializeState() {
+   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeState should only be called if restart is false
    InitV * initVObject = new InitV(parent, name);
    assert(initVObject);
    int status = initVObject->calcV(this);
    delete initVObject;
+   setActivity();
    return status;
 }
 
@@ -754,6 +755,11 @@ int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdat
    return PV_SUCCESS;
 }
 
+int HyPerLayer::setActivity() {
+   const PVLayerLoc * loc = getLayerLoc();
+   return setActivity_HyPerLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+}
+
 int HyPerLayer::updateBorder(float time, float dt)
 {
    int status = PV_SUCCESS;
@@ -1031,16 +1037,6 @@ int HyPerLayer::checkpointRead(float * timef) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-#ifdef OBSOLETE // Marked obsolete Jan 31, 2012.  When checkpointWrite is called, GSyn is blank.  Since GSyn is calculated by triggerReceive, it doesn't need to be saved.
-   if( getNumChannels() > 0 ) {
-      sprintf(filename, "%s_GSyn.pvp", name);
-      readBufferFile(filename, icComm, &timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
-      // assumes GSyn[0], GSyn[1],... are sequential in memory
-      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-      }
-   }
-#endif // OBSOLETE
    free(filename);
    return PV_SUCCESS;
 }

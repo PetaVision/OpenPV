@@ -97,13 +97,10 @@ int IncrementLayer::updateState(float timef, float dt, bool * inited, float * ne
 
 }
 
-//int IncrementLayer::setActivity() {
-//   int status = PV_SUCCESS;
-//   for( int k=0; k<getNumNeurons(); k++ ) {
-//      clayer->activity->data[k] = getV()[k]-Vprev[k];
-//   }
-//   return status;
-//}
+int IncrementLayer::setActivity() {
+   const PVLayerLoc * loc = getLayerLoc();
+   return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->nb);
+}
 
 int IncrementLayer::checkpointRead(float * timef) {
    HyPerLayer::checkpointRead(timef);

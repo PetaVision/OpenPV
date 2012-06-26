@@ -77,6 +77,11 @@ int GenerativeLayer::updateState(float timef, float dt, const PVLayerLoc * loc, 
    return PV_SUCCESS;
 }
 
+int GenerativeLayer::setActivity() {
+   const PVLayerLoc * loc = getLayerLoc();
+   return setActivity_GenerativeLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getActivityThreshold());
+}
+
 pvdata_t GenerativeLayer::reduce_relaxation(int num_neurons, pvdata_t * V, pvdata_t * dV, pvdata_t relaxation) {
    pvdata_t trunc_rel = relaxation;
    for( int k=0; k<num_neurons; k++) {

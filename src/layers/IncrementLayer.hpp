@@ -30,7 +30,7 @@ protected:
    virtual int readVThreshParams(PVParams * params);
    /* static */ int updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active);
 
-   // virtual int setActivity();
+   virtual int setActivity();
 
 private:
    int initialize_base();

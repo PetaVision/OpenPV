@@ -97,7 +97,7 @@ protected:
    virtual int initializeLayerId(int layerId);
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
-   virtual int initializeV();
+   virtual int initializeState();
    int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int readHeader(const char * filename, InterColComm * comm, double * timed, int * params);
@@ -142,9 +142,6 @@ public:
    virtual int publish(InterColComm * comm, float time);
    virtual int waitOnPublish(InterColComm * comm);
 
-   // virtual int updateV();
-   // virtual int setActivity();
-   // virtual int resetGSynBuffers();
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
@@ -162,9 +159,6 @@ public:
    virtual int readState (float * timef);
    virtual int writeState(float timef, bool last=false);
    virtual int outputState(float timef, bool last=false);
-#ifdef OBSOLETE // (marked obsolete Jan 24, 2011)
-   virtual int writeActivity(const char * filename, float time);
-#endif // OBSOLETE
    virtual int writeActivity(float timef);
    virtual int writeActivitySparse(float timef);
 
@@ -229,6 +223,7 @@ public:
 protected:
 
    /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+   virtual int setActivity();
    void freeChannels();
 
    char * name;                 // well known name of layer
