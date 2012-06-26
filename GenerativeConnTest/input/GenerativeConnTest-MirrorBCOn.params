@@ -13,7 +13,8 @@ HyPerCol "column" = {
     numSteps = 5;
     progressStep = 1000;
     outputPath = "output-MirrorBCOn/";
-    filenamesContainLayerNames = true;
+    filenamesContainLayerNames = false;
+    outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
     checkpointWrite = false;
     checkpointRead = false;
 };
@@ -90,13 +91,12 @@ ANNLayer "pre 16x16 singleband" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 4;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = true;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -113,8 +113,7 @@ ANNLayer "pre 16x16 multiband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -131,8 +130,7 @@ ANNLayer "post 8x8 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -149,8 +147,7 @@ ANNLayer "post 8x8 multiband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -167,8 +164,7 @@ ANNLayer "post 16x16 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -185,8 +181,7 @@ ANNLayer "post 16x16 multiband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -203,8 +198,7 @@ ANNLayer "post 32x32 singleband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -221,8 +215,7 @@ ANNLayer "post 32x32 multiband" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
     
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;

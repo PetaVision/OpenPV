@@ -62,8 +62,7 @@ ANNLayer "L0" = {
     writeNonspikingActivity = 1;
     GPUAccelerate=true;
 
-    InitVType = "ConstantV";
-    valueV = 1.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
