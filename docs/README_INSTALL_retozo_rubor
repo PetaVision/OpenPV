@@ -35,6 +35,14 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
 
   d. Repeat step [c] for any desired projects in the PVSystemsTests and sandbox directories.
 
+  e. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
+     Open Window menu -> Open Perspective -> Other ..., and select C/C++
+     Right click on PetaVision in the Project Explorer and select Properties from the bottom of the pop-up menu.
+     Open the C/C++ General menu and select Code Style.
+     Uncheck "Enable project specific settings" and click "Configure Workspace Settings..."
+     Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
+     Click Open and then OK
+
 4. Compile PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select C/C++
 

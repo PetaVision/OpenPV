@@ -1,11 +1,6 @@
 Here is the procedure for installing and compiling the PetaVision repository on retozo/rebor.  Thanks to Andree for all his assistance.
 
-0. Log into rebor.newmexicoconsortium.org or retozo.newmexicoconsortium.org with ssh -X, from within the NMC network.
-RSA fingerprints are
-2e:24:89:92:d4:76:9d:32:d2:e9:e0:cb:d1:16:c3:06 (rubor)
-b5:dd:9d:ff:93:ed:ef:28:b4:c8:ff:00:b5:74:09:3a (retozo)
-
-Rubor and Retozo have separate filesystems and password databases; anything you do on one machine won't be there when you log into the other.
+0. TODO: instructions for installing eclipse on macs should go here
 
 1. Launch eclipse.  If you get the "Welcome to Eclipse" screen, click Workbench in the top right corner.
 
@@ -34,6 +29,14 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
   c. Right-click "trunk" and choose Checkout... from the pop-up menu.  In the "Checkout from SVN" window, click Finish.  This step downloads the PetaVision library project.
 
   d. Repeat step [c] for any desired projects in the PVSystemsTests and sandbox directories.
+  
+  e. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
+     Open Window menu -> Open Perspective -> Other ..., and select C/C++
+     Right click on PetaVision in the Project Explorer and select Properties from the bottom of the pop-up menu.
+     Open the C/C++ General menu and select Code Style.
+     Uncheck "Enable project specific settings" and click "Configure Workspace Settings..."
+     Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
+     Click Open and then OK
 
 4. Compile PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select C/C++
