@@ -136,7 +136,8 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    free(filename);
    filename = strdup(getRandomFilename());
 
-   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc);
+   GDALColorInterp * colorbandtypes = NULL;
+   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
       exit(EXIT_FAILURE);
@@ -151,7 +152,7 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
    retrieveRandomPatch();
-   readImage(filename,offsetX,offsetY);
+   readImage(filename,offsetX,offsetY, colorbandtypes);
 
    // exchange border information
    exchange();
@@ -177,11 +178,14 @@ int RandomPatchMovie::readOffsets() {
 }
 
 int RandomPatchMovie::retrieveRandomPatch() {
-   getImageInfo(filename, parent->icCommunicator(), &imageLoc);
    bool finished = false;
+   GDALColorInterp * colorbandtypes = NULL;
    while(!finished) {
+      free(filename);
+      filename = strdup(getRandomFilename());
+      getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
       getRandomOffsets(&imageLoc, &offsetX, &offsetY);
-      readImage(filename, offsetX, offsetY);
+      readImage(filename, offsetX, offsetY, colorbandtypes);
       if( skipLowContrastPatchProb > 0 ) {
          for( int k=0; k<getNumNeurons(); k++ ) {
             const PVLayerLoc * loc = getLayerLoc();
@@ -234,9 +238,6 @@ int RandomPatchMovie::updateState(float timef, float dt)
 bool RandomPatchMovie::updateImage(float timef, float dt) {
    bool needNewImage = timef >= nextDisplayTime;
    if( needNewImage ) {
-      free(filename);
-      filename = strdup(getRandomFilename());
-      getImageInfo(filename, parent->icCommunicator(), &imageLoc);
       nextDisplayTime += displayPeriod;
       lastUpdateTime = timef;
       retrieveRandomPatch();
