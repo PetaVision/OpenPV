@@ -26,6 +26,7 @@ typedef enum {
    TypeLIFFeedback2Inhib,
    TypeLIFSurroundInhib,
    TypeLIFGeisler,
+   TypeBIDS,
    TypeNonspiking
 } PVLayerType;
 

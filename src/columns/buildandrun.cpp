@@ -85,6 +85,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "Patterns",
              "LIF",
                 "LIFGap",
+                "BIDSLayer"
              "Retina",
              "SigmoidLayer",
            "_Stop_HyPerLayers_",
@@ -367,6 +368,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Retina(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "BIDSLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new BIDSLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !keywordMatched ) {
