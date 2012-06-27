@@ -85,7 +85,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "Patterns",
              "LIF",
                 "LIFGap",
-                "BIDSLayer"
+                "BIDSLayer",
              "Retina",
              "SigmoidLayer",
            "_Stop_HyPerLayers_",
