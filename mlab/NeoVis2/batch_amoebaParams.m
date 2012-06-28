@@ -3,8 +3,8 @@
 object_type = {"2FC"; "4FC"; "6FC"; "8FC"};
 clip_name = cell(1,1);
 clip_name{1} = "d"; %% "t"; %% 
-DATASET_ID = "noamoeba3"; %% "amoeba3"; %% 
-pvp_num_ODD_kernels = 3; %%
+DATASET_ID = "noamoeba"; %% "amoeba"; %% 
+pvp_num_ODD_kernels = 1; %%
 version_ids = [1:8];
 version_str = cell(length(version_ids),1);
 for i_version = 1 : length(version_ids)
@@ -25,18 +25,19 @@ pvp_workspace_path = ...
 pvp_mlab_path = ...
     [pvp_workspace_path, "PetaVision", filesep, "mlab", filesep];
 pvp_clique_path = ...
-    [pvp_workspace_path, "Clique2", filesep];
+    [pvp_workspace_path, "amoeba3way", filesep];
 
 
 dataset_id = tolower(DATASET_ID); %% 
-FLAVOR_ID = "3way"; %%"33x33"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
+FLAVOR_ID = "X2"; %% "3way"; %%"33x33"; %%"Training"; %% "Challenge"; %% "Formative"; %%  
 flavor_id = tolower(FLAVOR_ID); %% 
 pvp_repo_path = ...
-    [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
+    [filesep, "mnt", filesep, "data3", filesep, "repo", filesep];
 pvp_program_path = ...
     [pvp_repo_path, "neovision-programs-petavision", filesep, ...
      DATASET_ID, filesep, ...
      FLAVOR_ID, filesep];
+mkdir(pvp_program_path);
 disp(pvp_program_path);
 
 pvp_input_path2 = ...
@@ -65,8 +66,8 @@ output_activity_path = ...
 mkdir(output_activity_path);
 
 pvp_list_path = ...
-    [pvp_program_path, ...
-     "list", filesep];
+    [filesep, "mnt", filesep, "data", filesep, "repo", filesep, "neovision-programs-petavision", filesep, ...
+    dataset_id, filesep, "3way", filesep, "list", filesep];
 
 for i_object = 1 : length(object_type)
   disp(object_type{i_object});
