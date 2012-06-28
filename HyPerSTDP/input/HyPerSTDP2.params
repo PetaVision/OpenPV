@@ -1,0 +1,148 @@
+//
+// params.geisler
+//  - input parameters for geisler.cpp, a study of geisler kernels with amoeba/no-amoeba images
+//
+
+HyPerCol "column" = {
+   nx = 256;   // until we get going with images
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1;  // if not set by hand, else use clock time to generate seed
+   numSteps = 100;
+   outputPath = "./output";
+   filenamesContainLayerNames = 2;
+};
+
+//
+// Layers
+//
+
+Movie "Image" = {
+    imageListPath = "./input/t_trainFiles_760.txt";
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
+    writeImages = 0; //FIX how it's saved.
+    Vrest = 0.0;
+    displayPeriod = 20;
+    jitterFlag = 0;
+    randomMovie = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+
+Retina "RetinaON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 2;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
+    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value
+
+ 	burstFreq = 1;      // Hz
+    burstDuration = 1000;  // ms
+
+    beginStim = 1;
+    endStim   = 50000;
+    
+    no = 1.0;
+    Vrest = 0.0;
+    
+};
+
+
+Retina "RetinaOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 2;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
+    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value
+
+ 	burstFreq = 1;      // Hz
+    burstDuration = 1000;  // ms
+
+    beginStim = 1;
+    endStim   = 50000;
+    
+    no = 1.0;
+    Vrest = 0.0;
+    
+};
+
+
+///////
+// connections: 
+//    
+
+
+// Image connections
+
+KernelConn "ImagetoRetinaONCenter" = {
+   preLayerName = "Image";
+   postLayerName = "RetinaON";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   
+   strength =  2550; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "ImagetoRetinaOFFCenter" = {
+   preLayerName = "Image";
+   postLayerName = "RetinaOFF";
+   channelCode = 1;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   
+   strength =  2550; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
