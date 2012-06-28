@@ -4,12 +4,13 @@
 //
 
 HyPerCol "column" = {
-   nx = 64;   // until we get going with images
-   ny = 64;
+   nx = 256;   // until we get going with images
+   ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 50000;
+   numSteps = 2000;
    outputPath = "./output";
+   filenamesContainLayerNames = 2;
 };
 
 //
@@ -17,7 +18,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "./input/t_trainFiles.txt";
+    imageListPath = "./input/t_trainFiles_760_1844.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -27,9 +28,9 @@ Movie "Image" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 0;
-    writeImages = 0;
+    writeImages = 0; //FIX how it's saved.
     Vrest = 0.0;
-    displayPeriod = 10;
+    displayPeriod = 20;
     jitterFlag = 0;
     randomMovie = 0;
     offsetX = 0;
@@ -211,7 +212,8 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma = 1;
    rMax  = 1;
    
-   strength =  10.0; 
+   //strength =  10.0;
+   strength =  2550.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -236,7 +238,8 @@ KernelConn "ImagetoRetinaONSurround" = {
    sigma = 1;
    rMax  = 100;
    
-   strength =  10.0; 
+   //strength =  10.0; 
+   strength =  2550.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -262,7 +265,8 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma = 1;
    rMax  = 1;
    
-   strength =  10.0; 
+   //strength =  10.0; 
+   strength =  2550.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -287,7 +291,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    sigma = 1;
    rMax  = 1000;
    
-   strength =  10.0; 
+   //strength =  10.0;
+   strength =  2550.0; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -314,17 +319,17 @@ STDPConn "RetinaONtoS1" = {
    stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  // restart
    randomFlag = 1;  
-   uniformWeights = 1;
-   writeStep = 5000;
+   //uniformWeights = 1;
+   writeStep = 200;
 
    wMin = 0.01;     
    wMax = 0.5;
-   dWMax = 0.02;  // .01;
+   dWMax = 0.05;  // .01;
 
    normalize = 0.0;
    
-   ampLTP = 1.0;
-   ampLTD = 1.2; //1.1;
+   ampLTP = 1;
+   ampLTD = 0.9; //1.2 1.1;
    tauLTP = 20;
    tauLTD = 20; 
    
@@ -365,16 +370,16 @@ STDPConn "RetinaOFFtoS1" = {
    initFromLastFlag = 0;  // 1;  // restart
    randomFlag = 1;  
    //uniformWeights = 1;
-   writeStep = 5000;
+   writeStep = 200;
 
    wMin = 0.01;     
    wMax = 0.5;
-   dWMax = 0.02;  // .01;
+   dWMax = 0.1;  // .01;
 
    normalize = 0.0;
    
-   ampLTP = 1.0;
-   ampLTD = 1.2; //1.1;
+   ampLTP = 1;
+   ampLTD = 0.9; //1.2 1.1;
    tauLTP = 20;
    tauLTD = 20; 
    
