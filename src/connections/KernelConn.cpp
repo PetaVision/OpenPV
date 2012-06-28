@@ -141,7 +141,7 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
-#define USE_SHMGET
+#undef USE_SHMGET
 
 // use shmget() to save memory on shared memory architectures
 pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
