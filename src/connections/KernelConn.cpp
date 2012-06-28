@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <float.h>
 #include "../io/io.h"
+#include <sys/shm.h>
 
 namespace PV {
 
@@ -140,11 +141,71 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
+#define USE_SHMGET
+
+// use shmget() to save memory on shared memory architectures
+pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+      int nyPatch, int nfPatch, int axonId)
+{
+   // pvdata_t * dataPatches = pvpatches_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
+   int sx = nfPatch;
+   int sy = sx * nxPatch;
+   int sp = sy*nyPatch;
+
+   size_t patchSize = sp * sizeof(pvdata_t);
+   size_t dataSize = nPatches * patchSize;
+
+#ifndef USE_SHMGET
+   pvdata_t * dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+#else
+
+   pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+   key_t key;
+   int   shmid, cntr;
+   char  *segptr;
+
+   key = ftok(".", 'S');
+
+   /* Open the shared memory segment - create if necessary */
+   if((shmid = shmget(key, dataSize, IPC_CREAT | IPC_EXCL | 0666)) == -1)
+   {
+           printf("Shared memory segment exists - opening as client\n");
+
+           /* Segment probably already exists - try as a client */
+           if((shmid = shmget(key, dataSize, 0)) == -1)
+           {
+                   perror("shmget");
+                   exit(1);
+           }
+   }
+   else
+   {
+           printf("Creating new shared memory segment\n");
+   }
+
+   /* Attach (map) the shared memory segment into the current process */
+   if((segptr = (char *)shmat(shmid, 0, 0)) == (char *)-1)
+   {
+           perror("shmat");
+           exit(1);
+   }
+   dataPatches = (pvdata_t *) segptr;
+#endif // USE_SHMGET
+
+
+   assert(dataPatches != NULL);
+
+   return dataPatches;
+}
+
+
+
 int KernelConn::deleteWeights()
 {
    // As of the Feb. 27 refactoring, there are no weights specific to KernelConn that need to be deleted here.
    // The HyPerConn destructor calls HyPerConn::deleteWeights(), which gets rid of wPatches, wDataStart and dwDataStart
    free(patch2datalookuptable);
+
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 
 }

@@ -111,6 +111,8 @@ protected:
                   InitWeights *weightInit=NULL);
    virtual int createArbors();
    virtual int initPlasticityPatches();
+   virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch, int axonId);
 #ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With patches storing offsets instead of pointers, no need for KernelConn to override.
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
