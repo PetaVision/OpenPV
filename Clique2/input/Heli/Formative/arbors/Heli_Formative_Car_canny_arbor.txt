@@ -1,2 +1,0 @@
-/home/garkenyon/workspace-indigo/Clique2/input/Heli/Formative/Car/canny/w3_last.pvp
-/home/garkenyon/workspace-indigo/Clique2/input/Heli/Formative/distractor/canny/w3_last.pvp
