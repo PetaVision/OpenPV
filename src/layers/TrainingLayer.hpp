@@ -23,7 +23,7 @@ public:
    TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
    virtual ~TrainingLayer();
    int readTrainingLabels(const char * filename, int ** trainingLabels);
-
+   virtual int initializeState();
    virtual int updateState(float timef, float dt);
    // virtual int updateV();
 

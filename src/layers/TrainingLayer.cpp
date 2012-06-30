@@ -55,14 +55,6 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
    this->distToData = distToData;
    this->nextLabelTime = displayPeriod + distToData;
 
-   pvdata_t * V = getV();
-   for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
-   // above line not necessary if V was allocated with calloc
-   getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
-   const PVLayerLoc * loc = getLayerLoc();
-   setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
-   // needed because updateState won't call setActivity until the first update period has passed.
-   // setActivity();
    return status;
 }
 
@@ -99,6 +91,19 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
    fclose(instream);
    *trainingLabelsFromFile = labels;
    return n;
+}
+
+int TrainingLayer::initializeState() {
+   int status;
+   pvdata_t * V = getV();
+   for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
+   // above line not necessary if V was allocated with calloc
+   getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
+   const PVLayerLoc * loc = getLayerLoc();
+   status = setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+   // needed because updateState won't call setActivity until the first update period has passed.
+   // setActivity();
+   return status;
 }
 
 int TrainingLayer::updateState(float timef, float dt) {
