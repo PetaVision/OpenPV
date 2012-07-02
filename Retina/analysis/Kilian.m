@@ -1,6 +1,8 @@
-run = 5
+% Plots the 3 Kilian graphs using Ganglion center cell and Ganglion neighbour cells
 
+run = 2
 
+% Making initial vectors
 
 [time, Gin_A] = pvp_readPointLIFprobeRun(1,"GanglionON",{'A'});
 [time, N1_A] = pvp_readPointLIFprobeRun(1,"N1GanglionON",{'A'});
@@ -40,10 +42,6 @@ end %for
 % Averaged spike rate by dividing by number of trials
 
 Gsum_A = Gsum_A./run;
-
-disp(Gsum_A);
-
-
 
 rtime = 1:time;
 
@@ -94,8 +92,8 @@ end %for %i
 
 end %for %m
 
-axis([0 time 0.1 max(m)+1]);
-set(gca,'YTick',[0:1]);
+axis([0 time 0.1 max(m)*1.5]);
+set(gca,'YTick',[0:max(m)]);
 set(middle,'pos',[0.13,0.38,0.774,0.258]);
 
 set(gca,'XTickLabel',[]);
@@ -128,7 +126,7 @@ for j = 1:8
 end %for
 
 
-axis([0 time 0.1 max(m)+1]);
+axis([0 time 0.1 max(m)*1.5]);
 xlabel('Time (ms)');
 ylabel('Trial #'); 
 
@@ -139,6 +137,6 @@ end %for
 %disp(pos);
 
 %pos(2) = pos(2)+0.01;
-set(gca,'YTick',[0:1]);
+set(gca,'YTick',[0:max(m)]);
 set(bottom,'pos',[0.13,0.1195,0.774,0.258]);
 
