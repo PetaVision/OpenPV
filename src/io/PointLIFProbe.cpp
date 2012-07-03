@@ -77,24 +77,18 @@ int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
 
    if (time >= writeTime) {
       writeTime += writeStep;
-      if (sparseOutput) {
-         fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
-         // we will control the end of line character from the ConditionalProbe.
-      }
-      else {
-         fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
-         pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
-         pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
-         pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
-         pvdata_t * Vth  = LIF_layer->getVth();
-         fprintf(fp, " G_E=%6.3f", G_E[k]);
-         fprintf(fp, " G_I=%6.3f", G_I[k]);
-         fprintf(fp, " G_IB=%6.3f", G_IB[k]);
-         fprintf(fp, " V=%6.3f", V[k]);
-         fprintf(fp, " Vth=%6.3f", Vth[k]);
-         fprintf(fp, " a=%.1f\n", activity[kex]);
-         fflush(fp);
-      }
+      fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
+      pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
+      pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
+      pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
+      pvdata_t * Vth  = LIF_layer->getVth();
+      fprintf(fp, " G_E=%6.3f", G_E[k]);
+      fprintf(fp, " G_I=%6.3f", G_I[k]);
+      fprintf(fp, " G_IB=%6.3f", G_IB[k]);
+      fprintf(fp, " V=%6.3f", V[k]);
+      fprintf(fp, " Vth=%6.3f", Vth[k]);
+      fprintf(fp, " a=%.1f\n", activity[kex]);
+      fflush(fp);
    }
    return 0;
 }
