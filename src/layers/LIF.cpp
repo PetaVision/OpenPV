@@ -331,6 +331,12 @@ int LIF::setParams(PVParams * p)
    return 0;
 }
 
+int LIF::setActivity() {
+   pvdata_t * activity = clayer->activity->data;
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   return 0;
+}
+
 int LIF::allocateBuffers() {
    const size_t numNeurons = getNumNeurons();
    G_E = G_I = G_IB = NULL;

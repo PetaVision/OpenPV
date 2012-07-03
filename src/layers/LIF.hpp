@@ -42,6 +42,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int updateStateOpenCL(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
+   virtual int setActivity();
    
    virtual int checkpointRead(float * timef);
    virtual int checkpointWrite();
