@@ -26,6 +26,7 @@ public:
    // virtual int setActivity();
    // virtual int resetGSynBuffers();
    LIF * sourceLayer;
+   virtual int setActivity();
 protected:
    SigmoidLayer();
    int initialize(const char * name, HyPerCol * hc, LIF * clone);

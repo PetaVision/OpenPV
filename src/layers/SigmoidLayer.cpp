@@ -56,6 +56,12 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    return status_init;
 }
 
+int SigmoidLayer::setActivity() {
+   pvdata_t * activity = clayer->activity->data;
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   return 0;
+}
+
 int SigmoidLayer::updateState(float timef, float dt) {
    int status;
    status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, getCLayer()->activeIndices, &getCLayer()->numActive);
