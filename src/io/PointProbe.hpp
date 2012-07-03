@@ -20,7 +20,7 @@ public:
 
    virtual int outputState(float timef);
 
-   void setSparseOutput(bool flag) {sparseOutput = flag;}
+   // void setSparseOutput(bool flag) {sparseOutput = flag;}
 
 protected:
    int xLoc;
@@ -28,7 +28,7 @@ protected:
    int fLoc;
    char * msg;
 
-   bool sparseOutput;
+   // bool sparseOutput;
 
    int initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual int writeState(float timef, HyPerLayer * l, int k, int kex);

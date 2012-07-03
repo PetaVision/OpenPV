@@ -65,7 +65,7 @@ int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xL
       this->xLoc = xLoc;
       this->yLoc = yLoc;
       this->fLoc = fLoc;
-      this->sparseOutput = false;
+      // this->sparseOutput = false;
       status = initMessage(msg);
    }
    assert(status == PV_SUCCESS);
@@ -140,16 +140,11 @@ int PointProbe::writeState(float timef, HyPerLayer * l, int k, int kex) {
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 
-   if (sparseOutput) {
-      fprintf(fp, " (%d %d %3.1f) \n", xLoc, yLoc, activity[kex]);
-   }
-   else if (activity[kex] != 0.0) {
-      fprintf(fp, "%s t=%.1f", msg, timef);
-      fprintf(fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
-      fprintf(fp, " a=%.5f", activity[kex]);
-      fprintf(fp, "\n");
-      fflush(fp);
-   }
+   fprintf(fp, "%s t=%.1f", msg, timef);
+   fprintf(fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
+   fprintf(fp, " a=%.5f", activity[kex]);
+   fprintf(fp, "\n");
+   fflush(fp);
 
    return PV_SUCCESS;
 }
