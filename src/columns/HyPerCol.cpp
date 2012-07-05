@@ -1051,7 +1051,7 @@ int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerS
          fprintf(stderr, "Margin width error.\n");
       }
       fprintf(stderr, "Layer \"%s\", dimension %s:\n", layer->getName(), dim);
-      fprintf(stderr, "    Pre-synaptic margin width %d, overall layer size %d, layer size per process %d\n", nb, layerSize, layerGlobalSize);
+      fprintf(stderr, "    Pre-synaptic margin width %d, overall layer size %d, layer size per process %d\n", nb, layerGlobalSize, layerSize);
       fprintf(stderr, "    Use either fewer processes in dimension %s, or a margin size <= %d.\n", dim, layerSize);
       status = PV_MARGINWIDTH_FAILURE;
    }
