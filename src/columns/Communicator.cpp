@@ -582,7 +582,7 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 
 /**
  * Create a set of data types for inter-neighbor communication
- *   - caller must delete the data-type array
+ *   - caller should delete the MPI_Datatype array by calling Communicator::freeDatatypes
  */
 MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 {
@@ -654,6 +654,17 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 #else // PV_USE_MPI
    return NULL;
 #endif // PV_USE_MPI
+}
+
+/* Frees an MPI_Datatype array previously created with Communicator::newDatatypes */
+int Communicator::freeDatatypes(MPI_Datatype * mpi_datatypes) {
+   if(mpi_datatypes) {
+      for ( int n=0; n<NUM_NEIGHBORHOOD; n++ ) {
+         MPI_Type_free(&mpi_datatypes[n]);
+      }
+      delete mpi_datatypes;
+   }
+   return PV_SUCCESS;
 }
 
 /**

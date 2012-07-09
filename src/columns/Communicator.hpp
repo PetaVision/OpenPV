@@ -38,6 +38,7 @@ public:
    size_t sendOffset(int n, const PVLayerLoc * loc);
 
    static MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
+   static int freeDatatypes(MPI_Datatype * mpi_datatypes);
 
    Communicator(int * argc, char *** argv);
    virtual ~Communicator();
