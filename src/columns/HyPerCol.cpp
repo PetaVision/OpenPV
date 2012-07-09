@@ -69,6 +69,8 @@ HyPerCol::~HyPerCol()
       }
    }
 
+   delete params;
+
    delete icComm;
 
    printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
