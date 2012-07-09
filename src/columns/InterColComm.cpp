@@ -32,6 +32,7 @@ InterColComm::~InterColComm()
          delete publishers[i];
       }
    }
+   free(publishers); publishers = NULL;
 }
 
 int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
@@ -159,7 +160,7 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
 Publisher::~Publisher()
 {
    delete store;
-   delete neighborDatatypes;
+   Communicator::freeDatatypes(neighborDatatypes); neighborDatatypes = NULL;
    free(connection);
 }
 
