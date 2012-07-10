@@ -227,7 +227,7 @@ int ParameterStringStack::outputStack(FILE * fp, int indentation) {
  */
 ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
 {
-   this->groupName = name;
+   this->groupName = strdup(name);
    this->groupKeyword = NULL;
    this->stack     = stack;
    this->stringStack = NULL;
