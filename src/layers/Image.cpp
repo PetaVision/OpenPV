@@ -25,6 +25,7 @@ Image::Image(const char * name, HyPerCol * hc, const char * filename) {
 Image::~Image() {
    free(filename);
    filename = NULL;
+   Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
 }
 
 int Image::initialize_base() {
