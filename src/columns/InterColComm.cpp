@@ -145,11 +145,10 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    store = new DataStore(hc, numBuffers, dataSize, numLevels);
 #endif
 
-   //TODO:: check for memory leak here, method flagged by valgrind
+   //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
    this->subscriberArraySize = INITIAL_SUBSCRIBER_ARRAY_SIZE;
-   //TODO:: check for memory leak here, method flagged by valgrind
    this->connection = (HyPerConn **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
    assert(this->connection);
    for (int i = 0; i < subscriberArraySize; i++) {
