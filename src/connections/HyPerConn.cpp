@@ -1445,13 +1445,23 @@ int HyPerConn::deleteWeights()
 
    if (wPostPatches != NULL) {
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         const int numPostNeurons = post->getNumNeurons();
-         for (int k = 0; k < numPostNeurons; k++) {
-            pvpatch_inplace_delete(wPostPatches[axonID][k]);
+         if (wPostPatches[axonID] != NULL) {
+            if (shrinkPatches_flag || axonID == 0){
+               deletePatches(wPostPatches[axonID]);
+            }
+            //pvpatch_inplace_delete(wPostPatches[axonID][k]); Not used anymore
+            wPostPatches[axonID] = NULL;
          }
-         free(wPostPatches[axonID]);
+
+         if (wPostDataStart != NULL) {
+            free(this->wPostDataStart[axonID]);
+            this->wPostDataStart[axonID] = NULL;
+         }
       }
       free(wPostPatches);
+      wPostPatches = NULL;
+      free(wPostDataStart);
+      wPostDataStart = NULL;
    }
 
    free(gSynPatchStartBuffer); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
@@ -1528,7 +1538,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
    const double powYScale = pow(2.0f, (double) yScale);
 
 // fixed?
-   // TODO - fix this
+// TODO - fix this
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
@@ -1851,7 +1861,8 @@ int HyPerConn::writePostSynapticWeights(float timef, bool last) {
 
    status = PV::writeWeights(path, comm, (double) timef, append,
                              loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
-                             wPostPatches, wPostDataStart, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, PVP_WGT_FILE_TYPE);
+                             wPostPatches, wPostDataStart, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
+
    if(status != PV_SUCCESS) {
       if( parent->icCommunicator()->commRank() != 0 ) {
          fflush(stdout);
