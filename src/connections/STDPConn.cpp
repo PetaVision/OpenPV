@@ -69,8 +69,10 @@ int STDPConn::initPlasticityPatches()
    //const int numAxons = numberOfAxonalArborLists();
 
 //   dwPatches = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
-   post_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended()); //TODO: what is the role of this post_tr?? decrement variable for post-synaptic layer?
+   post_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   pre_tr = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
    assert(post_tr != NULL);
+   assert(pre_tr != NULL);
 
    return PV_SUCCESS;
 }
@@ -252,7 +254,6 @@ int STDPConn::updateWeights(int axonId)
 }
 #endif OBSOLETE
 
-
 /**
  *  STDP online implementation
  *  (see more at: http://www.scholarpedia.org/article/Spike-Timing_Dependent_Plasticity)
@@ -261,8 +262,8 @@ int STDPConn::updateWeights(int axonId)
 int STDPConn::updateWeights(int axonId)
 {
    // Steps:
-   // 1. Update pre_tr
-   // 2. Update post_tr
+   // 1. Update post_tr
+   // 2. Update pre_tr
    // 3. Update w_ij
 
    const float dt = parent->getDeltaTime();
@@ -271,53 +272,144 @@ int STDPConn::updateWeights(int axonId)
    const int nkpre = pre->getNumExtended();
    assert(nkpre == getNumWeightPatches());
    const pvdata_t * preLayerData = pre->getLayerData();
+   const pvdata_t * aPost = post->getLayerData();
 
    pvdata_t aPre;
-   PVPatch * w;
-   const pvdata_t * aPost;
+   //PVPatch * w;
+
    pvdata_t * post_tr_m;
    pvdata_t * pre_tr_m; // Presynaptic trace matrix
    pvdata_t * W;
-
+   int nk, ny;
 
    const int nkPost = post_tr->numItems;
-   aPost = post->getLayerData();
    post_tr_m = post_tr->data; // Postsynaptic trace matrix
 
 
-   for (int kPre = 0; kPre < nkpre; kPre++) {
-      w = getWeights(kPre, axonId);
-
-      pre_tr_m = get_dwData(axonId, kPre);        // STDP increment variable (presynaptic trace), Note: It uses dwData as the presynaptic trace variable, FIXME: Use an internal variable similar to post_tr?
-      W = get_wData(axonId, kPre); // w->data; TODO: is this diff from w?
-      aPre = preLayerData[kPre];
-
-      // 1. Updates the presynaptic trace
-      pre_tr_m[kPre] = decayLTP * pre_tr_m[kPre] + aPre;
-
-      for (int kPost = 0; kPost < nkPost; kPost++) {
-
-       // 2. Updates the postsynaptic trace
-       post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
-
-       // 3. Update weights w_ij
-       if (W[kPre] > WEIGHT_MIN_VALUE){
-        W[kPre] += dWMax * (-ampLTD*aPre * post_tr_m[kPre] + ampLTP * aPost[kPost] * pre_tr_m[kPre]);
-        W[kPre] = W[kPre] < wMin ? wMin : W[kPre];
-        W[kPre] = W[kPre] > wMax ? wMax : W[kPre];
-       }
-      }
+   // 1. Updates the postsynaptic traces
+   for (int kPost = 0; kPost < nkPost; kPost++) {
+             post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
    }
+
+   // this stride is in extended space for post-synaptic activity and STDP decrement variable
+   const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
+   //FIXME: In the first iteration post is -70!!
+
+   for (int kPre = 0; kPre < nkpre; kPre++) {
+
+         aPre = preLayerData[kPre];
+         PVPatch * w = getWeights(kPre, axonId); //Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
+         size_t postOffset = getAPostOffset(kPre, axonId); //Gets start index for postsynaptic vectors given presynaptic neuron kPre
+
+         aPost = &post->getLayerData()[postOffset]; //Gets postsynaptic activity
+         post_tr_m = &(post_tr->data[postOffset]);  // STDP decrement variable
+         //pre_tr_m = get_dwData(axonId, kPre);        // STDP increment variable
+         pre_tr_m = &(pre_tr->data[kPre]);
+         W = get_wData(axonId, kPre); // w->data;
+
+         nk  = nfp * w->nx; // one line in x at a time
+         ny  = w->ny;
+
+         // 2. Updates the presynaptic trace
+         pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
+
+         //3. Update weights
+         for (int y = 0; y < ny; y++) {
+               for (int k = 0; k < nk; k++) {
+                  // The next statement allows some synapses to "die".
+                  if (W[k] < WEIGHT_MIN_VALUE) continue;
+
+                   W[k] += dWMax * (-ampLTD*aPre * post_tr_m[k] + ampLTP * aPost[k] * pre_tr_m[0]);
+
+                   W[k] = W[k] < wMin ? wMin : W[k];
+                   W[k] = W[k] > wMax ? wMax : W[k];
+
+               }
+
+            // advance pointers in y
+            W += syp; //FIXME: W += nk
+            //pre_tr_m += syp; //FIXME: pre_tr_m += syp;
+
+            // postActivity and post trace are extended layer
+            aPost += postStrideY; //TODO: is this really in the extended space?
+            post_tr_m += postStrideY;
+         }
+
+      }
+
+
+
+//   for (int kPre = 0; kPre < nkpre; kPre++) {
+//      w = getWeights(kPre, axonId);
+//
+//      pre_tr_m = get_dwData(axonId, kPre);  // STDP increment variable (presynaptic trace), Note: It uses dwData as the presynaptic trace variable, FIXME: Use an internal variable similar to post_tr?
+//      W = get_wData(axonId, kPre); // w->data; TODO: is this diff from w?
+//      aPre = preLayerData[kPre];
+//
+//      // 1. Updates the presynaptic trace
+//      pre_tr_m[kPre] = decayLTP * pre_tr_m[kPre] + aPre;
+//
+//      for (int kPost = 0; kPost < nkPost; kPost++) {
+//
+//
+//
+//       // 3. Update weights w_ij
+//       if (W[kPre] > WEIGHT_MIN_VALUE){
+//        W[kPre] += dWMax * (-ampLTD*aPre * post_tr_m[kPre] + ampLTP * aPost[kPost] * pre_tr_m[kPre]);
+//        W[kPre] = W[kPre] < wMin ? wMin : W[kPre];
+//        W[kPre] = W[kPre] > wMax ? wMax : W[kPre];
+//       }
+//      }
+   //}
 
    return 0;
 }
 
-int STDPConn::outputState(float time, bool last)
+int STDPConn::pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
+                                   float aPre, float decay, float ltpAmp)
 {
+   int k;
+   for (k = 0; k < nk; k++) {
+      p[k] = decay * p[k] + ltpAmp * aPre;
+   }
+   return 0;
+}
+
+int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
+                           const float * RESTRICT p, float aPre,
+                           const float * RESTRICT aPost, float dWMax, float wMin, float wMax)
+{
+   int k;
+   for (k = 0; k < nk; k++) {
+      // The next statement allows some synapses to "die".
+      // TODO - check to see if its faster to not use branching
+      if (w[k] < WEIGHT_MIN_VALUE) continue;
+       w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
+       w[k] = w[k] < wMin ? wMin : w[k];
+       w[k] = w[k] > wMax ? wMax : w[k];
+   }
+   return 0;
+}
+
+int STDPConn::outputState(float timef, bool last)
+{
+   int status;
+
    if (last) {
-         printf("Writing last STDP weights..%f\n",time);
+         printf("Writing last STDP weights..%f\n",timef);
+         convertPreSynapticWeights(timef);
+         status = writePostSynapticWeights(timef, last);
+         assert(status == 0);
+      }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
+         //writeTime += writeStep; Done in HyperConn
+         convertPreSynapticWeights(timef);
+         status = writePostSynapticWeights(timef, last);
+         assert(status == 0);
+
+         // append to output file after original open
+         ioAppend = true;
       }
-   int status = HyPerConn::outputState(time, last);
+   status = HyPerConn::outputState(timef, last);
 
    if (status != PV_SUCCESS) return status;
 

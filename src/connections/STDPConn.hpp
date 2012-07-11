@@ -46,7 +46,8 @@ protected:
                   ChannelType channel, const char * filename, bool stdpFlag, InitWeights *weightInit);
    virtual int initPlasticityPatches();
 
-   PVLayerCube    * post_tr;      // plasticity decrement variable (Mi) for post-synaptic layer
+   PVLayerCube    * post_tr;      // plasticity decrement variable for postsynaptic layer
+   PVLayerCube    * pre_tr;      // plasticity increment variable for presynaptic layer
 #ifdef OBSOLETE_STDP
    PVPatch       *** dwPatches;      // list of stdp patches Psij variable
 #endif
