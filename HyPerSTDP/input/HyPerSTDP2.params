@@ -8,7 +8,7 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 100;
+   numSteps = 1000;
    outputPath = "./output";
    filenamesContainLayerNames = 2;
 };
@@ -18,7 +18,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "./input/t_trainFiles_760.txt";
+    imageListPath = "./input/t_trainFiles_Animals_B_ani30.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -112,7 +112,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma = 1;
    rMax  = 1;
    
-   strength =  2550; 
+   strength =  10; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -138,7 +138,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma = 1;
    rMax  = 1;
    
-   strength =  2550; 
+   strength =  10; 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;

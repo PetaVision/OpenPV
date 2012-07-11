@@ -1,11 +1,13 @@
 %Function for plotting activity from the STDP experiment
 
+debug_on_error(0);
 clear all; close all; more off;
-addpath('/Users/ruicosta/Documents/workspace/HyPerSTDP/mlab/')
+addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/mlab/')
 
-output_path = '/Users/ruicosta/Documents/workspace/HyPerSTDP/output/';
+output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/';
   
-
+%filename = 'S1Inh.pvp';
+%filename = 'S1.pvp';
 filename = 'RetinaON.pvp';
 path = [output_path, filename];
 plot_on = 0;

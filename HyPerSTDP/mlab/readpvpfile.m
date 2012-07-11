@@ -1,4 +1,4 @@
-function [data,hdr] = readpvpfile(filename, output_path, name)
+function [data,hdr] = readpvpfile(filename, output_path, name, post)
 % Usage:[data,hdr] = readpvpfile(filename)
 % filename is a pvp file (any type)
 % data is a cell array containing the data.
@@ -267,7 +267,9 @@ if isempty(errorstring)
             end%if eq(MOVIE_FLAG,1)
 
         case 3 % PVP_WGT_FILE_TYPE
+            disp('reading weights type file')
             fseek(fid,0,'bof');
+            hdr
             for f=1:numframes
                 hdr = readpvpheader(fid,ftell(fid));
 
@@ -317,22 +319,59 @@ if isempty(errorstring)
                         end
                     end
                 end
-
+              
+              
+              
+              %Saves movie based on images (Note: working only for 1 feature)
+              if(post)
+                nx=hdr.nx; %sqrt(size(data{f}.values{1},4));
+                ny=hdr.ny; %sqrt(size(data{f}.values{1},4));
+              else
+                nx=hdr.nx+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
+                ny=hdr.ny+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
+              end
+              %hdr.nyprocs = 1;
+              %hdr.nxprocs = 1;
+              wm = zeros(hdr.nxp*nx*hdr.nxprocs, hdr.nyp*ny*hdr.nyprocs);
+              %hdr.nxp = hdr.nxp*2;
+              %hdr.nyp = hdr.nyp*2;              
+              
+              %size(data{1}.values{1,1})
+              
+              for px=0:(hdr.nyprocs-1)
+               for py=0:(hdr.nxprocs-1)
+                
+                c=1;
+                for x=px*nx:(px*nx+nx-1)
+                    for y=py*ny:(py*ny+ny-1)
+                         wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+                         c=c+1;
+                    end%for
+                end%for
+              end%for
+              end%for
+              
                 %Saves movie based on images (Note: working only for 1 feature)
-                nx=sqrt(size(data{f}.values{1},4));
-                ny=sqrt(size(data{f}.values{1},4));
-                wm = zeros(hdr.nxp*nx*hdr.nxprocs, hdr.nyp*ny*hdr.nyprocs);
-		for px=0:(hdr.nxprocs-1)
-			for py=0:(hdr.nyprocs-1)
-				c=1;
-				for x=px*nx:(px*nx+nx-1)
-				    for y=py*ny:(py*ny+ny-1)
-					    wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp);
-					    c=c+1;
-				    end%for
-				end%for
-		    end%for
-		end%for
+                %nx=hdr.nx;%floor(sqrt(size(data{f}.values{1},4)));
+                %ny=hdr.ny;%floor(sqrt(size(data{f}.values{1},4)));
+                %wm = zeros(hdr.nyp*ny*hdr.nyprocs, hdr.nxp*nx*hdr.nxprocs);
+              
+
+%              for px=0:(hdr.nxprocs-1)
+%             	for py=0:(hdr.nyprocs-1)               
+%				c=1;
+%				for x=px*nx:(px*nx+nx-1)
+%				    for y=py*ny:(py*ny+ny-1)
+%                        %disp([num2str(x*hdr.nxp+1) ':' num2str(x*hdr.nxp+hdr.nxp), num2str(y*hdr.nyp+1) ':' num2str(y*hdr.nyp+hdr.nyp)]);
+%                        %disp([num2str(px+1) ' ' num2str(py+1) ' ' num2str(c)]);
+					    
+%                        wm(y*hdr.nyp+1:y*hdr.nyp+hdr.nyp, x*hdr.nxp+1:x*hdr.nxp+hdr.nxp) = reshape(data{f}.values{px+1,py+1}(:,:,1,c), hdr.nxp, hdr.nyp);
+%					    c=c+1;
+%              
+%				    end%for
+%				end%for
+%		    end%for
+%		end%for
 
 
                 %pvp_image = wm;
@@ -351,9 +390,13 @@ if isempty(errorstring)
                     if ne(exist(inst_fig_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
                         mkdir(inst_fig_path);
                     end%if ne(exist(),7)
-
-                    print_fig_filename = [inst_fig_path, num2str(data{f}.time), '.', OUT_FILE_EXT];
+                    
+                    print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
+                    disp(print_fig_filename);
                     %try
+                        %figure
+                        %imshow(wm);
+                        %colorbar;
                         imwrite(wm, print_fig_filename, OUT_FILE_EXT)
                     %catch
                     %    disp(['readpvpfile: WARNING. Could not print file(s):',...
@@ -373,7 +416,7 @@ if isempty(errorstring)
                         mkdir(inst_movie_path);
                     end%if ne(exist(),7)
 
-                    print_movie_filename = [inst_movie_path, num2str(data{f}.time), '.', OUT_FILE_EXT];
+                    print_movie_filename = [inst_movie_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
                     %try
                         imwrite(wm, print_movie_filename, OUT_FILE_EXT)
                     %catch
