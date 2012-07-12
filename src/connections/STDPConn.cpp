@@ -252,7 +252,7 @@ int STDPConn::updateWeights(int axonId)
 
    return 0;
 }
-#endif OBSOLETE
+#endif // OBSOLETE
 
 /**
  *  STDP online implementation
@@ -585,7 +585,7 @@ int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * R
    }
    return 0;
 }
-#endif OBSOLETE
+#endif // OBSOLETE
 
 } // End of namespace PV
 
