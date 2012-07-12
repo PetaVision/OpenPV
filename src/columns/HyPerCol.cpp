@@ -542,9 +542,20 @@ int HyPerCol::run(int nTimeSteps)
    }
 #endif
 
-   if( checkpointReadFlag ) {
+   // Initialize either by loading from checkpoint, or calling initializeState
+   // This needs to happen after initPublishers so that we can initialize the values in the data stores,
+   // and before the layers' publish calls so that the data in border regions gets copied correctly.
+   if ( checkpointReadFlag ) {
+      int str_len = snprintf(NULL, 0, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
+      char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
+      snprintf(cpDir, str_len+1, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
       checkpointRead();
-   }  // checkpointRead() needs to be called before publish since it saves the restricted part of activity
+   }
+   else {
+      for ( int l=0; l<numLayers; l++ ) {
+         layers[l]->initializeState();
+      }
+   }
 
    // publish initial conditions
    //

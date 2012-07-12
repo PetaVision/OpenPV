@@ -97,7 +97,6 @@ protected:
    virtual int initializeLayerId(int layerId);
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
-   virtual int initializeState();
    int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int readHeader(const char * filename, InterColComm * comm, double * timed, int * params);
@@ -118,6 +117,7 @@ private:
 public:
 
    virtual ~HyPerLayer() = 0;
+   virtual int initializeState();
 
    static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);

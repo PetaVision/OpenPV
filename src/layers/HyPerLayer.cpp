@@ -171,6 +171,9 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    int status = allocateBuffers();
    assert(status == PV_SUCCESS);
 
+   // Initializing now takes place at the beginning of HyPerCol::run(int), after
+   // the publishers have been initialized, to allow loading data into the datastore
+#ifdef OBSOLETE // Marked obsolete July 11, 2012
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
       float timef;
@@ -179,6 +182,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    else {
       initializeState();
    }
+#endif // OBSOLETE
 
    // labels are not extended
    labels = (int *) calloc(getNumNeurons(), sizeof(int));
@@ -388,12 +392,23 @@ int HyPerLayer::allocateBuffers() {
 }
 
 int HyPerLayer::initializeState() {
-   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeState should only be called if restart is false
-   InitV * initVObject = new InitV(parent, name);
-   assert(initVObject);
-   int status = initVObject->calcV(this);
-   delete initVObject;
-   setActivity();
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
+   if( restart_flag ) {
+      float timef;
+      readState(&timef);
+   }
+   else {
+      InitV * initVObject = new InitV(parent, name);
+      if( initVObject == NULL ) {
+         fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
+         abort();
+      }
+      status = initVObject->calcV(this);
+      delete initVObject;
+      setActivity();
+   }
    return status;
 }
 

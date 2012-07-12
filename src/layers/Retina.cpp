@@ -232,10 +232,16 @@ int Retina::initializeThreadKernels(const char * kernel_name)
 #endif
 
 int Retina::initializeState() {
-   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeV should only be called if restart is false
-   // Retina doesn't use the V buffer so free it and set the pointer to null.
    free(clayer->V);
    clayer->V = NULL;
+
+   PVParams * params = parent->parameters();
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
+   if( restart_flag ) {
+      float timef;
+      readState(&timef);
+   }
+
    return PV_SUCCESS;
 }
 

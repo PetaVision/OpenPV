@@ -106,11 +106,18 @@ int Image::readOffsets() {
 }
 
 int Image::initializeState() {
-   assert(parent->parameters()->value(name, "restart", 0.0f, false)==0.0f); // initializeState should only be called if restart is false
-   // Image doesn't use the V buffer so free it and set the pointer to null.
+   int status = PV_SUCCESS;
+
    free(clayer->V);
    clayer->V = NULL;
-   return PV_SUCCESS;
+
+   PVParams * params = parent->parameters();
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
+   if( restart_flag ) {
+      float timef;
+      readState(&timef);
+   }
+   return status;
 }
 
 #ifdef PV_USE_OPENCL

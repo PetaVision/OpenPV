@@ -94,6 +94,7 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
 }
 
 int TrainingLayer::initializeState() {
+   // TODO If restarting from restart_flag or checkpoint, need to restore curTrainingLabelIndex
    int status;
    pvdata_t * V = getV();
    for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
