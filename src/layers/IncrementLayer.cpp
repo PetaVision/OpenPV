@@ -102,33 +102,38 @@ int IncrementLayer::setActivity() {
    return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->nb);
 }
 
-int IncrementLayer::checkpointRead(float * timef) {
-   HyPerLayer::checkpointRead(timef);
+int IncrementLayer::checkpointRead(const char * cpDir, float * timef) {
+   HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
-   assert(filename != NULL);
+   char filename[PV_PATH_MAX];
 
-   sprintf(filename, "%s_Vprev.pvp", name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_Vprev.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "IncrementLayer::checkpointRead error: path \"%s/%s_Vprev.pvp\" is too long.\n", cpDir, name);
+      }
+      abort();
+   }
    readBufferFile(filename, icComm, &timed, Vprev, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
    VInited = *timef >= firstUpdateTime + parent->getDeltaTime();
 
-   free(filename);
    return PV_SUCCESS;
 }
 
-int IncrementLayer::checkpointWrite() {
-   HyPerLayer::checkpointWrite();
+int IncrementLayer::checkpointWrite(const char * cpDir) {
+   HyPerLayer::checkpointWrite(cpDir);
    InterColComm * icComm = parent->icCommunicator();
    double timed = (double) parent->simulationTime();
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
+   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
-   sprintf(filename, "%s_Vprev.pvp", name);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vprev.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, Vprev, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;

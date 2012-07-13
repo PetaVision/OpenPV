@@ -549,7 +549,7 @@ int HyPerCol::run(int nTimeSteps)
       int str_len = snprintf(NULL, 0, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
       char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
       snprintf(cpDir, str_len+1, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
-      checkpointRead();
+      checkpointRead(cpDir);
    }
    else {
       for ( int l=0; l<numLayers; l++ ) {
@@ -583,7 +583,25 @@ int HyPerCol::run(int nTimeSteps)
    int step = 0;
    while (simTime < stopTime) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
-         checkpointWrite();
+         if (icComm->commRank()==0) {
+            fprintf(stderr, "Checkpointing, simTime = %f\n", simulationTime());
+         }
+         if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
+            if( icComm->commRank() == 0 ) {
+               fflush(stdout);
+               fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+            }
+            exit(EXIT_FAILURE);
+         }
+         char cpDir[PV_PATH_MAX];
+         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+         if(chars_printed >= PV_PATH_MAX) {
+            if (icComm->commRank()==0) {
+               fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
+               abort();
+            }
+         }
+         checkpointWrite(cpDir);
       }
       simTime = advanceTime(simTime);
 
@@ -733,25 +751,22 @@ bool HyPerCol::advanceCPWriteTime() {
    return advanceCPTime;
 }
 
-int HyPerCol::checkpointRead() {
-   assert(cpReadDirIndex >= 0  && cpReadDirIndex < HYPERCOL_DIRINDEX_MAX+1 );
-   char * cpDir = (char *) malloc( (strlen(checkpointReadDir)+11+12)*sizeof(char) );
-   if( cpDir == NULL ) {
-      if( icComm->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Column \"%s\": checkpointRead unable to allocate memory.  Exiting.\n", name);
-      }
-      exit(EXIT_FAILURE);
-   }
-   sprintf(cpDir, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
-   chdir(cpDir);
-   // size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
+int HyPerCol::checkpointRead(const char * cpDir) {
    size_t bufsize = sizeof(int) + sizeof(float);
    unsigned char * buf = (unsigned char *) malloc(bufsize);
    assert(buf);
    if( icCommunicator()->commRank()==0 ) {
-      FILE * timestampfile = fopen("timeinfo.bin","r");
-      assert(timestampfile);
+      char timestamppath[PV_PATH_MAX];
+      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
+         abort();
+      }
+      FILE * timestampfile = fopen(timestamppath,"r");
+      if (timestampfile == NULL) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
+         abort();
+      }
       fread(buf,1,bufsize,timestampfile);
       fclose(timestampfile);
    }
@@ -770,11 +785,11 @@ int HyPerCol::checkpointRead() {
    currentStep = *((int *) (buf+sizeof(float)));
    float checkTime;
    for( int l=0; l<numLayers; l++ ) {
-      layers[l]->checkpointRead(&checkTime);
+      layers[l]->checkpointRead(cpDir, &checkTime);
       assert(checkTime==simTime);
    }
    for( int c=0; c<numConnections; c++ ) {
-      connections[c]->checkpointRead(&checkTime);
+      connections[c]->checkpointRead(cpDir, &checkTime);
       assert(checkTime==simTime);
    }
    if(checkpointWriteFlag) {
@@ -791,11 +806,10 @@ int HyPerCol::checkpointRead() {
          assert(false); // if checkpointWriteFlag is set, one of cpWrite{Step,Time}Interval should be positive
       }
    }
-   chdir(path);
    return PV_SUCCESS;
 }
 
-int HyPerCol::checkpointWrite() {
+int HyPerCol::checkpointWrite(const char * cpDir) {
    fprintf(stderr, "Rank %d in checkpointWrite. simTime = %f\n", icComm->commRank(), simTime);
    if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
       if( icComm->commRank() == 0 ) {
@@ -804,25 +818,21 @@ int HyPerCol::checkpointWrite() {
       }
       exit(EXIT_FAILURE);
    }
-   char * cpDir = (char *) malloc( (strlen(checkpointWriteDir)+11+12)*sizeof(char) );
-   if( cpDir == NULL ) {
-      if( icComm->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Column \"%s\": checkpointWrite unable to allocate memory.  Exiting.\n", name);
-      }
-      exit(EXIT_FAILURE);
-   }
-   sprintf(cpDir, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
    ensureDirExists(cpDir);
-   chdir(cpDir);
    for( int l=0; l<numLayers; l++ ) {
-      layers[l]->checkpointWrite();
+      layers[l]->checkpointWrite(cpDir);
    }
    for( int c=0; c<numConnections; c++ ) {
-      connections[c]->checkpointWrite();
+      connections[c]->checkpointWrite(cpDir);
    }
    if( icCommunicator()->commRank()==0 ) {
-      FILE * timestampfile = fopen("timeinfo.bin","w");
+      char timestamppath[PV_PATH_MAX];
+      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
+         abort();
+      }
+      FILE * timestampfile = fopen(timestamppath,"w");
 #ifdef OBSOLETE // Marked obsolete Feb 6, 2012.  nextCPWrite{Time,Step} is retrieved from params file so it doesn't have to be saved in timeinfo
       size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
       unsigned char * buf = (unsigned char *) malloc(bufsize);
@@ -848,7 +858,6 @@ int HyPerCol::checkpointWrite() {
       fprintf(timestampfile,"timestep = %d\n", currentStep);
       fclose(timestampfile);
    }
-   chdir(path);
    return PV_SUCCESS;
 }
 
@@ -891,7 +900,15 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    bool last = true;
 
    if( checkpointWriteFlag ) {
-      checkpointWrite();
+      char cpDir[PV_PATH_MAX];
+      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+      if(chars_printed >= PV_PATH_MAX) {
+         if (icComm->commRank()==0) {
+            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
+            abort();
+         }
+      }
+      checkpointWrite(cpDir);
    }
 
    for (int l = 0; l < numLayers; l++) {

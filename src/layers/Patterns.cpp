@@ -535,14 +535,16 @@ float Patterns::calcPosition(float pos, int step)
 }
 
 
-int Patterns::checkpointRead(float * timef) {
-   int status = HyPerLayer::checkpointRead(timef);
+int Patterns::checkpointRead(const char * cpDir, float * timef) {
+   int status = HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
-   char * filename = (char *) malloc( (strlen(name)+18)*sizeof(char) );
-   // The +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+18;
+   // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
 
-   sprintf(filename, "%s_PatternState.bin", name);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_PatternState.bin", cpDir, name);
+   assert(chars_needed < filenamesize);
    if( icComm->commRank() == 0 ) {
       FILE * fp = fopen(filename, "r");
       if( fp != NULL ) {
@@ -559,14 +561,15 @@ int Patterns::checkpointRead(float * timef) {
    return status;
 }
 
-int Patterns::checkpointWrite() {
-   int status = HyPerLayer::checkpointWrite();
+int Patterns::checkpointWrite(const char * cpDir) {
+   int status = HyPerLayer::checkpointWrite(cpDir);
    InterColComm * icComm = parent->icCommunicator();
-   char * filename = (char *) malloc( (strlen(name)+18)*sizeof(char) );
-   // The +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+18;
+   // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
 
-   sprintf(filename, "%s_PatternState.bin", name);
+   sprintf(filename, "%s/%s_PatternState.bin", cpDir, name);
    if( icComm->commRank() == 0 ) {
       FILE * fp = fopen(filename, "w");
       if( fp != NULL ) {
@@ -579,7 +582,7 @@ int Patterns::checkpointWrite() {
       else {
          fprintf(stderr, "Unable to write to \"%s\"\n", filename);
       }
-      sprintf(filename, "%s_PatternState.txt", name);
+      sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
       fp = fopen(filename, "w");
       fprintf(fp, "Orientation = ");
       switch(orientation) {

@@ -51,8 +51,8 @@ public:
 
    virtual int tag();
 
-   int checkpointRead(float * timef);
-   int checkpointWrite();
+   int checkpointRead(const char * cpDir, float * timef);
+   int checkpointWrite(const char * cpDir);
 
 protected:
 

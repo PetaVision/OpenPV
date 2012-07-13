@@ -180,15 +180,17 @@ int LIFGap::allocateBuffers() {
    return status;
 }
 
-int LIFGap::checkpointRead(float * timef) {
-   LIF::checkpointRead(timef);
+int LIFGap::checkpointRead(const char * cpDir, float * timef) {
+   LIF::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
+   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
 
-   sprintf(filename, "%s_G_Gap.pvp", name);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_G_Gap.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
@@ -198,14 +200,15 @@ int LIFGap::checkpointRead(float * timef) {
    return PV_SUCCESS;
 }
 
-int LIFGap::checkpointWrite() {
-   LIF::checkpointWrite();
+int LIFGap::checkpointWrite(const char * cpDir) {
+   LIF::checkpointWrite(cpDir);
    InterColComm * icComm = parent->icCommunicator();
    double timed = (double) parent->simulationTime();
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
+   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
-   sprintf(filename, "%s_G_Gap.pvp", name);
+   sprintf(filename, "%s/%s_G_Gap.pvp", cpDir, name);
    writeBufferFile(filename, icComm, timed, G_Gap, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;

@@ -44,8 +44,8 @@ public:
    virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
-   virtual int checkpointRead(float * timef);
-   virtual int checkpointWrite();
+   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointWrite(const char * cpDir);
 
    virtual int readState (float * time);
    virtual int writeState(float time, bool last=false);

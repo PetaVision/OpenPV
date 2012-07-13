@@ -34,7 +34,7 @@ public:
    virtual int updateState(float time, float dt);
    virtual int outputState(float time, bool last=false);
 
-   virtual int checkpointRead(float * timef);
+   virtual int checkpointRead(const char * cpDir, float * timef);
 
    // partially override implementation of LayerDataInterface interface
    //

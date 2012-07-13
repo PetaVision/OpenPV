@@ -36,7 +36,7 @@ int Image::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Image::checkpointRead(float * timef){
+int Image::checkpointRead(const char * cpDir, float * timef){
 
    PVParams * params = parent->parameters();
    this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
@@ -46,7 +46,7 @@ int Image::checkpointRead(float * timef){
    }
    else {
       fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
-      HyPerLayer::checkpointRead(timef);
+      HyPerLayer::checkpointRead(cpDir, timef);
    }
 
 

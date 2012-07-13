@@ -40,8 +40,8 @@ public:
    //      const char * filename, float timef, bool last){return PV_SUCCESS;};
    virtual int writeWeights(float time, bool last=false){return PV_SUCCESS;};
    virtual int writeWeights(const char * filename){return PV_SUCCESS;};
-   virtual int checkpointWrite(){return PV_SUCCESS;};
-   virtual int checkpointRead(float *timef){return PV_SUCCESS;};
+   virtual int checkpointWrite(const char * cpDir){return PV_SUCCESS;};
+   virtual int checkpointRead(const char * cpDir, float *timef){return PV_SUCCESS;};
 
 protected:
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,

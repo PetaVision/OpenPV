@@ -49,10 +49,6 @@ public:
    int   exitRunLoop(bool exitOnFinish);
 
    int loadState();
-#ifdef OBSOLETE // Marked obsolete Nov 1, 2011.  Nobody calls this routine and it will be supplanted with checkpointWrite()
-   int writeState();
-#endif
-
    int columnId();
 
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
@@ -120,8 +116,8 @@ private:
    int checkDirExists(const char * dirname, struct stat * pathstat);
    int initPublishers();
    bool advanceCPWriteTime();
-   int checkpointRead();
-   int checkpointWrite();
+   int checkpointRead(const char * cpDir);
+   int checkpointWrite(const char * cpDir);
    int outputParams(const char * filename);
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);

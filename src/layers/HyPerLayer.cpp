@@ -1028,31 +1028,58 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
    return buf;
 }
 
-int HyPerLayer::checkpointRead(float * timef) {
-   char * filename = NULL;
-   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _Delays.pvp) plus the null terminator
+int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    InterColComm * icComm = parent->icCommunicator();
+   char basepath[PV_PATH_MAX];
+   char filename[PV_PATH_MAX];
+   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
+   if (lenbase+strlen("_nextWrite.bin") >= PV_PATH_MAX) { // currently _nextWrite.bin is the longest suffix needed
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+      }
+      abort();
+   }
    double timed;
    assert(filename != NULL);
-   sprintf(filename, "%s_A.pvp", name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
    readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
    *timef = (float) timed;
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
-      sprintf(filename, "%s_V.pvp", name);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
+      assert(chars_needed < PV_PATH_MAX);
       readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false);
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
    }
-   sprintf(filename, "%s_Delays.pvp", name);
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
    readDataStoreFromFile(filename, icComm, &timed);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-   free(filename);
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_nextWrite.bin", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   if( parent->icCommunicator()->commRank() == 0 ) {
+      FILE * fpWriteTime = fopen(filename, "r");
+      pvdata_t write_time = writeTime;
+      if (fpWriteTime==NULL  && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", filename, write_time);
+      }
+      else {
+         int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
+         if (num_read != 1 && parent->icCommunicator()->commRank() == 0 ) {
+            fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", filename, write_time);
+            writeTime = write_time;
+         }
+      }
+      fclose(fpWriteTime);
+   }
+   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, icComm->communicator());
+
    return PV_SUCCESS;
 }
 
@@ -1147,23 +1174,31 @@ int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * 
    return PV_SUCCESS;
 }
 
-int HyPerLayer::checkpointWrite() {
+int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, GSyn(?) and datastore to files in working directory
    // (HyPerCol::checkpointWrite() calls chdir before and after calling this routine)
    InterColComm * icComm = parent->icCommunicator();
+   char basepath[PV_PATH_MAX];
+   char filename[PV_PATH_MAX];
+   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
+   if (lenbase+strlen("_nextWrite.bin") >= PV_PATH_MAX) { // currently _nextWrite.bin is the longest suffix needed
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+      }
+      abort();
+   }
    double timed = (double) parent->simulationTime();
-   char * filename = NULL;
-   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _Delays.pvp) plus the null terminator
-   assert(filename != NULL);
-   sprintf(filename, "%s_A.pvp", name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
    writeBufferFile(filename, icComm, timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
-      sprintf(filename, "%s_V.pvp", name);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
+      assert(chars_needed < PV_PATH_MAX);
       writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false);
    }
-   sprintf(filename, "%s_Delays.pvp", name);
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
 #ifdef OBSOLETE // Marked obsolete Jan 31, 2012.  When checkpointWrite is called, GSyn is blank.  Since GSyn is calculated by triggerReceive, it doesn't need to be saved.
@@ -1173,7 +1208,31 @@ int HyPerLayer::checkpointWrite() {
       // assumes GSyn[0], GSyn[1],... are sequential in memory
    }
 #endif // OBSOLETE
-   free(filename);
+
+   if (icComm->commRank()==0) {
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_nextWrite.bin", cpDir, name);
+      assert(chars_needed < PV_PATH_MAX);
+      FILE * fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = fwrite(&writeTime, sizeof(writeTime), 1, fpWriteTime);
+      if (num_written != 1) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
+         abort();
+      }
+      fclose(fpWriteTime);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_nextWrite.txt", cpDir, name);
+      assert(chars_needed < PV_PATH_MAX);
+      fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      fprintf(fpWriteTime, "%f\n", writeTime);
+      fclose(fpWriteTime);
+   }
    return PV_SUCCESS;
 }
 

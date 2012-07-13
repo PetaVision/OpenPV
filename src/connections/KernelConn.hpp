@@ -52,8 +52,8 @@ public:
    float getLastUpdateTime() {return lastUpdateTime;}
 
 
-   virtual int checkpointWrite();
-   virtual int checkpointRead(float *timef);
+   virtual int checkpointWrite(const char * cpDir);
+   virtual int checkpointRead(const char * cpDir, float *timef);
 
 #ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
    virtual int kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex = NULL,

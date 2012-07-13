@@ -353,33 +353,38 @@ int LIF::allocateBuffers() {
    return HyPerLayer::allocateBuffers();
 }
 
-int LIF::checkpointRead(float * timef) {
-   HyPerLayer::checkpointRead(timef);
+int LIF::checkpointRead(const char * cpDir, float * timef) {
+   HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   int filenamesize = strlen(cpDir)+12;
    // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
 
-   sprintf(filename, "%s_Vth.pvp", name);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    readBufferFile(filename, icComm, &timed, Vth, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-   sprintf(filename, "%s_G_E.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    readBufferFile(filename, icComm, &timed, G_E, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-   sprintf(filename, "%s_G_I.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    readBufferFile(filename, icComm, &timed, G_I, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-   sprintf(filename, "%s_G_IB.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    readBufferFile(filename, icComm, &timed, G_IB, 1, /*extended*/false, /*contiguous*/false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
@@ -389,20 +394,25 @@ int LIF::checkpointRead(float * timef) {
    return PV_SUCCESS;
 }
 
-int LIF::checkpointWrite() {
-   HyPerLayer::checkpointWrite();
+int LIF::checkpointWrite(const char * cpDir) {
+   HyPerLayer::checkpointWrite(cpDir);
    InterColComm * icComm = parent->icCommunicator();
    double timed = (double) parent->simulationTime();
+   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
+   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
    char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
    assert(filename != NULL);
-   sprintf(filename, "%s_Vth.pvp", name);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, Vth, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   sprintf(filename, "%s_G_E.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   sprintf(filename, "%s_G_I.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   sprintf(filename, "%s_G_IB.pvp", name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;

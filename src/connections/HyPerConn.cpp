@@ -1188,33 +1188,34 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    return 0;
 }
 
-int HyPerConn::checkpointRead(float * timef) {
-   clearWeights(wDataStart, getNumDataPatches(), nxp, nyp, nfp);
-   char * filename = checkpointFilename();
-   InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), filename, this, timef);
-   free(filename);
-   return PV_SUCCESS;
-}
+int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
+   clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
 
-int HyPerConn::checkpointWrite() {
-   char * filename = checkpointFilename();
-   int status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
-   free(filename);
+   char path[PV_PATH_MAX];
+   int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
+   assert(status==PV_SUCCESS);
+   InitWeights * weightsInitObject = new InitWeights();
+   weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, this, timef);
    return status;
 }
 
-char * HyPerConn::checkpointFilename() {
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   // routine that calls checkpointFilename should free filename when done
-   if( filename != NULL ) {
-      sprintf(filename, "%s_W.pvp", name);
+int HyPerConn::checkpointWrite(const char * cpDir) {
+   char filename[PV_PATH_MAX];
+   int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
+   assert(status==PV_SUCCESS);
+   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
+   return status;
+}
+
+int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDir) {
+   int chars_needed = snprintf(cpFilename, size, "%s/%s_W.pvp", cpDir, name);
+   if(chars_needed >= PV_PATH_MAX) {
+      if ( parent->icCommunicator()->commRank()==0 ) {
+         fprintf(stderr, "HyPerConn::checkpointFilename error: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
+      }
+      abort();
    }
-   else {
-         fprintf(stderr, "Connection \"%s\", Rank %d process: unable to allocate memory for checkpointFilename.  Exiting.\n", name, parent->icCommunicator()->commRank());
-         abort();
-   }
-   return filename;
+   return PV_SUCCESS;
 }
 
 float HyPerConn::maxWeight(int arborId)

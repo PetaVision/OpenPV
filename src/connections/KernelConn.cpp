@@ -608,36 +608,23 @@ int KernelConn::writeWeights(const char * filename) {
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 
-#ifdef OBSOLETE_NBANDSFORARBORS
-int KernelConn::writeWeights(float time, bool last)
-{
-   //const int arbor = 0;
-   this->fileType = PVP_KERNEL_FILE_TYPE;
-   const int numPatches = getNumDataPatches();
-   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-      if(HyPerConn::writeWeights(kernelPatches[arborId], numPatches, NULL, time, last, arborId))
-         return 1;
-   }
-   return 0;
-}
-#endif // OBSOLETE_NBANDSFORARBORS
-
-int KernelConn::checkpointRead(float * timef) {
+int KernelConn::checkpointRead(const char * cpDir, float * timef) {
    // Only difference from HyPerConn::checkpointRead() is first argument to weightsInitObject->initializeWeights.
    // Can we juggle things so that KernelConn::checkpointWrite is unnecessary?
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
-   char * filename = checkpointFilename();
+
+   char path[PV_PATH_MAX];
+   int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
+   assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, this, timef);
-   free(filename);
+   weightsInitObject->initializeWeights(NULL, get_wDataStart(), getNumDataPatches(), path, this, timef);
    return PV_SUCCESS;
 }
 
-int KernelConn::checkpointWrite() {
-   char * filename;
-   filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
-   assert(filename != NULL);
-   sprintf(filename, "%s_W.pvp", name);
+int KernelConn::checkpointWrite(const char * cpDir) {
+   char filename[PV_PATH_MAX];
+   int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
+   assert(status==PV_SUCCESS);
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 

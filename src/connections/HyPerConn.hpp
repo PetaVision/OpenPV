@@ -58,8 +58,8 @@ public:
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
-   virtual int checkpointRead(float* timef);
-   virtual int checkpointWrite();
+   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointWrite(const char * cpDir);
    virtual int insertProbe(BaseConnectionProbe* p);
    virtual int outputState(float time, bool last = false);
    virtual int updateState(float time, float dt);
@@ -451,7 +451,7 @@ protected:
    virtual int checkWeightsHeader(const char* filename, int wgtParams[]);
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
    virtual int adjustAxonalArbors(int arborId);
-   char* checkpointFilename();
+   int checkpointFilename(char * cpFilename, int size, const char * cpDir);
    virtual int calc_dW(int axonId = 0);
    void connOutOfMemory(const char* funcname);
 

@@ -153,8 +153,8 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
-   virtual int checkpointRead(float * timef);
-   virtual int checkpointWrite();
+   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointWrite(const char * cpDir);
 
    virtual int readState (float * timef);
    virtual int writeState(float timef, bool last=false);
