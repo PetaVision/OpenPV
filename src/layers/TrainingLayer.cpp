@@ -139,7 +139,7 @@ int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
       char curLabelIndexPath[PV_PATH_MAX];
       int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "TrainingLayer::checkpointRead error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n");
+         fprintf(stderr, "TrainingLayer::checkpointRead error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
          abort();
       }
       FILE * curLabelIndexFile = fopen(curLabelIndexPath, "r");
@@ -164,7 +164,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
       char curLabelIndexPath[PV_PATH_MAX];
       int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n");
+         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
          abort();
       }
       FILE * curLabelIndexFile = fopen(curLabelIndexPath, "w");
@@ -180,3 +180,5 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
    }
    return status;
 }
+
+} // end of namespace PV
