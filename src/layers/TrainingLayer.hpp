@@ -25,7 +25,8 @@ public:
    int readTrainingLabels(const char * filename, int ** trainingLabels);
    virtual int initializeState();
    virtual int updateState(float timef, float dt);
-   // virtual int updateV();
+   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointWrite(const char * cpDir);
 
 protected:
    TrainingLayer();

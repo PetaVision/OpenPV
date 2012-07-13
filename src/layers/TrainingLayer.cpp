@@ -130,37 +130,53 @@ int TrainingLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pv
    return PV_SUCCESS;
 }
 
-//int TrainingLayer::updateV() {
-//   int status1 = clearLabeledNeuron();
-//
-//   curTrainingLabelIndex++;
-//   curTrainingLabelIndex = curTrainingLabelIndex == numTrainingLabels ? 0 : curTrainingLabelIndex;
-//   int status2 = setLabeledNeuron();
-//   return (status1==PV_SUCCESS && status2==PV_SUCCESS) ?
-//         PV_SUCCESS : PV_FAILURE;
-//}  // end of TrainingLayer::updateV()
+int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
+   int status = HyPerLayer::checkpointRead(cpDir, timef);
+   assert(status == PV_SUCCESS);
+   InterColComm * icComm = parent->icCommunicator();
+   int rootProc = 0;
+   if (icComm->commRank() == rootProc) {
+      char curLabelIndexPath[PV_PATH_MAX];
+      int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "TrainingLayer::checkpointRead error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n");
+         abort();
+      }
+      FILE * curLabelIndexFile = fopen(curLabelIndexPath, "r");
+      if (curLabelIndexFile == NULL) {
+         fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to open \"%s\" for reading.  Error %d\n", curLabelIndexPath, errno);
+         abort();
+      }
+      int numread = fread(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
+      if (numread != 1) {
+         fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to read \"%s\".\n", curLabelIndexPath);
+         abort();
+      }
+   }
+   MPI_Bcast(&curTrainingLabelIndex, 1, MPI_INT, rootProc, icComm->communicator());
+   return status;
+}
 
-//int TrainingLayer::setLabeledNeuronToValue(pvdata_t val) {
-//   int n = trainingLabels[curTrainingLabelIndex];
-//   int N = getNumNeurons();
-//   if( n>=N ) {
-//      sendBadNeuronMessage();
-//      return PV_FAILURE;
-//   }
-//   else {
-//      pvdata_t * V = getV();
-//      V[trainingLabels[curTrainingLabelIndex]] = val;
-//      return PV_SUCCESS;
-//   }
-//}  // end of TrainingLayer::setLabeledNeuronToValue(int, pvdata_t)
-
-//void TrainingLayer::sendBadNeuronMessage() {
-//   fprintf(stderr, "TrainingLayer \"%s\":\n", name);
-//   fprintf(stderr, "Number of training labels is %d\n", numTrainingLabels);
-//   fprintf(stderr, "Current label index is %d\n", curTrainingLabelIndex);
-//   fprintf(stderr, "Value of label %d is %d\n", curTrainingLabelIndex,
-//         trainingLabels[curTrainingLabelIndex]);
-//   fprintf(stderr, "Number of neurons is %d\n", getNumNeurons());
-//}
-
-}  // end of namespace PV
+int TrainingLayer::checkpointWrite(const char * cpDir) {
+   int status = HyPerLayer::checkpointWrite(cpDir);
+   assert(status == PV_SUCCESS);
+   if (parent->icCommunicator()->commRank()==0) {
+      char curLabelIndexPath[PV_PATH_MAX];
+      int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n");
+         abort();
+      }
+      FILE * curLabelIndexFile = fopen(curLabelIndexPath, "w");
+      if (curLabelIndexFile == NULL) {
+         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to open \"%s\" for writing.  Error %d\n", curLabelIndexPath, errno);
+         abort();
+      }
+      int numread = fwrite(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
+      if (numread != 1) {
+         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to write to \"%s\".\n", curLabelIndexPath);
+         abort();
+      }
+   }
+   return status;
+}
