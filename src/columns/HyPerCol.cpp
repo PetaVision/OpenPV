@@ -833,26 +833,13 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          abort();
       }
       FILE * timestampfile = fopen(timestamppath,"w");
-#ifdef OBSOLETE // Marked obsolete Feb 6, 2012.  nextCPWrite{Time,Step} is retrieved from params file so it doesn't have to be saved in timeinfo
-      size_t bufsize = sizeof(int)*2 + sizeof(float)*2;
-      unsigned char * buf = (unsigned char *) malloc(bufsize);
-      assert(buf && timestampfile);
-      int * ibuf;
-      float * fbuf;
-      fbuf = (float *) (buf);
-      fbuf[0] = simTime;
-      fbuf[1] = nextCPWriteTime;
-      ibuf = (int *) (buf+2*sizeof(float));
-      ibuf[0] = currentStep;
-      ibuf[1] = nextCPWriteStep;
-      fwrite(buf,1,bufsize,timestampfile);
-      free(buf);
-#endif // OBSOLETE
       assert(timestampfile);
       fwrite(&simTime,1,sizeof(float),timestampfile);
       fwrite(&currentStep,1,sizeof(int),timestampfile);
       fclose(timestampfile);
-      timestampfile = fopen("timeinfo.txt","w");
+      chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
+      assert(chars_needed < PV_PATH_MAX);
+      timestampfile = fopen(timestamppath,"w");
       assert(timestampfile);
       fprintf(timestampfile,"time = %g\n", simTime);
       fprintf(timestampfile,"timestep = %d\n", currentStep);
