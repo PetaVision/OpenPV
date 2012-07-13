@@ -152,6 +152,7 @@ int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
          fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to read \"%s\".\n", curLabelIndexPath);
          abort();
       }
+      fclose(curLabelIndexFile);
    }
    MPI_Bcast(&curTrainingLabelIndex, 1, MPI_INT, rootProc, icComm->communicator());
    return status;
@@ -177,6 +178,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to write to \"%s\".\n", curLabelIndexPath);
          abort();
       }
+      fclose(curLabelIndexFile);
    }
    return status;
 }
