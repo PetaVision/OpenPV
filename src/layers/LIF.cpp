@@ -400,7 +400,7 @@ int LIF::checkpointWrite(const char * cpDir) {
    double timed = (double) parent->simulationTime();
    int filenamesize = strlen(cpDir)+1+strlen(name)+12;
    // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
-   char * filename = (char *) malloc( (strlen(name)+12)*sizeof(char) );
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
