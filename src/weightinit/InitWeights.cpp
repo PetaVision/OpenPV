@@ -45,6 +45,10 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, i
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
    InitWeightsParams *weightParams = NULL;
    int numArbors = callingConn->numberOfAxonalArborLists();
+#ifdef USE_SHMGET
+   bool shmget_owner = callingConn->getShmgetOwner();
+   bool shmget_flag = callingConn->getShmgetFlag();
+#endif
    if( initFromLastFlag ) {
       char nametmp[PV_PATH_MAX];
       snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
@@ -54,7 +58,12 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, i
       readWeights(patches, dataStart, callingConn->getNumDataPatches(), filename, callingConn, timef);
    }
    else {
-      weightParams = createNewWeightParams(callingConn);
+#ifdef USE_SHMGET
+      if (shmget_flag && !shmget_owner){
+         return PV_SUCCESS;
+      }
+#endif
+     weightParams = createNewWeightParams(callingConn);
       //int patchSize = nfp*nxp*nyp;
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
@@ -128,6 +137,10 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    bool useListOfArborFiles = numArbors>1 &&
                               conn->getParent()->parameters()->value(conn->getName(), "useListOfArborFiles", false)!=0;
    bool combineWeightFiles = conn->getParent()->parameters()->value(conn->getName(), "combineWeightFiles", false)!=0;
+#ifdef USE_SHMGET
+   bool shmget_owner = conn->getShmgetOwner();
+   bool shmget_flag = conn->getShmgetFlag();
+#endif
    if( useListOfArborFiles ) {
       int arbor=0;
       FILE * arborfp = pvp_open_read_file(filename, icComm);
@@ -166,7 +179,11 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
          pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
          int thisfilearbors = params[INDEX_NBANDS];
+#ifndef USE_SHMGET
          int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
+#else
+         int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
+#endif
          if (status != PV_SUCCESS) {
             fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
             exit(EXIT_FAILURE);
@@ -218,7 +235,11 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
          int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
          int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
          pvp_read_header(weightsfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
+#ifndef USE_SHMGET
          int status = PV::readWeights(patches, dataStart, numArbors, numPatches, weightsfilename, icComm, &timed, preLoc);
+#else
+         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, weightsfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
+#endif
          if (status != PV_SUCCESS) {
             fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
             exit(EXIT_FAILURE);
@@ -228,7 +249,11 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
 
    } // if combineWeightFiles
    else {
+#ifndef USE_SHMGET
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc);
+#else
+         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
+#endif
       if (status != PV_SUCCESS) {
          fprintf(stderr, "PV::readWeights: problem reading weight file %s, SHUTTING DOWN\n", filename);
          exit(EXIT_FAILURE);
@@ -329,8 +354,12 @@ int InitWeights::gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    int sf_tmp=weightParamPtr->getsf_tmp();
    double r2Max=weightParamPtr->getr2Max();
    double r2Min=weightParamPtr->getr2Min();
-
-   // pvdata_t * w_tmp = patch->data;
+	
+#ifndef USE_SHMGET	
+   pvdata_t * w_tmp = dataStart;
+#else
+   volatile pvdata_t * w_tmp = dataStart;
+#endif
 
 
 
@@ -356,15 +385,15 @@ int InitWeights::gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
-            dataStart[index] = 0;
+            w_tmp[index] = 0;
             if ((d2 <= r2Max) && (d2 >= r2Min)) {
-               dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
+               w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if ((d2 <= r2Max) && (d2 >= r2Min)) {
-                  dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
+                  w_tmp[index] += exp(-d2 / (2.0f * sigma * sigma));
                }
             }
          }
