@@ -46,6 +46,11 @@ void SiblingConn::setSiblingConn(SiblingConn *sibling_conn){
 
 int SiblingConn::normalizeFamily()
 {
+#ifdef USE_SHMGET
+   if (shmget_flag && !shmget_owner){
+         return PV_BREAK;
+      }
+#endif
    // normalize all arbors individuqlly relative to siblings
    const int num_kernels = getNumDataPatches();
    double sum_local = 0.0;
@@ -58,7 +63,11 @@ int SiblingConn::normalizeFamily()
          assert(localWeights != NULL);
          // PVPatch * siblingWpatch = siblingConn->getKernelPatch(kArbor, kPatch);
          // pvdata_t * siblingWeights = siblingWpatch->data;
+#ifdef USE_SHMGET
+         volatile pvdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
+#else
          pvdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
+#endif
          assert(siblingWeights != NULL);
          const int nx = nxp; // localWPatch->nx;
          const int ny = nyp; // localWPatch->ny;
@@ -81,7 +90,11 @@ int SiblingConn::normalizeFamily()
    // scale local weights so that average = sibling average
    float scale_factor = sum_local != 0 ? fabs(sum_sibling) / fabs(sum_local) : 1;
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
-      pvdata_t * localWeights = this->get_wDataStart(kArbor);
+#ifdef USE_SHMGET
+         volatile pvdata_t * localWeights = this->get_wDataStart(kArbor);
+#else
+         pvdata_t * localWeights = this->get_wDataStart(kArbor);
+#endif
       for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++){
          localWeights[iWeight] *= scale_factor;
       }

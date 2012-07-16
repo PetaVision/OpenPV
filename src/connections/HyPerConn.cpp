@@ -24,6 +24,9 @@
 #include "../weightinit/InitSmartWeights.hpp"
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
+#ifdef USE_SHMGET
+   #include <sys/shm.h>
+#endif
 
 #ifdef DEBUG_OPENCL
 #ifdef __cplusplus
@@ -1411,10 +1414,25 @@ int HyPerConn::deleteWeights()
             wPatches[arbor] = NULL;
          }
       }
-      if (wDataStart != NULL) {
-         free(this->wDataStart[arbor]);
-         this->wDataStart[arbor] = NULL;
+#ifdef USE_SHMGET
+      if (!shmget_flag) {
+         if (wDataStart != NULL && wDataStart[arbor] != NULL) {
+            free(this->wDataStart[arbor]);
+         }
       }
+      else {
+         int shmget_status = shmdt(this->get_wDataStart(arbor));
+         if (shmget_owner) {
+            shmid_ds * shmget_ds = NULL;
+            shmget_status = shmctl(shmget_id[arbor], IPC_RMID, shmget_ds);
+         }
+      }
+#else
+      if (wDataStart != NULL && wDataStart[arbor] != NULL) {
+         free(this->wDataStart[arbor]);
+      }
+#endif
+   this->wDataStart[arbor] = NULL;
 /*
       if (dwPatches != NULL) {
          if (dwPatches[arbor] != NULL) {
@@ -1433,6 +1451,11 @@ int HyPerConn::deleteWeights()
          }
       }
    }
+#ifdef USE_SHMGET
+   if (shmget_flag) {
+      free(shmget_id);
+   }
+#endif
    free(wPatches);
    wPatches = NULL;
    free(wDataStart);
@@ -1944,7 +1967,7 @@ int HyPerConn::initNormalize() {
 int HyPerConn::sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal)
 {
    // assert(wp != NULL);
-   pvdata_t * w = dataStart + offset;
+   volatile pvdata_t * w = dataStart + offset;
    // assert(w != NULL);
    // const int nx = wp->nx;
    // const int ny = wp->ny;
@@ -2417,11 +2440,50 @@ pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatc
    // pvdata_t * dataPatches = pvpatches_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
    int sx = nfPatch;
    int sy = sx * nxPatch;
-   int sp = sy*nyPatch;
+   int sp = sy * nyPatch;
 
    size_t patchSize = sp * sizeof(pvdata_t);
    size_t dataSize = nPatches * patchSize;
-   pvdata_t * dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+/*
+   if ((dataSize > PAGE_SIZE) && use_shmget_flag){
+      use_shmget_flag = true;
+   }
+   else{
+      use_shmget_flag = false;
+   }
+*/
+   pvdata_t * dataPatches = NULL;
+#ifndef USE_SHMGET
+   dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+   //use_shmget_flag = false;
+#else
+   if (!shmget_flag) {
+      dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+   }
+   else {
+      size_t shmget_dataSize = ceil(dataSize / PAGE_SIZE) * PAGE_SIZE;
+      dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+      key_t key;
+      char *segptr;
+
+      key = this->getConnectionId(); //unique key identifier for this connection
+
+      /* Open the shared memory segment - HyPerConn always creates private copy  */
+      if ((shmget_id[axonId] = shmget(key, shmget_dataSize, IPC_PRIVATE)) == -1) {
+         perror("shmget");
+         exit(1);
+      }
+      shmget_owner = true;
+
+      /* Attach (map) the shared memory segment into the current process */
+      if ((segptr = (char *) shmat(shmget_id[axonId], 0, 0)) == (char *) -1) {
+         perror("shmat");
+         exit(1);
+      }
+      dataPatches = (pvdata_t *) segptr;
+      shmget_flag = false;
+   }
+#endif // USE_SHMGET
    assert(dataPatches != NULL);
 
    //Assignment to patches[k] is now done in createPatches

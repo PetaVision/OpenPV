@@ -74,6 +74,13 @@ public:
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
 
+#ifdef USE_SHMGET
+    virtual bool getShmgetOwner(){
+      return shmget_owner;
+   };
+#endif
+
+
 protected:
 //   bool plasticityFlag;
    float weightUpdatePeriod;

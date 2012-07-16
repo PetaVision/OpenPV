@@ -294,6 +294,15 @@ public:
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
 
+#ifdef USE_SHMGET
+    virtual bool getShmgetOwner(){
+      return true;
+   };
+    virtual bool getShmgetFlag(){
+      return false;
+   };
+#endif
+
 protected:
    HyPerLayer* pre;
    HyPerLayer* post;
@@ -303,6 +312,11 @@ protected:
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
+#ifdef USE_SHMGET
+   bool shmget_owner;
+   int *shmget_id;
+   bool shmget_flag;
+#endif
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
    float*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
@@ -462,6 +476,7 @@ protected:
    // OpenCL buffers
    // ids of OpenCL arguments that change
    //
+
 private:
    int clearWeights(float* arborDataStart, int numPatches, int nx, int ny,
          int nf);

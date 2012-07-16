@@ -9,7 +9,9 @@
 #include <assert.h>
 #include <float.h>
 #include "../io/io.h"
-#include <sys/shm.h>
+#ifdef USE_SHMGET
+   #include <sys/shm.h>
+#endif
 
 namespace PV {
 
@@ -68,6 +70,9 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 {
    PVParams * params = hc->parameters();
    symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+#ifdef USE_SHMGET
+   shmget_flag = params->value(name, "shmget_flag",0);
+#endif
    HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -103,6 +108,10 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 int KernelConn::createArbors() {
+#ifdef USE_SHMGET
+   shmget_id = (int *) calloc(this->numberOfAxonalArborLists(), sizeof(int));
+   assert(shmget_id != NULL);
+#endif
    HyPerConn::createArbors();
    // kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
    // assert(kernelPatches!=NULL);
@@ -141,8 +150,6 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
    return PV_SUCCESS;
 }
 
-#undef USE_SHMGET
-
 // use shmget() to save memory on shared memory architectures
 pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
@@ -150,48 +157,56 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
    // pvdata_t * dataPatches = pvpatches_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
    int sx = nfPatch;
    int sy = sx * nxPatch;
-   int sp = sy*nyPatch;
+   int sp = sy * nyPatch;
 
    size_t patchSize = sp * sizeof(pvdata_t);
    size_t dataSize = nPatches * patchSize;
 
-#ifndef USE_SHMGET
-   pvdata_t * dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
-#else
-
    pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
-   key_t key;
-   int   shmid, cntr;
-   char  *segptr;
+#ifdef USE_SHMGET
 
-   key = ftok(".", 'S');
 
-   /* Open the shared memory segment - create if necessary */
-   if((shmid = shmget(key, dataSize, IPC_CREAT | IPC_EXCL | 0666)) == -1)
-   {
-           printf("Shared memory segment exists - opening as client\n");
-
-           /* Segment probably already exists - try as a client */
-           if((shmid = shmget(key, dataSize, 0)) == -1)
-           {
-                   perror("shmget");
-                   exit(1);
-           }
+   if (!getShmgetFlag()) {
+      dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+      shmget_flag = false;
+      shmget_owner = true;
    }
-   else
-   {
-           printf("Creating new shared memory segment\n");
-   }
+   else {
+      shmget_owner = true;
+      size_t shmget_dataSize = ceil(dataSize / PAGE_SIZE) * PAGE_SIZE;
+      shmget_flag = true;
+      key_t key;
+      key = 11 + this->getConnectionId() + 1024 * axonId; //hopefully unique key identifier for all shared memory associated with this connection arbor
+      int shmget_flag = (IPC_CREAT | IPC_EXCL | 0666);
+      char *segptr;
 
-   /* Attach (map) the shared memory segment into the current process */
-   if((segptr = (char *)shmat(shmid, 0, 0)) == (char *)-1)
-   {
-           perror("shmat");
-           exit(1);
+      /* Open the shared memory segment - create if necessary */
+      // dataSize must be a multiple of PAGE_SIZE
+      // note: shm_open may be a better option
+      if ((shmget_id[axonId] = shmget(key, shmget_dataSize, shmget_flag)) == -1){
+         if (errno != EEXIST){
+            perror("shmget");
+            exit(1);
+         }
+         /* Segment already exists - try as a client */
+         shmget_owner = false;
+         int shmget_flag2 = (IPC_CREAT | 0666);
+         if ((shmget_id[axonId] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
+            perror("shmget");
+            exit(1);
+         }
+      }
+
+      /* Attach (map) the shared memory segment into the current process */
+      if ((segptr = (char *) shmat(shmget_id[axonId], 0, 0)) == (char *) -1) {
+         perror("shmat");
+         exit(1);
+      }
+      dataPatches = (pvdata_t *) segptr;
    }
-   dataPatches = (pvdata_t *) segptr;
+#else
+   dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
 #endif // USE_SHMGET
-
 
    assert(dataPatches != NULL);
 
@@ -205,7 +220,6 @@ int KernelConn::deleteWeights()
    // As of the Feb. 27 refactoring, there are no weights specific to KernelConn that need to be deleted here.
    // The HyPerConn destructor calls HyPerConn::deleteWeights(), which gets rid of wPatches, wDataStart and dwDataStart
    free(patch2datalookuptable);
-
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
 
 }
@@ -395,9 +409,19 @@ return PV_SUCCESS;
 int KernelConn::updateWeights(int axonId){
    lastUpdateTime = parent->simulationTime();
    // add dw to w
+#ifdef USE_SHMGET
+   if (shmget_flag && !shmget_owner){
+         return PV_BREAK;
+      }
+#endif
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
-         get_wDataStart(kAxon)[k] += get_dwDataStart(kAxon)[k];
+#ifdef USE_SHMGET
+               volatile pvdata_t * w_data_start = get_wDataStart(kAxon);
+#else
+               pvdata_t * w_data_start = get_wDataStart(kAxon);
+#endif
+               w_data_start[k] += get_dwDataStart(kAxon)[k];
       }
    }
    return PV_BREAK;
@@ -625,6 +649,11 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
+   if (!keepKernelsSynchronized_flag) {
+      for (int axon_id = 0; axon_id < this->numberOfAxonalArborLists(); axon_id++) {
+         reduceKernels(axon_id);
+      }
+   }
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 
