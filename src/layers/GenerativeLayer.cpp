@@ -68,10 +68,14 @@ int GenerativeLayer::updateState(float timef, float dt, const PVLayerLoc * loc, 
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-   updateSparsityTermDeriv_GenerativeLayer(num_neurons, V, sparsitytermderivative);
-   update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dV, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
-   pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relaxation);
-   updateV_GenerativeLayer(num_neurons, V, dV, VMax, VMin, VThresh, trunc_rel);
+   pvdata_t relax_remaining = relaxation;
+   while(relaxation > 0) {
+      updateSparsityTermDeriv_GenerativeLayer(num_neurons, V, sparsitytermderivative);
+      update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dV, VMax, VMin, VThresh, relax_remaining, auxChannelCoeff, sparsityTermCoeff, persistence);
+      pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
+      updateV_GenerativeLayer(num_neurons, V, dV, VMax, VMin, VThresh, trunc_rel);
+      relax_remaining -=trunc_rel;
+   }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold);
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    return PV_SUCCESS;
