@@ -137,6 +137,12 @@ int printarch() {
    printf(formatstr,"PV_USE_GDAL",notset);
 #endif // PV_USE_GDAL
 
+#ifdef PVP_DEBUG
+   printf(formatstr, "PVP_DEBUG", "");
+#else // PVP_DEBUG
+   printf(formatstr,"PVP_DEBUG", notset);
+#endif // PVP_DEBUG
+
 #ifdef PV_USE_PTHREADS
    printf(formatstr,"PV_USE_PTHREADS","");
 #else // PV_USE_PTHREADS
