@@ -21,14 +21,14 @@
 
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
-#if ($ARGV[0]) {
-#    @OUTPUT = &findParents($ARGV[0]);
-#    print "\n\nOUTPUT:\n",
-#          join("\n",@OUTPUT),
-#          "\n\n\n";
-#} else {
-#    die "Usage: ./findParents.pl \"category\"\n";
-#}
+if ($ARGV[0]) {
+    @OUTPUT = &findParents($ARGV[0]);
+    print "\n\nOUTPUT:\n",
+          join("\n",@OUTPUT),
+          "\n\n\n";
+} else {
+    die "Usage: ./findParents.pl \"category\"\n";
+}
  
 sub findParents {
     use XML::XPath;
@@ -64,16 +64,16 @@ sub findParents {
 #Decide if input was a WNID or a synset name
     chomp($input);
     my ($wnid, $path) = 0;
-    if ($input =~ /^n[\d]+$/) {
+    if ($input =~ /^n[\d]+$/) { #WNID
         print "\nFinding the parents of WNID: \"$input\" in the Image-Net hierarchy...\n";
-        $path = "//synset[\@wnid='${input}']";
+        $path = "//synset[\@wnid=\'${input}\']";
         $wnid = 1;
-    } else {
+    } else { #NAME
         print "\nFinding the parents of synset \"$input\" in the Image-Net hierarchy...\n";
         if ($input =~ /'/) {
-            $path = "//synset[\@words="${input}"]";
+            $path = "//synset[\@words=\"${input}\"]";
         } else {
-            $path = "//synset[\@words='${input}']";
+            $path = "//synset[\@words=\'${input}\']";
         }
         $wnid = 0;
     }

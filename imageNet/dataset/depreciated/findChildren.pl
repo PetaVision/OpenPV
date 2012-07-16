@@ -5,7 +5,7 @@
 ##
 ## Written by:
 ##      Dylan Paiton
-##      Los Alamos National Laboratory, Group ISR-2 
+##      Los Alamos National Laboratory, Group ISR-3 
 ##      paiton@lanl.gov
 ##
 ## Similar to findParents.pl
@@ -20,14 +20,14 @@
 
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
-#if ($ARGV[0]) {
-#    @OUTPUT = &findChildren($ARGV[0]);
-#    print "\n\nOUTPUT:\n",
-#          join("\n",@OUTPUT),
-#          "\n";
-#} else {
-#    die "Usage: ./findChildren.pl \"category\"\n";
-#}
+if ($ARGV[0]) {
+    @OUTPUT = &findChildren($ARGV[0]);
+    print "\n\nOUTPUT:\n",
+          join("\n",@OUTPUT),
+          "\n";
+} else {
+    die "Usage: ./findChildren.pl \"category\"\n";
+}
 
 sub findChildren{
     use XML::XPath;
@@ -63,9 +63,9 @@ sub findChildren{
 
 #Find input node, and all children using descendant-or-self
     if ($path =~ /'/) {
-        $path = "//synset[\@words="${input}"]/descendant-or-self::node()";
+        $path = "//synset[\@words=\"${input}\"]/descendant-or-self::node()";
     } else {
-        $path = "//synset[\@words='${input}']/descendant-or-self::node()";
+        $path = "//synset[\@words=\'${input}\']/descendant-or-self::node()";
     }
 
     if ($xp->exists($path)) {
@@ -74,7 +74,6 @@ sub findChildren{
         $nodeset = $xp->find($path);
 
         my %seen = ();
-
         foreach $node ($nodeset->get_nodelist) {
             next if $seen{ $node->getAttribute(words) }++;
             push(@CHILDREN,$node->getAttribute(words));

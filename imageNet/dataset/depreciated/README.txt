@@ -5,12 +5,12 @@ ImageNet database management scripts.
 Written by:
       Dylan Paiton
       Los Alamos National Laboratory, Group ISR-2 
-      paiton@lanl.gov, dpaiton@alumni.nmt.edu
+      paiton@lanl.gov, dpaiton@gmail.com
 
-Please contact me with any errors you may have
+    Please contact me with any errors you may have
 
 If you wish to learn more about a script: read this document, read its comments, then contact me.
-I can safely say that none of these scripts are completely finished. They mostly have TODO lists in them, and the ones that don't probably should.
+None of these scripts are completely finished. They mostly have TODO lists in them, and the ones that don't probably should.
 
 Most (except for I, V, VI, VII) of these scripts are currently set up to be called from within other programs.
 You must edit them (it is specified how near the beginning of each program) in order to run them from a command prompt.

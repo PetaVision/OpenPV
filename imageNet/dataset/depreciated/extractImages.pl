@@ -21,24 +21,29 @@
 ##
 ############
 
+#####
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
-#if ($ARGV[0] && $ARGV[1]) {
-#    $out = &extractImages($ARGV[0], $ARGV[1]);
-#} else {
-#    die "Usage: ./extractImages.pl \"category\" \"destination_directory\"\n\n";
-#}
+if ($ARGV[0] && $ARGV[1]) {
+    $out = &extractImages($ARGV[0], $ARGV[1]);
+} else {
+    die "Usage: ./extractImages.pl \"category\" \"destination_directory\"\n\n";
+}
+#####
 
 sub extractImages {
+
+#Set up temp dir
     my $currDir = `pwd`;
     chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
+    my $currDir =~ s/\s/\\ /g;
     my $TMP_DIR = "$currDir/../tmp";
-    my $IMG_DIR="$currDir/../../archivedImages";
-
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR");
     }
+
+    my $IMG_DIR="$currDir/../../archivedImages";
+
 
     print "\nExtracting images...\n";
     my $destDir = $_[0];

@@ -237,7 +237,7 @@ foreach $input(@INPUT) {
         print "\nDownloading list of child synsets...\n";
         $HYPONYM_URL =~ s/\[wnid\]/$WNID/;
         if ($use_proxy) {
-            system("curl -x \"$PRoXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            system("curl -x \"$PROXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
         } else {
             system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
         }
