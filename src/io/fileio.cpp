@@ -116,7 +116,8 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
  */
 int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numDataPatches,
                     int nxp, int nyp, int nfp, float minVal, float maxVal,
-                    bool compress=true)
+                    bool compress=true,
+                    bool shmget_owner=true, bool shmget_flag=false)
 {
    // Copies data from patches and dataStart to buf.
    // buf should point to a buffer of size numDataPatches*pv_sizeof_patch(numweights,datatype) characters,
@@ -145,6 +146,9 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
       }
       // pvdata_t * data = p->data;
       pvdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
+#ifdef USE_SHMGET
+      volatile pvdata_t * data_volatile = dataStart + k*patchsize;
+#endif
 
       unsigned short * nxny = (unsigned short *) cptr;
       nx = nxny[0];
@@ -159,13 +163,31 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
       if( compress ) {
          for (int k = 0; k < patchsize; k++) {
             // values in buf are packed into chars
+#ifndef USE_SHMGET
             data[k] += uncompressWeight(*cptr++, minVal, maxVal);
+#else
+            if (!shmget_flag){
+               data[k] += uncompressWeight(*cptr++, minVal, maxVal);
+            }
+            else{
+               data_volatile[k] += uncompressWeight(*cptr++, minVal, maxVal);
+            }
+#endif
          }
       }
       else {
          float * fptr = (float *) cptr;
          for (int k = 0; k < patchsize; k++) {
+#ifndef USE_SHMGET
             data[k] += *fptr++;
+#else
+            if (!shmget_flag){
+               data[k] += *fptr++;
+            }
+            else{
+               data_volatile[k] += *fptr++;
+            }
+#endif
          }
          cptr = (unsigned char *) fptr;
       }
@@ -1076,7 +1098,10 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
    return status;
 }
 
-int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc) {
+int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches,
+      const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
+      bool shmget_owner, bool shmget_flag)
+{
    int status = PV_SUCCESS;
    int header_data_type;
    int header_file_type;
@@ -1260,6 +1285,11 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
 
       // set the contents of the weights patches from the unsigned character buffer, cbuf
       //
+#ifdef USE_SHMGET
+   if (shmget_flag && !shmget_owner){
+      continue;
+   }
+#endif
       bool compress = header_data_type == PV_BYTE_TYPE;
       status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
@@ -1267,6 +1297,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
                  comm->commRank(), numPatches);
       }
    } // loop over arborId
+   free(cbuf);
    status = pvp_close_file(fp, comm)==PV_SUCCESS ? status : PV_FAILURE;
    return status;
 }
