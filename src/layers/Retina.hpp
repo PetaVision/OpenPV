@@ -45,7 +45,9 @@ public:
    virtual int updateStateOpenCL(float time, float dt);
    virtual int updateBorder(float time, float dt);
    virtual int waitOnPublish(InterColComm* comm);
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
    virtual int writeState(float timef, bool last=false);
+#endif // OBSOLETE
 
 protected:
    Retina();

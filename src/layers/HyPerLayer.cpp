@@ -397,7 +397,7 @@ int HyPerLayer::initializeState() {
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
       float timef;
-      readState(&timef);
+      status = readState(&timef);
    }
    else {
       InitV * initVObject = new InitV(parent, name);
@@ -1312,42 +1312,18 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
 
 int HyPerLayer::readState(float * timef)
 {
-   double dtime;
-   char path[PV_PATH_MAX];
-   bool contiguous = false;
-   bool extended   = false;
-
-   int status = PV_SUCCESS;
-
-   PVLayerLoc * loc = & clayer->loc;
-   Communicator * comm = parent->icCommunicator();
-
-   if( getV() != NULL ) {
-      getOutputFilename(path, "V", "_last");
-      status = read_pvdata(path, comm, &dtime, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
-      assert(status == PV_SUCCESS);
+   char last_dir[PV_PATH_MAX];
+   int chars_needed = snprintf(last_dir, PV_PATH_MAX, "%s/Last", parent->getOutputPath());
+   if (chars_needed >= PV_PATH_MAX) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::initializeState error: path \"%s/Last\" too long.\n", parent->getOutputPath());
+      }
+      abort();
    }
-
-   getOutputFilename(path, "labels", "");
-   status = read_pvdata(path, comm, &dtime, (float*)labels, loc, PV_INT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS || status == PV_ERR_FILE_NOT_FOUND);  // not required to exist
-   if (status == PV_ERR_FILE_NOT_FOUND) {
-      if (labels != NULL) free(labels);
-      labels = NULL;
-   }
-
-   // TODO - this should be moved to getLayerData but can't yet because publish is call
-   // as the first step and publish copies clayer->activity->data into data store.  If
-   // clayer->activity is removed then we would read directly into data store.
-   extended = true;
-   pvdata_t * A = clayer->activity->data;
-   getOutputFilename(path, "A", "_last");
-   status = read_pvdata(path, comm, &dtime, A, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   return status;
+   return checkpointRead(last_dir, timef);
 }
 
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
 int HyPerLayer::writeState(float timef, bool last)
 {
    char path[PV_PATH_MAX];
@@ -1372,6 +1348,7 @@ int HyPerLayer::writeState(float timef, bool last)
 
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::writeActivitySparse(float timef)
 {

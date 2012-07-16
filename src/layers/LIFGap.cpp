@@ -292,6 +292,7 @@ int LIFGap::updateState(float time, float dt)
 }
 
 
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
 int LIFGap::readState(float * time)
 {
    double dtime;
@@ -311,7 +312,9 @@ int LIFGap::readState(float * time)
    return status;
 
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
 int LIFGap::writeState(float time, bool last)
 {
    char path[PV_PATH_MAX];
@@ -353,6 +356,7 @@ int LIFGap::writeState(float time, bool last)
 
    return 0;
 }
+#endif // OBSOLETE
 
 
 } // namespace PV

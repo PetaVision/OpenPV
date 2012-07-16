@@ -529,7 +529,7 @@ int LIF::updateState(float time, float dt)
    return status;
 }
 
-
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
 int LIF::readState(float * time)
 {
    double dtime;
@@ -562,7 +562,9 @@ int LIF::readState(float * time)
    return status;
 
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
 int LIF::writeState(float time, bool last)
 {
    char path[PV_PATH_MAX];
@@ -612,6 +614,7 @@ int LIF::writeState(float time, bool last)
 
    return 0;
 }
+#endif // OBSOLETE
 
 int LIF::findPostSynaptic(int dim, int maxSize, int col,
 // input: which layer, which neuron

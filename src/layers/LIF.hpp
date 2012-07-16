@@ -47,9 +47,13 @@ public:
    virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int checkpointWrite(const char * cpDir);
 
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
    virtual int readState (float * time);
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
    virtual int writeState(float time, bool last=false);
-   
+#endif // OBSOLETE
+
    pvdata_t * getVth()              {return Vth;}
    virtual pvdata_t * getConductance(ChannelType ch) {
          return ch < this->numChannels ? G_E + ch*getNumNeurons() : NULL;

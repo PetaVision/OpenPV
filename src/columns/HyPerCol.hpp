@@ -141,6 +141,9 @@ private:
    int nextCPWriteStep;
    float cpWriteTimeInterval;
    float nextCPWriteTime;
+   bool suppressLastOutput; // If checkpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {outputPath}/Last directory.
+                            // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
+                            // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
 
    float simTime;          // current time in milliseconds
    float stopTime;         // time to stop time

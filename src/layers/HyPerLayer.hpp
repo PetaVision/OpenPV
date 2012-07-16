@@ -157,7 +157,9 @@ public:
    virtual int checkpointWrite(const char * cpDir);
 
    virtual int readState (float * timef);
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Dumping the state is now done by checkpointWrite.
    virtual int writeState(float timef, bool last=false);
+#endif // OBSOLETE
    virtual int outputState(float timef, bool last=false);
    virtual int writeActivity(float timef);
    virtual int writeActivitySparse(float timef);

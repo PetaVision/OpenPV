@@ -349,6 +349,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       nextCPWriteStep = 0;
       nextCPWriteTime = 0;
    }
+   else {
+      suppressLastOutput = params->value(name, "suppressLastOutput", false) != 0;
+   }
 
    return PV_SUCCESS;
 }
@@ -884,11 +887,17 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 
    // output final state of layers and connections
    //
-   bool last = true;
 
-   if( checkpointWriteFlag ) {
-      char cpDir[PV_PATH_MAX];
-      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+   char cpDir[PV_PATH_MAX];
+   if (checkpointWriteFlag || !suppressLastOutput) {
+      int chars_printed;
+      if (checkpointWriteFlag) {
+         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+      }
+      else {
+         assert(!suppressLastOutput);
+         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Last", outputPath);
+      }
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
             fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
@@ -898,6 +907,8 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       checkpointWrite(cpDir);
    }
 
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Final output is written to {outputPath}/Last, above, using CheckpointWrite
+   bool last = true;
    for (int l = 0; l < numLayers; l++) {
       layers[l]->writeState(simTime, last);
    }
@@ -910,6 +921,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       delete this;
       exit(0);
    }
+#endif // OBSOLETE
 
    return status;
 }

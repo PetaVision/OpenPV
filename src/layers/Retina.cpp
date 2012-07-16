@@ -232,6 +232,7 @@ int Retina::initializeThreadKernels(const char * kernel_name)
 #endif
 
 int Retina::initializeState() {
+
    free(clayer->V);
    clayer->V = NULL;
 
@@ -479,6 +480,7 @@ int Retina::updateBorder(float time, float dt)
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
 int Retina::writeState(float timef, bool last)
 {
    int status = HyPerLayer::writeState(timef, last);
@@ -503,6 +505,7 @@ int Retina::writeState(float timef, bool last)
 
    return status;
 }
+#endif // OBSOLETE
 
 int Retina::outputState(float time, bool last)
 {

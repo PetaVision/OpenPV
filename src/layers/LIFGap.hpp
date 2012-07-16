@@ -32,8 +32,12 @@ public:
    virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int checkpointWrite(const char * cpDir);
 
+#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
    int virtual readState(float * time);
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
    int virtual writeState(float time, bool last);
+#endif // OBSOLETE
 
 protected:
 

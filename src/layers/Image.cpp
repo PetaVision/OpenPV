@@ -115,7 +115,7 @@ int Image::initializeState() {
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
       float timef;
-      readState(&timef);
+      status = readState(&timef);
    }
    return status;
 }

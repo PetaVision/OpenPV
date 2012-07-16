@@ -94,16 +94,23 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
 }
 
 int TrainingLayer::initializeState() {
-   // TODO If restarting from restart_flag or checkpoint, need to restore curTrainingLabelIndex
-   int status;
-   pvdata_t * V = getV();
-   for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
-   // above line not necessary if V was allocated with calloc
-   getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
-   const PVLayerLoc * loc = getLayerLoc();
-   status = setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
-   // needed because updateState won't call setActivity until the first update period has passed.
-   // setActivity();
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
+   if (restart_flag) {
+      float timef;
+      status = readState(&timef);
+   }
+   else {
+      pvdata_t * V = getV();
+      for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
+      // above line not necessary if V was allocated with calloc
+      getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
+      const PVLayerLoc * loc = getLayerLoc();
+      status = setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+      // needed because updateState won't call setActivity until the first update period has passed.
+      // setActivity();
+   }
    return status;
 }
 
