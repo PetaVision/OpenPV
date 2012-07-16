@@ -16,6 +16,10 @@
 /* define this if using GDAL library to read/write images */
 #define PV_USE_GDAL
 
+/* define if using SHMGET to create shared memory pool on multicore machines */
+#undef USE_SHMGET
+#define PAGE_SIZE 4096 // obtain by calling shell utility pagesize
+
 /* maximum length of a path */
 #define PV_PATH_MAX 256 // 127  // imageNet uses long folder names
 
