@@ -40,6 +40,7 @@
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNDivInh.hpp"
 #include "../layers/BIDSLayer.hpp"
+#include "../layers/BIDSSourceLayer.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #include "../connections/HyPerConn.hpp"
@@ -64,6 +65,7 @@
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 #include "../weightinit/InitGaborWeights.hpp"
 #include "../weightinit/InitDistributedWeights.hpp"
+#include "../weightinit/InitBIDSWeights.hpp"
 #include "../weightinit/InitPoolWeights.hpp"
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
