@@ -86,16 +86,8 @@ int GenColProbe::outputState(float time, HyPerCol * hc) {
    if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
    fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), colprobeval);
+   fflush(fp);
    return PV_SUCCESS;
-}  // end GenColProbe::outputState(float)
-
-int GenColProbe::writeState(float time, HyPerCol * hc, pvdata_t value) {
-#ifdef PV_USE_MPI
-   // In MPI mode, this function should only be called by the root processor.
-   assert(hc->icCommunicator()->commRank() == 0);
-#endif // PV_USE_MPI
-   int printstatus = fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), evaluate(time));
-   return printstatus > 0 ? PV_SUCCESS : PV_FAILURE;
-}
+}  // end GenColProbe::outputState(float, HyPerCol *)
 
 }  // end namespace PV

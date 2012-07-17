@@ -39,7 +39,6 @@ public:
    int addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff);
    int addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
    virtual int outputState(float time, HyPerCol * hc);
-   virtual int writeState(float time, HyPerCol * hc, pvdata_t value);
 
 protected:
    int initializeGenColProbe(const char * probename, const char * filename, HyPerCol * hc);
