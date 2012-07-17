@@ -67,6 +67,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
+               "BIDSSourceLayer",
                "ANNSquaredLayer",
                "ANNDivInhLayer",
                "CliqueLayer",
@@ -268,6 +269,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   }
+   if( !strcmp(classkeyword, "BIDSSourceLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new BIDSSourceLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
@@ -520,6 +526,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelTy
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
       weightInitializer = new InitDistributedWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSWeight"))) {
+      weightInitializer = new InitBIDSWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
       weightInitializer = new InitUniformRandomWeights();

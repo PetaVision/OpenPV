@@ -75,7 +75,8 @@ int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** d
       if(numNodes < (numDataPatches / 2)){
          flag = 1;
          max = numNodes;
-      } else {
+      }
+      else{
          flag = 0;
          max = numDataPatches - numNodes;
       }
