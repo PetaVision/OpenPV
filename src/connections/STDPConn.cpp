@@ -252,7 +252,7 @@ int STDPConn::updateWeights(int axonId)
 
    return 0;
 }
-#endif // OBSOLETE
+#endif //OBSOLETE
 
 /**
  *  STDP online implementation
@@ -403,17 +403,15 @@ int STDPConn::outputState(float timef, bool last)
       }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
          //writeTime += writeStep; Done in HyperConn
          convertPreSynapticWeights(timef);
-         status = writePostSynapticWeights(timef, last);
+         status = writePostSynapticWeights(timef, false);
          assert(status == 0);
 
          // append to output file after original open
-         ioAppend = true;
+         //ioAppend = true;
       }
    status = HyPerConn::outputState(timef, last);
 
    if (status != PV_SUCCESS) return status;
-
-// FIXME: The call to the convertPreSynapticWeights is not working. I don't understand what is this for? The weights should already be saved when the HyperConn is called
 
 
 //   if (stdpFlag != true) return status;
@@ -552,7 +550,7 @@ void STDP_update_state_pre(
 #endif
 
 }
-#endif // NOTYET - TODO
+#endif //NOTYET - TODO
 
 
 #ifdef OBSOLETE
@@ -585,7 +583,7 @@ int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * R
    }
    return 0;
 }
-#endif // OBSOLETE
+#endif //OBSOLETE
 
 } // End of namespace PV
 
