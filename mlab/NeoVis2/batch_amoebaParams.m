@@ -3,8 +3,8 @@
 object_type = {"2FC"; "4FC"; "6FC"; "8FC"};
 clip_name = cell(1,1);
 clip_name{1} = "d"; %% "t"; %% 
-DATASET_ID = "noamoeba"; %% "amoeba"; %% 
-pvp_num_ODD_kernels = 1; %%
+DATASET_ID = "noamoeba2"; %% "amoeba2"; %% 
+pvp_num_ODD_kernels = 2; %%
 version_ids = [1:8];
 version_str = cell(length(version_ids),1);
 for i_version = 1 : length(version_ids)
@@ -33,10 +33,14 @@ FLAVOR_ID = "X2"; %% "3way"; %%"33x33"; %%"Training"; %% "Challenge"; %% "Format
 flavor_id = tolower(FLAVOR_ID); %% 
 pvp_repo_path = ...
     [filesep, "mnt", filesep, "data3", filesep, "repo", filesep];
+pvp_program_path2 = ...
+    [pvp_repo_path, "neovision-programs-petavision", filesep]; %% , ...
+mkdir(pvp_program_path2);
+pvp_program_path3 = ...
+    [pvp_program_path2, DATASET_ID, filesep]; %% , ...
+mkdir(pvp_program_path3);
 pvp_program_path = ...
-    [pvp_repo_path, "neovision-programs-petavision", filesep, ...
-     DATASET_ID, filesep, ...
-     FLAVOR_ID, filesep];
+    [pvp_program_path3, FLAVOR_ID, filesep];
 mkdir(pvp_program_path);
 disp(pvp_program_path);
 
