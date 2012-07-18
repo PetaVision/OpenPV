@@ -74,7 +74,7 @@ if ( SPIKING_FLAG == 1 )
     
 else  % NON_SPIKING
     
-    N_LAYERS = 3;
+    N_LAYERS = 4;
     layerID = cell(1, N_LAYERS);
     
     i_layer = i_layer + 1;
@@ -88,6 +88,10 @@ else  % NON_SPIKING
     i_layer = i_layer + 1;
     layerIndex.l1 = i_layer;
     layerID{ 1, i_layer } =  'L1';
+    
+    i_layer = i_layer + 1;
+    layerIndex.l1Pooling2X2 = i_layer;
+    layerID{ 1, i_layer } =  'L1Pooling2X2';
     
     N_LAYERS = N_LAYERS + 1;
     layerID = [layerID, cell(1, 1)];

@@ -8,7 +8,7 @@ expNum = 1;
 
 plot_2AFC_flag = 1;
 plot_weights_flag = 0;
-noplot_flag = true; %% false; %% 
+noplot_flag = false; %% true; %% 
 
 try
   setenv('GNUTERM', 'x11');
@@ -105,12 +105,12 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    "/mnt/data/repo/neovision-programs-petavision/";
+    "/mnt/data3/repo/neovision-programs-petavision/";
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path, "amoeba3/3way/activity/6FC/target/001"];
+    [machine_path, "amoeba2/X2/activity/6FC/target/001"];
 if ~isempty(target_path)
   target_path = [target_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
@@ -120,7 +120,7 @@ endif % ~isempty(target_path)
 
 %%if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path, "noamoeba3/3way/activity/6FC/distractor/001"];
+    [machine_path, "noamoeba2/X2/activity/6FC/distractor/001"];
 %%else
 %%  distractor_path = [];
 %%endif
@@ -170,7 +170,7 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = 2:N_LAYERS;  % list of nonspiking layers whose activity is to be analyzed
+read_activity = [[2:3],[5:N_LAYERS]];  % list of nonspiking layers whose activity is to be analyzed
 num_layers = N_LAYERS;
 
 if RECONSTRUCT_FLAG
@@ -222,18 +222,19 @@ for j_trial = first_trial : skip_trial : last_trial
   for layer = read_activity;
     
     %% layer names, L -> retina, V1; G->lateral; T->topdown
-    if layer <= 3
-      layer_level = layer - 1;
-    else
-      layer_level = layer - 3 - ( 3 + G4_FLAG ) * ( layer > (6 + G4_FLAG) );
-    endif % layer < 3
-    if layer <= 3
-      layer_label = 'L';
-    elseif layer <= ( 6 + G4_FLAG + 2 * G6_FLAG)
-      layer_label = 'ODD_';
-    else
-      layer_label = 'T';
-    endif % layer < 3
+%%    if layer <= 3
+%%      layer_level = layer - 1;
+%%    else
+%%      layer_level = layer - 3 - ( 3 + G4_FLAG ) * ( layer > (6 + G4_FLAG) );
+%%    endif % layer < 3
+%%    if layer <= 3
+%%      layer_label = 'L';
+%%    elseif layer <= ( 6 + G4_FLAG + 2 * G6_FLAG)
+%%      layer_label = 'ODD_';
+%%    else
+%%      layer_label = 'T';
+%%    endif % layer < 3
+    layer_label = layerID{ 1, layer };
 
     %% account for delays between layers
     if TOPDOWN_FLAG
@@ -343,7 +344,7 @@ for j_trial = first_trial : skip_trial : last_trial
 	    [ 1 , num_features(layer, j_trial), ...
 	     num_cols(layer, j_trial), num_rows(layer, j_trial) ];
         recon_filename = ...
-	    ['recon ', layer_label, num2str(layer_level), '_', ...
+	    ['recon ', layer_label, num2str(layer), '_', ...
 	     num2str(j_trial, NUM2STR_FORMAT), '_', ...
 	     num2str(target_flag)];
 	fig_tmp = figure;
