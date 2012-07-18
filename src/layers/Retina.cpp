@@ -96,6 +96,10 @@ int Retina::initialize_base() {
 
 int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
    int status = HyPerLayer::initialize(name, hc, NUM_RETINA_CHANNELS);
+
+   free(clayer->V);
+   clayer->V = NULL;
+
    clayer->layerType = type;
 
    PVLayer * l = clayer;
@@ -232,9 +236,6 @@ int Retina::initializeThreadKernels(const char * kernel_name)
 #endif
 
 int Retina::initializeState() {
-
-   free(clayer->V);
-   clayer->V = NULL;
 
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;

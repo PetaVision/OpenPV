@@ -56,6 +56,10 @@ int Image::checkpointRead(const char * cpDir, float * timef){
 
 int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    HyPerLayer::initialize(name, hc, 0);
+
+   free(clayer->V);
+   clayer->V = NULL;
+
    int status = PV_SUCCESS;
 
    PVParams * params = parent->parameters();
@@ -107,9 +111,6 @@ int Image::readOffsets() {
 
 int Image::initializeState() {
    int status = PV_SUCCESS;
-
-   free(clayer->V);
-   clayer->V = NULL;
 
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
