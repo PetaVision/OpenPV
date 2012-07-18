@@ -3,7 +3,11 @@
 if ($ARGV[0] && $ARGV[1] && $ARGV[2] && $ARGV[3]) {
     $output = &collectTargetImgs($ARGV[0], $ARGV[1], $ARGV[2], $ARGV[3]);
 } else {
-    die "Usage: ./collectTargetImgs.pl WNID in_path out_path num_images\n\tWNID can be a .txt file or a single ID\n";
+    &ctiPostUsage();
+}
+
+sub ctiPostUsage () {
+    die "\n\nUsage: ./collectTargetImgs.pl WNID in_path out_path num_images\n\tWNID can be a .txt file, a dir (of tar files), or a single ID\n\n\n";
 }
 
 sub collectTargetImgs ($$$$) {
@@ -14,46 +18,35 @@ sub collectTargetImgs ($$$$) {
 
     require 'findFiles.pl';
     require 'listChildren.pl';
+    require 'makeTempDir.pl';
+    require 'checkInputType.pl';
 
-    #Set up vars and error check
+#Set up vars and error check
     my $inWNID   = $_[0];
     my $inPath   = $_[1];
     my $outPath  = $_[2];
     my $numToCpy = $_[3];
 
-    #Set up input path
+#Set up temp dir
+    my $TMP_DIR = makeTempDir();
+
+#Set up input path
     unless (-d $inPath) {
         die "\n\nERROR: Input path must be a directory.\n";
     }
     $inPath =~ s/\/$//g;
 
-    #Set up output path
+#Set up output path
     system("mkdir -p $outPath") unless (-d $outPath);
     unless (-d $outPath) {
         die "\n\nERROR: Couldn't find or make output director $outPath.\n";
     }
     $outPath =~ s/\/$//g;
 
-    #Set up temp output dir
-    my $currDir = `pwd`;
-    chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
-    my $TMP_DIR = "$currDir/temp";
-    unless (-d $TMP_DIR) {
-        system("mkdir -p $TMP_DIR") and die "collectTargetImgs: Couldn't make dir $TMP_DIR!\n"; #System returns 0 for success
-    }
+#Check to see if the user has input a WNID, a folder, or a text file listing WNIDs
+    my $inputType = checkInputType($inWNID);
 
-    #Check to see if the user has input a WNID, a folder, or a text file listing WNIDs
-    my $inputType = 0; #1=WNID, 2=file
-    if ($inWNID =~ m/^n\d+$/) {
-        $inputType = 1;
-    } elsif ($inWNID =~ m/\.txt$/) {
-        $inputType = 2;
-    } else {
-        die "Usage: ./collectTargetImgs.pl WNID in_path out_path num_images\n\tWNID can be a .txt file or a single ID\n";
-    }
-
-    #Read input WNID(s)
+#Read input WNID(s)
     my @inArray;
     if ($inputType==1) { #The user has input a synset id
         @inArray = ($inWNID);
@@ -62,12 +55,33 @@ sub collectTargetImgs ($$$$) {
         open(INTEXT,"<", $inWNID) or die $!;
         @inArray = <INTEXT>;
         close(INTEXT);
+    } elsif ($inputType==3) { #The user has input a dir full of tar files
+        $inWNID =~ s/\/$//g;
+        $inWNID =~ s/\s/\\ /g;
+
+        print "collectTargetImgs: Getting a list of WNIDS from the tar files in the input dir $inWNID\n";
+        my $ext = 'tar';
+        my @fileList = findFiles($inWNID,$ext);
+
+        for (my $i=0; $i<scalar(@fileList); $i++) {
+            if ($fileList[$i] =~ /(n\d+)/) {
+                $fileList[$i] = $1;
+            } else {
+                delete $fileList[$i];
+            }
+        }
+
+        my $numFilesFound = scalar(@fileList);
+        print "collectTargetImgs: Found $numFilesFound WNIDs.\n";
+
+        @inArray = @fileList;
     } else {
-        die "collectTargetImgs: Variable inputType not properly defined\n";
+        &ctiPostUsage();
     }
+    
     print "\ncollectTargetImgs: Copying $numToCpy target images from $inPath to $outPath\n";
 
-    #Ask user if the program should get the child nodes
+#Ask user if the program should get the child nodes
     print "\ncollectTargetImgs: Would you like to extract the children of the input? [y/n] ";
     my $userChoice = <STDIN>;
     chomp($userChoice);
@@ -83,7 +97,7 @@ sub collectTargetImgs ($$$$) {
     }
     print "\n";
     
-    #If getting child nodes, push nodes to list of WNIDs
+#If getting child nodes, push nodes to list of WNIDs
     if ($userChoice =~ /^y$/) { #Grab children
         my @childArray;
         foreach my $parentWNID (@inArray) {
@@ -121,7 +135,7 @@ sub collectTargetImgs ($$$$) {
         }
     }
 
-    #Check num images found
+#Check num images found
     $numImagesFound = scalar(@wnidFileList);
     print "collectTargetImgs: Found $numImagesFound images!\n";
     if ($numImagesFound < $numToCpy) {
@@ -129,7 +143,7 @@ sub collectTargetImgs ($$$$) {
         $numToCpy = $numImagesFound;
     }
 
-    #Find the number of categories & make a list of them
+#Find the number of categories & make a list of them
     my @categories;
     foreach my $wnidFile (@wnidFileList) { #look at each file in the file list
         if ($wnidFile =~ m/\/(n\d+)\_/) { #look for the synset id in the file name
@@ -154,19 +168,19 @@ sub collectTargetImgs ($$$$) {
             "\tThis should be less than the number of categories = $numCategories\n\n";
     }
     
-    #Make a list of lists with indices [category][file]
+#Make a list of lists with indices [category][file]
     my (@fileLoL);
     for my $i (0 .. $numCategories-1) {
         my @matches = grep { /$categories[$i]/ } @wnidFileList;
         push(@fileLoL,[@matches]);
     }
     
-    #Sanity check
+#Sanity check
     unless ($#fileLoL+1 == $numCategories) {
         die "\n\nERROR: Number of categories does not match LoL size.\n\n";
     }
     
-    #Shuffle categories
+#Shuffle categories
     my @shuffledLoL = shuffle(@fileLoL);
     
     ####################################################################
@@ -183,7 +197,7 @@ sub collectTargetImgs ($$$$) {
     #print "------------------\n\n";
     ####################################################################
     
-    #Shuffle images in each category and copy
+#Shuffle images in each category and copy
     my $catIdx   = 0;
     my $totCount = 0;
     for $subArryRef (@shuffledLoL) {

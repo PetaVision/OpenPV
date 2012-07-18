@@ -1,5 +1,11 @@
 #!/usr/bin/env perl
 
+require 'findFiles.pl';
+require 'listChildren.pl';
+require 'listParents.pl';
+require 'makeTempDir.pl';
+require 'checkInputType.pl';
+
 if ($ARGV[0] && $ARGV[1] && $ARGV[2]) {
     if ($ARGV[3]) {
         $output = &collectDistractorImgs($ARGV[0], $ARGV[1], $ARGV[2], $ARGV[3]);
@@ -7,34 +13,35 @@ if ($ARGV[0] && $ARGV[1] && $ARGV[2]) {
         $output = &collectDistractorImgs($ARGV[0], $ARGV[1], $ARGV[2],"NULL");
     }
 } else {
-    die "Usage: ./collectDistractorImgs.pl in_path out_path num_images [exclude_WNID]\n\texclude_WNID can be a single ID or text file\n";
+    &cdiPostUsage();
 }
 
+sub cdiPostUsage () {
+    die "\n\nUsage: ./collectDistractorImgs.pl in_path out_path num_images [exclude_WNID]\n\texclude_WNID can be an ID, text file, or folder\n\n\n";
+};
+
 sub collectDistractorImgs ($$$$) {
-    use warnings;
+    #use warnings; ##Currently warns about two unused vars. This is not a problem.
     use List::Util 'shuffle';
     use List::MoreUtils 'any';
     use POSIX;
 
-    require 'findFiles.pl';
-    require 'listChildren.pl';
+#Set up temp dir
+    my $TMP_DIR = makeTempDir();
 
-    #Set up vars and error check
+#Set up input vars and error check
     my $inPath   = $_[0];
     my $outPath  = $_[1];
     my $numToCpy = $_[2];
 
-    my $inputType = 0; #1=WNID, 2=file
+    my $inputType = 0;
     if ($_[3]) {
         $excludeWNID = $_[3];
+        chomp($excludeWNID);
 
-        #Check to see if the user has input a WNID, a folder, or a text file listing WNIDs
-        if ($excludeWNID =~ m/^n\d+$/) {
-            $inputType = 1;
-        } elsif ($excludeWNID =~ m/\.txt$/) {
-            $inputType = 2;
-        } else {
-            die "Usage: ./collectDistractorImgs.pl in_path out_path num_images [exclude_WNID]\n\texclude_WNID can be a single ID or text file\n";
+        $inputType = checkInputType($excludeWNID);
+        if ($inputType == 0) {
+            &cdiPostUsage();
         }
     } else {
         $excludeWNID = "NULL";
@@ -43,13 +50,32 @@ sub collectDistractorImgs ($$$$) {
     my @excludeArray;
     if ($inputType==1) { #The user has input a synset id
         @excludeArray = ($excludeWNID);
-        print "collectDistractorImgs: Excluding $excludeWNID and its child categories from the distractor set."
     } elsif ($inputType==2) { #The user has input a text file full of synset ids
         #Open input file
         open(INTEXT,"<", $excludeWNID) or die $!;
         @excludeArray = <INTEXT>;
         close(INTEXT);
-    } 
+    } elsif ($inputType==3) { #The user has input a dir full of tar files
+        $excludeWNID =~ s/\/$//g;
+        $excludeWNID =~ s/\s/\\ /g;
+
+        print "collectDistractorImgs: Getting a list of WNIDS from the tar files in the input dir $excludeWNID\n";
+        my $ext = 'tar';
+        my @fileList = findFiles($excludeWNID,$ext);
+
+        for (my $i=0; $i<scalar(@fileList); $i++) {
+            if ($fileList[$i] =~ /(n\d+)/) {
+                $fileList[$i] = $1;
+            } else {
+                delete $fileList[$i];
+            }
+        }
+
+        my $numFilesFound = scalar(@fileList);
+        print "collectDistractorImgs: Found $numFilesFound WNIDs to exclude.\n";
+
+        @excludeArray = @fileList;
+    }
 
     unless (-d $inPath) {
         die "\n\nERROR: Input path must be a directory.\n";
@@ -76,11 +102,13 @@ sub collectDistractorImgs ($$$$) {
 
     #If exclude WNID is listed, make a list of it and all of its children
     my @excludeSet;
-    unless ($excludeWNID =~ "NULL") { #User has given an exclude ID
+    unless ($excludeWNID =~ "NULL") { #If user has given an exclude ID
         foreach $WNID (@excludeArray) {
-            print "collectDistractorImgs: Excluding $WNID and its child categories from the distractor set.\n";
-            ($namesRef, $idsRef) = listChildren($WNID);
-            push(@excludeSet,@$idsRef);
+            print "collectDistractorImgs: Excluding $WNID and its child/parent categories from the distractor set.\n";
+            ($chNamesRef, $chIdsRef) = listChildren($WNID);
+            ($paNamesRef, $paIdsRef) = listParents($WNID);
+            push(@excludeSet,@$chIdsRef);
+            push(@excludeSet,@$paIdsRef);
         }
     }
 

@@ -17,123 +17,109 @@
 ##
 ############
 
+require 'findFiles.pl';
+require 'makeTempDir.pl';
+require 'checkInputType.pl';
+
 #########################
 ##Uncomment _below_ to run from command line
 ##Leave _below_ commented in order to call this function from another program
 #########################
-if ($ARGV[0]) {
-    my ($namesRef, $idsRef) = &listParents($ARGV[0]);
-
-    my @names = @$namesRef;
-    my @WNIDs = @$idsRef;
-
-    if (scalar(@names) != scalar(@WNIDs)) { #Arry lengths are not equal
-        die "listParents: ERROR: Output arrays must be of equal length\n";
-    }
-
-    my $arryLength = scalar(@names);
-
-    #Set up temp output dir
-    my $currDir = `pwd`;
-    chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
-    my $TMP_DIR = "$currDir/temp";
-    unless (-d $TMP_DIR) {
-        system("mkdir -p $TMP_DIR") and die "listParents: Couldn't make dir $TMP_DIR!\n"; #System returns 0 for success
-    }
-
-    #print to screen
-    my $root = @names[-1];
-    for (my $i=0; $i<$arryLength; $i++) {
-        my $name = @names[$i];
-        my $wnid = @WNIDs[$i];
-        if ($name =~ m/$root/) {
-            print "$wnid\t\t$name\n";
-            print "\n\n----------\n";
-        } else {
-            print "$wnid\t$name\n";
-        }
-    }
-
-    #print to file
-    print "\nPrinting output to files...";
-    open (NameOut, ">", "$TMP_DIR/synsetParentNames.ssv") or die "Can't open file for writing! $TMP_DIR/synsetParentWNIDs.ssv\nError: $!"; #ssv = semi-colon separated values
-    open (WnidOut, ">", "$TMP_DIR/synsetParentWNIDs.ssv") or die "Can't open file for writing! $TMP_DIR/synsetParentNames.ssv\nError: $!"; #ssv = semi-colon separated values
-
-    my $firstRun = 1;
-    for (my $j=$arryLength-1; $j>=0; $j--) {
-        my $newLine = 0;
-
-        my $name = $names[$j];
-        my $wnid = $WNIDs[$j];
-
-        unless ($firstRun) {
-            if ($name =~ m/$root/) {
-                print NameOut "\n";
-                print WnidOut "\n";
-                $newLine = 1;
-            }
-        }
-
-        print NameOut "$name";
-        print WnidOut "$wnid";
-
-        if ($j >= 1 ) { 
-            unless ($names[$j-1] =~ m/$root/) { #if we are not at the last item (next item will be root again)
-                print NameOut ";";
-                print WnidOut ";";
-            }
-        }
-        $firstRun = 0;
-    }
-
-    print "\nProgram Complete.\n";
-} else {
-    die "\n\nUsage:\n./listParents.pl input\nSupported inputs: synsetID, list.txt, list.html\n\n";
-}
+#if ($ARGV[0]) {
+#    my ($namesRef, $idsRef) = &listParents($ARGV[0]);
+#
+#    my @names = @$namesRef;
+#    my @WNIDs = @$idsRef;
+#
+#    if (scalar(@names) != scalar(@WNIDs)) { #Arry lengths are not equal
+#        die "listParents: ERROR: Output arrays must be of equal length\n";
+#    }
+#
+#    my $arryLength = scalar(@names);
+#
+#
+#    #Set up temp dir
+#    my $TMP_DIR = makeTempDir();
+#
+#    #print to screen
+#    my $root = @names[-1];
+#    for (my $i=0; $i<$arryLength; $i++) {
+#        my $name = @names[$i];
+#        my $wnid = @WNIDs[$i];
+#        if ($name =~ m/$root/) {
+#            print "$wnid\t\t$name\n";
+#            print "\n\n----------\n";
+#        } else {
+#            print "$wnid\t$name\n";
+#        }
+#    }
+#
+#    #print to file
+#    print "\nPrinting output to files...";
+#    open (NameOut, ">", "$TMP_DIR/synsetParentNames.ssv") or die "Can't open file for writing! $TMP_DIR/synsetParentWNIDs.ssv\nError: $!"; #ssv = semi-colon separated values
+#    open (WnidOut, ">", "$TMP_DIR/synsetParentWNIDs.ssv") or die "Can't open file for writing! $TMP_DIR/synsetParentNames.ssv\nError: $!"; #ssv = semi-colon separated values
+#
+#    my $firstRun = 1;
+#    for (my $j=$arryLength-1; $j>=0; $j--) {
+#        my $newLine = 0;
+#
+#        my $name = $names[$j];
+#        my $wnid = $WNIDs[$j];
+#
+#        unless ($firstRun) {
+#            if ($name =~ m/$root/) {
+#                print NameOut "\n";
+#                print WnidOut "\n";
+#                $newLine = 1;
+#            }
+#        }
+#
+#        print NameOut "$name";
+#        print WnidOut "$wnid";
+#
+#        if ($j >= 1 ) { 
+#            unless ($names[$j-1] =~ m/$root/) { #if we are not at the last item (next item will be root again)
+#                print NameOut ";";
+#                print WnidOut ";";
+#            }
+#        }
+#        $firstRun = 0;
+#    }
+#
+#    print "\nProgram Complete.\n";
+#} else {
+#    &lpPostUsage();
+#}
 #########################
 #########################
  
+sub lpPostUsage() {
+    die "\n\nUsage:\n./listParents.pl input\nSupported inputs: synsetID, list.txt, list.html\n\n\n";
+}
+
 sub listParents ($) {
     use XML::XPath;
     use XML::XPath::XMLParser;
-
-    require 'findFiles.pl';
 
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
     $STRUCTURE_URL = "http://www.image-net.org/api/xml/structure_released.xml";
 
 #Format input
-    my $inputType = 0;
-    if ($_[0]) {
-        $userIn = $_[0];
-        chomp($userIn);
-        if ($userIn =~ m/^n\d+$/) {
-            $inputType = 1;
-        } elsif (($userIn =~ m/\.txt$/) || ($userIn =~ m/\.html$/)) {
-            $inputType = 2;
-        } elsif (-d $userIn) {
-            $userIn =~ s/\/$//g;
-            $inputType= 3;
-        } else {
-            die "\n\nUsage:\n./listParents.pl input\nSupported inputs: synsetID, list.txt, list.html\n\n";
-        }
-    } else {
-        die "\n\nUsage:\n./listParents.pl input\nSupported inputs: synsetID, list.txt, list.html\n\n";
+    $userIn = $_[0];
+    chomp($userIn);
+    my $inputType = checkInputType($userIn);
+    if ($inputType == 0) {
+        &lpPostUsage();
+    } elsif ($inputType == 3) {
+        $userIn =~ s/\/$//g;
     }
 
-#Set up output dir
-    my $currDir = `pwd`;
-    chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
-    my $TMP_DIR = "$currDir/temp";
-    unless (-d $TMP_DIR) {
-        system("mkdir -p $TMP_DIR") and die "\nlistParents: Couldn't make dir $TMP_DIR!\n"; #System returns 0 for success
-    }
+#Set up temp dir
+    my $TMP_DIR = makeTempDir();
 
 #Download Image-Net structure if it does not already exist in the temp folder
     unless (-e "$TMP_DIR/structure.xml") {
-        print "\nlistParents: Downloading most current hierarchy from Image-Net...\n";
+        print "listParents: Downloading most current hierarchy from Image-Net...\n";
         system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
         print "listParents: Done.\n";
     }
@@ -207,11 +193,11 @@ sub listParents ($) {
         ###Decide if input was a WNID or a synset name
         #my ($wnid, $path) = 0;
         #if ($input =~ /^n[\d]+$/) { #WNID
-        #    print "listParents: Finding the parents of WNID: \"$input\" in the Image-Net hierarchy...\n";
+        #    print "listParents: Finding the parents of WNID: \"$input\" in the Image-Net hierarchy.\n";
         #    $path = "//synset[\@wnid=\'${input}\']";
         #    $wnid = 1;
         #} else { #NAME
-        #    print "listParents: Finding the parents of synset \"$input\" in the Image-Net hierarchy...\n";
+        #    print "listParents: Finding the parents of synset \"$input\" in the Image-Net hierarchy.\n";
         #    if ($input =~ /'/) {
         #        $path = "//synset[\@words=\"${input}\"]";
         #    } else {
@@ -221,7 +207,7 @@ sub listParents ($) {
         #}
         ######################################
         $count += 1;
-        print "\nlistParents: Finding the parents of WNID: \"$input\" in the Image-Net hierarchy ($count out of $total)...\n";
+        print "\nlistParents: Finding the parents of WNID: \"$input\" in the Image-Net hierarchy ($count IDs out of $total).\n";
         my $path = "//synset[\@wnid=\'${input}\']";
         ######################################
 

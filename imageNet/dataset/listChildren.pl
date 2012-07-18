@@ -33,14 +33,20 @@
 #        print "$item\n";
 #    }
 #    print "\n";
-#} else {
-#    die "Usage: ./listChildren.pl \"category\"\n";
+#} else 
+#    &lcPostUsage();
 #}
 #####
  
+sub lcPostUsage () {
+    die "\n\nUsage: ./listChildren.pl synsetID\n\n\n";
+}
+
 sub listChildren ($) {
     use XML::XPath;
     use XML::XPath::XMLParser;
+
+    require 'makeTempDir.pl';
 
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
     $STRUCTURE_URL = "http://www.image-net.org/api/xml/structure_released.xml";
@@ -50,17 +56,11 @@ sub listChildren ($) {
         $input = $_[0];
         chomp($input);
     } else {
-        die "Usage: ./listChildren.pl synsetID\n";
+        &lcPostUsage();
     }
 
-#Set up output dir
-    my $currDir = `pwd`;
-    chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
-    my $TMP_DIR = "$currDir/temp";
-    unless (-d $TMP_DIR) {
-        system("mkdir -p $TMP_DIR") or die "listChildren: Couldn't make dir $TMP_DIR!\n";
-    }
+#Set up temp dir
+    my $TMP_DIR = makeTempDir();
 
 #Download Image-Net structure if it does not already exist in the temp folder
     unless (-e "$TMP_DIR/structure.xml") {
@@ -104,7 +104,7 @@ sub listChildren ($) {
 ##        $wnid = 0;
 ##    }
 ######################################
-    print "listChildren: Finding the children of WNID: \"$input\" in the Image-Net hierarchy...";
+    print "listChildren: Finding the children of WNID: \"$input\" in the Image-Net hierarchy.\n";
     my $path = "//synset[\@wnid=\'${input}\']/descendant-or-self::node()";
 ######################################
 
@@ -141,7 +141,6 @@ sub listChildren ($) {
         #print "\t",$node->getAttribute(WNID),"\n";
     }
 
-    print "Done.\n";
     return (\@childTreeNames,\@childTreeWNIDs);
 }
 1;
