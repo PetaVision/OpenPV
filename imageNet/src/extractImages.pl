@@ -231,13 +231,13 @@ sub doExtract ($$$) {
     foreach my $dir (@outputDirs) {
         chomp($dir);
 
-        my $cleanDir = $dir;
+        my $cleanDir = '$dir/images';
         $cleanDir =~ s/\\//g;
         system("mkdir -p $dir") unless (-d $cleanDir);
         die "Failed to make $cleanDir!\n\n" unless (-d $cleanDir);
 
         if ($firstRun) {
-            print "doExtract:\n\tCategory:\t$categoryWNID\n\tArchive file:\t$ARCH_DIR/$archFile\n\tDestination:\t$cleanDir/images\n\n";
+            print "doExtract:\n\tCategory:\t$categoryWNID\n\tArchive file:\t$ARCH_DIR/$archFile\n\tDestination:\t$cleanDir\n\n";
 
             system("mkdir $dir/images") unless (-d "$cleanDir/images");
             system("tar -xkzf $ARCH_DIR/$archFile -C $dir/images/ 2> $TMP_DIR/tarout.err");

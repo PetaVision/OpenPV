@@ -22,7 +22,7 @@ sub findFiles($$) {
         if (-d $item) { #if it is a directory
             push(@allFiles,&findFiles($item,$ext));
         } else { #Item is not a directory
-            if ($item =~ /\.$ext$/i) { #Item is an image
+            if ($item =~ /\.$ext/i) { #Item is has requested file extension
                 push(@allFiles,$item);
             }
         }
