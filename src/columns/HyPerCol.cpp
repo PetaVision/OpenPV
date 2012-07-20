@@ -157,6 +157,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    param_file = NULL;
    working_dir = NULL;
    unsigned long random_seed = 0;
+   deleteOlderCheckpoints = false;
    parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
 
@@ -348,6 +349,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
       }
       nextCPWriteStep = 0;
       nextCPWriteTime = 0;
+
+      deleteOlderCheckpoints = params->value(name, "deleteOlderCheckpoints", false) != 0;
+      if (deleteOlderCheckpoints) {
+         memset(lastCheckpointDir, 0, PV_PATH_MAX);
+      }
    }
    else {
       suppressLastOutput = params->value(name, "suppressLastOutput", false) != 0;
@@ -553,6 +559,15 @@ int HyPerCol::run(int nTimeSteps)
       char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
       snprintf(cpDir, str_len+1, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
       checkpointRead(cpDir);
+      if (checkpointWriteFlag && deleteOlderCheckpoints) {
+         int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
+         if (chars_needed >= PV_PATH_MAX) {
+            if (icComm->commRank()==0) {
+               fprintf(stderr, "checkpointRead error: path \"%s\" is too long.\n", cpDir);
+            }
+            abort();
+         }
+      }
    }
    else {
       for ( int l=0; l<numLayers; l++ ) {
@@ -848,6 +863,37 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       fprintf(timestampfile,"timestep = %d\n", currentStep);
       fclose(timestampfile);
    }
+
+   if (deleteOlderCheckpoints) {
+      assert(checkpointWriteFlag); // checkpointWrite is called by exitRunLoop when checkpointWriteFlag is false; in this case deleteOlderCheckpoints should be false as well.
+      if (lastCheckpointDir[0]) {
+         if (icComm->commRank()==0) {
+            struct stat lcp_stat;
+            int statstatus = stat(lastCheckpointDir, &lcp_stat);
+            if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
+               if (statstatus==0) {
+                  fprintf(stderr, "Error deleting older checkpoint: failed to stat \"%s\": error %d.\n", lastCheckpointDir, errno);
+               }
+               else {
+                  fprintf(stderr, "Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
+               }
+            }
+// Delete old checkpoint.  Calling system('rm -r ...') rings alarm bells, and should.  So I masked the rm -r with an echo command.
+// As it appears on the repository, setting deleteOlderCheckpoints to true doesn't actually delete the checkpoint, but instead
+// sends the string 'rm -r ...' to standard output.  To really activate the deleteOlderCheckpoint feature,
+// delete the echo from the snprintf format string below.
+#define RMRFSIZE (PV_PATH_MAX + 13)
+            char rmrf_string[RMRFSIZE];
+            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "echo rm -r '%s'", lastCheckpointDir);
+            assert(chars_needed < RMRFSIZE);
+#undef RMRFSIZE
+            system(rmrf_string);
+         }
+      }
+      int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
+      assert(chars_needed < PV_PATH_MAX);
+   }
+
    return PV_SUCCESS;
 }
 

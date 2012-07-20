@@ -141,6 +141,9 @@ private:
    int nextCPWriteStep;
    float cpWriteTimeInterval;
    float nextCPWriteTime;
+   bool deleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
+   char lastCheckpointDir[PV_PATH_MAX]; // Holds the last checkpoint directory written; used if deleteOlderCheckpoints is true.
+
    bool suppressLastOutput; // If checkpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {outputPath}/Last directory.
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
