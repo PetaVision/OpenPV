@@ -1,16 +1,27 @@
-% Plots the 3 Kilian graphs using Ganglion center cell and Ganglion neighbour cells
+% Plots the 3 Kilian graphs of average spike rate, LGN spikes, and EPSPs (top, middle, bottom, respectively)
 
-run = 2
+function Kilian(run)
 
 % Making initial vectors
 
 [time, Gin_A] = pvp_readPointLIFprobeRun(1,"GanglionON",{'A'});
 [time, N1_A] = pvp_readPointLIFprobeRun(1,"N1GanglionON",{'A'});
 
-N_A = zeros (run,8,length(N1_A)); % index is run,id,time
+negtime = -time/2+1:1:0;
+postime = 1:1:time/2;
+rtime = horzcat(negtime,postime);
+rtime = rtime./1000;
+rtime_all = zeros(run,time);
 
-G_A = zeros (run,length(Gin_A));   % index is run,time
-Gsum_A = zeros (length(Gin_A),1);   % index is run,time
+N_A = zeros (run,9,length(N1_A));
+G_A = zeros (run,length(Gin_A));
+Allsums = zeros (run,length(N1_A));
+SumT = zeros (1,length(N1_A));
+
+
+phase = zeros(1,run);
+freq = zeros(1,run);
+
 
 %%---------    reading in center and neighbour activities for "run" runs
 for m = 1:run
@@ -34,22 +45,43 @@ N_A(m,5,:) = N5_A;
 N_A(m,6,:) = N6_A;
 N_A(m,7,:) = N7_A;
 N_A(m,8,:) = N8_A;
+N_A(m,9,:) = Gin_A;
 
-Gsum_A = Gsum_A+Gin_A;
+SumN = N1_A + N2_A + N3_A + N4_A + N5_A + N6_A + N7_A + N8_A+Gin_A;
+Allsums(m,:) = SumN;
+Allsums_nDC =  zeros (run,length(N1_A));
+Allsums_hat = zeros (run,length(N1_A));
+
+
+%Calculating phase of each trial
+
+Allsums_nDC(m,:) = Allsums(m,:) - mean(Allsums(m,:));
+Allsums_hat(m,:) = fft(Allsums_nDC(m,:));
+phase(m) = angle(max(Allsums(m,:)));
+
+[imax,imaxindex] = max(abs(Allsums_hat(m,:)));
+freq(m) = (imaxindex-1)/time;
+
+if freq(m) > 120
+   freq(m) = freq(m)/2;
+elseif  freq(m) < 40
+   freq(m) = freq(m)*2;
+end %if
+
+
+SumT = SumT + Allsums(m,:);
 
 end %for
 
+time_sec = time/1000;
+
 % Averaged spike rate by dividing by number of trials
 
-Gsum_A = Gsum_A./run;
+SumT = SumT./run;
 
-rtime = 1:time;
+LineLength = 0.2;
 
 clf;
-
-LineLength = 0.1;
-
-
 
 figure(1);
 
@@ -57,11 +89,11 @@ figure(1);
 
 top = subplot(3,1,1);
 
-bar(rtime,Gsum_A,'facecolor','r','edgecolor','r');
+bar(rtime,SumT,'facecolor','r','edgecolor','r');
 
-axis([0 time 0 1.5*max(Gsum_A)])
+axis([-time_sec/2 time_sec/2 0 1.5*max(SumT)])
 
-title('Activity of Center Ganglion Cell and Neighbouring Ganglion Cells');
+title('Activity of LGN Cell and Neighbouring Ganglion Cells');
 ylabel('Avg. Spike Rate (1/s)');
 
 set(gca,'XTickLabel',[]);
@@ -72,27 +104,29 @@ set(top,'pos',[0.13,0.64,0.774,0.258]);
 
 middle = subplot(3,1,2);
 
-for m=1:run
+for m = 1:run
 
-for i = 1:time
+    for j = 1:8 
 
-     if  G_A(m,i) ~= 0
+        for i = 1:time
+                         
+              if (N_A(m,j,i)~=0) && (G_A(m,i)~=0)
+
+                 x = [rtime(i),rtime(i)];
+
+                 y = [m-LineLength,m+LineLength];
+
+                 line(x,y,'color','r');
       
-       x = [i,i];
+              end %if
 
-       y = [m*G_A(m,i)-LineLength,m*G_A(m,i)+LineLength];
+        end %for %i
 
-       line(x,y,'color','r');
-      
-     end %if %center
-
-
-
-end %for %i
+    end %for j        
 
 end %for %m
 
-axis([0 time 0.1 max(m)*1.5]);
+axis([-time_sec/2 time_sec/2 0.1 max(m)*1.5]);
 set(gca,'YTick',[0:max(m)]);
 set(middle,'pos',[0.13,0.38,0.774,0.258]);
 
@@ -107,13 +141,19 @@ bottom = subplot(3,1,3);
 
 for m = 1:run
 
-for j = 1:8
+rtime_all(m,:) = rtime;
+
+rtime_all(m,:) = rtime_all(m,:);
+
+%- phase(m)/(1000*2*pi*freq(m));
+
+for j = 1:9
 
     for i = 1:time
 
        if N_A(m,j,i) ~= 0
 
-         x = [i-0.4+0.1*i,i-0.4+0.1*i];
+         x = [rtime_all(m,i)-0.0004+0.00002*j,rtime_all(m,i)-0.0004+0.00002*j];
 
          y = [m*N_A(m,j,i)-LineLength,m*N_A(m,j,i)+LineLength];
 
@@ -121,22 +161,24 @@ for j = 1:8
 
        end %if
 
-     end %for
+     end %for %time
 
-end %for
+end %for %cells
 
+axis([-time_sec/2 time_sec/2 0.1 run*1.5]);
+xlabel('Time (s)');
+ylabel('Trial #');
 
-axis([0 time 0.1 max(m)*1.5]);
-xlabel('Time (ms)');
-ylabel('Trial #'); 
-
-end %for
+end %for %runs
 
 %pos = get(bottom,'pos');
 
 %disp(pos);
 
 %pos(2) = pos(2)+0.01;
-set(gca,'YTick',[0:max(m)]);
-set(bottom,'pos',[0.13,0.1195,0.774,0.258]);
+set(gca,'YTick',[0:run]);
+set(bottom,'pos',[0.13,0.11958,0.774,0.258]);
 
+xneg = -time_sec/2:0.1:0;
+xpos = 0:0.1:time_sec/2;
+set(gca,'XTick',horzcat(xneg,xpos));
