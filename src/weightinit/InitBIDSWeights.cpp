@@ -9,7 +9,6 @@
 
 #include <stdlib.h>
 
-#include "../layers/BIDSLayer.cpp"
 #include "../include/default_params.h"
 #ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
 #include "../io/ConnectionProbe.hpp"
@@ -311,61 +310,31 @@ int InitBIDSWeights::BIDSCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart,
 
 
 
+
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   float aspect=weightParamPtr->getaspect();
-   float shift=weightParamPtr->getshift();
-   int numFlanks=weightParamPtr->getnumFlanks();
-   float sigma=weightParamPtr->getsigma();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
-   double r2Max=weightParamPtr->getr2Max();
-   double r2Min=weightParamPtr->getr2Min();
+   BIDSCoords * coords = weightParamPtr->getCoords();
+   int numNodes = weightParamPtr->getNumNodes();
+   //for(int i = 0; i < 1024; i++){
+      //printf("%d,%d ", coords[i].xCoord, coords[i].yCoord);
+   //}
+   //printf("\n");
 
    // pvdata_t * w_tmp = patch->data;
 
-
-
    // loop over all post-synaptic cells in temporary patch
+   float maxDistance = sqrt((numNodes) + (numNodes));
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
       //TODO: add additional weight factor for difference between thPre and thPost
       if(weightParamPtr->checkTheta(thPost)) continue;
-      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = weightParamPtr->calcYDelta(jPost);
-         for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = weightParamPtr->calcXDelta(iPost);
+      for (int jPost = 0; jPost < numNodes; jPost++) {
+         float yDelta = coords[jPost].yCoord - 128;
+            float xDelta = coords[jPost].xCoord - 128;
 
-            if(weightParamPtr->isSameLocOrSelf(xDelta, yDelta, fPost)) continue;
-
-            // rotate the reference frame by th (change sign of thPost?)
-            float xp = +xDelta * cos(thPost) + yDelta * sin(thPost);
-            float yp = -xDelta * sin(thPost) + yDelta * cos(thPost);
-
-            if(weightParamPtr->checkBowtieAngle(yp, xp)) continue;
-
-
-            // include shift to flanks
-            float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
-            int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
-            dataStart[index] = 0;
-            if ((d2 <= r2Max) && (d2 >= r2Min)) {
-               dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
-            }
-            if (numFlanks > 1) {
-               // shift in opposite direction
-               d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
-               if ((d2 <= r2Max) && (d2 >= r2Min)) {
-                  dataStart[index] += exp(-d2 / (2.0f * sigma * sigma));
-               }
-            }
-         }
+            dataStart[jPost] = 1 - (sqrt((xDelta * xDelta) + (yDelta * yDelta)) / maxDistance);
       }
    }
-
    return 0;
 }
 

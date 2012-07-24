@@ -9,6 +9,7 @@
 #define INITBIDSWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "../layers/BIDSLayer.hpp"
 
 namespace PV {
 
@@ -28,11 +29,12 @@ public:
    inline float getsigma()        {return sigma;}
    inline double getr2Max()        {return r2Max;}
    inline double getr2Min()        {return r2Min;}
+   inline BIDSCoords *getCoords()  {return coords;}
+   inline int getNumNodes()        {return numNodes;}
 
 protected:
    virtual int initialize_base();
    int initialize(HyPerConn * parentConn);
-
 
 private:
 
@@ -46,7 +48,8 @@ private:
    float shift;
    bool bowtieFlag;  // flag for setting bowtie angle
    float bowtieAngle;  // bowtie angle
-
+   BIDSCoords * coords; //structure array pointer that holds the randomly generated corrdinates for the specified number of BIDS nodes
+   int numNodes;
    //calculated values;
    double r2Max;
    double r2Min;

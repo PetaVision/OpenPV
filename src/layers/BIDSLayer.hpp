@@ -6,6 +6,9 @@
  *
  */
 
+#ifndef INITBIDSLAYER_HPP_
+#define INITBIDSLAYER_HPP_
+
 #include "HyPerLayer.hpp"
 #include "LIF.hpp"
 
@@ -24,13 +27,17 @@ public:
    int * randomIndices(int numMatrixCol, int numMatrixRow);
    void findCoordinates(int numMatrixCol, int numMatrixRow);
    int findWeights(int x1, int y1, int x2, int y2);
-   void getCoords(int numNodes, BIDSCoords * coords);
+   void setCoords(int numNodes, BIDSCoords * coords, int jitter);
+   BIDSCoords * getCoords();
+   int numNodes;
 protected:
   BIDSLayer();
-
+  BIDSCoords * coords; //structure array pointer that holds the randomly generated coordinates for the specified number of BIDS nodes
   int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
   // other methods and member variables
 private:
   // other methods and member variables
 };
 }
+
+#endif /* INITBIDSLAYER_HPP_ */

@@ -44,6 +44,7 @@ int InitBIDSWeightsParams::initialize_base() {
 
    return 1;
 }
+
 int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
    InitWeightsParams::initialize(parentConn);
 
@@ -69,6 +70,10 @@ int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
       }
    }
 
+   BIDSLayer * post = dynamic_cast<BIDSLayer *>(parentConn->postSynapticLayer());
+   coords = post->getCoords();
+   numNodes = post->numNodes;
+
    double r2Maxd = (double) rMax;
    r2Max = r2Maxd*r2Maxd;
    double r2Mind = (double) rMin;
@@ -77,8 +82,6 @@ int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
 
 //calculate other values:
    self = (pre != post);
-
-
    return status;
 
 }
@@ -89,12 +92,8 @@ void InitBIDSWeightsParams::calcOtherParams(int patchIndex) {
 
    const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
-
-
    this->calculateThetas(kfPre_tmp, patchIndex);
-
 }
-
 
 bool InitBIDSWeightsParams::isSameLocOrSelf(float xDelta, float yDelta, int fPost) {
    bool sameLoc = ((getFPre() == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));

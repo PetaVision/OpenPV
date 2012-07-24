@@ -14,10 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 int * vector;
 int flag = 0;
-BIDSCoords * coords; //structure array pointer that holds the randomly generated corrdinates for the specified number of BIDS nodes
 
 namespace PV {
 BIDSLayer::BIDSLayer() {
@@ -30,15 +30,14 @@ BIDSLayer::BIDSLayer(const char * name, HyPerCol * hc) {
 
 int BIDSLayer::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name){
    LIF::initialize(name, hc, TypeBIDS, MAX_CHANNELS, "BIDS_update_state");
-   float nxScale = (float)(parent->parameters()->value("BIDS_node", "nxScale"));
-   float nyScale = (float)(parent->parameters()->value("BIDS_node", "nyScale"));
-   int nxGlobal = (int)(parent->parameters()->value("column", "nx"));
-   int nyGlobal = (int)(parent->parameters()->value("column", "ny"));
-   printf("%d %d", nxGlobal, nyGlobal);
-   int numNodes = (nxScale * nxGlobal) * (nyScale * nyGlobal);
+   float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
+   float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
+   int jitter = (int)(parent->parameters()->value(name, "jitter"));
+   int HyPerColWidth = (int)(parent->parameters()->value("column", "nx"));
+   int HyPerColHeight = (int)(parent->parameters()->value("column", "ny"));
+   numNodes = (nxScale * HyPerColWidth) * (nyScale * HyPerColHeight);
    coords = (BIDSCoords*)malloc((sizeof(BIDSCoords)) * numNodes);
-   getCoords(numNodes, coords);
-   //vector = randomIndices(clayer->loc.nxGlobal, clayer->loc.nyGlobal);
+   setCoords(numNodes, coords, jitter);
    return PV_SUCCESS;
 }
 
@@ -75,45 +74,51 @@ int BIDSLayer::updateState(float time, float dt)
 }
 
 //This function fills an array with structures of random, non-repeating coordinates at which BIDS nodes will be "placed"
-//TODO create flag system for a fully populated matrix
-void BIDSLayer::getCoords(int numNodes, BIDSCoords * coords){
+void BIDSLayer::setCoords(int numNodes, BIDSCoords * coords, int jitter){
    srand(time(NULL));
-   int nxGlobal = (int)(parent->parameters()->value("column", "nx"));
-   int nyGlobal = (int)(parent->parameters()->value("column", "ny"));
-   int xCheck[numNodes]; //checks for repeating x indices
-   int yCheck[numNodes]; //checks for repeating y indices
+   assert(jitter >= 0); //jitter cannot be below zero
+   int HyPerColWidth = (int)(parent->parameters()->value("column", "nx")); //the length of a side of the HyPerColumn
+   int layerWidth = (int)(sqrt(numNodes)); //the length of a size of the BIDSLayer
+   int patchSize = (HyPerColWidth / layerWidth); //the length of a side of a patch in the HyPerColumn
+   int patchMidx = patchSize / 2;
+   int patchMidy = patchSize / 2;
+   int jitterRange = jitter * 2;
 
-   for(int i = 0; i < numNodes; i++){ //zeros out the xCheck array
-      xCheck[i] = 0;
-      yCheck[i] = 0;
-   }
-
+   int lowerboundx = patchMidx - jitter;
+   int lowerboundy = patchMidy - jitter;
    for(int i = 0; i < numNodes; i++){ //cycles through the number of nodes specified by params file
-      int xIndex = 0;
-      int yIndex = 0;
-      int xAdded = 0;
-      int yAdded = 0;
-      while(xAdded == 0){ //creates a random x coordinate until one is created that has not been used yet
-         xIndex = rand() % nxGlobal;
-         if(xCheck[xIndex] < nxGlobal){
-            //printf("xIndex: %d\t", xIndex);
-            xCheck[xIndex]++;
-            xAdded = 1;
+      if(patchMidx <= HyPerColWidth - (patchSize / 2)) { //iterator moves to the next column in the current row
+         if(jitter == 0){ //if jitter is 0, then the nodes should be placed in the origin of each patch
+            coords[i].xCoord = patchMidx;
+            coords[i].yCoord = patchMidy;
+         }
+         else{
+            coords[i].xCoord = rand() % jitterRange + lowerboundx; //stores the x coordinate into the current BIDSCoord structure
+            coords[i].yCoord = rand() % jitterRange + lowerboundy; //stores the y coordinate into the current BIDSCoord structure
+            lowerboundx += patchSize;
          }
       }
-      coords[i].xCoord = xIndex; //stores the x coordinate into the current BIDSCoord structure
-
-      while(yAdded == 0){ //creates a random y coordinate until one is created that has not been used yet
-         yIndex = rand() % nyGlobal;
-         if(yCheck[yIndex] < nyGlobal){
-            //printf("yIndex: %d\t", yIndex);
-            yCheck[yIndex]++;
-            yAdded = 1;
+      else{ //iterator moves to the next row in the matrix
+         patchMidy += patchSize;
+         patchMidx = patchSize / 2;
+         if(jitter == 0){
+            coords[i].xCoord = patchMidx;
+            coords[i].yCoord = patchMidy;
+         }
+         else{
+            lowerboundx = patchMidx - jitter;
+            lowerboundy += patchSize;
+            coords[i].xCoord = rand() % jitterRange + lowerboundx; //stores the x coordinate into the current BIDSCoord structure
+            coords[i].yCoord = rand() % jitterRange + lowerboundy; //stores the y coordinate into the current BIDSCoord structure
+            lowerboundx += patchSize;
          }
       }
-      coords[i].yCoord = yIndex; //stores the y coordinate into the current BIDSCoord structure
-      //printf("(%d\n", i+1);
+      patchMidx += patchSize;
    }
+}
+
+BIDSCoords * BIDSLayer::getCoords(){
+   return coords;
 }
 
 int * BIDSLayer::randomIndices(int numMatrixCol, int numMatrixRow){
