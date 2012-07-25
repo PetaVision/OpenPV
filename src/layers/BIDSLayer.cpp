@@ -115,6 +115,10 @@ void BIDSLayer::setCoords(int numNodes, BIDSCoords * coords, int jitter){
       }
       patchMidx += patchSize;
    }
+
+   //for(int i = 0; i < numNodes; i++){
+      //printf("%d,%d ", coords[i].xCoord, coords[i].yCoord);
+   //}
 }
 
 BIDSCoords * BIDSLayer::getCoords(){

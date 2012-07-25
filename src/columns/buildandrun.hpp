@@ -41,6 +41,7 @@
 #include "../layers/ANNDivInh.hpp"
 #include "../layers/BIDSLayer.hpp"
 #include "../layers/BIDSSourceLayer.hpp"
+#include "../layers/BIDSCloneLayer.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #include "../connections/HyPerConn.hpp"
@@ -105,6 +106,7 @@ Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
+BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelType channel);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

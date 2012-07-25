@@ -89,6 +89,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                 "BIDSLayer",
              "Retina",
              "SigmoidLayer",
+             "BIDSCloneLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -381,6 +382,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new BIDSLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "BIDSCloneLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addBIDSCloneLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
       status = PV_FAILURE;
@@ -493,6 +499,24 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
    SigmoidLayer * addedLayer;
    if (originalLIFLayer) {
       addedLayer = new SigmoidLayer(name, hc, originalLIFLayer);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
+}
+
+BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc) {
+   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+   if( originalLayer == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class BIDSCloneLayer must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
+   BIDSCloneLayer * addedLayer;
+   if (originalLIFLayer) {
+      addedLayer = new BIDSCloneLayer(name, hc, originalLIFLayer);
    }
    else {
       fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());

@@ -308,22 +308,14 @@ int InitWeights::copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * 
  */
 int InitBIDSWeights::BIDSCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitBIDSWeightsParams * weightParamPtr) {
 
-
-
-
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
    BIDSCoords * coords = weightParamPtr->getCoords();
    int numNodes = weightParamPtr->getNumNodes();
-   //for(int i = 0; i < 1024; i++){
-      //printf("%d,%d ", coords[i].xCoord, coords[i].yCoord);
-   //}
-   //printf("\n");
-
-   // pvdata_t * w_tmp = patch->data;
 
    // loop over all post-synaptic cells in temporary patch
    float maxDistance = sqrt((numNodes) + (numNodes));
+
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
       //TODO: add additional weight factor for difference between thPre and thPost
