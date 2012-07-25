@@ -69,7 +69,7 @@ int GenerativeLayer::updateState(float timef, float dt, const PVLayerLoc * loc, 
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    pvdata_t relax_remaining = relaxation;
-   while(relaxation > 0) {
+   while(relax_remaining > 0) {
       updateSparsityTermDeriv_GenerativeLayer(num_neurons, V, sparsitytermderivative);
       update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dV, VMax, VMin, VThresh, relax_remaining, auxChannelCoeff, sparsityTermCoeff, persistence);
       pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
