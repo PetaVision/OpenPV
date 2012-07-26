@@ -41,6 +41,7 @@ private:
    int initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
    int copyReducedImagePortion();
    const char * getNextFileName();
+   const char * getNextFileName(int n_skip);
 
    float displayPeriod;   // length of time a frame is displayed
    float nextDisplayTime; // time of next frame

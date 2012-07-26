@@ -55,7 +55,12 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
    }
 
-   filename = strdup(getNextFileName());
+   PVParams * params = hc->parameters();
+
+   // skip to start_frame_index if provided
+   int start_frame_index = params->value(name,"start_frame_index", 0);
+
+   filename = strdup(getNextFileName(start_frame_index));
    assert(filename != NULL);
 
    // get size info from image so that data buffer can be allocated
@@ -69,7 +74,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    // create mpi_datatypes for border transfer
    mpi_datatypes = Communicator::newDatatypes(loc);
 
-   PVParams * params = hc->parameters();
    this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
@@ -320,6 +324,16 @@ int Movie::randomFrame()
    return 0;
 }
 
+// skip n_skip lines before reading next frame
+const char * Movie::getNextFileName(int n_skip)
+{
+   for (int i_skip = 0; i_skip < n_skip-1; i_skip++){
+      getNextFileName();
+   }
+   return getNextFileName();
+}
+
+
 const char * Movie::getNextFileName()
 {
    InterColComm * icComm = getParent()->icCommunicator();
@@ -327,10 +341,14 @@ const char * Movie::getNextFileName()
       int c;
       size_t len = PV_PATH_MAX;
 
-      // if at end of file (EOF), rewind
+      //TODO: add recovery procedure to handle case where access to file is temporarily unavailable
+      // use stat to verify status of filepointer, keep running tally of current frame index so that file can be reopened and advanced to current frame
 
+
+      // if at end of file (EOF), rewind
       if ((c = fgetc(fp)) == EOF) {
          rewind(fp);
+         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
       }
       else {
          ungetc(c, fp);
