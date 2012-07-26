@@ -15,6 +15,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+//#include <iostream>
 
 namespace PV {
 
@@ -76,6 +77,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
 
    this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
+   echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
 
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 
@@ -355,6 +357,10 @@ const char * Movie::getNextFileName()
       }
 
       char * path = fgets(inputfile, len, fp);
+      if (echoFramePathnameFlag){
+         fprintf(stderr, "%s", path);
+      }
+
 
       if (path != NULL) {
          path[PV_PATH_MAX-1] = '\0';

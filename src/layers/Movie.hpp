@@ -65,6 +65,8 @@ private:
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;
 
+   bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
+
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
