@@ -8,18 +8,18 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 1521;  // num images plus (num layers + 1) * delay
-   outputPath = "/Users/garkenyon/workspace-indigo/Cat/output/cat3way/";
-   progressStep = 50;
+   numSteps = 3007;  // num images plus (num layers + 1) * delay
+   outputPath = "/Users/garkenyon/workspace-indigo/Cat/output/nocatdog3way/";
+   progressStep = 10;
    filenamesContainLayerNames = false;
    checkpointRead = true;
    checkpointWrite = true;
-   checkpointReadDir = "./checkpoints/cat3way_train";
-   checkpointReadDirIndex = 205;
-   checkpointWriteDir = "./checkpoints/cat3way_train";
-   checkpointWriteStepInterval = 5;
+   checkpointReadDir = "./checkpoints/nocatdog3way_train";
+   checkpointReadDirIndex = 38;
+   checkpointWriteDir = "./checkpoints/nocatdog3way_train";
+   checkpointWriteStepInterval = 2;
    deleteOlderCheckpoints = true;
-   printParamsFilename = "cat3way_train.params";
+   printParamsFilename = "nocatdog3way_train.params";
 };
 
 //
@@ -27,7 +27,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/Volumes/LaCie/ImageNet/list/cat/train_fileOfFilenames1.txt";
+    imageListPath = "/Volumes/LaCie/ImageNet/list/nocatdog/train_fileOfFilenames1.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -39,35 +39,13 @@ Movie "Image" = {
     writeNonspikingActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
-	start_frame_index = 205;
+	start_frame_index = 538;
 	echoFramePathnameFlag = true;
     jitterFlag = 0;
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
 };
-
-Movie "Mask" = {
-    imageListPath = "/Volumes/LaCie/ImageNet/list/cat/train_fileOfMasknames1.txt";
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 0;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
-    writeImages = 0;
-    displayPeriod = 1;
-	start_frame_index = 205;
-	echoFramePathnameFlag = true;
-    jitterFlag = 0;
-    randomMovie = 0;
-    offsetX = 0;
-    offsetY = 0;
-};
-
 
 Retina "Retina" = {
     restart = 0;
@@ -86,7 +64,7 @@ Retina "Retina" = {
     burstDuration = 1;
 
     beginStim = 1;
-    endStim = 1517;
+    endStim = 3000;
 };
 
 
@@ -130,29 +108,6 @@ ANNLayer "L1Pool2X2" = {
     InitVType = "ConstantV";
     valueV = 0;
 };
-
-
-// masked edges
-CliqueLayer "L1Post" = {
-    restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 8;
-    marginWidth = 16;
-    writeStep = -1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
-
-    VThresh = 0.5;
-    VMax = 1.0;
-    VMin = 0.0;
-    Vgain = 1.0;
-    Voffset = 0.0;
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
 
 
 
@@ -309,54 +264,6 @@ KernelConn "L1ToL1Pool2X2" = {
 };
 
 
-// Mask connections
-
-// copy edge detections
-IdentConn "L1Pool2X2ToL1PostVertical" = {
-    preLayerName = "L1Pool2X2";
-    postLayerName = "L1Post";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-// mask non-amoeba edges
-KernelConn "MasktoL1Post" = {
-   preLayerName = "Mask";
-   postLayerName = "L1Post";
-   channelCode = 1;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1;
-   sigma = 1;
-   rMax  = 4;
-   rMin = 0;
-       
-   strength = 2040.0;  // 8*255  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   selfFlag = false;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 3;
-};
-
 
 
 
@@ -364,9 +271,9 @@ KernelConn "MasktoL1Post" = {
 // Clique connections
 
 
-CliqueConn "L1Pool2X2toL1Post" = {
+CliqueConn "L1Pool2X2toL1Pool2X2" = {
    preLayerName = "L1Pool2X2";
-   postLayerName = "L1Post";
+   postLayerName = "L1Pool2X2";
    channelCode = 2;
    nxp = 33; //129;
    nyp = 33; //129;
@@ -394,7 +301,7 @@ CliqueConn "L1Pool2X2toL1Post" = {
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 
-   delay = 1; 
+   delay = 0; 
 };
 
 
@@ -411,9 +318,6 @@ StatsProbe "L1Pool2X2Stats" = {
     targetLayer = "L1Pool2X2";
 };
 
-StatsProbe "L1PostStats" = {
-    targetLayer = "L1Post";
-};
 
 
 StatsProbe "RetinaStatsFile" = {
@@ -429,11 +333,6 @@ StatsProbe "L1StatsFile" = {
 StatsProbe "L1Pool2X2StatsFile" = {
     targetLayer = "L1Pool2X2";
     probeOutputFile = "L1Pool2X2_Stats.txt";
-};
-
-StatsProbe "L1PostStatsFile" = {
-    targetLayer = "L1Post";
-    probeOutputFile = "L1Post_Stats.txt";
 };
 
 
