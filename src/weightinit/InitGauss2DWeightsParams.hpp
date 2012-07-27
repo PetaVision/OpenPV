@@ -28,6 +28,7 @@ public:
    inline float getsigma()        {return sigma;}
    inline double getr2Max()        {return r2Max;}
    inline double getr2Min()        {return r2Min;}
+   inline double getStrength()        {return strength;}
 
 protected:
    virtual int initialize_base();
