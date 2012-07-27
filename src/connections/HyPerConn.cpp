@@ -1676,9 +1676,9 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
                postSynapticPatchHead(kPre, &kxPostHead, &kyPostHead, &kfPostHead, &dx_nxp,
                                         &dy_nyp,  &nxp_post,   &nyp_post);
 
-               assert(nxp_post == p->nx);
-               assert(nyp_post == p->ny);
-               assert(nfp == lPost->loc.nf);
+               //assert(nxp_post == p->nx);
+               //assert(nyp_post == p->ny);
+               //assert(nfp == lPost->loc.nf);
 
                int kxPrePatch, kyPrePatch; // relative index in shrunken patch
                kxPrePatch = kxPost - kxPostHead;
@@ -2289,6 +2289,14 @@ int HyPerConn::calcPatchSize(int axon_index, int kex,
       dy = 0;
       nxPatch = 0;
       nyPatch = 0;
+   }
+
+   //If higher than post, set equal to npost
+   if (nxPatch > nxPost) {
+      nxPatch = nxPost;
+   }
+   if (nyPatch > nyPost) {
+         nyPatch = nyPost;
    }
 
    // local non-extended index but shifted to be in bounds
