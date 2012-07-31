@@ -53,9 +53,6 @@ protected:
    pvdata_t * gSynSparse;
    pvdata_t * minEnergyFiltered;
 
-   double oldEnergy;
-   double preEnergy;
-
    float firstUpdate;
    float updatePeriod;
    float nextUpdate;

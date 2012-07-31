@@ -124,8 +124,6 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
       }
    }
 
-   oldEnergy = 0.0;
-
    PVParams * params = parent->parameters();
    firstUpdate = params->value(name, "firstUpdate", 1);
    updatePeriod = params->value(name, "updatePeriod", 1);
@@ -165,58 +163,6 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    PVLayerLoc flat_loc;
    memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
    flat_loc.nf = 1;
-
-   FILE * fp = NULL;
-   int num_written;
-   if (icComm->commRank()==0) {
-      chars_needed = snprintf(filename, filenamesize, "%s/%s_oldEnergy.bin", cpDir, name);
-      assert(chars_needed < filenamesize);
-      fp = fopen(filename, "w");
-      if (fp==NULL) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to open \"%s\" for writing.\n", name, filename);
-         abort();
-      }
-      num_written = fwrite(&oldEnergy, sizeof(preEnergy), 1, fp);
-      if (num_written != 1) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to write to \"%s\".\n", name, filename);
-         abort();
-      }
-      fclose(fp); fp = NULL;
-
-      chars_needed = snprintf(filename, filenamesize, "%s/%s_oldEnergy.txt", cpDir, name);
-      assert(chars_needed < filenamesize);
-      fp = fopen(filename, "w");
-      if (fp==NULL) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to open \"%s\" for writing.\n", name, filename);
-         abort();
-      }
-      fprintf(fp, "%g\n", oldEnergy);
-      fclose(fp); fp = NULL;
-
-      chars_needed = snprintf(filename, filenamesize, "%s/%s_preEnergy.bin", cpDir, name);
-      assert(chars_needed < filenamesize);
-      fp = fopen(filename, "w");
-      if (fp==NULL) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to open \"%s\" for writing.\n", name, filename);
-         abort();
-      }
-      num_written = fwrite(&preEnergy, sizeof(preEnergy), 1, fp);
-      if (num_written != 1) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to write to \"%s\".\n", name, filename);
-         abort();
-      }
-      fclose(fp); fp = NULL;
-
-      chars_needed = snprintf(filename, filenamesize, "%s/%s_preEnergy.txt", cpDir, name);
-      assert(chars_needed < filenamesize);
-      fp = fopen(filename, "w");
-      if (fp==NULL) {
-         fprintf(stderr, "PursuitLayer \"%s\": unable to open \"%s\" for writing.\n", name, filename);
-         abort();
-      }
-      fprintf(fp, "%g\n", preEnergy);
-      fclose(fp); fp = NULL;
-   }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_minEnergySparse.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
@@ -339,19 +285,6 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-
-   oldEnergy = preEnergy;
-   // Calculate energy |x|^2/2 of presynaptic layer
-   preEnergy = 0.0;
-   // There!  I've calculated it.  Wait,  no I haven't.
-
-   for (int k=0; k<pre->getNumNeurons(); k++) {
-      int idx_extended = kIndexExtended(k, pre_loc->nx, pre_loc->ny, pre_loc->nf, pre_loc->nb);
-      pvdata_t src_energy = activity->data[idx_extended];
-      preEnergy += src_energy*src_energy;
-   }
-   MPI_Allreduce(MPI_IN_PLACE, &preEnergy, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-   preEnergy *= 0.5;
 
    memset(innerproducts, 0, getNumNeurons()*sizeof(*innerproducts));
    const int numExtended = activity->numItems;
