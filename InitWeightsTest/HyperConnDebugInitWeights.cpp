@@ -762,14 +762,14 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] = 0;
             if (d2 <= r2Max) {
-               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += strength*expf(-d2
                      / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if (d2 <= r2Max) {
-                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += strength*expf(-d2
                         / (2.0f * sigma * sigma));
                }
             }
