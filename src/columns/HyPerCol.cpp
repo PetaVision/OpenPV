@@ -884,7 +884,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 // delete the echo from the snprintf format string below.
 #define RMRFSIZE (PV_PATH_MAX + 13)
             char rmrf_string[RMRFSIZE];
-            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "echo rm -r '%s'", lastCheckpointDir);
+            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "rm -r '%s'", lastCheckpointDir);  // deleted "echo"  disabling
             assert(chars_needed < RMRFSIZE);
 #undef RMRFSIZE
             system(rmrf_string);
@@ -894,6 +894,9 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(chars_needed < PV_PATH_MAX);
    }
 
+   if (icComm->commRank()==0) {
+      fprintf(stderr, "checkpointWrite complete. simTime = %f\n", simTime);
+   }
    return PV_SUCCESS;
 }
 
