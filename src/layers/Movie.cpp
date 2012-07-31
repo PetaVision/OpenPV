@@ -60,6 +60,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
 
    // skip to start_frame_index if provided
    int start_frame_index = params->value(name,"start_frame_index", 0);
+   skipFrameIndex = params->value(name,"skip_frame_index", 0);
 
    filename = strdup(getNextFileName(start_frame_index));
    assert(filename != NULL);
@@ -211,7 +212,7 @@ bool Movie::updateImage(float time, float dt)
       if (time >= nextDisplayTime) {
          needNewImage = true;
          if (filename != NULL) free(filename);
-         filename = strdup(getNextFileName());
+         filename = strdup(getNextFileName(skipFrameIndex));
          assert(filename != NULL);
          nextDisplayTime += displayPeriod;
 

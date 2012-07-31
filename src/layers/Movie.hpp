@@ -67,6 +67,8 @@ private:
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
 
+   int skipFrameIndex; // skip this number of frames between each load
+
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
