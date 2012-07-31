@@ -217,7 +217,7 @@ int PursuitLayer::writeBufferFile1Feature(const char * filename, InterColComm * 
       long fpos = ftell(writeFile);
       if (fpos == 0L) {
          int status = pvp_write_header(writeFile, comm, timed, &flat_loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, /*numbands*/ 1, /*extended*/false, /*contiguous*/false, NUM_BIN_PARAMS, (size_t) getNumNeurons());
+                                       PV_FLOAT_TYPE, /*numbands*/ 1, /*extended*/false, /*contiguous*/false, NUM_BIN_PARAMS, (size_t) flat_loc.nx*flat_loc.ny);
          if (status != PV_SUCCESS) return status;
       }
    }
