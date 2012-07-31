@@ -22,6 +22,7 @@
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/IncrementLayer.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
+#include "../layers/PursuitLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
