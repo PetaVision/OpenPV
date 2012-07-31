@@ -28,7 +28,7 @@ GapConn::~GapConn()
 }
 
 int GapConn::initNormalize(){
-   int status = HyPerConn::initNormalize();
+   int status = KernelConn::initNormalize();
    HyPerLayer * postHyPerLayer = this->postSynapticLayer();
    LIFGap * postLIFGap = NULL;
    postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
