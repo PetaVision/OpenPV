@@ -828,7 +828,9 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 }
 
 int HyPerCol::checkpointWrite(const char * cpDir) {
-   fprintf(stderr, "Rank %d in checkpointWrite. simTime = %f\n", icComm->commRank(), simTime);
+   if (icCommunicator()->commRank()==0) {
+      printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
+   }
    if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
       if( icComm->commRank() == 0 ) {
          fflush(stdout);
