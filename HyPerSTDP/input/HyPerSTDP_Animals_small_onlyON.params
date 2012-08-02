@@ -9,7 +9,7 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 5000;
+   numSteps = 1000;
    progressStep = 100;
    outputPath = "./output";
    filenamesContainLayerNames = 2;
@@ -25,8 +25,7 @@ Movie "Image" = {
     //imageListPath = "./input/t_trainFiles_Animals.txt";
     //imageListPath = "./input/32x32AnimalPatches.txt";
     //imageListPath = "./input/OlshausenField_whitened32x32.txt";
-    //imageListPath = "./input/orient_simple.txt";
-     imageListPath = "./input/orient_10r.txt";
+    imageListPath = "./input/orient_simple.txt";
     //imageListPath = "./input/OlshausenField_raw32x32_tiny.txt";
     //imageListPath = "./input/t_trainFiles_760.txt";
     restart = 0;
@@ -114,7 +113,7 @@ LIF "S1" = {
    	Vexc = 0.0;
    	Vinh = -75.0;
    	VinhB = -90;
-   	tau = 20.0; //Important for selectivity! Why?
+   	tau = 20.0;
    	tauE = 1.0;
    	tauI = 5.0;
    	tauIB = 10.0;
@@ -210,7 +209,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    wMinInit = 100;
    weightInitType = "UniformRandomWeight";
 
-   normalize = false;
+   normalize = 0.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
@@ -244,34 +243,34 @@ KernelConn "ImagetoRetinaONCenter" = {
 //};
 
 
-KernelConn "ImagetoRetinaOFFCenter" = {
-   preLayerName = "Image";
-   postLayerName = "RetinaOFF";
-   channelCode = 1;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 1;
-   
-   stdpFlag   = 0;
-   initFromLastFlag = 0;  
-   //gauss2DCalcWeights = 1;
-   writeStep = -1;
-
-//   aspect = 1;
-//   sigma = 1;
-//   rMax  = 1;
-   wMaxInit = 100;
-   wMinInit = 100;
-   weightInitType = "UniformRandomWeight";
-   
-//   strength =  10.0;
-   //strength =  25500.0;
-   normalize = false;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
-   delay = 0;
-};
+//KernelConn "ImagetoRetinaOFFCenter" = {
+//   preLayerName = "Image";
+//   postLayerName = "RetinaOFF";
+//   channelCode = 1;
+//   nxp = 1; 
+//   nyp = 1; 
+//   nfp = 1;
+//   
+//   stdpFlag   = 0;
+//   initFromLastFlag = 0;  
+//   //gauss2DCalcWeights = 1;
+//   writeStep = -1;
+//
+////   aspect = 1;
+////   sigma = 1;
+////   rMax  = 1;
+//   wMaxInit = 100;
+//   wMinInit = 100;
+//   weightInitType = "UniformRandomWeight";
+//   
+////   strength =  10.0;
+//   //strength =  25500.0;
+//   normalize = 0.0;
+//   normalize_zero_offset = 0.0;
+//   normalize_max = 0.0;
+//   symmetrizeWeights = 0;
+//   delay = 0;
+//};
 
 //KernelConn "ImagetoRetinaOFFSurround" = {
 //   preLayerName = "Image";
@@ -341,12 +340,6 @@ STDPConn "RetinaONtoS1" = {
    selfFlag = false;
 
    weightInitType = "UniformRandomWeight";
-   
-   //initFromLastFlag = false;
-   //weightInitType = "FileWeight";
-   //initWeightsFile = "input/weightsB.pvp";
-   //useListOfArborFiles = false;
-   //combineWeightFiles = false;
    //weightInit = 0;
    
    symmetrizeWeights = 0;
@@ -374,7 +367,7 @@ STDPConn "RetinaOFFtoS1" = {
 
    wMin = 0.001;
    wMax = 100;
-   dWMax = 1;  // .01;
+   dWMax = 1;
 
    normalize = false;
    normalize_max = true;
@@ -382,7 +375,7 @@ STDPConn "RetinaOFFtoS1" = {
    strength = 10;
    
    ampLTP = 0.01;
-   ampLTD = 0.085; //1.2 1.1;
+   ampLTD = 0.0085; //1.2 1.1;
    tauLTP = 20;
    tauLTD = 30;
    

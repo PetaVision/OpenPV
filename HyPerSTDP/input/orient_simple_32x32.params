@@ -1,19 +1,28 @@
 //
-// params.geisler
-//  - input parameters for geisler.cpp, a study of geisler kernels with amoeba/no-amoeba images
+// STDP params
 //
-// TO TRY: 1 - Force WTA in weights update, 2 - normalize input weights, 3 - mirrorFlag
+// TO TRY: 1 - normalize input weights
 
 HyPerCol "column" = {
    nx = 32;   // until we get going with images
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 5000;
-   progressStep = 100;
-   outputPath = "./output";
+   numSteps = 560;
+   progressStep = 10;
+   outputPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple";
    filenamesContainLayerNames = 2;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+   
+   checkpointRead = true;
+   checkpointWrite = false;
+   checkpointReadDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/checkpoints";
+   checkpointReadDirIndex = 500;
+   checkpointWriteDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/checkpoints";
+   checkpointWriteStepInterval = 100;
+   deleteOlderCheckpoints = false;
+   
+   printParamsFilename = "orient_simple.params";
 };
 
 //
@@ -25,8 +34,7 @@ Movie "Image" = {
     //imageListPath = "./input/t_trainFiles_Animals.txt";
     //imageListPath = "./input/32x32AnimalPatches.txt";
     //imageListPath = "./input/OlshausenField_whitened32x32.txt";
-    //imageListPath = "./input/orient_simple.txt";
-     imageListPath = "./input/orient_10r.txt";
+    imageListPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient_simple.txt";
     //imageListPath = "./input/OlshausenField_raw32x32_tiny.txt";
     //imageListPath = "./input/t_trainFiles_760.txt";
     restart = 0;
@@ -45,6 +53,7 @@ Movie "Image" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useParamsImage = true;
 };
 
 
@@ -341,17 +350,11 @@ STDPConn "RetinaONtoS1" = {
    selfFlag = false;
 
    weightInitType = "UniformRandomWeight";
-   
-   //initFromLastFlag = false;
-   //weightInitType = "FileWeight";
-   //initWeightsFile = "input/weightsB.pvp";
-   //useListOfArborFiles = false;
-   //combineWeightFiles = false;
    //weightInit = 0;
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = false;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
@@ -400,7 +403,7 @@ STDPConn "RetinaOFFtoS1" = {
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = false;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;

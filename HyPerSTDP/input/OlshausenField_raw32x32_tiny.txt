@@ -1,0 +1,5 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/32x32_small/15_ni_7_32x32.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/32x32_small/16_ni_7_32x32.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/32x32_small/4_ni_3_32x32.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/32x32_small/7_ni_1_32x32.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/32x32_small/8_ni_1_32x32.jpg

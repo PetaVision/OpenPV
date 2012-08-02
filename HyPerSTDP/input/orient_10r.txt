@@ -1,0 +1,11 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_0_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_126_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_90_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_162_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_18_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_54_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_180_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_108_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_36_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_144_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_72_deg.png

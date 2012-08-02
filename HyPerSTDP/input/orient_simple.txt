@@ -1,0 +1,3 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/0deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/45deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/135deg.png
