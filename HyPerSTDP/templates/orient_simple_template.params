@@ -9,7 +9,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
    $$$_numSteps_$$$
-   progressStep = 100;
+   progressStep = 10;
    $$$_outputPath_$$$
    filenamesContainLayerNames = 2;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
@@ -54,6 +54,8 @@ Movie "Image" = {
     offsetX = 0;
     offsetY = 0;
     useParamsImage = true;
+    echoFramePathnameFlag = true;
+    start_frame_index = 0;
 };
 
 
