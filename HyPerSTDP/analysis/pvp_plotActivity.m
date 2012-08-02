@@ -4,16 +4,18 @@ debug_on_error(0);
 clear all; close all; more off;
 addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/mlab/')
 
-output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/';
+output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/';
   
-%filename = 'S1Inh.pvp';
-%filename = 'S1.pvp';
-filename = 'RetinaON.pvp';
-path = [output_path, filename];
+%filename = {'S1Inh.pvp', 'S1.pvp', 'RetinaON.pvp'};
+%filename = {'S1.pvp'};
+filename = {'RetinaON.pvp'};
 plot_on = 0;
 
 %1. Read file
-[data hdr]=readpvpfile(path, output_path, filename);
+for i=1:length(filename)
+    path = [output_path, filename{i}];
+    [data hdr] = readpvpfile(path, output_path, filename{i});
+end
 
 
 % for f=1:size(data,1)
