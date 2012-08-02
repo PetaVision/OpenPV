@@ -1,4 +1,4 @@
-function [data,hdr] = readpvpfile(filename, output_path, name, post)
+function [data,hdr,wm] = readpvpfile(filename, output_path, name, post)
 % Usage:[data,hdr] = readpvpfile(filename)
 % filename is a pvp file (any type)
 % data is a cell array containing the data.
@@ -12,8 +12,8 @@ function [data,hdr] = readpvpfile(filename, output_path, name, post)
 %%%%%%%%
 
 global OUT_FILE_EXT; OUT_FILE_EXT = 'png';      %either png or jpg for now
-global MOVIE_FLAG;   MOVIE_FLAG   = 1;          %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '0:20:100'; %'0:20:100'; %can be '-1', 'int(frame)', or 'start:int:end'
+global MOVIE_FLAG;   MOVIE_FLAG   = 0;          %set 1 to make a movie, set -1 to not make a movie
+global FNUM_SPEC;    FNUM_SPEC    = '0:100:300'; %'0:20:100'; %can be '-1', 'int(frame)', or 'start:int:end'
 global PRINT_FLAG;   PRINT_FLAG   = 1;         %set to 1 to print all figures to output dir, -1 to not
 %%%%%%%%
 
@@ -55,7 +55,7 @@ errorident = '';
 errorstring = '';
 
 hdr = readpvpheader(fid);
-
+hdr
 %% Correct for max frame
 if fnum_flag
     if gt(length(disp_frames),1)
@@ -65,6 +65,8 @@ if fnum_flag
     end%if gt(length...
 end%if fnum_flag
 
+              %hdr.filetype = 4; %For voltage files
+              %hdr
 switch hdr.filetype
     case 1 % PVP_FILE_TYPE
         framesize = hdr.recordsize*hdr.numrecords;
@@ -145,7 +147,7 @@ if isempty(errorstring)
             disp('Reading activity file');
 
             integrated_image = ones([hdr.nxGlobal,hdr.nyGlobal]);
-
+              data = cell(numframes,1);
             for frame=0:numframes-1
                 if lt(frame,10)
                     frame_str = ['00',num2str(frame)];
@@ -156,10 +158,10 @@ if isempty(errorstring)
                 end%if lt(frame,10)
 
                 [time, count] = fread(fid,1,"float64"); %count is the number of items read
-                if ne(time,frame) %pvp files start at time_step = 0
-                    error(['readpvpfile: Not reading the correct frame. frame = ',num2str(frame),...
-                        'time = ',num2str(time)])
-                end%if ne(time,frame)
+                %if ne(time,frame) %pvp files start at time_step = 0
+                %    error(['readpvpfile: Not reading the correct frame. frame = ',num2str(frame),...
+                %        'time = ',num2str(time)])
+                %end%if ne(time,frame)
                 if eq(count,0)
                     error('readpvpfile: Did not read any elements into time from pvp file')
                 end%if eq(count,0)
@@ -187,7 +189,8 @@ if isempty(errorstring)
                 pvp_image = zeros([hdr.nxGlobal,hdr.nyGlobal]);
                 pvp_image(:,:) = sum(features,1);
                 pvp_image = flipud(rot90(pvp_image));
-
+                data{frame+1} = pvp_image;
+                %find(pvp_image==1)
                 integrated_image += pvp_image;
                
                 %% Generate Movie frames
@@ -218,13 +221,14 @@ if isempty(errorstring)
                         if eq(frame,frame_of_interest) || find(disp_frames==frame)
                             figs_disp_flag = 1;
 
-                            tim_fig_id = figure;
-                                imshow(pvp_image)
-                                axis image
-                                axis off
+                            tim_fig_id = 0;
+                            %tim_fig_id = figure;
+                            %    imshow(pvp_image)
+                            %    axis image
+                            %    axis off
 
                             int_fig_id = figure;
-                                imagesc(integrated_image)
+                                imagesc(integrated_image, [0 max(max(integrated_image))])
                                 axis image
                                 axis off
                                 colorbar
@@ -270,6 +274,7 @@ if isempty(errorstring)
             disp('reading weights type file')
             fseek(fid,0,'bof');
             hdr
+             numframes
             for f=1:numframes
                 hdr = readpvpheader(fid,ftell(fid));
 
@@ -330,13 +335,7 @@ if isempty(errorstring)
                 nx=hdr.nx+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
                 ny=hdr.ny+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
               end
-              %hdr.nyprocs = 1;
-              %hdr.nxprocs = 1;
-              wm = zeros(hdr.nxp*nx*hdr.nxprocs, hdr.nyp*ny*hdr.nyprocs);
-              %hdr.nxp = hdr.nxp*2;
-              %hdr.nyp = hdr.nyp*2;              
-              
-              %size(data{1}.values{1,1})
+              mean_wm = zeros(hdr.numPatches,1);
               
               for px=0:(hdr.nyprocs-1)
                for py=0:(hdr.nxprocs-1)
@@ -344,40 +343,22 @@ if isempty(errorstring)
                 c=1;
                 for x=px*nx:(px*nx+nx-1)
                     for y=py*ny:(py*ny+ny-1)
-                         wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+                         %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+              mean_wm(c,1)=mean(mean(mean(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp))));
+                            wm(x*hdr.nxp+hdr.nxp, :) = 0;
+                            wm(x*hdr.nxp+1, :) = 0;
+              wm(:, y*hdr.nyp+1) = 0;
+              wm(:, y*hdr.nyp+hdr.nyp) = 0;
                          c=c+1;
+
                     end%for
                 end%for
               end%for
               end%for
               
-                %Saves movie based on images (Note: working only for 1 feature)
-                %nx=hdr.nx;%floor(sqrt(size(data{f}.values{1},4)));
-                %ny=hdr.ny;%floor(sqrt(size(data{f}.values{1},4)));
-                %wm = zeros(hdr.nyp*ny*hdr.nyprocs, hdr.nxp*nx*hdr.nxprocs);
-              
-
-%              for px=0:(hdr.nxprocs-1)
-%             	for py=0:(hdr.nyprocs-1)               
-%				c=1;
-%				for x=px*nx:(px*nx+nx-1)
-%				    for y=py*ny:(py*ny+ny-1)
-%                        %disp([num2str(x*hdr.nxp+1) ':' num2str(x*hdr.nxp+hdr.nxp), num2str(y*hdr.nyp+1) ':' num2str(y*hdr.nyp+hdr.nyp)]);
-%                        %disp([num2str(px+1) ' ' num2str(py+1) ' ' num2str(c)]);
-					    
-%                        wm(y*hdr.nyp+1:y*hdr.nyp+hdr.nyp, x*hdr.nxp+1:x*hdr.nxp+hdr.nxp) = reshape(data{f}.values{px+1,py+1}(:,:,1,c), hdr.nxp, hdr.nyp);
-%					    c=c+1;
-%              
-%				    end%for
-%				end%for
-%		    end%for
-%		end%for
-
-
-                %pvp_image = wm;
-%                 imagesc(wm);
-%                 pause(10);
-                
+              %figure
+              %imshow(reshape(mean_wm,sqrt(hdr.numPatches),sqrt(hdr.numPatches)))
 
                 %% Generate Figures
                 if eq(PRINT_FLAG,1)
@@ -427,21 +408,26 @@ if isempty(errorstring)
 
             end
             
-            %% Create movie from frames generated
-            %if eq(MOVIE_FLAG,1)
-            %    system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'*.png -sameq -y ',print_movie_path,'pvp_instantaneous_movie.mp4']);
-                %system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
-            %end%if eq(MOVIE_FLAG,1)
+              %% Create movie from frames generated
+              %if eq(MOVIE_FLAG,1)
+              %system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'%03d.png -sameq -y ',print_movie_path,'pvp_instantaneous_movie_' name '.mp4']);
+              %system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
+              %end%if eq(MOVIE_FLAG,1)
+              
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             for f=1:numframes
-                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
+                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal+hdr.nb,hdr.nyGlobal+hdr.nb,hdr.nf));
                 data{f}.time = fread(fid,1,'float64');
+                f
                 for y=1:nyprocs
                     yidx = (1:hdr.ny)+(y-1)*hdr.ny;
                     for x=1:nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
-                        Z = fread(fid,hdr.recordsize,precision);
-                        data{f}.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
+              Z = fread(fid,(hdr.nx+hdr.nb)*(hdr.ny+hdr.nb),precision);
+              size(Z)
+              data{f}.values(:,:,1) = reshape(Z, hdr.nf, hdr.nx+hdr.nb, hdr.ny+hdr.nb);
+                    figure
+              imshow(data{f}.values(:,:,1));
                     end
                 end
                 if exist('progressperiod','var')
