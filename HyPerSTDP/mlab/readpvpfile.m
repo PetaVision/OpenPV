@@ -226,12 +226,12 @@ if isempty(errorstring)
                             %    imshow(pvp_image)
                             %    axis image
                             %    axis off
-
-                            int_fig_id = figure;
-                                imagesc(integrated_image, [0 max(max(integrated_image))])
-                                axis image
-                                axis off
-                                colorbar
+              int_fig_id = 0;
+                            %int_fig_id = figure;
+                                %imagesc(integrated_image, [0 max(max(integrated_image))])
+                                %axis image
+                                %axis off
+                                %colorbar
 
                             fig_ids = [2];
                             fig_ids(1) = tim_fig_id;
@@ -257,7 +257,7 @@ if isempty(errorstring)
                                     close(curr_fig_id)
                                 end%for fig_idx
                             catch
-                                disp(['readpvpfile: Couldn''t print figure ',print_fig_filename])
+                                %disp(['readpvpfile: Couldn''t print figure ',print_fig_filename])
                             end%_try_catch
                         end%if fig_id
                     end%if PRINT_FLAG
