@@ -48,7 +48,7 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
 
 int GapLayer::updateState(float timef, float dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getCLayer()->activity->data); // Should we use sourceLayer->getCLayer()->activity->data for active?
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), sourceLayer->getCLayer()->activity->data);
    if( status == PV_SUCCESS  ) status = updateActiveIndices();
    return status;
 }
