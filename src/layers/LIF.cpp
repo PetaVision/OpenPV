@@ -357,7 +357,7 @@ int LIF::checkpointRead(const char * cpDir, float * timef) {
    HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
-   int filenamesize = strlen(cpDir)+12;
+   int filenamesize = strlen(name) + strlen(cpDir) + 13;
    // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
