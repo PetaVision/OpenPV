@@ -34,6 +34,7 @@ public:
 protected:
    LayerProbe();
    int initLayerProbe(const char * filename, HyPerLayer * layer);
+   virtual int initFilePointer(const char * filename, HyPerLayer * layer);
 
 private:
    int initialize_base();

@@ -45,31 +45,65 @@ PointProbe::~PointProbe()
 }
 
 int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
-   int status = initLayerProbe(filename, layer);
-   if( status == PV_SUCCESS ) {
-      const PVLayerLoc * loc = layer->getLayerLoc();
-      bool isRoot = layer->parent->icCommunicator()->commRank()==0;
-      if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
-         fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", layer->getName(), xLoc, loc->nxGlobal);
-         status = PV_FAILURE;
-      }
-      if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
-         fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", layer->getName(), xLoc, loc->nyGlobal);
-         status = PV_FAILURE;
-      }
-      if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
-         fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", layer->getName(), xLoc, loc->nf);
-         status = PV_FAILURE;
-      }
-      if( status != PV_SUCCESS ) abort();
-      this->xLoc = xLoc;
-      this->yLoc = yLoc;
-      this->fLoc = fLoc;
-      // this->sparseOutput = false;
-      status = initMessage(msg);
+   int status = PV_SUCCESS;
+   const PVLayerLoc * loc = layer->getLayerLoc();
+   bool isRoot = layer->parent->icCommunicator()->commRank()==0;
+   if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", layer->getName(), xLoc, loc->nxGlobal);
+      status = PV_FAILURE;
    }
-   assert(status == PV_SUCCESS);
+   if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", layer->getName(), xLoc, loc->nyGlobal);
+      status = PV_FAILURE;
+   }
+   if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", layer->getName(), xLoc, loc->nf);
+      status = PV_FAILURE;
+   }
+   if( status != PV_SUCCESS ) abort();
+   this->xLoc = xLoc;
+   this->yLoc = yLoc;
+   this->fLoc = fLoc;
+   // this->sparseOutput = false;
+   status = initMessage(msg);
+   if (status != PV_SUCCESS) abort();
+   status = initLayerProbe(filename, layer);
+   if (status != PV_SUCCESS) abort();
    return status;
+}
+
+int PointProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
+   // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
+   // So this->xLoc, yLoc, fLoc have been set.
+   const PVLayerLoc * loc = layer->getLayerLoc();
+
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int xLocLocal = xLoc - kx0;
+   const int yLocLocal = yLoc - ky0;
+   bool pointInLocalFrame = xLocLocal >= 0 && xLocLocal < nx && yLocLocal >=0 && yLocLocal < ny;
+   if (pointInLocalFrame) {
+      if( filename != NULL ) {
+         char * outputdir = layer->getParent()->getOutputPath();
+         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
+         sprintf(path, "%s/%s", outputdir, filename);
+         fp = fopen(path, "w");
+         if( !fp ) {
+            fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
+            exit(EXIT_FAILURE);
+         }
+         free(path);
+      }
+      else {
+         fp = stdout;
+      }
+   }
+   else {
+      fp = NULL;
+   }
+   return PV_SUCCESS;
 }
 
 //PointProbe::initMessage and StatsProbe::initMessage are identical.  Move to LayerProbe (even though LayerProbe doesn't use msg?)
@@ -137,6 +171,7 @@ int PointProbe::outputState(float timef)
  */
 int PointProbe::writeState(float timef, HyPerLayer * l, int k, int kex) {
 
+   assert(fp);
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 

@@ -69,6 +69,7 @@ PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, f
  */
 int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
 {
+   assert(fp);
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
    assert(LIF_layer != NULL);
 

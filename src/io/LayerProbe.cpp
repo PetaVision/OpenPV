@@ -36,6 +36,13 @@ LayerProbe::~LayerProbe()
  */
 int LayerProbe::initLayerProbe(const char * filename, HyPerLayer * layer)
 {
+   setTargetLayer(layer);
+   initFilePointer(filename, layer);
+   layer->insertProbe(this);
+   return PV_SUCCESS;
+}
+
+int LayerProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
    HyPerCol * hc = layer->getParent();
    if( hc->icCommunicator()->commRank()==0 ) {
       if( filename != NULL ) {
@@ -54,10 +61,9 @@ int LayerProbe::initLayerProbe(const char * filename, HyPerLayer * layer)
       }
    }
    else {
-      fp = NULL; // Only root process should be writing; if other processes need something written it should be sent to root.
+      fp = NULL; // Only root process writes; if other processes need something written it should be sent to root.
+                 // Derived classes for which it makes sense for a different process to do the file i/o should override initFilePointer
    }
-   setTargetLayer(layer);
-   layer->insertProbe(this);
    return PV_SUCCESS;
 }
 
