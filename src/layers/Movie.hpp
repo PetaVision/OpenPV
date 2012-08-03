@@ -21,6 +21,7 @@ public:
    virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
+   virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int outputState(float time, bool last=false);
    virtual int updateState(float time, float dt);
    bool        updateImage(float time, float dt);

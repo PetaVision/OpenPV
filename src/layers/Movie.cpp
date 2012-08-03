@@ -38,6 +38,16 @@ int Movie::initialize_base() {
    return PV_SUCCESS;
 }
 
+int Movie::checkpointRead(const char * cpDir, float * timef){
+   Image::checkpointRead(cpDir, timef);
+
+   if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
+      nextDisplayTime += parent->simulationTime();
+   }
+
+   return PV_SUCCESS;
+}
+
 //
 /*
  * Notes:
