@@ -1639,7 +1639,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
             }
             else {
                //int arbor = 0;
-               PVPatch * p = wPatches[axonID][kPre];
+               //PVPatch * p = wPatches[axonID][kPre];
                //PVPatch * p = c->getWeights(kPre, arbor);
 
                //const int nfp = p->nf;
