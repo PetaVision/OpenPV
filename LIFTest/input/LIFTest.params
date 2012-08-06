@@ -1,0 +1,300 @@
+//
+// LIFTest.params
+//
+// created by peteschultz: Aug 3, 2012
+//
+
+//  A params file for to test LIF, GapLayer, LIFGapLayer, SigmoidLayer
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 256;   
+   ny = 256;
+   dt = 0.05;
+   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   numSteps = 1000;
+   progressStep = 100;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   // checkpointWriteDir = "Checkpoints";
+   // checkpointWriteStepInterval = 1;
+   // deleteOlderCheckpoints = false;
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+
+Image "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/inputimage.pvp";
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "scaled input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1.0;
+    mirrorBCflag = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+LIFGap "Horizontal" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    spikingFlag = true;
+    
+    InitVType        = "ConstantV";
+    valueV           = -70.0;
+    Vrest            = -70.0;    // adjusted for gap of 0.025   
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 15.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = -55.0;   // firing threshold
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI       =  0.;     // correlation to time step size !!!
+    noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+};
+
+GenerativeLayer "Horizontal Spike Counter" = {
+    restart = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    mirrorBCflag = false;
+    spikingFlag = false;
+    
+    InitVType = "ConstantV";
+    valueV = 0;
+
+    writeStep = -1.0;
+    writeNonspikingActivity = false;
+    VMax = infinity;
+    VMin = -infinity;
+    VThresh = -infinity;
+    relaxation = 1;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    sparsityTermCoefficient = 0.0;
+    persistence = 0.0;
+};
+
+GapLayer "HoriGap" ={
+    restart      = false;
+    originalLayerName="Horizontal";
+    nxScale      = 1; // Should this be 0.5 or 1?
+    nyScale      = 1; // Should this be 0.5 or 1?
+    nf = 1;
+    marginWidth  = 1;
+    mirrorBCflag = false;
+    spikingFlag = false;
+
+    InitVType    = "ConstantV";
+    valueV = -70.0;
+
+    writeStep = -1;
+    writeNonspikingActivity = true;
+};
+
+LIFGap "GapConn Output" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1.0;
+    mirrorBCflag = false;
+    spikingFlag = true;
+    
+    InitVType        = "ConstantV";
+    valueV           = -70.0;
+    Vrest            = -70.0;    // adjusted for gap of 0.025   
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 15.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = -55.0;   // firing threshold
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI       =  0.;     // correlation to time step size !!!
+    noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+};
+
+GenerativeLayer "GapConn Output Spike Counter" = {
+    restart = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    mirrorBCflag = false;
+    spikingFlag = false;
+    
+    InitVType = "ConstantV";
+    valueV = 0;
+
+    writeStep = -1.0;
+    writeNonspikingActivity = false;
+    VMax = infinity;
+    VMin = -infinity;
+    VThresh = -infinity;
+    relaxation = 1;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    sparsityTermCoefficient = 0.0;
+    persistence = 0.0;
+};
+
+KernelConn "input to scaled input" = {
+    preLayerName = "input";
+    postLayerName = "scaled input";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    delay = 0;
+
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "OneToOneWeights";
+    weightInit = 1.0;
+      
+    normalize = false;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = true;
+    selfFlag = false;
+    shrinkPatches = false;
+    
+};
+
+IdentConn "scaled input to Horizontal" = {
+    channelCode = 0;
+    delay = 0;
+    
+    writeStep = -1;
+};
+
+IdentConn "Horizontal to Horizontal Spike Counter" = {
+    channelCode = 0;
+    delay = 0;
+    
+    writeStep = -1;
+};
+
+GapConn "HoriGap to GapConn Output" = {
+    preLayerName = "HoriGap";
+    postLayerName = "GapConn Output";
+    channelCode = 0;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1;
+    numAxonalArbors = 1;
+    delay = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    strength      = 2.0; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
+    rMin          = 0.1; // take out the self connection
+    aspect        = 1.0;
+    // rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
+    sigma         = 3.0;
+    rMax          = 256.; // maximum distance of connection
+    normalize     = true; // 
+    normalize_max = false;        // all flags zero means it normalize total integrated output
+    normalize_zero_offset = false;  //
+    normalize_cutoff      = false;  //
+    
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    selfFlag = false;
+    shrinkPatches = false;
+    
+    writeCompressedWeights = false;
+    writeStep = -1;
+    // initialWriteTime = 0;
+};
+
+IdentConn "GapConn Output to GapConn Output Spike Counter" = {
+    channelCode = 0;
+    delay = 0;
+    
+    writeStep = -1;
+};
+
+
+PointLIFProbe "Horizontal PointLIFProbe" = {
+    targetLayer = "Horizontal";
+    message = "Horizontal Layer PointLIFProbe";
+    probeOutputFile = "HorizontalProbe.txt";
+    xLoc = 128;
+    yLoc = 128;
+    fLoc = 0;
+};
+
+PointProbe "HoriGap PointProbe" = {
+    targetLayer = "HoriGap";
+    message = "HoriGap PointProbe";
+    probeOutputFile = "HoriGapProbe.txt";
+    xLoc = 128;
+    yLoc = 128;
+    fLoc = 0;
+};
+
+PointLIFProbe "GapConn Output PointLIFProbe" = {
+    targetLayer = "Horizontal";
+    message = "GapConn Output PointLIFProbe";
+    probeOutputFile = "GapConnOutputProbe.txt";
+    xLoc = 128;
+    yLoc = 128;
+    fLoc = 0;
+};
