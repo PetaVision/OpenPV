@@ -26,4 +26,5 @@ KernelConn "pre to post connection" = {
    nxp = 7;
    nyp = 7;
    nfp = 1;
+   channelCode = 0;
 };

@@ -1,47 +1,104 @@
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 64;
    ny = 64;
+   numSteps = 3;
+   progressStep = 2000;
+   dt = 1;
+   outputPath = "output/test_border_activity/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
-HyPerLayer "test_border_activity image" = {
+Image "test_border_activity image" = {
    nxScale = 1;
    nyScale = 1;
-};
-
-HyPerLayer "test_border_activity retina" = {
-   nxScale = 1;
-   nyScale = 1;
-   marginWidth = 3;
-   spikingFlag = 0;
-   poissonEdgeProb = 1;
-   mirrorBCflag = 1;  
-   writeNonspikingActivity = 1;
-};
-
-HyPerLayer "test_border_activity layer" = {
-   nxScale = 1;
-   nyScale = 1;
+   nf = 1;
    marginWidth = 0;
+   mirrorBCflag = false;
+   spikingFlag = false;
+   writeStep = 1;
+   writeNonspikingActivity = true;
+   writeImages = false;
+   restart = false;
+
+   offsetX = 0;
+   offsetY = 0;
+};
+
+Retina "test_border_activity retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 3;
+   mirrorBCflag = true;
+   spikingFlag = false;
+   writeStep = 1;
    writeNonspikingActivity = 1;
+   restart = false;
+
+   poissonBlankProb = 0;
+   poissonEdgeProb = 1;
+   beginStim = 0.0;
+   endStim = 1e8;
+   burstFreq = 40;
+   burstDuration = 20;
+};
+
+ANNLayer "test_border_activity layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   marginWidth = 0;
+   mirrorBCflag = false;
+   spikingFlag = false;
+   writeStep = 1;
+   writeNonspikingActivity = 1;
+   restart = false;
+   InitVType = "ZeroV";
+   
+   VMax = infinity;
+   VMin = -infinity;
+   VThresh = -infinity;
 };
 
 HyPerConn "test_border_activity connection 1" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   randomFlag = 1;
-   uniformWeights = 1; // use uniform weights to initialize
-   wMinInit = 1;   // all weight to constant (1)
-   wMaxInit = 1;
+   numAxonalArbors = 1;
+   channelCode = 0;
+   delay = 0;
+   // test_border_activity.cpp hardcodes InitUniformWeights to initialize
+   weightInit = 1;   // all weight to constant (1)
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   selfFlag = false;
+   shrinkPatches = false;
+   normalize = false;
+   writeStep = 1;
+   writeCompressedWeights = true;
+   initialWriteTime = 0;   
 };
 
 HyPerConn "test_border_activity connection 2" = {
    nxp = 7;
    nyp = 7;
    nfp = 1;
-   randomFlag = 1;
-   uniformWeights = 1; // use uniform weights to initialize
-   wMinInit = 1;   // all weight to constant (1)
-   wMaxInit = 1;
+   numAxonalArbors = 1;
+   channelCode = 0;
+   delay = 0;
+   // test_border_activity.cpp hardcodes InitUniformWeights to initialize
+   weightInit = 1;   // all weight to constant (1)
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   selfFlag = false;
+   shrinkPatches = false;
    normalize = false;
+   writeStep = 1;
+   writeCompressedWeights = true;
+   initialWriteTime = 0;   
 };

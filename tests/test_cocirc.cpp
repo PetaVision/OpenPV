@@ -26,19 +26,19 @@ int main(int argc, char * argv[])
    PV::Example * pre = new PV::Example("test_cocirc pre", hc);
    PV::Example * post = new PV::Example("test_cocirc post", hc);
    PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc, pre,
-                                          post, CHANNEL_EXC);
+                                          post);
    PV::KernelConn * cCocirc = new KernelConn("test_cocirc cocircconn", hc,
-                                             pre, post, CHANNEL_EXC);
+                                             pre, post);
    PV::Example * pre2 = new PV::Example("test_cocirc pre 2", hc);
    PV::Example * post2 = new PV::Example("test_cocirc post 2", hc);
    PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc, pre,
-                                              post2, CHANNEL_EXC);
+                                              post2);
    PV::KernelConn * cCocirc1to2 = new KernelConn("test_cocirc cocircconn 1 to 2", hc,
-                                                 pre, post2, CHANNEL_EXC);
+                                                 pre, post2);
    PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc, pre2,
-                                              post, CHANNEL_EXC);
+                                              post);
    PV::KernelConn * cCocirc2to1 = new KernelConn("test_cocirc cocircconn 2 to 1", hc,
-                                                 pre2, post, CHANNEL_EXC);
+                                                 pre2, post);
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;

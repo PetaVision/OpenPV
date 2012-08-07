@@ -15,6 +15,7 @@
 #include "../src/connections/HyPerConn.hpp"
 #include "../src/layers/ANNLayer.hpp"
 #include "../src/io/PointProbe.hpp"
+#include "../src/weightinit/InitUniformWeights.hpp"
 
 #include <assert.h>
 
@@ -50,8 +51,13 @@ int main(int argc, char * argv[])
    Retina * retina = new Retina("test_border_activity retina", hc);
    ANNLayer * l1     = new ANNLayer("test_border_activity layer", hc);
 
-   new HyPerConn("test_border_activity connection 1", hc, image, retina, CHANNEL_EXC);
-   new HyPerConn("test_border_activity connection 2", hc, retina, l1, CHANNEL_EXC);
+
+   InitWeights * weightInit1 = new InitUniformWeights();
+   new HyPerConn("test_border_activity connection 1", hc, image, retina, weightInit1);
+   delete weightInit1;
+   InitWeights * weightInit2 = new InitUniformWeights();
+   new HyPerConn("test_border_activity connection 2", hc, retina, l1, weightInit2);
+   delete weightInit2;
 
 #ifdef DEBUG_OUTPUT
    PointProbe * p1 = new PointProbe( 0,  0,  0, "L1 (0,0,0):");
@@ -62,7 +68,7 @@ int main(int argc, char * argv[])
 
    // run the simulation
    hc->initFinish();
-   hc->run(3);
+   hc->run();
 
    status = check_activity(l1);
 

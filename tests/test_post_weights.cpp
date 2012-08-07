@@ -16,8 +16,6 @@
 #include "../src/layers/HyPerLayer.hpp"
 #include "../src/connections/HyPerConn.hpp"
 #include "../src/weightinit/InitUniformWeights.hpp"
-// #include "../src/io/ConnectionProbe.hpp"
-// #include "../src/io/PostConnProbe.hpp"
 
 #include <assert.h>
 
@@ -37,9 +35,9 @@ int main(int argc, char * argv[])
    Example   * l2 = new Example("test_post_weights L2", hc);
    Example   * l3 = new Example("test_post_weights L3", hc);
    InitWeights * initWeights = new InitUniformWeights();
-   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, CHANNEL_EXC, NULL, initWeights);
-   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, CHANNEL_EXC, NULL, initWeights);
-   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, CHANNEL_EXC, NULL, initWeights);
+   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, NULL, initWeights);
+   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, NULL, initWeights);
+   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, NULL, initWeights);
    assert(c1->numberOfAxonalArborLists() == 1);
    assert(c2->numberOfAxonalArborLists() == 1);
    assert(c3->numberOfAxonalArborLists() == 1);

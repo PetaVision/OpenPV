@@ -1,6 +1,8 @@
 // test_gauss2d.params
 // Layers and connections for test_gauss2d
 
+debugParsing = false;
+
 HyPerCol "test_gauss2d column" = {
    nx = 16;
    ny = 16;
@@ -25,6 +27,7 @@ HyPerConn "test_gauss2d hyperconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
+   channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
@@ -38,6 +41,7 @@ HyPerConn "test_gauss2d kernelconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
+   channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
@@ -62,9 +66,10 @@ HyPerLayer "test_gauss2d post 2" = {
 };
 
 HyPerConn "test_gauss2d hyperconn 1 to 2" = {
-   weightInitType = "Gauss2DWeight";
+   // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
+   channelCode = 0;
    aspect = 2;
    sigma = 6;
    rMax = 8;
@@ -75,9 +80,10 @@ HyPerConn "test_gauss2d hyperconn 1 to 2" = {
 };
 
 HyPerConn "test_gauss2d kernelconn 1 to 2" = {
-   weightInitType = "Gauss2DWeight";
+   // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
+   channelCode = 0;
    aspect = 2;
    sigma = 6;
    rMax = 8;
@@ -88,9 +94,10 @@ HyPerConn "test_gauss2d kernelconn 1 to 2" = {
 };
 
 HyPerConn "test_gauss2d hyperconn 2 to 1" = {
-   weightInitType = "Gauss2DWeight";
+   // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5; // must be odd
    nyp = 5;
+   channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
@@ -101,9 +108,10 @@ HyPerConn "test_gauss2d hyperconn 2 to 1" = {
 };
 
 HyPerConn "test_gauss2d kernelconn 2 to 1" = {
-   weightInitType = "Gauss2DWeight";
+   // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5;
    nyp = 5;
+   channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;

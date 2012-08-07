@@ -92,7 +92,7 @@ int runonecolumn(int argc, char * argv[], int correctvalue) {
    HyPerCol * hc = new HyPerCol("column", argc, argv);
    HyPerLayer * pre = new Retina("presynaptic layer", hc);
    HyPerLayer * post = new ANNLayer("postsynaptic layer", hc);
-   /* HyPerConn * conn = */ new KernelConn("pre to post connection", hc, pre, post, CHANNEL_EXC);
+   /* HyPerConn * conn = */ new KernelConn("pre to post connection", hc, pre, post);
    bool rootproc = hc->icCommunicator()->commRank()==0;
    if(rootproc) {
       printf("%s: Beginning test of %s.  For this test, ", argv[0], argv[2]);
