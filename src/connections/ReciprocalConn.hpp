@@ -18,7 +18,7 @@ public:
    // public methods
    ReciprocalConn(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, const char * filename=NULL,
+         const char * filename=NULL,
          InitWeights * weightInit=NULL);
    virtual ~ReciprocalConn();
 
@@ -41,7 +41,7 @@ protected:
    ReciprocalConn();
    int initialize(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, const char * filename,
+         const char * filename,
          InitWeights *weightInit=NULL);
    int initParameterLayer(const char * parametername, HyPerLayer ** layerPtr,
          HyPerLayer * defaultlayer=NULL);

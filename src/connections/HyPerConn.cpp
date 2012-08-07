@@ -77,10 +77,10 @@ HyPerConn::HyPerConn()
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel)
+      HyPerLayer * post)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL, NULL);
+   initialize(name, hc, pre, post, NULL, NULL);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -88,10 +88,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, InitWeights *weightInit)
+      HyPerLayer * post, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL, weightInit);
+   initialize(name, hc, pre, post, NULL, weightInit);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -100,10 +100,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 // provide filename or set to NULL
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename)
+      HyPerLayer * post, const char * filename)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, NULL);
+   initialize(name, hc, pre, post, filename, NULL);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -111,10 +111,10 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
+      HyPerLayer * post, const char * filename, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+   initialize(name, hc, pre, post, filename, weightInit);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -416,17 +416,21 @@ int HyPerConn::initShrinkPatches() {
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // marked Obsolete Oct 1, 2011.  We can use a default argument for weightInit instead of defining an extra form of the method
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename) {
-   return initialize(name, hc, pre, post, channel, filename, NULL);
-}
-#endif // OBSOLETE
-
-int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
+      HyPerLayer * post, const char * filename, InitWeights *weightInit)
 {
    int status = PV_SUCCESS;
+
+   free(this->name);  // name will already have been set in initialize_base()
+   this->name = strdup(name);
+   assert(this->name != NULL);
+   this->parent = hc;
+   this->pre = pre;
+   this->post = post;
+
+   PVParams * inputParams = parent->parameters();
+
+   ChannelType channel = readChannelCode(inputParams);
 
    int postnumchannels = post->getNumChannels();
    if(postnumchannels <= 0) {
@@ -439,19 +443,11 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
               name, channel, post->getName(), post->getNumChannels()-1);
       exit(EXIT_FAILURE);
    }
-   this->parent = hc;
-   this->pre = pre;
-   this->post = post;
    this->channel = channel;
-
-   free(this->name);  // name will already have been set in initialize_base()
-   this->name = strdup(name);
-   assert(this->name != NULL);
 
    initNumWeightPatches();
    initNumDataPatches();
 
-   PVParams * inputParams = parent->parameters();
    //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
    if(weightInit==NULL) {
       this->weightInitializer = handleMissingInitWeights(inputParams);
@@ -506,6 +502,45 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    return status;
 }
+
+ChannelType HyPerConn::readChannelCode(PVParams * params) {
+   int is_present = params->present(name, "channelCode");
+   if (!is_present) {
+      fprintf(stderr, "Group \"%s\" must set parameter channelCode.\n", name);
+      abort();
+   }
+   int ch = params->value(name, "channelCode");
+   int status = decodeChannel(ch, &channel);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "HyPerConn::readChannelCode: channelCode %d for connection \"%s\" is not a valid channel.\n",  ch, name);
+      abort();
+   }
+   return channel;
+}
+
+int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
+   int status = PV_SUCCESS;
+   switch( channel_code ) {
+   case CHANNEL_EXC:
+      *channel_type = CHANNEL_EXC;
+      break;
+   case CHANNEL_INH:
+      *channel_type = CHANNEL_INH;
+      break;
+   case CHANNEL_INHB:
+      *channel_type = CHANNEL_INHB;
+      break;
+   case CHANNEL_GAP:
+      *channel_type = CHANNEL_GAP;
+      break;
+   default:
+      *channel_type = CHANNEL_INVALID;
+      status = PV_FAILURE;
+      break;
+   }
+   return status;
+}
+
 
 int HyPerConn::initNumWeightPatches() {
    numWeightPatches = pre->getNumExtended();

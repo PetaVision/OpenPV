@@ -13,10 +13,10 @@ CloneKernelConn::CloneKernelConn(){
 }
 
 CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       KernelConn * originalConn) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, originalConn);
+   initialize(name, hc, pre, post, originalConn);
 }
 
 int CloneKernelConn::initialize_base() {
@@ -25,12 +25,12 @@ int CloneKernelConn::initialize_base() {
 }
 
 int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       KernelConn * originalConn) {
    this->originalConn = originalConn;
    InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
    assert(weightInit != NULL);
-   int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre, post, NULL, weightInit);
    //why doesn't clonekernelconn call kernelconn's initialize???
    //kernelconns need this and the GPU stuff...
    initPatchToDataLUT();

@@ -13,9 +13,9 @@ TransposeConn::TransposeConn() {
     initialize_base();
 }  // TransposeConn::~TransposeConn()
 
-TransposeConn::TransposeConn(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn) {
+TransposeConn::TransposeConn(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn) {
     initialize_base();
-    initialize(name, hc, preLayer, postLayer, channelType, auxConn);
+    initialize(name, hc, preLayer, postLayer, auxConn);
 }  // TransposeConn::TransposeConn(const char * name, HyPerCol * hc, HyPerLayer *, HyPerLayer *, ChannelType, KernelConn *)
 
 TransposeConn::~TransposeConn() {
@@ -36,11 +36,11 @@ int TransposeConn::initialize_base() {
    return PV_SUCCESS;
 }  // TransposeConn::initialize_base()
 
-int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn) {
+int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn) {
 
    originalConn = auxConn;
    normalize_flag = false; // HyPerConn::initializeWeights never gets called (most of what it does isn't needed) so initNormalize never gets called
-   int status = KernelConn::initialize(name, hc, preLayer, postLayer, channelType, NULL, NULL);
+   int status = KernelConn::initialize(name, hc, preLayer, postLayer, NULL, NULL);
    //TransposeConn has not been updated to support multiple arbors!
    assert(numberOfAxonalArborLists()==1);
    return status;

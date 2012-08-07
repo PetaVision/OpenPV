@@ -45,10 +45,9 @@ ReciprocalConn::ReciprocalConn() {
 
 ReciprocalConn::ReciprocalConn(const char * name, HyPerCol * hc,
          HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, const char * filename,
-         InitWeights * weightInit) {
+         const char * filename, InitWeights * weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+   initialize(name, hc, pre, post, filename, weightInit);
 }
 
 int ReciprocalConn::initialize_base() {
@@ -63,10 +62,10 @@ int ReciprocalConn::initialize_base() {
 }
 
 int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights * weightInit) {
    int status = PV_SUCCESS;
-   status = KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    PVParams * params = hc->parameters();
    relaxationRate = params->value(name, "relaxationRate", 1.0f);
    reciprocalFidelityCoeff = params->value(name, "reciprocalFidelityCoeff", 1.0f);

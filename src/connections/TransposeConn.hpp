@@ -15,7 +15,7 @@ namespace PV {
 class TransposeConn: public KernelConn {
 public:
     TransposeConn();
-    TransposeConn(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn);
+    TransposeConn(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn);
     virtual ~TransposeConn();
     inline KernelConn * getOriginalConn() {return originalConn;}
 
@@ -23,7 +23,7 @@ public:
 
 protected:
     virtual int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, ChannelType channelType, KernelConn * auxConn);
+    int initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn);
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename);
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
     int setPatchSize(const char * filename);

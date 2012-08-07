@@ -10,15 +10,15 @@
 namespace PV {
 
 SiblingConn::SiblingConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, const char * filename, InitWeights *weightInit, SiblingConn *sibling_conn)
+      const char * filename, InitWeights *weightInit, SiblingConn *sibling_conn)
 {
    SiblingConn::initialize_base();
-   SiblingConn::initialize(name, hc, pre, post, channel, filename, weightInit, sibling_conn);
+   SiblingConn::initialize(name, hc, pre, post, filename, weightInit, sibling_conn);
    // HyPerConn::initialize is not virtual
 }
 
 int SiblingConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename,
+      HyPerLayer * post, const char * filename,
       InitWeights *weightInit, SiblingConn *sibling_conn)
 {
    siblingConn = sibling_conn;
@@ -26,7 +26,7 @@ int SiblingConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    if (siblingConn != NULL){
       siblingConn->setSiblingConn(this);
    }
-   return KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
 int SiblingConn::initNormalize(){

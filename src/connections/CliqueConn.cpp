@@ -12,11 +12,11 @@ int pvpatch_update_clique2(int nk, float* RESTRICT v, float a, float* RESTRICT w
 namespace PV {
 
 CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename,
+      HyPerLayer * post, const char * filename,
       InitWeights *weightInit)
 {
    CliqueConn::initialize_base();
-   CliqueConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   CliqueConn::initialize(name, hc, pre, post, filename, weightInit);
 };
 
 int CliqueConn::initialize_base(){
@@ -26,9 +26,8 @@ int CliqueConn::initialize_base(){
 }
 
 int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename,
-      InitWeights *weightInit){
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+      HyPerLayer * post, const char * filename, InitWeights *weightInit){
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    // pvdata_t *** dw_data;
    PVParams * params = parent->parameters();
    cliqueSize = params->value(name, "cliqueSize", 1, true);

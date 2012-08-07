@@ -18,12 +18,12 @@ class CloneKernelConn : public KernelConn {
 public:
    CloneKernelConn();
    CloneKernelConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       KernelConn * originalConn);
    virtual ~CloneKernelConn();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       KernelConn * originalConn);
 
    virtual int setPatchSize(const char * filename);

@@ -47,14 +47,13 @@ class HyPerConn {
 
 public:
    HyPerConn();
+   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel);
+             const char * filename);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, const char * filename);
+             const char * filename, InitWeights *weightInit);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, const char * filename, InitWeights *weightInit);
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, InitWeights *weightInit);
+             InitWeights *weightInit);
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
@@ -431,6 +430,9 @@ protected:
       delays = delayptr;
    }
 
+   virtual ChannelType readChannelCode(PVParams * params);
+   static int decodeChannel(int channel_code, ChannelType * channel_type);
+
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
    virtual int setPatchSize(const char* filename);
@@ -445,7 +447,7 @@ protected:
    void createArborsOutOfMemory();
    virtual int constructWeights(const char* filename);
    int initialize(const char* name, HyPerCol* hc, HyPerLayer* pre,
-         HyPerLayer* post, ChannelType channel, const char* filename,
+         HyPerLayer* post, const char* filename,
          InitWeights* weightInit = NULL);
    virtual int initPlasticityPatches();
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,

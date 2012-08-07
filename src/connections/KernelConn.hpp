@@ -25,7 +25,7 @@ public:
    virtual ~KernelConn();
 
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              ChannelType channel, const char * filename = NULL, InitWeights *weightInit = NULL);
+              const char * filename = NULL, InitWeights *weightInit = NULL);
 
    virtual float minWeight(int axonId = 0);
    virtual float maxWeight(int axonId = 0);
@@ -114,7 +114,7 @@ protected:
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename,
+                  const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int createArbors();
    virtual int initPlasticityPatches();

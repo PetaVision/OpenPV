@@ -13,10 +13,10 @@ FeedbackConn::FeedbackConn() {
     initialize_base();
 }
 
-FeedbackConn::FeedbackConn(const char * name, HyPerCol *hc, ChannelType channel, KernelConn * ffconn) :
-        TransposeConn(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), channel, ffconn) {
+FeedbackConn::FeedbackConn(const char * name, HyPerCol * hc, KernelConn * ffconn) :
+        TransposeConn(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), ffconn) {
     initialize_base();
-    initialize(name, hc, channel, ffconn);
+    initialize(name, hc, ffconn);
 }  // end of FeedbackConn::FeedbackConn(const char *, HyPerCol *, int, GenerativeConn *)
 
 int FeedbackConn::initialize_base() {
@@ -24,7 +24,7 @@ int FeedbackConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int FeedbackConn::initialize(const char * name, HyPerCol *hc, ChannelType channel, KernelConn * ffconn) {
+int FeedbackConn::initialize(const char * name, HyPerCol *hc, KernelConn * ffconn) {
    feedforwardConn = originalConn;
    //why doesn't feedbackconn call kernelconn's initialize???
    //kernelconns need this and the GPU stuff...

@@ -15,9 +15,9 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
+        HyPerLayer * pre, HyPerLayer * post) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, NULL);
+   initialize(name, hc, pre, post, NULL);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
@@ -25,7 +25,7 @@ int IdentConn::initialize_base() {
    return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
 
-int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename ) {
+int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename ) {
    InitIdentWeights * weightInit = new InitIdentWeights;
    if( weightInit == NULL ) {
       fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, hc->icCommunicator()->commRank());
@@ -36,7 +36,7 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
-   int status = HyPerConn::initialize(name, hc, pre, post, channel, NULL, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre, post, NULL, weightInit);
 #ifdef PV_USE_OPENCL
    //don't support GPU acceleration in kernelconn yet
    ignoreGPUflag=true;

@@ -16,7 +16,7 @@ class CliqueConn: public KernelConn {
 public:
 
    CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               ChannelType channel, const char * filename, InitWeights *weightInit);
+              const char * filename, InitWeights *weightInit);
    virtual int update_dW(int axonId);
    virtual int updateState(float time, float dt);
    virtual int updateWeights(int arbor);
@@ -25,7 +25,7 @@ public:
 protected:
    int cliqueSize; // number of presynaptic cells in clique (traditional ANN uses 1)
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-         HyPerLayer * post, ChannelType channel, const char * filename,
+         HyPerLayer * post, const char * filename,
          InitWeights *weightInit);
 
 private:

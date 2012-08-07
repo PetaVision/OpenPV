@@ -22,10 +22,10 @@ KernelConn::KernelConn()
 
 
 KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, const char * filename, InitWeights *weightInit) : HyPerConn()
+      const char * filename, InitWeights *weightInit) : HyPerConn()
 {
    KernelConn::initialize_base();
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    // HyPerConn::initialize is not virtual
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
@@ -65,7 +65,7 @@ int KernelConn::initialize_base()
 }
 
 int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename,
+      HyPerLayer * post, const char * filename,
       InitWeights *weightInit)
 {
    PVParams * params = hc->parameters();
@@ -73,7 +73,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #ifdef USE_SHMGET
    shmget_flag = params->value(name, "shmget_flag",0);
 #endif
-   HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 

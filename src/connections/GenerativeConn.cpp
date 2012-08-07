@@ -14,31 +14,10 @@ GenerativeConn::GenerativeConn() {
 }  // end of GenerativeConn::GenerativeConn()
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-   initialize_base();
-   initialize(name, hc, pre, post, channel, NULL, NULL);
-}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-//   HyPerLayer *, HyPerLayer *, int)
-GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-      InitWeights *weightInit) {
-   initialize_base();
-   initialize(name, hc, pre, post, channel, NULL, weightInit);
-}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-//   HyPerLayer *, HyPerLayer *, int)
-
-GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
-      const char * filename) {
-   initialize_base();
-   initialize(name, hc, pre, post, channel, filename, NULL);
-}  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
-//   HyPerLayer *, HyPerLayer *, int, const char *)
-GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+   initialize(name, hc, pre, post, filename, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
 //   HyPerLayer *, HyPerLayer *, int, const char *)
 
@@ -67,7 +46,7 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
 #endif // OBSOLETE
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
    PVParams * params = hc->parameters();
    relaxation = params->value(name, "relaxation", 1.0f);
@@ -80,7 +59,7 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc,
       weightNoiseLevel = params->value(name, "weightNoiseLevel", 0.0f);
 
    }
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 
    //GenerativeConn has not been updated to support multiple arbors!
    assert(numberOfAxonalArborLists()==1);

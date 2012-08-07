@@ -20,11 +20,10 @@ namespace PV {
 class FeedbackConn : public TransposeConn {
 public:
     FeedbackConn();
-    FeedbackConn(const char * name, HyPerCol *hc, ChannelType channel,
-        KernelConn * ffconn);
+    FeedbackConn(const char * name, HyPerCol * hc, KernelConn * ffconn);
 
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, ChannelType channel, KernelConn * ffconn);
+    int initialize(const char * name, HyPerCol * hc, KernelConn * ffconn);
 
 protected:
     int setPatchSize(const char * filename);

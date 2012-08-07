@@ -97,7 +97,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "KernelConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
-                 "GaborConn",
                  "IdentConn",
                  "GenerativeConn",
                    "PoolingGenConn",
@@ -537,7 +536,7 @@ BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc) {
  * appropriate InitWeight object for the chosen weight initialization.
  *
  */
-InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc, ChannelType channel) {
+InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
 
    // Get weightInitType.  The HyPerConn subclass may have a natural weightInitType so don't issue a warning yet if weightInitType is missing.
    // The warning is issued in getDefaultInitWeightsMethod().
@@ -655,6 +654,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    PVParams * params = hc->parameters();
    InitWeights *weightInitializer;
 
+#ifdef OBSOLETE // Marked obsolete Aug 7, 2012.  The channel type is now read by HyPerConn::initialize calling HyPerConn::readChannelCode (so that specialized conns like GapConn can override)
    ChannelType channelType;
    if (strcmp(classkeyword, "GapConn")) {
       int channelNo = (int) params->value(name, "channelCode", -1);
@@ -664,8 +664,9 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
 
    }
+#endif // OBSOLETE
 
-   weightInitializer = createInitWeightsObject(name, hc, channelType);
+   weightInitializer = createInitWeightsObject(name, hc);
    if( weightInitializer == NULL ) {
       weightInitializer = getDefaultInitWeightsMethod(classkeyword);
    }
@@ -679,7 +680,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
 
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = new HyPerConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new HyPerConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -689,7 +690,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -698,7 +699,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
       if( auxConn && preLayer && postLayer ) {
-         addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn)  );
+         addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn)  );
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -707,7 +708,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -716,7 +717,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new ReciprocalConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new ReciprocalConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -725,7 +726,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new CliqueConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new CliqueConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -742,7 +743,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new SiblingConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer, sibling_conn);
+         addedConn = new SiblingConn(name, hc, preLayer, postLayer, fileName, weightInitializer, sibling_conn);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -751,7 +752,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer, channelType);
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -760,7 +761,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -769,7 +770,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -778,7 +779,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
       if( auxConn && preLayer && postLayer ) {
-         addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, channelType, dynamic_cast<KernelConn *>(auxConn) );
+         addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn) );
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -786,7 +787,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
       if( auxConn ) {
-         addedConn = (HyPerConn *) new FeedbackConn(name, hc, channelType, dynamic_cast<KernelConn *>(auxConn) );
+         addedConn = (HyPerConn *) new FeedbackConn(name, hc, dynamic_cast<KernelConn *>(auxConn) );
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -796,7 +797,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
      bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
      if( preLayer && postLayer ) {
        fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, channelType, fileName, stdpFlag, weightInitializer);
+       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
      }
      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
@@ -821,12 +822,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    return addedConn;
 }
 
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit) {
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights *weightInit) {
    PoolingGenConn * addedConn;
    HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
    HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
    if( secondaryPreLayer && secondaryPostLayer ) {
-       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, channel, filename, weightInit);
+       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, filename, weightInit);
    }
    else {
        addedConn = NULL;
@@ -1256,6 +1257,7 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 7, 2012.  This function is now the static method HyPerConn::readChannelCode
 int decodeChannel(int channel, ChannelType * channelType) {
    int status = PV_SUCCESS;
    switch( channel ) {
@@ -1277,6 +1279,7 @@ int decodeChannel(int channel, ChannelType * channelType) {
    }
    return status;
 }
+#endif // OBSOLETE
 
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
    int rank;

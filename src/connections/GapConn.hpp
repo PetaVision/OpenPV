@@ -20,6 +20,7 @@ public:
    virtual ~GapConn();
 protected:
    GapConn();
+   ChannelType readChannelCode(PVParams * params);
 private:
    virtual int initNormalize();
    bool initNormalizeFlag;
