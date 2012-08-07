@@ -16,17 +16,19 @@ class HyperConnDebugInitWeights: public PV::HyPerConn {
 public:
    HyperConnDebugInitWeights();
    HyperConnDebugInitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, HyPerConn *copiedConn);
+             HyPerConn *copiedConn);
    virtual ~HyperConnDebugInitWeights();
 
    virtual int initialize_base();
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, HyPerConn *copiedConn);
+         HyPerConn *copiedConn);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
 
 
 protected:
+   virtual ChannelType readChannelCode(PVParams * params) { channel = CHANNEL_INH; return channel;}
+
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
    virtual int gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPost,
                              int numFlanks, float shift, float rotate, float aspect, float sigma,

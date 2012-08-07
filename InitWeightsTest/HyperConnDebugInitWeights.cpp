@@ -16,10 +16,10 @@ HyperConnDebugInitWeights::HyperConnDebugInitWeights()
 }
 
 HyperConnDebugInitWeights::HyperConnDebugInitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, HyPerConn *copiedConn) : HyPerConn()
+      HyPerConn *copiedConn) : HyPerConn()
 {
    initialize_base();
-   HyperConnDebugInitWeights::initialize(name, hc, pre, post, channel, copiedConn);
+   HyperConnDebugInitWeights::initialize(name, hc, pre, post, copiedConn);
 }
 
 HyperConnDebugInitWeights::~HyperConnDebugInitWeights()
@@ -28,8 +28,8 @@ HyperConnDebugInitWeights::~HyperConnDebugInitWeights()
 }
 
 int HyperConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, HyPerConn *copiedConn) {
-   HyPerConn::initialize(name, hc, pre, post, channel, NULL, new InitWeights());
+      HyPerConn *copiedConn) {
+   HyPerConn::initialize(name, hc, pre, post, NULL, new InitWeights());
    otherConn=copiedConn;
    return PV_SUCCESS;
 }
