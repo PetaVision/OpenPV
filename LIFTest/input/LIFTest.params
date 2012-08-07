@@ -271,74 +271,38 @@ IdentConn "LIFGapTest to LIFGapTest Spike Counter" = {
     writeStep = -1;
 };
 
-PointProbe "Scaled Input PointProbe 012" = {
+PointProbe "Scaled Input PointProbe" = {
     targetLayer = "scaled input";
-    message = "Scaled Input PointProbe 169 012";
-    probeOutputFile = "ScaledInputProbe_012.txt";
-    xLoc = 169;
-    yLoc = 12;
+    message = "Scaled Input PointProbe";
+    probeOutputFile = "ScaledInputProbe.txt";
+    xLoc = 127;
+    yLoc = 127;
     fLoc = 0;
 };
 
-PointLIFProbe "LIFTest PointLIFProbe 012" = {
+PointLIFProbe "LIFTest PointLIFProbe" = {
     targetLayer = "LIFTest";
-    message = "LIFTest Layer PointLIFProbe 169 012";
-    probeOutputFile = "LIFTestProbe_012.txt";
-    xLoc = 169;
-    yLoc = 12;
+    message = "LIFTest Layer PointLIFProbe";
+    probeOutputFile = "LIFTestProbe.txt";
+    xLoc = 127;
+    yLoc = 127;
     fLoc = 0;
 };
 
-PointProbe "GapTest PointProbe 012" = {
+PointProbe "GapTest PointProbe" = {
     targetLayer = "GapTest";
-    message = "GapTest PointProbe 169 012";
-    probeOutputFile = "GapTestProbe_012.txt";
-    xLoc = 169;
-    yLoc = 12;
+    message = "GapTest PointProbe";
+    probeOutputFile = "GapTestProbe.txt";
+    xLoc = 127;
+    yLoc = 127;
     fLoc = 0;
 };
 
-PointLIFProbe "LIFGapTest PointLIFProbe 012" = {
+PointLIFProbe "LIFGapTest PointLIFProbe" = {
     targetLayer = "LIFGapTest";
-    message = "LIFGapTest PointLIFProbe 169 012";
-    probeOutputFile = "LIFGapTestProbe_012.txt";
-    xLoc = 169;
-    yLoc = 12;
-    fLoc = 0;
-};
-
-PointProbe "Scaled Input PointProbe 243" = {
-    targetLayer = "scaled input";
-    message = "Scaled Input PointProbe 169 243";
-    probeOutputFile = "ScaledInputProbe_243.txt";
-    xLoc = 169;
-    yLoc = 243;
-    fLoc = 0;
-};
-
-PointLIFProbe "LIFTest PointLIFProbe 243" = {
-    targetLayer = "LIFTest";
-    message = "LIFTest Layer PointLIFProbe 169 243";
-    probeOutputFile = "LIFTestProbe_243.txt";
-    xLoc = 169;
-    yLoc = 243;
-    fLoc = 0;
-};
-
-PointProbe "GapTest PointProbe 243" = {
-    targetLayer = "GapTest";
-    message = "GapTest PointProbe 169 243";
-    probeOutputFile = "GapTestProbe_243.txt";
-    xLoc = 169;
-    yLoc = 243;
-    fLoc = 0;
-};
-
-PointLIFProbe "LIFGapTest PointLIFProbe 243" = {
-    targetLayer = "LIFGapTest";
-    message = "LIFGapTest PointLIFProbe 169 243";
-    probeOutputFile = "LIFGapTestProbe_243.txt";
-    xLoc = 169;
-    yLoc = 243;
+    message = "LIFGapTest PointLIFProbe";
+    probeOutputFile = "LIFGapTestProbe.txt";
+    xLoc = 127;
+    yLoc = 127;
     fLoc = 0;
 };
