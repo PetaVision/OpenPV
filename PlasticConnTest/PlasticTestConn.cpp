@@ -10,8 +10,8 @@
 namespace PV {
 
 PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, const char * filename, InitWeights *weightInit) : KernelConn(){
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+      const char * filename, InitWeights *weightInit) : KernelConn(){
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
 int PlasticTestConn::update_dW(int axonId) {
