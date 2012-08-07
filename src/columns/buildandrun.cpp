@@ -656,11 +656,13 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    InitWeights *weightInitializer;
 
    ChannelType channelType;
-   int channelNo = (int) params->value(name, "channelCode", -1);
+   if (strcmp(classkeyword, "GapConn")) {
+      int channelNo = (int) params->value(name, "channelCode", -1);
+      if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
+         fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
+         return NULL;
+      }
 
-   if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, classkeyword);
-      return NULL;
    }
 
    weightInitializer = createInitWeightsObject(name, hc, channelType);
@@ -803,7 +805,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GapConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new GapConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
