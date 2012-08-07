@@ -16,14 +16,14 @@ class VaryingKernelConn : public KernelConn {
 
 public:
    VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, const char * filename, InitWeights *weightInit);
+         const char * filename, InitWeights *weightInit);
    virtual ~VaryingKernelConn();
    virtual int setParams(PVParams * inputParams);
 
 protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename,
+                  const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int calc_dW(int axonId);
 

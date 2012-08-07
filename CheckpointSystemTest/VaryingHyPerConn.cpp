@@ -10,16 +10,16 @@
 namespace PV {
 
 VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, const char * filename, InitWeights *weightInit) : HyPerConn() {
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+      const char * filename, InitWeights *weightInit) : HyPerConn() {
+   initialize(name, hc, pre, post, filename, weightInit);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
 int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+         HyPerLayer * pre, HyPerLayer * post,
          const char * filename, InitWeights *weightInit) {
-   HyPerConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
 
    // initialize all dW's to one.
    int syPatch = yPatchStride();

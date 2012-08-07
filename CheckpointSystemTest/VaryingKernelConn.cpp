@@ -10,16 +10,16 @@
 namespace PV {
 
 VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-      ChannelType channel, const char * filename, InitWeights *weightInit) : KernelConn() {
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+      const char * filename, InitWeights *weightInit) : KernelConn() {
+   initialize(name, hc, pre, post, filename, weightInit);
 }
 
 VaryingKernelConn::~VaryingKernelConn() {}
 
 int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+         HyPerLayer * pre, HyPerLayer * post,
          const char * filename, InitWeights *weightInit) {
-   KernelConn::initialize(name, hc, pre, post, channel, filename, weightInit);
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 
    // initialize all dW's to one.
    int syPatch = yPatchStride();

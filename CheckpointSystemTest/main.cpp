@@ -78,18 +78,12 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          InitWeights *weightInitializer;
-         ChannelType channelType;
-         int channelNo = (int) params->value(name, "channelCode", -1);
-         if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
-            fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, keyword);
-            return NULL;
-         }
-         weightInitializer = createInitWeightsObject(name, hc, channelType);
+         weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingKernelConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedGroup = (void * ) new VaryingKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
    }
    if( !strcmp(keyword, "VaryingHyPerConn") ) {
@@ -98,18 +92,12 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
          InitWeights *weightInitializer;
-         ChannelType channelType;
-         int channelNo = (int) params->value(name, "channelCode", -1);
-         if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
-            fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, keyword);
-            return NULL;
-         }
-         weightInitializer = createInitWeightsObject(name, hc, channelType);
+         weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
    }
    return addedGroup;

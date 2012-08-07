@@ -16,7 +16,7 @@ class VaryingHyPerConn : public HyPerConn {
 
 public:
    VaryingHyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-         ChannelType channel, const char * filename, InitWeights *weightInit);
+         const char * filename, InitWeights *weightInit);
    virtual ~VaryingHyPerConn();
    virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonId = 0);
@@ -24,7 +24,7 @@ public:
 protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  ChannelType channel, const char * filename,
+                  const char * filename,
                   InitWeights *weightInit=NULL);
    virtual int calc_dW(int axonId);
 
