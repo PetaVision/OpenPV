@@ -12,10 +12,10 @@ debugParsing = false;
 HyPerCol "column" = {
    nx = 256;   
    ny = 256;
-   dt = 0.05;
+   dt = 0.03125;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 1000;
-   progressStep = 100;
+   numSteps = 1600;
+   progressStep = 160;
    outputPath = "output/";
    filenamesContainLayerNames = false;
    checkpointRead = false;
@@ -64,12 +64,12 @@ ANNLayer "scaled input" = {
     VMin = -infinity;
 };
 
-LIFGap "Horizontal" = {
+LIFGap "LIFTest" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
+    marginWidth = 1;
     writeStep = -1.0;
     mirrorBCflag = false;
     spikingFlag = true;
@@ -95,7 +95,7 @@ LIFGap "Horizontal" = {
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
 };
 
-GenerativeLayer "Horizontal Spike Counter" = {
+GenerativeLayer "LIFTest Spike Counter" = {
     restart = false;
     nxScale = 1;
     nyScale = 1;
@@ -119,14 +119,14 @@ GenerativeLayer "Horizontal Spike Counter" = {
     persistence = 0.0;
 };
 
-GapLayer "HoriGap" ={
+GapLayer "GapTest" ={
     restart      = false;
-    originalLayerName="Horizontal";
+    originalLayerName="LIFTest";
     nxScale      = 1; // Should this be 0.5 or 1?
     nyScale      = 1; // Should this be 0.5 or 1?
     nf = 1;
     marginWidth  = 1;
-    mirrorBCflag = false;
+    mirrorBCflag = true;
     spikingFlag = false;
 
     InitVType    = "ConstantV";
@@ -136,13 +136,13 @@ GapLayer "HoriGap" ={
     writeNonspikingActivity = true;
 };
 
-LIFGap "GapConn Output" = {
+LIFGap "LIFGapTest" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = -1.0;
+    writeStep = 0.0; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag = false;
     spikingFlag = true;
     
@@ -156,7 +156,7 @@ LIFGap "GapConn Output" = {
     tauE             = 1.0;     // how long glutamine stays bound
     tauI             = 5.0;     // how long GABA stays bound
     tauIB            = 10.0;    // inhibitory potassium channel 
-    VthRest          = -55.0;   // firing threshold
+    VthRest          = -65.0;   // firing threshold
     tauVth           = 10.0;    // relative refractory period
     deltaVth         = 5.0;     // jump of threshold when firing
     noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
@@ -167,7 +167,7 @@ LIFGap "GapConn Output" = {
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
 };
 
-GenerativeLayer "GapConn Output Spike Counter" = {
+GenerativeLayer "LIFGapTest Spike Counter" = {
     restart = false;
     nxScale = 1;
     nyScale = 1;
@@ -217,24 +217,24 @@ KernelConn "input to scaled input" = {
     
 };
 
-IdentConn "scaled input to Horizontal" = {
+IdentConn "scaled input to LIFTest" = {
     channelCode = 0;
     delay = 0;
     
     writeStep = -1;
 };
 
-IdentConn "Horizontal to Horizontal Spike Counter" = {
+IdentConn "LIFTest to LIFTest Spike Counter" = {
     channelCode = 0;
     delay = 0;
     
     writeStep = -1;
 };
 
-GapConn "HoriGap to GapConn Output" = {
-    preLayerName = "HoriGap";
-    postLayerName = "GapConn Output";
-    channelCode = 0;
+GapConn "GapTest to LIFGapTest" = {
+    preLayerName = "GapTest";
+    postLayerName = "LIFGapTest";
+    // channelCode = 3;
     nxp = 3;
     nyp = 3;
     nfp = 1;
@@ -243,7 +243,7 @@ GapConn "HoriGap to GapConn Output" = {
     
     weightInitType = "Gauss2DWeight";
     strength      = 2.0; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
-    rMin          = 0.1; // take out the self connection
+    rMin          = 0.0; // 0.1; // take out the self connection
     aspect        = 1.0;
     // rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
     sigma         = 3.0;
@@ -264,37 +264,81 @@ GapConn "HoriGap to GapConn Output" = {
     // initialWriteTime = 0;
 };
 
-IdentConn "GapConn Output to GapConn Output Spike Counter" = {
+IdentConn "LIFGapTest to LIFGapTest Spike Counter" = {
     channelCode = 0;
     delay = 0;
     
     writeStep = -1;
 };
 
-
-PointLIFProbe "Horizontal PointLIFProbe" = {
-    targetLayer = "Horizontal";
-    message = "Horizontal Layer PointLIFProbe";
-    probeOutputFile = "HorizontalProbe.txt";
-    xLoc = 128;
-    yLoc = 128;
+PointProbe "Scaled Input PointProbe 012" = {
+    targetLayer = "scaled input";
+    message = "Scaled Input PointProbe 169 012";
+    probeOutputFile = "ScaledInputProbe_012.txt";
+    xLoc = 169;
+    yLoc = 12;
     fLoc = 0;
 };
 
-PointProbe "HoriGap PointProbe" = {
-    targetLayer = "HoriGap";
-    message = "HoriGap PointProbe";
-    probeOutputFile = "HoriGapProbe.txt";
-    xLoc = 128;
-    yLoc = 128;
+PointLIFProbe "LIFTest PointLIFProbe 012" = {
+    targetLayer = "LIFTest";
+    message = "LIFTest Layer PointLIFProbe 169 012";
+    probeOutputFile = "LIFTestProbe_012.txt";
+    xLoc = 169;
+    yLoc = 12;
     fLoc = 0;
 };
 
-PointLIFProbe "GapConn Output PointLIFProbe" = {
-    targetLayer = "Horizontal";
-    message = "GapConn Output PointLIFProbe";
-    probeOutputFile = "GapConnOutputProbe.txt";
-    xLoc = 128;
-    yLoc = 128;
+PointProbe "GapTest PointProbe 012" = {
+    targetLayer = "GapTest";
+    message = "GapTest PointProbe 169 012";
+    probeOutputFile = "GapTestProbe_012.txt";
+    xLoc = 169;
+    yLoc = 12;
+    fLoc = 0;
+};
+
+PointLIFProbe "LIFGapTest PointLIFProbe 012" = {
+    targetLayer = "LIFGapTest";
+    message = "LIFGapTest PointLIFProbe 169 012";
+    probeOutputFile = "LIFGapTestProbe_012.txt";
+    xLoc = 169;
+    yLoc = 12;
+    fLoc = 0;
+};
+
+PointProbe "Scaled Input PointProbe 243" = {
+    targetLayer = "scaled input";
+    message = "Scaled Input PointProbe 169 243";
+    probeOutputFile = "ScaledInputProbe_243.txt";
+    xLoc = 169;
+    yLoc = 243;
+    fLoc = 0;
+};
+
+PointLIFProbe "LIFTest PointLIFProbe 243" = {
+    targetLayer = "LIFTest";
+    message = "LIFTest Layer PointLIFProbe 169 243";
+    probeOutputFile = "LIFTestProbe_243.txt";
+    xLoc = 169;
+    yLoc = 243;
+    fLoc = 0;
+};
+
+PointProbe "GapTest PointProbe 243" = {
+    targetLayer = "GapTest";
+    message = "GapTest PointProbe 169 243";
+    probeOutputFile = "GapTestProbe_243.txt";
+    xLoc = 169;
+    yLoc = 243;
+    fLoc = 0;
+};
+
+PointLIFProbe "LIFGapTest PointLIFProbe 243" = {
+    targetLayer = "LIFGapTest";
+    message = "LIFGapTest PointLIFProbe 169 243";
+    probeOutputFile = "LIFGapTestProbe_243.txt";
+    xLoc = 169;
+    yLoc = 243;
     fLoc = 0;
 };
