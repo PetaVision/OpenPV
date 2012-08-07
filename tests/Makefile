@@ -233,7 +233,7 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
-	@if openmpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns failed."; fi
+	@if openmpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns FAILED."; fi
 #	@echo "Running test_read_header with 1 node ..."
 #	@./test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 2 nodes ..."
@@ -266,45 +266,45 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_kg ..."
-	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg failed."; fi
+	@if ./test_kg; then echo "test_kg passed."; else echo "test_kg FAILED."; fi
 	@echo "Running test_kxpos ..."
-	@if ./test_kxpos; then echo "test_kxpos passed."; else echo "test_kxpos failed."; fi
+	@if ./test_kxpos; then echo "test_kxpos passed."; else echo "test_kxpos FAILED."; fi
 	@echo "Running test_kypos ..."
-	@if ./test_kypos; then echo "test_kypos passed."; else echo "test_kypos failed."; fi
+	@if ./test_kypos; then echo "test_kypos passed."; else echo "test_kypos FAILED."; fi
 	@echo "Running test_nearby_neighbor ..."
-	@if ./test_nearby_neighbor; then echo "test_nearby_neighbor passed."; else echo "test_nearby_neighbor failed."; fi
+	@if ./test_nearby_neighbor; then echo "test_nearby_neighbor passed."; else echo "test_nearby_neighbor FAILED."; fi
 	@echo "Running test_patch_head ..."
-	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
+	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head FAILED."; fi
 	@echo "Running test_post_weights ..."
-	@if ./test_post_weights -p input/test_post_weights.params; then echo "test_post_weights passed."; else echo "test_post_weights failed."; fi
+	@if ./test_post_weights -p input/test_post_weights.params; then echo "test_post_weights passed."; else echo "test_post_weights FAILED."; fi
 	@echo "Running test_gauss2d ..."
-	@if ./test_gauss2d; then echo "test_gauss2d passed."; else echo "test_gauss2d failed."; fi
+	@if ./test_gauss2d; then echo "test_gauss2d passed."; else echo "test_gauss2d FAILED."; fi
 	@echo "Running test_cocirc ..."
-	@if ./test_cocirc -p input/test_cocirc.params; then echo "test_cocirc passed."; else echo "test_cocirc failed."; fi
+	@if ./test_cocirc -p input/test_cocirc.params; then echo "test_cocirc passed."; else echo "test_cocirc FAILED."; fi
 #	@echo "Running test_pos ..."
-#	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos failed."; fi
+#	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos FAILED."; fi
 	@echo "Running test_delta_pos ..."
-	@if ./test_delta_pos; then echo "test_delta_pos passed."; else echo "test_delta_pos failed."; fi
+	@if ./test_delta_pos; then echo "test_delta_pos passed."; else echo "test_delta_pos FAILED."; fi
 	@echo "Running test_extend_border ..."
-	@if ./test_extend_border; then echo "test_extend_border passed."; else echo "test_extend_border failed."; fi
+	@if ./test_extend_border; then echo "test_extend_border passed."; else echo "test_extend_border FAILED."; fi
 	@echo "Running test_patch_head ..."
-	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head failed."; fi
+	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head FAILED."; fi
 	@echo "Running test_delta ..."
-	@if ./test_delta; then echo "test_delta passed."; else echo "test_delta failed."; fi
+	@if ./test_delta; then echo "test_delta passed."; else echo "test_delta FAILED."; fi
 	@echo "Running test_sign ..."
-	@if ./test_sign; then echo "test_sign passed."; else echo "test_sign failed."; fi
+	@if ./test_sign; then echo "test_sign passed."; else echo "test_sign FAILED."; fi
 	@echo "Running test_mirror_BCs ..."
 	@if ./test_mirror_BCs; then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
-	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity failed"; fi
+	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity FAILED"; fi
 #	@echo "Running test_constant_input with 1 node ..."
-#	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
+#	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input FAILED"; fi
 #	@echo "Running test_borders ..."
-#	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input failed"; fi
+#	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input FAILED"; fi
 #	@echo "Running test_transpose_transpose ..."
-#	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose failed"; fi
+#	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose FAILED"; fi
 	@echo "Running test_marginwidth ..."
-	@if ./test_marginwidth; then echo "test_marginwidth passed."; else echo "test_marginwidth failed"; fi 
+	@if ./test_marginwidth; then echo "test_marginwidth passed."; else echo "test_marginwidth FAILED"; fi 
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
