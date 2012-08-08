@@ -70,7 +70,7 @@ Retina "Retina" = {
     burstFreq = 1;
     burstDuration = 40000;
 
-    beginStim = 1;
+    beginStim = 0;
     endStim = 40000;
 };
 
