@@ -344,12 +344,12 @@ if isempty(errorstring)
                 for x=px*nx:(px*nx+nx-1)
                     for y=py*ny:(py*ny+ny-1)
                          %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
-              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = flipud(rot90(reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))))));
               mean_wm(c,1)=mean(mean(mean(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp))));
-                            wm(x*hdr.nxp+hdr.nxp, :) = 0;
-                            wm(x*hdr.nxp+1, :) = 0;
-              wm(:, y*hdr.nyp+1) = 0;
-              wm(:, y*hdr.nyp+hdr.nyp) = 0;
+                         wm(x*hdr.nxp+hdr.nxp, :) = 0;
+                         wm(x*hdr.nxp+1, :) = 0;
+                         wm(:, y*hdr.nyp+1) = 0;
+                         wm(:, y*hdr.nyp+hdr.nyp) = 0;
                          c=c+1;
 
                     end%for
@@ -357,6 +357,8 @@ if isempty(errorstring)
               end%for
               end%for
               
+              wm = flipud(rot90(wm));
+                     
               %figure
               %imshow(reshape(mean_wm,sqrt(hdr.numPatches),sqrt(hdr.numPatches)))
 
