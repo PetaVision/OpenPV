@@ -21,11 +21,19 @@ GapConn::GapConn()
 GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, const char * filename, InitWeights *weightInit) {
    // No channel argument to constructor because GapConn must always use CHANNEL_GAP
-   initialize(name, hc, pre, post, filename, weightInit);
+   GapConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
 GapConn::~GapConn()
 {
+}
+
+int GapConn::initialize(const char * name, HyPerCol * hc,
+               HyPerLayer * pre, HyPerLayer * post,
+               const char * filename,
+               InitWeights *weightInit){
+   initNormalizeFlag = false;
+   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
 ChannelType GapConn::readChannelCode(PVParams * params) {
