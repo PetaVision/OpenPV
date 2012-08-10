@@ -21,6 +21,10 @@ public:
 protected:
    GapConn();
    ChannelType readChannelCode(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc,
+                  HyPerLayer * pre, HyPerLayer * post,
+                  const char * filename,
+                  InitWeights *weightInit=NULL);
 private:
    virtual int initNormalize();
    bool initNormalizeFlag;
