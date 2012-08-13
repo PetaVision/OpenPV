@@ -2,7 +2,7 @@ function [time,ret1,ret2,ret3,ret4,ret5,ret6] = pvp_readPointLIFprobeRun(runnumb
 
 %Allows for the input of 1 to 6 variables and returns time and values of input variables
 %Inputs must be a cell array of strings {'A','B',...'}
-%Example: [time,G_I,V] = pvp_readPointLIFprobe1('ConeP5',{'G_I','V'})
+%Example: [time,G_I,V] = pvp_readPointLIFprobeRun('ConeP5',{'G_I','V'})
 
 filename = ["../output/Run",num2str(runnumber),"/pt",filename,".txt"]
 
@@ -26,6 +26,19 @@ myfile = fopen(filename,"r");
 %Creates an array of the input strings
 
 s = inputs;
+
+%startLine = 1;
+
+if nLines==400
+startLine = 1;
+end %if
+if nLines==900
+startLine = 501;
+end %if
+if (nLines ~= 400) && (nLines ~= 900)
+   %error('File has the wrong length');
+   disp('File has the wrong length');
+end %if
 
 G_E  = zeros(nLines, 1);
 G_I  = zeros(nLines, 1);
@@ -87,7 +100,6 @@ location = zeros(nLines, 1);
    end %for
 
 
-
 %Output values for each input string
 
 
@@ -98,7 +110,7 @@ ret4 = [];
 ret5 = [];
 ret6 = [];
 
-outp = zeros(nLines,length(s));
+outp = zeros(nLines-startLine+1,length(s));
 
    for i=1:length(s)
 
@@ -106,28 +118,28 @@ outp = zeros(nLines,length(s));
 
 		case 'A'
 
-	          outp(:,i) = A;
+	          outp(:,i) = A(startLine:nLines);
                           
 
                 case 'G_I'
 
-                  outp(:,i) = G_I;
+                  outp(:,i) = G_I(startLine:nLines);
 
 		case 'G_IB'
 
-		  outp(:,i) = G_IB;
+		  outp(:,i) = G_IB(startLine:nLines);
 
 		case 'G_E'
 
-		  outp(:,i) = G_E;
+		  outp(:,i) = G_E(startLine:nLines);
 
 		case 'Vth'
 
-		  outp(:,i) = Vth;
+		  outp(:,i) = Vth(startLine:nLines);
 
 		case 'V'
 
-		  outp(:,i) = V;
+		  outp(:,i) = V(startLine:nLines);
 
 	   end %switch
 
@@ -157,7 +169,7 @@ if length(s)>5;
    ret6 = outp(:,6);
 end %if
 
-time = nLines;
-
+time = nLines-startLine+1;
+%time = nLines;
 fclose(myfile);
 
