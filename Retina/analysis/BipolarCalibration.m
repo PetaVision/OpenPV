@@ -1,29 +1,53 @@
-duration = 400;
-[time,Bipolar_V_B] =PV_readPointLIFprobe("BipolarB",duration);
-[time,Bipolar_V_02]=PV_readPointLIFprobe("Bipolar02",duration);
-[time,Bipolar_V_04]=PV_readPointLIFprobe("Bipolar04",duration);
-[time,Bipolar_V_06]=PV_readPointLIFprobe("Bipolar06",duration);
-[time,Bipolar_V_08]=PV_readPointLIFprobe("Bipolar08",duration);
-[time,Bipolar_V_10]=PV_readPointLIFprobe("Bipolar10",duration);
+
+[time,BipolarON_V_B] =pvp_readPointLIFprobe("BipolarONB",{'V'});
+[time,BipolarON_V_02]=pvp_readPointLIFprobe("BipolarON02",{'V'});
+[time,BipolarON_V_04]=pvp_readPointLIFprobe("BipolarON04",{'V'});
+[time,BipolarON_V_06]=pvp_readPointLIFprobe("BipolarON06",{'V'});
+[time,BipolarON_V_08]=pvp_readPointLIFprobe("BipolarON08",{'V'});
+[time,BipolarON_V_10]=pvp_readPointLIFprobe("BipolarON10",{'V'});
+
+
+[time,BipolarOFF_V_B]=pvp_readPointLIFprobe("BipolarOFFB",{'V'});
+[time,BipolarOFF_V_02]=pvp_readPointLIFprobe("BipolarOFF02",{'V'});
+[time,BipolarOFF_V_04]=pvp_readPointLIFprobe("BipolarOFF04",{'V'});
+[time,BipolarOFF_V_06]=pvp_readPointLIFprobe("BipolarOFF06",{'V'});
+[time,BipolarOFF_V_08]=pvp_readPointLIFprobe("BipolarOFF08",{'V'});
+[time,BipolarOFF_V_10]=pvp_readPointLIFprobe("BipolarOFF10",{'V'});
+
+rtime = 1:time;
+
 plot \
-    (time,Bipolar_V_B,"0",time,Bipolar_V_02,"1",time,Bipolar_V_04,"2",time,Bipolar_V_06,"3",time,Bipolar_V_08,"4",time,Bipolar_V_10,"5");
+   (rtime,BipolarON_V_B,"0",rtime,BipolarOFF_V_B,"0",rtime,BipolarON_V_02+5,"1",rtime,BipolarOFF_V_02-5,"1",rtime,BipolarON_V_04+10,"2",rtime,BipolarOFF_V_04-10,"2",rtime,BipolarON_V_06+15,"3",rtime,BipolarOFF_V_06-15,"3",rtime,BipolarON_V_08+20,"4",rtime,BipolarOFF_V_08-20,"4",rtime,BipolarON_V_10+25,"5",rtime,BipolarOFF_V_10-25,"5");
+
+n = 3;
 
 title("Bipolar Calibration");
-t1=text (25,-69,"Black");
+t1=text (50,BipolarON_V_B(100)-n,"Black");
 set(t1,'color',[0 0 0]);
-t2=text (25,-68,"20%");
+t2=text (50,BipolarON_V_02(100)+5-n,"20%");
 set(t2,'color',[1 0 0]);
-t3=text (25,-67,"40%");
-set(t3,'color',[0 1 0]);
-t4=text (25,-66,"60%");
-set(t4,'color',[0 0 1])
-t5=text (25,-65,"80%");
-set(t5,'color',[1 0 1]);
-t5=text (25,-64,"100%");
-set(t5,'color',[0 1 1]);
+t3=text (50,BipolarOFF_V_02(100)-5-n, "20%");
+set(t3,'color',[1 0 0]);
+t4=text (50,BipolarON_V_04(100)+10-n,"40%");
+set(t4,'color',[0 1 0]);
+t5=text (50,BipolarOFF_V_04(100)-10-n,"40%");
+set(t5,'color',[0 1 0]);
+t6=text (50,BipolarON_V_06(100)+15-n,"60%");
+set(t6,'color',[0 0 1])
+t7=text (50,BipolarOFF_V_06(100)-15-n,"60%");
+set(t7,'color',[0 0 1]);
+t8=text (50,BipolarON_V_08(100)+20-n,"80%");
+set(t8,'color',[1 0 1]);
+t9=text (50,BipolarOFF_V_08(100)-20-n,"80%");
+set(t9,'color',[1 0 1]);
+t10=text (50,BipolarON_V_10(100)+25-n,"100%");
+set(t10,'color',[0 1 1]);
+t11=text (50,BipolarOFF_V_10(100)-25-n,"100%");
+set(t11,'color',[0 1 1]);
 xlabel("time [msec]");
 ylabel("Membrane Potential [mV]");
-text(50,-45.5,"tau = 10 msec, I-C strength = 0.1475, horizontal feedback");
+text(60,-96,"tau = 10 msec, I-C strength = 0.1475, horizontal feedback");
 grid;
-axis([0,400,-72,-60]);
-print -dgif ../../gjkunde/octave/BipolarCalibration.gif
+axis([0 500 -100 -30]);
+fontsize = 20;
+print -dgif ../octave/BipolarCalibration.gif
