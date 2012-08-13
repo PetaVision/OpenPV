@@ -2,7 +2,7 @@ function TestCheckpoint(layer,deltatime)
 
 close  all;
 
-filename = ["../../gjkunde/graystart/Checkpoint1000/",layer,".pvp"]
+filename = ["../graystart/Checkpoint1000/",layer,".pvp"]
 
 checkV1000 = \
     readpvpfile(filename);
@@ -14,7 +14,7 @@ imagesc(check_V1000);
 mean(check_V1000(:))
 std(check_V1000(:))
 
-filename = ["../../gjkunde/amoebarun/Checkpoint",num2str(1000+deltatime),"/",layer,".pvp"]
+filename = ["../amoebarun/Checkpoint",num2str(1000+deltatime),"/",layer,".pvp"]
 
 checkV0 = \
     readpvpfile(filename);
