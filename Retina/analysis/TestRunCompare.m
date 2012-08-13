@@ -3,7 +3,7 @@ function TestRunCompare(layer,k,cor)
 %close  all;
 
 figure;
-filename = ["../../gjkunde/graystart/Checkpoint",num2str(1000),"/",layer,".pvp"]
+filename = ["../graystart/Checkpoint",num2str(1000),"/",layer,".pvp"]
 checkVr = readpvpfile(filename);
 check_Vr = checkVr{1}.values;
 subplot(3,1,1)
@@ -12,7 +12,7 @@ mean(check_Vr(:));
 std(check_Vr(:));
 
 
-filename = ["../../gjkunde/amoebarun/Checkpoint",num2str(1000),"/",layer,".pvp"]
+filename = ["../amoebarun/Checkpoint",num2str(1000),"/",layer,".pvp"]
 checkV = readpvpfile(filename);
 check_V = checkV{1}.values;
 subplot(3,1,2);
