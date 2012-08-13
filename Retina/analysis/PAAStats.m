@@ -1,11 +1,11 @@
-function PAAStats(dirname)
+
 close all
-duration = 250;
-[time,avgON]=PV_readLayerStatsProbe(dirname,"PAAmacrineON",duration);
-[time,avgOFF]=PV_readLayerStatsProbe(dirname,"PAAmacrineOFF",duration);
+[time,avgON]=pvp_readLayerStatsProbe("PAAmacrineON");
+[time,avgOFF]=pvp_readLayerStatsProbe("PAAmacrineOFF");
 
+rtime = 1:time
 
-semilogy(time,avgON,"1",time,avgOFF,"3");
+semilogy(rtime,avgON,"1",rtime,avgOFF,"3");
 
 
 titlestring = ["PAA Spike Response (",dirname,") to 1/f  background with luminance of 128"] 
@@ -24,5 +24,5 @@ grid;
 axis([0,duration,0.1,ymax]);
 ;
  
-outname = ["../../gjkunde/octave/PAAmacrineStats_",dirname,".pdf"]
+outname = ["../octave/PAAmacrineStats_",dirname,".pdf"]
 print(outname,"-dpdf");
