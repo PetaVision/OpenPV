@@ -1,16 +1,19 @@
-duration = 600;
-[time,Ganglion_RU1] =PV_readPointLIFprobeA("GanglionRU1",duration);
-[time,Ganglion_RD1] =PV_readPointLIFprobeA("GanglionRD1",duration);
-[time,Ganglion_RU2] =PV_readPointLIFprobeA("GanglionRU2",duration);
-[time,Ganglion_RD2] =PV_readPointLIFprobeA("GanglionRD2",duration);
+
+[time,Ganglion_RU1] =PV_readPointLIFprobeA("GanglionRU1",{'A'});
+[time,Ganglion_RD1] =PV_readPointLIFprobeA("GanglionRD1",{'A'});
+[time,Ganglion_RU2] =PV_readPointLIFprobeA("GanglionRU2",{'A'});
+[time,Ganglion_RD2] =PV_readPointLIFprobeA("GanglionRD2",{'A'});
 size time;
 S1 = (Ganglion_RU1-Ganglion_RD1);
 S2 = (Ganglion_RU2-Ganglion_RD2);
 U  = (Ganglion_RU1-Ganglion_RU2);
 D  = (Ganglion_RD1-Ganglion_RD2);
 clf;
+
+rtime = 1:time;
+
 plot \
-    (time,Ganglion_RU1,"1",time,Ganglion_RD1-5,"2",time,Ganglion_RU2-10,"3",time,Ganglion_RD2-15,"4",time,S1-7.5,"5",time,S2-17.5,"5",U-25,"0",time,D-30,"0");
+    (rtime,Ganglion_RU1,"1",rtime,Ganglion_RD1-5,"2",rtime,Ganglion_RU2-10,"3",rtime,Ganglion_RD2-15,"4",rtime,S1-7.5,"5",rtime,S2-17.5,"5",U-25,"0",rtime,D-30,"0");
 
 title("Ganglion Rectangle Correlations");
 
@@ -26,4 +29,4 @@ xlabel("time [msec]");
 ylabel("Spiking Activity");
 grid;
 %%axis([0,600,-350,-40]);
-print -dgif ../../gjkunde/octave/GanglionCorrelationsActivity.gif
+print -dgif ../octave/GanglionCorrelationsActivity.gif
