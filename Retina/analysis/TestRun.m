@@ -4,7 +4,7 @@ function TestRun(layer,offset)
 
 figure;
 
-filename = ["../../gjkunde/graystart/Checkpoint",num2str(1000),"/",layer,".pvp"]
+filename = ["../graystart/Checkpoint",num2str(1000),"/",layer,".pvp"]
 checkV = readpvpfile(filename);
 check_V = checkV{1}.values;
 subplot(6,2,1);
@@ -14,7 +14,7 @@ std(check_V(:))
 
 for i=1:11
 
-filename = ["../../gjkunde/amoebarun/Checkpoint",num2str(offset+(i-1)*100),"/",layer,".pvp"]
+filename = ["../amoebarun/Checkpoint",num2str(offset+(i-1)*100),"/",layer,".pvp"]
 checkV = readpvpfile(filename);
 check_V = checkV{1}.values;
 subplot(6,2,i+1);
