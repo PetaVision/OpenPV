@@ -1,28 +1,29 @@
-function GanglionStats(dirname)
+
 close all
-duration = 1000;
-[time,avgON]=PV_readLayerStatsProbe(dirname,"GanglionON",duration);
-[time,avgOFF]=PV_readLayerStatsProbe(dirname,"GanglionOFF",duration);
+[time,avgON]=pvp_readLayerStatsProbe("GanglionON");
+[time,avgOFF]=pvp_readLayerStatsProbe("GanglionOFF");
+
+rtime = 1:time;
 
 
-semilogy(time,avgON,"1",time,avgOFF,"3");
+semilogy(rtime,avgON,"1",rtime,avgOFF,"3");
 
 
-titlestring = ["Ganglion Spike Response (",dirname,") to 1/f  background with luminance of 128"] 
+titlestring = ["Ganglion Spike Response to 1/f  background with luminance of 128"]; 
 title(titlestring,"fontsize",10);
 
 t1=text (250,5,"ON cells");
 set(t1,'color',[1 0 0],"fontsize",20)
 t2=text (250,2,"OFF cells");
 set(t2,'color',[0 0 1],"fontsize",20);
-xlabel("time [msec]","fontsize",20);
+xlabel("time [msec]","fontsize",15);
 
-ylabel("Average Spike Frequency in Hz (/dt ms)","fontsize",20);
+ylabel("Average Spike Frequency in Hz (/dt ms)","fontsize",15);
 ymax = 1.5 * max(avgOFF);
 
 grid;
-axis([0,duration,0.1,ymax]);
+axis([0,time,0.1,ymax]);
 ;
  
-outname = ["../../gjkunde/octave/GanglionStats_",dirname,".pdf"]
+outname = ["../octave/GanglionStats_",dirname,".pdf"]
 print(outname,"-dpdf");
