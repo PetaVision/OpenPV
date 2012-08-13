@@ -1,31 +1,36 @@
-duration = 400;
-[time,Cone_V_B] =PV_readPointLIFprobe("ConeB",duration);
-[time,Cone_V_02]=PV_readPointLIFprobe("Cone02",duration);
-[time,Cone_V_04]=PV_readPointLIFprobe("Cone04",duration);
-[time,Cone_V_06]=PV_readPointLIFprobe("Cone06",duration);
-[time,Cone_V_08]=PV_readPointLIFprobe("Cone08",duration);
-[time,Cone_V_10]=PV_readPointLIFprobe("Cone10",duration);
+
+[time,Cone_V_B] =pvp_readPointLIFprobe("ConeB",{'V'});
+[time,Cone_V_02]=pvp_readPointLIFprobe("Cone02",{'V'});
+[time,Cone_V_04]=pvp_readPointLIFprobe("Cone04",{'V'});
+[time,Cone_V_06]=pvp_readPointLIFprobe("Cone06",{'V'});
+[time,Cone_V_08]=pvp_readPointLIFprobe("Cone08",{'V'});
+[time,Cone_V_10]=pvp_readPointLIFprobe("Cone10",{'V'});
+
+rtime = 1:time;
+
 plot \
-    (time,Cone_V_B,"0",time,Cone_V_02,"1",time,Cone_V_04,"2",time,Cone_V_06,"3",time,Cone_V_08,"4",time,Cone_V_10,"5");
+    (rtime,Cone_V_B,"0",rtime,Cone_V_02-5,"1",rtime,Cone_V_04-10,"2",rtime,Cone_V_06-15,"3",rtime,Cone_V_08-20,"4",rtime,Cone_V_10-25,"5");
+
+n = 2;
 
 title("Cone Calibration Target: -55 to -40 mV, reduced by 50% at the peak");
-t1=text (25,-54,"Black");
+t1=text (100,Cone_V_B(100)-n,"Black");
 set(t1,'color',[0 0 0]);
-t2=text (25,-52.5,"20%");
+t2=text (100,Cone_V_02(100)-5-n,"20%");
 set(t2,'color',[1 0 0]);
-t3=text (25,-51,"40%");
+t3=text (100,Cone_V_04(100)-10-n,"40%");
 set(t3,'color',[0 1 0]);
-t4=text (25,-49.5,"60%");
-set(t4,'color',[0 0 1])
-t5=text (25,-48,"80%");
+t4=text (100,Cone_V_06(100)-15-n,"60%");
+set(t4,'color',[0 0 1]);
+t5=text (100,Cone_V_08(100)-20-n,"80%");
 set(t5,'color',[1 0 1]);
-t5=text (25,-46.5,"100%");
+t5=text (100,Cone_V_10(100)-25-n,"100%");
 set(t5,'color',[0 1 1]);
 xlabel("time [msec]");
 ylabel("Membrane Potential [mV]");
-text(50,-45.5,"tau = 10 msec, I-C strength = 0.1475, horizontal feedback");
+text(50,-85,"tau = 10 msec, I-C strength = 0.1475, horizontal feedback");
 grid;
-axis([0,400,-61,-35]);
+axis([0 500 -90 -35]);
 fontsize = 20;
-print -dgif ../../gjkunde/octave/ConeCalibration.gif
+%print -dgif ../octave/ConeCalibration.gif
 
