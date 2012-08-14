@@ -149,12 +149,15 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %token <dval> T_NUMBER
 %token <sval> T_FILE_KEYWORD
 %token <sval> T_FILENAME
+%token <sval> T_INCLUDE
+%token <sval> T_SWEEP
 
 %%
 
 declarations : /* empty */
              | declarations pvparams_directive
              | declarations parameter_group
+             | declarations parameter_sweep
              ;
 
 pvparams_directive : T_ID '=' T_NUMBER ';'
@@ -181,6 +184,41 @@ parameter_string_def : T_ID '=' T_STRING ';'
                         { handler->action_parameter_string_def($1,$3); }
                      ;
 
-include_directive : '#include' T_ID ';'
+include_directive : T_INCLUDE T_ID ';'
                         { handler->action_include_directive($2); }
-                     ;
+                  ;
+
+parameter_sweep : T_ID T_STRING ':' T_ID '=' '{' sweep_values '}' ';'
+                        { handler->action_parameter_sweep($1,$2,$4); }
+                ;
+
+sweep_values : /* empty */
+             | sweep_values_numbers
+             | sweep_values_strings
+             | sweep_values_filenames
+             ;
+
+sweep_values_numbers : sweep_values_number
+                     | sweep_values_numbers sweep_values_number
+                     ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+sweep_values_number : T_NUMBER ';'
+                       { handler->action_sweep_values_number($1); }
+                    ;
+
+sweep_values_strings : sweep_values_string
+                     | sweep_values_strings sweep_values_string
+                     ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+sweep_values_string : T_STRING ';'
+                       { handler->action_sweep_values_string($1); }
+                    ;
+
+sweep_values_filenames : sweep_values_filename
+                       | sweep_values_filenames sweep_values_filename
+                       ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+sweep_values_filename : T_FILENAME ';'
+                         { handler->action_sweep_values_filename($1); }
+                      ;
+                     

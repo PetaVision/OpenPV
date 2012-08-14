@@ -27,11 +27,7 @@ InterColComm::InterColComm(int* argc, char*** argv) : Communicator(argc, argv)
 
 InterColComm::~InterColComm()
 {
-   for (int i = 0; i < numPublishers; i++) {
-      if (publishers[i] != NULL) {
-         delete publishers[i];
-      }
-   }
+   clearPublishers();
    free(publishers); publishers = NULL;
 }
 
@@ -52,6 +48,14 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
    numPublishers += 1;
 
    return pubId;
+}
+
+int InterColComm::clearPublishers() {
+   for (int i=0; i<numPublishers; i++) {
+      delete publishers[i]; publishers[i] = NULL;
+   }
+   numPublishers = 0;
+   return PV_SUCCESS;
 }
 
 int InterColComm::resizePublishersArray(int newSize) {

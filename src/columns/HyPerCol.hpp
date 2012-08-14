@@ -32,8 +32,8 @@ class HyPerCol {
 
 public:
 
-   HyPerCol(const char * name, int argc, char * argv[]);
-   HyPerCol(const char* name, int argc, char* argv[], const char * path);
+   HyPerCol(const char * name, int argc, char * argv[], PVParams * params=NULL);
+   // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
    virtual ~HyPerCol();
 
    int initFinish(void); // call after all layers/connections have been added
@@ -111,7 +111,7 @@ public:
    int outputState(float time);
 
 private:
-   int initialize(const char * name, int argc, char ** argv);
+   int initialize(const char * name, int argc, char ** argv, PVParams * params);
    int ensureDirExists(const char * dirname);
    int checkDirExists(const char * dirname, struct stat * pathstat);
    int initPublishers();
@@ -166,6 +166,8 @@ private:
    int nxGlobal;
    int nyGlobal;
 
+   bool           ownsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
+   bool           ownsInterColComm; // True if icComm was created by initialize, false if passed in the constructor
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
 

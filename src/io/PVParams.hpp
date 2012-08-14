@@ -20,13 +20,15 @@ namespace PV {
 
 class Parameter {
 public:
-   Parameter(char * name, double value);
+   Parameter(const char * name, double value);
    virtual ~Parameter();
 
    const char * name()      { return paramName; }
    double value()           { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()       { return hasBeenReadFlag; }
    int outputParam(FILE * fp, int indentation);
+   void clearHasBeenRead()    { hasBeenReadFlag = false; }
+   void setValue(double v)  { paramValue = v; }
 
 private:
    char * paramName;
@@ -43,6 +45,8 @@ public:
    const char * getValue()     { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()          { return hasBeenReadFlag; }
    int outputString(FILE * fp, int indentation);
+   void clearHasBeenRead()     { hasBeenReadFlag = false; }
+   void setValue(const char * s) { free(paramValue); paramValue = strdup(s);}
 
 private:
    char * paramName;
@@ -87,7 +91,10 @@ private:
 
 class ParameterGroup {
 public:
+#ifdef OBSOLETE // Marked obsolete Aug 10, 2012.  String parameters should be handled on an equal footing with numerical parameters
    ParameterGroup(char * name, ParameterStack * stack, int rank=0);
+#endif // OBSOLETE
+   ParameterGroup(char * name, ParameterStack * stack, ParameterStringStack * string_stack, int rank=0);
    virtual ~ParameterGroup();
 
    const char * name()   { return groupName; }
@@ -99,7 +106,12 @@ public:
    int   stringPresent(const char * stringName);
    const char * stringValue(const char * stringName);
    int warnUnread();
+   int clearHasBeenReadFlags();
    int outputGroup(FILE * fp);
+   int pushNumerical(Parameter * param);
+   int pushString(ParameterString * param);
+   int setValue(const char * param_name, double value);
+   int setStringValue(const char * param_name, const char * svalue);
 
 private:
    char * groupName;
@@ -109,6 +121,39 @@ private:
    int processRank;
 };
 
+
+enum ParameterSweepType {
+   PARAMSWEEP_UNDEF = 0,
+   PARAMSWEEP_NUMBER  = 1,
+   PARAMSWEEP_STRING  = 2
+};
+
+class ParameterSweep {
+public:
+   ParameterSweep();
+   virtual ~ParameterSweep();
+
+   int setGroupAndParameter(const char * groupname, const char * paramname);
+   int pushNumericValue(float val);
+   int pushStringValue(const char * sval);
+   int getNumValues() {return numValues;}
+   ParameterSweepType getType() {return type;}
+   int getNumericValue(int n, float * val);
+   const char * getStringValue(int n);
+   const char * getGroupName() {return groupName;}
+   const char * getParamName() {return paramName;}
+
+private:
+   char * groupName;
+   char * paramName;
+   ParameterSweepType type;
+   int numValues;
+   int currentBufferSize;
+   float * valuesNumber;
+   char ** valuesString;
+};
+
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 // FilenameDef and FilenameStack deprecated Oct 27, 2011
 class FilenameDef {
 public:
@@ -140,11 +185,12 @@ private:
    unsigned int count;
    FilenameDef ** filenamedefs;
 };
+#endif // OBSOLETE
 
 class PVParams {
 public:
-   PVParams(int initialSize, HyPerCol * hc); // TODO Should be const HyPerCol, but we need hc->icComm() and icComm() isn't constant
-   PVParams(const char * filename, int initialSize, HyPerCol * hc);
+   PVParams(int initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
+   PVParams(const char * filename, int initialSize, InterColComm * icComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
@@ -156,9 +202,12 @@ public:
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
    const char * getFilename(const char * id);
+#endif // OBSOLETE
    int warnUnread();
    int outputParams(FILE *);
+   int setSweepValues(int n);
 
    void action_pvparams_directive(char * id, double val);
    void action_parameter_group(char * keyword, char * name);
@@ -168,7 +217,15 @@ public:
 #ifdef OBSOLETE // Marked obsolete March 15, 2012.  There's more flexibility in defining string parameters within groups
    void action_filename_def(char * id, char * path); // Deprecated Oct 27, 2011
 #endif // OBSOLETE
+   void action_parameter_sweep(const char * id, const char * groupname, const char * paramname);
+   void action_sweep_values_number(double val);
+   void action_sweep_values_string(const char * stringval);
+   void action_sweep_values_filename(const char * stringval);
+
    int numberOfGroups() {return numGroups;}
+   InterColComm * getInterColComm() {return icComm;}
+   int numberOfSweeps() {return numParamSweeps;}
+   int getSweepSize() {return sweepSize;}
 
 private:
    int parseStatus;
@@ -178,15 +235,27 @@ private:
    ParameterGroup ** groups;
    ParameterStack * stack;
    ParameterStringStack * stringStack;
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
    FilenameStack * fnstack; // Deprecated Oct 27, 2011
+#endif // OBSOLETE
    bool debugParsing;
-   HyPerCol * parentHyPerCol; // TODO Should be const; see comment on prototype for constructor
-   int rank;
+   InterColComm * icComm;
+   int getRank() {return icComm->commRank();}
 
-   int initialize(int initialSize, HyPerCol * hc);
+   int numParamSweeps; // The number of different parameters that are changed during the sweep.
+   ParameterSweep ** paramSweeps;
+   ParameterSweep * activeParamSweep;
+   int sweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep group in the params file must contain the same number of values, which is sweepSize.
+
+   int initialize(int initialSize, InterColComm * icComm);
    int parsefile(const char * filename);
+   int setSweepSize();
    void addGroup(char * keyword, char * name);
+   void addActiveParamSweep(const char * group_name, const char * param_name);
    int checkDuplicates(const char * paramName);
+   int newActiveParamSweep();
+   int clearHasBeenReadFlags();
+   static char * stripQuotationMarks(const char *s);
 };
 
 }

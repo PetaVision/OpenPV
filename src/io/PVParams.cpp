@@ -12,8 +12,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 #define FILENAMESTACKMAXCOUNT 10
+#endif // OBSOLETE
 #define PARAMETERSTRINGSTACK_INITIALCOUNT 5
+#define PARAMETERSWEEP_INCREMENTCOUNT 10
 
 // define for debug output
 #define DEBUG_PARSING
@@ -52,9 +55,9 @@ namespace PV {
  * @name
  * @value
  */
-Parameter::Parameter(char * name, double value)
+Parameter::Parameter(const char * name, double value)
 {
-   paramName  = name;
+   paramName  = strdup(name);
    paramValue = value;
    hasBeenReadFlag = false;
 }
@@ -82,13 +85,16 @@ int Parameter::outputParam(FILE * fp, int indentation) {
  */
 ParameterString::ParameterString(const char * name, const char * value)
 {
-   paramName = (char *) malloc(strlen(name) + 1);
-   strcpy(paramName,name);
-   size_t valuelen = strlen(value)-2;  // strip quotes
-   assert(value[0]=='"' && value[valuelen+1]=='"');
-   paramValue = (char *) malloc(valuelen+1);
-   strncpy(paramValue,value+1,valuelen);
-   paramValue[valuelen] = '\0';
+   paramName = strdup(name);
+   //paramName = (char *) malloc(strlen(name) + 1);
+   //strcpy(paramName,name);
+
+   paramValue = strdup(value); // Quotation marks now stripped in action_parameter_string_def
+   //size_t valuelen = strlen(value)-2;  // strip quotes
+   //assert(value[0]=='"' && value[valuelen+1]=='"');
+   //paramValue = (char *) malloc(valuelen+1);
+   //strncpy(paramValue,value+1,valuelen);
+   //paramValue[valuelen] = '\0';
 }
 
 ParameterString::~ParameterString()
@@ -221,9 +227,11 @@ int ParameterStringStack::outputStack(FILE * fp, int indentation) {
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 10, 2012.  String parameters should be handled on an equal footing with numerical parameters
 /**
  * @name
  * @stack
+ * @rank
  */
 ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
 {
@@ -231,6 +239,22 @@ ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
    this->groupKeyword = NULL;
    this->stack     = stack;
    this->stringStack = NULL;
+   this->processRank = rank;
+}
+#endif // OBSOLETE
+
+/**
+ * @name
+ * @stack
+ * @string_stack
+ * @rank
+ */
+ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, ParameterStringStack * string_stack, int rank)
+{
+   this->groupName = strdup(name);
+   this->groupKeyword = NULL;
+   this->stack     = stack;
+   this->stringStack = string_stack;
    this->processRank = rank;
 }
 
@@ -345,6 +369,21 @@ int ParameterGroup::warnUnread() {
    return status;
 }
 
+int ParameterGroup::clearHasBeenReadFlags() {
+   int status = PV_SUCCESS;
+   int count = stack->size();
+   for( int i=0; i<count; i++ ) {
+      Parameter * p = stack->peek(i);
+      p->clearHasBeenRead();
+   }
+   count = stringStack->size();
+   for( int i=0; i<count; i++ ) {
+      ParameterString * pstr = stringStack->peek(i);
+      pstr->clearHasBeenRead();
+   }
+   return status;
+}
+
 int ParameterGroup::outputGroup(FILE * fp) {
    int status = PV_SUCCESS;
    fprintf(fp, "%s \"%s\":\n", groupKeyword, groupName);
@@ -354,6 +393,164 @@ int ParameterGroup::outputGroup(FILE * fp) {
    return status;
 }
 
+int ParameterGroup::pushNumerical(Parameter * param) {
+   return stack->push(param);
+}
+
+int ParameterGroup::pushString(ParameterString * param) {
+   return stringStack->push(param);
+}
+
+int ParameterGroup::setValue(const char * param_name, double value) {
+   int status = PV_SUCCESS;
+   int count = stack->size();
+   for (int i = 0; i < count; i++) {
+      Parameter * p = stack->peek(i);
+      if (strcmp(param_name, p->name()) == 0) {
+         p->setValue(value);
+         return PV_SUCCESS;
+      }
+   }
+   fprintf(stderr, "PVParams::ParameterGroup::setValue: ERROR, couldn't find parameter %s"
+         " in group \"%s\"\n", param_name, name());
+   exit(PV_FAILURE);
+
+   return status;
+}
+
+int ParameterGroup::setStringValue(const char * param_name, const char * svalue) {
+   int status = PV_SUCCESS;
+   int count = stringStack->size();
+   for (int i = 0; i < count; i++) {
+      ParameterString * p = stringStack->peek(i);
+      if (strcmp(param_name, p->getName()) == 0) {
+         p->setValue(svalue);
+         return PV_SUCCESS;
+      }
+   }
+   fprintf(stderr, "PVParams::ParameterGroup::setStringValue: ERROR, couldn't find a string value for %s"
+         " in group \"%s\"\n", param_name, name());
+   exit(PV_FAILURE);
+
+   return status;
+}
+
+
+ParameterSweep::ParameterSweep() {
+   groupName = NULL;
+   paramName = NULL;
+   numValues = 0;
+   currentBufferSize = 0;
+   type = PARAMSWEEP_UNDEF;
+   valuesNumber = NULL;
+   valuesString = NULL;
+}
+
+ParameterSweep::~ParameterSweep() {
+   free(groupName); groupName = NULL;
+   free(paramName); paramName = NULL;
+   free(valuesNumber); valuesNumber = NULL;
+   free(valuesString); valuesString = NULL;
+}
+
+int ParameterSweep::setGroupAndParameter(const char * groupname, const char * parametername) {
+   int status = PV_SUCCESS;
+   if (groupName != NULL || paramName != NULL) {
+      fprintf(stderr,"ParameterSweep::setGroupParameter error:");
+      if (groupName != NULL) {
+         fprintf(stderr, " groupName has already been set to \"%s\".", groupName);
+      }
+      if (paramName != NULL) {
+         fprintf(stderr, " paramName has already been set to \"%s\".", paramName);
+      }
+      fprintf(stderr, "\n");
+      status = PV_FAILURE;
+   }
+   else {
+      groupName = strdup(groupname);
+      paramName = strdup(parametername);
+   }
+   return status;
+}
+
+int ParameterSweep::pushNumericValue(float val) {
+   int status = PV_SUCCESS;
+   if (numValues==0) {
+      type = PARAMSWEEP_NUMBER;
+   }
+   assert(type==PARAMSWEEP_NUMBER);
+   assert(valuesString == NULL);
+
+   assert(numValues <= currentBufferSize);
+   if (numValues == currentBufferSize) {
+      currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
+      float * newValuesNumber = (float *) calloc(currentBufferSize, sizeof(float));
+      if (newValuesNumber == NULL) {
+         fprintf(stderr, "ParameterSweep:pushNumericValue error: unable to allocate memory\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      for (int k=0; k<numValues; k++) {
+         newValuesNumber[k] = valuesNumber[k];
+      }
+      free(valuesNumber);
+      valuesNumber = newValuesNumber;
+   }
+   valuesNumber[numValues] = val;
+   numValues++;
+   return status;
+}
+
+int ParameterSweep::pushStringValue(const char * sval) {
+   int status = PV_SUCCESS;
+   if (numValues==0) {
+      type = PARAMSWEEP_STRING;
+   }
+   assert(type==PARAMSWEEP_STRING);
+   assert(valuesNumber == NULL);
+
+   assert(numValues <= currentBufferSize);
+   if (numValues == currentBufferSize) {
+      currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
+      char ** newValuesString = (char **) calloc(currentBufferSize, sizeof(char *));
+      if (newValuesString == NULL) {
+         fprintf(stderr, "ParameterSweep:pushStringValue error: unable to allocate memory\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      for (int k=0; k<numValues; k++) {
+         newValuesString[k] = valuesString[k];
+      }
+      free(valuesString);
+      valuesString = newValuesString;
+   }
+   valuesString[numValues] = strdup(sval);
+   numValues++;
+   return status;
+}
+
+int ParameterSweep::getNumericValue(int n, float * val) {
+   int status = PV_SUCCESS;
+   assert(valuesNumber != NULL);
+   if ( type != PARAMSWEEP_NUMBER || n<0 || n >= numValues ) {
+      status = PV_FAILURE;
+   }
+   else {
+      *val = valuesNumber[n];
+   }
+   return status;
+}
+
+const char * ParameterSweep::getStringValue(int n) {
+   char * str = NULL;
+   assert(valuesString != NULL);
+   if ( type == PARAMSWEEP_STRING && n>=0 && n < numValues ) {
+      str = valuesString[n];
+   }
+   return str;
+}
+
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 FilenameDef::FilenameDef(char * newKey, char * newValue) {
    size_t keylen, valuelen;
 
@@ -420,17 +617,17 @@ FilenameDef * FilenameStack::pop() {
    count--;
    return filenamedefs[count];
 }
-
+#endif // OBSOLETE
 
 /**
  * @filename
  * @initialSize
  * @hc
  */
-PVParams::PVParams(const char * filename, int initialSize, HyPerCol * hc)
+PVParams::PVParams(const char * filename, int initialSize, InterColComm * icComm)
 {
 
-   initialize(initialSize, hc);
+   initialize(initialSize, icComm);
    parsefile(filename);
 }
 
@@ -438,9 +635,9 @@ PVParams::PVParams(const char * filename, int initialSize, HyPerCol * hc)
  * @initialSize
  * @hc
  */
-PVParams::PVParams(int initialSize, HyPerCol * hc)
+PVParams::PVParams(int initialSize, InterColComm * icComm)
 {
-   initialize(initialSize, hc);
+   initialize(initialSize, icComm);
    parsefile(NULL);
 }
 
@@ -452,39 +649,56 @@ PVParams::~PVParams()
    free(groups);
    delete stack;
    delete stringStack;
+   delete this->activeParamSweep;
+   for (int i=0; i<numParamSweeps; i++) {
+      delete paramSweeps[i];
+   }
+   free(paramSweeps); paramSweeps = NULL;
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
    delete fnstack;
+#endif // OBSOLETE
 }
 
 /*
  * @initialSize
  */
-int PVParams::initialize(int initialSize, HyPerCol * hc) {
+int PVParams::initialize(int initialSize, InterColComm * icComm) {
    this->numGroups = 0;
    groupArraySize = initialSize;
-   parentHyPerCol = hc;
-#ifdef PV_USE_MPI
-   InterColComm * icComm = hc->icCommunicator();
-   rank = icComm->commRank();
-#else
-   rank = 0;
-#endif // PV_USE_MPI
+   this->icComm = icComm;
 
    groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+
+   numParamSweeps = 0;
+   paramSweeps = NULL;
+   newActiveParamSweep();
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
    fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
+#endif // OBSOLETE
 #ifdef DEBUG_PARSING
    debugParsing = true;
 #else
    debugParsing = false;
 #endif//DEBUG_PARSING
 
-   return ( groups && stack && stringStack && fnstack ) ? PV_SUCCESS : PV_FAILURE;
+   return ( groups && stack && stringStack && activeParamSweep /* && fnstack */ ) ? PV_SUCCESS : PV_FAILURE;
+}
+
+int PVParams::newActiveParamSweep() {
+   int status = PV_SUCCESS;
+   activeParamSweep = new ParameterSweep();
+   if (activeParamSweep == NULL) {
+      fprintf(stderr, "PVParams::newActiveParamSweep: unable to create activeParamSweep");
+      status = PV_FAILURE;
+      abort();
+   }
+   return status;
 }
 
 int PVParams::parsefile(const char * filename) {
    int rootproc = 0;
-   InterColComm * icComm = parentHyPerCol->icCommunicator();
    char * paramBuffer = NULL;
    size_t bufferlen;
    if( icComm->commRank() == rootproc ) {
@@ -550,12 +764,144 @@ int PVParams::parsefile(const char * filename) {
 #endif // PV_USE_MPI
    }
 
+   fflush(stdout);
    parseStatus = pv_parseParameters(this, paramBuffer, bufferlen);
    if( parseStatus != 0 ) {
-      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", rank, parseStatus);
+      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", getRank(), parseStatus);
    }
    free(paramBuffer);
+
+   setSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
+
+   // If there is at least one ParameterSweep and none of them set outputPath, create a parameterSweep that does set outputPath.
+   if (numberOfSweeps() > 0) {
+      bool hasOutputPath = false;
+      const char * group_name;
+      for (int k=0; k<numberOfSweeps(); k++) {
+         ParameterSweep * sweep = paramSweeps[k];
+         group_name = sweep->getGroupName();
+         const char * param_name = sweep->getParamName();
+         ParameterGroup * gp = group(group_name);
+         if (gp == NULL) {
+            fprintf(stderr, "PVParams::parsefile error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
+            exit(EXIT_FAILURE);
+         }
+         if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
+            hasOutputPath = true;
+            break;
+         }
+      }
+      if (!hasOutputPath) {
+         const char * hypercolgroupname = NULL;
+         for (int g=0; g<numGroups; g++) {
+            if (groups[g]->getGroupKeyword(),"HyPerCol") {
+               hypercolgroupname = groups[g]->name();
+               break;
+            }
+         }
+         if (hypercolgroupname == NULL) {
+            fprintf(stderr, "PVParams::parsefile error: params file does not have a HyPerCol group\n");
+            abort();
+         }
+         char dummy;
+         int lenserialno = snprintf(&dummy, 0, "%d", sweepSize-1);
+         int len = snprintf(&dummy, 0, "output%0*d/", lenserialno, sweepSize-1)+1;
+         char * outputPathStr = (char *) calloc(len, sizeof(char));
+         if (outputPathStr == NULL) abort();
+         for (int i=0; i<sweepSize; i++) {
+            int chars_needed = snprintf(outputPathStr, len, "output%0*d/", lenserialno, i);
+            assert(chars_needed < len);
+            activeParamSweep->pushStringValue(outputPathStr);
+         }
+         free(outputPathStr); outputPathStr = NULL;
+         assert(group_name!=NULL);
+         addActiveParamSweep(hypercolgroupname, "outputPath");
+      }
+   }
+
+   // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not already present.
+   for (int k=0; k<numberOfSweeps(); k++) {
+      ParameterSweep * sweep = paramSweeps[k];
+      const char * group_name = sweep->getGroupName();
+      const char * param_name = sweep->getParamName();
+      ParameterSweepType type = sweep->getType();
+      ParameterGroup * g = group(group_name);
+      if (g==NULL) {
+         fprintf(stderr, "ParameterSweep error: there is no group \"%s\"\n", group_name);
+         abort();
+      }
+      switch (type) {
+      case PARAMSWEEP_NUMBER:
+         if (!g->present(param_name) ) {
+            Parameter * p = new Parameter(param_name, 0.0);
+            g->pushNumerical(p);
+         }
+         break;
+      case PARAMSWEEP_STRING:
+         if (!g->stringPresent(param_name)) {
+            ParameterString * p = new ParameterString(param_name, "");
+            g->pushString(p);
+         }
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
+
+   clearHasBeenReadFlags();
+
    return PV_SUCCESS;
+}
+
+int PVParams::setSweepSize() {
+   sweepSize = -1;
+   for (int k=0; k<this->numberOfSweeps(); k++) {
+      if (sweepSize<0) {
+         sweepSize = this->paramSweeps[k]->getNumValues();
+      }
+      else {
+         if (sweepSize != this->paramSweeps[k]->getNumValues()) {
+            fprintf(stderr, "PVParams::setSweepSize error: all ParameterSweeps in the parameters file must have the same number of entries.\n");
+            abort();
+         }
+      }
+   }
+   if (sweepSize < 0) sweepSize = 0;
+   return sweepSize;
+}
+
+int PVParams::setSweepValues(int n) {
+   int status = PV_SUCCESS;
+   if (n<0 || n>=sweepSize) {
+      status = PV_FAILURE;
+      return status;
+   }
+   for (int k=0; k<this->numberOfSweeps(); k++) {
+      ParameterSweep * paramSweep = paramSweeps[k];
+      ParameterSweepType type = paramSweep->getType();
+      const char * group_name = paramSweep->getGroupName();
+      const char * param_name = paramSweep->getParamName();
+      ParameterGroup * gp = group(group_name);
+      assert(gp!=NULL);
+
+      const char * s;
+      switch (type) {
+      case PARAMSWEEP_NUMBER:
+         float v;
+         paramSweep->getNumericValue(n, &v);
+         gp->setValue(param_name, v);
+         break;
+      case PARAMSWEEP_STRING:
+         s = paramSweep->getStringValue(n);
+         gp->setStringValue(param_name, s);
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
+   return status;
 }
 
 /**
@@ -566,7 +912,7 @@ int PVParams::present(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( rank == 0 ) {
+      if( getRank() == 0 ) {
          fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -584,7 +930,7 @@ float PVParams::value(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( rank == 0 ) {
+      if( getRank() == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -605,7 +951,7 @@ float PVParams::value(const char * groupName, const char * paramName, float init
       return value(groupName, paramName);
    }
    else {
-      if( warnIfAbsent && rank == 0 ) {
+      if( warnIfAbsent && getRank() == 0 ) {
           printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
       }
       return initialValue;
@@ -619,7 +965,7 @@ float PVParams::value(const char * groupName, const char * paramName, float init
 int PVParams::stringPresent(const char * groupName, const char * paramStringName) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( rank == 0 ) {
+      if( getRank() == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -639,7 +985,7 @@ const char * PVParams::stringValue(const char * groupName, const char * paramStr
       return g->stringValue(paramStringName);
    }
    else {
-      if( warnIfAbsent && rank == 0 ) {
+      if( warnIfAbsent && getRank() == 0 ) {
          printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
@@ -669,6 +1015,7 @@ const char * PVParams::groupKeywordFromIndex(int index) {
    return inbounds ? groups[index]->getGroupKeyword() : NULL;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 const char * PVParams::getFilename(const char * id)
 {
    FilenameDef * fd = fnstack->getFilenameDefByKey(id);
@@ -676,6 +1023,7 @@ const char * PVParams::getFilename(const char * id)
 
    return fn;
 }
+#endif // OBSOLETE
 
 /**
  * @keyword
@@ -688,7 +1036,7 @@ void PVParams::addGroup(char * keyword, char * name)
    // Verify that the new group's name is not an existing group's name
    for( int k=0; k<numGroups; k++ ) {
       if( !strcmp(name, groups[k]->name())) {
-         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", rank, name);
+         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", getRank(), name);
          exit(EXIT_FAILURE);
       }
    }
@@ -704,9 +1052,8 @@ void PVParams::addGroup(char * keyword, char * name)
       groups = newGroups;
    }
 
-   groups[numGroups] = new ParameterGroup(name, stack, rank);
+   groups[numGroups] = new ParameterGroup(name, stack, stringStack, getRank());
    groups[numGroups]->setGroupKeyword(keyword);
-   groups[numGroups]->setStringStack(stringStack);
 
    // the parameter group takes over control of the PVParams's stack and stringStack; make new ones.
    stack = new ParameterStack(MAX_PARAMS);
@@ -715,10 +1062,37 @@ void PVParams::addGroup(char * keyword, char * name)
    numGroups++;
 }
 
+void PVParams::addActiveParamSweep(const char * group_name, const char * param_name) {
+   activeParamSweep->setGroupAndParameter(group_name, param_name);
+   ParameterSweep ** newParamSweeps = (ParameterSweep **) calloc(numParamSweeps+1, sizeof(ParameterSweep *));
+   if (newParamSweeps == NULL) {
+      fprintf(stderr, "PVParams::action_parameter_sweep: unable to allocate memory for larger paramSweeps\n");
+      abort();
+   }
+   for (int k=0; k<numParamSweeps; k++) {
+      newParamSweeps[k] = paramSweeps[k];
+   }
+   free(paramSweeps);
+   paramSweeps = newParamSweeps;
+   paramSweeps[numParamSweeps] = activeParamSweep;
+   numParamSweeps++;
+   newActiveParamSweep();
+}
+
 int PVParams::warnUnread() {
    int status = PV_SUCCESS;
    for( int i=0; i<numberOfGroups(); i++) {
-      if( groups[i]->warnUnread() == PV_FAILURE) {
+      if( groups[i]->warnUnread() != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+   }
+   return status;
+}
+
+int PVParams::clearHasBeenReadFlags() {
+   int status = PV_SUCCESS;
+   for (int i=0; i<numberOfGroups(); i++) {
+      if (groups[i]->clearHasBeenReadFlags() != PV_SUCCESS) {
          status = PV_FAILURE;
       }
    }
@@ -740,7 +1114,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
 {
    if( !strcmp(id,"debugParsing") ) {
       debugParsing = (val != 0);
-      if( rank == 0 ) {
+      if( getRank() == 0 ) {
          printf("debugParsing turned ");
          if(debugParsing) {
             printf("on.\n");
@@ -748,6 +1122,11 @@ void PVParams::action_pvparams_directive(char * id, double val)
          else {
             printf("off.\n");
          }
+      }
+   }
+   else {
+      if (getRank() == 0) {
+         fprintf(stderr,"Unrecognized directive %s = %f, skipping.\n", id, val);
       }
    }
 }
@@ -762,7 +1141,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
    int len = strlen(++name);
    name[len-1] = '\0';
 
-   if(debugParsing && rank==0 ) {
+   if(debugParsing && getRank()==0 ) {
       printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
       fflush(stdout);
    }
@@ -777,7 +1156,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
  */
 void PVParams::action_parameter_def(char * id, double val)
 {
-   if(debugParsing && rank == 0) {
+   if(debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
@@ -788,46 +1167,105 @@ void PVParams::action_parameter_def(char * id, double val)
 }
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
-   if( debugParsing && rank == 0 ) {
+   if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
    if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
-   ParameterString * pstr = new ParameterString(id, stringval);
+   char * param_value = stripQuotationMarks(stringval);
+   assert(param_value);
+   ParameterString * pstr = new ParameterString(id, param_value);
    stringStack->push(pstr);
+   free(param_value);
 }
 
 void PVParams::action_include_directive(const char * stringval) {
-   if( debugParsing && rank == 0 ) {
+   if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_include_directive: including %s\n", stringval);
       fflush(stdout);
    }
+}
+void PVParams::action_parameter_sweep(const char * id, const char * groupname, const char * paramname)
+{
+   if (!strcmp(id, "ParameterSweep")) {
+      // strip quotation marks from groupname
+      char * groupname_noquotes = stripQuotationMarks(groupname);
+      assert(groupname_noquotes);
+      addActiveParamSweep(groupname_noquotes, paramname);
+      free(groupname_noquotes);
+      if (debugParsing && getRank() == 0) {
+         fflush(stdout);
+         printf("action_sweep_values_number: %s for group %s, parameter \"%s\" parsed successfully\n", id, groupname, paramname);
+         fflush(stdout);
+      }
+   }
+   else {
+      if (getRank() == 0) {
+         fprintf(stderr, "action_parameter_sweep: unrecognized id %s, skipping.\n", id);
+      }
+   }
+}
+
+void PVParams::action_sweep_values_number(double val)
+{
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_sweep_values_number: %f\n", val);
+      fflush(stdout);
+   }
+   activeParamSweep->pushNumericValue(val);
+}
+
+void PVParams::action_sweep_values_string(const char * stringval)
+{
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_sweep_values_string: %s\n", stringval);
+      fflush(stdout);
+   }
+   char * string = stripQuotationMarks(stringval);
+   assert(string);
+   activeParamSweep->pushStringValue(string);
+   free(string);
+}
+
+void PVParams::action_sweep_values_filename(const char * stringval)
+{
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_sweep_values_filename: %s\n", stringval);
+      fflush(stdout);
+   }
+   char * filename = stripQuotationMarks(stringval);
+   assert(filename);
+   activeParamSweep->pushStringValue(filename);
+   free(filename);
 }
 
 int PVParams::checkDuplicates(const char * paramName) {
    int status = PV_SUCCESS;
    for( int k=0; k<stack->size(); k++ ) {
       if( !strcmp(paramName, stack->peek(k)->name() ) ) {
-         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name\n", rank, paramName);
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name\n", getRank(), paramName);
          status = PV_FAILURE;
          break;
       }
    }
    for( int k=0; k<stringStack->size(); k++ ) {
       if( !strcmp(paramName, stringStack->peek(k)->getName() ) ) {
-         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", rank, paramName);
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", getRank(), paramName);
          status = PV_FAILURE;
          break;
       }
    }
    if( status != PV_SUCCESS ) {
       if( numberOfGroups() == 0 ) {
-         fprintf(stderr, "Rank %d process: this is the first parameter group being parsed\n", rank);
+         fprintf(stderr, "Rank %d process: this is the first parameter group being parsed\n", getRank());
       }
       else {
-         fprintf(stderr, "Rank %d process: last parameter group successfully added was \"%s\"\n", rank, groups[numberOfGroups()-1]->name());
+         fprintf(stderr, "Rank %d process: last parameter group successfully added was \"%s\"\n", getRank(), groups[numberOfGroups()-1]->name());
       }
    }
    return status;
@@ -837,11 +1275,11 @@ int PVParams::checkDuplicates(const char * paramName) {
 // action_filename_def deprecated on Oct 27, 2011
 void PVParams::action_filename_def(char * id, char * path)
 {
-   if( rank == 0 ) {
+   if( getRank() == 0 ) {
       fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
                       "(action_filename_def called with id=%s, path=%s)\n",id,path);
    }
-   if( debugParsing && rank == 0 ) {
+   if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_filename_def: %s = %s\n", id, path);
       fflush(stdout);
@@ -863,9 +1301,26 @@ void PVParams::action_filename_def(char * id, char * path)
    FilenameDef * fndef = new FilenameDef(label, filenameptr);
    int status = fnstack->push(fndef);
    if( status != PV_SUCCESS) {
-      fprintf(stderr, "Rank %d process: No room for %s:%s\n", rank, label, path);
+      fprintf(stderr, "Rank %d process: No room for %s:%s\n", getRank(), label, path);
    }
 }  // close PVParams::action_filename_def block
 #endif // OBSOLETE
+
+char * PVParams::stripQuotationMarks(const char * s) {
+   // If a string has quotes as its first and last character, return the
+   // part of the string inside the quotes, e.g. {'"', 'c', 'a', 't', '"'}
+   // becomes {'c', 'a', 't'}.  If the string does not have quotes at the
+   // beginning and end, return NULL.
+   // It is the responsibility of the routine that calls stripQuotationMarks
+   // to free the returned string to avoid a memory leak.
+   int len = strlen(s);
+   char * noquotes = NULL;
+   if ( len >=2 && s[0]=='"' && s[len-1]=='"' ) {
+      noquotes = (char *) calloc(len-1, sizeof(char));
+      memcpy(noquotes, s+1, len-2);
+      noquotes[len-2] = '\0'; // Not strictly necessary since noquotes was calloc'ed
+   }
+   return noquotes;
+}
 
 }  // close namespace PV block

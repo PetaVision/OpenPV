@@ -43,7 +43,9 @@
      T_ID = 259,
      T_NUMBER = 260,
      T_FILE_KEYWORD = 261,
-     T_FILENAME = 262
+     T_FILENAME = 262,
+     T_INCLUDE = 263,
+     T_SWEEP = 264
    };
 #endif
 /* Tokens.  */
@@ -52,6 +54,8 @@
 #define T_NUMBER 260
 #define T_FILE_KEYWORD 261
 #define T_FILENAME 262
+#define T_INCLUDE 263
+#define T_SWEEP 264
 
 
 
@@ -61,7 +65,7 @@ typedef union YYSTYPE
 #line 146 "params.y"
 {char * sval; double dval; }
 /* Line 1529 of yacc.c.  */
-#line 65 "param_parser.hpp"
+#line 69 "param_parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

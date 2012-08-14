@@ -97,7 +97,12 @@ int buildandrun(int argc, char * argv[],
                 int (*customadd)(HyPerCol *, int, char **) = NULL,
                 int (*customexit)(HyPerCol *, int, char **) = NULL,
                 void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
-HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
+int buildandrun1paramset(int argc, char * argv[],
+                         int (*customadd)(HyPerCol *, int, char **),
+                         int (*customexit)(HyPerCol *, int, char **),
+                         void * (*customgroups)(const char *, const char *, HyPerCol *),
+                         PVParams * params);
+HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL, PVParams * params = NULL);
 
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

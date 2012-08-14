@@ -28,10 +28,10 @@
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char * name, int argc, char * argv[])
+HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params)
          : warmStart(false), isInitialized(false)
 {
-   initialize(name, argc, argv);
+   initialize(name, argc, argv, params);
 }
 
 #ifdef OBSOLETE // Marked obsolete Jul 29, 2011.  Use -w option in argc and argv instead of pv_path.
@@ -69,9 +69,14 @@ HyPerCol::~HyPerCol()
       }
    }
 
-   delete params;
+   if (ownsParams) delete params;
 
-   delete icComm;
+   if (ownsInterColComm) {
+      delete icComm;
+   }
+   else {
+      icComm->clearPublishers();
+   }
 
    printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
    runTimer->elapsed_time();
@@ -109,9 +114,15 @@ int HyPerCol::initFinish(void)
 }
 
 #define NUMSTEPS 1
-int HyPerCol::initialize(const char * name, int argc, char ** argv)
+int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * params)
 {
-   icComm = new InterColComm(&argc, &argv);
+   ownsInterColComm = (params==NULL || params->getInterColComm()==NULL);
+   if (ownsInterColComm) {
+      icComm = new InterColComm(&argc, &argv);
+   }
+   else {
+      icComm = params->getInterColComm();
+   }
    int rank = icComm->commRank();
 
 #ifdef PVP_DEBUG
@@ -174,8 +185,12 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv)
    assert(path != NULL);
    path = getcwd(path, PV_PATH_MAX);
 
-   int groupArraySize = 2*(layerArraySize + connectionArraySize);
-   params = new PVParams(param_file, groupArraySize, this);  // PVParams::addGroup can resize if initialGroups is exceeded
+   ownsParams = params==NULL;
+   if (ownsParams) {
+      int groupArraySize = 2*(layerArraySize + connectionArraySize);
+      params = new PVParams(param_file, groupArraySize, icComm);  // PVParams::addGroup can resize if initialGroups is exceeded
+   }
+   this->params = params;
    free(param_file);
    param_file = NULL;
 

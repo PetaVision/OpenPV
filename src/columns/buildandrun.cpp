@@ -16,7 +16,36 @@
 using namespace PV;
 
 int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
-   HyPerCol * hc = build(argc, argv, customgroups);
+   char * param_file = NULL;
+   pv_getopt_str(argc, argv, "-p", &param_file);
+   InterColComm * icComm = new InterColComm(&argc, &argv);
+   PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   free(param_file);
+
+   int numSweepValues = params->getSweepSize();
+
+   int status = PV_SUCCESS;
+   if (numSweepValues) {
+      for (int k=0; k<numSweepValues; k++) {
+         printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+         params->setSweepValues(k);
+         status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params) == PV_SUCCESS ? status : PV_FAILURE;
+      }
+   }
+   else {
+      status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params);
+   }
+
+   delete icComm;
+   return status;
+}
+
+int buildandrun1paramset(int argc, char * argv[],
+                         int (*customadd)(HyPerCol *, int, char **),
+                         int (*customexit)(HyPerCol *, int, char **),
+                         void * (*customgroups)(const char *, const char *, HyPerCol *),
+                         PVParams * params) {
+   HyPerCol * hc = build(argc, argv, customgroups, params);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
@@ -24,34 +53,31 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
       status = (*customadd)(hc, argc, argv);
       if(status != PV_SUCCESS) {
          fprintf(stderr, "customadd function failed with return value %d\n", status);
-         exit(status);
       }
    }
 
-   if( hc->numberOfTimeSteps() > 0 ) {
+   if( status==PV_SUCCESS && hc->numberOfTimeSteps() > 0 ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( customexit != NULL ) {
+   if( status==PV_SUCCESS && customexit != NULL ) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
          fprintf(stderr, "customexit function failed with return value %d\n", status);
-         exit(status);
       }
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
 }
 
-HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *)) {
-   HyPerCol * hc = new HyPerCol("column", argc, argv);
+HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *), PVParams * params) {
+   HyPerCol * hc = new HyPerCol("column", argc, argv, params);
    if( hc == NULL ) {
       fprintf(stderr, "Unable to create HyPerCol\n");
       return NULL;
    }
-   PVParams * params = hc->parameters();
    HyPerCol * addedHyPerCol;
    HyPerConn * addedHyPerConn;
    HyPerLayer * addedHyPerLayer;
@@ -183,18 +209,19 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
 
    int numclasskeywords = j;
 
-   int numGroups = params->numberOfGroups();
+   PVParams * hcparams = hc->parameters();
+   int numGroups = hcparams->numberOfGroups();
 
    // Make sure first group defines a column
-   if( strcmp(params->groupKeywordFromIndex(0), "HyPerCol") ) {
+   if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
       fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
       delete hc;
       return NULL;
    }
 
    for( int k=0; k<numGroups; k++ ) {
-      const char * kw = params->groupKeywordFromIndex(k);
-      const char * name = params->groupNameFromIndex(k);
+      const char * kw = hcparams->groupKeywordFromIndex(k);
+      const char * name = hcparams->groupNameFromIndex(k);
       bool didAddObject = false;
 
       int matchedkeyword = -1;

@@ -75,6 +75,7 @@ public:
    virtual ~InterColComm();
 
    int addPublisher(HyPerLayer * pub, int numItems, int numLevels);
+   int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
    int deliver(HyPerCol * hc, int pubId);

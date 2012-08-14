@@ -32,8 +32,9 @@
 "}"        { return *yytext; }
 "="        { return *yytext; }
 ";"        { return *yytext; }
+":"        { return *yytext; }
 
-"#include" { return *yytext; }
+"#include" { return T_INCLUDE; }
 
 [//].*   /* ignore C++ style comments */
 
