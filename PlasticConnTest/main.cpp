@@ -76,20 +76,13 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       HyPerConn * addedConn = NULL;
       if( preLayer && postLayer ) {
-         ChannelType channelType;
-         int channelNo = (int) params->value(name, "channelCode", -1);
-
-         if( decodeChannel( channelNo, &channelType ) != PV_SUCCESS) {
-            fprintf(stderr, "Group \"%s\": Parameter group for class %s must set parameter channelCode.\n", name, keyword);
-            return NULL;
-         }
-         InitWeights * weightInitializer = createInitWeightsObject(name, hc, channelType);
+         InitWeights * weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          filename = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = (HyPerConn * ) new PlasticTestConn(name, hc, preLayer, postLayer, channelType, filename, weightInitializer);
+         addedConn = (HyPerConn * ) new PlasticTestConn(name, hc, preLayer, postLayer, filename, weightInitializer);
       }
       checknewobject((void *) addedConn, keyword, name, hc);
       addedGroup = (void *) addedConn;
