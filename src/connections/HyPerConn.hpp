@@ -292,6 +292,7 @@ public:
          NULL, int* kf = NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
+   static int decodeChannel(int channel_code, ChannelType * channel_type);
 
 #ifdef USE_SHMGET
     virtual bool getShmgetOwner(){
@@ -431,7 +432,6 @@ protected:
    }
 
    virtual ChannelType readChannelCode(PVParams * params);
-   static int decodeChannel(int channel_code, ChannelType * channel_type);
 
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
