@@ -281,8 +281,8 @@ int Retina::setParams(PVParams * p)
    rParams.probBase  = probBase;
    rParams.beginStim = p->value(name, "beginStim", 0.0f);
    rParams.endStim   = p->value(name, "endStim"  , 99999999.9f);
-   rParams.burstFreq = p->value(name, "burstFreq", 40);         // frequency of bursts
-   rParams.burstDuration = p->value(name, "burstDuration", 20); // duration of each burst, <=0 -> sinusoidal
+   rParams.burstFreq = p->value(name, "burstFreq", 1);         // frequency of bursts
+   rParams.burstDuration = p->value(name, "burstDuration", 1000); // duration of each burst, <=0 -> sinusoidal
    rParams.refactory_period = REFACTORY_PERIOD;
    rParams.abs_refactory_period = REFACTORY_PERIOD;
 
