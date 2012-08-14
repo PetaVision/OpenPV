@@ -31,6 +31,16 @@ int GapLayer::initialize_base() {
 int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer)
 {
    int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
+   if (originalLayer == NULL) {
+      fprintf(stderr, "GapLayer \"%s\" received null source layer.\n", name);
+      abort();
+   }
+   const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
+   const PVLayerLoc * thisLoc = getLayerLoc();
+   if (sourceLoc->nx != thisLoc->nx || sourceLoc->ny != thisLoc->ny || sourceLoc->nf != thisLoc->nf || sourceLoc->nb != thisLoc->nb) {
+      fprintf(stderr, "GapLayer \"%s\" must have the same dimensions as source layer \"%s\" (including marginWidth).\n", name, originalLayer->getName());
+      abort();
+   }
    this->clayer->layerType = TypeNonspiking;
    this->spikingFlag = false;
    sourceLayer = originalLayer;
