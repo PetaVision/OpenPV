@@ -33,7 +33,7 @@ int GapConn::initialize(const char * name, HyPerCol * hc,
                const char * filename,
                InitWeights *weightInit){
    initNormalizeFlag = false;
-   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
 ChannelType GapConn::readChannelCode(PVParams * params) {
