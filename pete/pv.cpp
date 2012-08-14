@@ -49,7 +49,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
       }
       ChannelType channelCode;
       int channelNo = params->value(name, "channelCode", -1);
-      if( decodeChannel( channelNo, &channelCode ) != PV_SUCCESS) {
+      if( HyPerConn::decodeChannel( channelNo, &channelCode ) != PV_SUCCESS) {
          fprintf(stderr, "%s \"%s\": parameter channelCode must be set.\n", keyword, name);
          return NULL;
       }
