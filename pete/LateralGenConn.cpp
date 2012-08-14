@@ -14,16 +14,10 @@ LateralGenConn::LateralGenConn() {
 }  // end of LateralGenConn::LateralGenConn()
 
 LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-   initialize_base();
-   initialize(name, hc, pre, post, channel);
-}  // end of LateralGenConn::LateralGenConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
-
-LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel,
+      HyPerLayer * pre, HyPerLayer * post,
       const char * filename) {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename);
+   initialize(name, hc, pre, post, filename);
 }
 
 int LateralGenConn::initialize_base() {
@@ -32,12 +26,7 @@ int LateralGenConn::initialize_base() {
 }  // end of LateralGenConn::initialize_base()
 
 int LateralGenConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-   return initialize(name, hc, pre, post, channel, NULL);
-}
-
-int LateralGenConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel, const char * filename) {
+      HyPerLayer * pre, HyPerLayer * post, const char * filename) {
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -48,7 +37,7 @@ int LateralGenConn::initialize(const char * name, HyPerCol * hc,
             pre->getName(),post->getName() );
       exit(1);
    }
-   GenerativeConn::initialize(name, hc, pre, post, channel, filename, NULL);
+   GenerativeConn::initialize(name, hc, pre, post, filename, NULL);
    int prePad = pre->getLayerLoc()->nb;
    int xPatchHead = zPatchHead(0, nxp, 0, 0);
    int yPatchHead = zPatchHead(0, nyp, 0, 0);
