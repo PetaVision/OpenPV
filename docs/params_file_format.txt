@@ -66,3 +66,45 @@ Querying the params file is done using the PVParams methods
     int          stringPresent(const char * groupName, const char * paramStringName)
     const char * stringValue(const char * groupName, const char * paramStringName)
 
+========
+
+Parameter Sweeps
+
+Params files can define more than one run using ParameterSweep blocks.  They have
+the format
+
+ParameterSweep "group name":sweptParameter = {
+    value1;
+    value2;
+    value3;
+    //etc.
+};
+
+There can be more than one ParameterSweep statement, but all must have the same
+number of values.  ParameterSweeps can be defined for string values as well.
+The format is
+
+ParameterSweep "group name":parameterString = {
+    "string_a";
+    "string_b";
+    "string_c",
+    //etc.
+};
+
+
+If a params file with at least one ParameterSweep is passed to buildandrun,
+several runs are performed in a loop.  The number of runs is the same as the 
+number of values in the ParameterSweep.  On the first run, the group named
+"group name" has the parameter sweptParameter set to value1.  On the second
+run, sweptParameter is set to value2, and so on.
+
+If there is more than one ParameterSweep, the first run uses the first value
+of each ParameterSweep, then the second run uses the second value of each
+ParameterSweep, and so on.  The sweeps are not nested.  This is why each
+sweep must have the same number of values.
+
+If there isn't a ParameterSweep for the HyPerCol's outputPath, one is
+generated internally, using values "output0/", "output1/", "output2/", etc. 
+If the number of sweeps is more than ten, the directories will be
+"output00/", "output01/", and so on.  This is so that the directories appear
+in a standard ls listing in the proper order.
