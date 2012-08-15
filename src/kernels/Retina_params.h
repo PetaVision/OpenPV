@@ -9,8 +9,8 @@ typedef struct Retina_params_ {
    float burstFreq;          // frequency of bursts
    float burstDuration;      // duration of each burst, <=0 -> sinusoidal
 
-   float refactory_period;
-   float abs_refactory_period;
+   float refractory_period;
+   float abs_refractory_period;
 } Retina_params;
 
 #endif /* RETINA_PARAMS_H_ */

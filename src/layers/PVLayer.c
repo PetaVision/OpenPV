@@ -81,7 +81,7 @@ int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numCha
    // initialize prevActivity (other buffers allocated in HyPerLayer::initialize_base() )
    //
    for (k = 0; k < numExtended; k++) {
-      l->prevActivity[k] = -10*REFACTORY_PERIOD;  // allow neuron to fire at time t==0
+      l->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
    }
 
    return PV_SUCCESS;

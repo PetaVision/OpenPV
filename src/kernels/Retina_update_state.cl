@@ -38,12 +38,12 @@
  * Returns 1 if an event should occur, 0 otherwise. This is a stochastic model.
  *
  * REMARKS:
- *      - During ABS_REFACTORY_PERIOD a neuron does not spike
+ *      - During ABS_REFRACTORY_PERIOD a neuron does not spike
  *      - The neurons that correspond to stimuli (on Image pixels)
  *        spike with probability probStim.
  *      - The neurons that correspond to background image pixels
  *        spike with probability probBase.
- *      - After ABS_REFACTORY_PERIOD the spiking probability
+ *      - After ABS_REFRACTORY_PERIOD the spiking probability
  *        grows exponentially to probBase and probStim respectively.
  *      - The burst of the retina is periodic with period T set by
  *        T = 1000/burstFreq in miliseconds
@@ -75,14 +75,14 @@ int spike(float time, float dt,
    float probBase  = params->probBase;
    float probStim  = params->probStim * stimFactor;
 
-   // see if neuron is in a refactory period
+   // see if neuron is in a refractory period
    //
-   if ((time - prev) < params->abs_refactory_period) {
+   if ((time - prev) < params->abs_refractory_period) {
       return 0;
    }
    else {
-      float delta = time - prev - params->abs_refactory_period;
-      float refact = 1.0f - EXP(-delta/params->refactory_period);
+      float delta = time - prev - params->abs_refractory_period;
+      float refact = 1.0f - EXP(-delta/params->refractory_period);
       refact = (refact < 0) ? 0 : refact;
       probBase *= refact;
       probStim *= refact;
