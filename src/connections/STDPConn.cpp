@@ -41,7 +41,7 @@ int STDPConn::initialize_base() {
    this->ampLTD = 1.1;
    this->tauLTP = 20;
    this->tauLTD = 20;
-   this->dWMax = 0.1;
+   this->dWMax = 1;
    // TODO: Set the default values for wMin and wMax? Or are they already set somewhere?
    return PV_SUCCESS;
 }
