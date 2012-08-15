@@ -27,7 +27,9 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
    int status = PV_SUCCESS;
    if (numSweepValues) {
       for (int k=0; k<numSweepValues; k++) {
-         printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+         if (icComm->commRank()==0) {
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+         }
          params->setSweepValues(k);
          status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params) == PV_SUCCESS ? status : PV_FAILURE;
       }
