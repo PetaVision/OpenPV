@@ -53,6 +53,7 @@ Movie "Image" = {
     Vrest = 0.0;
     $$$_displayPeriod_$$$
     jitterFlag = 0;
+    //jitter = 2;
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
@@ -73,7 +74,7 @@ Retina "RetinaON" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 1;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
     burstDuration = 15;  // ms
@@ -98,7 +99,7 @@ Retina "RetinaOFF" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 1;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
     burstDuration = 15;  // ms
@@ -213,17 +214,17 @@ KernelConn "ImagetoRetinaONCenter" = {
    //gauss2DCalcWeights = 1;
    writeStep = -1;
 
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;   
-   $$$_strength_Image2Retina_$$$
-   weightInitType = "InitGauss2DWeights";
+//   aspect = 1;
+//   sigma = 1;
+//   rMax  = 1;   
+//   $$$_strength_Image2Retina_$$$
+//   weightInitType = "InitGauss2DWeights";
    //strength =  25500.0;
    
    
-   //wMaxInit = 100;
-   //wMinInit = 100;
-   //weightInitType = "UniformRandomWeight";
+   wMaxInit = 100;
+   wMinInit = 100;
+   weightInitType = "UniformRandomWeight";
 
    normalize = false;
    normalize_zero_offset = 0.0;
@@ -231,6 +232,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    symmetrizeWeights = 0;
    delay = 0;
 };
+
 
 KernelConn "ImagetoRetinaONSurround" = {
    preLayerName = "Image";
@@ -258,6 +260,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    symmetrizeWeights = 0;
    delay = 0;
 };
+
 
 
 KernelConn "ImagetoRetinaOFFCenter" = {

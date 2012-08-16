@@ -73,7 +73,7 @@ Retina "RetinaON" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 1;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
     burstDuration = 15;  // ms
@@ -98,7 +98,7 @@ Retina "RetinaOFF" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 1;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
     burstDuration = 15;  // ms
@@ -328,7 +328,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-STDPConn "RetinaONtoS1" = {
+STDP3Conn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "S1";
    channelCode = 0;
@@ -353,6 +353,7 @@ STDPConn "RetinaONtoS1" = {
    $$$_ampLTD_$$$
    $$$_tauLTP_$$$
    $$$_tauLTD_$$$
+   $$$_tauY_$$$
    
    $$$_wMaxInitSTDP_$$$
    $$$_wMinInitSTDP_$$$
@@ -377,7 +378,7 @@ STDPConn "RetinaONtoS1" = {
 };
 
 
-STDPConn "RetinaOFFtoS1" = {
+STDP3Conn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "S1";
    channelCode = 0;
@@ -402,6 +403,7 @@ STDPConn "RetinaOFFtoS1" = {
    $$$_ampLTD_$$$
    $$$_tauLTP_$$$
    $$$_tauLTD_$$$
+   $$$_tauY_$$$
    
    $$$_wMaxInitSTDP_$$$
    $$$_wMinInitSTDP_$$$

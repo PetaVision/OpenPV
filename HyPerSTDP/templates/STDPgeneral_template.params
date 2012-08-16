@@ -76,7 +76,7 @@ Retina "RetinaON" = {
     noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
-    burstDuration = 15;  // ms
+    burstDuration = 20;  // ms
 
     //beginStim = 1;
     //endStim   = 50000;
@@ -101,7 +101,7 @@ Retina "RetinaOFF" = {
     noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
  	burstFreq = 50;      // Hz
-    burstDuration = 15;  // ms
+    burstDuration = 20;  // ms
 
     //beginStim = 1;
     //endStim   = 50000;
