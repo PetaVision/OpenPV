@@ -2,7 +2,9 @@
 % Generates STDP params files
 %
 
-clear all; close all; more off;
+clear all; close all; more off; clc;
+system("clear");
+warning off;
 format short g;
 
 global MOVIE_FLAG = 0;
@@ -12,12 +14,12 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny
+DATASET = "orient_36r"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny
 TEMPLATE = "STDPgeneral";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 
-numsteps = 10000;
+numsteps = 3000;
 
 
 %% INDEXES
@@ -32,8 +34,8 @@ ampLTPi = 13;
 ampLTDi = 14;
 
 RUN_FLAG = 1;
-PARAMSWEEP_FLAG = 0;
-    PARAM_SWEEP = ampLTDi;
+PARAMSWEEP_FLAG = 1;
+PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi];
 MEASURES_FLAG = 1;
     MEASURES_PLOT_FLAG = 0;
     MEASURES_OSI_FLAG = 1;
@@ -58,35 +60,70 @@ params{STRENGTH_IMAGE2RETINAi} = 100;
 
 
 %STDP params
+%36 orientations params
 params{wMaxInitSTDPi} = 0.05;
-params{wMinInitSTDPi} = 0.03;
+params{wMinInitSTDPi} = 0.01;
 params{tauLTPi} = 20;
 params{tauLTDi} = 30;
-params{ampLTPi} = 0.05;%0.03;
-params{ampLTDi} = 0.0285;%0.0085;
+params{ampLTPi} = 0.03; %0.03;
+params{ampLTDi} = 0.0085; %0.0085;
+
+%Natural images params
+%params{wMaxInitSTDPi} = 0.005;
+%params{wMinInitSTDPi} = 0.0001;
+%params{tauLTPi} = 20;
+%params{tauLTDi} = 30;
+%params{ampLTPi} = 0.003; %0.03;
+%params{ampLTDi} = 0.00085; %0.0085;
 
 
 if(PARAMSWEEP_FLAG)
-    rg = 0:0.005:0.1; %Range over which 
+    %Range over which 
+    rg = {5:5:50; ... 
+          5:5:50; ...
+          0.001:0.02:0.1; ...
+        0.001:0.02:0.1};  %tauLTP, tauLTD, ampLTP, ampLTD
+    %Generates all combinations
+    rg_p = allcomb(rg{:});
+
+    %rg_p = rg_p(1:3,:);
 
     disp("---------------------------");
     disp("------Parameter Sweep------");
     disp("---------------------------");
 
-    OSIm = zeros(length(rg),2)
+    OSIm = zeros(size(rg_p,1),2);
+    pr = zeros(size(rg_p,1),1);
 else
-    rg = params{PARAM_SWEEP};
-    OSIm = zeros(1,2)
+    rg = params{PARAM_SWEEP(1)};
+    rg_p = 1;
+    OSIm = zeros(1,2);
+    pr = zeros(1,1);
 end
 
-for ps=1:length(rg)
+tic
+for ps=1:size(rg_p,1)
+    
+    if(PARAMSWEEP_FLAG)
+        disp("--------------------------------");
+        disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
+        disp("--------------------------------");
+    end
 
-    params{PARAM_SWEEP} = rg(ps);    
+    for x=1:size(rg_p,2) %Set params
+        params{PARAM_SWEEP(x)} = rg_p(ps,x);
+    end
+    rg_p(ps,:)
+    OSIm(1:ps,:)
     
     [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
 
     if(RUN_FLAG)
-        system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+        if(PARAMSWEEP_FLAG)
+            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
+        else
+            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+        end
     end
 
 
@@ -102,7 +139,7 @@ for ps=1:length(rg)
 
 
     %Plasticity ratio
-    pr = (params{tauLTDi}*params{ampLTDi})/params{tauLTPi}*params{ampLTPi}
+    pr(ps) = (params{tauLTDi}*params{ampLTDi})/params{tauLTPi}*params{ampLTPi};
 
  
    
@@ -112,10 +149,11 @@ for ps=1:length(rg)
     if(MEASURES_OSI_FLAG)
 
 
-
-    disp("---------------------------");
-    disp("-------Tunning curves------");
-    disp("---------------------------");
+    if(PARAMSWEEP_FLAG==0)
+        disp("---------------------------");
+        disp("-------Tunning curves------");
+        disp("---------------------------");
+    end
 
     %1. For each checkpoint/weight matrix
 
@@ -153,7 +191,11 @@ for ps=1:length(rg)
     length(datasetl)*params{DISPLAYPERIODi}+i
     %pause
     if(RUN_FLAG)
-    system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+       if(PARAMSWEEP_FLAG)
+            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
+        else
+            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+        end
 
     %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
     [data hdr] = readpvpfile([pvp_output_path, filesep, "S1.pvp"], [pvp_output_path, filesep], "S1.pvp");
@@ -201,10 +243,11 @@ for ps=1:length(rg)
 
 
 
-
-    disp("------------------------------------------");
-    disp("-------Orientation Selectivity Index------");
-    disp("------------------------------------------");
+    if(PARAMSWEEP_FLAG==0)
+        disp("------------------------------------------");
+        disp("-------Orientation Selectivity Index------");
+        disp("------------------------------------------");
+    end
 
 
     %Get Orientation Selectivity Index (OSI)
@@ -336,13 +379,14 @@ for ps=1:length(rg)
 
         end
 
-
-    if(PARAMSWEEP_FLAG)
-        [rg' OSIm pr]
-    else
-        [OSIm pr]
-    end     
- 
     end
+
 end
 
+if(PARAMSWEEP_FLAG)
+    [rg_p pr OSIm]
+else
+     [pr OSIm]
+end     
+
+toc
