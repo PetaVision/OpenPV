@@ -138,6 +138,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "PoolConn",
                "RuleConn",
                "STDPConn",
+               "STDP3Conn",
                "SubunitConn",
            "_Stop_HyPerConns_",
            "_Start_ColProbes_",
@@ -830,6 +831,16 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
      }
      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
+   if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
+        if( preLayer && postLayer ) {
+          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+          addedConn = (HyPerConn * ) new STDP3Conn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
+        }
+        status = checknewobject((void *) addedConn, classkeyword, name, hc);
+      }
    if( !keywordMatched && !strcmp(classkeyword, "GapConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
