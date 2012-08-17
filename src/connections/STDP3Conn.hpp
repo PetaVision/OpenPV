@@ -5,8 +5,8 @@
  *      Author: Rui P. Costa
  */
 
-#ifndef STDPCONN_HPP_
-#define STDPCONN_HPP_
+#ifndef STDP3CONN_HPP_
+#define STDP3CONN_HPP_
 
 #include "HyPerConn.hpp"
 #include "../include/default_params.h"
