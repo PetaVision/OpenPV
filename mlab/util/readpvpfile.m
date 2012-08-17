@@ -149,6 +149,13 @@ if isempty(errorstring)
                                 data{f}.ny{cellindex} = patchny;
                                 data{f}.offset{cellindex} = patchoffset;
                             end
+                            if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
+                                data{f}.values{cellindex} = data{f}.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                            elseif hdr.datatype ~= 3
+                                error('readpvpfile:baddatatype',...
+                                    'Weight file type requires hdr.datatype of 1 or 3; received %d',...
+                                    hdr.datatype);
+                            end
                         end
                     end
                 end
