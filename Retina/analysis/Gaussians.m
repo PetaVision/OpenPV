@@ -14,10 +14,10 @@ rtime = horzcat(-time/2+0.5,negtime,0.5,postime);
 %rtime = horzcat(negtime,postime);
 
 rtime = rtime./1000;
-negtime_small = -time/2:1:0;
+negtime_small = -time/2+1:1:0;
 postime_small = 1:1:time/2;
 
-rtime_small = horzcat(negtime_small,0.5,postime_small);
+rtime_small = horzcat(negtime_small,postime_small);
 rtime_small = rtime_small./1000;
 
 rtime_half =  rtime(1:length(rtime)/2);
@@ -179,27 +179,27 @@ set(gca,'XTick',horzcat(xneg,xpos));
 
 hold off
 
-% Plot Fourier transform w/ Gaussian fit of peak and display values
+% Plot Fourier transform for all trials w/ Gaussian fit of peak and display values
 
 figure(4);
 clf;
 
-b = 1:length(gwave_hat(1,:));
+fullfourier = sum(abs(gwave_hat),1);
+
+b = 1:length(fullfourier);
 b = b./time;
 
+plot(b(1:length(b)/4),fullfourier(1:length(fullfourier)/4));
 
-
-plot(b(1:length(b)/4),abs(gwave_hat(1,1:length(gwave_hat(1,:))/4)),'b');
 hold on
 
-for m = 1:run
-FWHM(m) = fwhm(b(imaxindex(m)-3:imaxindex(m)+3),abs(gwave_hat(m,imaxindex(m)-3:imaxindex(m)+3)));
-end %for run
+[fouriermax,fouriermaxindex] = max(fullfourier);
+FWHMfourier = fwhm(fullfourier(fouriermaxindex-4:fouriermaxindex+4));
 
-fsig = FWHM(1)/(2*sqrt(2*log(2)));
-fgau = normpdf(b(1:length(b)/4),imaxindex(1)/time,fsig);
+fsig = FWHMfourier/(2*sqrt(2*log(2)));
+fgau = normpdf(b(1:length(b)/4),fouriermaxindex/time,fsig);
 fgau = fgau./max(fgau);
-fgau = fgau.*abs(gwave_hat(1,imaxindex(1)));
+fgau = fgau.*(fullfourier(fouriermaxindex));
 
 plot(b(1:length(b)/4),fgau,'r');
 xlabel('Frequency (Hz)');
@@ -207,19 +207,19 @@ ylabel('Spikes/s');
 title('Fourier Transform of Gaussians');
 box off;
 
-frequency = num2str(freq(1));
+frequency = num2str((fouriermaxindex-1)/time);
 frequency_label = 'Frequency=';
-frequency_value = text(length(b)-length(b)/4,(4/5)*abs(gwave_hat(1,imaxindex(1))),strcat(frequency_label,frequency));
+frequency_value = text((fouriermaxindex/time)*2,(4/5)*fouriermax,strcat(frequency_label,frequency));
 set(frequency_value,'color',[0 0.6 0],'fontsize',12);
 
 fsig = num2str(fsig);
 fsig_label = '\sigma=';
-fsig_value = text(length(b)-length(b)/4,(3/5)*abs(gwave_hat(1,imaxindex(1))),strcat(fsig_label,fsig));
+fsig_value = text((fouriermaxindex/time)*2,(3/5)*fouriermax,strcat(fsig_label,fsig));
 set(fsig_value,'color',[0 0.6 0],'fontsize',12);
 
-FWHMstr = num2str(FWHM(1));
+FWHMstr = num2str(FWHMfourier);
 FWHM_label = 'FWHM=';
-FWHM_value = text(length(b)-length(b)/4,(2/5)*abs(gwave_hat(1,imaxindex(1))),strcat(FWHM_label,FWHMstr));
+FWHM_value = text((fouriermaxindex/time)*2,(2/5)*fouriermax,strcat(FWHM_label,FWHMstr));
 set(FWHM_value,'color',[0 0.6 0],'fontsize',12);
 
 %-------------------------------------------------------Morlets-------------------------------------------------
@@ -227,6 +227,10 @@ set(FWHM_value,'color',[0 0.6 0],'fontsize',12);
 
 figure(2);
 clf;
+
+for m = 1:run
+FWHM(m) = fwhm(abs(gwave_hat(m,imaxindex(m)-5:imaxindex(m)+5)));
+end %for run
 
 ind = find(N_A(1,1:length(SumN)/2)); % Get numcols of phase
 
@@ -266,8 +270,15 @@ end %for j wav
 mwave(m,:) = mwave(m,:)./max(mwave(m,:));
 
  % If you want to plot all CMWs as one line
-%plot(rtime,mwave(1,:),'r',rtime,gwave,'b');
 
+if m == 3
+figure(7);
+clf;
+plot(rtime_small,mwave(3,:),'r',rtime,gwave(3,:),'b');
+
+pause
+
+end %if
 %plot(rtime,wav(1,:),'r',rtime,gau(1,:),'b')
 %hold on
 %end %for d
@@ -282,6 +293,7 @@ phase_dist = histc(phase(m,:),x); % Histogram of phases
 phase_dist = (phase_dist./sum(phase_dist))*(10/pi); % Normalize phase_dist
 phase_dist = phase_dist(1:length(phase_dist)-1);
 
+
 if run < 5
 r = ceil(run/5);
 else r = floor(run/5);
@@ -295,8 +307,10 @@ h = scatter(xx,phase_dist,7,'b','*');
 % Find minimized Von Mises Distribution for phase_dist
 
 theta = [0,1];
-control = {1000; 1; 1};
+control = {1000; 0; 1; 1; 0; 1e-10; 9e-5};
 [theta, obj_value, iterations, convergence] = bfgsmin("mises", {theta, phase_dist', xx'}, control);
+
+convergence
 
 mu = theta(1,:);
 k = theta(2,:);
@@ -310,8 +324,16 @@ k = theta(2,:);
 
 hold on
 
-mises_result = (exp(k*cos(xx-mu)))/(2*pi*zeroth); 
+mises_result = (exp(k*cos(xx-mu)))/(2*pi*zeroth);
 
+if k < 0
+mu = mu - pi;
+end %if
+
+[maxmises,maxmisesindex] = max(mises_result);
+
+phaseofmax(m) = xx(maxmisesindex);
+ 
 plot(xx,mises_result,'r');
 box off;
 
@@ -370,6 +392,8 @@ axis([-pi pi 0 max(phase_dist)*1.2])
 
 end %for runs
 
+keyboard
+
 %hold off
 
 %max_wav = max(real(wav));
@@ -398,7 +422,7 @@ end %for runs
 
 
 
-%-----------------------------------------------------Plot Gaussians phase vs. CMW phase-----------------------------------
+%-----------------------------------------------------Plot Gaussians phase vs. CMW phase << disabled-----------------------------------
 
 % Find average difference between Gaussian phase and CMW phase and plot them
 
@@ -415,24 +439,24 @@ end %for sort g's accordingly
 
     % Plot them
 
-figure(3);
-clf;
-shg;
-scatter(asc_phasem_all,corr_phaseg_all,7,'b','*');
+%figure(3);
+%clf;
+%shg;
+%scatter(asc_phasem_all,corr_phaseg_all,7,'b','*'); <================= disabled
 hold on
 x = -pi:0.01:pi;
 y = x;
-plot(x,y,'r');
-hold on
+%plot(x,y,'r');   <============= disabled
+%hold on
 
-box off;
+%box off;
 
 
-legend('Differences','Perfect Correlation','Location','SouthEast');
-scatter(pi+pi/5,-pi-pi/6,20,'b','*');
-text(pi/2,-pi-pi/6,'Differences','fontsize',10)
+%legend('Differences','Perfect Correlation','Location','SouthEast');
+%scatter(pi+pi/5,-pi-pi/6,20,'b','*');
+%text(pi/2,-pi-pi/6,'Differences','fontsize',10)
 
-axis square;
+%axis square;
 
     % Compute avg. difference
 
@@ -448,21 +472,21 @@ end % for differ
 differ_avg = differ_tot/run;
 
 difference = num2str(differ_avg);
-differ_label = 'avg. diff.=';
-differ_value = text(pi/3,pi/3,strcat(differ_label,difference));
-set(differ_value,'color',[0 0.6 0],'fontsize',20);
-title('Correlation of Gaussian phase and CMW phase');
+%differ_label = 'avg. diff.=';
+%differ_value = text(pi/3,pi/3,strcat(differ_label,difference));
+%set(differ_value,'color',[0 0.6 0],'fontsize',20);
+%title('Correlation of Gaussian phase and CMW phase');
 
-xlabel('CMW phase');
-ylabel('Gaussian phase');
+%xlabel('CMW phase');
+%ylabel('Gaussian phase');
 
-figure(9);
-clf;
+%figure(9);
+%clf;
 
 
-hist(differ);
-axis([-pi pi 0 4])
-set(gca,'YTick',1:max(hist(differ)));
-xlabel('Difference');
+%hist(differ);   <================ disabled
+%axis([-pi pi 0 4])
+%set(gca,'YTick',1:max(hist(differ)));
+%xlabel('Difference');
 %ylabel('Difference');
 %title('Difference For Each Trial');
