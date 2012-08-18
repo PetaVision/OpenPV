@@ -2,7 +2,7 @@
 function obj_value = mises(theta,y,x)
   m = theta(1,:);	
   k = theta(2,:);
-[zeroth,ierr]=besselj(0,k);
+[zeroth,ierr]=besseli(0,k);
      
 
 
