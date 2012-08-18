@@ -82,7 +82,7 @@ time = time/1000;
 
 for m = 1:run
 [imax,imaxindex] = max(abs(Allsums_hat(m,:)));
-FWHMg(m) = fwhm(abs(Allsums_hat(m,imaxindex-4:imaxindex+4)));
+FWHMg(m) = fwhm(abs(Allsums_hat(m,imaxindex-5:imaxindex+5)));
 if FWHMg(m) == 0
    error(strcat('Trial',num2str(m),'full-width half maximum of ganglions equals zero'));
 end %if
@@ -137,13 +137,16 @@ phase_dist = phase_dist(1:length(phase_dist)-1);
 % Find minimized Von Mises Distribution for phase_dist
 
 theta = [0,1];
-control = {1000000; 0; 1};
+control = {1000; 0; 1; 1; 0; 1e-10; 9e-5};
 [theta, obj_value, iterations, convergence] = bfgsmin("mises", {theta, phase_dist', xx'}, control);
 
 convergence
 
 mu = theta(1,:);
 k = theta(2,:);
+
+% Check variance from minimization
+
 [zeroth,ierr]=besseli(0,k);
      
      if ierr ~= 0
@@ -152,7 +155,25 @@ k = theta(2,:);
         print(strcat(ierr_st,bessel_st));
      end %if
 
-phase_G(m) = mu;
+if k < 0
+mu = mu - pi;
+end %if
+
+phase_G(m) = mu
+
+
+% Gar's idea (didn't work)
+%phase_G(m) = phase_all(m,end);
+
+%  if phase_G(m) == 0
+%  phase_G(m) = phase_all(m,end-1);
+%  end % if phase is zero
+
+%phase_G
+
+figure(3);
+clf;
+plot(rtimefine,wav(length(ind),:));
 
 ind_long = find(Allsums(m,:));
 
@@ -193,9 +214,6 @@ for m = 1:run
 
 LGN_nDC(m,:) = LGN(m,:) - mean(LGN(m,:));
 LGN_hat(m,:) = fft(LGN_nDC(m,:));
-
-
-%ind = find(LGN(m,1:length(LGN(m,:))/2)); % Get length of phase for CMWs
 
 [imax,imaxindex] = max(abs(LGN_hat(m,1:length(LGN_hat(m,:))/2)));
 freq(m) = (imaxindex-1)/time;
@@ -254,13 +272,14 @@ phase_dist = phase_dist(1:length(phase_dist)-1);
 % Find minimized Von Mises Distribution for phase_dist
 
 theta = [0,1];
-control = {1000000; 0; 1};
+control = {1000; 0; 1; 1; 0; 1e-10; 9e-5};
 [theta, obj_value, iterations, convergence] = bfgsmin("mises", {theta, phase_dist', xx'}, control);
 
 convergence
 
 mu = theta(1,:);
 k = theta(2,:);
+
 [zeroth,ierr]=besseli(0,k);
      
      if ierr ~= 0
@@ -269,7 +288,24 @@ k = theta(2,:);
         print(strcat(ierr_st,bessel_st));
      end %if
 
-phase_LGN(m) = mu;
+if k < 0
+mu = mu - pi;
+end %if
+
+phase_LGN(m) = mu
+
+figure(4);
+clf;
+plot(rtimefine,wav(length(ind),:));
+
+% Gar's idea (didn't work)
+%phase_LGN(m) = phase_LGNs(m,end);
+
+%  if phase_LGN(m) == 0
+%  phase_LGN(m) = phase_LGNs(m,end-1);
+%  end % if phase is zero
+
+%phase_LGN
 
  rtime_LGN(m,:) = rtime;
 
@@ -526,3 +562,27 @@ set(bottom,'pos',[0.13,0.11958,0.774,0.258]);
 xneg = -time/2:0.1:0;
 xpos = 0:0.1:time/2;
 set(gca,'XTick',horzcat(xneg,xpos));
+
+
+
+
+%------------------------------------------------------------------Information rate: Phase-shifted vs. non-phase-shifted------------------------------------------
+
+
+SumT_shift = shift_count;
+spikerate = zeros(1,length(SumT));
+
+spikerate = SumT./time;
+spikeratenz = find(spikerate);
+avgrate = mean(spikerate(spikeratenz));
+spikerate_shift = SumT_shift./time;
+spikerate_shiftnz = find(spikerate_shift);
+avgrate_shift = mean(spikerate_shift(spikerate_shiftnz));
+
+inform = sum((spikerate(spikeratenz)./avgrate).*log2(spikerate(spikeratenz)./avgrate));
+inform_shift = sum((spikerate_shift(spikerate_shiftnz)./avgrate).*log2(spikerate_shift(spikerate_shiftnz)./avgrate));
+
+informdiff = inform_shift-inform;
+
+disp('Information Increase =');
+disp(informdiff);
