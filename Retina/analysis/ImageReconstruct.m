@@ -119,21 +119,21 @@ oscwave(cell,:) = sum(abs(wav),1);
 
  % Finding peaks
         
-        if oscwave(cell,1) > oscwave(cell,2)
+    if oscwave(cell,1) > oscwave(cell,2) && (oscwave(cell,i) > max(oscwave(cell,:))*(7/10))
            pklocs(1) = 1;
-        end %if %oscwave starts with peak
+    end %if %oscwave starts with peak
     for i = 2:length(oscwave(cell,:))-1
-        if (oscwave(cell,i) > oscwave(cell,i-1)) && (oscwave(cell,i) > oscwave(cell,i+1))
+        if (oscwave(cell,i) > oscwave(cell,i-1)) && (oscwave(cell,i) > oscwave(cell,i+1)) && (oscwave(cell,i) > max(oscwave(cell,:))*(7/10))
            pklocs(length(pklocs)+1) = i;
         end %if peak, find index
     end %for indices of mwave
-        if oscwave(cell,length(oscwave(cell,:))) > oscwave(cell,length(oscwave(cell,:))-1) && (oscwave(cell,i) > max(oscwave(cell,:))*(7/10))
+    if oscwave(cell,length(oscwave(cell,:))) > oscwave(cell,length(oscwave(cell,:))-1) && (oscwave(cell,i) > max(oscwave(cell,:))*(7/10))
            pklocs(length(pklocs)+1) = length(oscwave(cell,:));
-        end %if %oscwave ends with peak (7/10 determined empirically)
+    end %if %oscwave ends with peak (7/10 determined empirically)
 
-	if isempty(pklocs)
+    if isempty(pklocs)
            continue
-        end %if all peaks of cell aren't above threshold
+    end %if all peaks of cell aren't above threshold
 
 LGNrange = zeros(dim*dim,2,length(pklocs));
 
@@ -185,10 +185,59 @@ end %for positive values of cell
 
 end %for cell
 
+
+%Plot properties of center cell of array (64,64)
+
+figure(3);
+clf;
+
+% Plots CMW wave of neighbourhood
+subplot(4,1,1);
+plot(rtime,oscwave(8128,:))
+
+% Plots ranges
+subplot(4,1,2);
+for l = 1:length(LGNrange(8128,1,:))
+x1 = [LGNrange(8128,1,l),LGNrange(8128,1,l)];
+x2 =  [LGNrange(8128,2,l),LGNrange(8128,2,l)];
+y = [1,2];
+line(x1,y);
+line(x2,y);
+end %for length(center cell range)
+
+% Plots all spikes
+subplot(4,1,3);
+
+spikescenter = zeros(1,length(rtime));
+poscenter = find(Gcells(64,64,:));
+
+for j = 1:length(poscenter)
+spikescenter(poscenter(j)) = 1;
+end %for
+
+plot(rtime,spikescenter);
+
+% Plots spikes to the LGN
+subplot(4,1,4);
+
+posvals = zeros(1,length(rtime));
+
+for j = 1:length(poscenter)
+    for l = 1:length(pklocs)
+        if (rtime(poscenter(j)) > LGNrange(cell,1,l)) && (rtime(poscenter(j)) < LGNrange(cell,2,l))                             
+           posvals(poscenter(j)) = 1;
+        end %if %make LGN smart
+    end %for each peak
+end %for positive values of cell 
+
+plot(rtime,posvals);
+
+
 %%---------------------------------------------------Image reconstruction using smart LGN cell-----------------------------------------------
 
 figure(2);
 clf;
 LGNsmartimage = imagesc(LGN_smart);
 colormap(gray);
+
 toc
