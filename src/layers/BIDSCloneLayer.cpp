@@ -111,7 +111,7 @@ int BIDSCloneLayer::outputState(float timef, bool last){
 
 int BIDSCloneLayer::updateState(float timef, float dt) {
    int status;
-   mapCoords();
+   status = mapCoords();
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }

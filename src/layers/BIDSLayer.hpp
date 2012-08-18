@@ -24,9 +24,6 @@ public:
    int updateState(float timef, float dt);
    int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
-   int * randomIndices(int numMatrixCol, int numMatrixRow);
-   void findCoordinates(int numMatrixCol, int numMatrixRow);
-   int findWeights(int x1, int y1, int x2, int y2);
    void setCoords(int numNodes, BIDSCoords * coords, int jitter);
    BIDSCoords * getCoords();
    int numNodes;

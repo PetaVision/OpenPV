@@ -1,30 +1,30 @@
 /*
- * InitGauss2DWeightsParams.cpp
+ * InitBIDSLateralParams.cpp
  *
- *  Created on: Aug 10, 2011
- *      Author: kpeterson
+ *  Created on: Aug 10, 2012
+ *      Author: bnowers
  */
 
-#include "InitBIDSWeightsParams.hpp"
+#include "InitBIDSLateralParams.hpp"
 
 namespace PV {
 
-InitBIDSWeightsParams::InitBIDSWeightsParams()
+InitBIDSLateralParams::InitBIDSLateralParams()
 {
    initialize_base();
 }
-InitBIDSWeightsParams::InitBIDSWeightsParams(HyPerConn * parentConn)
+InitBIDSLateralParams::InitBIDSLateralParams(HyPerConn * parentConn)
                      : InitWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }
 
-InitBIDSWeightsParams::~InitBIDSWeightsParams()
+InitBIDSLateralParams::~InitBIDSLateralParams()
 {
    // TODO Auto-generated destructor stub
 }
 
-int InitBIDSWeightsParams::initialize_base() {
+int InitBIDSLateralParams::initialize_base() {
 
    // default values (chosen for center on cell of one pixel)
    //int noPost = parentConn->fPatchSize();
@@ -45,7 +45,7 @@ int InitBIDSWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
+int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
    InitWeightsParams::initialize(parentConn);
 
    PVParams * params = parent->parameters();
@@ -56,9 +56,10 @@ int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
    rMax     = params->value(getName(), "rMax", rMax);
    rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
-   falloffType = params->stringValue(getName(), "falloffType", falloffType);
    nxp      = params->value(getName(), "nxp", nxp);
    nyp      = params->value(getName(), "nyp", nyp);
+   falloffType = params->stringValue(getName(), "falloffType", falloffType);
+   lateralRadius = params->value(getName(), "lateralRadius", lateralRadius);
    // old if condition failed to account for connections between oriented to non-oriented cells
 //   if (parentConn->fPatchSize() > 1) {
    if (aspect != 1.0) {      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
@@ -89,7 +90,7 @@ int InitBIDSWeightsParams::initialize(HyPerConn * parentConn) {
 
 }
 
-void InitBIDSWeightsParams::calcOtherParams(int patchIndex) {
+void InitBIDSLateralParams::calcOtherParams(int patchIndex) {
 
    this->getcheckdimensionsandstrides();
 
@@ -98,7 +99,7 @@ void InitBIDSWeightsParams::calcOtherParams(int patchIndex) {
    this->calculateThetas(kfPre_tmp, patchIndex);
 }
 
-bool InitBIDSWeightsParams::isSameLocOrSelf(float xDelta, float yDelta, int fPost) {
+bool InitBIDSLateralParams::isSameLocOrSelf(float xDelta, float yDelta, int fPost) {
    bool sameLoc = ((getFPre() == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
    if ((sameLoc) && (!self)) {
       return true;
@@ -106,7 +107,7 @@ bool InitBIDSWeightsParams::isSameLocOrSelf(float xDelta, float yDelta, int fPos
    return false;
 }
 
-bool InitBIDSWeightsParams::checkBowtieAngle(float xp, float yp) {
+bool InitBIDSLateralParams::checkBowtieAngle(float xp, float yp) {
    if (bowtieFlag == 1){
       float offaxis_angle = atan2(yp, xp);
       if ( ((offaxis_angle > bowtieAngle) && (offaxis_angle < (PI - bowtieAngle))) ||

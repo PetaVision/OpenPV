@@ -1,19 +1,19 @@
 /*
- * InitWeights.hpp
+ * InitBIDSLateral.hpp
  *
- *  Created on: Aug 5, 2011
- *      Author: kpeterson
+ *  Created on: Aug 10, 2012
+ *      Author: bnowers
  */
 
-#ifndef INITBIDSWEIGHTS_HPP_
-#define INITBIDSWEIGHTS_HPP_
+#ifndef INITBIDSLATERAL_HPP_
+#define INITBIDSLATERAL_HPP_
 
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "InitWeightsParams.hpp"
-#include "InitBIDSWeightsParams.hpp"
+#include "InitBIDSLateralParams.hpp"
 
 namespace PV {
 
@@ -22,10 +22,10 @@ class HyPerLayer;
 class InitWeightsParams;
 class InitGauss2DWeightsParams;
 
-class InitBIDSWeights: public PV::InitWeights {
+class InitBIDSLateral: public PV::InitWeights {
 public:
-   InitBIDSWeights();
-   virtual ~InitBIDSWeights();
+   InitBIDSLateral();
+   virtual ~InitBIDSLateral();
 
    /*
     * THis is the top weight initializing method.  It will first call createUnShrunkenPatch to create a full sized patch,
@@ -38,7 +38,7 @@ public:
    virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn);
 
 
    //get-set methods:
@@ -60,8 +60,8 @@ protected:
 
 private:
 
-   int BIDSCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitBIDSWeightsParams * weightParamPtr, HyPerConn * callingConn);
+   int BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvdata_t * dataStart, InitBIDSLateralParams * weightParamPtr, HyPerConn * conn);
 };
 
 } /* namespace PV */
-#endif /* INITBIDSWEIGHTS_HPP_ */
+#endif /* INITBIDSLATERAL_HPP_ */

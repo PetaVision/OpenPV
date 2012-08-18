@@ -1,23 +1,23 @@
 /*
- * InitGauss2DWeightsParams.hpp
+ * InitBIDSLateralParams.hpp
  *
- *  Created on: Aug 10, 2011
- *      Author: kpeterson
+ *  Created on: Aug 10, 2012
+ *      Author: bnowers
  */
 
-#ifndef INITBIDSWEIGHTSPARAMS_HPP_
-#define INITBIDSWEIGHTSPARAMS_HPP_
+#ifndef INITBIDSLATERALPARAMS_HPP_
+#define INITBIDSLATERALPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
 #include "../layers/BIDSLayer.hpp"
 
 namespace PV {
 
-class InitBIDSWeightsParams: public PV::InitWeightsParams {
+class InitBIDSLateralParams: public PV::InitWeightsParams {
 public:
-   InitBIDSWeightsParams();
-   InitBIDSWeightsParams(HyPerConn * parentConn);
-   virtual ~InitBIDSWeightsParams();
+   InitBIDSLateralParams();
+   InitBIDSLateralParams(HyPerConn * parentConn);
+   virtual ~InitBIDSLateralParams();
    void calcOtherParams(int patchIndex);
    bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
    bool checkBowtieAngle(float xp, float yp);
@@ -25,15 +25,16 @@ public:
    //get-set methods:
    inline float getaspect()        {return aspect;}
    inline float getshift()        {return shift;}
+   inline int getnxp()             {return nxp;}
+   inline int getnyp()             {return nyp;}
    inline int getnumFlanks()        {return numFlanks;}
    inline float getsigma()        {return sigma;}
    inline double getr2Max()        {return r2Max;}
    inline double getr2Min()        {return r2Min;}
-   inline int getnxp()             {return nxp;}
-   inline int getnyp()             {return nyp;}
    inline BIDSCoords *getCoords()  {return coords;}
    inline int getNumNodes()        {return numNodes;}
    inline const char * getFalloffType()  {return falloffType;}
+   inline int getLateralRadius()   {return lateralRadius;}
    inline HyPerConn * getParentConn() {return parentConn;}
    inline float getStrength() {return strength;}
 
@@ -49,15 +50,16 @@ private:
    float rMax;
    float rMin;  // minimum radius for any connection
    float strength;
-   int numFlanks;
    int nxp;
    int nyp;
+   int numFlanks;
    float shift;
    bool bowtieFlag;  // flag for setting bowtie angle
    float bowtieAngle;  // bowtie angle
    BIDSCoords * coords; //structure array pointer that holds the randomly generated corrdinates for the specified number of BIDS nodes
-   const char * falloffType;
    int numNodes;
+   const char * falloffType;
+   int lateralRadius;
    //calculated values;
    double r2Max;
    double r2Min;
@@ -65,4 +67,4 @@ private:
 };
 
 } /* namespace PV */
-#endif /* INITBIDSWEIGHTSPARAMS_HPP_ */
+#endif /* INITBIDSLATERALPARAMS_HPP_ */

@@ -316,8 +316,8 @@ int Patterns::generatePattern(float val)
          for (int ix = 0; ix < nx; ix++) {
             int glx = ix+kx0-nb;
             int gly = iy+ky0-nb;
-            float rot2=rot;
-            float phi;
+            float rot2 = rot;
+            float phi = 0;
             if((type == COSV)||(type == SINEV)) {
                float yp=float(glx)*cos(rot) + float(gly)*sin(rot);
                if(yp<nygl/2) {

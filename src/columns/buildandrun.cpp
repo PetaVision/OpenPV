@@ -140,6 +140,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "STDPConn",
                "STDP3Conn",
                "SubunitConn",
+               "BIDSConn",
            "_Stop_HyPerConns_",
            "_Start_ColProbes_",
              "ColProbe",
@@ -589,6 +590,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSWeight"))) {
       weightInitializer = new InitBIDSWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSLateral"))) {
+      weightInitializer = new InitBIDSLateral();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
       weightInitializer = new InitUniformRandomWeights();
    }
@@ -847,6 +851,17 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new GapConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "BIDSConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+
+         addedConn = new BIDSConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }

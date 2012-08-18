@@ -59,6 +59,7 @@
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/STDPConn.hpp"
+#include "../connections/BIDSConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
@@ -69,6 +70,7 @@
 #include "../weightinit/InitGaborWeights.hpp"
 #include "../weightinit/InitDistributedWeights.hpp"
 #include "../weightinit/InitBIDSWeights.hpp"
+#include "../weightinit/InitBIDSLateral.hpp"
 #include "../weightinit/InitPoolWeights.hpp"
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
