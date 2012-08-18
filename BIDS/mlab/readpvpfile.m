@@ -13,12 +13,14 @@
 clear all; close all; more off;
 
 global output_path;  output_path  = '/Users/bnowers/Documents/workspace/BIDS/output/';
-global filename;     filename     = '/Users/bnowers/Documents/workspace/BIDS/output/BIDS_node.pvp';
+global filename;     filename     = '/Users/bnowers/Documents/workspace/BIDS/output/BIDSClone.pvp';
+global rootname;     rootname     = '02';
 %global filename;     filename     = '/Users/bnowers/Documents/workspace/BIDS/output/Image_A_last.pvp';
 %global filename;     filename     = '/Users/bnowers/Documents/workspace/BIDS/output/w0_last.pvp';
 global OUT_FILE_EXT; OUT_FILE_EXT = 'png';      %either png or jpg for now
-global MOVIE_FLAG;   MOVIE_FLAG   = 1;          %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '0:50:250'; %can be '-1', 'int(frame)', or 'start:int:end'
+global MOVIE_FLAG;   MOVIE_FLAG   = -1;          %set 1 to make a movie, set -1 to not make a movie
+global FNUM_SPEC;    FNUM_SPEC    = '[999]'; %can be '-1', 'int(frame)', or 'start:int:end'
+global GRAPH_FLAG;   GRAPH_FLAG   = -1;          %set to 1 to plot Histograms and ROC Curves, -1 to not
 global PRINT_FLAG;   PRINT_FLAG   = 1;         %set to 1 to print all fiures to output dir, -1 to not
 %%%%%%%%
 
@@ -66,7 +68,7 @@ if fnum_flag
         end%if gt(max...
     end%if gt(length...
 end%if fnum_flag
-
+i
 switch hdr.filetype
     case 1 % PVP_FILE_TYPE
         framesize = hdr.recordsize*hdr.numrecords;
@@ -142,7 +144,9 @@ if isempty(errorstring)
             if ne(status,0)
                 error('readpvpfile: unable to seek to the end of the header for pvp file ',filedata)
             end%if ne(status,0)while pvp_time < pvp_frame
-            integrated_image = ones([hdr.nxGlobal,hdr.nyGlobal]);
+            integrated_image = zeros([hdr.nxGlobal,hdr.nyGlobal]);
+            integrated_half1 = zeros([hdr.nxGlobal,hdr.nyGlobal]);
+            integrated_half0 = zeros([hdr.nxGlobal,hdr.nyGlobal]);
 
             for frame=0:numframes-1
                 if feof(fid) 
@@ -182,6 +186,12 @@ if isempty(errorstring)
                 pvp_image = flipud(rot90(pvp_image));
 
                 integrated_image += pvp_image;
+
+                if lt(19,frame) && lt(frame,(numframes-20)/2-10)
+                    integrated_half0 += pvp_image;
+                elseif gt(frame,(numframes-20)/2)
+                    integrated_half1 += pvp_image;
+                end
                
                 if lt(frame,10)
                     frame_str = ['00',num2str(frame)];
@@ -202,7 +212,7 @@ if isempty(errorstring)
                         mkdir(inst_movie_path);
                     end%if ne(exist(),7)
 
-                    print_movie_filename = [inst_movie_path,frame_str,'.',OUT_FILE_EXT];
+                    print_movie_filename = [inst_movie_path,rootname,'_',frame_str,'.',OUT_FILE_EXT];
 
                     try
                         imwrite(pvp_image,print_movie_filename,OUT_FILE_EXT)
@@ -213,24 +223,48 @@ if isempty(errorstring)
 
                 if gt(fnum_flag,0)
                     if eq(frame,frame_of_interest) || find(disp_frames==frame)
-                        %integrated_image += pvp_image;
-
                         figs_disp_flag = 1;
 
                         tim_fig_id = figure;
                             imshow(pvp_image)
                             axis image
-                            axis off
+                            %axis off
 
-                        int_fig_id = figure;
+                        int_fig_id1 = figure;
                             imagesc(integrated_image)
                             axis image
-                            axis off
+                            %axis off
                             colorbar
 
-                        fig_ids = [2];
+                        color_top = max(max(integrated_image));
+                        %if (mean(integrated_image)~=0)
+                        %    color_bottom = min(integrated_image(integrated_image~=0))/2;
+                        %else
+                        %    color_bottom = 0;
+                        %endif
+                        color_bottom = 0;
+
+                        int_fig_id2 = figure;
+                            imagesc(integrated_half1)%,[0 max(max(integrated_image))])
+                            axis image
+                            %axis off
+                            colormap('gray')
+                            caxis([color_bottom color_top])
+                            colorbar
+
+                        int_fig_id3 = figure;
+                            imagesc(integrated_half0)%,[0 max(max(integrated_image))])
+                            axis image
+                            %axis off
+                            colormap('gray')
+                            caxis([color_bottom color_top])
+                            colorbar
+
+                        fig_ids = [4];
                         fig_ids(1) = tim_fig_id;
-                        fig_ids(2) = int_fig_id;
+                        fig_ids(2) = int_fig_id1;
+                        fig_ids(3) = int_fig_id2;
+                        fig_ids(4) = int_fig_id3;
                     else
                         figs_disp_flag = 0;
                     end%if eq(frame,frame_of_interest)
@@ -243,12 +277,12 @@ if isempty(errorstring)
                             mkdir(print_fig_path);
                         end%if ne(exist(),7)
 
-                        print_fig_filename = [print_fig_path,'frame',frame_str,'_fig'];
+                        print_fig_filename = [print_fig_path,rootname,'_','frame',frame_str,'_fig'];
                         try
                             for fig_idx = 1:length(fig_ids)
                                 curr_fig_id = fig_ids(fig_idx);
                                 print(curr_fig_id,['-d',OUT_FILE_EXT],[print_fig_filename,num2str(curr_fig_id),'.',OUT_FILE_EXT]);
-                                close(curr_fig_id)
+                                close(curr_fig_id);
                             end%for fig_idx
                         catch
                             disp(['readpvpfile: Couldn''t print figure ',print_fig_filename])
@@ -256,11 +290,78 @@ if isempty(errorstring)
                     end%if fig_id
                 end%if PRINT_FLAG
             end%for frame
+            if gt(GRAPH_FLAG,0)
+                lim = 256/2 - 0.5;
+                [X Y] = meshgrid(-1*lim:lim,-1*lim:lim);
+                R = sqrt(X.^2+Y.^2);
+
+                thickness = 10;
+                num_bins = 500;
+                radius_set = [1, 20, 40, 60, 80, 100];
+                p_set = zeros(2,length(radius_set),num_bins);
+                for i = 1:length(radius_set)
+                    radius = radius_set(i);
+                    mask = R>radius & R<radius+thickness;
+
+                    %figure
+                    %imagesc(double(mask))
+                    %axis(image)
+
+                    ring0 = integrated_half0.*mask;
+                    ring1 = integrated_half1.*mask;
+
+                    [rows0 cols0 counts0] = find(ring0);
+                    [rows1 cols1 counts1] = find(ring1);
+
+                    if (eq(length(counts0),0) || eq(length(counts1),0))
+                        Pd = 0;
+                        Pf = 0;
+                    else
+
+                        tot_counts = [counts1;counts0];
+                        [freq_counts, bin_loc] = hist(tot_counts,num_bins);
+                        
+                        h0 = hist(counts0,bin_loc,1);
+                        h1 = hist(counts1,bin_loc,1);
+
+                        figure
+                        hold on
+                        fid0 = bar(bin_loc,h0,0.8);
+                        fid1 = bar(bin_loc,h1,1);
+                        hold off
+                        set(fid0,'facecolor',[0 0 1])
+                        set(fid0,'edgecolor',[0 0 1])
+                        set(fid1,'facecolor',[1 0 0])
+                        set(fid1,'edgecolor',[1 0 0])
+
+                        Pd = cumsum(h1);
+                        Pf = cumsum(h0);
+                    end 
+                    p_set(1,i,:) = Pd;
+                    p_set(2,i,:) = Pf;
+                end
+
+                figure
+                cmap = prism(length(radius_set));  %DOES NOT WORK IN MATLAB
+                hold on
+                plot([0,1],[0,1],'k')
+                for i = 1:length(radius_set)
+                    plot(1 - [0;squeeze(p_set(1,i,:));1],1 - [0;squeeze(p_set(2,i,:));1],'Color',cmap(i,:))
+                end
+                hold off
+                xlim([0 1])
+                ylim([0 1])
+                hleg = legend('Chance','r = 1     ','r = 20   ','r = 40   ','r = 60   ','r = 80   ','r = 100 ','Location','SouthEastOutside');
+                ylabel('Probability of Detection')
+                xlabel('Probability of False Alarm')
+                title('ROC Plot for BIDS nodes')
+            end %gt(GRAPH_FLAG,0)
 
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'%03d.png -sameq -y ',movie_path,'pvp_instantaneous_movie.mp4']);
                 system(['rm -rf ',inst_movie_path]);
             end%if eq(MOVIE_FLAG,1)
+
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
             for f=1:numframes
