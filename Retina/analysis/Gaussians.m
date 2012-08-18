@@ -271,12 +271,10 @@ mwave(m,:) = mwave(m,:)./max(mwave(m,:));
 
  % If you want to plot all CMWs as one line
 
-if m == 3
-figure(7);
-clf;
-plot(rtime_small,mwave(3,:),'r',rtime,gwave(3,:),'b');
-
-pause
+%if m == 3
+%figure(7);
+%clf;
+%plot(rtime_small,mwave(3,:),'r',rtime,gwave(3,:),'b');
 
 end %if
 %plot(rtime,wav(1,:),'r',rtime,gau(1,:),'b')
