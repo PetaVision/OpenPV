@@ -861,7 +861,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
 
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = new BIDSConn(name, hc, preLayer, postLayer, channelType, fileName, weightInitializer);
+         addedConn = new BIDSConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }

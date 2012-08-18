@@ -16,7 +16,7 @@ class BIDSConn : public PV::HyPerConn {
 
 public:
    BIDSConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, const char * filename, InitWeights *weightInit);
+             const char * filename, InitWeights *weightInit);
 
 protected:
    virtual int setPatchSize(const char* filename);

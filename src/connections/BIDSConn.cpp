@@ -10,10 +10,10 @@
 namespace PV {
 
 BIDSConn::BIDSConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, ChannelType channel, const char * filename, InitWeights *weightInit)
+      HyPerLayer * post, const char * filename, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, channel, filename, weightInit);
+   initialize(name, hc, pre, post, filename, weightInit);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
