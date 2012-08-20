@@ -47,6 +47,7 @@ protected:
 
    pvdata_t * G_Gap;
    pvdata_t sumGap;
+   char method;
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

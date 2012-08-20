@@ -26,6 +26,24 @@
 #  include "../utils/pv_random.h"
 #endif
 
+inline
+float LIFGap_Vmem_derivative(
+      const float Vmem,
+      const float G_E,
+      const float G_I,
+      const float G_IB,
+      const float G_Gap,
+      const float V_E,
+      const float V_I,
+      const float V_IB,
+      const float sum_gap,
+      const float Vrest,
+      const float tau) {
+   float totalconductance = 1.0 + G_E + G_I + G_IB + sum_gap;
+   float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB + G_Gap)/totalconductance;
+   return totalconductance*(Vmeminf-Vmem)/tau;
+}
+
 //
 // update the state of a retinal layer (spiking)
 //
@@ -58,8 +76,8 @@ void LIFGap_update_state(
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap
-    )
+    CL_MEM_GLOBAL float * G_Gap,
+    char method)
 {
    int k;
 
@@ -86,7 +104,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    // local param variables
    float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
 
-   const float GMAX = 10.0;
+   // const float GMAX = 10.0;
 
    // local variables
    float l_activ;
@@ -110,13 +128,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_GSynInhB = GSynInhB[k];
    float l_GSynGap  = GSynGap[k];
    
-   // temporary arrays
-   float tauInf, VmemInf;
-
-   //
-   // start of LIF2_update_exact_linear
-   //
-
    // define local param variables
    //
    tau   = params->tau;
@@ -163,33 +174,80 @@ for (k = 0; k < nx*ny*nf; k++) {
    }
 #endif
 
-   l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
-   l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
-   l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
+   const float GMAX = 10.0;
+   float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
+   float dV1, dV2, dV;
+   float tauInf, VmemInf;
+
+   switch(method) {
+   case 'b': // Averaging code with input spike applied at beginning of timestep
+      G_E_initial = l_G_E + l_GSynExc;
+      G_I_initial = l_G_I + l_GSynInh;
+      G_IB_initial = l_G_IB + l_GSynInhB;
+
+      G_E_final = G_E_initial*exp_tauE;
+      G_I_final = G_I_initial*exp_tauI;
+      G_IB_final = G_IB_initial*exp_tauIB;
    
-   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
-   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
-   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
+      l_G_Gap = l_GSynGap;
+
+      dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+      dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+      dV = (dV1+dV2)*0.5;
+      l_V = l_V + dt*dV;
+      
+      l_G_E = G_E_final;
+      l_G_I = G_I_final;
+      l_G_IB = G_IB_final;
+
+      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+      break;
+   //case 'e': // Averaging code with input spike applied at end of timestep
+   //   G_E_initial = l_G_E; // l_G_E + l_GSynExc;
+   //   G_I_initial = l_G_I; // l_G_I + l_GSynInh;
+   //   G_IB_initial = l_G_IB; // l_G_IB + l_GSynInhB;
+
+   //   G_E_final = G_E_initial*exp_tauE;
+   //   G_I_final = G_I_initial*exp_tauI;
+   //   G_IB_final = G_IB_initial*exp_tauIB;
+   //
+   //   l_G_Gap = l_GSynGap;
+
+   //   dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   //   dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   //   dV = (dV1+dV2)*0.5;
+   //   l_V = l_V + dt*dV;
+   //   
+   //   l_G_E = G_E_final + l_GSynExc; // l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
+   //   l_G_I = G_I_final + l_GSynInh; // l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
+   //   l_G_IB = G_IB_final + l_GSynInhB; // l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
+
+   //   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+   //   break;
+   case 'o': // Original code
+      l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
+      l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
+      l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
    
-   // Gap junctions
-   l_G_Gap = l_GSynGap;  // -l_V * sum_gap
+      l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
+      l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
+      l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
    
-   tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
-   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_G_Gap)
-           / (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
+      l_G_Gap = l_GSynGap;
+   
+      tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
+      VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_G_Gap)
+              / (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
 
-   l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
+      l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
 
-   //
-   // start of LIF2_update_finish
-   //
-
-   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
-
-   //
-   // start of update_f
-   //
-
+      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+      break;
+   default:
+      assert(0);
+      break;
+   }
+   
    bool fired_flag = (l_V > l_Vth);
 
    l_activ = fired_flag ? 1.0f             : 0.0f;
@@ -212,9 +270,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    V[k]   = l_V;
    Vth[k] = l_Vth;
 
-   G_E[k]  = l_G_E;
-   G_I[k]  = l_G_I;
-   G_IB[k] = l_G_IB;
+   G_E[k]  = l_G_E; // G_E_final;
+   G_I[k]  = l_G_I; // G_I_final;
+   G_IB[k] = l_G_IB; // G_IB_final;
    G_Gap[k] = l_G_Gap;
 
    GSynExc[k]  = 0.0f;

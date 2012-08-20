@@ -75,7 +75,7 @@ int SigmoidLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvd
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
-   setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->nb, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag); // setActivity();
+   setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->nb, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;
 }

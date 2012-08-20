@@ -49,8 +49,8 @@ void LIFGap_update_state(
     float * activity,
 
     const float sum_gap,
-    float * G_Gap
-
+    float * G_Gap,
+    char method
 );
 
 
@@ -113,6 +113,16 @@ int LIFGap::initialize_base() {
  */
 int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
+
+   PVParams * params = hc->parameters();
+   const char * methodstring = params->stringValue(name, "method", true);
+   method = methodstring ? methodstring[0] : 'o';
+   if (method != 'o' && method != 'b') {
+      if (hc->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
+      }
+      abort();
+   }
 
 #ifdef PV_USE_OPENCL
    numEvents=NUM_LIFGAP_EVENTS;
@@ -282,7 +292,7 @@ int LIFGap::updateState(float time, float dt)
    pvdata_t * activity = clayer->activity->data;
 
    LIFGap_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+         G_I, G_IB, GSynHead, activity, sumGap, G_Gap, method);
 #ifdef PV_USE_OPENCL
    }
 #endif

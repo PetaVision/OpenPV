@@ -343,51 +343,12 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    {
       int kex = kIndexExtended(k,nx,ny,nf,nb);
       A[kex] = V[k];
-      if( checkActive[kex] > 0.0) A[kex] += 50;
+      if( checkActive[kex] > 0.0) A[kex] += 50; // checkActive must have the same marginWidth as A
    }
    return PV_SUCCESS;
 }
-#ifdef OBSOLETE // Marked obsolete Mar 12, 2011.  It's inefficient to compute kIndexExtended twice, and the activeIndices list might not be the correct information when adding the 50mV spike
-#ifndef PV_USE_OPENCL
-static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices) {
-   setActivity_HyPerLayer(numNeurons, A, V, nx, ny, nf, nb); // this copies the potential into the activity buffer
 
-   // extended activity may not be current but this is alright since only local activity is used
-   // !!! will break (non-deterministic) if layers are updated simultaneously--fix is to use datastore
-   if(src_spiking) { // probably not needed since numActive will be zero for non-spiking
-      unsigned int kActive;
-   #ifndef PV_USE_OPENCL
-      for (kActive = 0; kActive < src_num_active; kActive++) // If putting on a GPU, need src_num_active threads, not numNeurons
-   #else
-      kActive = get_global_id(0);
-   #endif // PV_USE_OPENCL
-      {
-         int kGlobalRestricted = src_active_indices[kActive];
-         int kLocalRestricted = localIndexFromGlobal(kGlobalRestricted, *src_loc);
-         int kLocalExtended = kIndexExtended(kLocalRestricted, src_loc->nx, src_loc->ny, src_loc->nf, src_loc->nb);
-         A[kLocalExtended] += 50; // add 50 mV spike to local membrane potential
-      }
-   }
-
-   int k;
-#ifndef PV_USE_OPENCL
-   for( k=0; k<num_neurons; k++ )
-#else
-      k = get_global_id(0);
-#endif // PV_USE_OPENCL
-   {
-      int kex = kIndexExtended(k,nx,ny,nf,nb);
-      A[kex] = V[k];
-      if( active[kex] > 0.0) A[kex] += 50;
-   }
-
-
-   return PV_SUCCESS;
-}
-#endif //PV_USE_OPENCL
-#endif // OBSOLETE
-
-static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag) {
+static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
    pvdata_t sig_scale = 1.0f;
    if( Vth > V0 ) {
       if( sigmoid_flag ) {
@@ -420,6 +381,8 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
          A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
       }
       if (inverse_flag) A[kex] = 1.0f - A[kex];
+      // At this point A[kex] is in kilohertz; A*dt makes activity dimensionless and timestep-independent
+      A[kex] *= dt;
    }
    return PV_SUCCESS;
 }

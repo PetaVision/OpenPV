@@ -46,7 +46,7 @@
  *      - After ABS_REFRACTORY_PERIOD the spiking probability
  *        grows exponentially to probBase and probStim respectively.
  *      - The burst of the retina is periodic with period T set by
- *        T = 1000/burstFreq in miliseconds
+ *        T = 1000/burstFreq in milliseconds
  *      - When the time t is such that mT < t < mT + burstDuration, where m is
  *        an integer, the burstStatus is set to 1.
  *      - The burstStatus is also determined by the condition that
@@ -62,13 +62,29 @@
  *      - time is measured in milliseconds.
  *
  */
+
+static inline
+float calcBurstStatus(float timef, CL_MEM_CONST Retina_params * params) {
+   float burstStatus;
+   if (params->burstDuration <= 0 || params->burstFreq == 0) {
+      // sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
+      burstStatus = COS( 2*PI*timef * params->burstFreq / 1000. );
+   }
+   else {
+      burstStatus = FMOD(timef, 1000. / params->burstFreq);
+      burstStatus = burstStatus < params->burstDuration;
+   }
+   burstStatus *= (int) ( (timef >= params->beginStim) && (timef < params->endStim) );
+   return burstStatus;
+}
+
 static inline
 int spike(float time, float dt,
-          float prev, float stimFactor, uint4 * rnd_state, CL_MEM_CONST Retina_params * params)
+          float prev, float stimFactor, uint4 * rnd_state, float burst_status, CL_MEM_CONST Retina_params * params)
 {
    float probSpike;
-   float burstStatus = 1;
-   float sinAmp = 1.0;
+   // float burstStatus = 1;
+   // float sinAmp = 1.0;
 
    // input parameters
    //
@@ -88,20 +104,25 @@ int spike(float time, float dt,
       probStim *= refact;
    }
 
-   if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
-   }
-   else {
-      burstStatus = FMOD(time, 1000. / params->burstFreq);
-      burstStatus = burstStatus <= params->burstDuration;
-   }
+   // burstStatus = calcBurstStatus(time, params);
+//   if (params->burstDuration <= 0 || params->burstFreq == 0) {
+//      // sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
+//      burstStatus = COS( 2*PI*time * params->burstFreq / 1000. );
+//   }
+//   else {
+//      burstStatus = FMOD(time, 1000. / params->burstFreq);
+//      burstStatus = burstStatus <= params->burstDuration;
+//   }
 
-   burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
+//   burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
    probSpike = probBase;
 
-   if ((int)burstStatus) {
-      probSpike += probStim * sinAmp;  // negative prob is OK
-   }
+//   if ((int)burstStatus) {
+//      probSpike += probStim * sinAmp;  // negative prob is OK
+//   }
+   probSpike += probStim * burst_status;  // negative prob is OK
+
+   probSpike *= dt; // convert rate from number of spikes per millisecond to number of spikes in dt.
 
    *rnd_state = cl_random_get(*rnd_state);
    int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
@@ -133,6 +154,7 @@ void Retina_spiking_update_state (
     CL_MEM_GLOBAL float * prevTime)
 {
    int k;
+   float burst_status = calcBurstStatus(time, params);
 #ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
 #else
@@ -155,7 +177,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_prev   = prevTime[kex];
    float l_activ;
 
-   l_activ = (float) spike(time, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, params);
+   l_activ = (float) spike(time, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
    l_prev  = (l_activ > 0.0f) ? time : l_prev;
 
    l_phiExc = 0.0f;
@@ -198,6 +220,7 @@ void Retina_nonspiking_update_state (
     CL_MEM_GLOBAL float * activity)
 {
    int k;
+   float burstStatus = calcBurstStatus(time, params);
 #ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
 #else
@@ -219,7 +242,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_activ;
 
    // adding base prob should not change default behavior
-   l_activ = params->probStim*(l_phiExc - l_phiInh) + params->probBase;
+   l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
+//   if (l_activ != 0.0f && burstStatus != 1.0f)
+//       l_activ *= burstStatus;
 
    l_phiExc = 0.0f;
    l_phiInh = 0.0f;
