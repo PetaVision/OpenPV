@@ -69,7 +69,7 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
 
             //int successFlag = calcWeights(get_wDataHead[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
             //int successFlag = calcWeights(callingConn->get_wDataHead(arbor, patchIndex), patchIndex /*correctedPatchIndex*/, arbor, weightParams);
-            int successFlag = calcWeights(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
+            int successFlag = calcWeightsBIDS(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
@@ -94,7 +94,7 @@ InitWeightsParams * InitBIDSLateral::createNewWeightParams(HyPerConn * callingCo
    return tempPtr;
 }
 
-int InitBIDSLateral::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn){
+int InitBIDSLateral::calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn){
     InitBIDSLateralParams *weightParamPtr = dynamic_cast<InitBIDSLateralParams*> (weightParams);
 
     if(weightParamPtr==NULL) {
@@ -162,7 +162,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       int preCoordx = coords[kPreRes].xCoord;
 
       //the principle node's mathematical position (BIDS space)
-      int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids);
+      // int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids); // kPreResy unused since we assume jitter in x and y directions are the same
       int kPreResx = kxPos(kPreRes, nxBids, nyBids, nfBids);
 
       //the principle node's mathematical position (HyPerCol space)

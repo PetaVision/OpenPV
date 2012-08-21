@@ -67,7 +67,7 @@ int InitBIDSWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
 
             //int successFlag = calcWeights(get_wDataHead[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
             //int successFlag = calcWeights(callingConn->get_wDataHead(arbor, patchIndex), patchIndex /*correctedPatchIndex*/, arbor, weightParams);
-            int successFlag = calcWeights(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
+            int successFlag = calcWeightsBIDS(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
@@ -92,7 +92,7 @@ InitWeightsParams * InitBIDSWeights::createNewWeightParams(HyPerConn * callingCo
    return tempPtr;
 }
 
-int InitBIDSWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn){
+int InitBIDSWeights::calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn){
     InitBIDSWeightsParams *weightParamPtr = dynamic_cast<InitBIDSWeightsParams*> (weightParams);
 
     if(weightParamPtr==NULL) {
