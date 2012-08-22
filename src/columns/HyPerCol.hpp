@@ -102,8 +102,10 @@ public:
    int numCommRows()                      {return icComm->numCommRows();}
 
    // a random seed based on column id
+   unsigned long getSeed() { return random_seed; }
+
    unsigned long getRandomSeed()
-      {return (unsigned long) time((time_t *) NULL) / (1 + columnId());}
+      {return (unsigned long) time((time_t *) NULL); } // Aug 21, 2012: Division by 1+columnId() moved to calling routine}
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
@@ -182,6 +184,8 @@ private:
                                    // Value 0: layers have form a5.pvp
                                    // Value 1: layers have form a5_NameOfLayer.pvp
                                    // Value 2: layers have form NameOfLayer.pvp
+
+   unsigned long random_seed;
 
 }; // class HyPerCol
 

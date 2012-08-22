@@ -167,7 +167,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    image_file = NULL;
    param_file = NULL;
    working_dir = NULL;
-   unsigned long random_seed = 0;
+   random_seed = 0;
    deleteOlderCheckpoints = false;
    parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
@@ -263,6 +263,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          printf("Using time to get random seed. Seed set to %lu\n", random_seed);
       }
    }
+   random_seed += 1+columnId();
    pv_srandom(random_seed); // initialize random seed
 
    nxGlobal = (int) params->value(name, "nx");
