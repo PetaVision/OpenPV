@@ -254,16 +254,26 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 #endif
 
    // set random seed if it wasn't set in the command line
+   bool seedfromclock = false;
    if( !random_seed ) {
       if( params->present(name, "randomSeed") ) {
          random_seed = params->value(name, "randomSeed");
       }
       else {
          random_seed = getRandomSeed();
-         printf("Using time to get random seed. Seed set to %lu\n", random_seed);
+         seedfromclock = true;
       }
    }
-   random_seed += 1+columnId();
+   if (random_seed < 10000000) {
+      fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.", random_seed);
+   }
+   random_seed /= 1+columnId();
+   if (seedfromclock) {
+      if (icComm->commRank()==0) {
+         printf("Using time to get random seed.\n");
+      }
+      printf("Rank %d process seed set to %lu\n", icComm->commRank(), random_seed);
+   }
    pv_srandom(random_seed); // initialize random seed
 
    nxGlobal = (int) params->value(name, "nx");
