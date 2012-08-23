@@ -48,6 +48,8 @@ public:
 #ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
    virtual int writeState(float timef, bool last=false);
 #endif // OBSOLETE
+   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointWrite(const char * cpDir);
 
 protected:
    Retina();

@@ -289,6 +289,146 @@ int Retina::setParams(PVParams * p)
    return 0;
 }
 
+int Retina::checkpointRead(const char * cpDir, float * timef) {
+   int status = HyPerLayer::checkpointRead(cpDir, timef);
+
+   char filename[PV_PATH_MAX];
+   int chars_needed;
+   int rootproc = 0;
+   InterColComm * ic_comm = parent->icCommunicator();
+   int rank = ic_comm->commRank();
+   const MPI_Comm mpi_comm = ic_comm->communicator();
+   if (rank==rootproc) {
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
+      if(chars_needed >= PV_PATH_MAX) {
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
+         }
+         abort();
+      }
+      FILE * fp_rand_state = fopen(filename, "r");
+      if (fp_rand_state==NULL) {
+         fprintf(stderr, "Retina::checkpointReading error: unable to open path %s for reading.\n", filename);
+         abort();
+      }
+      int comm_size;
+      int num_read = fread(&comm_size, sizeof(int), 1, fp_rand_state);
+      if (num_read != 1) {
+         fprintf(stderr, "Retina::checkpointRead error while reading size information from \"%s\".\n", filename);
+         abort();
+      }
+      MPI_Bcast(&comm_size, 1, MPI_INT, rootproc, mpi_comm);
+      if (comm_size != ic_comm->commSize()) {
+         fprintf(stderr, "Retina::checkpointRead warning.  \"%s\" was run under %d processes, but this run has %d processes.", filename, comm_size, ic_comm->commSize());
+         fprintf(stderr, "Will use random state set during initialization.\n");
+      }
+      else {
+         uint4 * mpi_rand_state = (uint4 *) calloc(comm_size, sizeof(uint4));
+         if (mpi_rand_state==NULL) {
+            fprintf(stderr, "Retina::checkpointRead unable to allocate memory for mpi_rand_state.\n");
+            abort();
+         }
+         for (int r=0; r<comm_size; r++) {
+            num_read = fread(&mpi_rand_state[r], sizeof(mpi_rand_state[r]), 1, fp_rand_state);
+            if (num_read != 1) {
+               fprintf(stderr, "Retina::checkpointRead error while reading rand_state of rank %d from %s.\n", r, filename);
+               abort();
+            }
+            if (r==rootproc) {
+               memcpy(rand_state, &mpi_rand_state[rootproc], sizeof(uint4));
+            }
+            else {
+               MPI_Send(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, mpi_comm);
+            }
+         }
+      fclose(fp_rand_state);
+      }
+   }
+   else {
+      int comm_size;
+      MPI_Bcast(&comm_size, 1, MPI_INT, rootproc, mpi_comm);
+      if (comm_size == ic_comm->commSize()) {
+         MPI_Recv(rand_state, sizeof(uint4), MPI_BYTE, rootproc, 171+rank/*tag*/, mpi_comm, MPI_STATUS_IGNORE);
+      }
+   }
+   return status;
+}
+int Retina::checkpointWrite(const char * cpDir) {
+   int status = HyPerLayer::checkpointWrite(cpDir);
+
+   // Save rand_state to checkpoint.  In MPI, each process has a different rand_state.
+   // The *_rand_state.bin file has length sizeof(int) + commSize * 4 * sizeof(uint) where commSize is the number of MPI processes (1 if non-MPI run).
+   // The first sizeof(int) bytes contains commSize.
+   // Bytes sizeof(int)+1 through sizeof(int)+4*sizeof(uint) contain the rand_state of process 0.
+   // The next 4*sizeof(uint) bytes contain the rand_state of process 1, and so on.
+   char filename[PV_PATH_MAX];
+   int chars_needed;
+   int rootproc = 0;
+   InterColComm * ic_comm = parent->icCommunicator();
+   int rank = ic_comm->commRank();
+   const MPI_Comm mpi_comm = ic_comm->communicator();
+   if (rank==rootproc) {
+      int comm_size = ic_comm->commSize();
+
+      uint4 * mpi_rand_state = (uint4 *) calloc(comm_size, sizeof(uint4));
+      if (mpi_rand_state==NULL) {
+         fprintf(stderr, "Retina::checkpointWrite unable to allocate memory for mpi_rand_state.\n");
+         abort();
+      }
+      memcpy(&mpi_rand_state[rootproc], rand_state, sizeof(uint4));
+      for (int r=0; r<comm_size; r++) {
+         if (r==rootproc) continue;
+         MPI_Recv(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, mpi_comm, MPI_STATUS_IGNORE);
+      }
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
+      if(chars_needed >= PV_PATH_MAX) {
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
+         }
+         abort();
+      }
+      FILE * fp_rand_state = fopen(filename, "w");
+      if (fp_rand_state==NULL) {
+         fprintf(stderr, "Retina::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = fwrite(&comm_size, sizeof(int), 1, fp_rand_state);
+      if (num_written != 1) {
+         fprintf(stderr, "Retina::checkpointWrite error while writing size information to %s.\n", filename);
+         abort();
+      }
+      for (int r=0; r<comm_size; r++) {
+         num_written = fwrite(&mpi_rand_state[r], sizeof(*rand_state), 1, fp_rand_state);
+         if (num_written != 1) {
+            fprintf(stderr, "Retina::checkpointWrite error while saving rand_state of rank %d from %s.\n", r, filename);
+            abort();
+         }
+      }
+      fclose(fp_rand_state);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.txt", cpDir, name);
+      assert(chars_needed < PV_PATH_MAX);
+      fp_rand_state = fopen(filename, "w");
+      if (fp_rand_state==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      if (comm_size>1) {
+         fprintf(fp_rand_state, "MPI using %d processes\n", comm_size);
+      }
+      else {
+         fprintf(fp_rand_state, "Non-MPI run\n");
+      }
+      for (int r=0; r<comm_size; r++) {
+         fprintf(fp_rand_state, "Rank %d: %10u %10u %10u %10u\n", r, mpi_rand_state[r].s0, mpi_rand_state[r].s1, mpi_rand_state[r].s2, mpi_rand_state[r].s3);
+      }
+      fclose(fp_rand_state);
+   }
+   else {
+      MPI_Send(rand_state, sizeof(uint4), MPI_BYTE, rootproc, 171+rank/*tag*/, mpi_comm);
+   }
+   return status;
+}
+
 
 int Retina::updateStateOpenCL(float time, float dt)
 {
