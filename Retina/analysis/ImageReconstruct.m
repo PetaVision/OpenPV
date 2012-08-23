@@ -94,7 +94,7 @@ if FWHM(cell) == 0
 end %if
  
 fb(cell) = ((1/(FWHM(cell)*2*pi))^2)*1000;
-fc(cell) = freq(cell);
+fc(cell) = freq(cell)/1000;
 
 % Set support and grid parameters
 lb = 1;
@@ -111,9 +111,10 @@ wav = zeros(length(poscenter9),numframes);
   for j = 1:length(poscenter9)
       displ = -poscenter9(j);
       wav(j,:) = cmorwavf(lb,ub,n,fb(cell),fc(cell),displ);
+      wav(j,:) = wav(j,:).*poscenter9(j);
   end %for j wav
 
-oscwave(cell,:) = sum(abs(wav),1); 
+oscwave(cell,:) = real(sum(wav,1)); 
 
 %----------------------------------------------------------------Smart LGN cell---------------------------------------------------------
 
@@ -191,12 +192,19 @@ end %for cell
 figure(3);
 clf;
 
+% Plot neighbours
+
+subplot(5,1,1);
+
+plot(rtime,center9(8128,:));
+
+
 % Plots CMW wave of neighbourhood
-subplot(4,1,1);
+subplot(5,1,2);
 plot(rtime,oscwave(8128,:))
 
 % Plots ranges
-subplot(4,1,2);
+subplot(5,1,3);
 for l = 1:length(LGNrange(8128,1,:))
 x1 = [LGNrange(8128,1,l),LGNrange(8128,1,l)];
 x2 =  [LGNrange(8128,2,l),LGNrange(8128,2,l)];
@@ -204,9 +212,9 @@ y = [1,2];
 line(x1,y);
 line(x2,y);
 end %for length(center cell range)
-
+axis([0 200 1 2]);
 % Plots all spikes
-subplot(4,1,3);
+subplot(5,1,4);
 
 spikescenter = zeros(1,length(rtime));
 poscenter = find(Gcells(64,64,:));
@@ -218,7 +226,7 @@ end %for
 plot(rtime,spikescenter);
 
 % Plots spikes to the LGN
-subplot(4,1,4);
+subplot(5,1,5);
 
 posvals = zeros(1,length(rtime));
 
