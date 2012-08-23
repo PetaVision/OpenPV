@@ -35,6 +35,8 @@ phase_LGN = zeros(1,run);
 FWHMg = zeros(1,run);
 FWHMlgn = zeros(1,run);
 
+sig = 0.001;
+
 % Reading in center and neighbour activities for "run" runs
 for m = 1:run
 
@@ -99,8 +101,8 @@ end %if
 
 % Set bandwith and center frequency parameters
 
-fb = (1/(2*pi*FWHMg(m)))^2;
-fc = freq(m);
+fb = ((1/(2*pi*FWHMg(m)))^2)/2;
+fc = freq(m)/2;
 
 % Set support and grid parameters
 
@@ -121,6 +123,8 @@ wav = zeros(length(ind),2*length(N1_A));
     phase_all(m,j) = angle(wav(j,length(rtimefine)/2));
 
   end %for j wav
+
+plot(rtimefine,wav(length(ind),:));
 
  rtime_all(m,:) = rtime;
 
@@ -158,27 +162,45 @@ k = theta(2,:);
 if k < 0
 mu = mu - pi;
 end %if
+if mu < -pi
+mu = mu + 2*pi;
+end %if % Phases were between -2pi and 0
 
 phase_G(m) = mu
 
 
-% Gar's idea (didn't work)
-%phase_G(m) = phase_all(m,end);
+% Gar's idea
 
-%  if phase_G(m) == 0
-%  phase_G(m) = phase_all(m,end-1);
-%  end % if phase is zero
+%ind = find(Allsums(m,1:length(Allsums(m,:))/2));
+%gau = zeros(length(ind),time*1000);  
+%lam = zeros(1,length(ind));
+%Max = zeros(1,length(ind));
+%gwave = zeros(run,length(N1_A));
 
-%phase_G
+%for j = 1:length(ind)
 
-figure(3);
-clf;
-plot(rtimefine,wav(length(ind),:));
+%lam(j) = -time/2+0.001*ind(j);
+%gau(j,:) = normpdf(rtimefine(1:length(rtime)),lam(j),sig);
+%Max(j) = max(gau(j,:));
+%gau(j,:) = (gau(j,:)./Max(j))*Allsums(m,ind(j));
+%gwave(m,:) = gwave(m,:) + gau(j,:);
+
+%end %for j
+
+%for i = 2:length(gwave(m,:))-1
+%   if (gwave(m,i) > gwave(m,i+1)) && (gwave(m,i) > gwave(m,i-1))
+%      pklocs(m) = rtimefine(i);
+%   end %if peak of gwave
+%end %for i
+
+%tfromz(m) = 0-pklocs(m);
+
+%phase_G(m) = rem(tfromz(m),1/freq(m))
 
 ind_long = find(Allsums(m,:));
 
    for j = 1:length(ind_long)
-      rtime_all(m,ind_long(j)) = rtime_all(m,ind_long(j)) + phase_G(m)/(2*pi*freq(m));
+      rtime_all(m,ind_long(j)) = rtime_all(m,ind_long(j)) + phase_G(m)/(pi*freq(m));
    end %for j
 
 end %for %run
@@ -236,8 +258,8 @@ end %if
 
 % Set bandwith and center frequency parameters
 
-fb = (1/(FWHMlgn(m)*2*pi))^2;
-fc = freq(m);
+fb = ((1/(FWHMlgn(m)*2*pi))^2)/2;
+fc = freq(m)/2;
 
 % Set support and grid parameters
 
@@ -291,8 +313,11 @@ k = theta(2,:);
 if k < 0
 mu = mu - pi;
 end %if
+if mu < -pi
+mu = mu + 2*pi;
+end %if  % Phases were between -2pi and 0
 
-phase_LGN(m) = mu
+phase_LGN(m) = mu;
 
 figure(4);
 clf;
@@ -314,7 +339,7 @@ ind_long = find(LGN(m,:));
 % Phase shift
 
    for j = 1:length(ind_long)
-      rtime_LGN(m,ind_long(j)) = rtime_LGN(m,ind_long(j)) + phase_LGN(m)/(2*pi*freq(m));
+      rtime_LGN(m,ind_long(j)) = rtime_LGN(m,ind_long(j)) + phase_LGN(m)/(pi*freq(m));
    end %for j
 
 end %for %run
