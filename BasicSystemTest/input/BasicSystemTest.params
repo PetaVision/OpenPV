@@ -9,19 +9,20 @@
 //  basic functionality
 //
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
-   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 10;
    progressStep = 10;
    outputPath = "output/";
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //

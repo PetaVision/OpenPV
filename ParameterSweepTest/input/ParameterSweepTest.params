@@ -7,13 +7,13 @@
 //  A params file for testing parameter sweeps
 //
 
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 16;   
    ny = 16;
    dt = 1.0;
-   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   randomSeed = 1946576187;  // if not set here,  clock time is used to generate seed
    numSteps = 10;
    progressStep = 10;
    //outputPath = "output/";
