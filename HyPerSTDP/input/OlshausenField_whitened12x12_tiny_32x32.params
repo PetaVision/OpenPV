@@ -1,5 +1,5 @@
 //
-// STDP params
+// STDP 3 params
 //
 // TO TRY: 1 - normalize input weights
 // Use delays in the STDPConn?
@@ -11,17 +11,17 @@ HyPerCol "column" = {
    ny = 12;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 5000;
+   numSteps = 25000;
    progressStep = 100;
-   outputPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened12x12_tiny";
+   outputPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDP3generalNS/OlshausenField_whitened12x12_tiny";
    filenamesContainLayerNames = 2;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
    
    checkpointRead = false;
    checkpointWrite = true;
-   checkpointReadDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened12x12_tiny/checkpoints";
+   checkpointReadDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDP3generalNS/OlshausenField_whitened12x12_tiny/checkpoints";
    checkpointReadDirIndex = 0;
-   checkpointWriteDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened12x12_tiny/checkpoints";
+   checkpointWriteDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDP3generalNS/OlshausenField_whitened12x12_tiny/checkpoints";
    checkpointWriteStepInterval = 1000;
    deleteOlderCheckpoints = false;
    
@@ -332,7 +332,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-STDPConn "RetinaONtoS1" = {
+STDP3Conn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "S1";
    channelCode = 0;
@@ -357,6 +357,7 @@ STDPConn "RetinaONtoS1" = {
    ampLTD = 0.0095;
    tauLTP = 1;
    tauLTD = 21;
+   tauY = 114;
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
@@ -384,7 +385,7 @@ STDPConn "RetinaONtoS1" = {
 };
 
 
-STDPConn "RetinaOFFtoS1" = {
+STDP3Conn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "S1";
    channelCode = 0;
@@ -409,6 +410,7 @@ STDPConn "RetinaOFFtoS1" = {
    ampLTD = 0.0095;
    tauLTP = 1;
    tauLTD = 21;
+   tauY = 114;
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
