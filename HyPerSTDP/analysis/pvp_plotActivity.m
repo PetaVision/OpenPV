@@ -1,14 +1,24 @@
 %Function for plotting activity from the STDP experiment
 
-debug_on_error(0);
 clear all; close all; more off;
+
+setenv("GNUTERM", "x11");
+debug_on_error(0);
+global ROTATE_FLAG = 0
+
 addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/mlab/')
 
-output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneral/orient_36r/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_raw12x12_tiny/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_1r/';
+output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened12x12_tiny/';
   
 %filename = {'S1Inh.pvp', 'S1.pvp', 'RetinaON.pvp'};
 %filename = {'S1.pvp'};
+%filename = {'S1Inh.pvp'};
 filename = {'RetinaON.pvp'};
+%filename = {'RetinaOFF.pvp'};
 plot_on = 0;
 
 %1. Read file

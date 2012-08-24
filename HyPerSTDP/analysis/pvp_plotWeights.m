@@ -1,13 +1,17 @@
 %Function for plotting STDP weights
 
+setenv("GNUTERM", "x11");
+
 debug_on_error(0);
 close all; more off;
 addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/mlab/')
 
-output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/';
-  
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_simple/';
+output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_36r/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_1r/';
+
 %names = {'w4_last.pvp', 'w5_last.pvp'} %pre point of view
-names = {'w2_post.pvp'} %post point of view
+names = {'w4_post.pvp'} %post point of view
 %names = {'Last/S1InhtoS1_W.pvp'}
 %names = {'Last/ImagetoRetinaONCenter_W.pvp'}
 timestep = 100;
