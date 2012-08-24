@@ -132,6 +132,14 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=ParameterSweepTest
+cd "$testname"
+arglist="-p input/ParameterSweepTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
+
 testname=PlasticConnTest
 cd "$testname"
 arglist="-p input/PlasticConnTest.params"
