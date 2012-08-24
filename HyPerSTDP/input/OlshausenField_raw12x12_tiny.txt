@@ -1,0 +1,3 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/12x12_small/12x12_i7_s6.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/12x12_small/12x12_i7_s7.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/raw/12x12_small/12x12_i7_s8.png

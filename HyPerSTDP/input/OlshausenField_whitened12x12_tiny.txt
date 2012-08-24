@@ -1,0 +1,7 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i1_s10.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i1_s75.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i1_s139.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i1_s103.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i2_s72.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i2_s262.jpg
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField/whitened/12x12/12x12_i2_s270.jpg

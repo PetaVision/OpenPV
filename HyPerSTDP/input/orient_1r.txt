@@ -1,0 +1,2 @@
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_40_deg.png
+/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient/r_130_deg.png

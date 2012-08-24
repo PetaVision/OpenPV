@@ -1,19 +1,31 @@
 //
-// params.geisler
-//  - input parameters for geisler.cpp, a study of geisler kernels with amoeba/no-amoeba images
+// STDP params
 //
-// TO TRY: 1 - Force WTA in weights update, 2 - normalize input weights, 3 - mirrorFlag
+// TO TRY: 1 - normalize input weights
+// Use delays in the STDPConn?
+
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 32;   // until we get going with images
    ny = 32;
    dt = 1.0;
-   randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 500;
+   //randomSeed = 1;  // if not set by hand, else use clock time to generate seed
+   numSteps = 5000;
    progressStep = 100;
-   outputPath = "./output";
+   outputPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_raw32x32_tinyAll";
    filenamesContainLayerNames = 2;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+   
+   checkpointRead = false;
+   checkpointWrite = true;
+   checkpointReadDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_raw32x32_tinyAll/checkpoints";
+   checkpointReadDirIndex = 0;
+   checkpointWriteDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_raw32x32_tinyAll/checkpoints";
+   checkpointWriteStepInterval = 1000;
+   deleteOlderCheckpoints = false;
+   
+   printParamsFilename = "OlshausenField_raw32x32_tinyAll.params";
 };
 
 //
@@ -25,15 +37,14 @@ Movie "Image" = {
     //imageListPath = "./input/t_trainFiles_Animals.txt";
     //imageListPath = "./input/32x32AnimalPatches.txt";
     //imageListPath = "./input/OlshausenField_whitened32x32.txt";
-    imageListPath = "./input/orient_simple.txt";
-    //imageListPath = "./input/orient_10r.txt";
+    imageListPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/input/OlshausenField_raw32x32_tinyAll.txt";
     //imageListPath = "./input/OlshausenField_raw32x32_tiny.txt";
     //imageListPath = "./input/t_trainFiles_760.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
+    marginWidth = 1;
     writeStep = 0;
     mirrorBCflag = 0;
     spikingFlag = 0;
@@ -45,6 +56,9 @@ Movie "Image" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useParamsImage = true;
+    echoFramePathnameFlag = false;
+    start_frame_index = 0;
 };
 
 
@@ -59,9 +73,9 @@ Retina "RetinaON" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value
+    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
- 	burstFreq = 50;      // Hz
+ 	burstFreq = 100;      // Hz
     burstDuration = 15;  // ms
 
     //beginStim = 1;
@@ -84,9 +98,9 @@ Retina "RetinaOFF" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value
+    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
- 	burstFreq = 50;      // Hz
+ 	burstFreq = 100;      // Hz
     burstDuration = 15;  // ms
 
     //beginStim = 1;
@@ -122,18 +136,18 @@ LIF "S1" = {
    	tauVth = 10.0;
    	deltaVth = 5.0;
 
-//   	noiseFreqE = 250.0;
-//   	noiseFreqI = 250.0;
-//   	noiseFreqIB = 250.0;
-//   	noiseAmpE = 0.5;
-//   	noiseAmpI= 0.5;
-//   	noiseAmpIB = 0.0;
-   	noiseFreqE = 0;
-   	noiseFreqI = 0;
-   	noiseFreqIB = 0;
-   	noiseAmpE = 0;
-   	noiseAmpI= 0;
-   	noiseAmpIB = 0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;
+   	noiseAmpIB = 0.0;
+//   	noiseFreqE = 0;
+//   	noiseFreqI = 0;
+//   	noiseFreqIB = 0;
+//   	noiseAmpE = 0;
+//   	noiseAmpI= 0;
+//   	noiseAmpIB = 0;
    	
    	//no = 1.0;
 };
@@ -162,19 +176,19 @@ LIF "S1Inh" = {
    	tauVth = 10.0;
    	deltaVth = 5.0;
 
-//   	noiseFreqE = 250.0;
-//   	noiseFreqI = 250.0;
-//   	noiseFreqIB = 250.0;
-//   	noiseAmpE = 0.5;
-//   	noiseAmpI= 0.5;
-//   	noiseAmpIB = 0.0;
+   	noiseFreqE = 250.0;
+   	noiseFreqI = 250.0;
+   	noiseFreqIB = 250.0;
+   	noiseAmpE = 0.5;
+   	noiseAmpI= 0.5;
+   	noiseAmpIB = 0.0;
 
-   	noiseFreqE = 0;
-    noiseFreqI = 0;
-    noiseFreqIB = 0;
-    noiseAmpE = 0;
-    noiseAmpI= 0;
-    noiseAmpIB = 0;
+//   	noiseFreqE = 0;
+//    noiseFreqI = 0;
+//    noiseFreqIB = 0;
+//    noiseAmpE = 0;
+//    noiseAmpI= 0;
+//    noiseAmpIB = 0;
 };
 
 
@@ -201,11 +215,11 @@ KernelConn "ImagetoRetinaONCenter" = {
 
    aspect = 1;
    sigma = 1;
-   rMax  = 1;
-   
-   strength =  100.0;
-   //strength =  25500.0;
+   rMax  = 1;   
+   strength = 1000;
    weightInitType = "InitGauss2DWeights";
+   //strength =  25500.0;
+   
    
    //wMaxInit = 100;
    //wMinInit = 100;
@@ -233,12 +247,12 @@ KernelConn "ImagetoRetinaONSurround" = {
    weightInitType = "InitGauss2DWeights";
    aspect = 1;
    sigma = 1;
-   rMax = 100;
+   rMax = 5;
    rMin = 0;
 
-   strength = 100.0;
+   strength = 1000;
    //strength =  25500.0;
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
@@ -267,7 +281,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    //wMinInit = 100;
    //weightInitType = "UniformRandomWeight";
    
-   strength =  100.0;
+   strength = 1000;
    //strength =  25500.0;
    normalize = false;
    normalize_zero_offset = 0.0;
@@ -275,6 +289,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    symmetrizeWeights = 0;
    delay = 0;
 };
+
 
 KernelConn "ImagetoRetinaOFFSurround" = {
    preLayerName = "Image";
@@ -292,15 +307,15 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    weightInitType = "InitGauss2DWeights";
    aspect = 1;
    sigma = 1;
-   rMax = 100;
+   rMax = 5;
    rMin = 0;
 
    //   aspect = 1;
    //   sigma = 1;
    //   rMax  = 100;
-   strength = 100.0;
+   strength = 1000;
    //strength =  25500.0;
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    symmetrizeWeights = 0;
@@ -322,25 +337,25 @@ STDPConn "RetinaONtoS1" = {
    nfp = 1;
    
    stdpFlag   = 1;
-   initFromLastFlag = 0;  // 1;  // restart
+   initFromLastFlag = 0;  // 1;  /dr/ restart
    writeStep = 100;
 
    wMin = 0.001;
-   wMax = 100;
+   wMax = 5;
    dWMax = 1;  // .01;
 
    normalize = false;
    normalize_max = true;
    normalize_zero_offset = 0.0;
-   strength = 10;
+   //strength = 10;
    
-   ampLTP = 0.01;
-   ampLTD = 0.0085; //1.2 1.1;
-   tauLTP = 20;
-   tauLTD = 30;
+   ampLTP = 0.1;
+   ampLTD = 0.01;
+   tauLTP = 1;
+   tauLTD = 32;
    
-   wMaxInit = 1;
-   wMinInit = 0.5;
+   wMaxInit = 0.002;
+   wMinInit = 0.0005;
    //localWmaxFlag = 0.0;
    
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
@@ -349,17 +364,11 @@ STDPConn "RetinaONtoS1" = {
    selfFlag = false;
 
    weightInitType = "UniformRandomWeight";
-   
-   //initFromLastFlag = false;
-   //weightInitType = "FileWeight";
-   //initWeightsFile = "input/weightsB.pvp";
-   //useListOfArborFiles = false;
-   //combineWeightFiles = false;
    //weightInit = 0;
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = true;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
@@ -381,21 +390,21 @@ STDPConn "RetinaOFFtoS1" = {
    writeStep = 100;
 
    wMin = 0.001;
-   wMax = 100;
+   wMax = 5;
    dWMax = 1;  // .01;
 
    normalize = false;
    normalize_max = true;
    normalize_zero_offset = 0.0;
-   strength = 10;
+   //strength = 10;
    
-   ampLTP = 0.01;
-   ampLTD = 0.085; //1.2 1.1;
-   tauLTP = 20;
-   tauLTD = 30;
+   ampLTP = 0.1;
+   ampLTD = 0.01;
+   tauLTP = 1;
+   tauLTD = 32;
    
-   wMaxInit = 1;
-   wMinInit = 0.5;
+   wMaxInit = 0.002;
+   wMinInit = 0.0005;
    //localWmaxFlag = 0.0;
    
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
@@ -408,7 +417,7 @@ STDPConn "RetinaOFFtoS1" = {
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = true;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
@@ -461,7 +470,6 @@ KernelConn "S1InhtoS1" = {
 
       stdpFlag   = 0;
       initFromLastFlag = 0;  // 1;  // restart
-      //gauss2DCalcWeights = 1;
       writeStep = -1;
 
       weightInitType = "InitGauss2DWeights";
@@ -545,9 +553,4 @@ KernelConn "S1InhtoS1" = {
 //    fLoc = 0;
 //    writeStep = 1;
 //};
-
-
-
-
-
 

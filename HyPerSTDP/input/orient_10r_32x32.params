@@ -1,19 +1,28 @@
 //
-// params.geisler
-//  - input parameters for geisler.cpp, a study of geisler kernels with amoeba/no-amoeba images
+// STDP params
 //
-// TO TRY: 1 - Force WTA in weights update, 2 - normalize input weights, 3 - mirrorFlag
+// TO TRY: 1 - normalize input weights
 
 HyPerCol "column" = {
    nx = 32;   // until we get going with images
    ny = 32;
    dt = 1.0;
    randomSeed = 1;  // if not set by hand, else use clock time to generate seed
-   numSteps = 500;
+   numSteps = 15220;
    progressStep = 100;
-   outputPath = "./output";
+   outputPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_10r";
    filenamesContainLayerNames = 2;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+   
+   checkpointRead = true;
+   checkpointWrite = false;
+   checkpointReadDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_10r/checkpoints";
+   checkpointReadDirIndex = 15000;
+   checkpointWriteDir = "/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_10r/checkpoints";
+   checkpointWriteStepInterval = 100;
+   deleteOlderCheckpoints = false;
+   
+   printParamsFilename = "orient_10r.params";
 };
 
 //
@@ -25,8 +34,7 @@ Movie "Image" = {
     //imageListPath = "./input/t_trainFiles_Animals.txt";
     //imageListPath = "./input/32x32AnimalPatches.txt";
     //imageListPath = "./input/OlshausenField_whitened32x32.txt";
-    imageListPath = "./input/orient_simple.txt";
-    //imageListPath = "./input/orient_10r.txt";
+    imageListPath = "/Users/rcosta/Documents/workspace/HyPerSTDP/input/orient_10r.txt";
     //imageListPath = "./input/OlshausenField_raw32x32_tiny.txt";
     //imageListPath = "./input/t_trainFiles_760.txt";
     restart = 0;
@@ -45,6 +53,9 @@ Movie "Image" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useParamsImage = true;
+    echoFramePathnameFlag = true;
+    start_frame_index = 0;
 };
 
 
@@ -199,17 +210,16 @@ KernelConn "ImagetoRetinaONCenter" = {
    //gauss2DCalcWeights = 1;
    writeStep = -1;
 
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;
+   //aspect = 1;
+   //sigma = 1;
+   //rMax  = 1;
    
-   strength =  100.0;
+   //strength =  10.0;
    //strength =  25500.0;
-   weightInitType = "InitGauss2DWeights";
-   
-   //wMaxInit = 100;
-   //wMinInit = 100;
-   //weightInitType = "UniformRandomWeight";
+
+   wMaxInit = 100;
+   wMinInit = 100;
+   weightInitType = "UniformRandomWeight";
 
    normalize = false;
    normalize_zero_offset = 0.0;
@@ -218,32 +228,31 @@ KernelConn "ImagetoRetinaONCenter" = {
    delay = 0;
 };
 
-KernelConn "ImagetoRetinaONSurround" = {
-   preLayerName = "Image";
-   postLayerName = "RetinaON";
-   channelCode = 1;
-   nxp = 3;
-   nyp = 3;
-   nfp = 1;
-
-   stdpFlag   = 0;
-   initFromLastFlag = 0;
-   writeStep = -1;
-
-   weightInitType = "InitGauss2DWeights";
-   aspect = 1;
-   sigma = 1;
-   rMax = 100;
-   rMin = 0;
-
-   strength = 100.0;
-   //strength =  25500.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
-   delay = 0;
-};
+//KernelConn "ImagetoRetinaONSurround" = {
+//   preLayerName = "Image";
+//   postLayerName = "RetinaON";
+//   channelCode = 1;
+//   nxp = 3;
+//   nyp = 3;
+//   nfp = 1;
+//
+//   stdpFlag   = 0;
+//   initFromLastFlag = 0;
+//   gauss2DCalcWeights = 1;
+//   writeStep = -1;
+//
+//   aspect = 1;
+//   sigma = 1;
+//   rMax  = 100;
+//
+//   strength =  10.0;
+//   //strength =  25500.0;
+//   normalize = 1.0;
+//   normalize_zero_offset = 0.0;
+//   normalize_max = 0.0;
+//   symmetrizeWeights = 0;
+//   delay = 0;
+//};
 
 
 KernelConn "ImagetoRetinaOFFCenter" = {
@@ -259,15 +268,14 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    //gauss2DCalcWeights = 1;
    writeStep = -1;
 
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;
-   weightInitType = "InitGauss2DWeights";
-   //wMaxInit = 100;
-   //wMinInit = 100;
-   //weightInitType = "UniformRandomWeight";
+//   aspect = 1;
+//   sigma = 1;
+//   rMax  = 1;
+   wMaxInit = 100;
+   wMinInit = 100;
+   weightInitType = "UniformRandomWeight";
    
-   strength =  100.0;
+//   strength =  10.0;
    //strength =  25500.0;
    normalize = false;
    normalize_zero_offset = 0.0;
@@ -276,36 +284,31 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    delay = 0;
 };
 
-KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName = "Image";
-   postLayerName = "RetinaOFF";
-   channelCode = 0;
-   nxp = 3;
-   nyp = 3;
-   nfp = 1;
-
-   stdpFlag   = 0;
-   initFromLastFlag = 0;
-   //gauss2DCalcWeights = 1;
-   writeStep = -1;
-   
-   weightInitType = "InitGauss2DWeights";
-   aspect = 1;
-   sigma = 1;
-   rMax = 100;
-   rMin = 0;
-
-   //   aspect = 1;
-   //   sigma = 1;
-   //   rMax  = 100;
-   strength = 100.0;
-   //strength =  25500.0;
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
-   delay = 0;
-};
+//KernelConn "ImagetoRetinaOFFSurround" = {
+//   preLayerName = "Image";
+//   postLayerName = "RetinaOFF";
+//   channelCode = 0;
+//   nxp = 3;
+//   nyp = 3;
+//   nfp = 1;
+//
+//   stdpFlag   = 0;
+//   initFromLastFlag = 0;
+//   gauss2DCalcWeights = 1;
+//   writeStep = -1;
+//
+//   aspect = 1;
+//   sigma = 1;
+//   rMax  = 1000;
+//
+//   strength =  10.0;
+//   //strength =  25500.0;
+//   normalize = 1.0;
+//   normalize_zero_offset = 0.0;
+//   normalize_max = 0.0;
+//   symmetrizeWeights = 0;
+//   delay = 0;
+//};
 
 
 
@@ -339,8 +342,8 @@ STDPConn "RetinaONtoS1" = {
    tauLTP = 20;
    tauLTD = 30;
    
-   wMaxInit = 1;
-   wMinInit = 0.5;
+   wMaxInit = 0.07;
+   wMinInit = 0.01;
    //localWmaxFlag = 0.0;
    
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
@@ -349,17 +352,11 @@ STDPConn "RetinaONtoS1" = {
    selfFlag = false;
 
    weightInitType = "UniformRandomWeight";
-   
-   //initFromLastFlag = false;
-   //weightInitType = "FileWeight";
-   //initWeightsFile = "input/weightsB.pvp";
-   //useListOfArborFiles = false;
-   //combineWeightFiles = false;
    //weightInit = 0;
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = false;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
@@ -394,8 +391,8 @@ STDPConn "RetinaOFFtoS1" = {
    tauLTP = 20;
    tauLTD = 30;
    
-   wMaxInit = 1;
-   wMinInit = 0.5;
+   wMaxInit = 0.07;
+   wMinInit = 0.01;
    //localWmaxFlag = 0.0;
    
    numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
@@ -408,7 +405,7 @@ STDPConn "RetinaOFFtoS1" = {
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = 1;
+   plasticityFlag = false;
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag = false;
