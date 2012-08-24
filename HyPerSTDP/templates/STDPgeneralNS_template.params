@@ -75,8 +75,8 @@ Retina "RetinaON" = {
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
     noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
- 	burstFreq = 100;      // Hz
-    burstDuration = 15;  // ms
+    burstFreq = 50;      // Hz
+    burstDuration = 20;  // ms
 
     //beginStim = 1;
     //endStim   = 50000;
@@ -84,8 +84,8 @@ Retina "RetinaON" = {
     //no = 1.0;
     Vrest = 0.0;
     
-    //refractoryPeriod = 0;
-    //absRefractoryPeriod = 0;
+    refractoryPeriod = 0;
+    absRefractoryPeriod = 0;
 };
 
 
@@ -102,8 +102,8 @@ Retina "RetinaOFF" = {
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
     noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
- 	burstFreq = 100;      // Hz
-    burstDuration = 15;  // ms
+    burstFreq = 50;      // Hz
+    burstDuration = 20;  // ms
 
     //beginStim = 1;
     //endStim   = 50000;
@@ -111,8 +111,8 @@ Retina "RetinaOFF" = {
     //no = 1.0;
     Vrest = 0.0;
     
-    //refractoryPeriod = 0;
-    //absRefractoryPeriod = 0;
+    refractoryPeriod = 0;
+    absRefractoryPeriod = 0;
 };
 
 
@@ -128,32 +128,32 @@ LIF "S1" = {
     spikingFlag = true;
     //writeNonspikingActivity = 1;
    
-   	Vrest = -70.0;
-   	Vexc = 0.0;
-   	Vinh = -75.0;
-   	VinhB = -90;
-   	tau = 20.0; //Important for selectivity! Why?
-   	tauE = 1.0;
-   	tauI = 5.0;
-   	tauIB = 10.0;
-   	VthRest = -55.0;
-   	tauVth = 10.0;
-   	deltaVth = 5.0;
+    Vrest = -70.0;
+    Vexc = 0.0;
+    Vinh = -75.0;
+    VinhB = -90;
+    tau = 20.0; //Important for selectivity! Why?
+    tauE = 1.0;
+    tauI = 5.0;
+    tauIB = 10.0;
+    VthRest = -55.0;
+    tauVth = 10.0;
+    deltaVth = 5.0;
 
-   	noiseFreqE = 250.0;
-   	noiseFreqI = 250.0;
-   	noiseFreqIB = 250.0;
-   	noiseAmpE = 0.5;
-   	noiseAmpI= 0.5;
-   	noiseAmpIB = 0.0;
-//   	noiseFreqE = 0;
-//   	noiseFreqI = 0;
-//   	noiseFreqIB = 0;
-//   	noiseAmpE = 0;
-//   	noiseAmpI= 0;
-//   	noiseAmpIB = 0;
-   	
-   	//no = 1.0;
+    noiseFreqE = 250.0;
+    noiseFreqI = 250.0;
+    noiseFreqIB = 250.0;
+    noiseAmpE = 0.5;
+    noiseAmpI= 0.5;
+    noiseAmpIB = 0.0;
+//      noiseFreqE = 0;
+//      noiseFreqI = 0;
+//      noiseFreqIB = 0;
+//      noiseAmpE = 0;
+//      noiseAmpI= 0;
+//      noiseAmpIB = 0;
+    
+    //no = 1.0;
 };
 
 
@@ -168,26 +168,26 @@ LIF "S1Inh" = {
     mirrorBCflag = 0;
     spikingFlag = true;  
    
-   	Vrest = -70.0;
-   	Vexc = 0.0;
-   	Vinh = -75.0;
-   	VinhB = -90.0;
-   	tau = 20.0;
-   	tauE = 1.0;
-   	tauI = 5.0;
-   	tauIB = 10.0;
-   	VthRest = -50.0;
-   	tauVth = 10.0;
-   	deltaVth = 5.0;
+    Vrest = -70.0;
+    Vexc = 0.0;
+    Vinh = -75.0;
+    VinhB = -90.0;
+    tau = 20.0;
+    tauE = 1.0;
+    tauI = 5.0;
+    tauIB = 10.0;
+    VthRest = -50.0;
+    tauVth = 10.0;
+    deltaVth = 5.0;
 
-   	noiseFreqE = 250.0;
-   	noiseFreqI = 250.0;
-   	noiseFreqIB = 250.0;
-   	noiseAmpE = 0.5;
-   	noiseAmpI= 0.5;
-   	noiseAmpIB = 0.0;
+    noiseFreqE = 250.0;
+    noiseFreqI = 250.0;
+    noiseFreqIB = 250.0;
+    noiseAmpE = 0.5;
+    noiseAmpI= 0.5;
+    noiseAmpIB = 0.0;
 
-//   	noiseFreqE = 0;
+//      noiseFreqE = 0;
 //    noiseFreqI = 0;
 //    noiseFreqIB = 0;
 //    noiseAmpE = 0;
@@ -336,13 +336,13 @@ STDPConn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "S1";
    channelCode = 0;
-   nxp = 9;
-   nyp = 9;
+   nxp = 11;
+   nyp = 11;
    nfp = 1;
    
    stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  /dr/ restart
-   writeStep = 5000;
+   writeStep = 100;
 
    $$$_wMin_$$$
    $$$_wMax_$$$
@@ -388,13 +388,13 @@ STDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "S1";
    channelCode = 0;
-   nxp = 9;
-   nyp = 9;
+   nxp = 11;
+   nyp = 11;
    nfp = 1;
    
    stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 5000;
+   writeStep = 100;
 
    $$$_wMin_$$$
    $$$_wMax_$$$
