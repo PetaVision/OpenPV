@@ -30,6 +30,13 @@ int ParameterSweepTestProbe::initParameterSweepTestProbe(const char * filename, 
 
 int ParameterSweepTestProbe::outputState(float timef) {
    int status = StatsProbe::outputState(timef);
+#ifdef PV_USE_MPI
+   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   const int rcvProc = 0;
+   if( icComm->commRank() != rcvProc ) {
+      return 0;
+   }
+#endif // PV_USE_MPI
    if (timef >= 3.0 ) {
       assert(fabs(expectedSum - sum)<1e-6);
       assert(fabs(expectedMin - fMin)<1e-6);
