@@ -12,9 +12,11 @@ function [data,hdr,wm] = readpvpfile(filename, output_path, name, post)
 %%%%%%%%
 
 global OUT_FILE_EXT; OUT_FILE_EXT = 'png';      %either png or jpg for now
-global MOVIE_FLAG;   MOVIE_FLAG   = 0;          %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '0:100:300'; %'0:20:100'; %can be '-1', 'int(frame)', or 'start:int:end'
-global PRINT_FLAG;   PRINT_FLAG   = 1;         %set to 1 to print all figures to output dir, -1 to not
+global MOVIE_FLAG;   if(isempty(MOVIE_FLAG))  MOVIE_FLAG = 1; end         %set 1 to make a movie, set -1 to not make a movie
+global FNUM_SPEC;    FNUM_SPEC    = '0:100:1000'; %'0:20:100'; %can be '-1', 'int(frame)', or 'start:int:end'
+global PRINT_FLAG;   if(isempty(PRINT_FLAG)) PRINT_FLAG  = 1; end        %set to 1 to print all figures to output dir, -1 to not
+global ROTATE_FLAG; if(isempty(ROTATE_FLAG)) ROTATE_FLAG = 1; end
+global SWEEP_POS; if(isempty(SWEEP_POS)) SWEEP_POS = 0; end
 %%%%%%%%
 
 %% Parse some flags
@@ -55,7 +57,7 @@ errorident = '';
 errorstring = '';
 
 hdr = readpvpheader(fid);
-hdr
+
 %% Correct for max frame
 if fnum_flag
     if gt(length(disp_frames),1)
@@ -188,7 +190,9 @@ if isempty(errorstring)
 
                 pvp_image = zeros([hdr.nxGlobal,hdr.nyGlobal]);
                 pvp_image(:,:) = sum(features,1);
-                pvp_image = flipud(rot90(pvp_image));
+                if (ROTATE_FLAG)
+                    pvp_image = flipud(rot90(pvp_image));
+                end
                 data{frame+1} = pvp_image;
                 %find(pvp_image==1)
                 integrated_image += pvp_image;
@@ -223,16 +227,19 @@ if isempty(errorstring)
 
                             tim_fig_id = 0;
                             %tim_fig_id = figure;
-                            %    imshow(pvp_image)
-                            %    axis image
-                            %    axis off
-              int_fig_id = 0;
-                            %int_fig_id = figure;
-                                %imagesc(integrated_image, [0 max(max(integrated_image))])
+                                %imshow(pvp_image)
                                 %axis image
                                 %axis off
-                                %colorbar
-
+                            int_fig_id = 0;
+                            
+                            if(MOVIE_FLAG)
+                                 int_fig_id = figure;
+                                 imagesc(integrated_image, [0 max(max(integrated_image))])
+                                 axis image
+                                 axis off
+                                 colorbar
+                            end
+              
                             fig_ids = [2];
                             fig_ids(1) = tim_fig_id;
                             fig_ids(2) = int_fig_id;
@@ -267,14 +274,14 @@ if isempty(errorstring)
             %% Create movie from frames generated
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'%03d.png -sameq -y ',print_movie_path,'pvp_instantaneous_movie_' name '.mp4']);
-                system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
+                %system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
             end%if eq(MOVIE_FLAG,1)
 
         case 3 % PVP_WGT_FILE_TYPE
-            disp('reading weights type file')
+            disp('Reading weights type file')
             fseek(fid,0,'bof');
-            hdr
-             numframes
+            %hdr
+            %numframes
             for f=1:numframes
                 hdr = readpvpheader(fid,ftell(fid));
 
@@ -344,12 +351,16 @@ if isempty(errorstring)
                 for x=px*nx:(px*nx+nx-1)
                     for y=py*ny:(py*ny+ny-1)
                          %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
-              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = flipud(rot90(reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))))));
+              %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
+              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp);
+                if (ROTATE_FLAG)
+                    wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = flipud(rot90(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp)));              
+                end
               mean_wm(c,1)=mean(mean(mean(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp))));
-                         wm(x*hdr.nxp+hdr.nxp, :) = 0;
-                         wm(x*hdr.nxp+1, :) = 0;
-                         wm(:, y*hdr.nyp+1) = 0;
-                         wm(:, y*hdr.nyp+hdr.nyp) = 0;
+                         %wm(x*hdr.nxp+hdr.nxp, :) = 0;
+                         %wm(x*hdr.nxp+1, :) = 0;
+                         %wm(:, y*hdr.nyp+1) = 0;
+                         %wm(:, y*hdr.nyp+hdr.nyp) = 0;
                          c=c+1;
 
                     end%for
@@ -357,13 +368,15 @@ if isempty(errorstring)
               end%for
               end%for
               
-              wm = flipud(rot90(wm));
+              if (ROTATE_FLAG)
+                wm = flipud(rot90(wm));
+              end
                      
               %figure
               %imshow(reshape(mean_wm,sqrt(hdr.numPatches),sqrt(hdr.numPatches)))
-
+              
                 %% Generate Figures
-                if eq(PRINT_FLAG,1)
+                if (eq(PRINT_FLAG,1) && data{f}.time>0)
                     print_fig_path = [output_path, 'Figures/'];
                     if ne(exist(print_fig_path,'dir'),7) %if exists func doesn't return a 7, then print_movie_path is not a dir
                         mkdir(print_fig_path);
@@ -374,8 +387,15 @@ if isempty(errorstring)
                         mkdir(inst_fig_path);
                     end%if ne(exist(),7)
                     
-                    print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
+              
+                    if(SWEEP_POS==0)
+                        print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
+                    else
+                        print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name '_x' num2str(SWEEP_POS)], '.', OUT_FILE_EXT];
+                    end
+              
                     disp(print_fig_filename);
+              
                     %try
                         %figure
                         %imshow(wm);
