@@ -15,12 +15,12 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_whitened12x12_tiny"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll
-TEMPLATE = "STDP3generalNS";
+DATASET = "OlshausenField_whitened12x12_tinyAll1000"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll
+TEMPLATE = "STDPgeneralNS";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 
-numsteps = 5000;
+numsteps = 10000;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -40,17 +40,16 @@ wMini = 15;
 wMaxi = 16;
 synscalingi = 17;
 synscalingvi = 18;
-tauYi = 19;
 
 RUN_FLAG = 1;
 
-PARAMSWEEP_FLAG = 0;
-%PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
-PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi];
+PARAMSWEEP_FLAG = 1;
+    %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
+    PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi];
 MEASURES_FLAG = 0;
-MEASURES_PLOT_FLAG = 0;
-MEASURES_OSI_FLAG = 1;
-MEASURES_GM_FLAG = 0;
+    MEASURES_PLOT_FLAG = 0;
+    MEASURES_OSI_FLAG = 1;
+    MEASURES_GM_FLAG = 0;
 
 global ROTATE_FLAG; ROTATE_FLAG = 0;
 
@@ -66,7 +65,7 @@ params{4} = 0;  %checkpointReadDirIndex
 params{5} = 1000;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 10;
+params{STRENGTH_IMAGE2RETINAi} = 25;
 
 
 
@@ -74,21 +73,20 @@ params{STRENGTH_IMAGE2RETINAi} = 10;
 %Natural images params
 params{wMaxInitSTDPi} = 0.5;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 1.8;
-params{tauLTDi} = 33.7;
-params{ampLTPi} = 0.0071;
-params{ampLTDi} = 0.0065;
+params{tauLTPi} = 3;
+params{tauLTDi} = 18;
+params{ampLTPi} = 0.115;
+params{ampLTDi} = 0.0085;
 params{wMini} = 0.001;
 params{wMaxi} = 1;
 params{synscalingi} = 1;
 params{synscalingvi} = 15;
-params{tauYi} = 114;
 
-LOAD_FILE = 0;
+LOAD_FILE = 1;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-    params{PARAM_SWEEP(x)} = rg_p(135,x);
+        params{PARAM_SWEEP(x)} = rg_p(135,x);
     end
 end
 
@@ -105,32 +103,33 @@ end
 
 
 if(PARAMSWEEP_FLAG)
-%Range over which 
-rg = {1:10:30; ... 
-    1:10:30; ...
-    0.09:0.01:0.2; ...
-    0.0055:0.001:0.01};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi
-%rg = {1; ... 
+    %Range over which 
+    rg = {1:10:30; ... 
+        1:10:30; ...
+        0.09:0.01:0.2; ...
+        0.0055:0.001:0.01; ...
+        5:5:15};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi
+    %rg = {1; ... 
     %      37; ...
     %      0.115; ...
     %      0.0085};  %tauLTP, tauLTD, ampLTP, ampLTD
-%Generates all combinations
-rg_p = allcomb(rg{:});
+    %Generates all combinations
+    rg_p = allcomb(rg{:});
 
-%rg_p = rg_p(1:3,:);
+    %rg_p = rg_p(1:3,:);
 
-disp("---------------------------");
-disp("------Parameter Sweep------");
-disp("---------------------------");
+    disp("---------------------------");
+    disp("------Parameter Sweep------");
+    disp("---------------------------");
 
-OSIm = zeros(size(rg_p,1),2);
-pr = zeros(size(rg_p,1),1);
-%keyboard
+    OSIm = zeros(size(rg_p,1),2);
+    pr = zeros(size(rg_p,1),1);
+    %keyboard
 else
-rg = params{PARAM_SWEEP(1)};
-rg_p = params{PARAM_SWEEP(1)};
-OSIm = zeros(1,2);
-pr = zeros(1,1);
+    rg = params{PARAM_SWEEP(1)};
+    rg_p = params{PARAM_SWEEP(1)};
+    OSIm = zeros(1,2);
+    pr = zeros(1,1);
 end
 
 tic
@@ -143,35 +142,35 @@ disp("--------------------------------");
 end
 
 for x=1:size(rg_p,2) %Set params
-params{PARAM_SWEEP(x)} = rg_p(ps,x);
+    params{PARAM_SWEEP(x)} = rg_p(ps,x);
 end
 rg_p(ps,:)
 %OSIm(1:ps,:)
 %keyboard
 
-[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDP3Params(DATASET, [], TEMPLATE, [], numsteps);
+[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
 
 if(RUN_FLAG)
-if(PARAMSWEEP_FLAG)
-system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
-else
-system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
-end
+    if(PARAMSWEEP_FLAG)
+        system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
+    else
+        system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+    end
 end
 
 
 addpath([pvp_project_path, "mlab"]);
 
 if(PARAMSWEEP_FLAG==0)
-PRINT_FLAG = 1;
-SWEEP_POS = 0;
-filename = [pvp_output_path, filesep, on_v1_file];
-[data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    PRINT_FLAG = 1;
+    SWEEP_POS = 0;
+    filename = [pvp_output_path, filesep, on_v1_file];
+    [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
 else
-PRINT_FLAG = 1;
-SWEEP_POS = ps;
-filename = [pvp_output_path, filesep, on_v1_file];
-[data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    PRINT_FLAG = 1;
+    SWEEP_POS = ps;
+    filename = [pvp_output_path, filesep, on_v1_file];
+    [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
 end
 
 PRINT_FLAG = 0;
@@ -227,7 +226,7 @@ for i=0:params{5}:numsteps
 params{4} = i;  %checkpointReadDirIndex
 
 %Generates new params file
-[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDP3Params(fullOrient_DATASET, [], TEMPLATE, [], i + length(datasetl)*params{DISPLAYPERIODi});
+[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(fullOrient_DATASET, [], TEMPLATE, [], i + length(datasetl)*params{DISPLAYPERIODi});
 length(datasetl)*params{DISPLAYPERIODi}+i
 
 %pause
@@ -352,7 +351,7 @@ for i=numsteps-params{5}:params{5}:numsteps
 params{4} = i;  %checkpointReadDirIndex
 
 %Generates new params file
-[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDP3Params(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
+[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
 
 length(datasetl)*params{DISPLAYPERIODi}+i
 %pause
@@ -426,11 +425,11 @@ end
 end
 
 if(PARAMSWEEP_FLAG)
-%[rg_p pr OSIm]
-%Print best
-%rg_p(OSIm==max(OSIm(:,1)),:)
+    %[rg_p pr OSIm]
+    %Print best
+    %rg_p(OSIm==max(OSIm(:,1)),:)
 else
-%[pr OSIm]
+    %[pr OSIm]
 end     
 
 toc

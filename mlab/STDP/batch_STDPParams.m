@@ -9,6 +9,7 @@ format short g;
 
 global MOVIE_FLAG = 0;
 global PRINT_FLAG;
+global SWEEP_POS = 0;
 
 addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
@@ -19,7 +20,10 @@ TEMPLATE = "STDPgeneral";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 
-numsteps = 3000;
+numsteps = 5100;
+
+%Masquelier params
+%pr = 17*0.01/34*0.0085;
 
 
 %% INDEXES
@@ -32,20 +36,24 @@ tauLTPi = 11;
 tauLTDi = 12;
 ampLTPi = 13;
 ampLTDi = 14;
+wMini = 15;
+wMaxi = 16;
+synscalingi = 17;
+synscalingvi = 18;
 
 RUN_FLAG = 1;
 PARAMSWEEP_FLAG = 1;
 PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi];
-MEASURES_FLAG = 1;
+MEASURES_FLAG = 0;
     MEASURES_PLOT_FLAG = 0;
     MEASURES_OSI_FLAG = 1;
     MEASURES_GM_FLAG = 0;
 
 global ROTATE_FLAG; ROTATE_FLAG = 0;
 
-v1_cells = 8*8;
-img_size = 32;
-
+v1_cells = 6*6;
+img_size = 12;
+ign_w = 1;
 
 global params;
 params{1} = "false";  %checkpointRead
@@ -55,25 +63,29 @@ params{4} = 0;  %checkpointReadDirIndex
 params{5} = 1000;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 100;
+params{STRENGTH_IMAGE2RETINAi} = 5000;
 
 
 
 %STDP params
 %36 orientations params
 params{wMaxInitSTDPi} = 0.05;
-params{wMinInitSTDPi} = 0.01;
-params{tauLTPi} = 20;
+params{wMinInitSTDPi} = 0.005;
+params{tauLTPi} = 5;
 params{tauLTDi} = 30;
-params{ampLTPi} = 0.03; %0.03;
-params{ampLTDi} = 0.0085; %0.0085;
+params{ampLTPi} = 0.1;
+params{ampLTDi} = 0.01;
+params{wMini} = 0.001;
+params{wMaxi} = 5;
+params{synscalingi} = 1;
+params{synscalingvi} = 5;
 
 %Natural images params
 %params{wMaxInitSTDPi} = 0.005;
 %params{wMinInitSTDPi} = 0.0001;
 %params{tauLTPi} = 20;
 %params{tauLTDi} = 30;
-%params{ampLTPi} = 0.003; %0.03;
+%params{ampLTPi} = 0.03; %0.03;
 %params{ampLTDi} = 0.00085; %0.0085;
 
 
@@ -96,7 +108,7 @@ if(PARAMSWEEP_FLAG)
     pr = zeros(size(rg_p,1),1);
 else
     rg = params{PARAM_SWEEP(1)};
-    rg_p = 1;
+    rg_p = params{PARAM_SWEEP(1)};
     OSIm = zeros(1,2);
     pr = zeros(1,1);
 end
@@ -116,7 +128,7 @@ for ps=1:size(rg_p,1)
     rg_p(ps,:)
     OSIm(1:ps,:)
     
-    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
+    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, sqrt(v1_cells), numsteps);
 
     if(RUN_FLAG)
         if(PARAMSWEEP_FLAG)
@@ -131,8 +143,16 @@ for ps=1:size(rg_p,1)
 
     if(PARAMSWEEP_FLAG==0)
         PRINT_FLAG = 1;
+        SWEEP_POS = 0;
         filename = [pvp_output_path, filesep, on_v1_file];
-        readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+        [data,hdr,wm] = readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+        wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
+        max(max(wm))
+    else
+        PRINT_FLAG = 1;
+        SWEEP_POS = ps;
+        filename = [pvp_output_path, filesep, on_v1_file];
+        [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
     end
 
     PRINT_FLAG = 0;
@@ -176,37 +196,40 @@ for ps=1:size(rg_p,1)
         c=c+1;
     end
 
-    %Get and plot weights
-
-    filename = [pvp_output_path, filesep, on_v1_file];
-    [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    if(PARAMSWEEP_FLAG==0)
+        %Get and plot weights
+        filename = [pvp_output_path, filesep, on_v1_file];
+        [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    end
 
     hist_per_orient = zeros(numsteps/params{5}+1, v1_cells, length(datasetl));
 
     for i=0:params{5}:numsteps
-    params{4} = i;  %checkpointReadDirIndex
+        params{4} = i;  %checkpointReadDirIndex
 
-    %Generates new params file
-    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(fullOrient_DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
-    length(datasetl)*params{DISPLAYPERIODi}+i
-    %pause
-    if(RUN_FLAG)
-       if(PARAMSWEEP_FLAG)
-            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
-        else
-            system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
-        end
+        %Generates new params file
+        [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(fullOrient_DATASET, [], TEMPLATE, sqrt(v1_cells), i + length(datasetl)*params{DISPLAYPERIODi});
+        length(datasetl)*params{DISPLAYPERIODi}+i
 
-    %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
-    [data hdr] = readpvpfile([pvp_output_path, filesep, "S1.pvp"], [pvp_output_path, filesep], "S1.pvp");
-    for p=0:(length(datasetl)-1)
-        for f=1:params{7}
-         for v=1:v1_cells
-             hist_per_orient(i/params{5}+1,v,p+1) = hist_per_orient(i/params{5}+1,v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
-         end
+        %pause
+        if(RUN_FLAG)
+           if(PARAMSWEEP_FLAG)
+                system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
+            else
+                system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+            end
+
+        %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
+        [data hdr] = readpvpfile([pvp_output_path, filesep, "S1.pvp"], [pvp_output_path, filesep], "S1.pvp");
+
+        for p=0:(length(datasetl)-1)
+            for f=1:params{DISPLAYPERIODi}
+             for v=1:v1_cells
+                 hist_per_orient(i/params{5}+1,v,p+1) = hist_per_orient(i/params{5}+1,v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
+             end
+            end
         end
-    end
-    end
+        end
     end
     avg_r_per_orient = (hist_per_orient*1000)./params{7};
 
@@ -299,7 +322,6 @@ for ps=1:size(rg_p,1)
     end
 
     post = 1;
-    ign_w = 4;
     hist_per_img = zeros(numsteps/params{5}+1, v1_cells, length(datasetl));
     diff = zeros(numsteps/params{5}+1, length(datasetl));
 
@@ -310,7 +332,7 @@ for ps=1:size(rg_p,1)
             params{4} = i;  %checkpointReadDirIndex
 
             %Generates new params file
-            [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
+            [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, sqrt(v1_cells), length(datasetl)*params{DISPLAYPERIODi}+i);
             
             length(datasetl)*params{DISPLAYPERIODi}+i
             %pause
@@ -385,6 +407,8 @@ end
 
 if(PARAMSWEEP_FLAG)
     [rg_p pr OSIm]
+    %Print best
+    rg_p(OSIm==max(OSIm(:,1)),:)
 else
      [pr OSIm]
 end     
