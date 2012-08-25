@@ -261,6 +261,7 @@ public:
 
    virtual int setParams(PVParams* params);
    PVPatch*** convertPreSynapticWeights(float time);
+   PVPatch**** point2PreSynapticWeights(float time);
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int* kxPre,
          int* kyPre);
    int postSynapticPatchHead(int kPre, int* kxPostOut, int* kyPostOut,
@@ -341,6 +342,10 @@ protected:
    int numAxonalArborLists; // number of axonal arbors (weight patches) for presynaptic layer
    PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
    float** wPostDataStart;
+
+   PVPatch**** wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
+   float*** wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
+
    int nxpPost, nypPost, nfpPost;
    int numParams;
    //PVConnParams * params;

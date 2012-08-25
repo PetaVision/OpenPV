@@ -71,6 +71,8 @@ protected:
    float tauLTP;
    float tauLTD;
    float dWMax;
+   bool synscalingFlag;
+   float synscaling_v;
 
 private:
    int deleteWeights();

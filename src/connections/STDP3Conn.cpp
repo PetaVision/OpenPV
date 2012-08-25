@@ -32,12 +32,15 @@ int STDP3Conn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    // this->dwPatches = NULL;
    this->post_tr = NULL;
+   this->post2_tr = NULL;
    this->ampLTP = 0.0065;
    this->ampLTD = 0.0071;
    this->tauLTP = 16.8;
    this->tauLTD = 33.7;
    this->tauY = 114;
    this->dWMax = 1;
+   this->synscalingFlag = false;
+   this->synscaling_v = 1;
    // TODO: Set the default values for wMin and wMax? Or are they already set somewhere?
    return PV_SUCCESS;
 }
@@ -51,6 +54,10 @@ int STDP3Conn::initialize(const char * name, HyPerCol * hc,
 
    status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
    status |= initPlasticityPatches();
+
+   if(synscalingFlag){
+      point2PreSynapticWeights(0);
+   }
 
    return status;
 }
@@ -131,7 +138,8 @@ int STDP3Conn::setParams(PVParams * params)
       wMax = params->value(getName(), "wMax", wMax);
       wMin = params->value(getName(), "wMin", wMin);
       dWMax = params->value(getName(), "dWMax", dWMax);
-
+      synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
+      synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
    }
 
    return 0;
@@ -254,29 +262,40 @@ int STDP3Conn::updateWeights(int axonId)
       }
 
 
+   if(synscalingFlag){
+         //int kxPre, kyPre, kPre;
 
-//   for (int kPre = 0; kPre < nkpre; kPre++) {
-//      w = getWeights(kPre, axonId);
-//
-//      pre_tr_m = get_dwData(axonId, kPre);  // STDP increment variable (presynaptic trace), Note: It uses dwData as the presynaptic trace variable, FIXME: Use an internal variable similar to post_tr?
-//      W = get_wData(axonId, kPre); // w->data; TODO: is this diff from w?
-//      aPre = preLayerData[kPre];
-//
-//      // 1. Updates the presynaptic trace
-//      pre_tr_m[kPre] = decayLTP * pre_tr_m[kPre] + aPre;
-//
-//      for (int kPost = 0; kPost < nkPost; kPost++) {
-//
-//
-//
-//       // 3. Update weights w_ij
-//       if (W[kPre] > WEIGHT_MIN_VALUE){
-//        W[kPre] += dWMax * (-ampLTD*aPre * post_tr_m[kPre] + ampLTP * aPost[kPost] * pre_tr_m[kPre]);
-//        W[kPre] = W[kPre] < wMin ? wMin : W[kPre];
-//        W[kPre] = W[kPre] > wMax ? wMax : W[kPre];
-//       }
-//      }
-   //}
+         const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
+
+         float sumW = 0;
+         //int kxPost, kyPost, kfPost;
+         const int xScale = post->getXScale() - pre->getXScale();
+         const int yScale = post->getYScale() - pre->getYScale();
+         const double powXScale = pow(2.0f, (double) xScale);
+         const double powYScale = pow(2.0f, (double) yScale);
+
+         nxpPost = (int) (nxp * powXScale);
+         nypPost = (int) (nyp * powYScale);
+         nfpPost = pre->clayer->loc.nf;
+
+         for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+
+               // loop through post-synaptic neurons (non-extended indices)
+               for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
+
+                  pvdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
+                  for (int kp = 0; kp < numPostPatch; kp++) {
+                     sumW += *(postData[kp]);
+                  }
+                  for (int kp = 0; kp < numPostPatch; kp++) {
+                     *(postData[kp]) = ((*postData[kp])/sumW)*synscaling_v;
+                  }
+                  //printf("%f ",sumW);
+                  sumW = 0;
+               }
+               //printf("\n");
+         }
+      }
 
    return 0;
 }
