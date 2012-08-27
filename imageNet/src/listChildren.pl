@@ -20,25 +20,70 @@
 #####
 ##Uncomment _below_ to run from command line
 ##Leave _below_ commented in order to call this function from another program
-#if ($ARGV[0]) {
-#    @OUTPUT = &listChildren($ARGV[0]);
-#    #print "\n\nlistChildren: OUTPUT:\n\n",
-#    #      join("\n",@OUTPUT),"\n\n\n";
-#
-#    $input = @OUTPUT[0];
-#    foreach $item (@OUTPUT) {
-#        if ($item =~ m/$input/) {
-#            print "\n\n----------\n";
-#        }
-#        print "$item\n";
-#    }
-#    print "\n";
-#} else 
-#    &lcPostUsage();
-#}
+#####
+if ($ARGV[0]) {
+    my ($namesRef, $idsRef) = &listChildren($ARGV[0]);
+
+    my @names = @$namesRef;
+    my @WNIDs = @$idsRef;
+
+    if (scalar(@names) != scalar(@WNIDs)) { #Arry lengths are not equal
+        die "listChildren: ERROR: Output arrays must be of equal length\n";
+    }
+
+    my $arrayLength = scalar(@names);
+    my $rootName   = @names[0];
+    my $rootWNID   = @WNIDs[0];
+
+    #Set up temp dir
+    my $TMP_DIR = makeTempDir();
+
+    #print to screen
+    for (my $i=$arrayLength-1; $i>0; $i--) {
+        my $name = @names[$i];
+        my $wnid = @WNIDs[$i];
+        if ($name =~ m/$rootName/) { #If we're at the root
+            print "\n\n-------------------------------------------------\n";
+        }
+        print "$wnid\t$name\n";
+    }
+
+    #print to file
+    print "\nPrinting output to files...";
+    open (NameOut, ">", "$TMP_DIR/${rootWNID}_Children_Names.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_Names.ssv\nError: $!"; 
+    open (WnidOut, ">", "$TMP_DIR/${rootWNID}_Children_WNIDs.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_WNIDs.ssv\nError: $!"; 
+
+    my $firstRun = 1;
+    for (my $j=$arrayLength-1; $j>0; $j--) {
+        my $name = $names[$j];
+        my $wnid = $WNIDs[$j];
+
+        unless ($firstRun) {
+            if ($wnid =~ m/$rootWNID/) {
+                print NameOut "\n";
+                print WnidOut "\n";
+            }
+        }
+
+        print NameOut  "$name";
+        print WnidOut  "$wnid";
+
+        if ($j >= 1) {
+            unless ($WNIDs[$j-1] =~ m/$rootWNID/) { #if we are not at the last item (next item will be root again)
+                print NameOut ";";
+                print WnidOut ";";
+            }
+        }
+        $firstRun = 0;
+    }
+
+    print "\nProgram Complete.\n";
+} else {
+    &lcPostUsage();
+}
 #####
  
-sub lcPostUsage () {
+sub lcPostUsage() {
     die "\n\nUsage: ./listChildren.pl synsetID\n\n\n";
 }
 
@@ -117,28 +162,36 @@ sub listChildren ($) {
 
     my $nodeset = $xp->find($path);
 
-    #print "\nParent tree(s):\n-------------------\n";
-
     my @nodelist = $nodeset->get_nodelist;
 
     my @childTreeNames;
     my @childTreeWNIDs;
 
-    #$selfNode = @nodelist[0]->getAttribute(wnid);
+    $rootName = @nodelist[0]->getAttribute(words);
+    $rootWNID = @nodelist[0]->getAttribute(wnid);
 
     my %seen = ();
+    $seen{$rootWNID}++;
 
     foreach my $node (@nodelist) {
 
         next if $seen{$node->getAttribute(wnid)}++;
+
+        #push child
         push(@childTreeNames,$node->getAttribute(words));
         push(@childTreeWNIDs,$node->getAttribute(wnid));
 
-        #if ($node->getAttribute(wnid) =~ m/$selfNode/) {
-        #    print "-------------------\n";
-        #}
-        #print "\t",$node->getAttribute(words);
-        #print "\t",$node->getAttribute(WNID),"\n";
+        #push all parents
+        my $parent = $node->getParentNode();
+        while (lc($parent->getAttribute(wnid)) ne lc($rootWNID) and $parent->getAttribute(wnid)) {
+            push(@childTreeNames,$parent->getAttribute(words));
+            push(@childTreeWNIDs,$parent->getAttribute(wnid));
+            $parent = $parent->getParentNode();
+        }
+
+        #push root
+        push(@childTreeNames,$rootName);
+        push(@childTreeWNIDs,$rootWNID);
     }
 
     return (\@childTreeNames,\@childTreeWNIDs);

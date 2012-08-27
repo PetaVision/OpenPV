@@ -61,8 +61,6 @@ require 'checkInputType.pl';
 #
 #    my $firstRun = 1;
 #    for (my $j=$arryLength-1; $j>=0; $j--) {
-#        my $newLine = 0;
-#
 #        my $name = $names[$j];
 #        my $wnid = $WNIDs[$j];
 #
@@ -70,7 +68,6 @@ require 'checkInputType.pl';
 #            if ($name =~ m/$root/) {
 #                print NameOut "\n";
 #                print WnidOut "\n";
-#                $newLine = 1;
 #            }
 #        }
 #

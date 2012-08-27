@@ -19,9 +19,14 @@ def file_len(fname):
 #wnidFile  = "synsetParentWNIDs.ssv"
 #nameFile  = "synsetParentNames.ssv"
 #outFile   = "IMNet-Comb.gml"
-wnidFile  = "downloadedWNIDs.ssv"
-nameFile  = "downloadedNames.ssv"
-outFile   = "downloadedGraph.gml"
+
+#wnidFile  = "downloadedWNIDs.ssv"
+#nameFile  = "downloadedNames.ssv"
+#outFile   = "downloadedGraph.gml"
+
+wnidFile  = "n02084071_Children_WNIDs.ssv"
+nameFile  = "n02084071_Children_Names.ssv"
+outFile   = "n02084071_Children_Graph.gml"
 
 numLines = 0
 if (file_len(wnidFile) != file_len(nameFile)):
