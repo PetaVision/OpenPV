@@ -99,10 +99,12 @@ end %if
 
 %phase(m) = angle(max(Allsums(m,:))); % If you want to use phase from Fourier
 
+ind = find(Allsums(m,1:length(Allsums(m,:))/2));
+
 % Set bandwith and center frequency parameters
 
-fb = ((1/(2*pi*FWHMg(m)))^2)/2;
-fc = freq(m)/2;
+fb = ((1/(2*pi*FWHMg(m)))^2)/50;
+fc = freq(m);
 
 % Set support and grid parameters
 
@@ -110,7 +112,6 @@ lb = rtimefine(1);
 ub = rtimefine(length(rtimefine));
 n = time*2000;
 
-ind = find(Allsums(m,1:length(Allsums(m,:))/2));
 wav = zeros(length(ind),2*length(N1_A));
 
  for j = 1:length(ind)
@@ -118,90 +119,36 @@ wav = zeros(length(ind),2*length(N1_A));
     displ = (time/2-0.001*ind(j));
     wav(j,:) = cmorwavf(lb,ub,n,fb,fc,displ);
 
-% Finding phase of each CMW across trials
-
-    phase_all(m,j) = angle(wav(j,length(rtimefine)/2));
-
   end %for j wav
 
-plot(rtimefine,wav(length(ind),:));
+% Superimpose CMWs
+
+mwave(m,:) = sum(wav,1);
+
+figure(6);
+
+plot(rtimefine,real(mwave(m,:)))
+
+%plot(rtimefine,wav(length(ind),:));
 
  rtime_all(m,:) = rtime;
+ rtimefine_all(m,:) = rtimefine;
 
 % Phase shift
 
-x = -pi:pi/10:pi;
-
-xx = -pi+pi/20:pi/10:pi;
-
-phase_dist = histc(phase_all(m,:),x); % Histogram of phases
-phase_dist = (phase_dist./sum(phase_dist))*(10/pi); % Normalize phase_dist
-phase_dist = phase_dist(1:length(phase_dist)-1);
-
-% Find minimized Von Mises Distribution for phase_dist
-
-theta = [0,1];
-control = {1000; 0; 1; 1; 0; 1e-10; 9e-5};
-[theta, obj_value, iterations, convergence] = bfgsmin("mises", {theta, phase_dist', xx'}, control);
-
-convergence
-
-mu = theta(1,:);
-k = theta(2,:);
-
-% Check variance from minimization
-
-[zeroth,ierr]=besseli(0,k);
-     
-     if ierr ~= 0
-        ierr_st = num2str(ierr);
-        bessel_st = 'bessel call return';
-        print(strcat(ierr_st,bessel_st));
-     end %if
-
-if k < 0
-mu = mu - pi;
-end %if
-if mu < -pi
-mu = mu + 2*pi;
-end %if % Phases were between -2pi and 0
-
-phase_G(m) = mu
-
-
-% Gar's idea
-
-%ind = find(Allsums(m,1:length(Allsums(m,:))/2));
-%gau = zeros(length(ind),time*1000);  
-%lam = zeros(1,length(ind));
-%Max = zeros(1,length(ind));
-%gwave = zeros(run,length(N1_A));
-
-%for j = 1:length(ind)
-
-%lam(j) = -time/2+0.001*ind(j);
-%gau(j,:) = normpdf(rtimefine(1:length(rtime)),lam(j),sig);
-%Max(j) = max(gau(j,:));
-%gau(j,:) = (gau(j,:)./Max(j))*Allsums(m,ind(j));
-%gwave(m,:) = gwave(m,:) + gau(j,:);
-
-%end %for j
-
-%for i = 2:length(gwave(m,:))-1
-%   if (gwave(m,i) > gwave(m,i+1)) && (gwave(m,i) > gwave(m,i-1))
-%      pklocs(m) = rtimefine(i);
-%   end %if peak of gwave
-%end %for i
-
-%tfromz(m) = 0-pklocs(m);
-
-%phase_G(m) = rem(tfromz(m),1/freq(m))
+figure(3);
+clf;
+plot(rtimefine,wav(length(ind),:));
 
 ind_long = find(Allsums(m,:));
 
+phase_G(m) = angle(mwave(m,length(rtimefine)/2))
+
    for j = 1:length(ind_long)
-      rtime_all(m,ind_long(j)) = rtime_all(m,ind_long(j)) + phase_G(m)/(pi*freq(m));
+      rtime_all(m,ind_long(j)) = rtime_all(m,ind_long(j)) + phase_G(m)/(2*pi*freq(m));
    end %for j
+
+rtimefine_all(m,:) = rtimefine_all(m,:) + phase_G(m)/(2*pi*freq(m));
 
 end %for %run
 
@@ -256,10 +203,12 @@ if FWHMlgn(m) == 0
    error(strcat('Trial',num2str(m),'full-width half maximum of LGN equals zero'));
 end %if
 
+ind = find(LGN(m,1:length(LGN(m,:))/2));
+
 % Set bandwith and center frequency parameters
 
-fb = ((1/(FWHMlgn(m)*2*pi))^2)/2;
-fc = freq(m)/2;
+fb = ((1/(FWHMlgn(m)*2*pi))^2)/50;
+fc = freq(m);
 
 % Set support and grid parameters
 
@@ -267,7 +216,6 @@ lb = rtimefine(1);
 ub = rtimefine(length(rtimefine));
 n = time*2000;
 
-ind = find(LGN(m,1:length(LGN(m,:))/2));
 wav = zeros(length(ind),2*length(N1_A));
 
  for j = 1:length(ind)
@@ -277,70 +225,33 @@ wav = zeros(length(ind),2*length(N1_A));
 
 % Finding phase of each CMW across trials
 
-    phase_LGNs(m,j) = angle(wav(j,length(rtimefine)/2));
+%    phase_LGNs(m,j) = angle(wav(j,length(rtimefine)/2));
 
   end %for j wav
 
+% Superimpose CMWs
+
+LGNwave(m,:) = sum(wav,1);
+
 % Phase shift
-
-x = -pi:pi/10:pi;
-
-xx = -pi+pi/20:pi/10:pi;
-
-phase_dist = histc(phase_LGNs(m,:),x); % Histogram of phases
-phase_dist = (phase_dist./sum(phase_dist))*(10/pi); % Normalize phase_dist
-phase_dist = phase_dist(1:length(phase_dist)-1);
-
-% Find minimized Von Mises Distribution for phase_dist
-
-theta = [0,1];
-control = {1000; 0; 1; 1; 0; 1e-10; 9e-5};
-[theta, obj_value, iterations, convergence] = bfgsmin("mises", {theta, phase_dist', xx'}, control);
-
-convergence
-
-mu = theta(1,:);
-k = theta(2,:);
-
-[zeroth,ierr]=besseli(0,k);
-     
-     if ierr ~= 0
-        ierr_st = num2str(ierr);
-        bessel_st = 'bessel call return';
-        print(strcat(ierr_st,bessel_st));
-     end %if
-
-if k < 0
-mu = mu - pi;
-end %if
-if mu < -pi
-mu = mu + 2*pi;
-end %if  % Phases were between -2pi and 0
-
-phase_LGN(m) = mu;
 
 figure(4);
 clf;
 plot(rtimefine,wav(length(ind),:));
 
-% Gar's idea (didn't work)
-%phase_LGN(m) = phase_LGNs(m,end);
-
-%  if phase_LGN(m) == 0
-%  phase_LGN(m) = phase_LGNs(m,end-1);
-%  end % if phase is zero
-
-%phase_LGN
-
  rtime_LGN(m,:) = rtime;
+ rtimefine_LGN(m,:) = rtimefine;
 
 ind_long = find(LGN(m,:));
+phase_LGN(m) = angle(LGNwave(m,length(rtimefine)/2));
 
 % Phase shift
 
    for j = 1:length(ind_long)
-      rtime_LGN(m,ind_long(j)) = rtime_LGN(m,ind_long(j)) + phase_LGN(m)/(pi*freq(m));
+      rtime_LGN(m,ind_long(j)) = rtime_LGN(m,ind_long(j)) + phase_LGN(m)/(2*pi*freq(m));
    end %for j
+
+ rtimefine_LGN(m,:) = rtimefine_LGN(m,:) + phase_LGN(m)/(2*pi*freq(m));
 
 end %for %run
 
@@ -369,7 +280,7 @@ top = subplot(3,1,1);
 rtimep5 = rtime - 0.0005;
 plot(rtimep5,SumT,'r','LineWidth',1.5);
 
-axis([-time/2-time/50 time/2+time/50 0 1.5*max(SumT)])
+axis([-time/2-time/50 time/2+time/50 0 3*max(SumT)])
 title('Non-Phase Adjusted Activity of LGN Cell and Neighbouring Ganglion Cells');
 ylabel('Avg. Spike Rate (1/s)');
 
@@ -396,6 +307,10 @@ for m = 1:run
               end %if
 
         end %for %i       
+
+hold on
+
+plot(rtimefine,(1/3).*(real(LGNwave(m,:))./max(real(LGNwave(m,:))))+m)
 
 end %for %m
 
@@ -430,7 +345,13 @@ for k = 1:9
 
      end %for %time
 
+hold on
+
+plot(rtimefine,(1/3).*(real(mwave(m,:))./max(real(mwave(m,:))))+m)
+
 end %for %cells
+
+
 
 axis([-time/2-time/50 time/2+time/50 0.1 run*1.5]);
 xlabel('Time (s)');
@@ -485,6 +406,7 @@ end %for runs
 
 shift_count = histc(rtime_diff(length(rtime)+1:length(rtime_diff)),rtime);
 
+
 [rtime_shift,locs] = sort(rtime_diff);
 for ix = 1:length(locs)
 SumT_shift(ix) = SumT_diff(locs(ix));
@@ -495,12 +417,16 @@ indSumT_shift = find(SumT_shift);
 start = 1;
 
 for j = 1:length(indhist)
+%    if j == 42
+%       keyboard
+%    end %if
 	  heights(j) = sum(SumT_shift(indSumT_shift(start:start-1+shift_count(indhist(j)))));
     start = start + shift_count(indhist(j));
     shift_count(indhist(j)) = (shift_count(indhist(j))/shift_count(indhist(j)))*heights(j);
 end %for nz shift_count
 
 shift_count = shift_count./run;
+
 
 %-----------------------------------------------------Averaged Spike Rate Histogram-------------------------------------------------------
 
@@ -511,7 +437,7 @@ plot(rtimep5,shift_count,'r','LineWidth',1.5);
 
 %plot(rtime_shift,SumT_shift,'r','LineWidth',1.5);
 
-axis([-time/2-time/50 time/2+time/50 0 1.5*max(SumT)])
+axis([-time/2-time/50 time/2+time/50 0 3*max(SumT)])
 
 title('Phase Adjusted Activity of LGN Cell and Neighbouring Ganglion Cells');
 ylabel('Avg. Spike Rate (1/s)');
@@ -539,6 +465,10 @@ for m = 1:run
               end %if
 
         end %for %i       
+
+hold on
+
+plot(sort(rtimefine_LGN(m,:)),(1/3).*(real(LGNwave(m,:))./max(real(LGNwave(m,:))))+m)
 
 end %for %m
 
@@ -574,6 +504,10 @@ for k = 1:9
      end %for %time
 
 end %for %cells
+
+hold on
+
+plot(sort(rtimefine_all(m,:)),(1/3).*(real(mwave(m,:))./max(real(mwave(m,:))))+m)
 
 axis([-time/2-time/50 time/2+time/50 0.1 run*1.5]);
 xlabel('Time (s)');
@@ -611,3 +545,5 @@ informdiff = inform_shift-inform;
 
 disp('Information Increase =');
 disp(informdiff);
+
+keyboard
