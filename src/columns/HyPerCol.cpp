@@ -266,6 +266,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
    if (random_seed < 10000000) {
       fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.", random_seed);
+      abort();
    }
    random_seed /= 1+columnId();
    if (seedfromclock) {
