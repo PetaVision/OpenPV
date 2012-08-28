@@ -29,6 +29,8 @@
 #define SOUTH     7
 #define SOUTHEAST 8
 
+#define COMMNAME_MAXLENGTH 16
+
 namespace PV {
 
 class Communicator {
@@ -95,7 +97,7 @@ private:
    int numRows;
    int numCols;
 
-   char commName[16];
+   char commName[COMMNAME_MAXLENGTH];
 
    MPI_Comm    icComm;
    MPI_Request requests[NUM_NEIGHBORHOOD-1];

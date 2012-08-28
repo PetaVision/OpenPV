@@ -20,7 +20,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
    commInit(argc, argv);
 
-   sprintf(commName, "[%2d]: ", icRank);
+   // sprintf(commName, "[%2d]: ", icRank); // icRank not initialized yet; commName not used until later.
 
    bool rowsDefined = pv_getopt_int(*argc,  *argv, "-rows", &numRows)==0;
    bool colsDefined = pv_getopt_int(*argc, *argv, "-columns", &numCols)==0;
@@ -94,7 +94,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
    commName[0] = '\0';
    if (icSize > 1) {
-      sprintf(commName, "[%2d]: ", icRank);
+      snprintf(commName, COMMNAME_MAXLENGTH, "[%2d]: ", icRank);
    }
 
    if (icSize > 0) {
