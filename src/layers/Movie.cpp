@@ -72,6 +72,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    int start_frame_index = params->value(name,"start_frame_index", 0);
    skipFrameIndex = params->value(name,"skip_frame_index", 0);
 
+   echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
    filename = strdup(getNextFileName(start_frame_index));
    assert(filename != NULL);
 
@@ -88,7 +89,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
 
    this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
-   echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
 
    resetPositionInBounds();  // ensure that offsets keep loc within image bounds
 
