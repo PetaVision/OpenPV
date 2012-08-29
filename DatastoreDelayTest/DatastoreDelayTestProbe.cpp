@@ -44,6 +44,7 @@ int DatastoreDelayTestProbe::outputState(float timef) {
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
    }
+#endif // PV_USE_MPI
    int status = PV_SUCCESS;
    int numDelayLevels = l->getParent()->getLayer(0)->getCLayer()->numDelayLevels;
    pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;
@@ -60,7 +61,6 @@ int DatastoreDelayTestProbe::outputState(float timef) {
       }
    }
    assert(status == PV_SUCCESS);
-#endif // PV_USE_MPI
    return PV_SUCCESS;
 }
 

@@ -6,6 +6,7 @@
  */
 
 #include "DatastoreDelayTestLayer.hpp"
+#include "../PetaVision/src/include/pv_arch.h"
 
 namespace PV {
 
@@ -60,8 +61,12 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * 
    }
    else {
       if( loc->ny < period ) {
+#ifdef PV_USE_MPI
          int rank;
          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+         int rank = 0;
+#endif // PV_USE_MPI
 
          if( rank == 0 ) {
             fflush(stdout);
