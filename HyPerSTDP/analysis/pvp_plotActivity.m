@@ -12,7 +12,8 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/mlab/')
 %output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneral/orient_36r/';
 %output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_raw12x12_tiny/';
 %output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/orient_1r/';
-output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened12x12_tiny/';
+output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/OlshausenField_whitened32x32_tinyAll1000/';
+%output_path = '/Users/rcosta/Documents/workspace/HyPerSTDP/output/STDPgeneralNS/blankSquare_32x32/';
   
 %filename = {'S1Inh.pvp', 'S1.pvp', 'RetinaON.pvp'};
 %filename = {'S1.pvp'};
