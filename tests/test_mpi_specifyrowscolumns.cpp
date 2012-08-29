@@ -5,6 +5,8 @@
  *
  */
 
+#include "../src/include/pv_common.h"
+
 #ifndef PV_USE_MPI
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +17,6 @@ int main(int argc, char * argv[]) {
 }
 #else // ifndef PV_USE_MPI
 
-#include "../src/include/pv_common.h"
 #include "../src/columns/HyPerCol.hpp"
 #include "../src/layers/ANNLayer.hpp"
 #include "../src/io/io.h"
