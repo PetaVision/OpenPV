@@ -1290,7 +1290,7 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
          size_t messagelen = strlen(name);
          assert(LAYERPROBEMSGLENGTH>0);
          messagelen = messagelen < LAYERPROBEMSGLENGTH ? messagelen : LAYERPROBEMSGLENGTH;
-         message = (char *) malloc(LAYERPROBEMSGLENGTH);
+         message = (char *) malloc(LAYERPROBEMSGLENGTH+1);
          if( ! message ) {
             fprintf(stderr, "Group \"%s\": Rank %d process unable to allocate memory for message\n", name, rank);
             return PV_FAILURE;
