@@ -95,6 +95,7 @@ protected:
    int offsetY;
 
    bool useParamsImage;
+   bool useImageBCflag;
 
    float lastPhase;
    float lastUpdateTime; // time of last image update

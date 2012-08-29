@@ -33,6 +33,7 @@ int Image::initialize_base() {
    data = NULL;
    filename = NULL;
    imageData = NULL;
+   useImageBCflag = false;
    return PV_SUCCESS;
 }
 
@@ -64,6 +65,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 
    PVParams * params = parent->parameters();
    this->writeImages = params->value(name, "writeImages", 0) != 0;
+   this->useImageBCflag = (bool) params->value(name, "useImageBCflag", 0);
    readOffsets();
 
    GDALColorInterp * colorbandtypes = NULL;
@@ -104,8 +106,14 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 
 int Image::readOffsets() {
    PVParams * params = parent->parameters();
+
    this->offsetX      = (int) params->value(name,"offsetX", 0);
    this->offsetY      = (int) params->value(name,"offsetY", 0);
+
+   if(useImageBCflag){ //Offset by 2*marginsize so that
+      this->offsetX = this->offsetX + 2*clayer->loc.nb;
+      this->offsetY = this->offsetY + 2*clayer->loc.nb;
+   }
    return PV_SUCCESS;
 }
 
@@ -195,7 +203,13 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
 
+   if(useImageBCflag){ //Expand dimensions to the extended space
+      loc->nx = loc->nx + 2*loc->nb;
+      loc->ny = loc->ny + 2*loc->nb;
+   }
+
    const int n = loc->nx * loc->ny * imageLoc.nf;
+
    // Use number of bands in file instead of in params, to allow for grayscale conversion
    float * buf = new float[n];
    assert(buf != NULL);
@@ -219,6 +233,11 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    if( status == 0 ) copyFromInteriorBuffer(buf, 1.0f);
 
    delete buf;
+
+   if(useImageBCflag){ //Restore non-extended dimensions
+      loc->nx = loc->nx - 2*loc->nb;
+      loc->ny = loc->ny - 2*loc->nb;
+   }
 
    return status;
 }
@@ -279,10 +298,18 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
 
    const int nBorder = loc->nb;
 
-   for(int n=0; n<getNumNeurons(); n++) {
-      int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
-      data[n_ex] = fac*buf[n];
+   if(useImageBCflag){
+      for(int n=0; n<getNumExtended(); n++) {
+            //int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+            data[n] = fac*buf[n];
+         }
+   }else{
+      for(int n=0; n<getNumNeurons(); n++) {
+            int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+            data[n_ex] = fac*buf[n];
+         }
    }
+
    return 0;
 }
 
