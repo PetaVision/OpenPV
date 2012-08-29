@@ -125,7 +125,7 @@ int InitBIDSWeights::BIDSCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart,
    int numNodes = weightParamPtr->getNumNodes();
 
    // loop over all post-synaptic cells in temporary patch
-   //float maxDistance = (sqrt((256*256) + (256*256))); // / 10;
+   float maxDistance = (sqrt((256*256) + (256*256))); // / 10;
    int HyPerColx = conn->getParent()->getNxGlobal() / conn->getParent()->icCommunicator()->numCommColumns();
    int HyPerColy = conn->getParent()->getNyGlobal() / conn->getParent()->icCommunicator()->numCommRows();
    for(int j = 0; j < weightParamPtr->getParentConn()->getNumDataPatches(); j++){

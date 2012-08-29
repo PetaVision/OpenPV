@@ -13,10 +13,9 @@ BIDSMovieCloneMap::BIDSMovieCloneMap(const char * name, HyPerCol * hc, int numCh
 
 int BIDSMovieCloneMap::initialize_base(){
    originalMovie = NULL;
-   coords = NULL;
+   coords.clear();
    nxPost = 0;
    nyPost = 0;
-   numNodes = 0;
    return PV_SUCCESS;
 }
 
@@ -24,7 +23,7 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    HyPerLayer::initialize(name, hc, numChannels);
 
    //Grab Orig Movie
-   const char * strOriginalMovie = (int)(parent->parameters()->stringValue(name, "originalMovie"));
+   const char * strOriginalMovie = parent->parameters()->stringValue(name, "originalMovie");
    originalMovie = getParent()->getLayerFromName(strOriginalMovie);
    nbPre = originalMovie->getLayerLoc()->nb;
    nxPre = originalMovie->getLayerLoc()->nx;
@@ -36,10 +35,8 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
    int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
-   numNodes = (nxScale * HyPerColx) * (nyScale * HyPerColy);
    nxPost = nxScale * HyPerColx;
    nyPost = nyScale * HyPerColy;
-   coords = BIDSCoords [nxPost] [nyPost];
    int jitter = (int)(parent->parameters()->value(name, "jitter"));
 
    //Check jitter
@@ -47,21 +44,20 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    assert(jitter >= 0); //jitter cannot be below zero
 
    //Apply jitter
-   setCoords(numNodes, coords, jitter, nxScale, nyScale, HyPerColx, HyPerColy);
+   setCoords(jitter, nxScale, nyScale, HyPerColx, HyPerColy);
 
    return PV_SUCCESS;
 }
 
-void BIDSMovieCloneMap::setCoords(int numNodes, BIDSCoords ** coords, int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy){
-   srand(time(NULL));
-
+void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy){
    int patchSizex = (1/nxScale); //the length of a side of a patch in the HyPerColumn
    int patchSizey = (1/nyScale); //the length of a side of a patch in the HyPerColumn
    int jitterRange = jitter * 2;
 
    //TODO: Set up physical position for margin nodes
-   int i = 0;
-   int j = 0;
+   std::vector <BIDSCoords*> tempVecCoords;
+   tempVecCoords.clear();
+   BIDSCoords* tempCoords = NULL;
    for(int lowerboundx = 0; lowerboundx < HyPerColx; lowerboundx = lowerboundx + patchSizex){
       for(int lowerboundy = 0; lowerboundy < HyPerColy; lowerboundy = lowerboundy + patchSizey){
          int jitX = 0;
@@ -70,21 +66,19 @@ void BIDSMovieCloneMap::setCoords(int numNodes, BIDSCoords ** coords, int jitter
             jitX = rand() % jitterRange - jitter; //stores the x coordinate into the current BIDSCoord structure
             jitY = rand() % jitterRange - jitter; //stores the y coordinate into the current BIDSCoord structure
          }
-         coords[i][j].xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
-         coords[i][j].yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
-         j++;
+         tempCoords = new BIDSCoords();
+         tempCoords->xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
+         tempCoords->yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
+         tempVecCoords.push_back(tempCoords);
       }
-      i++;
-      j = 0;
+      coords.push_back(tempVecCoords);
+      tempVecCoords.clear();
    }
 
-   //for(int i = 0; i < numNodes; i++){
-      //printf("[x,y] = [%d,%d]\n", coords[i].xCoord, coords[i].yCoord);
-   //}
 }
 
 BIDSCoords BIDSMovieCloneMap::getCoords(int x, int y){
-   return coords[x][y];
+   return *coords[x][y];
 }
 
 int BIDSMovieCloneMap::updateState(float timef, float dt){
@@ -99,13 +93,14 @@ int BIDSMovieCloneMap::updateState(float timef, float dt){
       for (int j = 0; j < nyPost; j++){
          //Iterate through features
          for (int k = 0; k < nf; k++){
-            coord = coords[i][j];
+            coord = *coords[i][j];
             indexPre = kIndex(coord.xCoord+nbPre, coord.yCoord+nbPre, k, nxPre+2*nbPre, nyPre+2*nbPre, nf);
             indexPost = kIndex(i, j, k, nxPost, nyPost, nf);
             output[indexPost] = input[indexPre];
          }
       }
    }
+   return PV_SUCCESS;
 }
 
 

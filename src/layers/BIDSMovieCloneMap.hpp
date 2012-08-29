@@ -10,6 +10,7 @@
 
 #include "HyPerLayer.hpp"
 #include "Movie.hpp"
+#include <vector>
 
 typedef struct _BIDSCoords{
    int xCoord;
@@ -21,16 +22,16 @@ namespace PV{
 class BIDSMovieCloneMap : public PV::HyPerLayer{
 public:
    BIDSMovieCloneMap(const char * name, HyPerCol * hc, int numChannels);
+   int initialize_base();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
-   int numNodes;
-   void setCoords(int numNodes, BIDSCoords ** coords, int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy);
-   BIDSCoords BIDSMovieCloneMap::getCoords(int x, int y);
-   int BIDSMovieCloneMap::updateState(float timef, float dt);
+   void setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy);
+   BIDSCoords getCoords(int x, int y);
+   int updateState(float timef, float dt);
    
 protected:
    BIDSMovieCloneMap();
-   Movie * originalMovie;
-   BIDSCoords** coords;
+   HyPerLayer * originalMovie;
+   std::vector< std::vector<BIDSCoords*> > coords;
    int nbPre;
    int nxPre;
    int nyPre;

@@ -33,12 +33,9 @@ int BIDSLayer::initialize(const char * name, HyPerCol * hc, PVLayerType type, in
    //Edit here to figure out scale
    float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
    float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
-   int jitter = (int)(parent->parameters()->value(name, "jitter"));
    int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
    numNodes = (nxScale * HyPerColx) * (nyScale * HyPerColy);
-   coords = (BIDSCoords*)malloc((sizeof(BIDSCoords)) * numNodes);
-   setCoords(numNodes, coords, jitter, nxScale, nyScale, HyPerColx, HyPerColy);
    return PV_SUCCESS;
 }
 
