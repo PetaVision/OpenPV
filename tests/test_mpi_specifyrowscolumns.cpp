@@ -5,7 +5,15 @@
  *
  */
 
-#undef DEBUG_PRINT
+#ifndef PV_USE_MPI
+#include <stdio.h>
+#include <stdlib.h>
+int main(int argc, char * argv[]) {
+   fprintf(stderr, "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
+   // TODO Greater than six should be permissible, with the excess over 6 being idle
+   exit(EXIT_FAILURE);
+}
+#else // ifndef PV_USE_MPI
 
 #include "../src/include/pv_common.h"
 #include "../src/columns/HyPerCol.hpp"
@@ -14,25 +22,22 @@
 #include <assert.h>
 #ifdef PV_USE_MPI
 #include <mpi.h>
-#endif // PV_USE_MPI
 
 int buildandverify(int argc, char * argv[]);
 int verifyLoc(PV::HyPerCol * loc, int rows, int columns);
 int dumpLoc(const PVLayerLoc * loc, int rank);
+#endif // PV_USE_MPI
 
 using namespace PV;
 
 int main(int argc, char * argv[]) {
    int status = PV_SUCCESS;
-#ifdef PV_USE_MPI
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
    int numProcs;
    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-#else
-   int numProcs = 1;
-#endif // PV_USE_MPI
+
    if( numProcs != 6) {
       fprintf(stderr, "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
       // TODO Greater than six should be permissible, with the excess over 6 being idle
@@ -50,10 +55,8 @@ int main(int argc, char * argv[]) {
       fflush(stdout);
       charhit = getc(stdin);
    }
-#ifdef PV_USE_MPI
    int ierr;
    ierr = MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif // PV_USE_MPI
 #endif // REQUIRE_RETURN
 
 #define TEST_MPI_SPECIFYROWCOLUMNS_ARGC 7
@@ -76,9 +79,7 @@ int main(int argc, char * argv[]) {
    for( int arg=1; arg<TEST_MPI_SPECIFYROWCOLUMNS_ARGC; arg++ ) {
       free(cl_args[arg]);
    }
-#ifdef PV_USE_MPI
    if( !mpi_initialized_on_entry ) MPI_Finalize();
-#endif // PV_USE_MPI
    return status;
 }
 
@@ -129,7 +130,6 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
          fprintf(stderr, "Rank 0 FAILED\n");
          status = PV_FAILURE;
       }
-#ifdef PV_USE_MPI
       // Receive each process's testpassed value and output it.
       for( int src=1; src<hc->icCommunicator()->commSize(); src++) {
          int remotepassed;
@@ -145,17 +145,14 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
             status = PV_FAILURE;
          }
       }
-#endif // PV_USE_MPI
    }
    else {
-#ifdef PV_USE_MPI
       // Send each process's testpassed value to root process.
       MPI_Send(&testpassed, 1, MPI_INT, 0, 10, hc->icCommunicator()->communicator());
       if( !testpassed ) {
          memcpy(&mpiLoc, loc, sizeof(PVLayerLoc));
          MPI_Send(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->icCommunicator()->communicator());
       }
-#endif // PV_USE_MPI
    }
    assert(status == PV_SUCCESS);
    return status;
@@ -167,3 +164,4 @@ int dumpLoc(const PVLayerLoc * loc, int rank) {
           rank, loc->nx, loc->ny, loc->nf, loc->nxGlobal, loc->nyGlobal, loc->kx0, loc->ky0);
    return PV_SUCCESS;
 }
+#endif // PV_USE_MPI
