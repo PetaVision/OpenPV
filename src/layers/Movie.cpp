@@ -444,7 +444,7 @@ void Movie::calcBias(int step, int sizeLength)
 /**
  * Return an offset that moves randomly around position (biasX, biasY)
  * With probability recurenceProb the offset returns to its bias position
- * (biasX,biasY). Otherwise, with probability (1-recurrenceProb) performa a
+ * (biasX,biasY). Otherwise, with probability (1-recurrenceProb) perform a
  * random jump of maximum length equal to step.
  */
 void Movie::calcBiasedOffset(int step, int sizeLength)
