@@ -125,6 +125,17 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=LIFTest
+arglist="-p input/LIFTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+# mpirunandecho $testname Debug/$testname $arglist
+if test $usempi -eq 1
+then
+    echo "$testname is not yet MPI-compatible"
+fi
+cd $wd
+
 testname=MPITest2
 arglist="-p input/MPI_test.params -n 100"
 cd "$testname"
