@@ -24,7 +24,7 @@ public:
    int updateState(float timef, float dt);
    int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
-   void setCoords(int numNodes, BIDSCoords * coords, int jitter);
+   void setCoords(int numNodes, BIDSCoords * coords, int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy);
    BIDSCoords * getCoords();
    int numNodes;
 protected:
