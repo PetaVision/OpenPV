@@ -38,6 +38,7 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
       status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params);
    }
 
+   delete params;
    delete icComm;
    return status;
 }

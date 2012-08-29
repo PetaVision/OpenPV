@@ -429,6 +429,7 @@ int Retina::checkpointWrite(const char * cpDir) {
          fprintf(fp_rand_state, "Rank %d: %10u %10u %10u %10u\n", r, mpi_rand_state[r].s0, mpi_rand_state[r].s1, mpi_rand_state[r].s2, mpi_rand_state[r].s3);
       }
       fclose(fp_rand_state);
+      free(mpi_rand_state); mpi_rand_state = NULL;
    }
    else {
 #ifdef PV_USE_MPI
