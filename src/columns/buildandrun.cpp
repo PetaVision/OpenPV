@@ -16,6 +16,8 @@
 using namespace PV;
 
 int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+
+   //Parse param file
    char * param_file = NULL;
    pv_getopt_str(argc, argv, "-p", &param_file);
    InterColComm * icComm = new InterColComm(&argc, &argv);
