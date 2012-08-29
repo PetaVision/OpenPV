@@ -10,18 +10,20 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 256;   
-   ny = 256;
-   dt = 0.03125;
-   randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 1600;
-   progressStep = 160;
-   outputPath = "output/";
+   nx = 64;   
+   ny = 64;
+   dt = 0.25;
+   randomSeed = 1829107657; // if not set here,  clock time is used to generate seed
+   numSteps = 8001;
+   progressStep = 2000;
+   outputPath = "output";
    filenamesContainLayerNames = false;
    checkpointRead = false;
+   // checkpointReadDir = "Checkpoints";
+   // checkpointReadDirIndex = 2000;
    checkpointWrite = false;
    // checkpointWriteDir = "Checkpoints";
-   // checkpointWriteStepInterval = 1;
+   // checkpointWriteStepInterval = 4000;
    // deleteOlderCheckpoints = false;
    suppressLastOutput = false;
 };
@@ -31,30 +33,30 @@ HyPerCol "column" = {
 //
 
 Image "input" = {
-    restart = 0;
+    restart = false;
     nxScale = 1;
     nyScale = 1;
     imagePath = "input/inputimage.pvp";
     nf = 1;
     marginWidth = 0;
-    writeStep = -1;
     spikingFlag = false;
+    writeStep = -1;
     writeNonspikingActivity = true;
     mirrorBCflag = false;
     writeImages = false;
-    offsetX = 0;
-    offsetY = 0;
+    offsetX = 96;
+    offsetY = 96;
 };
 
 ANNLayer "scaled input" = {
-    restart = 0;
+    restart = false;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    mirrorBCflag = false;
+    spikingFlag = false;
     writeStep = -1.0;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
     writeNonspikingActivity = 1;
 
     InitVType = "ZeroV";
@@ -62,6 +64,50 @@ ANNLayer "scaled input" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+};
+
+Retina "retina" = {
+	restart          = false;
+	nxScale          = 1.;
+	nyScale          = 1.;
+	nf               = 1;
+	marginWidth      = 0;
+	mirrorBCflag     = false;
+	spikingFlag      = true;
+	writeStep        = -1.0;
+	// writeNonspikingActivity = true;
+	noiseOnFreq  = 200.0;
+	noiseOffFreq = 0.0;
+	refractoryPeriod = 0.0;
+	absRefractoryPeriod = 0.0;
+	beginStim        = 0.0;
+	endStim          = 1.0e8;
+	burstFreq        = 1;
+	burstDuration    = 1000;
+};
+
+GenerativeLayer "Retina Spike Counter" = {
+    restart = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    mirrorBCflag = false;
+    spikingFlag = false;
+    
+    InitVType = "ConstantV";
+    valueV = 0;
+
+    writeStep = -1.0;
+    writeNonspikingActivity = false;
+    VMax = infinity;
+    VMin = -infinity;
+    VThresh = -infinity;
+    relaxation = 1;
+    activityThreshold = 0.0;
+    auxChannelCoeff = 0.0;
+    sparsityTermCoefficient = 0.0;
+    persistence = 0.0;
 };
 
 LIFGap "LIFTest" = {
@@ -93,6 +139,8 @@ LIFGap "LIFTest" = {
     noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
     noiseFreqI       =  0.;     // correlation to time step size !!!
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+    
+    method = "b";
 };
 
 GenerativeLayer "LIFTest Spike Counter" = {
@@ -142,7 +190,7 @@ LIFGap "LIFGapTest" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0.0; // Value 0 means write every timestep, no matter what dt is
+    writeStep = -1; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag = false;
     spikingFlag = true;
     
@@ -165,6 +213,8 @@ LIFGap "LIFGapTest" = {
     noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
     noiseFreqI       =  0.;     // correlation to time step size !!!
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+    
+    method = "b";
 };
 
 GenerativeLayer "LIFGapTest Spike Counter" = {
@@ -179,8 +229,8 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     InitVType = "ConstantV";
     valueV = 0;
 
-    writeStep = -1.0;
-    writeNonspikingActivity = false;
+    writeStep = -1;
+    writeNonspikingActivity = true;
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -205,6 +255,41 @@ KernelConn "input to scaled input" = {
     initFromLastFlag = 0;
     
     weightInitType = "OneToOneWeights";
+    weightInit = 2.0;
+      
+    normalize = false;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = true;
+    selfFlag = false;
+    shrinkPatches = false;
+};
+
+IdentConn "scaled input to retina" = {
+    channelCode = 0;
+    delay = 0;    
+    writeStep = -1;
+};
+
+IdentConn "retina to Retina Spike Counter" = {
+    channelCode = 0;
+    delay = 0;    
+    writeStep = -1;
+};
+
+KernelConn "retina to LIFTest" = {
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    delay = 0;
+
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "OneToOneWeights";
     weightInit = 1.0;
       
     normalize = false;
@@ -214,20 +299,11 @@ KernelConn "input to scaled input" = {
     writeCompressedWeights = true;
     selfFlag = false;
     shrinkPatches = false;
-    
-};
-
-IdentConn "scaled input to LIFTest" = {
-    channelCode = 0;
-    delay = 0;
-    
-    writeStep = -1;
 };
 
 IdentConn "LIFTest to LIFTest Spike Counter" = {
     channelCode = 0;
-    delay = 0;
-    
+    delay = 0;    
     writeStep = -1;
 };
 
@@ -242,7 +318,7 @@ GapConn "GapTest to LIFGapTest" = {
     delay = 0;
     
     weightInitType = "Gauss2DWeight";
-    strength      = 2.0; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
+    strength      = 2.0;
     rMin          = 0.0; // 0.1; // take out the self connection
     aspect        = 1.0;
     // rotate        = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
@@ -271,38 +347,8 @@ IdentConn "LIFGapTest to LIFGapTest Spike Counter" = {
     writeStep = -1;
 };
 
-PointProbe "Scaled Input PointProbe" = {
-    targetLayer = "scaled input";
-    message = "Scaled Input PointProbe";
-    probeOutputFile = "ScaledInputProbe.txt";
-    xLoc = 127;
-    yLoc = 127;
-    fLoc = 0;
-};
-
-PointLIFProbe "LIFTest PointLIFProbe" = {
-    targetLayer = "LIFTest";
-    message = "LIFTest Layer PointLIFProbe";
-    probeOutputFile = "LIFTestProbe.txt";
-    xLoc = 127;
-    yLoc = 127;
-    fLoc = 0;
-};
-
-PointProbe "GapTest PointProbe" = {
-    targetLayer = "GapTest";
-    message = "GapTest PointProbe";
-    probeOutputFile = "GapTestProbe.txt";
-    xLoc = 127;
-    yLoc = 127;
-    fLoc = 0;
-};
-
-PointLIFProbe "LIFGapTest PointLIFProbe" = {
-    targetLayer = "LIFGapTest";
-    message = "LIFGapTest PointLIFProbe";
-    probeOutputFile = "LIFGapTestProbe.txt";
-    xLoc = 127;
-    yLoc = 127;
-    fLoc = 0;
+LIFTestProbe "LIFGapTest Spike Count Probe" = {
+    targetLayer = "LIFGapTest Spike Counter";
+    probeOutputFile = "SpikeRates.txt";
+    message = "Spike Rates File               ";
 };
