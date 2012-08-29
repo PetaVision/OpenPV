@@ -23,7 +23,7 @@ public:
             HyPerLayer * pre, HyPerLayer * post);
 
    virtual int initialize_base();
-   virtual int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename);
+   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename);
    virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
    virtual int initShrinkPatches();
