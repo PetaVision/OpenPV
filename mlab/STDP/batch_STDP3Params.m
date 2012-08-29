@@ -15,7 +15,7 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_whitened12x12_tiny"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll
+DATASET = "OlshausenField_whitened12x12_tinyAll1000"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll
 TEMPLATE = "STDP3generalNS";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
@@ -66,7 +66,7 @@ params{4} = 0;  %checkpointReadDirIndex
 params{5} = 1000;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 10;
+params{STRENGTH_IMAGE2RETINAi} = 15;
 
 
 
@@ -74,14 +74,14 @@ params{STRENGTH_IMAGE2RETINAi} = 10;
 %Natural images params
 params{wMaxInitSTDPi} = 0.5;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 1.8;
+params{tauLTPi} = 16.8;
 params{tauLTDi} = 33.7;
-params{ampLTPi} = 0.0071;
+params{ampLTPi} = 0.05001;
 params{ampLTDi} = 0.0065;
 params{wMini} = 0.001;
-params{wMaxi} = 1;
+params{wMaxi} = 7;
 params{synscalingi} = 1;
-params{synscalingvi} = 15;
+params{synscalingvi} = 10;
 params{tauYi} = 114;
 
 LOAD_FILE = 0;
@@ -91,17 +91,6 @@ if(LOAD_FILE)
     params{PARAM_SWEEP(x)} = rg_p(135,x);
     end
 end
-
-%params{wMaxInitSTDPi} = 0.05;
-%params{wMinInitSTDPi} = 0.005;
-%params{tauLTPi} = 30;
-%params{tauLTDi} = 26;
-%params{ampLTPi} = 0.1;
-%params{ampLTDi} = 0.01;
-%params{wMini} = 0.001;
-%params{wMaxi} = 0.1;
-%params{synscalingi} = 0;
-%params{synscalingvi} = 10;
 
 
 if(PARAMSWEEP_FLAG)

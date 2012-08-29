@@ -15,19 +15,23 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_whitened12x12_tinyAll1000"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll
-TEMPLATE = "STDPgeneralNS";
+DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare 
+
+TEMPLATE = "STDPgeneralNS2";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
+v1_file = "S1.pvp";
 
-numsteps = 10000;
+numsteps = 1000;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
 
 
 %% INDEXES
-DISPLAYPERIODi=7;
+CHECKPOINTREADi = 4;
+CHECKPOINTSTEPi = 5;
+DISPLAYPERIODi = 7;
 STRENGTH_IMAGE2RETINAi = 8;
 
 wMaxInitSTDPi = 9;
@@ -43,29 +47,29 @@ synscalingvi = 18;
 
 RUN_FLAG = 1;
 
-PARAMSWEEP_FLAG = 1;
+PARAMSWEEP_FLAG = 0;
     %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
     PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi];
-MEASURES_FLAG = 0;
+MEASURES_FLAG = 1;
     MEASURES_PLOT_FLAG = 0;
-    MEASURES_OSI_FLAG = 1;
-    MEASURES_GM_FLAG = 0;
+    MEASURES_OSI_FLAG = 0;
+    MEASURES_GM_FLAG = 1;
 
 global ROTATE_FLAG; ROTATE_FLAG = 0;
 
 v1_cells = 6*6;
 img_size = 12;
-ign_w = 1;
+ign_w = 2;
 
 global params;
 params{1} = "false";  %checkpointRead
 params{2} = "true";  %checkpointWrite
 params{3} = DATASET;  %checkpointReadDir
-params{4} = 0;  %checkpointReadDirIndex
-params{5} = 1000;  %checkpointWriteStepInterval
+params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
+params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 25;
+params{STRENGTH_IMAGE2RETINAi} = 50;
 
 
 
@@ -86,7 +90,7 @@ LOAD_FILE = 1;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(135,x);
+        params{PARAM_SWEEP(x)} = rg_p(4005,x);
     end
 end
 
@@ -104,10 +108,10 @@ end
 
 if(PARAMSWEEP_FLAG)
     %Range over which 
-    rg = {1:10:30; ... 
-        1:10:30; ...
-        0.09:0.01:0.2; ...
-        0.0055:0.001:0.01; ...
+    rg = {1:5:30; ... 
+        1:5:30; ...
+        0.009:0.03:0.2; ...
+        0.009:0.03:0.2; ...
         5:5:15};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi
     %rg = {1; ... 
     %      37; ...
@@ -165,14 +169,23 @@ if(PARAMSWEEP_FLAG==0)
     PRINT_FLAG = 1;
     SWEEP_POS = 0;
     filename = [pvp_output_path, filesep, on_v1_file];
+    filenameOff = [pvp_output_path, filesep, off_v1_file];
     [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
+    filterDoG(wm,wmOff,0);
 else
     PRINT_FLAG = 1;
     SWEEP_POS = ps;
     filename = [pvp_output_path, filesep, on_v1_file];
+    %filenameOff = [pvp_output_path, filesep, off_v1_file];
     [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+    %[dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
+    %filterDoG(wm,wmOff,0);
+    
 end
 
+wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
+keyboard
 PRINT_FLAG = 0;
 
 
@@ -321,104 +334,109 @@ end
 
 
 
+
+
 if(MEASURES_GM_FLAG)
 
 
-disp("------------------------------------------");
-disp("------------Generative Measure------------");
-disp("------------------------------------------");
+    disp("------------------------------------------");
+    disp("------------Generative Measure------------");
+    disp("------------------------------------------");
 
 
-%Read Orient dataset
-fid = fopen([pvp_project_path, "input", filesep, DATASET, '.txt' ], 'r');
-datasetl = {};
+    %Read entire dataset
+    fid = fopen([pvp_project_path, "input", filesep, DATASET, '.txt' ], 'r');
+    datasetl = {};
+    c=1;
+    while(~feof(fid))
+        datasetl{c} = fgets(fid);
+        c=c+1;
+    end
 
-c=1;
-while(~feof(fid))
-datasetl{c} = fgets(fid);
-c=c+1;
-end
+    post = 1;
+    hist_per_img = zeros(numsteps/params{5}+1, v1_cells, length(datasetl));
+    diff = zeros(numsteps/params{5}+1, length(datasetl));
 
-post = 1;
-ign_w = 4;
-hist_per_img = zeros(numsteps/params{5}+1, v1_cells, length(datasetl));
-diff = zeros(numsteps/params{5}+1, length(datasetl));
+    %Generative measure
+    %1. For each image matrix
+    for i=numsteps-params{CHECKPOINTSTEPi}:params{CHECKPOINTSTEPi}:numsteps
+    %for i=0:params{5}:numsteps
+            params{CHECKPOINTREADi} = i;  %checkpointReadDirIndex
 
-%Generative measure
-%1. For each image matrix
-for i=numsteps-params{5}:params{5}:numsteps
-%    for i=0:params{5}:numsteps
-params{4} = i;  %checkpointReadDirIndex
+            %Generates new params file
+            [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
 
-%Generates new params file
-[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
+            length(datasetl)*params{DISPLAYPERIODi}+i
+            %pause
 
-length(datasetl)*params{DISPLAYPERIODi}+i
-%pause
+            if(RUN_FLAG)
+                system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
 
-if(RUN_FLAG)
-system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+                %2. Get activity and weight matrix
+                %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
+                [data hdr] = readpvpfile([pvp_output_path, filesep, v1_file], [pvp_output_path, filesep], v1_file);
 
-%2. Get activity and weight matrix
-%Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
-[data hdr] = readpvpfile([pvp_output_path, filesep, "S1.pvp"], [pvp_output_path, filesep], "S1.pvp");
+                %Reads the weights Retina_ON > V1 for the time being
+                [d hdr wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep],on_v1_file, post);
 
-%Reads the weights Retina_ON > V1 for the time being
-[d hdr wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep],on_v1_file, post);
-figure
-imshow(wm);
-for p=0:(length(datasetl)-1)
-for f=1:params{DISPLAYPERIODi}
-for v=1:v1_cells
-hist_per_img(i/params{5}+1,v,p+1) = hist_per_img(i/params{5}+1,v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
-end
-end
-end
+                figure
+                imshow(wm);
+                figure
+                wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
+                imshow(wm_clean);
 
-%keyboard
+                for p=0:(length(datasetl)-1)
+                    for f=1:params{DISPLAYPERIODi}
+                        for v=1:v1_cells
+                            hist_per_img(i/params{5}+1,v,p+1) = hist_per_img(i/params{5}+1,v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
+                        end
+                    end
+                end
 
-%3. Reconstruct the original image
-for p=1:(length(datasetl)) %Loop over images
-img_recons = zeros(img_size);
-for v=1:v1_cells %Loop over cells
-mean_act = mean(hist_per_img(i/params{5}+1,v,p));
-if(mean_act>0) %If cell reconstruct
-[r c] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
-w=wm((r-1)*hdr.nxp+1:r*hdr.nxp, (c-1)*hdr.nyp+1:c*hdr.nyp);
-w=w((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))), (hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1)))); %Get actual weights that are changed
-img_recons = img_recons .+ (mean_act .* w);
-[r c mean_act]
-end
-end
+                keyboard
 
-if(sum(sum(img_recons))>0)
-img_recons = img_recons./max(max(img_recons));
-img_orig = imread(strtrim(datasetl{p}));
-if(ROTATE_FLAG==0)
-img_orig = flipud(rot90(img_orig));
-%img_orig = rot90(img_orig);
-end
-diff(i/params{5}+1,p) = mean(mean(abs(img_orig-img_recons)));
-%if(i==numsteps)%Only plot the last ones
-figure
-subplot(1,2,1);
-imshow(img_orig);
-title('Original');
-subplot(1,2,2);
-imshow(img_recons);
-title(['Reconstruction  diff=' num2str(diff(i/params{5}+1,p))]);
-keyboard
-%end
+                %3. Reconstruct the original image
+                for p=1:(length(datasetl)) %Loop over images
+                    img_recons = zeros(img_size);
+                    for v=1:v1_cells %Loop over cells
+                        mean_act = mean(hist_per_img(i/params{5}+1,v,p));
+                        if(mean_act>0) %If cell reconstruct
+                            [r c] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
+                            w=wm_clean((r-1)*hdr.nxp+1:r*hdr.nxp, (c-1)*hdr.nyp+1:c*hdr.nyp);
+                            %w=w((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))), (hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1)))); %Get actual weights that are changed
+                            img_recons = img_recons .+ (mean_act .* w);
+                            [r c mean_act]
+                        end
+                    end
 
-end
-end    
+                    if(sum(sum(img_recons))>0)
+                        img_recons = img_recons./max(max(img_recons));
+                        img_orig = imread(strtrim(datasetl{p}));
+                        if(ROTATE_FLAG==0)
+                            img_orig = flipud(rot90(img_orig));
+                            %img_orig = rot90(img_orig);
+                            end
+                            diff(i/params{5}+1,p) = mean(mean(abs(img_orig-img_recons)));
+                            %if(i==numsteps)%Only plot the last ones
+                                figure
+                                subplot(1,2,1);
+                                imshow(img_orig);
+                                title('Original');
+                                subplot(1,2,2);
+                                imshow(img_recons);
+                                title(['Reconstruction  diff=' num2str(diff(i/params{5}+1,p))]);
+                                keyboard
+                            %end
 
-%4. Generative measure (use KL divergence): mean(D(I_G,I_O))
+                        end
+                    end    
 
-end
-end
+                    %4. Generative measure (use KL divergence): mean(D(I_G,I_O))
 
-end
+                end
+            end
+
+    end
 
 end
 
