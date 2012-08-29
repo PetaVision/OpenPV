@@ -501,9 +501,6 @@ int read_pvdata(const char * filename, Communicator * comm, double * timed, void
    // scale factor for floating point conversion
    float scale = 1.0f;
 
-   const int nxProcsInMem = comm->numCommColumns();
-   const int nyProcsInMem = comm->numCommRows();
-
    const int icRank = comm->commRank();
 
 // Only the interior, non-restricted part of the buffer gets written, even if the buffer is extended.
@@ -577,6 +574,9 @@ int read_pvdata(const char * filename, Communicator * comm, double * timed, void
       assert(dataType == PV_FLOAT_TYPE || dataType == PV_INT_TYPE);
 
 #ifdef PV_USE_MPI
+      const int nxProcsInMem = comm->numCommColumns();
+      const int nyProcsInMem = comm->numCommRows();
+
       int dest = -1;
       for (int py = 0; py < nyProcsInMem; py++) {
          for (int px = 0; px < nxProcsInMem; px++) {

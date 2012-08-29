@@ -490,10 +490,12 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   const int numBands = loc->nf;
 
+#ifdef PV_USE_MPI
+   const int numBands = loc->nf;
    const int numItems = nx * ny * numBands;
    const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -535,10 +537,10 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       size_t numRead = fread(filebuf, 1, recordSize*numRecords, fp);
       if( numRead != recordSize*numRecords ) abort();
 
+      int dest, destrow, destcol, startx, starty;
 #ifdef PV_USE_MPI
       const int tag = PVP_FILE_TYPE;
 
-      int dest, destrow, destcol, startx, starty;
       for( dest = 1; dest < comm->commSize(); dest++ ) {
          // Do dest=0 after the others so that we can use buf to hold nonlocal portions
          destrow = rowFromRank(dest, comm->numCommRows(), comm->numCommColumns());

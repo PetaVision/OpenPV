@@ -161,7 +161,9 @@ int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
       }
       fclose(curLabelIndexFile);
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(&curTrainingLabelIndex, 1, MPI_INT, rootProc, icComm->communicator());
+#endif // PV_USE_MPI
    return status;
 }
 

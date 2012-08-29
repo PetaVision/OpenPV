@@ -142,7 +142,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
             charhit = getc(stdin);
          }
       }
+#ifdef PV_USE_MPI
       MPI_Barrier(icComm->communicator());
+#endif // PV_USE_MPI
    }
 #endif
 ;

@@ -264,6 +264,23 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    return err;
 }
 
+// Used by WTACompressedLayer
+int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int feature, int * RESTRICT maxloc) {
+   int k;
+   int err = 0;
+   for (k = 0; k < nk; k++) {
+      float prod = a*w[k];
+      if (prod!=0 && v[k] == prod) {
+         err = 1;
+      }
+      if (v[k] < prod) {
+         v[k] = prod;
+         maxloc[k] = feature;
+      }
+   }
+   return err;
+}
+
 
 ///////////////////////////////////////////////////////
 // pvcube interface implementation

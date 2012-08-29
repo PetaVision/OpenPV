@@ -1074,7 +1074,9 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
       }
       fclose(fpWriteTime);
    }
+#ifdef PV_USE_MPI
    MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, icComm->communicator());
+#endif // PV_USE_MPI
 
    return PV_SUCCESS;
 }

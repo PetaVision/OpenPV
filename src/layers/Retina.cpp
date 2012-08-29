@@ -297,7 +297,6 @@ int Retina::checkpointRead(const char * cpDir, float * timef) {
    int rootproc = 0;
    InterColComm * ic_comm = parent->icCommunicator();
    int rank = ic_comm->commRank();
-   const MPI_Comm mpi_comm = ic_comm->communicator();
    if (rank==rootproc) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
       if(chars_needed >= PV_PATH_MAX) {
@@ -317,7 +316,9 @@ int Retina::checkpointRead(const char * cpDir, float * timef) {
          fprintf(stderr, "Retina::checkpointRead error while reading size information from \"%s\".\n", filename);
          abort();
       }
-      MPI_Bcast(&comm_size, 1, MPI_INT, rootproc, mpi_comm);
+#ifdef PV_USE_MPI
+      MPI_Bcast(&comm_size, 1, MPI_INT, rootproc, ic_comm->communicator());
+#endif // PV_USE_MPI
       if (comm_size != ic_comm->commSize()) {
          fprintf(stderr, "Retina::checkpointRead warning.  \"%s\" was run under %d processes, but this run has %d processes.", filename, comm_size, ic_comm->commSize());
          fprintf(stderr, "Will use random state set during initialization.\n");
@@ -338,18 +339,23 @@ int Retina::checkpointRead(const char * cpDir, float * timef) {
                memcpy(rand_state, &mpi_rand_state[rootproc], sizeof(uint4));
             }
             else {
-               MPI_Send(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, mpi_comm);
+#ifdef PV_USE_MPI
+               MPI_Send(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, ic_comm->communicator());
+#endif // PV_USE_MPI
             }
          }
       fclose(fp_rand_state);
       }
    }
    else {
+#ifdef PV_USE_MPI
+      const MPI_Comm mpi_comm = ic_comm->communicator();
       int comm_size;
       MPI_Bcast(&comm_size, 1, MPI_INT, rootproc, mpi_comm);
       if (comm_size == ic_comm->commSize()) {
          MPI_Recv(rand_state, sizeof(uint4), MPI_BYTE, rootproc, 171+rank/*tag*/, mpi_comm, MPI_STATUS_IGNORE);
       }
+#endif // PV_USE_MPI
    }
    return status;
 }
@@ -366,7 +372,6 @@ int Retina::checkpointWrite(const char * cpDir) {
    int rootproc = 0;
    InterColComm * ic_comm = parent->icCommunicator();
    int rank = ic_comm->commRank();
-   const MPI_Comm mpi_comm = ic_comm->communicator();
    if (rank==rootproc) {
       int comm_size = ic_comm->commSize();
 
@@ -376,10 +381,12 @@ int Retina::checkpointWrite(const char * cpDir) {
          abort();
       }
       memcpy(&mpi_rand_state[rootproc], rand_state, sizeof(uint4));
+#ifdef PV_USE_MPI
       for (int r=0; r<comm_size; r++) {
          if (r==rootproc) continue;
-         MPI_Recv(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, mpi_comm, MPI_STATUS_IGNORE);
+         MPI_Recv(&mpi_rand_state[r], sizeof(uint4), MPI_BYTE, r, 171+r/*tag*/, ic_comm->communicator(), MPI_STATUS_IGNORE);
       }
+#endif // PV_USE_MPI
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
       if(chars_needed >= PV_PATH_MAX) {
          if (parent->icCommunicator()->commRank()==0) {
@@ -424,7 +431,9 @@ int Retina::checkpointWrite(const char * cpDir) {
       fclose(fp_rand_state);
    }
    else {
-      MPI_Send(rand_state, sizeof(uint4), MPI_BYTE, rootproc, 171+rank/*tag*/, mpi_comm);
+#ifdef PV_USE_MPI
+      MPI_Send(rand_state, sizeof(uint4), MPI_BYTE, rootproc, 171+rank/*tag*/, ic_comm->communicator());
+#endif // PV_USE_MPI
    }
    return status;
 }

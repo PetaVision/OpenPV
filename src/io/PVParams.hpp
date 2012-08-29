@@ -10,6 +10,7 @@
 
 #include "../include/pv_common.h"
 #include "../columns/HyPerCol.hpp"
+#include <string.h>
 
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group

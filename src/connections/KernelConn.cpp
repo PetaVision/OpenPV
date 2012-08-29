@@ -649,11 +649,13 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
+#ifdef PV_USE_MPI
    if (!keepKernelsSynchronized_flag) {
       for (int axon_id = 0; axon_id < this->numberOfAxonalArborLists(); axon_id++) {
          reduceKernels(axon_id);
       }
    }
+#endif // PV_USE_MPI
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 

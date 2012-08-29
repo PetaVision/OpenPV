@@ -658,12 +658,14 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 
 /* Frees an MPI_Datatype array previously created with Communicator::newDatatypes */
 int Communicator::freeDatatypes(MPI_Datatype * mpi_datatypes) {
+#ifdef PV_USE_MPI
    if(mpi_datatypes) {
       for ( int n=0; n<NUM_NEIGHBORHOOD; n++ ) {
          MPI_Type_free(&mpi_datatypes[n]);
       }
       delete mpi_datatypes;
    }
+#endif // PV_USE_MPI
    return PV_SUCCESS;
 }
 
