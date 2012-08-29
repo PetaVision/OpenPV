@@ -21,24 +21,24 @@ PursuitLayer::PursuitLayer()
 
 PursuitLayer::~PursuitLayer()
 {
-   free(innerproducts); innerproducts = NULL;
+   //free(innerproducts); innerproducts = NULL;
    free(wnormsq); wnormsq = NULL;
    free(minimumLocations); minimumLocations = NULL;
    free(energyDrops); energyDrops = NULL;
    free(minFeatures); minFeatures = NULL;
-   free(minEnergySparse); minEnergySparse = NULL;
+   free(energyDropsBestFeature); energyDropsBestFeature = NULL;
    free(foundFeatures); foundFeatures = NULL;
    free(minLocationsBestFeature); minLocationsBestFeature = NULL;
    free(gSynSparse); gSynSparse = NULL;
 }
 
 int PursuitLayer::initialize_base() {
-   innerproducts = NULL;
+   //innerproducts = NULL;
    wnormsq = NULL;
    minimumLocations = NULL;
    energyDrops = NULL;
    minFeatures = NULL;
-   minEnergySparse = NULL;
+   energyDropsBestFeature = NULL;
    foundFeatures = NULL;
    minLocationsBestFeature = NULL;
    gSynSparse = NULL;
@@ -50,14 +50,14 @@ int PursuitLayer::initialize_base() {
 int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
    if (status==PV_SUCCESS) {
-      innerproducts = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
-      if (innerproducts == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for innerproducts.  Error %d\n", errno);
-         abort();
-      }
+      //innerproducts = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+      //if (innerproducts == NULL) {
+      //   fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for innerproducts.  Error %d\n", errno);
+      //   abort();
+      //}
    }
    if (status==PV_SUCCESS) {
-      wnormsq = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+      wnormsq = (pvdata_t *) calloc(getLayerLoc()->nf, sizeof(pvdata_t));
       if (wnormsq == NULL) {
          fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for wnormsq.  Error %d\n", errno);
          abort();
@@ -86,8 +86,8 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
       }
    }
    if (status==PV_SUCCESS) {
-      minEnergySparse = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
-      if (minEnergySparse == NULL) {
+      energyDropsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
+      if (energyDropsBestFeature == NULL) {
          fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse.  Error %d\n", errno);
          abort();
       }
@@ -148,12 +148,9 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    // The +1 is for the slash between cpDir and name; the +29 needs to be large enough to hold the suffix (e.g. _minLocationsBestFeature.pvp) plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_innerproducts.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, innerproducts, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_wnormsq.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, wnormsq, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   //chars_needed = snprintf(filename, filenamesize, "%s/%s_innerproducts.pvp", cpDir, name);
+   //assert(chars_needed < filenamesize);
+   //writeBufferFile(filename, icComm, timed, innerproducts, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
    chars_needed = snprintf(filename, filenamesize, "%s/%s_minimumLocations.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, minimumLocations, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
@@ -164,17 +161,17 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
    flat_loc.nf = 1;
 
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_minEnergySparse.pvp", cpDir, name);
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_energyDropsBestFeature.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile1Feature(filename, icComm, timed, minEnergySparse);
+   writeBufferFileVariantLoc(filename, icComm, timed, energyDropsBestFeature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_minLocationsBestFeature.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile1Feature(filename, icComm, timed, minLocationsBestFeature);
+   writeBufferFileVariantLoc(filename, icComm, timed, minLocationsBestFeature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile1Feature(filename, icComm, timed, gSynSparse);
+   writeBufferFileVariantLoc(filename, icComm, timed, gSynSparse, &flat_loc);
 
    pvdata_t buffer1feature[flat_loc.nx*flat_loc.ny];
 
@@ -183,48 +180,53 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
       buffer1feature[k] = (pvdata_t) minFeatures[k];
    }
-   writeBufferFile1Feature(filename, icComm, timed, buffer1feature);
+   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
       buffer1feature[k] = (pvdata_t) foundFeatures[k];
    }
-   writeBufferFile1Feature(filename, icComm, timed, buffer1feature);
+   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_minEnergyFiltered.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
       buffer1feature[k] = (pvdata_t) minEnergyFiltered[k];
    }
-   writeBufferFile1Feature(filename, icComm, timed, buffer1feature);
+   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
+
+   flat_loc.nx = 1;
+   flat_loc.ny = 1;
+   flat_loc.nb = 0;
+   flat_loc.nf = getLayerLoc()->nf;
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_wnormsq.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
+   writeBufferFileVariantLoc(filename, icComm, timed, wnormsq, &flat_loc);
 
    free(filename);
    return status;
 }
 
-int PursuitLayer::writeBufferFile1Feature(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer) {
+int PursuitLayer::writeBufferFileVariantLoc(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, const PVLayerLoc * variant_loc) {
    FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    int rank = comm->commRank();
    if (writeFile == 0 && rank==0 ) {
-      fprintf(stderr, "PursuitLayer::writeBufferFile1Feature error opening \"%s\" for writing.\n", filename);
+      fprintf(stderr, "PursuitLayer::writeBufferFileVariantLoc error opening \"%s\" for writing.\n", filename);
       abort();
    }
-   PVLayerLoc flat_loc;
-   memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
-   flat_loc.nf = 1;
    if( rank == 0 ) {
       long fpos = ftell(writeFile);
       if (fpos == 0L) {
-         int status = pvp_write_header(writeFile, comm, timed, &flat_loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, /*numbands*/ 1, /*extended*/false, /*contiguous*/false, NUM_BIN_PARAMS, (size_t) flat_loc.nx*flat_loc.ny);
+         int status = pvp_write_header(writeFile, comm, timed, variant_loc, PVP_NONSPIKING_ACT_FILE_TYPE,
+                                       PV_FLOAT_TYPE, /*numbands*/ 1, /*extended*/false, /*contiguous*/false, NUM_BIN_PARAMS, (size_t) variant_loc->nx*variant_loc->ny);
          if (status != PV_SUCCESS) return status;
       }
    }
 
    int status = PV_SUCCESS;
-   if ( rank==0 && fwrite(&timed, sizeof(double), 1, writeFile) != 1 )              return -1;
-   int status1 =  write_pvdata(writeFile, comm, timed, buffer, &flat_loc, PV_FLOAT_TYPE,
+   if ( rank==0 && fwrite(&timed, sizeof(double), 1, writeFile) != 1 ) return -1;
+   int status1 =  write_pvdata(writeFile, comm, timed, buffer, variant_loc, PV_FLOAT_TYPE,
          /*extended*/ false, /*contiguous*/ false, PVP_NONSPIKING_ACT_FILE_TYPE);
    status = status1 != PV_SUCCESS ? status1 : status;
    pvp_close_file(writeFile, comm);
@@ -252,6 +254,9 @@ int PursuitLayer::updateState(float time, float dt) {
          activity[kex] = gSynSparse[kxy];
       }
    }
+   //memset(innerproducts, 0, getNumNeurons()*sizeof(*innerproducts));
+   resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
+   updateReady = false;
    return PV_SUCCESS;
 }
 
@@ -286,7 +291,6 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
 #endif // DEBUG_OUTPUT
 
 
-   memset(innerproducts, 0, getNumNeurons()*sizeof(*innerproducts));
    const int numExtended = activity->numItems;
    for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre];
@@ -301,10 +305,10 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
       int ny  = weights->ny;
       int sy  = conn->getPostNonextStrides()->sy; // stride in layer
       int syw = conn->yPatchStride();             // stride in patch
-      pvdata_t * ipBufferStart = &innerproducts[conn->getGSynPatchStart(kPre, arborID)-GSyn[conn->getChannel()]];
+      pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       pvdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
-         (conn->accumulateFunctionPointer)(nk, ipBufferStart + y*sy, a, data + y*syw);
+         (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw);
       }
    }
 
@@ -313,6 +317,7 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();
    int nfp = conn->fPatchSize();
+   int num_weights = nxp*nyp*nfp;
    assert(zUnitCellSize(pre->getXScale(), getXScale())==1);
    assert(zUnitCellSize(pre->getYScale(), getYScale())==1);
    assert(conn->getNumDataPatches()==1);
@@ -320,37 +325,42 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
    for (int kf=0; kf<nfp; kf++) {
       pvdata_t * weight = conn->get_wDataHead(arborID, 0);
       pvdata_t sum = 0.0;
-      for (int kxy=0; kxy<nxp*nyp; kxy++) {
-         pvdata_t w = weight[kxy*nfp + kf]; // Assumes stride in features is 1.
+      for (int k=0; k<num_weights; k+=nfp) {
+         pvdata_t w = weight[k + kf]; // Assumes stride in features is 1.
          sum += w*w;
       }
       wnormsq[kf] = sum;
    }
+
+   pvdata_t * gSynStart = GSyn[conn->getChannel()];
+
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;
    int nxy = nx*ny;
-   for (int kxy=1; kxy<nxy; kxy++) {
-      memcpy(&wnormsq[kxy*nfp], wnormsq, nfp*sizeof(pvdata_t));
-   }
 
-   for (int k=0; k<getNumNeurons(); k++) {
-      minimumLocations[k] = innerproducts[k]/wnormsq[k];
-      energyDrops[k] = -innerproducts[k]*minimumLocations[k]/2;
+   // TODO: Can I compute energyDropsBestFeature and minLocationsBestFeature without storing all the energyDrops and minimumLocations?
+
+   for (int kxy=0; kxy<nxy; kxy++) {
+      for (int kf=0; kf<nfp; kf++) {
+         int k=kxy*nfp+kf; // Assumes stride in features is 1.
+         minimumLocations[k] = gSynStart[k]/wnormsq[kf];
+         energyDrops[k] = -gSynStart[k]*minimumLocations[k]/2;
+      }
    }
 
    for (int kxy=0; kxy<nxy; kxy++) {
       minFeatures[kxy] = -1;
-      minEnergySparse[kxy] = FLT_MAX;
+      energyDropsBestFeature[kxy] = FLT_MAX;
       int index0 = kxy*nfp; // assumes stride in features is 1.
       if (foundFeatures[kxy]>=0) {
-         minEnergySparse[kxy] = energyDrops[kxy*nfp+foundFeatures[kxy]];
+         energyDropsBestFeature[kxy] = energyDrops[kxy*nfp+foundFeatures[kxy]];
          minFeatures[kxy] = foundFeatures[kxy];
       }
       else {
          for (int kf=0; kf<nfp; kf++) {
-            if (energyDrops[index0+kf] < minEnergySparse[kxy]) {
+            if (energyDrops[index0+kf] < energyDropsBestFeature[kxy]) {
                minFeatures[kxy] = kf;
-               minEnergySparse[kxy] = energyDrops[index0+kf];
+               energyDropsBestFeature[kxy] = energyDrops[index0+kf];
             }
          }
       }
@@ -363,15 +373,12 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
    }
 
    bool mask[nxy];
-   memset(mask, false, nxy*sizeof(mask[0]));
-   // memset(gSynSparse, 0, nxy*sizeof(*gSynSparse));
+   memset(mask, false, nxy*sizeof(*mask));
 
    pvdata_t smallestEnergyDrop;
    int minloc;
-   constrainMinima();
-   minloc = filterMinEnergies(mask, &smallestEnergyDrop);
 
-   while (smallestEnergyDrop<FLT_MAX) {
+   while (constrainMinima(), minloc = filterMinEnergies(mask, &smallestEnergyDrop), smallestEnergyDrop<FLT_MAX) {
       assert(foundFeatures[minloc]<0 || foundFeatures[minloc]==minFeatures[minloc]);
       foundFeatures[minloc] = minFeatures[minloc];
       gSynSparse[minloc] += minLocationsBestFeature[minloc];
@@ -391,9 +398,6 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
             mask[kIndex(kx,ky,0,nx,ny,1)]=true;
          }
       }
-
-      constrainMinima();
-      minloc = filterMinEnergies(mask, &smallestEnergyDrop);
    }
 
 
@@ -409,7 +413,7 @@ int PursuitLayer::constrainMinima() {
    for (int kxy=0; kxy<nxy; kxy++) {
       if (foundFeatures[kxy]>=0 && minLocationsBestFeature[kxy]<-gSynSparse[kxy]) {
          pvdata_t b = (gSynSparse[kxy]+minLocationsBestFeature[kxy])/minLocationsBestFeature[kxy];
-         minEnergySparse[kxy] -= minEnergySparse[kxy]*b*b;
+         energyDropsBestFeature[kxy] -= energyDropsBestFeature[kxy]*b*b;
          minLocationsBestFeature[kxy] = -gSynSparse[kxy];
       }
    }
@@ -417,8 +421,10 @@ int PursuitLayer::constrainMinima() {
 }
 
 int PursuitLayer::filterMinEnergies(bool * mask, pvdata_t * smallestEnergyDrop) {
-   int nxy = getLayerLoc()->nx * getLayerLoc()->ny;
-   memcpy(minEnergyFiltered, minEnergySparse, nxy*sizeof(minEnergyFiltered[0]));
+   int nx = getLayerLoc()->nx;
+   int ny = getLayerLoc()->ny;
+   int nxy = nx * ny;
+   memcpy(minEnergyFiltered, energyDropsBestFeature, nxy*sizeof(minEnergyFiltered[0]));
    for (int kxy=0; kxy<nxy; kxy++) {
       int fxy = foundFeatures[kxy];
       if ( (fxy<0 && minLocationsBestFeature[kxy]<=-gSynSparse[kxy]) || (fxy>=0 && fxy!=minFeatures[kxy]) || mask[kxy] ) {

@@ -32,7 +32,7 @@ public:
 protected:
    PursuitLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels);
-   int writeBufferFile1Feature(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer);
+   int writeBufferFileVariantLoc(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, const PVLayerLoc * variant_loc);
    int constrainMinima();
    int filterMinEnergies(bool * mask, pvdata_t * smallestEnergyDrop);
 private:
@@ -42,12 +42,11 @@ private:
 public:
 
 protected:
-   pvdata_t * innerproducts;
    pvdata_t * wnormsq;
    pvdata_t * minimumLocations;
    pvdata_t * energyDrops;
    int * minFeatures;
-   pvdata_t * minEnergySparse;
+   pvdata_t * energyDropsBestFeature;
    int * foundFeatures;
    pvdata_t * minLocationsBestFeature;
    pvdata_t * gSynSparse;
