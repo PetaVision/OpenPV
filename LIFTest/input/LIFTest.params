@@ -42,6 +42,7 @@ Image "input" = {
     spikingFlag = false;
     writeStep = -1;
     writeNonspikingActivity = true;
+    useImageBCflag = false;
     mirrorBCflag = false;
     writeImages = false;
     offsetX = 96;

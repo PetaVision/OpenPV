@@ -95,8 +95,8 @@ int LIFTestProbe::outputState(float timef) {
    HyPerLayer * l = getTargetLayer();
    const PVLayerLoc * loc = l->getLayerLoc();
    int n = l->getNumNeurons();
-   double xctr = 0.5*(loc->nx-1);
-   double yctr = 0.5*(loc->ny-1);
+   double xctr = 0.5*(loc->nxGlobal-1) - loc->kx0;
+   double yctr = 0.5*(loc->nyGlobal-1) - loc->ky0;
    for (int j=0; j<LIFTESTPROBE_BINS; j++) {
       rates[j] = 0;
    }
@@ -112,15 +112,12 @@ int LIFTestProbe::outputState(float timef) {
    }
    int root_proc = 0;
    InterColComm * icComm = l->getParent()->icCommunicator();
-   double avgrates[LIFTESTPROBE_BINS];
 #ifdef PV_USE_MPI
-   MPI_Reduce(rates, avgrates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-   // TODO: get working under MPI
 #endif // PV_USE_MPI
    if (icComm->commRank()==root_proc) {
+      MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       fprintf(fp, "%s t=%f:", msg, timef);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
-         rates[j] = avgrates[j];
          rates[j] /= counts[j]*timef/1000.0;
          fprintf(fp, " %f", rates[j]);
       }
@@ -130,6 +127,10 @@ int LIFTestProbe::outputState(float timef) {
             assert(fabs((rates[j]-targetrates[j])/stddevs[j])<2.5);
          }
       }
+   }
+   else {
+      MPI_Reduce(rates, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
+      // Not using Allreduce, so the value of rates does not get updated in non-root processes.
    }
 
    return status;
