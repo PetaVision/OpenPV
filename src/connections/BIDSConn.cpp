@@ -33,8 +33,10 @@ int BIDSConn::setPatchSize(const char * filename)
    //In order to get the full length of the radius at which a node can see its neighboring nodes in 256x256 physical space while accounting for jitter
    //on both ends, we take into acct. the provided lateral radius, maximum jitter from the principle node, and maximum jitter from the furthest possible
    //neighboring node. Since this occurs on both sides of the patch, the equation is multiplied by two.
-   nxp = 2 * (inputParams->value("Lateral Interactions", "lateralRadius") + 2 * inputParams->value("BIDS_node", "jitter")) + 1;
-   nyp = 2 * (inputParams->value("Lateral Interactions", "lateralRadius") + 2 * inputParams->value("BIDS_node", "jitter")) + 1;
+   const char * jitterSourceName = inputParams->stringValue(name, "jitterSource");
+   std::cout << jitterSourceName;
+   nxp = 2 * (inputParams->value(name, "lateralRadius") + 2 * inputParams->value(jitterSourceName, "jitter")) + 1;
+   nyp = 2 * (inputParams->value(name, "lateralRadius") + 2 * inputParams->value(jitterSourceName, "jitter")) + 1;
    nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->loc.nf);
    if( nfp != post->getCLayer()->loc.nf ) {
       fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
