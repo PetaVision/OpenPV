@@ -43,7 +43,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
    bool copydstoreflag=pub->getCopyDataStoreFlag();
    publishers[pubId] = new Publisher(pubId, pub->parent, numItems, pub->clayer->loc, numLevels, copydstoreflag);
 #else
-   publishers[pubId] = new Publisher(pubId, pub->parent, numItems, pub->clayer->loc, numLevels);
+   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels);
 #endif
    numPublishers += 1;
 

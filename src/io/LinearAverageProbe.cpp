@@ -67,7 +67,7 @@ int LinearAverageProbe::outputState(float timef)
    if (fpGif == NULL) {
       int numOnLines = 0;
       char path[PV_PATH_MAX];
-      sprintf(path, "%s/%s", l->parent->getOutputPath(), gifFile);
+      sprintf(path, "%s/%s", l->getParent()->getOutputPath(), gifFile);
 //      fpGif = fopen(path, "r");
 
       int nx = clayer->loc.nxGlobal;

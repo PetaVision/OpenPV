@@ -133,7 +133,6 @@ public:
 
    // TODO - make protected
    PVLayer  * clayer;
-   HyPerCol * parent;
 
    virtual int triggerReceive(InterColComm * comm);
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
@@ -196,6 +195,7 @@ public:
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
+   pvdata_t * getActivity()          {return clayer->activity->data;}
    int getNumChannels()              {return numChannels;}
    pvdata_t * getChannel(ChannelType ch) {                         // name query
       return ch < this->numChannels ? GSyn[ch] : NULL;
@@ -227,6 +227,8 @@ protected:
    /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
    void freeChannels();
+
+   HyPerCol * parent;
 
    char * name;                 // well known name of layer
 
