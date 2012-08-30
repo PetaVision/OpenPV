@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>BasicSystemTest</name>
+	<name>LIFTest</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -35,7 +35,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/BasicSystemTest/Debug}</value>
+					<value>${workspace_loc:/LIFTest/Debug}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
