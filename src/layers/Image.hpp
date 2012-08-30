@@ -96,6 +96,7 @@ protected:
 
    bool useParamsImage;
    bool useImageBCflag;
+   bool inverseFlag;
 
    float lastPhase;
    float lastUpdateTime; // time of last image update

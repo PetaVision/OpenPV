@@ -66,6 +66,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    PVParams * params = parent->parameters();
    this->writeImages = params->value(name, "writeImages", 0) != 0;
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", 0);
+   this->inverseFlag = (bool) params->value(name, "inverseFlag", 0);
    readOffsets();
 
    GDALColorInterp * colorbandtypes = NULL;
@@ -223,12 +224,11 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    }
    // now buf is loc->nf by loc->nx by loc->ny
 
-// Scaling by 1/255 moved to scatterImageFileGDAL and the compressed part of scatterImageFilePVP,
-// since it is unnecessary for uncompressed PVP files.
-//   if (status == 0) {
-//      float fac = 1.0f / 255.0f;  // normalize to 1.0
-//      status = copyFromInteriorBuffer(buf, fac);
-//   }
+   if( inverseFlag ) {
+      for (int k=0; k<n; k++) {
+         buf[n] = 1 - buf[n];
+      }
+   }
 
    if( status == 0 ) copyFromInteriorBuffer(buf, 1.0f);
 
