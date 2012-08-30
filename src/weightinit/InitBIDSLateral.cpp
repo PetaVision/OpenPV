@@ -41,6 +41,7 @@ InitBIDSLateral::~InitBIDSLateral(){
  */
 int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/){
    PVParams * inputParams = callingConn->getParent()->parameters();
+   movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
    InitWeightsParams *weightParams = NULL;
    int numArbors = callingConn->numberOfAxonalArborLists();
@@ -168,28 +169,14 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       //the principle node's mathematical position (HyPerCol space)
       int patchCenterx = (kPreResx * patchSizex) + (patchSizex / 2);
 
-      int jitter = weightParamPtr->getPre()->getParent()->parameters()->value("BIDS_node", "jitter");
+      const char * jitterSourceName = conn->getParent()->parameters()->stringValue(conn->getName(), "jitterSource");
+      int jitter = weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
       int principleJittDiff = (jitter - abs(preCoordx - patchCenterx));
-      //int patchStartx = zPatchHead(kPreResx, weightParamPtr->getnxp(), 0, 0);
-      //int patchStarty = zPatchHead(kPreResy, weightParamPtr->getnyp(), 0, 0);
-
-      //PVPatch * weights = conn->getWeights(kPreRes, arborID);
 
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int sx  = conn->getPostNonextStrides()->sx;       // generally the # of features
       int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
       pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
-      //printf("syw: %d\n", syw);
-      //pvdata_t * data = conn->get_wData(arborID,kPre);
-
-      //Don't want these?
-      //initY = initY < 0 ? 0 : initY;
-      //initX = initX < 0 ? 0 : initX;
-
-//         printf("nyp: %d\tnxp: %d\tjitterDiameter: %d\n", nyp, nxp, jitterDiameter);
-//         printf("patchCenterx: %d\tpreCoordX: %d\tprincipleJittDiff: %d\n", patchCenterx, preCoordx, principleJittDiff);
-//         printf("kPreResy: %d\tkPreResx: %d\n", kPreResy, kPreResx);
-//         printf("initY: %d\tinitX: %d\n\n", initY, initX);
 
       for (int delY = principleJittDiff; delY < nyp - principleJittDiff; delY++) {
          float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
@@ -205,51 +192,34 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
                continue;
             }
 
-            //if((deltaX <= ((conn->xPatchSize() - 1) / 2)) && (deltaY <= ((conn->xPatchSize() - 1) / 2))){
-               //the falloff rate of the conncection is determined by the params file and is chosen here
-               if(strcmp("Gaussian", weightParamPtr->getFalloffType()) == 0){
-                  //Gaussian fall off rate
-                  float variance = 1000;
-                  float mean = 0;
-                  float a = 1;
-                  float b = mean;
-                  float c = sqrt(variance);
-                  float x = distance;
-                  w[delX] = a*exp(-(pow(x - b,2) / (2 * pow(c,2)))) * weightParamPtr->getStrength();
+            //the falloff rate of the conncection is determined by the params file and is chosen here
+            if(strcmp("Gaussian", weightParamPtr->getFalloffType()) == 0){
+               //Gaussian fall off rate
+               float variance = 1000;
+               float mean = 0;
+               float a = 1;
+               float b = mean;
+               float c = sqrt(variance);
+               float x = distance;
+               w[delX] = a*exp(-(pow(x - b,2) / (2 * pow(c,2)))) * weightParamPtr->getStrength();
+            }
+            else if(strcmp("radSquared", weightParamPtr->getFalloffType()) == 0){
+               //Inverse square fall off rate
+               w[delX] = (1 / (distance * distance + 1)) * weightParamPtr->getStrength();
+            }
+            else if(strcmp("Log", weightParamPtr->getFalloffType()) == 0){
+               int lateralRad = conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
+               float connDist2 = 2*lateralRad*lateralRad;
+               float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
+               if (w_tmp > 1.0f){
+                  w[delX] = log10(w_tmp) * weightParamPtr->getStrength();
                }
-               else if(strcmp("radSquared", weightParamPtr->getFalloffType()) == 0){
-                  //Inverse square fall off rate
-                  w[delX] = (1 / (distance * distance + 1)) * weightParamPtr->getStrength();
-               }
-               else if(strcmp("Log", weightParamPtr->getFalloffType()) == 0){
-                  float connDist2 = 2.0f * 256.0f * 256.0f; //conn->xPatchSize() * conn->xPatchSize() + conn->yPatchSize() * conn->yPatchSize();
-                  float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
-                  if (w_tmp > 1.0f){
-                     w[delX] = log10(w_tmp) * weightParamPtr->getStrength();
-                  }
-               }
-               else{
-                  printf("Improper falloff type specified in the params file\n");
-               }
-
-               //printf("yPatchRes: %d\txPatchRes: %d\n", yPatchRes, xPatchRes);
-//                  printf("kPre: %d\tkPreRes: %d\tindex: %d\ty: %d\tx: %d\n", kPre, kPreRes, index, y, x);
-//                  printf("preCoordx: %d\tpreCoordy: %d\n", preCoordx, preCoordy);
-//                  printf("postcoordx: %d\tpostcoordy: %d\n", postcoordx, postcoordy);
-//                  printf("distance: %f\tw[%d]: %f\n\n", distance, index, w[index]);
-
-//            }
-//            else{
-////                  printf("kPre: %d\tkPreRes: %d\tindex: %d\ty: %d\tx: %d\n", kPre, kPreRes, index, y, x);
-////                  printf("preCoordx: %d\tpreCoordy: %d\n", preCoordx, preCoordy);
-////                  printf("postcoordx: %d\tpostcoordy: %d\n", postcoordx, postcoordy);
-////                  printf("distance: %f\tw[%d]: %f\n\n", distance, index, w[index]);
-//               continue;
-//          }
-       }
-//       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
+            }
+            else{
+               printf("Improper falloff type specified in the params file\n");
+            }
+         }
       }
-   //}
 
    return 0;
 }

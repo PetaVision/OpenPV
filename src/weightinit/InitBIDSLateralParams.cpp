@@ -74,9 +74,9 @@ int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
       }
    }
 
-   BIDSLayer * post = dynamic_cast<BIDSLayer *>(parentConn->postSynapticLayer());
+   BIDSMovieCloneMap * post = dynamic_cast<BIDSMovieCloneMap *>(parent->getLayerFromName(params->stringValue(parentConn->getName(), "jitterSource")));
+   assert (post != NULL);
    coords = post->getCoords();
-   numNodes = post->numNodes;
 
    double r2Maxd = (double) rMax;
    r2Max = r2Maxd*r2Maxd;

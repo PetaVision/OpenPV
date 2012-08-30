@@ -10,6 +10,7 @@
 
 #include "InitWeightsParams.hpp"
 #include "../layers/BIDSLayer.hpp"
+#include "../layers/BIDSMovieCloneMap.hpp"
 
 namespace PV {
 
@@ -32,7 +33,6 @@ public:
    inline double getr2Max()        {return r2Max;}
    inline double getr2Min()        {return r2Min;}
    inline BIDSCoords *getCoords()  {return coords;}
-   inline int getNumNodes()        {return numNodes;}
    inline const char * getFalloffType()  {return falloffType;}
    inline int getLateralRadius()   {return lateralRadius;}
    inline HyPerConn * getParentConn() {return parentConn;}
@@ -57,7 +57,6 @@ private:
    bool bowtieFlag;  // flag for setting bowtie angle
    float bowtieAngle;  // bowtie angle
    BIDSCoords * coords; //structure array pointer that holds the randomly generated corrdinates for the specified number of BIDS nodes
-   int numNodes;
    const char * falloffType;
    int lateralRadius;
    //calculated values;
