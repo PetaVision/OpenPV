@@ -98,7 +98,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
-               "BIDSSourceLayer",
                "ANNSquaredLayer",
                "ANNDivInhLayer",
                "CliqueLayer",
@@ -121,6 +120,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                 "BIDSLayer",
              "Retina",
              "SigmoidLayer",
+             "BIDSMovieCloneMap",
              "BIDSCloneLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
@@ -306,9 +306,9 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
-   if( !strcmp(classkeyword, "BIDSSourceLayer") ) {
+   if( !strcmp(classkeyword, "BIDSMovieCloneMap") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) new BIDSSourceLayer(name, hc);
+      addedLayer = (HyPerLayer *) new BIDSMovieCloneMap(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
@@ -435,6 +435,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    return addedLayer;
 }
+
 
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
    TrainingLayer * addedLayer;
@@ -589,9 +590,6 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
       weightInitializer = new InitDistributedWeights();
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSWeight"))) {
-      weightInitializer = new InitBIDSWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSLateral"))) {
       weightInitializer = new InitBIDSLateral();
@@ -857,14 +855,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "BIDSConn") ) {
+   if( !keywordMatched && !strcmp(classkeyword, "BIDSConn") ) {
       keywordMatched = true;
       getPreAndPostLayers(name, hc, &preLayer, &postLayer);
       if( preLayer && postLayer ) {
-
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-
-         addedConn = new BIDSConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = (HyPerConn*) new BIDSConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }

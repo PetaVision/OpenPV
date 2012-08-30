@@ -41,8 +41,8 @@
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNDivInh.hpp"
 #include "../layers/BIDSLayer.hpp"
-#include "../layers/BIDSSourceLayer.hpp"
 #include "../layers/BIDSCloneLayer.hpp"
+#include "../layers/BIDSMovieCloneMap.hpp"
 
 #include "../connections/HyPerConn.hpp"
 #include "../connections/HyPerConn.hpp"
@@ -59,8 +59,8 @@
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/STDPConn.hpp"
-#include "../connections/BIDSConn.hpp"
 #include "../connections/STDP3Conn.hpp"
+#include "../connections/BIDSConn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
@@ -69,7 +69,6 @@
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 #include "../weightinit/InitGaborWeights.hpp"
 #include "../weightinit/InitDistributedWeights.hpp"
-#include "../weightinit/InitBIDSWeights.hpp"
 #include "../weightinit/InitBIDSLateral.hpp"
 #include "../weightinit/InitPoolWeights.hpp"
 #include "../weightinit/InitRuleWeights.hpp"
