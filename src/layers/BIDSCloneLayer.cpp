@@ -55,9 +55,13 @@ int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    freeChannels();
    sourceLayerA = sourceLayer->getCLayer()->activeIndices;
    sourceLayerNumIndices = &(sourceLayer->getCLayer()->numActive);
-   BIDSLayer *blayer = dynamic_cast<BIDSLayer*> (sourceLayer);
+   //TODO Check if this works with Pete
+
+   const char * jitterSourceName = parent->parameters()->stringValue(name, "jitterSource");
+   BIDSMovieCloneMap *blayer = dynamic_cast<BIDSMovieCloneMap*> (sourceLayer->parent->getLayerFromName(jitterSourceName));
+   assert(blayer != NULL);
    coords = blayer->getCoords();
-   numNodes = blayer->numNodes;
+   numNodes = blayer->getNumNodes();
 
    for(int i = 0; i < getNumExtended(); i++){
       this->clayer->activity->data[i] = 0;

@@ -12,6 +12,7 @@
 #include "HyPerLayer.hpp"
 #include "LIF.hpp"
 #include "BIDSLayer.hpp"
+#include "BIDSMovieCloneMap.hpp"
 
 #include "../kernels/LIF_params.h"
 

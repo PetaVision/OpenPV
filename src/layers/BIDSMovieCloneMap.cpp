@@ -11,9 +11,14 @@ BIDSMovieCloneMap::BIDSMovieCloneMap(const char * name, HyPerCol * hc, int numCh
    initialize(name, hc, numChannels);
 }
 
+BIDSMovieCloneMap::BIDSMovieCloneMap(const char * name, HyPerCol * hc){
+   initialize_base();
+   initialize(name, hc);
+}
+
 int BIDSMovieCloneMap::initialize_base(){
    originalMovie = NULL;
-   coords.clear();
+   coords = NULL;
    nxPost = 0;
    nyPost = 0;
    return PV_SUCCESS;
@@ -35,6 +40,7 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
    int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+
    nxPost = nxScale * HyPerColx;
    nyPost = nyScale * HyPerColy;
    int jitter = (int)(parent->parameters()->value(name, "jitter"));
@@ -42,6 +48,9 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    //Check jitter
    assert(2 * jitter < nbPre);
    assert(jitter >= 0); //jitter cannot be below zero
+
+   int numNodes = nxPost * nyPost;
+   coords = (BIDSCoords*)malloc(sizeof(BIDSCoords) * numNodes);
 
    //Apply jitter
    setCoords(jitter, nxScale, nyScale, HyPerColx, HyPerColy);
@@ -55,9 +64,7 @@ void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int 
    int jitterRange = jitter * 2;
 
    //TODO: Set up physical position for margin nodes
-   std::vector <BIDSCoords*> tempVecCoords;
-   tempVecCoords.clear();
-   BIDSCoords* tempCoords = NULL;
+   int i  = 0;
    for(int lowerboundx = 0; lowerboundx < HyPerColx; lowerboundx = lowerboundx + patchSizex){
       for(int lowerboundy = 0; lowerboundy < HyPerColy; lowerboundy = lowerboundy + patchSizey){
          int jitX = 0;
@@ -66,19 +73,16 @@ void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int 
             jitX = rand() % jitterRange - jitter; //stores the x coordinate into the current BIDSCoord structure
             jitY = rand() % jitterRange - jitter; //stores the y coordinate into the current BIDSCoord structure
          }
-         tempCoords = new BIDSCoords();
-         tempCoords->xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
-         tempCoords->yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
-         tempVecCoords.push_back(tempCoords);
+         coords[i].xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
+         coords[i].yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
+         i++;
       }
-      coords.push_back(tempVecCoords);
-      tempVecCoords.clear();
    }
 
 }
 
-BIDSCoords BIDSMovieCloneMap::getCoords(int x, int y){
-   return *coords[x][y];
+BIDSCoords* BIDSMovieCloneMap::getCoords(){
+   return coords;
 }
 
 int BIDSMovieCloneMap::updateState(float timef, float dt){
@@ -89,19 +93,24 @@ int BIDSMovieCloneMap::updateState(float timef, float dt){
    int indexPost;
    BIDSCoords coord;
    //Iterate through post layer
-   for (int i = 0; i < nxPost; i++){
-      for (int j = 0; j < nyPost; j++){
-         //Iterate through features
-         for (int k = 0; k < nf; k++){
-            coord = *coords[i][j];
-            indexPre = kIndex(coord.xCoord+nbPre, coord.yCoord+nbPre, k, nxPre+2*nbPre, nyPre+2*nbPre, nf);
-            indexPost = kIndex(i, j, k, nxPost, nyPost, nf);
-            output[indexPost] = input[indexPre];
-         }
+   for (int i = 0; i < nxPost * nyPost; i++){
+      //Iterate through features
+      for (int k = 0; k < nf; k++){
+         coord = coords[i];
+         indexPre = kIndex(coord.xCoord+nbPre, coord.yCoord+nbPre, k, nxPre+2*nbPre, nyPre+2*nbPre, nf);
+         int xPost = i % nxPost;
+         int yPost = (int) i/nxPost;
+         indexPost = kIndex(xPost, yPost, k, nxPost, nyPost, nf);
+         output[indexPost] = input[indexPre];
       }
    }
+   HyPerLayer::setActivity();
+
    return PV_SUCCESS;
 }
 
+int BIDSMovieCloneMap::getNumNodes(){
+   return nxPost * nyPost;
+}
 
 }

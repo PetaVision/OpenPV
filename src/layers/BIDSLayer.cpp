@@ -16,9 +16,6 @@
 #include <time.h>
 #include <math.h>
 
-int * vector;
-int flag = 0;
-
 namespace PV {
 BIDSLayer::BIDSLayer() {
   // initialize(arguments) should *not* be called by the protected constructor.
@@ -30,12 +27,6 @@ BIDSLayer::BIDSLayer(const char * name, HyPerCol * hc) {
 
 int BIDSLayer::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name){
    LIF::initialize(name, hc, TypeBIDS, MAX_CHANNELS, "BIDS_update_state");
-   //Edit here to figure out scale
-   float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
-   float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
-   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
-   numNodes = (nxScale * HyPerColx) * (nyScale * HyPerColy);
    return PV_SUCCESS;
 }
 
@@ -61,7 +52,6 @@ int BIDSLayer::updateState(float time, float dt)
 //      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
       pvdata_t * activity = clayer->activity->data;
 
-      //BIDS_update_state(vector, flag, getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSynHead, activity);
       LIF_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSynHead, activity);
 #ifdef PV_USE_OPENCL
    }
@@ -70,83 +60,6 @@ int BIDSLayer::updateState(float time, float dt)
    updateActiveIndices();
    update_timer->stop();
    return status;
-}
-
-//This function fills an array with structures of random, non-repeating coordinates at which BIDS nodes will be "placed"
-void BIDSLayer::setCoords(int numNodes, BIDSCoords * coords, int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy){
-   srand(time(NULL));
-   assert(jitter >= 0); //jitter cannot be below zero
-   /*
-   int HyPerCol = (int)(parent->parameters()->value("column", "nx")); //the length of a side of the HyPerColumn
-   int layerWidth = (int)(sqrt(numNodes)); //the length of a size of the BIDSLayer //TODO: fix this to not assume square bids node
-   int patchSize = (HyPerColWidth / layerWidth); //the length of a side of a patch in the HyPerColumn
-   
-   int patchMidx = patchSize / 2;
-   int patchMidy = patchSize / 2;
-   int jitterRange = jitter * 2;
-
-   //TODO: Set up physical position for margin nodes
-   int lowerboundx = 0;
-   int lowerboundy = 0;
-   for(int i = 0; i < numNodes; i++){ //cycles through the number of nodes specified by params file
-      if(lowerboundx <= HyPerColWidth - (patchSize / 2)) { //iterator moves to the next column in the current row
-         if(jitter == 0){ //if jitter is 0, then the nodes should be placed in the middle of each patch
-            coords[i].xCoord = patchMidx + (i * patchSize % HyPerColWidth);
-            coords[i].yCoord = patchMidy + int(i * patchSize / HyPerColWidth) * patchSize;
-         }
-         else{
-            int jitX = rand() % jitterRange - jitter; //stores the x coordinate into the current BIDSCoord structure
-            int jitY = rand() % jitterRange - jitter; //stores the y coordinate into the current BIDSCoord structure
-            coords[i].xCoord = lowerboundx + patchMidx + jitX; //stores the x coordinate into the current BIDSCoord structure
-            coords[i].yCoord = lowerboundy + patchMidy + jitY; //stores the y coordinate into the current BIDSCoord structure
-            lowerboundx += patchSize;
-         }
-      }
-      else{ //iterator moves to the next row in the matrix
-         if(jitter == 0){
-            coords[i].xCoord = patchMidx + (i * patchSize % HyPerColWidth);
-            coords[i].yCoord = patchMidy + int(i * patchSize / HyPerColWidth) * patchSize;
-         }
-         else{
-            lowerboundx = 0;
-            lowerboundy += patchSize;
-            int jitX = rand() % jitterRange - jitter; //stores the x coordinate into the current BIDSCoord structure
-            int jitY = rand() % jitterRange - jitter; //stores the y coordinate into the current BIDSCoord structure
-            coords[i].xCoord = lowerboundx + patchMidx + jitX; //stores the x coordinate into the current BIDSCoord structure
-            coords[i].yCoord = lowerboundy + patchMidy + jitY; //stores the y coordinate into the current BIDSCoord structure
-            lowerboundx += patchSize;
-         }
-      }
-   }
-   */
-
-   int patchSizex = (1/nxScale); //the length of a side of a patch in the HyPerColumn
-   int patchSizey = (1/nyScale); //the length of a side of a patch in the HyPerColumn
-   int jitterRange = jitter * 2;
-
-   //TODO: Set up physical position for margin nodes
-   int i = 0;
-   for(int lowerboundx = 0; lowerboundx < HyPerColx; lowerboundx = lowerboundx + patchSizex){
-      for(int lowerboundy = 0; lowerboundy < HyPerColy; lowerboundy = lowerboundy + patchSizey){
-         int jitX = 0;
-         int jitY = 0;
-         if(jitter > 0){ //else, the nodes should be placed in the middle of each patch
-            jitX = rand() % jitterRange - jitter; //stores the x coordinate into the current BIDSCoord structure
-            jitY = rand() % jitterRange - jitter; //stores the y coordinate into the current BIDSCoord structure
-         }
-         coords[i].xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
-         coords[i].yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
-         i++;
-      }
-   }
-
-   //for(int i = 0; i < numNodes; i++){
-      //printf("[x,y] = [%d,%d]\n", coords[i].xCoord, coords[i].yCoord);
-   //}
-}
-
-BIDSCoords * BIDSLayer::getCoords(){
-   return coords;
 }
 
 
