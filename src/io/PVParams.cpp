@@ -86,15 +86,8 @@ int Parameter::outputParam(FILE * fp, int indentation) {
 ParameterString::ParameterString(const char * name, const char * value)
 {
    paramName = strdup(name);
-   //paramName = (char *) malloc(strlen(name) + 1);
-   //strcpy(paramName,name);
-
-   paramValue = strdup(value); // Quotation marks now stripped in action_parameter_string_def
-   //size_t valuelen = strlen(value)-2;  // strip quotes
-   //assert(value[0]=='"' && value[valuelen+1]=='"');
-   //paramValue = (char *) malloc(valuelen+1);
-   //strncpy(paramValue,value+1,valuelen);
-   //paramValue[valuelen] = '\0';
+   paramValue = strdup(value);
+   hasBeenReadFlag = false;
 }
 
 ParameterString::~ParameterString()
