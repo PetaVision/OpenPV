@@ -226,7 +226,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
 
    if( inverseFlag ) {
       for (int k=0; k<n; k++) {
-         buf[n] = 1 - buf[n];
+         buf[k] = 1 - buf[k];
       }
    }
 
