@@ -27,6 +27,17 @@ int CloneKernelConn::initialize_base() {
 int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post,
       KernelConn * originalConn) {
+   // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
+   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
+      if (hc->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "CloneKernelConn::initialize error: CloneKernelConn \"%s\" and KernelConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n", name, originalConn->getName());
+         fprintf(stderr, "{nx=%d, ny=%d, nf=%d, nb=%d} versus {nx=%d, ny=%d, nf=%d, nb=%d}\n",
+                 preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
+      }
+      abort();
+   }
    this->originalConn = originalConn;
    InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
    assert(weightInit != NULL);
