@@ -72,21 +72,6 @@ int IdentConn::setPatchSize(const char * filename) {
    return PV_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
 
-#ifdef OBSOLETE // This method has been moved to InitIdentWeights.  To initialize IdentConns set the param "weightInitType" to "InitIdentWeight" in the params file
-PVPatch ** IdentConn::initializeWeights(PVPatch ** patches, int numPatches,
-          const char * filename) {
-    int numKernels = numDataPatches(0);
-    for( int k=0; k < numKernels; k++ ) {
-        PVPatch * kp = getKernelPatch(k);
-        assert(kp->nf == numKernels);
-        for( int l=0; l < kp->nf; l++ ) {
-            kp->data[l] = l==k;
-        }
-    }
-    return patches;
-}  // end of IdentConn::initializeWeights(PVPatch **, int, const char *)
-#endif // OBSOLETE
-
 int IdentConn::initNormalize() {
    normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
    return PV_SUCCESS;
