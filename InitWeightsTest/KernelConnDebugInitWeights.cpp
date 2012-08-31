@@ -788,8 +788,8 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dat
 PVPatch ** KernelConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
 
-   const int xScale = post->clayer->xScale - pre->clayer->xScale;
-   const int yScale = post->clayer->xScale - pre->clayer->yScale;
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
 
    PVParams * params = parent->parameters();
 
