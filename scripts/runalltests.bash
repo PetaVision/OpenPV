@@ -57,6 +57,13 @@ else
     }
 fi
 
+testname=BasicSystemTest
+arglist="-p input/BasicSystemTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
 cd "$testname"
