@@ -57,10 +57,10 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       if( status == PV_SUCCESS ) {
          PVBufType buf_type = BufV;
          if( filename ) {
-            p = new LIFTestProbe(filename, target_layer, buf_type, message);
+            p = new LIFTestProbe(filename, target_layer, buf_type, message, name);
          }
          else {
-            p = new LIFTestProbe(target_layer, buf_type, message);
+            p = new LIFTestProbe(target_layer, buf_type, message, name);
          }
          if (checknewobject((void *) p, keyword, name, hc) == PV_SUCCESS) {
             addedGroup = (void *) p;

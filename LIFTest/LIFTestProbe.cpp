@@ -7,29 +7,31 @@
 
 #include "LIFTestProbe.hpp"
 
+#define LIFTESTPROBE_DEFAULTENDINGTIME 2000
+#define LIFTESTPROBE_DEFAULTTOLERANCE  3.0
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char * filename, HyPerLayer * layer, const char * msg) : StatsProbe(filename, layer, msg) {
+LIFTestProbe::LIFTestProbe(const char * filename, HyPerLayer * layer, const char * msg, const char * probename) : StatsProbe(filename, layer, msg) {
    initialize_base();
-   initLIFTestProbe(filename, layer, BufActivity, msg);
+   initLIFTestProbe(filename, layer, BufActivity, msg, probename);
 }
 
-LIFTestProbe::LIFTestProbe(HyPerLayer * layer, const char * msg) : StatsProbe(layer, msg) {
+LIFTestProbe::LIFTestProbe(HyPerLayer * layer, const char * msg, const char * probename) : StatsProbe(layer, msg) {
    initialize_base();
-   initLIFTestProbe(NULL, layer, BufActivity, msg);
-
-}
-
-LIFTestProbe::LIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) : StatsProbe(filename, layer, type, msg) {
-   initialize_base();
-   initLIFTestProbe(filename, layer, type, msg);
+   initLIFTestProbe(NULL, layer, BufActivity, msg, probename);
 
 }
 
-LIFTestProbe::LIFTestProbe(HyPerLayer * layer, PVBufType type, const char * msg) : StatsProbe(layer, type, msg) {
+LIFTestProbe::LIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg, const char * probename) : StatsProbe(filename, layer, type, msg) {
    initialize_base();
-   initLIFTestProbe(NULL, layer, type, msg);
+   initLIFTestProbe(filename, layer, type, msg, probename);
+
+}
+
+LIFTestProbe::LIFTestProbe(HyPerLayer * layer, PVBufType type, const char * msg, const char * probename) : StatsProbe(layer, type, msg) {
+   initialize_base();
+   initLIFTestProbe(NULL, layer, type, msg, probename);
 
 }
 
@@ -45,8 +47,14 @@ int LIFTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) {
+int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg, const char * probename) {
+
    int status = PV_SUCCESS;
+
+   PVParams * params = layer->getParent()->parameters();
+   endingTime = params->value(probename, "endingTime", LIFTESTPROBE_DEFAULTENDINGTIME);
+   tolerance = params->value(probename, "tolerance", LIFTESTPROBE_DEFAULTTOLERANCE);
+
    radii = (double *) calloc(LIFTESTPROBE_BINS, sizeof(double));
    rates = (double *) calloc(LIFTESTPROBE_BINS, sizeof(double));
    targetrates = (double *) calloc(LIFTESTPROBE_BINS, sizeof(double));
@@ -63,8 +71,10 @@ int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PV
    // the values in the r[] array.  It needs to be within 2.5 standard deviations (the s[] array) of the correct value.
    // The hard-coded values in r[] and s[] were determined empirically.
    double r[] = {2.0993117,1.5412729,0.9843403,0.4933890,0.1832700}; // Expected rates of each bin
-   double s[] = {0.1035321,0.0717574,0.0494596,0.0285325,0.0134950}; // Standard deviations of each bin
-   int c[] = {316,400,548,712,852}; // Number of pixels that fall into each bin
+   double s[] = {0.1035321,0.0717574,0.0494596,0.0285325,0.0134950}; // Standard deviations of each bin, determined empirically based on t=2000.
+   int c[] = {316,400,548,712,852}; // Number of pixels that fall into each bin // TODO calculate on the fly based on layer size and bin boundaries
+
+   // Bins are r<10, 10<=r<15, 15<=r<20, 20<=r<25, and 25<=r<30.
    for (int k=0; k<LIFTESTPROBE_BINS; k++) {
       radii[k] = k*5;
       targetrates[k] = r[k];
@@ -122,9 +132,15 @@ int LIFTestProbe::outputState(float timef) {
          fprintf(fp, " %f", rates[j]);
       }
       fprintf(fp, "\n");
-      if (timef >= 2000) {
+      if (timef >= endingTime) {
+         double stdfactor = sqrt(timef/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
-            assert(fabs((rates[j]-targetrates[j])/stddevs[j])<2.5);
+            double scaledstdev = stddevs[j]/stdfactor;
+            double observed = (rates[j]-targetrates[j])/scaledstdev;
+            if(fabs(observed)>tolerance) {
+               fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timef, observed, tolerance);
+               abort();
+            }
          }
       }
    }
