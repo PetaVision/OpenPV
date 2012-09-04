@@ -13,5 +13,5 @@ function w=cleanWM(wm, ncells, hdr, ign_w, img_size)
         c = rold;
         w((rold-1)*img_size+1:rold*img_size,(cold-1)*img_size+1:cold*img_size) = wtmp((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))), (hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1))));
     end
-    keyboard
+    %keyboard
 end
