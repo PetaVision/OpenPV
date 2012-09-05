@@ -258,6 +258,10 @@ bool Movie::updateImage(float time, float dt)
       if( needNewImage ){
          GDALColorInterp * colorbandtypes = NULL;
          int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+         if( status != PV_SUCCESS ) {
+            fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
+            abort();
+         }
          if( status == PV_SUCCESS ) status = readImage(filename, offsetX, offsetY, colorbandtypes);
          free(colorbandtypes); colorbandtypes = NULL;
          if( status != PV_SUCCESS ) {
