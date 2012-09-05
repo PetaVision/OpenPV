@@ -50,13 +50,22 @@ Movie "Image" = {
     useImageBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 0;
-    writeImages = 0; //FIX how it's saved.
+    //writeImages = 0; //FIX how it's saved.
     Vrest = 0.0;
     $$$_displayPeriod_$$$
-    jitterFlag = 0;
-    randomMovie = 0;
+    
     offsetX = 0;
     offsetY = 0;
+    
+    jitterFlag = 0;
+    stepSize          = 1;
+    persistenceProb   = 0.2;
+    recurrenceProb    = 0.2;
+    biasChangeTime    = 1;
+    writePosition     = true;
+    writeImages = false;
+    
+    randomMovie = 0;
     useParamsImage = true;
     echoFramePathnameFlag = false;
     start_frame_index = 0;
@@ -341,9 +350,9 @@ STDPConn "RetinaONtoS1" = {
    nyp = 11;
    nfp = 1;
    
-   stdpFlag   = 1;
+   $$$_stdpFlag_$$$
    initFromLastFlag = 0;  // 1;  /dr/ restart
-   writeStep = 5000;
+   writeStep = 1000;
 
    $$$_wMin_$$$
    $$$_wMax_$$$
@@ -393,9 +402,9 @@ STDPConn "RetinaOFFtoS1" = {
    nyp = 11;
    nfp = 1;
    
-   stdpFlag   = 1;
+   $$$_stdpFlag_$$$
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 5000;
+   writeStep = 1000;
 
    $$$_wMin_$$$
    $$$_wMax_$$$
