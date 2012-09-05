@@ -111,10 +111,6 @@ int Image::readOffsets() {
    this->offsetX      = (int) params->value(name,"offsetX", 0);
    this->offsetY      = (int) params->value(name,"offsetY", 0);
 
-   if(useImageBCflag){ //Offset by 2*margin size
-      this->offsetX = this->offsetX + clayer->loc.nb;
-      this->offsetY = this->offsetY + clayer->loc.nb;
-   }
    return PV_SUCCESS;
 }
 
