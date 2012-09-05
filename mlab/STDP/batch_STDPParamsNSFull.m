@@ -15,14 +15,14 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
+DATASET = "OlshausenField_raw32x32_tinyAll"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
 
-TEMPLATE = "STDPgeneralNS2";
+TEMPLATE = "STDPgeneralNS";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 2001;
+numsteps = 10001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -51,7 +51,7 @@ RUN_FLAG = 1;
 PARAMSWEEP_FLAG = 1;
     %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
     PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi STRENGTH_IMAGE2RETINAi];
-MEASURES_FLAG = 1;
+MEASURES_FLAG = 0;
     MEASURES_PLOT_FLAG = 0;
     MEASURES_OSI_FLAG = 0;
     MEASURES_GM_FLAG = 1;
@@ -89,7 +89,7 @@ params{wMaxi} = 5;
 params{synscalingi} = 1;
 params{synscalingvi} = 15;
 
-LOAD_FILE = 0;
+LOAD_FILE = 1;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params

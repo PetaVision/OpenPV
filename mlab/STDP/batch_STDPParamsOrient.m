@@ -4,7 +4,7 @@
 
 clear all; close all; more off; clc;
 system("clear");
-warning off;
+%warning off;
 format short g;
 
 global MOVIE_FLAG = 0;
@@ -15,9 +15,9 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
+DATASET = "orient_36r"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
 
-TEMPLATE = "STDPgeneralNS2";
+TEMPLATE = "STDPgeneral";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
@@ -89,11 +89,14 @@ params{wMaxi} = 5;
 params{synscalingi} = 1;
 params{synscalingvi} = 15;
 
+
 LOAD_FILE = 0;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(98,x);
+        params{PARAM_SWEEP(x)} = rg_p(336,x);
+        %5          10        0.15        0.11          10         100
+        %Good: 309
     end
 end
 
@@ -112,6 +115,7 @@ if(PARAMSWEEP_FLAG)
         0.01:0.05:0.2; ...
         5:5:15; ...
         [3:5:25 100]};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi STRENGTH_IMAGE2RETINAi
+
     %Generates all combinations
     rg_p = allcomb(rg{:});
 
@@ -139,9 +143,9 @@ tic
 for ps=1:size(rg_p,1)
 
     if(PARAMSWEEP_FLAG)
-    disp("--------------------------------");
-    disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
-    disp("--------------------------------");
+        disp("--------------------------------");
+        disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
+        disp("--------------------------------");
     end
 
     for x=1:size(rg_p,2) %Set params
@@ -225,8 +229,8 @@ if(fid==0)
 
     c=1;
     while(~feof(fid))
-    datasetl{c} = fgets(fid);
-    c=c+1;
+        datasetl{c} = fgets(fid);
+        c=c+1;
     end
     fclose(fid);
     fid = 0;
@@ -371,8 +375,8 @@ if(MEASURES_GM_FLAG)
     for i=numsteps:params{CHECKPOINTSTEPi}:numsteps
 
     %for i=0:params{CHECKPOINTSTEPi}:numsteps
-        while(1)
-          try 
+        %while(1)
+          %try 
             params{CHECKPOINTREADi} = i;  %checkpointReadDirIndex
 
             %Generates new params file
@@ -442,7 +446,7 @@ if(MEASURES_GM_FLAG)
                         img_orig = imread(strtrim(datasetl{p}));
 
                         %Crop img_orig based on the margin width
-                        img_orig = img_orig(params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size, params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size);
+                        %img_orig = img_orig(params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size, params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size);
                         if(ROTATE_FLAG==0)
                             img_orig = flipud(rot90(img_orig));
                             %img_orig = rot90(img_orig);
@@ -474,15 +478,14 @@ if(MEASURES_GM_FLAG)
 
                     %TODO: Generative measure (use KL divergence): mean(D(I_G,I_O))
                 end
-                break;
-                catch
-                    lasterror.message
-                    ps
-                 end_try_catch
+                %break;
+                %catch
+                %    lasterror.message
+                %    ps
+                % end_try_catch
 
-              end
+              %end
             end
-
     end
 
     params{1} = "false";  %checkpointRead
@@ -493,11 +496,12 @@ if(MEASURES_GM_FLAG)
     params{6} = "true"; %plasticityFlag
     params{DISPLAYPERIODi} = 20;
     close all
+    
 end
 
 end
 
-if(PARAMSWEEP_FLAG)
+if(PARAMSWEEP_FLAG==1)
     save("rg_p_NS", "rg_p");
     if(MEASURES_GM_FLAG)
         gm_f;
