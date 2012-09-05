@@ -15,14 +15,14 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple  OlshausenField_raw32x32_tiny OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare 
+DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
 
 TEMPLATE = "STDPgeneralNS2";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 1000;
+numsteps = 1001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -44,12 +44,13 @@ wMini = 15;
 wMaxi = 16;
 synscalingi = 17;
 synscalingvi = 18;
+movieMarginWidthi = 19;
 
 RUN_FLAG = 1;
 
-PARAMSWEEP_FLAG = 0;
+PARAMSWEEP_FLAG = 1;
     %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
-    PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi];
+    PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi STRENGTH_IMAGE2RETINAi];
 MEASURES_FLAG = 1;
     MEASURES_PLOT_FLAG = 0;
     MEASURES_OSI_FLAG = 0;
@@ -69,20 +70,21 @@ params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
 params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 50;
+params{STRENGTH_IMAGE2RETINAi} = 5;
+params{movieMarginWidthi} = 3;
 
 
 
 %STDP params
 %Natural images params
-params{wMaxInitSTDPi} = 0.5;
+params{wMaxInitSTDPi} = 0.05;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 3;
-params{tauLTDi} = 18;
-params{ampLTPi} = 0.115;
-params{ampLTDi} = 0.0085;
+params{tauLTPi} = 25;
+params{tauLTDi} = 25;
+params{ampLTPi} = 0.2;
+params{ampLTDi} = 0.16;
 params{wMini} = 0.001;
-params{wMaxi} = 1;
+params{wMaxi} = 5;
 params{synscalingi} = 1;
 params{synscalingvi} = 15;
 
@@ -90,35 +92,31 @@ LOAD_FILE = 1;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(4005,x);
+        params{PARAM_SWEEP(x)} = rg_p(26,x);
     end
 end
 
-%params{wMaxInitSTDPi} = 0.05;
-%params{wMinInitSTDPi} = 0.005;
-%params{tauLTPi} = 30;
-%params{tauLTDi} = 26;
-%params{ampLTPi} = 0.1;
-%params{ampLTDi} = 0.01;
-%params{wMini} = 0.001;
-%params{wMaxi} = 0.1;
-%params{synscalingi} = 0;
-%params{synscalingvi} = 10;
 
 
 if(PARAMSWEEP_FLAG)
     %Range over which 
-    rg = {1:5:30; ... 
-        1:5:30; ...
-        0.009:0.03:0.2; ...
-        0.009:0.03:0.2; ...
-        5:5:15};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi
-    %rg = {1; ... 
-    %      37; ...
-    %      0.115; ...
-    %      0.0085};  %tauLTP, tauLTD, ampLTP, ampLTD
+    %rg = {1:5:30; ... 
+        %1:5:30; ...
+        %0.009:0.03:0.2; ...
+        %0.009:0.03:0.2; ...
+        %5:5:15};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi
+    rg = {5:5:30; ... 
+        5:5:30; ...
+        0.1:0.05:0.2; ...
+        0.01:0.05:0.2; ...
+        5:5:15; ...
+        [3:5:25 100]};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi STRENGTH_IMAGE2RETINAi
     %Generates all combinations
     rg_p = allcomb(rg{:});
+
+    if(MEASURES_GM_FLAG)
+        gm_f = ones(size(rg_p,1), 2).*Inf; 
+    end
 
     %rg_p = rg_p(1:3,:);
 
@@ -139,63 +137,73 @@ end
 tic
 for ps=1:size(rg_p,1)
 
-if(PARAMSWEEP_FLAG)
-disp("--------------------------------");
-disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
-disp("--------------------------------");
-end
-
-for x=1:size(rg_p,2) %Set params
-    params{PARAM_SWEEP(x)} = rg_p(ps,x);
-end
-rg_p(ps,:)
-%OSIm(1:ps,:)
-%keyboard
-
-[pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
-
-if(RUN_FLAG)
     if(PARAMSWEEP_FLAG)
-        system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
-    else
-        system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+    disp("--------------------------------");
+    disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
+    disp("--------------------------------");
     end
-end
+
+    for x=1:size(rg_p,2) %Set params
+        params{PARAM_SWEEP(x)} = rg_p(ps,x);
+    end
+    rg_p(ps,:)
+    %OSIm(1:ps,:)
+    %keyboard
+
+    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
+
+    if(RUN_FLAG)
+        if(PARAMSWEEP_FLAG)
+            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
+        else
+            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+        end
+    end
 
 
-addpath([pvp_project_path, "mlab"]);
+    addpath([pvp_project_path, "mlab"]);
 
-if(PARAMSWEEP_FLAG==0)
-    PRINT_FLAG = 1;
-    SWEEP_POS = 0;
-    filename = [pvp_output_path, filesep, on_v1_file];
-    filenameOff = [pvp_output_path, filesep, off_v1_file];
-    [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
-    [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
-    filterDoG(wm,wmOff,0);
-else
-    PRINT_FLAG = 1;
-    SWEEP_POS = ps;
-    filename = [pvp_output_path, filesep, on_v1_file];
-    %filenameOff = [pvp_output_path, filesep, off_v1_file];
-    [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
-    %[dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
-    %filterDoG(wm,wmOff,0);
-    
-end
+    if(PARAMSWEEP_FLAG==0)
+        PRINT_FLAG = 1;
+        SWEEP_POS = 0;
+        filename = [pvp_output_path, filesep, on_v1_file];
+        filenameOff = [pvp_output_path, filesep, off_v1_file];
+        [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+        wm = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
+        [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
+        wmOff = cleanWM(wmOff, v1_cells, hdrOff, ign_w, img_size);
+        filterDoG(wm,wmOff,0);
+    else
+        PRINT_FLAG = 1;
+        SWEEP_POS = ps;
+        filename = [pvp_output_path, filesep, on_v1_file];
+        %filenameOff = [pvp_output_path, filesep, off_v1_file];
+        [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+        %[dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
+        %filterDoG(wm,wmOff,0);
+        
+    end
 
-wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
-keyboard
-PRINT_FLAG = 0;
+    %wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
+    %keyboard
+    PRINT_FLAG = 0;
 
 
-%Plasticity ratio
-pr(ps) = (params{tauLTDi}*params{ampLTDi})/params{tauLTPi}*params{ampLTPi};
+    %Plasticity ratio
+    pr(ps) = (params{tauLTDi}*params{ampLTDi})/params{tauLTPi}*params{ampLTPi};
 
 
 
 
 if(MEASURES_FLAG)
+
+%1. For each checkpoint/weight matrix
+
+params{1} = "true";  %checkpointRead
+params{2} = "false";  %checkpointWrite
+params{3} = DATASET;  %checkpointReadDir
+%params{5} = 100;  %checkpointWriteStepInterval
+params{6} = "false";  %plasticityFlag
 
 if(MEASURES_OSI_FLAG)
 
@@ -205,14 +213,6 @@ disp("---------------------------");
 disp("-------Tunning curves------");
 disp("---------------------------");
 end
-
-%1. For each checkpoint/weight matrix
-
-params{1} = "true";  %checkpointRead
-params{2} = "false";  %checkpointWrite
-params{3} = DATASET;  %checkpointReadDir
-%params{5} = 100;  %checkpointWriteStepInterval
-params{6} = "false";  %plasticityFlag
 
 global PVP_VERBOSE_FLAG;
 PVP_VERBOSE_FLAG = 0;
@@ -245,9 +245,9 @@ length(datasetl)*params{DISPLAYPERIODi}+i
 %pause
 if(RUN_FLAG)
 if(PARAMSWEEP_FLAG)
-system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
+system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
 else
-system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
 end
 
 %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
@@ -342,7 +342,8 @@ if(MEASURES_GM_FLAG)
     disp("------------------------------------------");
     disp("------------Generative Measure------------");
     disp("------------------------------------------");
-
+    
+    params{DISPLAYPERIODi} = 100;
 
     %Read entire dataset
     fid = fopen([pvp_project_path, "input", filesep, DATASET, '.txt' ], 'r');
@@ -354,95 +355,142 @@ if(MEASURES_GM_FLAG)
     end
 
     post = 1;
-    hist_per_img = zeros(numsteps/params{5}+1, v1_cells, length(datasetl));
-    diff = zeros(numsteps/params{5}+1, length(datasetl));
+    hist_per_img = zeros(round(numsteps/params{CHECKPOINTSTEPi}+1), v1_cells, length(datasetl));
+    diff = ones(round(numsteps/params{CHECKPOINTSTEPi})+1, length(datasetl)).*Inf;
 
     %Generative measure
     %1. For each image matrix
-    for i=numsteps-params{CHECKPOINTSTEPi}:params{CHECKPOINTSTEPi}:numsteps
-    %for i=0:params{5}:numsteps
+    for i=numsteps:params{CHECKPOINTSTEPi}:numsteps
+
+    %for i=0:params{CHECKPOINTSTEPi}:numsteps
+        while(1)
+          try 
             params{CHECKPOINTREADi} = i;  %checkpointReadDirIndex
 
             %Generates new params file
             [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], length(datasetl)*params{DISPLAYPERIODi}+i);
 
-            length(datasetl)*params{DISPLAYPERIODi}+i
+            %length(datasetl)*params{DISPLAYPERIODi}+i
             %pause
 
             if(RUN_FLAG)
-                system([pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
+                if(PARAMSWEEP_FLAG)
+                    system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
+                else
+                    system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
+                end
 
+                PRINT_FLAG = 0;
+                SWEEP_POS = 0;
                 %2. Get activity and weight matrix
                 %Reads V1 activity file (TODO: assumes that writing step for V1 is 1ms)
                 [data hdr] = readpvpfile([pvp_output_path, filesep, v1_file], [pvp_output_path, filesep], v1_file);
 
                 %Reads the weights Retina_ON > V1 for the time being
-                [d hdr wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep],on_v1_file, post);
+                %PRINT_FLAG = 0;
+                [d hdrw wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep], on_v1_file, post);
 
-                figure
-                imshow(wm);
-                figure
-                wm_clean = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
-                imshow(wm_clean);
+               % if(PARAMSWEEP_FLAG==0)
+               %     figure
+               %     imshow(wm);
+               % end
+                wm = cleanWM(wm, v1_cells, hdrw, ign_w, img_size);
+                if(PARAMSWEEP_FLAG==0)
+                    figure
+                    imshow(wm);
+                end
 
                 for p=0:(length(datasetl)-1)
                     for f=1:params{DISPLAYPERIODi}
                         for v=1:v1_cells
-                            hist_per_img(i/params{5}+1,v,p+1) = hist_per_img(i/params{5}+1,v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
+                            hist_per_img(round(i/params{CHECKPOINTSTEPi}+1),v,p+1) = hist_per_img(round(i/params{CHECKPOINTSTEPi}+1),v,p+1) + data{p*params{DISPLAYPERIODi}+f}(v);
                         end
                     end
                 end
 
-                keyboard
+                %keyboard
 
                 %3. Reconstruct the original image
                 for p=1:(length(datasetl)) %Loop over images
                     img_recons = zeros(img_size);
                     for v=1:v1_cells %Loop over cells
-                        mean_act = mean(hist_per_img(i/params{5}+1,v,p));
-                        if(mean_act>0) %If cell reconstruct
-                            [r c] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
-                            w=wm_clean((r-1)*hdr.nxp+1:r*hdr.nxp, (c-1)*hdr.nyp+1:c*hdr.nyp);
-                            %w=w((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))), (hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1)))); %Get actual weights that are changed
-                            img_recons = img_recons .+ (mean_act .* w);
-                            [r c mean_act]
-                        end
-                    end
+                        %mean_act = hist_per_img(round(i/params{CHECKPOINTSTEPi})+1,v,p)/params{DISPLAYPERIODi};
+                        mean_act = hist_per_img(round(i/params{CHECKPOINTSTEPi})+1,v,p);
 
+                        if(mean_act>0) %If cell reconstruct
+                            [c r] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
+                            w=wm((r-1)*img_size+1:r*img_size, (c-1)*img_size+1:c*img_size);
+                            img_recons = img_recons .+ (mean_act .* w);
+                            if(PARAMSWEEP_FLAG==0)
+                                [r c mean_act]
+                            end                            
+                        end
+
+                    end
+                    
                     if(sum(sum(img_recons))>0)
+
                         img_recons = img_recons./max(max(img_recons));
                         img_orig = imread(strtrim(datasetl{p}));
+
+                        %Crop img_orig based on the margin width
+                        img_orig = img_orig(params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size, params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size);
                         if(ROTATE_FLAG==0)
                             img_orig = flipud(rot90(img_orig));
                             %img_orig = rot90(img_orig);
-                            end
-                            diff(i/params{5}+1,p) = mean(mean(abs(img_orig-img_recons)));
-                            %if(i==numsteps)%Only plot the last ones
+                        end
+                            img_orig = cast(img_orig,'double');
+                            img_orig = img_orig./max(max(img_orig));
+                            diff(round(i/params{CHECKPOINTSTEPi})+1,p) = mean(mean(abs(img_orig-img_recons)));
+                            if(PARAMSWEEP_FLAG==0)
+                             if(i==numsteps)%Only plot the last ones
                                 figure
                                 subplot(1,2,1);
                                 imshow(img_orig);
                                 title('Original');
                                 subplot(1,2,2);
                                 imshow(img_recons);
-                                title(['Reconstruction  diff=' num2str(diff(i/params{5}+1,p))]);
-                                keyboard
-                            %end
-
-                        end
+                                %sum(sum(img_recons))
+                                title(['Reconstruction  diff=' num2str(diff(round(i/params{CHECKPOINTSTEPi})+1,p))]);
+                                %keyboard
+                             end
+                            end
+                      end
+                      if(PARAMSWEEP_FLAG==0)
+                        disp('New image...')
+                      end
                     end    
 
-                    %4. Generative measure (use KL divergence): mean(D(I_G,I_O))
+                    %4. Saves the generative measure
+                    gm_f(ps, :) = [mean(diff(size(diff,1),:)) std(diff(size(diff,1),:))];
 
+                    %TODO: Generative measure (use KL divergence): mean(D(I_G,I_O))
                 end
+                break;
+                catch
+                    lasterror.message
+                    ps
+                 end_try_catch
+
+              end
             end
 
     end
 
+    params{1} = "false";  %checkpointRead
+    params{2} = "true";  %checkpointWrite
+    params{3} = DATASET;  %checkpointReadDir
+    params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
+    params{6} = "true"; %plasticityFlag
 end
 
 end
 
 if(PARAMSWEEP_FLAG)
+    save("rg_p_NS", "rg_p");
+    if(MEASURES_GM_FLAG)
+        gm_f;
+    end
     %[rg_p pr OSIm]
     %Print best
     %rg_p(OSIm==max(OSIm(:,1)),:)
