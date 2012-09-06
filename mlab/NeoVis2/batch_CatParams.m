@@ -1,13 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Test"; %% "Train"; %% 
+FLAVOR_ID = "Train"; %% "Test"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
-%%target_flag = true;  %% false; %% 
-%%disp(["target_flag = ", num2str(target_flag)]);
 target_id = cell(1,2);
 target_id{1,1} = "cat"; target_id{1,2} = "nocatdog"; %% 
 disp(["target_id = ", target_id{1,1}, ", ", target_id{1,2}]);
-pvp_num_ODD_kernels = 1; %%
+pvp_num_ODD_kernels = 2; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
 
@@ -84,7 +82,7 @@ pvp_input_path = ...
 mkdir(pvp_input_path);
 
 file_of_weights_path = [];
-if strcmp(FLAVOR_ID, "Test")
+%%if strcmp(FLAVOR_ID, "Test")
   pvp_file_of_weights_path2 = ...
       [pvp_clique_path, "weights", filesep]; %%, ...
   mkdir(pvp_file_of_weights_path2);
@@ -96,7 +94,7 @@ if strcmp(FLAVOR_ID, "Test")
       [pvp_file_of_weights_path3, ...
        FLAVOR_ID, filesep];
   mkdir(pvp_file_of_weights_path);
-endif
+%%endif
 
 pvp_num_ODD_kernels_str = "";
 if pvp_num_ODD_kernels > 1
@@ -133,11 +131,10 @@ checkpoint_read_path = ...
      "checkpoints", filesep];
 
 for i_object = 1 : size(target_id,1)
-  %% build file of weights (kernels) for target and distractor sets if in "Test" mode
-  if strcmp(FLAVOR_ID, "Test")
     %%keyboard;
     pvp_weight_pathname = [];
     pvp_file_of_weights_file = cell(1,2);
+    num_weight_files = zeros(1,2);
     for target_flag = 1:2
       disp(target_id{i_object, target_flag});
     
@@ -176,6 +173,7 @@ for i_object = 1 : size(target_id,1)
       else
 	disp(["fopen success: ", pvp_file_of_weights_file{1, target_flag}]);
       endif
+      num_weight_files(target_flag) = 0;
       for i_version = 1 : num_versions
 	checkpoint_read_version_path = ...
 	    [checkpoint_read_object_path, ...
@@ -183,6 +181,7 @@ for i_object = 1 : size(target_id,1)
 	checkpoint_dirs = glob([checkpoint_read_version_path, "Checkpoint*"]);
 	num_checkpoints = length(checkpoint_dirs);
 	max_checkpoint_ndx = 0;
+	pvp_weight_pathname = [];
 	for i_checkpoint = 1:num_checkpoints
 	  checkpoint_files = readdir(checkpoint_dirs{i_checkpoint});
 	  if length(checkpoint_files) < 25
@@ -214,14 +213,15 @@ for i_object = 1 : size(target_id,1)
 	  if checkpoint_ndx == max_checkpoint_ndx
 	    pvp_weight_pathname = [weight_pathname, "\n"];
 	  endif
-	endfor
+	endfor  %% i_checkpoint
 	if ~isempty(pvp_weight_pathname)
 	  fputs(pvp_file_of_weights_fid, pvp_weight_pathname);
+	  num_weight_files(target_flag) = num_weight_files(target_flag) + 1;
 	endif
       endfor  %% i_version
       fclose(pvp_file_of_weights_fid);
     endfor %% target_flag
-  endif  %% FLAVOR_ID
+  %%endif  %% FLAVOR_ID
   
   for target_flag = 1:2   
     pvp_params_template = ...
@@ -357,6 +357,7 @@ for i_object = 1 : size(target_id,1)
 			    version_str{i_version}, ...
 			    num_versions, ...
 			    input_path, ...
+			    num_weight_files, ...
 			    pvp_file_of_weights_file, ...
 			    pvp_params_template, ...
 			    pvp_frame_size, ...
