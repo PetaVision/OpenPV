@@ -65,30 +65,6 @@ typedef struct PVLayerCube_ {
    PVLayerLoc loc;       // location of cube in global layer
 } PVLayerCube;
 
-// PVAxonalArbor is being deprecated.
-// Use getGSynPatch(k,arbor) instead of axonalArbor(k,arbor)->data->data
-// Use getWeights(k,arbor)->{nx,ny,nf} instead of axonalArbor(k,arbor)->data->{nx,ny,nf}
-// Use getPostNonextStrides()->{sx,sy,sf} instead of axonalArbor(k,arbor)->data->{sx,sy,sf}
-// Use getWeights(k,arbor) instead of axonalArbor(k,arbor)->weights
-// Use getPlasticIncrement(k,arbor) instead of axonalArbor(k,arbor)->plasticIncr
-// Use get_dWData(k,arbor) instead of axonalArbor(k,arbor)->plasticIncr->data
-// Use getGSynOffset(k,arbor) instead of axonalArbor(k,arbor)->offset
-// Use getDelay(arbor) instead of axonalArbor(k,arbor)->delay
-#ifdef OBSOLETE // Marked obsolete Oct 19, 2011.  See above comment block for replacement get-methods.
-typedef struct PVAxonalArbor_ {
-   PVPatch * data;        // data for task to work on (e.g., GSyn data)
-   PVPatch * weights;     // weights to apply to the data
-   PVPatch * plasticIncr; // STDP P variable
-   size_t    offset;      // offset for post-synaptic activity and pDecr (STDP M variable)
-   int delay; // current output delay in the associated f ring buffer (should equal fixed delay + variable delay for valid connection)
-} PVAxonalArbor;
-
-typedef struct PVAxonalArborList_ {
-   unsigned int     numArbors;
-   PVAxonalArbor ** arbors;
-} PVAxonalArborList;
-#endif
-
 typedef struct PVPatchStrides_ {
    int sx, sy, sf;    // stride in x,y,features
 } PVPatchStrides;
