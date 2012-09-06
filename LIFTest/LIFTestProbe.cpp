@@ -66,12 +66,13 @@ int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PV
    }
    // Bin the LIFGap layer's activity into bins based on pixel position.  The pixels are assigned x- and y-coordinates in -31.5 to 31.5
    // and the distance r  to the origin of each pixel is calculated.  Bin 0 is 0 <= r < 10, bin 1 is 10 <= r < 15, and subsequent
-   // bins are annuli of thickness 5.  The 0<=r<5 and 5<=r<10 are lumped together because the rates
+   // bins are annuli of thickness 5.  The 0<=r<5 and 5<=r<10 are lumped together because the stimuli in these two annuli are very similar.
    // The simulation is run for 2 seconds (8000 timesteps with dt=0.25).  The average rate over each bin is calculated and compared with
    // the values in the r[] array.  It needs to be within 2.5 standard deviations (the s[] array) of the correct value.
    // The hard-coded values in r[] and s[] were determined empirically.
-   double r[] = {2.0993117,1.5412729,0.9843403,0.4933890,0.1832700}; // Expected rates of each bin
-   double s[] = {0.1035321,0.0717574,0.0494596,0.0285325,0.0134950}; // Standard deviations of each bin, determined empirically based on t=2000.
+   double r[] = {2.0964560,1.5421708,0.9808872,0.4943285,0.1828809}; // Expected rates of each bin
+   double s[] = {0.1460102,0.0969807,0.0718997,0.0432749,0.0217653}; // Standard deviations of each bin at on t=1000.
+   // Note: s[] was determined by running the test 100 times for t=100 seconds (1e5 ms) and then multiplying by 10 since sigma should vary as 1/sqrt(t).
    int c[] = {316,400,548,712,852}; // Number of pixels that fall into each bin // TODO calculate on the fly based on layer size and bin boundaries
 
    // Bins are r<10, 10<=r<15, 15<=r<20, 20<=r<25, and 25<=r<30.
@@ -133,7 +134,7 @@ int LIFTestProbe::outputState(float timef) {
       }
       fprintf(fp, "\n");
       if (timef >= endingTime) {
-         double stdfactor = sqrt(timef/2000.0); // Since the values of std are based on t=2000.
+         double stdfactor = sqrt(timef/1000.0); // Since the values of std are based on t=1000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
