@@ -52,7 +52,19 @@ int BIDSLayer::updateState(float time, float dt)
 //      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
       pvdata_t * activity = clayer->activity->data;
 
-      LIF_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSynHead, activity);
+      switch (method) {
+      case 'b':
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
+      case 'o':
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
+      default:
+         assert(0);
+         break;
+      }
 #ifdef PV_USE_OPENCL
    }
 #endif

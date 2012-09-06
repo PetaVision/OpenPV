@@ -86,6 +86,8 @@ protected:
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
 
+   char method;
+
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);

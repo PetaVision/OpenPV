@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-void LIFGap_update_state(
+void LIFGap_update_state_original(
     const int numNeurons,
     const float time,
     const float dt,
@@ -49,8 +49,36 @@ void LIFGap_update_state(
     float * activity,
 
     const float sum_gap,
-    float * G_Gap,
-    char method
+    float * G_Gap
+);
+
+void LIFGap_update_state_beginning(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+//    float * GSynGap,
+    float * activity,
+
+    const float sum_gap,
+    float * G_Gap
 );
 
 
@@ -114,25 +142,21 @@ int LIFGap::initialize_base() {
 int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
 
-   PVParams * params = hc->parameters();
-   const char * methodstring = params->stringValue(name, "method", true);
-   method = methodstring ? methodstring[0] : 'o';
-   if (method != 'o' && method != 'b') {
-      if (hc->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
-      }
-      abort();
-   }
+   // Initialization of method moved to LIF::setParams
+   // PVParams * params = hc->parameters();
+   // const char * methodstring = params->stringValue(name, "method", true);
+   // method = methodstring ? methodstring[0] : 'o';
+   // if (method != 'o' && method != 'b') {
+   //    if (hc->icCommunicator()->commRank()==0) {
+   //       fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
+   //    }
+   //    abort();
+   // }
 
 #ifdef PV_USE_OPENCL
    numEvents=NUM_LIFGAP_EVENTS;
 #endif
 
-#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize, called by LIF::initialize
-   const size_t num_neurons = getNumNeurons();
-   this->G_Gap  = G_E + 3*num_neurons;
-   this->sumGap = 0.0f;
-#endif // OBSOLETE
    return status;
 }
 
@@ -291,8 +315,19 @@ int LIFGap::updateState(float time, float dt)
 //   pvdata_t * GSynGap  = getChannel(CHANNEL_GAP);
    pvdata_t * activity = clayer->activity->data;
 
-   LIFGap_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-         G_I, G_IB, GSynHead, activity, sumGap, G_Gap, method);
+   switch (method) {
+   case 'b':
+      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+   break;
+   case 'o':
+      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+      break;
+   default:
+      assert(0);
+      break;
+   }
 #ifdef PV_USE_OPENCL
    }
 #endif

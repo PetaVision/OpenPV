@@ -24,7 +24,31 @@
 extern "C" {
 #endif
 
-void LIF_update_state(
+void LIF_update_state_beginning(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+    float * activity);
+
+void LIF_update_state_original(
     const int numNeurons,
     const float time,
     const float dt,
@@ -149,33 +173,11 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setParams
    }
 
-#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize
-   G_E = G_I = G_IB = NULL;
-
-   if (numChannels > 0) {
-      G_E = (pvdata_t *) calloc(numNeurons*numChannels, sizeof(pvdata_t));
-      assert(G_E != NULL);
-
-      G_I  = G_E + 1*numNeurons;
-      G_IB = G_E + 2*numNeurons;
-   }
-#endif // OBSOLETE
-
    // random seed should be different for different layers
    unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
 
    // a random state variable is needed for every neuron/clthread
    rand_state = cl_random_init(numNeurons, seed);
-
-#ifdef OBSOLETE // Marked obsolete Jan 18, 2012.  Moved to LIF::allocateBuffers, which is called by HyPerLayer::initialize
-   // initialize layer data
-   //
-   Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(Vth != NULL);
-   for (size_t k = 0; k < numNeurons; k++){
-      Vth[k] = lParams.VthRest;
-   }
-#endif // OBSOLETE
 
    // initialize OpenCL parameters
    //
@@ -328,6 +330,14 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
 
+   const char * methodstring = p->stringValue(name, "method", true);
+   method = methodstring ? methodstring[0] : 'o'; // Default is original but could change to 'beginning' if 'original' is deprecated.
+   if (method != 'o' && method != 'b') {
+      if (getParent()->columnId()==0) {
+         fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
+      }
+      abort();
+   }
    return 0;
 }
 
@@ -450,8 +460,8 @@ int LIF::updateStateOpenCL(float time, float dt)
    status |= clGSynIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_IB]);
    status |= clActivity ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
    numWait += 4;
-#endif
-#endif
+#endif // PV_CL_COPY_BUFFERS
+#endif // PV_USE_OPENCL
 
    return status;
 }
@@ -517,9 +527,19 @@ int LIF::updateState(float time, float dt)
 //      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
       pvdata_t * activity = clayer->activity->data;
 
-      LIF_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity);
-
+      switch (method) {
+      case 'b':
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
+      case 'o':
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
+      default:
+         assert(0);
+         break;
+      }
 #ifdef PV_USE_OPENCL
    }
 #endif
