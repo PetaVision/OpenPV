@@ -1,7 +1,7 @@
 function w=cleanWM(wm, ncells, hdr, ign_w, img_size)
 
     w = zeros(img_size*sqrt(ncells), img_size*sqrt(ncells));
-
+    %keyboard
     for v=1:ncells %Loop over cells
 
         [r c] = ind2sub([sqrt(ncells) sqrt(ncells)], v);
@@ -14,4 +14,8 @@ function w=cleanWM(wm, ncells, hdr, ign_w, img_size)
         w((rold-1)*img_size+1:rold*img_size,(cold-1)*img_size+1:cold*img_size) = wtmp((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))), (hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1))));
     end
     %keyboard
+
 end
+
+%wtmp((hdr.nxp-(ign_w*(r-1)-1))-img_size:(hdr.nxp-(ign_w*(r-1))),
+      %(hdr.nxp-(ign_w*(c-1)-1))-img_size:(hdr.nxp-(ign_w*(c-1))));

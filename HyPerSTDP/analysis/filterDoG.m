@@ -1,4 +1,4 @@
-function wM = filterDoG(wOn, wOff, n_cells)
+function [w f] = filterDoG(wOn, wOff, n_cells, img_size)
     figure
     %clear result
 
@@ -22,16 +22,29 @@ function wM = filterDoG(wOn, wOff, n_cells)
     axis off          % Remove axis ticks and numbers
     axis image        % Set aspect ratio to obtain square pixels
 
-figure
-imagesc(RF2s);
-colormap gray
-axis off          % Remove axis ticks and numbers
-axis image        % Set aspect ratio to obtain square pixels
+    figure
+    imagesc(RF2s);
+    colormap gray
+    axis off          % Remove axis ticks and numbers
+    axis image        % Set aspect ratio to obtain square pixels
 
-figure
-imagesc(RFs+RF2s);
-colormap gray
-axis off          % Remove axis ticks and numbers
-axis image        % Set aspect ratio to obtain square pixels
+    %Add borders
+    for v=img_size:img_size:(sqrt(n_cells)-1)*img_size %Loop over cells
+        RFs(v,:) = -1;
+        RFs(:,v) = -1;
+        RF2s(v,:) = 0;
+        RF2s(:,v) = 0;
+    end
+
+    f=figure
+    imagesc(RFs+RF2s);
+    colormap gray
+    axis off          % Remove axis ticks and numbers
+    axis image        % Set aspect ratio to obtain square pixels
+
+    w = RFs+RF2s;
 
 end
+
+
+
