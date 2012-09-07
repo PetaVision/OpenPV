@@ -940,7 +940,13 @@ int HyPerCol::outputParams(const char * filename) {
 #endif
    if( rank==0 && filename != NULL && filename[0] != '\0' ) {
       char printParamsPath[PV_PATH_MAX];
-      int len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
+      int len;
+      if (filename[0] == '/') { // filename is absolute path
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", filename);
+      }
+      else { // filename is relative path from outputPath
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
+      }
       if( len < PV_PATH_MAX ) {
          FILE * fp = fopen(printParamsPath, "w");
          if( fp != NULL ) {
