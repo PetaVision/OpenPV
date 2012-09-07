@@ -241,7 +241,7 @@ int PursuitLayer::updateState(float time, float dt) {
    int ny = getLayerLoc()->ny;
    int nf = getLayerLoc()->nf;
    int nb = getLayerLoc()->nb;
-   pvdata_t * activity = getCLayer()->activity->data;
+   pvdata_t * activity = getActivity();
    memset(activity, 0, getNumExtended()*sizeof(*activity));
 
    int nxy = nx*ny;
