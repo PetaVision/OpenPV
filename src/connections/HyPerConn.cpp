@@ -207,6 +207,8 @@ int HyPerConn::initialize_base()
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
    this->wPostDataStart = NULL;
+   this->wPostPatchesp = NULL;
+   this->wPostDataStartp = NULL;
    this->nxpPost = 0;
    this->nypPost = 0;
    this->nfpPost = 0;
