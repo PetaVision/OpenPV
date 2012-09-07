@@ -299,8 +299,8 @@ int STDPConn::updateWeights(int axonId)
 
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++) {
-             //post_tr_m[kPost] = (decayLTD * post_tr_m[kPost] + aPost[kPost]) > 1? 1 : (decayLTD * post_tr_m[kPost] + aPost[kPost]);
-            post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
+             post_tr_m[kPost] = aPost[kPost] ? aPost[kPost] : (decayLTD * post_tr_m[kPost]);  //nearest neighbor approximation
+            //post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
@@ -323,8 +323,8 @@ int STDPConn::updateWeights(int axonId)
          ny  = w->ny;
 
          // 2. Updates the presynaptic trace
-         //pre_tr_m[0] = (decayLTP * pre_tr_m[0] + aPre) > 1? 1 : (decayLTP * pre_tr_m[0] + aPre);
-         pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
+         pre_tr_m[0] = aPre ? aPre : (decayLTP * pre_tr_m[0]); //nearest neighbor approximation
+         //pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
 
          //3. Update weights
          for (int y = 0; y < ny; y++) {
@@ -368,11 +368,11 @@ int STDPConn::updateWeights(int axonId)
 
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
 
-            // loop through post-synaptic neurons (non-extended indices)
+            //Loop through post-synaptic neurons (non-extended indices)
             for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
 
                pvdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
-               for (int kp = 0; kp < numPostPatch; kp++) {
+               for (int kp = 0; kp < numPostPatch; kp++) { //TODO: Scale only the weights non-extended space
                   sumW += *(postData[kp]);
                }
                for (int kp = 0; kp < numPostPatch; kp++) {
