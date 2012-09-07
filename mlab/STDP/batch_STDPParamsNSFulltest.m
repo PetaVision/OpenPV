@@ -15,14 +15,14 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
+DATASET = "OlshausenField_raw32x32_tinyAll"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
 
 TEMPLATE = "STDPgeneralNS2";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 10001;
+numsteps = 1001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -45,6 +45,7 @@ wMaxi = 16;
 synscalingi = 17;
 synscalingvi = 18;
 movieMarginWidthi = 19;
+useImageBCflagi = 20;
 
 RUN_FLAG = 1;
 
@@ -53,8 +54,8 @@ PARAMSWEEP_FLAG = 0;
     PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi STRENGTH_IMAGE2RETINAi];
 MEASURES_FLAG = 0;
     MEASURES_PLOT_FLAG = 0;
-    MEASURES_OSI_FLAG = 0;
-    MEASURES_GM_FLAG = 1;
+    MEASURES_OSI_FLAG = 1;
+    MEASURES_GM_FLAG = 0;
 
 global ROTATE_FLAG; ROTATE_FLAG = 0;
 
@@ -70,30 +71,31 @@ params{3} = DATASET;  %checkpointReadDir
 params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
 params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
-params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 5;
+params{DISPLAYPERIODi} = 50; %displayPeriod (image display period)
+params{STRENGTH_IMAGE2RETINAi} = 50;
 params{movieMarginWidthi} = 3;
-
+params{useImageBCflagi} = 1;
 
 
 %STDP params
 %Natural images params
-params{wMaxInitSTDPi} = 0.05;
-params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 25;
-params{tauLTDi} = 25;
-params{ampLTPi} = 0.2;
-params{ampLTDi} = 0.16;
+params{wMaxInitSTDPi} = 0.1;
+params{wMinInitSTDPi} = 0.01;
+params{tauLTPi} = 10;%17;
+params{tauLTDi} = 30%;34;
+params{ampLTPi} = 0.2;%0.01;
+params{ampLTDi} = 0.086;%0.0086;
 params{wMini} = 0.001;
 params{wMaxi} = 1;
 params{synscalingi} = 1;
-params{synscalingvi} = 1;
+params{synscalingvi} = 30;
 
-LOAD_FILE = 1;
+fname = '2412'
+LOAD_FILE = 0;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(2182,x);
+        params{PARAM_SWEEP(x)} = rg_p(str2num(fname),x);
     end
 end
 
@@ -110,7 +112,7 @@ if(PARAMSWEEP_FLAG)
         5:5:30; ...
         0.1:0.05:0.2; ...
         0.01:0.05:0.2; ...
-        1; ...
+        5:5:15; ...
         [3:5:25 100]};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi STRENGTH_IMAGE2RETINAi
     %Generates all combinations
     rg_p = allcomb(rg{:});
@@ -155,7 +157,7 @@ for ps=1:size(rg_p,1)
 
     if(RUN_FLAG)
         if(PARAMSWEEP_FLAG)
-            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutputNS2.txt"]);
+            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
         else
             system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
         end
@@ -173,7 +175,20 @@ for ps=1:size(rg_p,1)
         wm = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
         [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
         wmOff = cleanWM(wmOff, v1_cells, hdrOff, ign_w, img_size);
-        filterDoG(wm,wmOff,0);
+        [w f] = filterDoG(wm,wmOff,v1_cells,img_size);
+    
+        %Save img
+        axis tight
+        set(gca, 'Position',[0 0 1 1])
+
+        %# set size of figure's "drawing" area on screen
+        set(gcf, 'Units','centimeters', 'Position',[1 1 10 10])
+
+        set(gcf, 'PaperPositionMode','auto');
+
+        %# save as TIFF
+        print(f, '-r10', '-dpng', ['NS_RFs/rf_' fname '.png'])
+
     else
         PRINT_FLAG = 1;
         SWEEP_POS = ps;
@@ -208,6 +223,7 @@ params{6} = "false";  %plasticityFlag
 
 if(MEASURES_OSI_FLAG)
 
+params{useImageBCflagi} = 0;
 
 if(PARAMSWEEP_FLAG==0)
 disp("---------------------------");
@@ -250,7 +266,7 @@ length(datasetl)*params{DISPLAYPERIODi}+i
 %pause
 if(RUN_FLAG)
 if(PARAMSWEEP_FLAG)
-system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutputNS2.txt"]); %Runs new params file
+system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
 else
 system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
 end
@@ -312,25 +328,25 @@ end
 %Get Orientation Selectivity Index (OSI)
 osi = zeros(v1_cells,1);
 for x=1:length(osi) %Cell x
-f=fft(sum(hist_per_orient(:,x,:),1));
-%abs(f(2))
-osi(x) = (abs(f(2))/(abs(f(2))+mean(mean(avg_r_per_orient(:,x,:),1))))*100; %A 2nd harmonic/(A 2nd harmonic + delta_firingrate);
-end
-osi(isnan(osi))=0;
+    f=fft(sum(hist_per_orient(:,x,:),1));
+    %abs(f(2))
+    osi(x) = (abs(f(2))/(abs(f(2))+mean(mean(avg_r_per_orient(:,x,:),1))))*100; %A 2nd harmonic/(A 2nd harmonic + delta_firingrate);
+    end
+    osi(isnan(osi))=0;
 
-if(MEASURES_PLOT_FLAG)
-figure
-hist(osi,30)
-xlabel('Orientation Selectivity Index');
-ylabel('Count');
-box off;
+    if(MEASURES_PLOT_FLAG)
+    figure
+    hist(osi,30)
+    xlabel('Orientation Selectivity Index');
+    ylabel('Count');
+    box off;
 
-plotHistOSI(hist_per_orient, 1, osi(1),36)
-end
+    plotHistOSI(hist_per_orient, 1, osi(1),36)
+    end
 
-OSIm(ps,:) = [mean(osi) std(osi)];
+    OSIm(ps,:) = [mean(osi) std(osi)];
 
-%TODO: Plot OSI over time
+    %TODO: Plot OSI over time
 
 
 end
@@ -492,16 +508,13 @@ if(MEASURES_GM_FLAG)
     %params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
     params{6} = "true"; %plasticityFlag
     params{DISPLAYPERIODi} = 20;
-    if(PARAMSWEEP_FLAG)
-        close all
-    end
+    close all
 end
 
 end
 
 if(PARAMSWEEP_FLAG)
-    save("rg_p_NSCatcam", "rg_p");
-    save("gm_f_NSCatcam", "gm_f");
+    save("rg_p_NS", "rg_p");
     if(MEASURES_GM_FLAG)
         gm_f;
     end

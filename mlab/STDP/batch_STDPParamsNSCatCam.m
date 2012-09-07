@@ -15,14 +15,14 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
+DATASET = "catcam_20x20_movie1all"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
 
 TEMPLATE = "STDPgeneralNS2";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 10001;
+numsteps = 20001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -48,7 +48,7 @@ movieMarginWidthi = 19;
 
 RUN_FLAG = 1;
 
-PARAMSWEEP_FLAG = 0;
+PARAMSWEEP_FLAG = 1;
     %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
     PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi STRENGTH_IMAGE2RETINAi];
 MEASURES_FLAG = 0;
@@ -59,7 +59,7 @@ MEASURES_FLAG = 0;
 global ROTATE_FLAG; ROTATE_FLAG = 0;
 
 v1_cells = 6*6;
-img_size = 12;
+img_size = 20;
 ign_w = 2;
 fid = 0;
 
@@ -71,7 +71,7 @@ params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
 params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 5;
+params{STRENGTH_IMAGE2RETINAi} = 20;
 params{movieMarginWidthi} = 3;
 
 
@@ -80,20 +80,20 @@ params{movieMarginWidthi} = 3;
 %Natural images params
 params{wMaxInitSTDPi} = 0.05;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 25;
-params{tauLTDi} = 25;
-params{ampLTPi} = 0.2;
-params{ampLTDi} = 0.16;
+params{tauLTPi} = 17;
+params{tauLTDi} = 34;
+params{ampLTPi} = 0.01;
+params{ampLTDi} = 0.0085;
 params{wMini} = 0.001;
 params{wMaxi} = 1;
-params{synscalingi} = 1;
+params{synscalingi} = 0;
 params{synscalingvi} = 1;
 
-LOAD_FILE = 1;
+LOAD_FILE = 0;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(2182,x);
+        params{PARAM_SWEEP(x)} = rg_p(1616,x);
     end
 end
 
@@ -151,7 +151,7 @@ for ps=1:size(rg_p,1)
     %OSIm(1:ps,:)
     %keyboard
 
-    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, [], numsteps);
+    [pvp_params_file pvp_project_path pvp_output_path] = pvp_makeSTDPParams(DATASET, [], TEMPLATE, img_size, numsteps);
 
     if(RUN_FLAG)
         if(PARAMSWEEP_FLAG)
@@ -170,10 +170,11 @@ for ps=1:size(rg_p,1)
         filename = [pvp_output_path, filesep, on_v1_file];
         filenameOff = [pvp_output_path, filesep, off_v1_file];
         [data hdr wm]=readpvpfile(filename, [pvp_output_path, filesep], on_v1_file, 1);
+        %keyboard
         wm = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
         [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
         wmOff = cleanWM(wmOff, v1_cells, hdrOff, ign_w, img_size);
-        filterDoG(wm,wmOff,0);
+        filterDoG(wm,wmOff,V1_CELLS);
     else
         PRINT_FLAG = 1;
         SWEEP_POS = ps;

@@ -15,7 +15,7 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tinyAll"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
+DATASET = "OlshausenField_raw32x32_tinyAll"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
 
 TEMPLATE = "STDPgeneralNS";
 on_v1_file = "w4_post.pvp";
@@ -85,15 +85,15 @@ params{tauLTDi} = 25;
 params{ampLTPi} = 0.2;
 params{ampLTDi} = 0.16;
 params{wMini} = 0.001;
-params{wMaxi} = 5;
+params{wMaxi} = 1;
 params{synscalingi} = 1;
 params{synscalingvi} = 15;
 
-LOAD_FILE = 1;
+LOAD_FILE = 0;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(98,x);
+        params{PARAM_SWEEP(x)} = rg_p(2182,x);
     end
 end
 

@@ -4,7 +4,7 @@
 
 clear all; close all; more off; clc;
 system("clear");
-warning off;
+%warning off;
 format short g;
 
 global MOVIE_FLAG = 0;
@@ -15,14 +15,14 @@ addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
-DATASET = "OlshausenField_raw32x32_tiny"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny catcam_20x20_movie1all
+DATASET = "orient_36r"; %%orient_36r orient_simple   OlshausenField_raw12x12_tinyAll OlshausenField_whitened32x32_tinyAll1000 blankSquare OlshausenField_raw32x32_tiny
 
-TEMPLATE = "STDPgeneralNS2";
+TEMPLATE = "STDPgeneral";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 10001;
+numsteps = 2001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -51,7 +51,7 @@ RUN_FLAG = 1;
 PARAMSWEEP_FLAG = 0;
     %PARAM_SWEEP = [STRENGTH_IMAGE2RETINAi synscalingvi]
     PARAM_SWEEP = [tauLTPi tauLTDi ampLTPi ampLTDi synscalingvi STRENGTH_IMAGE2RETINAi];
-MEASURES_FLAG = 0;
+MEASURES_FLAG = 1;
     MEASURES_PLOT_FLAG = 0;
     MEASURES_OSI_FLAG = 0;
     MEASURES_GM_FLAG = 1;
@@ -71,7 +71,7 @@ params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
 params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
 params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
-params{STRENGTH_IMAGE2RETINAi} = 5;
+params{STRENGTH_IMAGE2RETINAi} = 15;
 params{movieMarginWidthi} = 3;
 
 
@@ -80,20 +80,23 @@ params{movieMarginWidthi} = 3;
 %Natural images params
 params{wMaxInitSTDPi} = 0.05;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 25;
-params{tauLTDi} = 25;
-params{ampLTPi} = 0.2;
-params{ampLTDi} = 0.16;
+params{tauLTPi} = 17;
+params{tauLTDi} = 34;
+params{ampLTPi} = 0.01;
+params{ampLTDi} = 0.0085;
 params{wMini} = 0.001;
-params{wMaxi} = 1;
+params{wMaxi} = 5;
 params{synscalingi} = 1;
 params{synscalingvi} = 1;
 
+fname = '2058';
 LOAD_FILE = 1;
 if(LOAD_FILE)
-    load('rg_p_NS');
+    load('rg_p_Orient');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(2182,x);
+        params{PARAM_SWEEP(x)} = rg_p(str2num(fname),x);
+        %5          10        0.15        0.11          10         100
+        %Good: 309
     end
 end
 
@@ -110,8 +113,9 @@ if(PARAMSWEEP_FLAG)
         5:5:30; ...
         0.1:0.05:0.2; ...
         0.01:0.05:0.2; ...
-        1; ...
+        [5 10 15]; ...
         [3:5:25 100]};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi STRENGTH_IMAGE2RETINAi
+
     %Generates all combinations
     rg_p = allcomb(rg{:});
 
@@ -139,9 +143,9 @@ tic
 for ps=1:size(rg_p,1)
 
     if(PARAMSWEEP_FLAG)
-    disp("--------------------------------");
-    disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
-    disp("--------------------------------");
+        disp("--------------------------------");
+        disp(["--- Paramsweep: " num2str(ps) " out of " num2str(size(rg_p,1)) " ---"]);
+        disp("--------------------------------");
     end
 
     for x=1:size(rg_p,2) %Set params
@@ -155,7 +159,7 @@ for ps=1:size(rg_p,1)
 
     if(RUN_FLAG)
         if(PARAMSWEEP_FLAG)
-            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutputNS2.txt"]);
+            system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file " &> batchOutput.txt"]);
         else
             system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]);
         end
@@ -173,7 +177,19 @@ for ps=1:size(rg_p,1)
         wm = cleanWM(wm, v1_cells, hdr, ign_w, img_size);
         [dataOff hdrOff wmOff]=readpvpfile(filenameOff, [pvp_output_path, filesep], off_v1_file, 1);
         wmOff = cleanWM(wmOff, v1_cells, hdrOff, ign_w, img_size);
-        filterDoG(wm,wmOff,0);
+        [w f] = filterDoG(wm,wmOff,v1_cells,img_size);
+
+        %Save img
+        axis tight
+        set(gca, 'Position',[0 0 1 1])
+
+        %# set size of figure's "drawing" area on screen
+        set(gcf, 'Units','centimeters', 'Position',[1 1 10 10])
+
+        set(gcf, 'PaperPositionMode','auto');
+
+        %# save as TIFF
+        print(f, '-r10', '-dpng', ['Orient_RFs/rf_' fname '.png'])
     else
         PRINT_FLAG = 1;
         SWEEP_POS = ps;
@@ -225,8 +241,8 @@ if(fid==0)
 
     c=1;
     while(~feof(fid))
-    datasetl{c} = fgets(fid);
-    c=c+1;
+        datasetl{c} = fgets(fid);
+        c=c+1;
     end
     fclose(fid);
     fid = 0;
@@ -250,7 +266,7 @@ length(datasetl)*params{DISPLAYPERIODi}+i
 %pause
 if(RUN_FLAG)
 if(PARAMSWEEP_FLAG)
-system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutputNS2.txt"]); %Runs new params file
+system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file  " &> batchOutput.txt"]); %Runs new params file
 else
 system(["sudo " pvp_project_path "Debug/HyPerSTDP -p " pvp_params_file]); %Runs new params file
 end
@@ -371,8 +387,8 @@ if(MEASURES_GM_FLAG)
     for i=numsteps:params{CHECKPOINTSTEPi}:numsteps
 
     %for i=0:params{CHECKPOINTSTEPi}:numsteps
-        while(1)
-          try 
+        %while(1)
+          %try 
             params{CHECKPOINTREADi} = i;  %checkpointReadDirIndex
 
             %Generates new params file
@@ -397,12 +413,15 @@ if(MEASURES_GM_FLAG)
                 %Reads the weights Retina_ON > V1 for the time being
                 %PRINT_FLAG = 0;
                 [d hdrw wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep], on_v1_file, post);
+                %Reads the weights Retina_OFF > V1 for the time being
+                [dOff hdrwOff wmOff] = readpvpfile([pvp_output_path, filesep, off_v1_file], [pvp_output_path, filesep], off_v1_file, post);
 
                % if(PARAMSWEEP_FLAG==0)
                %     figure
                %     imshow(wm);
                % end
                 wm = cleanWM(wm, v1_cells, hdrw, ign_w, img_size);
+                wmOff = cleanWM(wmOff, v1_cells, hdrw, ign_w, img_size);
                 if(PARAMSWEEP_FLAG==0)
                     figure
                     imshow(wm);
@@ -428,21 +447,22 @@ if(MEASURES_GM_FLAG)
                         if(mean_act>0) %If cell reconstruct
                             [c r] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
                             w=wm((r-1)*img_size+1:r*img_size, (c-1)*img_size+1:c*img_size);
-                            img_recons = img_recons .+ (mean_act .* w);
+                            wOff=wmOff((r-1)*img_size+1:r*img_size, (c-1)*img_size+1:c*img_size);
+                            img_recons = img_recons .+ (mean_act .* w - mean_act .* wOff);
                             if(PARAMSWEEP_FLAG==0)
                                 [r c mean_act]
                             end                            
                         end
 
                     end
-                    
+                    img_recons(img_recons<0) = 0;
                     if(sum(sum(img_recons))>0)
 
                         img_recons = img_recons./max(max(img_recons));
                         img_orig = imread(strtrim(datasetl{p}));
 
                         %Crop img_orig based on the margin width
-                        img_orig = img_orig(params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size, params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size);
+                        %img_orig = img_orig(params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size, params{movieMarginWidthi}+1:params{movieMarginWidthi}+img_size);
                         if(ROTATE_FLAG==0)
                             img_orig = flipud(rot90(img_orig));
                             %img_orig = rot90(img_orig);
@@ -474,15 +494,14 @@ if(MEASURES_GM_FLAG)
 
                     %TODO: Generative measure (use KL divergence): mean(D(I_G,I_O))
                 end
-                break;
-                catch
-                    lasterror.message
-                    ps
-                 end_try_catch
+                %break;
+                %catch
+                %    lasterror.message
+                %    ps
+                % end_try_catch
 
-              end
+              %end
             end
-
     end
 
     params{1} = "false";  %checkpointRead
@@ -495,13 +514,13 @@ if(MEASURES_GM_FLAG)
     if(PARAMSWEEP_FLAG)
         close all
     end
+    
 end
 
 end
 
-if(PARAMSWEEP_FLAG)
-    save("rg_p_NSCatcam", "rg_p");
-    save("gm_f_NSCatcam", "gm_f");
+if(PARAMSWEEP_FLAG==1)
+    save("rg_p_Orient", "rg_p");
     if(MEASURES_GM_FLAG)
         gm_f;
     end

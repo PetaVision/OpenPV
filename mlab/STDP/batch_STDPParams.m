@@ -20,7 +20,7 @@ TEMPLATE = "STDPgeneral";
 on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 
-numsteps = 5100;
+numsteps = 2001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;

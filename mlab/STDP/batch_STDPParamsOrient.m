@@ -22,7 +22,7 @@ on_v1_file = "w4_post.pvp";
 off_v1_file = "w5_post.pvp";
 v1_file = "S1.pvp";
 
-numsteps = 2001;
+numsteps = 10001;
 
 %Masquelier params
 %pr = 17*0.01/34*0.0085;
@@ -70,7 +70,7 @@ params{3} = DATASET;  %checkpointReadDir
 params{CHECKPOINTREADi} = 0;  %checkpointReadDirIndex
 params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
 params{6} = "true"; %plasticityFlag
-params{DISPLAYPERIODi} = 20; %displayPeriod (image display period)
+params{DISPLAYPERIODi} = 100; %displayPeriod (image display period)
 params{STRENGTH_IMAGE2RETINAi} = 5;
 params{movieMarginWidthi} = 3;
 
@@ -80,21 +80,21 @@ params{movieMarginWidthi} = 3;
 %Natural images params
 params{wMaxInitSTDPi} = 0.05;
 params{wMinInitSTDPi} = 0.005;
-params{tauLTPi} = 25;
-params{tauLTDi} = 25;
-params{ampLTPi} = 0.2;
-params{ampLTDi} = 0.16;
+params{tauLTPi} = 17;
+params{tauLTDi} = 34;
+params{ampLTPi} = 0.01;
+params{ampLTDi} = 0.0085;
 params{wMini} = 0.001;
-params{wMaxi} = 5;
+params{wMaxi} = 1;
 params{synscalingi} = 1;
-params{synscalingvi} = 15;
+params{synscalingvi} = 1;
 
 
 LOAD_FILE = 0;
 if(LOAD_FILE)
     load('rg_p_NS');
     for x=1:size(rg_p,2) %Set params
-        params{PARAM_SWEEP(x)} = rg_p(336,x);
+        params{PARAM_SWEEP(x)} = rg_p(2058,x);
         %5          10        0.15        0.11          10         100
         %Good: 309
     end
@@ -113,7 +113,7 @@ if(PARAMSWEEP_FLAG)
         5:5:30; ...
         0.1:0.05:0.2; ...
         0.01:0.05:0.2; ...
-        5:5:15; ...
+        1; ...
         [3:5:25 100]};  %tauLTP, tauLTD, ampLTP, ampLTD, synscalingvi STRENGTH_IMAGE2RETINAi
 
     %Generates all combinations
@@ -401,12 +401,15 @@ if(MEASURES_GM_FLAG)
                 %Reads the weights Retina_ON > V1 for the time being
                 %PRINT_FLAG = 0;
                 [d hdrw wm] = readpvpfile([pvp_output_path, filesep, on_v1_file], [pvp_output_path, filesep], on_v1_file, post);
+                %Reads the weights Retina_OFF > V1 for the time being
+                [dOff hdrwOff wmOff] = readpvpfile([pvp_output_path, filesep, off_v1_file], [pvp_output_path, filesep], off_v1_file, post);
 
                % if(PARAMSWEEP_FLAG==0)
                %     figure
                %     imshow(wm);
                % end
                 wm = cleanWM(wm, v1_cells, hdrw, ign_w, img_size);
+                wmOff = cleanWM(wmOff, v1_cells, hdrw, ign_w, img_size);
                 if(PARAMSWEEP_FLAG==0)
                     figure
                     imshow(wm);
@@ -432,14 +435,15 @@ if(MEASURES_GM_FLAG)
                         if(mean_act>0) %If cell reconstruct
                             [c r] = ind2sub([sqrt(v1_cells) sqrt(v1_cells)], v);
                             w=wm((r-1)*img_size+1:r*img_size, (c-1)*img_size+1:c*img_size);
-                            img_recons = img_recons .+ (mean_act .* w);
+                            wOff=wmOff((r-1)*img_size+1:r*img_size, (c-1)*img_size+1:c*img_size);
+                            img_recons = img_recons .+ (mean_act .* w - mean_act .* wOff);
                             if(PARAMSWEEP_FLAG==0)
                                 [r c mean_act]
                             end                            
                         end
 
                     end
-                    
+                    img_recons(img_recons<0) = 0;
                     if(sum(sum(img_recons))>0)
 
                         img_recons = img_recons./max(max(img_recons));
@@ -495,14 +499,16 @@ if(MEASURES_GM_FLAG)
     %params{CHECKPOINTSTEPi} = 200;  %checkpointWriteStepInterval
     params{6} = "true"; %plasticityFlag
     params{DISPLAYPERIODi} = 20;
-    close all
+    if(PARAMSWEEP_FLAG)
+        close all
+    end
     
 end
 
 end
 
 if(PARAMSWEEP_FLAG==1)
-    save("rg_p_NS", "rg_p");
+    save("rg_p_Orient", "rg_p");
     if(MEASURES_GM_FLAG)
         gm_f;
     end
