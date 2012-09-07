@@ -15,8 +15,8 @@ echo ${exe_path[0]}
 input_path=${clique_path}"input/CatVsNoCatDog/"${2}"/"${1}"/canny3way/"
 echo ${input_path[0]}
 input_prefix="CatVsNoCatDog_"${2}"_"${1}"_canny3way_"
-output_path="/mnt/data/ImageNet/PetaVision/CatVsNoCatDog/"${2}"/activity/"${1}"/canny3way/"
-output_prefix="CatVsNoCatDog_"${2}"_"${1}"_canny3way_mask_"
+output_path="/nh/compneuro/Data/ImageNet/PetaVision/CatVsNoCatDog/"${2}"/activity/"${1}"/canny3way/"
+output_prefix="CatVsNoCatDog_"${2}"_"${1}"_canny3way_"
 version_id=0; #0
 version_IDs=({001..016})
 echo ${version_IDs[*]}
@@ -29,12 +29,12 @@ do
 	echo "version_id =${version_id}"
 	input_params=${input_path}${version_IDs[${version_id}]}"/"${input_prefix}${version_IDs[${version_id}]}".params"
 	echo "input_params=$input_params"
-	ouput_log=${output_path}${output_prefix}${version_IDs[${version_id}]}".log" 
+	output_log=${output_path}${version_IDs[${version_id}]}"/"${output_prefix}${version_IDs[${version_id}]}".log" 
 	echo $output_log
+	touch $output_log
 	host_node="10.0.0."${i_node}
 	echo "host_node=${host_node}"
-	mpirun -np 2 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}SynthCog3 -rows 1 -columns 2 -p ${input_params} & # 1> ${output_log}
-	#mpirun -np 1 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}Clique2 -rows 1 -columns 1 -p ${input_params} & # 1> ${output_log}
+	mpirun -np 4 -H ${host_node} --prefix ${openmpi64_home} ${exe_path}SynthCog3 -rows 2 -columns 2 -p ${input_params} &>${output_log} & 
 	version_id=$((${version_id}+1))
     done
 done
