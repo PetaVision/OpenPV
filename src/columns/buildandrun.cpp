@@ -1009,7 +1009,7 @@ void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeywor
 }
 
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
-   BaseConnectionProbe * addedProbe;
+   BaseConnectionProbe * addedProbe = NULL;
    PVParams * params = hc->parameters();
    HyPerConn * targetConn = NULL;
    bool keywordMatched = false;

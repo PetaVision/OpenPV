@@ -1333,7 +1333,7 @@ int HyPerConn::updateState(float time, float dt)
 {
    update_timer->start();
 
-   int status;
+   int status = PV_SUCCESS;
    //const int axonId = 0;       // assume only one for now
    for(int axonId=0;axonId<numberOfAxonalArborLists();axonId++) {
       status = calc_dW(axonId);        // Calculate changes in weights
@@ -1418,7 +1418,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
 }
 
 int HyPerConn::clearWeights(pvdata_t ** dataStart, int numPatches, int nxp, int nyp, int nfp) {
-   int status;
+   int status = PV_SUCCESS;
    for( int arborID = 0; arborID<numAxonalArborLists; arborID++ ) {
       if( clearWeights(dataStart[arborID], numPatches, nxp, nyp, nfp)!=PV_SUCCESS ) status = PV_FAILURE;
    }
@@ -2570,7 +2570,7 @@ int HyPerConn::setPatchSize(const char * filename)
 int HyPerConn::patchSizeFromFile(const char * filename) {
    // use patch dimensions from file if (filename != NULL)
    //
-   int status;
+   int status = PV_SUCCESS;
    int filetype, datatype;
    double time = 0.0;
    const PVLayerLoc loc = pre->getCLayer()->loc;
