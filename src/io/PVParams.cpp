@@ -703,20 +703,20 @@ int PVParams::parsefile(const char * filename) {
       }
       struct stat filestatus;
       if( stat(filename, &filestatus) ) {
-         fprintf(stderr, "PVParams::parsefile: ERROR getting status of file \"%s\".  Error code %d\n", filename, errno);
+         fprintf(stderr, "PVParams::parsefile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       if( filestatus.st_mode & S_IFDIR ) {
-         fprintf(stderr, "PVParams::parsefile: ERROR - specified file \"%s\" is a directory.\n", filename);
+         fprintf(stderr, "PVParams::parsefile ERROR: specified file \"%s\" is a directory.\n", filename);
          exit(EISDIR);
       }
       FILE * paramfp = fopen(filename, "r");
       if( paramfp == NULL ) {
-         fprintf(stderr, "PVParams::parsefile: ERROR opening file \"%s\".  Error code %d\n", filename, errno);
+         fprintf(stderr, "PVParams::parsefile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       if( fseek(paramfp, 0, SEEK_END) != 0 ) {
-         fprintf(stderr, "PVParams::parsefile: ERROR seeking end of file \"%s\".  Error code %d\n", filename, errno);
+         fprintf(stderr, "PVParams::parsefile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       //TODO:: make sure paramBuffer is correctly freed (this method was flagged as a memory leak by valgrind)

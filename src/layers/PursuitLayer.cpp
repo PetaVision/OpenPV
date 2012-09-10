@@ -50,30 +50,23 @@ int PursuitLayer::initialize_base() {
 int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
    if (status==PV_SUCCESS) {
-      //innerproducts = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
-      //if (innerproducts == NULL) {
-      //   fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for innerproducts.  Error %d\n", errno);
-      //   abort();
-      //}
-   }
-   if (status==PV_SUCCESS) {
       wnormsq = (pvdata_t *) calloc(getLayerLoc()->nf, sizeof(pvdata_t));
       if (wnormsq == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for wnormsq.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for wnormsq: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       minimumLocations = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
       if (minimumLocations == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minimumLocations.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minimumLocations: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       energyDrops = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
       if (energyDrops == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergies.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergies: %s\n", strerror(errno));
          abort();
       }
    }
@@ -81,21 +74,21 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
    if (status==PV_SUCCESS) {
       minFeatures = (int *) calloc(xy, sizeof(pvdata_t));
       if (minFeatures == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minFeatures.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minFeatures: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       energyDropsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
       if (energyDropsBestFeature == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       foundFeatures = (int *) calloc(xy, sizeof(pvdata_t));
       if (foundFeatures == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for foundFeatures.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for foundFeatures: %s\n", strerror(errno));
          abort();
       }
    }
@@ -105,21 +98,21 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
    if (status==PV_SUCCESS) {
       minLocationsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
       if (minLocationsBestFeature == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minLocationsBestFeature.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minLocationsBestFeature: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       gSynSparse = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
       if (gSynSparse == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
          abort();
       }
    }
    if (status==PV_SUCCESS) {
       minEnergyFiltered = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
       if (minEnergyFiltered == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergyFiltered.  Error %d\n", errno);
+         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergyFiltered: %s\n", strerror(errno));
          abort();
       }
    }

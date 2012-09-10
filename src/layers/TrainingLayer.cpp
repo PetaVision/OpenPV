@@ -61,7 +61,7 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
 int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabelsFromFile) {
    FILE * instream = fopen(filename, "r");
    if( instream == NULL ) {
-      fprintf( stderr, "TrainingLayer: Unable to open \"%s\". Error %d\n", filename, errno );
+      fprintf( stderr, "TrainingLayer error opening \"%s\": %s\n", filename, strerror(errno) );
       *trainingLabelsFromFile = NULL;
       return 0;
    }
@@ -151,7 +151,7 @@ int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
       }
       FILE * curLabelIndexFile = fopen(curLabelIndexPath, "r");
       if (curLabelIndexFile == NULL) {
-         fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to open \"%s\" for reading.  Error %d\n", curLabelIndexPath, errno);
+         fprintf(stderr, "TrainingLayer::checkpointRead error opening \"%s\" for reading: %s\n", curLabelIndexPath, strerror(errno));
          abort();
       }
       int numread = fread(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
@@ -179,7 +179,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
       }
       FILE * curLabelIndexFile = fopen(curLabelIndexPath, "w");
       if (curLabelIndexFile == NULL) {
-         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to open \"%s\" for writing.  Error %d\n", curLabelIndexPath, errno);
+         fprintf(stderr, "TrainingLayer::checkpointWrite error opening \"%s\" for writing: %s\n", curLabelIndexPath, strerror(errno));
          abort();
       }
       int numread = fwrite(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);

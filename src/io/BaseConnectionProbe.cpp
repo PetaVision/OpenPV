@@ -6,9 +6,6 @@
  */
 
 #include "BaseConnectionProbe.hpp"
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-#include "ConnectionProbe.hpp"  // Temporary to allow backwards-compatibility kludge
-#endif // OBSOLETE
 
 namespace PV {
 
@@ -58,7 +55,7 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
 
          fp = fopen(path, "w");
          if( fp == NULL )  {
-            fprintf(stderr, "BaseConnectionProbe: unable to open \"%s\" for writing.  Error code %d.\n", path, errno);
+            fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s.\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
       }

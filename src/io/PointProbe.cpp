@@ -91,7 +91,7 @@ int PointProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
          sprintf(path, "%s/%s", outputdir, filename);
          fp = fopen(path, "w");
          if( !fp ) {
-            fprintf(stderr, "LayerProbe: Unable to open \"%s\" for writing.  Error %d\n", path, errno);
+            fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
          free(path);

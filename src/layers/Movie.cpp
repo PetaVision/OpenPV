@@ -61,7 +61,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    if( getParent()->icCommunicator()->commRank()==0 ) {
       fp = fopen(fileOfFileNames, "r");
       if( fp == NULL ) {
-         fprintf(stderr, "Movie::initialize: Error code %d opening %s\n", errno, fileOfFileNames);
+         fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", fileOfFileNames, strerror(errno));
          abort();
       }
    }

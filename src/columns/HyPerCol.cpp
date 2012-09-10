@@ -178,7 +178,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       int status = chdir(working_dir);
       if(status) {
          fprintf(stderr, "Unable to switch directory to \"%s\"\n", working_dir);
-         fprintf(stderr, "chdir returned error %d\n", errno);
+         fprintf(stderr, "chdir error: %s\n", strerror(errno));
          exit(status);
       }
    }
@@ -325,7 +325,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       int dirExistStatus = checkDirExists(checkpointReadDir, &checkpointReadDirStat);
       if( dirExistStatus != 0 ) {
          if( rank == 0 ) {
-            fprintf(stderr, "Column \"%s\": unable to read checkpointReadDir \"%s\".  Error %d\n", name, checkpointReadDir, dirExistStatus);
+            fprintf(stderr, "Column \"%s\": unable to read checkpointReadDir \"%s\": %s\n", name, checkpointReadDir, strerror(dirExistStatus));
          }
          exit(EXIT_FAILURE);
       }
@@ -437,7 +437,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
          int mkdirstatus = mkdir(dirname, 0700);
          if( mkdirstatus ) {
             fflush(stdout);
-            fprintf(stderr, "Directory \"%s\" could not be created: error %d\n", dirname, errno);
+            fprintf(stderr, "Directory \"%s\" could not be created: %s\n", dirname, strerror(errno));
             exit(EXIT_FAILURE);
          }
       }
@@ -445,7 +445,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    else {
       if( rank == 0 ) {
          fflush(stdout);
-         fprintf(stderr, "Checking status of directory \"%s\" gave error %d\n", dirname, resultcode);
+         fprintf(stderr, "Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode));
       }
       exit(EXIT_FAILURE);
    }
@@ -903,7 +903,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
             int statstatus = stat(lastCheckpointDir, &lcp_stat);
             if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
                if (statstatus==0) {
-                  fprintf(stderr, "Error deleting older checkpoint: failed to stat \"%s\": error %d.\n", lastCheckpointDir, errno);
+                  fprintf(stderr, "Error deleting older checkpoint: failed to stat \"%s\": %s.\n", lastCheckpointDir, strerror(errno));
                }
                else {
                   fprintf(stderr, "Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
@@ -952,16 +952,18 @@ int HyPerCol::outputParams(const char * filename) {
          if( fp != NULL ) {
             status = params->outputParams(fp);
             if( status != PV_SUCCESS ) {
-               fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", filename);
+               fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
             }
          }
          else {
             status = errno;
-            fprintf(stderr, "outputParams: Unable to open \"%s\" for writing.  Error %d\n", filename, errno);
+            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
          }
       }
       else {
-         fprintf(stderr, "outputParams: outputPath + printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
+         fprintf(stderr, "outputParams: ");
+         if (filename[0] != '/') fprintf(stderr, "outputPath + ");
+         fprintf(stderr, "printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
       }
    }
    return status;

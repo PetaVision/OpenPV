@@ -212,7 +212,7 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
       if (append) fp = fopen(filename, "ab");
       else        fp = fopen(filename, "wb");
       if( !fp ) {
-         fprintf(stderr, "pvp_open_write_file: Unable to open \"%s\" for writing.  Error %d\n", filename, errno);
+         fprintf(stderr, "pvp_open_write_file error opening \"%s\" for writing: %s\n", filename, strerror(errno));
          exit(EXIT_FAILURE);
       }
    }
