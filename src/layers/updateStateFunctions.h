@@ -258,13 +258,27 @@ static inline int updateSparsityTermDeriv_GenerativeLayer(int numNeurons, CL_MEM
    }
    return PV_SUCCESS;
 }
+
 static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int numNeurons, int num_features, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * sparsitytermderivative) {
-   int k;
 #ifndef PV_USE_OPENCL
-   for( k=0; k<numNeurons; k++ )
-#else
-      k = get_global_id(0);
-#endif // PV_USE_OPENCL
+   int k;
+   for (k=0; k<numNeurons/num_features; k++) {
+      int feature_start = k*num_features;
+      pvdata_t sum_across_features = 0.0f;
+      int f;
+      for (f=0; f<num_features; f++) {
+         sum_across_features += V[feature_start+f];
+      }
+      pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
+      for (f=0; f<num_features; f++) {
+         sparsitytermderivative[k*num_features+f] = 2*(sum_across_features-V[k*num_features+f])/(1+lat_wta_expr);
+      }
+   }
+   for (k=0; k<numNeurons; k++) {
+
+   }
+#else // PV_USE_OPENCL
+   int k = get_global_id(0);
    {
       int feature_start = k - (k % num_features);
       pvdata_t sum_across_features = 0.0f;
@@ -274,6 +288,8 @@ static inline int updateSparsityTermDeriv_LogLatWTAGenLayer(int numNeurons, int 
       // Can we eliminate redundant calculations?
       sparsitytermderivative[k] = 2*(sum_across_features-V[k])/(1+lat_wta_expr);
    }
+#endif // PV_USE_OPENCL
+
    return PV_SUCCESS;
 }
 
