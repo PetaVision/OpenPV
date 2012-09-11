@@ -1172,6 +1172,36 @@ int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * 
    return PV_SUCCESS;
 }
 
+int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, float * val_ptr, float default_value) {
+   int status = PV_SUCCESS;
+   if( parent->icCommunicator()->commRank() == 0 ) {
+      char filename[PV_PATH_MAX];
+      int chars_needed;
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
+      if(chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
+         abort();
+      }
+      FILE * fpWriteTime = fopen(filename, "r");
+      *val_ptr = default_value;
+      if (fpWriteTime==NULL  && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  writeTime will be %f\n", filename, default_value);
+      }
+      else {
+         int num_read = fread(val_ptr, sizeof(*val_ptr), 1, fpWriteTime);
+         if (num_read != 1 && parent->icCommunicator()->commRank() == 0 ) {
+            fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  writeTime will be %f\n", filename, default_value);
+         }
+      }
+      fclose(fpWriteTime);
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, getParent()->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+   return status;
+}
+
 int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, GSyn(?) and datastore to files in working directory
    // (HyPerCol::checkpointWrite() calls chdir before and after calling this routine)
@@ -1199,38 +1229,8 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
-#ifdef OBSOLETE // Marked obsolete Jan 31, 2012.  When checkpointWrite is called, GSyn is blank.  Since GSyn is calculated by triggerReceive, it doesn't need to be saved.
-   if( getNumChannels() > 0 ) {
-      sprintf(filename, "%s_GSyn.pvp", name);
-      writeBufferFile(filename, icComm, timed, GSyn[0], getNumChannels(), /*extended*/false, /*contiguous*/false);
-      // assumes GSyn[0], GSyn[1],... are sequential in memory
-   }
-#endif // OBSOLETE
+   writeScalarFloat(cpDir, "nextWrite", writeTime);
 
-   if (icComm->commRank()==0) {
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_nextWrite.bin", cpDir, name);
-      assert(chars_needed < PV_PATH_MAX);
-      FILE * fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      int num_written = fwrite(&writeTime, sizeof(writeTime), 1, fpWriteTime);
-      if (num_written != 1) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
-         abort();
-      }
-      fclose(fpWriteTime);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_nextWrite.txt", cpDir, name);
-      assert(chars_needed < PV_PATH_MAX);
-      fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      fprintf(fpWriteTime, "%f\n", writeTime);
-      fclose(fpWriteTime);
-   }
    return PV_SUCCESS;
 }
 
@@ -1305,6 +1305,39 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
 
+   return status;
+}
+
+int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, float val) {
+   int status = PV_SUCCESS;
+   if (parent->columnId()==0)  {
+      char filename[PV_PATH_MAX];
+      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
+         abort();
+      }
+      FILE * fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = fwrite(&val, sizeof(writeTime), 1, fpWriteTime);
+      if (num_written != 1) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
+         abort();
+      }
+      fclose(fpWriteTime);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
+      assert(chars_needed < PV_PATH_MAX);
+      fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      fprintf(fpWriteTime, "%f\n", val);
+      fclose(fpWriteTime);
+   }
    return status;
 }
 

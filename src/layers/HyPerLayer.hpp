@@ -105,6 +105,8 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
+   int readScalarFloat(const char * cp_dir, const char * val_name, float * val_ptr, float default_value=0.0f);
+   int writeScalarFloat(const char * cp_dir, const char * val_name, float value);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
