@@ -21,7 +21,6 @@ PursuitLayer::PursuitLayer()
 
 PursuitLayer::~PursuitLayer()
 {
-   //free(innerproducts); innerproducts = NULL;
    free(wnormsq); wnormsq = NULL;
    free(minimumLocations); minimumLocations = NULL;
    free(energyDrops); energyDrops = NULL;
@@ -33,7 +32,6 @@ PursuitLayer::~PursuitLayer()
 }
 
 int PursuitLayer::initialize_base() {
-   //innerproducts = NULL;
    wnormsq = NULL;
    minimumLocations = NULL;
    energyDrops = NULL;
@@ -128,8 +126,44 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 
 int PursuitLayer::checkpointRead(const char * cpDir, float * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
+   double timed;
+   int filenamesize = strlen(cpDir)+1+strlen(name)+29;
+   // The +1 is for the slash between cpDir and name; the +29 needs to be large enough to hold the suffix (e.g. _minLocationsBestFeature.pvp) plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
+   assert(filename != NULL);
+
+   PVLayerLoc flat_loc;
+   memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
+   flat_loc.nf = 1;
+
+   pvdata_t buffer1feature[flat_loc.nx*flat_loc.ny];
+
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
+   readBufferFileVariantLoc(filename, parent->icCommunicator(), &timed, gSynSparse, &flat_loc);
+
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
+   readBufferFileVariantLoc(filename, parent->icCommunicator(), &timed, buffer1feature, &flat_loc);
+   for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
+      foundFeatures[k] = (int) buffer1feature[k];
+   }
+
+   readScalarFloat(cpDir, "nextUpdate", &nextUpdate, firstUpdate);
    return status;
 }
+
+int PursuitLayer::readBufferFileVariantLoc(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, const PVLayerLoc * variant_loc) {
+   int filetype = 0;
+   int datatype = 0;
+   int params[NUM_BIN_PARAMS];
+   int num_params = 20;
+   double filetime;
+   pvp_read_header(filename, comm, &filetime, &filetype, &datatype, params, &num_params);
+   readNonspikingActFile(filename, comm, &filetime, buffer, /*level*/0, variant_loc, datatype, /*extended*/false, /*contiguous*/false);
+   return PV_SUCCESS;
+}
+
 
 int PursuitLayer::checkpointWrite(const char * cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
@@ -141,39 +175,16 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    // The +1 is for the slash between cpDir and name; the +29 needs to be large enough to hold the suffix (e.g. _minLocationsBestFeature.pvp) plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
-   //chars_needed = snprintf(filename, filenamesize, "%s/%s_innerproducts.pvp", cpDir, name);
-   //assert(chars_needed < filenamesize);
-   //writeBufferFile(filename, icComm, timed, innerproducts, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_minimumLocations.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, minimumLocations, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_energyDrops.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, energyDrops, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+
    PVLayerLoc flat_loc;
    memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
    flat_loc.nf = 1;
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_energyDropsBestFeature.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFileVariantLoc(filename, icComm, timed, energyDropsBestFeature, &flat_loc);
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_minLocationsBestFeature.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFileVariantLoc(filename, icComm, timed, minLocationsBestFeature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFileVariantLoc(filename, icComm, timed, gSynSparse, &flat_loc);
 
    pvdata_t buffer1feature[flat_loc.nx*flat_loc.ny];
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_minFeatures.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
-      buffer1feature[k] = (pvdata_t) minFeatures[k];
-   }
-   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
@@ -182,20 +193,7 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    }
    writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
 
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_minEnergyFiltered.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
-      buffer1feature[k] = (pvdata_t) minEnergyFiltered[k];
-   }
-   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
-
-   flat_loc.nx = 1;
-   flat_loc.ny = 1;
-   flat_loc.nb = 0;
-   flat_loc.nf = getLayerLoc()->nf;
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_wnormsq.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFileVariantLoc(filename, icComm, timed, wnormsq, &flat_loc);
+   writeScalarFloat(cpDir, "nextUpdate", nextUpdate);
 
    free(filename);
    return status;
@@ -247,7 +245,6 @@ int PursuitLayer::updateState(float time, float dt) {
          activity[kex] = gSynSparse[kxy];
       }
    }
-   //memset(innerproducts, 0, getNumNeurons()*sizeof(*innerproducts));
    resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
    updateReady = false;
    return PV_SUCCESS;

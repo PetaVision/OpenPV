@@ -33,8 +33,10 @@ protected:
    PursuitLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels);
    int writeBufferFileVariantLoc(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, const PVLayerLoc * variant_loc);
+   int readBufferFileVariantLoc(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, const PVLayerLoc * variant_loc);
    int constrainMinima();
    int filterMinEnergies(bool * mask, pvdata_t * smallestEnergyDrop);
+
 private:
    int initialize_base();
 
