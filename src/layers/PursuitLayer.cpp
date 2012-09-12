@@ -47,6 +47,9 @@ int PursuitLayer::initialize_base() {
 
 int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
+   free(getCLayer()->V);
+   getCLayer()->V = NULL;
+
    if (status==PV_SUCCESS) {
       wnormsq = (pvdata_t *) calloc(getLayerLoc()->nf, sizeof(pvdata_t));
       if (wnormsq == NULL) {
@@ -123,6 +126,18 @@ int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 
    return status;
 }
+
+int PursuitLayer::initializeState() {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
+   if( restart_flag ) {
+      float timef;
+      status = readState(&timef);
+   }
+   return status;
+}
+
 
 int PursuitLayer::checkpointRead(const char * cpDir, float * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);

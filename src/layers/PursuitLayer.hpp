@@ -22,6 +22,7 @@ public:
    PursuitLayer(const char * name, HyPerCol * hc, int num_channels=MAX_CHANNELS);
    virtual ~PursuitLayer();
 
+   virtual int initializeState();
    virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int checkpointWrite(const char * cpDir);
 
