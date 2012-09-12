@@ -25,7 +25,7 @@ int DatastoreDelayTestLayer::initialize() {
 
 int DatastoreDelayTestLayer::updateState(float timef, float dt) {
    const PVLayerLoc * loc = getLayerLoc();
-   return updateState(timef, dt, getNumNeurons(), getV(), getCLayer()->activity->data, loc->nx, loc->ny, loc->nf, loc->nb);
+   return updateState(timef, dt, getNumNeurons(), getV(), getActivity(), loc->nx, loc->ny, loc->nf, loc->nb);
 }
 
 int DatastoreDelayTestLayer::updateState(float timef, float dt, int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb) {
