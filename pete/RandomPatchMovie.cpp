@@ -41,7 +41,7 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    if( rank == rootproc) {
       FILE * fp = fopen(fileOfFileNames, "rb");
       if( fp == NULL ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": unable to open \"%s\"\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\" error opening \"%s\" for reading: %s\n", name, fileOfFileNames, strerror(errno));
          fprintf(stderr, "Error code %d\n", errno);
          exit(EXIT_FAILURE);
       }
