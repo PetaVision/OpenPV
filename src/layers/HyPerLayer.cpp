@@ -1211,7 +1211,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
    if (lenbase+strlen("_nextWrite.bin") >= PV_PATH_MAX) { // currently _nextWrite.bin is the longest suffix needed
       if (icComm->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+         fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
       }
       abort();
    }
