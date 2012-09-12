@@ -34,9 +34,6 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPer
 }
 
 KernelConn::~KernelConn() {
-   // Moved to deleteWeights()
-   // free(kernelPatches);
-   // if (dKernelPatches != NULL) {free(dKernelPatches);};
    deleteWeights();
    #ifdef PV_USE_MPI
    free(mpiReductionBuffer);
@@ -45,16 +42,13 @@ KernelConn::~KernelConn() {
 
 int KernelConn::initialize_base()
 {
-   // kernelPatches = NULL;
-   // dKernelPatches = NULL;
    fileType = PVP_KERNEL_FILE_TYPE;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
-   // tmpPatch = NULL;
    this->normalizeArborsIndividually = false;
-   nxKernel = 0;
-   nyKernel = 0;
-   nfKernel = 0;
+   // nxKernel = 0;
+   // nyKernel = 0;
+   // nfKernel = 0;
 #ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = true;
    mpiReductionBuffer = NULL;
@@ -77,11 +71,11 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 
-   nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
-         post->getXScale() - pre->getXScale()) : 1;
-   nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
-         post->getYScale() - pre->getYScale()) : 1;
-   nfKernel = pre->getLayerLoc()->nf;
+   // nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
+   //       post->getXScale() - pre->getXScale()) : 1;
+   // nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
+   //       post->getYScale() - pre->getYScale()) : 1;
+   // nfKernel = pre->getLayerLoc()->nf;
 
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
@@ -113,21 +107,6 @@ int KernelConn::createArbors() {
    assert(shmget_id != NULL);
 #endif
    HyPerConn::createArbors();
-   // kernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   // assert(kernelPatches!=NULL);
-   // The following for-statement is redundant since kernelPatches is created with calloc.
-   // for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-   //    kernelPatches[arborId] = NULL;
-   // }
-
-   // The following if-statement was moved to initPlasticityPatches, which is called by HyPerConn::constructWeights
-   // if (this->getPlasticityFlag()){
-   //    dKernelPatches = (PVPatch***) calloc(numberOfAxonalArborLists(), sizeof(PVPatch**));
-   //    assert(dKernelPatches!=NULL);
-   //    for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-   //       dKernelPatches[arborId] = NULL;
-   //    }
-   // }
    return PV_SUCCESS; //should we check if allocation was successful?
 }
 
@@ -217,10 +196,8 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
 
 int KernelConn::deleteWeights()
 {
-   // As of the Feb. 27 refactoring, there are no weights specific to KernelConn that need to be deleted here.
-   // The HyPerConn destructor calls HyPerConn::deleteWeights(), which gets rid of wPatches, wDataStart and dwDataStart
    free(patch2datalookuptable);
-   return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor will call HyPerConn::deleteWeights()
+   return 0; // HyPerConn destructor will call HyPerConn::deleteWeights()
 
 }
 
@@ -490,7 +467,6 @@ int KernelConn::reduceKernels(const int axonID) {
 
 void KernelConn::initPatchToDataLUT() {
    int numWeightPatches=getNumWeightPatches();
-   //int numDataPatches=getNumDatapatches();
 
    patch2datalookuptable=(int *) calloc(numWeightPatches, sizeof(int));
    for(int i=0; i<numWeightPatches; i++) {
