@@ -13,6 +13,8 @@
 ## Do not distribute this program.
 ## 
 ## TODO:
+##  This code could use a serious cleanup
+##
 ##  Add option to skip or overwrite if tar file already exists
 ##      right now it just skips it if it has already been downloaded
 ##      Maybe compare old/new tar sizes and only download if new > old?
