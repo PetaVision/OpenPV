@@ -65,8 +65,9 @@ void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int 
 
    //TODO: Set up physical position for margin nodes
    int i  = 0;
-   for(int lowerboundx = 0; lowerboundx < HyPerColx; lowerboundx = lowerboundx + patchSizex){
-      for(int lowerboundy = 0; lowerboundy < HyPerColy; lowerboundy = lowerboundy + patchSizey){
+   std::cout << "********************************************";
+   for(int lowerboundy = 0; lowerboundy < HyPerColy; lowerboundy = lowerboundy + patchSizey){
+      for(int lowerboundx = 0; lowerboundx < HyPerColx; lowerboundx = lowerboundx + patchSizex){
          int jitX = 0;
          int jitY = 0;
          if(jitter > 0){ //else, the nodes should be placed in the middle of each patch
@@ -75,9 +76,11 @@ void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int 
          }
          coords[i].xCoord = lowerboundx + (patchSizex / 2) + jitX; //stores the x coordinate into the current BIDSCoord structure
          coords[i].yCoord = lowerboundy + (patchSizey / 2) + jitY; //stores the y coordinate into the current BIDSCoord structure
+         std::cout << "Node " << i <<  ": (" << coords[i].xCoord << ", " << coords[i].yCoord << ")\n";
          i++;
       }
    }
+   std::cout << "********************************************";
 
 }
 
@@ -102,6 +105,7 @@ int BIDSMovieCloneMap::updateState(float timef, float dt){
          int yPost = (int) i/nxPost;
          indexPost = kIndex(xPost, yPost, k, nxPost, nyPost, nf);
          output[indexPost] = input[indexPre];
+//         std::cout << "Frame number " << timef * dt << " Node (" << coord.xCoord << "," << coord.yCoord << "):  " << input[indexPre] << "\n";
       }
    }
    HyPerLayer::setActivity();

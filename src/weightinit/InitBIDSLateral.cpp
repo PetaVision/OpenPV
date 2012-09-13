@@ -40,6 +40,7 @@ InitBIDSLateral::~InitBIDSLateral(){
  * data patches.
  */
 int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/){
+   std::cout<<"\n\nInitBIDSLateral: Starting Weight Initialization\n\n";
    PVParams * inputParams = callingConn->getParent()->parameters();
    movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -56,7 +57,7 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
    else {
       weightParams = createNewWeightParams(callingConn);
       //int patchSize = nfp*nxp*nyp;
-
+      std::cout<<"\n\nnumAbors: " << numArbors << " Patch size: " << callingConn->getNumDataPatches() << "\n";
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
 
@@ -87,6 +88,7 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
       delete(weightParams);
    }
    //return callingConn->weights();
+   std::cout<<"\n\nInitBIDSLateral: End Weight Initialization\n\n";
    return PV_SUCCESS;
 }
 
@@ -132,7 +134,9 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
    int nfBids = weightParamPtr->getPre()->getLayerLoc()->nf;
    int nbBids = weightParamPtr->getPre()->getLayerLoc()->nb;
 
+   //std::cout << kPre << "\n";
    int kPreRes = kIndexRestricted(kPre, nxBids, nyBids, nfBids, nbBids);
+//   std::cout << kPreRes << "\n";
    if(kPreRes == -1){
       return 0;
    }
@@ -156,35 +160,42 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       int nyp  = conn->fPatchSize() * weights->ny;
 
       int nxGlobal = conn->getParent()->getNxGlobal();
+      int nyGlobal = conn->getParent()->getNyGlobal();
       int patchSizex = nxGlobal / nxBids;
+      int patchSizey = nyGlobal / nyBids;
 
       //the principle node's physical position (HyPerCol space)
       int preCoordy = coords[kPreRes].yCoord;
       int preCoordx = coords[kPreRes].xCoord;
 
+      std::cout << "InitBIDSLateral: Index " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")\n";
+
       //the principle node's mathematical position (BIDS space)
-      // int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids); // kPreResy unused since we assume jitter in x and y directions are the same
+      int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids);
       int kPreResx = kxPos(kPreRes, nxBids, nyBids, nfBids);
 
       //the principle node's mathematical position (HyPerCol space)
       int patchCenterx = (kPreResx * patchSizex) + (patchSizex / 2);
+      int patchCentery = (kPreResy * patchSizey) + (patchSizey / 2);
 
       const char * jitterSourceName = conn->getParent()->parameters()->stringValue(conn->getName(), "jitterSource");
       int jitter = weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
-      int principleJittDiff = (jitter - abs(preCoordx - patchCenterx));
+      int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx));
+      int principleJittDiffy = (jitter - abs(preCoordy - patchCentery));
 
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int sx  = conn->getPostNonextStrides()->sx;       // generally the # of features
       int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
       pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
 
-      for (int delY = principleJittDiff; delY < nyp - principleJittDiff; delY++) {
+      for (int delY = principleJittDiffy; delY < nyp - principleJittDiffy; delY++) {
          float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
-         for (int delX = principleJittDiff; delX < nxp - principleJittDiff; delX++) {
+         for (int delX = principleJittDiffx; delX < nxp - principleJittDiffx; delX++) {
             pvdata_t * memLoc = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
             int index = memLoc - channel;
             int postcoordx = coords[index].xCoord;
             int postcoordy = coords[index].yCoord;
+      //      std::cout << "Inner index: " << index << "\n";
             float deltaX = fabs(postcoordx - preCoordx);
             float deltaY = fabs(postcoordy - preCoordy);
             float distance = sqrt((deltaX * deltaX) + (deltaY * deltaY));

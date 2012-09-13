@@ -217,6 +217,8 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
       delete buf;
       buf = graybuf;
+      //Redefine n for grayscale images
+      n = loc->nx * loc->ny;
    }
    // now buf is loc->nf by loc->nx by loc->ny
 

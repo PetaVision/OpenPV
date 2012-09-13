@@ -121,6 +121,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "Retina",
              "SigmoidLayer",
              "BIDSMovieCloneMap",
+             "BIDSSensorLayer",
              "BIDSCloneLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
@@ -309,6 +310,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "BIDSMovieCloneMap") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSMovieCloneMap(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   }
+   if( !strcmp(classkeyword, "BIDSSensorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new BIDSSensorLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
