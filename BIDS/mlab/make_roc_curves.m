@@ -10,15 +10,15 @@
 %%%%%%%%
 %%DELETE
 %%%%%%%%
-clear all; close all; more off;
+
 
 global output_path;  output_path  = '/Users/slundquist/Documents/workspace/BIDS/output/';
-global filename;     filename     = '/Users/slundquist/Documents/workspace/BIDS/output/BIDS_Clone.pvp';
+%global filename;     filename     = '/Users/slundquist/Documents/workspace/BIDS/output/BIDS_Clone.pvp';
 global rootname;     rootname     = '00';
 
 global OUT_FILE_EXT; OUT_FILE_EXT = 'png';             %either png or jpg for now
 
-global MOVIE_FLAG;   MOVIE_FLAG   = 1;                 %set 1 to make a movie, set -1 to not make a movie
+global MOVIE_FLAG;   MOVIE_FLAG   = -1;                 %set 1 to make a movie, set -1 to not make a movie
 global FNUM_SPEC;    FNUM_SPEC    = '-1';               %can be '-1', 'int(frame)', or 'start:int:end'
 global GRAPH_FLAG;   GRAPH_FLAG   = 1;                 %set to 1 to plot Histograms and ROC Curves, -1 to not
 global GRAPH_SPEC;   GRAPH_SPEC   = [237,437,438,638]; %set to [no_stim_start, no_stim_end, stim_start, stim_end]
@@ -89,7 +89,7 @@ switch hdr.filetype
         framesize = hdr.recordsize*hdr.numrecords;
         numframes = (filedata(1).bytes - hdr.headersize)/framesize;
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-        disp(['PVP File Type: Spiking'])
+        %disp(['PVP File Type: Spiking'])
         numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
@@ -337,18 +337,18 @@ if isempty(errorstring)
                    h0 = hist(counts0,bin_loc,1);
                    h1 = hist(counts1,bin_loc,1);
 
-                   figure
-                   hold on
-                   fid0 = bar(bin_loc,h0);
-                   fid1 = bar(bin_loc,h1);
-                   hold off
-                   set(fid0,'facecolor',[0 0 1])
-                   set(fid0,'edgecolor',[0 0 1])
-                   set(fid1,'facecolor',[1 0 0])
-                   set(fid1,'edgecolor',[1 0 0])
-                   xlabel('Number of spikes')
-                   ylabel('Normalized value number of nodes')
-                   title('Histogram Plot for BIDS nodes')
+%                   figure
+%                   hold on
+%                   fid0 = bar(bin_loc,h0);
+%                   fid1 = bar(bin_loc,h1);
+%                   hold off
+%                   set(fid0,'facecolor',[0 0 1])
+%                   set(fid0,'edgecolor',[0 0 1])
+%                   set(fid1,'facecolor',[1 0 0])
+%                   set(fid1,'edgecolor',[1 0 0])
+%                   xlabel('Number of spikes')
+%                   ylabel('Normalized value number of nodes')
+%                   title('Histogram Plot for BIDS nodes')
 
                    Pd = cumsum(h1);
                    Pf = cumsum(h0);
@@ -357,18 +357,20 @@ if isempty(errorstring)
                 p_set(1,:) = Pd;
                 p_set(2,:) = Pf;
 
-                figure
-                hold on
-                plot([0,1],[0,1],'k')
-                plot(p_set(1,:),p_set(2,:),'Color','red')
-                text(.05, .95, ['Area under Roc Curve: ', num2str(trapz(Pd, Pf))], 'Color', 'k');
-                hold off
-                xlim([0 1])
-                ylim([0 1])
-                legend('Chance','No Stimulus','Location','SouthEast')
-                ylabel('Probability of Detection')
-                xlabel('Probability of False Alarm')
-                title('ROC Plot for BIDS nodes')
+                AUC = trapz(Pd, Pf);
+
+%                figure
+%                hold on
+%                plot([0,1],[0,1],'k')
+%                plot(p_set(1,:),p_set(2,:),'Color','red')
+%                text(.05, .95, ['Area under Roc Curve: ', num2str(AUC)], 'Color', 'k');
+%                hold off
+%                xlim([0 1])
+%                ylim([0 1])
+%                legend('Chance','No Stimulus','Location','SouthEast')
+%                ylabel('Probability of Detection')
+%                xlabel('Probability of False Alarm')
+%                title('ROC Plot for BIDS nodes')
 
                 %%%%%%%%%%%%%%%%%%%%
                 %%%%%%%%%%%%%%%%%%%%
