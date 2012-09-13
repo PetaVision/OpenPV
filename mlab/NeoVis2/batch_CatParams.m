@@ -112,10 +112,10 @@ pvp_list_path = ...
     [pvp_repo_path, ...
      "list", filesep];
 
-checkpoint_write_path = ...
+checkpoints_path = ...
     [pvp_program_path, ...
      "checkpoints", filesep];
-mkdir(checkpoint_write_path);
+mkdir(checkpoints_path);
 
 
 %% path to generic image processing routines
@@ -131,97 +131,127 @@ checkpoint_read_path = ...
      "checkpoints", filesep];
 
 for i_object = 1 : size(target_id,1)
-    %%keyboard;
-    pvp_weight_pathname = [];
-    pvp_file_of_weights_file = cell(1,2);
-    num_weight_files = zeros(1,2);
-    for target_flag = 1:2
-      disp(target_id{i_object, target_flag});
+
+  %% get checkpoint read dir and list of weights
+  max_checkpoint_dir = cell(num_versions,2);
+  %%keyboard;
+  pvp_weight_pathname = [];
+  pvp_file_of_weights_file = cell(1,2);
+  num_weight_files = zeros(1,2);
+  for target_flag = 1:2
+    disp(target_id{i_object, target_flag});
     
-      checkpoint_read_object_path2 = ...
-	  [checkpoint_read_path, ...
-	   target_id{i_object, target_flag}, pvp_num_ODD_kernels_str, filesep];
-      checkpoint_read_object_path = ...
-	  [checkpoint_read_object_path2, ...
-	   pvp_edge_type, pvp_clique_id, filesep];
-      
-      file_of_weights_object_path2 = ...
-	  [pvp_file_of_weights_path, ...
-	   target_id{i_object, target_flag}, pvp_num_ODD_kernels_str, filesep];
-      mkdir(file_of_weights_object_path2);
-      file_of_weights_object_path = ...
-	  [file_of_weights_object_path2, ...
-	   pvp_edge_type, pvp_clique_id, filesep];
-      mkdir(file_of_weights_object_path);
-      pvp_file_of_weights_filename = ...
-	  [DATASET_ID, ...
-	   "_", ...
-	   FLAVOR_ID, ...
-	   "_", ...
-	   target_id{i_object, target_flag}, ...
-	   pvp_num_ODD_kernels_str, ...
-	   "_", ...
-	   pvp_edge_type, pvp_clique_id, ...
-	   ".weights"];	
-      pvp_file_of_weights_file{1, target_flag} = ...
-	  [pvp_file_of_weights_path, pvp_file_of_weights_filename];
-      pvp_file_of_weights_fid = ...
-	  fopen(pvp_file_of_weights_file{1, target_flag}, "w");
-      if pvp_file_of_weights_fid < 0
-	disp(["fopen failed: ", pvp_file_of_weights_file{1, target_flag}]);
-	return;
-      else
-	disp(["fopen success: ", pvp_file_of_weights_file{1, target_flag}]);
-      endif
-      num_weight_files(target_flag) = 0;
-      for i_version = 1 : num_versions
-	checkpoint_read_version_path = ...
-	    [checkpoint_read_object_path, ...
-	     version_str{i_version}, filesep];
-	checkpoint_dirs = glob([checkpoint_read_version_path, "Checkpoint*"]);
-	num_checkpoints = length(checkpoint_dirs);
-	max_checkpoint_ndx = 0;
-	pvp_weight_pathname = [];
-	for i_checkpoint = 1:num_checkpoints
-	  checkpoint_files = readdir(checkpoint_dirs{i_checkpoint});
-	  if length(checkpoint_files) < 25
-	    continue;
-	  endif
-	  checkpoint_folder = strFolderFromPath(checkpoint_dirs{i_checkpoint});
-	  checkpoint_ndx = str2num(checkpoint_folder(11:end));
-	  weight_file_path = [checkpoint_read_version_path, "Checkpoint", num2str(checkpoint_ndx), filesep];
-	  if target_flag == 1
+    checkpoint_read_object_path2 = ...
+	[checkpoint_read_path, ...
+	 target_id{i_object, target_flag}, pvp_num_ODD_kernels_str, filesep];
+    checkpoint_read_object_path = ...
+	[checkpoint_read_object_path2, ...
+	 pvp_edge_type, pvp_clique_id, filesep];
+    
+    file_of_weights_object_path2 = ...
+	[pvp_file_of_weights_path, ...
+	 target_id{i_object, target_flag}, pvp_num_ODD_kernels_str, filesep];
+    mkdir(file_of_weights_object_path2);
+    file_of_weights_object_path = ...
+	[file_of_weights_object_path2, ...
+	 pvp_edge_type, pvp_clique_id, filesep];
+    mkdir(file_of_weights_object_path);
+    pvp_file_of_weights_filename = ...
+	[DATASET_ID, ...
+	 "_", ...
+	 FLAVOR_ID, ...
+	 "_", ...
+	 target_id{i_object, target_flag}, ...
+	 pvp_num_ODD_kernels_str, ...
+	 "_", ...
+	 pvp_edge_type, pvp_clique_id, ...
+	 ".weights"];	
+    pvp_file_of_weights_file{1, target_flag} = ...
+	[pvp_file_of_weights_path, pvp_file_of_weights_filename];
+    pvp_file_of_weights_fid = ...
+	fopen(pvp_file_of_weights_file{1, target_flag}, "w");
+    if pvp_file_of_weights_fid < 0
+      disp(["fopen failed: ", pvp_file_of_weights_file{1, target_flag}]);
+      return;
+    else
+      disp(["fopen success: ", pvp_file_of_weights_file{1, target_flag}]);
+    endif
+    num_weight_files(target_flag) = 0;
+    for i_version = 1 : num_versions
+      checkpoint_read_version_path = ...
+	  [checkpoint_read_object_path, ...
+	   version_str{i_version}, filesep];
+      checkpoint_dirs = glob([checkpoint_read_version_path, "Checkpoint*"]);
+      num_checkpoints = length(checkpoint_dirs);
+      max_checkpoint_ndx = 0;
+      pvp_weight_pathname = [];
+      for i_checkpoint = 1:num_checkpoints
+	checkpoint_files = readdir(checkpoint_dirs{i_checkpoint});
+	if length(checkpoint_files) < 25
+	  continue;
+	endif
+	checkpoint_folder = strFolderFromPath(checkpoint_dirs{i_checkpoint});
+	checkpoint_ndx = str2num(checkpoint_folder(11:end));
+	weight_file_path = ...
+	    [checkpoint_read_version_path, "Checkpoint", num2str(checkpoint_ndx), filesep];
+	time_info_pathname = [weight_file_path, "timeinfo.txt"];
+	if ~exist(time_info_pathname, "file")
+	  continue;
+	endif
+	if target_flag == 1
+	  if pvp_num_ODD_kernels == 1
 	    weight_filename = ...
 		"L1Pool1X1toL1Post_W.pvp";
+	  elseif pvp_num_ODD_kernels == 2
+	    weight_filename = ...
+		"L2Pool2X2toL2Post_W.pvp";
+	  elseif pvp_num_ODD_kernels == 3
+	    weight_filename = ...
+		"L3Pool4X4toL3Post_W.pvp";
 	  else
+	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
+		   num2str(pvp_num_ODD_kernels)]);
+	  endif
+	else
+	  if pvp_num_ODD_kernels == 1
 	    weight_filename = ...
 		"L1Pool1X1toL1Pool1X1_W.pvp";
+	  elseif pvp_num_ODD_kernels == 2
+	    weight_filename = ...
+		"L2Pool2X2toL2Pool2X2_W.pvp";
+	  elseif pvp_num_ODD_kernels == 3
+	    weight_filename = ...
+		"L3Pool4X4toL3Pool4X4_W.pvp";
+	  else
+	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
+		   num2str(pvp_num_ODD_kernels)]);
 	  endif
-	  weight_pathname = [weight_file_path, weight_filename];
-	  if ~exist(weight_pathname, "file")
-	    disp(["~exist(weight_pathname): ", weight_pathname]);
-	    keyboard;
-	    continue;
-	  endif
-	  [INFO, ERR, MSG] = stat(weight_pathname);
-	  if INFO.size < 10^6
-	    disp(["file size < 1,000,000: ", weight_pathname]);
-	    %%keyboard;
-	    continue;
-	  endif	    
-	  max_checkpoint_ndx = max([checkpoint_ndx; max_checkpoint_ndx]);
-	  if checkpoint_ndx == max_checkpoint_ndx
-	    pvp_weight_pathname = [weight_pathname, "\n"];
-	  endif
-	endfor  %% i_checkpoint
-	if ~isempty(pvp_weight_pathname)
-	  fputs(pvp_file_of_weights_fid, pvp_weight_pathname);
-	  num_weight_files(target_flag) = num_weight_files(target_flag) + 1;
 	endif
-      endfor  %% i_version
-      fclose(pvp_file_of_weights_fid);
-    endfor %% target_flag
-  %%endif  %% FLAVOR_ID
+	weight_pathname = [weight_file_path, weight_filename];
+	if ~exist(weight_pathname, "file")
+	  disp(["~exist(weight_pathname): ", weight_pathname]);
+	  %%keyboard;
+	  continue;
+	endif
+	[INFO, ERR, MSG] = stat(weight_pathname);
+	if INFO.size < 10^6
+	  disp(["file size < 1,000,000: ", weight_pathname]);
+	  %%keyboard;
+	  continue;
+	endif	    
+	max_checkpoint_ndx = max([checkpoint_ndx; max_checkpoint_ndx]);
+	if checkpoint_ndx == max_checkpoint_ndx
+	  pvp_weight_pathname = [weight_pathname, "\n"];
+	  max_checkpoint_dir{i_version, target_flag} = weight_file_path;
+	endif
+      endfor  %% i_checkpoint
+      if ~isempty(pvp_weight_pathname)
+	fputs(pvp_file_of_weights_fid, pvp_weight_pathname);
+	num_weight_files(target_flag) = num_weight_files(target_flag) + 1;
+      endif
+    endfor  %% i_version
+    fclose(pvp_file_of_weights_fid);
+  endfor %% target_flag
   
   for target_flag = 1:2   
     pvp_params_template = ...
@@ -278,7 +308,7 @@ for i_object = 1 : size(target_id,1)
     endif
     
     checkpoint_object_path2 = ...
-	[checkpoint_write_path, ...
+	[checkpoints_path, ...
 	 target_id{i_object, target_flag}, pvp_num_ODD_kernels_str, filesep];
     mkdir(checkpoint_object_path2);
     checkpoint_object_path = ...
@@ -289,19 +319,22 @@ for i_object = 1 : size(target_id,1)
     
     for i_version = 1 : num_versions
       if num_versions > 1
-	disp(version_str{i_version});
+	disp(["version_str = ", version_str{i_version}]);
 	
 	output_version_path = ...
 	    [output_object_path, ...
 	     version_str{i_version}, filesep];
 	mkdir(output_version_path);
 	output_path = output_version_path;
+
+	checkpoint_read_path = max_checkpoint_dir{i_version, target_flag};
 	
 	checkpoint_version_path = ...
 	    [checkpoint_object_path, ...
 	     version_str{i_version}, filesep];
 	mkdir(checkpoint_version_path);
-	checkpoint_path = checkpoint_version_path;
+	checkpoint_write_path = checkpoint_version_path;
+	
 	
 	input_version_path = ...
 	    [input_object_path, ...
@@ -326,7 +359,9 @@ for i_object = 1 : size(target_id,1)
       else
 	output_path = [output_object_path];
 	
-	checkpoint_path = [checkpoint_object_path];
+	checkpoint_read_path = max_checkpoint_dir{1, target_flag};
+	
+	checkpoint_write_path = [checkpoint_object_path];
 	
 	input_version_path = input_object_path;
 	input_path = input_version_path;
@@ -366,7 +401,8 @@ for i_object = 1 : size(target_id,1)
 			    pvp_fileOfFrames, ...
 			    pvp_fileOfMasks, ...
 			    output_path, ...
-			    checkpoint_path, ...
+			    checkpoint_read_path, ...
+			    checkpoint_write_path, ...
 			    params_filename);
     
     endfor %% i_version
