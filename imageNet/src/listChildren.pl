@@ -21,66 +21,66 @@
 ##Uncomment _below_ to run from command line
 ##Leave _below_ commented in order to call this function from another program
 #####
-if ($ARGV[0]) {
-    my ($namesRef, $idsRef) = &listChildren($ARGV[0]);
-
-    my @names = @$namesRef;
-    my @WNIDs = @$idsRef;
-
-    if (scalar(@names) != scalar(@WNIDs)) { #Arry lengths are not equal
-        die "listChildren: ERROR: Output arrays must be of equal length\n";
-    }
-
-    my $arrayLength = scalar(@names);
-    my $rootName   = @names[0];
-    my $rootWNID   = @WNIDs[0];
-
-    #Set up temp dir
-    my $TMP_DIR = makeTempDir();
-
-    #print to screen
-    for (my $i=$arrayLength-1; $i>0; $i--) {
-        my $name = @names[$i];
-        my $wnid = @WNIDs[$i];
-        if ($name =~ m/$rootName/) { #If we're at the root
-            print "\n\n-------------------------------------------------\n";
-        }
-        print "$wnid\t$name\n";
-    }
-
-    #print to file
-    print "\nPrinting output to files...";
-    open (NameOut, ">", "$TMP_DIR/${rootWNID}_Children_Names.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_Names.ssv\nError: $!"; 
-    open (WnidOut, ">", "$TMP_DIR/${rootWNID}_Children_WNIDs.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_WNIDs.ssv\nError: $!"; 
-
-    my $firstRun = 1;
-    for (my $j=$arrayLength-1; $j>0; $j--) {
-        my $name = $names[$j];
-        my $wnid = $WNIDs[$j];
-
-        unless ($firstRun) {
-            if ($wnid =~ m/$rootWNID/) {
-                print NameOut "\n";
-                print WnidOut "\n";
-            }
-        }
-
-        print NameOut  "$name";
-        print WnidOut  "$wnid";
-
-        if ($j >= 1) {
-            unless ($WNIDs[$j-1] =~ m/$rootWNID/) { #if we are not at the last item (next item will be root again)
-                print NameOut ";";
-                print WnidOut ";";
-            }
-        }
-        $firstRun = 0;
-    }
-
-    print "\nProgram Complete.\n";
-} else {
-    &lcPostUsage();
-}
+#if ($ARGV[0]) {
+#    my ($namesRef, $idsRef) = &listChildren($ARGV[0]);
+#
+#    my @names = @$namesRef;
+#    my @WNIDs = @$idsRef;
+#
+#    if (scalar(@names) != scalar(@WNIDs)) { #Arry lengths are not equal
+#        die "listChildren: ERROR: Output arrays must be of equal length\n";
+#    }
+#
+#    my $arrayLength = scalar(@names);
+#    my $rootName   = @names[0];
+#    my $rootWNID   = @WNIDs[0];
+#
+#    #Set up temp dir
+#    my $TMP_DIR = makeTempDir();
+#
+#    #print to screen
+#    for (my $i=$arrayLength-1; $i>0; $i--) {
+#        my $name = @names[$i];
+#        my $wnid = @WNIDs[$i];
+#        if ($name =~ m/$rootName/) { #If we're at the root
+#            print "\n\n-------------------------------------------------\n";
+#        }
+#        print "$wnid\t$name\n";
+#    }
+#
+#    #print to file
+#    print "\nPrinting output to files...";
+#    open (NameOut, ">", "$TMP_DIR/${rootWNID}_Children_Names.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_Names.ssv\nError: $!"; 
+#    open (WnidOut, ">", "$TMP_DIR/${rootWNID}_Children_WNIDs.ssv") or die "listChildren: Can't open file for writing! $TMP_DIR/${rootWNID}_Children_WNIDs.ssv\nError: $!"; 
+#
+#    my $firstRun = 1;
+#    for (my $j=$arrayLength-1; $j>0; $j--) {
+#        my $name = $names[$j];
+#        my $wnid = $WNIDs[$j];
+#
+#        unless ($firstRun) {
+#            if ($wnid =~ m/$rootWNID/) {
+#                print NameOut "\n";
+#                print WnidOut "\n";
+#            }
+#        }
+#
+#        print NameOut  "$name";
+#        print WnidOut  "$wnid";
+#
+#        if ($j >= 1) {
+#            unless ($WNIDs[$j-1] =~ m/$rootWNID/) { #if we are not at the last item (next item will be root again)
+#                print NameOut ";";
+#                print WnidOut ";";
+#            }
+#        }
+#        $firstRun = 0;
+#    }
+#
+#    print "\nProgram Complete.\n";
+#} else {
+#    &lcPostUsage();
+#}
 #####
  
 sub lcPostUsage() {
