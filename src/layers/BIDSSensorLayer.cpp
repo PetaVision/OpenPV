@@ -49,7 +49,7 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    blayer = dynamic_cast<BIDSMovieCloneMap*> (parent->getLayerFromName(jitterSourceName));
    assert(blayer != NULL);
    coords = blayer->getCoords();
-   int numNodes = blayer->getNumNodes();
+   numNodes = blayer->getNumNodes();
 
    //Set nx and ny
    nx = nxScale * HyPerColx;
@@ -155,7 +155,12 @@ void BIDSSensorLayer::writeCSV(std::string fname, int node_index){
    file.close();
 }
 
-BIDSSensorLayer::~BIDSSensorLayer(){}
+BIDSSensorLayer::~BIDSSensorLayer(){
+   for (int i = 0; i < numNodes; i++){
+      free(data[i]);
+   }
+   free(data);
+}
 
 
 }

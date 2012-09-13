@@ -114,4 +114,7 @@ int BIDSMovieCloneMap::getNumNodes(){
    return nxPost * nyPost;
 }
 
+BIDSMovieCloneMap::~BIDSMovieCloneMap(){
+   free(coords);
+}
 }

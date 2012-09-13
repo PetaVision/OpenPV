@@ -28,6 +28,7 @@ public:
    BIDSCoords* getCoords();
    int getNumNodes();
    int updateState(float timef, float dt);
+   ~BIDSMovieCloneMap();
    
 protected:
    BIDSMovieCloneMap();

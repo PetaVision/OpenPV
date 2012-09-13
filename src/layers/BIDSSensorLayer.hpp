@@ -42,6 +42,7 @@ protected:
    float ts;
    float freq;
    float weight;
+   int numNodes;
  //  float perf_match;
 
 };
