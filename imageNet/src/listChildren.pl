@@ -16,6 +16,7 @@
 ##
 ############
 
+require "globalVars.pl";
 
 #####
 ##Uncomment _below_ to run from command line
@@ -110,7 +111,11 @@ sub listChildren ($) {
 #Download Image-Net structure if it does not already exist in the temp folder
     unless (-e "$TMP_DIR/structure.xml") {
         print "listChildren: Downloading most current hierarchy from Image-Net...\n";
-        system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        if ($use_proxy) {
+            system("curl -# -x \"$PROXY_URL\" \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        } else {
+            system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        }
         print "listChildren: Done.\n";
     }
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+require 'globalVars.pl';
+
 if ($ARGV[0] && $ARGV[1] && $ARGV[2] && $ARGV[3]) {
     $output = &collectTargetImgs($ARGV[0], $ARGV[1], $ARGV[2], $ARGV[3]);
 } else {
@@ -105,7 +107,11 @@ sub collectTargetImgs ($$$$) {
 
             print "collectTargetImgs: Downloading list of child synsets for $parentWNID...\n";
             $HYPONYM_URL =~ s/\[wnid\]/$parentWNID/;
-            system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            if ($use_proxy) {
+                system("curl -x \"$PROXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            } else {
+                system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            }
             $HYPONYM_URL =~ s/$parentWNID/\[wnid\]/;
             print "collectTargetImgs: Done.\n\n";
 

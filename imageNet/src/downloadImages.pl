@@ -16,6 +16,8 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
+require 'globalVars.pl';
+
 #####
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
@@ -145,7 +147,11 @@ sub downloadImages ($$) {
         $IMG_URL =~ s/\[accesskey\]/$ACCESS_KEY/;
 
         #Check to make sure image tar file exists
-        system("curl \"$IMG_URL\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -I 1> $TMP_DIR/headdump.log");
+        if ($use_proxy) {
+            system("curl -x \"$PROXY_URL\" \"$IMG_URL\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -I 1> $TMP_DIR/headdump.log");
+        } else {
+            system("curl \"$IMG_URL\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -I 1> $TMP_DIR/headdump.log");
+        }
         open(HEADDUMP,"<","$TMP_DIR/headdump.log") or die "Could not open $TMP_DIR/headdump.log!\nERROR: $!\n";
         @HEADDUMP = <HEADDUMP>;
         close(HEADDUMP);
@@ -170,7 +176,12 @@ sub downloadImages ($$) {
 
         #Download image tar file
         print "downloadImages: Downloading $WNID.tar\n";
-        system("curl -# \"$IMG_URL\" -o \"$destDir/$WNID.tar\" -w \"Downloaded %{size_download} bytes in %{time_total} seconds.\" --connect-timeout 120 > $TMP_DIR/downdat.log");
+        
+        if ($use_proxy) {
+            system("curl -# -x \"$PROXY_URL\" \"$IMG_URL\" -o \"$destDir/$WNID.tar\" -w \"Downloaded %{size_download} bytes in %{time_total} seconds.\" --connect-timeout 120 > $TMP_DIR/downdat.log");
+        } else {
+            system("curl -# \"$IMG_URL\" -o \"$destDir/$WNID.tar\" -w \"Downloaded %{size_download} bytes in %{time_total} seconds.\" --connect-timeout 120 > $TMP_DIR/downdat.log");
+        }
         #Print how much was downloaded
         if (-e "$destDir/$WNID.tar") {
             open(DOWNDAT,"<","$TMP_DIR/downdat.log") or die $!;

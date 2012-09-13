@@ -17,6 +17,7 @@
 ##
 ############
 
+require 'globalVars.pl';
 require 'findFiles.pl';
 require 'makeTempDir.pl';
 require 'checkInputType.pl';
@@ -117,7 +118,11 @@ sub listParents ($) {
 #Download Image-Net structure if it does not already exist in the temp folder
     unless (-e "$TMP_DIR/structure.xml") {
         print "listParents: Downloading most current hierarchy from Image-Net...\n";
-        system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        if ($use_proxy) {
+            system("curl -# -x \"$PROXY_URL\" \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        } else {
+            system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
+        }
         print "listParents: Done.\n";
     }
 

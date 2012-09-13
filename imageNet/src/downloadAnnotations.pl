@@ -16,6 +16,8 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
+require 'globalVars.pl';
+
 #####
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
@@ -137,9 +139,17 @@ sub downloadAnnotations ($$) {
         my $BBOX_URL2  ="http://www.image-net.org/downloads/bbox/[wnid].tar.gz";
 
         #Check to make sure bounding boxes exist
-        system("curl \"$BBOX_URL1$WNID\" -s -L --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" 1> $TMP_DIR/BBout.log");
+        if ($use_proxy) {
+            system("curl -x \"$PROXY_URL\" \"$BBOX_URL1$WNID\" -s -L --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" 1> $TMP_DIR/BBout.log");
+        } else {
+            system("curl \"$BBOX_URL1$WNID\" -s -L --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" 1> $TMP_DIR/BBout.log");
+        }
         $BBOX_URL2 =~ s/\[wnid\]/$WNID/;
-        system("curl \"$BBOX_URL2\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -e \"$BBOX_URL1$WNID\" -I 1> $TMP_DIR/BBheaddump.log");
+        if ($use_proxy) {
+            system("curl -x \"$PROXY_URL\" \"$BBOX_URL2\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -e \"$BBOX_URL1$WNID\" -I 1> $TMP_DIR/BBheaddump.log");
+        } else {
+            system("curl \"$BBOX_URL2\" -s --cookie $TMP_DIR/cookies --cookie-jar $TMP_DIR/cookies -e \"$BBOX_URL1$WNID\" -I 1> $TMP_DIR/BBheaddump.log");
+        }
         $BBOX_URL2 =~ s/$WNID/\[wnid\]/;
 
         open(BBHEADDUMP,"<","$TMP_DIR/BBheaddump.log") or die $!;
@@ -159,7 +169,11 @@ sub downloadAnnotations ($$) {
         } else {
             print "downloadAnnotations: Downloading bounding boxes for $WNID...\n";
             $BBOX_URL2 =~ s/\[wnid\]/$WNID/;
-            system("curl \"$BBOX_URL2\" -# -f --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" -o \"$destDir/$WNID-BB.tar.gz\"");
+            if ($use_proxy) {
+                system("curl -x \"$PROXY_URL\" \"$BBOX_URL2\" -# -f --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" -o \"$destDir/$WNID-BB.tar.gz\"");
+            } else {
+                system("curl \"$BBOX_URL2\" -# -f --cookie-jar $TMP_DIR/cookies -A \"$USER_AGENT\" -o \"$destDir/$WNID-BB.tar.gz\"");
+            }
             $BBOX_URL2 =~ s/$WNID/\[wnid\]/;
             print "downloadAnnotations: Done.\n";
         }

@@ -16,6 +16,7 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
+require 'globalVars.pl';
 require 'listChildren.pl';
 require 'listParents.pl';
 require 'findFiles.pl';
@@ -120,7 +121,11 @@ sub extractImages ($$$) {
 
             print "\nextractImages: Downloading list of child synsets...\n";
             $HYPONYM_URL =~ s/\[wnid\]/$lineInput/;
-            system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            if ($use_proxy) {
+                system("curl -x \"$PROXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            } else {
+                system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+            }
             $HYPONYM_URL =~ s/$lineInput/\[wnid\]/;
             print "extractImages: Done.\n";
 
