@@ -205,7 +205,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       loc->ny = loc->ny + 2*loc->nb;
    }
 
-   const int n = loc->nx * loc->ny * imageLoc.nf;
+   int n = loc->nx * loc->ny * imageLoc.nf;
 
    // Use number of bands in file instead of in params, to allow for grayscale conversion
    float * buf = new float[n];
