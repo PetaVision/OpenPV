@@ -46,7 +46,6 @@ int InitBIDSLateralParams::initialize_base() {
 }
 
 int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
-   std::cout<<"\n\nInitBIDSLateralParams: Starting initialization\n\n";
    InitWeightsParams::initialize(parentConn);
 
    PVParams * params = parent->parameters();
@@ -87,7 +86,6 @@ int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
 
 //calculate other values:
    self = (pre != post);
-   std::cout<<"\n\nInitBIDSLateralParams: End initialization\n\n";
    return status;
 
 }

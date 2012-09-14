@@ -40,7 +40,6 @@ InitBIDSLateral::~InitBIDSLateral(){
  * data patches.
  */
 int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/){
-   std::cout<<"\n\nInitBIDSLateral: Starting Weight Initialization\n\n";
    PVParams * inputParams = callingConn->getParent()->parameters();
    movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -57,7 +56,7 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
    else {
       weightParams = createNewWeightParams(callingConn);
       //int patchSize = nfp*nxp*nyp;
-      std::cout<<"\n\nnumAbors: " << numArbors << " Patch size: " << callingConn->getNumDataPatches() << "\n";
+//      std::cout<<"\n\nnumAbors: " << numArbors << " Patch size: " << callingConn->getNumDataPatches() << "\n";
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
 
@@ -88,7 +87,6 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
       delete(weightParams);
    }
    //return callingConn->weights();
-   std::cout<<"\n\nInitBIDSLateral: End Weight Initialization\n\n";
    return PV_SUCCESS;
 }
 
@@ -168,7 +166,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       int preCoordy = coords[kPreRes].yCoord;
       int preCoordx = coords[kPreRes].xCoord;
 
-      std::cout << "InitBIDSLateral: Index " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")\n";
+//      std::cout << "InitBIDSLateral: Index " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")\n";
 
       //the principle node's mathematical position (BIDS space)
       int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids);

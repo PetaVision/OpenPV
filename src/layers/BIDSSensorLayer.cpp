@@ -81,13 +81,13 @@ int BIDSSensorLayer::updateState(float timef, float dt){
    for (int i = 0; i < nx * ny; i++){
       assert(nf == 1);
       //Iterate through features
-      std::cout << "Node (" << coords[i].xCoord << ", " << coords[i].yCoord << ")\n";
+//      std::cout << "Node (" << coords[i].xCoord << ", " << coords[i].yCoord << ")\n";
       for (int k = 0; k < nf; k++){
          int x = i % nx;
          int y = (int) floor(i/nx);
          index = kIndex(x, y, k, nx, ny, nf);
          data[i][buf_index] = input[index] - (neutral_val / 256);
-         std::cout << "\tBuf_index: " << buf_index << ": " << data[i][buf_index] << "\n";
+//         std::cout << "\tBuf_index: " << buf_index << ": " << data[i][buf_index] << "\n";
          //Next buf index, or reset if at end
          float out = matchFilter(i, (int)(timef * dt));
          output[index] = out * weight;
@@ -156,9 +156,8 @@ void BIDSSensorLayer::writeCSV(std::string fname, int node_index){
 }
 
 BIDSSensorLayer::~BIDSSensorLayer(){
-   for (int i = 0; i < numNodes; i++){
-      free(data[i]);
-   }
+   //All data allocated contiguously
+   free(data[0]);
    free(data);
 }
 
