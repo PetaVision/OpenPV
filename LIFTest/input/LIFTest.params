@@ -4,7 +4,7 @@
 // created by peteschultz: Aug 3, 2012
 //
 
-//  A params file for to test LIF, GapLayer, LIFGapLayer, SigmoidLayer
+//  A params file for testing LIF, GapLayer, LIFGapLayer, SigmoidLayer
 //
 
 debugParsing = false;
