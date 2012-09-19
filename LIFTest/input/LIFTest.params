@@ -15,7 +15,7 @@ HyPerCol "column" = {
    dt = 0.25;
    randomSeed = 1829107657; // if not set here,  clock time is used to generate seed
    numSteps = 8001;
-   progressStep = 2000;
+   progressStep = 400;
    outputPath = "output";
    filenamesContainLayerNames = false;
    checkpointRead = false;
@@ -44,6 +44,7 @@ Image "input" = {
     writeNonspikingActivity = true;
     useImageBCflag = false;
     mirrorBCflag = false;
+    inverseFlag = false;
     writeImages = false;
     offsetX = 96;
     offsetY = 96;
@@ -352,4 +353,7 @@ LIFTestProbe "LIFGapTest Spike Count Probe" = {
     targetLayer = "LIFGapTest Spike Counter";
     probeOutputFile = "SpikeRates.txt";
     message = "Spike Rates File               ";
+    
+    endingTime = 2000.0;
+    tolerance = 3.0;
 };
