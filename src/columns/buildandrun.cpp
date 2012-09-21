@@ -280,11 +280,11 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       delete hc;
       return NULL;
    }
-   if( hc->numberOfConnections() == 0 ) {
-      fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
-      delete hc;
-      return NULL;
-   }
+   // if( hc->numberOfConnections() == 0 ) {
+   //    fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
+   //    delete hc;
+   //    return NULL;
+   // }
    return hc;
 }
 
