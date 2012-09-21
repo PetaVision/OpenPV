@@ -15,6 +15,15 @@
 #
 # To turn off the MPI-specific tests, do "runalltests.bash --nompi"
 
+# Define mpirun command.  On Macs, macports installs mpi commands as openmpi*
+# On neuro/anterior/etc.  Linux installs them as mpi*
+if test "$(uname)" = "Darwin"
+then
+    $PV_MPIRUN=openmpirun
+elif test "$(uname)" = "Linux"
+    $PV_MPIRUN=mpirun
+fi
+
 # Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
 then
@@ -48,7 +57,7 @@ else
     function mpirunandecho() {
         testname=$1
         shift
-        if openmpirun -np 4 $* 1> /dev/null 2>/dev/null
+        if $PV_MPIRUN -np 4 $* 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
