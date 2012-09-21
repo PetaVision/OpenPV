@@ -508,24 +508,27 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                 // ---- calibration probes NSCALE IS 4
 
                 locX = 	60/4.;
-                locY =  15.;      // probing
+                locY =  15/4.;      // probing
                 PointLIFProbe * ptprobeWFAmacrineONRU1 = new PointLIFProbe("ptWFAmacrineONRU1.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON");
                 assert(ptprobeWFAmacrineONRU1);
 
-                locY =  44;      // probing
+                locY =  44/4;      // probing
                 PointLIFProbe * ptprobeWFAmacrineONRD1 = new PointLIFProbe("ptWFAmacrineONRD1.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON");
                 assert(ptprobeWFAmacrineONRD1);
 
 
-                locY =  75;      // probing
+                locY =  75/4;      // probing
                 PointLIFProbe * ptprobeWFAmacrineONRU2 = new PointLIFProbe("ptWFAmacrineONRU2.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON");
                 assert(ptprobeWFAmacrineONRU2);
 
-                locY =  104;      // probing
+                locY =  104/4;      // probing
                 PointLIFProbe * ptprobeWFAmacrineONRD2 = new PointLIFProbe("ptWFAmacrineONRD2.txt",WFAmacrineON,locX, locY, locF, "WFAmacrineON");
                 assert(ptprobeWFAmacrineONRD2);
 
+                locY = 225/4;      // probing the bottom of the bar
+                locF = 0;        // feature 0
 
+                locX = ptb/4;    // 3 + 12.8 /2 + n * 25.6
 
                 PointLIFProbe * ptprobePAAmacrineONB = new PointLIFProbe("ptPAAmacrineONB.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON");
                 assert(ptprobePAAmacrineONB);
@@ -551,19 +554,19 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                 // ---- calibration probes NSCALE IS 4
 
                 locX = 	60/4.;
-                locY =  15.;      // probing
+                locY =  15/4.;      // probing
                 PointLIFProbe * ptprobePAAmacrineONRU1 = new PointLIFProbe("ptPAAmacrineONRU1.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON");
                 assert(ptprobePAAmacrineONRU1);
 
-                locY =  44;      // probing
+                locY =  44/4;      // probing
                 PointLIFProbe * ptprobePAAmacrineONRD1 = new PointLIFProbe("ptPAAmacrineONRD1.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON");
                 assert(ptprobePAAmacrineONRD1);
 
-                locY =  75;      // probing
+                locY =  75/4;      // probing
                 PointLIFProbe * ptprobePAAmacrineONRU2 = new PointLIFProbe("ptPAAmacrineONRU2.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON");
                 assert(ptprobePAAmacrineONRU2);
 
-                locY =  104;      // probing
+                locY =  104/4;      // probing
                 PointLIFProbe * ptprobePAAmacrineONRD2 = new PointLIFProbe("ptPAAmacrineONRD2.txt",PAAmacrineON,locX, locY, locF, "PAAmacrineON");
                 assert(ptprobePAAmacrineONRD2);
 
@@ -596,17 +599,17 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                 // ---- calibration probes NSCALE IS 4
 
                 locX = 	60/4.;
-                locY =  15.;      // probing
+                locY =  15/4.;      // probing
                 PointLIFProbe * ptprobeSFAmacrineRU1 = new PointLIFProbe("ptSFAmacrineRU1.txt",SFAmacrine,locX, locY, locF, "SFAmacrine");
                 assert(ptprobeSFAmacrineRU1);
-                locY =  44;      // probing
+                locY =  44/4;      // probing
                 PointLIFProbe * ptprobeSFAmacrineRD1 = new PointLIFProbe("ptSFAmacrineRD1.txt",SFAmacrine,locX, locY, locF, "SFAmacrine");
                 assert(ptprobeSFAmacrineRD1);
 
-                locY =  75;      // probing
+                locY =  75/4;      // probing
                 PointLIFProbe * ptprobeSFAmacrineRU2 = new PointLIFProbe("ptSFAmacrineRU2.txt",SFAmacrine,locX, locY, locF, "SFAmacrine");
                 assert(ptprobeSFAmacrineRU2);
-                locY =  104;      // probing
+                locY =  104/4;      // probing
                 PointLIFProbe * ptprobeSFAmacrineRD2 = new PointLIFProbe("ptSFAmacrineRD2.txt",SFAmacrine,locX, locY, locF, "SFAmacrine");
                 assert(ptprobeSFAmacrineRD2);
 
@@ -616,79 +619,79 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                 // ---- calibration probes NSCALE IS 2
 
                 locX = 	60/2.;
-                locY =  15.;      // probing
+                locY =  15/2.;      // probing
                 PointLIFProbe * ptprobeGanglionONRU1 = new PointLIFProbe("ptGanglionONRU1.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU1);
 
-                locY =  44;      // probing
+                locY =  44/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD1 = new PointLIFProbe("ptGanglionONRD1.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD1);
 
 
-                locY =  75;      // probing
+                locY =  75/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRU2 = new PointLIFProbe("ptGanglionONRU2.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU2);
 
-                locY =  104;      // probing
+                locY =  104/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD2 = new PointLIFProbe("ptGanglionONRD2.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD2);
 
 
                 locX = 	58/2.;
-                locY =  15.;      // probing
+                locY =  15./2;      // probing
                 PointLIFProbe * ptprobeGanglionONRU1l = new PointLIFProbe("ptGanglionONRU1l.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU1l);
 
-                locY =  44;      // probing
+                locY =  44/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD1l = new PointLIFProbe("ptGanglionONRD1l.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD1l);
 
 
-                locY =  75;      // probing
+                locY =  75/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRU2l = new PointLIFProbe("ptGanglionONRU2l.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU2l);
 
-                locY =  104;      // probing
+                locY =  104/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD2l = new PointLIFProbe("ptGanglionONRD2l.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD2l);
 
 
 
                 locX = 	62/2.;
-                locY =  15.;      // probing
+                locY =  15./2;      // probing
                 PointLIFProbe * ptprobeGanglionONRU1r = new PointLIFProbe("ptGanglionONRU1r.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU1r);
 
-                locY =  44;      // probing
+                locY =  44/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD1r = new PointLIFProbe("ptGanglionONRD1r.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD1r);
 
 
-                locY =  75;      // probing
+                locY =  75/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRU2r = new PointLIFProbe("ptGanglionONRU2r.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRU2r);
 
-                locY =  104;      // probing
+                locY =  104/2;      // probing
                 PointLIFProbe * ptprobeGanglionONRD2r = new PointLIFProbe("ptGanglionONRD2r.txt",GanglionON,locX, locY, locF, "GanglionON");
                 assert(ptprobeGanglionONRD2r);
 
 
                 //------- SynchronicityON layer
                 locX = 	60/2.;
-                locY =  15.;      // probing
+                locY =  15./2;      // probing
                 PointLIFProbe * ptprobeSynchronicityONRU1 = new PointLIFProbe("ptSynchronicityONRU1.txt",SynchronicityON,locX, locY, locF, "SynchronicityON");
                 assert(ptprobeSynchronicityONRU1);
 
-                locY =  44;      // probing
+                locY =  44/2;      // probing
                 PointLIFProbe * ptprobeSynchronicityONRD1 = new PointLIFProbe("ptSynchronicityONRD1.txt",SynchronicityON,locX, locY, locF, "SynchronicityON");
                 assert(ptprobeSynchronicityONRD1);
 
 
-                locY =  75;      // probing
+                locY =  75/2;      // probing
                 PointLIFProbe * ptprobeSynchronicityONRU2 = new PointLIFProbe("ptSynchronicityONRU2.txt",SynchronicityON,locX, locY, locF, "SynchronicityON");
                 assert(ptprobeSynchronicityONRU2);
 
-                locY =  104;      // probing
+                locY =  104/2;      // probing
                 PointLIFProbe * ptprobeSynchronicityONRD2 = new PointLIFProbe("ptSynchronicityONRD2.txt",SynchronicityON,locX, locY, locF, "SynchronicityON");
                 assert(ptprobeSynchronicityONRD2);
 
@@ -787,20 +790,20 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                                 // ---- calibration probes NSCALE IS 4
 
                                 locX = 	60/4.;
-                                locY =  15.;      // probing
+                                locY =  15./4;      // probing
                                 PointLIFProbe * ptprobeWFAmacrineOFFRU1 = new PointLIFProbe("ptWFAmacrineOFFRU1.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF");
                                 assert(ptprobeWFAmacrineOFFRU1);
 
-                                locY =  44;      // probing
+                                locY =  44/4;      // probing
                                 PointLIFProbe * ptprobeWFAmacrineOFFRD1 = new PointLIFProbe("ptWFAmacrineOFFRD1.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF");
                                 assert(ptprobeWFAmacrineOFFRD1);
 
 
-                                locY =  75;      // probing
+                                locY =  75/4;      // probing
                                 PointLIFProbe * ptprobeWFAmacrineOFFRU2 = new PointLIFProbe("ptWFAmacrineOFFRU2.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF");
                                 assert(ptprobeWFAmacrineOFFRU2);
 
-                                locY =  104;      // probing
+                                locY =  104/4;      // probing
                                 PointLIFProbe * ptprobeWFAmacrineOFFRD2 = new PointLIFProbe("ptWFAmacrineOFFRD2.txt",WFAmacrineOFF,locX, locY, locF, "WFAmacrineOFF");
                                 assert(ptprobeWFAmacrineOFFRD2);
 
@@ -837,20 +840,20 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                                 // ---- calibration probes NSCALE IS 4
 
                                 locX = 	60/4.;
-                                locY =  15.;      // probing
+                                locY =  15./4;      // probing
                                 PointLIFProbe * ptprobePAAmacrineOFFRU1 = new PointLIFProbe("ptPAAmacrineOFFRU1.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF");
                                 assert(ptprobePAAmacrineOFFRU1);
 
-                                locY =  44;      // probing
+                                locY =  44/4;      // probing
                                 PointLIFProbe * ptprobePAAmacrineOFFRD1 = new PointLIFProbe("ptPAAmacrineOFFRD1.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF");
                                 assert(ptprobePAAmacrineOFFRD1);
 
 
-                                locY =  75;      // probing
+                                locY =  75/4;      // probing
                                 PointLIFProbe * ptprobePAAmacrineOFFRU2 = new PointLIFProbe("ptPAAmacrineOFFRU2.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF");
                                 assert(ptprobePAAmacrineOFFRU2);
 
-                                locY =  104;      // probing
+                                locY =  104/4;      // probing
                                 PointLIFProbe * ptprobePAAmacrineOFFRD2 = new PointLIFProbe("ptPAAmacrineOFFRD2.txt",PAAmacrineOFF,locX, locY, locF, "PAAmacrineOFF");
                                 assert(ptprobePAAmacrineOFFRD2);
 
@@ -858,59 +861,59 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                                 // ---- calibration probes NSCALE IS 2
 
                                 locX = 	60/2.;
-                                locY =  15.;      // probing
+                                locY =  15./2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU1 = new PointLIFProbe("ptGanglionOFFRU1.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRU1);
 
-                                locY =  44;      // probing
+                                locY =  44/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD1 = new PointLIFProbe("ptGanglionOFFRD1.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD1);
 
 
-                                locY =  75;      // probing
+                                locY =  75/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU2 = new PointLIFProbe("ptGanglionOFFRU2.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRU2);
 
-                                locY =  104;      // probing
+                                locY =  104/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD2 = new PointLIFProbe("ptGanglionOFFRD2.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD2);
 
 
                                 locX = 	58/2.;
-                                locY =  15.;      // probing
+                                locY =  15./2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU1l = new PointLIFProbe("ptGanglionOFFRU1l.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRU1l);
 
-                                locY =  44;      // probing
+                                locY =  44/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD1l = new PointLIFProbe("ptGanglionOFFRD1l.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD1l);
 
 
-                                locY =  75;      // probing
+                                locY =  75/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU2l = new PointLIFProbe("ptGanglionOFFRU2l.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                assert(ptprobeGanglionOFFRU2l);
 
-                                locY =  104;      // probing
+                                locY =  104/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD2l = new PointLIFProbe("ptGanglionOFFRD2l.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD2l);
 
 
 
                                 locX = 	62/2.;
-                                locY =  15.;      // probing
+                                locY =  15./2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU1r = new PointLIFProbe("ptGanglionOFFRU1r.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRU1r);
 
-                                locY =  44;      // probing
+                                locY =  44/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD1r = new PointLIFProbe("ptGanglionOFFRD1r.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD1r);
 
 
-                                locY =  75;      // probing
+                                locY =  75/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRU2r = new PointLIFProbe("ptGanglionOFFRU2r.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRU2r);
 
-                                locY =  104;      // probing
+                                locY =  104/2;      // probing
                                 PointLIFProbe * ptprobeGanglionOFFRD2r = new PointLIFProbe("ptGanglionOFFRD2r.txt",GanglionOFF,locX, locY, locF, "GanglionOFF");
                                 assert(ptprobeGanglionOFFRD2r);
 
@@ -921,16 +924,16 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
                                 PointLIFProbe * ptprobeSynchronicityOFFRU1 = new PointLIFProbe("ptSynchronicityOFFRU1.txt",SynchronicityOFF,locX, locY, locF, "SynchronicityOFF");
                                 assert(ptprobeSynchronicityOFFRU1);
 
-                                locY =  44;      // probing
+                                locY =  44/2;      // probing
                                 PointLIFProbe * ptprobeSynchronicityOFFRD1 = new PointLIFProbe("ptSynchronicityOFFRD1.txt",SynchronicityOFF,locX, locY, locF, "SynchronicityOFF");
                                 assert(ptprobeSynchronicityOFFRD1);
 
 
-                                locY =  75;      // probing
+                                locY =  75/2;      // probing
                                 PointLIFProbe * ptprobeSynchronicityOFFRU2 = new PointLIFProbe("ptSynchronicityOFFRU2.txt",SynchronicityOFF,locX, locY, locF, "SynchronicityOFF");
                                 assert(ptprobeSynchronicityOFFRU2);
 
-                                locY =  104;      // probing
+                                locY =  104/2;      // probing
                                 PointLIFProbe * ptprobeSynchronicityOFFRD2 = new PointLIFProbe("ptSynchronicityOFFRD2.txt",SynchronicityOFF,locX, locY, locF, "SynchronicityOFF");
                                 assert(ptprobeSynchronicityOFFRD2);
 
