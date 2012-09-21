@@ -867,6 +867,26 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       exit(EXIT_FAILURE);
    }
+
+   if (columnId()==0) {
+      struct stat timeinfostat;
+      char timeinfofilename[PV_PATH_MAX];
+      int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
+         abort();
+      }
+      int statstatus = stat(timeinfofilename, &timeinfostat);
+      if (statstatus == 0) {
+         fprintf(stderr, "Warning: Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", timeinfofilename);
+         int unlinkstatus = unlink(timeinfofilename);
+         if (unlinkstatus != 0) {
+            fprintf(stderr, "Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
+            abort();
+         }
+      }
+   }
+
    ensureDirExists(cpDir);
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointWrite(cpDir);
@@ -874,13 +894,12 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointWrite(cpDir);
    }
+
+   // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
    if( icCommunicator()->commRank()==0 ) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
-         abort();
-      }
+      assert(chars_needed < PV_PATH_MAX);
       FILE * timestampfile = fopen(timestamppath,"w");
       assert(timestampfile);
       fwrite(&simTime,1,sizeof(float),timestampfile);
