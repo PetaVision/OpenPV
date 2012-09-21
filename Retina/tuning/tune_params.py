@@ -5,13 +5,14 @@ import re
 from tune_functions import *
 
 ## Global vars
-param_file  = 'params_text.pv'
-output_file = 'generated_params'
-mpi_np      = '1'
-wrkspc_path = '~/Documents/Work/LANL/workspace/'
+param_file   = 'params_text.pv'
+output_file  = 'generated_params'
+mpi_np       = '1'
+wrkspc_path  = '/Users/dpaiton/Documents/Work/LANL/workspace'
 
-input_path  = wrkspc_path+'Retina/input/'
-run_path    = wrkspc_path+'Retina/Debug/Retina'
+input_path   = wrkspc_path+'/Retina/input'
+run_path     = wrkspc_path+'/Retina/Debug/Retina'
+results_path = wrkspc_path+'/Retina/output'
 
 ## Declare params - frange is (start, end, int)
 ImageRetina                 = ["%g" % x for x in frange(0,1,1)]
@@ -52,7 +53,7 @@ param_lol = [ImageRetina,ImageCone,ConeSigmoidBipolar,ConeSigmoidHorizontal,
 
 ## Assert that all parameter lists are the same length
 if not all(len(i) == len(param_lol[0]) for i in param_lol):
-    exit("\n\ntune_params: ERROR: One of the lists is not the right size!\n")
+    exit("\ntune_params: ERROR: One of the lists is not the right size!\n")
 
 ## Open file
 if os.path.isfile(param_file):
@@ -62,29 +63,45 @@ if os.path.isfile(param_file):
         param_lines = in_fid.readlines()
         in_fid.close()
     except IOError as e:
-        print "tune_params: Failed to open file "+param_file+" with error:\n"+e
+        print "tune_params: Failed to open file "+param_file+" with error:\n"
+        exit(e)
 else:
-    exit("\n\ntune_params: ERROR: Couldn't find file "+param_file+"!\n")
+    exit("\ntune_params: ERROR: Couldn't find file "+param_file+"!\n")
 
-## Mega for-loop
+## Modify pvp file and run petavision for each parameter
 for param_idx in range(len(param_lol[0])):
+    ### Set up output dir
+    #try:
+    #    os.mkdir(results_path+str(param_idx))
+    #except OSError as e:
+    #    print "\ntune_params: ERROR: Couldn't set up output dir. Error:\n"
+    #    exit(e)
+
     print "tune_params: Writing new params ("+str(param_idx)+" of "+str(len(param_lol[0])-1)+")."
     out_filename = output_file+str(param_idx)+'.pv'
     try:
         out_fid = open(out_filename,'w')
     except IOError as e:
-        print "tune_params: Failed to open file "+output_file+" with error:\n"+e
+        print "\ntune_params: Failed to open file "+output_file+" with error:\n"
+        exit(e)
+
     for line in param_lines:
         indices = [idx for idx, enum in enumerate([param in line for param in param_list]) if enum == True]
         if len(indices) > 0: #if the current line has any of the parameters
             for lol_idx in indices:
                 new_line = re.sub(param_list[lol_idx],param_lol[lol_idx][param_idx],line,count=1)
                 out_fid.write(new_line)
+        elif 'OUTPATH' in line:
+            new_line = re.sub('OUTPATH',results_path+str(param_idx)+'/',line,count=0)
+            out_fid.write(new_line)
+        elif 'WRKSPC' in line:
+            new_line = re.sub('WRKSPC',wrkspc_path,line,count=0)
+            out_fid.write(new_line)
         else:
             out_fid.write(line)
     out_fid.close()
-    os.system('cp '+out_filename+' '+input_path+out_filename)
+    os.system('cp '+out_filename+' '+input_path+'/'+out_filename)
     ## Run petavision for this output file
     print "tune_params: Running PetaVision"
-    run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' '+run_path+' -p '+input_path+out_filename
+    run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' '+run_path+' -p '+input_path+'/'+out_filename
     os.system(run_cmd)

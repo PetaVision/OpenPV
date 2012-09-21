@@ -18,19 +18,19 @@ HyPerCol "column" = {
    progressStep = 2000;
    deleteOlderCheckpoints = 0.0;
 
-   outputPath = "OUTPATH"; //output path
+   outputPath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/output0/"; //output path
    
 };
 
      Image "Image" = {
      useParamsImage = 1;  // initializing image at checkpoint from HERE !
-     //imagePath = "WRKSPC/Retina/input/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png"; // amoeba
-     //imagePath = "WRKSPC/Retina/input/amoeba/1f/sigma20/background_1f_20_gjk.png";    //background
-     //imagePath = "WRKSPC/Retina/input/amoeba/1f/sigma1/background_1f_1_gjk.png";
-     //imagePath = "WRKSPC/Retina/input/000396.png"; 
-     //imagePath = "WRKSPC/Retina/output/movie/walking/00100.png";
-     //imagePath = "WRKSPC/Retina/input/blackimage.png";
-     imagePath = "WRKSPC/Retina/input/gray128image.png";
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png"; // amoeba
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/amoeba/1f/sigma20/background_1f_20_gjk.png";    //background
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/amoeba/1f/sigma1/background_1f_1_gjk.png";
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/000396.png"; 
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/output/movie/walking/00100.png";
+     //imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/blackimage.png";
+     imagePath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/gray128image.png";
      restart = 0;
      nxScale = 1;
      nyScale = 1;
@@ -45,7 +45,7 @@ HyPerCol "column" = {
      };
       
 //          Movie "Image" = {
-//          imageListPath = "WRKSPC/Retina/input/filenamesnjitter.txt";
+//          imageListPath = "/Users/dpaiton/Documents/Work/LANL/workspace/Retina/input/filenamesnjitter.txt";
 //
 //          restart = 0;
 //          nxScale = 1;
@@ -956,7 +956,7 @@ KernelConn "Image to Cone" = {
 	normalize     = 1.0; // 
 	//strength      = 0.1475; // adjusted to give a 15 mv swing for input of 1.0, id est 40 mV
 	//strength      = 0.97; // adjusted to give 0.5 ConeSigmoid for 46 
-	strength      = ImageCone;   // ImageCone adjusted to give symmetric ON/OFF response staerke
+	strength      = 0;   // ImageCone adjusted to give symmetric ON/OFF response staerke
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -989,7 +989,7 @@ KernelConn "ConeSigmoidON to BipolarON" = {        // 1
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = ConeSigmoidBipolar; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
+	strength      = 0; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1030,7 +1030,7 @@ KernelConn "ConeSigmoidON to Horizontal" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = ConeSigmoidHorizontal;// 0.2766; // adjusted to give swing of -55 to -20 ConeSigmoidHorizontal staerke
+	strength      = 0;// 0.2766; // adjusted to give swing of -55 to -20 ConeSigmoidHorizontal staerke
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
 	sigma         = 2.0; // only for Gauss/cocirc
@@ -1061,7 +1061,7 @@ GapConn "HoriGap to Horizontal" = {        // 3  gap junction, watch the strengt
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = HoriGapHorizontal; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
+	strength      = 0; // 2.0 ZERO  for nogap   HoriGapHorizontal staerke
 		
 	rMin          = 0.1; // take out the self connection
 	
@@ -1102,7 +1102,7 @@ KernelConn "HoriSigmoid to Cone" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = HoriSigmoidCone; // 1.5 is good 0.273 HoriSigmoidCone staerke
+	strength      = 0; // 1.5 is good 0.273 HoriSigmoidCone staerke
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1144,7 +1144,7 @@ KernelConn "BipolarSigmoidON to WFAmacrineON" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; // 
-	strength      = BipolarSigmoidWFAmacrine; //1.0;// 0.1; // adjusted to give swing of -55 to -20 BipolarSigmoidWFAmacrine staerke
+	strength      = 0; //1.0;// 0.1; // adjusted to give swing of -55 to -20 BipolarSigmoidWFAmacrine staerke
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
 	sigma         = 2.0; // only for Gauss/cocirc
@@ -1175,7 +1175,7 @@ GapConn "WFAmacrineGapON to WFAmacrineON" = {        // 3  gap junction, watch t
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = WFAmacrineGapWFAmacrine; // 0.1; // 2.0 ZERO  for nogap WFAmacrineGapWFAmacrine staerke <=================================
+	strength      = 0; // 0.1; // 2.0 ZERO  for nogap WFAmacrineGapWFAmacrine staerke <=================================
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1217,7 +1217,7 @@ KernelConn "WFAmacrineSigmoidON to BipolarON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //
-	strength      = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
+	strength      = 0; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1252,7 +1252,7 @@ KernelConn "BipolarSigmoidON to GanglionON" = {        // 5  sigmoid, need linea
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = BipolarSigmoidGanglion; //0.12; //0.088; //0.2; //  BipolarSigmoidGanglion staerke
+	strength      = 0; //0.12; //0.088; //0.2; //  BipolarSigmoidGanglion staerke
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1285,7 +1285,7 @@ GapConn "GangliGapON to PAAmacrineON" = {        // 7  gap junction
 	nxp           = 3;   //
 	nyp           = 3;   // set it back to 3 scaling is 0.12 * 1/9 * 3 % = 0.06
 	normalize     = 1.0; //  
-	strength      =  GanglionGapPAAmacrine; // 0.0; // // // 0.12 gjk  //0.5; 0.4  GanglionGapPAAmacrine  staerke <=================================
+	strength      =  0; // 0.0; // // // 0.12 gjk  //0.5; 0.4  GanglionGapPAAmacrine  staerke <=================================
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1316,7 +1316,7 @@ GapConn "PAAmaGapON to GanglionON" = {        // 8   gap junction
 	nxp           = 6;
 	nyp           = 6;   // scaling is 0.12 * 4/36 * 1.25% =0.06
 	normalize     = 1.0; //  
-	strength      = PAAmaGapGanglion; //0.12; // gjk  0.4   PAAmaGapGanglion   staerke <=================================
+	strength      = 0; //0.12; // gjk  0.4   PAAmaGapGanglion   staerke <=================================
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1347,7 +1347,7 @@ GapConn "PAAmaGapON to PAAmacrineON" = {        // 9  gap junction, watch the st
  	nxp           = 3;
 	nyp           = 3; // not to itself
 	normalize     = 1.0; //  
-	strength      = PAAmaGapPAAmacrine; //0.12; //  gjk  PAAmaGapPAAmacrine staerke <========================= debug
+	strength      = 0; //0.12; //  gjk  PAAmaGapPAAmacrine staerke <========================= debug
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1381,7 +1381,7 @@ KernelConn "PAAmacrineON to GanglionON" = {        // 10 NOT CONNECTED
 	nxp           = 10;
 	nyp           = 10;  // 10 //two times an odd number
 	normalize     = 1.0;  // 
-	strength      =  PAAmacrineGanglion;  // 32.  PAAmacrineGanglion staerke ============================   debug
+	strength      =  0;  // 32.  PAAmacrineGanglion staerke ============================   debug
 		
 	aspect        = 1.0;
 	delay         = 2.0; // in time steps, additional to the one you always get
@@ -1413,7 +1413,7 @@ KernelConn "PAAmacrineON to PAAmacrineON" = {        // 10 NOT CONNECTED
 	nxp           = 5;
 	nyp           = 5;  // 10 //two times an odd number
 	normalize     = 1.0;  // 
-	strength      = PAAmacrinePAAmacrine;  // 32.  PAAmacrinePAAmacrine staerke ============================   debug
+	strength      = 0;  // 32.  PAAmacrinePAAmacrine staerke ============================   debug
 	
 	rMin          = 0.1; // take out the self connection
 
@@ -1448,7 +1448,7 @@ KernelConn "GanglionON to SynchronicityON" = {        // 10 NOT CONNECTED
 	nxp           =  5;
 	nyp           =  5;   //
 	normalize     = 1.0;  //  
-	strength      = GanglionSynchronicity;  //  GanglionSynchronicity staerke <============================   debug
+	strength      = 0;  //  GanglionSynchronicity staerke <============================   debug
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1485,7 +1485,7 @@ KernelConn "Image to RetinaON" = {
    aspect = 1.0;
    sigma = 1.0;
    rMax =  4; 
-   strength = ImageRetina;//  ImageRetinaON staerke 
+   strength = 0;//  ImageRetinaON staerke 
    
    writeStep = -1.0;
    symmetrizeWeights = 0.0;
@@ -1513,7 +1513,7 @@ KernelConn "ConeSigmoidOFF to BipolarOFF" = {        // 1
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = ConeSigmoidBipolar; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
+	strength      = 0; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1554,7 +1554,7 @@ KernelConn "BipolarSigmoidOFF to WFAmacrineOFF" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; // 
-	strength      = ConeSigmoidBipolar; //1.0;//0.1; //  adjusted to give swing of -55 to -20 ConeSigmoidBipolar staerke
+	strength      = 0; //1.0;//0.1; //  adjusted to give swing of -55 to -20 ConeSigmoidBipolar staerke
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
 	sigma         = 2.0; // only for Gauss/cocirc
@@ -1585,7 +1585,7 @@ GapConn "WFAmacrineGapOFF to WFAmacrineOFF" = {        // 3  gap junction, watch
 	nxp           = 3; // not to itself !!
 	nyp           = 3;
 	normalize     = 1.0; //  
-	strength      = WFAmacrineGapWFAmacrine; // 0.1; // 2.0 ZERO  for WFAmacrineGapWFAmacrine staerke <=================================
+	strength      = 0; // 0.1; // 2.0 ZERO  for WFAmacrineGapWFAmacrine staerke <=================================
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -1627,7 +1627,7 @@ KernelConn "WFAmacrineSigmoidOFF to BipolarOFF" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
+	strength      = 0; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1662,7 +1662,7 @@ KernelConn "BipolarSigmoidOFF to GanglionOFF" = {        // 5  sigmoid, need lin
 	nxp           = 3;
 	nyp           = 3;
 	normalize     = 1.0; // 
-	strength      = BipolarSigmoidGanglion; //0.12; //0.088; // 0.08 //0.2; //BipolarSigmoidGanglion staerke
+	strength      = 0; //0.12; //0.088; // 0.08 //0.2; //BipolarSigmoidGanglion staerke
 	
 	stochasticReleaseFlag = 1.0;
 		
@@ -1703,7 +1703,7 @@ KernelConn "Image to RetinaOFF" = {
    aspect = 1.0;
    sigma = 1.0;
    rMax =  4; 
-   strength = ImageRetina;//7; ImageRetinaOFF staerke
+   strength = 0;//7; ImageRetinaOFF staerke
    
    writeStep = -1.0;
    symmetrizeWeights = 0.0;
@@ -1745,7 +1745,7 @@ KernelConn "BipolarSigmoidON to SFAmacrine" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = BipolarSigmoidSFAmacrine; // 0.1; //0.2766;// 0.02766;// BipolarSigmoidSFAmacrine
+	strength      = 0; // 0.1; //0.2766;// 0.02766;// BipolarSigmoidSFAmacrine
 	
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1788,7 +1788,7 @@ KernelConn "BipolarSigmoidOFF to SFAmacrine" = {        // 2
 	nxp           = 3;  // odd times 1 because of scale factor
 	nyp           = 3;  //
 	normalize     = 1.0; //  
-	strength      = BipolarSigmoidSFAmacrine; // 0.1;//0.2766; //0.02766;// BipolarSigmoidSFAmacrine
+	strength      = 0; // 0.1;//0.2766; //0.02766;// BipolarSigmoidSFAmacrine
 	
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1828,7 +1828,7 @@ KernelConn "SFAmacrineSigmoid to GanglionON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; // 
-	strength      = SFAmacrineSigmoidGanglion; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
+	strength      = 0; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
 	
 	stochasticReleaseFlag = 1.0;
 
@@ -1871,7 +1871,7 @@ KernelConn "SFAmacrineSigmoid to PAAmacrineON" = {        // 4
 	nxp           = 3; // odd times 2 because of scale factor
 	nyp           = 3; // 
 	normalize     = 1.0; // 
-	strength      = SFAmacrineSigmoidPAAmacrine; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
+	strength      = 0; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 	
 	stochasticReleaseFlag = 1.0;
 
@@ -1905,7 +1905,7 @@ GapConn "GangliGapOFF to PAAmacrineOFF" = {        // 7  gap junction
 	nxp           = 3;   //
 	nyp           = 3;   // set it back to 3
 	normalize     = 1.0; //  see scaling of ON cells
-	strength      = GanglionGapPAAmacrine; // 0.5; // 0.0; // //  0.01;  0.4  GanglionGapPAAmacrine staerke <=================================
+	strength      = 0; // 0.5; // 0.0; // //  0.01;  0.4  GanglionGapPAAmacrine staerke <=================================
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1936,7 +1936,7 @@ GapConn "PAAmaGapOFF to GanglionOFF" = {        // 8   gap junction
 	nxp           = 6;
 	nyp           = 6;
 	normalize     = 1.0; // see scaling on ON cells  
-	strength      = PAAmaGapGanglion; //0.12; //  0.4   PAAmaGapGanglion staerke <=================================
+	strength      = 0; //0.12; //  0.4   PAAmaGapGanglion staerke <=================================
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -1967,7 +1967,7 @@ GapConn "PAAmaGapOFF to PAAmacrineOFF" = {        // 9  gap junction, watch the 
  	nxp           = 3;
 	nyp           = 3; // not to itself
 	normalize     = 1.0; // 
-	strength      = PAAmaGapPAAmacrine; //0.12; //    PAAmaGapPAAmacrine staerke <========================= debug
+	strength      = 0; //0.12; //    PAAmaGapPAAmacrine staerke <========================= debug
 	
 	rMin          = 0.1; // take out the self connection
 	
@@ -2001,7 +2001,7 @@ KernelConn "PAAmacrineOFF to GanglionOFF" = {        // 10 NOT CONNECTED
 	nxp           = 10;
 	nyp           = 10;  // 10 is target two times an odd number
 	normalize     = 1.0;  //  4.0 for 2x2 gives one unit of G
-	strength      = PAAmacrineGanglion;  // 32 ZERO PAAmacrineGanglion staerke <============================   debug
+	strength      = 0;  // 32 ZERO PAAmacrineGanglion staerke <============================   debug
 		
 	aspect        = 1.0;
 	delay         = 2.0; // in time steps, additional to the one you always get
@@ -2034,7 +2034,7 @@ KernelConn "PAAmacrineOFF to PAAmacrineOFF" = {        // 10 self shut down
 	nxp           = 5;
 	nyp           = 5;  // 10 is target two times an odd number
 	normalize     = 1.0;  //  4.0 for 2x2 gives one unit of G
-	strength      = PAAmacrinePAAmacrine;  // 32 ZERO PAAmacrinePAAmacrine staerke <============================   debug
+	strength      = 0;  // 32 ZERO PAAmacrinePAAmacrine staerke <============================   debug
 
 	rMin          = 0.1; // take out the self connection
 	
@@ -2068,7 +2068,7 @@ KernelConn "GanglionOFF to SynchronicityOFF" = {        // 10 NOT CONNECTED
 	nxp           =  5;
 	nyp           =  5;   //
 	normalize     = 1.0;  // 
-	strength      = GanglionSynchronicity;  //  GanglionSynchronicity staerke <============================   debug
+	strength      = 0;  //  GanglionSynchronicity staerke <============================   debug
 		
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -2109,7 +2109,7 @@ KernelConn "PAAmacrineON to WFAmacrineON" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = PAAmacrineWFAmacrine; // 1.0; // 1.0 PAAmacrineWFAmacrine staerke
+	strength      = 0; // 1.0; // 1.0 PAAmacrineWFAmacrine staerke
 	
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -2150,7 +2150,7 @@ KernelConn "WFAmacrineSigmoidON to SFAmacrine" = {        // 4
 	nxp           = 3; // odd times 2 because of scale factor
 	nyp           = 3; // 
 	normalize     = 1.0; //  
-	strength      = WFAmacrineSFAmacrine; // 2.0; // WFAmacrineSFAmacrine
+	strength      = 0; // 2.0; // WFAmacrineSFAmacrine
 
 	stochasticReleaseFlag = 1.0;
 
@@ -2193,7 +2193,7 @@ KernelConn "SFAmacrineSigmoid to GanglionOFF" = {        // 4
 	nxp           = 6; // odd times 
 	nyp           = 6; // 
 	normalize     = 1.0; //  
-	strength      = SFAmacrineSigmoidGanglion; // today 0.25 SFAmacrineSigmoidGanglion staerke
+	strength      = 0; // today 0.25 SFAmacrineSigmoidGanglion staerke
 
 	stochasticReleaseFlag = 1.0;
 
@@ -2236,7 +2236,7 @@ KernelConn "SFAmacrineSigmoid to PAAmacrineOFF" = {        // 4
 	nxp           = 3; // odd times 
 	nyp           = 3; // 
 	normalize     = 1.0; //  
-	strength      = SFAmacrineSigmoidPAAmacrine; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
+	strength      = 0; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 
 	stochasticReleaseFlag = 1.0;
 
@@ -2281,7 +2281,7 @@ KernelConn "PAAmacrineOFF to WFAmacrineOFF" = {        // 4
 	nxp           = 6; // odd times 2 because of scale factor
 	nyp           = 6; // 
 	normalize     = 1.0; // 
-	strength      = PAAmacrineWFAmacrine; // 1.0; // 1.0 PAAmacrineWFAmacrine staerke
+	strength      = 0; // 1.0; // 1.0 PAAmacrineWFAmacrine staerke
 	
 	aspect        = 1.0;
 	delay         = 0.0; // in time steps, additional to the one you always get
@@ -2322,7 +2322,7 @@ KernelConn "WFAmacrineSigmoidOFF to SFAmacrine" = {        // 4
 	nxp           = 3; // odd times 2 because of scale factor
 	nyp           = 3; // 
 	normalize     = 1.0; // 
-	strength      = WFAmacrineSFAmacrine; // 2.0;WFAmacrineSFAmacrine staerke
+	strength      = 0; // 2.0;WFAmacrineSFAmacrine staerke
 
 	stochasticReleaseFlag = 1.0;
 
