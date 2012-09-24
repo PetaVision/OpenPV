@@ -397,8 +397,11 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
          A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
       }
       if (inverse_flag) A[kex] = 1.0f - A[kex];
-      // At this point A[kex] is in kilohertz; A*dt makes activity dimensionless and timestep-independent
-      A[kex] *= dt;
+      // At this point A[kex] is in spikes per milli seconds;
+      // A*dt makes activity dimensionless and timestep-independent
+      // A[kex] *= dt;
+      // This was moved to the strength definition of the dynamic layers
+
    }
    return PV_SUCCESS;
 }
