@@ -300,9 +300,11 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_V   = V[k];
    float l_Vth = Vth[k];
 
-   float l_G_E  = G_E[k];
-   float l_G_I  = G_I[k];
-   float l_G_IB = G_IB[k];
+   // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
+   // then the asymptotic value of l_G_* will be l_GSyn_*
+   float l_G_E  = G_E[k] * (1-exp_tauE)/exp_tauE;
+   float l_G_I  = G_I[k] * (1-exp_tauI)/exp_tauI;
+   float l_G_IB = G_IB[k] * (1-exp_tauIB)/exp_tauIB;
    float l_G_Gap = G_Gap[k];
 
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
