@@ -20,6 +20,7 @@ HyPerCol "column" = {
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -36,8 +37,10 @@ Retina "Retina" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
+    refractoryPeriod = 5.0;
+    absRefractoryPeriod = 3.0;
     poissonEdgeProb = 1;
     poissonBlankProb = 1;
     burstFreq = 1;
@@ -60,7 +63,7 @@ ANNLayer "L0" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -80,7 +83,7 @@ ANNLayer "Lx1" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -100,7 +103,7 @@ ANNLayer "Lx2" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -120,7 +123,7 @@ ANNLayer "Lx4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -141,7 +144,7 @@ ANNLayer "Lx1_2" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -162,7 +165,7 @@ ANNLayer "Lx1_4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-    GPUAccelerate = false;
+    // GPUAccelerate = false;
 
     InitVType = "ZeroV";
 
@@ -183,6 +186,7 @@ KernelConn "Retina to L0" = {
     nyp = 1;
     nfp = 4;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
     
     weightInit=1;
@@ -200,7 +204,7 @@ KernelConn "Retina to L0" = {
     // no = 4;
     
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -234,6 +238,7 @@ KernelConn "L0 to Lx1" = {
     nyp = 5;
     nfp = 4;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -251,7 +256,7 @@ KernelConn "L0 to Lx1" = {
     // no = 4;
       
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
 
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -283,6 +288,7 @@ KernelConn "L0 to Lx2" = {
     nyp = 10;
     nfp = 8;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -300,7 +306,7 @@ KernelConn "L0 to Lx2" = {
     // no = 8;
       
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -332,6 +338,7 @@ KernelConn "L0 to Lx4" = {
     nyp = 20;
     nfp = 16;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -349,7 +356,7 @@ KernelConn "L0 to Lx4" = {
     // no = 16;
       
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -381,6 +388,7 @@ KernelConn "L0 to Lx1_2" = {
     nyp = 3;
     nfp = 2;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -398,7 +406,7 @@ KernelConn "L0 to Lx1_2" = {
     // no = 2;
       
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
@@ -430,6 +438,7 @@ KernelConn "L0 to Lx1_4" = {
     nyp = 1;
     nfp = 1;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -447,7 +456,7 @@ KernelConn "L0 to Lx1_4" = {
     // no = 1;
       
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    // combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
