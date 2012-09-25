@@ -8,9 +8,9 @@ echo ${anterior_cores[*]}
 home_path=$HOME
 openmpi64_home="/usr/lib64/openmpi"
 #openmpi64_lib="/usr/lib64/openmpi/lib"
-clique_path=${home_path}"/workspace-juno/SynthCog3/"
+clique_path=${home_path}"/workspace-sync/SynthCog3/"
 echo ${clique_path[0]}
-exe_path=${clique_path}"Debug/"
+exe_path=${clique_path}"Debug_remote/"
 echo ${exe_path[0]}
 input_path=${clique_path}"input/CatVsNoCatDog/"${2}"/"${1}"/canny3way/"
 echo ${input_path[0]}
