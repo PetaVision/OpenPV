@@ -154,13 +154,18 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
    fflush(stdout);
 #endif
 
-      int nxp  = conn->fPatchSize() * weights->nx;
-      int nyp  = conn->fPatchSize() * weights->ny;
 
+//      std::cout <<"InitBIDSLateral: nxy, nyp: " << nxp << ", " << nyp << "\n";
       int nxGlobal = conn->getParent()->getNxGlobal();
       int nyGlobal = conn->getParent()->getNyGlobal();
       int patchSizex = nxGlobal / nxBids;
       int patchSizey = nyGlobal / nyBids;
+
+      //BIDS space
+      int nxp  = conn->fPatchSize() * weights->nx;
+      int nyp  = conn->fPatchSize() * weights->ny;
+
+//      std::cout << "InitBIDSLat: (" << nxp << ", " << nyp << ")\n";
 
       //the principle node's physical position (HyPerCol space)
       int preCoordy = coords[kPreRes].yCoord;
@@ -178,22 +183,52 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
 
       const char * jitterSourceName = conn->getParent()->parameters()->stringValue(conn->getName(), "jitterSource");
       int jitter = weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
-      int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx));
-      int principleJittDiffy = (jitter - abs(preCoordy - patchCentery));
-
+      //Divide by patch size to convert to BIDS units
+      int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx)) / patchSizex;
+      int principleJittDiffy = (jitter - abs(preCoordy - patchCentery)) / patchSizey;
+/*
+      std::cout << "principleJittDiffx = " << principleJittDiffx << " :(jitter - abs(preCoordx - patchCenterx))/patchSizex : (" << jitter <<" - abs(" << preCoordx << " - " << patchCenterx << ")) / " << patchSizex << "\n";
+      std::cout << "principleJittDiffy = " << principleJittDiffy << " :(jitter - abs(preCoordy - patchCentery))/patchSizey : (" << jitter <<" - abs(" << preCoordy << " - " << patchCentery << ")) / " << patchSizey << "\n";
+*/
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int sx  = conn->getPostNonextStrides()->sx;       // generally the # of features
       int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
       pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
 
+//      std::cout << "Loop: " << principleJittDiffy << " to " << nyp - principleJittDiffy << "\n";
+//      std::cout << "Loop: " << principleJittDiffx << " to " << nxp - principleJittDiffx << "\n";
+//      std::cout << "pre: (" << preCoordx << ", " << preCoordy << ")\n";
+      //Search patches in jitter
+//      int maxindex = 0;
       for (int delY = principleJittDiffy; delY < nyp - principleJittDiffy; delY++) {
          float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
          for (int delX = principleJittDiffx; delX < nxp - principleJittDiffx; delX++) {
             pvdata_t * memLoc = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
             int index = memLoc - channel;
+            /*
+            if (index >= maxindex){
+               maxindex = index;
+            }
+            */
             int postcoordx = coords[index].xCoord;
             int postcoordy = coords[index].yCoord;
-      //      std::cout << "Inner index: " << index << "\n";
+ //           std::cout << "\tpost: (" << postcoordx << "," << postcoordy << ")\n";
+
+
+
+            //Test for ranges
+            int radius = conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
+            int range = 2 * (radius + 2 * jitter) + 1;
+
+            if(abs(preCoordx - postcoordx) > range || abs(preCoordy - postcoordy) > range){
+               std::cout << "ERROR!  ";
+               std::cout << "pre " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")  ";
+               std::cout << "post " << index << ": (" << postcoordx << "," << postcoordy << ")  ";
+               std::cout << "range: " << range << "\n";
+               exit(-1);
+            }
+
+
             float deltaX = fabs(postcoordx - preCoordx);
             float deltaY = fabs(postcoordy - preCoordy);
             float distance = sqrt((deltaX * deltaX) + (deltaY * deltaY));
@@ -222,6 +257,9 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
                float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
                if (w_tmp > 1.0f){
                   w[delX] = log10(w_tmp) * weightParamPtr->getStrength();
+               }
+               else{
+                  w[delX] = 0;
                }
             }
             else{

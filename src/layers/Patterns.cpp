@@ -10,6 +10,7 @@
 #include "../utils/pv_random.h"
 
 #define PATTERNS_MAXVAL  1.0f
+#define PATTERNS_MINVAL  0.0f
 
 namespace PV {
 
@@ -27,9 +28,13 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
 int Patterns::initialize_base() {
    patternsOutputPath = NULL;
    patternsFile = NULL;
+   framenumber = 0;
+   radius.clear();
 
    return PV_SUCCESS;
 }
+
+
 
 int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    Image::initialize(name, hc, NULL);
@@ -136,6 +141,25 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
          (type == COSV)||(type == SINEV))
       rotation = params->value(name, "rotation", 0.0);
 
+   if(type == DROP){
+      dropSpeed = params->value(name, "dropSpeed", 1);
+      dropPeriod = params->value(name, "dropPeriod", 10);
+      dropRandomMax = params->value(name, "dropRandomMax", 20);
+      dropRandomMin = params->value(name, "dropRandomMin", 5);
+      onOffFlag = params->value(name, "halfNeutral", 0);
+      startFrame = params->value(name, "startFrame", 0);
+      //Assign first drop
+      //radius.push_back(0);
+      //Assign next drop
+      if(dropPeriod == -1){
+         nextDropFrame = ceil(startFrame);
+      }
+      else{
+         nextDropFrame = dropPeriod;
+      }
+   }
+
+
    movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
 
    // set parameters that controls writing of new images
@@ -170,6 +194,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    }
 
    maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
+   minVal = params->value(name,"minValue", PATTERNS_MINVAL);
 
    displayPeriod = params->value(name,"displayPeriod", 0.0f);
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
@@ -237,11 +262,124 @@ int Patterns::generatePattern(float val)
 
    // reset data buffer
    const int nk = nx * ny;
-   for (int k = 0; k < nk; k++) {
-      data[k] = 0.0;
+
+   float neutralval;
+   if (onOffFlag){
+      neutralval = .5;
+   }
+   else{
+      neutralval = 0.0;
    }
 
-   if (type == RECTANGLES) {
+   for (int k = 0; k < nk; k++) {
+      data[k] = neutralval;
+   }
+
+   if (type == DROP){
+//      std::cout << "Frame number " << framenumber << "\n";
+
+      //Max radius at corner of screen
+      float max_radius = sqrt(nx/(float)2 * nx/(float)2 + ny/(float)2 * ny/(float)2);
+      //Drop from center
+      const int xc = (nx-1) / 2;
+      const int yc = (ny-1) / 2;
+      std::vector<int> deleteme;
+      deleteme.clear();
+      //Radius of circle at current timestep
+      //Remove extra circles
+      for(int i = 0; i < radius.size(); i++){
+         //Negative means off stim
+         if(radius[i] < 0){
+            radius[i] -= dropSpeed;
+         }
+         //Positive means on stim
+         else if(radius[i] > 0){
+            radius[i] += dropSpeed;
+         }
+         //Random prob of being on/off
+         else{
+            if(pv_random_prob() < .5){
+               radius[i] += dropSpeed;
+            }
+            else{
+               radius[i] -= dropSpeed;
+            }
+         }
+         //No longer in the frame
+         if(fabs(radius[i]) >= max_radius){
+           deleteme.push_back(i);
+         }
+      }
+      for(int i = 0; i < deleteme.size(); i++){
+         radius.erase(radius.begin() + deleteme[i]);
+      }
+
+      //Add new circles
+      //Add circle if necessary
+      //Random
+      if(framenumber >= nextDropFrame){
+         radius.push_back(0);
+         if(dropPeriod == -1){
+            nextDropFrame = framenumber + dropRandomMin + ceil((dropRandomMax - dropRandomMin) * pv_random_prob());
+         }
+         else{
+            nextDropFrame += framenumber + dropPeriod;
+         }
+      }
+
+      //Draw circle
+      for(int i = 0; i < radius.size(); i++){
+         bool on;
+         //Off stim
+         if(radius[i] < 0){
+            on = false;
+         }
+         //On stim
+         else if(radius[i] > 0){
+            on = true;
+         }
+         //Dot in center, skip
+         else{
+            continue;
+         }
+
+         float delta_theta = fabs(atan((float)1./fabs(radius[i])));
+         for (float theta = 0; theta < 2*PI; theta += delta_theta){
+           // std::cout << "\t" << theta << "\n";
+            float fx = xc + fabs(radius[i]) * cos(theta);
+            float fy = yc + fabs(radius[i]) * sin(theta);
+            int ix, iy;
+
+            //Rounding
+            if(fx + .5 >= (int)fx + 1){
+               ix = (int)fx + 1;
+            }
+            else{
+               ix = (int)fx;
+            }
+
+            if(fy + .5 >= (int)fy + 1){
+               iy = (int)fy + 1;
+            }
+            else{
+               iy = (int)fy;
+            }
+
+            //Check edge bounds
+            if(ix < nx && iy < nx && ix >= 0 && iy >= 0){
+               //Random either on circle or off circle
+               if(on){
+                  data[ix * sx + iy * sy] = maxVal;
+               }
+               else{
+                  data[ix * sx + iy * sy] = minVal;
+               }
+            }
+         }
+      }//End radius for loop
+      return 0;
+   }
+   else if (type == RECTANGLES) {
       width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
       height = minHeight + (maxHeight - minHeight) * pv_random_prob();
 
@@ -433,11 +571,20 @@ int Patterns::generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int n
  */
 int Patterns::updateState(float timef, float dt) {
    int status = PV_SUCCESS;
+   framenumber = timef * dt;
    bool needNewPattern = timef >= nextDisplayTime;
    if (needNewPattern) {
+
       nextDisplayTime += displayPeriod;
       status = updatePattern(timef);
    }
+
+   //Here
+
+  // std::cout << timef;
+ //  setActivity();
+//   writeActivity(timef);
+   //writeState();
    return status;
 }
 
@@ -460,9 +607,16 @@ int Patterns::updatePattern(float timef) {
       //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
    }
 
+   if (type == DROP){
+      newPattern = true;
+   }
+
    if (newPattern) {
       lastUpdateTime = timef;
-      position = calcPosition(position, positionBound);
+      if (type != DROP){
+         position = calcPosition(position, positionBound);
+      }
+
       generatePattern(maxVal);
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
@@ -485,6 +639,10 @@ int Patterns::updatePattern(float timef) {
          }
          else if (type == IMPULSE){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
+         }
+         else if (type == DROP){
+           //std::cout << timef << "\n";
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.tif", patternsOutputPath, (int)timef);
          }
          write(basicfilename);
       }

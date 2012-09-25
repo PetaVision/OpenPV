@@ -9,7 +9,7 @@
 #define PATTERNS_HPP_
 
 #include "Image.hpp"
-
+#include <Vector>
 namespace PV {
 
 enum PatternType {
@@ -20,6 +20,7 @@ enum PatternType {
   IMPULSE  = 4,
   SINEV  = 5,
   COSV  = 6,
+  DROP = 7,
 };
 
 enum OrientationMode {
@@ -81,13 +82,22 @@ protected:
    float pMove;
    float movementSpeed; //save a movement speed in pixels/time step
    float positionBound; // The supremum of possible values of position
+   int framenumber;
 
-
+   std::vector <float> radius;
+   float dropSpeed;
+   int dropPeriod;
+   int dropRandomMax;
+   int dropRandomMin;
+   int nextDropFrame;
+   int onOffFlag;
+   int startFrame;
    int minWidth, maxWidth;
    int minHeight, maxHeight;
    int wavelengthVert;
    int wavelengthHoriz;
    float maxVal;
+   float minVal;
    char * patternsOutputPath;  // path to output file directory for patterns
 
    float displayPeriod;   // length of time a frame is displayed

@@ -178,6 +178,8 @@ int Publisher::publish(HyPerLayer* pub,
    //
 
    size_t dataSize = cube->numItems * sizeof(pvdata_t);
+//   std::cout << "Calling layer: " << pub->getName() << "\n";
+//   std::cout << dataSize << " is supposed to equal " << store->size() << "\n";
    assert(dataSize == store->size());
 
    pvdata_t * sendBuf = cube->data;

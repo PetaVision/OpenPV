@@ -937,6 +937,7 @@ int HyPerLayer::publish(InterColComm* comm, float time)
       }
    }
 
+//   std::cout << getName() << ", " << clayer->activity->numItems << "\n";
    int status = comm->publish(this, clayer->activity);
 #ifdef PV_USE_OPENCL
    if(copyDataStoreFlag) {

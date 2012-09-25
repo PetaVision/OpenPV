@@ -11,7 +11,7 @@ global MOVIE_FLAG = 0;
 global PRINT_FLAG;
 global SWEEP_POS = 0;
 
-addpath('/Users/rcosta/Documents/workspace/HyPerSTDP/analysis/');
+addpath('/Users/slundquist/Documents/workspace/HyPerSTDP/analysis/');
 setenv("GNUTERM", "x11");
 
 fullOrient_DATASET = "orient_36r";
@@ -443,7 +443,7 @@ if(MEASURES_GM_FLAG)
                         end
 
                     end
-                    img_recons(img_recons<0) = 0;
+                    }img_recons(img_recons<0) = 0;
                     if(sum(sum(img_recons))>0)
 
                         img_recons = img_recons./max(max(img_recons));

@@ -509,6 +509,7 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
          "IMPULSE",
          "SINEV",
          "COSV",
+         "DROP",
          "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
    };
    const char * patternTypeStr = hc->parameters()->stringValue(name, "patternType");

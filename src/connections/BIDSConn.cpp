@@ -35,8 +35,9 @@ int BIDSConn::setPatchSize(const char * filename)
    //neighboring node. Since this occurs on both sides of the patch, the equation is multiplied by two.
    const char * jitterSourceName = inputParams->stringValue(name, "jitterSource");
    std::cout << jitterSourceName;
-   nxp = 2 * (inputParams->value(name, "lateralRadius") + 2 * inputParams->value(jitterSourceName, "jitter")) + 1;
-   nyp = 2 * (inputParams->value(name, "lateralRadius") + 2 * inputParams->value(jitterSourceName, "jitter")) + 1;
+
+
+
    nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->loc.nf);
    if( nfp != post->getCLayer()->loc.nf ) {
       fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
@@ -46,13 +47,25 @@ int BIDSConn::setPatchSize(const char * filename)
    }
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
+
+   int xScale = pow(2, xScalePre);
+   //Convert to bids space, +1 to round up
+   nxp = 1 + 2*(ceil((float)inputParams->value(name, "lateralRadius")/(float)xScale) + ceil((float)2 * (float)inputParams->value(jitterSourceName, "jitter")/(float)xScale));
+
    status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
    if( status != PV_SUCCESS) return status;
 
    int yScalePre = pre->getYScale();
    int yScalePost = post->getYScale();
+
+   int yScale = pow(2, yScalePre);
+   //Convert to bids space, +1 to round up
+   nyp = 1 + 2 * (ceil((float)inputParams->value(name, "lateralRadius")/(float)yScale) + ceil((float)2 * (float)inputParams->value(jitterSourceName, "jitter")/(float)yScale));
+
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
    if( status != PV_SUCCESS) return status;
+
+//   std::cout <<"BIDSConn: setPatchSize nxy, nyp: " << nxp << ", " << nyp << "\n";
 
    status = PV_SUCCESS;
    if( filename != NULL ) {

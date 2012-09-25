@@ -46,7 +46,7 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    int jitter = (int)(parent->parameters()->value(name, "jitter"));
 
    //Check jitter
-   assert(2 * jitter < nbPre);
+//   assert(2 * jitter < nbPre);
    assert(jitter >= 0); //jitter cannot be below zero
 
    int numNodes = nxPost * nyPost;
