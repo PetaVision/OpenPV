@@ -25,8 +25,6 @@ then
     PV_MPIRUN=mpirun
 fi
 
-echo $PV_MPIRUN
-
 # Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
 then
