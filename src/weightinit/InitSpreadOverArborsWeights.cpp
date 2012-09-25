@@ -71,7 +71,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
-      //TODO: add additional weight factor for difference between thPre and thPost
       if(weightParamPtr->checkTheta(thPost)) continue;
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
          float yDelta = weightParamPtr->calcYDelta(jPost);
@@ -86,21 +85,11 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
 
 
             float weight = 0;
-            float theta;
-            if(xp==0) {
-               if(yp<0)
-                  theta = 3.0f * PI/2.0f;
-               else if(yp>0)
-                  theta = PI/2.0f;
-               else
-                  theta = 0;
-            }
-            else
-               theta = atan2f(yp,xp);
+            float theta = atan2f(yp, xp);
             if(theta<0) theta+=2.0f*PI;
+            int zone = (int) floor(theta/(2*PI/nArbors));
 
-            if(((arborId)*(2*PI/nArbors) <= theta)&&
-                  (((arborId+1)*(2.0f*PI/nArbors) > theta)))
+            if (arborId == zone)
                weight = iWeight;
 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
