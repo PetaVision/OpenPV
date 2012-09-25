@@ -1,0 +1,417 @@
+// 
+// Parameter file for iHouse 
+//
+
+HyPerCol "column" = {
+   nx 							= 128; 			// pixel width of input image
+   ny 							= 128; 			// pixel height of input image
+   dt 							= 1.;           // according GK
+//   randomSeed 				= 1020304050.0; // remove when running for real
+   //checkpointRead  			= true;  		// normal run
+   checkpointRead  				= false; 		// init run
+//   checkpointWrite 				= true;  		// always
+   checkpointWrite 				= false;  		// always
+//   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
+//   checkpointWriteStepInterval = 200;
+   numSteps 					= 500;			// amount of time steps performed during run-time
+   progressStep					= 1000;
+//   deleteOlderCheckpoints = false;
+   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
+   filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
+};
+
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+
+Patterns "input" = {
+   patternType = "DROP";
+   dropSpeed = 3;       //Radius expands dropSpeed pixles per timestep
+   dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
+   dropRandomMax = 22;  //Max random periods for each drop, 20 default
+   dropRandomMin = 12;   //Min random periods for each drop, 5 default
+   halfNeutral = true;
+   startFrame = 100;
+//   pMove = 1;
+//   maxWidth = 16;
+//   maxHeight = 16;
+//   minWidth = 8;
+//   minHeight = 8;
+   writeImages = true;
+   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
+   displayPeriod = 1;
+   writeStep = 1;
+   writeNonspikingActivity = true;
+   useImageBCflag = false;
+   mirrorBCflag = false;
+   inverseFlag = false;
+   
+};
+
+ANNLayer "scaled input" = {
+    restart = false;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 20;
+    mirrorBCflag = 1;
+    spikingFlag = false;
+    writeStep = -1.0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+Retina "RetinaON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 24;
+    writeStep = -1.0;
+    mirrorBCflag = 0;
+    spikingFlag = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
+    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+
+    burstFreq = 50;      // Hz
+    burstDuration = 20;  // ms
+
+    //beginStim = 1;
+    //endStim   = 50000;
+
+    //no = 1.0;
+    Vrest = 0.0;
+    
+    refractoryPeriod = 0;
+    absRefractoryPeriod = 0;
+};
+
+
+Retina "RetinaOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 24;
+    writeStep = -1.0;
+    mirrorBCflag = 0;
+    spikingFlag = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
+    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+
+    burstFreq = 50;      // Hz
+    burstDuration = 20;  // ms
+
+    //beginStim = 1;
+    //endStim   = 50000;
+    
+    //no = 1.0;
+    Vrest = 0.0;
+    
+    refractoryPeriod = 0;
+    absRefractoryPeriod = 0;
+};
+
+LIF "lif" = {       
+   nxScale          = 1;		
+   nyScale          = 1;		
+   nf               = 1;       	// one feature for now
+   spikingFlag      = 1;       	// the whole idea 
+   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
+//   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
+   writeStep        = 1.0;
+   mirrorBCflag     = 0;     	// mirroring boundary conditions
+   InitVType        = "ConstantV";
+   valueV			= -70.0;
+   Vrest            = -70.;    
+   restart          = 0.0;     	// from graylast
+   Vexc             = 0.0;     	// reversal potential 
+   Vinh             = -75.0;   	// chloride channel
+   VinhB            = -90.0;   	// potassium reversal
+   tau              = 10.0;    	// intrinsic leak membrane time constant (max)
+   tauE             = 1.0;     	// how long glutamine stays bound
+   tauI             = 5.0;     	// how long GABA stays bound
+   tauIB            = 10.0;    	// inhibitory potassium channel 
+   VthRest          = -55.0;   	// firing threshold 15 mV above rest
+   tauVth           = 10.0;    	// 10.0 relative refractory period
+   deltaVth         = 5.0;     	// jump of threshold when firing
+   noiseAmpE        = 0;     	// 0.5 1 means conductance is equal to lead conductance  gjk
+   noiseAmpI        = 0;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpIB       = 0.0;     	// no noise here 
+   noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
+   noiseFreqI       = 250.;    	// correlation to time step size !!!
+   noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+};
+
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+
+KernelConn "input to scaled input" = {
+    preLayerName = "input";
+    postLayerName = "scaled input";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    delay = 0;
+
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "OneToOneWeights";
+    weightInit = 2.0;
+      
+    normalize = false;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = true;
+    selfFlag = false;
+    shrinkPatches = false;
+};
+
+KernelConn "ImagetoRetinaONCenter" = {
+   preLayerName = "scaled input";
+   postLayerName = "RetinaON";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   //gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;   
+   strength = 50;
+   weightInitType = "InitGauss2DWeights";
+   //strength =  25500.0;
+   
+   
+   //wMaxInit = 100;
+   //wMinInit = 100;
+   //weightInitType = "UniformRandomWeight";
+
+   normalize = false;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+KernelConn "ImagetoRetinaONSurround" = {
+   preLayerName = "scaled input";
+   postLayerName = "RetinaON";
+   channelCode = 1;
+   nxp = 3;
+   nyp = 3;
+   nfp = 1;
+
+   stdpFlag   = 0;
+   initFromLastFlag = 0;
+   writeStep = -1;
+
+   weightInitType = "InitGauss2DWeights";
+   aspect = 1;
+   sigma = 1;
+   rMax = 5;
+   rMin = 0;
+
+   strength = 50;
+   //strength =  25500.0;
+   normalize = true;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "ImagetoRetinaOFFCenter" = {
+   preLayerName = "scaled input";
+   postLayerName = "RetinaOFF";
+   channelCode = 1;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 1;
+   
+   stdpFlag   = 0;
+   initFromLastFlag = 0;  
+   //gauss2DCalcWeights = 1;
+   writeStep = -1;
+
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   weightInitType = "InitGauss2DWeights";
+   //wMaxInit = 100;
+   //wMinInit = 100;
+   //weightInitType = "UniformRandomWeight";
+   
+   strength = 50;
+   //strength =  25500.0;
+   normalize = false;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+
+KernelConn "ImagetoRetinaOFFSurround" = {
+   preLayerName = "scaled input";
+   postLayerName = "RetinaOFF";
+   channelCode = 0;
+   nxp = 3;
+   nyp = 3;
+   nfp = 1;
+
+   stdpFlag   = 0;
+   initFromLastFlag = 0;
+   //gauss2DCalcWeights = 1;
+   writeStep = -1;
+   
+   weightInitType = "InitGauss2DWeights";
+   aspect = 1;
+   sigma = 1;
+   rMax = 5;
+   rMin = 0;
+
+   //   aspect = 1;
+   //   sigma = 1;
+   //   rMax  = 100;
+   strength = 50;
+   //strength =  25500.0;
+   normalize = true;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   symmetrizeWeights = 0;
+   delay = 0;
+};
+
+// Retina connections      
+STDPConn "RetinaONtoS1" = {
+   preLayerName = "RetinaON";
+   postLayerName = "lif";
+   channelCode = 0;
+   nxp = 5;
+   nyp = 5;
+   nfp = 1;
+   
+   stdpFlag   = 1;
+   initFromLastFlag = 0;  // 1;  /dr/ restart
+   writeStep = 100;
+
+   wMin = 0.001;
+   wMax = 5;
+   dWMax = 1;  // .01;
+
+   normalize = false;
+   normalize_max = true;
+   normalize_zero_offset = 0.0;
+   strength = 10;
+   
+   ampLTP = 0.11;
+   ampLTD = 0.0095;
+   tauLTP = 1;
+   tauLTD = 21;
+   
+   wMaxInit = 0.5;
+   wMinInit = 0.005;
+   //localWmaxFlag = 0.0;
+   
+   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
+   //keepKernelsSynchronized = true;
+   combine_dW_with_W_flag = false;
+   selfFlag = false;
+
+   weightInitType = "UniformRandomWeight";
+   //weightInit = 0;
+   
+   symmetrizeWeights = 0;
+   
+   plasticityFlag = true;
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+   delay = 0.0;
+   
+   synscalingFlag = 1;
+   synscaling_v = 5;
+};
+
+STDPConn "RetinaOFFtoS1" = {
+   preLayerName = "RetinaOFF";
+   postLayerName = "lif";
+   channelCode = 0;
+   nxp = 5;
+   nyp = 5;
+   nfp = 1;
+   
+   stdpFlag   = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = 100;
+
+   wMin = 0.001;
+   wMax = 5;
+   dWMax = 1;  // .01;
+
+   normalize = false;
+   normalize_max = true;
+   normalize_zero_offset = 0.0;
+   strength = 10;
+   
+   ampLTP = 0.11;
+   ampLTD = 0.0095;
+   tauLTP = 1;
+   tauLTD = 21;
+   
+   wMaxInit = 0.5;
+   wMinInit = 0.005;
+   //localWmaxFlag = 0.0;
+   
+   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
+   //keepKernelsSynchronized = true;
+   combine_dW_with_W_flag = false;
+   selfFlag = false;
+
+   weightInitType = "UniformRandomWeight";
+   //weightInit = 0;
+   
+   symmetrizeWeights = 0;
+   
+   plasticityFlag = true;
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   stochasticReleaseFlag = false;
+   weightUpdatePeriod = 1.0;
+   delay = 0.0;
+   
+   synscalingFlag = 1;
+   synscaling_v = 5;
+};
+
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
