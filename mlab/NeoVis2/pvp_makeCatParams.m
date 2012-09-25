@@ -41,11 +41,11 @@ function [pvp_params_file] = ...
   endif
   if isempty(pvp_workspace_path)
     pvp_workspace_path = ...
-	[pvp_home_path, "workspace-juno", filesep];
+	[pvp_home_path, "workspace-iHouse", filesep];
   endif
   if isempty(pvp_mlab_path)
     pvp_mlab_path = ...
-	[pvp_home_path, "workspace-juno", filesep, "PetaVision", filesep, "mlab", filesep];
+	[pvp_home_path, "workspace-iHouse", filesep, "PetaVision", filesep, "mlab", filesep];
   endif
   if isempty(pvp_clique_path)
     pvp_clique_path = ...

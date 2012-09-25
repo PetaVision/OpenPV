@@ -37,8 +37,13 @@ global pvp_mlab_path
 global pvp_clique_path
 pvp_home_path = ...
     [filesep, "home", filesep, "gkenyon", filesep];
-pvp_workspace_path = ...
-    [pvp_home_path, "workspace-juno", filesep];
+if ismac
+  pvp_workspace_path = ...
+      [pvp_home_path, "workspace-iHouse", filesep];
+else
+  pvp_workspace_path = ...
+      [pvp_home_path, "workspace-sync", filesep];
+endif
 pvp_mlab_path = ...
     [pvp_workspace_path, "PetaVision", filesep, "mlab", filesep];
 pvp_clique_path = ...
@@ -119,9 +124,9 @@ mkdir(checkpoints_path);
 
 
 %% path to generic image processing routines
-util_dir = "~/workspace-juno/PetaVision/mlab/util/";
+util_dir = [pvp_mlab_path, "util", filesep];
 addpath(util_dir);
-str_dir = "~/workspace-juno/PetaVision/mlab/stringKernels/";
+str_dir = [pvp_mlab_path, "stringKernels", filesep];
 addpath(str_dir);
 
 checkpoint_read_path = ...
