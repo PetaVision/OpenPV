@@ -136,6 +136,7 @@ int CloneKernelConn::setParams(PVParams * params) {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
    stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", 0.0f, true);
+   preActivityIsNotRate = params->value(name, "preActivityIsNotRate", false, true) != 0;
    writeCompressedWeights = params->value(name, "writeCompressedWeights", 0.0f, true);
    selfFlag = params->value(name, "selfFlag", selfFlag, true) != 0;
    return PV_SUCCESS;

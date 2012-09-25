@@ -52,6 +52,7 @@ int IdentConn::setParams(PVParams * inputParams) {
    numAxonalArborLists=1;
    plasticityFlag = false;
    stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
    writeCompressedWeights = true;
    return PV_SUCCESS;
 }

@@ -580,6 +580,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
    plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true) != 0;
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
+   preActivityIsNotRate = inputParams->value(name, "preActivityIsNotRate", false, true) != 0;
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;

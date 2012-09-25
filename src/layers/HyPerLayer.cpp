@@ -55,6 +55,7 @@ DerivedLayer::initialize(arguments) {
 #include "../columns/HyPerCol.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "InitV.hpp"
+#include "LIF.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
@@ -876,8 +877,37 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #endif // DEBUG_OUTPUT
 
 
+   float dt_factor = 1.0f;
+   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
+   if (preActivityIsNotRate) {
+      float dt = getParent()->getDeltaTime();
+      LIF * liflayer = dynamic_cast<LIF *>(this); // Should override recvSynapticInput in LIF instead of dynamic_cast(this)
+      if (liflayer != NULL) {
+         const LIF_params * lif_params = liflayer->getLIFParams();
+         float tau;
+         switch(conn->getChannel()) {
+         case CHANNEL_EXC:
+            tau = lif_params->tauE;
+            break;
+         case CHANNEL_INH:
+            tau = lif_params->tauI;
+            break;
+         case CHANNEL_INHB:
+            tau = lif_params->tauIB;
+            break;
+         default:
+            assert(0);
+            break;
+         }
+         double exp_dt_tau = exp(-dt/tau);
+         dt_factor = (1-exp_dt_tau)/exp_dt_tau;
+      }
+      else {
+         dt_factor = dt;
+      }
+   }
    for (int kPre = 0; kPre < numExtended; kPre++) {
-      float a = activity->data[kPre];
+      float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
 
@@ -937,7 +967,6 @@ int HyPerLayer::publish(InterColComm* comm, float time)
       }
    }
 
-//   std::cout << getName() << ", " << clayer->activity->numItems << "\n";
    int status = comm->publish(this, clayer->activity);
 #ifdef PV_USE_OPENCL
    if(copyDataStoreFlag) {
