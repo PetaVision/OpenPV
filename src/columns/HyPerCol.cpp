@@ -434,8 +434,16 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    else if( resultcode == ENOENT /* No such file or directory */ ) {
       if( rank == 0 ) {
          printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
-         int mkdirstatus = mkdir(dirname, 0700);
-         if( mkdirstatus ) {
+
+         char targetString[PV_PATH_MAX];
+         int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
+         if (num_chars_needed > PV_PATH_MAX) {
+            fprintf(stderr,"Path \"%s\" is too long.",dirname);
+         }
+
+         int mkdirstatus = system(targetString);
+
+         if( mkdirstatus != 0 ) {
             fflush(stdout);
             fprintf(stderr, "Directory \"%s\" could not be created: %s\n", dirname, strerror(errno));
             exit(EXIT_FAILURE);
