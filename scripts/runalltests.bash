@@ -19,10 +19,13 @@
 # On neuro/anterior/etc.  Linux installs them as mpi*
 if test "$(uname)" = "Darwin"
 then
-    $PV_MPIRUN=openmpirun
+    PV_MPIRUN=openmpirun
 elif test "$(uname)" = "Linux"
-    $PV_MPIRUN=mpirun
+then
+    PV_MPIRUN=mpirun
 fi
+
+echo $PV_MPIRUN
 
 # Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
