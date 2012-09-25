@@ -13,14 +13,15 @@ HyPerCol "column" = {
 //   checkpointRead               = true;         // normal run
    checkpointRead               = false;        // init run
    checkpointWrite              = true;         // always
-   checkpointWriteDir           = "amoebarun";
+   checkpointWriteDir           = "OUTPATH/checkpoint";
    checkpointWriteStepInterval  = 100;
    filenamesContainLayerNames   = 2;
    
-   progressStep = 2000;
-   deleteOlderCheckpoints = 0.0;
+   progressStep                 = 2000;
+   deleteOlderCheckpoints       = 0.0;
 
-   outputPath = "OUTPATH"; //output path
+   outputPath                   = "OUTPATH/output"; //output path
+// printParamsFilename          = "OUTPATH/PARAMSFILE";
 };
 
 

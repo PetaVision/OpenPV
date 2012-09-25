@@ -139,7 +139,11 @@ else:
 
 ## Modify pvp file and run petavision for each parameter
 for param_idx in range(len(conn_lol[0])):
-    out_lines = param_lines[:]
+    out_lines = param_lines
+
+    idx_out_filename = out_filename+str(param_idx)+'.pv'
+    full_out_file = out_file+str(param_idx)+'.pv'
+
     for line_num in range(len(param_lines)):
         line = param_lines[line_num]
 
@@ -299,20 +303,21 @@ for param_idx in range(len(conn_lol[0])):
             for lol_idx in indices:
                 new_line = re.sub(conn_list[lol_idx],conn_lol[lol_idx][param_idx],out_lines[line_num],count=1)
                 out_lines[line_num] = new_line
-        elif 'OUTPATH' in line:
-            new_line = re.sub('OUTPATH',results_path+str(param_idx)+'/',out_lines[line_num],count=0)
+        if 'OUTPATH' in line:
+            new_line = re.sub('OUTPATH',results_path+str(param_idx),out_lines[line_num],count=0)
             out_lines[line_num] = new_line
-        elif 'INIMGPATH' in line:
+        if 'PARAMSFILE' in line:
+            new_line = re.sub('PARAMSFILE',idx_out_filename,out_lines[line_num],count=0)
+            out_lines[line_num] = new_line
+        if 'INIMGPATH' in line:
             new_line = re.sub('INIMGPATH',input_image,out_lines[line_num],count=0)
             out_lines[line_num] = new_line
-        elif 'INMOVPATH' in line:
+        if 'INMOVPATH' in line:
             new_line = re.sub('INMOVPATH',input_movie,out_lines[line_num],count=0)
             out_lines[line_num] = new_line
 
     ##Write to output file
     print "tune_params: Writing new params."
-    idx_out_filename = out_filename+str(param_idx)+'.pv'
-    full_out_file = out_file+str(param_idx)+'.pv'
     try:
         out_fid = open(full_out_file,'w')
     except IOError as e:
@@ -324,9 +329,9 @@ for param_idx in range(len(conn_lol[0])):
 
     ## Run petavision for this output file
     if run_PetaVision:
-        os.system('mv '+full_out_file+' '+input_path+'/'+idx_out_filename)
         print "tune_params: Running PetaVision.\n\n"
-        run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' '+run_path+' -p '+input_path+'/'+idx_out_filename
+        run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' '+run_path+' -p '+full_out_file
         os.system(run_cmd)
+        os.system('mv '+full_out_file+' '+results_path+str(param_idx))
         print "\n\ntune_params: Finished running PetaVision."
 
