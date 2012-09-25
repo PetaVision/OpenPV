@@ -438,11 +438,11 @@ int HyPerCol::ensureDirExists(const char * dirname) {
          char targetString[PV_PATH_MAX];
          int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
          if (num_chars_needed > PV_PATH_MAX) {
+            fflush(stdout);
             fprintf(stderr,"Path \"%s\" is too long.",dirname);
+            exit(EXIT_FAILURE);
          }
-
          int mkdirstatus = system(targetString);
-
          if( mkdirstatus != 0 ) {
             fflush(stdout);
             fprintf(stderr, "Directory \"%s\" could not be created: %s\n", dirname, strerror(errno));
