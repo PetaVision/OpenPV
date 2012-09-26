@@ -20,6 +20,8 @@ HyPerCol "column" = {
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   // checkpointWriteDir = "Checkpoints";
+   // checkpointWriteStepInterval = 1;
    suppressLastOutput = false;
 };
 
@@ -181,7 +183,7 @@ KernelConn "Retina to L0" = {
     preLayerName = "Retina";
     postLayerName = "L0";
     channelCode = 0;
-    numAxonalArbors = 4;
+    numAxonalArbors = 1;
     nxp = 1;
     nyp = 1;
     nfp = 4;
@@ -215,6 +217,7 @@ KernelConn "Retina to L0" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -267,6 +270,7 @@ KernelConn "L0 to Lx1" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -317,6 +321,7 @@ KernelConn "L0 to Lx2" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -367,6 +372,7 @@ KernelConn "L0 to Lx4" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -417,6 +423,7 @@ KernelConn "L0 to Lx1_2" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -467,6 +474,7 @@ KernelConn "L0 to Lx1_4" = {
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
     shrinkPatches = false;
 
     // wMax = 1.0;
@@ -544,32 +552,3 @@ ArborTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
     message = "Lx1_4 Stats Screen            ";
 };
-
-//PointProbe "Lx1 Stats Screen a" = {
-//    targetLayer = "Lx1";
-//    xLoc=16;
-//    yLoc=16;
-//    fLoc=1;
-//    //probeOutputFile = "Retina_b_Stats.txt";
-//};
-//PointProbe "Lx1 Stats Screen b" = {
-//    targetLayer = "Lx1";
-//    xLoc=4;
-//    yLoc=8;
-//    fLoc=2;
-//    //probeOutputFile = "Retina_b_Stats.txt";
-//};
-//PointProbe "Lx1 Stats Screen c" = {
-//    targetLayer = "Lx1";
-//    xLoc=16;
-//    yLoc=16;
-//    fLoc=3;
-    //probeOutputFile = "Retina_b_Stats.txt";
-//};
-//PointProbe "Lx1 Stats Screen d" = {
-//    targetLayer = "Lx1";
-//    xLoc=16;
-//    yLoc=16;
-//    fLoc=4;
-    //probeOutputFile = "Retina_b_Stats.txt";
-//};
