@@ -33,7 +33,7 @@ Movie "Image" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 0;
@@ -325,6 +325,7 @@ IdentConn "L1Pool1X1toL1CliqueVertical" = {
 };
 
 
+
 SiblingConn "L1Pool1X1toL1CliqueTarget" = {
      preLayerName = "L1Pool1X1";
      postLayerName = "L1Clique";
@@ -455,7 +456,6 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
 //
 //   delay = 0; 
 //};
-
 
 
 // downsample/pooling 
