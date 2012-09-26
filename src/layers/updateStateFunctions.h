@@ -13,7 +13,7 @@
 #ifndef PV_USE_OPENCL
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
-#include <iostream.h>
+#include <iostream>
 #else
 #define pvdata_t float
 #define max_pvdata_t FLT_MAX
