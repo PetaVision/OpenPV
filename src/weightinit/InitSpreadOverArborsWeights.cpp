@@ -82,11 +82,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
             float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
             float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
-            if (fPost == 0 && jPost == 0 && iPost == 3) {
-               printf("...\n");
-            }
-
-
 
             float weight = 0;
             if (xp*xp+yp*yp<1e-4) {
