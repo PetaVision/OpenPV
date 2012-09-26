@@ -37,18 +37,18 @@ int ArborTestProbe::outputState(float timef)
    }
 #endif // PV_USE_MPI
 	if(timef==3.0f){
-		assert((avg>0.24)&&(avg<0.29));
+		assert((avg>0.2499)&&(avg<0.2501));
 	}
 	else if(timef==4.0f){
-		assert((avg>0.4)&&(avg<0.61));
+		assert((avg>0.4999)&&(avg<0.5001));
 	}
 	else if(timef==5.0f){
-		assert((avg>0.74)&&(avg<0.761));
+		assert((avg>0.7499)&&(avg<0.7501));
 	}
 	else if(timef>5.0f){
-		assert((fMin>0.97)&&(fMin<1.070));
-		assert((fMax>0.97)&&(fMax<1.070));
-		assert((avg>0.97)&&(avg<1.070));
+		assert((fMin>0.9999)&&(fMin<1.001));
+		assert((fMax>0.9999)&&(fMax<1.001));
+		assert((avg>0.9999)&&(avg<1.001));
 	}
 
 	return status;
