@@ -82,15 +82,33 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
             float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
             float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
+            if (fPost == 0 && jPost == 0 && iPost == 3) {
+               printf("...\n");
+            }
+
 
 
             float weight = 0;
-            float theta = atan2f(yp, xp);
-            if(theta<0) theta+=2.0f*PI;
-            int zone = (int) floor(theta/(2*PI/nArbors));
+            if (xp*xp+yp*yp<1e-4) {
+               weight = iWeight/nArbors; // arborId ? 0 : iWeight;
+            }
+            else {
+               float theta = atan2f(yp, xp);
+               if(theta<0) theta+=2.0f*PI;
+               float zone = theta/(2*PI)*nArbors;
 
-            if (arborId == zone)
-               weight = iWeight;
+               float intpart;
+               float fracpart = modff(zone, &intpart);
+
+               if (intpart==arborId) {
+                  weight = iWeight*(1-fracpart);
+               }
+               else if ( (int) (intpart-arborId+1) % nArbors == 0) {
+                  weight = iWeight*fracpart;
+               }
+            }
+            // if (arborId == zone)
+            //    weight = iWeight;
 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             dataStart[index] = weight;
