@@ -13,6 +13,7 @@
 #ifndef PV_USE_OPENCL
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
+#include <iostream.h>
 #else
 #define pvdata_t float
 #define max_pvdata_t FLT_MAX
@@ -368,11 +369,16 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
    pvdata_t sig_scale = 1.0f;
    if( Vth > V0 ) {
       if( sigmoid_flag ) {
-         sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
+ //        sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
+         Vth = (Vth+V0)/2.; // the middle for L_G_E = 1
+         sig_scale = -1.0f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0); // Vth for L_G_E =1
+         cout << "if sigmoidflag ig_scale " << sig_scale << endl;
       }
       else {
-         sig_scale = 0.5/(Vth-V0); // threshold in the middle
-      }
+         //sig_scale = 0.5/(Vth-V0); // threshold in the middle
+         sig_scale = 1.0/(Vth-V0); // threshold for L_G_E = 1
+         cout << "else sigmoidflag sig_scale " << sig_scale << endl;
+       }
    }
    int k;
 #ifndef PV_USE_OPENCL
@@ -391,6 +397,7 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
          }
          else{
             A[kex] = (V[k] - V0) * sig_scale;
+            if (k == 1000) cout << " V[k] "<<V[k] << " "<< (V[k] - V0) * sig_scale << endl;
          }
       }
       else{
