@@ -587,6 +587,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    if (plasticityFlag){
       combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
    }
+
+   normalizeTotalToPost = inputParams->value(name, "normalizeTotalToPost", false, true) != 0;
+
    return 0;
 }
 
@@ -2401,6 +2404,28 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
       } // kPatch < numPatches
+
+      // If normalizeFromPost is true, determine ratio of densities and scale all weights appropriately.
+      // This is a shortcut.  What we should do is find for each postsynaptic cell, the sum of weights into that cell,
+      // and divide each weight into that cell by the sum.
+      float scale_factor = postSynapticLayer()->getNumNeurons()/preSynapticLayer()->getNumNeurons();
+      if (normalizeTotalToPost && scale_factor != 1.0) {
+         for (int kArbor=0; kArbor < numberOfAxonalArborLists(); kArbor++) {
+            for (int kPatch = 0; kPatch < numPatches; kPatch++) {
+               pvdata_t * wgt = get_wData(kArbor, kPatch);
+               int nx = patches == NULL ? nxp : patches[kPatch]->nx;
+               int ny = patches == NULL ? nyp : patches[kPatch]->ny;
+               for (int ky=0; ky<ny; ky++) {
+                  for (int kx=0; kx<nx; kx++) {
+                     for (int kf=0; kf<nfp; kf++) {
+                        wgt[kf*sfp + kx*sxp + ky*syp] *= scale_factor;
+                     }
+                  }
+               }
+            }
+         }
+      }
+
 
       status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );

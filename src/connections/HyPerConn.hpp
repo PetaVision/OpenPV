@@ -377,6 +377,7 @@ protected:
    //this class will try to read the weights from a file or will do a 2D Gaussian.
    InitWeights* weightInitializer;
    bool preActivityIsNotRate; // TODO Rename this member variable
+   bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
 
 protected:
    virtual int initNumWeightPatches();
