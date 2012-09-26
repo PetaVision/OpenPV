@@ -37,7 +37,7 @@ switch hdr.filetype
         numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
-        framesize = hdr.recordsize*hdr.numrecords*hdr.nbands+hdr.headersize;
+        framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
         nxprocs = hdr.nxGlobal/hdr.nx;
