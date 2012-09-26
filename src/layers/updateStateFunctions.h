@@ -372,12 +372,10 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
  //        sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
          Vth = (Vth+V0)/2.; // the middle for L_G_E = 1
          sig_scale = -1.0f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0); // Vth for L_G_E =1
-         cout << "if sigmoidflag ig_scale " << sig_scale << endl;
       }
       else {
          //sig_scale = 0.5/(Vth-V0); // threshold in the middle
          sig_scale = 1.0/(Vth-V0); // threshold for L_G_E = 1
-         cout << "else sigmoidflag sig_scale " << sig_scale << endl;
        }
    }
    int k;
@@ -397,7 +395,6 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
          }
          else{
             A[kex] = (V[k] - V0) * sig_scale;
-            if (k == 1000) cout << " V[k] "<<V[k] << " "<< (V[k] - V0) * sig_scale << endl;
          }
       }
       else{
