@@ -439,7 +439,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
 //};
 
 
-  SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
+SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
      preLayerName = "L1Pool1X1";
      postLayerName = "L1Clique";
      channelCode = 1;
