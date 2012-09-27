@@ -61,16 +61,6 @@ void HyPerLayer_recv_synaptic_input (
 
 namespace PV {
 
-// default values
-
-//PVConnParams defaultConnParams =
-//{
-//   /*delay*/ 0
-//   // Commenting out the same parameters that are commented out in setParams()
-//   // , /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
-//   // /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
-//};
-
 HyPerConn::HyPerConn()
 {
    initialize_base();
@@ -587,8 +577,6 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    if (plasticityFlag){
       combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
    }
-
-   normalizeTotalToPost = inputParams->value(name, "normalizeTotalToPost", false, true) != 0;
 
    return 0;
 }
@@ -2168,6 +2156,11 @@ int HyPerConn::initNormalize() {
    normalize_flag = params->value(name, "normalize", normalize_flag);
    if( normalize_flag ) {
       normalize_strength = params->value(name, "strength", 1.0f);
+      normalizeTotalToPost = params->value(name, "normalizeTotalToPost", /*default*/false);
+      if (normalizeTotalToPost) {
+         float scale_factor = ((float) postSynapticLayer()->getNumNeurons())/((float) preSynapticLayer()->getNumNeurons());
+         normalize_strength *= scale_factor;
+      }
       normalize_max = params->value(name, "normalize_max", normalize_max) != 0.0f;
       normalize_zero_offset = params->value(name, "normalize_zero_offset", normalize_zero_offset) != 0.0f;
       normalize_cutoff = params->value(name, "normalize_cutoff", normalize_cutoff) * normalize_strength;
@@ -2404,37 +2397,6 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
       } // kPatch < numPatches
-
-      // If normalizeFromPost is true, determine ratio of densities and scale all weights appropriately.
-      // This is a shortcut.  What we should do is find for each postsynaptic cell, the sum of weights into that cell,
-      // and divide each weight into that cell by the sum.
-      float scale_factor = postSynapticLayer()->getNumNeurons()/preSynapticLayer()->getNumNeurons();
-      if (normalizeTotalToPost && scale_factor != 1.0) {
-         for (int kArbor=0; kArbor < numberOfAxonalArborLists(); kArbor++) {
-            for (int kPatch = 0; kPatch < numPatches; kPatch++) {
-               int nx, ny;
-               pvdata_t * wgt = NULL;
-               if (patches==NULL) { // Indicates a KernelConn
-                  nx = nxp;
-                  ny = nyp;
-                  wgt = get_wDataHead(kArbor, kPatch);
-               }
-               else { // Not a KernelConn
-                  nx = patches[kPatch]->nx;
-                  ny = patches[kPatch]->ny;
-                  wgt = get_wData(kArbor, kPatch);
-               }
-               for (int ky=0; ky<ny; ky++) {
-                  for (int kx=0; kx<nx; kx++) {
-                     for (int kf=0; kf<nfp; kf++) {
-                        wgt[kf*sfp + kx*sxp + ky*syp] *= scale_factor;
-                     }
-                  }
-               }
-            }
-         }
-      }
-
 
       status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
