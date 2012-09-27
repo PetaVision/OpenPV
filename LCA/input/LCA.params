@@ -8,7 +8,7 @@
 // Rozell et al., "Sparse Coding via Thresholding and Local Cometition
 // in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
 
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 32;   
@@ -28,29 +28,31 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+Image "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     imagePath = "input/sampleimage.png";
     nf = 1;
-    marginWidth = 3;
+    marginWidth = 7;
     writeStep = -1;
     spikingFlag = false;
     writeNonspikingActivity = true;
     mirrorBCflag = false;
+    useImageBCflag = false;
+    inverseFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
 };
 
-ANNLayer "output" = {
+ANNLayer "Reconstruction" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 8;
+    nf = 1;
     marginWidth = 0;
-    writeStep = 1.0;
+    writeStep = -1;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
@@ -62,27 +64,73 @@ ANNLayer "output" = {
     VMin = -infinity;
 };
 
-KernelConn "input to output" = {
-    preLayerName = "input";
-    postLayerName = "output";
+ANNLayer "Error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+LCALayer "V1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1000;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+};
+
+IdentConn "Input to Error" = {
+    preLayerName = "Input";
+    postLayerName = "Error";
     channelCode = 0;
-    nxp = 7;
-    nyp = 7;
-    nfp = 8;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "Reconstruction to Error" = {
+    preLayerName = "Reconstruction";
+    postLayerName = "Error";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "Error to V1" = {
+    preLayerName = "Error";
+    postLayerName = "V1";
+    channelCode = 0;
+    nxp = 15;
+    nyp = 15;
+    nfp = 1000;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
+    initWeightsFile = "input/dictionary.pvp";
 
-    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalize = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
     plasticityFlag = false;
     selfFlag = false;
 
@@ -90,4 +138,17 @@ KernelConn "input to output" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+};
+
+TransposeConn "V1 to Reconstruction" = {
+    preLayerName = "V1";
+    postLayerName = "Reconstruction";
+    channelCode = 1;
+
+    originalConnName = "Error to V1";
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
 };
