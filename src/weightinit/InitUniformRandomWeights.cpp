@@ -55,6 +55,10 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
    const float wMaxInit = weightParamPtr->getWMax();
 
    uniformWeights(dataStart, wMinInit, wMaxInit, weightParamPtr);
+
+   //Create delays
+   weightParamPtr->getParentConn()->setDelay(arborId, arborId);
+
    return PV_SUCCESS; // return 1;
 }
 

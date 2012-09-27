@@ -61,6 +61,16 @@ void HyPerLayer_recv_synaptic_input (
 
 namespace PV {
 
+// default values
+
+//PVConnParams defaultConnParams =
+//{
+//   /*delay*/ 0
+//   // Commenting out the same parameters that are commented out in setParams()
+//   // , /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
+//   // /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
+//};
+
 HyPerConn::HyPerConn()
 {
    initialize_base();
@@ -996,9 +1006,9 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
-void HyPerConn::setDelay(int arborId, int delay) {
+void HyPerConn::setDelay(int arborId, float delay) {
    assert(arborId>=0 && arborId<numAxonalArborLists);
-   delays[arborId] = delay;
+   delays[arborId] = round(delay / parent->getDeltaTime());
 //   int numPatches = numWeightPatches();
 //    for(int pID=0;pID<numPatches; pID++) {
 //       axonalArbor(pID, arborId)->delay = delay;

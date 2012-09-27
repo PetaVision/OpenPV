@@ -169,6 +169,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       if ( params->stringPresent(name, "patternsOutputPath") ) {
          patternsOutputPath = strdup(params->stringValue(name, "patternsOutputPath"));
          assert(patternsOutputPath != NULL);
+         hc->ensureDirExists(patternsOutputPath);
       }
       else {
          patternsOutputPath = strdup( hc->getOutputPath());
@@ -287,7 +288,7 @@ int Patterns::generatePattern(float val)
       deleteme.clear();
       //Radius of circle at current timestep
       //Remove extra circles
-      for(int i = 0; i < radius.size(); i++){
+      for(int i = 0; i < (int)radius.size(); i++){
          //Negative means off stim
          if(radius[i] < 0){
             radius[i] -= dropSpeed;
@@ -310,7 +311,7 @@ int Patterns::generatePattern(float val)
            deleteme.push_back(i);
          }
       }
-      for(int i = 0; i < deleteme.size(); i++){
+      for(int i = 0; i < (int)deleteme.size(); i++){
          radius.erase(radius.begin() + deleteme[i]);
       }
 
@@ -328,7 +329,7 @@ int Patterns::generatePattern(float val)
       }
 
       //Draw circle
-      for(int i = 0; i < radius.size(); i++){
+      for(int i = 0; i < (int)radius.size(); i++){
          bool on;
          //Off stim
          if(radius[i] < 0){

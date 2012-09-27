@@ -111,10 +111,10 @@ public:
 
    int insertProbe(ColProbe * p);
    int outputState(float time);
+   int ensureDirExists(const char * dirname);
 
 private:
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
-   int ensureDirExists(const char * dirname);
    int checkDirExists(const char * dirname, struct stat * pathstat);
    int initPublishers();
    bool advanceCPWriteTime();

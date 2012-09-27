@@ -108,7 +108,7 @@ public:
       return weightInitializer;
    }
 
-   void setDelay(int axonId, int delay);
+   void setDelay(int axonId, float delay);
 
    inline int getDelay(int arborId = 0) {
       assert(arborId >= 0 && arborId < numAxonalArborLists);
