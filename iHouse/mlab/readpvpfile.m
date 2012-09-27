@@ -77,7 +77,7 @@ switch hdr.filetype
         numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
-        framesize = hdr.recordsize*hdr.numrecords*hdr.nbands+hdr.headersize;
+        framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
         nxprocs = hdr.nxGlobal/hdr.nx;
@@ -146,7 +146,7 @@ if isempty(errorstring)
                 error('readpvpfile: unable to seek to the end of the header for pvp file ',filedata)
             end%if ne(status,0)
             
-            disp('Reading activity file');
+%            disp('Reading activity file');
 
             integrated_image = ones([hdr.nxGlobal,hdr.nyGlobal]);
               data = cell(numframes,1);
@@ -278,7 +278,7 @@ if isempty(errorstring)
             end%if eq(MOVIE_FLAG,1)
 
         case 3 % PVP_WGT_FILE_TYPE
-            disp('Reading weights type file')
+%            disp('Reading weights type file')
             fseek(fid,0,'bof');
             %hdr
             %numframes

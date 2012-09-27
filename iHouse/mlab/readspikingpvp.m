@@ -10,8 +10,6 @@
 %%%%%%%%
 %%DELETE
 %%%%%%%%
-clear all; close all; more off;
-
 global output_path;  output_path  = '/Users/slundquist/Documents/workspace/iHouse/output/';
 global filename;     filename     = '/Users/slundquist/Documents/workspace/iHouse/output/lif.pvp';
 global rootname;     rootname     = '00';

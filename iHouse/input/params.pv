@@ -3,8 +3,10 @@
 //
 
 HyPerCol "column" = {
-   nx 							= 128; 			// pixel width of input image
-   ny 							= 128; 			// pixel height of input image
+   nx 							= 64; 			// pixel width of input image
+   ny 							= 64; 			// pixel height of input image
+//   nx 							= 128; 			// pixel width of input image
+//   ny 							= 128; 			// pixel height of input image
    dt 							= 1.;           // according GK
 //   randomSeed 				= 1020304050.0; // remove when running for real
    //checkpointRead  			= true;  		// normal run
@@ -13,7 +15,7 @@ HyPerCol "column" = {
    checkpointWrite 				= false;  		// always
 //   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
 //   checkpointWriteStepInterval = 200;
-   numSteps 					= 500;			// amount of time steps performed during run-time
+   numSteps 					= 1000;			// amount of time steps performed during run-time
    progressStep					= 1000;
 //   deleteOlderCheckpoints = false;
    outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
@@ -28,10 +30,10 @@ HyPerCol "column" = {
 
 Patterns "input" = {
    patternType = "DROP";
-   dropSpeed = 3;       //Radius expands dropSpeed pixles per timestep
+   dropSpeed = 1;       //Radius expands dropSpeed pixles per timestep
    dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
-   dropRandomMax = 22;  //Max random periods for each drop, 20 default
-   dropRandomMin = 12;   //Min random periods for each drop, 5 default
+   dropRandomMax = 30;  //Max random periods for each drop, 20 default
+   dropRandomMin = 15;   //Min random periods for each drop, 5 default
    halfNeutral = true;
    startFrame = 100;
 //   pMove = 1;
@@ -79,7 +81,7 @@ Retina "RetinaON" = {
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
     burstFreq = 50;      // Hz
     burstDuration = 20;  // ms
@@ -144,8 +146,8 @@ LIF "lif" = {
    VthRest          = -55.0;   	// firing threshold 15 mV above rest
    tauVth           = 10.0;    	// 10.0 relative refractory period
    deltaVth         = 5.0;     	// jump of threshold when firing
-   noiseAmpE        = 0;     	// 0.5 1 means conductance is equal to lead conductance  gjk
-   noiseAmpI        = 0;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
+   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
    noiseAmpIB       = 0.0;     	// no noise here 
    noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;    	// correlation to time step size !!!
@@ -306,18 +308,19 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    delay = 0;
 };
 
+
 // Retina connections      
 STDPConn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "lif";
    channelCode = 0;
-   nxp = 5;
-   nyp = 5;
+   nxp = 11;
+   nyp = 11;
    nfp = 1;
    
    stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  /dr/ restart
-   writeStep = 100;
+   writeStep = 200;
 
    wMin = 0.001;
    wMax = 5;
@@ -337,13 +340,15 @@ STDPConn "RetinaONtoS1" = {
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
+   numAxonalArbors = 10; // pow(cliquePatchSize, cliqueSize-1), 
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
 
+//   weightInitType = "SpreadOverArborsWeight";
    weightInitType = "UniformRandomWeight";
-   //weightInit = 0;
+//   weightInitType = "Gauss2DWeight";
+   weightInit = 0.001;
    
    symmetrizeWeights = 0;
    
@@ -362,13 +367,13 @@ STDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
    channelCode = 0;
-   nxp = 5;
-   nyp = 5;
+   nxp = 11;
+   nyp = 11;
    nfp = 1;
    
    stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 100;
+   writeStep = 200;
 
    wMin = 0.001;
    wMax = 5;
@@ -388,13 +393,15 @@ STDPConn "RetinaOFFtoS1" = {
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
+   numAxonalArbors = 10; // pow(cliquePatchSize, cliqueSize-1), 
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
 
+//   weightInitType = "SpreadOverArborsWeight";
    weightInitType = "UniformRandomWeight";
-   //weightInit = 0;
+//   weightInitType = "Gauss2DWeight";
+   weightInit = 0.001;
    
    symmetrizeWeights = 0;
    
@@ -408,7 +415,7 @@ STDPConn "RetinaOFFtoS1" = {
    synscalingFlag = 1;
    synscaling_v = 5;
 };
-
+//
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
