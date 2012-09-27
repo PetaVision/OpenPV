@@ -1,0 +1,93 @@
+//
+// LCA.params
+//
+// created by peteschultz: Sept 27, 2012
+//
+
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   numSteps = 10;
+   progressStep = 10;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+
+Image "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/sampleimage.png";
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1;
+    spikingFlag = false;
+    writeNonspikingActivity = true;
+    mirrorBCflag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "output" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+};
+
+KernelConn "input to output" = {
+    preLayerName = "input";
+    postLayerName = "output";
+    channelCode = 0;
+    nxp = 7;
+    nyp = 7;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalize = 1.0;
+    normalize_zero_offset = 0.0;
+    normalize_max = 0.0;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+
+    writeCompressedWeights = 0.0;
+    plasticityFlag = false;
+    selfFlag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
