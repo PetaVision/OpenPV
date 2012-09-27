@@ -9,7 +9,6 @@
 #include "../layers/LIF.hpp"
 #include "../layers/PVLayer.h"
 #include "../include/default_params.h"
-// #include "../io/ConnectionProbe.hpp"
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
@@ -60,16 +59,6 @@ void HyPerLayer_recv_synaptic_input (
 #endif
 
 namespace PV {
-
-// default values
-
-//PVConnParams defaultConnParams =
-//{
-//   /*delay*/ 0
-//   // Commenting out the same parameters that are commented out in setParams()
-//   // , /*fixDelay*/ 0, /*varDelayMin*/ 0, /*varDelayMax*/ 0, /*numDelay*/ 1,
-//   // /*isGraded*/ 0, /*vel*/ 45.248, /*rmin*/ 0.0, /*rmax*/ 4.0
-//};
 
 HyPerConn::HyPerConn()
 {
