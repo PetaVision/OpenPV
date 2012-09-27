@@ -16,7 +16,7 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 10;
-   progressStep = 10;
+   progressStep = 1;
    outputPath = "output/";
    filenamesContainLayerNames = false;
    checkpointRead = false;
@@ -34,7 +34,7 @@ Image "Input" = {
     nyScale = 1;
     imagePath = "input/sampleimage.png";
     nf = 1;
-    marginWidth = 7;
+    marginWidth = 1;
     writeStep = -1;
     spikingFlag = false;
     writeNonspikingActivity = true;
@@ -69,7 +69,7 @@ ANNLayer "Error" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
+    marginWidth = 7;
     writeStep = -1;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -87,13 +87,17 @@ LCALayer "V1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1000;
-    marginWidth = 0;
+    marginWidth = 7;
     writeStep = -1;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
     InitVType = "ZeroV";
+    
+    threshold = 1.0;
+    thresholdSoftness = 0.0;
+    timeConstantTau = 10.0;
 };
 
 IdentConn "Input to Error" = {
@@ -120,16 +124,18 @@ KernelConn "Error to V1" = {
     nyp = 15;
     nfp = 1000;
     numAxonalArbors = 1;
-    writeStep = -1;
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
     initWeightsFile = "input/dictionary.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
 
     normalize = false;
     symmetrizeWeights = false;
     preActivityIsNotRate = false;
 
+    writeStep = -1;
     writeCompressedWeights = false;
     plasticityFlag = false;
     selfFlag = false;
@@ -143,12 +149,16 @@ KernelConn "Error to V1" = {
 TransposeConn "V1 to Reconstruction" = {
     preLayerName = "V1";
     postLayerName = "Reconstruction";
-    channelCode = 1;
+    channelCode = 0;
 
     originalConnName = "Error to V1";
+
+    preActivityIsNotRate = false;
 
     writeStep = -1;
     writeCompressedWeights = false;
 
     delay = 0;
+    
+    stochasticReleaseFlag = false;
 };
