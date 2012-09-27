@@ -181,11 +181,12 @@ KernelConn "Retina to L0" = {
     rMin = 0;
     // no = 4;
       
-    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
@@ -222,7 +223,8 @@ KernelConn "L0 to Lx1" = {
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
@@ -259,11 +261,12 @@ KernelConn "L0 to Lx2" = {
     // rotate = 1;
     // no = 8;
       
-    strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
@@ -300,11 +303,12 @@ KernelConn "L0 to Lx4" = {
     // rotate = 1;
     // no = 16;
       
-    strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
@@ -341,11 +345,12 @@ KernelConn "L0 to Lx1_2" = {
     rotate = 1;
     // no = 2;
       
-    strength = 0.125; // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
@@ -382,11 +387,12 @@ KernelConn "L0 to Lx1_4" = {
     // rotate = 1;
     // no = 1;
       
-    strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1; // 1.0 x post->num_neurons / pre->num_neurons
     normalize = 1.0;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
-    normalize_cutoff = 0;
+    normalize_cutoff = 0.0;
+    normalizeTotalToPost = true;
     symmetrizeWeights = 0;
 
     writeCompressedWeights = 0.0;
