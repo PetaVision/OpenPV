@@ -2412,9 +2412,18 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
       if (normalizeTotalToPost && scale_factor != 1.0) {
          for (int kArbor=0; kArbor < numberOfAxonalArborLists(); kArbor++) {
             for (int kPatch = 0; kPatch < numPatches; kPatch++) {
-               pvdata_t * wgt = get_wData(kArbor, kPatch);
-               int nx = patches == NULL ? nxp : patches[kPatch]->nx;
-               int ny = patches == NULL ? nyp : patches[kPatch]->ny;
+               int nx, ny;
+               pvdata_t * wgt = NULL;
+               if (patches==NULL) { // Indicates a KernelConn
+                  nx = nxp;
+                  ny = nyp;
+                  wgt = get_wDataHead(kArbor, kPatch);
+               }
+               else { // Not a KernelConn
+                  nx = patches[kPatch]->nx;
+                  ny = patches[kPatch]->ny;
+                  wgt = get_wData(kArbor, kPatch);
+               }
                for (int ky=0; ky<ny; ky++) {
                   for (int kx=0; kx<nx; kx++) {
                      for (int kf=0; kf<nfp; kf++) {
