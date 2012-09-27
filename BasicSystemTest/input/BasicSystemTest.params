@@ -9,7 +9,7 @@
 //  basic functionality
 //
 
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 32;   
@@ -40,6 +40,8 @@ Image "input" = {
     spikingFlag = false;
     writeNonspikingActivity = true;
     mirrorBCflag = false;
+    useImageBCflag = false;
+    inverseFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
@@ -92,7 +94,9 @@ KernelConn "input to output" = {
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
+    normalizeTotalToPost = false;
     symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
