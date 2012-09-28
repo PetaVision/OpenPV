@@ -19,9 +19,11 @@ LCALayer::LCALayer() {
 }
 
 LCALayer::~LCALayer() {
+   free(stimulus); stimulus = NULL;
 }
 
 int LCALayer::initialize_base() {
+   stimulus = NULL;
    return PV_SUCCESS;
 }
 
@@ -30,6 +32,11 @@ int LCALayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    threshold = readThreshold();
    thresholdSoftness = readThresholdSoftness();
    timeConstantTau = readTimeConstantTau();
+   stimulus = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+   if (stimulus == NULL) {
+      fprintf(stderr, "LCALayer::initialize error allocating memory for stimulus: %s", strerror(errno));
+      abort();
+   }
 
    return status;
 }
@@ -47,15 +54,26 @@ int LCALayer::updateState(float timef, float dt) {
    const int nf = loc->nf;
    const int nb = loc->nb;
    for (int k=0; k<getNumNeurons(); k++) {
-      pvdata_t stimulus = gSynExc[k] - gSynInh[k];
-      pvdata_t Vk = V[k];
-      Vk = Vk + dt_tau*(stimulus - V[k] + A[k]);
+      stimulus[k] = gSynExc[k] - gSynInh[k];
       int kex = kIndexExtended(k, nx, ny, nf, nb);
+      pvdata_t Vk = V[k];
+      Vk = Vk + dt_tau*(stimulus[k] - V[k] + A[kex]);
       A[kex] = Vk >= threshold ? Vk - threshdrop : 0.0;
       V[k] = Vk;
    }
+   resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
 
    return PV_SUCCESS;
+}
+
+int LCALayer::checkpointWrite(const char * cpDir) {
+   int status = HyPerLayer::checkpointWrite(cpDir);
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_stimulus.pvp", cpDir, name);
+   assert(chars_needed < PV_PATH_MAX);
+   status = writeBufferFile(filename, getParent()->icCommunicator(), getParent()->simulationTime(), stimulus, 1, /*extended*/false, /*contiguous*/false)
+                == PV_SUCCESS ? status : PV_FAILURE;
+   return status;
 }
 
 } /* namespace PV */

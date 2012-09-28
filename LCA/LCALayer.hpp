@@ -18,10 +18,13 @@ class LCALayer : public HyPerLayer {
 public:
    LCALayer(const char * name, HyPerCol * hc, int num_channels=MAX_CHANNELS);
    virtual ~LCALayer();
-   virtual int updateState(float timef, float dt);
+
    float getThreshold() {return threshold;}
    float getThresholdSoftness() {return thresholdSoftness;}
    float getTimeConstantTau() {return timeConstantTau;}
+
+   virtual int updateState(float timef, float dt);
+   virtual int checkpointWrite(const char * cpDir);
 
 protected:
    LCALayer();
@@ -36,6 +39,7 @@ private:
 
 // Member variables
 protected:
+   pvdata_t * stimulus;
    float threshold;
    float thresholdSoftness;
    float timeConstantTau;
