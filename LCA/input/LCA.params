@@ -11,17 +11,19 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 32;   
-   ny = 32;
-   dt = 1.0;
+   nx = 64;   
+   ny = 64;
+   dt = 0.25;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 10;
+   numSteps = 40;
    progressStep = 1;
    outputPath = "output/";
    filenamesContainLayerNames = false;
    checkpointRead = false;
-   checkpointWrite = false;
-   suppressLastOutput = false;
+   checkpointWrite = true;
+   checkpointWriteDir = "Checkpoints";
+   checkpointWriteStepInterval = 1;
+   // suppressLastOutput = false;
 };
 
 //
@@ -32,7 +34,7 @@ Image "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imagePath = "input/sampleimage.png";
+    imagePath = "input/Bda_art1164_on.png"; // "input/sampleimage.png";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
