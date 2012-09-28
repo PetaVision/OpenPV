@@ -82,10 +82,13 @@ int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
       pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
       pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
       pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
+      pvdata_t * G_GAP = LIF_layer->getConductance(CHANNEL_GAP);
       pvdata_t * Vth  = LIF_layer->getVth();
+
       fprintf(fp, " G_E=%6.3f", G_E[k]);
       fprintf(fp, " G_I=%6.3f", G_I[k]);
       fprintf(fp, " G_IB=%6.3f", G_IB[k]);
+      if (G_GAP != NULL) fprintf(fp, " G_GAP=%6.3f", G_GAP[k]);
       fprintf(fp, " V=%6.3f", V[k]);
       fprintf(fp, " Vth=%6.3f", Vth[k]);
       fprintf(fp, " a=%.1f\n", activity[kex]);
