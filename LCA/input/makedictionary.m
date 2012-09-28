@@ -7,18 +7,19 @@
 % define constants
 numsamples = 10000;
 dictionarysize = 1000;
-patchsizex = 15;
-patchsizey = 15;
+patchsizex = 16;
+patchsizey = 16;
+imagedir = '~/Workspace/NMC/CNS/AnimalDB/Distractors/diffgauss_on';
 
 fprintf(1,'reading images\n'); fflush(1);
-imglist = dir('*.png');
+imglist = dir([imagedir '/*.png']);
 numimages = numel(imglist);
-A = imread(imglist(1).name);
+A = imread([imagedir '/' imglist(1).name]);
 [imagey, imagex] = size(A);
 clear A;
 images = zeros(imagey,imagex,numimages);
 for k=1:numimages
-    images(:,:,k) = double(imread(imglist(k).name))/255;
+    images(:,:,k) = double(imread([imagedir '/' imglist(k).name]))/255;
 end
 
 fprintf(1,'selecting patches at random\n'); fflush(1);
