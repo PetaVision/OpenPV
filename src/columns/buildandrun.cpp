@@ -143,6 +143,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "RuleConn",
                "STDPConn",
                "STDP3Conn",
+               "OjaSTDPConn",
                "SubunitConn",
                "BIDSConn",
            "_Stop_HyPerConns_",
@@ -850,6 +851,16 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
         if( preLayer && postLayer ) {
           fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
           addedConn = (HyPerConn * ) new STDP3Conn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
+        }
+        status = checknewobject((void *) addedConn, classkeyword, name, hc);
+      }
+   if( !keywordMatched && !strcmp(classkeyword, "OjaSTDPConn")) {
+        keywordMatched = true;
+        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+        bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
+        if( preLayer && postLayer ) {
+          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+          addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
         }
         status = checknewobject((void *) addedConn, classkeyword, name, hc);
       }

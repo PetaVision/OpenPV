@@ -63,6 +63,7 @@
 #include "../connections/STDPConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/BIDSConn.hpp"
+#include "../connections/OjaSTDPConn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
