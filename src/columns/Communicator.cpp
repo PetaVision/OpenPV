@@ -42,34 +42,46 @@ Communicator::Communicator(int* argc, char*** argv)
 #ifdef PV_USE_MPI
    int exclsize = worldSize - commSize;
 
-   if( exclsize < 0 ) {
-      fprintf(stderr, "Error: %d rows and %d columns specified but only %d processes are available.\n", numRows, numCols, worldSize);
-      exit(EXIT_FAILURE);
-   }
-   else if (exclsize == 0) {
+   if (exclsize == 0) {
       MPI_Comm_dup(MPI_COMM_WORLD, &icComm);
    }
    else {
-      fprintf(stderr, "Error: %d rows and %d columns specified but %d processes available.  Excess processes not yet supported.  Exiting.\n", numRows, numCols, worldSize);
-      exit(EXIT_FAILURE);
-// Currently, excess processes cause problems because all processes, whether in the icComm group or not, call all the MPI commands.
-// The excluded processes should be prevented from calling commands in the communicator.  It isn't desirable to have the excess
-// processes simply exit, because there may be additional HyPerColumn simulations to run.
-/*
-      MPI_Group worldGroup, newGroup;
-      MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
+      // Currently, excess processes cause problems because all processes, whether in the icComm group or not, call all the MPI commands.
+      // The excluded processes should be prevented from calling commands in the communicator.  It isn't desirable to have the excess
+      // processes simply exit, because there may be additional HyPerColumn simulations to run.
+      /*
+            MPI_Group worldGroup, newGroup;
+            MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
 
-      int * ranks = new int [exclsize];
+            int * ranks = new int [exclsize];
 
-      for (int i = 0; i < exclsize; i++) {
-         ranks[i] = i + commSize;
+            for (int i = 0; i < exclsize; i++) {
+               ranks[i] = i + commSize;
+            }
+
+            MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
+            MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
+
+            delete ranks;
+       */
+      int icRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &icRank);
+      if (icRank==0) {
+         if (exclsize < 0) {
+            fprintf(stderr, "Error: %d rows and %d columns specified but only %d processes are available.\n", numRows, numCols, worldSize);
+         }
+         else {
+            assert(exclsize > 0);
+            if (rowsDefined && colsDefined) {
+               fprintf(stderr, "Error: %d rows and %d columns specified but %d processes available.  Excess processes not yet supported.  Exiting.\n", numRows, numCols, worldSize);
+            }
+            else {
+               fprintf(stderr, "Error: trying %d rows and %d columns but this does not correspond to the %d processes specified.\n", numRows, numCols, worldSize);
+               fprintf(stderr, "You can use the \"-rows\" and \"-columns\" options to specify the arrangement of processes.\n");
+            }
+         }
       }
-
-      MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
-      MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
-
-      delete ranks;
- */
+      exit(EXIT_FAILURE);
    }
 #endif // PV_USE_MPI
 
@@ -594,7 +606,6 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    const int nxBorder = loc->nb;
    const int nyBorder = loc->nb;
 
-   // TODO - is this numFeatures
    const int nf = loc->nf;
 
    count       = loc->ny;
