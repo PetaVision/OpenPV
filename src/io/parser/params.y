@@ -181,7 +181,7 @@ parameter_def : T_ID '=' T_NUMBER ';'
 parameter_string_def : T_ID '=' T_STRING ';'
                         { handler->action_parameter_string_def($1,$3); }
                      | T_ID '=' T_FILENAME ';'
-                        { handler->action_parameter_string_def($1,$3); }
+                        { handler->action_parameter_filename_def($1,$3); }
                      ;
 
 include_directive : T_INCLUDE T_ID ';'

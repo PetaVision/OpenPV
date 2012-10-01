@@ -1173,6 +1173,42 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
    free(param_value);
 }
 
+void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
+   if( debugParsing && getRank() == 0 ) {
+      fflush(stdout);
+      printf("action_parameter_filename_def: %s = %s\n", id, stringval);
+      fflush(stdout);
+   }
+   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
+   char * param_value = stripQuotationMarks(stringval);
+   assert(param_value);
+   ParameterString * pstr = NULL;
+   char * filename = NULL;
+   int len = strlen(param_value);
+   if (len>1 && param_value[0]=='~' && param_value[1]=='/') { // If filename starts with ~/ replace ~ with $HOME
+      char * homedir = getenv("HOME");
+      if (homedir==NULL) {
+         fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", param_value);
+      }
+      char dummy;
+      int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &param_value[1]);
+      filename = (char *) malloc(chars_needed+1);
+      if (filename==NULL) {
+         fprintf(stderr, "Unable to allocate memory for filename \"%s/%s\"\n", homedir, &param_value[1]);
+         exit(EXIT_FAILURE);
+      }
+      int chars_used = snprintf(filename, chars_needed+1, "%s/%s", homedir, &param_value[1]);
+      assert(chars_used <= chars_needed);
+      pstr = new ParameterString(id, filename);
+      free(filename);
+   }
+   else {
+      pstr = new ParameterString(id, param_value);
+   }
+   free(param_value);
+   stringStack->push(pstr);
+}
+
 void PVParams::action_include_directive(const char * stringval) {
    if( debugParsing && getRank() == 0 ) {
       fflush(stdout);

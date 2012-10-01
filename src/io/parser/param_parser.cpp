@@ -1519,7 +1519,7 @@ yyreduce:
 
   case 14:
 #line 184 "params.y"
-    { handler->action_parameter_string_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
+    { handler->action_parameter_filename_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 15:

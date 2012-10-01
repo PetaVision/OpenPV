@@ -214,6 +214,7 @@ public:
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
    void action_parameter_string_def(const char * id, const char * stringval);
+   void action_parameter_filename_def(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
 #ifdef OBSOLETE // Marked obsolete March 15, 2012.  There's more flexibility in defining string parameters within groups
    void action_filename_def(char * id, char * path); // Deprecated Oct 27, 2011
