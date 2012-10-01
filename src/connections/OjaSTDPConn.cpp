@@ -33,7 +33,7 @@ int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    // this->dwPatches = NULL;
    this->post_tr = NULL;
-   this->post_sum_tr = NULL;
+   this->post_long_tr = NULL;
    this->ampLTP = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    this->ampLTD = 0.0071;
    this->tauLTP = 16.8;
@@ -44,6 +44,7 @@ int OjaSTDPConn::initialize_base() {
    this->synscalingFlag = false;
    this->synscaling_v = 1;
    this->weightDecay = 0.01;
+   this->prevW = 0;
    // TODO: Set the default values for wMin and wMax? Or are they already set somewhere?
    return PV_SUCCESS;
 }
@@ -72,14 +73,14 @@ int OjaSTDPConn::initPlasticityPatches()
    int status = HyPerConn::initPlasticityPatches();
    assert(status == 0);
 
-   post_tr     = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-   post_sum_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-   pre_tr      = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
-   pre_sum_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
-   assert(post_tr     != NULL);
-   assert(post_sum_tr != NULL);
-   assert(pre_tr      != NULL);
-   assert(pre_sum_tr  != NULL);
+   post_tr      = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   post_long_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   pre_tr       = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+   pre_long_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+   assert(post_tr      != NULL);
+   assert(post_long_tr != NULL);
+   assert(pre_tr       != NULL);
+   assert(pre_long_tr  != NULL);
 
    return PV_SUCCESS;
 }
@@ -89,8 +90,8 @@ int OjaSTDPConn::deleteWeights()
    if (stdpFlag) {
       pvcube_delete(post_tr);
       post_tr = NULL;
-      pvcube_delete(post_sum_tr);
-      post_sum_tr = NULL;
+      pvcube_delete(post_long_tr);
+      post_long_tr = NULL;
    }
    return 0;
 }
@@ -140,8 +141,8 @@ int OjaSTDPConn::updateState(float time, float dt)
 
    int status=0;
    if (stdpFlag) {
-      for(int axonId = 0; axonId<numberOfAxonalArborLists(); axonId++) {
-         status=updateWeights(axonId);
+      for(int axonID = 0; axonID<numberOfAxonalArborLists(); axonID++) {
+         status=updateWeights(axonID);
       }
    }
    update_timer->stop();
@@ -149,7 +150,7 @@ int OjaSTDPConn::updateState(float time, float dt)
    return status;
 }
 
-int OjaSTDPConn::updateWeights(int axonId)
+int OjaSTDPConn::updateWeights(int axonID)
 {
    // Steps:
    // 1. Update post_tr
@@ -166,26 +167,26 @@ int OjaSTDPConn::updateWeights(int axonId)
    const int nkpre  = pre->getNumExtended();
    assert(nkpre == getNumWeightPatches());
 
-   const pvdata_t * preLayerData = pre->getLayerData(getDelay(axonId));
+   const pvdata_t * preLayerData = pre->getLayerData(getDelay(axonID));
    const pvdata_t * aPost        = post->getLayerData();
    pvdata_t aPre;
 
    pvdata_t * post_tr_m;        // Postsynaptic trace matrix; i.e. data of post_tr struct
-   pvdata_t * post_sum_tr_m;    // Postsynaptic mean trace matrix
+   pvdata_t * post_long_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * pre_tr_m;         // Presynaptic trace matrix
-   pvdata_t * pre_sum_tr_m;
+   pvdata_t * pre_long_tr_m;
    pvdata_t * W;                // Weight matrix pointer
 
    int nk, ny;
 
-   post_tr_m        = post_tr->data;
-   post_sum_tr_m    = post_sum_tr->data;
+   post_tr_m      = post_tr->data;
+   post_long_tr_m = post_long_tr->data;
 
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
    {
       post_tr_m[kPost]     = decayLTD * post_tr_m[kPost] + aPost[kPost];
-      post_sum_tr_m[kPost] = decayLTDLong * post_sum_tr_m[kPost] + aPost[kPost];
+      post_long_tr_m[kPost] = decayLTDLong * post_long_tr_m[kPost] + aPost[kPost];
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
@@ -194,56 +195,55 @@ int OjaSTDPConn::updateWeights(int axonId)
 
    for (int kPre = 0; kPre < nkpre; kPre++)              // Loop over all presynaptic neurons
    {
-      size_t postOffset = getAPostOffset(kPre, axonId);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
+      size_t postOffset = getAPostOffset(kPre, axonID);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
 
-      aPre          = preLayerData[kPre];                // Spiking activity
-      aPost         = &post->getLayerData()[postOffset]; // Gets address of postsynaptic activity
-      post_tr_m     = &(post_tr->data[postOffset]);      // Reference to STDP post trace
-      post_sum_tr_m = &(post_tr->data[postOffset]);
-      pre_tr_m      = &(pre_tr->data[kPre]);             // PreTrace for given presynaptic neuron kPre
-      pre_sum_tr_m  = &(pre_tr->data[kPre]);
+      aPre           = preLayerData[kPre];                // Spiking activity
+      aPost          = &post->getLayerData()[postOffset]; // Gets address of postsynaptic activity
+      post_tr_m      = &(post_tr->data[postOffset]);      // Reference to STDP post trace
+      post_long_tr_m = &(post_tr->data[postOffset]);
+      pre_tr_m       = &(pre_tr->data[kPre]);             // PreTrace for given presynaptic neuron kPre
+      pre_long_tr_m  = &(pre_tr->data[kPre]);
 
-      W = get_wData(axonId, kPre);                       // Pointer to data of given axon & presynaptic neuron
-      prevW = W;                                         // Pointer to data of previous time_step
+      W = get_wData(axonID, kPre);                       // Pointer to data of given axon & presynaptic neuron
 
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
       // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true?
-      PVPatch * w = getWeights(kPre, axonId);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
+      PVPatch * w = getWeights(kPre, axonID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
       nk  = nfp * w->nx; // one line in x at a time
       ny  = w->ny;
 
       // 2. Updates the presynaptic trace
-      *pre_tr_m     = decayLTP * (*pre_tr_m) + aPre;
-      *pre_sum_tr_m = decayLTPLong * (*pre_sum_tr_m) + aPre;  //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_tr_m      = decayLTP * (*pre_tr_m) + aPre;        //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_long_tr_m = decayLTPLong * (*pre_long_tr_m) + aPre;
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-            if (W[k] < WEIGHT_MIN_VALUE) continue; // This allows some synapses to "die".
+            if (W[k] < WEIGHT_MIN_VALUE) continue; // This allows some synapses to "die". TODO: Is this necessary, given weightDecay term below?
 
             //deltaQmnt ~ [Xm'(t) - Yn'(t) * Qmnt-1] * [a * Ay(t) * Xm(t) - Ax(t) * Yn(t)] - l*Qmnt-1
             // Xm(t), Yn(t) = pre & post Oja trace (respectively)
             // Xm'(t), Yn'(t) = pre & post trace, but on a longer time scale (to get a more integrated trace)
             // Qmnt is weight at current time step
+            // Qmnt-1 is weight at previous time step
             // Ax(t),Ay(t) is spike activity for pre/post respectively
-            W[k] += dWMax * (((*pre_sum_tr_m) - post_sum_tr_m[k] * prevW[k]) *
+            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * prevW[k]) *
                   (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * prevW[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k];
             W[k] = W[k] > wMax ? wMax : W[k];
-
-            prevW = W;
          }
 
          // advance pointers in y
          W += syp; //FIXME: W += nk
 
          // postActivity and post trace are extended layer
-         aPost        += postStrideY; //TODO: is this really in the extended space?
-         post_tr_m    += postStrideY;
-         pre_sum_tr_m += postStrideY;
+         aPost          += postStrideY; //TODO: is this really in the extended space?
+         post_tr_m      += postStrideY;
+         post_long_tr_m += postStrideY;
       }
+      set_prevWData(axonID, kPre);
    }
 
    if(synscalingFlag){
@@ -263,7 +263,6 @@ int OjaSTDPConn::updateWeights(int axonId)
       nfpPost = pre->clayer->loc.nf;
 
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-
          //Loop through post-synaptic neurons (non-extended indices)
          for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
 
@@ -350,15 +349,15 @@ int OjaSTDPConn::outputState(float timef, bool last)
    return status;
 }
 
-float OjaSTDPConn::maxWeight(int arborID)
+float OjaSTDPConn::maxWeight(int axonID)
 {
    return wMax;
 }
 
-int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
+int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int axonID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write the Ps variable
+      pv_text_write_patch(fd, getWeights(k, axonID), get_dwData(axonID, k), nfp, sxp, syp, sfp); // write the Ps variable
    }
    return 0;
 }
