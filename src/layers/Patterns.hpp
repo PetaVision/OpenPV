@@ -9,7 +9,7 @@
 #define PATTERNS_HPP_
 
 #include "Image.hpp"
-#include <Vector>
+#include <vector>
 namespace PV {
 
 enum PatternType {
@@ -106,6 +106,7 @@ protected:
 
 private:
    float rotation;
+   bool newDrop;
 
    int initPatternCntr;
    int initialize_base();

@@ -157,6 +157,12 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       else{
          nextDropFrame = dropPeriod;
       }
+      //Random initial drop pos or neg
+      //Pos means on stim, neg means off stim
+      if(pv_random_prob() < .5){
+         nextDropFrame = nextDropFrame * -1;
+      }
+      MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
    }
 
 
@@ -280,15 +286,16 @@ int Patterns::generatePattern(float val)
 //      std::cout << "Frame number " << framenumber << "\n";
 
       //Max radius at corner of screen
-      float max_radius = sqrt(nx/(float)2 * nx/(float)2 + ny/(float)2 * ny/(float)2);
+      float max_radius = sqrt(nxgl/(float)2 * nxgl/(float)2 + nygl/(float)2 * nygl/(float)2);
       //Drop from center
-      const int xc = (nx-1) / 2;
-      const int yc = (ny-1) / 2;
+      const int xcg = (nxgl-1) / 2;
+      const int ycg = (nygl-1) / 2;
       std::vector<int> deleteme;
       deleteme.clear();
       //Radius of circle at current timestep
       //Remove extra circles
       for(int i = 0; i < (int)radius.size(); i++){
+
          //Negative means off stim
          if(radius[i] < 0){
             radius[i] -= dropSpeed;
@@ -297,17 +304,13 @@ int Patterns::generatePattern(float val)
          else if(radius[i] > 0){
             radius[i] += dropSpeed;
          }
-         //Random prob of being on/off
          else{
-            if(pv_random_prob() < .5){
-               radius[i] += dropSpeed;
-            }
-            else{
-               radius[i] -= dropSpeed;
-            }
+            fprintf(stderr, "Patterns.cpp: radius should not be 0");
+            abort();
          }
+
          //No longer in the frame
-         if(fabs(radius[i]) >= max_radius){
+         if(radius[i] >= max_radius){
            deleteme.push_back(i);
          }
       }
@@ -318,13 +321,25 @@ int Patterns::generatePattern(float val)
       //Add new circles
       //Add circle if necessary
       //Random
-      if(framenumber >= nextDropFrame){
-         radius.push_back(0);
+      if(framenumber >= abs(nextDropFrame)){
          if(dropPeriod == -1){
             nextDropFrame = framenumber + dropRandomMin + ceil((dropRandomMax - dropRandomMin) * pv_random_prob());
          }
          else{
-            nextDropFrame += framenumber + dropPeriod;
+            nextDropFrame = framenumber + dropPeriod;
+         }
+         //Random on/off input
+         if(pv_random_prob() < .5){
+            nextDropFrame = nextDropFrame * -1;
+         }
+         //Communicate nextDropFrame to rest of processors
+         MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+
+         if(nextDropFrame < 0){
+            radius.push_back(-1);
+         }
+         else{
+            radius.push_back(1);
          }
       }
 
@@ -339,16 +354,17 @@ int Patterns::generatePattern(float val)
          else if(radius[i] > 0){
             on = true;
          }
-         //Dot in center, skip
+         //nextDropFrame shouldn't be 0
          else{
-            continue;
+            fprintf(stderr, "Patterns.cpp: radius should not be 0");
+            abort();
          }
 
          float delta_theta = fabs(atan((float)1./fabs(radius[i])));
          for (float theta = 0; theta < 2*PI; theta += delta_theta){
            // std::cout << "\t" << theta << "\n";
-            float fx = xc + fabs(radius[i]) * cos(theta);
-            float fy = yc + fabs(radius[i]) * sin(theta);
+            float fx = xcg + fabs(radius[i]) * cos(theta);
+            float fy = ycg + fabs(radius[i]) * sin(theta);
             int ix, iy;
 
             //Rounding
@@ -366,14 +382,14 @@ int Patterns::generatePattern(float val)
                iy = (int)fy;
             }
 
-            //Check edge bounds
-            if(ix < nx && iy < nx && ix >= 0 && iy >= 0){
+            //Check edge bounds based on nx/ny size
+            if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
                //Random either on circle or off circle
                if(on){
-                  data[ix * sx + iy * sy] = maxVal;
+                  data[(ix - kx0) * sx + (iy - ky0) * sy] = maxVal;
                }
                else{
-                  data[ix * sx + iy * sy] = minVal;
+                  data[(ix - kx0) * sx + (iy - ky0) * sy] = minVal;
                }
             }
          }
