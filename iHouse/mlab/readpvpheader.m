@@ -9,7 +9,7 @@ function hdr = readpvpheader(fid,pos)
 % It is an error to use a negative position or a position large enough that
 % there isn't room for a header between the position and the end of the
 % file, although the routine is too lazy to check.
-%opt/local/share/octave/3.4.3/m/miscellaneous/dir.m
+%
 % hdr is a struct whose fields are:
 %     headersize
 %     numparams

@@ -1,4 +1,4 @@
-function [data,hdr,wm] = readpvpfile(filename, output_path, name, post)
+function [data,hdr] = readpvpfile(filename,progressperiod)
 % Usage:[data,hdr] = readpvpfile(filename)
 % filename is a pvp file (any type)
 % data is a cell array containing the data.
@@ -6,35 +6,6 @@ function [data,hdr,wm] = readpvpfile(filename, output_path, name, post)
 %     Each element is a struct containing the fields 'time' and 'values'
 %     For activities, values is an nx-by-ny-by-nf array.
 %     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
-
-%%%%%%%%
-%%DELETE
-%%%%%%%%
-
-global OUT_FILE_EXT; OUT_FILE_EXT = 'png';      %either png or jpg for now
-global MOVIE_FLAG;   if(isempty(MOVIE_FLAG))  MOVIE_FLAG = 1; end         %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '0:100:1000'; %'0:20:100'; %can be '-1', 'int(frame)', or 'start:int:end'
-global PRINT_FLAG;   if(isempty(PRINT_FLAG)) PRINT_FLAG  = 1; end        %set to 1 to print all figures to output dir, -1 to not
-global ROTATE_FLAG; if(isempty(ROTATE_FLAG)) ROTATE_FLAG = 1; end
-global SWEEP_POS; if(isempty(SWEEP_POS)) SWEEP_POS = 0; end
-%%%%%%%%
-
-%% Parse some flags
-if ~strcmpi(FNUM_SPEC,'-1') %if flag is not set to -1
-    fnum_flag = 1;
-
-    disp_frames = str2num(FNUM_SPEC);
-    if gt(length(disp_frames),1) %flag delimits start-frame:interval:end-frame
-        frame_of_interest = -1; %will only be set if user gave a single frame as input to FNUM_SPEC
-    elseif eq(length(disp_frames),1) %single number is given
-        frame_of_interest = disp_frames+1;
-    else
-        error(['FNUM_SPEC is not correct. FNUM_SPEC = ',FNUM_SPEC])
-    end%if gt(length(disp_frames),1)
-else
-    fnum_flag = 0;
-    frame_of_interest = -1;
-end%if strcmpi
 
 filedata = dir(filename);
 if length(filedata) ~= 1
@@ -51,24 +22,13 @@ end%if filedata(1).bytes
 fid = fopen(filename);
 if fid<0
     error('readpvpfile:badfilename','readpvpfile:Unable to open %s',filename);
-end%if fid<0
+end
 
 errorident = '';
 errorstring = '';
 
 hdr = readpvpheader(fid);
 
-%% Correct for max frame
-if fnum_flag
-    if gt(length(disp_frames),1)
-        if gt(max(disp_frames(:)),hdr.nbands-1)
-            disp_frames(end) = hdr.nbands-1;
-        end%if gt(max...
-    end%if gt(length...
-end%if fnum_flag
-
-              %hdr.filetype = 4; %For voltage files
-              %hdr
 switch hdr.filetype
     case 1 % PVP_FILE_TYPE
         framesize = hdr.recordsize*hdr.numrecords;
@@ -139,152 +99,17 @@ if isempty(errorstring)
                     end
                 end
             end
-            
-        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-            status = fseek(fid,4*hdr.numparams,"bof"); %hdr.numparams = number of parameters specified in the header file
-            if ne(status,0)
-                error('readpvpfile: unable to seek to the end of the header for pvp file ',filedata)
-            end%if ne(status,0)
-            
-%            disp('Reading activity file');
-
-            integrated_image = ones([hdr.nxGlobal,hdr.nyGlobal]);
-              data = cell(numframes,1);
-            for frame=0:numframes-1
-                if lt(frame,10)
-                    frame_str = ['00',num2str(frame)];
-                elseif ge(frame,10) && lt(frame,100)
-                    frame_str = ['0', num2str(frame)];
-                elseif gt(frame,99)
-                    frame_str = num2str(frame);
-                end%if lt(frame,10)
-
-                [time, count] = fread(fid,1,"float64"); %count is the number of items read
-                %if ne(time,frame) %pvp files start at time_step = 0
-                %    error(['readpvpfile: Not reading the correct frame. frame = ',num2str(frame),...
-                %        'time = ',num2str(time)])
-                %end%if ne(time,frame)
-                if eq(count,0)
-                    error('readpvpfile: Did not read any elements into time from pvp file')
-                end%if eq(count,0)
-                if feof(fid) 
-                  break;
-                end%if feof
-
-                [num_spikes, count] = fread(fid,1,"int32");
-                if eq(count,0)
-                    error('readpvpfile: Did not read any elements into num_spikes from pvp file')
-                end%if eq(count,0)
-                [spike_idx, count] = fread(fid,num_spikes,"int32"); %spike_idx is a vector of indices for each spike
-                if ne(count,num_spikes)
-                    error(['readpvpfile: The number of elements read in does not equal the number of spikes fired.',...
-                        char(10),'numbewhile pvp_time < pvp_framer of elements = ',num2str(count),'number of spikes = ',num2str(num_spikes)])
-                end%if ne(count,num_spikes)
-
-                file_pos = ftell(fid);
-                sparse_size = hdr.nf*hdr.nxGlobal*hdr.nyGlobal;
-                activity = sparse(spike_idx+1, 1, 1, sparse_size, 1, num_spikes); %spike_idx+1 because pvp starts idx at 0
-
-                features = full(activity);
-                features = reshape(features,[hdr.nf,hdr.nxGlobal,hdr.nyGlobal]); %nf = num_features, nx = num_col, ny = num_rows
-
-                pvp_image = zeros([hdr.nxGlobal,hdr.nyGlobal]);
-                pvp_image(:,:) = sum(features,1);
-                if (ROTATE_FLAG)
-                    pvp_image = flipud(rot90(pvp_image));
-                end
-                data{frame+1} = pvp_image;
-                %find(pvp_image==1)
-                integrated_image += pvp_image;
-               
-                %% Generate Movie frames
-                if eq(MOVIE_FLAG,1)
-                    print_movie_path = [output_path, 'Movie/'];
-                    if ne(exist(print_movie_path,'dir'),7) %if exists func doesn't return a 7, then print_movie_path is not a dir
-                        mkdir(print_movie_path);
-                    end%if ne(exist(),7)
-
-                    inst_movie_path = [print_movie_path,'Instantaneous_Frames/'];
-                    if ne(exist(inst_movie_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
-                        mkdir(inst_movie_path);
-                    end%if ne(exist(),7)
-
-                    print_movie_filename = [inst_movie_path,frame_str,'.',OUT_FILE_EXT];
-                    try
-                        %print_movie_filename
-                        imwrite(pvp_image,print_movie_filename,OUT_FILE_EXT)
-                    catch
-                        disp(['readpvpfile: WARNING. Could not print file(s):',...
-                            char(10),print_movie_filename,])
-                    end%_try_catch
-                end%if eq(MOVIE_FLAG,1)
-
-                %% Display figures
-                
-                    if gt(fnum_flag,0)
-                        if eq(frame,frame_of_interest) || find(disp_frames==frame)
-                            figs_disp_flag = 1;
-
-                            tim_fig_id = 0;
-                            %tim_fig_id = figure;
-                                %imshow(pvp_image)
-                                %axis image
-                                %axis off
-                            int_fig_id = 0;
-                            
-                            if(MOVIE_FLAG)
-                                 int_fig_id = figure;
-                                 imagesc(integrated_image, [0 max(max(integrated_image))])
-                                 axis image
-                                 axis off
-                                 colorbar
-                            end
-              
-                            fig_ids = [2];
-                            fig_ids(1) = tim_fig_id;
-                            fig_ids(2) = int_fig_id;
-                        else
-                            figs_disp_flag = 0;
-                        end%if eq(frame,frame_of_interest)
-                    end %gt(fnum_flag,0)
-
-                    %% Print out figures
-                    if gt(PRINT_FLAG,0)
-                        if figs_disp_flag
-                            print_fig_path = [output_path, 'Figures/'];
-                            if ne(exist(print_fig_path,'dir'),7) %if exists func doesn't return a 7, then print_fig_path is not a dir
-                                mkdir(print_fig_path);
-                            end%if ne(exist(),7)
-
-                            print_fig_filename = [print_fig_path,'frame',frame_str,'_fig'];
-                            try
-                                for fig_idx = 1:length(fig_ids)
-                                    curr_fig_id = fig_ids(fig_idx);
-                                    print(curr_fig_id,['-d',OUT_FILE_EXT],[print_fig_filename,num2str(curr_fig_id),'.',OUT_FILE_EXT]);
-                                    close(curr_fig_id)
-                                end%for fig_idx
-                            catch
-                                %disp(['readpvpfile: Couldn''t print figure ',print_fig_filename])
-                            end%_try_catch
-                        end%if fig_id
-                    end%if PRINT_FLAG
-                  
-            end%for frame
-
-            %% Create movie from frames generated
-            if eq(MOVIE_FLAG,1)
-                system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'%03d.png -sameq -y ',print_movie_path,'pvp_instantaneous_movie_' name '.mp4']);
-                %system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
-            end%if eq(MOVIE_FLAG,1)
-
+        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+            for f=1:numframes
+                data{f} = struct('time',0,'values',[]);
+                data{f}.time = fread(fid,1,'float64');
+                numactive = fread(fid,1,'uint32');
+                data{f}.values = fread(fid,numactive,'uint32');
+            end
         case 3 % PVP_WGT_FILE_TYPE
-%            disp('Reading weights type file')
             fseek(fid,0,'bof');
-            %hdr
-            %numframes
             for f=1:numframes
                 hdr = readpvpheader(fid,ftell(fid));
-
                 hdr = rmfield(hdr,'additional');
                 numextrabytes = hdr.headersize - 80;
                 fseek(fid,-numextrabytes,'cof');
@@ -316,10 +141,6 @@ if isempty(errorstring)
                                 patchny = fread(fid,1,'uint16');
                                 patchoffset = fread(fid,1,'uint32');
                                 Z = fread(fid,hdr.nxp*hdr.nyp*hdr.nfp,precision);
-%                                 if(p==100)
-%                                     reshape(Z,hdr.nxp,hdr.nyp)
-%                                     pause(3)
-%                                 end
                                 tempdata = reshape(Z(1:hdr.nfp*hdr.nxp*hdr.nyp),hdr.nfp,hdr.nxp,hdr.nyp);
                                 tempdata = permute(tempdata,[2 3 1]);
                                 % Need to move shrunken patches
@@ -328,128 +149,27 @@ if isempty(errorstring)
                                 data{f}.ny{cellindex} = patchny;
                                 data{f}.offset{cellindex} = patchoffset;
                             end
+                            if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
+                                data{f}.values{cellindex} = data{f}.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                            elseif hdr.datatype ~= 3
+                                error('readpvpfile:baddatatype',...
+                                    'Weight file type requires hdr.datatype of 1 or 3; received %d',...
+                                    hdr.datatype);
+                            end
                         end
                     end
                 end
-              
-              
-              
-              %Saves movie based on images (Note: working only for 1 feature)
-              if(post)
-                nx=hdr.nx; %sqrt(size(data{f}.values{1},4));
-                ny=hdr.ny; %sqrt(size(data{f}.values{1},4));
-              else
-                nx=hdr.nx+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
-                ny=hdr.ny+hdr.nb*2; %sqrt(size(data{f}.values{1},4));
-              end
-              mean_wm = zeros(hdr.numPatches,1);
-              
-              for px=0:(hdr.nyprocs-1)
-               for py=0:(hdr.nxprocs-1)
-                
-                c=1;
-                for x=px*nx:(px*nx+nx-1)
-                    for y=py*ny:(py*ny+ny-1)
-                         %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
-              %wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp)./max(max(max(data{f}.values{:,:}(:,:,1,c))));
-              wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = reshape(data{f}.values{py+1,px+1}(:,:,1,c), hdr.nxp, hdr.nyp);
-                if (ROTATE_FLAG)
-                    wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp) = flipud(rot90(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp)));              
-                end
-              mean_wm(c,1)=mean(mean(mean(wm(x*hdr.nxp+1:x*hdr.nxp+hdr.nxp, y*hdr.nyp+1:y*hdr.nyp+hdr.nyp))));
-                         %wm(x*hdr.nxp+hdr.nxp, :) = 0;
-                         %wm(x*hdr.nxp+1, :) = 0;
-                         %wm(:, y*hdr.nyp+1) = 0;
-                         %wm(:, y*hdr.nyp+hdr.nyp) = 0;
-                         c=c+1;
-
-                    end%for
-                end%for
-              end%for
-              end%for
-              
-              if (ROTATE_FLAG)
-                wm = flipud(rot90(wm));
-              end
-                     
-              %figure
-              %imshow(reshape(mean_wm,sqrt(hdr.numPatches),sqrt(hdr.numPatches)))
-              
-                %% Generate Figures
-                if (eq(PRINT_FLAG,1) && data{f}.time>0)
-                    print_fig_path = [output_path, 'Figures/'];
-                    if ne(exist(print_fig_path,'dir'),7) %if exists func doesn't return a 7, then print_movie_path is not a dir
-                        mkdir(print_fig_path);
-                    end%if ne(exist(),7)
-
-                    inst_fig_path = [print_fig_path,'Weights/'];
-                    if ne(exist(inst_fig_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
-                        mkdir(inst_fig_path);
-                    end%if ne(exist(),7)
-                    
-              
-                    if(SWEEP_POS==0)
-                        print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
-                    else
-                        print_fig_filename = [inst_fig_path, [num2str(data{f}.time) '_' name '_x' num2str(SWEEP_POS)], '.', OUT_FILE_EXT];
-                    end
-              
-                    disp(print_fig_filename);
-              
-                    %try
-                        %figure
-                        %imshow(wm);
-                        %colorbar;
-                        imwrite(wm, print_fig_filename, OUT_FILE_EXT)
-                    %catch
-                    %    disp(['readpvpfile: WARNING. Could not print file(s):',...
-                    %        char(10),print_movie_filename,])
-                    %end%_try_catch
-                end%if eq(MOVIE_FLAG,1)
-
-                %% Generate Movie frames
-                if eq(MOVIE_FLAG,1)
-                    print_movie_path = [output_path, 'Movie/'];
-                    if ne(exist(print_movie_path,'dir'),7) %if exists func doesn't return a 7, then print_movie_path is not a dir
-                        mkdir(print_movie_path);
-                    end%if ne(exist(),7)
-
-                    inst_movie_path = [print_movie_path,'Instantaneous_Frames/'];
-                    if ne(exist(inst_movie_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
-                        mkdir(inst_movie_path);
-                    end%if ne(exist(),7)
-
-                    print_movie_filename = [inst_movie_path, [num2str(data{f}.time) '_' name], '.', OUT_FILE_EXT];
-                    %try
-                        imwrite(wm, print_movie_filename, OUT_FILE_EXT)
-                    %catch
-                    %    disp(['readpvpfile: WARNING. Could not print file(s):',...
-                    %        char(10),print_movie_filename,])
-                    %end%_try_catch
-                end%if eq(MOVIE_FLAG,1)
-
             end
-            
-              %% Create movie from frames generated
-              %if eq(MOVIE_FLAG,1)
-              %system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'%03d.png -sameq -y ',print_movie_path,'pvp_instantaneous_movie_' name '.mp4']);
-              %system(['rm -rf ',inst_movie_path]); %Comment this line to keep movie frames
-              %end%if eq(MOVIE_FLAG,1)
-              
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             for f=1:numframes
-                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal+hdr.nb,hdr.nyGlobal+hdr.nb,hdr.nf));
+                data{f} = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
                 data{f}.time = fread(fid,1,'float64');
-                f
                 for y=1:nyprocs
                     yidx = (1:hdr.ny)+(y-1)*hdr.ny;
                     for x=1:nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
-              Z = fread(fid,(hdr.nx+hdr.nb)*(hdr.ny+hdr.nb),precision);
-              size(Z)
-              data{f}.values(:,:,1) = reshape(Z, hdr.nf, hdr.nx+hdr.nb, hdr.ny+hdr.nb);
-                    figure
-              imshow(data{f}.values(:,:,1));
+                        Z = fread(fid,hdr.recordsize,precision);
+                        data{f}.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
                     end
                 end
                 if exist('progressperiod','var')
