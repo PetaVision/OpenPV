@@ -5,20 +5,19 @@
 HyPerCol "column" = {
    nx 							= 64; 			// pixel width of input image
    ny 							= 64; 			// pixel height of input image
-//   nx 							= 128; 			// pixel width of input image
-//   ny 							= 128; 			// pixel height of input image
    dt 							= 1.;           // according GK
 //   randomSeed 				= 1020304050.0; // remove when running for real
    //checkpointRead  			= true;  		// normal run
    checkpointRead  				= false; 		// init run
-//   checkpointWrite 				= true;  		// always
    checkpointWrite 				= false;  		// always
 //   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
+//   checkpointWriteDir         = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/checkpoints";
 //   checkpointWriteStepInterval = 200;
    numSteps 					= 1000;			// amount of time steps performed during run-time
    progressStep					= 1000;
 //   deleteOlderCheckpoints = false;
-   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
+//   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
+   outputPath                   = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 };
 
@@ -42,7 +41,8 @@ Patterns "input" = {
 //   minWidth = 8;
 //   minHeight = 8;
    writeImages = true;
-   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
+//   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
+   patternsOutputPath = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/sourcefiles";
    displayPeriod = 1;
    writeStep = 1;
    writeNonspikingActivity = true;
@@ -310,7 +310,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-STDPConn "RetinaONtoS1" = {
+OjaSTDPConn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "lif";
    channelCode = 0;
@@ -335,12 +335,15 @@ STDPConn "RetinaONtoS1" = {
    ampLTD = 0.0095;
    tauLTP = 1;
    tauLTD = 21;
+   LTPtoLTDRatio = 0.9;
+   decay = 0.01;
+   ojaSumWindowWidth = 50; //ms
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 10; // pow(cliquePatchSize, cliqueSize-1), 
+   numAxonalArbors = 20;
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
@@ -363,7 +366,7 @@ STDPConn "RetinaONtoS1" = {
    synscaling_v = 5;
 };
 
-STDPConn "RetinaOFFtoS1" = {
+OjaSTDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
    channelCode = 0;
@@ -388,12 +391,16 @@ STDPConn "RetinaOFFtoS1" = {
    ampLTD = 0.0095;
    tauLTP = 1;
    tauLTD = 21;
+   tauLTPLong = 10;
+   tauLTDLong = 210;
+   LTPtoLTDRatio = 0.9;
+   weightDecay = 0.01;
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 10; // pow(cliquePatchSize, cliqueSize-1), 
+   numAxonalArbors = 20;
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
@@ -415,10 +422,3 @@ STDPConn "RetinaOFFtoS1" = {
    synscalingFlag = 1;
    synscaling_v = 5;
 };
-//
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes

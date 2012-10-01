@@ -2,7 +2,7 @@ clear all; close all; more off; clc;
 system("clear");
 
 %Reconstruct Flags
-RECONSTRUCTION_FLAG = 0;  %Create reconstructions
+RECONSTRUCTION_FLAG = 1;  %Create reconstructions
 WEIGHTS_MAP_FLAG = 1;     %Create weight maps
 WEIGHT_CELL_FLAG = 1;
 CELL = {[35, 20]...
@@ -19,17 +19,21 @@ WEIGHT_IMAGE_SC = [-.3 .3]; %Scale for imagesc
 GRID_FLAG = 0;
 
 %File names
-activityfile = '/Users/slundquist/Documents/workspace/iHouse/output/lif.pvp';
-ONpostweightfile = '/Users/slundquist/Documents/workspace/iHouse/output/w5_post.pvp';
-OFFpostweightfile = '/Users/slundquist/Documents/workspace/iHouse/output/w6_post.pvp';
+%rootDir = '/Users/slundquist';
+%workspaceDir = [rootDir,'/Documents/workspace/iHouse'];
+rootDir = '/Users/dpaiton';
+workspaceDir = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
+activityfile = [workspaceDir,'/output/lif.pvp'];
+ONpostweightfile = [workspaceDir,'/output/w5_post.pvp'];
+OFFpostweightfile = [workspaceDir,'/output/w6_post.pvp'];
 ONfilename = 'ON_post.pvp';
 OFFfilename = 'OFF_post.pvp';
-outputDir = '/Users/slundquist/Documents/workspace/iHouse/output/';
+outputDir = [workspaceDir,'/output/'];
 readPvpOutDir = [outputDir, 'pvp/'];
 reconstructOutDir = [outputDir, 'reconstruct/'];
 weightMapOutDir = [outputDir, 'weight_map/'];
 cellMapOutDir = [outputDir, 'cell_map/'];
-sourcefile = '/Users/slundquist/Documents/workspace/iHouse/output/DropInput.txt';
+sourcefile = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
 if (exist(outputDir, 'dir') ~= 7)
@@ -58,16 +62,16 @@ global SWEEP_POS = 0;
 global PRINT_FLAG = 0;
 post = 1;
 
-display('Reconstruct: Reading activity pvp');
+disp('Reconstruct: Reading activity pvp');
 fflush(1);
 %Read activity file
 [activityData activityHdr] = readpvpfile(activityfile, readPvpOutDir, 'lif');
 
 %Read weight matricies for on/off ret
-display('Reconstruct: Reading ON weights pvp')
+disp('Reconstruct: Reading ON weights pvp')
 fflush(1);
 [weightDataOn weightHdrOn] = readpvpfile(ONpostweightfile, readPvpOutDir, ONfilename, post);
-display('Reconstruct: Reading OFF weights pvp')
+disp('Reconstruct: Reading OFF weights pvp')
 fflush(1);
 [weightDataOff weightHdrOff] = readpvpfile(OFFpostweightfile, readPvpOutDir, OFFfilename, post);
 
@@ -114,7 +118,7 @@ mask(1 + marginY:columnSizeY - marginY, 1+marginX:columnSizeX-marginX) = 1;
 %Based on vectorized matrix
 marginIndex = find(mask'(:)');
 
-display('Reconstruct: Creating Images');
+disp('Reconstruct: Creating Images');
 fflush(1);
 for activityTimeIndex = writeStep:writeStep:numsteps    %For every timestep
    %Index based on X, Y coords
