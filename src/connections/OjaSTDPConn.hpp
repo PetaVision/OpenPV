@@ -2,7 +2,7 @@
  * OjaSTDPConn.h
  *
  *  Created on: Sep 27, 2012
- *      Author: dpaiton
+ *      Author: dpaiton et slundquist
  */
 
 #ifndef OJASTDPCONN_H_
@@ -51,13 +51,6 @@ protected:
 
    bool stdpFlag;              // presence of spike timing dependent plasticity
 
-   int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
-                                      float aj, float decay, float fac);
-
-   int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
-                              const float * RESTRICT p, float aPre,
-                              const float * RESTRICT aPost, float dWmax, float wMin, float wMax);
-
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude
    float ampLTD; // long term depression amplitude
@@ -67,6 +60,9 @@ protected:
    float tauLTDLong;
    float weightDecay;
    float dWMax;
+   float ojaScale;
+   float STDPScale;
+
    bool  synscalingFlag;
    float synscaling_v;
 

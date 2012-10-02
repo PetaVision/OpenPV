@@ -30,23 +30,25 @@ OjaSTDPConn::~OjaSTDPConn()
 }
 
 int OjaSTDPConn::initialize_base() {
-
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    // this->dwPatches = NULL;
-   this->post_tr = NULL;
+   this->post_tr      = NULL;
    this->post_long_tr = NULL;
-   this->ampLTP = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   this->ampLTD = 0.0071;
-   this->tauLTP = 16.8;
-   this->tauLTD = 33.7;
-   this->tauLTPLong = 168;
-   this->tauLTDLong = 33.7;
-   this->weightDecay = 0.01;
-   this->dWMax = 1;
+   this->ampLTP       = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   this->ampLTD       = 0.0071;
+   this->tauLTP       = 16.8;
+   this->tauLTD       = 33.7;
+   this->tauLTPLong   = 168;
+   this->tauLTDLong   = 33.7;
+   this->weightDecay  = 0.01;
+   this->dWMax        = 1;
+   this->ojaScale     = 1;
+   this->STDPScale    = 1;
+
    this->synscalingFlag = false;
-   this->synscaling_v = 1;
-//   this->wMin = 0.0;
-//   this->wMax = 1.0;
+   this->synscaling_v   = 1;
+   this->wMin           = 0.0;
+
    return PV_SUCCESS;
 }
 
@@ -111,9 +113,7 @@ PVLayerCube * OjaSTDPConn::getPlasticityDecrement() {return post_tr;}
 int OjaSTDPConn::setParams(PVParams * params)
 {
    // stdpFlag is now set by constructor
-
    HyPerConn::setParams(params);
-
    if (stdpFlag) {
       ampLTP         = params->value(getName(), "ampLTP", ampLTP);
       ampLTD         = params->value(getName(), "ampLTD", ampLTD);
@@ -122,6 +122,8 @@ int OjaSTDPConn::setParams(PVParams * params)
       tauLTDLong     = params->value(getName(), "tauLTDLong", tauLTDLong);
       tauLTPLong     = params->value(getName(), "tauLTPLong", tauLTPLong);
       weightDecay    = params->value(getName(), "weightDecay", weightDecay);
+      ojaScale       = params->value(getName(), "ojaScale", ojaScale);
+      STDPScale      = params->value(getName(), "STDPScale", ojaScale);
 
       wMax           = params->value(getName(), "wMax", wMax);
       wMin           = params->value(getName(), "wMin", wMin);
@@ -146,6 +148,7 @@ int OjaSTDPConn::updateState(float time, float dt)
          status=updateWeights(axonID);
       }
    }
+
    update_timer->stop();
 
    return status;
@@ -209,7 +212,7 @@ int OjaSTDPConn::updateWeights(int axonID)
 
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
-      // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true?
+      // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true? Rui says yes.
       PVPatch * w = getWeights(kPre, axonID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
       nk  = nfp * w->nx; // one line in x at a time
       ny  = w->ny;
@@ -221,19 +224,17 @@ int OjaSTDPConn::updateWeights(int axonID)
       //3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-            if (W[k] < WEIGHT_MIN_VALUE) continue; // This allows some synapses to "die". TODO: Is this necessary, given weightDecay term below?
-
             //deltaQmnt ~ [Xm'(t) - Yn'(t) * Qmnt-1] * [a * Ay(t) * Xm(t) - Ax(t) * Yn(t)] - l*Qmnt-1
             // Xm(t), Yn(t) = pre & post Oja trace (respectively)
             // Xm'(t), Yn'(t) = pre & post trace, but on a longer time scale (to get a more integrated trace)
             // Qmnt is weight at current time step
             // Qmnt-1 is weight at previous time step
             // Ax(t),Ay(t) is spike activity for pre/post respectively
-            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
-                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
+            W[k] += dWMax * (ojaScale * ((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
+                  STDPScale * (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k];
-            //W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
+            W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
          }
 
          // advance pointers in y
@@ -280,32 +281,6 @@ int OjaSTDPConn::updateWeights(int axonID)
       }
    }
 
-   return 0;
-}
-
-int OjaSTDPConn::pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
-      float aPre, float decay, float ltpAmp)
-{
-   int k;
-   for (k = 0; k < nk; k++) {
-      p[k] = decay * p[k] + ltpAmp * aPre;
-   }
-   return 0;
-}
-
-int OjaSTDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
-      const float * RESTRICT p, float aPre,
-      const float * RESTRICT aPost, float dWMax, float wMin, float wMax)
-{
-   int k;
-   for (k = 0; k < nk; k++) {
-      // The next statement allows some synapses to "die".
-      // TODO - check to see if its faster to not use branching
-      if (w[k] < WEIGHT_MIN_VALUE) continue;
-      w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
-      w[k] = w[k] < wMin ? wMin : w[k];
-      w[k] = w[k] > wMax ? wMax : w[k];
-   }
    return 0;
 }
 
