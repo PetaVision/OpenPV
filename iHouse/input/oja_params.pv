@@ -38,7 +38,7 @@ Patterns "input" = {
    startFrame     = 200;
    endFrame       = 1400;
    
-   writeImages    = false;
+   writeImages    = true;
    
    patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles";
    
@@ -53,7 +53,6 @@ Patterns "input" = {
 
 
 ANNLayer "scaled input" = {
-    restart      = false;
     nxScale      = 1;
     nyScale      = 1;
     nf           = 1;
@@ -113,13 +112,13 @@ Retina "RetinaOFF" = {
     burstFreq     = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim = 1;       // Restrict stimulus to a window of time
-    //endStim   = 50000;
+    //beginStim   = 1;       // Restrict stimulus to a window of time
+    //endStim     = 50000;
     
     //no = 1.0;
     Vrest = 0.0;
     
-    refractoryPeriod = 0;
+    refractoryPeriod    = 0;
     absRefractoryPeriod = 0;
 };
 
@@ -133,9 +132,9 @@ LIF "lif" = {
    writeStep        = 1.0;
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
+   method           = "beginning";
    valueV			= -70.0;
    Vrest            = -70.;    
-   restart          = 0.0;     	// from graylast
    Vexc             = 0.0;     	// reversal potential 
    Vinh             = -75.0;   	// chloride channel
    VinhB            = -90.0;   	// potassium reversal
@@ -192,7 +191,7 @@ KernelConn "input to scaled input" = {
 KernelConn "ImagetoRetinaONCenter" = {
    preLayerName  = "scaled input";
    postLayerName = "RetinaON";
-   channelCode   = 1;
+   channelCode   = 0;
    nxp           = 1; 
    nyp           = 1; 
    nfp           = 1;
@@ -244,7 +243,7 @@ KernelConn "ImagetoRetinaONSurround" = {
 KernelConn "ImagetoRetinaOFFCenter" = {
    preLayerName     = "scaled input";
    postLayerName    = "RetinaOFF";
-   channelCode      = 0;
+   channelCode      = 1;
    nxp              = 1; 
    nyp              = 1; 
    nfp              = 1;
@@ -254,11 +253,11 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    initFromLastFlag = 0;  
    writeStep        = -1;
 
+   weightInitType   = "InitGauss2DWeights";
    aspect           = 1;
    sigma            = 1;
    rMax             = 1;   
    strength         = 50;
-   weightInitType   = "InitGauss2DWeights";
 
    normalize             = false;
    normalize_zero_offset = 0.0;
@@ -285,8 +284,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    sigma            = 1;
    rMax             = 5;
    rMin             = 0;
-
    strength              = 50;
+
    normalize             = true;
    normalize_zero_offset = 0.0;
    normalize_max         = 0.0;
@@ -299,11 +298,11 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-OjaSTDPConn "RetinaONtoS1" = {
+STDPConn "RetinaONtoS1" = {
    preLayerName  = "RetinaON";
    postLayerName = "lif";
-   nxp           = 3;
-   nyp           = 3;
+   nxp           = 5;
+   nyp           = 5;
    nfp           = 1;
    channelCode   = 0;
    stdpFlag      = 1;
@@ -318,19 +317,19 @@ OjaSTDPConn "RetinaONtoS1" = {
    normalize_zero_offset = 0.0;
    
    strength        = 10;
-   wMin            = 0.001;
-   wMax 	       = 5;
-   dWMax           = 1;
-   ampLTP          = 0.0275; //0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD          = 0.0095; //0.0071;
-   tauLTP          = 4;      //16.8;
-   tauLTD          = 21;     //33.7;
+   ampLTP          = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTD          = 0.0071;
+   tauLTP          = 16.8;
+   tauLTD          = 33.7;
    tauLTPLong      = 168;
    tauLTDLong      = 337;
    weightDecay     = 0;
    ojaScale        = 0;
    STDPScale       = 1;
-   numAxonalArbors = 6;
+   dWMax           = 1;
+   wMin            = 0.001;
+   wMax 	       = 5;
+   numAxonalArbors = 1;
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
@@ -352,11 +351,11 @@ OjaSTDPConn "RetinaONtoS1" = {
    synscaling_v   = 5;
 };
 
-OjaSTDPConn "RetinaOFFtoS1" = {
+STDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
-   nxp           = 3;
-   nyp           = 3;
+   nxp           = 5;
+   nyp           = 5;
    nfp           = 1;
    channelCode   = 0;
    stdpFlag      = 1;
@@ -371,19 +370,19 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    normalize_zero_offset = 0.0;
    
    strength        = 10;
-   wMin            = 0.001;
-   wMax 	       = 5;
-   dWMax           = 1;
-   ampLTP          = 0.0275; //0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD          = 0.0095; //0.0071;
-   tauLTP          = 4;      //16.8;
-   tauLTD          = 21;     //33.7;
+   ampLTP          = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTD          = 0.0071;
+   tauLTP          = 16.8;
+   tauLTD          = 33.7;
    tauLTPLong      = 168;
    tauLTDLong      = 337;
    weightDecay     = 0;
    ojaScale        = 0;
    STDPScale       = 1;
-   numAxonalArbors = 6;
+   dWMax           = 1;
+   wMin            = 0.001;
+   wMax 	       = 5;
+   numAxonalArbors = 1;
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
