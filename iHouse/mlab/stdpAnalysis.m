@@ -4,42 +4,44 @@ system("clear");
 %global writeStep; writeStep = 500    %Write Step of connection
 
 %Reconstruct Flags
-global RECONSTRUCTION_FLAG; RECONSTRUCTION_FLAG = 1;  %Create reconstructions
-global POST_WEIGHTS_MAP_FLAG; POST_WEIGHTS_MAP_FLAG = 1;     %Create weight maps
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
+global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
-global PRE_WEIGHTS_MAP_FLAG; PRE_WEIGHTS_MAP_FLAG = 0;     %Create weight maps
-global PRE_WEIGHTS_CELL_FLAG; PRE_WEIGHTS_CELL_FLAG = 0;
+global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
+global PRE_WEIGHTS_CELL_FLAG;  PRE_WEIGHTS_CELL_FLAG  = 0;
 global CELL; CELL = {...
    [35, 20]...
    [10, 20]...
 };        %X by Y of weigh cell
-global VIEW_FIGS; VIEW_FIGS = 0;
+
+global VIEW_FIGS;  VIEW_FIGS  = 0;
 global WRITE_FIGS; WRITE_FIGS = 1;
-global GRAY_SC; GRAY_SC = 0;              %Image in grayscale
+global GRAY_SC;    GRAY_SC    = 0;              %Image in grayscale
+
 %Difference between On/Off if 0, seperate otherwise
-global RECON_IMAGE_SC; RECON_IMAGE_SC = -1;        %-1 for autoscale
+global RECON_IMAGE_SC;   RECON_IMAGE_SC   = -1;        %-1 for autoscale
 global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
-global GRID_FLAG; GRID_FLAG = 0;
-global NUM_PROCS; NUM_PROCS = nproc();
+global GRID_FLAG;        GRID_FLAG        = 0;
+global NUM_PROCS;        NUM_PROCS        = nproc();
 
 %File names
-rootDir = '/Users/slundquist';
-workspaceDir = [rootDir,'/Documents/workspace/iHouse'];
-%rootDir = '/Users/dpaiton';
-%workspaceDir = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-activityfile = [workspaceDir,'/output/lif.pvp'];
-ONpreweightfile = [workspaceDir,'/output/w5.pvp'];
-OFFpreweightfile = [workspaceDir,'/output/w6.pvp'];
-ONpostweightfile = [workspaceDir,'/output/w5_post.pvp'];
-OFFpostweightfile = [workspaceDir,'/output/w6_post.pvp'];
-outputDir = [workspaceDir,'/output/'];
-readPvpOutDir = [outputDir, 'pvp/'];
-reconstructOutDir = [outputDir, 'reconstruct/'];
-preWeightMapOutDir = [outputDir, 'weight_map/'];
-preCellMapOutDir = [outputDir, 'cell_map/'];
+rootDir             = '/Users/slundquist';
+workspaceDir        = [rootDir,'/Documents/workspace/iHouse'];
+%rootDir             = '/Users/dpaiton';
+%workspaceDir        = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
+activityfile        = [workspaceDir,'/output/lif.pvp'];
+ONpreweightfile     = [workspaceDir,'/output/w5.pvp'];
+OFFpreweightfile    = [workspaceDir,'/output/w6.pvp'];
+ONpostweightfile    = [workspaceDir,'/output/w5_post.pvp'];
+OFFpostweightfile   = [workspaceDir,'/output/w6_post.pvp'];
+outputDir           = [workspaceDir,'/output/'];
+readPvpOutDir       = [outputDir, 'pvp/'];
+reconstructOutDir   = [outputDir, 'reconstruct/'];
+preWeightMapOutDir  = [outputDir, 'weight_map/'];
+preCellMapOutDir    = [outputDir, 'cell_map/'];
 postWeightMapOutDir = [outputDir, 'weight_map/'];
-postCellMapOutDir = [outputDir, 'cell_map/'];
-sourcefile = [workspaceDir,'/output/DropInput.txt'];
+postCellMapOutDir   = [outputDir, 'cell_map/'];
+sourcefile          = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
 if (exist(outputDir, 'dir') ~= 7)
@@ -70,7 +72,7 @@ if (exist(postCellMapOutDir, 'dir') ~= 7)
    mkdir(postCellMapOutDir);
 end
 
-display('Reconstruct: Reading activity pvp');
+disp('Reconstruct: Reading activity pvp');
 fflush(1);
 %Read activity file in parallel
 args{1} = activityfile;
@@ -81,7 +83,7 @@ if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
    args{5} = OFFpreweightfile;
 end
 
-display('Reconstruct: Reading pvp files')
+disp('Reconstruct: Reading pvp files')
 if NUM_PROCS == 1
    [data hdr] = cellfun(@readpvpfile, args, 'UniformOutput', 0);
 else
@@ -164,7 +166,7 @@ if (POST_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_CELL_FLAG)
    end
 end
 
-display('Reconstruct: Creating Images');
+disp('Reconstruct: Creating Images');
 fflush(1);
 
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
