@@ -7,7 +7,7 @@ system("clear");
 global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
-global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
+global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 1;     %Create weight maps
 global PRE_WEIGHTS_CELL_FLAG;  PRE_WEIGHTS_CELL_FLAG  = 0;
 global CELL; CELL = {...
    [35, 20]...
@@ -37,10 +37,10 @@ OFFpostweightfile   = [workspaceDir,'/output/w6_post.pvp'];
 outputDir           = [workspaceDir,'/output/'];
 readPvpOutDir       = [outputDir, 'pvp/'];
 reconstructOutDir   = [outputDir, 'reconstruct/'];
-preWeightMapOutDir  = [outputDir, 'weight_map/'];
-preCellMapOutDir    = [outputDir, 'cell_map/'];
-postWeightMapOutDir = [outputDir, 'weight_map/'];
-postCellMapOutDir   = [outputDir, 'cell_map/'];
+preWeightMapOutDir  = [outputDir, 'pre_weight_map/'];
+preCellMapOutDir    = [outputDir, 'pre_cell_map/'];
+postWeightMapOutDir = [outputDir, 'post_weight_map/'];
+postCellMapOutDir   = [outputDir, 'post_cell_map/'];
 sourcefile          = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
