@@ -10,17 +10,21 @@
 %%%%%%%%
 %%DELETE
 %%%%%%%%
-global output_path;  output_path  = '/Users/slundquist/Documents/workspace/iHouse/output/';
-global filename;     filename     = '/Users/slundquist/Documents/workspace/iHouse/output/lif.pvp';
-global rootname;     rootname     = '00';
+%global output_path;  output_path  = '/Users/slundquist/Documents/workspace/iHouse/output/';
+%global filename;     filename     = '/Users/slundquist/Documents/workspace/iHouse/output/lif.pvp';
+global activityfile;
+global readPvpOutDir;
+filename = activityfile;
+output_path = readPvpOutDir;
 
-global OUT_FILE_EXT; OUT_FILE_EXT = 'png';             %either png or jpg for now
+rootname     = '00';
 
-global MOVIE_FLAG;   MOVIE_FLAG   = 1;                 %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '-1';               %can be '-1', 'int(frame)', or 'start:int:end'
-global GRAPH_FLAG;   GRAPH_FLAG   = 0;                 %set to 1 to plot Histograms and ROC Curves, -1 to not
-%global GRAPH_SPEC;   GRAPH_SPEC   = [237,437,438,638]; %set to [no_stim_start, no_stim_end, stim_start, stim_end]
-global PRINT_FLAG;   PRINT_FLAG   = 0;                 %set to 1 to print all fiures to output dir, -1 to not
+OUT_FILE_EXT = 'png';             %either png or jpg for now
+
+MOVIE_FLAG   = 1;                 %set 1 to make a movie, set -1 to not make a movie
+FNUM_SPEC    = '-1';               %can be '-1', 'int(frame)', or 'start:int:end'
+GRAPH_FLAG   = 0;                 %set to 1 to plot Histograms and ROC Curves, -1 to not
+PRINT_FLAG   = 0;                 %set to 1 to print all fiures to output dir, -1 to not
 %%%%%%%%
 
 %% Parse some flags

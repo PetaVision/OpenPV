@@ -5,6 +5,8 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
    global VIEW_FIGS;
    global GRAY_SC;
    global WRITE_FIGS;
+
+   assert(~isempty(find(mat)), 'printImage: Empty Matrix');
    
    if(VIEW_FIGS)
       figure;
@@ -24,8 +26,8 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
    else
       colormap(cm());
    end
-
    colorbar;
+
    title([figTitle, ' - time: ', num2str(activityTimeIndex - 1), ' arbor: ', num2str(arborId)]);
    if(WRITE_FIGS)
       print_movie_filename = [outDir, figTitle, '_', num2str(activityTimeIndex - 1), '_', num2str(arborId), '.jpg'];

@@ -1,13 +1,11 @@
 clear all; close all; more off; clc;
 system("clear");
-
-%global writeStep; writeStep = 500    %Write Step of connection
-
 %Reconstruct Flags
+global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 1;  %Create spiking output flag
 global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
-global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 1;     %Create weight maps
+global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
 global PRE_WEIGHTS_CELL_FLAG;  PRE_WEIGHTS_CELL_FLAG  = 0;
 global CELL; CELL = {...
    [35, 20]...
@@ -25,54 +23,48 @@ global GRID_FLAG;        GRID_FLAG        = 0;
 global NUM_PROCS;        NUM_PROCS        = nproc();
 
 %File names
-rootDir             = '/Users/slundquist';
-workspaceDir        = [rootDir,'/Documents/workspace/iHouse'];
-%rootDir             = '/Users/dpaiton';
-%workspaceDir        = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-activityfile        = [workspaceDir,'/output/lif.pvp'];
-ONpreweightfile     = [workspaceDir,'/output/w5.pvp'];
-OFFpreweightfile    = [workspaceDir,'/output/w6.pvp'];
-ONpostweightfile    = [workspaceDir,'/output/w5_post.pvp'];
-OFFpostweightfile   = [workspaceDir,'/output/w6_post.pvp'];
-outputDir           = [workspaceDir,'/output/'];
-readPvpOutDir       = [outputDir, 'pvp/'];
-reconstructOutDir   = [outputDir, 'reconstruct/'];
-preWeightMapOutDir  = [outputDir, 'pre_weight_map/'];
-preCellMapOutDir    = [outputDir, 'pre_cell_map/'];
-postWeightMapOutDir = [outputDir, 'post_weight_map/'];
-postCellMapOutDir   = [outputDir, 'post_cell_map/'];
-sourcefile          = [workspaceDir,'/output/DropInput.txt'];
+rootDir                                    = '/Users/slundquist';
+workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
+%rootDir                                    = '/Users/dpaiton';
+%workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
+global activityfile; activityfile          = [workspaceDir,'/output/lif.pvp'];
+ONpreweightfile                            = [workspaceDir,'/output/w5.pvp'];
+OFFpreweightfile                           = [workspaceDir,'/output/w6.pvp'];
+ONpostweightfile                           = [workspaceDir,'/output/w5_post.pvp'];
+OFFpostweightfile                          = [workspaceDir,'/output/w6_post.pvp'];
+outputDir                                  = [workspaceDir,'/output/'];
+global readPvpOutDir; readPvpOutDir        = [outputDir, 'pvp/'];
+reconstructOutDir                          = [outputDir, 'reconstruct/'];
+preWeightMapOutDir                         = [outputDir, 'pre_weight_map/'];
+preCellMapOutDir                           = [outputDir, 'pre_cell_map/'];
+postWeightMapOutDir                        = [outputDir, 'post_weight_map/'];
+postCellMapOutDir                          = [outputDir, 'post_cell_map/'];
+sourcefile                                 = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
 if (exist(outputDir, 'dir') ~= 7)
    mkdir(outputDir);
 end
-
 if (exist(readPvpOutDir, 'dir') ~= 7)
    mkdir(readPvpOutDir);
 end
-
 if (exist(reconstructOutDir, 'dir') ~= 7)
    mkdir(reconstructOutDir);
 end
-
 if (exist(preWeightMapOutDir, 'dir') ~= 7)
    mkdir(preWeightMapOutDir);
 end
-
 if (exist(preCellMapOutDir, 'dir') ~= 7)
    mkdir(preCellMapOutDir);
 end
-
 if (exist(postWeightMapOutDir, 'dir') ~= 7)
    mkdir(postWeightMapOutDir);
 end
-
 if (exist(postCellMapOutDir, 'dir') ~= 7)
    mkdir(postCellMapOutDir);
 end
 
-disp('Reconstruct: Reading activity pvp');
+disp('stdpAnalysis: Reading activity pvp');
 fflush(1);
 %Read activity file in parallel
 args{1} = activityfile;
@@ -83,7 +75,10 @@ if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
    args{5} = OFFpreweightfile;
 end
 
-disp('Reconstruct: Reading pvp files')
+disp('stdpAnalysis: Reading pvp files')
+if (SPIKING_OUT_FLAG)
+   readspikingpvp;
+end
 if NUM_PROCS == 1
    [data hdr] = cellfun(@readpvpfile, args, 'UniformOutput', 0);
 else
@@ -166,7 +161,7 @@ if (POST_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_CELL_FLAG)
    end
 end
 
-disp('Reconstruct: Creating Images');
+disp('stdpAnalysis: Creating Images');
 fflush(1);
 
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
