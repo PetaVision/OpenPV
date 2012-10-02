@@ -5,19 +5,20 @@
 HyPerCol "column" = {
    nx 							= 64; 			// pixel width of input image
    ny 							= 64; 			// pixel height of input image
+//   nx 							= 128; 			// pixel width of input image
+//   ny 							= 128; 			// pixel height of input image
    dt 							= 1.;           // according GK
-//   randomSeed 				= 1020304050.0; // remove when running for real
+   randomSeed 				= 1020304050.0; // remove when running for real
    //checkpointRead  			= true;  		// normal run
    checkpointRead  				= false; 		// init run
+//   checkpointWrite 				= true;  		// always
    checkpointWrite 				= false;  		// always
 //   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
-//   checkpointWriteDir         = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/checkpoints";
 //   checkpointWriteStepInterval = 200;
-   numSteps 					= 1000;			// amount of time steps performed during run-time
+   numSteps 					= 10000;			// amount of time steps performed during run-time
    progressStep					= 100;
 //   deleteOlderCheckpoints = false;
-//   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
-   outputPath                   = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output";
+   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 };
 
@@ -31,18 +32,18 @@ Patterns "input" = {
    patternType = "DROP";
    dropSpeed = 1;       //Radius expands dropSpeed pixles per timestep
    dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
-   dropRandomMax = 30;  //Max random periods for each drop, 20 default
-   dropRandomMin = 15;   //Min random periods for each drop, 5 default
+   dropRandomMax = 90;  //Max random periods for each drop, 20 default
+   dropRandomMin = 30;   //Min random periods for each drop, 5 default
    halfNeutral = true;
-   startFrame = 100;
+   startFrame = 200;
+   endFrame = 10000;
 //   pMove = 1;
 //   maxWidth = 16;
 //   maxHeight = 16;
 //   minWidth = 8;
 //   minHeight = 8;
    writeImages = true;
-//   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
-   patternsOutputPath = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/sourcefiles";
+   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
    displayPeriod = 1;
    writeStep = 1;
    writeNonspikingActivity = true;
@@ -76,12 +77,12 @@ Retina "RetinaON" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 24;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq  = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq = 0;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOffFreq = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
 
     burstFreq = 50;      // Hz
     burstDuration = 20;  // ms
@@ -103,7 +104,7 @@ Retina "RetinaOFF" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 24;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -133,8 +134,9 @@ LIF "lif" = {
    writeStep        = 1.0;
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
+   method           = "beginning";
    valueV			= -70.0;
-   Vrest            = -70.;    
+   Vrest            = -70.0;    
    restart          = 0.0;     	// from graylast
    Vexc             = 0.0;     	// reversal potential 
    Vinh             = -75.0;   	// chloride channel
@@ -310,12 +312,12 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-OjaSTDPConn "RetinaONtoS1" = {
+STDPConn "RetinaONtoS1" = {
    preLayerName = "RetinaON";
    postLayerName = "lif";
    channelCode = 0;
-   nxp = 3;
-   nyp = 3;
+   nxp = 5;
+   nyp = 5;
    nfp = 1;
    
    stdpFlag   = 1;
@@ -331,19 +333,16 @@ OjaSTDPConn "RetinaONtoS1" = {
    normalize_zero_offset = 0.0;
    strength = 10;
    
-   ampLTP = 0.11;
-   ampLTD = 0.0095;
-   tauLTP = 1;
-   tauLTD = 21;
-   LTPtoLTDRatio = 0.9;
-   decay = 0.01;
-   ojaSumWindowWidth = 50; //ms
+   ampLTP = 0.0195;
+   ampLTD = 0.0071;
+   tauLTP = 8.4;
+   tauLTD = 33.7;
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 4;
+   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
@@ -362,16 +361,16 @@ OjaSTDPConn "RetinaONtoS1" = {
    weightUpdatePeriod = 1.0;
    delay = 0.0;
    
-   synscalingFlag = 1;
+   synscalingFlag = 0;
    synscaling_v = 5;
 };
 
-OjaSTDPConn "RetinaOFFtoS1" = {
+STDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
    channelCode = 0;
-   nxp = 3;
-   nyp = 3;
+   nxp = 5;
+   nyp = 5;
    nfp = 1;
    
    stdpFlag   = 1;
@@ -387,19 +386,16 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    normalize_zero_offset = 0.0;
    strength = 10;
    
-   ampLTP      = 0.11;
-   ampLTD      = 0.0095;
-   tauLTP      = 1;
-   tauLTD      = 21;
-   tauLTPLong  = 10;
-   tauLTDLong  = 210;
-   weightDecay = 0.01;
+   ampLTP = 0.0195;
+   ampLTD = 0.0071;
+   tauLTP = 8.4;
+   tauLTD = 33.7;
    
    wMaxInit = 0.5;
    wMinInit = 0.005;
    //localWmaxFlag = 0.0;
    
-   numAxonalArbors = 4;
+   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
    //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
    selfFlag = false;
@@ -418,6 +414,13 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    weightUpdatePeriod = 1.0;
    delay = 0.0;
    
-   synscalingFlag = 1;
+   synscalingFlag = 0;
    synscaling_v = 5;
 };
+//
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes

@@ -2,7 +2,7 @@ clear all; close all; more off; clc;
 system("clear");
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 1;  %Create spiking output flag
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 0;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
 global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
@@ -11,6 +11,9 @@ global CELL; CELL = {...
    [35, 20]...
    [10, 20]...
 };        %X by Y of weigh cell
+global POST_WEIGHT_HIST_FLAG;  POST_WEIGHT_HIST_FLAG  = 1;
+global PRE_WEIGHT_HIST_FLAG;   PRE_WEIGHT_HIST_FLAG   = 0;
+global NUM_BINS;               NUM_BINS               = 20;
 
 global VIEW_FIGS;  VIEW_FIGS  = 0;
 global WRITE_FIGS; WRITE_FIGS = 1;
@@ -39,6 +42,10 @@ preWeightMapOutDir                         = [outputDir, 'pre_weight_map/'];
 preCellMapOutDir                           = [outputDir, 'pre_cell_map/'];
 postWeightMapOutDir                        = [outputDir, 'post_weight_map/'];
 postCellMapOutDir                          = [outputDir, 'post_cell_map/'];
+preOnWeightHistOutDir                      = [outputDir, 'pre_on_hist/'];
+postOnWeightHistOutDir                     = [outputDir, 'post_on_hist/'];
+preOffWeightHistOutDir                     = [outputDir, 'pre_off_hist/'];
+postOffWeightHistOutDir                    = [outputDir, 'post_off_hist/'];
 sourcefile                                 = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
@@ -62,6 +69,18 @@ if (exist(postWeightMapOutDir, 'dir') ~= 7)
 end
 if (exist(postCellMapOutDir, 'dir') ~= 7)
    mkdir(postCellMapOutDir);
+end
+if (exist(preOnWeightHistOutDir, 'dir') ~= 7)
+   mkdir(preOnWeightHistOutDir);
+end
+if (exist(postOnWeightHistOutDir, 'dir') ~= 7)
+   mkdir(postOnWeightHistOutDir);
+end
+if (exist(preOffWeightHistOutDir, 'dir') ~= 7)
+   mkdir(preOffWeightHistOutDir);
+end
+if (exist(postOffWeightHistOutDir, 'dir') ~= 7)
+   mkdir(postOffWeightHistOutDir);
 end
 
 disp('stdpAnalysis: Reading activity pvp');
@@ -88,7 +107,7 @@ end
 activityData = data{1};
 postWeightDataOn = data{2};
 postWeightDataOff = data{3};
-if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
+if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG || PRE_WEIGHT_HIST_FLAG)
    preWeightDataOn = data{4};
    preWeightDataOff = data{5};
 else
@@ -99,7 +118,7 @@ end
 activityHdr = hdr{1};
 postWeightHdrOn = hdr{2};
 postWeightHdrOff = hdr{3};
-if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
+if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG || PRE_WEIGHT_HIST_FLAG)
    preWeightHdrOn = hdr{4};
    preWeightHdrOff = hdr{5};
 else
@@ -173,6 +192,18 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
    %Convert to weight time index
 %   weightTimeIndex = floor(activityTimeIndex / writeStep); 
    activityTimeIndex = postWeightDataOn{weightTimeIndex}.time + 1;
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%Weight Histogram
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   if (POST_WEIGHT_HIST_FLAG > 0)
+      weightHist(postWeightDataOn{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, postOnWeightHistOutDir, 'Post_On_Weight_Hist');
+      weightHist(postWeightDataOff{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, postOffWeightHistOutDir, 'Post_Off_Weight_Hist');
+   end
+   if (PRE_WEIGHT_HIST_FLAG > 0)
+      weightHist(preWeightDataOn{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, preOnWeightHistOutDir, 'Pre_On_Weight_Hist');
+      weightHist(preWeightDataOff{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, preOffWeightHistOutDir, 'Pre_Off_Weight_Hist');
+   end
+
    for i = 1:numArbors      %Iterate through number of arbors 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%Image reconstruction
