@@ -6,7 +6,7 @@ global RECONSTRUCTION_FLAG = 0;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG = 1;     %Create weight maps
 global POST_WEIGHT_CELL_FLAG = 1;
 global PRE_WEIGHTS_MAP_FLAG = 0;     %Create weight maps
-global PRE_WEIGHT_CELL_FLAG = 0;
+global PRE_WEIGHTS_CELL_FLAG = 0;
 global CELL = {...
    [35, 20]...
    [10, 20]...
@@ -82,32 +82,38 @@ fflush(1);
 args{1} = activityfile;
 args{2}= ONpostweightfile;
 args{3} = OFFpostweightfile;
-if (PRE_WEIGHT_CELL_FLAG || PRE_WEIGHT_MAP_FLAG)
+if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
    args{4} = ONpreweightfile;
    args{5} = OFFpreweightfile;
 end
 
 global PRE_WEIGHTS_MAP_FLAG = 1;     %Create weight maps
 global POST_WEIGHTS_MAP_FLAG = 0;     %Create weight maps
-global PRE_WEIGHT_CELL_FLAG = 0;
-global POST_WEIGHT_CELL_FLAG = 0;
+global PRE_WEIGHTS_CELL_FLAG = 0;
+global POST_WEIGHTS_CELL_FLAG = 0;
 display('Reconstruct: Reading pvp files')
 [data hdr] = parcellfun(nproc(), @readpvpfile, args, 'UniformOutput', 0);
 
 activityData = data(1){1};
 postWeightDataOn = data(2){1};
 postWeightDataOff = data(3){1};
-if (PRE_WEIGHT_CELL_FLAG || PRE_WEIGHT_MAP_FLAG)
+if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
    preWeightDataOn = data(4){1};
    preWeightDataOff = data(5){1};
+else
+   preWeightDataOn = postWeightDataOn;
+   preWeightDataOff = postWeightDataOff;
 end
 
 activityHdr = hdr(1){1};
 postWeightHdrOn = hdr(2){1};
 postWeightHdrOff = hdr(3){1};
-if (PRE_WEIGHT_CELL_FLAG || PRE_WEIGHT_MAP_FLAG)
+if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
    preWeightHdrOn = hdr(4){1};
    preWeightHdrOff = hdr(5){1};
+else
+   preWeightHdrOn = postWeightHdrOn;
+   preWeightHdrOff = postWeightHdrOff;
 end
 
 %Output spiking
@@ -197,7 +203,7 @@ for activityTimeIndex = writeStep:writeStep:numsteps    %For every timestep
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %% Weight Cell
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      if (PRE_WEIGHT_CELL_FLAG > 0)
+      if (PRE_WEIGHTS_CELL_FLAG > 0)
          for cellIndex = 1:length(CELL)
             outMat = cellMap(preWeightDataOn{weightTimeIndex}.values, preWeightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
             printImage(outMat, activityTimeIndex, i, preCellMapOutDir, WEIGHT_IMAGE_SC, ['Pre_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
