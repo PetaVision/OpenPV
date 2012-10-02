@@ -26,9 +26,9 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
    end
 
    colorbar;
-   title([figTitle, ' - time: ', num2str(activityTimeIndex), ' arbor: ', num2str(arborId)]);
+   title([figTitle, ' - time: ', num2str(activityTimeIndex - 1), ' arbor: ', num2str(arborId)]);
    if(WRITE_FIGS)
-      print_movie_filename = [outDir, figTitle, '_', num2str(activityTimeIndex), '_', num2str(arborId), '.jpg'];
+      print_movie_filename = [outDir, figTitle, '_', num2str(activityTimeIndex - 1), '_', num2str(arborId), '.jpg'];
       print(print_movie_filename);
    end
 end

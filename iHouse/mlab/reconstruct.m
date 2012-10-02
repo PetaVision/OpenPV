@@ -14,15 +14,21 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
    %TODO Use sub2ind instead of this
    %activityIndex = activityData{activityTimeIndex - (arborId)}.values;
    %Convert to weight time index
-   outMat = zeros(procsY * sizeY, procsX * sizeX);
+   outMat = zeros(columnSizeY, columnSizeX);
    for activityi = 1:length(activityIndex)
       %Calculate what proc activity is in
       %Since this is being calculated as row first, use X Y instead of Y X
-      [aIx aIy] = ind2sub([columnSizeX columnSizeY], activityIndex(activityi)); 
+      %PROBLEM HERE
+      %disp(activityi)
+      %disp(activityIndex(activityi));
+      [aIx aIy] = ind2sub([columnSizeX columnSizeY], activityIndex(activityi) + 1); 
+
+      %Calculate what process this is in
       procXi = floor((aIx - 1)/sizeX) + 1;
       procYi = floor((aIy - 1)/sizeY) + 1;
+
       %If the spiking activity is not in the allowed area
-      if isempty(find(marginIndex == activityIndex(activityi)))
+      if isempty(find(marginIndex == (activityIndex(activityi) + 1)))
          continue;   %Skip
       end
 

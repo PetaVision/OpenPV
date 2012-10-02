@@ -1,21 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Weight Cell
+%% Weight Patch
 %% Note: It is assumed that the values in cells are within the margins
 %% This is checked in the calling script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [outMat] = cellMap(onWeightValues, offWeightValues, arborId, cell)
+function [outMat] = cellMap(onWeightValues, offWeightValues, arborId, patchLoc)
    [procsX procsY numArbors] = size(onWeightValues);
-   [patchSizeX patchSizeY numFeatures temp] = size(onWeightValues{procsX, procsY, numArbors});
+   [patchLocSizeX patchLocSizeY numFeatures temp] = size(onWeightValues{procsX, procsY, numArbors});
    global sizeX sizeY;
-   outMat = zeros(patchSizeY, patchSizeX);
-   cellX = cell(1);
-   cellY = cell(2);
+   outMat = zeros(patchLocSizeY, patchLocSizeX);
+   patchLocX = patchLoc(1);
+   patchLocY = patchLoc(2);
    %Calculate what proc activity is in
-   procXi = floor((cellX - 1)/sizeX) + 1;
-   procYi = floor((cellY - 1)/sizeY) + 1;
+   procXi = floor((patchLocX - 1)/sizeX) + 1;
+   procYi = floor((patchLocY - 1)/sizeY) + 1;
    %Calculate index of that proc
-   newIndX = mod((cellX - 1), sizeX) + 1;
-   newIndY = mod((cellY - 1), sizeY) + 1;
+   newIndX = mod((patchLocX - 1), sizeX) + 1;
+   newIndY = mod((patchLocY - 1), sizeY) + 1;
    %Since this is being calculated as row first, use X Y instead of Y X
    newInd = sub2ind([sizeX sizeY], newIndX, newIndY);
 

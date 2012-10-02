@@ -45,6 +45,7 @@ function [outMat] = weightMap(onWeightValues, offWeightValues, arborId)
       end
    end
    %Draw grid
+   %TODO find better way to do this
    if(GRID_FLAG)
       marginVal = min(outMat(:));
       outMat(:, patchSizeX:patchSizeX:end) = marginVal;
