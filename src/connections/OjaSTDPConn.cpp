@@ -228,8 +228,8 @@ int OjaSTDPConn::updateWeights(int axonID)
             // Qmnt is weight at current time step
             // Qmnt-1 is weight at previous time step
             // Ax(t),Ay(t) is spike activity for pre/post respectively
-            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * prevW[k]) *
-                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * prevW[k]);
+            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
+                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k];
             W[k] = W[k] > wMax ? wMax : W[k];
@@ -243,7 +243,7 @@ int OjaSTDPConn::updateWeights(int axonID)
          post_tr_m      += postStrideY;
          post_long_tr_m += postStrideY;
       }
-      set_prevWData(axonID, kPre);
+      //set_prevWData(axonID, kPre);
    }
 
    if(synscalingFlag){
