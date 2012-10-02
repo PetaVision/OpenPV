@@ -148,6 +148,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       dropRandomMin = params->value(name, "dropRandomMin", 5);
       onOffFlag = params->value(name, "halfNeutral", 0);
       startFrame = params->value(name, "startFrame", 0);
+      endFrame = params->value(name, "endFrame", 0);
       //Assign first drop
       //radius.push_back(0);
       //Assign next drop
@@ -283,7 +284,9 @@ int Patterns::generatePattern(float val)
    }
 
    if (type == DROP){
+
 //      std::cout << "Frame number " << framenumber << "\n";
+
 
       //Max radius at corner of screen
       float max_radius = sqrt(nxgl/(float)2 * nxgl/(float)2 + nygl/(float)2 * nygl/(float)2);
@@ -321,7 +324,7 @@ int Patterns::generatePattern(float val)
       //Add new circles
       //Add circle if necessary
       //Random
-      if(framenumber >= abs(nextDropFrame)){
+      if(framenumber >= abs(nextDropFrame) && framenumber <= endFrame){
          if(dropPeriod == -1){
             nextDropFrame = framenumber + dropRandomMin + ceil((dropRandomMax - dropRandomMin) * pv_random_prob());
          }

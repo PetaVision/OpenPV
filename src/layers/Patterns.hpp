@@ -92,6 +92,7 @@ protected:
    int nextDropFrame;
    int onOffFlag;
    int startFrame;
+   int endFrame;
    int minWidth, maxWidth;
    int minHeight, maxHeight;
    int wavelengthVert;
