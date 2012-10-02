@@ -7,6 +7,7 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
    global WRITE_FIGS;
 
    assert(~isempty(find(mat)), 'printImage: Empty Matrix');
+   assert(isempty(find(isnan(mat))), 'printImage: NaN in Matrix');
    
    if(VIEW_FIGS)
       figure;
