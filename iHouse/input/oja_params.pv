@@ -3,22 +3,25 @@
 //
 
 HyPerCol "column" = {
-   nx 							= 64; 			// pixel width of input image
-   ny 							= 64; 			// pixel height of input image
-   dt 							= 1.;           // according GK
-//   randomSeed 				= 1020304050.0; // remove when running for real
-   //checkpointRead  			= true;  		// normal run
-   checkpointRead  				= false; 		// init run
-   checkpointWrite 				= false;  		// always
-//   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
-//   checkpointWriteDir         = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/checkpoints";
+   nx = 64; 	// pixel width of input image
+   ny = 64; 	// pixel height of input image
+   dt = 1.;     // according GK
+   
+   randomSeed 				  = 1020304050.0;   
+
+   checkpointRead              = false; 		
+   checkpointWrite             = false;  	
+//   checkpointWriteDir          = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
+//   checkpointWriteDir          = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/checkpoints";
 //   checkpointWriteStepInterval = 200;
-   numSteps 					= 1000;			// amount of time steps performed during run-time
-   progressStep					= 100;
-//   deleteOlderCheckpoints = false;
-//   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
-   outputPath                   = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output";
-   filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
+//   deleteOlderCheckpoints      = false;
+
+   numSteps                    = 1000;	// amount of time steps performed during run-time
+   progressStep                = 100;
+   
+//   outputPath                 = "/Users/slundquist/Documents/workspace/iHouse/output";
+   outputPath                 = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output";
+   filenamesContainLayerNames = 2; 	// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 };
 
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
@@ -28,28 +31,32 @@ HyPerCol "column" = {
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 
 Patterns "input" = {
-   patternType = "DROP";
-   dropSpeed = 1;       //Radius expands dropSpeed pixles per timestep
-   dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
+   patternType   = "DROP";
+   dropSpeed     = 1;       //Radius expands dropSpeed pixles per timestep
+   dropPeriod    = -1;    //-1 for random period, otherwise, number of frames inbetween drops
    dropRandomMax = 30;  //Max random periods for each drop, 20 default
    dropRandomMin = 15;   //Min random periods for each drop, 5 default
-   halfNeutral = true;
-   startFrame = 100;
+   halfNeutral   = true;
+   startFrame    = 100;
+   
 //   pMove = 1;
 //   maxWidth = 16;
 //   maxHeight = 16;
 //   minWidth = 8;
 //   minHeight = 8;
-   writeImages = true;
+
+   writeImages = false;
+   
 //   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
    patternsOutputPath = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/output/sourcefiles";
-   displayPeriod = 1;
-   writeStep = 1;
-   writeNonspikingActivity = true;
-   useImageBCflag = false;
-   mirrorBCflag = false;
-   inverseFlag = false;
    
+   displayPeriod  = 1;
+   writeStep      = 1;
+   useImageBCflag = false;
+   mirrorBCflag   = false;
+   inverseFlag    = false;
+   
+   writeNonspikingActivity = true;
 };
 
 ANNLayer "scaled input" = {
@@ -314,26 +321,26 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OjaSTDPConn "RetinaONtoS1" = {
-   preLayerName = "RetinaON";
+   preLayerName  = "RetinaON";
    postLayerName = "lif";
-   channelCode = 0;
+   channelCode   = 0;
+   stdpFlag      = 1;
+   
+   initFromLastFlag = 0;  // 1;  /dr/ restart
+   
    nxp = 3;
    nyp = 3;
    nfp = 1;
-   
-   stdpFlag   = 1;
-   initFromLastFlag = 0;  // 1;  /dr/ restart
    writeStep = 200;
-
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
+   
    normalize = false;
    normalize_max = true;
    normalize_zero_offset = 0.0;
    strength = 10;
    
+   wMin        = 0.001;
+   wMax 	   = 5;
+   dWMax       = 10;
    ampLTP      = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    ampLTD      = 0.0071;
    tauLTP      = 16.8;
@@ -381,15 +388,14 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = 200;
 
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
    normalize = false;
    normalize_max = true;
    normalize_zero_offset = 0.0;
    strength = 10;
    
+   wMin        = 0.001;
+   wMax 	   = 5;
+   dWMax       = 10;
    ampLTP      = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    ampLTD      = 0.0071;
    tauLTP      = 16.8;
