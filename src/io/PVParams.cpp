@@ -675,6 +675,7 @@ int PVParams::initialize(int initialSize, InterColComm * icComm) {
 #else
    debugParsing = false;
 #endif//DEBUG_PARSING
+   disable = false;
 
    return ( groups && stack && stringStack && activeParamSweep /* && fnstack */ ) ? PV_SUCCESS : PV_FAILURE;
 }
@@ -1101,6 +1102,7 @@ int PVParams::outputParams(FILE * fp) {
 }
 
 /**
+ * @id
  * @val
  */
 void PVParams::action_pvparams_directive(char * id, double val)
@@ -1117,6 +1119,18 @@ void PVParams::action_pvparams_directive(char * id, double val)
          }
       }
    }
+   else if ( !strcmp(id, "disable") ) {
+      disable = (val != 0);
+      if (getRank() == 0 ) {
+         printf("Parsing params file ");
+         if (disable) {
+            printf("disabled.\n");
+         }
+         else {
+            printf("enabled.\n");
+         }
+      }
+   }
    else {
       if (getRank() == 0) {
          fprintf(stderr,"Unrecognized directive %s = %f, skipping.\n", id, val);
@@ -1130,6 +1144,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
  */
 void PVParams::action_parameter_group(char * keyword, char * name)
 {
+   if (disable) return;
    // remove surrounding quotes
    int len = strlen(++name);
    name[len-1] = '\0';
@@ -1149,6 +1164,7 @@ void PVParams::action_parameter_group(char * keyword, char * name)
  */
 void PVParams::action_parameter_def(char * id, double val)
 {
+   if (disable) return;
    if(debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_parameter_def: %s = %lf\n", id, val);
@@ -1160,6 +1176,7 @@ void PVParams::action_parameter_def(char * id, double val)
 }
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
+   if (disable) return;
    if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
@@ -1174,6 +1191,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
 }
 
 void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
+   if (disable) return;
    if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_parameter_filename_def: %s = %s\n", id, stringval);
@@ -1210,6 +1228,7 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
 }
 
 void PVParams::action_include_directive(const char * stringval) {
+   if (disable) return;
    if( debugParsing && getRank() == 0 ) {
       fflush(stdout);
       printf("action_include_directive: including %s\n", stringval);
@@ -1218,6 +1237,7 @@ void PVParams::action_include_directive(const char * stringval) {
 }
 void PVParams::action_parameter_sweep(const char * id, const char * groupname, const char * paramname)
 {
+   if (disable) return;
    if (!strcmp(id, "ParameterSweep")) {
       // strip quotation marks from groupname
       char * groupname_noquotes = stripQuotationMarks(groupname);
@@ -1239,6 +1259,7 @@ void PVParams::action_parameter_sweep(const char * id, const char * groupname, c
 
 void PVParams::action_sweep_values_number(double val)
 {
+   if (disable) return;
    if (debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_sweep_values_number: %f\n", val);
@@ -1249,6 +1270,7 @@ void PVParams::action_sweep_values_number(double val)
 
 void PVParams::action_sweep_values_string(const char * stringval)
 {
+   if (disable) return;
    if (debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_sweep_values_string: %s\n", stringval);
@@ -1262,6 +1284,7 @@ void PVParams::action_sweep_values_string(const char * stringval)
 
 void PVParams::action_sweep_values_filename(const char * stringval)
 {
+   if (disable) return;
    if (debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_sweep_values_filename: %s\n", stringval);

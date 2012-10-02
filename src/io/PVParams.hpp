@@ -216,9 +216,6 @@ public:
    void action_parameter_string_def(const char * id, const char * stringval);
    void action_parameter_filename_def(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
-#ifdef OBSOLETE // Marked obsolete March 15, 2012.  There's more flexibility in defining string parameters within groups
-   void action_filename_def(char * id, char * path); // Deprecated Oct 27, 2011
-#endif // OBSOLETE
    void action_parameter_sweep(const char * id, const char * groupname, const char * paramname);
    void action_sweep_values_number(double val);
    void action_sweep_values_string(const char * stringval);
@@ -241,6 +238,7 @@ private:
    FilenameStack * fnstack; // Deprecated Oct 27, 2011
 #endif // OBSOLETE
    bool debugParsing;
+   bool disable;
    InterColComm * icComm;
    int getRank() {return icComm->commRank();}
 
