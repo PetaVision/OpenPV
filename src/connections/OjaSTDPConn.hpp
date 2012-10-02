@@ -27,8 +27,6 @@ public:
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();
 
-   // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
-
    virtual float maxWeight(int axonID);
 
    virtual int updateState(float time, float dt);
@@ -46,27 +44,19 @@ protected:
                   const char * filename, bool stdpFlag, InitWeights *weightInit);
    virtual int initPlasticityPatches();
 
-   PVLayerCube * post_tr;     // plasticity decrement variable for postsynaptic layer
+   PVLayerCube * post_tr;      // plasticity decrement variable for postsynaptic layer
    PVLayerCube * post_long_tr; // summed spikes for reconstruction term
-   PVLayerCube * pre_tr;      // plasticity increment variable for presynaptic layer
+   PVLayerCube * pre_tr;       // plasticity increment variable for presynaptic layer
    PVLayerCube * pre_long_tr;  // summed spikes (longer time constant) for reconstruction term
 
-   float * prevW;
-
-   bool       stdpFlag;       // presence of spike timing dependent plasticity
+   bool stdpFlag;              // presence of spike timing dependent plasticity
 
    int pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
                                       float aj, float decay, float fac);
+
    int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
                               const float * RESTRICT p, float aPre,
                               const float * RESTRICT aPost, float dWmax, float wMin, float wMax);
-
-   void set_prevWData(int axonID, int patchIndex) {
-      float ** wDataStart  = get_wDataStart();
-      PVPatch *** wPatches = get_wPatches();
-      prevW = &wDataStart[axonID][patchIndex * nxp * nyp * nfp + wPatches[axonID][patchIndex]->offset];
-   }
-
 
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude

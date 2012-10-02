@@ -30,6 +30,7 @@ OjaSTDPConn::~OjaSTDPConn()
 }
 
 int OjaSTDPConn::initialize_base() {
+
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    // this->dwPatches = NULL;
    this->post_tr = NULL;
@@ -40,12 +41,12 @@ int OjaSTDPConn::initialize_base() {
    this->tauLTD = 33.7;
    this->tauLTPLong = 168;
    this->tauLTDLong = 33.7;
+   this->weightDecay = 0.01;
    this->dWMax = 1;
    this->synscalingFlag = false;
    this->synscaling_v = 1;
-   this->weightDecay = 0.01;
-   this->prevW = 0;
-   // TODO: Set the default values for wMin and wMax? Or are they already set somewhere?
+//   this->wMin = 0.0;
+//   this->wMax = 1.0;
    return PV_SUCCESS;
 }
 
@@ -171,11 +172,11 @@ int OjaSTDPConn::updateWeights(int axonID)
    const pvdata_t * aPost        = post->getLayerData();
    pvdata_t aPre;
 
-   pvdata_t * post_tr_m;        // Postsynaptic trace matrix; i.e. data of post_tr struct
-   pvdata_t * post_long_tr_m;    // Postsynaptic mean trace matrix
-   pvdata_t * pre_tr_m;         // Presynaptic trace matrix
+   pvdata_t * post_tr_m;      // Postsynaptic trace matrix; i.e. data of post_tr struct
+   pvdata_t * post_long_tr_m; // Postsynaptic mean trace matrix
+   pvdata_t * pre_tr_m;       // Presynaptic trace matrix
    pvdata_t * pre_long_tr_m;
-   pvdata_t * W;                // Weight matrix pointer
+   pvdata_t * W;              // Weight matrix pointer
 
    int nk, ny;
 
@@ -185,7 +186,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
    {
-      post_tr_m[kPost]     = decayLTD * post_tr_m[kPost] + aPost[kPost];
+      post_tr_m[kPost]      = decayLTD * post_tr_m[kPost] + aPost[kPost];
       post_long_tr_m[kPost] = decayLTDLong * post_long_tr_m[kPost] + aPost[kPost];
    }
 
@@ -232,7 +233,7 @@ int OjaSTDPConn::updateWeights(int axonID)
                   (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k];
-            W[k] = W[k] > wMax ? wMax : W[k];
+            //W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
          }
 
          // advance pointers in y
@@ -243,7 +244,6 @@ int OjaSTDPConn::updateWeights(int axonID)
          post_tr_m      += postStrideY;
          post_long_tr_m += postStrideY;
       }
-      //set_prevWData(axonID, kPre);
    }
 
    if(synscalingFlag){
