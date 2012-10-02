@@ -14,7 +14,7 @@ run_PetaVision   = 1 #Will just create params file if set to 0
 mpi_np           = '1'
 wrkspc_path      = '/Users/dpaiton/Documents/Work/LANL/workspace'
 param_filename   = 'params_text.pv'
-out_filename     = 'generated_params'
+out_filename     = 'ConeCalibration'
 
 input_path   = wrkspc_path+'/Retina/input'
 results_path = wrkspc_path+'/Retina/output'
@@ -22,7 +22,7 @@ param_file   = wrkspc_path+'/Retina/tuning/'+param_filename
 out_file     = wrkspc_path+'/Retina/tuning/'+out_filename
 run_path     = wrkspc_path+'/Retina/Debug/Retina'
 
-## INPUT FILE 
+## INPUT FILE (One should be uncommented)
 #input_image = input_path+'/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png'
 #input_image = input_path+'/amoeba/1f/sigma20/background_1f_20_gjk.png'
 #input_image = input_path+'/amoeba/1f/sigma1/background_1f_1_gjk.png'
@@ -30,14 +30,19 @@ run_path     = wrkspc_path+'/Retina/Debug/Retina'
 #input_image = input_path+'/blackimage.png'
 input_image = input_path+'/gray128image.png'
 
-## INPUT MOVIE
+## INPUT MOVIE (One should be uncommented)
 input_movie = input_path+'filenamesnjitter.txt';
+#input_movie = input_path+'/graywhiteblack.txt'
 
 ## Declare layers
 #INPUTS
 Image                = 1 
 Movie                = 0
 Patterns             = 0
+
+#ANN INPUT COPY
+ImageBuffer          = 1
+ConstantVrest        = 1
 
 #CONE
 Cone                 = 1
@@ -84,6 +89,8 @@ RetinaON             = 0
 RetinaOFF            = 0
 
 ## Declare conn parameter values ::: frange is (start, end, int)
+ImageImageBuffer            = ["%g" % x for x in frange(40,0,0)]
+ConstantVrestImageBuffer    = ["%g" % x for x in frange(40,0,0)]
 ImageRetina                 = ["%g" % x for x in frange(0,1,1)]
 ImageCone                   = ["%g" % x for x in frange(1,1,1)]
 ConeSigmoidBipolar          = ["%g" % x for x in frange(1,1,1)]
@@ -106,16 +113,16 @@ SFAmacrineSigmoidPAAmacrine = ["%g" % x for x in frange(0,1,1)]
 WFAmacrineSFAmacrine        = ["%g" % x for x in frange(0,1,1)]
 GanglionSynchronicity       = ["%g" % x for x in frange(0,1,1)]
 
-conn_list = ["ImageRetina","ImageCone","ConeSigmoidBipolar","ConeSigmoidHorizontal",
-        "HoriGapHorizontal","HoriSigmoidCone","BipolarSigmoidGanglion","BipolarSigmoidWFAmacrine",
-        "WFAmacrineGapWFAmacrine","WFAmacrineSigmoidBipolar","GangliGapPAAmacrine",
+conn_list = ["ImageImageBuffer","ConstantVrestImageBuffer","ImageRetina","ImageCone","ConeSigmoidBipolar",
+        "ConeSigmoidHorizontal","HoriGapHorizontal","HoriSigmoidCone","BipolarSigmoidGanglion",
+        "BipolarSigmoidWFAmacrine","WFAmacrineGapWFAmacrine","WFAmacrineSigmoidBipolar","GangliGapPAAmacrine",
         "PAAmaGapGanglion","PAAmaGapPAAmacrine","PAAmacrineGanglion","PAAmacrinePAAmacrine",
         "PAAmacrineWFAmacrine","BipolarSigmoidSFAmacrine","SFAmacrineSigmoidGanglion",
         "SFAmacrineSigmoidPAAmacrine","WFAmacrineSFAmacrine","GanglionSynchronicity"]
 
-conn_lol = [ImageRetina,ImageCone,ConeSigmoidBipolar,ConeSigmoidHorizontal,
-        HoriGapHorizontal,HoriSigmoidCone,BipolarSigmoidGanglion,BipolarSigmoidWFAmacrine,
-        WFAmacrineGapWFAmacrine,WFAmacrineSigmoidBipolar,GangliGapPAAmacrine,
+conn_lol = [ImageImageBuffer,ConstantVrestImageBuffer,ImageRetina,ImageCone,ConeSigmoidBipolar,
+        ConeSigmoidHorizontal,HoriGapHorizontal,HoriSigmoidCone,BipolarSigmoidGanglion,
+        BipolarSigmoidWFAmacrine,WFAmacrineGapWFAmacrine,WFAmacrineSigmoidBipolar,GangliGapPAAmacrine,
         PAAmaGapGanglion,PAAmaGapPAAmacrine,PAAmacrineGanglion,PAAmacrinePAAmacrine,
         PAAmacrineWFAmacrine,BipolarSigmoidSFAmacrine,SFAmacrineSigmoidGanglion,
         SFAmacrineSigmoidPAAmacrine,WFAmacrineSFAmacrine,GanglionSynchronicity]
@@ -155,6 +162,10 @@ for param_idx in range(len(conn_lol[0])):
             uncomment = True 
         elif 'Patterns "Image"' in line and Patterns==1:
             uncomment = True 
+        elif 'ANNLayer "ImageBuffer"' in line and ImageBuffer==1:
+            uncomment = True
+        elif 'ANNLayer "ConstantVrest"' in line and ConstantVrest==1:
+            uncomment = True
         elif 'LIF "Cone"' in line and Cone==1:
             uncomment = True 
         elif 'SigmoidLayer "ConeSigmoidON"' in line and ConeSigmoidON==1:
@@ -214,6 +225,10 @@ for param_idx in range(len(conn_lol[0])):
         elif 'LIF "SFAmacrine"' in line and SFAmacrine==1:
             uncomment = True
         elif 'SigmoidLayer "SFAmacrineSigmoid"' in line and SFAmacrineSigmoid==1:
+            uncomment = True
+        elif 'KernelConn "Image to ImageBuffer"' in line and ImageBuffer==1:
+            uncomment = True
+        elif 'KernelConn "ConstantVrest to ImageBuffer"' in line and ConstantVrest==1 and ImageBuffer==1:
             uncomment = True
         elif 'KernelConn "Image to Cone"' in line and Cone==1:
             uncomment = True
