@@ -13,6 +13,26 @@
 #include <time.h>
 #include <math.h>
 
+//////////////////////////////////////////////////////
+// implementation of LIF kernels
+//////////////////////////////////////////////////////
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifndef PV_USE_OPENCL
+#  include "../kernels/LCALIF_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  undef USE_CLRANDOM
+#  include "../kernels/LCALIF_update_state.cl"
+#  define PV_USE_OPENCL
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+//Kernel update state implementation receives all necessary variables
+//for required computation. File is included above.
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,9 +81,9 @@ LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
 }
 
 int LCALIFLayer::initialize_base(){
-   tauLCA = 2000;
-   tauTHR = 20000;
-   targetRate = 1;
+   tauLCA = 200;
+   tauTHR = 1000;
+   targetRate = 50;
    dynVthRest = VthRest;
    integratedSpikeCount = NULL;
    return PV_SUCCESS;
@@ -102,27 +122,4 @@ int LCALIFLayer::updateState(float time, float dt)
  //  std::cout << clayer->activity->data[50] << " " << integratedSpikeCount[50] << "\n";
    return PV_SUCCESS;
 }
-
-//////////////////////////////////////////////////////
-//
-// implementation of LIF kernels
-//
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/LCALIF_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  undef USE_CLRANDOM
-#  include "../kernels/LCALIF_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
 }
