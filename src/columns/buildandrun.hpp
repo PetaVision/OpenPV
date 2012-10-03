@@ -44,6 +44,7 @@
 #include "../layers/BIDSCloneLayer.hpp"
 #include "../layers/BIDSMovieCloneMap.hpp"
 #include "../layers/BIDSSensorLayer.hpp"
+#include "../layers/LCALIFLayer.hpp"
 
 
 #include "../connections/HyPerConn.hpp"

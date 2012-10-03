@@ -118,6 +118,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "LIF",
                 "LIFGap",
                 "BIDSLayer",
+                "LCALIFLayer",
              "Retina",
              "SigmoidLayer",
              "BIDSMovieCloneMap",
@@ -406,6 +407,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "LIFGap") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LIFGap(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "LCALIFLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LCALIFLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "GapLayer") ) {
