@@ -15,10 +15,10 @@ HyPerCol "column" = {
    checkpointWrite 				= false;  		// always
 //   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
 //   checkpointWriteStepInterval = 200;
-   numSteps 					= 100000;			// amount of time steps performed during run-time
-   progressStep					= 1000;
+   numSteps 					= 5000;			// amount of time steps performed during run-time
+   progressStep					= 3000;
 //   deleteOlderCheckpoints = false;
-   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
+   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/LCAoutput";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 };
 
@@ -35,7 +35,7 @@ Patterns "input" = {
    dropRandomMax = 90;  //Max random periods for each drop, 20 default
    dropRandomMin = 30;   //Min random periods for each drop, 5 default
    halfNeutral = true;
-   startFrame = 20000;
+   startFrame = 200;
    endFrame = 10000;
 //   pMove = 1;
 //   maxWidth = 16;
@@ -43,7 +43,7 @@ Patterns "input" = {
 //   minWidth = 8;
 //   minHeight = 8;
    writeImages = true;
-   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
+   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/LCAoutput/sourcefiles";
    displayPeriod = 1;
    writeStep = 1;
    writeNonspikingActivity = true;
@@ -124,7 +124,11 @@ Retina "RetinaOFF" = {
     absRefractoryPeriod = 0;
 };
 
-LIF "lif" = {       
+//LIF "lif" = {       
+LCALIFLayer "lif" = {
+   tau_LCA          = 200;
+   tau_thr          = 20000;
+   targetRate       = 1;
    nxScale          = 1;		
    nyScale          = 1;		
    nf               = 1;       	// one feature for now
@@ -312,115 +316,14 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-STDPConn "RetinaONtoS1" = {
-   preLayerName = "RetinaON";
-   postLayerName = "lif";
-   channelCode = 0;
-   nxp = 5;
-   nyp = 5;
-   nfp = 1;
-   
-   stdpFlag   = 1;
-   initFromLastFlag = 0;  // 1;  /dr/ restart
-   writeStep = 200;
-
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
-   normalize = false;
-   normalize_max = true;
-   normalize_zero_offset = 0.0;
-   strength = 10;
-   
-   ampLTP = 0.02;
-   ampLTD = 0.0071;
-   tauLTP = 8.4;
-   tauLTD = 33.7;
-   
-   wMaxInit = 0.5;
-   wMinInit = 0.005;
-   //localWmaxFlag = 0.0;
-   
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
-   //keepKernelsSynchronized = true;
-   combine_dW_with_W_flag = false;
-   selfFlag = false;
-
-//   weightInitType = "SpreadOverArborsWeight";
-   weightInitType = "UniformRandomWeight";
-//   weightInitType = "Gauss2DWeight";
-   weightInit = 0.001;
-   
-   symmetrizeWeights = 0;
-   
-   plasticityFlag = true;
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
-   delay = 0.0;
-   
-   synscalingFlag = 0;
-   synscaling_v = 5;
+IdentConn "RetinaON to lif" = {
+   channelCode              = 0; 			//excitatory channel
+   writeStep                = -1;
+   delay                    = 0;
 };
 
-STDPConn "RetinaOFFtoS1" = {
-   preLayerName = "RetinaOFF";
-   postLayerName = "lif";
-   channelCode = 0;
-   nxp = 5;
-   nyp = 5;
-   nfp = 1;
-   
-   stdpFlag   = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 200;
-
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
-   normalize = false;
-   normalize_max = true;
-   normalize_zero_offset = 0.0;
-   strength = 10;
-   
-   ampLTP = 0.02;
-   ampLTD = 0.0071;
-   tauLTP = 8.4;
-   tauLTD = 33.7;
-   
-   wMaxInit = 0.5;
-   wMinInit = 0.005;
-   //localWmaxFlag = 0.0;
-   
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
-   //keepKernelsSynchronized = true;
-   combine_dW_with_W_flag = false;
-   selfFlag = false;
-
-//   weightInitType = "SpreadOverArborsWeight";
-   weightInitType = "UniformRandomWeight";
-//   weightInitType = "Gauss2DWeight";
-   weightInit = 0.001;
-   
-   symmetrizeWeights = 0;
-   
-   plasticityFlag = true;
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
-   delay = 0.0;
-   
-   synscalingFlag = 0;
-   synscaling_v = 5;
+IdentConn "RetinaOFF to lif" = {
+   channelCode              = 0; 			//excitatory channel
+   writeStep                = -1;
+   delay                    = 0;
 };
-//
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
-// Probes Probes Probes Probes Probes Probes
