@@ -14,6 +14,9 @@
 #include <time.h>
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void LCALIF_update_state(
    const int numNeurons,
    const float time,
@@ -47,6 +50,10 @@ void LCALIF_update_state(
    const float sum_gap,
    CL_MEM_GLOBAL float * G_Gap
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace PV {
 LCALIFLayer::LCALIFLayer() {
