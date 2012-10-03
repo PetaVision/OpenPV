@@ -45,9 +45,10 @@ protected:
 
    int allocateBuffers();
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
-   float tau_LCA;
-   float tau_thr;
+   float tauLCA;
+   float tauTHR;
    float targetRate;
+   float dynVthRest;
    LCALIFLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
    int initialize_base();
