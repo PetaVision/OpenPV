@@ -75,7 +75,7 @@ int LCALIFLayer::initialize_base(){
 }
 
 int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name){
-   LIF::initialize(name, hc, TypeLCA, num_channels, kernel_name);
+   LIFGap::initialize(name, hc, TypeLCA, num_channels, kernel_name);
    PVParams * params = hc->parameters();
    tau_LCA = params->value(name, "tau_LCA", tau_LCA);
    tau_thr = params->value(name, "tau_thr", tau_thr);
@@ -90,16 +90,19 @@ LCALIFLayer::~LCALIFLayer()
 
 int LCALIFLayer::allocateBuffers() {
    const size_t numNeurons = getNumNeurons();
+   //Allocate data to keep track of trace
    integratedSpikeCount = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(integratedSpikeCount != NULL);
-   return LIF::allocateBuffers();
+   return LIFGap::allocateBuffers();
 }
 
 int LCALIFLayer::updateState(float time, float dt)
 {
+   //Call update_state kernel
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, tau_LCA, tau_thr, targetRate, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
+ //  std::cout << clayer->activity->data[50] << " " << integratedSpikeCount[50] << "\n";
    return PV_SUCCESS;
 }
 
