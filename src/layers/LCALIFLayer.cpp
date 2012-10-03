@@ -14,6 +14,40 @@
 #include <time.h>
 #include <math.h>
 
+void LCALIF_update_state(
+   const int numNeurons,
+   const float time,
+   const float dt,
+
+   const int nx,
+   const int ny,
+   const int nf,
+   const int nb,
+
+   const float tau_LCA,
+   const float tau_thr,
+   const float targetRate,
+
+   pvdata_t * integratedSpikeCount,
+
+   CL_MEM_CONST LIF_params * params,
+   CL_MEM_GLOBAL uint4 * rnd,
+   CL_MEM_GLOBAL float * V,
+   CL_MEM_GLOBAL float * Vth,
+   CL_MEM_GLOBAL float * G_E,
+   CL_MEM_GLOBAL float * G_I,
+   CL_MEM_GLOBAL float * G_IB,
+   CL_MEM_GLOBAL float * GSynHead,
+//    CL_MEM_GLOBAL float * GSynExc,
+//    CL_MEM_GLOBAL float * GSynInh,
+//    CL_MEM_GLOBAL float * GSynInhB,
+//    CL_MEM_GLOBAL float * GSynGap,
+   CL_MEM_GLOBAL float * activity,
+
+   const float sum_gap,
+   CL_MEM_GLOBAL float * G_Gap
+);
+
 namespace PV {
 LCALIFLayer::LCALIFLayer() {
    initialize_base();
@@ -22,7 +56,7 @@ LCALIFLayer::LCALIFLayer() {
 
 LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS, "LCA_LIF_update_state");
+   initialize(name, hc, MAX_CHANNELS + 1, "LCALIF_update_state");
 }
 
 int LCALIFLayer::initialize_base(){
@@ -34,7 +68,7 @@ int LCALIFLayer::initialize_base(){
 }
 
 int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name){
-   LIF::initialize(name, hc, TypeLCA, MAX_CHANNELS, kernel_name);
+   LIF::initialize(name, hc, TypeLCA, num_channels, kernel_name);
    PVParams * params = hc->parameters();
    tau_LCA = params->value(name, "tau_LCA", tau_LCA);
    tau_thr = params->value(name, "tau_thr", tau_thr);
@@ -56,17 +90,12 @@ int LCALIFLayer::allocateBuffers() {
 
 int LCALIFLayer::updateState(float time, float dt)
 {
-   int nk = getNumExtended();
-   const pvdata_t* activityData = getLayerData();
-   //Update traces
-   for (int i = 0; i < nk; i++){
-      integratedSpikeCount[i] += activityData[i] - (dt * integratedSpikeCount[i]/tau_LCA);
-      if (i == 40){
-         std::cout << activityData[i] << " " << integratedSpikeCount[i] << "\n";
-      }
-   }
-   return LIF::updateState(time, dt);
+   LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
+         clayer->loc.nb, tau_LCA, tau_thr, targetRate, integratedSpikeCount, &lParams,
+         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
+   return PV_SUCCESS;
 }
+
 /*
    int status = 0;
    update_timer->start();
@@ -110,6 +139,27 @@ int LCALIFLayer::updateState(float time, float dt)
    return status;
 }
 */
+//////////////////////////////////////////////////////
+//
+// implementation of LIF kernels
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "../kernels/LCALIF_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  undef USE_CLRANDOM
+#  include "../kernels/LCALIF_update_state.cl"
+#  define PV_USE_OPENCL
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 }
 

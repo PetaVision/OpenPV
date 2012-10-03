@@ -8,11 +8,11 @@
 #ifndef LCALIFLAYER_HPP_
 #define LCALIFLAYER_HPP_
 
-//#include "HyPerLayer.hpp"
-#include "LIF.hpp"
+#include "HyPerLayer.hpp"
+#include "LIFGap.hpp"
 
 namespace PV {
-class LCALIFLayer : public PV::LIF {
+class LCALIFLayer : public PV::LIFGap {
 public:
    LCALIFLayer(const char* name, HyPerCol * hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
@@ -23,6 +23,26 @@ public:
    inline float getTargetRate() {return targetRate;};
    float getTrace();
 protected:
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+
+   // OpenCL buffers
+   //
+   CLBuffer * clG_Gap;
+   CLBuffer * clGSynGap;
+
+   virtual int getEVGSynGap() {return EV_LIFGAP_GSYN_GAP;}
+   //virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
+   virtual inline int getGSynEvent(ChannelType ch) {
+      if(LIF::getGSynEvent(ch)>=0) return LIF::getGSynEvent(ch);
+      if(ch==CHANNEL_GAP) return getEVGSynGap();
+      return -1;
+   }
+   virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS;}
+   virtual const char * getKernelName() {return "LCALIF_update_state";}
+#endif
+
    int allocateBuffers();
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
    float tau_LCA;

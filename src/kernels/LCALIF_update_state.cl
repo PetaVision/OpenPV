@@ -139,9 +139,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    // define local param variables
    //
    tau        = params->tau;
-   tau_LCA    = params->tau_LCA;
-   tau_thr    = params->tau_thr;
-   targetRate = params->targetRate;
    Vexc       = params->Vexc;
    Vinh       = params->Vinh;
    VinhB      = params->VinhB;
