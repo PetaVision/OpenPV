@@ -38,6 +38,8 @@ protected:
    virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
    virtual float readAdaptationTimeConstant() {return getParent()->parameters()->value(name, "adaptationTimeConstant", 0.0);}
 
+   virtual int updateIntegratedSpikeCount();
+
 private:
    int initialize_base();
 

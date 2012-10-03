@@ -67,8 +67,11 @@ int LCALIFLateralConn::setParams(PVParams * params) {
 
 int LCALIFLateralConn::calc_dW(int axonId) {
    assert(axonId>=0 && axonId < numberOfAxonalArborLists());
+   updateIntegratedSpikeCount();
    pvdata_t * gSyn_buffer_start = post->getChannel(channel);
-   pvdata_t targetRate = 1.0; // pre->getTargetRate();
+   LCALIFLayer * lcapre = dynamic_cast<LCALIFLayer *>(pre);
+   assert(lcapre != NULL);
+   pvdata_t targetRate = lcapre->getTargetRate();
    pvdata_t target_rate_sq = targetRate * targetRate;
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
    float tausq = integrationTimeConstant*integrationTimeConstant;
@@ -97,7 +100,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
             for (int f=0; f<nfp; f++) {
                int postindex = patch_start_index + sy*y + sx*x + sf*f;
                int postindexext = kIndexExtended(postindex, nxpost, nypost, nfpost, nbpost);
-               pvdata_t delta_weight = dt_inh*(integratedSpikeCount[kPre]*integratedSpikeCount[postindexext]/tausq-target_rate_sq);
+               pvdata_t delta_weight = dt_inh*(integratedSpikeCount[kPre]*integratedSpikeCount[postindexext]/tausq/target_rate_sq-1.0);
                dw_data[sxp*x + syp*y + sfp*f] = delta_weight;
             }
          }
@@ -124,15 +127,24 @@ int LCALIFLateralConn::updateWeights(int axonId) {
    return PV_SUCCESS;
 }
 
+int LCALIFLateralConn::updateIntegratedSpikeCount() {
+   float exp_dt_tau = exp(-parent->getDeltaTime()/integrationTimeConstant);
+   pvdata_t * activity = pre->getActivity();
+   for (int k=0; k<getNumWeightPatches(); k++) {
+      integratedSpikeCount[k] = exp_dt_tau*(integratedSpikeCount[k]+activity[k]);
+   }
+   return PV_SUCCESS;
+}
+
 int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // TODO write integratedSpikeCount
+   // TODO write integratedSpikeCount to checkpoint
    return status;
 }
 
 int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
-   // TODO read integratedSpikeCount
+   // TODO read integratedSpikeCount from checkpoint
    return status;
 }
 
