@@ -48,7 +48,7 @@ protected:
    float tauLCA;
    float tauTHR;
    float targetRate;
-   float dynVthRest;
+   float * dynVthRest;
    LCALIFLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
    int initialize_base();

@@ -62,7 +62,7 @@ void LCALIF_update_state(
     const int nf,
     const int nb,
     
-    float dynVthRest,
+    float * dynVthRest,
     const float tauLCA,
     const float tauTHR,
     const float targetRate,
@@ -222,8 +222,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    //      tau_lca is ~1/5 tauTHR, faster update for traces
    //      int_spike_count is trace
    //      fo is desired baseline spike rate
-   dynVthRest += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - targetRate) * (dynVthRest/targetRate);
-   l_Vth = dynVthRest + (l_Vth - dynVthRest)*exp_tauVth;
+   
+   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - targetRate) * (dynVthRest[k]/targetRate);
+   l_Vth = dynVthRest[k] + (l_Vth - dynVthRest[k])*exp_tauVth;
    
    bool fired_flag = (l_V > l_Vth);
 
