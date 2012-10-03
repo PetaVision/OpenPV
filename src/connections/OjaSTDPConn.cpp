@@ -233,8 +233,11 @@ int OjaSTDPConn::updateWeights(int axonID)
             W[k] += dWMax * (ojaScale * ((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
                   STDPScale * (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
 
-            W[k] = W[k] < wMin ? wMin : W[k];
-            W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
+            W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
+
+            if (ojaScale == 0) { // Oja rule gets rid of the need to monitor max weight
+               W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
+            }
          }
 
          // advance pointers in y
