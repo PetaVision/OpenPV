@@ -45,7 +45,7 @@ float LIFGap_Vmem_derivative(
 }
 
 //
-// update the state of a LIFGap layer (spiking)
+// update the state of a LCALIF layer (spiking)
 //
 //    assume called with 1D kernel
 //
@@ -62,8 +62,9 @@ void LCALIF_update_state(
     const int nf,
     const int nb,
     
-    const float tau_LCA,
-    const float tau_thr,
+    float dynVthRest,
+    const float tauLCA,
+    const float tauTHR,
     const float targetRate,
 
     pvdata_t * integratedSpikeCount,
@@ -91,6 +92,7 @@ void LCALIF_update_state(
    const float exp_tauI    = EXP(-dt/params->tauI);
    const float exp_tauIB   = EXP(-dt/params->tauIB);
    const float exp_tauVth  = EXP(-dt/params->tauVth);
+   const float exp_tauLCA  = EXP(-dt/tauLCA);
 
    const float dt_sec = .001 * dt;   // convert to seconds
 
@@ -212,15 +214,16 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_IB = G_IB_final;
 
    //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
-   integratedSpikeCount[k] += activity[k] - (dt * integratedSpikeCount[k]/tau_LCA);
+   integratedSpikeCount[k] = exp_tauLCA * (activity[k] + integratedSpikeCount[k]);
 
    //l_Vth updates according to traditional LIF rule in addition to the following slow threshold adaptation
-   //   Theta += dt/tau_thr [int_spike_count/tau_lca - fo]
-   //      tau_thr is slow update
-   //      tau_lca is ~1/5 tau_thr, faster update for traces
+   //   Theta += (dt/tauTHR) * (int_spike_count/tau_lca - fo) * (dynVthRest/fo)
+   //      tauTHR is slow update
+   //      tau_lca is ~1/5 tauTHR, faster update for traces
    //      int_spike_count is trace
    //      fo is desired baseline spike rate
-   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth + (-dt/tau_thr * integratedSpikeCount[k]/tau_LCA - targetRate);
+   dynVthRest += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - targetRate) * (dynVthRest/targetRate);
+   l_Vth = dynVthRest + (l_Vth - dynVthRest)*exp_tauVth;
    
    bool fired_flag = (l_V > l_Vth);
 
