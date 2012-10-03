@@ -11,7 +11,7 @@ HyPerCol "column" = {
    
    randomSeed 	= 1020304050.0;   
 
-   numSteps     = 2000;	// amount of time steps performed during run-time
+   numSteps     = 10000;	// amount of time steps performed during run-time
    progressStep = 100;
    
    outputPath   = "~/Documents/Work/LANL/workspace/iHouse/output";
@@ -36,7 +36,7 @@ Patterns "input" = {
    dropRandomMin  = 30;   //Min random periods for each drop, 5 default
    halfNeutral    = true;
    startFrame     = 200;
-   endFrame       = 1400;
+   //endFrame       = 1400;
    
    writeImages    = true;
    
