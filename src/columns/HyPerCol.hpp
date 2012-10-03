@@ -80,6 +80,7 @@ public:
    float getDeltaTime()                   {return deltaTime;}
    float simulationTime()                 {return simTime;}
    float getStopTime()                    {return stopTime;}
+   int getCurrentStep()                   {return currentStep;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
 
