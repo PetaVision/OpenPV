@@ -19,6 +19,7 @@ public:
    LCALayer(const char * name, HyPerCol * hc, int num_channels=MAX_CHANNELS);
    virtual ~LCALayer();
 
+   const pvdata_t * getStimulus() {return stimulus;}
    float getThreshold() {return threshold;}
    float getThresholdSoftness() {return thresholdSoftness;}
    float getTimeConstantTau() {return timeConstantTau;}

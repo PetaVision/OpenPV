@@ -42,11 +42,15 @@ int LCALayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
 }
 
 int LCALayer::updateState(float timef, float dt) {
+#define LCALAYER_FEEDBACK_LENGTH 3
+#define LCALAYER_START_STEP 2
+   int step = parent->getCurrentStep();
+   if (step <= LCALAYER_START_STEP || step % LCALAYER_FEEDBACK_LENGTH != 0) return PV_SUCCESS;
    const pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
    const pvdata_t * gSynInh = getChannel(CHANNEL_INH);
    pvdata_t * V = getV();
    pvdata_t * A = getActivity();
-   const float dt_tau = dt/timeConstantTau;
+   const float dt_tau = LCALAYER_FEEDBACK_LENGTH*dt/timeConstantTau;
    const float threshdrop = thresholdSoftness * threshold;
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
