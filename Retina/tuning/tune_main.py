@@ -10,9 +10,11 @@ from tune_functions import *
 ###             ###
 ###################
 
-run_PetaVision   = 1 #Will just create params file if set to 0
+run_PetaVision   = 0 #Will just create params file if set to 0
 mpi_np           = '1'
-wrkspc_path      = '/Users/dpaiton/Documents/Work/LANL/workspace'
+mpi_rows         = '1'
+mpi_columns      = '1'
+wrkspc_path      = '/Users/garkenyon/workspace-sync-anterior'
 param_filename   = 'params_text.pv'
 out_filename     = 'ConeCalibration'
 
@@ -31,13 +33,13 @@ run_path     = wrkspc_path+'/Retina/Debug/Retina'
 input_image = input_path+'/gray128image.png'
 
 ## INPUT MOVIE (One should be uncommented)
-input_movie = input_path+'filenamesnjitter.txt';
-#input_movie = input_path+'/graywhiteblack.txt'
+#input_movie = input_path+'filenamesnjitter.txt';
+input_movie = input_path+'/filenames_graywhiteblack.txt'
 
 ## Declare layers
 #INPUTS
-Image                = 1 
-Movie                = 0
+Image                = 0 
+Movie                = 1
 Patterns             = 0
 
 #ANN INPUT COPY
@@ -51,12 +53,12 @@ ConeSigmoidOFF       = 1
 
 #BIPOLAR
 BipolarON            = 1
-BipolarSigmoidON     = 0
+BipolarSigmoidON     = 1
 BipolarOFF           = 1
-BipolarSigmoidOFF    = 0
+BipolarSigmoidOFF    = 1
 
 #HORIZONTAL
-Horizontal           = 0
+Horizontal           = 1
 HoriGap              = 0
 HoriSigmoid          = 0
 
@@ -345,7 +347,7 @@ for param_idx in range(len(conn_lol[0])):
     ## Run petavision for this output file
     if run_PetaVision:
         print "tune_params: Running PetaVision.\n\n"
-        run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' '+run_path+' -p '+full_out_file
+        run_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' -rows '+mpi_rows+' -columns '+mpi_columns+' '+run_path+' -p '+full_out_file
         os.system(run_cmd)
         os.system('mv '+full_out_file+' '+results_path+str(param_idx))
         print "\n\ntune_params: Finished running PetaVision."
