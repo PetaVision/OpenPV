@@ -21,7 +21,7 @@ public:
    int findFlag(int numMatrixCol, int numMatrixRow);
 
    inline float getTargetRate() {return targetRate;};
-   float getTrace();
+   const float * getDynVthRest() {return dynVthRest;}
 protected:
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

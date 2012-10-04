@@ -156,6 +156,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "LayerProbe",
                "PointProbe",
                   "PointLIFProbe",
+                    "PointLCALIFProbe",
                "StatsProbe",
                "LayerFunctionProbe",
                  "L2NormProbe",
@@ -1182,6 +1183,32 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
          else {
             addedProbe = (LayerProbe *) new PointLIFProbe(targetlayer, xLoc, yLoc, fLoc, message);
+         }
+         if( !addedProbe ) {
+             fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+             errorFound = true;
+         }
+      }
+      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+   }
+   if( !strcmp(classkeyword, "PointLCALIFProbe") ) {
+      status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+      errorFound = status!=PV_SUCCESS;
+      if( !errorFound ) {
+         xLoc = params->value(name, "xLoc", -1);
+         yLoc = params->value(name, "yLoc", -1);
+         fLoc = params->value(name, "fLoc", -1);
+         if( xLoc <= -1 || yLoc <= -1 || fLoc <= -1) {
+            fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
+            errorFound = true;
+         }
+      }
+      if( !errorFound ) {
+         if( filename ) {
+            addedProbe = (LayerProbe *) new PointLCALIFProbe(filename, targetlayer, xLoc, yLoc, fLoc, message);
+         }
+         else {
+            addedProbe = (LayerProbe *) new PointLCALIFProbe(NULL, targetlayer, xLoc, yLoc, fLoc, message);
          }
          if( !addedProbe ) {
              fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
