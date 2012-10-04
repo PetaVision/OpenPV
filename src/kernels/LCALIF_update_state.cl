@@ -93,6 +93,8 @@ void LCALIF_update_state(
    const float exp_tauIB   = EXP(-dt/params->tauIB);
    const float exp_tauVth  = EXP(-dt/params->tauVth);
    const float exp_tauLCA  = EXP(-dt/tauLCA);
+   //Convert target rate from hz to ms
+   const float conv_targetRate = targetRate/1000;
 
    const float dt_sec = .001 * dt;   // convert to seconds
 
@@ -223,7 +225,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //      int_spike_count is trace
    //      fo is desired baseline spike rate
    
-   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - targetRate) * (dynVthRest[k]/targetRate);
+   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - conv_targetRate) * abs(VthRest/conv_targetRate);
    l_Vth = dynVthRest[k] + (l_Vth - dynVthRest[k])*exp_tauVth;
    
    bool fired_flag = (l_V > l_Vth);
