@@ -18,9 +18,9 @@ mpi_columns      = '1'
 wrkspc_path      = '/Users/dpaiton/Documents/Work/LANL/workspace'
 param_filename   = 'params_gar.pv'
 out_filename     = 'ConeCalibration'
+results_path     = wrkspc_path+'/Retina/output/coneCalibration-test'
 
 input_path   = wrkspc_path+'/Retina/input'
-results_path = wrkspc_path+'/Retina/output'
 param_file   = wrkspc_path+'/Retina/tuning/'+param_filename
 out_file     = wrkspc_path+'/Retina/tuning/'+out_filename
 run_path     = wrkspc_path+'/Retina/Debug/Retina'
