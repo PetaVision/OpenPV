@@ -62,6 +62,7 @@ void LCALIF_update_state(
     const int nf,
     const int nb,
     
+    float dynVthScale,
     float * dynVthRest,
     const float tauLCA,
     const float tauTHR,

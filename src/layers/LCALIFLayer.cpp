@@ -46,6 +46,7 @@ void LCALIF_update_state(
    const int nf,
    const int nb,
 
+   pvdata_t dynVthScale,
    pvdata_t * dynVthRest,
    const float tauLCA,
    const float tauTHR,
@@ -85,6 +86,7 @@ int LCALIFLayer::initialize_base(){
    tauLCA = 200;
    tauTHR = 1000;
    targetRate = 50;
+   dynVthScale = DEFAULT_DYNVTHSCALE;
    dynVthRest = NULL;
    integratedSpikeCount = NULL;
    return PV_SUCCESS;
@@ -102,6 +104,15 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
    for (int i = 0; i < (int)getNumNeurons(); i++){
       //std::cout << "VthRest: " << VthRest << "\n";
       dynVthRest[i] = lParams.VthRest;
+   }
+   float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
+   dynVthScale = defaultDynVthScale > 0 ? dynVthScale : DEFAULT_DYNVTHSCALE;
+   dynVthScale = params->value(name, "dynVthScale", dynVthScale);
+   if (dynVthScale <= 0) {
+      if (hc->columnId()==0) {
+         fprintf(stderr,"LCALIFLayer \"%s\": dynVthScale must be positive (value in params is %f).\n", name, dynVthScale);
+      }
+      abort();
    }
 
    return PV_SUCCESS;
@@ -128,7 +139,7 @@ int LCALIFLayer::updateState(float time, float dt)
    //Call update_state kernel
    std::cout << clayer->activity->data[1000] << " " << integratedSpikeCount[1000] << "\n";
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
-         clayer->loc.nb, dynVthRest, tauLCA, tauTHR, targetRate, integratedSpikeCount, &lParams,
+         clayer->loc.nb, dynVthScale, dynVthRest, tauLCA, tauTHR, targetRate, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
    return PV_SUCCESS;
 }

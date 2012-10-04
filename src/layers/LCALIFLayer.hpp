@@ -11,6 +11,8 @@
 #include "HyPerLayer.hpp"
 #include "LIFGap.hpp"
 
+#define DEFAULT_DYNVTHSCALE 1.0
+
 namespace PV {
 class LCALIFLayer : public PV::LIFGap {
 public:
@@ -48,6 +50,7 @@ protected:
    float tauLCA;
    float tauTHR;
    float targetRate;
+   float dynVthScale;
    float * dynVthRest;
    LCALIFLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
