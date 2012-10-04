@@ -98,6 +98,12 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
    tauTHR     = params->value(name, "tauTHR", tauTHR);
    targetRate = params->value(name, "targetRate", targetRate);
 
+   //Initialize dynVthRest to vthRest
+   for (int i = 0; i < (int)getNumNeurons(); i++){
+      //std::cout << "VthRest: " << VthRest << "\n";
+      dynVthRest[i] = lParams.VthRest;
+   }
+
    return PV_SUCCESS;
 }
 
@@ -114,20 +120,16 @@ int LCALIFLayer::allocateBuffers() {
    assert(integratedSpikeCount != NULL);
    dynVthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(dynVthRest != NULL);
-   //Initialize to vthRest
-   for (int i = 0; i < (int)numNeurons; i++){
-      dynVthRest[i] = VthRest;
-   }
    return LIFGap::allocateBuffers();
 }
 
 int LCALIFLayer::updateState(float time, float dt)
 {
    //Call update_state kernel
+   std::cout << clayer->activity->data[1000] << " " << integratedSpikeCount[1000] << "\n";
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, dynVthRest, tauLCA, tauTHR, targetRate, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
-   std::cout << clayer->activity->data[50] << " " << integratedSpikeCount[50] << "\n";
    return PV_SUCCESS;
 }
 }
