@@ -126,8 +126,8 @@ Retina "RetinaOFF" = {
 
 //LIF "lif" = {       
 LCALIFLayer "lif" = {
-   tau_LCA          = 200;
-   tau_thr          = 20000;
+   tauLCA           = 200;
+   tauTHR           = 20000;
    targetRate       = 1;
    nxScale          = 1;		
    nyScale          = 1;		
@@ -158,6 +158,7 @@ LCALIFLayer "lif" = {
    noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;    	// correlation to time step size !!!
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+   dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
 // Connections Connections Connections Connections Connections Connections
