@@ -436,5 +436,53 @@ void STDP_update_state_pre(
 }
 #endif //NOTYET - TODO
 
+int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
+   int status = HyPerConn::checkpointRead(cpDir, timef);
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_long_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_long_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   double timed;
+   PVLayerLoc loc;
+   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   loc.nx += 2*loc.nb;
+   loc.ny += 2*loc.nb;
+   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   loc.nb = 0;
+
+   read_pvdata(filename, parent->icCommunicator(), &timed, post_tr, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, pre_tr, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   return status;
+}
+
+int OjaSTDPConn::checkpointWrite(const char * cpDir) {
+   int status = HyPerConn::checkpointWrite(cpDir);
+   // This is kind of hacky, but we save the extended buffers post_tr, post_long_tr, pre_tr, pre_long_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_long_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_long_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   PVLayerLoc loc;
+   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   loc.nx += 2*loc.nb;
+   loc.ny += 2*loc.nb;
+   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   loc.nb = 0;
+
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_tr->data, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_tr->data, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   return status;
+}
+
 
 } // End of namespace PV

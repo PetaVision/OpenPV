@@ -139,13 +139,45 @@ int LCALIFLateralConn::updateIntegratedSpikeCount() {
 
 int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // TODO write integratedSpikeCount to checkpoint
+   // This is kind of hacky, but we save the extended buffer integratedSpikeCount as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   PVLayerLoc loc;
+   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   loc.nx += 2*loc.nb;
+   loc.ny += 2*loc.nb;
+   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   loc.nb = 0;
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
    return status;
 }
 
 int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
-   // TODO read integratedSpikeCount from checkpoint
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   double timed;
+   PVLayerLoc loc;
+   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   loc.nx += 2*loc.nb;
+   loc.ny += 2*loc.nb;
+   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   loc.nb = 0;
+   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
    return status;
 }
 

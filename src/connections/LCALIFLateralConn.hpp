@@ -10,6 +10,8 @@
 
 #include "HyPerConn.hpp"
 #include "../layers/LCALIFLayer.hpp"
+#include "../io/io.h"
+#include "../io/fileio.hpp"
 
 namespace PV {
 

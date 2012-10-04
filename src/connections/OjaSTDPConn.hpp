@@ -34,6 +34,9 @@ public:
    virtual int outputState(float time, bool last=false);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
+   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointWrite(const char * cpDir);
+
 protected:
 
    int initialize_base();
